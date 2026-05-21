@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Operations | Admin" };
 
