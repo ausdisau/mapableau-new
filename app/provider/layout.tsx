@@ -13,7 +13,10 @@ export default async function ProviderLayout({ children }: { children: React.Rea
           <Link href="/provider/care/shifts">Care shifts</Link>
           <Link href="/provider/transport">Transport</Link>
           <Link href="/provider/workers">Workers</Link>
+          <Link href="/provider/vehicles">Vehicles</Link>
+          <Link href="/provider/drivers">Drivers</Link>
           <Link href="/provider/availability">Availability</Link>
+          <Link href="/provider/capacity">Capacity</Link>
           <Link href="/provider/calendar">Calendar</Link>
           <Link href="/provider/messages">Messages</Link>
           <Link href="/provider/support">Support</Link>

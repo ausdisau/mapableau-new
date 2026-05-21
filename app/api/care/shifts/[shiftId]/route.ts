@@ -17,3 +17,22 @@ export async function GET(
   if (!shift) return jsonError("Not found", 404);
   return jsonOk({ shift });
 }
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ shiftId: string }> }
+) {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+  const { shiftId } = await params;
+  const body = await req.json();
+  const shift = await prisma.careShift.update({
+    where: { id: shiftId },
+    data: {
+      workerProfileId: body.workerProfileId,
+      status: body.status,
+      workerNotes: body.workerNotes,
+    },
+  });
+  return jsonOk({ shift });
+}
