@@ -36,7 +36,34 @@ export type Permission =
   | "invoice:read:org"
   | "invoice:manage:any"
   | "provider:booking:respond"
-  | "admin:operations";
+  | "admin:operations"
+  | "care:read:self"
+  | "care:manage:self"
+  | "care:read:org"
+  | "care:manage:org"
+  | "care:manage:any"
+  | "care:shift:work"
+  | "transport:read:self"
+  | "transport:manage:self"
+  | "transport:read:org"
+  | "transport:manage:org"
+  | "transport:manage:any"
+  | "transport:drive"
+  | "worker:manage:org"
+  | "worker:read:any"
+  | "vehicle:manage:org"
+  | "vehicle:read:any"
+  | "driver:manage:org"
+  | "driver:read:any"
+  | "availability:manage:org"
+  | "jobs:read:public"
+  | "jobs:manage:employer"
+  | "jobs:manage:any"
+  | "jobs:apply"
+  | "calendar:read:self"
+  | "calendar:read:org"
+  | "calendar:manage:any"
+  | "admin:service-ops";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -56,6 +83,13 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "booking:create",
     "booking:read:self",
     "notification:read:self",
+    "care:read:self",
+    "care:manage:self",
+    "transport:read:self",
+    "transport:manage:self",
+    "jobs:read:public",
+    "jobs:apply",
+    "calendar:read:self",
   ],
   family_member: [
     "profile:read:self",
@@ -67,11 +101,53 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "booking:read:any",
     "notification:read:self",
   ],
-  support_worker: ["booking:read:any", "notification:read:self"],
-  provider_admin: ["booking:read:any", "notification:read:self", "message:read", "message:send", "support:create", "document:read", "document:upload", "invoice:read:org", "provider:booking:respond"],
-  transport_operator: ["booking:read:any", "notification:read:self", "message:read", "message:send", "support:create", "provider:booking:respond"],
-  driver: ["booking:read:any", "notification:read:self"],
-  employer: ["notification:read:self"],
+  support_worker: [
+    "booking:read:any",
+    "notification:read:self",
+    "care:shift:work",
+    "calendar:read:org",
+  ],
+  provider_admin: [
+    "booking:read:any",
+    "notification:read:self",
+    "message:read",
+    "message:send",
+    "support:create",
+    "document:read",
+    "document:upload",
+    "invoice:read:org",
+    "provider:booking:respond",
+    "care:read:org",
+    "care:manage:org",
+    "worker:manage:org",
+    "availability:manage:org",
+    "calendar:read:org",
+  ],
+  transport_operator: [
+    "booking:read:any",
+    "notification:read:self",
+    "message:read",
+    "message:send",
+    "support:create",
+    "provider:booking:respond",
+    "transport:read:org",
+    "transport:manage:org",
+    "vehicle:manage:org",
+    "driver:manage:org",
+    "availability:manage:org",
+    "calendar:read:org",
+  ],
+  driver: [
+    "booking:read:any",
+    "notification:read:self",
+    "transport:drive",
+    "calendar:read:org",
+  ],
+  employer: [
+    "notification:read:self",
+    "jobs:manage:employer",
+    "calendar:read:org",
+  ],
   plan_manager: ["booking:read:any", "notification:read:self"],
   mapable_admin: [
     "profile:read:any",
@@ -92,6 +168,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "funding:read:any",
     "invoice:manage:any",
     "notification:read:self",
+    "care:manage:any",
+    "transport:manage:any",
+    "worker:read:any",
+    "vehicle:read:any",
+    "driver:read:any",
+    "jobs:manage:any",
+    "calendar:manage:any",
+    "admin:service-ops",
   ],
 };
 

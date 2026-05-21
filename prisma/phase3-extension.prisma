@@ -1,0 +1,476 @@
+
+// --- MapAble Core Phase 3 ---
+
+enum CareRequestType {
+  personal_care
+  domestic_assistance
+  community_access
+  appointment_support
+  employment_support
+  meal_preparation
+  therapy_assistance
+  skill_building
+  overnight_support
+  other
+}
+
+enum CareRequestStatus {
+  draft
+  submitted
+  awaiting_admin_review
+  awaiting_provider_response
+  matched
+  confirmed
+  in_progress
+  completed
+  cancelled
+  disputed
+}
+
+enum CareShiftStatus {
+  scheduled
+  worker_assigned
+  confirmed
+  worker_en_route
+  checked_in
+  in_progress
+  checked_out
+  awaiting_participant_approval
+  approved
+  completed
+  cancelled
+  disputed
+}
+
+enum WorkerCredentialStatus {
+  not_provided
+  pending_review
+  verified
+  expired
+  rejected
+}
+
+enum TransportBookingType {
+  one_way
+  return_trip
+  multi_stop_placeholder
+}
+
+enum TransportBookingStatus {
+  draft
+  requested
+  awaiting_operator_response
+  operator_accepted
+  driver_assigned
+  vehicle_assigned
+  confirmed
+  driver_en_route
+  arrived_for_pickup
+  participant_on_board
+  in_transit
+  arrived_at_destination
+  completed
+  cancelled
+  disputed
+}
+
+enum VehicleType {
+  standard_car
+  wheelchair_accessible_taxi
+  accessible_van
+  community_transport_bus
+  other
+}
+
+enum JobStatus {
+  draft
+  published
+  closed
+  archived
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  casual
+  contract
+  volunteer
+  work_experience
+  supported_employment
+}
+
+enum JobApplicationStatus {
+  draft
+  submitted
+  under_review
+  interview_requested
+  successful
+  unsuccessful
+  withdrawn
+}
+
+enum CalendarEventType {
+  care_request
+  care_shift
+  transport_booking
+  job_application
+  job_interview
+  support_ticket_followup
+  admin_task
+}
+
+enum CalendarVisibility {
+  participant_private
+  organisation
+  employer
+  admin_only
+}
+
+enum OrchestrationEventType {
+  care_transport_link_created
+  interview_transport_draft_created
+  invoice_from_care_shift
+  care_request_submitted
+}
+
+model CareRequest {
+  id                      String            @id @default(cuid())
+  participantId           String
+  participant             User              @relation("CareRequestParticipant", fields: [participantId], references: [id])
+  requestType             CareRequestType
+  title                   String
+  description             String
+  preferredDate           DateTime?
+  startTime               String?
+  endTime                 String?
+  recurrencePlaceholder   Boolean           @default(false)
+  locationType            String?
+  address                 String?
+  suburb                  String?
+  state                   String?
+  accessRequirementsSummary String?
+  tasks                   Json              @default("[]")
+  communicationNotes      String?
+  preferredWorkerAttributes Json?
+  genderPreference        String?
+  supportItemCode         String?
+  fundingSourceId         String?
+  fundingSource           ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
+  linkedTransportRequired Boolean           @default(false)
+  shareAccessibility      Boolean           @default(false)
+  status                  CareRequestStatus @default(draft)
+  createdById             String
+  createdBy               User              @relation("CareRequestCreatedBy", fields: [createdById], references: [id])
+  assignedOrganisationId  String?
+  assignedOrganisation    Organisation?     @relation(fields: [assignedOrganisationId], references: [id], onDelete: SetNull)
+  assignedWorkerId        String?
+  assignedWorkerProfileId String?
+  assignedWorkerProfile   WorkerProfile?    @relation(fields: [assignedWorkerProfileId], references: [id], onDelete: SetNull)
+  bookingId               String?
+  booking                 Booking?          @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  shifts                  CareShift[]
+  calendarEvents          CalendarEvent[]
+  orchestrationEvents     OrchestrationEvent[]
+
+  @@index([participantId, status])
+  @@index([assignedOrganisationId])
+}
+
+model CareShift {
+  id                      String          @id @default(cuid())
+  careRequestId           String
+  careRequest             CareRequest     @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
+  bookingId               String?
+  booking                 Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  participantId           String
+  participant             User              @relation("CareShiftParticipant", fields: [participantId], references: [id])
+  organisationId          String
+  organisation            Organisation    @relation(fields: [organisationId], references: [id])
+  workerProfileId         String?
+  workerProfile           WorkerProfile?  @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  startAt                 DateTime
+  endAt                   DateTime
+  location                String?
+  tasks                   Json              @default("[]")
+  accessRequirementsSnapshot Json?
+  status                  CareShiftStatus   @default(scheduled)
+  checkInTime             DateTime?
+  checkOutTime            DateTime?
+  checkInLatPlaceholder   Float?
+  checkInLngPlaceholder   Float?
+  workerNotes             String?
+  participantApprovalStatus String        @default("pending")
+  approvedById            String?
+  approvedBy              User?           @relation("CareShiftApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt              DateTime?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  calendarEvents          CalendarEvent[]
+
+  @@index([participantId, status])
+  @@index([organisationId])
+  @@index([workerProfileId])
+}
+
+model WorkerProfile {
+  id                      String                 @id @default(cuid())
+  userId                  String?
+  user                    User?                  @relation("WorkerProfileUser", fields: [userId], references: [id], onDelete: SetNull)
+  organisationId          String
+  organisation            Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  displayName             String
+  profileSummary          String?
+  serviceTypes            String[]               @default([])
+  serviceRegions          String[]               @default([])
+  languages               String[]               @default([])
+  communicationCapabilities Json                 @default("[]")
+  qualificationsSummary   String?
+  workerScreeningStatus   WorkerCredentialStatus @default(not_provided)
+  wwccStatus              WorkerCredentialStatus @default(not_provided)
+  firstAidStatus          WorkerCredentialStatus @default(not_provided)
+  insuranceStatus         WorkerCredentialStatus @default(not_provided)
+  verificationStatus      WorkerCredentialStatus @default(pending_review)
+  active                  Boolean                @default(true)
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  careRequests            CareRequest[]
+  careShifts              CareShift[]
+  availabilityWindows     AvailabilityWindow[]
+
+  @@index([organisationId, active])
+}
+
+model AvailabilityWindow {
+  id             String          @id @default(cuid())
+  organisationId String
+  organisation   Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerProfileId String?
+  workerProfile  WorkerProfile?  @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  driverProfileId String?
+  driverProfile  DriverProfile?  @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  vehicleId      String?
+  vehicle        Vehicle?        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  dayOfWeek      DayOfWeek
+  startTime      String
+  endTime        String
+  timezone       String          @default("Australia/Sydney")
+  effectiveFrom  DateTime        @default(now())
+  effectiveTo    DateTime?
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+
+  @@index([organisationId])
+}
+
+model CapacityBlock {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  date           DateTime
+  serviceType    String
+  totalCapacity  Int          @default(0)
+  bookedCapacity Int          @default(0)
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organisationId, date])
+}
+
+model TransportBooking {
+  id                    String                 @id @default(cuid())
+  bookingId             String?
+  booking               Booking?               @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  participantId         String
+  participant           User                   @relation("TransportBookingParticipant", fields: [participantId], references: [id])
+  transportType         TransportBookingType   @default(one_way)
+  pickupAddress         String
+  pickupLat             Float?
+  pickupLng             Float?
+  pickupWindowStart     DateTime
+  pickupWindowEnd       DateTime?
+  dropoffAddress        String
+  dropoffLat            Float?
+  dropoffLng            Float?
+  appointmentTime       DateTime?
+  returnTripRequired    Boolean                @default(false)
+  returnPickupTime      DateTime?
+  passengerCount        Int                    @default(1)
+  mobilityAidSnapshot   Json?
+  vehicleRequirements   Json                   @default("{}")
+  driverAssistanceRequired Boolean             @default(false)
+  pickupNotes           String?
+  dropoffNotes          String?
+  shareAccessibility    Boolean                @default(false)
+  status                TransportBookingStatus @default(draft)
+  operatorOrganisationId String?
+  operatorOrganisation  Organisation?          @relation("TransportOperator", fields: [operatorOrganisationId], references: [id], onDelete: SetNull)
+  driverProfileId       String?
+  driverProfile         DriverProfile?         @relation(fields: [driverProfileId], references: [id], onDelete: SetNull)
+  vehicleId             String?
+  vehicle               Vehicle?               @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  careRequestId         String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  calendarEvents        CalendarEvent[]
+
+  @@index([participantId, status])
+  @@index([operatorOrganisationId])
+}
+
+model Vehicle {
+  id                   String                 @id @default(cuid())
+  organisationId       String
+  organisation         Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  displayName          String
+  vehicleType          VehicleType            @default(standard_car)
+  registrationNumber   String?
+  wheelchairAccessible Boolean                @default(false)
+  rampAvailable        Boolean                @default(false)
+  liftAvailable        Boolean                @default(false)
+  wheelchairSpaces     Int                    @default(0)
+  seatedCapacity       Int                    @default(4)
+  canCarryPowerWheelchair Boolean             @default(false)
+  assistanceAnimalFriendly Boolean           @default(true)
+  airConditioning      Boolean                @default(true)
+  notes                String?
+  verificationStatus   WorkerCredentialStatus @default(pending_review)
+  active               Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  transportBookings    TransportBooking[]
+  availabilityWindows  AvailabilityWindow[]
+
+  @@index([organisationId])
+}
+
+model DriverProfile {
+  id                      String                 @id @default(cuid())
+  userId                  String?
+  user                    User?                  @relation("DriverProfileUser", fields: [userId], references: [id], onDelete: SetNull)
+  organisationId          String
+  organisation            Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  displayName             String
+  phone                   String?
+  serviceRegions          String[]               @default([])
+  licenceStatus           WorkerCredentialStatus @default(not_provided)
+  accessibilityTrainingStatus WorkerCredentialStatus @default(not_provided)
+  workerScreeningStatus   WorkerCredentialStatus @default(not_provided)
+  active                  Boolean                @default(true)
+  verificationStatus      WorkerCredentialStatus @default(pending_review)
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  transportBookings       TransportBooking[]
+  availabilityWindows     AvailabilityWindow[]
+
+  @@index([organisationId])
+}
+
+model Job {
+  id                        String       @id @default(cuid())
+  employerOrganisationId    String
+  employerOrganisation      Organisation @relation("EmployerJobs", fields: [employerOrganisationId], references: [id])
+  title                     String
+  description               String
+  employmentType            EmploymentType
+  location                  String?
+  remoteAllowed             Boolean      @default(false)
+  flexibleHours             Boolean      @default(false)
+  payRange                  String?
+  accessibilityFeatures     Json         @default("{}")
+  adjustmentOpennessStatement String?
+  applicationInstructions   String?
+  status                    JobStatus    @default(draft)
+  createdById               String
+  createdBy                 User         @relation("JobCreatedBy", fields: [createdById], references: [id])
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+
+  applications              JobApplication[]
+  calendarEvents            CalendarEvent[]
+
+  @@index([status])
+  @@index([employerOrganisationId])
+}
+
+model JobApplication {
+  id                        String               @id @default(cuid())
+  jobId                     String
+  job                       Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  participantId             String
+  participant               User                 @relation("JobApplicationParticipant", fields: [participantId], references: [id])
+  applicantSummary          String?
+  resumeDocumentId          String?
+  coverLetter               String?
+  reasonableAdjustmentRequest String?
+  shareAdjustments          Boolean              @default(false)
+  transportSupportNeeded    Boolean              @default(false)
+  careSupportNeeded         Boolean              @default(false)
+  status                    JobApplicationStatus @default(draft)
+  submittedAt               DateTime?
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
+
+  calendarEvents            CalendarEvent[]
+
+  @@index([jobId])
+  @@index([participantId, status])
+}
+
+model CalendarEvent {
+  id                  String             @id @default(cuid())
+  eventType           CalendarEventType
+  title               String
+  description         String?
+  startAt             DateTime
+  endAt               DateTime
+  timezone            String             @default("Australia/Sydney")
+  participantId       String?
+  participant         User?              @relation("CalendarEventParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  organisationId      String?
+  organisation        Organisation?      @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId           String?
+  careRequestId       String?
+  careRequest         CareRequest?       @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  careShiftId         String?
+  careShift           CareShift?         @relation(fields: [careShiftId], references: [id], onDelete: SetNull)
+  transportBookingId  String?
+  transportBooking    TransportBooking?  @relation(fields: [transportBookingId], references: [id], onDelete: SetNull)
+  jobApplicationId    String?
+  jobApplication      JobApplication?    @relation(fields: [jobApplicationId], references: [id], onDelete: SetNull)
+  jobId               String?
+  job                 Job?               @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  visibility          CalendarVisibility @default(participant_private)
+  externalSyncPlaceholder Boolean          @default(false)
+  createdById         String
+  createdBy           User               @relation("CalendarEventCreatedBy", fields: [createdById], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([participantId, startAt])
+  @@index([organisationId, startAt])
+}
+
+model OrchestrationEvent {
+  id              String                 @id @default(cuid())
+  eventType       OrchestrationEventType
+  careRequestId   String?
+  careRequest     CareRequest?           @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  transportBookingId String?
+  bookingId       String?
+  jobApplicationId String?
+  careShiftId     String?
+  metadata        Json?
+  idempotencyKey  String?                @unique
+  createdById     String?
+  createdAt       DateTime               @default(now())
+
+  @@index([careRequestId])
+}
