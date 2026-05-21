@@ -25,6 +25,12 @@ model User {
   claimedProviders ClaimedProvider[]
 
   memberships      ProviderUserRole[]
+  billingAccounts  BillingAccount[]
+  fundingSources   FundingSource[]
+  invoices         Invoice[]
+  payments         Payment[]
+  subscriptions    Subscription[]
+  auditLogs        AuditLog[]         @relation("AuditLogActor")
 }
 
 model Worker {
@@ -199,4 +205,275 @@ enum DayOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+// --- MapAble Core Billing ---
+
+enum BillingAccountRole {
+  participant
+  provider
+  employer
+  admin
+}
+
+enum FundingSourceType {
+  ndis_plan_managed
+  ndis_self_managed
+  private_card
+  organisation_invoice
+  grant
+  other
+}
+
+enum InvoiceServiceType {
+  care
+  transport
+  jobs
+  marketplace
+  subscription
+  other
+}
+
+enum InvoiceStatus {
+  draft
+  issued
+  pending_payment
+  paid
+  failed
+  refunded
+  cancelled
+  exported
+}
+
+enum PaymentStatus {
+  requires_payment
+  processing
+  succeeded
+  failed
+  refunded
+  disputed
+}
+
+enum PaymentMethod {
+  stripe_checkout
+  stripe_connect
+  external_plan_manager
+  xero_export
+  manual
+}
+
+enum PaymentSplitRecipientType {
+  provider
+  worker
+  transport_operator
+  mapable_platform
+}
+
+enum PaymentSplitStatus {
+  pending
+  transferred
+  failed
+  reversed
+}
+
+enum SubscriptionPlanCode {
+  provider_pro
+  employer_pro
+  marketplace_featured
+  other
+}
+
+enum SubscriptionStatus {
+  incomplete
+  incomplete_expired
+  trialing
+  active
+  past_due
+  canceled
+  unpaid
+  paused
+}
+
+model BillingAccount {
+  id                        String             @id @default(cuid())
+  userId                    String
+  user                      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                      BillingAccountRole
+  stripeCustomerId          String?
+  stripeConnectedAccountId  String?
+  connectOnboardingComplete Boolean            @default(false)
+  defaultFundingSourceId    String?
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+
+  subscriptions Subscription[]
+
+  @@unique([userId, role])
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@index([stripeConnectedAccountId])
+}
+
+model FundingSource {
+  id                    String            @id @default(cuid())
+  userId                String
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                  FundingSourceType
+  label                 String
+  ndisParticipantNumber String?
+  planManagerName       String?
+  planManagerEmail      String?
+  isDefault             Boolean           @default(false)
+  metadata              Json              @default("{}")
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  invoices Invoice[]
+
+  @@index([userId])
+}
+
+model Invoice {
+  id                       String             @id @default(cuid())
+  userId                   String
+  user                     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId               String?
+  bookingId                String?
+  serviceType              InvoiceServiceType
+  status                   InvoiceStatus      @default(draft)
+  fundingSourceId          String?
+  fundingSource            FundingSource?     @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
+  currency                 String             @default("AUD")
+  subtotalCents            Int
+  platformFeeCents         Int                @default(0)
+  gstCents                 Int                @default(0)
+  totalCents               Int
+  ndisLineItem             String?
+  ndisClaimable            Boolean            @default(false)
+  stripeCheckoutSessionId  String?
+  stripePaymentIntentId    String?
+  stripeInvoiceId          String?
+  xeroExportStatus         String?
+  planManagerExportStatus  String?
+  dueAt                    DateTime?
+  paidAt                   DateTime?
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  lineItems InvoiceLineItem[]
+  payments  Payment[]
+
+  @@index([userId])
+  @@index([providerId])
+  @@index([status])
+  @@index([bookingId])
+}
+
+model InvoiceLineItem {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description     String
+  quantity        Int      @default(1)
+  unitAmountCents Int
+  totalCents      Int
+  ndisLineItem    String?
+  gstApplicable   Boolean  @default(false)
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id                      String        @id @default(cuid())
+  invoiceId               String
+  invoice                 Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  userId                  String
+  user                    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId              String?
+  status                  PaymentStatus @default(requires_payment)
+  method                  PaymentMethod
+  amountCents             Int
+  currency                String        @default("AUD")
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
+  stripeChargeId          String?
+  failureReason           String?
+  paidAt                  DateTime?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  splits PaymentSplit[]
+
+  @@index([invoiceId])
+  @@index([userId])
+  @@index([status])
+}
+
+model PaymentSplit {
+  id                      String                    @id @default(cuid())
+  paymentId               String
+  payment                 Payment                   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  recipientType           PaymentSplitRecipientType
+  recipientId             String?
+  stripeConnectedAccountId String?
+  amountCents             Int
+  applicationFeeCents     Int                       @default(0)
+  transferId              String?
+  status                  PaymentSplitStatus        @default(pending)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@index([paymentId])
+}
+
+model Subscription {
+  id                   String               @id @default(cuid())
+  userId               String
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billingAccountId     String
+  billingAccount       BillingAccount       @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  planCode             SubscriptionPlanCode
+  status               SubscriptionStatus   @default(incomplete)
+  stripeCustomerId     String
+  stripeSubscriptionId String               @unique
+  stripePriceId        String
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([billingAccountId])
+}
+
+model StripeWebhookEvent {
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique
+  type          String
+  processed     Boolean   @default(false)
+  payload       Json
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+
+  @@index([type])
+  @@index([processed])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actor       User?    @relation("AuditLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  entityType  String
+  entityId    String
+  action      String
+  before      Json?
+  after       Json?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@index([createdAt])
 }
