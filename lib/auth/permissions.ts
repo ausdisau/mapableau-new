@@ -121,7 +121,20 @@ export type Permission =
   | "social_impact:read"
   | "scale_plan:manage"
   | "ndia:pilot"
-  | "transparency:publish";
+  | "transparency:publish"
+  | "app_store:manage"
+  | "transport_network:manage"
+  | "compliance_renewal:manage"
+  | "settlement:manage"
+  | "national_insights:publish"
+  | "api_versioning:manage"
+  | "sla:report"
+  | "grant:report"
+  | "security_audit:manage"
+  | "assessor:portal"
+  | "platform_status:read"
+  | "data_trust:manage"
+  | "partner_marketplace:manage";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -306,6 +319,19 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "scale_plan:manage",
     "ndia:pilot",
     "transparency:publish",
+    "app_store:manage",
+    "transport_network:manage",
+    "compliance_renewal:manage",
+    "settlement:manage",
+    "national_insights:publish",
+    "api_versioning:manage",
+    "sla:report",
+    "grant:report",
+    "security_audit:manage",
+    "assessor:portal",
+    "platform_status:read",
+    "data_trust:manage",
+    "partner_marketplace:manage",
   ],
 };
 
