@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { BillingInvoiceCard } from "@/components/billing/BillingInvoiceCard";
+import { Card, CardContent } from "@/components/ui/card";
+import { mapableSectionCardClass } from "@/lib/brand/styles";
 import type { BillingFundingSource, BillingInvoice } from "@prisma/client";
+import { cn } from "@/app/lib/utils";
 
 type InvoiceRow = BillingInvoice & { fundingSource: BillingFundingSource | null };
 
@@ -85,26 +88,44 @@ export function BillingDashboardClient() {
   }
 
   function viewStatus(invoice: InvoiceRow) {
-    const latest = invoice.status;
-    setMessage(`Payment status: ${latest.replace(/_/g, " ")}. Paid only when confirmed by Stripe webhook.`);
+    setMessage(
+      `Payment status: ${invoice.status.replace(/_/g, " ")}. Paid only when confirmed by Stripe webhook.`
+    );
   }
 
   return (
-    <div>
+    <div className="space-y-8">
+      <div
+        className={cn(mapableSectionCardClass, "p-5 sm:p-6")}
+        role="note"
+        aria-label="NDIS billing guidance"
+      >
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-primary">Plan-managed NDIS</span> invoices are
+          exported to your plan manager — not charged on card.{" "}
+          <span className="font-semibold text-secondary">Self-managed</span> and private pay use
+          secure Stripe Checkout.
+        </p>
+      </div>
+
       {message && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="mb-6 rounded-lg border border-border bg-muted/50 p-4 text-sm"
-        >
-          {message}
-        </div>
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-4 text-sm" role="status" aria-live="polite">
+            {message}
+          </CardContent>
+        </Card>
       )}
 
       {loading ? (
-        <p aria-busy="true">Loading invoices…</p>
+        <p aria-busy="true" className="text-muted-foreground">
+          Loading invoices…
+        </p>
       ) : invoices.length === 0 ? (
-        <p>No invoices yet.</p>
+        <Card variant="gradient">
+          <CardContent className="p-8 text-center text-muted-foreground">
+            No invoices yet. Book a service or ask your provider to issue an invoice.
+          </CardContent>
+        </Card>
       ) : (
         <ul className="space-y-6" aria-label="Your invoices">
           {invoices.map((inv) => (

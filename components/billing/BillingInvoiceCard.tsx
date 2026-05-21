@@ -3,6 +3,10 @@
 import type { BillingFundingSource, BillingInvoice } from "@prisma/client";
 import { format } from "date-fns";
 
+import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+
 type InvoiceWithFunding = BillingInvoice & {
   fundingSource: BillingFundingSource | null;
 };
@@ -35,84 +39,80 @@ export function BillingInvoiceCard({
     ["draft", "issued", "pending_payment", "failed"].includes(invoice.status);
 
   return (
-    <article
-      className="rounded-lg border border-border bg-card p-5 shadow-sm"
+    <Card
+      variant="gradient"
+      className="h-full"
       aria-labelledby={`invoice-title-${invoice.id}`}
     >
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
+        <div className="space-y-2">
+          <BillingStatusBadge status={invoice.status} />
           <h2
             id={`invoice-title-${invoice.id}`}
-            className="text-lg font-semibold capitalize"
+            className="font-heading text-lg font-semibold capitalize tracking-tight"
           >
             {invoice.serviceType} invoice
           </h2>
-          <p className="text-sm text-muted-foreground">
-            <span className="sr-only">Status: </span>
-            {invoice.status.replace(/_/g, " ")}
-          </p>
         </div>
-        <p className="text-xl font-bold" aria-label={`Total ${formatAud(invoice.totalCents)}`}>
+        <p
+          className="font-heading text-2xl font-bold text-primary"
+          aria-label={`Total ${formatAud(invoice.totalCents)}`}
+        >
           {formatAud(invoice.totalCents)}
         </p>
-      </header>
+      </CardHeader>
 
-      <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="font-medium text-muted-foreground">Funding</dt>
-          <dd>{invoice.fundingSource?.label ?? "Not set"}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-muted-foreground">Due</dt>
-          <dd>
-            {invoice.dueAt
-              ? format(new Date(invoice.dueAt), "d MMM yyyy")
-              : "—"}
-          </dd>
-        </div>
-      </dl>
+      <CardContent>
+        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="font-medium text-muted-foreground">Funding</dt>
+            <dd className="mt-0.5">{invoice.fundingSource?.label ?? "Not set"}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-muted-foreground">Due</dt>
+            <dd className="mt-0.5">
+              {invoice.dueAt
+                ? format(new Date(invoice.dueAt), "d MMM yyyy")
+                : "—"}
+            </dd>
+          </div>
+        </dl>
+      </CardContent>
 
-      <div
-        className="mt-6 flex flex-wrap gap-3"
+      <CardFooter
+        className="flex flex-wrap gap-3"
         role="group"
         aria-label={`Actions for ${invoice.serviceType} invoice`}
       >
         {canPay && (
-          <button
-            type="button"
-            onClick={onPay}
-            disabled={busy}
-            className="min-h-11 min-w-[8rem] rounded-lg bg-primary px-5 py-3 text-base font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
+          <Button type="button" variant="default" onClick={onPay} disabled={busy} size="lg">
             Pay now
-          </button>
+          </Button>
         )}
         {planManaged && (
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={onPlanManager}
             disabled={busy}
-            className="min-h-11 min-w-[8rem] rounded-lg border border-border bg-background px-5 py-3 text-base font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            size="lg"
           >
             Send to plan manager
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={onDownload}
           disabled={busy}
-          className="min-h-11 min-w-[8rem] rounded-lg border border-border bg-background px-5 py-3 text-base font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          size="lg"
         >
           Download invoice
-        </button>
-        <button
-          type="button"
-          onClick={onStatus}
-          className="min-h-11 min-w-[8rem] rounded-lg border border-border px-5 py-3 text-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
+        </Button>
+        <Button type="button" variant="outline" onClick={onStatus} size="lg">
           View payment status
-        </button>
-      </div>
-    </article>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

@@ -12,14 +12,17 @@ export function CoreHubCard({
   description?: string;
 }) {
   return (
-    <Link href={href} className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
-      <Card variant="interactive" className="h-full">
+    <Link
+      href={href}
+      className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <Card variant="gradient" className="h-full">
         <CardHeader>
           <CardTitle className="text-lg">{title}</CardTitle>
           {description ? <CardDescription>{description}</CardDescription> : null}
         </CardHeader>
         <CardContent>
-          <span className="text-sm font-medium text-primary">Open →</span>
+          <span className="text-sm font-semibold text-primary">Open →</span>
         </CardContent>
       </Card>
     </Link>
