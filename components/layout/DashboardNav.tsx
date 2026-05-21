@@ -15,6 +15,11 @@ const LINKS = [
   { href: "/dashboard/consent", label: "Consent" },
   { href: "/dashboard/bookings", label: "Bookings" },
   { href: "/dashboard/notifications", label: "Notifications" },
+  { href: "/dashboard/messages", label: "Messages" },
+  { href: "/dashboard/support", label: "Support" },
+  { href: "/dashboard/documents", label: "Documents" },
+  { href: "/dashboard/funding", label: "Funding" },
+  { href: "/dashboard/invoices", label: "Invoices" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
 ];
 

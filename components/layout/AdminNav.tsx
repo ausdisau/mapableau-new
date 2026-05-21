@@ -13,6 +13,11 @@ const LINKS = [
   { href: "/admin/consents", label: "Consents" },
   { href: "/admin/notifications", label: "Notifications" },
   { href: "/admin/audit-events", label: "Audit events" },
+  { href: "/admin/operations", label: "Operations" },
+  { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/support", label: "Support" },
+  { href: "/admin/documents", label: "Documents" },
+  { href: "/admin/invoices", label: "Invoices" },
 ];
 
 export function AdminNav() {
