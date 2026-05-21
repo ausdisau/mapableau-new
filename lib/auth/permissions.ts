@@ -63,7 +63,28 @@ export type Permission =
   | "calendar:read:self"
   | "calendar:read:org"
   | "calendar:manage:any"
-  | "admin:service-ops";
+  | "admin:service-ops"
+  | "matching:run"
+  | "matching:select"
+  | "search:providers"
+  | "tracking:read:self"
+  | "tracking:update:driver"
+  | "tracking:update:admin"
+  | "timesheet:manage:org"
+  | "timesheet:read:self"
+  | "timesheet:approve:self"
+  | "incident:create"
+  | "incident:read:self"
+  | "incident:manage:any"
+  | "agreement:read:self"
+  | "agreement:manage:org"
+  | "agreement:manage:any"
+  | "ndis:manage"
+  | "contracts:manage"
+  | "attestation:read:self"
+  | "attestation:read:any"
+  | "admin:analytics"
+  | "driver:trips";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -90,6 +111,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "jobs:read:public",
     "jobs:apply",
     "calendar:read:self",
+    "search:providers",
+    "tracking:read:self",
+    "timesheet:read:self",
+    "timesheet:approve:self",
+    "incident:create",
+    "incident:read:self",
+    "agreement:read:self",
+    "attestation:read:self",
   ],
   family_member: [
     "profile:read:self",
@@ -106,6 +135,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "notification:read:self",
     "care:shift:work",
     "calendar:read:org",
+    "timesheet:manage:org",
+    "incident:create",
   ],
   provider_admin: [
     "booking:read:any",
@@ -122,6 +153,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "worker:manage:org",
     "availability:manage:org",
     "calendar:read:org",
+    "timesheet:manage:org",
+    "agreement:manage:org",
+    "incident:create",
   ],
   transport_operator: [
     "booking:read:any",
@@ -141,6 +175,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "booking:read:any",
     "notification:read:self",
     "transport:drive",
+    "driver:trips",
+    "tracking:update:driver",
+    "incident:create",
     "calendar:read:org",
   ],
   employer: [
@@ -176,6 +213,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "jobs:manage:any",
     "calendar:manage:any",
     "admin:service-ops",
+    "matching:run",
+    "matching:select",
+    "search:providers",
+    "tracking:update:admin",
+    "incident:manage:any",
+    "agreement:manage:any",
+    "ndis:manage",
+    "contracts:manage",
+    "attestation:read:any",
+    "admin:analytics",
   ],
 };
 
