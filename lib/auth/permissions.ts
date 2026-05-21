@@ -146,7 +146,17 @@ export type Permission =
   | "provider_benchmark:read"
   | "governance_charter:manage"
   | "i18n:manage"
-  | "longitudinal_impact:publish";
+  | "longitudinal_impact:publish"
+  | "api_certification:manage"
+  | "algorithm_register:publish"
+  | "oversight_board:read"
+  | "oversight_board:manage"
+  | "privacy_analytics:run"
+  | "federated_research:manage"
+  | "provider_academy:enroll"
+  | "data_trust_report:publish"
+  | "sustainability:manage"
+  | "outcomes:read";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -182,6 +192,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "agreement:read:self",
     "attestation:read:self",
     "data_vault:self",
+    "outcomes:read",
   ],
   family_member: [
     "profile:read:self",
@@ -225,6 +236,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "verification:manage:org",
     "enterprise:console",
     "operator_dispatch:manage",
+    "provider_academy:enroll",
   ],
   transport_operator: [
     "booking:read:any",
@@ -356,6 +368,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "governance_charter:manage",
     "i18n:manage",
     "longitudinal_impact:publish",
+    "api_certification:manage",
+    "algorithm_register:publish",
+    "oversight_board:read",
+    "oversight_board:manage",
+    "privacy_analytics:run",
+    "federated_research:manage",
+    "provider_academy:enroll",
+    "data_trust_report:publish",
+    "sustainability:manage",
+    "outcomes:read",
   ],
 };
 
