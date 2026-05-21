@@ -1,0 +1,33 @@
+model User {
+  id                     String             @id @default(cuid())
+  name                   String
+  email                  String             @unique
+  phone                  String?
+  timezone               String             @default("Australia/Sydney")
+  locale                 String             @default("en-AU")
+  preferredContactMethod PreferredContactMethod @default(email)
+  primaryRole            MapAbleUserRole    @default(participant)
+  worker                 Worker?
+  passwordHash           String
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  sessions               Session[]
+  claimedProviders       ClaimedProvider[]
+
+  memberships            ProviderUserRole[]
+  roleAssignments        UserRoleAssignment[]
+  participantProfile     ParticipantProfile?
+  accessibilityProfile   AccessibilityProfile?
+  organisationMemberships OrganisationMember[]
+  consentsAsSubject      ConsentRecord[]    @relation("ConsentSubject")
+  consentsGranted        ConsentRecord[]    @relation("ConsentGrantedToUser")
+  consentsCreated        ConsentRecord[]    @relation("ConsentCreatedBy")
+  consentsRevoked        ConsentRecord[]    @relation("ConsentRevokedBy")
+  notificationPreferences NotificationPreference[]
+  notifications          Notification[]
+  auditEvents            AuditEvent[]       @relation("AuditActor")
+  bookingsCreated        Booking[]          @relation("BookingCreatedBy")
+  bookingsAsParticipant  Booking[]          @relation("BookingParticipant")
+  bookingsAssignedWorker Booking[]          @relation("BookingAssignedWorker")
+  bookingsAssignedDriver Booking[]          @relation("BookingAssignedDriver")
+}

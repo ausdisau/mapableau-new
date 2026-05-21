@@ -1,58 +1,91 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { requireAuth } from "@/lib/auth/guards";
+import { roleLabel } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 
-export default async function Dashboard() {
-  const session = await getServerSession(authOptions);
+export const metadata = { title: "Dashboard | MapAble Core" };
 
-  if (!session?.user?.id) redirect("/login");
+export default async function DashboardPage() {
+  const user = await requireAuth();
 
-  const providerMemberships = await prisma.providerUserRole.findMany({
-    where: { userId: session.user.id },
-    include: { provider: { select: { id: true, name: true } } },
-    orderBy: { provider: { name: "asc" } },
-  });
+  const [profile, bookingsCount, unreadNotifications] = await Promise.all([
+    prisma.participantProfile.findUnique({ where: { userId: user.id } }),
+    prisma.booking.count({ where: { participantId: user.id } }),
+    prisma.notification.count({
+      where: { userId: user.id, readAt: null },
+    }),
+  ]);
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 px-4 py-10">
-      <div>
-        <h1 className="font-heading text-2xl font-bold">Welcome</h1>
-        <p className="text-muted-foreground">{session.user.email}</p>
+    <div className="space-y-8">
+      <header>
+        <h1 className="font-heading text-3xl font-bold">Your dashboard</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          Welcome to MapAble Core. You are signed in as a{" "}
+          <strong>{roleLabel(user.primaryRole)}</strong>. Manage your profile,
+          accessibility preferences, consent and bookings from here.
+        </p>
+      </header>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <DashboardCard
+          title="Profile"
+          description={
+            profile
+              ? `Display name: ${profile.displayName}`
+              : "Set up your participant profile"
+          }
+          href="/dashboard/profile"
+        />
+        <DashboardCard
+          title="Accessibility"
+          description="Your access needs travel with you across MapAble services"
+          href="/dashboard/accessibility"
+        />
+        <DashboardCard
+          title="Consent"
+          description="Control who can see your information"
+          href="/dashboard/consent"
+        />
+        <DashboardCard
+          title="Bookings"
+          description={`${bookingsCount} booking request(s)`}
+          href="/dashboard/bookings"
+        />
+        <DashboardCard
+          title="Notifications"
+          description={
+            unreadNotifications
+              ? `${unreadNotifications} unread`
+              : "No unread notifications"
+          }
+          href="/dashboard/notifications"
+        />
       </div>
-      {providerMemberships.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="font-semibold">Provider organisations</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your directory listing and team profiles.
-          </p>
-          <ul className="mt-3 space-y-2">
-            {providerMemberships.map((m) => (
-              <li key={m.providerId}>
-                <Link
-                  href={`/provider-admin/${m.providerId}`}
-                  className="text-sm font-medium text-primary hover:underline"
-                >
-                  {m.provider.name}
-                </Link>
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {m.role}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {providerMemberships.length > 1 && (
-            <Link
-              href="/provider-admin"
-              className="mt-3 inline-block text-sm text-muted-foreground hover:text-foreground hover:underline"
-            >
-              All organisations →
-            </Link>
-          )}
-        </div>
-      )}
     </div>
+  );
+}
+
+function DashboardCard({
+  title,
+  description,
+  href,
+}: {
+  title: string;
+  description: string;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="block rounded-xl border border-border bg-card p-5 transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <h2 className="font-semibold">{title}</h2>
+      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+      <span className="mt-3 inline-block text-sm font-medium text-primary">
+        Open →
+      </span>
+    </Link>
   );
 }
