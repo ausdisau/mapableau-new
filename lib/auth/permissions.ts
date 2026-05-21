@@ -84,7 +84,25 @@ export type Permission =
   | "attestation:read:self"
   | "attestation:read:any"
   | "admin:analytics"
-  | "driver:trips";
+  | "driver:trips"
+  | "ai_matching:run"
+  | "fairness:review"
+  | "verification:manage:org"
+  | "verification:manage:any"
+  | "ndis:pricing:manage"
+  | "xero:manage"
+  | "stripe:manage"
+  | "route:manage"
+  | "accessibility_map:read"
+  | "accessibility_map:manage"
+  | "coordinator:portal"
+  | "plan_manager:portal"
+  | "employer:ats"
+  | "reporting:manage"
+  | "developer:manage"
+  | "compliance:manage"
+  | "security:readiness"
+  | "ndia:readiness";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -129,6 +147,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "profile:read:any",
     "booking:read:any",
     "notification:read:self",
+    "coordinator:portal",
+    "document:read",
+    "invoice:read:self",
   ],
   support_worker: [
     "booking:read:any",
@@ -156,6 +177,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "timesheet:manage:org",
     "agreement:manage:org",
     "incident:create",
+    "verification:manage:org",
   ],
   transport_operator: [
     "booking:read:any",
@@ -183,9 +205,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   employer: [
     "notification:read:self",
     "jobs:manage:employer",
+    "employer:ats",
     "calendar:read:org",
+    "message:read",
   ],
-  plan_manager: ["booking:read:any", "notification:read:self"],
+  plan_manager: [
+    "plan_manager:portal",
+    "invoice:read:self",
+    "booking:read:any",
+    "notification:read:self",
+  ],
   mapable_admin: [
     "profile:read:any",
     "profile:write:any",
@@ -222,6 +251,19 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "ndis:manage",
     "contracts:manage",
     "attestation:read:any",
+    "ai_matching:run",
+    "fairness:review",
+    "verification:manage:any",
+    "ndis:pricing:manage",
+    "xero:manage",
+    "stripe:manage",
+    "route:manage",
+    "accessibility_map:manage",
+    "reporting:manage",
+    "developer:manage",
+    "compliance:manage",
+    "security:readiness",
+    "ndia:readiness",
     "admin:analytics",
   ],
 };
