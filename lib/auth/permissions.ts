@@ -134,7 +134,19 @@ export type Permission =
   | "assessor:portal"
   | "platform_status:read"
   | "data_trust:manage"
-  | "partner_marketplace:manage";
+  | "partner_marketplace:manage"
+  | "national_rollout:manage"
+  | "partner_billing:manage"
+  | "partner_api:manage"
+  | "assessor_network:manage"
+  | "decision_register:publish"
+  | "data_vault:self"
+  | "data_vault:manage"
+  | "research_safe_room:manage"
+  | "provider_benchmark:read"
+  | "governance_charter:manage"
+  | "i18n:manage"
+  | "longitudinal_impact:publish";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -169,6 +181,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "incident:read:self",
     "agreement:read:self",
     "attestation:read:self",
+    "data_vault:self",
   ],
   family_member: [
     "profile:read:self",
@@ -332,6 +345,17 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "platform_status:read",
     "data_trust:manage",
     "partner_marketplace:manage",
+    "national_rollout:manage",
+    "partner_billing:manage",
+    "partner_api:manage",
+    "assessor_network:manage",
+    "decision_register:publish",
+    "data_vault:manage",
+    "research_safe_room:manage",
+    "provider_benchmark:read",
+    "governance_charter:manage",
+    "i18n:manage",
+    "longitudinal_impact:publish",
   ],
 };
 
