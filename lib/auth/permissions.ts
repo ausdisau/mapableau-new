@@ -156,7 +156,19 @@ export type Permission =
   | "provider_academy:enroll"
   | "data_trust_report:publish"
   | "sustainability:manage"
-  | "outcomes:read";
+  | "outcomes:read"
+  | "accountability:publish"
+  | "safeguards:read"
+  | "safeguards:manage"
+  | "membership:read"
+  | "membership:manage"
+  | "transport_investment:read"
+  | "transport_investment:manage"
+  | "api_ecosystem:manage"
+  | "research_federation:manage"
+  | "continuity:manage"
+  | "civic_audit:publish"
+  | "federation_partner:manage";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -193,6 +205,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "attestation:read:self",
     "data_vault:self",
     "outcomes:read",
+    "safeguards:read",
+    "membership:read",
+    "transport_investment:read",
   ],
   family_member: [
     "profile:read:self",
@@ -378,6 +393,18 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "data_trust_report:publish",
     "sustainability:manage",
     "outcomes:read",
+    "accountability:publish",
+    "safeguards:read",
+    "safeguards:manage",
+    "membership:read",
+    "membership:manage",
+    "transport_investment:read",
+    "transport_investment:manage",
+    "api_ecosystem:manage",
+    "research_federation:manage",
+    "continuity:manage",
+    "civic_audit:publish",
+    "federation_partner:manage",
   ],
 };
 

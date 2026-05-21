@@ -82,9 +82,9 @@ See `.env.example` sections **Phase 6** through **Phase 10**. All sensitive inte
 
 After each phase, document: files created/changed, migrations, models, APIs, UI routes, tests, feature flags, limitations, manual QA, next phase.
 
-## Phase 11 preview (do not build in 6–10)
+## Phase 11 preview (implemented in Phase 12)
 
-National accountability portal, certified API ecosystem at scale, privacy-preserving research federation, transport investment modelling, community-owned governance membership, platform constitutional safeguards.
+National accountability portal, certified API ecosystem at scale, privacy-preserving research federation, transport investment modelling, community-owned governance membership, platform constitutional safeguards. See `README_MAPABLE_CORE_PHASE_12.md`.
 
 ## Related docs
 
