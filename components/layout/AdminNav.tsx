@@ -112,12 +112,20 @@ export function AdminNav() {
           <Link href="/admin" className="font-heading text-lg font-bold">
             MapAble Admin
           </Link>
-          <Link
-            href="/dashboard"
-            className="text-sm text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Back to dashboard
-          </Link>
+          <div className="flex gap-3 text-sm">
+            <Link
+              href="/core"
+              className="text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Core hub
+            </Link>
+            <Link
+              href="/dashboard"
+              className="text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Dashboard
+            </Link>
+          </div>
         </div>
         <ul className="flex flex-wrap gap-2">
           {LINKS.map((link) => (
