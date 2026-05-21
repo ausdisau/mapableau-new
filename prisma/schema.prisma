@@ -3489,3 +3489,283 @@ model CommunityGovernanceDecision {
   status      String   @default("recorded")
   createdAt   DateTime @default(now())
 }
+
+
+// --- MapAble Core Phase 7 ---
+
+// MapAble Core Phase 7 — Live pilot & scale operations
+
+enum ReconciliationMatchStatus {
+  unmatched
+  partial
+  matched
+  reviewed
+  exception
+}
+
+enum PublicBetaFeedbackCategory {
+  accessibility
+  usability
+  booking
+  transport
+  billing
+  other
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+
+  memberships TenantMembership[]
+  enterpriseWorkspaces EnterpriseProviderWorkspace[]
+  governmentWorkspaces GovernmentPartnerWorkspace[]
+}
+
+model TenantMembership {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, userId])
+}
+
+model EnterpriseProviderWorkspace {
+  id             String   @id @default(cuid())
+  tenantId       String?
+  tenant         Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  organisationId String   @unique
+  label          String
+  createdAt      DateTime @default(now())
+}
+
+model GovernmentPartnerWorkspace {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  name      String
+  region    String?
+  createdAt DateTime @default(now())
+}
+
+model MobileReleaseCandidate {
+  id          String   @id @default(cuid())
+  platform    String
+  version     String
+  accessibilityStatus String @default("pending")
+  privacyStatus String @default("pending")
+  releaseStatus String @default("candidate")
+  createdAt   DateTime @default(now())
+
+  blockers MobileReleaseBlocker[]
+}
+
+model MobileReleaseBlocker {
+  id          String   @id @default(cuid())
+  candidateId String
+  candidate   MobileReleaseCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  code        String
+  description String
+  resolved    Boolean  @default(false)
+}
+
+model OperatorDispatchBoard {
+  id                 String   @id @default(cuid())
+  transportBookingId String?  @unique
+  status             String   @default("active")
+  assignedDriverId   String?
+  notes              String?
+  updatedAt          DateTime @updatedAt
+
+  reassignments DispatchReassignment[]
+}
+
+model DispatchReassignment {
+  id        String   @id @default(cuid())
+  boardId   String
+  board     OperatorDispatchBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  fromDriverId String?
+  toDriverId   String?
+  reason    String
+  actorUserId String
+  createdAt DateTime @default(now())
+}
+
+model CancellationResolution {
+  id                 String   @id @default(cuid())
+  transportBookingId String?
+  careShiftId        String?
+  reason             String
+  resolution         String?
+  status             String   @default("open")
+  createdAt          DateTime @default(now())
+}
+
+model ProviderOnboardingWorkflow {
+  id             String   @id @default(cuid())
+  organisationId String
+  status         String   @default("in_progress")
+  createdAt      DateTime @default(now())
+
+  tasks ProviderOnboardingTask[]
+}
+
+model ProviderOnboardingTask {
+  id          String   @id @default(cuid())
+  workflowId  String
+  workflow    ProviderOnboardingWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  taskKey     String
+  title       String
+  status      String   @default("pending")
+  dueAt       DateTime?
+}
+
+model PaymentReconciliationBatch {
+  id          String   @id @default(cuid())
+  status      String   @default("pending")
+  periodStart DateTime
+  periodEnd   DateTime
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  exceptions PaymentReconciliationException[]
+}
+
+model PaymentReconciliationException {
+  id              String                  @id @default(cuid())
+  batchId         String
+  batch           PaymentReconciliationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  invoiceId       String?
+  stripePaymentId String?
+  xeroInvoiceId   String?
+  matchStatus     ReconciliationMatchStatus @default(unmatched)
+  amountCents     Int?
+  notes           String?
+}
+
+model PlanManagerPilotPartner {
+  id            String   @id @default(cuid())
+  name          String
+  exportFormat  String   @default("csv")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  exports PlanManagerPilotExport[]
+}
+
+model PlanManagerPilotExport {
+  id        String   @id @default(cuid())
+  partnerId String
+  partner   PlanManagerPilotPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  status    String   @default("generated")
+  fileName  String?
+  createdAt DateTime @default(now())
+}
+
+model NdiaPilotApprovalRecord {
+  id          String   @id @default(cuid())
+  approved    Boolean  @default(false)
+  approvedById String?
+  approvedAt  DateTime?
+  notes       String?
+}
+
+model NdiaPilotSubmissionDryRun {
+  id        String   @id @default(cuid())
+  bundleId  String?
+  result    String
+  blocked   Boolean  @default(true)
+  message   String   @default("NDIA pilot disabled — dry run only")
+  createdAt DateTime @default(now())
+}
+
+model PublicAccreditationProfile {
+  id        String   @id @default(cuid())
+  caseId    String?
+  title     String
+  summary   String
+  status    String   @default("draft")
+  publishedAt DateTime?
+  disclaimer String  @default("Community or MapAble assessment — not legal certification unless stated.")
+}
+
+model AiMonitoringDashboardSnapshot {
+  id          String   @id @default(cuid())
+  metricsJson Json
+  createdAt   DateTime @default(now())
+}
+
+model TransparencyPublication {
+  id          String   @id @default(cuid())
+  title       String
+  body        String
+  status      String   @default("draft")
+  approvedById String?
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model DisasterRecoveryExerciseStep {
+  id          String   @id @default(cuid())
+  exerciseId  String
+  stepKey     String
+  title       String
+  passed      Boolean?
+  notes       String?
+}
+
+model PublicBetaCohort {
+  id        String   @id @default(cuid())
+  name      String
+  status    String   @default("active")
+  startAt   DateTime?
+  createdAt DateTime @default(now())
+
+  feedback PublicBetaFeedback[]
+}
+
+model PublicBetaFeedback {
+  id        String                   @id @default(cuid())
+  cohortId  String?
+  cohort    PublicBetaCohort?        @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  userId    String?
+  category  PublicBetaFeedbackCategory @default(accessibility)
+  body      String
+  createdAt DateTime                 @default(now())
+}
+
+model SocialImpactOutcome {
+  id          String   @id @default(cuid())
+  outcomeKey  String
+  value       Float
+  cohortSize  Int
+  suppressed  Boolean  @default(false)
+  definition  String
+  periodEnd   DateTime
+}
+
+model ScalePlan {
+  id          String   @id @default(cuid())
+  title       String
+  status      String   @default("draft")
+  summary     String?
+  boardApproved Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  milestones ScalePlanMilestone[]
+}
+
+model ScalePlanMilestone {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      ScalePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title     String
+  category  String
+  dueAt     DateTime?
+  completed Boolean  @default(false)
+}

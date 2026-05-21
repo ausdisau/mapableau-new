@@ -111,7 +111,17 @@ export type Permission =
   | "board:reporting"
   | "community_governance:manage"
   | "open_data:export"
-  | "government_reporting:manage";
+  | "government_reporting:manage"
+  | "tenant:manage"
+  | "reconciliation:manage"
+  | "operator_dispatch:manage"
+  | "enterprise:console"
+  | "government:portal"
+  | "public_beta:manage"
+  | "social_impact:read"
+  | "scale_plan:manage"
+  | "ndia:pilot"
+  | "transparency:publish";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -187,6 +197,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "agreement:manage:org",
     "incident:create",
     "verification:manage:org",
+    "enterprise:console",
+    "operator_dispatch:manage",
   ],
   transport_operator: [
     "booking:read:any",
@@ -201,6 +213,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "driver:manage:org",
     "availability:manage:org",
     "calendar:read:org",
+    "operator_dispatch:manage",
   ],
   driver: [
     "booking:read:any",
@@ -283,6 +296,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "community_governance:manage",
     "open_data:export",
     "government_reporting:manage",
+    "tenant:manage",
+    "reconciliation:manage",
+    "operator_dispatch:manage",
+    "enterprise:console",
+    "government:portal",
+    "public_beta:manage",
+    "social_impact:read",
+    "scale_plan:manage",
+    "ndia:pilot",
+    "transparency:publish",
   ],
 };
 
