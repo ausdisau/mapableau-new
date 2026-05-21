@@ -1,0 +1,20 @@
+# MapAble Core (main branch)
+
+## `/core` route
+
+The platform hub lives at **`/core`** (`app/core/`).
+
+Supporting directories:
+
+- `core/README.md` — module overview
+- `components/core/` — shared shell (header, footer, hub cards)
+- `lib/core-ui/navigation.ts` — hub links (aligned with routes on this branch)
+
+## Run locally
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Visit [http://localhost:3000/core](http://localhost:3000/core).
