@@ -2,6 +2,23 @@
 
 Stripe-powered billing for private pay, self-managed NDIS, co-pays, provider subscriptions, and marketplace transactions. NDIS **plan-managed** funding never uses Stripe Checkout — invoices are exported to plan managers (CSV / email-ready JSON; Xero scaffold).
 
+## Stripe SDK (`lib/stripe/`)
+
+Server-only Stripe Node SDK (pinned API version in `lib/stripe/client.ts`):
+
+| Module | Purpose |
+|--------|---------|
+| `config.ts` | `STRIPE_SECRET_KEY`, webhook secret, price IDs |
+| `checkout.ts` | Payment & subscription Checkout sessions |
+| `payment-intents.ts` | Legacy `Invoice` payment intents |
+| `connect.ts` | Express Connect accounts & onboarding links |
+| `portal.ts` | Customer Billing Portal |
+| `webhooks.ts` | Signature verification + billing-core & legacy dispatch |
+| `index.ts` | Public exports |
+
+**Enable legacy routes:** `STRIPE_SECRET_KEY` + `BILLING_ENABLE_STRIPE=true` or `STRIPE_ENABLED=true`.  
+**Billing-core routes:** only require `STRIPE_SECRET_KEY`.
+
 ## Architecture
 
 - **Stripe** — payment processing truth (Checkout, Connect, Customer Portal, webhooks).

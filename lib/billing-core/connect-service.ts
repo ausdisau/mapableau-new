@@ -1,7 +1,10 @@
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
-import { billingCoreConfig, isBillingStripeConfigured } from "@/lib/billing-core/config";
+import { isBillingStripeConfigured } from "@/lib/billing-core/config";
 import { getOrCreateBillingAccount } from "@/lib/billing-core/account-service";
-import { getStripeClient } from "@/lib/stripe/client";
+import {
+  createConnectOnboardingLink,
+  createExpressConnectAccount,
+} from "@/lib/stripe/connect";
 import type { BillingAccountRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
@@ -13,20 +16,11 @@ export async function createConnectAccountAndLink(
     return { ok: false as const, error: "Stripe is not configured" };
   }
 
-  const stripe = getStripeClient();
   const account = await getOrCreateBillingAccount(userId, role);
 
   let connectedId = account.stripeConnectedAccountId;
   if (!connectedId) {
-    const connected = await stripe.accounts.create({
-      type: "express",
-      country: "AU",
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-      metadata: { mapableUserId: userId, mapableRole: role },
-    });
+    const connected = await createExpressConnectAccount({ userId, role });
     connectedId = connected.id;
     await prisma.billingAccount.update({
       where: { id: account.id },
@@ -41,12 +35,7 @@ export async function createConnectAccountAndLink(
     });
   }
 
-  const link = await stripe.accountLinks.create({
-    account: connectedId,
-    refresh_url: `${billingCoreConfig.appUrl}/provider/billing?onboarding=refresh`,
-    return_url: `${billingCoreConfig.appUrl}/provider/billing?onboarding=complete`,
-    type: "account_onboarding",
-  });
+  const link = await createConnectOnboardingLink(connectedId);
 
   return { ok: true as const, onboardingUrl: link.url, accountId: connectedId };
 }
@@ -64,12 +53,6 @@ export async function refreshConnectOnboardingLink(
   if (!isBillingStripeConfigured()) {
     return { ok: false as const, error: "Stripe is not configured" };
   }
-  const stripe = getStripeClient();
-  const link = await stripe.accountLinks.create({
-    account: account.stripeConnectedAccountId,
-    refresh_url: `${billingCoreConfig.appUrl}/provider/billing?onboarding=refresh`,
-    return_url: `${billingCoreConfig.appUrl}/provider/billing?onboarding=complete`,
-    type: "account_onboarding",
-  });
+  const link = await createConnectOnboardingLink(account.stripeConnectedAccountId);
   return { ok: true as const, onboardingUrl: link.url };
 }

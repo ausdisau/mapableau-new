@@ -1,16 +1,27 @@
 import { jsonOk } from "@/lib/api/response";
-import { isStripeConfigured } from "@/lib/config/phase2";
-import { processStripeWebhookEvent } from "@/lib/stripe/stripe-service";
+import { isStripeIntegrationEnabled } from "@/lib/stripe/config";
+import { parseAndProcessWebhookRequest } from "@/lib/stripe/webhooks";
 
+export const runtime = "nodejs";
+
+/** Legacy path — forwards to unified Stripe webhook processor. */
 export async function POST(req: Request) {
-  if (!isStripeConfigured()) {
+  if (!isStripeIntegrationEnabled()) {
     return jsonOk({ received: false, message: "Payments not configured" });
   }
 
-  const payload = await req.json();
-  const eventId = payload?.id ?? `evt_${Date.now()}`;
-  const eventType = payload?.type ?? "unknown";
+  const rawBody = await req.text();
+  const signature = req.headers.get("stripe-signature");
+  const result = await parseAndProcessWebhookRequest(rawBody, signature);
 
-  const result = await processStripeWebhookEvent(eventId, eventType, payload);
-  return jsonOk({ received: true, ...result });
+  if (!result.ok) {
+    return jsonOk({ received: false, error: result.message }, result.status);
+  }
+
+  return jsonOk({
+    received: true,
+    duplicate: result.billing.duplicate || result.legacy.duplicate,
+    billing: result.billing,
+    legacy: result.legacy,
+  });
 }

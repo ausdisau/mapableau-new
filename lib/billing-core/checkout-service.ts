@@ -2,9 +2,10 @@ import type { BillingPaymentMethod } from "@prisma/client";
 
 import { getOrCreateBillingAccount } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
-import { billingCoreConfig, isBillingStripeConfigured } from "@/lib/billing-core/config";
+import { isBillingStripeConfigured } from "@/lib/billing-core/config";
 import { checkoutDecisionForFundingType } from "@/lib/billing-core/funding-logic";
 import { getInvoiceForUser, updateInvoiceStatus } from "@/lib/billing-core/invoice-service";
+import { buildBillingPaymentCheckout } from "@/lib/stripe/checkout";
 import { getStripeClient } from "@/lib/stripe/client";
 import { prisma } from "@/lib/prisma";
 
@@ -26,11 +27,11 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     };
   }
 
-  const stripe = getStripeClient();
   const account = await getOrCreateBillingAccount(userId, "participant");
 
   let customerId = account.stripeCustomerId;
   if (!customerId) {
+    const stripe = getStripeClient();
     const user = await prisma.user.findUnique({ where: { id: userId } });
     const customer = await stripe.customers.create({
       email: user?.email,
@@ -42,36 +43,6 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
       data: { stripeCustomerId: customerId },
     });
   }
-
-  const successUrl = `${billingCoreConfig.appUrl}/billing?checkout=success&invoiceId=${invoiceId}`;
-  const cancelUrl = `${billingCoreConfig.appUrl}/billing?checkout=cancelled&invoiceId=${invoiceId}`;
-
-  const metadata: Record<string, string> = {
-    invoiceId: invoice.id,
-    userId,
-    serviceType: invoice.serviceType,
-  };
-  if (invoice.bookingId) metadata.bookingId = invoice.bookingId;
-
-  const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
-    mode: "payment",
-    customer: customerId,
-    line_items: [
-      {
-        price_data: {
-          currency: invoice.currency.toLowerCase(),
-          unit_amount: invoice.totalCents,
-          product_data: {
-            name: `MapAble ${invoice.serviceType} invoice`,
-          },
-        },
-        quantity: 1,
-      },
-    ],
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    metadata,
-  };
 
   let providerAccountId: string | null = null;
   if (invoice.providerId) {
@@ -89,15 +60,18 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     providerAccountId = providerAccount?.stripeConnectedAccountId ?? null;
   }
 
-  if (providerAccountId && invoice.platformFeeCents >= 0) {
-    sessionParams.payment_intent_data = {
-      application_fee_amount: invoice.platformFeeCents,
-      transfer_data: { destination: providerAccountId },
-      metadata,
-    };
-  }
-
-  const session = await stripe.checkout.sessions.create(sessionParams);
+  const session = await buildBillingPaymentCheckout({
+    invoiceId: invoice.id,
+    userId,
+    serviceType: invoice.serviceType,
+    bookingId: invoice.bookingId,
+    totalCents: invoice.totalCents,
+    currency: invoice.currency,
+    customerId,
+    productLabel: `MapAble ${invoice.serviceType} invoice`,
+    platformFeeCents: invoice.platformFeeCents,
+    providerConnectedAccountId: providerAccountId,
+  });
 
   await prisma.billingPayment.create({
     data: {

@@ -5,6 +5,8 @@ import {
   isBillingStripeConfigured,
   priceIdForPlan,
 } from "@/lib/billing-core/config";
+import { createStripeSubscriptionCheckoutSession } from "@/lib/stripe/checkout";
+import { createBillingPortalSession } from "@/lib/stripe/portal";
 import { getStripeClient } from "@/lib/stripe/client";
 import type { BillingAccountRole, BillingSubscriptionPlanCode } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -29,10 +31,10 @@ export async function createSubscriptionCheckout(
 
   const role = roleForPlan(planCode);
   const account = await getOrCreateBillingAccount(userId, role);
-  const stripe = getStripeClient();
 
   let customerId = account.stripeCustomerId;
   if (!customerId) {
+    const stripe = getStripeClient();
     const user = await prisma.user.findUnique({ where: { id: userId } });
     const customer = await stripe.customers.create({
       email: user?.email,
@@ -45,12 +47,11 @@ export async function createSubscriptionCheckout(
     });
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${billingCoreConfig.appUrl}/provider/billing?subscription=success`,
-    cancel_url: `${billingCoreConfig.appUrl}/provider/billing?subscription=cancelled`,
+  const session = await createStripeSubscriptionCheckoutSession({
+    customerId,
+    priceId,
+    successUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=success`,
+    cancelUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=cancelled`,
     metadata: { mapableUserId: userId, planCode },
   });
 
@@ -89,11 +90,7 @@ export async function createCustomerPortalSession(userId: string) {
     return { ok: false as const, error: "No billing customer on file" };
   }
 
-  const stripe = getStripeClient();
-  const session = await stripe.billingPortal.sessions.create({
-    customer: account.stripeCustomerId,
-    return_url: `${billingCoreConfig.appUrl}/billing`,
-  });
+  const session = await createBillingPortalSession(account.stripeCustomerId);
 
   return { ok: true as const, portalUrl: session.url };
 }
