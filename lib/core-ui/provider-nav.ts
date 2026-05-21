@@ -12,6 +12,7 @@ export const PROVIDER_NAV_LINKS: PortalNavLink[] = [
   { href: "/provider/capacity", label: "Capacity" },
   { href: "/provider/messages", label: "Messages" },
   { href: "/provider/billing", label: "Billing" },
+  { href: "/provider/ndia-claims", label: "NDIA claims" },
   { href: "/provider/support", label: "Support" },
   { href: "/enterprise-provider", label: "Enterprise" },
 ];
