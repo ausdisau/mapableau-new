@@ -15,7 +15,9 @@
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "prepare": "husky install && prisma generate",
     "lint-staged": "lint-staged",
-    "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged"
+    "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -75,6 +77,7 @@
     "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
     "prisma": "^6.19.2",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
   }
 }
