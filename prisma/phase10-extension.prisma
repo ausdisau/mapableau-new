@@ -1,0 +1,144 @@
+// MapAble Core Phase 10 — Public-interest operating system
+
+enum ApiCertificationStatus {
+  draft
+  submitted
+  under_review
+  certified
+  rejected
+}
+
+enum AlgorithmRegisterStatus {
+  draft
+  published
+  deprecated
+}
+
+model ApiCertificationApplication {
+  id             String               @id @default(cuid())
+  organisationId String
+  appName        String
+  status         ApiCertificationStatus @default(draft)
+  reviewNotes    String?
+  certifiedAt    DateTime?
+  createdAt      DateTime             @default(now())
+}
+
+model RegisteredAlgorithm {
+  id          String                 @id @default(cuid())
+  name        String
+  purpose     String
+  version     String
+  owner       String?
+  status      AlgorithmRegisterStatus @default(draft)
+  fairnessNotes String?
+  publishedAt DateTime?
+  createdAt   DateTime               @default(now())
+}
+
+model OversightBoardMeeting {
+  id        String   @id @default(cuid())
+  title     String
+  summary   String
+  status    String   @default("scheduled")
+  meetingAt DateTime?
+  createdAt DateTime @default(now())
+
+  decisions OversightBoardDecision[]
+}
+
+model OversightBoardDecision {
+  id        String   @id @default(cuid())
+  meetingId String?
+  meeting   OversightBoardMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  title     String
+  summary   String
+  status    String   @default("recorded")
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model PrivacyPreservingAnalyticsRun {
+  id          String   @id @default(cuid())
+  runLabel    String
+  method      String   @default("differential_privacy_placeholder")
+  status      String   @default("completed")
+  epsilon     Float?
+  resultJson  Json?
+  createdAt   DateTime @default(now())
+}
+
+model FederatedResearchAgreement {
+  id           String   @id @default(cuid())
+  partnerName  String
+  scope        String
+  status       String   @default("draft")
+  approvedAt   DateTime?
+  syntheticOnly Boolean @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model ProviderAcademyCourse {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  title       String
+  description String?
+  status      String   @default("published")
+  createdAt   DateTime @default(now())
+
+  enrollments ProviderAcademyEnrollment[]
+}
+
+model ProviderAcademyEnrollment {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    ProviderAcademyCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId    String
+  status    String   @default("enrolled")
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, userId])
+}
+
+model DataTrustAnnualReport {
+  id          String   @id @default(cuid())
+  yearLabel   String   @unique
+  title       String
+  summary     String
+  status      String   @default("draft")
+  publishedAt DateTime?
+  reportJson  Json?
+  createdAt   DateTime @default(now())
+}
+
+model SustainabilityPlan {
+  id        String   @id @default(cuid())
+  title     String
+  status    String   @default("active")
+  summary   String?
+  createdAt DateTime @default(now())
+
+  milestones SustainabilityMilestone[]
+}
+
+model SustainabilityMilestone {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      SustainabilityPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title     String
+  category  String
+  targetYear Int?
+  completed Boolean  @default(false)
+}
+
+model LongTermOutcomeSnapshot {
+  id          String   @id @default(cuid())
+  periodLabel String
+  outcomeKey  String
+  value       Float?
+  suppressed  Boolean  @default(false)
+  narrative   String?
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+}
