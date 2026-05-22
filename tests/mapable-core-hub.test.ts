@@ -7,10 +7,9 @@ describe("MapAble Core hub", () => {
     expect(CORE_PLATFORM_LINKS.some((l) => l.href === "/core")).toBe(true);
   });
 
-  it("hub sections link to dashboard and provider finder", () => {
+  it("hub sections link to dashboard and Ask MapAble", () => {
     const hrefs = CORE_HUB_SECTIONS.flatMap((s) => s.links.map((l) => l.href));
     expect(hrefs).toContain("/dashboard");
-    expect(hrefs).toContain("/provider-finder");
     expect(hrefs).toContain("/ask");
   });
 
