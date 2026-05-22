@@ -384,6 +384,9 @@ async function main() {
   const { seedMapAblePhase2 } = await import("./seed-mapable-phase2");
   await seedMapAblePhase2();
 
+  const { seedMapAblePhase3 } = await import("./seed-mapable-phase3");
+  await seedMapAblePhase3();
+
   console.log("Seed complete.");
 }
 

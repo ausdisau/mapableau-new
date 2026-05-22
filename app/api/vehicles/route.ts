@@ -1,0 +1,28 @@
+import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
+import { jsonError, jsonOk } from "@/lib/api/response";
+import { createVehicle } from "@/lib/transport/vehicle-service";
+import { prisma } from "@/lib/prisma";
+
+export async function GET() {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+  const vehicles = await prisma.vehicle.findMany({ take: 100 });
+  return jsonOk({ vehicles });
+}
+
+export async function POST(req: Request) {
+  const user = await requireApiPermission("vehicle:manage:org");
+  if (user instanceof Response) return user;
+  const body = await req.json();
+  const vehicle = await createVehicle({
+    organisationId: body.organisationId,
+    displayName: body.displayName,
+    vehicleType: body.vehicleType,
+    registrationNumber: body.registrationNumber,
+    wheelchairAccessible: body.wheelchairAccessible,
+    rampAvailable: body.rampAvailable,
+    liftAvailable: body.liftAvailable,
+    actorUserId: user.id,
+  });
+  return jsonOk({ vehicle }, 201);
+}
