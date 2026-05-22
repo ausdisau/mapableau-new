@@ -21,11 +21,34 @@ export type Permission =
   | "booking:manage:any"
   | "notification:read:self"
   | "audit:read"
-  | "admin:dashboard";
+  | "admin:dashboard"
+
+  | "message:read"
+  | "message:send"
+  | "support:create"
+  | "support:read:self"
+  | "support:manage:any"
+  | "document:read"
+  | "document:upload"
+  | "funding:manage:self"
+  | "funding:read:any"
+  | "invoice:read:self"
+  | "invoice:read:org"
+  | "invoice:manage:any"
+  | "provider:booking:respond"
+  | "admin:operations";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
     "profile:read:self",
+    "message:read",
+    "message:send",
+    "support:create",
+    "support:read:self",
+    "document:read",
+    "document:upload",
+    "funding:manage:self",
+    "invoice:read:self",
     "profile:write:self",
     "accessibility:read:self",
     "accessibility:write:self",
@@ -45,8 +68,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "notification:read:self",
   ],
   support_worker: ["booking:read:any", "notification:read:self"],
-  provider_admin: ["booking:read:any", "notification:read:self"],
-  transport_operator: ["booking:read:any", "notification:read:self"],
+  provider_admin: ["booking:read:any", "notification:read:self", "message:read", "message:send", "support:create", "document:read", "document:upload", "invoice:read:org", "provider:booking:respond"],
+  transport_operator: ["booking:read:any", "notification:read:self", "message:read", "message:send", "support:create", "provider:booking:respond"],
   driver: ["booking:read:any", "notification:read:self"],
   employer: ["notification:read:self"],
   plan_manager: ["booking:read:any", "notification:read:self"],
@@ -60,6 +83,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "booking:manage:any",
     "audit:read",
     "admin:dashboard",
+    "admin:operations",
+    "message:read",
+    "message:send",
+    "support:manage:any",
+    "document:read",
+    "document:upload",
+    "funding:read:any",
+    "invoice:manage:any",
     "notification:read:self",
   ],
 };

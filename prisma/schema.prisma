@@ -45,7 +45,22 @@ model User {
   bookingsCreated        Booking[]          @relation("BookingCreatedBy")
   bookingsAsParticipant  Booking[]          @relation("BookingParticipant")
   bookingsAssignedWorker Booking[]          @relation("BookingAssignedWorker")
-  bookingsAssignedDriver Booking[]          @relation("BookingAssignedDriver")
+bookingsAssignedDriver Booking[]          @relation("BookingAssignedDriver")
+  conversationsCreated   Conversation[]     @relation("ConversationCreatedBy")
+  conversationParticipants ConversationParticipant[]
+  messagesSent           Message[]          @relation("MessageSender")
+  messageReadReceipts    MessageReadReceipt[]
+  ticketsCreated         SupportTicket[]    @relation("TicketCreatedBy")
+  ticketsAssigned        SupportTicket[]    @relation("TicketAssignedAdmin")
+  ticketComments         SupportTicketComment[]
+  documentsUploaded      Document[]         @relation("DocumentUploadedBy")
+  fundingSources         ParticipantFundingSource[] @relation("ParticipantFundingSources")
+  fundingSourcesCreated  ParticipantFundingSource[] @relation("FundingSourceCreatedBy")
+  invoicesAsParticipant  Invoice[]          @relation("InvoiceParticipant")
+  invoicesCreated        Invoice[]          @relation("InvoiceCreatedBy")
+  preflightResultsCreated BillingPreflightResult[]
+  stripeCustomerLink     StripeCustomerLink?
+  bookingTimelineEvents  BookingTimelineEvent[]
 }
 
 model Worker {
@@ -390,6 +405,7 @@ model Organisation {
   consents    ConsentRecord[]
   bookings    Booking[]
   auditEvents AuditEvent[]
+  invoices    Invoice[]
 }
 
 model OrganisationMember {
@@ -499,6 +515,15 @@ model Booking {
   shareAccessibility     Boolean       @default(false)
   createdById            String
   createdBy              User          @relation("BookingCreatedBy", fields: [createdById], references: [id])
+  providerResponseStatus ProviderResponseStatus @default(not_sent)
+  providerResponseNote   String?
+  providerRespondedAt    DateTime?
+  fundingSourceId      String?
+  fundingSource        ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
+  invoices             Invoice[]
+  timelineEvents       BookingTimelineEvent[]
+  conversations        Conversation[]
+  documents            Document[]
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
@@ -521,37 +546,435 @@ model BookingSegment {
   createdAt           DateTime  @default(now())
 }
 
-model FundingSource {
-  id        String   @id @default(cuid())
-  name      String
-  tag       String   @unique
-  createdAt DateTime @default(now())
+// --- MapAble Core Phase 2 ---
+
+enum ConversationType {
+  participant_provider
+  participant_support_coordinator
+  participant_admin
+  booking_thread
+  support_ticket_thread
+  organisation_admin
 }
 
-model ProviderCredential {
+enum SupportTicketCategory {
+  booking_help
+  transport_issue
+  care_provider_issue
+  accessibility_issue
+  billing_question
+  profile_help
+  technical_issue
+  complaint
+  safeguarding_concern
+  other
+}
+
+enum SupportTicketStatus {
+  open
+  triage
+  waiting_on_user
+  waiting_on_provider
+  escalated
+  resolved
+  closed
+}
+
+enum SupportTicketPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum DocumentCategory {
+  participant_identity
+  participant_plan
+  service_agreement
+  provider_insurance
+  provider_registration
+  worker_screening
+  booking_attachment
+  invoice_attachment
+  support_ticket_attachment
+  accessibility_evidence
+  other
+}
+
+enum DocumentVisibility {
+  private_to_participant
+  shared_with_provider
+  shared_with_plan_manager
+  admin_only
+  organisation_private
+}
+
+enum DocumentScanStatus {
+  not_configured
+  pending
+  passed
+  failed
+}
+
+enum FundingSourceType {
+  ndis_self_managed
+  ndis_plan_managed
+  ndis_agency_managed
+  private_pay
+  aged_care
+  employer
+  other
+}
+
+enum FundingSourceStatus {
+  active
+  inactive
+  pending_review
+  expired
+}
+
+enum InvoiceStatus {
+  draft
+  preflight_required
+  preflight_failed
+  approved_for_invoicing
+  xero_sync_pending
+  xero_synced
+  stripe_payment_pending
+  partially_paid
+  paid
+  voided
+}
+
+enum BillingPreflightStatus {
+  passed
+  failed
+}
+
+enum ProviderResponseStatus {
+  not_sent
+  sent
+  accepted
+  declined
+  expired
+}
+
+enum BookingTimelineEventType {
+  booking_created
+  booking_submitted
+  booking_assigned
+  provider_accepted
+  provider_declined
+  booking_confirmed
+  booking_completed
+  invoice_drafted
+  support_ticket_created
+  message_sent
+}
+
+model Conversation {
+  id              String           @id @default(cuid())
+  type            ConversationType
+  title           String
+  participantId   String?
+  bookingId       String?
+  booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  supportTicketId String?
+  organisationId  String?
+  createdById     String
+  createdBy       User             @relation("ConversationCreatedBy", fields: [createdById], references: [id])
+  lastMessageAt   DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([participantId])
+  @@index([bookingId])
+  @@index([organisationId])
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id                 String       @id @default(cuid())
+  conversationId     String
+  conversation       Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderUserId       String
+  sender             User         @relation("MessageSender", fields: [senderUserId], references: [id])
+  body               String
+  plainLanguageSummary String?
+  attachmentDocumentIds String[]   @default([])
+  createdAt          DateTime     @default(now())
+  editedAt           DateTime?
+  deletedAt          DateTime?
+
+  readReceipts MessageReadReceipt[]
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageReadReceipt {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt    DateTime @default(now())
+
+  @@unique([messageId, userId])
+}
+
+model SupportTicket {
+  id                    String                @id @default(cuid())
+  title                 String
+  description           String
+  category              SupportTicketCategory
+  status                SupportTicketStatus   @default(open)
+  priority              SupportTicketPriority @default(normal)
+  participantId         String?
+  organisationId        String?
+  bookingId             String?
+  assignedAdminId       String?
+  assignedAdmin         User?                 @relation("TicketAssignedAdmin", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  createdById           String
+  createdBy             User                  @relation("TicketCreatedBy", fields: [createdById], references: [id])
+  escalationReason      String?
+  resolutionSummary     String?
+  requiresIncidentReview Boolean              @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  closedAt              DateTime?
+
+  comments  SupportTicketComment[]
+  documents Document[]
+
+  @@index([status])
+  @@index([participantId])
+  @@index([organisationId])
+  @@index([priority])
+}
+
+model SupportTicketComment {
+  id        String        @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id])
+  body      String
+  isInternal Boolean      @default(false)
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+model Document {
+  id              String             @id @default(cuid())
+  title           String
+  category        DocumentCategory
+  visibility      DocumentVisibility @default(private_to_participant)
+  fileKey         String
+  mimeType        String
+  fileSize        Int
+  scanStatus      DocumentScanStatus @default(not_configured)
+  uploadedById    String
+  uploadedBy      User               @relation("DocumentUploadedBy", fields: [uploadedById], references: [id])
+  participantId   String?
+  organisationId  String?
+  bookingId       String?
+  booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  supportTicketId String?
+  supportTicket   SupportTicket?     @relation(fields: [supportTicketId], references: [id], onDelete: SetNull)
+  invoiceId       String?
+  invoice         Invoice?           @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  description     String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+
+  @@index([participantId])
+  @@index([organisationId])
+  @@index([bookingId])
+}
+
+model ParticipantFundingSource {
+  id                      String              @id @default(cuid())
+  participantId           String
+  participant             User                @relation("ParticipantFundingSources", fields: [participantId], references: [id], onDelete: Cascade)
+  type                    FundingSourceType
+  displayName             String
+  status                  FundingSourceStatus @default(pending_review)
+  planManagerOrganisationId String?
+  planManagerContactName  String?
+  planManagerEmail        String?
+  planStartDate           DateTime?
+  planEndDate             DateTime?
+  notes                   String?
+  createdById             String
+  createdBy               User                @relation("FundingSourceCreatedBy", fields: [createdById], references: [id])
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  bookings Booking[]
+  invoices Invoice[]
+
+  @@index([participantId, status])
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String?
+  participantId   String
+  participant     User          @relation("InvoiceParticipant", fields: [participantId], references: [id])
+  organisationId  String?
+  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId       String?
+  booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  fundingSourceId String?
+  fundingSource   ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
+  status          InvoiceStatus @default(draft)
+  issueDate       DateTime?
+  dueDate         DateTime?
+  subtotalCents   Int           @default(0)
+  taxCents        Int           @default(0)
+  totalCents      Int           @default(0)
+  currency        String        @default("AUD")
+  notes           String?
+  createdById     String
+  createdBy       User          @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  lines            InvoiceLine[]
+  documents        Document[]
+  preflightResults BillingPreflightResult[]
+  xeroSyncRecords  XeroInvoiceSyncRecord[]
+  stripePayments   StripePaymentIntentRecord[]
+
+  @@index([participantId, status])
+  @@index([organisationId])
+}
+
+model InvoiceLine {
+  id                   String   @id @default(cuid())
+  invoiceId            String
+  invoice              Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  bookingId            String?
+  description          String
+  serviceDate          DateTime
+  quantity             Decimal  @default(1)
+  unitAmountCents      Int
+  totalAmountCents     Int
+  supportItemCode      String?
+  claimableByNdis      Boolean  @default(false)
+  privatePayAmountCents Int?
+  ndisClaimableAmountCents Int?
+  taxCode              String?
+
+  @@unique([invoiceId])
+  @@index([invoiceId])
+}
+
+model BillingPreflightResult {
+  id            String                 @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice                @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  status        BillingPreflightStatus
+  checks        Json
+  failedReasons Json?
+  createdById   String
+  createdBy     User                   @relation(fields: [createdById], references: [id])
+  createdAt     DateTime               @default(now())
+
+  @@index([invoiceId, createdAt])
+}
+
+model StripeCustomerLink {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId String
+  createdAt        DateTime @default(now())
+}
+
+model StripePaymentIntentRecord {
+  id                    String   @id @default(cuid())
+  invoiceId             String
+  invoice               Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  stripePaymentIntentId String   @unique
+  amountCents           Int
+  currency              String   @default("AUD")
+  status                String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model StripeWebhookEvent {
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique
+  eventType     String
+  processedAt   DateTime?
+  payload       Json?
+  createdAt     DateTime @default(now())
+}
+
+model XeroTenantConnection {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenantName   String?
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model XeroContactLink {
   id             String   @id @default(cuid())
-  organisationId String?
-  credentialType String
-  status         String   @default("pending")
+  organisationId String?  @unique
+  participantId  String?  @unique
+  xeroContactId  String
   createdAt      DateTime @default(now())
 }
 
-model Vehicle {
-  id                   String   @id @default(cuid())
-  organisationId       String?
-  registration         String?
-  wheelchairAccessible Boolean  @default(false)
-  createdAt            DateTime @default(now())
+model XeroInvoiceSyncRecord {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  xeroInvoiceId String?
+  syncStatus    String   @default("pending")
+  lastError     String?
+  syncedAt      DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([invoiceId])
 }
 
-model WorkerProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  createdAt DateTime @default(now())
-}
+model BookingTimelineEvent {
+  id          String                 @id @default(cuid())
+  bookingId   String
+  booking     Booking                @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  eventType   BookingTimelineEventType
+  title       String
+  description String?
+  actorUserId String?
+  actor       User?                  @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  isAdminOnly Boolean                @default(false)
+  createdAt   DateTime               @default(now())
 
-model DriverProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  createdAt DateTime @default(now())
+  @@index([bookingId, createdAt])
 }
