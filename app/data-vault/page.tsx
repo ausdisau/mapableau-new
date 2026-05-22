@@ -9,7 +9,7 @@ export default async function DataVaultPage() {
   const requests = await listVaultRequestsForUser(user.id).catch(() => []);
 
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
       <h1 className="font-heading text-2xl font-bold">Personal data vault</h1>
       {!phase9Config.personalDataVaultEnabled ? (
         <p>Data vault is disabled in this environment.</p>
@@ -32,6 +32,6 @@ export default async function DataVaultPage() {
           </li>
         ))}
       </ul>
-    </main>
+    </div>
   );
 }
