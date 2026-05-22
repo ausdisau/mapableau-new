@@ -5,6 +5,8 @@ export type CoreNavLink = {
 };
 
 export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
+  { href: "/core", label: "Home" },
+  { href: "/ask", label: "Ask MapAble", description: "Co-Pilot + PRMS" },
   { href: "/dashboard", label: "Dashboard", description: "Your profile, bookings and care" },
   { href: "/login", label: "Sign in" },
   { href: "/provider/bookings", label: "Provider console" },
@@ -34,6 +36,11 @@ export const CORE_HUB_SECTIONS: {
   {
     title: "Your services",
     links: [
+      {
+        href: "/ask",
+        label: "Ask MapAble",
+        description: "Co-Pilot guidance with PRMS records underneath",
+      },
       { href: "/dashboard", label: "Dashboard", description: "Bookings, care, transport and profile" },
       { href: "/dashboard/bookings", label: "Bookings" },
       { href: "/dashboard/care", label: "Care" },
