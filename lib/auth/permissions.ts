@@ -102,7 +102,16 @@ export type Permission =
   | "developer:manage"
   | "compliance:manage"
   | "security:readiness"
-  | "ndia:readiness";
+  | "ndia:readiness"
+  | "launch:readiness"
+  | "dispatch:manage"
+  | "provider_quality:read"
+  | "ai_governance:read"
+  | "partner_sandbox:manage"
+  | "board:reporting"
+  | "community_governance:manage"
+  | "open_data:export"
+  | "government_reporting:manage";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -265,6 +274,15 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "security:readiness",
     "ndia:readiness",
     "admin:analytics",
+    "launch:readiness",
+    "dispatch:manage",
+    "provider_quality:read",
+    "ai_governance:read",
+    "partner_sandbox:manage",
+    "board:reporting",
+    "community_governance:manage",
+    "open_data:export",
+    "government_reporting:manage",
   ],
 };
 
