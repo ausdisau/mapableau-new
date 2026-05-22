@@ -378,6 +378,9 @@ async function main() {
   }
   console.log(`  Created ${providerUserRoles.length} provider user roles`);
 
+  const { seedMapAbleCore } = await import("./seed-mapable-core");
+  await seedMapAbleCore();
+
   console.log("Seed complete.");
 }
 

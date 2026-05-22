@@ -1,0 +1,334 @@
+
+enum PreferredContactMethod {
+  email
+  phone
+  sms
+}
+
+enum MapAbleUserRole {
+  participant
+  family_member
+  support_coordinator
+  support_worker
+  provider_admin
+  transport_operator
+  driver
+  employer
+  plan_manager
+  mapable_admin
+}
+
+enum OrganisationType {
+  care_provider
+  transport_provider
+  plan_manager
+  support_coordination
+  employer
+  community_partner
+  mapable_internal
+}
+
+enum VerificationStatus {
+  not_started
+  pending_review
+  verified
+  rejected
+  suspended
+}
+
+enum OrganisationStatus {
+  active
+  inactive
+  archived
+}
+
+enum ConsentScope {
+  profile_read
+  accessibility_read
+  booking_read
+  booking_manage
+  messages_send
+  billing_read
+  support_coordination_access
+  plan_manager_invoice_access
+  transport_accessibility_share
+  care_accessibility_share
+}
+
+enum ConsentStatus {
+  active
+  expired
+  revoked
+  pending
+}
+
+enum NotificationChannel {
+  in_app
+  email
+  sms
+  push
+}
+
+enum NotificationCategory {
+  booking
+  profile
+  consent
+  provider
+  billing
+  support
+  safeguarding
+  system
+}
+
+enum BookingType {
+  care
+  transport
+  care_transport
+}
+
+enum BookingStatus {
+  draft
+  requested
+  awaiting_provider_acceptance
+  confirmed
+  in_progress
+  completed
+  cancelled
+  disputed
+}
+
+model UserRoleAssignment {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      MapAbleUserRole
+  isPrimary Boolean         @default(false)
+  createdAt DateTime        @default(now())
+
+  @@unique([userId, role])
+}
+
+model ParticipantProfile {
+  id                       String                 @id @default(cuid())
+  userId                   String                 @unique
+  user                     User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName              String
+  preferredName            String?
+  dateOfBirth              DateTime?
+  ndisParticipantNumberEnc String?
+  primaryContactMethod     PreferredContactMethod @default(email)
+  emergencyContact         Json?
+  supportCoordinatorContact Json?
+  planManagerContact       Json?
+  homeSuburb               String?
+  homeState                String?
+  timezone                 String                 @default("Australia/Sydney")
+  participantNotes         String?
+  adminNotes               String?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+}
+
+model AccessibilityProfile {
+  id                       String   @id @default(cuid())
+  userId                   String   @unique
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mobilityNeeds            Json     @default("[]")
+  communicationPreferences Json     @default("[]")
+  sensoryPreferences       Json     @default("{}")
+  cognitivePreferences     Json     @default("{}")
+  transportRequirements    Json     @default("{}")
+  digitalPreferences       Json     @default("{}")
+  shareWithProviders       Json     @default("{}")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+model Organisation {
+  id                      String             @id @default(cuid())
+  name                    String
+  abn                     String?
+  organisationType        OrganisationType
+  contactEmail            String?
+  contactPhone            String?
+  website                 String?
+  address                 String?
+  serviceRegions          String[]           @default([])
+  status                  OrganisationStatus @default(active)
+  verificationStatus      VerificationStatus @default(not_started)
+  ndisRegistrationClaimed Boolean            @default(false)
+  ndisRegistrationNumber  String?
+  insuranceStatus         String?
+  notes                   String?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+
+  members     OrganisationMember[]
+  consents    ConsentRecord[]
+  bookings    Booking[]
+  auditEvents AuditEvent[]
+}
+
+model OrganisationMember {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisationId String
+  organisation   Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  role           MapAbleUserRole @default(provider_admin)
+  createdAt      DateTime        @default(now())
+
+  @@unique([userId, organisationId])
+}
+
+model ConsentRecord {
+  id                      String        @id @default(cuid())
+  subjectUserId           String
+  subjectUser             User          @relation("ConsentSubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  grantedToUserId         String?
+  grantedToUser           User?         @relation("ConsentGrantedToUser", fields: [grantedToUserId], references: [id], onDelete: SetNull)
+  grantedToOrganisationId String?
+  grantedToOrganisation   Organisation? @relation(fields: [grantedToOrganisationId], references: [id], onDelete: SetNull)
+  scope                   ConsentScope
+  purpose                 String
+  status                  ConsentStatus @default(active)
+  expiryDate              DateTime?
+  createdById             String
+  createdBy               User          @relation("ConsentCreatedBy", fields: [createdById], references: [id])
+  revokedById             String?
+  revokedBy               User?         @relation("ConsentRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
+  revokedAt               DateTime?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  @@index([subjectUserId, status])
+  @@index([grantedToOrganisationId])
+}
+
+model NotificationPreference {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  NotificationCategory
+  channel   NotificationChannel
+  enabled   Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@unique([userId, category, channel])
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  NotificationCategory
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+
+  @@index([userId, readAt])
+}
+
+model AuditEvent {
+  id             String          @id @default(cuid())
+  actorUserId    String?
+  actorUser      User?           @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorRole      MapAbleUserRole?
+  action         String
+  entityType     String
+  entityId       String?
+  participantId  String?
+  organisationId String?
+  organisation   Organisation?   @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime        @default(now())
+
+  @@index([action])
+  @@index([participantId])
+  @@index([createdAt])
+}
+
+model Booking {
+  id                     String        @id @default(cuid())
+  participantId          String
+  participant            User          @relation("BookingParticipant", fields: [participantId], references: [id])
+  bookingType            BookingType
+  status                 BookingStatus @default(draft)
+  requestedStart         DateTime
+  requestedEnd           DateTime?
+  pickupAddress          String?
+  dropoffAddress         String?
+  careLocation           String?
+  accessibilitySummary   String?
+  participantNotes       String?
+  providerNotes          String?
+  assignedOrganisationId String?
+  assignedOrganisation   Organisation? @relation(fields: [assignedOrganisationId], references: [id], onDelete: SetNull)
+  assignedWorkerId       String?
+  assignedWorker         User?         @relation("BookingAssignedWorker", fields: [assignedWorkerId], references: [id], onDelete: SetNull)
+  assignedDriverId       String?
+  assignedDriver         User?         @relation("BookingAssignedDriver", fields: [assignedDriverId], references: [id], onDelete: SetNull)
+  fundingSourceTag       String?
+  shareAccessibility     Boolean       @default(false)
+  createdById            String
+  createdBy              User          @relation("BookingCreatedBy", fields: [createdById], references: [id])
+  segments               BookingSegment[]
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  @@index([participantId, status])
+}
+
+model BookingSegment {
+  id                  String    @id @default(cuid())
+  bookingId           String
+  booking             Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  segmentType         String
+  startTime           DateTime?
+  endTime             DateTime?
+  pickupAddress       String?
+  dropoffAddress      String?
+  bufferBeforeMinutes Int       @default(0)
+  bufferAfterMinutes  Int       @default(0)
+  sortOrder           Int       @default(0)
+  createdAt           DateTime  @default(now())
+}
+
+model FundingSource {
+  id        String   @id @default(cuid())
+  name      String
+  tag       String   @unique
+  createdAt DateTime @default(now())
+}
+
+model ProviderCredential {
+  id             String   @id @default(cuid())
+  organisationId String?
+  credentialType String
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+}
+
+model Vehicle {
+  id                   String   @id @default(cuid())
+  organisationId       String?
+  registration         String?
+  wheelchairAccessible Boolean  @default(false)
+  createdAt            DateTime @default(now())
+}
+
+model WorkerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+}
+
+model DriverProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+}
