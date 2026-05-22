@@ -1,0 +1,4 @@
+# ATTESTATIONS
+
+See README_MAPABLE_CORE_PHASE_4.md for overview.
+

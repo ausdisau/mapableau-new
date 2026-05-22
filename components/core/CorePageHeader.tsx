@@ -1,28 +1,46 @@
 import type { ReactNode } from "react";
 
+// ReactNode used for title with brand colour spans
+
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/app/lib/utils";
+import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
+
 export function CorePageHeader({
   title,
   description,
   eyebrow,
+  centered,
   children,
+  className,
 }: {
   title: ReactNode;
   description?: string;
   eyebrow?: string;
+  centered?: boolean;
   children?: ReactNode;
+  className?: string;
 }) {
   return (
-    <header className="mx-auto max-w-3xl space-y-4 text-center">
+    <header
+      className={cn(
+        "space-y-4",
+        centered ? "mx-auto max-w-3xl text-center" : "border-b border-border/60 pb-8",
+        className
+      )}
+    >
       {eyebrow ? (
-        <p className="inline-flex rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary">
+        <Badge variant="outline" className={cn("w-fit", mapableEyebrowBadgeClass, centered && "mx-auto")}>
           {eyebrow}
-        </p>
+        </Badge>
       ) : null}
       <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
         {title}
       </h1>
       {description ? (
-        <p className="text-base text-muted-foreground sm:text-lg">{description}</p>
+        <p className={cn("text-base text-muted-foreground sm:text-lg", centered && "mx-auto")}>
+          {description}
+        </p>
       ) : null}
       {children}
     </header>

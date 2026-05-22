@@ -1,0 +1,168 @@
+// MapAble Core Phase 8 — Repeatable national infrastructure
+
+enum TransportNetworkRolloutStatus {
+  planned
+  pilot
+  live
+  paused
+}
+
+enum PublicApiVersionStatus {
+  draft
+  stable
+  deprecated
+  sunset
+}
+
+model AppStoreReleaseSubmission {
+  id          String   @id @default(cuid())
+  platform    String
+  version     String
+  track       String   @default("production")
+  status      String   @default("draft")
+  submittedAt DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  checklistItems AppStoreReleaseChecklistItem[]
+}
+
+model AppStoreReleaseChecklistItem {
+  id           String   @id @default(cuid())
+  submissionId String
+  submission   AppStoreReleaseSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  itemKey      String
+  title        String
+  completed    Boolean  @default(false)
+}
+
+model TransportNetworkRegion {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  status          TransportNetworkRolloutStatus @default(planned)
+  rolloutPercent  Int      @default(0)
+  operatorCount   Int      @default(0)
+  notes           String?
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+}
+
+model ComplianceRenewal {
+  id           String   @id @default(cuid())
+  controlCode  String
+  title        String
+  dueAt        DateTime
+  status       String   @default("pending")
+  renewedAt    DateTime?
+  evidenceJson Json?
+  createdAt    DateTime @default(now())
+}
+
+model SettlementBatch {
+  id          String   @id @default(cuid())
+  periodStart DateTime
+  periodEnd   DateTime
+  status      String   @default("draft")
+  totalCents  Int      @default(0)
+  itemCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  lines SettlementBatchLine[]
+}
+
+model SettlementBatchLine {
+  id          String   @id @default(cuid())
+  batchId     String
+  batch       SettlementBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  invoiceId   String?
+  amountCents Int
+  status      String   @default("pending")
+}
+
+model NationalInsightSnapshot {
+  id          String   @id @default(cuid())
+  periodLabel String
+  metricsJson Json
+  suppressed  Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model PublicApiVersion {
+  id        String   @id @default(cuid())
+  version   String   @unique
+  status    PublicApiVersionStatus @default(stable)
+  sunsetAt  DateTime?
+  changelog String?
+  createdAt DateTime @default(now())
+}
+
+model SlaReport {
+  id                  String   @id @default(cuid())
+  periodStart         DateTime
+  periodEnd           DateTime
+  availabilityPercent Float?
+  p95ResponseMs       Int?
+  status              String   @default("draft")
+  metricsJson         Json?
+  createdAt           DateTime @default(now())
+}
+
+model GrantReport {
+  id           String   @id @default(cuid())
+  grantCode    String
+  periodLabel  String
+  status       String   @default("draft")
+  outcomesJson Json?
+  submittedAt  DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model ExternalSecurityAuditPack {
+  id           String   @id @default(cuid())
+  title        String
+  framework    String
+  status       String   @default("draft")
+  evidenceJson Json?
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model AssessorCase {
+  id             String   @id @default(cuid())
+  assessorUserId String?
+  referenceCode  String?
+  caseType       String
+  status         String   @default("open")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PlatformStatusCheck {
+  id        String   @id @default(cuid())
+  component String
+  status    String
+  message   String?
+  checkedAt DateTime @default(now())
+}
+
+model DataTrustCouncilRecord {
+  id        String   @id @default(cuid())
+  title     String
+  summary   String
+  status    String   @default("scheduled")
+  meetingAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model PartnerMarketplaceListing {
+  id             String   @id @default(cuid())
+  organisationId String?
+  title          String
+  category       String
+  status         String   @default("draft")
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+}

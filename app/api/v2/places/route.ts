@@ -1,0 +1,49 @@
+import { jsonError, jsonOk } from "@/lib/api/response";
+import { getApiVersionPolicy } from "@/lib/api-versioning/version-policy-service";
+import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
+import { prisma } from "@/lib/prisma";
+import { scopesAllow } from "@/lib/developer-api/api-key-service";
+import type { ApiScope } from "@prisma/client";
+import { createHash } from "crypto";
+
+async function authenticateApiKey(req: Request) {
+  const key = req.headers.get("x-api-key");
+  if (!key) return null;
+  const hash = createHash("sha256").update(key).digest("hex");
+  const record = await prisma.developerApiKey.findFirst({
+    where: { keyHash: hash, revokedAt: null },
+    include: { app: true },
+  });
+  if (!record || record.app.status !== "approved") return null;
+  return record;
+}
+
+export async function GET(req: Request) {
+  const policy = await getApiVersionPolicy();
+  const v2 = policy.versions.find((v) => v.version === "v2");
+  if (v2?.status === "sunset") {
+    return jsonError("API v2 sunset", 410);
+  }
+
+  const record = await authenticateApiKey(req);
+  if (!record) return jsonError("Unauthorized", 401);
+  if (!scopesAllow(record.scopes, "places_read" as ApiScope)) {
+    return jsonError("Forbidden scope", 403);
+  }
+
+  const places = await listAccessiblePlaces(50);
+  const safe = places.map((p) => ({
+    id: p.id,
+    name: p.name,
+    confidence: p.confidence,
+    features: p.features.map((f) => f.type),
+    apiVersion: "v2",
+    meta: { paginationHint: "cursor not yet implemented" },
+  }));
+
+  return jsonOk({
+    version: "v2",
+    status: v2?.status ?? "draft",
+    places: safe,
+  });
+}

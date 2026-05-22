@@ -9,15 +9,15 @@ export default function Page() {
         <span className="flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/ask"
-            className="font-semibold text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+            className="font-semibold text-primary transition hover:text-primary/80 focus-visible:underline"
           >
             Ask MapAble (Co-Pilot + PRMS) →
           </Link>
           <Link
             href="/core"
-            className="font-semibold text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+            className="font-semibold text-secondary transition hover:text-secondary/80 focus-visible:underline"
           >
-            Open MapAble Core hub →
+            Open MapAble Core platform →
           </Link>
         </span>
       </div>

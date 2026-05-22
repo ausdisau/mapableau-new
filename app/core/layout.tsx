@@ -1,6 +1,6 @@
 import { CoreShell } from "@/components/core/CoreShell";
 
-export default function CoreLayout({
+export default function CoreHubLayout({
   children,
 }: {
   children: React.ReactNode;

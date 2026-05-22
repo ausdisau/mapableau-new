@@ -1,0 +1,271 @@
+// MapAble Core Phase 6 — Production & ecosystem launch
+
+enum LaunchReadinessStatus {
+  not_started
+  in_progress
+  blocked
+  ready
+  waived
+}
+
+enum DispatchQueueType {
+  care_shift
+  transport_booking
+  incident
+  general
+}
+
+enum DispatchQueuePriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum AccreditationAssessmentType {
+  mapable_assessment
+  community_review
+  external_audit_placeholder
+}
+
+model LaunchReadinessItem {
+  id          String                @id @default(cuid())
+  code        String                @unique
+  category    String
+  title       String
+  description String?
+  status      LaunchReadinessStatus @default(not_started)
+  evidenceDocumentId String?
+  completedAt DateTime?
+  completedById String?
+  sortOrder   Int                   @default(0)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+}
+
+model MobileReleaseTrack {
+  id          String   @id @default(cuid())
+  platform    String
+  version     String
+  status      String   @default("planning")
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  checklists MobileBuildChecklist[]
+}
+
+model MobileBuildChecklist {
+  id        String   @id @default(cuid())
+  trackId   String
+  track     MobileReleaseTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  itemKey   String
+  title     String
+  completed Boolean  @default(false)
+  notes     String?
+}
+
+model AiModelMonitor {
+  id              String   @id @default(cuid())
+  modelVersion    String
+  inputCategory   String
+  outputCategory  String
+  reviewOutcome   String?
+  fairnessWarning Boolean  @default(false)
+  humanOverride   Boolean  @default(false)
+  actorUserId     String?
+  createdAt       DateTime @default(now())
+
+  incidents AiGovernanceIncident[]
+}
+
+model AiGovernanceIncident {
+  id          String   @id @default(cuid())
+  monitorId   String?
+  monitor     AiModelMonitor? @relation(fields: [monitorId], references: [id], onDelete: SetNull)
+  severity    String   @default("medium")
+  summary     String
+  resolution  String?
+  status      String   @default("open")
+  createdAt   DateTime @default(now())
+}
+
+model DispatchQueue {
+  id              String              @id @default(cuid())
+  queueType       DispatchQueueType
+  priority        DispatchQueuePriority @default(normal)
+  title           String
+  entityType      String?
+  entityId        String?
+  organisationId  String?
+  status          String              @default("open")
+  plainLanguageSummary String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  actions DispatchAction[]
+
+  @@index([status, priority])
+  @@index([queueType])
+}
+
+model DispatchAction {
+  id          String   @id @default(cuid())
+  queueId     String
+  queue       DispatchQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  actionType  String
+  actorUserId String
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model ProviderQualityScore {
+  id             String   @id @default(cuid())
+  organisationId String
+  periodStart    DateTime
+  periodEnd      DateTime
+  score          Float
+  factorsJson    Json     @default("[]")
+  explanation    String
+  createdAt      DateTime @default(now())
+
+  reviews ProviderSafeguardReview[]
+
+  @@index([organisationId])
+}
+
+model ProviderSafeguardReview {
+  id        String   @id @default(cuid())
+  scoreId   String?
+  score     ProviderQualityScore? @relation(fields: [scoreId], references: [id], onDelete: SetNull)
+  organisationId String
+  reviewerId String
+  summary   String
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+}
+
+model PlanManagerIntegrationProfile {
+  id            String   @id @default(cuid())
+  partnerName   String
+  exportFormat  String   @default("csv")
+  active        Boolean  @default(false)
+  configJson    Json     @default("{}")
+  createdAt     DateTime @default(now())
+}
+
+model PartnerSandboxApp {
+  id          String   @id @default(cuid())
+  name        String
+  status      String   @default("sandbox")
+  scopesJson  Json     @default("[]")
+  createdAt   DateTime @default(now())
+
+  deliveries SandboxWebhookDelivery[]
+}
+
+model SandboxWebhookDelivery {
+  id        String   @id @default(cuid())
+  appId     String
+  app       PartnerSandboxApp @relation(fields: [appId], references: [id], onDelete: Cascade)
+  eventType String
+  status    String
+  createdAt DateTime @default(now())
+}
+
+model AccessibilityAccreditationCase {
+  id             String                      @id @default(cuid())
+  entityType     String
+  entityId       String
+  assessmentType AccreditationAssessmentType @default(mapable_assessment)
+  status         String                      @default("draft")
+  disclaimer     String                      @default("Not legal certification unless formal external audit recorded.")
+  createdAt      DateTime                    @default(now())
+
+  scores AccessibilityAccreditationScore[]
+}
+
+model AccessibilityAccreditationScore {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      AccessibilityAccreditationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  criterion String
+  score     Float
+  notes     String?
+}
+
+model OpenDataExport {
+  id          String   @id @default(cuid())
+  datasetKey  String
+  status      String   @default("draft")
+  recordCount Int      @default(0)
+  suppressedCount Int  @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+}
+
+model GovernmentReportPack {
+  id          String   @id @default(cuid())
+  packType    String
+  title       String
+  status      String   @default("draft")
+  contentJson Json     @default("{}")
+  submittedAt DateTime?
+  createdById String
+  createdAt   DateTime @default(now())
+}
+
+model DisasterRecoveryPlan {
+  id          String   @id @default(cuid())
+  name        String
+  version     String   @default("1")
+  status      String   @default("active")
+  checklistJson Json   @default("[]")
+  updatedAt   DateTime @updatedAt
+}
+
+model DisasterRecoveryExercise {
+  id        String   @id @default(cuid())
+  planId    String?
+  title     String
+  outcome   String?
+  status    String   @default("scheduled")
+  conductedAt DateTime?
+  evidenceJson Json?
+  createdAt DateTime @default(now())
+}
+
+model EvidenceAutomationJob {
+  id          String   @id @default(cuid())
+  jobType     String
+  status      String   @default("pending")
+  resultJson  Json?
+  createdAt   DateTime @default(now())
+}
+
+model BoardReportSnapshot {
+  id           String   @id @default(cuid())
+  reportPeriod String
+  metricsJson  Json
+  createdById  String?
+  createdAt    DateTime @default(now())
+}
+
+model CommunityGovernanceMeeting {
+  id          String   @id @default(cuid())
+  title       String
+  meetingAt   DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  decisions CommunityGovernanceDecision[]
+}
+
+model CommunityGovernanceDecision {
+  id          String   @id @default(cuid())
+  meetingId   String?
+  meeting     CommunityGovernanceMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  title       String
+  summary     String
+  status      String   @default("recorded")
+  createdAt   DateTime @default(now())
+}
