@@ -1,0 +1,558 @@
+// MapAble Core Phase 4 — append to schema.prisma
+
+enum MatchType {
+  care_worker
+  care_provider
+  transport_vehicle
+  transport_driver
+  transport_operator
+  job_support
+}
+
+enum MatchRunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+enum MatchCandidateStatus {
+  generated
+  recommended
+  shortlisted
+  selected
+  rejected
+  expired
+}
+
+enum MatchFactorType {
+  availability
+  location
+  service_type
+  accessibility_requirement
+  communication_preference
+  credential_status
+  prior_relationship
+  participant_preference
+  vehicle_suitability
+  provider_verification
+  price_or_funding_fit
+  manual_admin_override
+}
+
+enum TripTrackingStatus {
+  not_started
+  driver_en_route
+  arrived_for_pickup
+  participant_on_board
+  in_transit
+  arrived_at_destination
+  completed
+  cancelled
+}
+
+enum TripTrackingEventType {
+  status_update
+  location_update
+  eta_update
+  delay_reported
+  pickup_confirmed
+  dropoff_confirmed
+  safety_check
+  manual_admin_update
+}
+
+enum TimesheetStatus {
+  draft
+  submitted
+  participant_review
+  approved
+  rejected
+  disputed
+  invoice_ready
+}
+
+enum IncidentCategory {
+  late_or_no_show
+  access_need_not_met
+  unsafe_transport
+  unsafe_care
+  injury_or_health_event
+  privacy_concern
+  worker_conduct
+  driver_conduct
+  property_damage
+  complaint
+  safeguarding_concern
+  possible_reportable_incident
+  other
+}
+
+enum IncidentSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum IncidentStatus {
+  draft
+  submitted
+  triage
+  under_review
+  awaiting_provider_response
+  escalated
+  resolved
+  closed
+}
+
+enum ServiceAgreementType {
+  care
+  transport
+  care_transport
+  jobs_support
+  general_platform
+}
+
+enum ServiceAgreementStatus {
+  draft
+  sent_for_review
+  participant_review
+  signed
+  active
+  expired
+  cancelled
+}
+
+enum SmartContractType {
+  consent_gate
+  service_agreement_gate
+  booking_confirmation_gate
+  provider_verification_gate
+  worker_assignment_gate
+  transport_assignment_gate
+  invoice_preflight_gate
+  payment_release_gate
+  incident_escalation_gate
+}
+
+enum SmartContractStatus {
+  draft
+  active
+  paused
+  retired
+}
+
+enum ContractRunResult {
+  passed
+  blocked
+  review_required
+  not_applicable
+}
+
+enum AttestationType {
+  participant_confirmed_booking
+  participant_approved_timesheet
+  provider_accepted_service_agreement
+  worker_accepted_shift
+  driver_confirmed_pickup
+  driver_confirmed_dropoff
+  admin_verified_provider
+  contract_passed
+  invoice_preflight_passed
+  incident_triage_completed
+}
+
+enum AttestationStatus {
+  recorded
+  superseded
+  revoked
+  disputed
+}
+
+enum NdisRuleWarningSeverity {
+  info
+  warning
+  error
+}
+
+model MatchRun {
+  id                 String         @id @default(cuid())
+  matchType          MatchType
+  participantId      String?
+  bookingId          String?
+  careRequestId      String?
+  transportBookingId String?
+  jobApplicationId   String?
+  requestedById      String
+  status             MatchRunStatus @default(pending)
+  createdAt          DateTime       @default(now())
+  completedAt        DateTime?
+
+  candidates MatchCandidate[]
+  decisions  MatchDecision[]
+
+  @@index([careRequestId])
+  @@index([transportBookingId])
+  @@index([createdAt])
+}
+
+model MatchCandidate {
+  id                     String               @id @default(cuid())
+  matchRunId             String
+  matchRun               MatchRun             @relation(fields: [matchRunId], references: [id], onDelete: Cascade)
+  candidateType          MatchType
+  candidateUserId        String?
+  candidateOrganisationId String?
+  candidateWorkerId      String?
+  candidateDriverId      String?
+  candidateVehicleId     String?
+  score                  Float                @default(0)
+  scoreExplanation       String
+  status                 MatchCandidateStatus @default(generated)
+  createdAt              DateTime             @default(now())
+
+  factors MatchFactor[]
+
+  @@index([matchRunId, status])
+}
+
+model MatchFactor {
+  id               String         @id @default(cuid())
+  matchCandidateId String
+  matchCandidate   MatchCandidate @relation(fields: [matchCandidateId], references: [id], onDelete: Cascade)
+  factorType       MatchFactorType
+  weight           Float          @default(1)
+  score            Float          @default(0)
+  explanation      String
+
+  @@index([matchCandidateId])
+}
+
+model MatchDecision {
+  id               String   @id @default(cuid())
+  matchRunId       String
+  matchRun         MatchRun @relation(fields: [matchRunId], references: [id], onDelete: Cascade)
+  matchCandidateId String?
+  decidedById      String
+  decision         String
+  notes            String?
+  createdAt        DateTime @default(now())
+}
+
+model SavedProviderSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  queryJson Json
+  label     String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model TripTrackingSession {
+  id                 String             @id @default(cuid())
+  transportBookingId String             @unique
+  status             TripTrackingStatus @default(not_started)
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  events   TripTrackingEvent[]
+  locations TripLocationPoint[]
+
+  @@index([status])
+}
+
+model TripTrackingEvent {
+  id        String                @id @default(cuid())
+  sessionId String
+  session   TripTrackingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventType TripTrackingEventType
+  status    TripTrackingStatus?
+  message   String?
+  actorUserId String?
+  createdAt DateTime              @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+model TripLocationPoint {
+  id        String              @id @default(cuid())
+  sessionId String
+  session   TripTrackingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  lat       Float?
+  lng       Float?
+  recordedAt DateTime           @default(now())
+
+  @@index([sessionId])
+}
+
+model Timesheet {
+  id               String          @id @default(cuid())
+  careShiftId      String          @unique
+  participantId    String
+  workerProfileId  String?
+  organisationId   String
+  scheduledStart   DateTime
+  scheduledEnd     DateTime
+  actualStart      DateTime?
+  actualEnd        DateTime?
+  breakMinutes     Int             @default(0)
+  supportItemCode  String?
+  tasksCompleted   Json            @default("[]")
+  workerNotes      String?
+  participantFeedback String?
+  status           TimesheetStatus @default(draft)
+  submittedAt      DateTime?
+  approvedAt       DateTime?
+  rejectedReason   String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([participantId, status])
+  @@index([organisationId])
+  @@index([workerProfileId])
+}
+
+model IncidentReport {
+  id                      String           @id @default(cuid())
+  category                IncidentCategory
+  severity                IncidentSeverity @default(medium)
+  status                  IncidentStatus   @default(draft)
+  title                   String
+  description             String
+  participantId           String?
+  bookingId               String?
+  careShiftId             String?
+  transportBookingId      String?
+  organisationId          String?
+  workerProfileId         String?
+  driverProfileId         String?
+  vehicleId               String?
+  reportedById            String
+  occurredAt              DateTime?
+  immediateRiskPresent    Boolean          @default(false)
+  possibleReportableIncident Boolean       @default(false)
+  safeguardingConcern     Boolean          @default(false)
+  adminOwnerId            String?
+  adminAcknowledgedAt     DateTime?
+  resolutionSummary       String?
+  externalReportRef       String?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  closedAt                DateTime?
+
+  updates   IncidentUpdate[]
+  actions   IncidentAction[]
+  evidence  IncidentEvidence[]
+
+  @@index([status, severity])
+  @@index([participantId])
+  @@index([organisationId])
+}
+
+model IncidentUpdate {
+  id         String         @id @default(cuid())
+  incidentId String
+  incident   IncidentReport @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  authorId   String
+  body       String
+  createdAt  DateTime       @default(now())
+
+  @@index([incidentId])
+}
+
+model IncidentAction {
+  id         String         @id @default(cuid())
+  incidentId String
+  incident   IncidentReport @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  actionType String
+  actorId    String
+  notes      String?
+  createdAt  DateTime       @default(now())
+}
+
+model IncidentEvidence {
+  id         String         @id @default(cuid())
+  incidentId String
+  incident   IncidentReport @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  documentId String?
+  summary    String?
+  createdAt  DateTime       @default(now())
+}
+
+model ServiceAgreement {
+  id                        String                 @id @default(cuid())
+  participantId             String
+  organisationId            String
+  agreementType             ServiceAgreementType
+  title                     String
+  plainLanguageSummary      String
+  startDate                 DateTime
+  endDate                   DateTime?
+  fundingSourceId           String?
+  serviceTypes              Json                   @default("[]")
+  cancellationTerms         String?
+  pricingSummary            String?
+  participantResponsibilities String?
+  providerResponsibilities  String?
+  accessCommunicationNotes  String?
+  status                    ServiceAgreementStatus @default(draft)
+  createdById               String
+  signedByParticipantId     String?
+  signedByProviderId        String?
+  participantSignedAt       DateTime?
+  providerSignedAt          DateTime?
+  documentId                String?
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+
+  @@index([participantId, status])
+  @@index([organisationId])
+}
+
+model NdisSupportCategory {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  items       NdisSupportItem[]
+}
+
+model NdisSupportItem {
+  id                String              @id @default(cuid())
+  code              String              @unique
+  name              String
+  categoryId        String?
+  category          NdisSupportCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryLabel     String?
+  registrationGroup String?
+  unitType          String?
+  priceCapCents     Int?
+  effectiveFrom     DateTime?
+  effectiveTo       DateTime?
+  active            Boolean             @default(true)
+  notes             String?
+  suggestions       NdisLineItemSuggestion[]
+
+  @@index([active])
+}
+
+model NdisLineItemSuggestion {
+  id              String   @id @default(cuid())
+  sourceType      String
+  sourceId        String
+  supportItemId   String?
+  supportItem     NdisSupportItem? @relation(fields: [supportItemId], references: [id], onDelete: SetNull)
+  confidence      Float    @default(0.5)
+  explanation     String
+  acceptedById    String?
+  acceptedAt      DateTime?
+  rejectedById    String?
+  rejectedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([sourceType, sourceId])
+}
+
+model NdisRuleWarning {
+  id           String                  @id @default(cuid())
+  sourceType   String
+  sourceId     String
+  warningType  String
+  severity     NdisRuleWarningSeverity @default(warning)
+  message      String
+  resolvedById String?
+  resolvedAt   DateTime?
+  createdAt    DateTime                @default(now())
+
+  @@index([sourceType, sourceId])
+}
+
+model SmartContract {
+  id                  String              @id @default(cuid())
+  code                String              @unique
+  name                String
+  type                SmartContractType
+  version             String              @default("1")
+  status              SmartContractStatus @default(draft)
+  triggerEvent        String?
+  description         String?
+  rulesJson           Json                @default("[]")
+  requiresHumanApproval Boolean           @default(true)
+  createdById         String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  runs SmartContractRun[]
+}
+
+model SmartContractRule {
+  id         String   @id @default(cuid())
+  contractId String
+  ruleKey    String
+  ruleJson   Json
+  sortOrder  Int      @default(0)
+}
+
+model SmartContractRun {
+  id              String            @id @default(cuid())
+  smartContractId String
+  smartContract   SmartContract     @relation(fields: [smartContractId], references: [id])
+  actorUserId     String
+  participantId   String?
+  entityType      String
+  entityId        String
+  result          ContractRunResult
+  contextJson     Json?
+  findingsJson    Json?
+  createdAt       DateTime          @default(now())
+
+  findings SmartContractRunFinding[]
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model SmartContractRunFinding {
+  id        String           @id @default(cuid())
+  runId     String
+  run       SmartContractRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  code      String
+  message   String
+  severity  String           @default("warning")
+}
+
+model Attestation {
+  id                 String            @id @default(cuid())
+  type               AttestationType
+  status             AttestationStatus @default(recorded)
+  actorUserId        String?
+  actorOrganisationId String?
+  participantId      String?
+  entityType         String
+  entityId           String
+  claim              String
+  evidenceJson       Json?
+  evidenceHash       String?
+  contractRunId      String?
+  supersededById     String?
+  createdAt          DateTime          @default(now())
+
+  @@index([participantId])
+  @@index([entityType, entityId])
+  @@index([type])
+}
+
+model AnalyticsSnapshot {
+  id           String   @id @default(cuid())
+  snapshotDate DateTime
+  module       String
+  metricsJson  Json
+  createdAt    DateTime @default(now())
+
+  @@index([module, snapshotDate])
+}
