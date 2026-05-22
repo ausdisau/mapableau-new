@@ -13,10 +13,16 @@ export default function CoreHubPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-12 px-4 py-10">
       <CorePageHeader
-        title="MapAble Core"
+        eyebrow="MapAble Core"
+        centered
+        title={
+          <>
+            Care, transport & <span className="text-primary">accountability</span>
+          </>
+        }
         description="Your dashboard for care and transport, plus public transparency and accountability tools. Plain language, accessible design, and consent-aware by default."
       >
-        <div className="flex flex-wrap gap-3 pt-2">
+        <div className="flex flex-wrap justify-center gap-3 pt-2">
           <Link
             href="/login"
             className="inline-flex min-h-10 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"

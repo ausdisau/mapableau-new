@@ -1,71 +1,48 @@
-import { phase2Config, isStripeConfigured } from "@/lib/config/phase2";
-import { prisma } from "@/lib/prisma";
+import type Stripe from "stripe";
 
-export function stripeNotConfiguredResponse() {
-  return {
-    configured: false,
-    message: "Payments not configured",
-  };
-}
+import {
+  isStripeIntegrationEnabled,
+  stripeNotConfiguredResponse,
+} from "@/lib/stripe/config";
+import { createPaymentIntentForLegacyInvoice } from "@/lib/stripe/payment-intents";
+import {
+  dispatchStripeWebhook,
+  parseAndProcessWebhookRequest,
+} from "@/lib/stripe/webhooks";
 
+export { stripeNotConfiguredResponse, parseAndProcessWebhookRequest, dispatchStripeWebhook };
+
+/** @deprecated Use createPaymentIntentForLegacyInvoice */
 export async function createPaymentIntentPlaceholder(params: {
   invoiceId: string;
   amountCents: number;
   userId: string;
 }) {
-  if (!isStripeConfigured()) {
+  if (!isStripeIntegrationEnabled()) {
     return { ok: false as const, ...stripeNotConfiguredResponse() };
   }
 
-  // Phase 2: record intent placeholder without calling Stripe SDK unless installed
-  const record = await prisma.stripePaymentIntentRecord.create({
-    data: {
-      invoiceId: params.invoiceId,
-      stripePaymentIntentId: `pi_placeholder_${Date.now()}`,
-      amountCents: params.amountCents,
-      currency: phase2Config.stripeDefaultCurrency,
-      status: "requires_payment_method",
-    },
+  return createPaymentIntentForLegacyInvoice({
+    invoiceId: params.invoiceId,
+    amountCents: params.amountCents,
+    userId: params.userId,
   });
-
-  await prisma.invoice.update({
-    where: { id: params.invoiceId },
-    data: { status: "stripe_payment_pending" },
-  });
-
-  return {
-    ok: true as const,
-    configured: true,
-    paymentIntentId: record.stripePaymentIntentId,
-    metadata: {
-      mapable_invoice_id: params.invoiceId,
-      payment_purpose: "private_pay_or_copay",
-    },
-  };
 }
 
+/** @deprecated Use dispatchStripeWebhook with a verified Stripe.Event */
 export async function processStripeWebhookEvent(
   stripeEventId: string,
   eventType: string,
   payload: unknown
 ) {
-  const existing = await prisma.stripeWebhookEvent.findUnique({
-    where: { stripeEventId },
-  });
-  if (existing?.processedAt) {
-    return { duplicate: true };
-  }
+  const event = {
+    ...(payload as object),
+    id: stripeEventId,
+    type: eventType,
+  } as Stripe.Event;
 
-  await prisma.stripeWebhookEvent.upsert({
-    where: { stripeEventId },
-    create: {
-      stripeEventId,
-      eventType,
-      payload: payload as object,
-      processedAt: new Date(),
-    },
-    update: { processedAt: new Date(), eventType },
-  });
-
-  return { duplicate: false };
+  const result = await dispatchStripeWebhook(event);
+  return {
+    duplicate: result.billing.duplicate || result.legacy.duplicate,
+  };
 }

@@ -10,8 +10,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -80,6 +81,12 @@ model User {
   serviceAgreementsCreated  ServiceAgreement[] @relation("ServiceAgreementCreatedBy")
   attestationsAsActor       Attestation[]      @relation("AttestationActor")
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
+
+  billingAccounts           BillingAccount[]       @relation("BillingAccounts")
+  billingFundingSources     BillingFundingSource[] @relation("BillingFundingSources")
+  billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
+  billingPayments           BillingPayment[]       @relation("BillingPayments")
+  billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
 }
 
 model Worker {
@@ -425,6 +432,8 @@ model Organisation {
   bookings    Booking[]
   auditEvents AuditEvent[]
   invoices    Invoice[]
+  billingInvoices BillingInvoice[] @relation("BillingInvoiceProvider")
+  ndiaProviderClaims NdiaProviderClaim[]
 
   careRequests           CareRequest[]
   careShifts             CareShift[]
@@ -555,6 +564,7 @@ model Booking {
   fundingSourceId      String?
   fundingSource        ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
   invoices             Invoice[]
+  billingInvoices      BillingInvoice[] @relation("BillingInvoices")
   timelineEvents       BookingTimelineEvent[]
   conversations        Conversation[]
   documents            Document[]
@@ -4338,4 +4348,325 @@ model FederatedAccountabilityPartner {
   scope       String
   status      String   @default("active")
   linkedAt    DateTime @default(now())
+}
+// MapAble Core Billing Service — Stripe-powered billing
+
+enum BillingAccountRole {
+  participant
+  provider
+  employer
+  admin
+}
+
+enum BillingFundingSourceType {
+  ndis_plan_managed
+  ndis_self_managed
+  private_card
+  organisation_invoice
+  grant
+  other
+}
+
+enum BillingServiceType {
+  care
+  transport
+  jobs
+  marketplace
+  subscription
+  other
+}
+
+enum BillingInvoiceStatus {
+  draft
+  issued
+  pending_payment
+  paid
+  failed
+  refunded
+  cancelled
+  exported
+}
+
+enum BillingPaymentStatus {
+  requires_payment
+  processing
+  succeeded
+  failed
+  refunded
+  disputed
+}
+
+enum BillingPaymentMethod {
+  stripe_checkout
+  stripe_connect
+  external_plan_manager
+  xero_export
+  manual
+}
+
+enum BillingPaymentSplitRecipient {
+  provider
+  worker
+  transport_operator
+  mapable_platform
+}
+
+enum BillingPaymentSplitStatus {
+  pending
+  transferred
+  failed
+  reversed
+}
+
+enum BillingSubscriptionPlanCode {
+  provider_pro
+  employer_pro
+  marketplace_featured
+  other
+}
+
+enum BillingSubscriptionStatus {
+  incomplete
+  active
+  past_due
+  canceled
+  unpaid
+  trialing
+}
+
+model BillingAccount {
+  id                        String             @id @default(cuid())
+  userId                    String
+  user                      User               @relation("BillingAccounts", fields: [userId], references: [id], onDelete: Cascade)
+  role                      BillingAccountRole
+  stripeCustomerId          String?
+  stripeConnectedAccountId  String?
+  connectOnboardingComplete Boolean            @default(false)
+  defaultFundingSourceId    String?
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+
+  fundingSources BillingFundingSource[]
+  subscriptions  BillingSubscription[]
+
+  @@unique([userId, role])
+  @@index([stripeCustomerId])
+  @@index([stripeConnectedAccountId])
+}
+
+model BillingFundingSource {
+  id                   String                 @id @default(cuid())
+  userId               String
+  user                 User                   @relation("BillingFundingSources", fields: [userId], references: [id], onDelete: Cascade)
+  billingAccountId     String?
+  billingAccount       BillingAccount?        @relation(fields: [billingAccountId], references: [id], onDelete: SetNull)
+  type                 BillingFundingSourceType
+  label                String
+  ndisParticipantNumber String?
+  planManagerName      String?
+  planManagerEmail     String?
+  isDefault            Boolean                @default(false)
+  metadata             Json?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  invoices BillingInvoice[]
+
+  @@index([userId])
+}
+
+model BillingInvoice {
+  id                       String               @id @default(cuid())
+  userId                   String
+  user                     User                   @relation("BillingInvoices", fields: [userId], references: [id], onDelete: Cascade)
+  providerId               String?
+  provider                 Organisation?          @relation("BillingInvoiceProvider", fields: [providerId], references: [id], onDelete: SetNull)
+  bookingId                String?
+  booking                  Booking?               @relation("BillingInvoices", fields: [bookingId], references: [id], onDelete: SetNull)
+  legacyInvoiceId          String?
+  serviceType              BillingServiceType
+  status                   BillingInvoiceStatus   @default(draft)
+  fundingSourceId          String?
+  fundingSource            BillingFundingSource?  @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
+  currency                 String                 @default("AUD")
+  subtotalCents            Int                    @default(0)
+  platformFeeCents         Int                    @default(0)
+  gstCents                 Int                    @default(0)
+  totalCents               Int                    @default(0)
+  ndisLineItem             String?
+  ndisClaimable            Boolean                @default(false)
+  stripeCheckoutSessionId  String?
+  stripePaymentIntentId    String?
+  stripeInvoiceId          String?
+  xeroExportStatus         String?
+  planManagerExportStatus  String?
+  dueAt                    DateTime?
+  paidAt                   DateTime?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+
+  lineItems BillingInvoiceLineItem[]
+  payments  BillingPayment[]
+
+  @@index([userId, status])
+  @@index([providerId])
+  @@index([bookingId])
+  @@index([stripeCheckoutSessionId])
+}
+
+model BillingInvoiceLineItem {
+  id              String         @id @default(cuid())
+  invoiceId       String
+  invoice         BillingInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description     String
+  quantity        Decimal        @default(1)
+  unitAmountCents Int
+  totalCents      Int
+  ndisLineItem    String?
+  gstApplicable   Boolean        @default(false)
+  metadata        Json?
+  createdAt       DateTime       @default(now())
+
+  @@index([invoiceId])
+}
+
+model BillingPayment {
+  id                      String               @id @default(cuid())
+  invoiceId               String
+  invoice                 BillingInvoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  userId                  String
+  user                    User                 @relation("BillingPayments", fields: [userId], references: [id], onDelete: Cascade)
+  providerId              String?
+  status                  BillingPaymentStatus @default(requires_payment)
+  method                  BillingPaymentMethod
+  amountCents             Int
+  currency                String               @default("AUD")
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?              @unique
+  stripeChargeId          String?
+  failureReason           String?
+  paidAt                  DateTime?
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+
+  splits BillingPaymentSplit[]
+
+  @@index([invoiceId])
+  @@index([userId])
+}
+
+model BillingPaymentSplit {
+  id                      String                      @id @default(cuid())
+  paymentId               String
+  payment                 BillingPayment              @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  recipientType           BillingPaymentSplitRecipient
+  recipientId             String?
+  stripeConnectedAccountId String?
+  amountCents             Int
+  applicationFeeCents     Int                         @default(0)
+  transferId              String?
+  status                  BillingPaymentSplitStatus   @default(pending)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+
+  @@index([paymentId])
+}
+
+model BillingSubscription {
+  id                   String                    @id @default(cuid())
+  userId               String
+  user                 User                      @relation("BillingSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  billingAccountId     String
+  billingAccount       BillingAccount            @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  planCode             BillingSubscriptionPlanCode
+  status               BillingSubscriptionStatus @default(incomplete)
+  stripeCustomerId     String
+  stripeSubscriptionId String?                   @unique
+  stripePriceId        String
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean                   @default(false)
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+
+  @@index([userId])
+  @@index([stripeSubscriptionId])
+}
+
+model BillingStripeWebhookEvent {
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique
+  type          String
+  processed     Boolean   @default(false)
+  payload       Json
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+
+  @@index([processed])
+}
+
+model BillingAuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  entityType  String
+  entityId    String
+  action      String
+  before      Json?
+  after       Json?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+// Registered provider NDIA claiming (PACE / NDIA partner API adapter)
+
+enum NdiaProviderClaimStatus {
+  draft
+  validated
+  dry_run_passed
+  submitted
+  accepted
+  rejected
+  paid
+  failed
+}
+
+model NdiaProviderClaim {
+  id                     String                  @id @default(cuid())
+  organisationId         String
+  organisation           Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  legacyInvoiceId        String?
+  billingInvoiceId       String?
+  participantId          String
+  createdById            String
+  ndisRegistrationNumber String
+  status                 NdiaProviderClaimStatus @default(draft)
+  claimPayloadJson       Json
+  validationFindingsJson Json?
+  externalClaimId        String?
+  externalStatus         String?
+  submittedAt            DateTime?
+  paidAt                 DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  audits NdiaProviderClaimAudit[]
+
+  @@index([organisationId, status])
+  @@index([legacyInvoiceId])
+  @@index([billingInvoiceId])
+  @@index([externalClaimId])
+}
+
+model NdiaProviderClaimAudit {
+  id        String          @id @default(cuid())
+  claimId   String
+  claim     NdiaProviderClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  action    String
+  actorId   String?
+  before    Json?
+  after     Json?
+  createdAt DateTime        @default(now())
+
+  @@index([claimId, createdAt])
 }

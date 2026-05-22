@@ -1,8 +1,9 @@
-import { createHash } from "crypto";
-
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase5Config, integrationDisabledMessage } from "@/lib/config/phase5";
-import { isStripeConfigured } from "@/lib/config/phase2";
+import { isStripeIntegrationEnabled } from "@/lib/stripe/config";
+import { ensureLegacyStripeCustomer } from "@/lib/stripe/customers";
+import { buildLegacyInvoiceCheckout } from "@/lib/stripe/checkout";
+import { legacyInvoiceMetadata } from "@/lib/stripe/metadata";
 import { prisma } from "@/lib/prisma";
 import type { StripePaymentPurpose } from "@prisma/client";
 
@@ -11,11 +12,11 @@ export function safeStripeMetadata(params: {
   userId?: string;
   purpose: StripePaymentPurpose;
 }) {
-  return {
-    mapable_invoice_id: params.invoiceId ?? "",
-    mapable_user_id: params.userId ?? "",
-    payment_purpose: params.purpose,
-  };
+  return legacyInvoiceMetadata({
+    invoiceId: params.invoiceId ?? "",
+    userId: params.userId ?? "",
+    purpose: params.purpose,
+  });
 }
 
 export async function createCheckoutForInvoice(params: {
@@ -24,19 +25,33 @@ export async function createCheckoutForInvoice(params: {
   userId: string;
   purpose: StripePaymentPurpose;
 }) {
-  if (!phase5Config.stripeEnabled || !isStripeConfigured()) {
+  if (!phase5Config.stripeEnabled || !isStripeIntegrationEnabled()) {
     return { ok: false as const, ...integrationDisabledMessage("Stripe") };
   }
 
-  const sessionId = `cs_placeholder_${Date.now()}`;
+  const customerId = await ensureLegacyStripeCustomer(params.userId);
+
+  const session = await buildLegacyInvoiceCheckout({
+    invoiceId: params.invoiceId,
+    userId: params.userId,
+    amountCents: params.amountCents,
+    purpose: params.purpose,
+    customerId,
+  });
+
   const record = await prisma.stripeCheckoutSessionRecord.create({
     data: {
       invoiceId: params.invoiceId,
-      stripeSessionId: sessionId,
+      stripeSessionId: session.id,
       purpose: params.purpose,
       amountCents: params.amountCents,
-      status: "open",
+      status: session.status ?? "open",
     },
+  });
+
+  await prisma.invoice.update({
+    where: { id: params.invoiceId },
+    data: { status: "stripe_payment_pending" },
   });
 
   await createAuditEvent({
@@ -48,10 +63,10 @@ export async function createCheckoutForInvoice(params: {
 
   return {
     ok: true as const,
-    sessionId,
+    sessionId: session.id,
     record,
     metadata: safeStripeMetadata(params),
-    url: `/dashboard/invoices/${params.invoiceId}/pay?session=${sessionId}`,
+    url: session.url,
   };
 }
 
@@ -60,23 +75,13 @@ export async function processStripeWebhookIdempotent(
   eventType: string,
   payload: unknown
 ) {
-  const existing = await prisma.stripeWebhookEvent.findUnique({
-    where: { stripeEventId },
-  });
-  if (existing?.processedAt) return { duplicate: true };
-
-  await prisma.stripeWebhookEvent.upsert({
-    where: { stripeEventId },
-    create: {
-      stripeEventId,
-      eventType,
-      payload: payload as object,
-      processedAt: new Date(),
-    },
-    update: { processedAt: new Date() },
-  });
-
-  return { duplicate: false };
+  void stripeEventId;
+  void eventType;
+  const event = payload as import("stripe").Stripe.Event;
+  const result = await import("@/lib/stripe/webhooks").then((m) =>
+    m.processStripeWebhookEvent(event)
+  );
+  return { duplicate: result.duplicate };
 }
 
 export async function createRefundReview(
@@ -93,6 +98,8 @@ export async function createRefundReview(
     },
   });
 }
+
+import { createHash } from "crypto";
 
 export function hashApiKey(raw: string) {
   return createHash("sha256").update(raw).digest("hex");

@@ -1,3 +1,9 @@
+import {
+  isStripeIntegrationEnabled,
+  isStripeSdkAvailable,
+  stripeConfig,
+} from "@/lib/stripe/config";
+
 export const phase2Config = {
   documentStorageMode: process.env.DOCUMENT_STORAGE_MODE ?? "local",
   documentMaxUploadMb: Number(process.env.DOCUMENT_MAX_UPLOAD_MB ?? "10"),
@@ -5,8 +11,8 @@ export const phase2Config = {
   billingRequirePreflight: process.env.BILLING_REQUIRE_PREFLIGHT !== "false",
   billingEnableStripe: process.env.BILLING_ENABLE_STRIPE === "true",
   billingEnableXero: process.env.BILLING_ENABLE_XERO === "true",
-  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
-  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  stripeSecretKey: stripeConfig.secretKey,
+  stripeWebhookSecret: stripeConfig.webhookSecret,
   stripeDefaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY ?? "AUD",
   xeroClientId: process.env.XERO_CLIENT_ID,
   xeroClientSecret: process.env.XERO_CLIENT_SECRET,
@@ -14,10 +20,10 @@ export const phase2Config = {
 };
 
 export function isStripeConfigured(): boolean {
-  return Boolean(
-    phase2Config.billingEnableStripe && phase2Config.stripeSecretKey
-  );
+  return isStripeIntegrationEnabled();
 }
+
+export { isStripeSdkAvailable };
 
 export function isXeroConfigured(): boolean {
   return Boolean(

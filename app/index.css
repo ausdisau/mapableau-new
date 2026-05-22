@@ -3,7 +3,10 @@
 @tailwind utilities;
 
 :root {
-  /* Brand Colors: Blue & Green from Logo */
+  --radius: 0.75rem;
+  --badge-outline: hsl(215 20% 88%);
+
+  /* Brand Colors: Blue & Green from Logo — https://mapable.com.au */
   /* Primary Blue: Trust, Professionalism */
   --primary: 215 100% 35%; /* #003F88 roughly */
   --primary-foreground: 0 0% 100%;
