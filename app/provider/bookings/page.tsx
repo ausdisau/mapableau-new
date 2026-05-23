@@ -1,9 +1,9 @@
-import { requireAuth } from "@/lib/auth/guards";
-import { prisma } from "@/lib/prisma";
 import {
   ProviderBookingTable,
   groupBookingsBySection,
 } from "@/components/provider/ProviderBookingTable";
+import { requireAuth } from "@/lib/auth/guards";
+import { prisma } from "@/lib/prisma";
 
 export default async function ProviderBookingsPage() {
   const user = await requireAuth();

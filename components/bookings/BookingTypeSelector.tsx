@@ -42,6 +42,7 @@ export function BookingTypeSelector({
             checked={value === opt.value}
             onChange={() => onChange(opt.value)}
             className="mt-1 h-5 w-5"
+            aria-label={opt.label}
           />
           <span>
             <span className="block font-medium">{opt.label}</span>

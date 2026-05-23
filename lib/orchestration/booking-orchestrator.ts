@@ -5,12 +5,12 @@ import {
   toCoreBookingStatus,
   toPrismaBookingStatus,
 } from "@/lib/domain/booking-status";
+import { notifyUserWithAction } from "@/lib/notifications/notification-service";
 import {
   addWorkerToBookingThread,
   ensureBookingThread,
   postBookingSystemMessage,
 } from "@/lib/orchestration/message-orchestrator";
-import { notifyUserWithAction } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 
 export async function onBookingCreated(params: {

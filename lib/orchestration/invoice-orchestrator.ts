@@ -5,8 +5,8 @@ import {
   toCoreInvoiceStatus,
   toPrismaInvoiceStatus,
 } from "@/lib/domain/invoice-status";
-import { postBookingSystemMessage } from "@/lib/orchestration/message-orchestrator";
 import { notifyUserWithAction } from "@/lib/notifications/notification-service";
+import { postBookingSystemMessage } from "@/lib/orchestration/message-orchestrator";
 import { prisma } from "@/lib/prisma";
 
 export async function onInvoiceIssued(params: {

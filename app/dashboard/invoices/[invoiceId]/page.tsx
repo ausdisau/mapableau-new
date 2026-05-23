@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { InvoiceTotalsTable } from "@/components/invoices/InvoiceTotalsTable";
 import { ParticipantInvoiceActions } from "@/components/invoices/ParticipantInvoiceActions";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { invoiceStatusLabel, toCoreInvoiceStatus } from "@/lib/domain/invoice-status";
 import { requireAuth } from "@/lib/auth/guards";
+import { invoiceStatusLabel, toCoreInvoiceStatus } from "@/lib/domain/invoice-status";
 import { prisma } from "@/lib/prisma";
 
 export default async function ParticipantInvoiceDetailPage({

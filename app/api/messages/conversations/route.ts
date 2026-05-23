@@ -7,7 +7,6 @@ import {
   createConversation,
   listConversationsForUser,
 } from "@/lib/messages/message-service";
-import { prisma } from "@/lib/prisma";
 
 const createThreadSchema = z.object({
   type: z.string().min(1),

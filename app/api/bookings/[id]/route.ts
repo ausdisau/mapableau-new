@@ -2,11 +2,11 @@ import { ZodError } from "zod";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { isAdminRole } from "@/lib/auth/roles";
 import { userCanAccessBooking } from "@/lib/bookings/booking-access";
 import { updateBooking } from "@/lib/bookings/booking-service";
 import { listBookingTimeline } from "@/lib/bookings/timeline-service";
 import { transitionBookingStatus } from "@/lib/orchestration/booking-orchestrator";
-import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { updateBookingSchema } from "@/lib/validation/booking";
 

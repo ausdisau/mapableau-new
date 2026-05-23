@@ -1,7 +1,7 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { createPaymentIntentForLegacyInvoice } from "@/lib/stripe/payment-intents";
 import { prisma } from "@/lib/prisma";
+import { createPaymentIntentForLegacyInvoice } from "@/lib/stripe/payment-intents";
 
 export async function POST(
   _req: Request,

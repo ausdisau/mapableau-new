@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateInvoiceTotals } from "@/lib/invoices/invoice-calculations";
 import { canTransitionInvoiceStatus } from "@/lib/domain/invoice-status";
+import { calculateInvoiceTotals } from "@/lib/invoices/invoice-calculations";
 
 describe("invoice orchestration", () => {
   it("calculates totals with NDIS and gap split", () => {

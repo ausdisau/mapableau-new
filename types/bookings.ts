@@ -1,5 +1,5 @@
-import type { BookingType } from "@/types/mapable";
 import type { CoreBookingStatus } from "@/lib/domain/booking-status";
+import type { BookingType } from "@/types/mapable";
 
 export type { CoreBookingStatus };
 

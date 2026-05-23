@@ -1,6 +1,5 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { runBillingPreflight } from "@/lib/billing/preflight";
-import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase2Config } from "@/lib/config/phase2";
 import {
   assertInvoiceTransition,
