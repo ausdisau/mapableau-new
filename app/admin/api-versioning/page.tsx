@@ -1,5 +1,5 @@
-import { requireAdmin } from "@/lib/auth/guards";
 import { getApiVersionPolicy } from "@/lib/api-versioning/version-policy-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function ApiVersioningPage() {
   await requireAdmin();

@@ -1,6 +1,6 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CopilotAction } from "@/lib/copilot/types";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Props = {
   actions: CopilotAction[];

@@ -1,6 +1,7 @@
+import type { WorkerCredentialStatus } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
-import type { WorkerCredentialStatus } from "@prisma/client";
 
 export async function createWorkerProfile(params: {
   userId: string;

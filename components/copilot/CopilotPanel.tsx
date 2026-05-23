@@ -2,12 +2,11 @@
 
 import { useCallback, useState } from "react";
 
-import type { CopilotAskResponse } from "@/lib/copilot/types";
-import { intentLabel } from "@/lib/copilot/intentRouter";
-import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { intentLabel } from "@/lib/copilot/intentRouter";
+import type { CopilotAskResponse } from "@/lib/copilot/types";
+import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
 
 import { ConfirmationGatePanel } from "./ConfirmationGate";
 import { CopilotActionCards } from "./CopilotActionCards";

@@ -1,5 +1,6 @@
-import type { createInvoiceSchema } from "@/lib/billing-core/schemas";
 import type { z } from "zod";
+
+import type { createInvoiceSchema } from "@/lib/billing-core/schemas";
 
 type InvoiceFixture = z.infer<typeof createInvoiceSchema>;
 

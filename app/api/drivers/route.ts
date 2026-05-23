@@ -1,7 +1,7 @@
 import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
-import { createDriverProfile } from "@/lib/transport/driver-service";
 import { prisma } from "@/lib/prisma";
+import { createDriverProfile } from "@/lib/transport/driver-service";
 
 export async function GET() {
   const user = await requireApiSession();

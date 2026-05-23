@@ -1,12 +1,15 @@
+import type { BillingAccountRole } from "@prisma/client";
+
+import { getOrCreateBillingAccount } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { isBillingStripeConfigured } from "@/lib/billing-core/config";
-import { getOrCreateBillingAccount } from "@/lib/billing-core/account-service";
+import { prisma } from "@/lib/prisma";
 import {
   createConnectOnboardingLink,
   createExpressConnectAccount,
 } from "@/lib/stripe/connect";
-import type { BillingAccountRole } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+
+
 
 export async function createConnectAccountAndLink(
   userId: string,

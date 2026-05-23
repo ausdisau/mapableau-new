@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
 
-import type { DraftPrmsRecord, OfficialPrmsRecord } from "@/lib/prms/types";
-import type { ActorType } from "@/lib/prms/types";
+import type { DraftPrmsRecord, OfficialPrmsRecord , ActorType } from "@/lib/prms/types";
 
 type StoredDraft = DraftPrmsRecord & { id: string; createdAt: string };
 

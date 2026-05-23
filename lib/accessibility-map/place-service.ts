@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import type { AccessibilityConfidence, AccessibilityFeatureType } from "@prisma/client";
+
+import { prisma } from "@/lib/prisma";
 
 export async function listAccessiblePlaces(take = 50) {
   return prisma.accessiblePlace.findMany({

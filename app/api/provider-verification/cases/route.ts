@@ -1,11 +1,11 @@
-import { requireApiAdmin, requireApiSession } from "@/lib/api/auth-handler";
+import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
+import { prisma } from "@/lib/prisma";
 import {
   createVerificationCase,
   submitVerificationCase,
 } from "@/lib/provider-verification/verification-case-service";
-import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const user = await requireApiSession();

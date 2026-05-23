@@ -1,6 +1,6 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { phase5Config, integrationDisabledMessage } from "@/lib/config/phase5";
 import { isXeroConfigured } from "@/lib/config/phase2";
+import { phase5Config, integrationDisabledMessage } from "@/lib/config/phase5";
 import { prisma } from "@/lib/prisma";
 
 const SAFE_DESCRIPTION = "Support services — details in MapAble records";

@@ -1,6 +1,6 @@
+import { listCertificationApplications } from "@/lib/api-certification/certification-service";
 import { requireAdmin } from "@/lib/auth/guards";
 import { phase10Config } from "@/lib/config/phase10";
-import { listCertificationApplications } from "@/lib/api-certification/certification-service";
 
 export default async function ApiCertificationPage() {
   await requireAdmin();

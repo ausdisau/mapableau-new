@@ -1,7 +1,8 @@
+import type { DataVaultRequestType } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase9Config } from "@/lib/config/phase9";
 import { prisma } from "@/lib/prisma";
-import type { DataVaultRequestType } from "@prisma/client";
 
 export async function requestDataVaultExport(
   userId: string,

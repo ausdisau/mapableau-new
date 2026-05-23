@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 
-import type { LedgerEvent, LedgerEventType, LedgerSubjectType } from "@/lib/ledger/types";
 import { chainEventHash, hashPayload } from "@/lib/ledger/hash";
+import type { LedgerEvent, LedgerEventType, LedgerSubjectType } from "@/lib/ledger/types";
 
 /** In-memory chain for mock/demo — replace with persistent store in production. */
 const eventChain: LedgerEvent[] = [];

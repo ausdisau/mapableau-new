@@ -1,6 +1,6 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { checkConsent } from "@/lib/consent/consent-service";
 import { syncCalendarForTransport } from "@/lib/calendar/calendar-service";
+import { checkConsent } from "@/lib/consent/consent-service";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 
@@ -63,7 +63,7 @@ export async function createTransportBooking(params: {
 export async function assignTransportOperator(
   transportBookingId: string,
   organisationId: string,
-  adminUserId: string
+  _adminUserId: string
 ) {
   return prisma.transportBooking.update({
     where: { id: transportBookingId },
@@ -76,7 +76,7 @@ export async function assignTransportOperator(
 
 export async function acceptTransportBooking(
   id: string,
-  actorUserId: string
+  _actorUserId: string
 ) {
   const tb = await prisma.transportBooking.update({
     where: { id },

@@ -1,8 +1,9 @@
+import type { IncidentCategory, IncidentSeverity } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { notifyUser } from "@/lib/notifications/notification-service";
 import { phase4Config } from "@/lib/config/phase4";
+import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
-import type { IncidentCategory, IncidentSeverity, IncidentStatus } from "@prisma/client";
 
 export async function createIncident(params: {
   category: IncidentCategory;

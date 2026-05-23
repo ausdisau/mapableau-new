@@ -5,13 +5,13 @@ import {
   markWebhookProcessed,
   storeWebhookEventIdempotent,
 } from "@/lib/billing-core/webhook-handler";
+import { getStripeClient } from "@/lib/stripe/client";
+import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
 import {
   handleLegacyStripeEvent,
   markLegacyWebhookProcessed,
   storeLegacyWebhookEventIdempotent,
 } from "@/lib/stripe/legacy-webhooks";
-import { getStripeClient } from "@/lib/stripe/client";
-import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
 import { legacyInvoiceIdFromMetadata } from "@/lib/stripe/metadata";
 
 export function constructStripeWebhookEvent(

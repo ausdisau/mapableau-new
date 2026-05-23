@@ -1,11 +1,14 @@
+import { createHash } from "crypto";
+
+import type { StripePaymentPurpose } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase5Config, integrationDisabledMessage } from "@/lib/config/phase5";
+import { prisma } from "@/lib/prisma";
+import { buildLegacyInvoiceCheckout } from "@/lib/stripe/checkout";
 import { isStripeIntegrationEnabled } from "@/lib/stripe/config";
 import { ensureLegacyStripeCustomer } from "@/lib/stripe/customers";
-import { buildLegacyInvoiceCheckout } from "@/lib/stripe/checkout";
 import { legacyInvoiceMetadata } from "@/lib/stripe/metadata";
-import { prisma } from "@/lib/prisma";
-import type { StripePaymentPurpose } from "@prisma/client";
 
 export function safeStripeMetadata(params: {
   invoiceId?: string;
@@ -98,8 +101,6 @@ export async function createRefundReview(
     },
   });
 }
-
-import { createHash } from "crypto";
 
 export function hashApiKey(raw: string) {
   return createHash("sha256").update(raw).digest("hex");

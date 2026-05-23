@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isStripeIntegrationEnabled,
+  isStripeSdkAvailable,
+} from "@/lib/stripe/config";
+import {
   billingCheckoutMetadata,
   legacyInvoiceIdFromMetadata,
   legacyInvoiceMetadata,
 } from "@/lib/stripe/metadata";
-import {
-  isStripeIntegrationEnabled,
-  isStripeSdkAvailable,
-} from "@/lib/stripe/config";
 
 describe("Stripe SDK configuration", () => {
   it("SDK unavailable without secret key in test env", () => {

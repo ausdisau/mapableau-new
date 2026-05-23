@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
+import type { ReportingMetricCategory } from "@prisma/client";
 
 import { phase5Config } from "@/lib/config/phase5";
 import { prisma } from "@/lib/prisma";
-import type { ReportingMetricCategory } from "@prisma/client";
 
 function suppressSmallCount(count: number) {
   if (count > 0 && count < phase5Config.smallCellSuppressionThreshold) {

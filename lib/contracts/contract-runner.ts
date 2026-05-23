@@ -1,7 +1,8 @@
+import { Prisma, type ContractRunResult } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase4Config } from "@/lib/config/phase4";
 import { prisma } from "@/lib/prisma";
-import { Prisma, type ContractRunResult } from "@prisma/client";
 
 type Rule = {
   field: string;

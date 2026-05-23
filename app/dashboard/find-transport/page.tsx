@@ -15,7 +15,7 @@ export default async function FindTransportPage() {
           language.
         </p>
       </header>
-      <ul className="space-y-4" role="list">
+      <ul className="space-y-4">
         {results.map((r) => (
           <li key={r.id}>
             <ProviderSearchResultCard

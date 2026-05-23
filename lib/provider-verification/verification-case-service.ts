@@ -1,8 +1,10 @@
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import type { VerificationCaseStatus } from "@prisma/client";
+
 import { createAttestation } from "@/lib/attestations/attestation-service";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase5Config } from "@/lib/config/phase5";
 import { prisma } from "@/lib/prisma";
-import type { VerificationCaseStatus } from "@prisma/client";
+
 
 export async function createVerificationCase(organisationId: string, createdById: string) {
   if (!phase5Config.providerVerificationAdvancedEnabled) {

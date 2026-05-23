@@ -1,5 +1,5 @@
-import { requireAdmin } from "@/lib/auth/guards";
 import { getAssessorNetworkDirectory } from "@/lib/assessor-network/network-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssessorNetworkPage() {
   await requireAdmin();
