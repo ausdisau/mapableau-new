@@ -1,6 +1,7 @@
-import { Facebook, Instagram, Linkedin, MapPin, Twitter } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import Link from "next/link";
 
+import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
 import {
   MAPABLE_MARKETING_URL,
   MAPABLE_SUPPORT_EMAIL,
@@ -17,11 +18,8 @@ export function MapAbleMarketingFooter() {
       <div className={mapablePageContainerClass}>
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="rounded-lg bg-primary p-1.5">
-                <MapPin className="h-5 w-5 fill-white text-white" aria-hidden />
-              </div>
-              <span className="font-heading text-xl font-bold text-primary">MapAble</span>
+            <div className="mb-4">
+              <MapAbleLogo href="/provider-finder" variant="full" className="hover:opacity-100" />
             </div>
             <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
               {MAPABLE_TAGLINE}

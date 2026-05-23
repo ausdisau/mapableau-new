@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { cn } from "@/app/lib/utils";
-import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
+import { MapAbleLogo, type MapAbleLogoVariant } from "@/components/brand/MapAbleLogo";
 import {
   mapableHeaderClass,
   mapableNavLinkActiveClass,
@@ -30,6 +30,7 @@ export function MapAbleSiteHeader({
   navItems = DEFAULT_NAV,
   externalCta,
   actions,
+  logoVariant = "text",
 }: {
   logoHref?: string;
   logoTitle?: string;
@@ -38,6 +39,8 @@ export function MapAbleSiteHeader({
   externalCta?: { href: string; label: string };
   /** Replaces default sign-in CTA on desktop (e.g. Log in + Get started). */
   actions?: ReactNode;
+  /** Use `full` for the official MapAble wordmark image in the header. */
+  logoVariant?: MapAbleLogoVariant;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -51,7 +54,12 @@ export function MapAbleSiteHeader({
     <header className={mapableHeaderClass}>
       <div className={mapablePageContainerClass}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 py-3">
-          <MapAbleLogo href={logoHref} title={logoTitle} subtitle={logoSubtitle} />
+          <MapAbleLogo
+            href={logoHref}
+            title={logoTitle}
+            subtitle={logoSubtitle}
+            variant={logoVariant}
+          />
 
           <div className="hidden items-center gap-2 md:flex">
             <nav

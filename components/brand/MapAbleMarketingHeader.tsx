@@ -10,8 +10,7 @@ export function MapAbleMarketingHeader() {
   return (
     <MapAbleSiteHeader
       logoHref="/provider-finder"
-      logoTitle="MapAble"
-      logoSubtitle="Empowering Independence"
+      logoVariant="full"
       navItems={MAPABLE_MARKETING_NAV}
       actions={
         <div className="hidden items-center gap-2 md:flex">
