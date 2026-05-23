@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
 import { cn } from "@/app/lib/utils";
+import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
 import {
   mapableHeaderClass,
   mapableNavLinkActiveClass,

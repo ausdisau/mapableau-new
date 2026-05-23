@@ -1,12 +1,12 @@
 "use client";
 
+import type { BillingFundingSource, BillingInvoice } from "@prisma/client";
 import { useCallback, useEffect, useState } from "react";
 
+import { cn } from "@/app/lib/utils";
 import { BillingInvoiceCard } from "@/components/billing/BillingInvoiceCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
-import type { BillingFundingSource, BillingInvoice } from "@prisma/client";
-import { cn } from "@/app/lib/utils";
 
 type InvoiceRow = BillingInvoice & { fundingSource: BillingFundingSource | null };
 

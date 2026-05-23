@@ -1,5 +1,5 @@
-import { DashboardNav } from "@/components/layout/DashboardNav";
 import { SkipToContent } from "@/components/core/SkipToContent";
+import { DashboardNav } from "@/components/layout/DashboardNav";
 import { requireAuth } from "@/lib/auth/guards";
 import type { UserRole } from "@/types/mapable";
 

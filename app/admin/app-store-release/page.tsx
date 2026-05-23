@@ -1,5 +1,5 @@
-import { requireAdmin } from "@/lib/auth/guards";
 import { getAppStoreReleaseDashboard } from "@/lib/app-store-release/release-process-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AppStoreReleaseAdminPage() {
   await requireAdmin();

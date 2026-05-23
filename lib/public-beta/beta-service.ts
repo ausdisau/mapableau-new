@@ -1,6 +1,7 @@
+import type { PublicBetaFeedbackCategory } from "@prisma/client";
+
 import { phase7Config } from "@/lib/config/phase7";
 import { prisma } from "@/lib/prisma";
-import type { PublicBetaFeedbackCategory } from "@prisma/client";
 
 export async function recordBetaFeedback(params: {
   cohortId?: string;

@@ -1,5 +1,4 @@
 import { requireAdmin } from "@/lib/auth/guards";
-import { phase10Config } from "@/lib/config/phase10";
 import { listFederatedAgreements } from "@/lib/federated-research/federation-service";
 
 export default async function FederatedResearchPage() {

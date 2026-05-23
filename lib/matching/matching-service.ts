@@ -1,9 +1,10 @@
+import type { MatchFactorType, MatchType } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
-import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 import { prisma } from "@/lib/prisma";
-import type { MatchFactorType, MatchType } from "@prisma/client";
+import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 function isOrgEligible(verificationStatus: string, status: string) {
   if (status !== "active") return false;
@@ -271,7 +272,7 @@ export async function selectMatchCandidate(
 
 export async function rejectMatchCandidate(
   candidateId: string,
-  decidedById: string
+  _decidedById: string
 ) {
   return prisma.matchCandidate.update({
     where: { id: candidateId },

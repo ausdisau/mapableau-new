@@ -1,9 +1,10 @@
+import type { TripTrackingStatus } from "@prisma/client";
+
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { updateTripStatus } from "@/lib/tracking/trip-tracking-service";
 import { createAttestation } from "@/lib/attestations/attestation-service";
 import { prisma } from "@/lib/prisma";
-import type { TripTrackingStatus } from "@prisma/client";
+import { updateTripStatus } from "@/lib/tracking/trip-tracking-service";
 
 export async function POST(
   req: Request,

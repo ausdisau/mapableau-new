@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import type { FairnessCheckStatus } from "@prisma/client";
+
+import { prisma } from "@/lib/prisma";
 
 const PROXY_FLAGS = [
   "distance_over_weighted",

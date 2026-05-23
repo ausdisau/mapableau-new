@@ -1,9 +1,9 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { ensureLegacyStripeCustomer } from "@/lib/stripe/customers";
+import { prisma } from "@/lib/prisma";
 import { getStripeClient } from "@/lib/stripe/client";
 import { stripeConfig } from "@/lib/stripe/config";
+import { ensureLegacyStripeCustomer } from "@/lib/stripe/customers";
 import { legacyInvoiceMetadata } from "@/lib/stripe/metadata";
-import { prisma } from "@/lib/prisma";
 
 export async function createPaymentIntentForLegacyInvoice(params: {
   invoiceId: string;

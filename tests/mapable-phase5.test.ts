@@ -1,14 +1,15 @@
-import { describe, expect, it } from "vitest";
 import { createHash } from "crypto";
 
+import { describe, expect, it } from "vitest";
+
+import { participantSafeAiSummary } from "@/lib/ai-matching/ai-match-service";
 import { hasPermission } from "@/lib/auth/permissions";
 import { phase5Config } from "@/lib/config/phase5";
-import { validatePriceRows } from "@/lib/ndis-pricing/catalogue-import-service";
-import { buildSafeXeroInvoicePayload } from "@/lib/xero/xero-invoice-service";
-import { safeStripeMetadata, hashApiKey } from "@/lib/stripe-billing/checkout-service";
-import { participantSafeAiSummary } from "@/lib/ai-matching/ai-match-service";
-import { isProviderEligibleForMatching } from "@/lib/provider-verification/verification-case-service";
 import { scopesAllow } from "@/lib/developer-api/api-key-service";
+import { validatePriceRows } from "@/lib/ndis-pricing/catalogue-import-service";
+import { isProviderEligibleForMatching } from "@/lib/provider-verification/verification-case-service";
+import { safeStripeMetadata, hashApiKey } from "@/lib/stripe-billing/checkout-service";
+import { buildSafeXeroInvoicePayload } from "@/lib/xero/xero-invoice-service";
 
 describe("Phase 5 config", () => {
   it("disables AI matching by default", () => {

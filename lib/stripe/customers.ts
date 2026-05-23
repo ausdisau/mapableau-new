@@ -1,5 +1,5 @@
-import { getStripeClient } from "@/lib/stripe/client";
 import { prisma } from "@/lib/prisma";
+import { getStripeClient } from "@/lib/stripe/client";
 
 /** Legacy Invoice flow — StripeCustomerLink on User. */
 export async function ensureLegacyStripeCustomer(

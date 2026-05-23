@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { hasPermission } from "@/lib/auth/permissions";
+import { phase3Config } from "@/lib/config/phase3";
 import { sanitizeApplicationForViewer } from "@/lib/jobs/job-service";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
-import { phase3Config } from "@/lib/config/phase3";
 
 describe("Phase 3 permissions", () => {
   it("allows participant to manage care", () => {

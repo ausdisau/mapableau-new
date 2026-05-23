@@ -1,6 +1,6 @@
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
-import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 
 export default async function ProviderCapacityPage() {
   const user = await requireAuth();

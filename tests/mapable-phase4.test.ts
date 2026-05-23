@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { hasPermission } from "@/lib/auth/permissions";
-import { participantSafeCandidateSummary } from "@/lib/matching/matching-service";
-import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 import { phase4Config } from "@/lib/config/phase4";
 import { sanitizeApplicationForViewer } from "@/lib/jobs/job-service";
+import { participantSafeCandidateSummary } from "@/lib/matching/matching-service";
+import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 describe("Phase 4 permissions", () => {
   it("allows admin matching", () => {

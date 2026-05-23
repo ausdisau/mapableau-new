@@ -1,8 +1,9 @@
 import { createHash } from "crypto";
 
+import { Prisma, type AttestationType } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
-import { Prisma, type AttestationType } from "@prisma/client";
 
 export async function createAttestation(params: {
   type: AttestationType;

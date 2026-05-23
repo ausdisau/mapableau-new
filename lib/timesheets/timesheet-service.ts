@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function createTimesheetFromCareShift(
   shiftId: string,
-  workerUserId: string
+  _workerUserId: string
 ) {
   const shift = await prisma.careShift.findUnique({
     where: { id: shiftId },
@@ -46,7 +46,7 @@ export async function submitTimesheet(timesheetId: string, actorUserId: string) 
   return ts;
 }
 
-async function notifyParticipantReview(participantId: string, timesheetId: string) {
+async function notifyParticipantReview(participantId: string, _timesheetId: string) {
   const { notifyUser } = await import("@/lib/notifications/notification-service");
   await notifyUser(
     participantId,

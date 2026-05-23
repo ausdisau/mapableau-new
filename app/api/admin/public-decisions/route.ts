@@ -1,7 +1,7 @@
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
-import { publishDecisionRecord } from "@/lib/public-decision-register/decision-service";
 import { prisma } from "@/lib/prisma";
+import { publishDecisionRecord } from "@/lib/public-decision-register/decision-service";
 
 export async function GET() {
   const user = await requireApiAdmin();

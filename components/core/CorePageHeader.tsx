@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 
 // ReactNode used for title with brand colour spans
 
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/app/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
 
 export function CorePageHeader({

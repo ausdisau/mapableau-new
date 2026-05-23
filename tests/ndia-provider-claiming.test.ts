@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { NdiaProviderClaimPayload } from "@/lib/ndia-provider-claiming/types";
 import {
   mapBillingFundingType,
   validateFundingForProviderClaim,
   hasBlockingFindings,
 } from "@/lib/ndia-provider-claiming/validate";
-import type { NdiaProviderClaimPayload } from "@/lib/ndia-provider-claiming/types";
 
 describe("registered provider funding rules", () => {
   it("blocks plan-managed claims", () => {

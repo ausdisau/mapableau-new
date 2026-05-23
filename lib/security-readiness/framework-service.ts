@@ -1,6 +1,7 @@
+import type { SecurityFrameworkType } from "@prisma/client";
+
 import { phase5Config } from "@/lib/config/phase5";
 import { prisma } from "@/lib/prisma";
-import type { SecurityFrameworkType } from "@prisma/client";
 
 export async function ensureSecurityFrameworks() {
   if (!phase5Config.securityReadinessEnabled) return [];

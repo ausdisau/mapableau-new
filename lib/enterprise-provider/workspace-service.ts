@@ -1,7 +1,7 @@
+import { hasPermission } from "@/lib/auth/permissions";
 import { phase7Config } from "@/lib/config/phase7";
 import { assertTenantAccess } from "@/lib/multi-tenant-admin/tenant-service";
 import { prisma } from "@/lib/prisma";
-import { hasPermission } from "@/lib/auth/permissions";
 import type { UserRole } from "@/types/mapable";
 
 export async function getEnterpriseWorkspaceSummary(

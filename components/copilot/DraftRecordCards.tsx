@@ -1,6 +1,6 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DraftPrmsRecord } from "@/lib/prms/types";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Props = {
   records: DraftPrmsRecord[];

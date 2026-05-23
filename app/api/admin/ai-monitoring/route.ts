@@ -1,6 +1,6 @@
+import { captureAiMonitoringSnapshot } from "@/lib/ai-monitoring-dashboard/monitoring-snapshot-service";
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
-import { captureAiMonitoringSnapshot } from "@/lib/ai-monitoring-dashboard/monitoring-snapshot-service";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
