@@ -96,7 +96,9 @@ export type AuditAction =
   | "organisation.verification_changed"
   | "booking.created"
   | "booking.updated"
-  | "admin.accessed_sensitive_record";
+  | "admin.accessed_sensitive_record"
+  | "notification.read"
+  | "support_ticket.created";
 
 export type PreferredContactMethod = "email" | "phone" | "sms";
 

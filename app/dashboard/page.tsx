@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { RoleAwareDashboard } from "@/components/core/RoleAwareDashboard";
 import { requireAuth } from "@/lib/auth/guards";
-import { roleLabel } from "@/lib/auth/roles";
+import { defaultDashboardPath } from "@/lib/auth/roles";
+import { countUnreadNotifications } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Dashboard | MapAble Core" };
@@ -9,60 +12,50 @@ export const metadata = { title: "Dashboard | MapAble Core" };
 export default async function DashboardPage() {
   const user = await requireAuth();
 
-  const [profile, bookingsCount, unreadNotifications] = await Promise.all([
+  if (
+    user.primaryRole !== "participant" &&
+    user.primaryRole !== "family_member"
+  ) {
+    redirect(defaultDashboardPath(user.primaryRole));
+  }
+
+  const [profile, unreadNotifications] = await Promise.all([
     prisma.participantProfile.findUnique({ where: { userId: user.id } }),
-    prisma.booking.count({ where: { participantId: user.id } }),
-    prisma.notification.count({
-      where: { userId: user.id, readAt: null },
-    }),
+    countUnreadNotifications(user.id),
   ]);
+
+  const displayName = profile?.displayName ?? user.name ?? "there";
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="font-heading text-3xl font-bold">Your dashboard</h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          Welcome to MapAble Core. You are signed in as a{" "}
-          <strong>{roleLabel(user.primaryRole)}</strong>. Manage your profile,
-          accessibility preferences, consent and bookings from here.
-        </p>
-      </header>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <DashboardCard
-          title="Profile"
-          description={
-            profile
-              ? `Display name: ${profile.displayName}`
-              : "Set up your participant profile"
-          }
-          href="/dashboard/profile"
-        />
-        <DashboardCard
-          title="Accessibility"
-          description="Your access needs travel with you across MapAble services"
-          href="/dashboard/accessibility"
-        />
-        <DashboardCard
-          title="Consent"
-          description="Control who can see your information"
-          href="/dashboard/consent"
-        />
-        <DashboardCard
-          title="Bookings"
-          description={`${bookingsCount} booking request(s)`}
-          href="/dashboard/bookings"
-        />
-        <DashboardCard
-          title="Notifications"
-          description={
-            unreadNotifications
-              ? `${unreadNotifications} unread`
-              : "No unread notifications"
-          }
-          href="/dashboard/notifications"
-        />
-      </div>
+      <RoleAwareDashboard
+        displayName={displayName}
+        email={user.email ?? ""}
+        role={user.primaryRole}
+        unreadNotifications={unreadNotifications}
+      />
+      <section aria-labelledby="more-links-heading">
+        <h2 id="more-links-heading" className="font-heading text-xl font-semibold">
+          More
+        </h2>
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <DashboardCard
+            title="Accessibility"
+            description="Your access needs travel with you across MapAble services"
+            href="/dashboard/accessibility"
+          />
+          <DashboardCard
+            title="Consent"
+            description="Control who can see your information"
+            href="/dashboard/consent"
+          />
+          <DashboardCard
+            title="Messages"
+            description="Secure conversations with your providers"
+            href="/dashboard/messages"
+          />
+        </ul>
+      </section>
     </div>
   );
 }

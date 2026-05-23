@@ -51,7 +51,12 @@ export function roleLabel(role: UserRole | MapAbleUserRole): string {
 export function defaultDashboardPath(role: UserRole | MapAbleUserRole): string {
   if (isAdminRole(role)) return "/admin";
   if (role === "provider_admin" || role === "transport_operator") {
-    return "/provider/onboarding";
+    return "/provider";
   }
+  if (role === "support_coordinator") return "/support-coordinator";
+  if (role === "driver") return "/driver/trips";
+  if (role === "support_worker") return "/worker";
+  if (role === "employer") return "/employer/jobs";
+  if (role === "plan_manager") return "/plan-manager";
   return "/dashboard";
 }

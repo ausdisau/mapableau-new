@@ -46,3 +46,39 @@ export async function notifyUser(
   if (!pref) return null;
   return createNotification({ userId, category, title, body });
 }
+
+export async function listNotificationsForUser(
+  userId: string,
+  options?: { limit?: number; unreadOnly?: boolean }
+) {
+  const limit = options?.limit ?? 50;
+  return prisma.notification.findMany({
+    where: {
+      userId,
+      ...(options?.unreadOnly ? { readAt: null } : {}),
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
+export async function countUnreadNotifications(userId: string) {
+  return prisma.notification.count({
+    where: { userId, readAt: null },
+  });
+}
+
+export async function markNotificationRead(
+  notificationId: string,
+  userId: string
+) {
+  const notification = await prisma.notification.findFirst({
+    where: { id: notificationId, userId },
+  });
+  if (!notification) return null;
+
+  return prisma.notification.update({
+    where: { id: notificationId },
+    data: { readAt: new Date() },
+  });
+}
