@@ -70,6 +70,8 @@ model User {
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
+  storedLocations           StoredLocation[]   @relation("StoredLocationOwner")
+  dispatchEventsActed       DispatchEvent[]    @relation("DispatchEventActor")
   jobsCreated               Job[]              @relation("JobCreatedBy")
   jobApplications           JobApplication[]   @relation("JobApplicationParticipant")
   calendarEvents            CalendarEvent[]    @relation("CalendarEventParticipant")
@@ -724,26 +726,29 @@ enum BookingTimelineEventType {
 }
 
 model Conversation {
-  id              String           @id @default(cuid())
-  type            ConversationType
-  title           String
-  participantId   String?
-  bookingId       String?
-  booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  supportTicketId String?
-  organisationId  String?
-  createdById     String
-  createdBy       User             @relation("ConversationCreatedBy", fields: [createdById], references: [id])
-  lastMessageAt   DateTime?
-  archivedAt      DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id                  String           @id @default(cuid())
+  type                ConversationType
+  title               String
+  participantId       String?
+  bookingId           String?
+  booking             Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  transportBookingId  String?
+  transportBooking    TransportBooking?  @relation(fields: [transportBookingId], references: [id], onDelete: SetNull)
+  supportTicketId     String?
+  organisationId      String?
+  createdById         String
+  createdBy           User             @relation("ConversationCreatedBy", fields: [createdById], references: [id])
+  lastMessageAt       DateTime?
+  archivedAt          DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   participants ConversationParticipant[]
   messages     Message[]
 
   @@index([participantId])
   @@index([bookingId])
+  @@index([transportBookingId])
   @@index([organisationId])
   @@index([lastMessageAt])
 }
@@ -887,14 +892,16 @@ model ParticipantFundingSource {
 }
 
 model Invoice {
-  id              String        @id @default(cuid())
-  invoiceNumber   String?
-  participantId   String
-  participant     User          @relation("InvoiceParticipant", fields: [participantId], references: [id])
-  organisationId  String?
-  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
-  bookingId       String?
-  booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  id                   String            @id @default(cuid())
+  invoiceNumber        String?
+  participantId        String
+  participant          User              @relation("InvoiceParticipant", fields: [participantId], references: [id])
+  organisationId       String?
+  organisation         Organisation?     @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId            String?
+  booking              Booking?          @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  transportBookingId   String?
+  transportBooking     TransportBooking? @relation(fields: [transportBookingId], references: [id], onDelete: SetNull)
   fundingSourceId String?
   fundingSource   ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
   status          InvoiceStatus @default(draft)
@@ -918,6 +925,7 @@ model Invoice {
 
   @@index([participantId, status])
   @@index([organisationId])
+  @@index([transportBookingId])
 }
 
 model InvoiceLine {
@@ -1090,20 +1098,51 @@ enum TransportBookingType {
 
 enum TransportBookingStatus {
   draft
-  requested
-  awaiting_operator_response
-  operator_accepted
+  quote_requested
+  quoted
+  participant_confirmed
+  provider_accepted
   driver_assigned
-  vehicle_assigned
-  confirmed
-  driver_en_route
-  arrived_for_pickup
-  participant_on_board
-  in_transit
+  vehicle_dispatched
+  arrived_at_pickup
+  passenger_onboard
   arrived_at_destination
   completed
+  invoiced
+  paid
   cancelled
+  late_risk
+  no_show
+  access_issue
+  incident_reported
   disputed
+}
+
+enum TransportTripQuoteStatus {
+  draft
+  active
+  accepted
+  expired
+}
+
+enum RoutingProviderName {
+  openrouteservice
+  valhalla
+  opentripplanner
+  disabled
+  placeholder
+}
+
+enum StoredLocationLabel {
+  home
+  work
+  saved
+  other
+}
+
+enum GeocodeSource {
+  nominatim
+  manual
 }
 
 enum VehicleType {
@@ -1162,6 +1201,7 @@ enum OrchestrationEventType {
   care_transport_link_created
   interview_transport_draft_created
   invoice_from_care_shift
+  invoice_from_transport
   care_request_submitted
 }
 
@@ -1314,46 +1354,118 @@ model CapacityBlock {
   @@index([organisationId, date])
 }
 
-model TransportBooking {
-  id                    String                 @id @default(cuid())
-  bookingId             String?                @unique
-  booking               Booking?               @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  participantId         String
-  participant           User                   @relation("TransportBookingParticipant", fields: [participantId], references: [id])
-  transportType         TransportBookingType   @default(one_way)
-  pickupAddress         String
-  pickupLat             Float?
-  pickupLng             Float?
-  pickupWindowStart     DateTime
-  pickupWindowEnd       DateTime?
-  dropoffAddress        String
-  dropoffLat            Float?
-  dropoffLng            Float?
-  appointmentTime       DateTime?
-  returnTripRequired    Boolean                @default(false)
-  returnPickupTime      DateTime?
-  passengerCount        Int                    @default(1)
-  mobilityAidSnapshot   Json?
-  vehicleRequirements   Json                   @default("{}")
-  driverAssistanceRequired Boolean             @default(false)
-  pickupNotes           String?
-  dropoffNotes          String?
-  shareAccessibility    Boolean                @default(false)
-  status                TransportBookingStatus @default(draft)
-  operatorOrganisationId String?
-  operatorOrganisation  Organisation?          @relation("TransportOperator", fields: [operatorOrganisationId], references: [id], onDelete: SetNull)
-  driverProfileId       String?
-  driverProfile         DriverProfile?         @relation(fields: [driverProfileId], references: [id], onDelete: SetNull)
-  vehicleId             String?
-  vehicle               Vehicle?               @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
-  careRequestId         String?
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+model StoredLocation {
+  id            String              @id @default(cuid())
+  ownerUserId   String
+  owner         User                @relation("StoredLocationOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  label         StoredLocationLabel @default(saved)
+  addressLine   String
+  suburb        String?
+  state         String?
+  postcode      String?
+  lat           Float
+  lng           Float
+  geocodedAt    DateTime?
+  geocodeSource GeocodeSource       @default(nominatim)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
-  calendarEvents        CalendarEvent[]
+  pickupBookings  TransportBooking[] @relation("PickupLocation")
+  dropoffBookings TransportBooking[] @relation("DropoffLocation")
+
+  @@index([ownerUserId])
+  @@index([lat, lng])
+}
+
+model TransportBooking {
+  id                       String                 @id @default(cuid())
+  bookingId                String?                @unique
+  booking                  Booking?               @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  participantId            String
+  participant              User                   @relation("TransportBookingParticipant", fields: [participantId], references: [id])
+  transportType            TransportBookingType   @default(one_way)
+  pickupAddress            String
+  pickupLat                Float?
+  pickupLng                Float?
+  pickupLocationId         String?
+  pickupLocation           StoredLocation?        @relation("PickupLocation", fields: [pickupLocationId], references: [id], onDelete: SetNull)
+  pickupWindowStart        DateTime
+  pickupWindowEnd          DateTime?
+  dropoffAddress           String
+  dropoffLat               Float?
+  dropoffLng               Float?
+  dropoffLocationId        String?
+  dropoffLocation          StoredLocation?        @relation("DropoffLocation", fields: [dropoffLocationId], references: [id], onDelete: SetNull)
+  appointmentTime          DateTime?
+  returnTripRequired       Boolean                @default(false)
+  returnPickupTime         DateTime?
+  passengerCount           Int                    @default(1)
+  companionCount           Int                    @default(0)
+  accessNeeds              Json                   @default("{}")
+  mobilityAidSnapshot      Json?
+  vehicleRequirements      Json                   @default("{}")
+  communicationPreferences Json                   @default("{}")
+  driverAssistanceRequired Boolean                @default(false)
+  pickupNotes              String?
+  dropoffNotes             String?
+  shareAccessibility       Boolean                @default(false)
+  quotedFareCents          Int?
+  quoteExpiresAt           DateTime?
+  selectedRoutePlanId      String?
+  status                   TransportBookingStatus @default(draft)
+  operatorOrganisationId   String?
+  operatorOrganisation     Organisation?          @relation("TransportOperator", fields: [operatorOrganisationId], references: [id], onDelete: SetNull)
+  driverProfileId          String?
+  driverProfile            DriverProfile?         @relation(fields: [driverProfileId], references: [id], onDelete: SetNull)
+  vehicleId                String?
+  vehicle                  Vehicle?               @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  careRequestId            String?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+
+  calendarEvents     CalendarEvent[]
+  tripQuotes         TransportTripQuote[]
+  dispatchEvents     DispatchEvent[]
+  routePlans         RoutePlan[]
+  conversations      Conversation[]
+  invoices           Invoice[]
+  tripTrackingSession TripTrackingSession?
 
   @@index([participantId, status])
   @@index([operatorOrganisationId])
+}
+
+model TransportTripQuote {
+  id                  String                   @id @default(cuid())
+  transportBookingId  String
+  transportBooking    TransportBooking           @relation(fields: [transportBookingId], references: [id], onDelete: Cascade)
+  status              TransportTripQuoteStatus @default(draft)
+  distanceMeters      Int?
+  durationSeconds     Int?
+  fareBreakdown       Json                     @default("{}")
+  routeSummary        Json                     @default("{}")
+  routingProvider     RoutingProviderName      @default(openrouteservice)
+  providerRequestId   String?
+  expiresAt           DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  @@index([transportBookingId, status])
+}
+
+model DispatchEvent {
+  id                 String                 @id @default(cuid())
+  transportBookingId String
+  transportBooking   TransportBooking         @relation(fields: [transportBookingId], references: [id], onDelete: Cascade)
+  fromStatus         TransportBookingStatus?
+  toStatus           TransportBookingStatus
+  actorUserId        String?
+  actor              User?                    @relation("DispatchEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  reason             String?
+  metadata           Json?
+  createdAt          DateTime                 @default(now())
+
+  @@index([transportBookingId, createdAt])
 }
 
 model Vehicle {
@@ -1384,21 +1496,22 @@ model Vehicle {
 }
 
 model DriverProfile {
-  id                      String                 @id @default(cuid())
-  userId                  String?
-  user                    User?                  @relation("DriverProfileUser", fields: [userId], references: [id], onDelete: SetNull)
-  organisationId          String
-  organisation            Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  displayName             String
-  phone                   String?
-  serviceRegions          String[]               @default([])
-  licenceStatus           WorkerCredentialStatus @default(not_provided)
+  id                          String                 @id @default(cuid())
+  userId                      String?
+  user                        User?                  @relation("DriverProfileUser", fields: [userId], references: [id], onDelete: SetNull)
+  organisationId              String
+  organisation                Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  displayName                 String
+  phone                       String?
+  serviceRegions              String[]               @default([])
+  licenceStatus               WorkerCredentialStatus @default(not_provided)
   accessibilityTrainingStatus WorkerCredentialStatus @default(not_provided)
-  workerScreeningStatus   WorkerCredentialStatus @default(not_provided)
-  active                  Boolean                @default(true)
-  verificationStatus      WorkerCredentialStatus @default(pending_review)
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
+  workerScreeningStatus       WorkerCredentialStatus @default(not_provided)
+  driverCapabilities          String[]               @default([])
+  active                      Boolean                @default(true)
+  verificationStatus          WorkerCredentialStatus @default(pending_review)
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
 
   transportBookings       TransportBooking[]
   availabilityWindows     AvailabilityWindow[]
@@ -1762,13 +1875,14 @@ model SavedProviderSearch {
 model TripTrackingSession {
   id                 String             @id @default(cuid())
   transportBookingId String             @unique
+  transportBooking   TransportBooking     @relation(fields: [transportBookingId], references: [id], onDelete: Cascade)
   status             TripTrackingStatus @default(not_started)
   startedAt          DateTime?
   completedAt        DateTime?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  events   TripTrackingEvent[]
+  events    TripTrackingEvent[]
   locations TripLocationPoint[]
 
   @@index([status])
@@ -2526,16 +2640,54 @@ enum RouteConstraintType {
 }
 
 model RoutePlan {
-  id                 String          @id @default(cuid())
+  id                 String              @id @default(cuid())
   transportBookingId String?
-  status             RoutePlanStatus @default(draft)
+  transportBooking   TransportBooking?   @relation(fields: [transportBookingId], references: [id], onDelete: SetNull)
+  status             RoutePlanStatus     @default(draft)
+  routingProvider    RoutingProviderName @default(disabled)
+  encodedPolyline    String?
+  distanceMeters     Int?
+  durationSeconds    Int?
   createdById        String?
-  createdAt          DateTime        @default(now())
+  createdAt          DateTime            @default(now())
 
   stops       RouteStop[]
   constraints RouteConstraint[]
   candidates  RoutePlanCandidate[]
   decisions   RoutePlanDecision[]
+  legs        RouteLeg[]
+
+  @@index([transportBookingId])
+}
+
+model RouteLeg {
+  id              String              @id @default(cuid())
+  routePlanId     String
+  routePlan       RoutePlan           @relation(fields: [routePlanId], references: [id], onDelete: Cascade)
+  sequence        Int
+  fromLat         Float
+  fromLng         Float
+  toLat           Float
+  toLng           Float
+  distanceMeters  Int?
+  durationSeconds Int?
+  encodedPolyline String?
+
+  @@index([routePlanId, sequence])
+}
+
+model TravelTimeMatrixCell {
+  id              String   @id @default(cuid())
+  originHash      String
+  destHash        String
+  durationSeconds Int
+  distanceMeters  Int?
+  routingProvider RoutingProviderName @default(openrouteservice)
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+
+  @@unique([originHash, destHash, routingProvider])
+  @@index([expiresAt])
 }
 
 model RouteStop {

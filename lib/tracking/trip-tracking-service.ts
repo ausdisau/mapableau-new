@@ -33,7 +33,7 @@ export async function startTripTracking(
 
   await prisma.transportBooking.update({
     where: { id: transportBookingId },
-    data: { status: "confirmed" },
+    data: { status: "vehicle_dispatched" },
   });
 
   return session;
@@ -76,10 +76,10 @@ export async function updateTripStatus(
   });
 
   const bookingStatusMap: Partial<Record<TripTrackingStatus, string>> = {
-    driver_en_route: "driver_en_route",
-    arrived_for_pickup: "arrived_for_pickup",
-    participant_on_board: "participant_on_board",
-    in_transit: "in_transit",
+    driver_en_route: "vehicle_dispatched",
+    arrived_for_pickup: "arrived_at_pickup",
+    participant_on_board: "passenger_onboard",
+    in_transit: "passenger_onboard",
     arrived_at_destination: "arrived_at_destination",
     completed: "completed",
     cancelled: "cancelled",

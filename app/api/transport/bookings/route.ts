@@ -1,11 +1,16 @@
 import { ZodError } from "zod";
 
 import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
+import {
+  driverTransportWhere,
+  participantTransportWhere,
+  providerTransportWhere,
+} from "@/lib/api/phase3-scope";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createTransportBooking } from "@/lib/transport/transport-booking-service";
-import { createTransportBookingSchema } from "@/lib/validation/transport";
+import { createTransportBookingOsmSchema } from "@/lib/validation/transport-osm";
 
 export async function GET() {
   const user = await requireApiSession();
@@ -13,10 +18,11 @@ export async function GET() {
 
   const where = isAdminRole(user.primaryRole)
     ? {}
-    : user.primaryRole === "transport_operator" ||
-        user.primaryRole === "driver"
-      ? {}
-      : { participantId: user.id };
+    : user.primaryRole === "transport_operator"
+      ? await providerTransportWhere(user)
+      : user.primaryRole === "driver"
+        ? await driverTransportWhere(user)
+        : participantTransportWhere(user);
 
   const bookings = await prisma.transportBooking.findMany({
     where,
@@ -32,7 +38,7 @@ export async function POST(req: Request) {
   if (user instanceof Response) return user;
 
   try {
-    const parsed = createTransportBookingSchema.parse(await req.json());
+    const parsed = createTransportBookingOsmSchema.parse(await req.json());
     const booking = await createTransportBooking({
       participantId: user.id,
       pickupAddress: parsed.pickupAddress,
@@ -43,12 +49,16 @@ export async function POST(req: Request) {
         : undefined,
       mobilityAidSnapshot: parsed.mobilityAidSnapshot,
       vehicleRequirements: parsed.vehicleRequirements,
+      accessNeeds: parsed.accessNeeds,
+      communicationPreferences: parsed.communicationPreferences,
+      companionCount: parsed.companionCount,
       shareAccessibility: parsed.shareAccessibility,
       shareAccessibilityConfirmed: parsed.shareAccessibilityConfirmed,
       driverAssistanceRequired: parsed.driverAssistanceRequired,
       pickupNotes: parsed.pickupNotes,
       dropoffNotes: parsed.dropoffNotes,
       careRequestId: parsed.careRequestId,
+      status: parsed.status ?? "quote_requested",
     });
     return jsonOk({ booking }, 201);
   } catch (e) {

@@ -9,11 +9,10 @@ export async function getOperatorDispatchBoard() {
     where: {
       status: {
         in: [
-          "confirmed",
-          "driver_en_route",
-          "arrived_for_pickup",
-          "participant_on_board",
-          "in_transit",
+          "participant_confirmed",
+          "vehicle_dispatched",
+          "arrived_at_pickup",
+          "passenger_onboard",
         ],
       },
     },

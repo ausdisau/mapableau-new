@@ -403,6 +403,8 @@ async function main() {
   await seedMapAblePhase10();
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
+  const { seedTransportOsm } = await import("./seed-transport-osm");
+  await seedTransportOsm(prisma);
 
   console.log("Seed complete.");
 }
