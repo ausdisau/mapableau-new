@@ -81,6 +81,8 @@ model User {
   serviceAgreementsCreated  ServiceAgreement[] @relation("ServiceAgreementCreatedBy")
   attestationsAsActor       Attestation[]      @relation("AttestationActor")
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
+  participantLocations      ParticipantLocation[]
+  serviceLogs               ServiceLog[]         @relation("ServiceLogParticipant")
 
   billingAccounts           BillingAccount[]       @relation("BillingAccounts")
   billingFundingSources     BillingFundingSource[] @relation("BillingFundingSources")
@@ -452,6 +454,9 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  serviceSites           ServiceSite[]
+  scheduledAssignments   ScheduledAssignment[]
+  schedulingRuns         SchedulingRun[]
 }
 
 model OrganisationMember {
@@ -593,6 +598,8 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  scheduledAssignments ScheduledAssignment[]
+  serviceLogs          ServiceLog[]
 
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
@@ -1287,6 +1294,7 @@ model CareShift {
 
   calendarEvents          CalendarEvent[]
   timesheet               Timesheet?
+  scheduledAssignments    ScheduledAssignment[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -1391,10 +1399,15 @@ model TransportBooking {
   vehicleId             String?
   vehicle               Vehicle?               @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   careRequestId         String?
+  pickupParticipantLocationId  String?
+  pickupParticipantLocation    ParticipantLocation? @relation("TransportPickupLocation", fields: [pickupParticipantLocationId], references: [id], onDelete: SetNull)
+  dropoffParticipantLocationId String?
+  dropoffParticipantLocation   ParticipantLocation? @relation("TransportDropoffLocation", fields: [dropoffParticipantLocationId], references: [id], onDelete: SetNull)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
   calendarEvents        CalendarEvent[]
+  scheduledAssignments  ScheduledAssignment[]
 
   @@index([participantId, status])
   @@index([operatorOrganisationId])
@@ -1580,6 +1593,8 @@ enum MatchCandidateStatus {
 enum MatchFactorType {
   availability
   location
+  travel_time
+  region
   service_type
   accessibility_requirement
   communication_preference
@@ -2574,12 +2589,16 @@ model RoutePlan {
   transportBookingId String?
   status             RoutePlanStatus @default(draft)
   createdById        String?
+  geometryGeoJson      Json?
+  totalDurationSeconds Int?
+  totalDistanceMeters  Int?
   createdAt          DateTime        @default(now())
 
   stops       RouteStop[]
   constraints RouteConstraint[]
   candidates  RoutePlanCandidate[]
   decisions   RoutePlanDecision[]
+  travelEstimates TravelTimeEstimate[]
 }
 
 model RouteStop {
@@ -2589,6 +2608,14 @@ model RouteStop {
   sequence    Int
   label       String
   address     String?
+  lat         Float?
+  lng         Float?
+  participantLocationId String?
+  participantLocation   ParticipantLocation? @relation(fields: [participantLocationId], references: [id], onDelete: SetNull)
+  serviceSiteId         String?
+  serviceSite           ServiceSite? @relation(fields: [serviceSiteId], references: [id], onDelete: SetNull)
+  travelFrom            TravelTimeEstimate[] @relation("TravelFromStop")
+  travelTo              TravelTimeEstimate[] @relation("TravelToStop")
 }
 
 model RouteConstraint {
@@ -2620,9 +2647,159 @@ model RoutePlanDecision {
 model TravelTimeEstimate {
   id          String @id @default(cuid())
   routePlanId String?
+  routePlan   RoutePlan? @relation(fields: [routePlanId], references: [id], onDelete: Cascade)
+  fromStopId  String?
+  fromStop    RouteStop? @relation("TravelFromStop", fields: [fromStopId], references: [id], onDelete: SetNull)
+  toStopId    String?
+  toStop      RouteStop? @relation("TravelToStop", fields: [toStopId], references: [id], onDelete: SetNull)
   minutes     Int
+  durationSeconds Int?
+  distanceMeters  Int?
+  bufferMinutes   Int      @default(0)
   source      String @default("placeholder")
   createdAt   DateTime @default(now())
+}
+
+// --- OSM Scheduling & PostGIS locations ---
+
+enum LocationVisibility {
+  private
+  provider_internal
+  public_site
+}
+
+enum ScheduledResourceType {
+  worker
+  driver
+  vehicle
+}
+
+enum SchedulingEngineType {
+  heuristic
+  ortools
+  timefold
+}
+
+enum TravelMatrixSource {
+  openrouteservice
+  cached
+  haversine_fallback
+}
+
+model ServiceSite {
+  id              String             @id @default(cuid())
+  organisationId  String
+  organisation    Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name            String
+  addressPublic   String?
+  suburb          String?
+  state           String?
+  postcode        String?
+  lat             Float
+  lng             Float
+  capabilities    Json               @default("{}")
+  active          Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  routeStops      RouteStop[]
+
+  @@index([organisationId, active])
+}
+
+model ParticipantLocation {
+  id              String             @id @default(cuid())
+  participantId   String
+  participant     User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  label           String
+  suburb          String?
+  state           String?
+  lat             Float
+  lng             Float
+  visibility      LocationVisibility @default(private)
+  isDefaultPickup Boolean            @default(false)
+  notesInternal   String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  routeStops              RouteStop[]
+  transportPickups        TransportBooking[] @relation("TransportPickupLocation")
+  transportDropoffs       TransportBooking[] @relation("TransportDropoffLocation")
+
+  @@index([participantId])
+}
+
+model ScheduledAssignment {
+  id                  String                @id @default(cuid())
+  resourceType        ScheduledResourceType
+  resourceId          String
+  startsAt            DateTime
+  endsAt              DateTime
+  bookingId           String?
+  booking             Booking?              @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  careShiftId         String?
+  careShift           CareShift?            @relation(fields: [careShiftId], references: [id], onDelete: SetNull)
+  transportBookingId  String?
+  transportBooking    TransportBooking?     @relation(fields: [transportBookingId], references: [id], onDelete: SetNull)
+  organisationId      String?
+  organisation        Organisation?         @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  notes               String?
+  createdAt           DateTime              @default(now())
+
+  @@index([resourceType, resourceId, startsAt, endsAt])
+  @@index([bookingId])
+  @@index([organisationId])
+}
+
+model ServiceLog {
+  id                  String    @id @default(cuid())
+  bookingId           String?
+  booking             Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  careShiftId         String?   @unique
+  transportBookingId  String?   @unique
+  participantId       String
+  participant         User      @relation("ServiceLogParticipant", fields: [participantId], references: [id])
+  organisationId      String?
+  startedAt           DateTime?
+  endedAt             DateTime?
+  deliveredSupports   Json      @default("[]")
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([participantId])
+  @@index([bookingId])
+}
+
+model TravelTimeMatrixCache {
+  id               String             @id @default(cuid())
+  fromLat          Float
+  fromLng          Float
+  toLat            Float
+  toLng            Float
+  durationSeconds  Int
+  distanceMeters   Int
+  source           TravelMatrixSource @default(openrouteservice)
+  expiresAt        DateTime
+  createdAt        DateTime           @default(now())
+
+  @@index([expiresAt])
+}
+
+model SchedulingRun {
+  id              String               @id @default(cuid())
+  organisationId  String?
+  organisation    Organisation?        @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId       String?
+  engine          SchedulingEngineType @default(heuristic)
+  inputSnapshot   Json
+  outputSnapshot  Json?
+  score           Float?
+  status          String               @default("completed")
+  createdById     String?
+  createdAt       DateTime             @default(now())
+
+  @@index([organisationId, createdAt])
 }
 
 // --- Accessibility Map ---

@@ -12,6 +12,7 @@ import {
   postBookingSystemMessage,
 } from "@/lib/orchestration/message-orchestrator";
 import { prisma } from "@/lib/prisma";
+import { createServiceLogFromBooking } from "@/lib/service-logs/service-log-service";
 
 export async function onBookingCreated(params: {
   bookingId: string;
@@ -308,6 +309,17 @@ export async function onServiceCompleted(params: {
     title: "Service completed",
     body: "Your support session has been marked complete.",
     actionUrl: `/dashboard/bookings/${params.bookingId}`,
+  });
+
+  await createServiceLogFromBooking({
+    bookingId: params.bookingId,
+    participantId: updated.participantId,
+    organisationId: updated.assignedOrganisationId ?? undefined,
+    startedAt: params.actualStartAt,
+    endedAt: params.actualEndAt,
+    deliveredSupports: params.deliveredSupports as unknown[] | undefined,
+    notes: params.completionNotes,
+    actorUserId: params.actorUserId,
   });
 
   return updated;

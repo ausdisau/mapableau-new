@@ -53,6 +53,15 @@ export default async function MapableCoreDemoPage() {
         <Link href="/dashboard/invoices" className="underline">
           Invoices
         </Link>
+        <Link href="/scheduling/new" className="underline">
+          OSM scheduling
+        </Link>
+        <Link href="/provider/dispatch" className="underline">
+          Provider dispatch map
+        </Link>
+        <Link href="/admin/dispatch" className="underline">
+          Admin dispatch
+        </Link>
       </nav>
 
       <section>
