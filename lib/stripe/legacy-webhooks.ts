@@ -109,7 +109,14 @@ async function handleLegacyCheckoutFailed(session: Stripe.Checkout.Session) {
 }
 
 async function handleLegacyPaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
-  const invoiceId = legacyInvoiceIdFromMetadata(pi.metadata);
+  const invoiceId =
+    legacyInvoiceIdFromMetadata(pi.metadata) ??
+    (
+      await prisma.invoice.findFirst({
+        where: { stripePaymentIntentId: pi.id },
+        select: { id: true },
+      })
+    )?.id;
   if (!invoiceId) return;
 
   await prisma.stripePaymentIntentRecord.updateMany({
@@ -117,9 +124,12 @@ async function handleLegacyPaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
     data: { status: "succeeded" },
   });
 
-  await prisma.invoice.update({
-    where: { id: invoiceId },
-    data: { status: "paid" },
+  const { onInvoicePaid } = await import(
+    "@/lib/orchestration/invoice-orchestrator"
+  );
+  await onInvoicePaid({
+    invoiceId,
+    actorUserId: "system_stripe_webhook",
   });
 }
 

@@ -3,7 +3,9 @@ import type { MatchFactorType, MatchType } from "@prisma/client";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
+import { findOrganisationsWithinRadiusMeters } from "@/lib/geo/postgis";
 import { prisma } from "@/lib/prisma";
+import { getTravelTimeSeconds } from "@/lib/routing/travel-matrix-service";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 function isOrgEligible(verificationStatus: string, status: string) {
@@ -104,6 +106,62 @@ export async function runCareWorkerMatch(
       });
     }
 
+    const site = await prisma.serviceSite.findFirst({
+      where: { organisationId: w.organisationId, active: true },
+    });
+    if (site && request.suburb) {
+      const nearby = await findOrganisationsWithinRadiusMeters({
+        lat: site.lat,
+        lng: site.lng,
+        radiusMeters: 80_000,
+        limit: 5,
+      });
+      const inRegion = nearby.some((n) => n.organisationId === w.organisationId);
+      factors.push({
+        factorType: "region",
+        score: inRegion ? 1 : 0.4,
+        explanation: inRegion
+          ? "Provider depot within service radius of request."
+          : "Provider may be outside preferred region.",
+        weight: 1.2,
+      });
+    }
+
+    const booking = request.bookingId
+      ? await prisma.booking.findUnique({
+          where: { id: request.bookingId },
+          include: { transportBooking: true },
+        })
+      : null;
+    const pickup = booking?.transportBooking;
+    if (site && pickup?.pickupLat != null && pickup.pickupLng != null) {
+      try {
+        const travel = await getTravelTimeSeconds(
+          { lat: site.lat, lng: site.lng },
+          { lat: pickup.pickupLat, lng: pickup.pickupLng }
+        );
+        const travelScore =
+          travel.durationSeconds <= 1800
+            ? 1
+            : travel.durationSeconds <= 3600
+              ? 0.6
+              : 0.3;
+        factors.push({
+          factorType: "travel_time",
+          score: travelScore,
+          explanation: `Estimated travel ~${Math.round(travel.durationSeconds / 60)} minutes from depot.`,
+          weight: 1.8,
+        });
+      } catch {
+        factors.push({
+          factorType: "travel_time",
+          score: 0.5,
+          explanation: "Travel time could not be computed; neutral score applied.",
+          weight: 0.5,
+        });
+      }
+    }
+
     const totalWeight = factors.reduce((s, f) => s + f.weight, 0);
     const score =
       totalWeight > 0
@@ -186,17 +244,43 @@ export async function runTransportVehicleMatch(
     );
     const suitabilityScore = warnings.some((w) => w.includes("not")) ? 0.2 : 1;
 
+    const site = await prisma.serviceSite.findFirst({
+      where: { organisationId: v.organisationId, active: true },
+    });
+    let travelScore = 0.5;
+    let travelExplanation = "Travel time not evaluated.";
+    if (
+      site &&
+      tb.pickupLat != null &&
+      tb.pickupLng != null
+    ) {
+      const travel = await getTravelTimeSeconds(
+        { lat: site.lat, lng: site.lng },
+        { lat: tb.pickupLat, lng: tb.pickupLng }
+      );
+      travelScore =
+        travel.durationSeconds <= 1200
+          ? 1
+          : travel.durationSeconds <= 2400
+            ? 0.7
+            : 0.4;
+      travelExplanation = `Depot to pickup ~${Math.round(travel.durationSeconds / 60)} min.`;
+    }
+
     const candidate = await prisma.matchCandidate.create({
       data: {
         matchRunId: run.id,
         candidateType: "transport_vehicle",
         candidateVehicleId: v.id,
         candidateOrganisationId: v.organisationId,
-        score: suitabilityScore * (v.verificationStatus === "verified" ? 1 : 0.6),
+        score:
+          suitabilityScore *
+          travelScore *
+          (v.verificationStatus === "verified" ? 1 : 0.6),
         scoreExplanation:
           warnings.length > 0
-            ? warnings.join(" ")
-            : "Vehicle appears suitable for stated requirements.",
+            ? `${warnings.join(" ")} ${travelExplanation}`
+            : `Vehicle appears suitable. ${travelExplanation}`,
         status: suitabilityScore >= 0.7 ? "recommended" : "generated",
         factors: {
           create: [
@@ -205,6 +289,12 @@ export async function runTransportVehicleMatch(
               score: suitabilityScore,
               weight: 2,
               explanation: warnings.join(" ") || "No suitability warnings.",
+            },
+            {
+              factorType: "travel_time",
+              score: travelScore,
+              weight: 1.5,
+              explanation: travelExplanation,
             },
             {
               factorType: "provider_verification",
@@ -278,6 +368,27 @@ export async function rejectMatchCandidate(
     where: { id: candidateId },
     data: { status: "rejected" },
   });
+}
+
+export async function runUnifiedSchedulingMatch(params: {
+  careRequestId?: string;
+  transportBookingId?: string;
+  requestedById: string;
+}) {
+  const results: Record<string, unknown> = {};
+  if (params.careRequestId) {
+    results.care = await runCareWorkerMatch(
+      params.careRequestId,
+      params.requestedById
+    );
+  }
+  if (params.transportBookingId) {
+    results.transport = await runTransportVehicleMatch(
+      params.transportBookingId,
+      params.requestedById
+    );
+  }
+  return results;
 }
 
 export function participantSafeCandidateSummary(candidate: {

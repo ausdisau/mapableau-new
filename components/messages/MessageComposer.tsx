@@ -46,11 +46,9 @@ export function MessageComposer({
       <p className="text-xs text-muted-foreground">
         Only people in this conversation can see your message.
       </p>
-      {status ? (
-        <p role="status" className="text-sm">
-          {status}
-        </p>
-      ) : null}
+      <p role="status" aria-live="polite" className="text-sm min-h-[1.25rem]">
+        {status}
+      </p>
       <Button type="submit" variant="default" size="default" loading={loading}>
         Send message
       </Button>
