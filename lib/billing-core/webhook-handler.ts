@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 
+import { handleAdInvoicePaid } from "@/lib/ads/billing-service";
 import {
   ensureStripeCustomer,
   updateConnectAccount,
@@ -146,6 +147,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     action: "paid_via_checkout",
     after: { sessionId: session.id, paymentIntentId },
   });
+
+  await handleAdInvoicePaid(invoiceId);
 }
 
 async function handleCheckoutFailed(session: Stripe.Checkout.Session) {

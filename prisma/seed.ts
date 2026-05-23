@@ -404,6 +404,9 @@ async function main() {
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
 
+  const { seedAdsDemo } = await import("./seed-ads-demo");
+  await seedAdsDemo(prisma);
+
   console.log("Seed complete.");
 }
 

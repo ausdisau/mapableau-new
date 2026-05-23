@@ -18,3 +18,7 @@ pnpm dev
 ```
 
 Visit [http://localhost:3000/core](http://localhost:3000/core).
+
+## Ads Manager
+
+Self-serve contextual advertising for verified organisations. See [docs/ads-manager.md](docs/ads-manager.md). Provider portal: `/provider/ads`. Admin moderation: `/admin/ads`.

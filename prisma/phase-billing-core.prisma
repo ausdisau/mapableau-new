@@ -22,6 +22,7 @@ enum BillingServiceType {
   jobs
   marketplace
   subscription
+  advertising
   other
 }
 

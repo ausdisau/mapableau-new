@@ -4,6 +4,8 @@ import { Bookmark, Loader2, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
+import { AdSkyscraperSlot } from "@/components/ads/AdSkyscraperSlot";
+import { SponsoredProviderCard } from "@/components/ads/SponsoredProviderCard";
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
@@ -171,6 +173,16 @@ export default function ProviderFinderClient() {
     return filteredSorted.slice(start, start + pageSize);
   }, [currentPage, filteredSorted]);
 
+  const adServeContext = useMemo(() => {
+    const support = SUPPORT_TYPES.find((t) => t.id === supportType);
+    const stateMatch = location.trim().match(/\b(NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/i);
+    return {
+      pageContext: "provider_finder",
+      serviceCategory: support?.categories?.[0],
+      state: stateMatch?.[1]?.toUpperCase(),
+    };
+  }, [supportType, location]);
+
   const mapProviders = useMemo(() => {
     let list = filteredSorted;
     if (userLocation) {
@@ -251,8 +263,10 @@ export default function ProviderFinderClient() {
       {!searchSubmitted ? <MapAbleCareCombinedSections /> : null}
 
       {searchSubmitted ? (
-        <div className="container mx-auto max-w-7xl px-4 py-8">
-          <div className="flex flex-col gap-8 lg:flex-row">
+        <div className="container mx-auto max-w-[90rem] px-4 py-8">
+          <div className="flex flex-col gap-8 2xl:flex-row 2xl:items-start">
+            <AdSkyscraperSlot side="left" {...adServeContext} />
+            <div className="flex min-w-0 flex-1 flex-col gap-8 lg:flex-row">
             <div className="lg:w-56 xl:w-64">
               <ProviderFinderSidebar
                 supportType={supportType}
@@ -356,17 +370,28 @@ export default function ProviderFinderClient() {
                 </Card>
               ) : (
                 <ul className="space-y-4">
-                  {visible.map((p) => (
-                    <li key={p.id}>
-                      <ProviderFinderResultCard
-                        provider={p}
-                        isSelected={selectedProvider?.id === p.id}
-                        isCompared={compareIds.includes(p.id)}
-                        onSelect={setSelectedProvider}
-                        onToggleCompare={toggleCompare}
-                      />
-                    </li>
-                  ))}
+                  {visible.flatMap((p, index) => {
+                    const items = [];
+                    if (index === 3 && currentPage === 1) {
+                      items.push(
+                        <li key="sponsored-ad-slot">
+                          <SponsoredProviderCard {...adServeContext} />
+                        </li>
+                      );
+                    }
+                    items.push(
+                      <li key={p.id}>
+                        <ProviderFinderResultCard
+                          provider={p}
+                          isSelected={selectedProvider?.id === p.id}
+                          isCompared={compareIds.includes(p.id)}
+                          onSelect={setSelectedProvider}
+                          onToggleCompare={toggleCompare}
+                        />
+                      </li>
+                    );
+                    return items;
+                  })}
                 </ul>
               )}
 
@@ -406,6 +431,8 @@ export default function ProviderFinderClient() {
               selectedId={selectedProvider?.id}
               onSelect={setSelectedProvider}
             />
+            </div>
+            <AdSkyscraperSlot side="right" {...adServeContext} />
           </div>
         </div>
       ) : null}

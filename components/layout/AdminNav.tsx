@@ -70,6 +70,7 @@ const LINKS = [
   { href: "/admin/national-rollout", label: "Rollout" },
   { href: "/admin/partner-billing", label: "Partner billing" },
   { href: "/admin/billing", label: "Core billing" },
+  { href: "/admin/ads", label: "Ads manager" },
   { href: "/admin/partner-api-program", label: "API program" },
   { href: "/admin/assessor-network", label: "Assessors" },
   { href: "/admin/public-decisions", label: "Decisions" },

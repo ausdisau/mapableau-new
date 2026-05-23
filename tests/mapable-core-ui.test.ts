@@ -34,5 +34,8 @@ describe("Core UI navigation", () => {
     expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/billing")).toBe(
       true
     );
+    expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/ads")).toBe(
+      true
+    );
   });
 });
