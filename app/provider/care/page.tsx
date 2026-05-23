@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
-import { requireAuth } from "@/lib/auth/guards";
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
 export default async function ProviderCarePage() {

@@ -1,6 +1,6 @@
-import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
 import { ProviderTransportActions } from "@/components/phase3/ProviderTransportActions";
 import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
+import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";

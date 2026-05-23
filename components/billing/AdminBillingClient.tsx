@@ -2,11 +2,11 @@
 
 import { useCallback, useState } from "react";
 
+import { cn } from "@/app/lib/utils";
 import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
-import { cn } from "@/app/lib/utils";
 
 type AdminInvoice = {
   id: string;

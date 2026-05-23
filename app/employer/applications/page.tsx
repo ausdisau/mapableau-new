@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { sanitizeApplicationForViewer } from "@/lib/jobs/job-service";
 import { requireAuth } from "@/lib/auth/guards";
+import { sanitizeApplicationForViewer } from "@/lib/jobs/job-service";
 import { prisma } from "@/lib/prisma";
 
 export default async function EmployerApplicationsPage() {

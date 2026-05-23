@@ -1,7 +1,7 @@
 import { DriverTripActions } from "@/components/phase4/DriverTripActions";
 import { requireAuth } from "@/lib/auth/guards";
-import { getTripTracking, plainLanguageTripStatus } from "@/lib/tracking/trip-tracking-service";
 import { prisma } from "@/lib/prisma";
+import { getTripTracking, plainLanguageTripStatus } from "@/lib/tracking/trip-tracking-service";
 
 export default async function DriverTripDetailPage({
   params,

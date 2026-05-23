@@ -1,10 +1,11 @@
+import type { DataVaultRequestType } from "@prisma/client";
+
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
 import {
   listVaultRequestsForUser,
   requestDataVaultExport,
 } from "@/lib/personal-data-vault/vault-service";
-import type { DataVaultRequestType } from "@prisma/client";
 
 export async function GET() {
   const user = await requireApiPermission("data_vault:self");

@@ -1,7 +1,8 @@
+import type { EmploymentType, JobApplicationStatus } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
-import type { EmploymentType, JobApplicationStatus } from "@prisma/client";
 
 export async function createJobDraft(params: {
   employerOrganisationId: string;
@@ -49,7 +50,7 @@ export async function publishJob(jobId: string, adminUserId: string) {
   return job;
 }
 
-export async function closeJob(jobId: string, actorUserId: string) {
+export async function closeJob(jobId: string, _actorUserId: string) {
   return prisma.job.update({
     where: { id: jobId },
     data: { status: "closed" },

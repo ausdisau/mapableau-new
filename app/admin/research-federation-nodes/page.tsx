@@ -1,5 +1,4 @@
 import { requireAdmin } from "@/lib/auth/guards";
-import { phase12Config } from "@/lib/config/phase12";
 import { listFederationNodes } from "@/lib/research-federation-at-scale/federation-node-service";
 
 export default async function ResearchFederationNodesPage() {

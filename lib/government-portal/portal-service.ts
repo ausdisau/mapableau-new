@@ -1,6 +1,6 @@
+import { phase5Config } from "@/lib/config/phase5";
 import { phase7Config } from "@/lib/config/phase7";
 import { prisma } from "@/lib/prisma";
-import { phase5Config } from "@/lib/config/phase5";
 
 function suppressCount(n: number) {
   if (n > 0 && n < phase5Config.smallCellSuppressionThreshold) {

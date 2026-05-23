@@ -1,9 +1,13 @@
-import { jsonError, jsonOk } from "@/lib/api/response";
-import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
-import { prisma } from "@/lib/prisma";
-import { scopesAllow } from "@/lib/developer-api/api-key-service";
-import type { ApiScope } from "@prisma/client";
 import { createHash } from "crypto";
+
+import type { ApiScope } from "@prisma/client";
+
+import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
+import { jsonError, jsonOk } from "@/lib/api/response";
+import { scopesAllow } from "@/lib/developer-api/api-key-service";
+import { prisma } from "@/lib/prisma";
+
+
 
 async function authenticateApiKey(req: Request) {
   const key = req.headers.get("x-api-key");

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
-import type { ConfirmationGate as Gate } from "@/lib/copilot/types";
-import type { DraftPrmsRecord } from "@/lib/prms/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ConfirmationGate as Gate } from "@/lib/copilot/types";
+import type { DraftPrmsRecord } from "@/lib/prms/types";
 
 type Props = {
   gates: Gate[];

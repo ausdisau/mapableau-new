@@ -1,3 +1,5 @@
+import type { BillingAccountRole, BillingSubscriptionPlanCode } from "@prisma/client";
+
 import { getOrCreateBillingAccount } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import {
@@ -5,11 +7,10 @@ import {
   isBillingStripeConfigured,
   priceIdForPlan,
 } from "@/lib/billing-core/config";
-import { createStripeSubscriptionCheckoutSession } from "@/lib/stripe/checkout";
-import { createBillingPortalSession } from "@/lib/stripe/portal";
-import { getStripeClient } from "@/lib/stripe/client";
-import type { BillingAccountRole, BillingSubscriptionPlanCode } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { createStripeSubscriptionCheckoutSession } from "@/lib/stripe/checkout";
+import { getStripeClient } from "@/lib/stripe/client";
+import { createBillingPortalSession } from "@/lib/stripe/portal";
 
 function roleForPlan(planCode: BillingSubscriptionPlanCode): BillingAccountRole {
   if (planCode === "employer_pro") return "employer";

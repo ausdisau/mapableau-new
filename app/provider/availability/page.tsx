@@ -1,8 +1,8 @@
 import Link from "next/link";
 
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { requireAuth } from "@/lib/auth/guards";
 import { listAvailability } from "@/lib/availability/availability-service";
-import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 
 export default async function AvailabilityPage() {
   const user = await requireAuth();

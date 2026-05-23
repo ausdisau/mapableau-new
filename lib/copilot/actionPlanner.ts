@@ -1,6 +1,6 @@
 import type { CopilotActionPlan, CopilotPlanningInput } from "@/lib/copilot/types";
-import type { DraftPrmsRecord } from "@/lib/prms/types";
 import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
+import type { DraftPrmsRecord } from "@/lib/prms/types";
 
 function draft(
   type: DraftPrmsRecord["type"],

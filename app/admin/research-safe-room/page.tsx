@@ -1,5 +1,4 @@
 import { requireAdmin } from "@/lib/auth/guards";
-import { phase9Config } from "@/lib/config/phase9";
 import { listResearchProjects } from "@/lib/research-safe-room/safe-room-service";
 
 export default async function ResearchSafeRoomPage() {

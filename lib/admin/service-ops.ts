@@ -1,5 +1,5 @@
-import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 import { prisma } from "@/lib/prisma";
+import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 export async function getServiceOpsSummary() {
   const [

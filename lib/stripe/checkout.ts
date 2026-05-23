@@ -1,9 +1,9 @@
+import type { StripePaymentPurpose } from "@prisma/client";
 import type Stripe from "stripe";
 
 import { getStripeClient } from "@/lib/stripe/client";
 import { stripeConfig } from "@/lib/stripe/config";
 import { billingCheckoutMetadata, legacyInvoiceMetadata } from "@/lib/stripe/metadata";
-import type { StripePaymentPurpose } from "@prisma/client";
 
 export type PaymentCheckoutParams = {
   amountCents: number;

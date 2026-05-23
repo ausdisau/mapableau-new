@@ -1,7 +1,7 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { approveTimesheet } from "@/lib/timesheets/timesheet-service";
 import { prisma } from "@/lib/prisma";
+import { approveTimesheet } from "@/lib/timesheets/timesheet-service";
 
 export async function POST(
   _req: Request,

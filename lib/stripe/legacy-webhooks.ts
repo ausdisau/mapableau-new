@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 
-import { legacyInvoiceIdFromMetadata } from "@/lib/stripe/metadata";
 import { prisma } from "@/lib/prisma";
+import { legacyInvoiceIdFromMetadata } from "@/lib/stripe/metadata";
 
 export async function storeLegacyWebhookEventIdempotent(
   stripeEventId: string,

@@ -1,6 +1,7 @@
+import type { PublicApiVersionStatus } from "@prisma/client";
+
 import { phase8Config } from "@/lib/config/phase8";
 import { prisma } from "@/lib/prisma";
-import type { PublicApiVersionStatus } from "@prisma/client";
 
 const DEFAULT_VERSIONS = [
   { version: "v1", status: "stable" as PublicApiVersionStatus, changelog: "Initial public API" },

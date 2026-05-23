@@ -1,5 +1,4 @@
 import { requireAdmin } from "@/lib/auth/guards";
-import { phase12Config } from "@/lib/config/phase12";
 import { listCertifiedApiEcosystem } from "@/lib/certified-api-ecosystem/ecosystem-service";
 
 export default async function CertifiedApiEcosystemPage() {

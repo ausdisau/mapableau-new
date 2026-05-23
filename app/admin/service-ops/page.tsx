@@ -1,7 +1,7 @@
 import { AdminServiceOpsCard } from "@/components/phase3/AdminServiceOpsCard";
 import { AtRiskReasonPanel } from "@/components/phase3/AtRiskReasonPanel";
-import { requireAdmin } from "@/lib/auth/guards";
 import { getAtRiskItems, getServiceOpsSummary } from "@/lib/admin/service-ops";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AdminServiceOpsPage() {
   await requireAdmin();

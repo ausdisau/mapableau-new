@@ -1,7 +1,7 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 import { prisma } from "@/lib/prisma";
+import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 export async function PATCH(
   req: Request,

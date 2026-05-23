@@ -1,7 +1,8 @@
+import { notFound } from "next/navigation";
+
 import { TimesheetApprovalPanel } from "@/components/phase4/TimesheetApprovalPanel";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
 
 export default async function TimesheetDetailPage({
   params,

@@ -1,5 +1,5 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
-import { jsonOk, jsonError } from "@/lib/api/response";
+import { jsonOk } from "@/lib/api/response";
 import {
   closeAssessorCase,
   createAssessorCase,

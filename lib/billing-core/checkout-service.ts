@@ -5,9 +5,9 @@ import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { isBillingStripeConfigured } from "@/lib/billing-core/config";
 import { checkoutDecisionForFundingType } from "@/lib/billing-core/funding-logic";
 import { getInvoiceForUser, updateInvoiceStatus } from "@/lib/billing-core/invoice-service";
+import { prisma } from "@/lib/prisma";
 import { buildBillingPaymentCheckout } from "@/lib/stripe/checkout";
 import { getStripeClient } from "@/lib/stripe/client";
-import { prisma } from "@/lib/prisma";
 
 export async function createCheckoutForInvoice(userId: string, invoiceId: string) {
   const invoice = await getInvoiceForUser(invoiceId, userId);

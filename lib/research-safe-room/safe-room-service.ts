@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import { phase9Config } from "@/lib/config/phase9";
 import { prisma } from "@/lib/prisma";
 
@@ -33,7 +31,7 @@ export async function listResearchProjects() {
 
 export async function attachSyntheticDataset(
   projectId: string,
-  schema: Record<string, unknown>
+  _schema: Record<string, unknown>
 ) {
   return prisma.researchSafeRoomProject.update({
     where: { id: projectId },

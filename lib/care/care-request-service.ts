@@ -1,10 +1,11 @@
+import type { CareRequestType } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { checkConsent } from "@/lib/consent/consent-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareRequest } from "@/lib/calendar/calendar-service";
+import { checkConsent } from "@/lib/consent/consent-service";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
-import type { CareRequestType } from "@prisma/client";
 
 export async function createCareRequest(params: {
   participantId: string;

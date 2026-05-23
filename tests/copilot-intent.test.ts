@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyIntent } from "@/lib/copilot/intentRouter";
-import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { planCopilotActions } from "@/lib/copilot/actionPlanner";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
+import { applyGuardrails } from "@/lib/copilot/guardrails";
+import { classifyIntent } from "@/lib/copilot/intentRouter";
 import { createLedgerEvent, resetLedgerChainForTests } from "@/lib/ledger/createLedgerEvent";
 import { hashPayload } from "@/lib/ledger/hash";
-import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
 import { resetDraftStoreForTests } from "@/lib/prms/draftStore";
+import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
 
 describe("Co-Pilot intent router", () => {
   it("classifies combined care + transport queries", () => {
