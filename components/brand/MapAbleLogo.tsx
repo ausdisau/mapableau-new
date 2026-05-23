@@ -1,4 +1,3 @@
-import { MapPin } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
@@ -23,10 +22,12 @@ export function MapAbleLogo({
       )}
     >
       <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-primary/35 bg-gradient-to-br from-card via-card to-primary/5"
+        className="relative flex h-10 w-10 shrink-0 items-center justify-center"
         aria-hidden
       >
-        <MapPin className="h-5 w-5 text-primary" aria-hidden />
+        <span className="absolute left-0 top-1 h-5 w-5 rounded-full bg-primary/90 shadow-sm" />
+        <span className="absolute right-0 top-0 h-5 w-5 rounded-full bg-secondary/90 shadow-sm" />
+        <span className="absolute bottom-0 left-2 h-5 w-5 rounded-full bg-amber-400/90 shadow-sm" />
       </span>
       <span className="min-w-0 truncate font-heading text-lg font-bold tracking-tight text-foreground">
         {title}
