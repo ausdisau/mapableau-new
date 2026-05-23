@@ -83,6 +83,8 @@ model User {
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
   participantLocations      ParticipantLocation[]
   serviceLogs               ServiceLog[]         @relation("ServiceLogParticipant")
+  participantMatchPreferences ParticipantMatchPreferences?
+  workerMatchEventsAsParticipant WorkerMatchEvent[] @relation("WorkerMatchEventParticipant")
 
   billingAccounts           BillingAccount[]       @relation("BillingAccounts")
   billingFundingSources     BillingFundingSource[] @relation("BillingFundingSources")
@@ -1326,6 +1328,9 @@ model WorkerProfile {
   careRequests            CareRequest[]
   careShifts              CareShift[]
   availabilityWindows     AvailabilityWindow[]
+  matchProfile            WorkerMatchProfile?
+  matchAvailabilityWindows WorkerMatchAvailabilityWindow[]
+  matchEvents             WorkerMatchEvent[]
 
   @@index([organisationId, active])
 }
@@ -1605,6 +1610,24 @@ enum MatchFactorType {
   provider_verification
   price_or_funding_fit
   manual_admin_override
+  qualification_fit
+  availability_fit
+  location_fit
+  preference_fit
+  continuity_of_support
+  communication_fit
+  reliability_fit
+  risk_penalty
+}
+
+enum WorkerMatchEventType {
+  search
+  match_run
+  save_preferred
+  hide
+  reject
+  request_more
+  select
 }
 
 enum TripTrackingStatus {
@@ -1759,6 +1782,7 @@ model MatchRun {
 
   candidates MatchCandidate[]
   decisions  MatchDecision[]
+  workerMatchEvents WorkerMatchEvent[]
 
   @@index([careRequestId])
   @@index([transportBookingId])
@@ -1816,6 +1840,80 @@ model SavedProviderSearch {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// --- Support worker participant matching ---
+
+model WorkerMatchProfile {
+  id                        String   @id @default(cuid())
+  workerProfileId           String   @unique
+  workerProfile             WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  capabilities              String[] @default([])
+  behaviourSupportPlanTrained Boolean @default(false)
+  gender                    String?
+  maxTravelRadiusKm         Int      @default(50)
+  communicationModes        String[] @default([])
+  reliabilityScore          Float    @default(0.8)
+  cancellationRate          Float    @default(0)
+  lastIncidentAt            DateTime?
+  hasUnresolvedIncident     Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("worker_match_profiles")
+}
+
+model ParticipantMatchPreferences {
+  id                        String   @id @default(cuid())
+  participantId             String   @unique
+  participant               User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  preferredWorkerIds        String[] @default([])
+  blockedWorkerIds          String[] @default([])
+  hiddenWorkerIds           String[] @default([])
+  preferredGender           String?
+  preferredLanguages        String[] @default([])
+  preferredCommunicationModes String[] @default([])
+  maxDistanceKm             Int      @default(40)
+  continuityPreferred       Boolean  @default(true)
+  requiresBehaviourSupportPlan Boolean @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("participant_match_preferences")
+}
+
+model WorkerMatchAvailabilityWindow {
+  id              String        @id @default(cuid())
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  startsAt        DateTime
+  endsAt          DateTime
+  timezone        String        @default("Australia/Sydney")
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  @@index([workerProfileId, startsAt, endsAt])
+  @@map("worker_availability_windows")
+}
+
+model WorkerMatchEvent {
+  id                    String               @id @default(cuid())
+  participantId         String
+  participant           User                 @relation("WorkerMatchEventParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  workerProfileId       String
+  workerProfile         WorkerProfile        @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  eventType             WorkerMatchEventType
+  matchRunId            String?
+  matchRun              MatchRun?            @relation(fields: [matchRunId], references: [id], onDelete: SetNull)
+  supportRequestSnapshot Json?
+  resultSnapshot        Json?
+  notes                 String?
+  createdAt             DateTime             @default(now())
+
+  @@index([participantId, createdAt])
+  @@index([workerProfileId])
+  @@index([matchRunId])
+  @@map("worker_match_events")
 }
 
 model TripTrackingSession {

@@ -67,6 +67,9 @@ export type Permission =
   | "matching:run"
   | "matching:select"
   | "search:providers"
+  | "support_workers:search"
+  | "support_workers:match"
+  | "support_workers:match_events"
   | "tracking:read:self"
   | "tracking:update:driver"
   | "tracking:update:admin"
@@ -197,6 +200,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "jobs:apply",
     "calendar:read:self",
     "search:providers",
+    "support_workers:search",
+    "support_workers:match",
+    "support_workers:match_events",
     "tracking:read:self",
     "timesheet:read:self",
     "timesheet:approve:self",
@@ -222,6 +228,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "coordinator:portal",
     "document:read",
     "invoice:read:self",
+    "support_workers:search",
   ],
   support_worker: [
     "booking:read:any",

@@ -5,8 +5,10 @@ import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
 import { findOrganisationsWithinRadiusMeters } from "@/lib/geo/postgis";
 import { prisma } from "@/lib/prisma";
+import { matchSupportWorkers } from "@/lib/matching/support-worker-matching";
 import { getTravelTimeSeconds } from "@/lib/routing/travel-matrix-service";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
+import type { SupportType } from "@/types/support-workers";
 
 function isOrgEligible(verificationStatus: string, status: string) {
   if (status !== "active") return false;
@@ -29,6 +31,35 @@ export async function runCareWorkerMatch(
     include: { participant: { include: { accessibilityProfile: true } } },
   });
   if (!request) throw new Error("NOT_FOUND");
+
+  if (phase4Config.supportWorkerMatchingEnabled) {
+    const start = request.preferredDate ?? new Date();
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const result = await matchSupportWorkers(
+      {
+        supportType: request.requestType as SupportType,
+        startsAt: start.toISOString(),
+        endsAt: end.toISOString(),
+        limit: 20,
+      },
+      request.participantId,
+      requestedById
+    );
+    if (result.matchRunId) {
+      await prisma.matchRun.update({
+        where: { id: result.matchRunId },
+        data: {
+          careRequestId,
+          bookingId: request.bookingId,
+        },
+      });
+      const run = await prisma.matchRun.findUnique({
+        where: { id: result.matchRunId },
+        include: { candidates: { include: { factors: true } } },
+      });
+      return { run, candidates: run?.candidates ?? [] };
+    }
+  }
 
   const run = await prisma.matchRun.create({
     data: {
