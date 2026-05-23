@@ -36,10 +36,11 @@ export function MapAbleLogo({
         <Image
           src={MAPABLE_LOGO_SRC}
           alt={MAPABLE_LOGO_ALT}
-          width={200}
-          height={64}
-          className="h-12 w-auto max-w-[min(200px,42vw)] object-contain object-left"
+          width={220}
+          height={120}
+          className="h-14 w-auto max-w-[min(220px,48vw)] object-contain object-left"
           priority
+          unoptimized
         />
       </Link>
     );

@@ -6,8 +6,12 @@ export const MAPABLE_TAGLINE =
 
 export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
-/** Full wordmark (pin, map, MapAble, tagline). Replace with mapable-logo.png if preferred. */
-export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.svg";
+/**
+ * Official MapAble wordmark (Accessible Australia Logo Design).
+ * Source file: G:\Operations\MapAble\UI\Accessible Australia Logo Design.png
+ * To update: copy that PNG over public/brand/accessible-australia-logo.png
+ */
+export const MAPABLE_LOGO_SRC = "/brand/accessible-australia-logo.png";
 
 /** Pin + Australia mark for compact headers with separate text. */
 export const MAPABLE_LOGO_MARK_SRC = "/brand/mapable-logo-mark.svg";
