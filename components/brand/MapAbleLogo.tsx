@@ -25,7 +25,7 @@ export function MapAbleLogo({
   variant?: MapAbleLogoVariant;
 }) {
   const linkClass = cn(
-    "inline-flex min-w-0 rounded-xl outline-none ring-offset-background transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    "inline-flex min-w-0 bg-transparent outline-none ring-offset-background transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
     variant === "full" ? "items-center" : "items-center gap-3",
     className,
   );
@@ -38,7 +38,7 @@ export function MapAbleLogo({
           alt={MAPABLE_LOGO_ALT}
           width={220}
           height={120}
-          className="h-14 w-auto max-w-[min(220px,48vw)] object-contain object-left"
+          className="h-14 w-auto max-w-[min(220px,48vw)] bg-transparent object-contain object-left"
           priority
           unoptimized
         />
