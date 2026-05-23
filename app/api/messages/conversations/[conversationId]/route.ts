@@ -4,6 +4,7 @@ import { isAdminRole } from "@/lib/auth/roles";
 import {
   getUnreadCount,
   logAdminConversationAccess,
+  markThreadRead,
   userCanAccessConversation,
 } from "@/lib/messages/message-service";
 import { prisma } from "@/lib/prisma";
@@ -45,6 +46,8 @@ export async function GET(
     },
   });
   if (!conversation) return jsonError("Not found", 404);
+
+  await markThreadRead(user.id, conversationId);
 
   const unreadCount = await getUnreadCount(user.id, conversationId);
   return jsonOk({ conversation, unreadCount });

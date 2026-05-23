@@ -80,10 +80,13 @@ export type BookingStatus =
   | "requested"
   | "awaiting_provider_acceptance"
   | "confirmed"
+  | "declined"
   | "in_progress"
   | "completed"
   | "cancelled"
-  | "disputed";
+  | "disputed"
+  | "invoiced"
+  | "paid";
 
 export type AuditAction =
   | "user.created"
