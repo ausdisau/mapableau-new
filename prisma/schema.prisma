@@ -81,6 +81,10 @@ model User {
   serviceAgreementsCreated  ServiceAgreement[] @relation("ServiceAgreementCreatedBy")
   attestationsAsActor       Attestation[]      @relation("AttestationActor")
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
+  participantLocations      ParticipantLocation[]
+  serviceLogs               ServiceLog[]         @relation("ServiceLogParticipant")
+  participantMatchPreferences ParticipantMatchPreferences?
+  workerMatchEventsAsParticipant WorkerMatchEvent[] @relation("WorkerMatchEventParticipant")
 
   billingAccounts           BillingAccount[]       @relation("BillingAccounts")
   billingFundingSources     BillingFundingSource[] @relation("BillingFundingSources")
@@ -355,10 +359,13 @@ enum BookingStatus {
   requested
   awaiting_provider_acceptance
   confirmed
+  declined
   in_progress
   completed
   cancelled
   disputed
+  invoiced
+  paid
 }
 
 model UserRoleAssignment {
@@ -449,6 +456,9 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  serviceSites           ServiceSite[]
+  scheduledAssignments   ScheduledAssignment[]
+  schedulingRuns         SchedulingRun[]
 }
 
 model OrganisationMember {
@@ -501,16 +511,20 @@ model NotificationPreference {
 }
 
 model Notification {
-  id        String               @id @default(cuid())
-  userId    String
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category  NotificationCategory
-  title     String
-  body      String
-  readAt    DateTime?
-  createdAt DateTime             @default(now())
+  id               String               @id @default(cuid())
+  userId           String
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category         NotificationCategory
+  channel          String               @default("in_app")
+  notificationType String?
+  title            String
+  body             String
+  actionUrl        String?
+  readAt           DateTime?
+  createdAt        DateTime             @default(now())
 
   @@index([userId, readAt])
+  @@index([userId, notificationType])
 }
 
 model AuditEvent {
@@ -540,14 +554,28 @@ model Booking {
   participant            User          @relation("BookingParticipant", fields: [participantId], references: [id])
   bookingType            BookingType
   status                 BookingStatus @default(draft)
+  title                  String?
+  description            String?
   requestedStart         DateTime
   requestedEnd           DateTime?
   pickupAddress          String?
   dropoffAddress         String?
+  locationFrom           Json?
+  locationTo             Json?
   careLocation           String?
   accessibilitySummary   String?
+  accessibilityRequirements Json?
   participantNotes       String?
   providerNotes          String?
+  ndisSupportCategory    String?
+  ndisLineItem           String?
+  estimatedTotalCents    Int?
+  actualTotalCents       Int?
+  actualStartAt          DateTime?
+  actualEndAt            DateTime?
+  completionNotes        String?
+  deliveredSupports      Json?
+  preferredCommunicationMethod String?
   assignedOrganisationId String?
   assignedOrganisation   Organisation? @relation(fields: [assignedOrganisationId], references: [id], onDelete: SetNull)
   assignedWorkerId       String?
@@ -572,12 +600,16 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  scheduledAssignments ScheduledAssignment[]
+  serviceLogs          ServiceLog[]
 
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
 
   @@index([participantId, status])
+  @@index([assignedOrganisationId, status])
+  @@index([requestedStart])
 }
 
 model BookingSegment {
@@ -687,11 +719,16 @@ enum InvoiceStatus {
   preflight_required
   preflight_failed
   approved_for_invoicing
+  issued
+  awaiting_participant_approval
+  awaiting_plan_manager
   xero_sync_pending
   xero_synced
   stripe_payment_pending
   partially_paid
   paid
+  overdue
+  disputed
   voided
 }
 
@@ -715,8 +752,12 @@ enum BookingTimelineEventType {
   provider_accepted
   provider_declined
   booking_confirmed
+  worker_assigned
+  service_completed
   booking_completed
   invoice_drafted
+  invoice_issued
+  invoice_paid
   support_ticket_created
   message_sent
   trip_status_updated
@@ -754,6 +795,8 @@ model ConversationParticipant {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleInThread   String?
+  lastReadAt     DateTime?
   joinedAt       DateTime     @default(now())
 
   @@unique([conversationId, userId])
@@ -769,6 +812,8 @@ model Message {
   body               String
   plainLanguageSummary String?
   attachmentDocumentIds String[]   @default([])
+  attachments        Json?
+  isSystemMessage    Boolean      @default(false)
   createdAt          DateTime     @default(now())
   editedAt           DateTime?
   deletedAt          DateTime?
@@ -888,7 +933,7 @@ model ParticipantFundingSource {
 
 model Invoice {
   id              String        @id @default(cuid())
-  invoiceNumber   String?
+  invoiceNumber   String?       @unique
   participantId   String
   participant     User          @relation("InvoiceParticipant", fields: [participantId], references: [id])
   organisationId  String?
@@ -900,10 +945,16 @@ model Invoice {
   status          InvoiceStatus @default(draft)
   issueDate       DateTime?
   dueDate         DateTime?
+  issuedAt        DateTime?
+  paidAt          DateTime?
   subtotalCents   Int           @default(0)
   taxCents        Int           @default(0)
   totalCents      Int           @default(0)
+  participantGapCents Int       @default(0)
+  ndisClaimableCents  Int       @default(0)
   currency        String        @default("AUD")
+  stripePaymentIntentId String?
+  xeroInvoiceId   String?
   notes           String?
   createdById     String
   createdBy       User          @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
@@ -917,7 +968,8 @@ model Invoice {
   stripePayments   StripePaymentIntentRecord[]
 
   @@index([participantId, status])
-  @@index([organisationId])
+  @@index([organisationId, status])
+  @@index([bookingId])
 }
 
 model InvoiceLine {
@@ -931,12 +983,13 @@ model InvoiceLine {
   unitAmountCents      Int
   totalAmountCents     Int
   supportItemCode      String?
+  ndisSupportCategory  String?
   claimableByNdis      Boolean  @default(false)
+  gstApplicable        Boolean  @default(false)
   privatePayAmountCents Int?
   ndisClaimableAmountCents Int?
   taxCode              String?
 
-  @@unique([invoiceId])
   @@index([invoiceId])
 }
 
@@ -1243,6 +1296,7 @@ model CareShift {
 
   calendarEvents          CalendarEvent[]
   timesheet               Timesheet?
+  scheduledAssignments    ScheduledAssignment[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -1274,6 +1328,9 @@ model WorkerProfile {
   careRequests            CareRequest[]
   careShifts              CareShift[]
   availabilityWindows     AvailabilityWindow[]
+  matchProfile            WorkerMatchProfile?
+  matchAvailabilityWindows WorkerMatchAvailabilityWindow[]
+  matchEvents             WorkerMatchEvent[]
 
   @@index([organisationId, active])
 }
@@ -1347,10 +1404,15 @@ model TransportBooking {
   vehicleId             String?
   vehicle               Vehicle?               @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   careRequestId         String?
+  pickupParticipantLocationId  String?
+  pickupParticipantLocation    ParticipantLocation? @relation("TransportPickupLocation", fields: [pickupParticipantLocationId], references: [id], onDelete: SetNull)
+  dropoffParticipantLocationId String?
+  dropoffParticipantLocation   ParticipantLocation? @relation("TransportDropoffLocation", fields: [dropoffParticipantLocationId], references: [id], onDelete: SetNull)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
   calendarEvents        CalendarEvent[]
+  scheduledAssignments  ScheduledAssignment[]
 
   @@index([participantId, status])
   @@index([operatorOrganisationId])
@@ -1536,6 +1598,8 @@ enum MatchCandidateStatus {
 enum MatchFactorType {
   availability
   location
+  travel_time
+  region
   service_type
   accessibility_requirement
   communication_preference
@@ -1546,6 +1610,24 @@ enum MatchFactorType {
   provider_verification
   price_or_funding_fit
   manual_admin_override
+  qualification_fit
+  availability_fit
+  location_fit
+  preference_fit
+  continuity_of_support
+  communication_fit
+  reliability_fit
+  risk_penalty
+}
+
+enum WorkerMatchEventType {
+  search
+  match_run
+  save_preferred
+  hide
+  reject
+  request_more
+  select
 }
 
 enum TripTrackingStatus {
@@ -1700,6 +1782,7 @@ model MatchRun {
 
   candidates MatchCandidate[]
   decisions  MatchDecision[]
+  workerMatchEvents WorkerMatchEvent[]
 
   @@index([careRequestId])
   @@index([transportBookingId])
@@ -1757,6 +1840,80 @@ model SavedProviderSearch {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// --- Support worker participant matching ---
+
+model WorkerMatchProfile {
+  id                        String   @id @default(cuid())
+  workerProfileId           String   @unique
+  workerProfile             WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  capabilities              String[] @default([])
+  behaviourSupportPlanTrained Boolean @default(false)
+  gender                    String?
+  maxTravelRadiusKm         Int      @default(50)
+  communicationModes        String[] @default([])
+  reliabilityScore          Float    @default(0.8)
+  cancellationRate          Float    @default(0)
+  lastIncidentAt            DateTime?
+  hasUnresolvedIncident     Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("worker_match_profiles")
+}
+
+model ParticipantMatchPreferences {
+  id                        String   @id @default(cuid())
+  participantId             String   @unique
+  participant               User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  preferredWorkerIds        String[] @default([])
+  blockedWorkerIds          String[] @default([])
+  hiddenWorkerIds           String[] @default([])
+  preferredGender           String?
+  preferredLanguages        String[] @default([])
+  preferredCommunicationModes String[] @default([])
+  maxDistanceKm             Int      @default(40)
+  continuityPreferred       Boolean  @default(true)
+  requiresBehaviourSupportPlan Boolean @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("participant_match_preferences")
+}
+
+model WorkerMatchAvailabilityWindow {
+  id              String        @id @default(cuid())
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  startsAt        DateTime
+  endsAt          DateTime
+  timezone        String        @default("Australia/Sydney")
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  @@index([workerProfileId, startsAt, endsAt])
+  @@map("worker_availability_windows")
+}
+
+model WorkerMatchEvent {
+  id                    String               @id @default(cuid())
+  participantId         String
+  participant           User                 @relation("WorkerMatchEventParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  workerProfileId       String
+  workerProfile         WorkerProfile        @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  eventType             WorkerMatchEventType
+  matchRunId            String?
+  matchRun              MatchRun?            @relation(fields: [matchRunId], references: [id], onDelete: SetNull)
+  supportRequestSnapshot Json?
+  resultSnapshot        Json?
+  notes                 String?
+  createdAt             DateTime             @default(now())
+
+  @@index([participantId, createdAt])
+  @@index([workerProfileId])
+  @@index([matchRunId])
+  @@map("worker_match_events")
 }
 
 model TripTrackingSession {
@@ -2530,12 +2687,16 @@ model RoutePlan {
   transportBookingId String?
   status             RoutePlanStatus @default(draft)
   createdById        String?
+  geometryGeoJson      Json?
+  totalDurationSeconds Int?
+  totalDistanceMeters  Int?
   createdAt          DateTime        @default(now())
 
   stops       RouteStop[]
   constraints RouteConstraint[]
   candidates  RoutePlanCandidate[]
   decisions   RoutePlanDecision[]
+  travelEstimates TravelTimeEstimate[]
 }
 
 model RouteStop {
@@ -2545,6 +2706,14 @@ model RouteStop {
   sequence    Int
   label       String
   address     String?
+  lat         Float?
+  lng         Float?
+  participantLocationId String?
+  participantLocation   ParticipantLocation? @relation(fields: [participantLocationId], references: [id], onDelete: SetNull)
+  serviceSiteId         String?
+  serviceSite           ServiceSite? @relation(fields: [serviceSiteId], references: [id], onDelete: SetNull)
+  travelFrom            TravelTimeEstimate[] @relation("TravelFromStop")
+  travelTo              TravelTimeEstimate[] @relation("TravelToStop")
 }
 
 model RouteConstraint {
@@ -2576,9 +2745,159 @@ model RoutePlanDecision {
 model TravelTimeEstimate {
   id          String @id @default(cuid())
   routePlanId String?
+  routePlan   RoutePlan? @relation(fields: [routePlanId], references: [id], onDelete: Cascade)
+  fromStopId  String?
+  fromStop    RouteStop? @relation("TravelFromStop", fields: [fromStopId], references: [id], onDelete: SetNull)
+  toStopId    String?
+  toStop      RouteStop? @relation("TravelToStop", fields: [toStopId], references: [id], onDelete: SetNull)
   minutes     Int
+  durationSeconds Int?
+  distanceMeters  Int?
+  bufferMinutes   Int      @default(0)
   source      String @default("placeholder")
   createdAt   DateTime @default(now())
+}
+
+// --- OSM Scheduling & PostGIS locations ---
+
+enum LocationVisibility {
+  private
+  provider_internal
+  public_site
+}
+
+enum ScheduledResourceType {
+  worker
+  driver
+  vehicle
+}
+
+enum SchedulingEngineType {
+  heuristic
+  ortools
+  timefold
+}
+
+enum TravelMatrixSource {
+  openrouteservice
+  cached
+  haversine_fallback
+}
+
+model ServiceSite {
+  id              String             @id @default(cuid())
+  organisationId  String
+  organisation    Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name            String
+  addressPublic   String?
+  suburb          String?
+  state           String?
+  postcode        String?
+  lat             Float
+  lng             Float
+  capabilities    Json               @default("{}")
+  active          Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  routeStops      RouteStop[]
+
+  @@index([organisationId, active])
+}
+
+model ParticipantLocation {
+  id              String             @id @default(cuid())
+  participantId   String
+  participant     User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  label           String
+  suburb          String?
+  state           String?
+  lat             Float
+  lng             Float
+  visibility      LocationVisibility @default(private)
+  isDefaultPickup Boolean            @default(false)
+  notesInternal   String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  routeStops              RouteStop[]
+  transportPickups        TransportBooking[] @relation("TransportPickupLocation")
+  transportDropoffs       TransportBooking[] @relation("TransportDropoffLocation")
+
+  @@index([participantId])
+}
+
+model ScheduledAssignment {
+  id                  String                @id @default(cuid())
+  resourceType        ScheduledResourceType
+  resourceId          String
+  startsAt            DateTime
+  endsAt              DateTime
+  bookingId           String?
+  booking             Booking?              @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  careShiftId         String?
+  careShift           CareShift?            @relation(fields: [careShiftId], references: [id], onDelete: SetNull)
+  transportBookingId  String?
+  transportBooking    TransportBooking?     @relation(fields: [transportBookingId], references: [id], onDelete: SetNull)
+  organisationId      String?
+  organisation        Organisation?         @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  notes               String?
+  createdAt           DateTime              @default(now())
+
+  @@index([resourceType, resourceId, startsAt, endsAt])
+  @@index([bookingId])
+  @@index([organisationId])
+}
+
+model ServiceLog {
+  id                  String    @id @default(cuid())
+  bookingId           String?
+  booking             Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  careShiftId         String?   @unique
+  transportBookingId  String?   @unique
+  participantId       String
+  participant         User      @relation("ServiceLogParticipant", fields: [participantId], references: [id])
+  organisationId      String?
+  startedAt           DateTime?
+  endedAt             DateTime?
+  deliveredSupports   Json      @default("[]")
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([participantId])
+  @@index([bookingId])
+}
+
+model TravelTimeMatrixCache {
+  id               String             @id @default(cuid())
+  fromLat          Float
+  fromLng          Float
+  toLat            Float
+  toLng            Float
+  durationSeconds  Int
+  distanceMeters   Int
+  source           TravelMatrixSource @default(openrouteservice)
+  expiresAt        DateTime
+  createdAt        DateTime           @default(now())
+
+  @@index([expiresAt])
+}
+
+model SchedulingRun {
+  id              String               @id @default(cuid())
+  organisationId  String?
+  organisation    Organisation?        @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId       String?
+  engine          SchedulingEngineType @default(heuristic)
+  inputSnapshot   Json
+  outputSnapshot  Json?
+  score           Float?
+  status          String               @default("completed")
+  createdById     String?
+  createdAt       DateTime             @default(now())
+
+  @@index([organisationId, createdAt])
 }
 
 // --- Accessibility Map ---

@@ -13,22 +13,79 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
+  const bookingType = searchParams.get("booking_type");
+  const participantId = searchParams.get("participant_id");
+  const providerId = searchParams.get("provider_id");
+  const startFrom = searchParams.get("start_from");
+  const startTo = searchParams.get("start_to");
+  const take = Math.min(Number(searchParams.get("take") ?? 50), 100);
+  const skip = Number(searchParams.get("skip") ?? 0);
 
-  const where = isAdminRole(user.primaryRole)
-    ? { ...(status ? { status: status as never } : {}) }
-    : { participantId: user.id, ...(status ? { status: status as never } : {}) };
+  const dateFilter =
+    startFrom || startTo
+      ? {
+          requestedStart: {
+            ...(startFrom ? { gte: new Date(startFrom) } : {}),
+            ...(startTo ? { lte: new Date(startTo) } : {}),
+          },
+        }
+      : {};
 
-  const bookings = await prisma.booking.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      segments: { orderBy: { sortOrder: "asc" } },
-      assignedOrganisation: { select: { id: true, name: true } },
-    },
-    take: 100,
-  });
+  let where: Record<string, unknown> = {
+    ...(status ? { status } : {}),
+    ...(bookingType ? { bookingType } : {}),
+    ...dateFilter,
+  };
 
-  return jsonOk({ bookings });
+  if (isAdminRole(user.primaryRole)) {
+    if (participantId) where = { ...where, participantId };
+    if (providerId) where = { ...where, assignedOrganisationId: providerId };
+  } else if (participantId && participantId === user.id) {
+    where = { ...where, participantId: user.id };
+  } else if (providerId) {
+    const member = await prisma.organisationMember.findFirst({
+      where: { userId: user.id, organisationId: providerId },
+    });
+    if (!member) return jsonError("Forbidden", 403);
+    where = { ...where, assignedOrganisationId: providerId };
+  } else {
+    const orgs = await prisma.organisationMember.findMany({
+      where: { userId: user.id },
+      select: { organisationId: true },
+    });
+    const orgIds = orgs.map((o) => o.organisationId);
+    where = {
+      ...where,
+      OR: [
+        { participantId: user.id },
+        ...(orgIds.length
+          ? [{ assignedOrganisationId: { in: orgIds } }]
+          : []),
+      ],
+    };
+  }
+
+  const [bookings, total] = await Promise.all([
+    prisma.booking.findMany({
+      where: where as never,
+      orderBy: { createdAt: "desc" },
+      include: {
+        segments: { orderBy: { sortOrder: "asc" } },
+        assignedOrganisation: { select: { id: true, name: true } },
+        conversations: { select: { id: true }, take: 1 },
+      },
+      take,
+      skip,
+    }),
+    prisma.booking.count({ where: where as never }),
+  ]);
+
+  const enriched = bookings.map((b) => ({
+    ...b,
+    conversationId: b.conversations[0]?.id ?? null,
+  }));
+
+  return jsonOk({ bookings: enriched, total, take, skip });
 }
 
 export async function POST(req: Request) {

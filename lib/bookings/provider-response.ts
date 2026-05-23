@@ -1,6 +1,9 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
-import { notifyUser } from "@/lib/notifications/notification-service";
+import {
+  onBookingAccepted,
+  onBookingDeclined,
+} from "@/lib/orchestration/booking-orchestrator";
 import { prisma } from "@/lib/prisma";
 
 export async function providerAcceptBooking(
@@ -9,41 +12,12 @@ export async function providerAcceptBooking(
   actorUserId: string,
   note?: string
 ) {
-  const booking = await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      providerResponseStatus: "accepted",
-      providerResponseNote: note,
-      providerRespondedAt: new Date(),
-      status: "confirmed",
-    },
-  });
-
-  await createAuditEvent({
-    actorUserId,
-    action: "booking.provider_accepted",
-    entityType: "Booking",
-    entityId: bookingId,
-    participantId: booking.participantId,
-    organisationId,
-  });
-
-  await recordBookingTimelineEvent({
+  return onBookingAccepted({
     bookingId,
-    eventType: "provider_accepted",
-    title: "Provider accepted your booking",
-    description: note,
+    organisationId,
     actorUserId,
+    note,
   });
-
-  await notifyUser(
-    booking.participantId,
-    "booking",
-    "Booking accepted",
-    "Your provider has accepted the booking request."
-  );
-
-  return booking;
 }
 
 export async function providerDeclineBooking(
@@ -52,43 +26,12 @@ export async function providerDeclineBooking(
   actorUserId: string,
   note?: string
 ) {
-  const booking = await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      providerResponseStatus: "declined",
-      providerResponseNote: note,
-      providerRespondedAt: new Date(),
-      status: "awaiting_provider_acceptance",
-      assignedOrganisationId: null,
-    },
-  });
-
-  await createAuditEvent({
-    actorUserId,
-    action: "booking.provider_declined",
-    entityType: "Booking",
-    entityId: bookingId,
-    participantId: booking.participantId,
-    organisationId,
-    metadata: { note },
-  });
-
-  await recordBookingTimelineEvent({
+  return onBookingDeclined({
     bookingId,
-    eventType: "provider_declined",
-    title: "Provider declined booking",
-    description: note ?? "Returned to admin review.",
+    organisationId,
     actorUserId,
+    note,
   });
-
-  await notifyUser(
-    booking.participantId,
-    "booking",
-    "Booking update",
-    "Your booking request was declined by the provider. Our team will follow up."
-  );
-
-  return booking;
 }
 
 export async function assignBookingToOrganisation(

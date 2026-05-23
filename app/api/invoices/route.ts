@@ -1,11 +1,20 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonOk } from "@/lib/api/response";
+import { jsonError, jsonOk } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: Request) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
+
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status");
+  const participantId = searchParams.get("participant_id");
+  const providerId = searchParams.get("provider_id");
+  const issuedFrom = searchParams.get("issued_from");
+  const issuedTo = searchParams.get("issued_to");
+  const take = Math.min(Number(searchParams.get("take") ?? 50), 100);
+  const skip = Number(searchParams.get("skip") ?? 0);
 
   const memberships = await prisma.organisationMember.findMany({
     where: { userId: user.id },
@@ -13,22 +22,53 @@ export async function GET() {
   });
   const orgIds = memberships.map((m) => m.organisationId);
 
-  const where = isAdminRole(user.primaryRole)
-    ? {}
-    : {
-        OR: [
-          { participantId: user.id },
-          ...(orgIds.length
-            ? [{ organisationId: { in: orgIds } }]
-            : []),
-        ],
-      };
+  const dateFilter =
+    issuedFrom || issuedTo
+      ? {
+          issuedAt: {
+            ...(issuedFrom ? { gte: new Date(issuedFrom) } : {}),
+            ...(issuedTo ? { lte: new Date(issuedTo) } : {}),
+          },
+        }
+      : {};
 
-  const invoices = await prisma.invoice.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: { lines: true },
-    take: 100,
-  });
-  return jsonOk({ invoices });
+  let where: Record<string, unknown> = {
+    ...(status ? { status } : {}),
+    ...dateFilter,
+  };
+
+  if (isAdminRole(user.primaryRole)) {
+    if (participantId) where = { ...where, participantId };
+    if (providerId) where = { ...where, organisationId: providerId };
+  } else {
+    where = {
+      ...where,
+      OR: [
+        { participantId: user.id },
+        ...(orgIds.length
+          ? [{ organisationId: { in: orgIds } }]
+          : []),
+      ],
+    };
+    if (participantId && participantId !== user.id && !orgIds.length) {
+      return jsonError("Forbidden", 403);
+    }
+  }
+
+  const [invoices, total] = await Promise.all([
+    prisma.invoice.findMany({
+      where: where as never,
+      orderBy: { createdAt: "desc" },
+      include: {
+        lines: true,
+        booking: { select: { id: true, bookingType: true, requestedStart: true } },
+        organisation: { select: { id: true, name: true } },
+      },
+      take,
+      skip,
+    }),
+    prisma.invoice.count({ where: where as never }),
+  ]);
+
+  return jsonOk({ invoices, total, take, skip });
 }

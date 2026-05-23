@@ -4,6 +4,8 @@ export const phase4Config = {
   transportManualTrackingEnabled:
     process.env.TRANSPORT_MANUAL_TRACKING_ENABLED !== "false",
   matchingEngineEnabled: process.env.MATCHING_ENGINE_ENABLED !== "false",
+  supportWorkerMatchingEnabled:
+    process.env.SUPPORT_WORKER_MATCHING_ENABLED !== "false",
   matchingAllowAdminOverride:
     process.env.MATCHING_ALLOW_ADMIN_OVERRIDE !== "false",
   ndisSupportItemImportEnabled:
