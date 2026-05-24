@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { searchAutocomplete } from "@/lib/search/autocomplete-service";
+import { warmOutletAutocompleteIndex } from "@/lib/search/outlet-autocomplete-index";
 import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
+
+warmOutletAutocompleteIndex();
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -37,6 +40,7 @@ export async function GET(request: Request) {
     q: searchParams.get("q") ?? "",
     context: searchParams.get("context") ?? "",
     field: searchParams.get("field") ?? "all",
+    predictive: searchParams.get("predictive") ?? "false",
   });
 
   if (!parsed.success) {
@@ -50,6 +54,7 @@ export async function GET(request: Request) {
     query: parsed.data.q,
     context: parsed.data.context,
     field: parsed.data.field,
+    predictive: parsed.data.predictive,
   });
 
   return NextResponse.json(

@@ -15,6 +15,7 @@ import type {
   AutocompleteGroupedResult,
   AutocompleteSuggestion,
 } from "@/types/search";
+import { AUTOCOMPLETE_MIN_QUERY_LENGTH } from "@/types/search";
 
 export type AccessibleAutocompleteProps = {
   id?: string;
@@ -33,6 +34,8 @@ export type AccessibleAutocompleteProps = {
   icon?: React.ReactNode;
   /** @default 300 — use 0 in tests */
   debounceMs?: number;
+  /** Show curated suggestions on focus before typing. @default true */
+  enablePredictive?: boolean;
 };
 
 export function AccessibleAutocomplete({
@@ -51,6 +54,7 @@ export function AccessibleAutocomplete({
   inputClassName,
   icon,
   debounceMs = 300,
+  enablePredictive = true,
 }: AccessibleAutocompleteProps) {
   const autoId = useId();
   const inputId = idProp ?? `ac-${autoId}`;
@@ -62,46 +66,64 @@ export function AccessibleAutocomplete({
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<AutocompleteGroupedResult | null>(null);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [predictiveMode, setPredictiveMode] = useState(false);
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const debouncedQuery = useDebouncedValue(value, debounceMs);
   const suggestions = groups ? flattenSuggestions(groups) : [];
-  const liveMessage = buildLiveRegionMessage(loading, suggestions.length, value);
+  const liveMessage = buildLiveRegionMessage(
+    loading,
+    suggestions.length,
+    value,
+    predictiveMode,
+  );
 
-  const fetchSuggestions = useCallback(async () => {
-    const q = debouncedQuery.trim();
-    if (q.length < 2) {
-      setGroups(null);
-      setActiveIndex(-1);
-      return;
-    }
+  const fetchSuggestions = useCallback(
+    async (query: string, usePredictive: boolean) => {
+      const trimmed = query.trim();
+      const shouldPredict = usePredictive && enablePredictive && trimmed.length === 0;
 
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        q,
-        context,
-        field,
-      });
-      const res = await fetch(`/api/search/autocomplete?${params.toString()}`);
-      if (!res.ok) {
+      if (!shouldPredict && trimmed.length < AUTOCOMPLETE_MIN_QUERY_LENGTH) {
         setGroups(null);
+        setActiveIndex(-1);
+        setPredictiveMode(false);
         return;
       }
-      const data = (await res.json()) as { groups: AutocompleteGroupedResult };
-      setGroups(data.groups);
-      setActiveIndex(-1);
-    } catch {
-      setGroups(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [context, debouncedQuery, field]);
+
+      setLoading(true);
+      setPredictiveMode(shouldPredict);
+      try {
+        const params = new URLSearchParams({
+          q: trimmed,
+          context,
+          field,
+        });
+        if (shouldPredict) {
+          params.set("predictive", "true");
+        }
+        const res = await fetch(`/api/search/autocomplete?${params.toString()}`);
+        if (!res.ok) {
+          setGroups(null);
+          return;
+        }
+        const data = (await res.json()) as { groups: AutocompleteGroupedResult };
+        setGroups(data.groups);
+        setActiveIndex(-1);
+      } catch {
+        setGroups(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [context, enablePredictive, field],
+  );
 
   useEffect(() => {
-    void fetchSuggestions();
-  }, [fetchSuggestions]);
+    const trimmed = debouncedQuery.trim();
+    const usePredictive = enablePredictive && trimmed.length === 0 && open;
+    void fetchSuggestions(debouncedQuery, usePredictive);
+  }, [debouncedQuery, enablePredictive, fetchSuggestions, open]);
 
   function selectSuggestion(suggestion: AutocompleteSuggestion) {
     onChange(suggestion.value);
@@ -130,10 +152,15 @@ export function AccessibleAutocomplete({
       setOpen(false);
       setActiveIndex(-1);
     }
-    // Tab moves focus naturally — do not trap
   }
 
-  const showList = open && !disabled && debouncedQuery.trim().length >= 2;
+  const trimmedValue = value.trim();
+  const showList =
+    open &&
+    !disabled &&
+    (predictiveMode ||
+      trimmedValue.length >= AUTOCOMPLETE_MIN_QUERY_LENGTH ||
+      loading);
 
   return (
     <div className={cn("relative", className)}>
@@ -179,6 +206,9 @@ export function AccessibleAutocomplete({
           onFocus={() => {
             if (blurTimeout.current) clearTimeout(blurTimeout.current);
             setOpen(true);
+            if (enablePredictive && value.trim().length === 0) {
+              void fetchSuggestions("", true);
+            }
           }}
           onBlur={() => {
             blurTimeout.current = setTimeout(() => setOpen(false), 150);
@@ -209,12 +239,30 @@ export function AccessibleAutocomplete({
           aria-label={`${label} suggestions`}
           className="absolute z-50 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-border bg-popover p-1 shadow-lg"
         >
+          {predictiveMode && suggestions.length > 0 ? (
+            <li
+              className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+              role="presentation"
+            >
+              Suggested for you
+            </li>
+          ) : null}
+          {loading && suggestions.length === 0 ? (
+            <li
+              className="px-3 py-2.5 text-sm text-muted-foreground"
+              role="presentation"
+            >
+              Finding matches…
+            </li>
+          ) : null}
           {suggestions.length === 0 && !loading ? (
             <li
               className="px-3 py-2.5 text-sm text-muted-foreground"
               role="presentation"
             >
-              No matches. Try different words.
+              {predictiveMode
+                ? "No suggestions yet. Start typing to search."
+                : "No matches. Try different words."}
             </li>
           ) : null}
           {suggestions.map((suggestion, index) => (
