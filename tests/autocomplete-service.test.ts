@@ -21,6 +21,12 @@ describe("buildLiveRegionMessage", () => {
     expect(buildLiveRegionMessage(true, 0, "phys")).toBe("Loading suggestions.");
   });
 
+  it("describes predictive loading state", () => {
+    expect(buildLiveRegionMessage(true, 0, "", true)).toBe(
+      "Loading predictive suggestions.",
+    );
+  });
+
   it("describes no results", () => {
     expect(buildLiveRegionMessage(false, 0, "physio")).toBe(
       "No suggestions found for physio.",
@@ -30,6 +36,12 @@ describe("buildLiveRegionMessage", () => {
   it("describes suggestion count", () => {
     expect(buildLiveRegionMessage(false, 3, "para")).toBe(
       "3 suggestions available.",
+    );
+  });
+
+  it("describes predictive suggestions on focus", () => {
+    expect(buildLiveRegionMessage(false, 4, "", true)).toBe(
+      "4 predictive suggestions available.",
     );
   });
 });

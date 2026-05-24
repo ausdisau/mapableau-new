@@ -45,3 +45,20 @@ export type AutocompleteGroupedResult = {
 
 export const AUTOCOMPLETE_MAX_SUGGESTIONS = 10;
 export const AUTOCOMPLETE_MIN_QUERY_LENGTH = 2;
+
+/** Structured filters extracted from a natural-language provider search query. */
+export type NaturalLanguageSearchFilters = {
+  q: string;
+  location: string;
+  access: string;
+  service: string;
+  provider: string;
+};
+
+export type NaturalLanguageSearchResponse = {
+  filters: NaturalLanguageSearchFilters;
+  /** Original query sent to the parser. */
+  sourceQuery: string;
+  /** Whether Gemini was used (false when falling back to passthrough). */
+  parsed: boolean;
+};

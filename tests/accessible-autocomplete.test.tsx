@@ -134,6 +134,53 @@ describe("AccessibleAutocomplete", () => {
     });
   });
 
+  it("shows predictive suggestions on focus", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          groups: {
+            providers: [],
+            services: [],
+            locations: [],
+            accessibilityFeatures: [],
+            languages: [],
+            popularSearches: [
+              {
+                id: "p1",
+                type: "popular_search",
+                typeLabel: "Popular",
+                label: "Support worker near St Ives",
+                value: "Support worker near St Ives",
+              },
+            ],
+          },
+        }),
+      })) as unknown as typeof fetch,
+    );
+
+    render(
+      <AccessibleAutocomplete
+        label="Predictive test"
+        context="homepage"
+        value=""
+        onChange={() => {}}
+        debounceMs={0}
+      />,
+    );
+
+    fireEvent.focus(screen.getByLabelText("Predictive test"));
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("predictive=true"),
+      );
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/support worker near st ives/i)).toBeTruthy();
+    });
+  });
+
   it("Escape closes the suggestion list", async () => {
     render(
       <AccessibleAutocomplete

@@ -9,6 +9,10 @@ import { SuggestedSearchChips } from "@/components/search/SuggestedSearchChips";
 import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
 import {
+  buildProviderFinderUrl,
+  resolveSearchValues,
+} from "@/lib/search/natural-language-client";
+import {
   ACCESS_NEEDS,
   HERO_SUGGESTED_SEARCHES,
 } from "@/lib/provider-finder/filters";
@@ -22,15 +26,15 @@ export function HomeSearch() {
   const [providerName, setProviderName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function navigateToFinder() {
-    const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
-    if (location.trim()) params.set("location", location.trim());
-    if (accessQuery.trim()) params.set("access", accessQuery.trim());
-    if (serviceQuery.trim()) params.set("service", serviceQuery.trim());
-    if (providerName.trim()) params.set("provider", providerName.trim());
-    const qs = params.toString();
-    router.push(qs ? `/provider-finder?${qs}` : "/provider-finder");
+  async function navigateToFinder() {
+    const resolved = await resolveSearchValues({
+      query,
+      location,
+      accessQuery,
+      serviceQuery,
+      providerName,
+    });
+    router.push(buildProviderFinderUrl(resolved));
   }
 
   function handleAccessSuggestion(label: string) {
@@ -82,9 +86,13 @@ export function HomeSearch() {
             onAccessQueryChange={setAccessQuery}
             onServiceQueryChange={setServiceQuery}
             onProviderNameChange={setProviderName}
-            onSubmit={() => {
+            onSubmit={async () => {
               setIsSubmitting(true);
-              navigateToFinder();
+              try {
+                await navigateToFinder();
+              } finally {
+                setIsSubmitting(false);
+              }
             }}
             onAccessSuggestionSelect={handleAccessSuggestion}
             isSubmitting={isSubmitting}
