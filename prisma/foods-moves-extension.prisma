@@ -1,0 +1,388 @@
+// --- MapAble Foods & Moves (append to schema.prisma) ---
+
+enum FoodOrderStatus {
+  draft
+  allergy_pending
+  submitted
+  scheduled
+  in_delivery
+  delivered
+  cancelled
+}
+
+enum FoodTextureLevel {
+  standard
+  soft
+  minced_moist
+  pureed
+  liquidised
+}
+
+enum TherapyType {
+  physiotherapy
+  occupational_therapy
+  speech_pathology
+  exercise_physiology
+  psychology
+  other
+}
+
+enum TherapyDeliveryMode {
+  telehealth
+  home_visit
+  clinic
+}
+
+enum TherapyAppointmentStatus {
+  draft
+  requested
+  confirmed
+  in_progress
+  completed
+  cancelled
+  no_show
+}
+
+enum TherapistCredentialStatus {
+  pending_review
+  verified
+  expired
+  rejected
+}
+
+model DietaryProfile {
+  id                       String   @id @default(cuid())
+  userId                   String   @unique
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allergies                String[] @default([])
+  intolerances             String[] @default([])
+  culturalPreferences      String[] @default([])
+  textureRequirement       FoodTextureLevel @default(standard)
+  swallowingRiskFlag       Boolean  @default(false)
+  preferredMealTimes       String[] @default([])
+  supportRequiredForMeals  Boolean  @default(false)
+  nomineeCanOrder          Boolean  @default(false)
+  notes                    String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  mealPlans                MealPlan[]
+}
+
+model Allergy {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  createdAt DateTime @default(now())
+
+  menuItemAllergens MenuItemAllergen[]
+}
+
+model MenuItem {
+  id                   String           @id @default(cuid())
+  name                 String
+  description          String?
+  ingredients          String
+  textureLevel         FoodTextureLevel @default(standard)
+  nutritionSummary     String?
+  preparationRequired  Boolean          @default(true)
+  storageInstructions  String?
+  reheatingInstructions String?
+  ingredientCostCents  Int              @default(0)
+  preparationCostCents Int              @default(0)
+  active               Boolean          @default(true)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  allergens            MenuItemAllergen[]
+  mealPlanItems        MealPlanItem[]
+  orderItems           FoodOrderItem[]
+}
+
+model MenuItemAllergen {
+  id         String   @id @default(cuid())
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  allergyId  String
+  allergy    Allergy  @relation(fields: [allergyId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, allergyId])
+}
+
+model MealPlan {
+  id               String         @id @default(cuid())
+  dietaryProfileId String
+  dietaryProfile   DietaryProfile @relation(fields: [dietaryProfileId], references: [id], onDelete: Cascade)
+  participantId    String
+  name             String
+  active           Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  items            MealPlanItem[]
+  subscriptions    FoodSubscription[]
+}
+
+model MealPlanItem {
+  id         String   @id @default(cuid())
+  mealPlanId String
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  dayOfWeek  Int?
+  quantity   Int      @default(1)
+}
+
+model FoodSubscription {
+  id             String   @id @default(cuid())
+  mealPlanId     String
+  mealPlan       MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  deliveryDay    String
+  active         Boolean  @default(true)
+  approvedAt     DateTime?
+  createdAt      DateTime @default(now())
+}
+
+model FoodOrder {
+  id                    String          @id @default(cuid())
+  participantId         String
+  participant           User            @relation("FoodOrderParticipant", fields: [participantId], references: [id])
+  status                FoodOrderStatus @default(draft)
+  bookingId             String?
+  booking               Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  transportBookingId    String?
+  allergyConfirmedAt    DateTime?
+  allergyConfirmedById  String?
+  deliveryScheduledAt   DateTime?
+  deliveryAddress       String?
+  participantNotes      String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  items                 FoodOrderItem[]
+  invoiceSplit          FoodInvoiceSplit?
+  deliveryRun           FoodDeliveryRun?
+  safetyEvents          FoodSafetyEvent[]
+
+  @@index([participantId, status])
+}
+
+model FoodOrderItem {
+  id         String   @id @default(cuid())
+  foodOrderId String
+  foodOrder  FoodOrder @relation(fields: [foodOrderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int      @default(1)
+  unitIngredientCents Int @default(0)
+  unitPreparationCents Int @default(0)
+}
+
+model FoodInvoiceSplit {
+  id                String    @id @default(cuid())
+  foodOrderId       String    @unique
+  foodOrder         FoodOrder @relation(fields: [foodOrderId], references: [id], onDelete: Cascade)
+  ingredientCents   Int       @default(0)
+  preparationCents  Int       @default(0)
+  deliveryCents     Int       @default(0)
+  totalCents        Int       @default(0)
+  plainLanguageNote String?
+  invoiceId         String?
+  createdAt         DateTime  @default(now())
+}
+
+model FoodDeliveryRun {
+  id              String    @id @default(cuid())
+  foodOrderId     String    @unique
+  foodOrder       FoodOrder @relation(fields: [foodOrderId], references: [id], onDelete: Cascade)
+  scheduledAt     DateTime
+  temperatureLog  String?
+  status          String    @default("planned")
+  createdAt       DateTime  @default(now())
+}
+
+model FoodSafetyEvent {
+  id          String    @id @default(cuid())
+  foodOrderId String?
+  foodOrder   FoodOrder? @relation(fields: [foodOrderId], references: [id], onDelete: SetNull)
+  eventType   String
+  description String
+  status      String    @default("open")
+  createdById String?
+  createdAt   DateTime  @default(now())
+}
+
+model TherapistProfile {
+  id                 String                    @id @default(cuid())
+  userId             String?                   @unique
+  user               User?                     @relation("TherapistProfileUser", fields: [userId], references: [id], onDelete: SetNull)
+  organisationId     String?
+  displayName        String
+  profileSummary     String?
+  therapyTypes       TherapyType[]             @default([])
+  serviceRegions     String[]                  @default([])
+  credentialStatus   TherapistCredentialStatus @default(pending_review)
+  telehealthEnabled  Boolean                   @default(true)
+  homeVisitEnabled   Boolean                   @default(false)
+  active             Boolean                   @default(true)
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  credentials        TherapistCredential[]
+  services           TherapyService[]
+  appointments       TherapyAppointment[]      @relation("TherapyAppointmentTherapist")
+}
+
+model TherapistCredential {
+  id                 String                    @id @default(cuid())
+  therapistProfileId String
+  therapistProfile   TherapistProfile          @relation(fields: [therapistProfileId], references: [id], onDelete: Cascade)
+  credentialType     String
+  registrationNumber String?
+  expiresAt          DateTime?
+  status             TherapistCredentialStatus @default(pending_review)
+  verifiedAt         DateTime?
+}
+
+model TherapyService {
+  id                 String      @id @default(cuid())
+  therapistProfileId String
+  therapistProfile   TherapistProfile @relation(fields: [therapistProfileId], references: [id], onDelete: Cascade)
+  therapyType        TherapyType
+  deliveryModes      TherapyDeliveryMode[] @default([])
+  durationMinutes    Int         @default(60)
+  description        String?
+  active             Boolean     @default(true)
+}
+
+model TherapyAppointment {
+  id                 String                   @id @default(cuid())
+  participantId      String
+  participant        User                     @relation("TherapyAppointmentParticipant", fields: [participantId], references: [id])
+  therapistProfileId String
+  therapistProfile   TherapistProfile         @relation("TherapyAppointmentTherapist", fields: [therapistProfileId], references: [id])
+  therapyType        TherapyType
+  deliveryMode       TherapyDeliveryMode
+  status             TherapyAppointmentStatus @default(draft)
+  startsAt           DateTime
+  endsAt             DateTime
+  location           String?
+  transportRequired  Boolean                  @default(false)
+  bookingId          String?
+  booking            Booking?                 @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  transportBookingId String?
+  invoiceId          String?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  telehealthSession  TelehealthSession?
+  homeVisitRiskCheck HomeVisitRiskCheck?
+  progressNotes      ProgressNote[]
+  progressSummaries  ParticipantProgressSummary[]
+  equipmentRecommendations EquipmentRecommendation[]
+
+  @@index([participantId, status])
+  @@index([therapistProfileId])
+}
+
+model TelehealthSession {
+  id                   String             @id @default(cuid())
+  therapyAppointmentId String             @unique
+  therapyAppointment   TherapyAppointment @relation(fields: [therapyAppointmentId], references: [id], onDelete: Cascade)
+  secureLinkToken      String             @unique
+  linkExpiresAt        DateTime?
+  startedAt            DateTime?
+  endedAt              DateTime?
+}
+
+model HomeVisitRiskCheck {
+  id                   String             @id @default(cuid())
+  therapyAppointmentId String             @unique
+  therapyAppointment   TherapyAppointment @relation(fields: [therapyAppointmentId], references: [id], onDelete: Cascade)
+  checklistJson        Json               @default("{}")
+  completedAt          DateTime?
+  completedById        String?
+}
+
+model TherapyGoal {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation("TherapyGoalParticipant", fields: [participantId], references: [id])
+  rehabPlanId   String?
+  rehabPlan     RehabPlan? @relation(fields: [rehabPlanId], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
+  targetDate    DateTime?
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+}
+
+model RehabPlan {
+  id                      String   @id @default(cuid())
+  participantId           String
+  participant             User     @relation("RehabPlanParticipant", fields: [participantId], references: [id])
+  createdByTherapistId    String?
+  goalsSummary            String?
+  interventions           String?
+  reviewDate              DateTime?
+  participantVisibleSummary String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  goals                   TherapyGoal[]
+}
+
+model ProgressNote {
+  id                   String             @id @default(cuid())
+  therapyAppointmentId String
+  therapyAppointment   TherapyAppointment @relation(fields: [therapyAppointmentId], references: [id], onDelete: Cascade)
+  authorUserId         String
+  clinicalContent      String
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([therapyAppointmentId])
+}
+
+model ParticipantProgressSummary {
+  id                   String             @id @default(cuid())
+  therapyAppointmentId String
+  therapyAppointment   TherapyAppointment @relation(fields: [therapyAppointmentId], references: [id], onDelete: Cascade)
+  participantId        String
+  participant          User               @relation("ProgressSummaryParticipant", fields: [participantId], references: [id])
+  plainLanguageSummary String
+  createdByUserId      String
+  createdAt            DateTime           @default(now())
+
+  @@index([participantId])
+}
+
+model OutcomeMeasure {
+  id            String   @id @default(cuid())
+  participantId String
+  measureKey    String
+  valueJson     Json
+  recordedAt    DateTime @default(now())
+}
+
+model EquipmentRecommendation {
+  id                   String             @id @default(cuid())
+  therapyAppointmentId String
+  therapyAppointment   TherapyAppointment @relation(fields: [therapyAppointmentId], references: [id], onDelete: Cascade)
+  itemName             String
+  marketplaceUrl       String?
+  notes                String?
+  createdAt            DateTime           @default(now())
+}
+
+model ClinicalAuditLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  actorUserId String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
