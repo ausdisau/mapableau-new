@@ -1,15 +1,19 @@
 "use client";
 
 import { Bookmark, Loader2, MapPin } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { SponsoredCard } from "@/components/marketing/mapable/SponsoredCard";
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
+import { ProviderFinderListServiceCta } from "@/components/provider-finder/ProviderFinderListServiceCta";
+import { ProviderFinderMapPanel } from "@/components/provider-finder/ProviderFinderMapPanel";
+import { ProviderFinderNoResults } from "@/components/provider-finder/ProviderFinderNoResults";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
+import { SAMPLE_SPONSORED_PARTNERS } from "@/lib/provider-finder/mock-data";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -26,8 +30,6 @@ import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
-
-const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
 type SortMode = "relevance" | "distance" | "rating";
 
@@ -333,8 +335,8 @@ export default function ProviderFinderClient() {
 
       {searchSubmitted ? (
         <div className="container mx-auto max-w-7xl px-4 py-8">
-          <div className="flex flex-col gap-8 lg:flex-row">
-            <div className="lg:w-56 xl:w-64">
+          <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_20rem]">
+            <div className="lg:col-span-1">
               <ProviderFinderSidebar
                 supportType={supportType}
                 onSupportTypeChange={(id) => {
@@ -354,7 +356,7 @@ export default function ProviderFinderClient() {
               />
             </div>
 
-            <div className="min-w-0 flex-1 space-y-6">
+            <div className="min-w-0 space-y-6 lg:col-span-1 xl:col-span-1">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="font-heading text-2xl font-bold">
@@ -410,34 +412,19 @@ export default function ProviderFinderClient() {
                 </p>
               ) : null}
 
-              <section id="map" className="scroll-mt-24">
-                {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
-                  <Card variant="outlined" className="mb-4 p-4">
-                    <p className="text-sm text-muted-foreground">
-                      Set a location or use &quot;Use my location&quot; to see
-                      providers on the map.
-                    </p>
-                  </Card>
-                ) : null}
-                <div className="overflow-hidden rounded-xl border border-border/60 shadow-sm">
-                  <Map
-                    providers={mapProviders}
-                    userPosition={userLocation}
-                    centerOnProvider={selectedProvider}
-                  />
-                </div>
-              </section>
+              <ProviderFinderMapPanel
+                className="scroll-mt-24 xl:hidden"
+                mapProviders={mapProviders}
+                userLocation={userLocation}
+                selectedProvider={selectedProvider}
+                showLocationHint={!userLocation && filteredSorted.length > MAP_PIN_LIMIT}
+              />
 
               {total === 0 ? (
-                <Card variant="outlined" className="p-8 text-center">
-                  <h3 className="text-lg font-semibold">No providers found</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Try broadening your search or removing a filter.
-                  </p>
-                </Card>
+                <ProviderFinderNoResults />
               ) : (
-                <ul className="space-y-4">
-                  {visible.map((p) => (
+                <ul className="space-y-4" aria-label="Provider search results">
+                  {visible.map((p, index) => (
                     <li key={p.id}>
                       <ProviderFinderResultCard
                         provider={p}
@@ -446,6 +433,15 @@ export default function ProviderFinderClient() {
                         onSelect={setSelectedProvider}
                         onToggleCompare={toggleCompare}
                       />
+                      {index === 0 && SAMPLE_SPONSORED_PARTNERS[0] ? (
+                        <div className="mt-4">
+                          <SponsoredCard
+                            title={SAMPLE_SPONSORED_PARTNERS[0].title}
+                            description={SAMPLE_SPONSORED_PARTNERS[0].description}
+                            label="Sponsored result"
+                          />
+                        </div>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -482,14 +478,27 @@ export default function ProviderFinderClient() {
               ) : null}
             </div>
 
-            <ProviderFinderAccessLayer
-              providers={filteredSorted}
-              selectedId={selectedProvider?.id}
-              onSelect={setSelectedProvider}
-            />
+            <div className="hidden flex-col gap-6 xl:col-span-1 xl:flex">
+              <ProviderFinderMapPanel
+                className="sticky top-24 scroll-mt-24"
+                mapProviders={mapProviders}
+                userLocation={userLocation}
+                selectedProvider={selectedProvider}
+                showLocationHint={!userLocation && filteredSorted.length > MAP_PIN_LIMIT}
+              />
+              <ProviderFinderAccessLayer
+                providers={filteredSorted}
+                selectedId={selectedProvider?.id}
+                onSelect={setSelectedProvider}
+                className="!flex !w-full"
+              />
+            </div>
           </div>
+          <ProviderFinderListServiceCta />
         </div>
-      ) : null}
+      ) : (
+        <ProviderFinderListServiceCta />
+      )}
     </>
   );
 }

@@ -6,7 +6,6 @@ import Link from "next/link";
 import { cn } from "@/app/lib/utils";
 import type { Provider } from "@/app/provider-finder/providers";
 import { AskMapAbleTrigger } from "@/components/marketing/mapable/AskMapAbleTrigger";
-import { SponsoredBadge } from "@/components/marketing/mapable/SponsoredBadge";
 import { VerifiedProviderBadge } from "@/components/marketing/mapable/trust/VerifiedProviderBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,8 +54,6 @@ export function ProviderFinderResultCard({
   const rating = Math.max(0, Math.min(5, provider.rating));
   const showDistance =
     provider.distanceKm > 0 && provider.suburb !== "Remote";
-  const featured = provider.rating >= 4.7 && provider.reviewCount >= 50;
-
   return (
     <article
       className={cn(
@@ -66,7 +63,6 @@ export function ProviderFinderResultCard({
     >
       <div className="flex flex-wrap items-start gap-2">
         {provider.registered ? <VerifiedProviderBadge /> : null}
-        {featured ? <SponsoredBadge label="Featured provider" /> : null}
         <div className="ml-auto flex items-center gap-1 text-sm">
           <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
           <span className="font-semibold">{rating.toFixed(1)}</span>

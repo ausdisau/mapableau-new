@@ -1,9 +1,9 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
 import React from "react";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
 import { FooterRegistrationDetails } from "@/components/marketing/mapable/FooterRegistrationDetails";
 import { WavyText } from "@/components/marketing/mapable/WavyText";
@@ -13,11 +13,11 @@ import {
   MAPABLE_SUPPORT_EMAIL,
   MAPABLE_SUPPORT_PHONE,
 } from "@/lib/brand/constants";
-import { MOCK_PROVIDER_PROFILES } from "@/lib/provider-finder/mock-data";
 import {
   filterProviders,
   selectSponsoredResult,
 } from "@/lib/provider-finder/filter-providers";
+import { MOCK_PROVIDER_PROFILES } from "@/lib/provider-finder/mock-data";
 
 describe("filterProviders", () => {
   it("returns providers for blank search", () => {

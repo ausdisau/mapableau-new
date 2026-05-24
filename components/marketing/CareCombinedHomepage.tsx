@@ -52,9 +52,18 @@ const MARKETPLACE_TILES = [
 ] as const;
 
 const TRUST_METRICS = [
-  { value: "1", label: "guided journey across care, transport and access" },
-  { value: "5+", label: "support areas in one search experience" },
-  { value: "100%", label: "you stay in control before any enquiry is sent" },
+  {
+    value: "1",
+    label: "guided place to compare care, transport and support",
+  },
+  {
+    value: "5",
+    label: "support pathways: care, transport, NDIS help, jobs and places",
+  },
+  {
+    value: "0",
+    label: "confusing hand-offs when care and transport belong together",
+  },
 ] as const;
 
 export function CareCombinedHomepage() {

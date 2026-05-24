@@ -23,7 +23,9 @@ export default function ProviderFinderLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <MapAbleMarketingHeader />
-      <div className="flex-1">{children}</div>
+      <main id="main-content" className="flex-1">
+        {children}
+      </main>
       <MapAbleMarketingFooter />
     </div>
   );
