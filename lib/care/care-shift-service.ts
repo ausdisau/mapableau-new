@@ -2,6 +2,9 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareShift } from "@/lib/calendar/calendar-service";
 import { prisma } from "@/lib/prisma";
+import { buildWwcContextForCareRequest } from "@/lib/verification/wwc/build-wwc-booking-context";
+import { canWorkerPerformChildRelatedSupport } from "@/lib/verification/wwc/wwc-eligibility-service";
+import { requiresWwcForBooking } from "@/lib/verification/wwc/wwc-requirement-rules";
 
 export async function createCareShiftFromRequest(params: {
   careRequestId: string;
@@ -14,8 +17,24 @@ export async function createCareShiftFromRequest(params: {
 }) {
   const request = await prisma.careRequest.findUnique({
     where: { id: params.careRequestId },
+    include: {
+      participant: { include: { participantProfile: true } },
+    },
   });
   if (!request) throw new Error("NOT_FOUND");
+
+  if (params.workerProfileId) {
+    const wwcContext = await buildWwcContextForCareRequest(request);
+    if (requiresWwcForBooking(wwcContext)) {
+      const eligibility = await canWorkerPerformChildRelatedSupport(
+        params.workerProfileId,
+        wwcContext
+      );
+      if (!eligibility.allowed) {
+        throw new Error("WWC_NOT_ELIGIBLE_FOR_CHILD_SUPPORT");
+      }
+    }
+  }
 
   const shift = await prisma.careShift.create({
     data: {

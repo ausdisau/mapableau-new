@@ -45,6 +45,7 @@ const LINKS = [
   { href: "/admin/operator-dispatch", label: "Op dispatch" },
   { href: "/admin/mobile-release", label: "Mobile" },
   { href: "/admin/provider-onboarding", label: "Onboarding" },
+  { href: "/admin/verification/wwc", label: "WWC checks" },
   { href: "/admin/plan-manager-pilot", label: "PM pilot" },
   { href: "/admin/tenants", label: "Tenants" },
   { href: "/admin/public-beta", label: "Beta" },

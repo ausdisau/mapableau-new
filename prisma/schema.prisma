@@ -73,6 +73,8 @@ model User {
   jobsCreated               Job[]              @relation("JobCreatedBy")
   jobApplications           JobApplication[]   @relation("JobApplicationParticipant")
   calendarEvents            CalendarEvent[]    @relation("CalendarEventParticipant")
+  wwcVerificationsReviewed  WwcVerification[]  @relation("WwcReviewedBy")
+  wwcVerificationEvents     WwcVerificationEvent[] @relation("WwcEventActor")
   calendarEventsCreated     CalendarEvent[]    @relation("CalendarEventCreatedBy")
   matchRunsRequested        MatchRun[]         @relation("MatchRunRequestedBy")
   incidentsReported         IncidentReport[]   @relation("IncidentReportedBy")
@@ -542,6 +544,7 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  wwcVerifications       WwcVerification[]
 }
 
 model OrganisationMember {
@@ -949,6 +952,8 @@ model Document {
   updatedAt       DateTime           @updatedAt
   deletedAt       DateTime?
 
+  wwcEvidenceFor  WwcVerification[] @relation("WwcEvidenceDocument")
+
   @@index([participantId])
   @@index([organisationId])
   @@index([bookingId])
@@ -1175,6 +1180,53 @@ enum WorkerCredentialStatus {
   rejected
 }
 
+enum WwcJurisdiction {
+  NSW
+  VIC
+  QLD
+  WA
+  SA
+  TAS
+  ACT
+  NT
+}
+
+enum WwcCheckType {
+  working_with_children_check
+  blue_card
+  working_with_vulnerable_people
+  ochre_card
+}
+
+enum WwcVerificationStatus {
+  draft
+  pending_review
+  approved
+  rejected
+  needs_more_information
+  not_required
+  expired
+  suspended
+  barred
+}
+
+enum WwcVerificationEventType {
+  submitted
+  evidence_attached
+  review_started
+  approved
+  rejected
+  needs_more_information
+  not_required
+  expired
+  suspended
+  barred
+  expiry_updated
+  next_check_scheduled
+  eligibility_recalculated
+  note_added
+}
+
 enum TransportBookingType {
   one_way
   return_trip
@@ -1367,8 +1419,57 @@ model WorkerProfile {
   careRequests            CareRequest[]
   careShifts              CareShift[]
   availabilityWindows     AvailabilityWindow[]
+  wwcVerifications        WwcVerification[]
 
   @@index([organisationId, active])
+}
+
+model WwcVerification {
+  id                   String                @id @default(cuid())
+  workerProfileId      String
+  workerProfile        WorkerProfile         @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  organisationId       String
+  organisation         Organisation          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  jurisdiction         WwcJurisdiction
+  checkType            WwcCheckType
+  checkNumber          String
+  legalFirstName       String
+  legalLastName        String
+  dateOfBirth          DateTime?
+  status               WwcVerificationStatus @default(draft)
+  verifiedName         String?
+  verifiedResult       String?
+  verifiedPayloadJson  Json?
+  evidenceDocumentId   String?
+  evidenceDocument     Document?             @relation("WwcEvidenceDocument", fields: [evidenceDocumentId], references: [id], onDelete: SetNull)
+  checkedAt            DateTime?
+  expiresAt            DateTime?
+  nextCheckAt          DateTime?
+  reviewedById         String?
+  reviewedBy           User?                 @relation("WwcReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNotes          String?
+  consentConfirmed     Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  events WwcVerificationEvent[]
+
+  @@index([workerProfileId, status])
+  @@index([organisationId, status])
+  @@index([expiresAt])
+}
+
+model WwcVerificationEvent {
+  id             String                   @id @default(cuid())
+  verificationId String
+  verification   WwcVerification          @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+  eventType      WwcVerificationEventType
+  actorUserId    String?
+  actorUser      User?                    @relation("WwcEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  payloadJson    Json?
+  createdAt      DateTime                 @default(now())
+
+  @@index([verificationId, createdAt])
 }
 
 model AvailabilityWindow {
