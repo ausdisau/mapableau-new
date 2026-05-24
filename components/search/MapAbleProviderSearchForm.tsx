@@ -94,7 +94,7 @@ export function MapAbleProviderSearchForm({
         <AccessibleAutocomplete
           id={`${idPrefix}-search-primary`}
           label="Search for support"
-          placeholder='Try "support worker", "wheelchair transport" or "OT"'
+          placeholder='Try natural language: "support worker near St Ives with wheelchair access"'
           context={context}
           field="all"
           value={values.query}

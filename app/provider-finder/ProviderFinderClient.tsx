@@ -22,6 +22,7 @@ import {
   SUPPORT_TYPES,
   type SupportTypeId,
 } from "@/lib/provider-finder/filters";
+import { resolveSearchValues } from "@/lib/search/natural-language-client";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
 import { mapOutletsToProviders } from "./outletToProvider";
@@ -97,6 +98,7 @@ export default function ProviderFinderClient() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const pageSize = 12;
 
@@ -257,13 +259,46 @@ export default function ProviderFinderClient() {
     if (page !== currentPage) setPage(currentPage);
   }, [currentPage, page]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
+    setIsSubmitting(true);
+    try {
+      const resolved = await resolveSearchValues({
+        query,
+        location,
+        accessQuery,
+        serviceQuery,
+        providerName,
+      });
+      setQuery(resolved.query);
+      setLocation(resolved.location);
+      setAccessQuery(resolved.accessQuery);
+      setServiceQuery(resolved.serviceQuery);
+      setProviderName(resolved.providerName);
+    } finally {
+      setIsSubmitting(false);
+    }
     setSearchSubmitted(true);
     setPage(1);
   };
 
-  const handleSuggestion = (suggestion: string) => {
-    setQuery(suggestion);
+  const handleSuggestion = async (suggestion: string) => {
+    setIsSubmitting(true);
+    try {
+      const resolved = await resolveSearchValues({
+        query: suggestion,
+        location: "",
+        accessQuery: "",
+        serviceQuery: "",
+        providerName: "",
+      });
+      setQuery(resolved.query);
+      setLocation(resolved.location);
+      setAccessQuery(resolved.accessQuery);
+      setServiceQuery(resolved.serviceQuery);
+      setProviderName(resolved.providerName);
+    } finally {
+      setIsSubmitting(false);
+    }
     setSearchSubmitted(true);
     setPage(1);
   };
@@ -317,6 +352,7 @@ export default function ProviderFinderClient() {
         onSearch={handleSearch}
         onSuggestionClick={handleSuggestion}
         onAccessSuggestionSelect={handleAccessSuggestionSelect}
+        isSubmitting={isSubmitting}
         compact={searchSubmitted}
       />
 

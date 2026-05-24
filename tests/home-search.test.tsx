@@ -7,6 +7,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,6 +16,15 @@ import { HomeSearch } from "@/components/home/HomeSearch";
 import { SearchTrustRow } from "@/components/search/SearchTrustRow";
 
 const mockPush = vi.fn();
+
+vi.mock("@/lib/search/natural-language-client", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/lib/search/natural-language-client")>();
+  return {
+    ...actual,
+    resolveSearchValues: vi.fn(async (values) => values),
+  };
+});
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
@@ -66,7 +76,7 @@ describe("HomeSearch", () => {
     expect(primary.value).toContain("Support worker near St Ives");
   });
 
-  it("submits expected query parameters to provider finder", () => {
+  it("submits expected query parameters to provider finder", async () => {
     render(<HomeSearch />);
     fireEvent.change(screen.getByLabelText("Search for support"), {
       target: { value: "occupational therapy" },
@@ -77,9 +87,11 @@ describe("HomeSearch", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /find matching providers/i }),
     );
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/provider-finder?"),
-    );
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringContaining("/provider-finder?"),
+      );
+    });
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toMatch(/q=occupational/);
     expect(url).toMatch(/location=Parramatta/);
