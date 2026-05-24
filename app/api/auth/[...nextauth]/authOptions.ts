@@ -2,8 +2,13 @@ import { compare } from "bcryptjs";
 import type { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+import { normalizeAuthProvider } from "@/lib/auth/auth-provider";
+import {
+  ensureProfileOnboarding,
+  resolveOAuthSignIn,
+} from "@/lib/auth/create-or-link-profile";
+import { logAuthEvent } from "@/lib/audit/auth-audit-service";
 import { buildOAuthProviders } from "@/lib/auth/oauth-providers";
-import { findOrCreateOAuthUser } from "@/lib/auth/oauth-user";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: AuthOptions = {
@@ -46,7 +51,9 @@ export const authOptions: AuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "credentials") return true;
 
-      if (account?.type !== "oauth") return true;
+      if (account?.type !== "oauth" || !account.providerAccountId) {
+        return true;
+      }
 
       const email =
         user.email ??
@@ -57,7 +64,14 @@ export const authOptions: AuthOptions = {
           ? profile.email
           : null);
 
-      if (!email) return false;
+      if (!email) {
+        await logAuthEvent({
+          eventType: "login_failed",
+          provider: normalizeAuthProvider(account.provider),
+          metadata: { reason: "missing_email_from_provider" },
+        });
+        return false;
+      }
 
       const name =
         user.name ??
@@ -68,10 +82,35 @@ export const authOptions: AuthOptions = {
           ? profile.name
           : email.split("@")[0]);
 
-      const dbUser = await findOrCreateOAuthUser({ email, name });
-      user.id = dbUser.id;
-      user.email = dbUser.email;
-      user.name = dbUser.name;
+      const result = await resolveOAuthSignIn({
+        nextAuthProviderId: account.provider,
+        providerSubject: account.providerAccountId,
+        email,
+        name,
+      });
+
+      if (result.action === "deny") {
+        await logAuthEvent({
+          eventType: "login_failed",
+          provider: normalizeAuthProvider(account.provider),
+          metadata: { reason: result.reason },
+        });
+        return false;
+      }
+
+      if (result.action === "redirect") {
+        return result.url;
+      }
+
+      user.id = result.userId;
+      const dbUser = await prisma.user.findUnique({
+        where: { id: result.userId },
+      });
+      if (dbUser) {
+        user.email = dbUser.email;
+        user.name = dbUser.name;
+      }
+
       return true;
     },
     async jwt({ token, user, account }) {
@@ -91,7 +130,7 @@ export const authOptions: AuthOptions = {
       }
 
       if (account?.provider && account.provider !== "credentials") {
-        token.authProvider = account.provider;
+        token.authProvider = normalizeAuthProvider(account.provider);
       }
 
       return token;
@@ -102,6 +141,25 @@ export const authOptions: AuthOptions = {
         session.user.role = token.role as string;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/auth/complete`;
+    },
+  },
+  events: {
+    async signIn({ user, account }) {
+      if (!user.id) return;
+      await ensureProfileOnboarding(user.id);
+      if (account?.provider === "credentials") {
+        await logAuthEvent({
+          eventType: "login_success",
+          userId: user.id,
+          provider: "credentials",
+          metadata: { method: "credentials" },
+        });
+      }
     },
   },
 };

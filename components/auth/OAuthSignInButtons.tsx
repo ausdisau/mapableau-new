@@ -46,7 +46,7 @@ function MicrosoftIcon({ className }: { className?: string }) {
 }
 
 export function OAuthSignInButtons({
-  callbackUrl = "/dashboard",
+  callbackUrl = "/auth/complete",
   providers = [],
   className,
 }: OAuthSignInButtonsProps) {
@@ -56,28 +56,25 @@ export function OAuthSignInButtons({
   if (!showGoogle && !showMicrosoft) return null;
 
   return (
-    <div className={cn("space-y-3", className)}>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center" aria-hidden>
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
+    <section
+      aria-labelledby="login-oauth-heading"
+      className={cn("space-y-3", className)}
+    >
+      <h2 id="login-oauth-heading" className="text-sm font-semibold">
+        Or continue with
+      </h2>
 
       <div className="flex flex-col gap-2">
         {showGoogle ? (
           <Button
             type="button"
             variant="outline"
-            size="default"
-            className="w-full gap-2"
+            size="lg"
+            className="w-full gap-3"
             onClick={() => signIn("google", { callbackUrl })}
+            aria-label="Continue with Google"
           >
-            <GoogleIcon className="h-4 w-4" />
+            <GoogleIcon className="h-5 w-5 shrink-0" />
             Continue with Google
           </Button>
         ) : null}
@@ -85,15 +82,16 @@ export function OAuthSignInButtons({
           <Button
             type="button"
             variant="outline"
-            size="default"
-            className="w-full gap-2"
+            size="lg"
+            className="w-full gap-3"
             onClick={() => signIn("azure-ad", { callbackUrl })}
+            aria-label="Continue with Microsoft"
           >
-            <MicrosoftIcon className="h-4 w-4" />
+            <MicrosoftIcon className="h-5 w-5 shrink-0" />
             Continue with Microsoft
           </Button>
         ) : null}
       </div>
-    </div>
+    </section>
   );
 }

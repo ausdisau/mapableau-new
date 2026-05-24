@@ -12,7 +12,7 @@ export default function LoginPage() {
     <div className="mx-auto max-w-md px-4 py-10">
       <CorePageHeader
         title="Sign in"
-        description="Access your MapAble Core dashboard, bookings and messages."
+        description="Choose email, Google, or Microsoft. Social sign-in does not set your MapAble role or provider verification."
       />
       <Suspense
         fallback={

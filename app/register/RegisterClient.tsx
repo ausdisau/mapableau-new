@@ -42,7 +42,7 @@ export default function RegisterClient({
       await signIn("credentials", {
         email,
         password,
-        callbackUrl: "/dashboard",
+        callbackUrl: "/auth/complete",
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -53,7 +53,7 @@ export default function RegisterClient({
   return (
     <div className="mx-auto mt-10 flex max-w-md flex-col gap-6">
       <OAuthSignInButtons
-        callbackUrl="/dashboard"
+        callbackUrl="/auth/complete"
         providers={oauthProviders}
       />
 
