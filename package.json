@@ -33,6 +33,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
   "dependencies": {
+    "@auth0/nextjs-auth0": "^4.21.0",
     "@prisma/client": "6.19.2",
     "@pusher/push-notifications-web": "^1.1.0",
     "@radix-ui/react-slot": "^1.2.4",

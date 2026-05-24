@@ -1,77 +1,29 @@
-"use client";
-
-import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { RegisterPrompt } from "@/components/auth/RegisterPrompt";
+import { SecurePortalNotice } from "@/components/auth/SecurePortalNotice";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
-      }
-
-      // Automatically sign in after registration
-      await signIn("credentials", {
-        email,
-        password,
-        callbackUrl: "/dashboard",
-      });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong");
-      }
-    }
-  };
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto mt-10 flex flex-col gap-4"
-    >
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      {error && <p className="text-red-500">{error}</p>}
-      <button type="submit" className="bg-blue-600 text-white py-2 rounded">
-        Register
-      </button>
-    </form>
+    <AuthShell>
+      <header className="mb-6 space-y-2 text-center">
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+          MapAble secure portal
+        </p>
+        <h1 id="auth-card-heading" className="text-3xl font-bold tracking-tight">
+          Get started
+        </h1>
+        <p className="text-muted-foreground">
+          Create your MapAble account through Australian Disability Ltd identity
+          services.
+        </p>
+      </header>
+
+      <SecurePortalNotice />
+
+      <AuthCard className="mt-6">
+        <RegisterPrompt />
+      </AuthCard>
+    </AuthShell>
   );
 }

@@ -25,7 +25,7 @@ model User {
   preferredContactMethod PreferredContactMethod @default(email)
   primaryRole            MapAbleUserRole    @default(participant)
   worker                 Worker?
-  passwordHash           String
+  passwordHash           String?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
@@ -91,6 +91,10 @@ model User {
   adCampaignsCreated        AdCampaign[]           @relation("AdCampaignCreator")
   adReviewEvents            AdReviewEvent[]        @relation("AdReviewReviewer")
   adUserActions             AdUserAction[]         @relation("AdUserActionUser")
+  authIdentityLinks         AuthIdentityLink[]
+  profileOnboardingStatus   ProfileOnboardingStatus?
+  authBridgeEvents          AuthBridgeEvent[]
+  wixMemberLinks            WixMemberLink[]
 }
 
 model Worker {
@@ -4974,4 +4978,78 @@ model AdUserAction {
   @@index([campaignId, actionType])
   @@index([sessionToken, userId])
   @@map("ad_user_actions")
+}
+
+// Auth0 / Wix identity bridge (Australian Disability Ltd login.ad.org.au)
+
+enum OnboardingStatus {
+  not_started
+  role_selection
+  in_progress
+  completed
+  pending_verification
+}
+
+model AuthIdentityLink {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      User     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  auth0UserId  String   @unique
+  provider     String
+  email        String?
+  linkedAt     DateTime @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([profileId])
+  @@index([email])
+  @@map("auth_identity_links")
+}
+
+model AuthBridgeEvent {
+  id         String   @id @default(cuid())
+  profileId  String?
+  profile    User?    @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  eventType  String
+  source     String
+  provider   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([profileId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("auth_bridge_events")
+}
+
+model ProfileOnboardingStatus {
+  id               String           @id @default(cuid())
+  profileId        String           @unique
+  profile          User             @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  selectedRole     String?
+  onboardingStatus OnboardingStatus @default(not_started)
+  completedSteps   Json             @default("[]")
+  nextStep         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([profileId])
+  @@map("profile_onboarding_status")
+}
+
+model WixMemberLink {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      User     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  auth0UserId  String
+  wixMemberId  String?
+  email        String?
+  status       String   @default("linked")
+  linkedAt     DateTime @default(now())
+  lastSyncedAt DateTime?
+
+  @@index([profileId])
+  @@index([wixMemberId])
+  @@index([auth0UserId])
+  @@map("wix_member_links")
 }
