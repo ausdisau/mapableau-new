@@ -1,38 +1,38 @@
-import Link from "next/link";
+import { notFound } from "next/navigation";
 
+import { JobApplyForm } from "@/components/employment/JobApplyForm";
+import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
-export default async function JobDetailPage({
+export default async function DashboardJobDetailPage({
   params,
 }: {
   params: Promise<{ jobId: string }>;
 }) {
+  await requireAuth();
   const { jobId } = await params;
-  const job = await prisma.job.findUnique({
-    where: { id: jobId },
-    include: { employerOrganisation: { select: { name: true } } },
+
+  const job = await prisma.job.findFirst({
+    where: { id: jobId, status: "published" },
   });
-  if (!job) return <p role="alert">Job not found.</p>;
+  if (!job) notFound();
 
   return (
-    <article className="space-y-4">
-      <h1 className="font-heading text-2xl font-bold">{job.title}</h1>
-      <p className="text-sm">{job.employerOrganisation.name}</p>
-      <p>{job.description}</p>
-      {job.adjustmentOpennessStatement ? (
-        <section className="rounded-lg border p-4">
-          <h2 className="font-semibold">Adjustments</h2>
-          <p>{job.adjustmentOpennessStatement}</p>
-        </section>
-      ) : null}
-      {job.status === "published" ? (
-        <Link
-          href={`/dashboard/jobs/${job.id}/apply`}
-          className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-primary-foreground"
-        >
-          Apply
-        </Link>
-      ) : null}
-    </article>
+    <div className="mx-auto max-w-2xl space-y-8">
+      <header className="space-y-2">
+        <h1 className="font-heading text-3xl font-bold">{job.title}</h1>
+        <p className="text-muted-foreground">
+          {job.employmentType.replace(/_/g, " ")}
+          {job.location ? ` · ${job.location}` : ""}
+        </p>
+        {job.adjustmentOpennessStatement ? (
+          <p className="text-sm">{job.adjustmentOpennessStatement}</p>
+        ) : null}
+      </header>
+      <div className="prose prose-sm max-w-none dark:prose-invert">
+        <p>{job.description}</p>
+      </div>
+      <JobApplyForm jobId={job.id} jobTitle={job.title} />
+    </div>
   );
 }

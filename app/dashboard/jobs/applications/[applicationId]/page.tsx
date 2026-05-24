@@ -1,37 +1,36 @@
-import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
-import { requireAuth } from "@/lib/auth/guards";
-import { sanitizeApplicationForViewer } from "@/lib/jobs/job-service";
-import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
 
-export default async function ApplicationDetailPage({
+import { EmploymentSupportBundlePanel } from "@/components/employment/EmploymentSupportBundlePanel";
+import { PlainLanguageStatusBadge } from "@/components/modules/PlainLanguageStatusBadge";
+import { requireAuth } from "@/lib/auth/guards";
+import { prisma } from "@/lib/prisma";
+import { JOB_APPLICATION_STATUS_LABELS } from "@/types/employment";
+
+export default async function JobApplicationDetailPage({
   params,
 }: {
   params: Promise<{ applicationId: string }>;
 }) {
   const user = await requireAuth();
   const { applicationId } = await params;
+
   const app = await prisma.jobApplication.findFirst({
     where: { id: applicationId, participantId: user.id },
     include: { job: true },
   });
-  if (!app) return <p role="alert">Application not found.</p>;
-
-  const view = sanitizeApplicationForViewer(app, {
-    isParticipant: true,
-    isEmployerWithConsent: false,
-    isAdmin: false,
-  });
+  if (!app) notFound();
 
   return (
-    <div className="space-y-4">
-      <h1 className="font-heading text-2xl font-bold">{app.job.title}</h1>
-      <StatusTextBadge status={app.status} />
-      <p>{view.applicantSummary}</p>
-      {view.reasonableAdjustmentRequest ? (
-        <p className="rounded-lg border p-3 text-sm">
-          {view.reasonableAdjustmentRequest}
-        </p>
-      ) : null}
+    <div className="mx-auto max-w-2xl space-y-8">
+      <header className="space-y-2">
+        <h1 className="font-heading text-2xl font-bold">{app.job.title}</h1>
+        <PlainLanguageStatusBadge
+          label={JOB_APPLICATION_STATUS_LABELS[app.status] ?? app.status}
+        />
+      </header>
+      {(app.transportSupportNeeded || app.careSupportNeeded) && (
+        <EmploymentSupportBundlePanel applicationId={app.id} />
+      )}
     </div>
   );
 }

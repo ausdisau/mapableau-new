@@ -1,6 +1,6 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { submitCareRequest } from "@/lib/care/care-request-service";
+import { submitCareRequestWithBooking } from "@/lib/modules/care-facade";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
@@ -18,6 +18,6 @@ export async function POST(
     return jsonError("Not found", 404);
   }
 
-  const request = await submitCareRequest(careRequestId, user.id);
+  const request = await submitCareRequestWithBooking(careRequestId, user.id);
   return jsonOk({ request });
 }

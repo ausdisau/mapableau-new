@@ -54,6 +54,21 @@ export default async function DashboardPage() {
           href="/dashboard/bookings"
         />
         <DashboardCard
+          title="Care"
+          description="Request in-home and community support"
+          href="/dashboard/care"
+        />
+        <DashboardCard
+          title="Transport"
+          description="Book accessible transport"
+          href="/dashboard/transport"
+        />
+        <DashboardCard
+          title="Jobs"
+          description="Find inclusive employment"
+          href="/dashboard/jobs"
+        />
+        <DashboardCard
           title="Notifications"
           description={
             unreadNotifications

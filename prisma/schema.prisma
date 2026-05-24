@@ -72,6 +72,7 @@ model User {
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
   jobsCreated               Job[]              @relation("JobCreatedBy")
   jobApplications           JobApplication[]   @relation("JobApplicationParticipant")
+  jobBookmarks              JobBookmark[]      @relation("JobBookmarkParticipant")
   calendarEvents            CalendarEvent[]    @relation("CalendarEventParticipant")
   calendarEventsCreated     CalendarEvent[]    @relation("CalendarEventCreatedBy")
   matchRunsRequested        MatchRun[]         @relation("MatchRunRequestedBy")
@@ -1255,6 +1256,7 @@ enum OrchestrationEventType {
   care_transport_link_created
   interview_transport_draft_created
   invoice_from_care_shift
+  invoice_from_transport_booking
   care_request_submitted
 }
 
@@ -1299,9 +1301,23 @@ model CareRequest {
   shifts                  CareShift[]
   calendarEvents          CalendarEvent[]
   orchestrationEvents     OrchestrationEvent[]
+  statusHistory           CareRequestStatusHistory[]
 
   @@index([participantId, status])
   @@index([assignedOrganisationId])
+}
+
+model CareRequestStatusHistory {
+  id            String   @id @default(cuid())
+  careRequestId String
+  careRequest   CareRequest @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
+  fromStatus    String?
+  toStatus      String
+  actorUserId   String?
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@index([careRequestId, createdAt])
 }
 
 model CareShift {
@@ -1444,9 +1460,48 @@ model TransportBooking {
   updatedAt             DateTime               @updatedAt
 
   calendarEvents        CalendarEvent[]
+  statusHistory         TransportStatusHistory[]
+  location              TransportBookingLocation?
+  trackingPings         TransportTrackingPing[]
 
   @@index([participantId, status])
   @@index([operatorOrganisationId])
+}
+
+model TransportBookingLocation {
+  id                 String           @id @default(cuid())
+  transportBookingId String           @unique
+  transportBooking   TransportBooking @relation(fields: [transportBookingId], references: [id], onDelete: Cascade)
+  pickupLat          Float?
+  pickupLng          Float?
+  dropoffLat         Float?
+  dropoffLng         Float?
+  updatedAt          DateTime         @updatedAt
+}
+
+model TransportStatusHistory {
+  id                 String           @id @default(cuid())
+  transportBookingId String
+  transportBooking   TransportBooking @relation(fields: [transportBookingId], references: [id], onDelete: Cascade)
+  fromStatus         String?
+  toStatus           String
+  actorUserId        String?
+  note               String?
+  createdAt          DateTime         @default(now())
+
+  @@index([transportBookingId, createdAt])
+}
+
+model TransportTrackingPing {
+  id                 String           @id @default(cuid())
+  transportBookingId String
+  transportBooking   TransportBooking @relation(fields: [transportBookingId], references: [id], onDelete: Cascade)
+  lat                Float
+  lng                Float
+  recordedAt         DateTime         @default(now())
+  driverProfileId    String?
+
+  @@index([transportBookingId, recordedAt])
 }
 
 model Vehicle {
@@ -1521,9 +1576,22 @@ model Job {
 
   applications              JobApplication[]
   calendarEvents            CalendarEvent[]
+  bookmarks                 JobBookmark[]
 
   @@index([status])
   @@index([employerOrganisationId])
+}
+
+model JobBookmark {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation("JobBookmarkParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  jobId         String
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  @@unique([participantId, jobId])
+  @@index([participantId])
 }
 
 model JobApplication {

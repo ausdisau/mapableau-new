@@ -1,4 +1,5 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { syncBookingStatusFromCareShift } from "@/lib/bookings/status-sync";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareShift } from "@/lib/calendar/calendar-service";
 import { prisma } from "@/lib/prisma";
@@ -59,6 +60,7 @@ export async function careShiftCheckIn(shiftId: string, actorUserId: string) {
     entityId: shiftId,
     participantId: shift.participantId,
   });
+  await syncBookingStatusFromCareShift(shiftId);
   return shift;
 }
 
@@ -77,6 +79,7 @@ export async function careShiftCheckOut(shiftId: string, actorUserId: string) {
     entityId: shiftId,
     participantId: shift.participantId,
   });
+  await syncBookingStatusFromCareShift(shiftId);
   return shift;
 }
 
@@ -108,5 +111,6 @@ export async function approveCareShift(shiftId: string, participantId: string) {
     });
   }
 
+  await syncBookingStatusFromCareShift(shiftId);
   return shift;
 }

@@ -3,6 +3,7 @@ import type { JobApplicationStatus } from "@prisma/client";
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { updateApplicationStatus } from "@/lib/jobs/job-service";
+import { createInterviewSupportDraft } from "@/lib/orchestration/jobs-support-orchestrator";
 
 export async function POST(
   req: Request,
@@ -18,5 +19,10 @@ export async function POST(
     body.status as JobApplicationStatus,
     user.id
   );
+
+  if (body.status === "interview_requested") {
+    await createInterviewSupportDraft(applicationId, user.id);
+  }
+
   return jsonOk({ application });
 }

@@ -1,5 +1,7 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { syncBookingStatusFromTransport } from "@/lib/bookings/status-sync";
 import { syncCalendarForTransport } from "@/lib/calendar/calendar-service";
+import { recordTransportStatusHistory } from "@/lib/transport/transport-status-history";
 import { checkConsent } from "@/lib/consent/consent-service";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
@@ -76,12 +78,22 @@ export async function assignTransportOperator(
 
 export async function acceptTransportBooking(
   id: string,
-  _actorUserId: string
+  actorUserId: string,
 ) {
+  const from = await prisma.transportBooking.findUniqueOrThrow({
+    where: { id },
+  });
   const tb = await prisma.transportBooking.update({
     where: { id },
     data: { status: "operator_accepted" },
   });
+  await recordTransportStatusHistory({
+    transportBookingId: id,
+    fromStatus: from.status,
+    toStatus: tb.status,
+    actorUserId,
+  });
+  await syncBookingStatusFromTransport(id);
   await notifyUser(
     tb.participantId,
     "booking",

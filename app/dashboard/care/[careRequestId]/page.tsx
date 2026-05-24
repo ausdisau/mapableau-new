@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LinkedTransportBanner } from "@/components/care/LinkedTransportBanner";
 import { CareRequestActions } from "@/components/phase3/CareRequestActions";
 import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
 import { requireAuth } from "@/lib/auth/guards";
@@ -35,12 +36,15 @@ export default async function CareRequestDetailPage({
         linkedTransportRequired={request.linkedTransportRequired}
       />
       {request.linkedTransportRequired ? (
-        <p className="rounded-lg border p-3 text-sm">
-          Linked transport requested.{" "}
-          <Link href="/dashboard/transport" className="text-primary underline">
-            View transport bookings
-          </Link>
-        </p>
+        <LinkedTransportBanner careRequestId={request.id} />
+      ) : null}
+      {request.bookingId ? (
+        <Link
+          href={`/dashboard/bookings/${request.bookingId}`}
+          className="text-sm font-semibold text-primary hover:underline"
+        >
+          View booking timeline
+        </Link>
       ) : null}
       <Link href="/dashboard/care/shifts" className="text-primary underline">
         View care shifts
