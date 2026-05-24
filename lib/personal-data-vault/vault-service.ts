@@ -44,6 +44,15 @@ export async function completeVaultRequest(requestId: string, actorUserId: strin
   return request;
 }
 
+export async function requestSubjectAccessExport(userId: string) {
+  const request = await requestDataVaultExport(userId, "export");
+  return {
+    request,
+    message:
+      "Your data export request is queued. Identity verification and step-up may be required before download.",
+  };
+}
+
 export async function listVaultRequestsForUser(userId: string) {
   return prisma.personalDataVaultRequest.findMany({
     where: { userId },

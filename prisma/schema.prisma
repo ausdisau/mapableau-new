@@ -4763,3 +4763,693 @@ model NdiaProviderClaimAudit {
 
   @@index([claimId, createdAt])
 }
+enum DataClassification {
+  public
+  internal
+  participant_controlled
+  sensitive_disability
+  sensitive_health
+  ndis_plan_data
+  financial
+  safeguarding
+  clinical
+  credential_document
+}
+
+enum DataDeletionRequestStatus {
+  pending
+  under_review
+  approved
+  rejected
+  completed
+  blocked_legal_hold
+}
+
+enum PrivacyIncidentType {
+  unauthorised_access
+  misdirected_message
+  document_exposure
+  lost_device
+  api_leak
+  inappropriate_staff_access
+}
+
+enum PrivacyIncidentStatus {
+  open
+  investigating
+  contained
+  closed
+}
+
+enum NdisAdapterType {
+  mock
+  aggregator
+  direct_ndia
+}
+
+enum NdisConsentScope {
+  plan_dates
+  plan_goals
+  budget_summary
+  funded_supports
+  provider_relationships
+  service_booking_refs
+  claim_status
+  payment_status
+}
+
+enum NdisClaimQueueStatus {
+  draft
+  ready_for_review
+  participant_approved
+  queued_for_submission
+  submitted
+  accepted
+  rejected
+  paid
+  reconciled
+  manual_review
+  cancelled
+}
+
+enum OfflineConflictType {
+  booking_status_changed
+  trip_already_completed
+  service_log_already_submitted
+  invoice_already_generated
+  permission_changed
+}
+
+enum SsoProvider {
+  google
+  microsoft
+}
+
+enum SsoAccessRequestStatus {
+  pending
+  approved
+  rejected
+}
+
+model SensitiveDataAccessLog {
+  id             String             @id @default(cuid())
+  actorUserId    String
+  fieldKey       String
+  classification DataClassification
+  entityType     String
+  entityId       String
+  participantId  String?
+  granted        Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([participantId])
+}
+
+model DataDeletionRequest {
+  id          String                    @id @default(cuid())
+  userId      String
+  status      DataDeletionRequestStatus @default(pending)
+  reason      String?
+  reviewedBy  String?
+  completedAt DateTime?
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+
+  events DataDeletionEvent[]
+}
+
+model DataDeletionEvent {
+  id        String   @id @default(cuid())
+  requestId String
+  request   DataDeletionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  action    String
+  actorId   String?
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model LegalHoldRecord {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  reason     String
+  active     Boolean  @default(true)
+  createdBy  String
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+model SubjectAccessExport {
+  id          String   @id @default(cuid())
+  requestId   String
+  status      String   @default("preparing")
+  expiresAt   DateTime?
+  downloadKey String?
+  createdAt   DateTime @default(now())
+}
+
+model PrivacyRequestEvent {
+  id        String   @id @default(cuid())
+  requestId String
+  action    String
+  actorId   String?
+  createdAt DateTime @default(now())
+}
+
+model PrivacyIncident {
+  id          String                @id @default(cuid())
+  type        PrivacyIncidentType
+  status      PrivacyIncidentStatus @default(open)
+  summary     String
+  reportedBy  String
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  events   PrivacyIncidentEvent[]
+  subjects AffectedDataSubject[]
+  actions  PrivacyIncidentAction[]
+}
+
+model PrivacyIncidentEvent {
+  id         String          @id @default(cuid())
+  incidentId String
+  incident   PrivacyIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  action     String
+  actorId    String?
+  notes      String?
+  createdAt  DateTime        @default(now())
+}
+
+model AffectedDataSubject {
+  id            String          @id @default(cuid())
+  incidentId    String
+  incident      PrivacyIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  userId        String?
+  participantId String?
+}
+
+model PrivacyIncidentAction {
+  id         String          @id @default(cuid())
+  incidentId String
+  incident   PrivacyIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  action     String
+  owner      String?
+  dueAt      DateTime?
+  completedAt DateTime?
+}
+
+model ThreatModelItem {
+  id          String   @id @default(cuid())
+  category    String
+  threat      String
+  impact      String
+  likelihood  String
+  mitigation  String?
+  status      String   @default("open")
+  owner       String?
+  createdAt   DateTime @default(now())
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  eventType String
+  userId    String?
+  ipAddress String?
+  route     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([eventType, createdAt])
+}
+
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  clientKey String
+  route     String
+  createdAt DateTime @default(now())
+}
+
+model BlockedClient {
+  id        String   @id @default(cuid())
+  clientKey String   @unique
+  reason    String?
+  blockedAt DateTime @default(now())
+  expiresAt DateTime?
+}
+
+model PasskeyCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  credentialId String    @unique
+  publicKey    String
+  counter      Int       @default(0)
+  deviceName   String?
+  backedUp     Boolean   @default(false)
+  transports   String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+  revokedAt    DateTime?
+
+  @@index([userId])
+}
+
+model PasskeyChallenge {
+  id        String   @id @default(cuid())
+  userId    String?
+  challenge String
+  type      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model PasskeyEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model StepUpSession {
+  id          String   @id @default(cuid())
+  userId      String
+  completedAt DateTime
+  expiresAt   DateTime
+  method      String
+
+  @@index([userId, expiresAt])
+}
+
+model AuthIdentityLink {
+  id             String      @id @default(cuid())
+  userId         String
+  provider       SsoProvider
+  providerUserId String
+  email          String?
+  createdAt      DateTime    @default(now())
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+model AuthProviderEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  eventType String
+  provider  SsoProvider?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model OrganisationSsoConfig {
+  id              String   @id @default(cuid())
+  organisationId  String   @unique
+  provider        String   @default("microsoft_entra")
+  tenantId        String?
+  clientId        String?
+  defaultRole     String   @default("provider_staff")
+  enforceMfa      Boolean  @default(false)
+  active          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OrganisationVerifiedDomain {
+  id             String   @id @default(cuid())
+  organisationId String
+  domain         String
+  status         String   @default("pending")
+  verifiedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  @@unique([organisationId, domain])
+}
+
+model SsoRoleMappingRule {
+  id             String @id @default(cuid())
+  organisationId String
+  externalGroup  String?
+  mapableRole    String
+  requiresApproval Boolean @default(true)
+}
+
+model SsoLoginEvent {
+  id             String   @id @default(cuid())
+  userId         String?
+  organisationId String?
+  provider       String
+  success        Boolean
+  createdAt      DateTime @default(now())
+}
+
+model SsoAccessRequest {
+  id             String                 @id @default(cuid())
+  userId         String
+  organisationId String
+  requestedRole  String
+  status         SsoAccessRequestStatus @default(pending)
+  reviewedBy     String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+}
+
+model SsoAccountRecoveryRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  email     String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
+
+model OfflineSyncEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  actionType  String
+  payloadHash String
+  status      String   @default("queued")
+  error       String?
+  createdAt   DateTime @default(now())
+  syncedAt    DateTime?
+
+  @@index([userId, status])
+}
+
+model OfflineConflictRecord {
+  id           String              @id @default(cuid())
+  userId       String
+  conflictType OfflineConflictType
+  localPayload Json?
+  serverState  Json?
+  status       String              @default("open")
+  resolvedBy   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime            @default(now())
+}
+
+model MobilePushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  categories Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model NdisIntegrationSetting {
+  id          String          @id @default(cuid())
+  adapterType NdisAdapterType @default(mock)
+  active      Boolean         @default(true)
+  configJson  Json?
+  updatedAt   DateTime        @updatedAt
+}
+
+model NdisSyncEvent {
+  id          String   @id @default(cuid())
+  adapterType NdisAdapterType
+  operation   String
+  payloadHash String?
+  status      String
+  error       String?
+  createdAt   DateTime @default(now())
+}
+
+model NdisAdapterHealthCheck {
+  id          String          @id @default(cuid())
+  adapterType NdisAdapterType
+  healthy     Boolean
+  message     String?
+  checkedAt   DateTime        @default(now())
+}
+
+model NdisExternalReference {
+  id           String @id @default(cuid())
+  internalType String
+  internalId   String
+  externalId   String
+  adapterType  NdisAdapterType
+
+  @@unique([internalType, internalId, adapterType])
+}
+
+model NdisParticipantLink {
+  id            String @id @default(cuid())
+  participantId String @unique
+  externalRef   String?
+  status        String @default("pending")
+  createdAt     DateTime @default(now())
+}
+
+model NdisConsentGrant {
+  id            String           @id @default(cuid())
+  participantId String
+  grantedToId   String
+  scope         NdisConsentScope
+  expiresAt     DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@index([participantId, scope])
+}
+
+model NdisDataAccessLog {
+  id            String           @id @default(cuid())
+  actorUserId   String
+  participantId String
+  scope         NdisConsentScope
+  granted       Boolean
+  createdAt     DateTime         @default(now())
+}
+
+model NdisPlanSnapshot {
+  id                 String          @id @default(cuid())
+  participantId      String
+  source             String
+  planStartDate      DateTime?
+  planEndDate        DateTime?
+  goalsJson          Json?
+  budgetsJson        Json?
+  fundedSupportsJson Json?
+  syncedAt           DateTime        @default(now())
+  reviewedByUserAt   DateTime?
+  createdAt          DateTime        @default(now())
+}
+
+model NdisBudgetSnapshot {
+  id            String   @id @default(cuid())
+  participantId String
+  planSnapshotId String?
+  categoriesJson Json?
+  syncedAt      DateTime @default(now())
+}
+
+model NdisServiceBooking {
+  id            String @id @default(cuid())
+  participantId String
+  providerId    String?
+  status        String @default("draft")
+  externalRef   String?
+  payloadJson   Json?
+  createdAt     DateTime @default(now())
+}
+
+model NdisClaimQueueItem {
+  id              String               @id @default(cuid())
+  participantId   String
+  organisationId  String
+  status          NdisClaimQueueStatus @default(draft)
+  idempotencyKey  String?              @unique
+  invoiceRef      String?
+  serviceLogRef   String?
+  externalRef     String?
+  submittedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  events NdisClaimEvent[]
+}
+
+model NdisClaimEvent {
+  id        String             @id @default(cuid())
+  claimId   String
+  claim     NdisClaimQueueItem @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  status    NdisClaimQueueStatus
+  actorId   String?
+  notes     String?
+  createdAt DateTime           @default(now())
+}
+
+model EmergencyProfile {
+  id            String   @id @default(cuid())
+  participantId String   @unique
+  summaryJson   Json?
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  contacts EmergencyContact[]
+  plans    EvacuationPlan[]
+  checkins EmergencyCheckIn[]
+}
+
+model EmergencyContact {
+  id        String           @id @default(cuid())
+  profileId String
+  profile   EmergencyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  relation  String?
+  priority  Int              @default(1)
+}
+
+model EvacuationPlan {
+  id        String           @id @default(cuid())
+  profileId String
+  profile   EmergencyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  title     String
+  stepsJson Json?
+  updatedAt DateTime         @updatedAt
+}
+
+model EmergencyCheckIn {
+  id        String           @id @default(cuid())
+  profileId String
+  profile   EmergencyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  status    String
+  notes     String?
+  createdAt DateTime         @default(now())
+}
+
+model EmergencyAlert {
+  id            String   @id @default(cuid())
+  participantId String
+  alertType     String
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+}
+
+model IndependenceGoal {
+  id            String   @id @default(cuid())
+  participantId String
+  title         String
+  description   String?
+  status        String   @default("active")
+  sharedWith    Json?
+  createdAt     DateTime @default(now())
+}
+
+model DailyRoutine {
+  id            String   @id @default(cuid())
+  participantId String
+  title         String
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  steps RoutineStep[]
+}
+
+model RoutineStep {
+  id        String       @id @default(cuid())
+  routineId String
+  routine   DailyRoutine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  order     Int
+  title     String
+  prompt    String?
+}
+
+model ProgressEntry {
+  id            String   @id @default(cuid())
+  participantId String
+  goalId        String?
+  note          String?
+  createdAt     DateTime @default(now())
+}
+
+model CloudTenant {
+  id             String   @id @default(cuid())
+  organisationId String   @unique
+  name           String
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+
+  users    TenantUser[]
+  settings TenantSetting[]
+}
+
+model TenantUser {
+  id       String      @id @default(cuid())
+  tenantId String
+  tenant   CloudTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId   String
+  role     String      @default("member")
+
+  @@unique([tenantId, userId])
+}
+
+model TenantSetting {
+  id       String      @id @default(cuid())
+  tenantId String
+  tenant   CloudTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  key      String
+  value    String
+
+  @@unique([tenantId, key])
+}
+
+model ToolkitWorkspace {
+  id             String @id @default(cuid())
+  organisationId String @unique
+  modulesJson    Json?
+}
+
+model HousingListing {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  suburb      String?
+  state       String?
+  verified    Boolean  @default(false)
+  featuresJson Json?
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model HousingEnquiry {
+  id            String   @id @default(cuid())
+  listingId     String?
+  participantId String
+  message       String?
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+}
+
+model QaChecklist {
+  id        String   @id @default(cuid())
+  title     String
+  area      String
+  createdAt DateTime @default(now())
+
+  items QaChecklistItem[]
+  runs  QaChecklistRun[]
+}
+
+model QaChecklistItem {
+  id          String      @id @default(cuid())
+  checklistId String
+  checklist   QaChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  label       String
+  order       Int
+}
+
+model QaChecklistRun {
+  id          String      @id @default(cuid())
+  checklistId String
+  checklist   QaChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  status      String      @default("in_progress")
+  completedJson Json?
+  createdBy   String?
+  createdAt   DateTime    @default(now())
+}
