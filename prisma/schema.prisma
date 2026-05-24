@@ -87,6 +87,12 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+
+  academyEnrolments         AcademyEnrolment[]     @relation("AcademyEnrolmentUser")
+  academyLessonCompletions  AcademyLessonCompletion[]
+  academyQuizAttempts       AcademyQuizAttempt[]
+  academyCertificates       AcademyCertificate[]   @relation("AcademyCertificateUser")
+  academyTrainingRecords    AcademyTrainingRecord[]
 }
 
 model Worker {
@@ -527,6 +533,8 @@ model Organisation {
   invoices    Invoice[]
   billingInvoices BillingInvoice[] @relation("BillingInvoiceProvider")
   ndiaProviderClaims NdiaProviderClaim[]
+
+  workerTrainingRequirements WorkerTrainingRequirement[]
 
   careRequests           CareRequest[]
   careShifts             CareShift[]
@@ -4762,4 +4770,171 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- MapAble Academy / DisAcademy ---
+
+enum AcademyCourseStatus {
+  draft
+  published
+  archived
+}
+
+enum AcademyEnrolmentStatus {
+  enrolled
+  in_progress
+  completed
+  withdrawn
+}
+
+model AcademyCourse {
+  id              String              @id @default(cuid())
+  slug            String              @unique
+  title           String
+  summary         String?
+  description     String?
+  category        String              @default("ndis_compliance")
+  status          AcademyCourseStatus @default(draft)
+  estimatedMinutes Int                @default(60)
+  publishedAt     DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  lessons                 AcademyLesson[]
+  quiz                    AcademyQuiz?
+  enrolments              AcademyEnrolment[]
+  trainingRequirements    WorkerTrainingRequirement[]
+  trainingRecords         AcademyTrainingRecord[]
+
+  @@index([status, category])
+}
+
+model AcademyLesson {
+  id              String   @id @default(cuid())
+  courseId        String
+  course          AcademyCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title           String
+  contentMarkdown String
+  videoUrl        String?
+  captionsRequired Boolean @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  completions     AcademyLessonCompletion[]
+
+  @@index([courseId, sortOrder])
+}
+
+model AcademyQuiz {
+  id           String   @id @default(cuid())
+  courseId     String   @unique
+  course       AcademyCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title        String
+  passMarkPercent Int   @default(80)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  questions    AcademyQuizQuestion[]
+  attempts     AcademyQuizAttempt[]
+}
+
+model AcademyQuizQuestion {
+  id            String   @id @default(cuid())
+  quizId        String
+  quiz          AcademyQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionText  String
+  options       String[]
+  correctIndex  Int
+  sortOrder     Int      @default(0)
+
+  @@index([quizId, sortOrder])
+}
+
+model AcademyEnrolment {
+  id                 String                 @id @default(cuid())
+  courseId           String
+  course             AcademyCourse          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User                   @relation("AcademyEnrolmentUser", fields: [userId], references: [id], onDelete: Cascade)
+  status             AcademyEnrolmentStatus @default(enrolled)
+  progressPercent    Int                    @default(0)
+  extendedTime       Boolean                @default(false)
+  enrolledAt         DateTime               @default(now())
+  completedAt        DateTime?
+  updatedAt          DateTime               @updatedAt
+
+  lessonCompletions  AcademyLessonCompletion[]
+  quizAttempts       AcademyQuizAttempt[]
+  certificate        AcademyCertificate?
+
+  @@unique([courseId, userId])
+  @@index([userId, status])
+}
+
+model AcademyLessonCompletion {
+  id           String   @id @default(cuid())
+  enrolmentId  String
+  enrolment    AcademyEnrolment @relation(fields: [enrolmentId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       AcademyLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completedAt  DateTime @default(now())
+
+  @@unique([enrolmentId, lessonId])
+}
+
+model AcademyQuizAttempt {
+  id           String   @id @default(cuid())
+  enrolmentId  String
+  enrolment    AcademyEnrolment @relation(fields: [enrolmentId], references: [id], onDelete: Cascade)
+  quizId       String
+  quiz         AcademyQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scorePercent Int
+  passed       Boolean
+  answersJson  Json
+  submittedAt  DateTime @default(now())
+
+  @@index([enrolmentId])
+}
+
+model AcademyCertificate {
+  id               String   @id @default(cuid())
+  enrolmentId      String   @unique
+  enrolment        AcademyEnrolment @relation(fields: [enrolmentId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User     @relation("AcademyCertificateUser", fields: [userId], references: [id], onDelete: Cascade)
+  courseId         String
+  certificateNumber String  @unique
+  issuedAt         DateTime @default(now())
+  pdfUrl           String?
+}
+
+model AcademyTrainingRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String
+  course      AcademyCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+  scorePercent Int?
+  metadata    Json?
+
+  @@index([userId, courseId])
+}
+
+model WorkerTrainingRequirement {
+  id             String          @id @default(cuid())
+  organisationId String
+  organisation   Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  courseId       String
+  course         AcademyCourse   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  requiredRole   MapAbleUserRole
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+
+  @@unique([organisationId, courseId, requiredRole])
 }
