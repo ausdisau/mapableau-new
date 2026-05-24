@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import type { AutocompleteSuggestion } from "@/types/search";
 
-import { prisma } from "@/lib/prisma";
 
 /** Only directory profiles explicitly marked visible; verified preferred in sort. */
 export async function searchProviders(

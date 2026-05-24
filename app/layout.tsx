@@ -1,7 +1,12 @@
 import "@/app/index.css";
 import "leaflet/dist/leaflet.css";
 
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Atkinson_Hyperlegible,
+  Fredoka,
+  Outfit,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 
 import { Providers } from "@/components/providers";
 
@@ -17,13 +22,29 @@ const outfit = Outfit({
   display: "swap",
 });
 
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  variable: "--font-mapable-display",
+  display: "swap",
+});
+
+const atkinson = Atkinson_Hyperlegible({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-mapable-soft",
+  display: "swap",
+});
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`}>
+    <html
+      lang="en"
+      className={`${plusJakarta.variable} ${outfit.variable} ${fredoka.variable} ${atkinson.variable}`}
+    >
       <body className={plusJakarta.className}>
         <Providers>{children}</Providers>
       </body>

@@ -1,10 +1,19 @@
+import type { Metadata } from "next";
+
 import { MapAbleMarketingFooter } from "@/components/brand/MapAbleMarketingFooter";
 import { MapAbleMarketingHeader } from "@/components/brand/MapAbleMarketingHeader";
 
-export const metadata = {
-  title: "Provider Finder | MapAble",
+
+export const metadata: Metadata = {
+  title: "MapAble Provider Finder | Find accessible disability support",
   description:
-    "Find disability support, transport, therapy and employment providers with access needs and funding filters.",
+    "Search disability support providers by support type, location, funding options and access needs. Compare care, transport, therapy, employment and home help in one place.",
+  openGraph: {
+    title: "MapAble Provider Finder | Find accessible disability support",
+    description:
+      "Search disability support providers by support type, location, funding options and access needs.",
+    type: "website",
+  },
 };
 
 export default function ProviderFinderLayout({
@@ -15,7 +24,9 @@ export default function ProviderFinderLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <MapAbleMarketingHeader />
-      <div className="flex-1">{children}</div>
+      <main id="main-content" className="flex-1">
+        {children}
+      </main>
       <MapAbleMarketingFooter />
     </div>
   );

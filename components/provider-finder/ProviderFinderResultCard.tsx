@@ -1,10 +1,12 @@
 "use client";
 
-import { ArrowRight, Bookmark, MessageCircle, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, Bookmark, Star } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
 import type { Provider } from "@/app/provider-finder/providers";
+import { AskMapAbleTrigger } from "@/components/marketing/mapable/AskMapAbleTrigger";
+import { VerifiedProviderBadge } from "@/components/marketing/mapable/trust/VerifiedProviderBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -52,8 +54,6 @@ export function ProviderFinderResultCard({
   const rating = Math.max(0, Math.min(5, provider.rating));
   const showDistance =
     provider.distanceKm > 0 && provider.suburb !== "Remote";
-  const featured = provider.rating >= 4.7 && provider.reviewCount >= 50;
-
   return (
     <article
       className={cn(
@@ -62,20 +62,7 @@ export function ProviderFinderResultCard({
       )}
     >
       <div className="flex flex-wrap items-start gap-2">
-        {provider.registered ? (
-          <Badge
-            variant="outline"
-            className="border-primary/20 bg-primary/5 text-primary"
-          >
-            <ShieldCheck className="mr-1 h-3.5 w-3.5" aria-hidden />
-            Verified profile
-          </Badge>
-        ) : null}
-        {featured ? (
-          <Badge variant="outline" className="border-secondary/30 bg-secondary/5 text-secondary">
-            Featured partner
-          </Badge>
-        ) : null}
+        {provider.registered ? <VerifiedProviderBadge /> : null}
         <div className="ml-auto flex items-center gap-1 text-sm">
           <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
           <span className="font-semibold">{rating.toFixed(1)}</span>
@@ -168,12 +155,11 @@ export function ProviderFinderResultCard({
           <Bookmark className="h-4 w-4" aria-hidden />
           {isCompared ? "Compared" : "Compare"}
         </Button>
-        <Button type="button" variant="outline" size="default" asChild>
-          <Link href={`/ask?provider=${encodeURIComponent(provider.slug)}`}>
-            <MessageCircle className="h-4 w-4" aria-hidden />
-            Ask MapAble
-          </Link>
-        </Button>
+        <AskMapAbleTrigger
+          variant="button"
+          context={`provider-finder:${provider.slug}`}
+          className="min-h-10"
+        />
       </div>
     </article>
   );

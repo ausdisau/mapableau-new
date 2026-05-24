@@ -69,12 +69,13 @@ export function ProviderFinderHero({
         </h1>
         <p
           className={cn(
-            "mt-3 max-w-2xl text-muted-foreground",
+            "mapable-soft mt-3 max-w-2xl text-slate-600",
             compact ? "text-sm" : "text-base sm:text-lg",
           )}
         >
-          Find care, transport, therapy and home support that matches your access
-          needs, location and funding.
+          Provider search with the missing context added back in. Search by need,
+          not jargon — compare care, transport, therapy and home support with access
+          and funding visible before you enquire.
         </p>
 
         <div className="mt-8">

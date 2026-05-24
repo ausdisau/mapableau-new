@@ -6,18 +6,22 @@
   --radius: 0.75rem;
   --badge-outline: hsl(215 20% 88%);
 
+  /* MapAble marketing palette */
+  --mapable-deep-blue: 197 100% 25%; /* #005B7F */
+  --mapable-navy: 222 58% 12%; /* #0C1833 */
+  --mapable-teal: 162 100% 33%; /* #00A979 */
+  --mapable-yellow: 45 94% 54%; /* #F8C51C */
+  --mapable-soft-bg: 192 50% 98%; /* #F6FBFC */
+
   /* Brand Colors: Blue & Green from Logo — https://mapable.com.au */
-  /* Primary Blue: Trust, Professionalism */
-  --primary: 215 100% 35%; /* #003F88 roughly */
+  --primary: var(--mapable-deep-blue);
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary Green: Growth, Action */
-  --secondary: 145 65% 45%; /* #28BD6B roughly */
+  --secondary: var(--mapable-teal);
   --secondary-foreground: 0 0% 100%;
 
-  /* Backgrounds */
-  --background: 210 30% 98%; /* Very light cool gray */
-  --foreground: 215 40% 15%; /* Dark blue-gray text */
+  --background: var(--mapable-soft-bg);
+  --foreground: var(--mapable-navy);
 
   /* Components */
   --card: 0 0% 100%;
@@ -84,5 +88,41 @@
   h5,
   h6 {
     @apply font-heading font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .mapable-display {
+    font-family: var(--font-mapable-display), ui-rounded, "Arial Rounded MT Bold",
+      "Trebuchet MS", system-ui, sans-serif;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .mapable-soft {
+    font-family: var(--font-mapable-soft), "Trebuchet MS", ui-rounded, system-ui,
+      sans-serif;
+  }
+
+  .mapable-wavy-letter {
+    display: inline-block;
+    transform: translateY(var(--wave-y, 0em)) rotate(var(--wave-r, 0deg));
+    transform-origin: 50% 80%;
+  }
+
+  .mapable-wavy-word {
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 0.34em;
+  }
+
+  .mapable-focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-[#005B7F] focus-visible:ring-offset-2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapable-wavy-letter {
+    transform: none;
   }
 }

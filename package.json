@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "dev:debug": "NODE_OPTIONS='--inspect' next dev",
+    "dev": "bash scripts/dev-server.sh",
+    "dev:stop": "bash scripts/dev-stop.sh",
+    "dev:next": "next dev --turbopack -H 0.0.0.0 -p 3000",
+    "dev:debug": "NODE_OPTIONS='--inspect' next dev -H 0.0.0.0 -p 3000",
     "build": "pnpm type-check && pnpm lint && next build",
     "start": "next start",
     "lint": "eslint .",

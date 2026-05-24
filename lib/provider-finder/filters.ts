@@ -56,9 +56,11 @@ export const ACCESS_NEEDS: AccessNeed[] = [
 ];
 
 export const FUNDING_OPTIONS = [
-  { id: "all", label: "All funding" },
+  { id: "all", label: "Any funding type" },
   { id: "ndis", label: "NDIS registered" },
-  { id: "private", label: "Private / self-funded" },
+  { id: "plan-managed", label: "Plan-managed" },
+  { id: "self-managed", label: "Self-managed" },
+  { id: "private", label: "Private pay" },
 ] as const;
 
 export const HERO_SUGGESTED_SEARCHES = [

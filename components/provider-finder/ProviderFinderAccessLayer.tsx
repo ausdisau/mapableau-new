@@ -28,10 +28,7 @@ export function ProviderFinderAccessLayer({
 
   return (
     <aside
-      className={cn(
-        "hidden xl:flex xl:w-72 xl:shrink-0 xl:flex-col",
-        className,
-      )}
+      className={cn("flex w-full shrink-0 flex-col", className)}
       aria-label="MapAble access layer"
     >
       <div className="relative flex flex-1 flex-col rounded-2xl border border-border/60 bg-gradient-to-b from-primary/5 via-card to-secondary/5 p-5 shadow-sm">
@@ -95,8 +92,8 @@ export function ProviderFinderAccessLayer({
             Access layer
           </p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            The map view shows nearby providers, transport options, travel buffers,
-            and venue access notes so you can plan before you book.
+            Map view can show nearby providers, accessible transport options, travel
+            buffers and venue access notes together.
           </p>
         </div>
       </div>
