@@ -52,6 +52,50 @@ pnpm dev
 
 Open [http://localhost:3000/core](http://localhost:3000/core) after the server shows **Ready**.
 
+## Neon Data API (REST)
+
+The **Data API** is a separate HTTP interface (PostgREST-compatible), not the same as Prisma’s `DATABASE_URL`.
+
+Example base URL:
+
+```text
+https://ep-old-wildflower-a72yuev6.apirest.ap-southeast-2.aws.neon.tech/neondb/rest/v1
+```
+
+| Use case | Connection |
+|----------|------------|
+| MapAble app, Prisma, migrations | `DATABASE_URL` / `DIRECT_URL` (PostgreSQL, from **Connect**) |
+| Browser / serverless REST queries | Data API URL + **JWT** in `Authorization: Bearer` |
+
+**1. Enable Data API** in [Neon Console](https://console.neon.tech) → your project → **Data API** (and optionally **Neon Auth**).
+
+**2. Add to `.env`:**
+
+```env
+NEON_DATA_API_URL="https://ep-<branch-id>.apirest.ap-southeast-2.aws.neon.tech/neondb/rest/v1"
+```
+
+**3. Test (needs a valid JWT from Neon Auth or your IdP):**
+
+```bash
+curl "https://ep-old-wildflower-a72yuev6.apirest.ap-southeast-2.aws.neon.tech/neondb/rest/v1/Provider?select=id,name&limit=5" \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Accept: application/json"
+```
+
+Without a token you get: `missing authentication credentials` — that confirms the endpoint is up.
+
+**4. Prisma on the same Neon project** — still use **Connect → PostgreSQL**, not the REST URL:
+
+```env
+DATABASE_URL="postgresql://...@ep-old-wildflower-a72yuev6-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require"
+DIRECT_URL="postgresql://...@ep-old-wildflower-a72yuev6.ap-southeast-2.aws.neon.tech/neondb?sslmode=require"
+```
+
+Copy user/password from the console; the host must match your branch (`ep-old-wildflower-a72yuev6` vs other projects like `ep-calm-dream-...`).
+
+Docs: [Neon Data API](https://neon.com/docs/data-api/get-started)
+
 ## Cursor + Neon MCP (optional)
 
 In Cursor, enable the **Neon** MCP server and complete authentication. Then you can list projects and connection details from the IDE without leaving the editor.
