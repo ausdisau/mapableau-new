@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { OrganisationVerificationPanel } from "@/components/admin/OrganisationVerificationPanel";
+import { AdminAbnCheckPanel } from "@/components/verification/AdminAbnCheckPanel";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { getLatestAbnCheckForOrganisation } from "@/lib/provider-verification/abn-check-service";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminOrganisationDetailPage({
@@ -13,6 +15,8 @@ export default async function AdminOrganisationDetailPage({
   const { id } = await params;
   const org = await prisma.organisation.findUnique({ where: { id } });
   if (!org) notFound();
+
+  const abnCheck = await getLatestAbnCheckForOrganisation(id);
 
   return (
     <div className="space-y-6">
@@ -36,7 +40,19 @@ export default async function AdminOrganisationDetailPage({
           <dt className="font-medium">NDIS registered (claimed)</dt>
           <dd>{org.ndisRegistrationClaimed ? "Yes" : "No"}</dd>
         </div>
+        <div>
+          <dt className="font-medium">ABN</dt>
+          <dd>{org.abn ?? "—"}</dd>
+        </div>
       </dl>
+      <AdminAbnCheckPanel
+        organisationId={org.id}
+        caseId={abnCheck?.caseId ?? null}
+        checkStatus={abnCheck?.checkStatus ?? null}
+        notesJson={
+          abnCheck?.notes ? JSON.stringify(abnCheck.notes) : null
+        }
+      />
       <OrganisationVerificationPanel
         organisationId={org.id}
         currentStatus={org.verificationStatus}

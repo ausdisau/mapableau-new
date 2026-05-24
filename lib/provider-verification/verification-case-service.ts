@@ -1,8 +1,14 @@
 import type { VerificationCaseStatus } from "@prisma/client";
 
+import { abrLookupConfig } from "@/lib/abn-lookup/config";
 import { createAttestation } from "@/lib/attestations/attestation-service";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase5Config } from "@/lib/config/phase5";
+import {
+  canAutoAdvanceCase,
+  runAbnCheckForCase,
+  seedDefaultChecks,
+} from "@/lib/provider-verification/abn-check-service";
 import { prisma } from "@/lib/prisma";
 
 
@@ -10,12 +16,37 @@ export async function createVerificationCase(organisationId: string, createdById
   if (!phase5Config.providerVerificationAdvancedEnabled) {
     throw new Error("VERIFICATION_DISABLED");
   }
-  return prisma.providerVerificationCase.create({
+  const verificationCase = await prisma.providerVerificationCase.create({
     data: { organisationId, createdById, status: "draft" },
   });
+  await seedDefaultChecks(verificationCase.id);
+  return verificationCase;
 }
 
 export async function submitVerificationCase(caseId: string, actorUserId: string) {
+  if (abrLookupConfig.autoRunOnSubmit) {
+    await runAbnCheckForCase(caseId, actorUserId);
+    const canSubmit = await canAutoAdvanceCase(caseId);
+    if (!canSubmit) {
+      await prisma.providerVerificationCase.update({
+        where: { id: caseId },
+        data: { status: "more_information_required" },
+      });
+      await createAuditEvent({
+        actorUserId,
+        action: "verification.submit_blocked",
+        entityType: "ProviderVerificationCase",
+        entityId: caseId,
+        metadata: { reason: "abn_check_not_passed" },
+      });
+      const blocked = await prisma.providerVerificationCase.findUnique({
+        where: { id: caseId },
+      });
+      if (!blocked) throw new Error("CASE_NOT_FOUND");
+      return blocked;
+    }
+  }
+
   const c = await prisma.providerVerificationCase.update({
     where: { id: caseId },
     data: { status: "submitted", submittedAt: new Date() },

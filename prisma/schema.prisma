@@ -87,6 +87,14 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+
+  emergencyProfile          EmergencyProfile?
+  emergencyContacts         EmergencyContact[]     @relation("EmergencyContactParticipant")
+  evacuationPlans           EvacuationPlan[]
+  emergencyCheckIns         EmergencyCheckIn[]
+  disasterAlertSubscriptions DisasterAlertSubscription[]
+  criticalAccessNotes       CriticalAccessNote[]
+  emergencyTransportRequests EmergencyTransportRequest[]
 }
 
 model Worker {
@@ -665,6 +673,7 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  emergencyTransportRequests EmergencyTransportRequest[]
 
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
@@ -1359,6 +1368,7 @@ model WorkerProfile {
   wwccStatus              WorkerCredentialStatus @default(not_provided)
   firstAidStatus          WorkerCredentialStatus @default(not_provided)
   insuranceStatus         WorkerCredentialStatus @default(not_provided)
+  contractorAbn           String?
   verificationStatus      WorkerCredentialStatus @default(pending_review)
   active                  Boolean                @default(true)
   createdAt               DateTime               @default(now())
@@ -4762,4 +4772,166 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- MapAble Emergency ---
+
+enum EvacuationPlanType {
+  home
+  work
+  other
+}
+
+enum EmergencyCheckInStatus {
+  safe
+  need_help
+}
+
+enum DisasterAlertSeverity {
+  info
+  watch
+  warning
+  emergency
+}
+
+enum EmergencyTransportRequestStatus {
+  draft
+  requested
+  completed
+  cancelled
+}
+
+model EmergencyProfile {
+  id                      String   @id @default(cuid())
+  participantId           String   @unique
+  participant             User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  mobilitySummary         String?
+  communicationNeeds      String?
+  supportNeedsSummary     String?
+  defaultPickupAddress    String?
+  nomineeCanManage        Boolean  @default(false)
+  sharedWithCoordinator   Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  contacts                EmergencyContact[]
+}
+
+model EmergencyContact {
+  id              String   @id @default(cuid())
+  participantId   String
+  participant     User     @relation("EmergencyContactParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  profileId       String?
+  profile         EmergencyProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  name            String
+  phone           String?
+  email           String?
+  relationship    String?
+  isPrimary       Boolean  @default(false)
+  notifyOnNeedHelp Boolean @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([participantId])
+}
+
+model EvacuationPlan {
+  id              String             @id @default(cuid())
+  participantId   String
+  participant     User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  planType        EvacuationPlanType @default(home)
+  title           String
+  meetingPoint    String?
+  notes           String?
+  active          Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  steps           EvacuationPlanStep[]
+
+  @@index([participantId])
+}
+
+model EvacuationPlanStep {
+  id              String         @id @default(cuid())
+  evacuationPlanId String
+  evacuationPlan  EvacuationPlan @relation(fields: [evacuationPlanId], references: [id], onDelete: Cascade)
+  sortOrder       Int            @default(0)
+  instruction     String
+  estimatedMinutes Int?
+
+  @@index([evacuationPlanId, sortOrder])
+}
+
+model CriticalAccessNote {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  category      String   @default("general")
+  title         String
+  content       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([participantId])
+}
+
+model EmergencyTransportRequest {
+  id                 String                        @id @default(cuid())
+  participantId      String
+  participant        User                          @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  status             EmergencyTransportRequestStatus @default(requested)
+  pickupAddress      String
+  dropoffAddress     String
+  urgencyNotes       String?
+  bookingId          String?
+  booking            Booking?                      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  transportBookingId String?
+  createdAt          DateTime                      @default(now())
+  updatedAt          DateTime                      @updatedAt
+
+  @@index([participantId, status])
+}
+
+model EmergencyCheckIn {
+  id              String                 @id @default(cuid())
+  participantId   String
+  participant     User                   @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  status          EmergencyCheckInStatus
+  message         String?
+  latitude        Float?
+  longitude       Float?
+  escalated       Boolean                @default(false)
+  createdAt       DateTime               @default(now())
+
+  @@index([participantId, createdAt])
+}
+
+model DisasterAlert {
+  id          String                @id @default(cuid())
+  regionCode  String
+  title       String
+  summary     String
+  severity    DisasterAlertSeverity @default(info)
+  source      String                @default("mapable_admin")
+  active      Boolean               @default(true)
+  startsAt    DateTime              @default(now())
+  endsAt      DateTime?
+  createdAt   DateTime              @default(now())
+
+  subscriptions DisasterAlertSubscription[]
+
+  @@index([regionCode, active])
+}
+
+model DisasterAlertSubscription {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  regionCode    String
+  alertId       String?
+  alert         DisasterAlert? @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+
+  @@unique([participantId, regionCode])
 }

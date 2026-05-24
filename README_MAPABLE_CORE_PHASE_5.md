@@ -9,6 +9,8 @@ Phase 5 adds **regulated pilot maturity and production-readiness** on top of Pha
 | AI matching | `lib/ai-matching` | Reviewable AI ranking atop Phase 4 rules |
 | Fairness | `lib/fairness` | Bias and suitability flags |
 | Provider verification | `lib/provider-verification` | Cases, checks, risk ratings |
+| ABN Lookup (ABR) | `lib/abn-lookup` | ABR web services adapter, validation, name match |
+| Worker verification | `lib/worker-verification` | Credential orchestration + optional contractor ABN |
 | NDIS pricing | `lib/ndis-pricing` | Catalogue import, validate, apply |
 | Xero | `lib/xero` | Safe invoice sync (no sensitive notes) |
 | Stripe billing | `lib/stripe-billing` | Private-pay, webhooks, refunds |
@@ -43,6 +45,8 @@ npx prisma db push && npx prisma generate && pnpm prisma db seed
 ## Configuration
 
 See `.env.example` — integrations default **off** (`AI_MATCHING_ENABLED=false`, `XERO_ENABLED=false`, `NDIA_REAL_SUBMISSION_ENABLED=false`).
+
+ABN verification uses `ABR_LOOKUP_ADAPTER_MODE=mock` until you register a GUID; see [docs/abn-verification.md](docs/abn-verification.md).
 
 ## Phase 6 recommendations
 
