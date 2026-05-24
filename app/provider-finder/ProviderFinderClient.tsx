@@ -88,7 +88,9 @@ export default function ProviderFinderClient() {
   const [accessQuery, setAccessQuery] = useState("");
   const [supportType, setSupportType] = useState<SupportTypeId>("all");
   const [accessNeeds, setAccessNeeds] = useState<string[]>([]);
-  const [funding, setFunding] = useState<"all" | "ndis" | "private">("all");
+  const [funding, setFunding] = useState<
+    (typeof import("@/lib/provider-finder/filters").FUNDING_OPTIONS)[number]["id"]
+  >("all");
   const [sort, setSort] = useState<SortMode>("relevance");
   const [page, setPage] = useState(1);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
@@ -155,7 +157,14 @@ export default function ProviderFinderClient() {
     const support = SUPPORT_TYPES.find((t) => t.id === supportType);
 
     const filtered = providers.filter((p) => {
-      if (funding === "ndis" && !p.registered) return false;
+      if (
+        (funding === "ndis" ||
+          funding === "plan-managed" ||
+          funding === "self-managed") &&
+        !p.registered
+      ) {
+        return false;
+      }
       if (funding === "private" && p.registered) return false;
 
       if (support && support.id !== "all") {

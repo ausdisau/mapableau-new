@@ -16,6 +16,13 @@ module.exports = {
         "2xl": "calc(var(--radius) + 8px)",
       },
       colors: {
+        mapable: {
+          blue: "#005B7F",
+          navy: "#0C1833",
+          teal: "#00A979",
+          yellow: "#F8C51C",
+          soft: "#F6FBFC",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -53,6 +60,20 @@ module.exports = {
       fontFamily: {
         sans: ["var(--font-sans)", "Plus Jakarta Sans", "sans-serif"],
         heading: ["var(--font-heading)", "Outfit", "sans-serif"],
+        "mapable-display": [
+          "var(--font-mapable-display)",
+          "ui-rounded",
+          "Trebuchet MS",
+          "system-ui",
+          "sans-serif",
+        ],
+        "mapable-soft": [
+          "var(--font-mapable-soft)",
+          "Trebuchet MS",
+          "ui-rounded",
+          "system-ui",
+          "sans-serif",
+        ],
       },
     },
   },
