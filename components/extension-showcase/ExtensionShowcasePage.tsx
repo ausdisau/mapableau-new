@@ -111,9 +111,7 @@ export default function ExtensionShowcasePage() {
             </div>
           ))}
         </section>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }
