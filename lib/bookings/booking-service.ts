@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { canShareAccessibilityWithOrganisation } from "@/lib/consent/consent-service";
+import { onBookingConfirmed } from "@/lib/notifications/booking-triggers";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 import type { createBookingSchema } from "@/lib/validation/booking";
@@ -128,6 +129,15 @@ export async function updateBooking(
     participantId: booking.participantId,
     metadata: { status: booking.status },
   });
+
+  if (data.status === "confirmed") {
+    await onBookingConfirmed({
+      userId: booking.participantId,
+      bookingId: booking.id,
+      requestedStart: booking.requestedStart,
+      actorUserId,
+    });
+  }
 
   return booking;
 }

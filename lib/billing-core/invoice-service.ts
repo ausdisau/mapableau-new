@@ -2,6 +2,7 @@ import type { BillingInvoiceStatus } from "@prisma/client";
 import type { z } from "zod";
 
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
+import { onInvoiceIssued } from "@/lib/notifications/booking-triggers";
 import { calculateInvoiceTotals } from "@/lib/billing-core/calculations";
 import type { createInvoiceSchema } from "@/lib/billing-core/schemas";
 import { prisma } from "@/lib/prisma";
@@ -136,6 +137,16 @@ export async function updateInvoiceStatus(
     before: before ? { status: before.status } : undefined,
     after: { status: updated.status, ...extra },
   });
+
+  if (before?.status !== "issued" && status === "issued" && updated.userId) {
+    await onInvoiceIssued({
+      userId: updated.userId,
+      invoiceId: updated.id,
+      invoiceRef: updated.id.slice(-8),
+      actorUserId,
+    });
+  }
+
   return updated;
 }
 

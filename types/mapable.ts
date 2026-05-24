@@ -61,7 +61,13 @@ export type ConsentScope =
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 
-export type NotificationChannel = "in_app" | "email" | "sms" | "push";
+export type NotificationChannel =
+  | "in_app"
+  | "email"
+  | "sms"
+  | "push"
+  | "voice"
+  | "whatsapp";
 
 export type NotificationCategory =
   | "booking"
@@ -96,7 +102,21 @@ export type AuditAction =
   | "organisation.verification_changed"
   | "booking.created"
   | "booking.updated"
-  | "admin.accessed_sensitive_record";
+  | "admin.accessed_sensitive_record"
+  | "phone_verification_started"
+  | "phone_verification_succeeded"
+  | "phone_verification_failed"
+  | "communication.preferences_updated"
+  | "communication.opted_out_sms"
+  | "communication.opted_in_sms"
+  | "communication.inbound_received"
+  | "communication.inbound_cancel"
+  | "communication.inbound_yes"
+  | "communication.inbound_voice"
+  | "notification.sent"
+  | "notification.skipped_no_consent"
+  | "notification.operational_override"
+  | "notification.delivery_updated";
 
 export type PreferredContactMethod = "email" | "phone" | "sms";
 
