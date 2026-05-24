@@ -10,13 +10,13 @@ export default function Page() {
         <span className="flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/ask"
-            className="font-semibold text-primary transition hover:text-primary/80 focus-visible:underline"
+            className="font-semibold text-primary transition hover:text-primary/80 focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Ask MapAble (Co-Pilot + PRMS) →
           </Link>
           <Link
             href="/core"
-            className="font-semibold text-secondary transition hover:text-secondary/80 focus-visible:underline"
+            className="font-semibold text-secondary transition hover:text-secondary/80 focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Open MapAble Core platform →
           </Link>

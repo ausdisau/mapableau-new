@@ -103,12 +103,28 @@ export default function ProviderFinderClient() {
   useEffect(() => {
     const q = searchParams.get("q");
     const loc = searchParams.get("location");
+    const access = searchParams.get("access");
+    const service = searchParams.get("service");
+    const provider = searchParams.get("provider");
+
     if (q) {
       setQuery(q);
       setSearchSubmitted(true);
     }
     if (loc) {
       setLocation(loc);
+      setSearchSubmitted(true);
+    }
+    if (access) {
+      setAccessQuery(access);
+      setSearchSubmitted(true);
+    }
+    if (service) {
+      setServiceQuery(service);
+      setSearchSubmitted(true);
+    }
+    if (provider) {
+      setProviderName(provider);
       setSearchSubmitted(true);
     }
   }, [searchParams]);

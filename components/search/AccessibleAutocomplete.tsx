@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
+import { mapableSearchInputClass } from "@/lib/brand/styles";
 import {
   buildLiveRegionMessage,
   flattenSuggestions,
@@ -184,7 +185,7 @@ export function AccessibleAutocomplete({
           }}
           onKeyDown={handleKeyDown}
           className={cn(
-            "min-h-12 w-full rounded-xl border border-input bg-background py-3 pr-3 text-sm shadow-sm outline-none transition focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring",
+            mapableSearchInputClass,
             icon ? "pl-10" : "pl-3",
             inputClassName,
           )}
