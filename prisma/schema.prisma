@@ -1008,6 +1008,7 @@ model Invoice {
   preflightResults BillingPreflightResult[]
   xeroSyncRecords  XeroInvoiceSyncRecord[]
   stripePayments   StripePaymentIntentRecord[]
+  claimValidationRuns NdisClaimValidationRun[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -1029,8 +1030,8 @@ model InvoiceLine {
   ndisClaimableAmountCents Int?
   taxCode              String?
 
-  @@unique([invoiceId])
   @@index([invoiceId])
+  @@index([supportItemCode])
 }
 
 model BillingPreflightResult {
@@ -2040,6 +2041,8 @@ model NdisSupportItem {
   categoryId        String?
   category          NdisSupportCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryLabel     String?
+  registrationGroupId String?
+  registrationGroupRef NdisRegistrationGroup? @relation(fields: [registrationGroupId], references: [id], onDelete: SetNull)
   registrationGroup String?
   unitType          String?
   priceCapCents     Int?
@@ -2047,10 +2050,15 @@ model NdisSupportItem {
   effectiveTo       DateTime?
   active            Boolean             @default(true)
   notes             String?
+  serviceTypes      String[]            @default([])
+  providerTypes     String[]            @default([])
+  matchContextJson  Json?
   suggestions       NdisLineItemSuggestion[]
   cataloguePrices   NdisSupportItemPrice[]
+  quoteLines        NdisQuoteLine[]
 
   @@index([active])
+  @@index([registrationGroupId])
 }
 
 model NdisLineItemSuggestion {
@@ -2479,6 +2487,111 @@ model NdisPriceRule {
   description String
   ruleJson    Json
   active      Boolean @default(true)
+}
+
+model NdisRegistrationGroup {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  supportItems NdisSupportItem[]
+}
+
+model NdisClaimRule {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  ruleJson    Json
+  severity    String   @default("warning")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum NdisQuoteLineStatus {
+  draft
+  calculated
+  review_required
+}
+
+model NdisQuoteLine {
+  id              String              @id @default(cuid())
+  supportItemId   String?
+  supportItem     NdisSupportItem?    @relation(fields: [supportItemId], references: [id], onDelete: SetNull)
+  supportItemCode String?
+  description     String
+  quantity        Decimal             @default(1)
+  unitType        String?
+  unitAmountCents Int?
+  totalAmountCents Int?
+  serviceDate     DateTime?
+  status          NdisQuoteLineStatus @default(draft)
+  warningsJson    Json                @default("[]")
+  createdById     String
+  organisationId  String?
+  participantId   String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([createdById])
+  @@index([organisationId])
+}
+
+enum NdisClaimValidationStatus {
+  pending
+  completed
+  failed
+}
+
+model NdisClaimValidationRun {
+  id             String                    @id @default(cuid())
+  invoiceId      String
+  invoice        Invoice                   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  status         NdisClaimValidationStatus @default(pending)
+  summary        String?
+  warningsCount  Int                       @default(0)
+  errorsCount    Int                       @default(0)
+  createdById    String
+  organisationId String?
+  createdAt      DateTime                  @default(now())
+  completedAt    DateTime?
+
+  findings NdisClaimValidationFinding[]
+
+  @@index([invoiceId, createdAt])
+}
+
+enum NdisClaimFindingAudience {
+  participant
+  provider
+  admin
+}
+
+enum NdisClaimFindingSeverity {
+  info
+  warning
+  error
+}
+
+model NdisClaimValidationFinding {
+  id              String                   @id @default(cuid())
+  runId           String
+  run             NdisClaimValidationRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
+  code            String
+  severity        NdisClaimFindingSeverity @default(warning)
+  audience        NdisClaimFindingAudience @default(provider)
+  plainMessage    String?
+  technicalMessage String
+  invoiceLineId   String?
+  supportItemCode String?
+  metadataJson    Json?
+
+  @@index([runId])
 }
 
 // --- Xero Phase 5 extensions ---
