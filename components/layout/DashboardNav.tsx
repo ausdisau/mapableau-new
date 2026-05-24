@@ -22,6 +22,8 @@ const LINKS = [
   { href: "/dashboard/find-transport", label: "Find transport" },
   { href: "/dashboard/timesheets", label: "Timesheets" },
   { href: "/dashboard/incidents", label: "Incidents" },
+  { href: "/dashboard/disputes", label: "Disputes" },
+  { href: "/dashboard/complaints", label: "Complaints" },
   { href: "/dashboard/incidents/new", label: "Report concern" },
   { href: "/dashboard/notifications", label: "Notifications" },
   { href: "/dashboard/messages", label: "Messages" },
@@ -30,6 +32,7 @@ const LINKS = [
   { href: "/dashboard/funding", label: "Funding" },
   { href: "/dashboard/invoices", label: "Invoices" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
+  { href: "/dashboard/settings/communication", label: "Communication" },
 ];
 
 export function DashboardNav({

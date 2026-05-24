@@ -87,6 +87,23 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+
+  communicationPreferences CommunicationPreference[]
+  notificationEvents       NotificationEvent[]
+  outboundMessages         OutboundMessage[]
+  inboundMessages          InboundMessage[]
+  phoneVerifications       PhoneVerification[]
+
+  disputesCreated          Dispute[]              @relation("DisputeCreatedBy")
+  disputesAsParticipant    Dispute[]              @relation("DisputeParticipant")
+  disputesAssigned         Dispute[]              @relation("DisputeAssignedAdmin")
+  disputeEvents            DisputeEvent[]
+  disputeEvidenceUploaded  DisputeEvidence[]
+
+  complaintsCreated        Complaint[]            @relation("ComplaintCreatedBy")
+  complaintsAsParticipant  Complaint[]            @relation("ComplaintParticipant")
+  complaintEvents          ComplaintEvent[]
+  complaintResponses       ComplaintResponse[]
 }
 
 model Worker {
@@ -424,6 +441,8 @@ enum NotificationChannel {
   email
   sms
   push
+  voice
+  whatsapp
 }
 
 enum NotificationCategory {
@@ -542,6 +561,8 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  disputes               Dispute[]
+  complaints             Complaint[]
 }
 
 model OrganisationMember {
@@ -665,6 +686,7 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  disputes           Dispute[]
 
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
@@ -1008,6 +1030,7 @@ model Invoice {
   preflightResults BillingPreflightResult[]
   xeroSyncRecords  XeroInvoiceSyncRecord[]
   stripePayments   StripePaymentIntentRecord[]
+  disputes         Dispute[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -1444,6 +1467,7 @@ model TransportBooking {
   updatedAt             DateTime               @updatedAt
 
   calendarEvents        CalendarEvent[]
+  disputes              Dispute[]
 
   @@index([participantId, status])
   @@index([operatorOrganisationId])
@@ -1915,6 +1939,8 @@ model Timesheet {
   rejectedReason   String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+
+  disputes         Dispute[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -4762,4 +4788,331 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// Twilio communications (MapAble Core)
+
+enum CommunicationChannel {
+  sms
+  voice
+  whatsapp
+  email
+  in_app
+}
+
+enum CommunicationConsentStatus {
+  opted_in
+  opted_out
+  pending
+  revoked
+}
+
+enum MessageDeliveryStatus {
+  queued
+  sent
+  delivered
+  failed
+  undelivered
+  read
+  received
+}
+
+enum NotificationTemplateKey {
+  booking_confirmed
+  booking_reminder_24h
+  booking_reminder_2h
+  transport_driver_assigned
+  transport_arriving
+  trip_completed
+  invoice_issued
+  invoice_overdue
+  support_message_received
+  urgent_provider_alert
+}
+
+enum PhoneVerificationStatus {
+  pending
+  approved
+  failed
+  expired
+  canceled
+}
+
+model CommunicationPreference {
+  id                          String                     @id @default(cuid())
+  userId                      String
+  user                        User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel                     CommunicationChannel
+  consentStatus               CommunicationConsentStatus @default(pending)
+  phoneNumberE164             String?
+  notificationType            String                     @default("all")
+  enabled                     Boolean                    @default(false)
+  quietHoursStart             String?
+  quietHoursEnd               String?
+  accessibleCommunicationMode String?
+  timezone                    String                     @default("Australia/Sydney")
+  createdAt                   DateTime                   @default(now())
+  updatedAt                   DateTime                   @updatedAt
+
+  @@unique([userId, channel, notificationType])
+  @@index([userId])
+}
+
+model NotificationEvent {
+  id           String                  @id @default(cuid())
+  userId       String
+  user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templateKey  NotificationTemplateKey
+  channel      CommunicationChannel?
+  status       String                  @default("pending")
+  bookingId    String?
+  tripId       String?
+  invoiceId    String?
+  metadata     Json?
+  scheduledFor DateTime?
+  processedAt  DateTime?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  outboundMessages OutboundMessage[]
+
+  @@index([userId, templateKey])
+  @@index([status, scheduledFor])
+  @@index([bookingId])
+}
+
+model OutboundMessage {
+  id                  String                @id @default(cuid())
+  userId              String
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationEventId String?
+  notificationEvent   NotificationEvent?    @relation(fields: [notificationEventId], references: [id], onDelete: SetNull)
+  channel             CommunicationChannel
+  templateKey         NotificationTemplateKey?
+  messageBodyRedacted String
+  phoneNumberE164     String?
+  twilioSid           String?
+  deliveryStatus      MessageDeliveryStatus @default(queued)
+  bookingId           String?
+  tripId              String?
+  invoiceId           String?
+  errorCode           String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([twilioSid])
+  @@index([deliveryStatus])
+}
+
+model InboundMessage {
+  id                  String               @id @default(cuid())
+  userId              String?
+  user                User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  channel             CommunicationChannel
+  fromNumberE164      String
+  messageBodyRedacted String
+  command             String?
+  twilioSid           String?
+  processed           Boolean              @default(false)
+  metadata            Json?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([fromNumberE164])
+  @@index([userId, createdAt])
+}
+
+model PhoneVerification {
+  id              String                  @id @default(cuid())
+  userId          String
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumberE164 String
+  status          PhoneVerificationStatus @default(pending)
+  twilioSid       String?
+  attemptCount    Int                     @default(0)
+  lastAttemptAt   DateTime?
+  verifiedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([userId, phoneNumberE164])
+  @@index([status])
+}
+
+model TwilioWebhookEvent {
+  id            String   @id @default(cuid())
+  eventType     String
+  twilioSid     String?
+  payloadHash   String
+  payloadMeta   Json?
+  processed     Boolean  @default(false)
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+
+  @@index([twilioSid])
+  @@index([payloadHash])
+  @@index([createdAt])
+}
+
+// Disputes and complaints (MapAble platform)
+
+enum DisputeType {
+  invoice_dispute
+  service_not_delivered
+  no_show
+  late_arrival
+  wrong_worker_or_driver
+  access_need_not_met
+  overcharge_concern
+  quality_concern
+}
+
+enum DisputeStatus {
+  submitted
+  under_review
+  awaiting_provider_response
+  resolved
+  closed
+  withdrawn
+}
+
+enum ComplaintType {
+  unsafe_service
+  privacy_concern
+  discrimination_or_disrespect
+  communication_issue
+  provider_conduct
+  worker_conduct
+  platform_issue
+  other
+}
+
+enum ComplaintStatus {
+  submitted
+  under_review
+  escalated_to_incident
+  resolved
+  closed
+}
+
+model Dispute {
+  id                  String        @id @default(cuid())
+  participantId       String
+  participant         User          @relation("DisputeParticipant", fields: [participantId], references: [id])
+  createdById         String
+  createdBy           User          @relation("DisputeCreatedBy", fields: [createdById], references: [id])
+  organisationId      String?
+  organisation        Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId           String?
+  booking             Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  invoiceId           String?
+  invoice             Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  timesheetId         String?
+  timesheet           Timesheet?    @relation(fields: [timesheetId], references: [id], onDelete: SetNull)
+  transportBookingId  String?
+  transportBooking    TransportBooking? @relation(fields: [transportBookingId], references: [id], onDelete: SetNull)
+  billingInvoiceId    String?
+  type                DisputeType
+  status              DisputeStatus @default(submitted)
+  title               String
+  description         String
+  desiredOutcome      String?
+  resolutionSummary   String?
+  assignedAdminId     String?
+  assignedAdmin       User?         @relation("DisputeAssignedAdmin", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  closedAt            DateTime?
+
+  events    DisputeEvent[]
+  evidence  DisputeEvidence[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@index([status, createdAt])
+}
+
+model DisputeEvent {
+  id          String   @id @default(cuid())
+  disputeId   String
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  actorUser   User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  body        String
+  visibility  String   @default("all")
+  createdAt   DateTime @default(now())
+
+  @@index([disputeId, createdAt])
+}
+
+model DisputeEvidence {
+  id           String   @id @default(cuid())
+  disputeId    String
+  dispute      Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  documentId   String?
+  summary      String
+  createdAt    DateTime @default(now())
+
+  @@index([disputeId])
+}
+
+model Complaint {
+  id                  String          @id @default(cuid())
+  participantId       String
+  participant         User            @relation("ComplaintParticipant", fields: [participantId], references: [id])
+  createdById         String
+  createdBy           User            @relation("ComplaintCreatedBy", fields: [createdById], references: [id])
+  organisationId      String?
+  organisation        Organisation?   @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId           String?
+  invoiceId           String?
+  timesheetId         String?
+  type                ComplaintType
+  status              ComplaintStatus @default(submitted)
+  title               String
+  description         String
+  escalatedIncidentId String?
+  safetyEscalated     Boolean         @default(false)
+  resolutionSummary   String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  closedAt            DateTime?
+
+  events    ComplaintEvent[]
+  responses ComplaintResponse[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@index([status, createdAt])
+}
+
+model ComplaintEvent {
+  id          String    @id @default(cuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  actorUser   User?     @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  body        String
+  createdAt   DateTime  @default(now())
+
+  @@index([complaintId, createdAt])
+}
+
+model ComplaintResponse {
+  id           String    @id @default(cuid())
+  complaintId  String
+  complaint    Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  responderId  String
+  responder    User      @relation(fields: [responderId], references: [id])
+  body         String
+  isInternal   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+
+  @@index([complaintId, createdAt])
 }
