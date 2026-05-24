@@ -15,7 +15,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
-import { mapOutletsToProviders } from "@/app/provider-finder/outletToProvider";
 import type { Provider } from "@/app/provider-finder/providers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -290,8 +289,8 @@ export default function ProviderProfilePage() {
   const router = useRouter();
   const { status } = useSession();
   const slug = params.slug as string | undefined;
-  const { data: outlets, isLoading, isError, error } = useProviderOutlets();
-  const providers = outlets ? mapOutletsToProviders(outlets) : [];
+  const { data: providers = [], isLoading, isError, error } =
+    useProviderOutlets();
   const [claimCheckDone, setClaimCheckDone] = useState(false);
 
   const provider = slug

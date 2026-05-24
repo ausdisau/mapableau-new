@@ -2,10 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchProviderOutlets } from "@/lib/provider-outlets";
+import { fetchProviderDirectory } from "@/lib/provider-outlets";
 
 /** React Query key for provider-outlets; use for invalidation or prefetch. */
-export const PROVIDER_OUTLETS_QUERY_KEY = ["provider-outlets"] as const;
+export const PROVIDER_OUTLETS_QUERY_KEY = ["provider-directory"] as const;
 
 /**
  * Caching: data is considered fresh for 5 minutes (staleTime), then refetched in background.
@@ -18,7 +18,7 @@ const GC_TIME_MS = 10 * 60 * 24 * 1000; // 10 days
 export function useProviderOutlets() {
   return useQuery({
     queryKey: PROVIDER_OUTLETS_QUERY_KEY,
-    queryFn: () => fetchProviderOutlets(),
+    queryFn: () => fetchProviderDirectory(),
     staleTime: STALE_TIME_MS,
     gcTime: GC_TIME_MS,
   });

@@ -23,7 +23,6 @@ import {
 } from "@/lib/provider-finder/filters";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
-import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
 
 const Map = dynamic(() => import("@/components/Map"), { ssr: false });
@@ -73,11 +72,8 @@ function providerHaystack(provider: Provider) {
 }
 
 export default function ProviderFinderClient() {
-  const { data: outlets, isLoading, isError, error } = useProviderOutlets();
-  const providers = useMemo(
-    () => (outlets ? mapOutletsToProviders(outlets) : []),
-    [outlets],
-  );
+  const { data: providers = [], isLoading, isError, error } =
+    useProviderOutlets();
 
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
