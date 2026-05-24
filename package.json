@@ -17,7 +17,9 @@
     "lint-staged": "lint-staged",
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check-env": "tsx scripts/check-env.ts",
+    "preflight": "tsx scripts/preflight-release.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
