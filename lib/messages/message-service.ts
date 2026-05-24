@@ -15,6 +15,134 @@ export async function userCanAccessConversation(
   return Boolean(participant);
 }
 
+export async function markThreadRead(userId: string, conversationId: string) {
+  await prisma.conversationParticipant.updateMany({
+    where: { conversationId, userId },
+    data: { lastReadAt: new Date() },
+  });
+
+  const unread = await prisma.message.findMany({
+    where: {
+      conversationId,
+      deletedAt: null,
+      senderUserId: { not: userId },
+    },
+    select: { id: true },
+  });
+
+  for (const msg of unread) {
+    await prisma.messageReadReceipt.upsert({
+      where: { messageId_userId: { messageId: msg.id, userId } },
+      create: { messageId: msg.id, userId },
+      update: { readAt: new Date() },
+    });
+  }
+}
+
+export async function assertCanCreateThread(params: {
+  createdById: string;
+  memberUserIds: string[];
+  bookingId?: string;
+  threadType: string;
+}) {
+  if (params.bookingId) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: params.bookingId },
+      select: { participantId: true, assignedOrganisationId: true },
+    });
+    if (!booking) throw new Error("BOOKING_NOT_FOUND");
+
+    const allowedIds = new Set<string>([booking.participantId]);
+    if (booking.assignedOrganisationId) {
+      const members = await prisma.organisationMember.findMany({
+        where: { organisationId: booking.assignedOrganisationId },
+        select: { userId: true },
+      });
+      members.forEach((m) => allowedIds.add(m.userId));
+    }
+
+    for (const memberId of params.memberUserIds) {
+      if (!allowedIds.has(memberId) && memberId !== params.createdById) {
+        throw new Error("THREAD_MEMBER_NOT_ALLOWED");
+      }
+    }
+    return;
+  }
+
+  if (
+    params.threadType !== "participant_admin" &&
+    params.threadType !== "support_ticket_thread"
+  ) {
+    throw new Error("THREAD_REQUIRES_RELATIONSHIP");
+  }
+}
+
+export async function createConversation(params: {
+  type: string;
+  title: string;
+  createdById: string;
+  bookingId?: string;
+  organisationId?: string;
+  participantId?: string;
+  memberUserIds: string[];
+}) {
+  await assertCanCreateThread({
+    createdById: params.createdById,
+    memberUserIds: params.memberUserIds,
+    bookingId: params.bookingId,
+    threadType: params.type,
+  });
+
+  const uniqueMembers = Array.from(
+    new Set([params.createdById, ...params.memberUserIds])
+  );
+
+  return prisma.conversation.create({
+    data: {
+      type: params.type as never,
+      title: params.title,
+      bookingId: params.bookingId,
+      organisationId: params.organisationId,
+      participantId: params.participantId,
+      createdById: params.createdById,
+      participants: {
+        create: uniqueMembers.map((userId) => ({
+          userId,
+          roleInThread:
+            userId === params.participantId ? "participant" : "provider_admin",
+        })),
+      },
+    },
+    include: { participants: true },
+  });
+}
+
+export async function sendSystemMessageToThread(params: {
+  conversationId: string;
+  senderUserId: string;
+  body: string;
+}) {
+  const member = await prisma.conversationParticipant.findUnique({
+    where: {
+      conversationId_userId: {
+        conversationId: params.conversationId,
+        userId: params.senderUserId,
+      },
+    },
+  });
+  if (!member) throw new Error("NOT_THREAD_MEMBER");
+
+  return prisma.message.create({
+    data: {
+      conversationId: params.conversationId,
+      senderUserId: params.senderUserId,
+      body: params.body,
+      isSystemMessage: true,
+      plainLanguageSummary: params.body,
+    },
+  });
+}
+
 export async function listConversationsForUser(userId: string, isAdmin: boolean) {
   if (isAdmin) {
     return prisma.conversation.findMany({

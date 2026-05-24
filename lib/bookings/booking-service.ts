@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { canShareAccessibilityWithOrganisation } from "@/lib/consent/consent-service";
-import { notifyUser } from "@/lib/notifications/notification-service";
+import { onBookingCreated } from "@/lib/orchestration/booking-orchestrator";
 import { prisma } from "@/lib/prisma";
 import type { createBookingSchema } from "@/lib/validation/booking";
 
@@ -27,20 +27,33 @@ export async function createBooking(input: CreateBookingInput) {
     }
   }
 
-  const status = input.status ?? "requested";
+  const status = input.assignedOrganisationId
+    ? "awaiting_provider_acceptance"
+    : (input.status ?? "requested");
 
   const booking = await prisma.booking.create({
     data: {
       participantId: input.participantId,
       bookingType: input.bookingType,
       status,
+      title: input.title,
+      description: input.description,
       requestedStart: new Date(input.requestedStart),
       requestedEnd: input.requestedEnd ? new Date(input.requestedEnd) : null,
       pickupAddress: input.pickupAddress,
       dropoffAddress: input.dropoffAddress,
+      locationFrom: input.locationFrom as object | undefined,
+      locationTo: input.locationTo as object | undefined,
       careLocation: input.careLocation,
       accessibilitySummary: input.accessibilitySummary,
+      accessibilityRequirements: input.accessibilityRequirements as
+        | object
+        | undefined,
       participantNotes: input.participantNotes,
+      ndisSupportCategory: input.ndisSupportCategory,
+      ndisLineItem: input.ndisLineItem,
+      estimatedTotalCents: input.estimatedTotalCents,
+      preferredCommunicationMethod: input.preferredCommunicationMethod,
       assignedOrganisationId: input.assignedOrganisationId,
       shareAccessibility: input.shareAccessibility,
       fundingSourceTag: input.fundingSourceTag,
@@ -72,14 +85,16 @@ export async function createBooking(input: CreateBookingInput) {
     metadata: { bookingType: input.bookingType, status },
   });
 
-  await notifyUser(
-    input.participantId,
-    "booking",
-    "Booking request received",
-    `Your ${input.bookingType.replace("_", " + ")} booking request has been submitted. We will confirm details with you soon.`
-  );
+  const { threadId } = await onBookingCreated({
+    bookingId: booking.id,
+    participantId: input.participantId,
+    createdById: input.createdById,
+    assignedOrganisationId: input.assignedOrganisationId,
+    bookingType: input.bookingType,
+    title: input.title,
+  });
 
-  return booking;
+  return { ...booking, conversationId: threadId };
 }
 
 export async function updateBooking(

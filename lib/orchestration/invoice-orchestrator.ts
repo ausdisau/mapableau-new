@@ -1,84 +1,181 @@
-import { phase3Config } from "@/lib/config/phase3";
-import { createInvoiceDraftFromBooking } from "@/lib/invoices/invoice-service";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
+import {
+  assertInvoiceTransition,
+  toCoreInvoiceStatus,
+  toPrismaInvoiceStatus,
+} from "@/lib/domain/invoice-status";
+import { notifyUserWithAction } from "@/lib/notifications/notification-service";
+import { postBookingSystemMessage } from "@/lib/orchestration/message-orchestrator";
 import { prisma } from "@/lib/prisma";
 
-export async function createInvoiceLinesFromApprovedCareShift(
-  shiftId: string,
-  adminUserId: string
-) {
-  if (!phase3Config.orchestrationEnabled) {
-    return { skipped: true };
+export async function onInvoiceIssued(params: {
+  invoiceId: string;
+  actorUserId: string;
+}) {
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: params.invoiceId },
+    include: { booking: true },
+  });
+  if (!invoice) throw new Error("INVOICE_NOT_FOUND");
+
+  if (invoice.bookingId) {
+    await postBookingSystemMessage({
+      bookingId: invoice.bookingId,
+      senderUserId: params.actorUserId,
+      body: `Invoice ${invoice.invoiceNumber ?? invoice.id} has been issued. Please review and approve when ready.`,
+      plainLanguageSummary: "Invoice issued.",
+    }).catch(() => null);
   }
 
-  const key = `invoice-shift-${shiftId}`;
-  const existing = await prisma.orchestrationEvent.findUnique({
-    where: { idempotencyKey: key },
-  });
-  if (existing) return { duplicate: true };
-
-  const shift = await prisma.careShift.findUnique({
-    where: { id: shiftId },
-    include: { careRequest: true },
-  });
-  if (!shift || shift.status !== "approved") {
-    throw new Error("SHIFT_NOT_APPROVED");
-  }
-
-  let invoice = shift.bookingId
-    ? await prisma.invoice.findFirst({ where: { bookingId: shift.bookingId } })
-    : null;
-
-  if (!invoice) {
-    if (shift.bookingId) {
-      invoice = await createInvoiceDraftFromBooking(
-        shift.bookingId,
-        adminUserId
-      );
-    } else {
-      invoice = await prisma.invoice.create({
-        data: {
-          participantId: shift.participantId,
-          organisationId: shift.organisationId,
-          status: "draft",
-          createdById: adminUserId,
-          lines: {
-            create: [
-              {
-                description: "Approved care shift support",
-                serviceDate: shift.startAt,
-                quantity: 1,
-                unitAmountCents: 0,
-                totalAmountCents: 0,
-              },
-            ],
-          },
-        },
-      });
-    }
-  } else {
-    await prisma.invoiceLine.create({
-      data: {
-        invoiceId: invoice.id,
-        description: "Approved care shift — requires review",
-        serviceDate: shift.startAt,
-        quantity: 1,
-        unitAmountCents: 0,
-        totalAmountCents: 0,
-        supportItemCode: shift.careRequest?.supportItemCode ?? undefined,
-        claimableByNdis: Boolean(shift.careRequest?.supportItemCode),
-      },
+  if (invoice.bookingId) {
+    await recordBookingTimelineEvent({
+      bookingId: invoice.bookingId,
+      eventType: "invoice_issued",
+      title: "Invoice issued",
+      actorUserId: params.actorUserId,
+      isAdminOnly: false,
     });
   }
 
-  await prisma.orchestrationEvent.create({
+  await notifyUserWithAction({
+    userId: invoice.participantId,
+    category: "billing",
+    notificationType: "invoice_issued",
+    title: "Invoice ready for review",
+    body: "An invoice has been issued for your recent support.",
+    actionUrl: `/dashboard/invoices/${invoice.id}`,
+  });
+}
+
+export async function onInvoiceApproved(params: {
+  invoiceId: string;
+  actorUserId: string;
+  nextStatus: "awaiting_plan_manager" | "awaiting_participant_approval";
+}) {
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: params.invoiceId },
+  });
+  if (!invoice) throw new Error("INVOICE_NOT_FOUND");
+
+  assertInvoiceTransition(invoice.status, params.nextStatus);
+
+  const updated = await prisma.invoice.update({
+    where: { id: params.invoiceId },
+    data: { status: toPrismaInvoiceStatus(params.nextStatus) },
+  });
+
+  await createAuditEvent({
+    actorUserId: params.actorUserId,
+    action: "invoice.approved",
+    entityType: "Invoice",
+    entityId: invoice.id,
+    participantId: invoice.participantId,
+    metadata: { status: updated.status },
+  });
+
+  await notifyUserWithAction({
+    userId: invoice.participantId,
+    category: "billing",
+    notificationType: "invoice_approved",
+    title: "Invoice approved",
+    body: "Thank you. Your invoice approval has been recorded.",
+    actionUrl: `/dashboard/invoices/${invoice.id}`,
+  });
+
+  return updated;
+}
+
+export async function onInvoicePaid(params: {
+  invoiceId: string;
+  actorUserId: string;
+}) {
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: params.invoiceId },
+    include: { booking: true },
+  });
+  if (!invoice) throw new Error("INVOICE_NOT_FOUND");
+
+  assertInvoiceTransition(invoice.status, "paid");
+
+  const updated = await prisma.invoice.update({
+    where: { id: params.invoiceId },
     data: {
-      eventType: "invoice_from_care_shift",
-      careShiftId: shiftId,
-      idempotencyKey: key,
-      createdById: adminUserId,
-      metadata: { invoiceId: invoice.id },
+      status: "paid",
+      paidAt: new Date(),
     },
   });
 
-  return { invoice };
+  if (invoice.bookingId) {
+    await prisma.booking.update({
+      where: { id: invoice.bookingId },
+      data: { status: "paid" },
+    });
+
+    await recordBookingTimelineEvent({
+      bookingId: invoice.bookingId,
+      eventType: "invoice_paid",
+      title: "Invoice paid",
+      actorUserId: params.actorUserId,
+    });
+
+    await postBookingSystemMessage({
+      bookingId: invoice.bookingId,
+      senderUserId: params.actorUserId,
+      body: "Payment received. This booking is now marked as paid.",
+      plainLanguageSummary: "Invoice paid.",
+    });
+  }
+
+  await createAuditEvent({
+    actorUserId: params.actorUserId,
+    action: "invoice.paid",
+    entityType: "Invoice",
+    entityId: invoice.id,
+    participantId: invoice.participantId,
+    metadata: { bookingId: invoice.bookingId },
+  });
+
+  await notifyUserWithAction({
+    userId: invoice.participantId,
+    category: "billing",
+    notificationType: "payment_received",
+    title: "Payment received",
+    body: "Your invoice payment has been received.",
+    actionUrl: `/dashboard/invoices/${invoice.id}`,
+  });
+
+  return updated;
 }
+
+export async function onInvoiceCreatedFromBooking(params: {
+  invoiceId: string;
+  bookingId: string;
+  actorUserId: string;
+}) {
+  await prisma.booking.update({
+    where: { id: params.bookingId },
+    data: { status: "invoiced" },
+  });
+
+  await recordBookingTimelineEvent({
+    bookingId: params.bookingId,
+    eventType: "invoice_drafted",
+    title: "Invoice created from booking",
+    actorUserId: params.actorUserId,
+  });
+
+  await postBookingSystemMessage({
+    bookingId: params.bookingId,
+    senderUserId: params.actorUserId,
+    body: "An invoice draft has been created for this booking.",
+    plainLanguageSummary: "Invoice draft created.",
+  });
+}
+
+export function coreInvoiceStatus(status: string) {
+  return toCoreInvoiceStatus(status);
+}
+
+/** Phase 3 care-shift invoicing (preserved for existing orchestration API). */
+export { createInvoiceLinesFromApprovedCareShift } from "@/lib/orchestration/invoice-orchestrator-care-shift";

@@ -129,6 +129,8 @@ export async function createInvoiceLineFromTimesheet(
     }
   }
 
+  if (!invoice) throw new Error("INVOICE_CREATE_FAILED");
+
   await prisma.invoiceLine.create({
     data: {
       invoiceId: invoice.id,
