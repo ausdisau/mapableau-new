@@ -14,6 +14,8 @@ export const phase4Config = {
   contractsRequireAdminForChanges:
     process.env.CONTRACTS_REQUIRE_ADMIN_FOR_CHANGES !== "false",
   incidentReportingEnabled: process.env.INCIDENT_REPORTING_ENABLED !== "false",
+  disputesWorkflowEnabled:
+    process.env.DISPUTES_WORKFLOW_ENABLED !== "false",
   incidentExternalReportingEnabled:
     process.env.INCIDENT_EXTERNAL_REPORTING_ENABLED === "true",
   adminAnalyticsEnabled: process.env.ADMIN_ANALYTICS_ENABLED !== "false",

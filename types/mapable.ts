@@ -116,7 +116,15 @@ export type AuditAction =
   | "notification.sent"
   | "notification.skipped_no_consent"
   | "notification.operational_override"
-  | "notification.delivery_updated";
+  | "notification.delivery_updated"
+  | "dispute.created"
+  | "dispute.status_updated"
+  | "dispute.provider_responded"
+  | "complaint.created"
+  | "complaint.status_updated"
+  | "complaint.escalated_to_incident"
+  | "complaint.responded"
+  | "complaint.internal_note";
 
 export type PreferredContactMethod = "email" | "phone" | "sms";
 

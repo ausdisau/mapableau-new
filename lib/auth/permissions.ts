@@ -76,6 +76,13 @@ export type Permission =
   | "incident:create"
   | "incident:read:self"
   | "incident:manage:any"
+  | "dispute:create"
+  | "dispute:read:self"
+  | "dispute:respond:org"
+  | "dispute:manage:any"
+  | "complaint:create"
+  | "complaint:read:self"
+  | "complaint:manage:any"
   | "agreement:read:self"
   | "agreement:manage:org"
   | "agreement:manage:any"
@@ -202,6 +209,10 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "timesheet:approve:self",
     "incident:create",
     "incident:read:self",
+    "dispute:create",
+    "dispute:read:self",
+    "complaint:create",
+    "complaint:read:self",
     "agreement:read:self",
     "attestation:read:self",
     "data_vault:self",
@@ -249,6 +260,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "timesheet:manage:org",
     "agreement:manage:org",
     "incident:create",
+    "dispute:respond:org",
+    "dispute:read:self",
     "verification:manage:org",
     "enterprise:console",
     "operator_dispatch:manage",
@@ -269,6 +282,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "availability:manage:org",
     "calendar:read:org",
     "operator_dispatch:manage",
+    "dispute:respond:org",
+    "dispute:read:self",
   ],
   driver: [
     "booking:read:any",
@@ -324,6 +339,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "search:providers",
     "tracking:update:admin",
     "incident:manage:any",
+    "dispute:manage:any",
+    "complaint:manage:any",
     "agreement:manage:any",
     "ndis:manage",
     "contracts:manage",
