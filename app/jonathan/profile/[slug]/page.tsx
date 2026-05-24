@@ -294,11 +294,11 @@ export default function ProviderProfilePage() {
   const [claimCheckDone, setClaimCheckDone] = useState(false);
 
   const provider = slug
-    ? providers.find(
-        (p) =>
-          p.slug.toLowerCase() === slug.toLowerCase() ||
-          p.id === slug
-      )
+    ? providers.find((p) => {
+        const pSlug = p.slug?.toLowerCase();
+        const target = slug.toLowerCase();
+        return (pSlug && pSlug === target) || p.id === slug;
+      })
     : null;
 
   useEffect(() => {

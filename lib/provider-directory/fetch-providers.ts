@@ -7,6 +7,7 @@ import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import { prisma } from "@/lib/prisma";
 import { fetchLegacyProviderUsers } from "@/lib/provider-directory/legacy-provider-users";
 import { mapDbProviderToFinder } from "@/lib/provider-directory/map-db-provider";
+import { normalizeProvider } from "@/lib/provider-directory/normalize-provider";
 
 export type ProviderDirectoryMeta = {
   sources: {
@@ -29,12 +30,14 @@ function mergeProviders(lists: Provider[][]): Provider[] {
 
   for (const list of lists) {
     for (const p of list) {
+      const normalized = normalizeProvider(p);
       const key =
-        p.outletKey?.toLowerCase() ||
-        (p.abn ? `abn:${p.abn}` : "") ||
-        p.slug?.toLowerCase() ||
-        p.id;
-      if (!byKey.has(key)) byKey.set(key, p);
+        normalized.outletKey?.toLowerCase() ||
+        (normalized.abn ? `abn:${normalized.abn}` : "") ||
+        normalized.slug.toLowerCase() ||
+        normalized.id;
+      if (!key || byKey.has(key)) continue;
+      byKey.set(key, normalized);
     }
   }
 
