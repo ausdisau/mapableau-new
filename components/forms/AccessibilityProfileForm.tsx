@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AccessibilityPreferenceCard } from "@/components/accessibility/AccessibilityPreferenceCard";
 import {
@@ -50,8 +50,20 @@ export function AccessibilityProfileForm({
   );
   const [transport, setTransport] = useState(initial.transportRequirements);
   const [digital, setDigital] = useState(initial.digitalPreferences);
+  const [consentThirdPartyStt, setConsentThirdPartyStt] = useState(false);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    void fetch("/api/voice/preferences")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.preferences?.consentThirdPartyStt) {
+          setConsentThirdPartyStt(true);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
     setter(
@@ -80,6 +92,16 @@ export function AccessibilityProfileForm({
             shareWithProviders: {},
           }),
         });
+        if (res.ok) {
+          await fetch("/api/voice/preferences", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              consentThirdPartyStt,
+              voiceEnabled: Boolean(digital.voiceControlPreferred),
+            }),
+          });
+        }
         setLoading(false);
         if (res.ok) {
           setStatus("Accessibility preferences saved.");
@@ -177,6 +199,8 @@ export function AccessibilityProfileForm({
             ["reducedMotion", "Reduced motion"],
             ["screenReaderUser", "Screen reader user"],
             ["simpleLanguageMode", "Simple language mode"],
+            ["wordPredictionEnabled", "Word prediction while typing"],
+            ["voiceControlPreferred", "Show voice input controls"],
           ].map(([key, label]) => (
             <label key={key} className="flex min-h-10 items-center gap-2">
               <input
@@ -189,6 +213,17 @@ export function AccessibilityProfileForm({
               <span className="text-sm">{label}</span>
             </label>
           ))}
+          <label className="flex min-h-10 items-start gap-2 border-t border-border pt-3">
+            <input
+              type="checkbox"
+              checked={consentThirdPartyStt}
+              onChange={(e) => setConsentThirdPartyStt(e.target.checked)}
+            />
+            <span className="text-sm">
+              I consent to third-party speech-to-text when required (optional;
+              mock mode works without this)
+            </span>
+          </label>
         </div>
       </AccessibilityPreferenceCard>
 

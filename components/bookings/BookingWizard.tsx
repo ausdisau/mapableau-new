@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AccessibleComposeField } from "@/components/accessibility/AccessibleComposeField";
 import {
   AccessibleFormField,
   formInputClass,
@@ -183,15 +184,15 @@ export function BookingWizard() {
               </AccessibleFormField>
             </>
           )}
-          <AccessibleFormField id="notes" label="Notes for providers">
-            <textarea
-              id="notes"
-              className={formInputClass}
-              rows={3}
-              value={participantNotes}
-              onChange={(e) => setParticipantNotes(e.target.value)}
-            />
-          </AccessibleFormField>
+          <AccessibleComposeField
+            id="notes"
+            label="Notes for providers"
+            value={participantNotes}
+            onChange={setParticipantNotes}
+            predictionContext="booking"
+            voiceDraftType="care_request"
+            rows={3}
+          />
         </div>
       ) : null}
 

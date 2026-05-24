@@ -118,6 +118,9 @@ export interface DigitalPreferences {
   reducedMotion?: boolean;
   screenReaderUser?: boolean;
   voiceControlPreferred?: boolean;
+  wordPredictionEnabled?: boolean;
+  /** User phrase bank for word prediction (max ~50). */
+  customPhrases?: string[];
   dyslexiaFriendlyMode?: boolean;
   simpleLanguageMode?: boolean;
 }

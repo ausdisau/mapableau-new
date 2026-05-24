@@ -1,6 +1,6 @@
 "use client";
 
-import { formInputClass } from "@/components/forms/AccessibleFormField";
+import { AccessibleWordPredictionField } from "@/components/accessibility/AccessibleWordPredictionField";
 import { VoiceConfidenceNotice } from "@/components/voice/VoiceConfidenceNotice";
 
 export function TranscriptReviewEditor({
@@ -8,24 +8,26 @@ export function TranscriptReviewEditor({
   onChange,
   confidence,
   label = "Edit transcript before confirming",
+  wordPredictionEnabled = true,
 }: {
   value: string;
   onChange: (value: string) => void;
   confidence?: number | null;
   label?: string;
+  wordPredictionEnabled?: boolean;
 }) {
   return (
     <div className="space-y-2">
-      <label htmlFor="voice-transcript-editor" className="block text-sm font-medium">
-        {label}
-      </label>
       <VoiceConfidenceNotice confidence={confidence} />
-      <textarea
+      <AccessibleWordPredictionField
         id="voice-transcript-editor"
-        className={`${formInputClass} min-h-[120px]`}
+        label={label}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-describedby="voice-transcript-hint"
+        onChange={onChange}
+        context="general"
+        enabled={wordPredictionEnabled}
+        rows={5}
+        describedBy="voice-transcript-hint"
       />
       <p id="voice-transcript-hint" className="text-sm text-muted-foreground">
         You can also paste text from another app (AAC) into this box.
