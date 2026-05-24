@@ -91,6 +91,9 @@ export type Permission =
   | "verification:manage:any"
   | "ndis:pricing:manage"
   | "provider:ndia:claim"
+  | "ads:manage:org"
+  | "ads:moderate:any"
+  | "ads:report:org"
   | "xero:manage"
   | "stripe:manage"
   | "route:manage"
@@ -254,6 +257,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "operator_dispatch:manage",
     "provider_academy:enroll",
     "provider:ndia:claim",
+    "ads:manage:org",
+    "ads:report:org",
   ],
   transport_operator: [
     "booking:read:any",
@@ -285,12 +290,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "employer:ats",
     "calendar:read:org",
     "message:read",
+    "ads:manage:org",
+    "ads:report:org",
   ],
   plan_manager: [
     "plan_manager:portal",
     "invoice:read:self",
     "booking:read:any",
     "notification:read:self",
+    "ads:manage:org",
+    "ads:report:org",
   ],
   mapable_admin: [
     "profile:read:any",
