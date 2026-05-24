@@ -14,7 +14,14 @@ export const mapableSectionCardClass =
   "rounded-xl border border-border/40 bg-gradient-to-br from-card via-card to-primary/5 shadow-md";
 
 export const mapableEyebrowBadgeClass =
-  "border-primary/20 bg-primary/5 text-primary";
+  "border-primary/30 bg-primary/10 font-semibold text-primary shadow-sm";
 
 export const mapableEyebrowBadgeSecondaryClass =
   "border-secondary/20 bg-secondary/5 text-secondary";
+
+/** Accessible search inputs — stronger placeholder contrast than default muted. */
+export const mapableSearchInputClass =
+  "min-h-12 w-full rounded-xl border border-input bg-background py-3 pr-3 text-base text-foreground shadow-sm outline-none transition placeholder:text-slate-500 focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60";
+
+export const mapableSearchFieldSecondaryClass =
+  "rounded-xl border border-dashed border-border/70 bg-muted/20 p-3 sm:p-4";

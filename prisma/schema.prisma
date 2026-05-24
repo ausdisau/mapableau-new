@@ -148,6 +148,99 @@ model ClaimedProvider {
   updatedAt    DateTime  @updatedAt
 }
 
+model ProviderProfile {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String?  @unique
+  legacyProviderId String?
+  suburb          String?
+  state           String?
+  postcode        String?
+  isVerified      Boolean  @default(false)
+  isSearchVisible Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  services ProviderProfileService[]
+
+  @@index([name])
+  @@index([isSearchVisible, isVerified])
+  @@map("provider_profiles")
+}
+
+model ProviderProfileService {
+  id                String          @id @default(cuid())
+  providerProfileId String
+  providerProfile   ProviderProfile @relation(fields: [providerProfileId], references: [id], onDelete: Cascade)
+  serviceCategoryId String?
+  serviceCategory   ServiceCategory? @relation(fields: [serviceCategoryId], references: [id], onDelete: SetNull)
+  name              String
+
+  @@index([providerProfileId])
+  @@map("provider_services")
+}
+
+model ServiceCategory {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  keywords  String[] @default([])
+  createdAt DateTime @default(now())
+
+  providerServices ProviderProfileService[]
+
+  @@index([name])
+  @@map("service_categories")
+}
+
+model SearchAccessibilityFeature {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  keywords  String[] @default([])
+  createdAt DateTime @default(now())
+
+  @@index([label])
+  @@map("accessibility_features")
+}
+
+model SearchableLocation {
+  id          String   @id @default(cuid())
+  displayName String
+  suburb      String?
+  state       String?
+  postcode    String?
+  country     String   @default("AU")
+  createdAt   DateTime @default(now())
+
+  @@index([suburb])
+  @@index([postcode])
+  @@index([displayName])
+  @@map("searchable_locations")
+}
+
+model PopularSearch {
+  id        String   @id @default(cuid())
+  query     String
+  context   String   @default("all")
+  weight    Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([query, context])
+  @@index([context, weight])
+  @@map("popular_searches")
+}
+
+model SearchLanguage {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  keywords  String[] @default([])
+  createdAt DateTime @default(now())
+
+  @@map("search_languages")
+}
+
 model Provider {
   id            String   @id @default(uuid())
   name          String

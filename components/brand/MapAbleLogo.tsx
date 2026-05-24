@@ -16,6 +16,7 @@ export function MapAbleLogo({
   subtitle,
   className,
   variant = "text",
+  ariaLabel = "MapAble home",
 }: {
   href?: string;
   title?: string;
@@ -23,44 +24,47 @@ export function MapAbleLogo({
   className?: string;
   /** full = brand image with wordmark; mark = icon only; text = mark + optional title */
   variant?: MapAbleLogoVariant;
+  /** Accessible name for the logo link */
+  ariaLabel?: string;
 }) {
   const linkClass = cn(
-    "inline-flex min-w-0 bg-transparent outline-none ring-offset-background transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    "inline-flex min-w-0 shrink-0 bg-transparent outline-none ring-offset-background transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
     variant === "full" ? "items-center" : "items-center gap-3",
     className,
   );
 
   if (variant === "full") {
     return (
-      <Link href={href} className={linkClass}>
+      <Link href={href} className={linkClass} aria-label={ariaLabel}>
         <Image
           src={MAPABLE_LOGO_SRC}
-          alt={MAPABLE_LOGO_ALT}
-          width={220}
-          height={120}
-          className="h-14 w-auto max-w-[min(220px,48vw)] bg-transparent object-contain object-left"
+          alt=""
+          width={280}
+          height={140}
+          className="h-[4.25rem] w-auto max-w-[min(280px,58vw)] bg-transparent object-contain object-left sm:h-[4.75rem]"
           priority
           unoptimized
+          aria-hidden
         />
       </Link>
     );
   }
 
   return (
-    <Link href={href} className={linkClass}>
+    <Link href={href} className={linkClass} aria-label={ariaLabel}>
       <Image
         src={MAPABLE_LOGO_MARK_SRC}
         alt=""
-        width={40}
-        height={44}
-        className="h-10 w-10 shrink-0 object-contain"
+        width={48}
+        height={52}
+        className="h-11 w-11 shrink-0 object-contain sm:h-12 sm:w-12"
         aria-hidden
       />
       {variant === "text" ? (
-        <span className="min-w-0 truncate font-heading text-lg font-bold tracking-tight text-foreground">
+        <span className="min-w-0 truncate font-heading text-lg font-bold tracking-tight text-foreground sm:text-xl">
           {title}
           {subtitle ? (
-            <span className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">
+            <span className="mt-0.5 hidden truncate text-xs font-normal text-muted-foreground sm:block">
               {subtitle}
             </span>
           ) : null}

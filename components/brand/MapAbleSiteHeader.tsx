@@ -53,12 +53,13 @@ export function MapAbleSiteHeader({
   return (
     <header className={mapableHeaderClass}>
       <div className={mapablePageContainerClass}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 py-3 sm:gap-4">
           <MapAbleLogo
             href={logoHref}
             title={logoTitle}
             subtitle={logoSubtitle}
             variant={logoVariant}
+            ariaLabel="MapAble home"
           />
 
           <div className="hidden items-center gap-2 md:flex">
