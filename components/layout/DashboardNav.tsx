@@ -30,6 +30,7 @@ const LINKS = [
   { href: "/dashboard/funding", label: "Funding" },
   { href: "/dashboard/invoices", label: "Invoices" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
+  { href: "/settings/security", label: "Security & MFA" },
 ];
 
 export function DashboardNav({
