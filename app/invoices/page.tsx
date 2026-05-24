@@ -7,10 +7,10 @@ import { mapableEyebrowBadgeClass, mapablePageContainerClass } from "@/lib/brand
 import { listInvoicesForUser } from "@/lib/billing/invoice-service";
 
 export const metadata = {
-  title: "Provider invoices | MapAble",
+  title: "My invoices | MapAble",
 };
 
-export default async function ProviderInvoicesPage() {
+export default async function InvoicesPage() {
   const user = await requireCurrentUser();
   const invoices = await listInvoicesForUser(user);
 
@@ -18,14 +18,14 @@ export default async function ProviderInvoicesPage() {
     <div className={mapablePageContainerClass}>
       <div className="mx-auto max-w-4xl py-8">
         <Badge variant="outline" className={mapableEyebrowBadgeClass}>
-          Provider billing
+          Billing
         </Badge>
         <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight">
-          Invoices
+          Your <span className="text-primary">invoices</span>
         </h1>
         <p className="mt-3 text-muted-foreground">
-          Issue invoices, sync to Xero, and track Stripe payments. MapAble stays
-          the source of truth.
+          View, approve, and pay invoices for your supports. MapAble is the record
+          of what you owe; card payments go through Stripe.
         </p>
         <div className="mt-10">
           <InvoiceTable
@@ -36,15 +36,12 @@ export default async function ProviderInvoicesPage() {
               totalCents: i.totalCents,
               createdAt: i.createdAt.toISOString(),
             }))}
-            basePath="/provider/invoices"
+            basePath="/invoices"
           />
         </div>
-        <p className="mt-6 flex flex-wrap gap-4 text-sm">
-          <Link href="/provider/settings/xero" className="text-primary hover:underline">
-            Xero settings
-          </Link>
-          <Link href="/provider/billing" className="text-primary hover:underline">
-            Stripe Connect
+        <p className="mt-6 text-sm">
+          <Link href="/dashboard" className="text-primary hover:underline">
+            Back to dashboard
           </Link>
         </p>
       </div>

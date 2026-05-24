@@ -542,6 +542,7 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  xeroConnection         XeroConnection?
 }
 
 model OrganisationMember {
@@ -777,15 +778,77 @@ enum FundingSourceStatus {
 
 enum InvoiceStatus {
   draft
+  awaiting_participant_approval
+  approved
+  issued
+  payment_pending
+  paid
+  partially_paid
+  sent_to_plan_manager
+  xero_sync_pending
+  xero_synced
+  overdue
+  disputed
+  void
+  refunded
   preflight_required
   preflight_failed
   approved_for_invoicing
-  xero_sync_pending
-  xero_synced
   stripe_payment_pending
-  partially_paid
-  paid
   voided
+}
+
+enum BillingEventType {
+  created
+  updated
+  issued
+  approval_requested
+  approved
+  disputed
+  voided
+  payment_pending
+  paid
+  partially_paid
+  xero_sync_started
+  xero_synced
+  xero_sync_failed
+  manual_payment
+  refunded
+  sent_to_plan_manager
+}
+
+enum InvoiceApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+enum InvoiceDisputeStatus {
+  open
+  under_review
+  resolved
+  withdrawn
+}
+
+enum StripePaymentRecordStatus {
+  pending
+  processing
+  succeeded
+  failed
+  refunded
+}
+
+enum XeroConnectionStatus {
+  active
+  disconnected
+  refresh_failed
+}
+
+enum XeroInvoiceSyncStatus {
+  pending
+  syncing
+  synced
+  failed
 }
 
 enum BillingPreflightStatus {
@@ -981,7 +1044,7 @@ model ParticipantFundingSource {
 
 model Invoice {
   id              String        @id @default(cuid())
-  invoiceNumber   String?
+  invoiceNumber   String?       @unique
   participantId   String
   participant     User          @relation("InvoiceParticipant", fields: [participantId], references: [id])
   organisationId  String?
@@ -991,13 +1054,22 @@ model Invoice {
   fundingSourceId String?
   fundingSource   ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
   status          InvoiceStatus @default(draft)
+  serviceType     String?
+  sourceType      String?
+  sourceId        String?
   issueDate       DateTime?
   dueDate         DateTime?
+  issuedAt        DateTime?
+  paidAt          DateTime?
   subtotalCents   Int           @default(0)
   taxCents        Int           @default(0)
   totalCents      Int           @default(0)
+  privatePayCents Int?
   currency        String        @default("AUD")
   notes           String?
+  ndisMetadata    Json?
+  requiresParticipantApproval Boolean @default(false)
+  xeroAccountCode String?
   createdById     String
   createdBy       User          @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
   createdAt       DateTime      @default(now())
@@ -1008,9 +1080,15 @@ model Invoice {
   preflightResults BillingPreflightResult[]
   xeroSyncRecords  XeroInvoiceSyncRecord[]
   stripePayments   StripePaymentIntentRecord[]
+  stripePaymentRecords StripePaymentRecord[]
+  billingEvents    BillingEvent[]
+  approvals        InvoiceApproval[]
+  disputes         InvoiceDispute[]
 
   @@index([participantId, status])
   @@index([organisationId])
+  @@index([invoiceNumber])
+  @@index([sourceType, sourceId])
 }
 
 model InvoiceLine {
@@ -1019,6 +1097,7 @@ model InvoiceLine {
   invoice              Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   bookingId            String?
   description          String
+  plainDescription     String?
   serviceDate          DateTime
   quantity             Decimal  @default(1)
   unitAmountCents      Int
@@ -1028,8 +1107,73 @@ model InvoiceLine {
   privatePayAmountCents Int?
   ndisClaimableAmountCents Int?
   taxCode              String?
+  xeroAccountCode      String?
+  xeroTaxType          String?
 
-  @@unique([invoiceId])
+  @@index([invoiceId])
+  @@index([supportItemCode])
+}
+
+model BillingEvent {
+  id          String           @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  eventType   BillingEventType
+  fromStatus  InvoiceStatus?
+  toStatus    InvoiceStatus?
+  actorUserId String?
+  message     String?
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+
+  @@index([invoiceId, createdAt])
+}
+
+model InvoiceApproval {
+  id            String                @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice               @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  approverUserId String
+  approverRole  String?
+  status        InvoiceApprovalStatus @default(pending)
+  notes         String?
+  decidedAt     DateTime?
+  createdAt     DateTime              @default(now())
+
+  @@index([invoiceId])
+  @@index([approverUserId])
+}
+
+model InvoiceDispute {
+  id            String              @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  raisedByUserId String
+  reason        String
+  status        InvoiceDisputeStatus @default(open)
+  resolution    String?
+  resolvedAt    DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([invoiceId])
+}
+
+model StripePaymentRecord {
+  id                      String                  @id @default(cuid())
+  invoiceId               String
+  invoice                 Invoice                 @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  stripeCheckoutSessionId String?                 @unique
+  stripePaymentIntentId   String?                 @unique
+  amountCents             Int
+  currency                String                  @default("AUD")
+  status                  StripePaymentRecordStatus @default(pending)
+  idempotencyKey          String?                 @unique
+  failureReason           String?
+  paidAt                  DateTime?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
   @@index([invoiceId])
 }
 
@@ -1087,6 +1231,24 @@ model XeroTenantConnection {
   updatedAt    DateTime @updatedAt
 }
 
+model XeroConnection {
+  id                String              @id @default(cuid())
+  organisationId    String              @unique
+  organisation        Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  tenantId          String
+  tenantName        String?
+  accessTokenEnc    String
+  refreshTokenEnc   String
+  scopes            String?
+  status            XeroConnectionStatus @default(active)
+  expiresAt         DateTime?
+  connectedByUserId String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([tenantId])
+}
+
 model XeroContactLink {
   id             String   @id @default(cuid())
   organisationId String?  @unique
@@ -1096,17 +1258,21 @@ model XeroContactLink {
 }
 
 model XeroInvoiceSyncRecord {
-  id            String   @id @default(cuid())
+  id            String              @id @default(cuid())
   invoiceId     String
-  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice       Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  organisationId String?
   xeroInvoiceId String?
-  syncStatus    String   @default("pending")
+  syncStatus    String                @default("pending")
+  payloadHash   String?
+  attemptNumber Int                 @default(1)
   lastError     String?
   syncedAt      DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
   @@index([invoiceId])
+  @@index([payloadHash])
 }
 
 model BookingTimelineEvent {
