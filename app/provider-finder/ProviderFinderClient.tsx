@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
+import { SponsoredMapListEquivalent } from "@/components/ads/SponsoredMapListEquivalent";
+import { SponsoredResultCard } from "@/components/ads/SponsoredResultCard";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
@@ -23,6 +25,8 @@ import {
   type SupportTypeId,
 } from "@/lib/provider-finder/filters";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
+import { useSponsoredAds } from "@/lib/ads/use-sponsored-ads";
+import type { SponsoredAdResult } from "@/types/ads";
 
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
@@ -97,6 +101,44 @@ export default function ProviderFinderClient() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
+
+  const accessTerms = useMemo(
+    () =>
+      accessNeeds
+        .map((id) => ACCESS_NEEDS.find((n) => n.id === id)?.label)
+        .filter(Boolean) as string[],
+    [accessNeeds],
+  );
+
+  const { ads: sponsoredFinderAds, hideAd: hideFinderAd } = useSponsoredAds({
+    surface: "provider_finder",
+    query: [query, serviceQuery, accessQuery, providerName].filter(Boolean).join(" "),
+    suburb: location,
+    categories: supportType !== "all"
+      ? SUPPORT_TYPES.find((t) => t.id === supportType)?.categories
+      : undefined,
+    accessTerms,
+    enabled: searchSubmitted,
+  });
+
+  const { ads: sponsoredMapAds, hideAd: hideMapAd } = useSponsoredAds({
+    surface: "map",
+    query: [query, serviceQuery, accessQuery].filter(Boolean).join(" "),
+    suburb: location,
+    accessTerms,
+    enabled: searchSubmitted && Boolean(userLocation),
+  });
+
+  const resolveSponsoredProvider = (ad: SponsoredAdResult): Provider | null => {
+    if (ad.providerOutletKey) {
+      return (
+        providers.find(
+          (p) => p.outletKey === ad.providerOutletKey || p.slug === ad.providerOutletKey,
+        ) ?? null
+      );
+    }
+    return null;
+  };
 
   const pageSize = 12;
 
@@ -415,8 +457,18 @@ export default function ProviderFinderClient() {
                     providers={mapProviders}
                     userPosition={userLocation}
                     centerOnProvider={selectedProvider}
+                    sponsoredAds={sponsoredMapAds}
+                    onSponsoredHidden={hideMapAd}
                   />
                 </div>
+                <SponsoredMapListEquivalent
+                  ads={sponsoredMapAds}
+                  onSelect={(ad) => {
+                    const match = resolveSponsoredProvider(ad);
+                    if (match) setSelectedProvider(match);
+                  }}
+                  onHidden={hideMapAd}
+                />
               </section>
 
               {total === 0 ? (
@@ -428,6 +480,16 @@ export default function ProviderFinderClient() {
                 </Card>
               ) : (
                 <ul className="space-y-4">
+                  {sponsoredFinderAds.map((ad) => (
+                    <li key={`sponsored-${ad.campaignId}`}>
+                      <SponsoredResultCard
+                        ad={ad}
+                        provider={resolveSponsoredProvider(ad)}
+                        onSelect={setSelectedProvider}
+                        onHidden={() => hideFinderAd(ad.campaignId)}
+                      />
+                    </li>
+                  ))}
                   {visible.map((p) => (
                     <li key={p.id}>
                       <ProviderFinderResultCard
