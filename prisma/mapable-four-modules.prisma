@@ -1,0 +1,578 @@
+// MapAble Four Modules — Support Coordination, Plan Manager, Family/Nominee, Home Modifications
+// Merged into schema.prisma via append
+
+// --- Shared audit extensions ---
+
+model DataAccessLog {
+  id            String          @id @default(cuid())
+  actorUserId   String
+  actorRole     MapAbleUserRole?
+  participantId String?
+  resourceType  String
+  resourceId    String?
+  action        String
+  consentStatus String          @default("unknown")
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+
+  @@index([participantId])
+  @@index([actorUserId])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+  @@map("data_access_logs")
+}
+
+model NotificationEvent {
+  id            String   @id @default(cuid())
+  userId        String
+  category      String
+  eventType     String
+  title         String
+  body          String
+  entityType    String?
+  entityId      String?
+  participantId String?
+  readAt        DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([participantId])
+  @@index([createdAt])
+  @@map("notification_events")
+}
+
+// --- Module 1: Support Coordination ---
+
+model SupportCoordinatorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  organisationId  String?
+  displayName     String
+  bio             String?
+  regions         String[] @default([])
+  verificationStatus String @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([organisationId])
+  @@map("support_coordinator_profiles")
+}
+
+enum SupportCoordinationReferralStatus {
+  draft
+  pending_participant_approval
+  approved
+  sent_to_provider
+  declined
+  converted_to_booking
+  closed
+}
+
+model SupportCoordinationNote {
+  id            String   @id @default(cuid())
+  participantId String
+  coordinatorId String
+  relationshipId String?
+  content       String
+  visibility    String   @default("coordinator_participant")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([participantId])
+  @@index([coordinatorId])
+  @@index([createdAt])
+  @@map("support_coordination_notes")
+}
+
+model SupportCoordinationReferral {
+  id              String                          @id @default(cuid())
+  participantId   String
+  coordinatorId   String
+  providerId      String?
+  organisationId  String?
+  title           String
+  description     String?
+  status          SupportCoordinationReferralStatus @default(draft)
+  participantApprovedAt DateTime?
+  bookingId       String?
+  metadata        Json?
+  createdAt       DateTime                        @default(now())
+  updatedAt       DateTime                        @updatedAt
+
+  events ReferralEvent[]
+
+  @@index([participantId])
+  @@index([coordinatorId])
+  @@index([providerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("support_coordination_referrals")
+}
+
+model ReferralEvent {
+  id         String   @id @default(cuid())
+  referralId String
+  referral   SupportCoordinationReferral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  actorUserId String?
+  eventType  String
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@index([referralId])
+  @@index([createdAt])
+  @@map("referral_events")
+}
+
+model GoalProgressUpdate {
+  id            String   @id @default(cuid())
+  participantId String
+  coordinatorId String?
+  goalTitle     String
+  progressPct   Int      @default(0)
+  notes         String?
+  status        String   @default("in_progress")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([participantId])
+  @@index([coordinatorId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("goal_progress_updates")
+}
+
+model PlanReviewReminder {
+  id            String   @id @default(cuid())
+  participantId String
+  coordinatorId String?
+  reviewDate    DateTime
+  title         String
+  notes         String?
+  status        String   @default("scheduled")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([participantId])
+  @@index([coordinatorId])
+  @@index([reviewDate])
+  @@index([status])
+  @@map("plan_review_reminders")
+}
+
+// --- Module 2: Plan Manager ---
+
+model PlanManagerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  organisationId  String?
+  displayName     String
+  abn             String?
+  contactEmail    String?
+  verificationStatus String @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([organisationId])
+  @@map("plan_manager_profiles")
+}
+
+enum PlanManagerInboxStatus {
+  pending
+  in_review
+  needs_information
+  approved
+  disputed
+  processing
+  paid
+  closed
+}
+
+model PlanManagerInvoiceInbox {
+  id            String                 @id @default(cuid())
+  invoiceId     String
+  planManagerId String
+  participantId String
+  status        PlanManagerInboxStatus @default(pending)
+  claimWarnings Json?
+  ndisLineItems Json?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([invoiceId, planManagerId])
+  @@index([planManagerId])
+  @@index([participantId])
+  @@index([invoiceId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("plan_manager_invoice_inbox")
+}
+
+model InvoiceReviewEvent {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  planManagerId String
+  actorUserId   String
+  eventType     String
+  previousStatus String?
+  newStatus     String?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([planManagerId])
+  @@index([createdAt])
+  @@map("invoice_review_events")
+}
+
+enum PaymentProcessingStatus {
+  not_started
+  processing
+  paid
+  failed
+  disputed
+}
+
+model PaymentProcessingRecord {
+  id            String                  @id @default(cuid())
+  invoiceId     String
+  planManagerId String
+  status        PaymentProcessingStatus @default(not_started)
+  processedAt   DateTime?
+  reference     String?
+  notes         String?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  @@index([invoiceId])
+  @@index([planManagerId])
+  @@index([status])
+  @@map("payment_processing_records")
+}
+
+model PlanManagerNote {
+  id            String   @id @default(cuid())
+  invoiceId     String?
+  planManagerId String
+  participantId String
+  content       String
+  createdAt     DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([planManagerId])
+  @@index([participantId])
+  @@map("plan_manager_notes")
+}
+
+// --- Module 3: Family / Nominee ---
+
+enum NomineeLinkStatus {
+  pending
+  active
+  revoked
+}
+
+enum NomineePermissionScope {
+  view_dashboard
+  view_bookings
+  create_booking_draft
+  approve_invoice
+  view_documents
+  message_providers
+  view_emergency_profile
+  manage_notifications
+  view_service_history
+  support_plan_review
+}
+
+model NomineeProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  displayName String
+  relationship String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("nominee_profiles")
+}
+
+model ParticipantNomineeLink {
+  id            String            @id @default(cuid())
+  participantId String
+  nomineeId     String
+  status        NomineeLinkStatus @default(pending)
+  invitedById   String?
+  acceptedAt    DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  permissions NomineePermission[]
+
+  @@unique([participantId, nomineeId])
+  @@index([participantId])
+  @@index([nomineeId])
+  @@index([status])
+  @@map("participant_nominee_links")
+}
+
+model NomineePermission {
+  id     String                 @id @default(cuid())
+  linkId String
+  link   ParticipantNomineeLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  scope  NomineePermissionScope
+  grantedAt DateTime            @default(now())
+  revokedAt DateTime?
+
+  @@unique([linkId, scope])
+  @@index([linkId])
+  @@map("nominee_permissions")
+}
+
+model NomineeActionLog {
+  id            String   @id @default(cuid())
+  linkId        String
+  nomineeId     String
+  participantId String
+  actionType    String
+  entityType    String?
+  entityId      String?
+  details       Json?
+  createdAt     DateTime @default(now())
+
+  @@index([linkId])
+  @@index([nomineeId])
+  @@index([participantId])
+  @@index([createdAt])
+  @@map("nominee_action_logs")
+}
+
+model FamilyNotification {
+  id            String   @id @default(cuid())
+  userId        String
+  participantId String
+  title         String
+  body          String
+  category      String   @default("general")
+  readAt        DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([participantId])
+  @@index([createdAt])
+  @@map("family_notifications")
+}
+
+model SupportedDecisionRecord {
+  id            String   @id @default(cuid())
+  participantId String
+  supporterId   String
+  linkId        String?
+  decisionType  String
+  summary       String
+  participantConfirmed Boolean @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([participantId])
+  @@index([supporterId])
+  @@index([createdAt])
+  @@map("supported_decision_records")
+}
+
+// --- Module 4: Home Modifications ---
+
+enum HomeModificationRequestStatus {
+  draft
+  submitted
+  assessment_booked
+  quotes_requested
+  quote_accepted
+  in_progress
+  completed
+  cancelled
+}
+
+model HomeModificationRequest {
+  id            String                        @id @default(cuid())
+  participantId String
+  title         String
+  description   String?
+  addressSummary String?
+  status        HomeModificationRequestStatus @default(draft)
+  fundingNotes  String?
+  consentDocumentAccess Json?
+  createdAt     DateTime                      @default(now())
+  updatedAt     DateTime                      @updatedAt
+
+  accessIssues HomeAccessIssue[]
+  assessments  HomeModificationAssessment[]
+  quotes       HomeModificationQuote[]
+  projects     HomeModificationProject[]
+  documents    HomeModificationDocument[]
+
+  @@index([participantId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("home_modification_requests")
+}
+
+model HomeAccessIssue {
+  id        String   @id @default(cuid())
+  requestId String
+  request   HomeModificationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  area      String
+  issueType String
+  severity  String   @default("moderate")
+  description String?
+  createdAt DateTime @default(now())
+
+  @@index([requestId])
+  @@map("home_access_issues")
+}
+
+model HomeModificationAssessment {
+  id            String   @id @default(cuid())
+  requestId     String
+  request       HomeModificationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  assessorId    String?
+  bookingId     String?
+  scheduledAt   DateTime?
+  status        String   @default("pending")
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([requestId])
+  @@index([assessorId])
+  @@index([bookingId])
+  @@map("home_modification_assessments")
+}
+
+enum HomeModificationQuoteStatus {
+  requested
+  received
+  accepted
+  declined
+  expired
+}
+
+model HomeModificationQuote {
+  id            String                      @id @default(cuid())
+  requestId     String
+  request       HomeModificationRequest     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  providerId    String
+  organisationId String?
+  title         String
+  totalCents    Int                         @default(0)
+  breakdownJson Json?
+  status        HomeModificationQuoteStatus @default(requested)
+  validUntil    DateTime?
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+
+  @@index([requestId])
+  @@index([providerId])
+  @@index([status])
+  @@map("home_modification_quotes")
+}
+
+enum HomeModificationProjectStatus {
+  planning
+  assessment
+  quoting
+  approved
+  installation
+  completed
+  on_hold
+}
+
+model HomeModificationProject {
+  id            String                        @id @default(cuid())
+  requestId     String
+  request       HomeModificationRequest       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  participantId String
+  providerId    String?
+  title         String
+  status        HomeModificationProjectStatus @default(planning)
+  fundingNotes  String?
+  invoiceId     String?
+  createdAt     DateTime                      @default(now())
+  updatedAt     DateTime                      @updatedAt
+
+  milestones ProjectMilestone[]
+
+  @@index([requestId])
+  @@index([participantId])
+  @@index([providerId])
+  @@index([status])
+  @@index([invoiceId])
+  @@map("home_modification_projects")
+}
+
+enum ProjectMilestoneStatus {
+  pending
+  in_progress
+  completed
+  blocked
+}
+
+model ProjectMilestone {
+  id          String                 @id @default(cuid())
+  projectId   String
+  project     HomeModificationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  sortOrder   Int                    @default(0)
+  status      ProjectMilestoneStatus @default(pending)
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@map("project_milestones")
+}
+
+enum HomeModificationDocumentVisibility {
+  private_to_participant
+  shared_with_coordinator
+  shared_with_provider
+  shared_with_plan_manager
+}
+
+model HomeModificationDocument {
+  id            String                             @id @default(cuid())
+  requestId     String
+  request       HomeModificationRequest            @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  participantId String
+  uploadedById  String
+  fileName      String
+  mimeType      String?
+  storageKey    String?
+  documentType  String                             @default("photo")
+  visibility    HomeModificationDocumentVisibility @default(private_to_participant)
+  createdAt     DateTime                           @default(now())
+
+  @@index([requestId])
+  @@index([participantId])
+  @@index([uploadedById])
+  @@map("home_modification_documents")
+}
+
+model HomeModificationProviderProfile {
+  id              String   @id @default(cuid())
+  organisationId  String   @unique
+  displayName     String
+  specialisations String[] @default([])
+  regions         String[] @default([])
+  verificationStatus String @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organisationId])
+  @@index([verificationStatus])
+  @@map("home_modification_provider_profiles")
+}

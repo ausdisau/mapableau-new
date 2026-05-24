@@ -214,6 +214,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "profile:read:self",
     "booking:read:self",
     "notification:read:self",
+    "booking:create",
   ],
   support_coordinator: [
     "profile:read:any",
