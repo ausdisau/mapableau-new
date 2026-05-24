@@ -1,23 +1,34 @@
 import { Suspense } from "react";
 
-import { CorePageHeader } from "@/components/core/CorePageHeader";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { getConfiguredOAuthProviderIds } from "@/lib/auth/oauth-providers";
 
-import LoginClient from "./LoginClient";
+export const metadata = {
+  title: "Sign in | MapAble",
+  description: "Sign in to MapAble Core for care, transport and support.",
+};
 
 export default function LoginPage() {
+  const oauthProviders = getConfiguredOAuthProviderIds();
+
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
-      <CorePageHeader
+    <AuthShell productMessage="Welcome back. Your support, transport and care tools are ready when you are.">
+      <AuthCard
         title="Sign in"
-        description="Access your MapAble Core dashboard, bookings and messages."
-      />
-      <Suspense
-        fallback={
-          <p className="text-sm text-muted-foreground">Loading sign-in form…</p>
-        }
+        description="Use your email or a connected Google or Microsoft account. Social sign-in does not set your provider or admin permissions."
       >
-        <LoginClient />
-      </Suspense>
-    </div>
+        <Suspense
+          fallback={
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading sign-in form…
+            </p>
+          }
+        >
+          <LoginForm oauthProviders={oauthProviders} />
+        </Suspense>
+      </AuthCard>
+    </AuthShell>
   );
 }

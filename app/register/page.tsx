@@ -1,77 +1,24 @@
-"use client";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+import { getConfiguredOAuthProviderIds } from "@/lib/auth/oauth-providers";
 
-import { signIn } from "next-auth/react";
-import { useState } from "react";
+export const metadata = {
+  title: "Create account | MapAble",
+  description: "Create your MapAble account and choose how you use the platform.",
+};
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
-      }
-
-      // Automatically sign in after registration
-      await signIn("credentials", {
-        email,
-        password,
-        callbackUrl: "/dashboard",
-      });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong");
-      }
-    }
-  };
+  const oauthProviders = getConfiguredOAuthProviderIds();
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto mt-10 flex flex-col gap-4"
-    >
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      {error && <p className="text-red-500">{error}</p>}
-      <button type="submit" className="bg-blue-600 text-white py-2 rounded">
-        Register
-      </button>
-    </form>
+    <AuthShell productMessage="Join MapAble — accessible care, transport and support in one place.">
+      <AuthCard
+        title="Create your account"
+        description="Tell us how you use MapAble. We only ask for basic details now — not NDIS plans or health records."
+      >
+        <RegisterForm oauthProviders={oauthProviders} />
+      </AuthCard>
+    </AuthShell>
   );
 }
