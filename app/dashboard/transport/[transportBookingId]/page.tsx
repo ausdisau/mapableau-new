@@ -1,3 +1,5 @@
+import { AccessibleMap } from "@/components/geo/AccessibleMap";
+import { TripStatusTracker } from "@/components/transport/TripStatusTracker";
 import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
 import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
 import { requireAuth } from "@/lib/auth/guards";
@@ -27,11 +29,32 @@ export default async function TransportDetailPage({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">Transport trip</h1>
       <StatusTextBadge status={booking.status} />
-      <p>{booking.pickupAddress} → {booking.dropoffAddress}</p>
+      <TripStatusTracker
+        status={booking.status}
+        pickupAddress={booking.pickupAddress}
+        dropoffAddress={booking.dropoffAddress}
+      />
+      <AccessibleMap
+        pickupLabel={booking.pickupAddress}
+        dropoffLabel={booking.dropoffAddress}
+        center={
+          booking.pickupLat && booking.pickupLng
+            ? [booking.pickupLng, booking.pickupLat]
+            : undefined
+        }
+      />
       <VehicleSuitabilityWarning warnings={warnings} />
+      {booking.bookingId ? (
+        <a
+          href={`/dashboard/bookings/${booking.bookingId}`}
+          className="text-sm font-semibold text-primary hover:underline"
+        >
+          View booking timeline
+        </a>
+      ) : null}
     </div>
   );
 }
