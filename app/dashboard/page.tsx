@@ -26,6 +26,16 @@ export default async function DashboardPage() {
           <strong>{roleLabel(user.primaryRole)}</strong>. Manage your profile,
           accessibility preferences, consent and bookings from here.
         </p>
+        {user.primaryRole === "participant" || user.roles.includes("participant") ? (
+          <p className="mt-3">
+            <Link
+              href="/participant"
+              className="text-sm font-semibold text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Open your participant home →
+            </Link>
+          </p>
+        ) : null}
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

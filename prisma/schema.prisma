@@ -81,6 +81,9 @@ model User {
   serviceAgreementsCreated  ServiceAgreement[] @relation("ServiceAgreementCreatedBy")
   attestationsAsActor       Attestation[]      @relation("AttestationActor")
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
+  savedProviders            ParticipantSavedProvider[]
+  workerPreferences         ParticipantWorkerPreference[] @relation("ParticipantWorkerPrefs")
+  preferredWorkerFor        ParticipantWorkerPreference[] @relation("PreferredWorkerUser")
 
   billingAccounts           BillingAccount[]       @relation("BillingAccounts")
   billingFundingSources     BillingFundingSource[] @relation("BillingFundingSources")
@@ -1850,6 +1853,34 @@ model SavedProviderSearch {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model ParticipantSavedProvider {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  providerName  String
+  providerSlug  String?
+  providerRefId String?
+  source        String   @default("directory")
+  createdAt     DateTime @default(now())
+
+  @@index([participantId])
+  @@map("saved_providers")
+}
+
+model ParticipantWorkerPreference {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation("ParticipantWorkerPrefs", fields: [participantId], references: [id], onDelete: Cascade)
+  workerUserId  String
+  workerUser    User     @relation("PreferredWorkerUser", fields: [workerUserId], references: [id], onDelete: Cascade)
+  label         String?
+  createdAt     DateTime @default(now())
+
+  @@unique([participantId, workerUserId])
+  @@index([participantId])
+  @@map("participant_worker_preferences")
 }
 
 model TripTrackingSession {
