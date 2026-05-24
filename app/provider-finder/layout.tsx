@@ -1,7 +1,8 @@
+import type { Metadata } from "next";
+
 import { MapAbleMarketingFooter } from "@/components/brand/MapAbleMarketingFooter";
 import { MapAbleMarketingHeader } from "@/components/brand/MapAbleMarketingHeader";
 
-import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "MapAble Provider Finder | Find accessible disability support",

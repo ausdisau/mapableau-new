@@ -13,7 +13,6 @@ import { ProviderFinderMapPanel } from "@/components/provider-finder/ProviderFin
 import { ProviderFinderNoResults } from "@/components/provider-finder/ProviderFinderNoResults";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
-import { SAMPLE_SPONSORED_PARTNERS } from "@/lib/provider-finder/mock-data";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -26,6 +25,7 @@ import {
   SUPPORT_TYPES,
   type SupportTypeId,
 } from "@/lib/provider-finder/filters";
+import { SAMPLE_SPONSORED_PARTNERS } from "@/lib/provider-finder/mock-data";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
 import { mapOutletsToProviders } from "./outletToProvider";

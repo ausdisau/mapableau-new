@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { MapAbleLogo } from "@/components/marketing/mapable/MapAbleLogo";
 import { FooterPartnerStrip } from "@/components/marketing/mapable/FooterPartnerStrip";
 import { FooterRegistrationDetails } from "@/components/marketing/mapable/FooterRegistrationDetails";
+import { MapAbleLogo } from "@/components/marketing/mapable/MapAbleLogo";
 import {
   MAPABLE_FOOTER_POSITIONING,
   MAPABLE_LOCATION,

@@ -17,7 +17,7 @@ export function FooterPartnerStrip() {
         Community partners
         <SponsoredBadge label="Community partner" />
       </h2>
-      <ul className="mt-4 space-y-3" role="list">
+      <ul className="mt-4 space-y-3">
         {SAMPLE_SPONSORED_PARTNERS.map((p) => (
           <li key={p.id} className="mapable-soft text-sm text-slate-600">
             <span className="font-medium text-mapable-navy">{p.title}</span>

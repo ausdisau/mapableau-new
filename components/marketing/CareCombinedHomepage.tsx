@@ -4,17 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { MapAbleButton } from "@/components/marketing/mapable/MapAbleButton";
 import { AskMapAbleTrigger } from "@/components/marketing/mapable/AskMapAbleTrigger";
+import { MapAbleButton } from "@/components/marketing/mapable/MapAbleButton";
 import { SearchInput } from "@/components/marketing/mapable/SearchInput";
 import { SectionEyebrow } from "@/components/marketing/mapable/SectionEyebrow";
 import {
   SponsoredPartnerStrip,
   type SponsoredPartner,
 } from "@/components/marketing/mapable/SponsoredPartnerStrip";
-import { TrustMetricCard } from "@/components/marketing/mapable/TrustMetricCard";
-import { TrustAndSafetyBand } from "@/components/marketing/mapable/trust/TrustAndSafetyBand";
 import { PrivacyNotice } from "@/components/marketing/mapable/trust/PrivacyNotice";
+import { TrustAndSafetyBand } from "@/components/marketing/mapable/trust/TrustAndSafetyBand";
+import { TrustMetricCard } from "@/components/marketing/mapable/TrustMetricCard";
 import { WavyText } from "@/components/marketing/mapable/WavyText";
 import { MAPABLE_POSITIONING } from "@/lib/brand/tokens";
 import { SAMPLE_SPONSORED_PARTNERS } from "@/lib/provider-finder/mock-data";
@@ -114,7 +114,7 @@ export function CareCombinedHomepage() {
                 Why MapAble is different
               </MapAbleButton>
             </div>
-            <ul className="mt-6 flex flex-wrap gap-2" role="list" aria-label="Support areas">
+            <ul className="mt-6 flex flex-wrap gap-2" aria-label="Support areas">
               {SUPPORT_AREAS.map((a) => (
                 <li key={a.label}>
                   <Link

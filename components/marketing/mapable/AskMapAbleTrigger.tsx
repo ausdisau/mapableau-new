@@ -64,14 +64,17 @@ export function AskMapAbleTrigger({
         <div
           id="ask-mapable-panel"
           role="dialog"
+          aria-modal="true"
           aria-labelledby="ask-mapable-title"
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-mapable-navy/40 p-4 sm:items-center"
-          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center"
         >
-          <div
-            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <button
+            type="button"
+            className="absolute inset-0 bg-mapable-navy/40"
+            aria-label="Close Ask MapAble panel"
+            onClick={() => setOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
             <h2 id="ask-mapable-title" className="mapable-display text-xl font-bold text-mapable-navy">
               Ask MapAble
             </h2>

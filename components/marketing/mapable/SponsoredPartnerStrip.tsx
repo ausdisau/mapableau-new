@@ -1,5 +1,5 @@
-import { SponsoredCard } from "./SponsoredCard";
 import { SectionEyebrow } from "./SectionEyebrow";
+import { SponsoredCard } from "./SponsoredCard";
 
 export type SponsoredPartner = {
   id: string;
@@ -32,7 +32,7 @@ export function SponsoredPartnerStrip({
           Paid or partner placements are labelled separately from organic search results and
           verified recommendations.
         </p>
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {partners.map((p) => (
             <li key={p.id}>
               <SponsoredCard

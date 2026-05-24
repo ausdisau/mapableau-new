@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import type { AutocompleteSuggestion } from "@/types/search";
 
-import { prisma } from "@/lib/prisma";
 
 export async function searchServiceCategories(
   query: string,

@@ -1,5 +1,5 @@
-import { TrustMetricCard } from "../TrustMetricCard";
 import { SectionEyebrow } from "../SectionEyebrow";
+import { TrustMetricCard } from "../TrustMetricCard";
 
 const TRUST_POINTS = [
   {
