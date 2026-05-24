@@ -32,12 +32,7 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-/** Format ABN as XX XXX XXX XXX (Australian standard) */
-function formatAbn(abn: string): string {
-  const digits = abn.replace(/\D/g, "");
-  if (digits.length !== 11) return abn;
-  return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 11)}`;
-}
+import { formatAbn } from "@/lib/abn-lookup/format-abn";
 
 function formatLocation(provider: ProviderWithRelations): string | null {
   const loc = provider.locations[0];

@@ -33,7 +33,7 @@ export function OrganisationVerificationPanel({
         Verification status
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Manual verification only in Phase 1. Changes are audit logged.
+        Automated ABN checks provide evidence; final status is set by admin. Changes are audit logged.
       </p>
       <div className="mt-3 flex items-center gap-2">
         <span className="text-sm font-medium">Current:</span>

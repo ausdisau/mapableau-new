@@ -1368,6 +1368,7 @@ model WorkerProfile {
   wwccStatus              WorkerCredentialStatus @default(not_provided)
   firstAidStatus          WorkerCredentialStatus @default(not_provided)
   insuranceStatus         WorkerCredentialStatus @default(not_provided)
+  contractorAbn           String?
   verificationStatus      WorkerCredentialStatus @default(pending_review)
   active                  Boolean                @default(true)
   createdAt               DateTime               @default(now())
