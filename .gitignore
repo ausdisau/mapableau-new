@@ -77,3 +77,6 @@ yarn.lock
 # Logs
 logs
 *.log
+
+# Voice recognition (local audio staging; deleted after processing by default)
+.data/voice-audio/

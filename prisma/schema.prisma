@@ -74,6 +74,9 @@ model User {
   jobApplications           JobApplication[]   @relation("JobApplicationParticipant")
   calendarEvents            CalendarEvent[]    @relation("CalendarEventParticipant")
   calendarEventsCreated     CalendarEvent[]    @relation("CalendarEventCreatedBy")
+  voiceSessions             VoiceSession[]
+  voiceEvents               VoiceEvent[]
+  voiceUserPreference       VoiceUserPreference?
   matchRunsRequested        MatchRun[]         @relation("MatchRunRequestedBy")
   incidentsReported         IncidentReport[]   @relation("IncidentReportedBy")
   incidentsOwned            IncidentReport[]   @relation("IncidentAdminOwner")
@@ -4762,4 +4765,147 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- Voice recognition (optional, privacy-conscious STT) ---
+
+enum VoiceDraftType {
+  care_request
+  transport_trip
+  care_transport_bundle
+  provider_message
+  service_log
+  incident_draft
+  search_query
+}
+
+enum VoiceSessionStatus {
+  created
+  recording
+  transcribing
+  review
+  completed
+  discarded
+  error
+}
+
+enum VoiceTranscriptStatus {
+  pending_review
+  confirmed
+  discarded
+}
+
+enum VoiceIntentDraftStatus {
+  draft
+  applied
+  discarded
+}
+
+enum VoiceAudioRetention {
+  ephemeral
+  consented_storage
+}
+
+enum VoiceAdapterKind {
+  mock
+  speaches
+  faster_whisper
+  whisper_cpp
+  vosk
+}
+
+enum VoiceEventType {
+  session_created
+  recording_started
+  recording_stopped
+  transcription_started
+  transcription_completed
+  transcription_failed
+  transcript_edited
+  transcript_confirmed
+  transcript_discarded
+  draft_created
+  draft_discarded
+  audio_deleted
+  preference_updated
+}
+
+model VoiceSession {
+  id                String              @id @default(cuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisationId    String?
+  intendedDraftType VoiceDraftType
+  status            VoiceSessionStatus  @default(created)
+  adapterUsed       VoiceAdapterKind?
+  audioRetention    VoiceAudioRetention @default(ephemeral)
+  audioFileKey      String?
+  errorMessage      String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  transcripts VoiceTranscript[]
+  events      VoiceEvent[]
+
+  @@index([userId, createdAt])
+}
+
+model VoiceTranscript {
+  id               String                @id @default(cuid())
+  sessionId        String
+  session          VoiceSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  rawTranscript    String
+  editedTranscript String?
+  confidence       Float?
+  language         String?
+  status           VoiceTranscriptStatus @default(pending_review)
+  adapterUsed      VoiceAdapterKind?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  intentDrafts VoiceIntentDraft[]
+  events       VoiceEvent[]
+
+  @@index([sessionId])
+}
+
+model VoiceIntentDraft {
+  id               String                 @id @default(cuid())
+  transcriptId     String
+  transcript       VoiceTranscript        @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  draftType        VoiceDraftType
+  draftPayloadJson Json
+  status           VoiceIntentDraftStatus @default(draft)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([transcriptId])
+}
+
+model VoiceEvent {
+  id           String          @id @default(cuid())
+  sessionId    String?
+  session      VoiceSession?   @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  transcriptId String?
+  transcript   VoiceTranscript? @relation(fields: [transcriptId], references: [id], onDelete: SetNull)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType    VoiceEventType
+  payloadJson  Json?
+  createdAt    DateTime        @default(now())
+
+  @@index([sessionId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model VoiceUserPreference {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voiceEnabled          Boolean  @default(true)
+  preferredAdapter      VoiceAdapterKind?
+  consentThirdPartyStt  Boolean  @default(false)
+  storeAudioAfterTranscribe Boolean @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
