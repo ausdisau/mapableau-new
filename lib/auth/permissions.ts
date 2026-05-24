@@ -76,6 +76,9 @@ export type Permission =
   | "incident:create"
   | "incident:read:self"
   | "incident:manage:any"
+  | "emergency:read:self"
+  | "emergency:manage:self"
+  | "emergency:manage:any"
   | "agreement:read:self"
   | "agreement:manage:org"
   | "agreement:manage:any"
@@ -202,6 +205,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "timesheet:approve:self",
     "incident:create",
     "incident:read:self",
+    "emergency:read:self",
+    "emergency:manage:self",
     "agreement:read:self",
     "attestation:read:self",
     "data_vault:self",
@@ -254,6 +259,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "operator_dispatch:manage",
     "provider_academy:enroll",
     "provider:ndia:claim",
+    "emergency:read:self",
+    "emergency:manage:self",
   ],
   transport_operator: [
     "booking:read:any",
@@ -324,6 +331,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "search:providers",
     "tracking:update:admin",
     "incident:manage:any",
+    "emergency:read:self",
+    "emergency:manage:self",
+    "emergency:manage:any",
     "agreement:manage:any",
     "ndis:manage",
     "contracts:manage",
