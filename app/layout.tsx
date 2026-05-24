@@ -1,5 +1,4 @@
 import "@/app/index.css";
-import "leaflet/dist/leaflet.css";
 
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 

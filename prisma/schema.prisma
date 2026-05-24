@@ -25,7 +25,7 @@ model User {
   preferredContactMethod PreferredContactMethod @default(email)
   primaryRole            MapAbleUserRole    @default(participant)
   worker                 Worker?
-  passwordHash           String
+  passwordHash           String?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
@@ -87,6 +87,14 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+  advertiserProfiles        AdvertiserProfile[]    @relation("AdvertiserProfileOwner")
+  adCampaignsCreated        AdCampaign[]           @relation("AdCampaignCreator")
+  adReviewEvents            AdReviewEvent[]        @relation("AdReviewReviewer")
+  adUserActions             AdUserAction[]         @relation("AdUserActionUser")
+  authIdentityLinks         AuthIdentityLink[]
+  profileOnboardingStatus   ProfileOnboardingStatus?
+  authBridgeEvents          AuthBridgeEvent[]
+  wixMemberLinks            WixMemberLink[]
 }
 
 model Worker {
@@ -542,6 +550,8 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  advertiserProfile      AdvertiserProfile?
+  adCampaigns            AdCampaign[]
 }
 
 model OrganisationMember {
@@ -4762,4 +4772,284 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// Sponsored listings and advertising layer
+
+enum AdType {
+  sponsored_provider_pin
+  sponsored_provider_card
+  local_campaign_banner
+  sponsored_event
+  sponsored_marketplace_listing
+  sponsored_service_zone
+}
+
+enum AdCampaignStatus {
+  draft
+  pending_review
+  approved
+  active
+  paused
+  rejected
+  suspended
+  ended
+}
+
+enum AdReviewDecision {
+  pending
+  approved
+  rejected
+  changes_requested
+}
+
+enum AdEventType {
+  impression
+  click
+  map_pin_opened
+  cta_clicked
+  booking_started
+  booking_completed
+  dismissed
+  reported
+}
+
+enum AdBudgetEventType {
+  spend
+  refund
+  adjustment
+}
+
+enum AdTargetingRuleKind {
+  service_category
+  suburb_postcode
+  map_viewport
+  access_feature
+  provider_finder_context
+  event_category
+}
+
+enum AdPlacementSurface {
+  map
+  provider_finder
+  marketplace
+  events
+}
+
+model AdvertiserProfile {
+  id             String       @id @default(cuid())
+  organisationId String       @unique
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  ownerUserId    String
+  owner          User         @relation("AdvertiserProfileOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  displayName    String
+  contactEmail   String?
+  status         String       @default("active")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  campaigns AdCampaign[]
+
+  @@index([ownerUserId])
+  @@map("advertiser_profiles")
+}
+
+model AdCampaign {
+  id                  String           @id @default(cuid())
+  advertiserProfileId String
+  advertiserProfile   AdvertiserProfile @relation(fields: [advertiserProfileId], references: [id], onDelete: Cascade)
+  organisationId      String
+  organisation        Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name                String
+  adType              AdType
+  status              AdCampaignStatus @default(draft)
+  reviewStatus        AdReviewDecision @default(pending)
+  dailyBudgetCents    Int              @default(0)
+  totalBudgetCents    Int              @default(0)
+  spentBudgetCents    Int              @default(0)
+  bidAmountCents      Int              @default(0)
+  startsAt            DateTime?
+  endsAt              DateTime?
+  createdById         String
+  createdBy           User             @relation("AdCampaignCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  creatives       AdCreative[]
+  targetingRules  AdTargetingRule[]
+  events          AdEvent[]
+  budgetEvents    AdBudgetEvent[]
+  reviewEvents    AdReviewEvent[]
+  userActions     AdUserAction[]
+
+  @@index([organisationId, status])
+  @@index([adType, status, reviewStatus])
+  @@map("ad_campaigns")
+}
+
+model AdCreative {
+  id                String     @id @default(cuid())
+  campaignId        String
+  campaign          AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  headline          String
+  description       String?
+  ctaLabel          String?
+  ctaUrl            String?
+  providerProfileId String?
+  providerOutletKey String?
+  latitude          Float?
+  longitude         Float?
+  imageUrl          String?
+  isActive          Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([campaignId])
+  @@map("ad_creatives")
+}
+
+model AdTargetingRule {
+  id         String              @id @default(cuid())
+  campaignId String
+  campaign   AdCampaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  ruleKind   AdTargetingRuleKind
+  ruleValue  Json
+  createdAt  DateTime            @default(now())
+
+  @@index([campaignId])
+  @@map("ad_targeting_rules")
+}
+
+model AdEvent {
+  id               String              @id @default(cuid())
+  campaignId       String
+  campaign         AdCampaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creativeId       String?
+  eventType        AdEventType
+  placementSurface AdPlacementSurface?
+  sessionToken     String?
+  userId           String?
+  metadata         Json?
+  createdAt        DateTime            @default(now())
+
+  @@index([campaignId, eventType, createdAt])
+  @@index([sessionToken])
+  @@map("ad_events")
+}
+
+model AdBudgetEvent {
+  id          String            @id @default(cuid())
+  campaignId  String
+  campaign    AdCampaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  eventType   AdBudgetEventType
+  amountCents Int
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+
+  @@index([campaignId, createdAt])
+  @@map("ad_budget_events")
+}
+
+model AdReviewEvent {
+  id         String           @id @default(cuid())
+  campaignId String
+  campaign   AdCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User             @relation("AdReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  decision   AdReviewDecision
+  notes      String?
+  createdAt  DateTime         @default(now())
+
+  @@index([campaignId, createdAt])
+  @@map("ad_review_events")
+}
+
+model AdUserAction {
+  id           String     @id @default(cuid())
+  campaignId   String
+  campaign     AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  actionType   String
+  sessionToken String?
+  userId       String?
+  user         User?      @relation("AdUserActionUser", fields: [userId], references: [id], onDelete: SetNull)
+  reason       String?
+  createdAt    DateTime   @default(now())
+
+  @@index([campaignId, actionType])
+  @@index([sessionToken, userId])
+  @@map("ad_user_actions")
+}
+
+// Auth0 / Wix identity bridge (Australian Disability Ltd login.ad.org.au)
+
+enum OnboardingStatus {
+  not_started
+  role_selection
+  in_progress
+  completed
+  pending_verification
+}
+
+model AuthIdentityLink {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      User     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  auth0UserId  String   @unique
+  provider     String
+  email        String?
+  linkedAt     DateTime @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([profileId])
+  @@index([email])
+  @@map("auth_identity_links")
+}
+
+model AuthBridgeEvent {
+  id         String   @id @default(cuid())
+  profileId  String?
+  profile    User?    @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  eventType  String
+  source     String
+  provider   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([profileId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("auth_bridge_events")
+}
+
+model ProfileOnboardingStatus {
+  id               String           @id @default(cuid())
+  profileId        String           @unique
+  profile          User             @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  selectedRole     String?
+  onboardingStatus OnboardingStatus @default(not_started)
+  completedSteps   Json             @default("[]")
+  nextStep         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([profileId])
+  @@map("profile_onboarding_status")
+}
+
+model WixMemberLink {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      User     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  auth0UserId  String
+  wixMemberId  String?
+  email        String?
+  status       String   @default("linked")
+  linkedAt     DateTime @default(now())
+  lastSyncedAt DateTime?
+
+  @@index([profileId])
+  @@index([wixMemberId])
+  @@index([auth0UserId])
+  @@map("wix_member_links")
 }
