@@ -87,6 +87,12 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+
+  communicationPreferences CommunicationPreference[]
+  notificationEvents       NotificationEvent[]
+  outboundMessages         OutboundMessage[]
+  inboundMessages          InboundMessage[]
+  phoneVerifications       PhoneVerification[]
 }
 
 model Worker {
@@ -331,6 +337,8 @@ enum NotificationChannel {
   email
   sms
   push
+  voice
+  whatsapp
 }
 
 enum NotificationCategory {
@@ -4669,4 +4677,170 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// Twilio communications (MapAble Core)
+
+enum CommunicationChannel {
+  sms
+  voice
+  whatsapp
+  email
+  in_app
+}
+
+enum CommunicationConsentStatus {
+  opted_in
+  opted_out
+  pending
+  revoked
+}
+
+enum MessageDeliveryStatus {
+  queued
+  sent
+  delivered
+  failed
+  undelivered
+  read
+  received
+}
+
+enum NotificationTemplateKey {
+  booking_confirmed
+  booking_reminder_24h
+  booking_reminder_2h
+  transport_driver_assigned
+  transport_arriving
+  trip_completed
+  invoice_issued
+  invoice_overdue
+  support_message_received
+  urgent_provider_alert
+}
+
+enum PhoneVerificationStatus {
+  pending
+  approved
+  failed
+  expired
+  canceled
+}
+
+model CommunicationPreference {
+  id                          String                     @id @default(cuid())
+  userId                      String
+  user                        User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel                     CommunicationChannel
+  consentStatus               CommunicationConsentStatus @default(pending)
+  phoneNumberE164             String?
+  notificationType            String                     @default("all")
+  enabled                     Boolean                    @default(false)
+  quietHoursStart             String?
+  quietHoursEnd               String?
+  accessibleCommunicationMode String?
+  timezone                    String                     @default("Australia/Sydney")
+  createdAt                   DateTime                   @default(now())
+  updatedAt                   DateTime                   @updatedAt
+
+  @@unique([userId, channel, notificationType])
+  @@index([userId])
+}
+
+model NotificationEvent {
+  id           String                  @id @default(cuid())
+  userId       String
+  user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templateKey  NotificationTemplateKey
+  channel      CommunicationChannel?
+  status       String                  @default("pending")
+  bookingId    String?
+  tripId       String?
+  invoiceId    String?
+  metadata     Json?
+  scheduledFor DateTime?
+  processedAt  DateTime?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  outboundMessages OutboundMessage[]
+
+  @@index([userId, templateKey])
+  @@index([status, scheduledFor])
+  @@index([bookingId])
+}
+
+model OutboundMessage {
+  id                  String                @id @default(cuid())
+  userId              String
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationEventId String?
+  notificationEvent   NotificationEvent?    @relation(fields: [notificationEventId], references: [id], onDelete: SetNull)
+  channel             CommunicationChannel
+  templateKey         NotificationTemplateKey?
+  messageBodyRedacted String
+  phoneNumberE164     String?
+  twilioSid           String?
+  deliveryStatus      MessageDeliveryStatus @default(queued)
+  bookingId           String?
+  tripId              String?
+  invoiceId           String?
+  errorCode           String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([twilioSid])
+  @@index([deliveryStatus])
+}
+
+model InboundMessage {
+  id                  String               @id @default(cuid())
+  userId              String?
+  user                User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  channel             CommunicationChannel
+  fromNumberE164      String
+  messageBodyRedacted String
+  command             String?
+  twilioSid           String?
+  processed           Boolean              @default(false)
+  metadata            Json?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([fromNumberE164])
+  @@index([userId, createdAt])
+}
+
+model PhoneVerification {
+  id              String                  @id @default(cuid())
+  userId          String
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumberE164 String
+  status          PhoneVerificationStatus @default(pending)
+  twilioSid       String?
+  attemptCount    Int                     @default(0)
+  lastAttemptAt   DateTime?
+  verifiedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([userId, phoneNumberE164])
+  @@index([status])
+}
+
+model TwilioWebhookEvent {
+  id            String   @id @default(cuid())
+  eventType     String
+  twilioSid     String?
+  payloadHash   String
+  payloadMeta   Json?
+  processed     Boolean  @default(false)
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+
+  @@index([twilioSid])
+  @@index([payloadHash])
+  @@index([createdAt])
 }

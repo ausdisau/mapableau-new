@@ -3,6 +3,10 @@ import type { TripTrackingStatus } from "@prisma/client";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
+import {
+  onTransportArriving,
+  onTripCompleted,
+} from "@/lib/notifications/booking-triggers";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 
@@ -105,6 +109,24 @@ export async function updateTripStatus(
       bookingId: tb.bookingId,
       eventType: "trip_status_updated",
       title: plainLanguageTripStatus(status),
+      actorUserId,
+    });
+  }
+
+  if (status === "driver_en_route" || status === "arrived_for_pickup") {
+    await onTransportArriving({
+      userId: tb.participantId,
+      tripId: transportBookingId,
+      bookingId: tb.bookingId ?? undefined,
+      actorUserId,
+    });
+  }
+
+  if (status === "completed") {
+    await onTripCompleted({
+      userId: tb.participantId,
+      tripId: transportBookingId,
+      bookingId: tb.bookingId ?? undefined,
       actorUserId,
     });
   }

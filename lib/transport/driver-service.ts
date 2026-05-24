@@ -1,4 +1,5 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { onTransportDriverAssigned } from "@/lib/notifications/booking-triggers";
 import { prisma } from "@/lib/prisma";
 
 export async function createDriverProfile(params: {
@@ -35,12 +36,21 @@ export async function createDriverProfile(params: {
 export async function assignDriverToTransport(
   transportBookingId: string,
   driverProfileId: string,
-  _actorUserId: string
+  actorUserId: string
 ) {
-  return prisma.transportBooking.update({
+  const tb = await prisma.transportBooking.update({
     where: { id: transportBookingId },
     data: { driverProfileId, status: "driver_assigned" },
   });
+
+  await onTransportDriverAssigned({
+    userId: tb.participantId,
+    tripId: tb.id,
+    bookingId: tb.bookingId ?? undefined,
+    actorUserId,
+  });
+
+  return tb;
 }
 
 export async function assignVehicleToTransport(

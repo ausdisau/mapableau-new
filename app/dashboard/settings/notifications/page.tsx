@@ -20,7 +20,13 @@ export default async function NotificationSettingsPage() {
         </h1>
         <p className="text-muted-foreground">
           Choose how MapAble contacts you. Status labels always include text, not
-          colour alone.
+          colour alone.{" "}
+          <a
+            href="/dashboard/settings/communication"
+            className="text-primary underline"
+          >
+            SMS and phone settings
+          </a>
         </p>
       </header>
       <NotificationSettingsForm
