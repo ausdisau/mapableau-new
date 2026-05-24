@@ -87,6 +87,101 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+
+  mfaMethods                MfaMethod[]
+  mfaRecoveryCodes          MfaRecoveryCode[]
+  mfaChallenges             MfaChallenge[]
+  authSecurityEvents        AuthSecurityEvent[]
+  trustedDevices            TrustedDevice[]
+}
+
+enum MfaMethodType {
+  totp
+  email
+  sms
+  webauthn
+}
+
+enum MfaChallengeStatus {
+  pending
+  completed
+  failed
+  expired
+}
+
+/// Active MFA enrolment (TOTP, placeholders for email/SMS/WebAuthn)
+model MfaMethod {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            MfaMethodType
+  label           String?
+  secretEncrypted String?
+  isPrimary       Boolean       @default(true)
+  enabledAt       DateTime?
+  disabledAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([userId, type])
+}
+
+model MfaRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model MfaChallenge {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeType String
+  action        String?
+  status        MfaChallengeStatus @default(pending)
+  attempts      Int                @default(0)
+  expiresAt     DateTime
+  completedAt   DateTime?
+  metadata      Json?
+  createdAt     DateTime           @default(now())
+
+  @@index([userId, status])
+  @@index([expiresAt])
+}
+
+model AuthSecurityEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventType String
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model TrustedDevice {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceTokenHash String
+  label           String?
+  lastUsedAt      DateTime?
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+
+  @@unique([userId, deviceTokenHash])
+  @@index([userId])
 }
 
 model Worker {
