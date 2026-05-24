@@ -153,7 +153,9 @@ export function ProviderFinderResultCard({
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Button variant="default" size="default" asChild className="gap-1.5">
-          <Link href={`/jonathan/profile/${encodeURIComponent(provider.slug)}`}>
+          <Link
+            href={`/providers/${encodeURIComponent(provider.slug)}`}
+          >
             View profile
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
