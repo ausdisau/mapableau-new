@@ -3,30 +3,70 @@
 import { MapPin, Search } from "lucide-react";
 
 import { cn } from "@/app/lib/utils";
+import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomplete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
 import { HERO_SUGGESTED_SEARCHES } from "@/lib/provider-finder/filters";
+import type { AutocompleteSuggestion } from "@/types/search";
 
 type ProviderFinderHeroProps = {
   query: string;
   location: string;
+  providerName: string;
+  serviceQuery: string;
+  accessQuery: string;
   onQueryChange: (value: string) => void;
   onLocationChange: (value: string) => void;
+  onProviderNameChange: (value: string) => void;
+  onServiceQueryChange: (value: string) => void;
+  onAccessQueryChange: (value: string) => void;
   onSearch: () => void;
   onSuggestionClick: (suggestion: string) => void;
+  onAccessSuggestionSelect?: (label: string) => void;
   compact?: boolean;
 };
 
 export function ProviderFinderHero({
   query,
   location,
+  providerName,
+  serviceQuery,
+  accessQuery,
   onQueryChange,
   onLocationChange,
+  onProviderNameChange,
+  onServiceQueryChange,
+  onAccessQueryChange,
   onSearch,
   onSuggestionClick,
+  onAccessSuggestionSelect,
   compact = false,
 }: ProviderFinderHeroProps) {
+  function mergeQueryFromSuggestion(suggestion: AutocompleteSuggestion) {
+    if (suggestion.type === "provider") {
+      onProviderNameChange(suggestion.value);
+      onQueryChange(suggestion.value);
+      return;
+    }
+    if (suggestion.type === "service" || suggestion.type === "popular_search") {
+      onServiceQueryChange(suggestion.value);
+      onQueryChange(suggestion.value);
+      return;
+    }
+    if (suggestion.type === "location") {
+      onLocationChange(suggestion.value);
+      return;
+    }
+    if (suggestion.type === "accessibility_feature") {
+      onAccessQueryChange(suggestion.value);
+      onAccessSuggestionSelect?.(suggestion.value);
+      onQueryChange(suggestion.value);
+      return;
+    }
+    onQueryChange(suggestion.value);
+  }
+
   return (
     <section
       className={cn(
@@ -67,40 +107,82 @@ export function ProviderFinderHero({
             onSearch();
           }}
         >
-          <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-3 shadow-lg shadow-primary/5 sm:flex-row sm:items-stretch sm:p-2">
-            <label className="relative flex-1">
-              <span className="sr-only">What support are you looking for?</span>
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
+          <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-3 shadow-lg shadow-primary/5 sm:p-4">
+            <AccessibleAutocomplete
+              id="pf-query"
+              label="What support are you looking for?"
+              placeholder="Service, access need, or keyword"
+              context="provider_finder"
+              field="all"
+              value={query}
+              onChange={onQueryChange}
+              onSelect={mergeQueryFromSuggestion}
+              icon={<Search className="h-4 w-4" aria-hidden />}
+            />
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <AccessibleAutocomplete
+                id="pf-provider-name"
+                label="Provider name (optional)"
+                placeholder="Provider or organisation"
+                context="provider_finder"
+                field="provider"
+                value={providerName}
+                onChange={(v) => {
+                  onProviderNameChange(v);
+                }}
+                onSelect={(s) => {
+                  onProviderNameChange(s.value);
+                  onQueryChange(s.value);
+                }}
               />
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => onQueryChange(e.target.value)}
-                placeholder="What support are you looking for?"
-                className="min-h-12 w-full rounded-xl border border-input bg-background py-3 pl-10 pr-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
+              <AccessibleAutocomplete
+                id="pf-service"
+                label="Service (optional)"
+                placeholder="e.g. physiotherapy"
+                context="provider_finder"
+                field="service"
+                value={serviceQuery}
+                onChange={onServiceQueryChange}
+                onSelect={(s) => {
+                  onServiceQueryChange(s.value);
+                  onQueryChange(s.value);
+                }}
               />
-            </label>
-            <label className="relative sm:max-w-[220px] sm:flex-1">
-              <span className="sr-only">Location</span>
-              <MapPin
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
-              />
-              <input
-                type="text"
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <AccessibleAutocomplete
+                id="pf-location"
+                label="Location"
+                placeholder="Suburb or postcode"
+                context="provider_finder"
+                field="location"
                 value={location}
-                onChange={(e) => onLocationChange(e.target.value)}
-                placeholder="St Ives NSW"
-                className="min-h-12 w-full rounded-xl border border-input bg-background py-3 pl-10 pr-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
+                onChange={onLocationChange}
+                onSelect={(s) => onLocationChange(s.value)}
+                icon={<MapPin className="h-4 w-4" aria-hidden />}
               />
-            </label>
+              <AccessibleAutocomplete
+                id="pf-access"
+                label="Access needs (optional)"
+                placeholder="e.g. wheelchair accessible"
+                context="provider_finder"
+                field="accessibility"
+                value={accessQuery}
+                onChange={onAccessQueryChange}
+                onSelect={(s) => {
+                  onAccessQueryChange(s.value);
+                  onAccessSuggestionSelect?.(s.value);
+                }}
+              />
+            </div>
+
             <Button
               type="submit"
               variant="default"
               size="lg"
-              className="min-h-12 shrink-0 px-8"
+              className="min-h-12 w-full shrink-0 sm:w-auto sm:self-end"
             >
               Find providers
             </Button>

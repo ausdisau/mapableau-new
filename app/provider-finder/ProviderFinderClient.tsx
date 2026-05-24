@@ -2,6 +2,7 @@
 
 import { Bookmark, Loader2, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
@@ -73,6 +74,7 @@ function providerHaystack(provider: Provider) {
 }
 
 export default function ProviderFinderClient() {
+  const searchParams = useSearchParams();
   const { data: outlets, isLoading, isError, error } = useProviderOutlets();
   const providers = useMemo(
     () => (outlets ? mapOutletsToProviders(outlets) : []),
@@ -81,6 +83,9 @@ export default function ProviderFinderClient() {
 
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
+  const [providerName, setProviderName] = useState("");
+  const [serviceQuery, setServiceQuery] = useState("");
+  const [accessQuery, setAccessQuery] = useState("");
   const [supportType, setSupportType] = useState<SupportTypeId>("all");
   const [accessNeeds, setAccessNeeds] = useState<string[]>([]);
   const [funding, setFunding] = useState<"all" | "ndis" | "private">("all");
@@ -94,6 +99,19 @@ export default function ProviderFinderClient() {
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
   const pageSize = 12;
+
+  useEffect(() => {
+    const q = searchParams.get("q");
+    const loc = searchParams.get("location");
+    if (q) {
+      setQuery(q);
+      setSearchSubmitted(true);
+    }
+    if (loc) {
+      setLocation(loc);
+      setSearchSubmitted(true);
+    }
+  }, [searchParams]);
 
   const useMyLocation = async () => {
     setLocationLoading(true);
@@ -115,6 +133,8 @@ export default function ProviderFinderClient() {
 
   const filteredSorted = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const providerQ = providerName.trim().toLowerCase();
+    const serviceQ = serviceQuery.trim().toLowerCase();
     const loc = location.trim().toLowerCase();
     const support = SUPPORT_TYPES.find((t) => t.id === supportType);
 
@@ -145,8 +165,15 @@ export default function ProviderFinderClient() {
         if (!locHaystack.includes(loc)) return false;
       }
 
-      if (q) {
-        if (!providerHaystack(p).includes(q)) return false;
+      if (q && !providerHaystack(p).includes(q)) return false;
+      if (providerQ && !p.name.toLowerCase().includes(providerQ)) return false;
+      if (serviceQ) {
+        const hay = providerHaystack(p);
+        if (!hay.includes(serviceQ)) return false;
+      }
+      if (accessQuery.trim()) {
+        const accessQ = accessQuery.trim().toLowerCase();
+        if (!providerHaystack(p).includes(accessQ)) return false;
       }
 
       return true;
@@ -160,7 +187,29 @@ export default function ProviderFinderClient() {
       if (sb !== sa) return sb - sa;
       return a.name.localeCompare(b.name);
     });
-  }, [accessNeeds, funding, location, providers, query, sort, supportType]);
+  }, [
+    accessNeeds,
+    accessQuery,
+    funding,
+    location,
+    providerName,
+    providers,
+    query,
+    serviceQuery,
+    sort,
+    supportType,
+  ]);
+
+  const handleAccessSuggestionSelect = (label: string) => {
+    const match = ACCESS_NEEDS.find(
+      (n) =>
+        n.label.toLowerCase() === label.toLowerCase() ||
+        n.keywords.some((kw) => label.toLowerCase().includes(kw)),
+    );
+    if (match && !accessNeeds.includes(match.id)) {
+      setAccessNeeds((prev) => [...prev, match.id]);
+    }
+  };
 
   const total = filteredSorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -241,10 +290,17 @@ export default function ProviderFinderClient() {
       <ProviderFinderHero
         query={query}
         location={location}
+        providerName={providerName}
+        serviceQuery={serviceQuery}
+        accessQuery={accessQuery}
         onQueryChange={setQuery}
         onLocationChange={setLocation}
+        onProviderNameChange={setProviderName}
+        onServiceQueryChange={setServiceQuery}
+        onAccessQueryChange={setAccessQuery}
         onSearch={handleSearch}
         onSuggestionClick={handleSuggestion}
+        onAccessSuggestionSelect={handleAccessSuggestionSelect}
         compact={searchSubmitted}
       />
 
