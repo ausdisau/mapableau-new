@@ -29,8 +29,25 @@ Centralised in `lib/brand/constants.ts`:
 - support@mapable.com.au
 - 0434 083 624
 
+## Marketing shell
+
+- `components/marketing/mapable/MarketingHeader.tsx`
+- `components/marketing/mapable/MarketingFooter.tsx`
+
+Re-exported as `MapAbleMarketingHeader` / `MapAbleMarketingFooter` for existing layouts.
+
+## Provider Finder layout
+
+- Desktop: filters (left) · results (centre) · map + access layer (right, `xl+`)
+- Mobile: stacked search, filters, results, map below results
+- No-results state includes Ask MapAble + support contacts
+- One labelled **Sponsored result** after the first organic result (sample data)
+
 ## Tests
 
 ```bash
 pnpm exec vitest run tests/mapable-ui-redesign.test.tsx
+pnpm exec tsc --noEmit
 ```
+
+Note: full `pnpm run build` may fail on pre-existing ESLint import-order issues outside this UI work.
