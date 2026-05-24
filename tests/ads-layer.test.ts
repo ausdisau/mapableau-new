@@ -8,7 +8,8 @@ import {
 } from "@/lib/ads/ad-targeting-service";
 import { isProviderAdType } from "@/lib/ads/ad-selection-service";
 import { isProviderEligibleForMatching } from "@/lib/provider-verification/verification-case-service";
-import { getTileLayerProps } from "@/lib/map/tile-config";
+import { getMapAttributionPlainText } from "@/lib/map/map-attribution";
+import { resolveMapStyle } from "@/lib/map/map-style";
 
 const mockCampaign = {
   id: "camp-approved",
@@ -212,10 +213,11 @@ describe("POST /api/ads/events", () => {
   });
 });
 
-describe("OSM tile configuration", () => {
-  it("keeps OSM attribution visible in tile layer props", () => {
-    const props = getTileLayerProps();
-    expect(props.attribution).toContain("OpenStreetMap");
-    expect(props.url).toBeTruthy();
+describe("OSM attribution configuration", () => {
+  it("keeps OSM attribution visible in map configuration", () => {
+    const attribution = getMapAttributionPlainText();
+    expect(attribution).toContain("OpenStreetMap");
+    const style = resolveMapStyle();
+    expect(style).toBeTruthy();
   });
 });

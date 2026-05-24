@@ -64,7 +64,7 @@ export function ReportAdButton({
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={reportAd}
           disabled={status === "loading"}

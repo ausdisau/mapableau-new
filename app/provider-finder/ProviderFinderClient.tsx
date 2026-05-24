@@ -5,15 +5,15 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
-import { SponsoredMapListEquivalent } from "@/components/ads/SponsoredMapListEquivalent";
 import { SponsoredResultCard } from "@/components/ads/SponsoredResultCard";
+import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useSponsoredAds } from "@/lib/ads/use-sponsored-ads";
 import {
   distanceKm,
   getLocationAndPostcode,
@@ -25,7 +25,6 @@ import {
   type SupportTypeId,
 } from "@/lib/provider-finder/filters";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
-import { useSponsoredAds } from "@/lib/ads/use-sponsored-ads";
 import type { SponsoredAdResult } from "@/types/ads";
 
 import { mapOutletsToProviders } from "./outletToProvider";
@@ -459,16 +458,9 @@ export default function ProviderFinderClient() {
                     centerOnProvider={selectedProvider}
                     sponsoredAds={sponsoredMapAds}
                     onSponsoredHidden={hideMapAd}
+                    onProviderSelect={setSelectedProvider}
                   />
                 </div>
-                <SponsoredMapListEquivalent
-                  ads={sponsoredMapAds}
-                  onSelect={(ad) => {
-                    const match = resolveSponsoredProvider(ad);
-                    if (match) setSelectedProvider(match);
-                  }}
-                  onHidden={hideMapAd}
-                />
               </section>
 
               {total === 0 ? (

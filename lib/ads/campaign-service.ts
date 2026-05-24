@@ -87,7 +87,7 @@ export async function createProviderCampaign(params: {
       targetingRules: {
         create: params.input.targetingRules.map((rule) => ({
           ruleKind: rule.ruleKind,
-          ruleValue: rule.ruleValue,
+          ruleValue: rule.ruleValue as never,
         })),
       },
     },
@@ -165,7 +165,7 @@ export async function updateProviderCampaign(params: {
       data: params.input.targetingRules.map((rule) => ({
         campaignId: params.campaignId,
         ruleKind: rule.ruleKind,
-        ruleValue: rule.ruleValue,
+        ruleValue: rule.ruleValue as never,
       })),
     });
   }
