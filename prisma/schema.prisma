@@ -170,6 +170,11 @@ model Provider {
   serviceAreas   String[] @default([]) // geographic areas provider designates they serve, e.g. "Melbourne Metro", "Western Sydney"
   specialisations String[] @default([]) // e.g. "Autism", "Complex Behaviour", "Mental Health"
 
+  /** Provider Finder / outlet directory */
+  slug       String? @unique
+  outletKey  String? @unique
+  source     String? // outlet_json | legacy_user | manual
+
   services      Service[]
   locations     ServiceLocation[]
   businessHours BusinessHour[]
@@ -209,6 +214,8 @@ model ServiceLocation {
   state      String?
   postcode   String?
   country    String?
+  latitude   Float?
+  longitude  Float?
 
   provider   Provider @relation(fields: [providerId], references: [id])
   providerId String
