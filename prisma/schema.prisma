@@ -87,6 +87,10 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+
+  authIdentityLinks       AuthIdentityLink[]
+  authEvents              AuthEvent[]            @relation("AuthEventUser")
+  profileOnboarding       ProfileOnboardingStatus?
 }
 
 model Worker {
@@ -170,6 +174,11 @@ model Provider {
   serviceAreas   String[] @default([]) // geographic areas provider designates they serve, e.g. "Melbourne Metro", "Western Sydney"
   specialisations String[] @default([]) // e.g. "Autism", "Complex Behaviour", "Mental Health"
 
+  /** Provider Finder / outlet directory */
+  slug       String? @unique
+  outletKey  String? @unique
+  source     String? // outlet_json | legacy_user | manual
+
   services      Service[]
   locations     ServiceLocation[]
   businessHours BusinessHour[]
@@ -209,6 +218,8 @@ model ServiceLocation {
   state      String?
   postcode   String?
   country    String?
+  latitude   Float?
+  longitude  Float?
 
   provider   Provider @relation(fields: [providerId], references: [id])
   providerId String
@@ -511,6 +522,55 @@ model Notification {
   createdAt DateTime             @default(now())
 
   @@index([userId, readAt])
+}
+
+/// External login provider linked to a MapAble user (Google, Microsoft, etc.)
+model AuthIdentityLink {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        String
+  providerSubject String
+  email           String?
+  linkedAt        DateTime  @default(now())
+  lastUsedAt      DateTime?
+
+  @@unique([provider, providerSubject])
+  @@index([userId])
+}
+
+/// Authentication audit trail (login, linking, MFA, suspicious activity)
+model AuthEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation("AuthEventUser", fields: [userId], references: [id], onDelete: SetNull)
+  eventType  String
+  provider   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model ProfileOnboardingStatus {
+  id          String                    @id @default(cuid())
+  userId      String                    @unique
+  user        User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      ProfileOnboardingState    @default(not_started)
+  currentStep String?
+  completedAt DateTime?
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+}
+
+enum ProfileOnboardingState {
+  not_started
+  in_progress
+  completed
 }
 
 model AuditEvent {
