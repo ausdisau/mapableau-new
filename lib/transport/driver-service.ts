@@ -50,7 +50,7 @@ export async function assignVehicleToTransport(
 ) {
   return prisma.transportBooking.update({
     where: { id: transportBookingId },
-    data: { vehicleId, status: "vehicle_assigned" },
+    data: { vehicleId, status: "driver_assigned" },
   });
 }
 

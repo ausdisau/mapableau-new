@@ -13,7 +13,16 @@ export async function syncOperationalQueues(actorUserId: string) {
       take: 20,
     }),
     prisma.transportBooking.findMany({
-      where: { status: { in: ["confirmed", "driver_en_route", "in_transit"] } },
+      where: {
+        status: {
+          in: [
+            "participant_confirmed",
+            "vehicle_dispatched",
+            "arrived_at_pickup",
+            "passenger_onboard",
+          ],
+        },
+      },
       take: 20,
     }),
     prisma.incidentReport.findMany({

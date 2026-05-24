@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export default async function ServiceOpsTransportPage() {
   await requireAdmin();
   const bookings = await prisma.transportBooking.findMany({
-    where: { status: "awaiting_operator_response" },
+    where: { status: "quote_requested" },
   });
   return (
     <div className="space-y-4">

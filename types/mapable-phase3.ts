@@ -38,19 +38,23 @@ export type CareShiftStatus =
 
 export type TransportBookingStatus =
   | "draft"
-  | "requested"
-  | "awaiting_operator_response"
-  | "operator_accepted"
+  | "quote_requested"
+  | "quoted"
+  | "participant_confirmed"
+  | "provider_accepted"
   | "driver_assigned"
-  | "vehicle_assigned"
-  | "confirmed"
-  | "driver_en_route"
-  | "arrived_for_pickup"
-  | "participant_on_board"
-  | "in_transit"
+  | "vehicle_dispatched"
+  | "arrived_at_pickup"
+  | "passenger_onboard"
   | "arrived_at_destination"
   | "completed"
+  | "invoiced"
+  | "paid"
   | "cancelled"
+  | "late_risk"
+  | "no_show"
+  | "access_issue"
+  | "incident_reported"
   | "disputed";
 
 export type CalendarEventType =

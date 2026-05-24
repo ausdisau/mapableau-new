@@ -1,6 +1,8 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase5Config } from "@/lib/config/phase5";
 import { prisma } from "@/lib/prisma";
+import { geocodeAddress } from "@/lib/transport-osm/location-service";
+import { getRoutingProvider } from "@/lib/transport-osm/routing";
 
 export async function planFromTransportBooking(
   transportBookingId: string,
@@ -15,11 +17,50 @@ export async function planFromTransportBooking(
   });
   if (!tb) throw new Error("NOT_FOUND");
 
+  let pickupLat = tb.pickupLat;
+  let pickupLng = tb.pickupLng;
+  let dropoffLat = tb.dropoffLat;
+  let dropoffLng = tb.dropoffLng;
+
+  if (pickupLat == null || pickupLng == null) {
+    const g = await geocodeAddress(tb.pickupAddress);
+    pickupLat = g.lat;
+    pickupLng = g.lng;
+  }
+  if (dropoffLat == null || dropoffLng == null) {
+    const g = await geocodeAddress(tb.dropoffAddress);
+    dropoffLat = g.lat;
+    dropoffLng = g.lng;
+  }
+
+  const provider = getRoutingProvider();
+  const route = await provider.route({
+    coordinates: [
+      { lat: pickupLat, lng: pickupLng },
+      { lat: dropoffLat, lng: dropoffLng },
+    ],
+  });
+
   const plan = await prisma.routePlan.create({
     data: {
       transportBookingId,
       status: "review_required",
+      routingProvider: provider.name as never,
+      encodedPolyline: route.encodedPolyline,
+      distanceMeters: route.distanceMeters,
+      durationSeconds: route.durationSeconds,
       createdById: actorUserId,
+      legs: {
+        create: route.legs.map((leg, i) => ({
+          sequence: i + 1,
+          fromLat: leg.from.lat,
+          fromLng: leg.from.lng,
+          toLat: leg.to.lat,
+          toLng: leg.to.lng,
+          distanceMeters: leg.distanceMeters,
+          durationSeconds: leg.durationSeconds,
+        })),
+      },
     },
   });
 
@@ -41,27 +82,22 @@ export async function planFromTransportBooking(
     });
   }
 
-  const estimates = [25, 35, 45];
-  for (let i = 0; i < estimates.length; i++) {
-    await prisma.routePlanCandidate.create({
-      data: {
-        routePlanId: plan.id,
-        summary: `Route option ${i + 1} — placeholder estimate ${estimates[i]} minutes`,
-        riskNotes:
-          i === 0
-            ? "Shortest time — verify boarding time is sufficient"
-            : "Alternative timing",
-        score: 1 - i * 0.1,
-      },
-    });
-    await prisma.travelTimeEstimate.create({
-      data: {
-        routePlanId: plan.id,
-        minutes: estimates[i],
-        source: phase5Config.routeProvider === "disabled" ? "placeholder" : "provider",
-      },
-    });
-  }
+  await prisma.routePlanCandidate.create({
+    data: {
+      routePlanId: plan.id,
+      summary: `Recommended route — ${Math.ceil(route.durationSeconds / 60)} min, ${(route.distanceMeters / 1000).toFixed(1)} km`,
+      riskNotes: "Verify boarding time is sufficient for access needs",
+      score: 1,
+    },
+  });
+
+  await prisma.travelTimeEstimate.create({
+    data: {
+      routePlanId: plan.id,
+      minutes: Math.ceil(route.durationSeconds / 60),
+      source: provider.name,
+    },
+  });
 
   await createAuditEvent({
     actorUserId,
@@ -99,18 +135,13 @@ export async function selectRoutePlan(
   const plan = await prisma.routePlan.findUnique({
     where: { id: routePlanId },
   });
-  if (plan?.transportBookingId) {
-    await prisma.transportBooking.update({
-      where: { id: plan.transportBookingId },
-      data: { pickupNotes: `Route plan selected: ${candidate.summary}` },
-    });
-  }
 
   await createAuditEvent({
     actorUserId,
     action: "route.plan_selected",
     entityType: "RoutePlan",
     entityId: routePlanId,
+    metadata: { candidateId },
   });
 
   return plan;

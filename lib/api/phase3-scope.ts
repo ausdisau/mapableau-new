@@ -20,3 +20,24 @@ export async function providerCareWhere(user: CurrentUser) {
   const orgIds = await getUserOrganisationIds(user.id);
   return { assignedOrganisationId: { in: orgIds } };
 }
+
+export function participantTransportWhere(user: CurrentUser) {
+  if (isAdminRole(user.primaryRole)) return {};
+  return { participantId: user.id };
+}
+
+export async function providerTransportWhere(user: CurrentUser) {
+  if (isAdminRole(user.primaryRole)) return {};
+  const orgIds = await getUserOrganisationIds(user.id);
+  return { operatorOrganisationId: { in: orgIds } };
+}
+
+export async function driverTransportWhere(user: CurrentUser) {
+  if (isAdminRole(user.primaryRole)) return {};
+  const profile = await prisma.driverProfile.findFirst({
+    where: { userId: user.id, active: true },
+    select: { id: true },
+  });
+  if (!profile) return { id: "__none__" };
+  return { driverProfileId: profile.id };
+}

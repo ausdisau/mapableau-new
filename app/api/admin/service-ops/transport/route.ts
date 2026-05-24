@@ -8,9 +8,9 @@ export async function GET() {
   const bookings = await prisma.transportBooking.findMany({
     where: {
       OR: [
-        { status: "awaiting_operator_response" },
+        { status: "quote_requested" },
         {
-          status: { in: ["operator_accepted", "vehicle_assigned"] },
+          status: { in: ["provider_accepted", "driver_assigned"] },
           vehicleId: null,
         },
       ],

@@ -1,3 +1,4 @@
+import { DispatchConsoleClient } from "@/components/transport-osm/DispatchConsoleClient";
 import { requireAdmin } from "@/lib/auth/guards";
 import { syncOperationalQueues } from "@/lib/dispatch-console/dispatch-service";
 
@@ -6,13 +7,18 @@ export default async function DispatchConsolePage() {
   const queues = await syncOperationalQueues(user.id);
   const list = Array.isArray(queues) ? queues : [];
 
+  const transportQueue = list.filter((q) => q.queueType === "transport_booking");
+
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">Dispatch console</h1>
       <p className="text-muted-foreground">
-        Operational queues for care, transport and critical incidents. Human
-        dispatch required — not autonomous assignment.
+        Live map and manual assignment. Recommendations are suggestions only — a
+        dispatcher must confirm each assignment.
       </p>
+      <DispatchConsoleClient
+        initialBookingId={transportQueue[0]?.entityId ?? undefined}
+      />
       <table className="w-full text-sm">
         <caption className="sr-only">Open dispatch queue items</caption>
         <thead>

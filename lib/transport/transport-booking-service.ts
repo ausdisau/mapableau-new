@@ -19,7 +19,10 @@ export async function createTransportBooking(params: {
   pickupNotes?: string;
   dropoffNotes?: string;
   careRequestId?: string;
-  status?: "draft" | "requested";
+  accessNeeds?: object;
+  communicationPreferences?: object;
+  companionCount?: number;
+  status?: "draft" | "quote_requested";
 }) {
   if (params.shareAccessibility && params.shareAccessibilityConfirmed) {
     const ok = await checkConsent({
@@ -44,7 +47,10 @@ export async function createTransportBooking(params: {
       pickupNotes: params.pickupNotes,
       dropoffNotes: params.dropoffNotes,
       careRequestId: params.careRequestId,
-      status: params.status ?? "requested",
+      accessNeeds: params.accessNeeds ?? {},
+      communicationPreferences: params.communicationPreferences ?? {},
+      companionCount: params.companionCount ?? 0,
+      status: params.status ?? "quote_requested",
     },
   });
 
@@ -69,7 +75,7 @@ export async function assignTransportOperator(
     where: { id: transportBookingId },
     data: {
       operatorOrganisationId: organisationId,
-      status: "awaiting_operator_response",
+      status: "quote_requested",
     },
   });
 }
@@ -80,7 +86,7 @@ export async function acceptTransportBooking(
 ) {
   const tb = await prisma.transportBooking.update({
     where: { id },
-    data: { status: "operator_accepted" },
+    data: { status: "provider_accepted" },
   });
   await notifyUser(
     tb.participantId,

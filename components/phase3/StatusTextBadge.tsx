@@ -8,6 +8,19 @@ const LABELS: Record<string, string> = {
   approved: "Approved",
   published: "Published",
   requested: "Requested",
+  quote_requested: "Quote requested",
+  quoted: "Quoted",
+  participant_confirmed: "Confirmed",
+  provider_accepted: "Provider accepted",
+  vehicle_dispatched: "Vehicle dispatched",
+  arrived_at_pickup: "At pickup",
+  passenger_onboard: "On board",
+  late_risk: "May be late",
+  no_show: "No show",
+  access_issue: "Access issue",
+  incident_reported: "Incident",
+  invoiced: "Invoiced",
+  paid: "Paid",
 };
 
 export function StatusTextBadge({ status }: { status: string }) {

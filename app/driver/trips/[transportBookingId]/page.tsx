@@ -1,4 +1,5 @@
-import { DriverTripActions } from "@/components/phase4/DriverTripActions";
+import { DriverOsmTripActions } from "@/components/transport-osm/DriverOsmTripActions";
+import { TripStatusTimeline } from "@/components/transport-osm/TripStatusTimeline";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { getTripTracking, plainLanguageTripStatus } from "@/lib/tracking/trip-tracking-service";
@@ -12,6 +13,9 @@ export default async function DriverTripDetailPage({
   const { transportBookingId } = await params;
   const tb = await prisma.transportBooking.findUnique({
     where: { id: transportBookingId },
+    include: {
+      dispatchEvents: { orderBy: { createdAt: "asc" }, take: 10 },
+    },
   });
   if (!tb) return <p role="alert">Trip not found.</p>;
 
@@ -21,10 +25,10 @@ export default async function DriverTripDetailPage({
     <div className="space-y-6">
       <h2 className="font-heading text-xl font-bold">Trip details</h2>
       <p className="text-lg">
-        <strong>Pickup:</strong> {tb.pickupAddress}
+        <strong>Pickup area:</strong> {tb.pickupAddress.split(",").slice(-2).join(",")}
       </p>
       <p className="text-lg">
-        <strong>Drop-off:</strong> {tb.dropoffAddress}
+        <strong>Drop-off area:</strong> {tb.dropoffAddress.split(",").slice(-2).join(",")}
       </p>
       {tb.driverAssistanceRequired ? (
         <p className="rounded-lg border p-3 text-sm" role="note">
@@ -35,7 +39,8 @@ export default async function DriverTripDetailPage({
         Status:{" "}
         {tracking?.plainLanguageStatus ?? plainLanguageTripStatus("not_started")}
       </p>
-      <DriverTripActions transportBookingId={tb.id} />
+      <TripStatusTimeline current={tb.status} events={tb.dispatchEvents} />
+      <DriverOsmTripActions transportBookingId={tb.id} status={tb.status} />
     </div>
   );
 }

@@ -19,11 +19,11 @@ export async function getServiceOpsSummary() {
       where: { status: "scheduled", workerProfileId: null },
     }),
     prisma.transportBooking.count({
-      where: { status: "awaiting_operator_response" },
+      where: { status: "quote_requested" },
     }),
     prisma.transportBooking.count({
       where: {
-        status: { in: ["operator_accepted", "vehicle_assigned"] },
+        status: { in: ["provider_accepted", "vehicle_dispatched", "driver_assigned"] },
         vehicleId: null,
       },
     }),
