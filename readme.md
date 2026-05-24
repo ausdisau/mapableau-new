@@ -1,86 +1,34 @@
-# OptimiseMe
+# MapAbleAU
 
-A Next.js application built with TypeScript.
+MapAble is an accessibility-first disability services platform by Australian Disability Ltd. Built with Next.js App Router, TypeScript, Prisma, and PostgreSQL (Neon).
 
-## Tech Stack
-
-- **Framework**: Next.js 15.5.4 (App Router)
-- **Language**: TypeScript
-- **Package Manager**: pnpm
-- **Linting**: ESLint with TypeScript support
-- **Formatting**: Prettier
-- **Git Hooks**: Husky with lint-staged
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18 or higher)
-- pnpm (v10.12.1 or higher)
-
-### Installation
+## Quick start
 
 ```bash
 pnpm install
-```
-
-### Development
-
-Run the development server:
-
-```bash
+cp .env.example .env
+# Set DATABASE_URL and DIRECT_URL
+pnpm exec prisma migrate deploy
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+Visit [http://localhost:3000/core](http://localhost:3000/core) for the platform hub.
 
-### Build
+## Structure
 
-Build the application for production:
+- `app/` — routes and API handlers
+- `components/` — React UI
+- `lib/` — domain services
+- `types/` — shared TypeScript types
+- `prisma/` — schema and migrations
 
-```bash
-pnpm build
-```
+## Module documentation
 
-Start the production server:
-
-```bash
-pnpm start
-```
+See [README_MODULE_INDEX.md](README_MODULE_INDEX.md) for links to per-module guides.
 
 ## Scripts
 
-- `pnpm dev` - Start development server with Turbopack
-- `pnpm build` - Build for production (includes type-check and lint)
-- `pnpm start` - Start production server
-- `pnpm lint` - Run ESLint
-- `pnpm lint:fix` - Fix ESLint errors automatically
-- `pnpm type-check` - Run TypeScript type checking
-- `pnpm format` - Format code with Prettier
-- `pnpm format:check` - Check code formatting
-
-## Project Structure
-
-```
-├── app/              # Next.js App Router pages and layouts
-├── components/       # Reusable React components
-├── lib/              # Utility functions and helpers
-├── public/           # Static assets
-└── ...
-```
-
-## Code Quality
-
-This project uses:
-
-- **ESLint** for code linting with strict TypeScript rules
-- **Prettier** for code formatting
-- **Husky** for git hooks (pre-commit and pre-push)
-- **lint-staged** for running linters on staged files
-
-Pre-commit hooks will automatically format and lint your code before commits.
-
-## License
-
-ISC
-# jonathan-test-mapable
+- `pnpm dev` — development server (Turbopack)
+- `pnpm build` — production build
+- `pnpm test` — Vitest unit tests
+- `pnpm type-check` — TypeScript

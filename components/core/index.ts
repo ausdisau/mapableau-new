@@ -1,7 +1,11 @@
+export { AuditTimeline } from "./AuditTimeline";
 export { CoreFooter } from "./CoreFooter";
 export { CoreHeader } from "./CoreHeader";
 export { CoreHubCard } from "./CoreHubCard";
 export { CorePageHeader } from "./CorePageHeader";
 export { CoreShell } from "./CoreShell";
+export { NotificationBell } from "./NotificationBell";
 export { PortalNav } from "./PortalNav";
+export { ProfileSummaryCard } from "./ProfileSummaryCard";
+export { RoleAwareDashboard } from "./RoleAwareDashboard";
 export { SkipToContent } from "./SkipToContent";

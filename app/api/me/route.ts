@@ -2,6 +2,7 @@ import { ZodError , z } from "zod";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 
 const patchMeSchema = z.object({
@@ -53,6 +54,14 @@ export async function PATCH(req: Request) {
         preferredContactMethod: true,
         primaryRole: true,
       },
+    });
+    await createAuditEvent({
+      actorUserId: user.id,
+      actorRole: user.primaryRole,
+      action: "profile.updated",
+      entityType: "user",
+      entityId: user.id,
+      metadata: { fields: Object.keys(body) },
     });
     return jsonOk({ user: updated });
   } catch (e) {

@@ -15,6 +15,9 @@ export async function userCanAccessConversation(
   return Boolean(participant);
 }
 
+/** Alias for prompt-pack naming */
+export const userCanAccessThread = userCanAccessConversation;
+
 export async function listConversationsForUser(userId: string, isAdmin: boolean) {
   if (isAdmin) {
     return prisma.conversation.findMany({
@@ -34,12 +37,17 @@ export async function listConversationsForUser(userId: string, isAdmin: boolean)
   });
 }
 
+export async function listThreadsForUser(userId: string) {
+  return listConversationsForUser(userId, false);
+}
+
 export async function sendMessage(params: {
   conversationId: string;
   senderUserId: string;
   body: string;
   plainLanguageSummary?: string;
   attachmentDocumentIds?: string[];
+  actorRole?: string;
 }) {
   const sanitized = params.body.trim().slice(0, 10000);
   if (!sanitized) throw new Error("EMPTY_MESSAGE");
@@ -82,6 +90,15 @@ export async function sendMessage(params: {
       "You have a new secure message in MapAble."
     );
   }
+
+  await createAuditEvent({
+    actorUserId: params.senderUserId,
+    actorRole: params.actorRole as never,
+    action: "message.sent",
+    entityType: "message",
+    entityId: message.id,
+    metadata: { conversationId: params.conversationId },
+  });
 
   return message;
 }

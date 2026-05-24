@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { roleHasPermission } from "@/lib/auth/role-permissions";
 import { hasPermission, canViewParticipantProfile } from "@/lib/auth/permissions";
-import { isAdminRole } from "@/lib/auth/roles";
+import { defaultDashboardPath, isAdminRole } from "@/lib/auth/roles";
+import { resolvePromptRole } from "@/types/core";
 import { consentScopeToPrisma, consentScopeFromPrisma } from "@/lib/consent/scope-map";
 import { accessibilityProfileSchema } from "@/lib/validation/accessibility";
 import { createBookingSchema } from "@/lib/validation/booking";
@@ -24,6 +26,23 @@ describe("role permission checks", () => {
   it("identifies admin role", () => {
     expect(isAdminRole("mapable_admin")).toBe(true);
     expect(isAdminRole("participant")).toBe(false);
+  });
+
+  it("resolves prompt-pack carer alias to family_member", () => {
+    expect(resolvePromptRole("carer")).toBe("family_member");
+    expect(resolvePromptRole("nominee")).toBe("family_member");
+  });
+
+  it("maps carer alias to family_member permissions", () => {
+    expect(roleHasPermission("carer", "profile:read:self")).toBe(true);
+  });
+
+  it("routes roles to correct dashboard paths", () => {
+    expect(defaultDashboardPath("support_coordinator")).toBe(
+      "/support-coordinator"
+    );
+    expect(defaultDashboardPath("driver")).toBe("/driver/trips");
+    expect(defaultDashboardPath("support_worker")).toBe("/worker");
   });
 });
 

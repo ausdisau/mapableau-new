@@ -45,6 +45,7 @@ export const CORE_HUB_SECTIONS: {
       { href: "/dashboard/bookings", label: "Bookings" },
       { href: "/dashboard/care", label: "Care" },
       { href: "/dashboard/transport", label: "Transport" },
+      { href: "/provider-finder", label: "Provider finder", description: "Search NDIS providers" },
       { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
     ],
   },

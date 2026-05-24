@@ -1,15 +1,16 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
-import { prisma } from "@/lib/prisma";
+import { listNotificationsForUser } from "@/lib/notifications/notification-service";
 
-export async function GET() {
+export async function GET(req: Request) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
 
-  const notifications = await prisma.notification.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    take: 50,
+  const { searchParams } = new URL(req.url);
+  const unreadOnly = searchParams.get("unreadOnly") === "true";
+
+  const notifications = await listNotificationsForUser(user.id, {
+    unreadOnly,
   });
 
   return jsonOk({ notifications });

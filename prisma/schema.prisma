@@ -4763,3 +4763,304 @@ model NdiaProviderClaimAudit {
 
   @@index([claimId, createdAt])
 }
+
+// --- Prompt-pack modules (bundles, marketplace, lifestyle, intake, lens, compliance AI) ---
+
+enum BundleStatus {
+  draft
+  quoted
+  requested
+  awaiting_confirmation
+  confirmed
+  in_progress
+  completed
+  cancelled
+}
+
+enum BundleSegmentType {
+  care_preparation
+  transport_outbound
+  care_at_destination
+  transport_return
+  care_post_arrival
+}
+
+model BookingBundle {
+  id            String       @id @default(cuid())
+  participantId String
+  status        BundleStatus @default(draft)
+  title         String?
+  notes         String?
+  quotedTotalCents Int?
+  careRequestId String?
+  bookingId     String?
+  createdById   String
+  confirmedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  segments BundleServiceSegment[]
+  events   BundleEvent[]
+
+  @@index([participantId, status])
+}
+
+model BundleServiceSegment {
+  id              String            @id @default(cuid())
+  bundleId        String
+  bundle          BookingBundle       @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  segmentType     BundleSegmentType
+  sequenceOrder   Int
+  scheduledStart  DateTime?
+  scheduledEnd    DateTime?
+  bufferMinutes   Int               @default(15)
+  careShiftId     String?
+  transportBookingId String?
+  status          String            @default("pending")
+  metadata        Json?
+
+  @@index([bundleId, sequenceOrder])
+}
+
+model BundleEvent {
+  id        String   @id @default(cuid())
+  bundleId  String
+  bundle    BookingBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  eventType String
+  actorId   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([bundleId, createdAt])
+}
+
+model ProviderServiceRegion {
+  id             String   @id @default(cuid())
+  organisationId String
+  label          String
+  postcodes      String[] @default([])
+  suburbs        String[] @default([])
+  geoJson        Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organisationId])
+}
+
+model ParticipantSupportGoal {
+  id            String   @id @default(cuid())
+  participantId String
+  title         String
+  description   String?
+  status        String   @default("active")
+  targetDate    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([participantId])
+}
+
+model ParticipantWorkerPreference {
+  id            String   @id @default(cuid())
+  participantId String
+  workerUserId  String
+  preferenceType String
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@unique([participantId, workerUserId, preferenceType])
+}
+
+model CoordinatorReferral {
+  id              String   @id @default(cuid())
+  coordinatorId   String
+  participantId   String
+  providerOrgId   String?
+  status          String   @default("draft")
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  events CoordinatorReferralEvent[]
+
+  @@index([coordinatorId, status])
+}
+
+model CoordinatorReferralEvent {
+  id         String   @id @default(cuid())
+  referralId String
+  referral   CoordinatorReferral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  eventType  String
+  actorId    String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}
+
+model AtMarketplaceListing {
+  id             String   @id @default(cuid())
+  sellerUserId   String
+  title          String
+  description    String
+  listingType    String
+  category       String?
+  priceCents     Int?
+  conditionNotes String?
+  verificationStatus String @default("unverified")
+  status         String   @default("draft")
+  ndisNotes      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, category])
+}
+
+model NdisPlanUpload {
+  id            String   @id @default(cuid())
+  participantId String
+  fileName      String
+  storageKey    String
+  status        String   @default("uploaded")
+  extractionJson Json?
+  reviewedAt    DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model IntakeSession {
+  id            String   @id @default(cuid())
+  participantId String
+  mode          String   @default("chat")
+  status        String   @default("open")
+  extractionJson Json?
+  confirmedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  messages IntakeMessage[]
+}
+
+model IntakeMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   IntakeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model FoodOrder {
+  id            String   @id @default(cuid())
+  participantId String
+  status        String   @default("draft")
+  totalCents    Int?
+  allergyAcknowledged Boolean @default(false)
+  deliveryNotes String?
+  createdAt     DateTime @default(now())
+}
+
+model AlliedHealthAppointment {
+  id            String   @id @default(cuid())
+  participantId String
+  therapistId   String?
+  mode          String   @default("in_person")
+  status        String   @default("requested")
+  scheduledStart DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model FamilyProfile {
+  id            String   @id @default(cuid())
+  parentUserId  String
+  displayName   String
+  createdAt     DateTime @default(now())
+
+  children ChildProfile[]
+}
+
+model ChildProfile {
+  id              String   @id @default(cuid())
+  familyProfileId String
+  familyProfile   FamilyProfile @relation(fields: [familyProfileId], references: [id], onDelete: Cascade)
+  nickname        String
+  birthYear       Int?
+  privacyLevel    String   @default("private")
+}
+
+model AgedCareProfile {
+  id            String   @id @default(cuid())
+  participantId String   @unique
+  intakeJson    Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model TourismItinerary {
+  id            String   @id @default(cuid())
+  participantId String
+  title         String
+  itemsJson     Json     @default("[]")
+  status        String   @default("draft")
+  createdAt     DateTime @default(now())
+}
+
+model LensUpload {
+  id        String   @id @default(cuid())
+  userId    String
+  placeId   String?
+  storageKey String
+  status    String   @default("pending_review")
+  createdAt DateTime @default(now())
+
+  reviewTasks LensReviewTask[]
+}
+
+model LensReviewTask {
+  id           String   @id @default(cuid())
+  uploadId     String
+  upload       LensUpload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  status       String   @default("pending")
+  observationJson Json?
+  reviewerId   String?
+  reviewedAt   DateTime?
+}
+
+model SavedAccessibleRoute {
+  id            String   @id @default(cuid())
+  userId        String
+  originLabel   String
+  destinationLabel String
+  routeJson     Json
+  confidence    String?
+  createdAt     DateTime @default(now())
+}
+
+model ComplianceReviewRun {
+  id          String   @id @default(cuid())
+  checklistId String
+  moduleScope String?
+  status      String   @default("draft")
+  createdById String
+  createdAt   DateTime @default(now())
+
+  findings ComplianceReviewFinding[]
+}
+
+model ComplianceReviewFinding {
+  id        String   @id @default(cuid())
+  runId     String
+  run       ComplianceReviewRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  severity  String
+  module    String?
+  recommendation String?
+  status    String   @default("draft")
+  confirmedById String?
+  confirmedAt   DateTime?
+}
+
+model DirectoryQuoteRequest {
+  id              String   @id @default(cuid())
+  directoryProviderId String
+  requesterUserId String
+  message         String
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+}
