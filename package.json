@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 3000",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "pnpm type-check && pnpm lint && next build",
     "start": "next start",
