@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
 import { Loader2, MapPin, Search } from "lucide-react";
+import React, { useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomplete";

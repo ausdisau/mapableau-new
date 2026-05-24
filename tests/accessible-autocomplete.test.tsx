@@ -1,7 +1,6 @@
 /**
  * @vitest-environment jsdom
  */
-import React from "react";
 import {
   cleanup,
   fireEvent,
@@ -9,6 +8,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import React from "react";
 import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
 
 import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomplete";

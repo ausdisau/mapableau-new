@@ -4,11 +4,11 @@ import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { mapableSearchInputClass } from "@/lib/brand/styles";
+import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import {
   buildLiveRegionMessage,
   flattenSuggestions,
 } from "@/lib/search/autocomplete-service";
-import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import type {
   AutocompleteContext,
   AutocompleteField,
@@ -231,6 +231,12 @@ export function AccessibleAutocomplete({
               )}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => selectSuggestion(suggestion)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  selectSuggestion(suggestion);
+                }
+              }}
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="font-medium">{suggestion.label}</span>

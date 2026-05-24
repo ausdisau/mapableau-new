@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { prisma } from "@/lib/prisma";
 import { searchProviders } from "@/lib/search/provider-autocomplete";
 
 vi.mock("@/lib/prisma", () => ({
@@ -9,8 +10,6 @@ vi.mock("@/lib/prisma", () => ({
     },
   },
 }));
-
-import { prisma } from "@/lib/prisma";
 
 describe("searchProviders", () => {
   beforeEach(() => {

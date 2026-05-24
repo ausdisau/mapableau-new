@@ -1,10 +1,3 @@
-import type {
-  AutocompleteContext,
-  AutocompleteField,
-  AutocompleteGroupedResult,
-  AutocompleteSuggestion,
-} from "@/types/search";
-import { AUTOCOMPLETE_MAX_SUGGESTIONS } from "@/types/search";
 
 import { searchLocations } from "@/lib/search/location-autocomplete-adapter";
 import { searchProviders } from "@/lib/search/provider-autocomplete";
@@ -14,6 +7,13 @@ import {
   searchPopularSearches,
   searchServiceCategories,
 } from "@/lib/search/service-autocomplete";
+import { AUTOCOMPLETE_MAX_SUGGESTIONS } from "@/types/search";
+import type {
+  AutocompleteContext,
+  AutocompleteField,
+  AutocompleteGroupedResult,
+  AutocompleteSuggestion,
+} from "@/types/search";
 
 export type AutocompleteSearchInput = {
   query: string;

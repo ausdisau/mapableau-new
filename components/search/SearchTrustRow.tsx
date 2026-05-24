@@ -1,5 +1,5 @@
-import React from "react";
 import { Check } from "lucide-react";
+import React from "react";
 
 const TRUST_ITEMS = [
   "Accessibility-first search",

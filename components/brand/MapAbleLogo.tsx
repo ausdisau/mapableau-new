@@ -2,11 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
-import {
-  MAPABLE_LOGO_ALT,
-  MAPABLE_LOGO_MARK_SRC,
-  MAPABLE_LOGO_SRC,
-} from "@/lib/brand/constants";
+import { MAPABLE_LOGO_MARK_SRC, MAPABLE_LOGO_SRC } from "@/lib/brand/constants";
 
 export type MapAbleLogoVariant = "full" | "mark" | "text";
 
