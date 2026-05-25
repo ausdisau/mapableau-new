@@ -1,4 +1,3 @@
-
 import { searchLocations } from "@/lib/search/location-autocomplete-adapter";
 import { searchProviders } from "@/lib/search/provider-autocomplete";
 import {
@@ -14,6 +13,11 @@ import type {
   AutocompleteGroupedResult,
   AutocompleteSuggestion,
 } from "@/types/search";
+
+export {
+  buildLiveRegionMessage,
+  flattenSuggestions,
+} from "@/lib/search/autocomplete-utils";
 
 export type AutocompleteSearchInput = {
   query: string;
@@ -62,22 +66,24 @@ export async function searchAutocomplete(
     popularSearches,
   ] = await Promise.all([
     shouldInclude(field, "provider")
-      ? searchProviders(query, limit)
+      ? safeSearch(() => searchProviders(query, limit))
       : Promise.resolve([]),
     shouldInclude(field, "service")
-      ? searchServiceCategories(query, limit)
+      ? safeSearch(() => searchServiceCategories(query, limit))
       : Promise.resolve([]),
     shouldInclude(field, "location")
-      ? searchLocations(query, limit)
+      ? safeSearch(() => searchLocations(query, limit))
       : Promise.resolve([]),
     shouldInclude(field, "accessibility")
-      ? searchAccessibilityFeatures(query, limit)
+      ? safeSearch(() => searchAccessibilityFeatures(query, limit))
       : Promise.resolve([]),
     shouldInclude(field, "language")
-      ? searchLanguages(query, limit)
+      ? safeSearch(() => searchLanguages(query, limit))
       : Promise.resolve([]),
     field === "all"
-      ? searchPopularSearches(query, context, context === "homepage" ? 3 : 2)
+      ? safeSearch(() =>
+          searchPopularSearches(query, context, context === "homepage" ? 3 : 2),
+        )
       : Promise.resolve([]),
   ]);
 
@@ -139,28 +145,10 @@ function trimTotal(
   };
 }
 
-export function flattenSuggestions(
-  groups: AutocompleteGroupedResult,
-): AutocompleteSuggestion[] {
-  return [
-    ...groups.providers,
-    ...groups.services,
-    ...groups.locations,
-    ...groups.accessibilityFeatures,
-    ...groups.languages,
-    ...groups.popularSearches,
-  ];
-}
-
-export function buildLiveRegionMessage(
-  loading: boolean,
-  count: number,
-  query: string,
-): string {
-  if (loading) return "Loading suggestions.";
-  if (query.trim().length < 2) {
-    return "Type at least 2 characters for suggestions.";
+async function safeSearch<T>(fn: () => Promise<T[]>): Promise<T[]> {
+  try {
+    return await fn();
+  } catch {
+    return [];
   }
-  if (count === 0) return `No suggestions found for ${query}.`;
-  return `${count} suggestion${count === 1 ? "" : "s"} available.`;
 }

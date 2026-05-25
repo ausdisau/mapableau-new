@@ -8,7 +8,7 @@ import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import {
   buildLiveRegionMessage,
   flattenSuggestions,
-} from "@/lib/search/autocomplete-service";
+} from "@/lib/search/autocomplete-utils";
 import type {
   AutocompleteContext,
   AutocompleteField,
@@ -64,18 +64,30 @@ export function AccessibleAutocomplete({
   const [activeIndex, setActiveIndex] = useState(-1);
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fetchAbortRef = useRef<AbortController | null>(null);
 
   const debouncedQuery = useDebouncedValue(value, debounceMs);
   const suggestions = groups ? flattenSuggestions(groups) : [];
-  const liveMessage = buildLiveRegionMessage(loading, suggestions.length, value);
+  const queryForList = debouncedQuery.trim().length >= 2 ? debouncedQuery : value;
+  const liveMessage = buildLiveRegionMessage(
+    loading,
+    suggestions.length,
+    queryForList,
+  );
 
   const fetchSuggestions = useCallback(async () => {
     const q = debouncedQuery.trim();
     if (q.length < 2) {
+      fetchAbortRef.current?.abort();
       setGroups(null);
       setActiveIndex(-1);
+      setLoading(false);
       return;
     }
+
+    fetchAbortRef.current?.abort();
+    const controller = new AbortController();
+    fetchAbortRef.current = controller;
 
     setLoading(true);
     try {
@@ -84,23 +96,28 @@ export function AccessibleAutocomplete({
         context,
         field,
       });
-      const res = await fetch(`/api/search/autocomplete?${params.toString()}`);
+      const res = await fetch(`/api/search/autocomplete?${params.toString()}`, {
+        signal: controller.signal,
+      });
       if (!res.ok) {
-        setGroups(null);
+        if (!controller.signal.aborted) setGroups(null);
         return;
       }
       const data = (await res.json()) as { groups: AutocompleteGroupedResult };
+      if (controller.signal.aborted) return;
       setGroups(data.groups);
       setActiveIndex(-1);
-    } catch {
-      setGroups(null);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      if (!controller.signal.aborted) setGroups(null);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, [context, debouncedQuery, field]);
 
   useEffect(() => {
     void fetchSuggestions();
+    return () => fetchAbortRef.current?.abort();
   }, [fetchSuggestions]);
 
   function selectSuggestion(suggestion: AutocompleteSuggestion) {
@@ -133,7 +150,8 @@ export function AccessibleAutocomplete({
     // Tab moves focus naturally — do not trap
   }
 
-  const showList = open && !disabled && debouncedQuery.trim().length >= 2;
+  const showList =
+    open && !disabled && (value.trim().length >= 2 || debouncedQuery.trim().length >= 2);
 
   return (
     <div className={cn("relative", className)}>
@@ -209,6 +227,14 @@ export function AccessibleAutocomplete({
           aria-label={`${label} suggestions`}
           className="absolute z-50 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-border bg-popover p-1 shadow-lg"
         >
+          {loading ? (
+            <li
+              className="px-3 py-2.5 text-sm text-muted-foreground"
+              role="presentation"
+            >
+              Loading suggestions…
+            </li>
+          ) : null}
           {suggestions.length === 0 && !loading ? (
             <li
               className="px-3 py-2.5 text-sm text-muted-foreground"

@@ -116,7 +116,7 @@ export function MapAbleProviderSearchForm({
             onSelect={(s) => onLocationChange(s.value)}
             disabled={isSubmitting}
             icon={<MapPin className="h-4 w-4" aria-hidden />}
-            helperText="Uses MapAble’s local location list — not a public geocoding API."
+            helperText="Australian suburbs and postcodes via MapAble search (Mapbox when configured)."
           />
           <AccessibleAutocomplete
             id={`${idPrefix}-access`}

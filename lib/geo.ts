@@ -28,7 +28,27 @@ export function getCurrentPosition(): Promise<UserPosition> {
 }
 
 /**
- * Reverse geocode lat/lng to postcode/suburb/state via Nominatim (OpenStreetMap).
+ * Reverse geocode via MapAble API (Mapbox when configured, else Nominatim on server).
+ */
+export async function reverseGeocodeViaApi(
+  lat: number,
+  lng: number,
+): Promise<ReverseGeocodeResult> {
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
+  });
+  const res = await fetch(`/api/geocoding/reverse?${params.toString()}`);
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `Geocoding failed: ${res.status}`);
+  }
+  const data = (await res.json()) as { result: ReverseGeocodeResult };
+  return data.result;
+}
+
+/**
+ * Reverse geocode lat/lng via Nominatim (OpenStreetMap). Prefer {@link reverseGeocodeViaApi} in the browser.
  * Use sparingly; Nominatim requires 1 req/sec and a descriptive User-Agent.
  */
 export async function reverseGeocode(
@@ -101,7 +121,7 @@ export async function getLocationAndPostcode(): Promise<{
   state: string;
 }> {
   const position = await getCurrentPosition();
-  const { postcode, suburb, state } = await reverseGeocode(
+  const { postcode, suburb, state } = await reverseGeocodeViaApi(
     position.lat,
     position.lng,
   );
