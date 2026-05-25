@@ -54,5 +54,5 @@ export function tierLabel(tier: AccessAccreditationTier): string {
 }
 
 export function verifyCriteriaTotalWeight(): boolean {
-  return CRITERIA_TOTAL_WEIGHT === 96;
+  return ACCREDITATION_CRITERIA.length === 18 && CRITERIA_TOTAL_WEIGHT === 100;
 }

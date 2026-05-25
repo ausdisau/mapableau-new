@@ -175,6 +175,20 @@ export async function reportAccessPlace(params: {
   reason: string;
   details?: string;
 }) {
+  if (params.reporterId) {
+    const existing = await prisma.accessPlaceReport.findFirst({
+      where: {
+        placeId: params.placeId,
+        reporterId: params.reporterId,
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new Error("PLACE_REPORT_ALREADY_SUBMITTED");
+    }
+  }
+
   const report = await prisma.accessPlaceReport.create({
     data: {
       placeId: params.placeId,

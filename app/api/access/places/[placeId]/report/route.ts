@@ -16,12 +16,22 @@ export async function POST(
   const parsed = reportPlaceSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  await reportAccessPlace({
-    placeId,
-    reporterId,
-    reason: parsed.data.reason,
-    details: parsed.data.details,
-  });
+  try {
+    await reportAccessPlace({
+      placeId,
+      reporterId,
+      reason: parsed.data.reason,
+      details: parsed.data.details,
+    });
+  } catch (e) {
+    if (e instanceof Error && e.message === "PLACE_REPORT_ALREADY_SUBMITTED") {
+      return jsonError(
+        "You already reported this place recently; our team will review it",
+        409
+      );
+    }
+    throw e;
+  }
 
   return jsonOk({ ok: true });
 }

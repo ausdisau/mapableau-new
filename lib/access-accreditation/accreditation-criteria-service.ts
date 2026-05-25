@@ -23,6 +23,12 @@ export const ACCREDITATION_CRITERIA: AccreditationCriterionDef[] = [
   { code: "S-4", domain: "Information & Sensory", title: "Online Information", weight: 2 },
   { code: "T-1", domain: "Staff & Services", title: "Staff Training", weight: 3 },
   { code: "T-2", domain: "Staff & Services", title: "Service", weight: 3 },
+  {
+    code: "T-3",
+    domain: "Staff & Services",
+    title: "Emergency / evacuation information",
+    weight: 4,
+  },
 ];
 
 export const CRITERIA_TOTAL_WEIGHT = ACCREDITATION_CRITERIA.reduce(

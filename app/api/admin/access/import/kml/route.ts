@@ -14,6 +14,14 @@ import { jsonError, jsonOk } from "@/lib/api/response";
 /** Extra bytes for multipart boundaries beyond the file payload. */
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
+function importPayloadToString(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value != null && typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
 function assertPayloadWithinLimit(payload: string) {
   const bytes = new TextEncoder().encode(payload).length;
   if (bytes > MAX_IMPORT_BYTES) {
@@ -139,8 +147,9 @@ export async function POST(req: Request) {
   }
 
   if (body.kml) {
+    const kmlText = importPayloadToString(body.kml);
     try {
-      assertPayloadWithinLimit(String(body.kml));
+      assertPayloadWithinLimit(kmlText);
     } catch {
       return jsonError("KML payload too large", 413);
     }
@@ -149,7 +158,7 @@ export async function POST(req: Request) {
       sourceType: "uploaded_kml",
     });
     try {
-      await parseImportJobContent(job.id, String(body.kml), "uploaded_kml");
+      await parseImportJobContent(job.id, kmlText, "uploaded_kml");
     } catch (e) {
       const limitResp = importItemLimitResponse(e);
       if (limitResp) return limitResp;
@@ -159,8 +168,9 @@ export async function POST(req: Request) {
   }
 
   if (body.geojson) {
+    const geojsonText = importPayloadToString(body.geojson);
     try {
-      assertPayloadWithinLimit(String(body.geojson));
+      assertPayloadWithinLimit(geojsonText);
     } catch {
       return jsonError("GeoJSON payload too large", 413);
     }
@@ -170,7 +180,7 @@ export async function POST(req: Request) {
       fileName: "accessible_locations_merged.geojson",
     });
     try {
-      await parseImportJobContent(job.id, String(body.geojson), "geojson_upload");
+      await parseImportJobContent(job.id, geojsonText, "geojson_upload");
     } catch (e) {
       const limitResp = importItemLimitResponse(e);
       if (limitResp) return limitResp;

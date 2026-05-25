@@ -60,7 +60,7 @@ describe("confidence labels", () => {
 });
 
 describe("accreditation scoring", () => {
-  it("criteria weights sum to 96 (normalized to 100 scale)", () => {
+  it("has 18 criteria with weights summing to 100 (normalized scoring scale)", () => {
     expect(verifyCriteriaTotalWeight()).toBe(true);
   });
 
@@ -83,6 +83,7 @@ describe("accreditation scoring", () => {
       { criterionCode: "S-4", level: "gold" as const },
       { criterionCode: "T-1", level: "gold" as const },
       { criterionCode: "T-2", level: "gold" as const },
+      { criterionCode: "T-3", level: "gold" as const },
     ];
     const total = calculateAccreditationTotal(scores);
     expect(total).toBe(100);

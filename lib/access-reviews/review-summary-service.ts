@@ -21,6 +21,17 @@ export async function recomputePlaceRatingSummaries(placeId: string) {
     }
   }
 
+  const activeCategories = [...byCategory.keys()];
+
+  if (activeCategories.length === 0) {
+    await prisma.accessRatingSummary.deleteMany({ where: { placeId } });
+    return;
+  }
+
+  await prisma.accessRatingSummary.deleteMany({
+    where: { placeId, category: { notIn: activeCategories } },
+  });
+
   for (const [category, scores] of byCategory) {
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     await prisma.accessRatingSummary.upsert({

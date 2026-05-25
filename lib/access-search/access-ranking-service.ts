@@ -76,23 +76,23 @@ export function rankAccessPlaces(places: PlaceRow[], filters: AccessSearchFilter
 
   scored.sort((a, b) => {
     if (sort === "distance" && filters.lat != null && filters.lng != null) {
-      const da =
-        a.place.location &&
-        distanceKm(
-          filters.lat,
-          filters.lng,
-          a.place.location.latitude,
-          a.place.location.longitude
-        );
-      const db =
-        b.place.location &&
-        distanceKm(
-          filters.lat,
-          filters.lng,
-          b.place.location.latitude,
-          b.place.location.longitude
-        );
-      return (da ?? 999) - (db ?? 999);
+      const da = a.place.location
+        ? distanceKm(
+            filters.lat,
+            filters.lng,
+            a.place.location.latitude,
+            a.place.location.longitude
+          )
+        : 999;
+      const db = b.place.location
+        ? distanceKm(
+            filters.lat,
+            filters.lng,
+            b.place.location.latitude,
+            b.place.location.longitude
+          )
+        : 999;
+      return da - db;
     }
     if (sort === "most_reviewed") {
       return b.place._count.reviews - a.place._count.reviews;
