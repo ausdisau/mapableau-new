@@ -1,9 +1,11 @@
 import type { TripTrackingStatus } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { syncBookingStatusForTransportBooking } from "@/lib/bookings/status-sync";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
 import { notifyUser } from "@/lib/notifications/notification-service";
+import { createInvoiceDraftFromCompletedTransportBooking } from "@/lib/orchestration/invoice-orchestrator";
 import { prisma } from "@/lib/prisma";
 
 const STATUS_LABELS: Record<TripTrackingStatus, string> = {
@@ -23,7 +25,7 @@ export function plainLanguageTripStatus(status: TripTrackingStatus) {
 
 export async function startTripTracking(
   transportBookingId: string,
-  _actorUserId: string
+  _actorUserId: string,
 ) {
   const session = await prisma.tripTrackingSession.upsert({
     where: { transportBookingId },
@@ -35,6 +37,7 @@ export async function startTripTracking(
     where: { id: transportBookingId },
     data: { status: "confirmed" },
   });
+  await syncBookingStatusForTransportBooking(transportBookingId, _actorUserId);
 
   return session;
 }
@@ -43,7 +46,7 @@ export async function updateTripStatus(
   transportBookingId: string,
   status: TripTrackingStatus,
   actorUserId: string,
-  message?: string
+  message?: string,
 ) {
   const tb = await prisma.transportBooking.findUnique({
     where: { id: transportBookingId },
@@ -90,6 +93,13 @@ export async function updateTripStatus(
       where: { id: transportBookingId },
       data: { status: bookingStatusMap[status] as never },
     });
+    await syncBookingStatusForTransportBooking(transportBookingId, actorUserId);
+    if (status === "completed") {
+      await createInvoiceDraftFromCompletedTransportBooking(
+        transportBookingId,
+        actorUserId,
+      );
+    }
   }
 
   await createAuditEvent({
@@ -115,7 +125,7 @@ export async function updateTripStatus(
 export async function reportTripDelay(
   transportBookingId: string,
   actorUserId: string,
-  reason: string
+  reason: string,
 ) {
   const tb = await prisma.transportBooking.findUnique({
     where: { id: transportBookingId },
@@ -142,7 +152,7 @@ export async function reportTripDelay(
     tb.participantId,
     "booking",
     "Transport delay reported",
-    reason.slice(0, 200)
+    reason.slice(0, 200),
   );
 
   if (tb.bookingId) {
@@ -160,7 +170,12 @@ export async function reportTripDelay(
     select: { id: true },
   });
   for (const a of admins) {
-    await notifyUser(a.id, "booking", "Delayed transport trip", transportBookingId);
+    await notifyUser(
+      a.id,
+      "booking",
+      "Delayed transport trip",
+      transportBookingId,
+    );
   }
 
   return { atRisk: true };
@@ -170,7 +185,7 @@ export async function recordTripLocation(
   transportBookingId: string,
   lat: number,
   lng: number,
-  actorUserId: string
+  actorUserId: string,
 ) {
   if (!phase4Config.transportLiveLocationEnabled) {
     return { skipped: true, reason: "Live location disabled" };

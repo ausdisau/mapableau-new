@@ -34,6 +34,20 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
+### Dashboard chatbots
+
+The authenticated dashboard includes `/dashboard/chatbots` with three local-first
+assistants:
+
+- Support Search Chatbot for cited MapAble support guidance
+- Transport Booking Chatbot for drafting accessible trip details
+- Resume Builder Chatbot for copy-ready resume markdown
+
+The chatbots run deterministically in the browser without an LLM API key. Optional
+Stream Chat persistence can be enabled by setting server-side `STREAM_API_KEY`
+and `STREAM_API_SECRET` values in `.env.local`; no `NEXT_PUBLIC_STREAM_*` value
+is required.
+
 ### Build
 
 Build the application for production:

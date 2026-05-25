@@ -13,8 +13,8 @@ export default async function AdminServiceOpsPage() {
       <header>
         <h1 className="font-heading text-2xl font-bold">Service operations</h1>
         <p className="text-muted-foreground">
-          Operational overview for care, transport and jobs. No bulk automation in
-          Phase 3.
+          Operational overview for care, transport and jobs. No bulk automation
+          in Phase 3.
         </p>
       </header>
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -53,6 +53,18 @@ export default async function AdminServiceOpsPage() {
           count={summary.shiftsAwaitingApproval}
           href="/admin/care/shifts"
           description="Completed shifts waiting for participant approval."
+        />
+        <AdminServiceOpsCard
+          title="Linked transport missing"
+          count={summary.linkedTransportMissing}
+          href="/admin/service-ops/care"
+          description="Care requests requiring transport without a linked trip."
+        />
+        <AdminServiceOpsCard
+          title="Employment support pending"
+          count={summary.employmentSupportPending}
+          href="/admin/service-ops/jobs"
+          description="Interview support bundles that still need orchestration."
         />
       </section>
       <section>

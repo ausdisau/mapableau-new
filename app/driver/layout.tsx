@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { requireAuth } from "@/lib/auth/guards";
 
+export const dynamic = "force-dynamic";
+
 export default async function DriverLayout({
   children,
 }: {
@@ -15,6 +17,12 @@ export default async function DriverLayout({
         <nav className="mt-2 flex gap-4 text-sm" aria-label="Driver">
           <Link href="/driver/trips" className="min-h-11 inline-flex items-center">
             Trips
+          </Link>
+          <Link href="/driver/food-deliveries" className="min-h-11 inline-flex items-center">
+            Food deliveries
+          </Link>
+          <Link href="/driver/report-issue" className="min-h-11 inline-flex items-center">
+            Report issue
           </Link>
           <Link href="/driver/profile" className="min-h-11 inline-flex items-center">
             Profile

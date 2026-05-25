@@ -1,4 +1,5 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { syncBookingStatusForTransportBooking } from "@/lib/bookings/status-sync";
 import { prisma } from "@/lib/prisma";
 
 export async function createDriverProfile(params: {
@@ -35,31 +36,37 @@ export async function createDriverProfile(params: {
 export async function assignDriverToTransport(
   transportBookingId: string,
   driverProfileId: string,
-  _actorUserId: string
+  _actorUserId: string,
 ) {
-  return prisma.transportBooking.update({
+  const booking = await prisma.transportBooking.update({
     where: { id: transportBookingId },
     data: { driverProfileId, status: "driver_assigned" },
   });
+  await syncBookingStatusForTransportBooking(transportBookingId, _actorUserId);
+  return booking;
 }
 
 export async function assignVehicleToTransport(
   transportBookingId: string,
   vehicleId: string,
-  _actorUserId: string
+  _actorUserId: string,
 ) {
-  return prisma.transportBooking.update({
+  const booking = await prisma.transportBooking.update({
     where: { id: transportBookingId },
     data: { vehicleId, status: "vehicle_assigned" },
   });
+  await syncBookingStatusForTransportBooking(transportBookingId, _actorUserId);
+  return booking;
 }
 
 export async function declineTransportBooking(
   id: string,
-  _actorUserId: string
+  _actorUserId: string,
 ) {
-  return prisma.transportBooking.update({
+  const booking = await prisma.transportBooking.update({
     where: { id },
     data: { status: "cancelled" },
   });
+  await syncBookingStatusForTransportBooking(id, _actorUserId);
+  return booking;
 }

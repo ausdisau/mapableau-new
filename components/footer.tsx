@@ -138,9 +138,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/accessibility-map">
+                <Link href="/access">
                   <span className="text-sm text-muted-foreground hover:text-primary cursor-pointer">
-                    Accessibility Map
+                    MapAble Access
                   </span>
                 </Link>
               </li>

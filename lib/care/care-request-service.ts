@@ -1,9 +1,12 @@
 import type { CareRequestType } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { syncBookingStatusForCareRequest } from "@/lib/bookings/status-sync";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareRequest } from "@/lib/calendar/calendar-service";
 import { checkConsent } from "@/lib/consent/consent-service";
+import { ensureBookingForCareRequest } from "@/lib/modules/care-facade";
+import { createLinkedTransportFromCareRequest } from "@/lib/orchestration/care-transport-orchestrator";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 
@@ -77,13 +80,18 @@ export async function createCareRequest(params: {
 
 export async function submitCareRequest(
   careRequestId: string,
-  actorUserId: string
+  actorUserId: string,
 ) {
   const request = await prisma.careRequest.update({
     where: { id: careRequestId },
     data: { status: "submitted" },
   });
 
+  await ensureBookingForCareRequest(careRequestId, actorUserId);
+  await syncBookingStatusForCareRequest(careRequestId, actorUserId);
+  if (request.linkedTransportRequired) {
+    await createLinkedTransportFromCareRequest(careRequestId, actorUserId);
+  }
   await syncCalendarForCareRequest(request);
   await createAuditEvent({
     actorUserId,
@@ -107,7 +115,7 @@ export async function submitCareRequest(
 export async function assignCareRequestProvider(
   careRequestId: string,
   organisationId: string,
-  adminUserId: string
+  adminUserId: string,
 ) {
   const request = await prisma.careRequest.update({
     where: { id: careRequestId },
@@ -117,6 +125,7 @@ export async function assignCareRequestProvider(
     },
   });
 
+  await syncBookingStatusForCareRequest(careRequestId, adminUserId);
   await createAuditEvent({
     actorUserId: adminUserId,
     action: "care_request.assigned",
@@ -149,7 +158,7 @@ export async function assignCareRequestProvider(
 export async function providerAcceptCareRequest(
   careRequestId: string,
   actorUserId: string,
-  actorOrganisationIds?: string[]
+  actorOrganisationIds?: string[],
 ) {
   const existing = await prisma.careRequest.findUnique({
     where: { id: careRequestId },
@@ -167,6 +176,14 @@ export async function providerAcceptCareRequest(
     where: { id: careRequestId },
     data: { status: "confirmed" },
   });
+
+  await syncBookingStatusForCareRequest(careRequestId, actorUserId);
+  if (request.linkedTransportRequired) {
+    await prisma.transportBooking.updateMany({
+      where: { careRequestId, status: "draft" },
+      data: { status: "requested" },
+    });
+  }
 
   if (existing.assignedOrganisationId) {
     const { createCareBookingFromRequest } = await import(
@@ -201,7 +218,7 @@ export async function providerAcceptCareRequest(
     request.participantId,
     "booking",
     "Care request confirmed",
-    "Your care provider has accepted your request."
+    "Your care provider has accepted your request.",
   );
 
   return request;

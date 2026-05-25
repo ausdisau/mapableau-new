@@ -7,6 +7,7 @@ import { useState, type ReactNode } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { MapAbleLogo, type MapAbleLogoVariant } from "@/components/brand/MapAbleLogo";
+import { MapAbleAppGridMenu } from "@/components/layout/MapAbleAppGridMenu";
 import {
   mapableHeaderClass,
   mapableNavLinkActiveClass,
@@ -78,6 +79,7 @@ export function MapAbleSiteHeader({
                 </Link>
               ))}
             </nav>
+            <MapAbleAppGridMenu />
             {actions ? (
               actions
             ) : externalCta ? (
@@ -96,16 +98,19 @@ export function MapAbleSiteHeader({
             )}
           </div>
 
-          <button
-            type="button"
-            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground md:hidden"
-            aria-expanded={open}
-            aria-controls="mapable-mobile-nav"
-            onClick={() => setOpen(!open)}
-          >
-            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-            {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <MapAbleAppGridMenu />
+            <button
+              type="button"
+              className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground"
+              aria-expanded={open}
+              aria-controls="mapable-mobile-nav"
+              onClick={() => setOpen(!open)}
+            >
+              <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+              {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+            </button>
+          </div>
         </div>
       </div>
 

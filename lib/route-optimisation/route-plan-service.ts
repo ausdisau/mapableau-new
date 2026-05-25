@@ -1,19 +1,25 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { isDynamicRoutingEnabled } from "@/lib/config/dynamic-routing";
 import { phase5Config } from "@/lib/config/phase5";
 import { prisma } from "@/lib/prisma";
+import { computeDynamicRouteEstimate } from "@/lib/routing/dynamic-route-service";
 
 export async function planFromTransportBooking(
   transportBookingId: string,
-  actorUserId: string
+  actorUserId: string,
 ) {
-  if (!phase5Config.routeOptimisationEnabled) {
-    return { skipped: true, message: "Route optimisation disabled" };
+  if (!phase5Config.routeOptimisationEnabled && !isDynamicRoutingEnabled()) {
+    return { skipped: true, message: "Route planning disabled" };
   }
 
   const tb = await prisma.transportBooking.findUnique({
     where: { id: transportBookingId },
   });
   if (!tb) throw new Error("NOT_FOUND");
+
+  const estimate = isDynamicRoutingEnabled()
+    ? await computeDynamicRouteEstimate(transportBookingId)
+    : null;
 
   const plan = await prisma.routePlan.create({
     data: {
@@ -25,8 +31,18 @@ export async function planFromTransportBooking(
 
   await prisma.routeStop.createMany({
     data: [
-      { routePlanId: plan.id, sequence: 1, label: "Pickup", address: tb.pickupAddress },
-      { routePlanId: plan.id, sequence: 2, label: "Drop-off", address: tb.dropoffAddress },
+      {
+        routePlanId: plan.id,
+        sequence: 1,
+        label: "Pickup",
+        address: tb.pickupAddress,
+      },
+      {
+        routePlanId: plan.id,
+        sequence: 2,
+        label: "Drop-off",
+        address: tb.dropoffAddress,
+      },
     ],
   });
 
@@ -41,12 +57,20 @@ export async function planFromTransportBooking(
     });
   }
 
-  const estimates = [25, 35, 45];
+  const baseMinutes = estimate?.durationMinutes ?? 30;
+  const estimates = [
+    baseMinutes,
+    Math.round(baseMinutes * 1.15),
+    Math.round(baseMinutes * 1.3),
+  ];
+  const distanceLabel = estimate
+    ? `${estimate.distanceKm.toFixed(1)} km (${estimate.source})`
+    : "distance unavailable";
   for (let i = 0; i < estimates.length; i++) {
     await prisma.routePlanCandidate.create({
       data: {
         routePlanId: plan.id,
-        summary: `Route option ${i + 1} — placeholder estimate ${estimates[i]} minutes`,
+        summary: `Route option ${i + 1} — ~${estimates[i]} minutes, ${distanceLabel}`,
         riskNotes:
           i === 0
             ? "Shortest time — verify boarding time is sufficient"
@@ -58,7 +82,10 @@ export async function planFromTransportBooking(
       data: {
         routePlanId: plan.id,
         minutes: estimates[i],
-        source: phase5Config.routeProvider === "disabled" ? "placeholder" : "provider",
+        source:
+          phase5Config.routeProvider === "disabled"
+            ? "haversine"
+            : phase5Config.routeProvider,
       },
     });
   }
@@ -76,7 +103,7 @@ export async function planFromTransportBooking(
 export async function selectRoutePlan(
   routePlanId: string,
   candidateId: string,
-  actorUserId: string
+  actorUserId: string,
 ) {
   const candidate = await prisma.routePlanCandidate.findUnique({
     where: { id: candidateId },

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function createInvoiceLinesFromApprovedCareShift(
   shiftId: string,
-  adminUserId: string
+  adminUserId: string,
 ) {
   if (!phase3Config.orchestrationEnabled) {
     return { skipped: true };
@@ -32,7 +32,7 @@ export async function createInvoiceLinesFromApprovedCareShift(
     if (shift.bookingId) {
       invoice = await createInvoiceDraftFromBooking(
         shift.bookingId,
-        adminUserId
+        adminUserId,
       );
     } else {
       invoice = await prisma.invoice.create({
@@ -76,6 +76,87 @@ export async function createInvoiceLinesFromApprovedCareShift(
       careShiftId: shiftId,
       idempotencyKey: key,
       createdById: adminUserId,
+      metadata: { invoiceId: invoice.id },
+    },
+  });
+
+  return { invoice };
+}
+
+export async function createInvoiceDraftFromCompletedTransportBooking(
+  transportBookingId: string,
+  actorUserId: string,
+) {
+  if (!phase3Config.orchestrationEnabled) {
+    return { skipped: true };
+  }
+
+  const key = `invoice-transport-${transportBookingId}`;
+  const existing = await prisma.orchestrationEvent.findUnique({
+    where: { idempotencyKey: key },
+  });
+  if (existing) return { duplicate: true };
+
+  const transport = await prisma.transportBooking.findUnique({
+    where: { id: transportBookingId },
+  });
+  if (!transport || transport.status !== "completed") {
+    throw new Error("TRANSPORT_NOT_COMPLETED");
+  }
+
+  let invoice = transport.bookingId
+    ? await prisma.invoice.findFirst({
+        where: { bookingId: transport.bookingId },
+      })
+    : null;
+
+  if (!invoice && transport.bookingId) {
+    invoice = await createInvoiceDraftFromBooking(
+      transport.bookingId,
+      actorUserId,
+    );
+  }
+
+  if (!invoice) {
+    invoice = await prisma.invoice.create({
+      data: {
+        participantId: transport.participantId,
+        organisationId: transport.operatorOrganisationId,
+        status: "draft",
+        createdById: actorUserId,
+        lines: {
+          create: [
+            {
+              description: "Completed accessible transport trip",
+              serviceDate: transport.pickupWindowStart,
+              quantity: 1,
+              unitAmountCents: 0,
+              totalAmountCents: 0,
+            },
+          ],
+        },
+      },
+    });
+  } else {
+    await prisma.invoiceLine.create({
+      data: {
+        invoiceId: invoice.id,
+        description: "Completed accessible transport trip — requires review",
+        serviceDate: transport.pickupWindowStart,
+        quantity: 1,
+        unitAmountCents: 0,
+        totalAmountCents: 0,
+      },
+    });
+  }
+
+  await prisma.orchestrationEvent.create({
+    data: {
+      eventType: "invoice_from_transport_booking" as never,
+      transportBookingId,
+      bookingId: transport.bookingId,
+      idempotencyKey: key,
+      createdById: actorUserId,
       metadata: { invoiceId: invoice.id },
     },
   });

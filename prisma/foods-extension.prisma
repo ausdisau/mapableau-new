@@ -1,0 +1,29 @@
+// MapAble Foods Prisma extension.
+//
+// This repository currently points Prisma at `prisma/schema.prisma` rather than a
+// schema directory, so the canonical compiled models are appended there. This
+// fragment exists to make the Foods vertical easy to review and migrate to
+// Prisma multi-file schemas later without changing the plan file.
+//
+// Tables added in the canonical schema:
+// - data_access_logs
+// - food_vendors
+// - food_products
+// - food_carts
+// - food_cart_items
+// - food_orders
+// - food_order_items
+// - food_order_events
+// - food_delivery_assignments
+// - food_delivery_tracking_events
+// - food_delivery_handover_records
+// - food_payments
+// - food_invoice_links
+// - food_refunds
+// - food_disputes
+// - food_safety_events
+// - food_participant_preferences
+// - food_allergy_profiles
+// - food_substitution_preferences
+// - food_subscriptions
+// - food_subscription_items

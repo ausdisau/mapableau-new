@@ -1,10 +1,11 @@
 import { phase3Config } from "@/lib/config/phase3";
+import { ensureBookingForCareRequest } from "@/lib/modules/care-facade";
 import { prisma } from "@/lib/prisma";
 import { createTransportBooking } from "@/lib/transport/transport-booking-service";
 
 export async function createLinkedTransportFromCareRequest(
   careRequestId: string,
-  actorUserId: string
+  actorUserId: string,
 ) {
   if (!phase3Config.orchestrationEnabled) {
     return { skipped: true, reason: "Orchestration disabled" };
@@ -26,6 +27,7 @@ export async function createLinkedTransportFromCareRequest(
   }
 
   const start = request.preferredDate ?? new Date();
+  const booking = await ensureBookingForCareRequest(careRequestId, actorUserId);
   const tb = await createTransportBooking({
     participantId: request.participantId,
     pickupAddress: request.address ?? "Address to be confirmed",
@@ -35,6 +37,7 @@ export async function createLinkedTransportFromCareRequest(
     shareAccessibilityConfirmed: request.shareAccessibility,
     pickupNotes: "Linked to care request",
     careRequestId,
+    bookingId: booking.id,
     status: "draft",
   });
 
