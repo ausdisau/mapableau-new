@@ -1,29 +1,18 @@
-import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
-import { requireAuth } from "@/lib/auth/guards";
-import { prisma } from "@/lib/prisma";
+import { CapacityExchangePanel } from "@/components/admin-panels/provider/CapacityExchangePanel";
+import { requireProviderPanel } from "@/lib/auth/panel-guards";
+import { getCapacityExchange } from "@/lib/capacity/capacity-service";
+import { resolveProviderOrganisationId } from "@/lib/providers/provider-service";
+
+export const metadata = { title: "Capacity | Provider admin" };
 
 export default async function ProviderCapacityPage() {
-  const user = await requireAuth();
-  const orgIds = await getUserOrganisationIds(user.id);
-  const blocks = await prisma.capacityBlock.findMany({
-    where: { organisationId: { in: orgIds } },
-    orderBy: { date: "asc" },
-  });
-
+  const user = await requireProviderPanel();
+  const orgId = await resolveProviderOrganisationId(user);
+  const { blocks, waitlist } = await getCapacityExchange(user, orgId);
   return (
-    <div className="space-y-4">
-      <h1 className="font-heading text-2xl font-bold">Capacity</h1>
-      <p className="text-sm text-muted-foreground">
-        Simple capacity tracking for warnings — not AI scheduling.
-      </p>
-      <ul>
-        {blocks.map((b) => (
-          <li key={b.id} className="rounded-lg border p-3">
-            {b.serviceType}: {b.bookedCapacity}/{b.totalCapacity} on{" "}
-            {b.date.toLocaleDateString("en-AU")}
-          </li>
-        ))}
-      </ul>
+    <div className="space-y-6">
+      <h1 className="font-heading text-2xl font-bold">Capacity exchange</h1>
+      <CapacityExchangePanel blocks={blocks} waitlistCount={waitlist.length} />
     </div>
   );
 }

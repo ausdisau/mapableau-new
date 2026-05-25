@@ -87,6 +87,22 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+  jobPosts                  JobPost[]
+  quoteRequests             QuoteRequest[]
+  quoteResponsesSubmitted   QuoteResponse[]        @relation("QuoteResponseAuthor")
+  complaints                Complaint[]
+  waitlistRequests          WaitlistRequest[]
+  serviceLogsAsParticipant  ServiceLog[]           @relation("ServiceLogParticipant")
+  serviceLogsAuthored       ServiceLog[]           @relation("ServiceLogAuthor")
+  progressNotes             ProgressNote[]
+  dataAccessLogsAsActor     DataAccessLog[]        @relation("DataAccessActor")
+  dataAccessLogsAsSubject   DataAccessLog[]        @relation("DataAccessSubject")
+  rosterAssignments         RosterAssignment[]     @relation("RosterParticipant")
+  agentConversations        AgentConversation[]
+  agentRuns                 AgentRun[]
+  agentApprovalRequests     AgentApprovalRequest[] @relation("AgentApprovalRequestedBy")
+  agentApprovalReviews      AgentApprovalRequest[] @relation("AgentApprovalReviewedBy")
+  agentFeedback             AgentFeedback[]
 }
 
 model Worker {
@@ -542,6 +558,17 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  bookingEligible        Boolean                @default(false)
+  providerServices       ProviderService[]
+  providerServiceRegions ProviderServiceRegion[]
+  accessCapabilities     AccessCapability[]
+  quoteRequests          QuoteRequest[]
+  quoteResponses         QuoteResponse[]
+  serviceLogs            ServiceLog[]
+  rosterAssignments      RosterAssignment[]
+  qualitySignals         ProviderQualitySignal[]
+  complaints             Complaint[]
+  waitlistRequests       WaitlistRequest[]
 }
 
 model OrganisationMember {
@@ -998,6 +1025,7 @@ model Invoice {
   totalCents      Int           @default(0)
   currency        String        @default("AUD")
   notes           String?
+  participantApprovedAt DateTime?
   createdById     String
   createdBy       User          @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
   createdAt       DateTime      @default(now())
@@ -1367,6 +1395,10 @@ model WorkerProfile {
   careRequests            CareRequest[]
   careShifts              CareShift[]
   availabilityWindows     AvailabilityWindow[]
+  screeningChecks         WorkerScreeningCheck[]
+  credentialDocuments     CredentialDocument[]
+  rosterAssignments       RosterAssignment[]
+  serviceLogs             ServiceLog[]
 
   @@index([organisationId, active])
 }
@@ -4762,4 +4794,473 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- Admin panels: participant & provider marketplace / operations ---
+
+enum JobPostStatus {
+  draft
+  open
+  filled
+  closed
+  cancelled
+}
+
+enum QuoteRequestStatus {
+  draft
+  sent
+  responded
+  accepted
+  declined
+  expired
+}
+
+enum QuoteResponseStatus {
+  draft
+  submitted
+  accepted
+  declined
+  withdrawn
+}
+
+enum ServiceLogStatus {
+  draft
+  in_progress
+  submitted
+  approved
+  disputed
+}
+
+enum ComplaintStatus {
+  draft
+  open
+  investigating
+  resolved
+  escalated
+  closed
+}
+
+enum WaitlistStatus {
+  waiting
+  offered
+  accepted
+  withdrawn
+  expired
+}
+
+enum QualitySignalStatus {
+  open
+  acknowledged
+  remediated
+  closed
+}
+
+model JobPost {
+  id              String        @id @default(cuid())
+  participantId   String
+  participant     User          @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  title           String
+  description     String
+  supportCategory String?
+  suburb          String?
+  state           String?
+  status          JobPostStatus @default(draft)
+  preferredStart  DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  quoteRequests QuoteRequest[]
+
+  @@index([participantId, status])
+}
+
+model QuoteRequest {
+  id              String             @id @default(cuid())
+  participantId   String
+  participant     User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  jobPostId       String?
+  jobPost         JobPost?           @relation(fields: [jobPostId], references: [id], onDelete: SetNull)
+  organisationId  String?
+  organisation    Organisation?      @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  status          QuoteRequestStatus @default(draft)
+  notes           String?
+  expiresAt       DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  responses QuoteResponse[]
+
+  @@index([participantId, status])
+  @@index([organisationId])
+}
+
+model QuoteResponse {
+  id              String              @id @default(cuid())
+  quoteRequestId  String
+  quoteRequest    QuoteRequest        @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  organisationId  String
+  organisation    Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  submittedById   String
+  submittedBy     User                @relation("QuoteResponseAuthor", fields: [submittedById], references: [id])
+  status          QuoteResponseStatus @default(draft)
+  amountCents     Int?
+  summary         String?
+  validUntil      DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([quoteRequestId])
+  @@index([organisationId])
+}
+
+model ProviderService {
+  id               String       @id @default(cuid())
+  organisationId   String
+  organisation     Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name             String
+  supportCategory  String
+  ndisLineItemCode String?
+  description      String?
+  active           Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([organisationId, active])
+}
+
+model ProviderServiceRegion {
+  id              String       @id @default(cuid())
+  organisationId  String
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  regionName      String
+  state           String?
+  postcodePrefix  String?
+  createdAt       DateTime     @default(now())
+
+  @@index([organisationId])
+}
+
+model AccessCapability {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  capabilityKey  String
+  label          String?
+  verified       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@unique([organisationId, capabilityKey])
+}
+
+model ServiceLog {
+  id               String           @id @default(cuid())
+  organisationId   String
+  organisation     Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantId    String
+  participant      User             @relation("ServiceLogParticipant", fields: [participantId], references: [id])
+  workerProfileId  String?
+  workerProfile    WorkerProfile?   @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  bookingId        String?
+  careShiftId      String?
+  status           ServiceLogStatus @default(draft)
+  startedAt        DateTime?
+  endedAt          DateTime?
+  summary          String?
+  createdById      String
+  createdBy        User             @relation("ServiceLogAuthor", fields: [createdById], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  progressNotes ProgressNote[]
+
+  @@index([organisationId, status])
+  @@index([participantId])
+}
+
+model ProgressNote {
+  id           String     @id @default(cuid())
+  serviceLogId String
+  serviceLog   ServiceLog @relation(fields: [serviceLogId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User       @relation(fields: [authorId], references: [id])
+  body         String
+  createdAt    DateTime   @default(now())
+
+  @@index([serviceLogId])
+}
+
+model Complaint {
+  id              String          @id @default(cuid())
+  participantId   String
+  participant     User            @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  organisationId  String?
+  organisation    Organisation?   @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  bookingId       String?
+  category        String
+  status          ComplaintStatus @default(draft)
+  description     String
+  escalated       Boolean         @default(false)
+  safeguarding    Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([participantId, status])
+  @@index([organisationId])
+}
+
+model WorkerScreeningCheck {
+  id              String                 @id @default(cuid())
+  workerProfileId String
+  workerProfile   WorkerProfile          @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  checkType       String
+  status          WorkerCredentialStatus @default(pending_review)
+  referenceNumber String?
+  expiresAt       DateTime?
+  verifiedAt      DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([workerProfileId, checkType])
+}
+
+model CredentialDocument {
+  id              String                 @id @default(cuid())
+  workerProfileId String?
+  workerProfile   WorkerProfile?         @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  organisationId  String?
+  documentId      String?
+  credentialType  String
+  status          WorkerCredentialStatus @default(pending_review)
+  expiresAt       DateTime?
+  createdAt       DateTime               @default(now())
+
+  @@index([workerProfileId])
+}
+
+model WaitlistRequest {
+  id              String         @id @default(cuid())
+  participantId   String
+  participant     User           @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  organisationId  String?
+  organisation    Organisation?  @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  serviceType     String
+  status          WaitlistStatus @default(waiting)
+  priority        Int            @default(0)
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([participantId, status])
+}
+
+model RosterAssignment {
+  id              String        @id @default(cuid())
+  organisationId  String
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  participantId   String
+  participant     User          @relation("RosterParticipant", fields: [participantId], references: [id])
+  careShiftId     String?       @unique
+  startAt         DateTime
+  endAt           DateTime
+  status          String        @default("scheduled")
+  location        String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([organisationId, startAt])
+  @@index([workerProfileId])
+}
+
+model ProviderQualitySignal {
+  id             String              @id @default(cuid())
+  organisationId String
+  organisation   Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  signalType     String
+  severity       String              @default("medium")
+  summary        String
+  status         QualitySignalStatus @default(open)
+  metadata       Json?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([organisationId, status])
+}
+
+model DataAccessLog {
+  id                String           @id @default(cuid())
+  actorUserId       String
+  actor             User             @relation("DataAccessActor", fields: [actorUserId], references: [id])
+  actorRole         MapAbleUserRole?
+  subjectUserId     String
+  subject           User             @relation("DataAccessSubject", fields: [subjectUserId], references: [id])
+  resourceType      String
+  resourceId        String?
+  action            String
+  consentVerified   Boolean          @default(false)
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+
+  @@index([subjectUserId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+// --- MapAble Strands Agents ---
+
+enum AgentConversationStatus {
+  active
+  archived
+}
+
+enum AgentRunStatus {
+  running
+  completed
+  failed
+  blocked
+  cancelled
+}
+
+enum AgentToolCallStatus {
+  pending
+  completed
+  blocked
+  requires_confirmation
+}
+
+enum AgentApprovalStatus {
+  pending
+  approved
+  rejected
+  expired
+}
+
+model AgentConversation {
+  id         String                  @id @default(cuid())
+  userId     String
+  user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId  String
+  agentId    String
+  title      String?
+  status     AgentConversationStatus @default(active)
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+
+  messages AgentMessage[]
+  runs     AgentRun[]
+  feedback AgentFeedback[]
+
+  @@index([userId, updatedAt])
+}
+
+model AgentMessage {
+  id              String            @id @default(cuid())
+  conversationId  String
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role            String
+  content         String
+  redactedContent String?
+  metadataJson    Json?
+  createdAt       DateTime          @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model AgentRun {
+  id               String            @id @default(cuid())
+  conversationId   String?
+  conversation     AgentConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  agentId          String
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId        String
+  status           AgentRunStatus    @default(running)
+  riskLevel        String            @default("low")
+  modelProvider    String?
+  modelId          String?
+  inputTokens      Int?
+  outputTokens     Int?
+  latencyMs        Int?
+  createdAt        DateTime          @default(now())
+  completedAt      DateTime?
+
+  toolCalls         AgentToolCall[]
+  approvalRequests  AgentApprovalRequest[]
+  safetyEvents      AgentSafetyEvent[]
+  feedback          AgentFeedback[]
+
+  @@index([userId, createdAt])
+  @@index([agentId, status])
+}
+
+model AgentToolCall {
+  id            String              @id @default(cuid())
+  agentRunId    String
+  agentRun      AgentRun            @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  toolName      String
+  inputHash     String?
+  outputSummary String?
+  status        AgentToolCallStatus @default(pending)
+  riskLevel     String              @default("low")
+  blockedReason String?
+  createdAt     DateTime            @default(now())
+
+  @@index([agentRunId])
+  @@index([toolName])
+}
+
+model AgentApprovalRequest {
+  id              String              @id @default(cuid())
+  agentRunId      String
+  agentRun        AgentRun            @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  requestedAction String
+  riskLevel       String
+  status          AgentApprovalStatus @default(pending)
+  requestedById   String
+  requestedBy     User                @relation("AgentApprovalRequestedBy", fields: [requestedById], references: [id])
+  reviewedById    String?
+  reviewedBy      User?               @relation("AgentApprovalReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  createdAt       DateTime            @default(now())
+
+  @@index([agentRunId, status])
+}
+
+model AgentSafetyEvent {
+  id           String   @id @default(cuid())
+  agentRunId   String
+  agentRun     AgentRun @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  eventType    String
+  severity     String
+  reason       String
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([agentRunId, createdAt])
+}
+
+model AgentEvalRun {
+  id         String   @id @default(cuid())
+  agentId    String
+  evalSuite  String
+  status     String
+  scoreJson  Json?
+  createdAt  DateTime @default(now())
+
+  @@index([agentId, evalSuite])
+}
+
+model AgentFeedback {
+  id             String             @id @default(cuid())
+  conversationId String?
+  conversation   AgentConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  agentRunId     String?
+  agentRun       AgentRun?          @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating         Int?
+  comment        String?
+  createdAt      DateTime           @default(now())
+
+  @@index([agentRunId])
 }

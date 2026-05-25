@@ -1,19 +1,19 @@
 import { PortalNav } from "@/components/core/PortalNav";
-import { requireAuth } from "@/lib/auth/guards";
-import { PROVIDER_NAV_LINKS } from "@/lib/core-ui/provider-nav";
+import { PROVIDER_ADMIN_NAV_LINKS } from "@/lib/core-ui/provider-admin-nav";
+import { requireProviderPanel } from "@/lib/auth/panel-guards";
 
 export default async function ProviderLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  await requireProviderPanel();
 
   return (
     <div className="min-h-screen bg-background">
       <PortalNav
-        title="Provider console"
-        links={PROVIDER_NAV_LINKS}
+        title="Provider admin"
+        links={PROVIDER_ADMIN_NAV_LINKS}
         backHref="/dashboard"
         backLabel="Dashboard"
       />
