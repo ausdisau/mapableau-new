@@ -1,6 +1,10 @@
 import { reportPlaceSchema } from "@/types/access-map";
 import { reportAccessPlace } from "@/lib/access-map/access-place-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  jsonBodyErrorResponse,
+  parseJsonRequestBody,
+} from "@/lib/api/request-body";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 
 export async function POST(
