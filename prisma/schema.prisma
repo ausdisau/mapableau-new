@@ -419,6 +419,47 @@ enum ConsentStatus {
   pending
 }
 
+enum ProfileRoleStatus {
+  pending
+  active
+  suspended
+  revoked
+}
+
+enum PlatformConsentScope {
+  view_profile
+  view_bookings
+  view_documents
+  view_invoices
+  view_messages
+  view_service_logs
+  view_outcomes
+  approve_invoices
+  manage_bookings
+  emergency_access
+}
+
+enum ConsentEventType {
+  granted
+  revoked
+  expired
+  scope_changed
+  emergency_used
+}
+
+enum DataAccessAction {
+  read
+  export
+  search
+  list
+}
+
+enum FeatureFlagRuleOperator {
+  equals
+  in
+  not_in
+}
+
 enum NotificationChannel {
   in_app
   email
@@ -455,14 +496,21 @@ enum BookingStatus {
 }
 
 model UserRoleAssignment {
-  id        String          @id @default(cuid())
-  userId    String
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      MapAbleUserRole
-  isPrimary Boolean         @default(false)
-  createdAt DateTime        @default(now())
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         MapAbleUserRole
+  status       ProfileRoleStatus @default(pending)
+  isPrimary    Boolean           @default(false)
+  approvedAt   DateTime?
+  approvedById String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   @@unique([userId, role])
+  @@index([userId, status])
+  @@index([role, status])
+  @@map("profile_roles")
 }
 
 model ParticipantProfile {
@@ -575,9 +623,11 @@ model ConsentRecord {
   revokedAt               DateTime?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
+  events                  ConsentEvent[]
 
   @@index([subjectUserId, status])
   @@index([grantedToOrganisationId])
+  @@map("consent_grants")
 }
 
 model NotificationPreference {
@@ -625,6 +675,92 @@ model AuditEvent {
   @@index([action])
   @@index([participantId])
   @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model RolePermission {
+  id         String          @id @default(cuid())
+  role       MapAbleUserRole
+  permission String
+  createdAt  DateTime        @default(now())
+
+  @@unique([role, permission])
+  @@index([role])
+  @@map("role_permissions")
+}
+
+model ConsentEvent {
+  id              String           @id @default(cuid())
+  consentRecordId String
+  consentRecord   ConsentRecord    @relation(fields: [consentRecordId], references: [id], onDelete: Cascade)
+  eventType       ConsentEventType
+  actorUserId     String?
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+
+  @@index([consentRecordId, createdAt])
+  @@map("consent_events")
+}
+
+model DataAccessLog {
+  id             String                @id @default(cuid())
+  actorUserId    String
+  actorRole      MapAbleUserRole?
+  resourceType   String
+  resourceId     String?
+  participantId  String?
+  organisationId String?
+  action         DataAccessAction      @default(read)
+  consentScope   PlatformConsentScope?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime              @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([participantId, createdAt])
+  @@index([organisationId, createdAt])
+  @@index([resourceType, createdAt])
+  @@map("data_access_logs")
+}
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  description String?
+  enabled     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rules  FeatureFlagRule[]
+  events FeatureFlagEvent[]
+
+  @@map("feature_flags")
+}
+
+model FeatureFlagRule {
+  id            String                @id @default(cuid())
+  featureFlagId String
+  featureFlag   FeatureFlag           @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  attribute     String
+  operator      FeatureFlagRuleOperator @default(equals)
+  value         Json
+  createdAt     DateTime              @default(now())
+
+  @@index([featureFlagId])
+  @@map("feature_flag_rules")
+}
+
+model FeatureFlagEvent {
+  id            String      @id @default(cuid())
+  featureFlagId String
+  featureFlag   FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  actorUserId   String?
+  evaluated     Boolean
+  context       Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([featureFlagId, createdAt])
+  @@map("feature_flag_events")
 }
 
 model Booking {

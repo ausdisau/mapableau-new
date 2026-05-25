@@ -8,6 +8,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      padding: {
+        "safe-area-pb": "max(0.75rem, env(safe-area-inset-bottom))",
+      },
       borderRadius: {
         sm: "calc(var(--radius) - 4px)",
         md: "calc(var(--radius) - 2px)",
