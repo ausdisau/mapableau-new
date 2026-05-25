@@ -13,6 +13,7 @@ const TO_PRISMA: Record<ConsentScope, PrismaConsentScope> = {
   "plan_manager.invoice_access": "plan_manager_invoice_access",
   "transport.accessibility_share": "transport_accessibility_share",
   "care.accessibility_share": "care_accessibility_share",
+  "peer.activity.read": "peer_activity_read",
 };
 
 const FROM_PRISMA: Record<PrismaConsentScope, ConsentScope> = Object.fromEntries(
