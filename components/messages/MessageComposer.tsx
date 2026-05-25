@@ -7,8 +7,14 @@ import { Button } from "@/components/ui/button";
 
 export function MessageComposer({
   onSend,
+  onTyping,
+  attachmentDocumentIds,
+  onAttachmentsChange,
 }: {
-  onSend: (body: string) => Promise<void>;
+  onSend: (body: string, attachmentIds?: string[]) => Promise<void>;
+  onTyping?: () => void;
+  attachmentDocumentIds?: string[];
+  onAttachmentsChange?: (ids: string[]) => void;
 }) {
   const [body, setBody] = useState("");
   const [status, setStatus] = useState("");
@@ -22,7 +28,7 @@ export function MessageComposer({
         setLoading(true);
         setStatus("");
         try {
-          await onSend(body);
+          await onSend(body, attachmentDocumentIds);
           setBody("");
           setStatus("Message sent.");
         } catch {
@@ -39,7 +45,10 @@ export function MessageComposer({
         className={formInputClass}
         rows={4}
         value={body}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={(e) => {
+          setBody(e.target.value);
+          onTyping?.();
+        }}
         required
         maxLength={10000}
       />

@@ -1,4 +1,7 @@
+import { CommunicationCentrePage } from "@/components/messages/CommunicationCentrePage";
 
-export default async function Page() {
-  return <div className="space-y-4"><h1 className="font-heading text-2xl font-bold">messages</h1><p className="text-muted-foreground">Use list views and filters from the admin API.</p></div>;
+export const metadata = { title: "Provider messages | MapAble" };
+
+export default function ProviderMessagesPage() {
+  return <CommunicationCentrePage basePath="/provider/messages" />;
 }
