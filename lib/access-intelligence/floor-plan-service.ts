@@ -241,8 +241,7 @@ export async function updateFloorPlan(params: {
       ...params.data,
       ...(params.data.status
         ? {
-            publishedAt:
-              params.data.status === "published" ? new Date() : null,
+            publishedAt: params.data.status === "published" ? new Date() : null,
           }
         : {}),
       events: {
