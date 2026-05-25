@@ -3,6 +3,9 @@ import type { MatchFactorType, MatchType } from "@prisma/client";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
+import { buildWwcContextForCareRequest } from "@/lib/verification/wwc/build-wwc-booking-context";
+import { canWorkerPerformChildRelatedSupport } from "@/lib/verification/wwc/wwc-eligibility-service";
+import { requiresWwcForBooking } from "@/lib/verification/wwc/wwc-requirement-rules";
 import { prisma } from "@/lib/prisma";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
@@ -24,9 +27,16 @@ export async function runCareWorkerMatch(
 
   const request = await prisma.careRequest.findUnique({
     where: { id: careRequestId },
-    include: { participant: { include: { accessibilityProfile: true } } },
+    include: {
+      participant: {
+        include: { accessibilityProfile: true, participantProfile: true },
+      },
+    },
   });
   if (!request) throw new Error("NOT_FOUND");
+
+  const wwcContext = await buildWwcContextForCareRequest(request);
+  const wwcRequired = requiresWwcForBooking(wwcContext);
 
   const run = await prisma.matchRun.create({
     data: {
@@ -90,6 +100,29 @@ export async function runCareWorkerMatch(
         explanation: "Worker verification requires review.",
         weight: 1.5,
       });
+    }
+
+    if (wwcRequired) {
+      const wwcEligibility = await canWorkerPerformChildRelatedSupport(
+        w.id,
+        wwcContext
+      );
+      if (!wwcEligibility.allowed) {
+        factors.push({
+          factorType: "credential_status",
+          score: 0,
+          explanation: `Child-related check required: ${wwcEligibility.missingRequirements.join("; ") || "WWC not approved"}.`,
+          weight: 3,
+        });
+        if (!phase4Config.matchingAllowAdminOverride) continue;
+      } else {
+        factors.push({
+          factorType: "credential_status",
+          score: 1,
+          explanation: "Working With Children Check requirements met.",
+          weight: 2,
+        });
+      }
     }
 
     if (
