@@ -87,6 +87,9 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+  ndisClaimLinesParticipant NdisClaimLine[]        @relation("NdisClaimLinesParticipant")
+  ndisInvoicesParticipant   NdisInvoice[]          @relation("NdisInvoicesParticipant")
+  participantProviderRelationships ParticipantProviderRelationship[] @relation("ParticipantProviderRelationships")
 }
 
 model Worker {
@@ -527,6 +530,10 @@ model Organisation {
   invoices    Invoice[]
   billingInvoices BillingInvoice[] @relation("BillingInvoiceProvider")
   ndiaProviderClaims NdiaProviderClaim[]
+  ndisClaimBatches       NdisClaimBatch[]
+  ndisClaimLines         NdisClaimLine[]
+  ndisInvoices           NdisInvoice[]
+  participantProviderRelationships ParticipantProviderRelationship[]
 
   careRequests           CareRequest[]
   careShifts             CareShift[]
@@ -665,6 +672,7 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  ndisClaimLines     NdisClaimLine[]
 
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
@@ -4762,4 +4770,221 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- NDIS portal-assisted direct claiming ---
+
+enum NdisPaymentRoute {
+  self_managed
+  plan_managed
+  ndia_managed
+}
+
+enum NdisClaimLineStatus {
+  draft
+  validated
+  validation_failed
+  included_in_batch
+  exported
+  submitted
+  pending
+  paid
+  rejected
+  corrected
+  resubmitted
+  voided
+}
+
+enum NdisClaimBatchStatus {
+  draft
+  validated
+  approved
+  exported
+  submitted_in_portal
+  partially_paid
+  paid
+  rejected
+  closed
+}
+
+enum NdisClaimType {
+  standard
+  cancellation
+  non_face_to_face
+  irregular_sil
+  other
+}
+
+enum NdisInvoiceStatus {
+  draft
+  issued
+  sent
+  paid
+  voided
+}
+
+enum ParticipantProviderRelationshipStatus {
+  unknown
+  active
+  inactive
+  pending_verification
+}
+
+model ParticipantProviderRelationship {
+  id                   String                                @id @default(cuid())
+  participantId        String
+  participant          User                                  @relation("ParticipantProviderRelationships", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId        String
+  providerOrg          Organisation                          @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  status               ParticipantProviderRelationshipStatus @default(unknown)
+  myProviderVerifiedAt DateTime?
+  notes                String?
+  createdAt            DateTime                              @default(now())
+  updatedAt            DateTime                              @updatedAt
+
+  @@unique([participantId, providerOrgId])
+  @@index([providerOrgId, status])
+}
+
+model NdisPricingCatalogueItem {
+  id                String    @id @default(cuid())
+  supportItemCode   String    @unique
+  description       String
+  unitType          String?
+  priceLimitCents   Int?
+  ndisSupportItemId String?
+  active            Boolean   @default(true)
+  effectiveFrom     DateTime?
+  effectiveTo       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([active])
+}
+
+model NdisClaimBatch {
+  id             String               @id @default(cuid())
+  providerOrgId  String
+  providerOrg    Organisation         @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  paymentRoute   NdisPaymentRoute
+  status         NdisClaimBatchStatus @default(draft)
+  batchReference String?
+  exportFileName String?
+  exportChecksum String?
+  exportedAt     DateTime?
+  submittedAt    DateTime?
+  closedAt       DateTime?
+  createdById    String
+  approvedById   String?
+  metadataJson   Json?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  lines NdisClaimLine[]
+
+  @@index([providerOrgId, status])
+  @@index([paymentRoute, status])
+}
+
+model NdisClaimLine {
+  id                    String              @id @default(cuid())
+  batchId               String?
+  batch                 NdisClaimBatch?     @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  participantId         String
+  participant           User                @relation("NdisClaimLinesParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId         String
+  providerOrg           Organisation        @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  bookingId             String?
+  booking               Booking?            @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  invoiceId             String?
+  ndisInvoiceId         String?
+  ndisInvoice           NdisInvoice?        @relation(fields: [ndisInvoiceId], references: [id], onDelete: SetNull)
+  ndisParticipantNumber String?
+  participantName       String
+  supportItemCode       String
+  supportDescription    String
+  serviceStartDate      DateTime
+  serviceEndDate        DateTime
+  quantity              Decimal             @db.Decimal(12, 4)
+  unitPriceCents        Int
+  totalAmountCents      Int
+  paymentRoute          NdisPaymentRoute
+  claimType             NdisClaimType       @default(standard)
+  cancellationReason    String?
+  status                NdisClaimLineStatus @default(draft)
+  rejectionCode         String?
+  rejectionMessage      String?
+  evidenceJson          Json?
+  validationJson        Json?
+  correctedFromLineId   String?
+  createdById           String
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  auditEvents ClaimAuditEvent[]
+
+  @@index([providerOrgId, status])
+  @@index([participantId, providerOrgId, supportItemCode, serviceStartDate])
+  @@index([bookingId])
+  @@index([batchId])
+}
+
+model NdisInvoice {
+  id               String            @id @default(cuid())
+  providerOrgId    String
+  providerOrg      Organisation      @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  participantId    String
+  participant      User              @relation("NdisInvoicesParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  paymentRoute     NdisPaymentRoute
+  invoiceNumber    String
+  status           NdisInvoiceStatus @default(draft)
+  planManagerName  String?
+  planManagerEmail String?
+  issuedAt         DateTime?
+  dueAt            DateTime?
+  totalCents       Int               @default(0)
+  createdById      String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  lines      NdisInvoiceLine[]
+  claimLines NdisClaimLine[]
+
+  @@index([providerOrgId, status])
+  @@index([participantId])
+}
+
+model NdisInvoiceLine {
+  id              String      @id @default(cuid())
+  invoiceId       String
+  invoice         NdisInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  claimLineId     String?     @unique
+  supportItemCode String
+  description     String
+  serviceDate     DateTime
+  quantity        Decimal     @db.Decimal(12, 4)
+  unitPriceCents  Int
+  totalCents      Int
+  sortOrder       Int         @default(0)
+
+  @@index([invoiceId])
+}
+
+model ClaimAuditEvent {
+  id           String         @id @default(cuid())
+  claimLineId  String?
+  claimLine    NdisClaimLine? @relation(fields: [claimLineId], references: [id], onDelete: SetNull)
+  batchId      String?
+  entityType   String
+  entityId     String
+  action       String
+  actorUserId  String?
+  beforeJson   Json?
+  afterJson    Json?
+  metadataJson Json?
+  createdAt    DateTime       @default(now())
+
+  @@index([claimLineId, createdAt])
+  @@index([batchId, createdAt])
+  @@index([entityType, entityId])
 }
