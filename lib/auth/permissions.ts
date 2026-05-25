@@ -49,6 +49,14 @@ export type Permission =
   | "transport:manage:org"
   | "transport:manage:any"
   | "transport:drive"
+  | "foods:read:self"
+  | "foods:manage:self"
+  | "foods:read:org"
+  | "foods:manage:org"
+  | "foods:deliver:assigned"
+  | "foods:invoice:read"
+  | "foods:approve:nominee"
+  | "foods:admin"
   | "worker:manage:org"
   | "worker:read:any"
   | "vehicle:manage:org"
@@ -193,6 +201,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "care:manage:self",
     "transport:read:self",
     "transport:manage:self",
+    "foods:read:self",
+    "foods:manage:self",
     "jobs:read:public",
     "jobs:apply",
     "calendar:read:self",
@@ -214,6 +224,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "profile:read:self",
     "booking:read:self",
     "notification:read:self",
+    "foods:read:self",
+    "foods:approve:nominee",
   ],
   support_coordinator: [
     "profile:read:any",
@@ -254,6 +266,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "operator_dispatch:manage",
     "provider_academy:enroll",
     "provider:ndia:claim",
+    "foods:read:org",
+    "foods:manage:org",
   ],
   transport_operator: [
     "booking:read:any",
@@ -274,6 +288,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "booking:read:any",
     "notification:read:self",
     "transport:drive",
+    "foods:deliver:assigned",
     "driver:trips",
     "tracking:update:driver",
     "incident:create",
@@ -289,6 +304,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   plan_manager: [
     "plan_manager:portal",
     "invoice:read:self",
+    "foods:invoice:read",
     "booking:read:any",
     "notification:read:self",
   ],
@@ -313,6 +329,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "notification:read:self",
     "care:manage:any",
     "transport:manage:any",
+    "foods:admin",
+    "foods:manage:org",
+    "foods:read:org",
     "worker:read:any",
     "vehicle:read:any",
     "driver:read:any",
