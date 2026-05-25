@@ -25,10 +25,21 @@ model User {
   preferredContactMethod PreferredContactMethod @default(email)
   primaryRole            MapAbleUserRole    @default(participant)
   worker                 Worker?
-  passwordHash           String
+  passwordHash           String?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
+  authIdentityLinks      AuthIdentityLink[]
+  authLoginEvents        AuthLoginEvent[]
+  authSecurityEvents     AuthSecurityEvent[]
+  authStepUpChallenges   AuthStepUpChallenge[]
+  profileRoles           ProfileRole[]
+  profileOnboardingStatus ProfileOnboardingStatus?
+  consentGrants          ConsentGrant[]
+  consentEvents          ConsentEvent[]
+  auditLogs              AuditLog[]
+  dataAccessLogs         DataAccessLog[]    @relation("DataAccessActor")
+  dataAccessLogsSubject  DataAccessLog[]    @relation("DataAccessSubject")
   claimedProviders       ClaimedProvider[]
 
   memberships            ProviderUserRole[]
@@ -5055,4 +5066,246 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- Auth0 / privacy / compliance (MapAble identity bridge) ---
+
+enum AuthProvider {
+  auth0
+  google
+  credentials
+}
+
+enum AuthLoginEventType {
+  login
+  logout
+  login_failed
+  callback
+  link_account
+}
+
+enum AuthSecurityEventType {
+  account_link_requested
+  account_link_confirmed
+  account_link_rejected
+  step_up_required
+  step_up_verified
+  step_up_failed
+  mfa_challenge
+  lockout
+}
+
+enum ProfileOnboardingStatusEnum {
+  pending_role
+  pending_privacy_consent
+  pending_approval
+  complete
+}
+
+enum ProfileRoleStatus {
+  requested
+  pending_approval
+  approved
+  rejected
+}
+
+enum ConsentGrantType {
+  privacy_policy
+  terms_of_service
+  data_collection
+  marketing
+}
+
+enum ConsentGrantStatus {
+  granted
+  revoked
+}
+
+enum DataClassification {
+  identity_data
+  personal_information
+  sensitive_information
+  health_information
+  ephi_possible
+}
+
+enum AustralianPrivacyReviewStatus {
+  not_reviewed
+  in_review
+  approved
+  requires_action
+}
+
+model AuthIdentityLink {
+  id              String       @id @default(uuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auth0UserId     String       @unique
+  provider        AuthProvider @default(auth0)
+  providerUserId  String?
+  email           String?
+  emailVerified   Boolean      @default(false)
+  linkedAt        DateTime     @default(now())
+  lastLoginAt     DateTime?
+
+  @@index([userId])
+  @@index([email])
+  @@map("auth_identity_links")
+}
+
+model AuthLoginEvent {
+  id             String             @id @default(uuid())
+  userId         String?
+  user           User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  auth0UserId    String?
+  provider       AuthProvider?
+  eventType      AuthLoginEventType
+  ipAddressHash  String?
+  userAgentHash  String?
+  success        Boolean            @default(true)
+  riskLevel      String?
+  createdAt      DateTime           @default(now())
+
+  @@index([userId, createdAt])
+  @@index([auth0UserId, createdAt])
+  @@map("auth_login_events")
+}
+
+model AuthSecurityEvent {
+  id            String                @id @default(uuid())
+  userId        String?
+  user          User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  auth0UserId   String?
+  eventType     AuthSecurityEventType
+  metadata      Json?
+  ipAddressHash String?
+  createdAt     DateTime              @default(now())
+
+  @@index([userId, createdAt])
+  @@map("auth_security_events")
+}
+
+model AuthStepUpChallenge {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionKey  String
+  verifiedAt DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([userId, actionKey, expiresAt])
+  @@map("auth_step_up_challenges")
+}
+
+model ProfileRole {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        MapAbleUserRole
+  status      ProfileRoleStatus @default(requested)
+  requestedAt DateTime          @default(now())
+  approvedAt  DateTime?
+  approvedById String?
+
+  @@unique([userId, role])
+  @@index([userId, status])
+  @@map("profile_roles")
+}
+
+model ProfileOnboardingStatus {
+  id                String                      @id @default(uuid())
+  userId            String                      @unique
+  user              User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status            ProfileOnboardingStatusEnum @default(pending_role)
+  roleSelected      MapAbleUserRole?
+  privacyConsentAt  DateTime?
+  approvedAt        DateTime?
+  updatedAt         DateTime                    @updatedAt
+  createdAt         DateTime                    @default(now())
+
+  @@map("profile_onboarding_status")
+}
+
+model ConsentGrant {
+  id          String             @id @default(uuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantType   ConsentGrantType
+  status      ConsentGrantStatus @default(granted)
+  purpose     String
+  version     String             @default("1.0")
+  grantedAt   DateTime           @default(now())
+  revokedAt   DateTime?
+
+  @@index([userId, grantType, status])
+  @@map("consent_grants")
+}
+
+model ConsentEvent {
+  id          String             @id @default(uuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantId     String?
+  eventType   String
+  grantType   ConsentGrantType?
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+
+  @@index([userId, createdAt])
+  @@map("consent_events")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  category       String
+  action         String
+  entityType     String?
+  entityId       String?
+  metadata       Json?
+  ipAddressHash  String?
+  createdAt      DateTime @default(now())
+
+  @@index([category, createdAt])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model DataAccessLog {
+  id             String             @id @default(uuid())
+  actorUserId    String
+  actorUser      User               @relation("DataAccessActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  subjectUserId  String?
+  subjectUser    User?              @relation("DataAccessSubject", fields: [subjectUserId], references: [id], onDelete: SetNull)
+  resourceType   String
+  resourceId     String?
+  classification DataClassification
+  purpose        String
+  createdAt      DateTime           @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([subjectUserId, createdAt])
+  @@map("data_access_logs")
+}
+
+model VendorComplianceRecord {
+  id                            String                        @id @default(uuid())
+  vendorName                    String
+  serviceName                   String
+  dataCategories                String[]
+  handlesPhiOrEphi              Boolean                       @default(false)
+  handlesHealthInformation      Boolean                       @default(false)
+  baaRequired                   Boolean                       @default(false)
+  baaSigned                     Boolean                       @default(false)
+  australianPrivacyReviewStatus AustralianPrivacyReviewStatus @default(not_reviewed)
+  subprocessorsReviewed         Boolean                       @default(false)
+  notes                         String?
+  reviewedAt                    DateTime?
+  nextReviewAt                  DateTime?
+  createdAt                     DateTime                      @default(now())
+  updatedAt                     DateTime                      @updatedAt
+
+  @@unique([vendorName, serviceName])
+  @@map("vendor_compliance_records")
 }
