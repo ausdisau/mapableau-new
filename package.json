@@ -18,7 +18,8 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
-    "neon:configure": "python3 scripts/configure-neon-env.py"
+    "neon:configure": "python3 scripts/configure-neon-env.py",
+    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -49,6 +50,7 @@
     "framer-motion": "^12.26.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
+    "maplibre-gl": "^5.24.0",
     "next": "15.5.7",
     "next-auth": "^4.24.13",
     "react": "^18.0.0",
