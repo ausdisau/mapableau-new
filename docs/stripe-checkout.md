@@ -2,6 +2,8 @@
 
 MapAble uses **Stripe Checkout Sessions** for invoice payments and Pro subscriptions. Checkout code lives under `lib/stripe/` and `lib/billing-core/`; UI entry points include **Pay now** on billing invoices and provider subscription checkout.
 
+Provider **Connect Express** payouts (destination charges) are documented in [stripe-connect.md](./stripe-connect.md).
+
 ## Stripe Projects (projects.dev)
 
 Stripe API keys are **not** provisioned through [Stripe Projects](https://projects.dev/providers). Preflight in this repo (Stripe CLI ≥ 1.40, `stripe plugin install projects`):

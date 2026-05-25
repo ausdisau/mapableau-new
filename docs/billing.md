@@ -81,7 +81,7 @@ BILLING_PLATFORM_FEE_BPS=1000
 BILLING_GST_BPS=1000
 ```
 
-Enable Stripe in development by setting `STRIPE_SECRET_KEY` (and optionally `BILLING_ENABLE_STRIPE=true` for legacy phase-2 guards).
+Enable Stripe in development by setting `STRIPE_SECRET_KEY` (and optionally `BILLING_ENABLE_STRIPE=true` for legacy phase-2 guards). Step-by-step: [stripe-connect.md](./stripe-connect.md). Verify with `pnpm stripe:verify` or `GET /api/billing/stripe-status?ping=1`.
 
 ## Webhook setup
 
