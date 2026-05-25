@@ -17,6 +17,8 @@ const LINKS = [
   { href: "/dashboard/care", label: "Care" },
   { href: "/dashboard/transport", label: "Transport" },
   { href: "/dashboard/jobs", label: "Jobs" },
+  { href: "/dashboard/foods", label: "Foods" },
+  { href: "/dashboard/moves", label: "Moves" },
   { href: "/dashboard/calendar", label: "Calendar" },
   { href: "/dashboard/find-support", label: "Find support" },
   { href: "/dashboard/find-transport", label: "Find transport" },
