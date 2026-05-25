@@ -2,6 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true, // Enables additional React checks in dev
+  async redirects() {
+    return [
+      { source: "/dashboard/transport", destination: "/transport", permanent: false },
+      { source: "/dashboard/transport/new", destination: "/transport/book", permanent: false },
+      {
+        source: "/dashboard/transport/:id",
+        destination: "/transport/trips/:id",
+        permanent: false,
+      },
+    ];
+  },
   // todo: check where this is applied and how it works
   async headers() {
     return [

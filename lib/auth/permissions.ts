@@ -49,6 +49,14 @@ export type Permission =
   | "transport:manage:org"
   | "transport:manage:any"
   | "transport:drive"
+  | "foods:read:self"
+  | "foods:manage:self"
+  | "foods:read:org"
+  | "foods:manage:org"
+  | "foods:deliver:assigned"
+  | "foods:invoice:read"
+  | "foods:approve:nominee"
+  | "foods:admin"
   | "worker:manage:org"
   | "worker:read:any"
   | "vehicle:manage:org"
@@ -169,7 +177,13 @@ export type Permission =
   | "research_federation:manage"
   | "continuity:manage"
   | "civic_audit:publish"
-  | "federation_partner:manage";
+  | "federation_partner:manage"
+  | "peer:access"
+  | "peer:profile:manage:self"
+  | "peer:circle:post"
+  | "peer:mentor:manage:self"
+  | "peer:moderate"
+  | "peer:admin";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -193,6 +207,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "care:manage:self",
     "transport:read:self",
     "transport:manage:self",
+    "foods:read:self",
+    "foods:manage:self",
     "jobs:read:public",
     "jobs:apply",
     "calendar:read:self",
@@ -209,11 +225,19 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "safeguards:read",
     "membership:read",
     "transport_investment:read",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:circle:post",
   ],
   family_member: [
     "profile:read:self",
     "booking:read:self",
     "notification:read:self",
+    "foods:read:self",
+    "foods:approve:nominee",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:circle:post",
   ],
   support_coordinator: [
     "profile:read:any",
@@ -243,6 +267,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:booking:respond",
     "care:read:org",
     "care:manage:org",
+    "transport:read:org",
+    "transport:manage:org",
+    "foods:read:org",
+    "foods:manage:org",
+    "vehicle:manage:org",
+    "driver:manage:org",
     "worker:manage:org",
     "availability:manage:org",
     "calendar:read:org",
@@ -274,6 +304,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "booking:read:any",
     "notification:read:self",
     "transport:drive",
+    "foods:deliver:assigned",
     "driver:trips",
     "tracking:update:driver",
     "incident:create",
@@ -289,8 +320,17 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   plan_manager: [
     "plan_manager:portal",
     "invoice:read:self",
+    "foods:invoice:read",
     "booking:read:any",
     "notification:read:self",
+  ],
+  peer_mentor: [
+    "profile:read:self",
+    "notification:read:self",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:mentor:manage:self",
+    "peer:circle:post",
   ],
   mapable_admin: [
     "profile:read:any",
@@ -313,6 +353,10 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "notification:read:self",
     "care:manage:any",
     "transport:manage:any",
+    "foods:admin",
+    "foods:read:org",
+    "foods:manage:org",
+    "foods:invoice:read",
     "worker:read:any",
     "vehicle:read:any",
     "driver:read:any",
@@ -408,6 +452,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "continuity:manage",
     "civic_audit:publish",
     "federation_partner:manage",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:circle:post",
+    "peer:mentor:manage:self",
+    "peer:moderate",
+    "peer:admin",
   ],
 };
 

@@ -14,10 +14,20 @@ export default async function CareRequestDetailPage({
   const { careRequestId } = await params;
   const request = await prisma.careRequest.findFirst({
     where: { id: careRequestId, participantId: user.id },
+    include: { booking: true },
   });
   if (!request) {
     return <p role="alert">Care request not found.</p>;
   }
+  const transportBookings = await prisma.transportBooking.findMany({
+    where: {
+      OR: [
+        { careRequestId: request.id },
+        ...(request.bookingId ? [{ bookingId: request.bookingId }] : []),
+      ],
+    },
+    orderBy: { pickupWindowStart: "asc" },
+  });
 
   return (
     <div className="space-y-6">
@@ -29,6 +39,11 @@ export default async function CareRequestDetailPage({
       <p className="text-sm text-muted-foreground">
         Visible to: you, assigned provider (if any), MapAble admins.
       </p>
+      {request.booking ? (
+        <p className="rounded-lg border p-3 text-sm">
+          Booking status: {request.booking.status.replace(/_/g, " ")}
+        </p>
+      ) : null}
       <CareRequestActions
         careRequestId={request.id}
         status={request.status}
@@ -36,7 +51,18 @@ export default async function CareRequestDetailPage({
       />
       {request.linkedTransportRequired ? (
         <p className="rounded-lg border p-3 text-sm">
-          Linked transport requested.{" "}
+          Linked transport requested.
+          {transportBookings.length ? (
+            <>
+              {" "}
+              {transportBookings.map((booking) => (
+                <span key={booking.id}>
+                  Trip {booking.status.replace(/_/g, " ")}:{" "}
+                  {booking.pickupAddress} to {booking.dropoffAddress}.{" "}
+                </span>
+              ))}
+            </>
+          ) : null}{" "}
           <Link href="/dashboard/transport" className="text-primary underline">
             View transport bookings
           </Link>

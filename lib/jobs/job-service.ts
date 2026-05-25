@@ -1,6 +1,7 @@
 import type { EmploymentType, JobApplicationStatus } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { createEmploymentSupportBundle } from "@/lib/modules/employment-facade";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 
@@ -98,7 +99,7 @@ export async function createJobApplication(params: {
 
 export async function submitJobApplication(
   applicationId: string,
-  participantId: string
+  participantId: string,
 ) {
   const app = await prisma.jobApplication.update({
     where: { id: applicationId },
@@ -123,7 +124,7 @@ export async function submitJobApplication(
       a.id,
       "booking",
       "Job application submitted",
-      `Application for ${app.job.title}`
+      `Application for ${app.job.title}`,
     );
   }
 
@@ -137,7 +138,11 @@ export function sanitizeApplicationForViewer(
     applicantSummary: string | null;
     coverLetter: string | null;
   },
-  opts: { isParticipant: boolean; isEmployerWithConsent: boolean; isAdmin: boolean }
+  opts: {
+    isParticipant: boolean;
+    isEmployerWithConsent: boolean;
+    isAdmin: boolean;
+  },
 ) {
   const canSeeAdjustments =
     opts.isAdmin ||
@@ -157,7 +162,7 @@ export function sanitizeApplicationForViewer(
 export async function updateApplicationStatus(
   applicationId: string,
   status: JobApplicationStatus,
-  actorUserId: string
+  actorUserId: string,
 ) {
   const app = await prisma.jobApplication.update({
     where: { id: applicationId },
@@ -169,5 +174,8 @@ export async function updateApplicationStatus(
     entityType: "JobApplication",
     entityId: applicationId,
   });
+  if (status === "interview_requested") {
+    await createEmploymentSupportBundle(applicationId, actorUserId);
+  }
   return app;
 }

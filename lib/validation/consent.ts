@@ -11,6 +11,12 @@ const consentScope = z.enum([
   "plan_manager.invoice_access",
   "transport.accessibility_share",
   "care.accessibility_share",
+  "foods.dietary_share",
+  "foods.allergy_share",
+  "foods.delivery_address_share",
+  "foods.invoice_share",
+  "foods.delivery_photo_share",
+  "peer.activity.read",
 ]);
 
 export const grantConsentSchema = z

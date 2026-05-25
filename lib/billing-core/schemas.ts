@@ -32,6 +32,7 @@ export const createInvoiceSchema = z.object({
   serviceType: z.enum([
     "care",
     "transport",
+    "foods",
     "jobs",
     "marketplace",
     "subscription",

@@ -1,10 +1,11 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
+import { syncBookingStatusForCareRequest } from "@/lib/bookings/status-sync";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
   _req: Request,
-  { params }: { params: Promise<{ careRequestId: string }> }
+  { params }: { params: Promise<{ careRequestId: string }> },
 ) {
   const user = await requireApiPermission("care:manage:org");
   if (user instanceof Response) return user;
@@ -13,5 +14,6 @@ export async function POST(
     where: { id: careRequestId },
     data: { status: "cancelled" },
   });
+  await syncBookingStatusForCareRequest(careRequestId, user.id);
   return jsonOk({ request });
 }

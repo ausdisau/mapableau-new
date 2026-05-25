@@ -42,9 +42,6 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
-  // todo: fix
-  variant: "default" | "secondary" | "destructive" | "outline";
-  size: "default" | "sm" | "lg" | "icon";
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

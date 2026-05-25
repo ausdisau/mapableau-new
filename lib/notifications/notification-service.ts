@@ -18,6 +18,7 @@ export async function ensureDefaultPreferences(userId: string) {
     "consent",
     "provider",
     "system",
+    "peer",
   ];
   const channels = ["in_app", "email"] as const;
 

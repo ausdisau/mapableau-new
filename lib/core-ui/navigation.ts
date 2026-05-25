@@ -45,6 +45,7 @@ export const CORE_HUB_SECTIONS: {
       { href: "/dashboard/bookings", label: "Bookings" },
       { href: "/dashboard/care", label: "Care" },
       { href: "/dashboard/transport", label: "Transport" },
+      { href: "/foods", label: "Foods" },
       { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
     ],
   },
@@ -67,6 +68,7 @@ export const CORE_HUB_SECTIONS: {
   {
     title: "For providers & partners",
     links: [
+      { href: "/provider-finder", label: "Provider finder" },
       { href: "/enterprise-provider", label: "Enterprise console" },
       { href: "/academy", label: "Provider academy" },
       { href: "/assessor", label: "Assessor tools" },

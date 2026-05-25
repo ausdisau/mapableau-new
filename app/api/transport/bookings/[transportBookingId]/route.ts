@@ -1,11 +1,13 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { syncBookingStatusForTransportBooking } from "@/lib/bookings/status-sync";
+import { createInvoiceDraftFromCompletedTransportBooking } from "@/lib/orchestration/invoice-orchestrator";
 import { prisma } from "@/lib/prisma";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ transportBookingId: string }> }
+  { params }: { params: Promise<{ transportBookingId: string }> },
 ) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
@@ -19,12 +21,19 @@ export async function PATCH(
       status: body.status,
     },
   });
+  await syncBookingStatusForTransportBooking(transportBookingId, user.id);
+  if (booking.status === "completed") {
+    await createInvoiceDraftFromCompletedTransportBooking(
+      transportBookingId,
+      user.id,
+    );
+  }
   return jsonOk({ booking });
 }
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ transportBookingId: string }> }
+  { params }: { params: Promise<{ transportBookingId: string }> },
 ) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
@@ -44,7 +53,7 @@ export async function GET(
       requiresLift: reqs.requiresLift,
       assistanceAnimal: reqs.assistanceAnimal,
     },
-    booking.vehicle
+    booking.vehicle,
   );
 
   return jsonOk({ booking, vehicleSuitabilityWarnings: warnings });

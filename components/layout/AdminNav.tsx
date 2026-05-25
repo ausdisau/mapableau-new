@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/app/lib/utils";
+import { MapAbleAppGridMenu } from "@/components/layout/MapAbleAppGridMenu";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard" },
@@ -17,6 +18,7 @@ const LINKS = [
   { href: "/admin/service-ops", label: "Service ops" },
   { href: "/admin/care", label: "Care" },
   { href: "/admin/transport", label: "Transport" },
+  { href: "/admin/foods", label: "Foods" },
   { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/workers", label: "Workers" },
   { href: "/admin/vehicles", label: "Vehicles" },
@@ -41,6 +43,7 @@ const LINKS = [
   { href: "/admin/partner-sandbox", label: "Sandbox" },
   { href: "/admin/board-reporting", label: "Board" },
   { href: "/admin/community-governance", label: "Governance" },
+  { href: "/admin/peer", label: "MapAble Peer" },
   { href: "/admin/payment-reconciliation", label: "Reconcile" },
   { href: "/admin/operator-dispatch", label: "Op dispatch" },
   { href: "/admin/mobile-release", label: "Mobile" },
@@ -113,7 +116,8 @@ export function AdminNav() {
           <Link href="/admin" className="font-heading text-lg font-bold">
             MapAble Admin
           </Link>
-          <div className="flex gap-3 text-sm">
+          <div className="flex items-center gap-3 text-sm">
+            <MapAbleAppGridMenu userRole="mapable_admin" />
             <Link
               href="/core"
               className="text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"

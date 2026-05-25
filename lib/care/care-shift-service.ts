@@ -1,6 +1,8 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { syncBookingStatusForCareShift } from "@/lib/bookings/status-sync";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareShift } from "@/lib/calendar/calendar-service";
+import { createInvoiceLinesFromApprovedCareShift } from "@/lib/orchestration/invoice-orchestrator";
 import { prisma } from "@/lib/prisma";
 
 export async function createCareShiftFromRequest(params: {
@@ -52,6 +54,7 @@ export async function careShiftCheckIn(shiftId: string, actorUserId: string) {
     where: { id: shiftId },
     data: { status: "checked_in", checkInTime: new Date() },
   });
+  await syncBookingStatusForCareShift(shiftId, actorUserId);
   await createAuditEvent({
     actorUserId,
     action: "care_shift.check_in",
@@ -70,6 +73,7 @@ export async function careShiftCheckOut(shiftId: string, actorUserId: string) {
       checkOutTime: new Date(),
     },
   });
+  await syncBookingStatusForCareShift(shiftId, actorUserId);
   await createAuditEvent({
     actorUserId,
     action: "care_shift.check_out",
@@ -98,6 +102,9 @@ export async function approveCareShift(shiftId: string, participantId: string) {
     entityId: shiftId,
     participantId: shift.participantId,
   });
+
+  await syncBookingStatusForCareShift(shiftId, participantId);
+  await createInvoiceLinesFromApprovedCareShift(shiftId, participantId);
 
   if (shift.bookingId) {
     await recordBookingTimelineEvent({

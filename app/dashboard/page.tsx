@@ -54,6 +54,11 @@ export default async function DashboardPage() {
           href="/dashboard/bookings"
         />
         <DashboardCard
+          title="Chatbots"
+          description="Support search, transport booking and resume builder assistants"
+          href="/dashboard/chatbots"
+        />
+        <DashboardCard
           title="Notifications"
           description={
             unreadNotifications

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 import { cn } from "@/app/lib/utils";
+import { MapAbleAppGridMenu } from "@/components/layout/MapAbleAppGridMenu";
 import { RoleBadge } from "@/components/ui/role-badge";
 import type { UserRole } from "@/types/mapable";
 
@@ -16,16 +17,19 @@ const LINKS = [
   { href: "/dashboard/bookings", label: "Bookings" },
   { href: "/dashboard/care", label: "Care" },
   { href: "/dashboard/transport", label: "Transport" },
+  { href: "/foods", label: "Foods" },
   { href: "/dashboard/jobs", label: "Jobs" },
   { href: "/dashboard/calendar", label: "Calendar" },
   { href: "/dashboard/find-support", label: "Find support" },
   { href: "/dashboard/find-transport", label: "Find transport" },
+  { href: "/dashboard/chatbots", label: "Chatbots" },
   { href: "/dashboard/timesheets", label: "Timesheets" },
   { href: "/dashboard/incidents", label: "Incidents" },
   { href: "/dashboard/incidents/new", label: "Report concern" },
   { href: "/dashboard/notifications", label: "Notifications" },
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/support", label: "Support" },
+  { href: "/peer", label: "MapAble Peer" },
   { href: "/dashboard/documents", label: "Documents" },
   { href: "/dashboard/funding", label: "Funding" },
   { href: "/dashboard/invoices", label: "Invoices" },
@@ -86,13 +90,16 @@ export function DashboardNav({
             </li>
           ) : null}
         </ul>
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="min-h-10 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Sign out
-        </button>
+        <div className="flex items-center gap-2">
+          <MapAbleAppGridMenu userRole={role} />
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="min-h-10 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     </nav>
   );

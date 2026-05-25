@@ -11,6 +11,8 @@ export async function getServiceOpsSummary() {
     applicationsWithAdjustments,
     shiftsAwaitingApproval,
     draftInvoiceLines,
+    linkedTransportMissing,
+    employmentSupportPending,
   ] = await Promise.all([
     prisma.careRequest.count({
       where: { status: { in: ["submitted", "awaiting_admin_review"] } },
@@ -39,6 +41,20 @@ export async function getServiceOpsSummary() {
       where: { status: "awaiting_participant_approval" },
     }),
     prisma.invoice.count({ where: { status: "draft" } }),
+    prisma.careRequest.count({
+      where: {
+        linkedTransportRequired: true,
+        status: { in: ["submitted", "confirmed"] },
+        orchestrationEvents: { none: { transportBookingId: { not: null } } },
+      },
+    }),
+    prisma.jobApplication.count({
+      where: {
+        status: "interview_requested",
+        OR: [{ transportSupportNeeded: true }, { careSupportNeeded: true }],
+        calendarEvents: { none: { eventType: "job_interview" } },
+      },
+    }),
   ]);
 
   return {
@@ -50,6 +66,8 @@ export async function getServiceOpsSummary() {
     applicationsWithAdjustments,
     shiftsAwaitingApproval,
     draftInvoiceLines,
+    linkedTransportMissing,
+    employmentSupportPending,
   };
 }
 
@@ -57,7 +75,10 @@ export async function getAtRiskItems() {
   const items: { type: string; id: string; reason: string }[] = [];
 
   const transports = await prisma.transportBooking.findMany({
-    where: { vehicleId: { not: null }, status: { notIn: ["completed", "cancelled"] } },
+    where: {
+      vehicleId: { not: null },
+      status: { notIn: ["completed", "cancelled"] },
+    },
     include: { vehicle: true },
     take: 20,
   });
@@ -69,7 +90,7 @@ export async function getAtRiskItems() {
         requiresWheelchairAccessible: reqs.requiresWheelchairAccessible,
         requiresRamp: reqs.requiresRamp,
       },
-      t.vehicle
+      t.vehicle,
     );
     if (warnings.some((w) => w.includes("not"))) {
       items.push({
@@ -95,7 +116,8 @@ export async function getAtRiskItems() {
       items.push({
         type: "care",
         id: c.id,
-        reason: "Linked transport required but no transport booking created yet.",
+        reason:
+          "Linked transport required but no transport booking created yet.",
       });
     }
   }

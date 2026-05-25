@@ -1,0 +1,436 @@
+// MapAble Peer and Social Support Module
+
+enum PeerDisplayNameMode {
+  real_name
+  first_name_only
+  community_alias
+  anonymous_public
+}
+
+enum PeerProfileVisibility {
+  private
+  circles_only
+  mentors_only
+  community
+}
+
+enum PeerProfileStatus {
+  active
+  paused
+  suspended
+  deleted
+}
+
+enum PeerCircleType {
+  open
+  moderated
+  invite_only
+  peer_mentor_led
+  program_based
+}
+
+enum PeerCircleStatus {
+  active
+  archived
+}
+
+enum PeerPostStatus {
+  draft
+  pending_moderation
+  published
+  hidden
+  rejected
+  deleted
+}
+
+enum PeerReportReason {
+  abuse_or_harassment
+  privacy_violation
+  unsafe_advice
+  medical_or_legal_claim
+  self_harm_or_crisis
+  discrimination
+  spam
+  exploitation_or_scam
+  boundary_issue
+  other
+}
+
+enum PeerMentorRequestStatus {
+  requested
+  mentor_review
+  accepted
+  declined
+  completed
+  cancelled
+  escalated
+}
+
+enum PeerModerationDecision {
+  approve
+  hide
+  request_edit
+  warn_user
+  pause_account
+  remove_from_circle
+  escalate_support
+  escalate_complaint
+  escalate_safeguarding
+}
+
+enum PeerSafetyEventType {
+  crisis_resources_shown
+  member_reported_crisis
+  moderator_escalation
+  automated_flag
+}
+
+enum PeerEventLocationType {
+  online
+  in_person
+  hybrid
+}
+
+enum PeerContentSignalType {
+  helped_me
+  saved
+  thanked
+}
+
+enum PeerModerationQueueStatus {
+  open
+  in_review
+  resolved
+}
+
+model PeerProfile {
+  id                      String              @id @default(cuid())
+  userId                  String              @unique
+  user                    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileSlug             String              @unique
+  displayName             String
+  displayNameMode         PeerDisplayNameMode @default(community_alias)
+  livedExperienceTags     Json?
+  communicationPreferences Json?
+  profileVisibility       PeerProfileVisibility @default(circles_only)
+  status                  PeerProfileStatus   @default(active)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  privacySettings         PeerPrivacySettings?
+  circleMemberships       PeerCircleMember[]
+  posts                   PeerCirclePost[]
+  replies                 PeerCircleReply[]
+  questions               PeerQuestion[]
+  answers                 PeerAnswer[]
+  stories                 PeerStoryItem[]
+  storyComments           PeerStoryComment[]
+  mentorProfile           PeerMentorProfile?
+  mentorRequests          PeerMentorRequest[] @relation("MentorRequestRequester")
+  eventRsvps              PeerEventRsvp[]
+  reports                 PeerReport[]
+  contentSignals          PeerContentSignal[]
+
+  @@index([status])
+}
+
+model PeerPrivacySettings {
+  id                        String   @id @default(cuid())
+  peerProfileId             String   @unique
+  peerProfile               PeerProfile @relation(fields: [peerProfileId], references: [id], onDelete: Cascade)
+  pauseCommunityNotifications Boolean @default(false)
+  lockScreenSafeOnly        Boolean  @default(true)
+  mutedCircleIds            Json     @default("[]")
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model PeerCircle {
+  id                 String           @id @default(cuid())
+  title              String
+  description        String
+  topic              String
+  circleType         PeerCircleType   @default(moderated)
+  accessibilityNotes String?
+  moderationLevel    String           @default("standard")
+  status             PeerCircleStatus @default(active)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  members PeerCircleMember[]
+  posts   PeerCirclePost[]
+
+  @@index([topic])
+  @@index([status])
+}
+
+model PeerCircleMember {
+  id            String      @id @default(cuid())
+  circleId      String
+  circle        PeerCircle  @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  peerProfileId String
+  peerProfile   PeerProfile @relation(fields: [peerProfileId], references: [id], onDelete: Cascade)
+  role          String      @default("member")
+  joinedAt      DateTime    @default(now())
+  muted         Boolean     @default(false)
+
+  @@unique([circleId, peerProfileId])
+}
+
+model PeerCirclePost {
+  id            String         @id @default(cuid())
+  circleId      String
+  circle        PeerCircle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        PeerProfile    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body          String
+  contentWarning String?
+  status        PeerPostStatus @default(draft)
+  publishedAt   DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  replies PeerCircleReply[]
+
+  @@index([circleId, status])
+  @@index([authorId])
+}
+
+model PeerCircleReply {
+  id            String         @id @default(cuid())
+  postId        String
+  post          PeerCirclePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        PeerProfile    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body          String
+  status        PeerPostStatus @default(draft)
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([postId, status])
+}
+
+model PeerQuestion {
+  id            String         @id @default(cuid())
+  authorId      String
+  author        PeerProfile    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title         String
+  body          String
+  topic         String?
+  status        PeerPostStatus @default(pending_moderation)
+  publishedAt   DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  answers PeerAnswer[]
+
+  @@index([status])
+}
+
+model PeerAnswer {
+  id              String         @id @default(cuid())
+  questionId      String
+  question        PeerQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          PeerProfile    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body            String
+  status          PeerPostStatus @default(pending_moderation)
+  moderatorHighlight Boolean     @default(false)
+  publishedAt     DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([questionId, status])
+}
+
+model PeerStoryItem {
+  id            String         @id @default(cuid())
+  authorId      String?
+  author        PeerProfile?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  title         String
+  body          String
+  resourceUrl   String?
+  contentWarning String?
+  status        PeerPostStatus @default(pending_moderation)
+  publishedAt   DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  comments PeerStoryComment[]
+
+  @@index([status])
+}
+
+model PeerStoryComment {
+  id        String        @id @default(cuid())
+  storyId   String
+  story     PeerStoryItem @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    PeerProfile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  status    PeerPostStatus @default(pending_moderation)
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model PeerMentorProfile {
+  id                  String      @id @default(cuid())
+  peerProfileId       String      @unique
+  peerProfile         PeerProfile @relation(fields: [peerProfileId], references: [id], onDelete: Cascade)
+  bio                 String
+  livedExperienceTopics Json      @default("[]")
+  boundaries          String?
+  availabilityNotes   String?
+  onboardingCompleted Boolean     @default(false)
+  active              Boolean     @default(true)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  requests PeerMentorRequest[] @relation("MentorProfile")
+  sessions PeerSession[]
+}
+
+model PeerMentorRequest {
+  id              String                  @id @default(cuid())
+  mentorProfileId String
+  mentorProfile   PeerMentorProfile       @relation("MentorProfile", fields: [mentorProfileId], references: [id], onDelete: Cascade)
+  requesterId     String
+  requester       PeerProfile             @relation("MentorRequestRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  message         String?
+  status          PeerMentorRequestStatus @default(requested)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  sessions PeerSession[]
+
+  @@index([mentorProfileId, status])
+}
+
+model PeerSession {
+  id        String            @id @default(cuid())
+  requestId String
+  request   PeerMentorRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  mentorId  String
+  mentor    PeerMentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  notes     String?
+  scheduledAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime          @default(now())
+}
+
+model PeerEvent {
+  id                  String                @id @default(cuid())
+  title               String
+  description         String
+  facilitatorName     String?
+  accessibilityOptions Json                 @default("{}")
+  capacity            Int?
+  startsAt            DateTime
+  endsAt              DateTime?
+  locationType        PeerEventLocationType @default(online)
+  meetingLinkPlaceholder String?
+  postEventResources  Json?
+  status              String                @default("scheduled")
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  rsvps PeerEventRsvp[]
+}
+
+model PeerEventRsvp {
+  id            String      @id @default(cuid())
+  eventId       String
+  event         PeerEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  peerProfileId String
+  peerProfile   PeerProfile @relation(fields: [peerProfileId], references: [id], onDelete: Cascade)
+  status        String      @default("going")
+  createdAt     DateTime    @default(now())
+
+  @@unique([eventId, peerProfileId])
+}
+
+model PeerReport {
+  id            String           @id @default(cuid())
+  reporterId    String
+  reporter      PeerProfile      @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  contentType   String
+  contentId     String
+  reason        PeerReportReason
+  details       String?
+  createdAt     DateTime         @default(now())
+
+  moderationQueue PeerModerationQueue?
+
+  @@index([contentType, contentId])
+}
+
+model PeerModerationQueue {
+  id            String                    @id @default(cuid())
+  reportId      String?                   @unique
+  report        PeerReport?               @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  contentType   String
+  contentId     String
+  status        PeerModerationQueueStatus @default(open)
+  priority      String                    @default("normal")
+  autoFlags     Json?
+  assignedToId  String?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  actions PeerModerationAction[]
+
+  @@index([status, priority])
+}
+
+model PeerModerationAction {
+  id          String                 @id @default(cuid())
+  queueId     String
+  queue       PeerModerationQueue    @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  actorUserId String
+  decision    PeerModerationDecision
+  notes       String?
+  createdAt   DateTime               @default(now())
+}
+
+model PeerSafetyEvent {
+  id            String              @id @default(cuid())
+  peerProfileId String?
+  contentType   String?
+  contentId     String?
+  eventType     PeerSafetyEventType
+  description   String?
+  metadata      Json?
+  createdById   String
+  createdAt     DateTime            @default(now())
+
+  @@index([createdAt])
+}
+
+model PeerResourceLibrary {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  url         String?
+  category    String?
+  status      String   @default("published")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PeerContentSignal {
+  id            String                @id @default(cuid())
+  peerProfileId String
+  peerProfile   PeerProfile           @relation(fields: [peerProfileId], references: [id], onDelete: Cascade)
+  contentType   String
+  contentId     String
+  signalType    PeerContentSignalType
+  createdAt     DateTime              @default(now())
+
+  @@unique([peerProfileId, contentType, contentId, signalType])
+}

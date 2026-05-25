@@ -8,7 +8,8 @@ export type UserRole =
   | "driver"
   | "employer"
   | "plan_manager"
-  | "mapable_admin";
+  | "mapable_admin"
+  | "peer_mentor";
 
 export type CommunicationPreference =
   | "plain_language"
@@ -34,6 +35,7 @@ export type MobilityAid =
 export type OrganisationType =
   | "care_provider"
   | "transport_provider"
+  | "food_vendor"
   | "plan_manager"
   | "support_coordination"
   | "employer"
@@ -57,7 +59,13 @@ export type ConsentScope =
   | "support_coordination.access"
   | "plan_manager.invoice_access"
   | "transport.accessibility_share"
-  | "care.accessibility_share";
+  | "care.accessibility_share"
+  | "foods.dietary_share"
+  | "foods.allergy_share"
+  | "foods.delivery_address_share"
+  | "foods.invoice_share"
+  | "foods.delivery_photo_share"
+  | "peer.activity.read";
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 
@@ -71,7 +79,8 @@ export type NotificationCategory =
   | "billing"
   | "support"
   | "safeguarding"
-  | "system";
+  | "system"
+  | "peer";
 
 export type BookingType = "care" | "transport" | "care_transport";
 
