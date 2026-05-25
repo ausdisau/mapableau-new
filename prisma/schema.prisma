@@ -70,6 +70,9 @@ model User {
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
+  transportTripRequests     TransportTripRequest[] @relation("TransportTripRequestParticipant")
+  transportTrips            TransportTrip[] @relation("TransportTripParticipant")
+  transportDispatchAssigned TransportDispatchAssignment[] @relation("TransportDispatchAssignedBy")
   jobsCreated               Job[]              @relation("JobCreatedBy")
   jobApplications           JobApplication[]   @relation("JobApplicationParticipant")
   calendarEvents            CalendarEvent[]    @relation("CalendarEventParticipant")
@@ -535,6 +538,10 @@ model Organisation {
   vehicles               Vehicle[]
   driverProfiles         DriverProfile[]
   transportBookings      TransportBooking[] @relation("TransportOperator")
+  transportTripRequests  TransportTripRequest[] @relation("TransportTripRequestOrg")
+  transportTrips         TransportTrip[] @relation("TransportTripOrg")
+  transportVehicles      TransportVehicle[]
+  transportDrivers       TransportDriver[]
   employerJobs           Job[]              @relation("EmployerJobs")
   calendarEvents         CalendarEvent[]
   availabilityWindows    AvailabilityWindow[]
@@ -1447,6 +1454,278 @@ model TransportBooking {
 
   @@index([participantId, status])
   @@index([operatorOrganisationId])
+}
+
+enum TransportTripRequestStatus {
+  requested
+  declined
+  accepted
+  cancelled
+}
+
+enum TransportMvpTripStatus {
+  requested
+  accepted
+  dispatched
+  driver_en_route
+  arrived_pickup
+  on_board
+  in_transit
+  arrived_dropoff
+  completed
+  cancelled
+  disputed
+}
+
+enum TransportTripStopType {
+  pickup
+  dropoff
+}
+
+enum TransportMvpVerificationStatus {
+  not_provided
+  pending_review
+  verified
+  rejected
+  expired
+}
+
+enum TransportSafetyCheckPhase {
+  pre_trip
+  post_trip
+}
+
+model TransportTripRequest {
+  id                String                     @id @default(cuid())
+  participantId     String
+  participant       User                       @relation("TransportTripRequestParticipant", fields: [participantId], references: [id])
+  organisationId    String?
+  organisation      Organisation?              @relation("TransportTripRequestOrg", fields: [organisationId], references: [id], onDelete: SetNull)
+  status            TransportTripRequestStatus @default(requested)
+  pickupAddress     String
+  pickupLat         Float?
+  pickupLng         Float?
+  dropoffAddress    String
+  dropoffLat        Float?
+  dropoffLng        Float?
+  pickupWindowStart DateTime
+  pickupWindowEnd   DateTime?
+  pickupNotes       String?
+  dropoffNotes      String?
+  passengerCount    Int                        @default(1)
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  accessNeeds TransportAccessNeed?
+  trip        TransportTrip?
+
+  @@map("transport_trip_requests")
+  @@index([participantId, status])
+  @@index([organisationId, status])
+}
+
+model TransportTrip {
+  id                     String                 @id @default(cuid())
+  requestId              String                 @unique
+  request                TransportTripRequest   @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  participantId          String
+  participant            User                   @relation("TransportTripParticipant", fields: [participantId], references: [id])
+  organisationId         String
+  organisation           Organisation           @relation("TransportTripOrg", fields: [organisationId], references: [id])
+  status                 TransportMvpTripStatus @default(accepted)
+  invoicePlaceholderJson Json?
+  participantConfirmedAt DateTime?
+  participantDisputedAt  DateTime?
+  disputeReason          String?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  stops         TransportTripStop[]
+  events        TransportTripEvent[]
+  accessNeeds   TransportAccessNeed?
+  dispatch      TransportDispatchAssignment?
+  safetyChecks  TransportSafetyCheck[]
+  evidence      TransportTripEvidence?
+  incidentLinks TransportIncidentLink[]
+
+  @@map("transport_trips")
+  @@index([participantId, status])
+  @@index([organisationId, status])
+}
+
+model TransportTripStop {
+  id            String                @id @default(cuid())
+  tripId        String
+  trip          TransportTrip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  sequence      Int                   @default(0)
+  stopType      TransportTripStopType
+  addressFull   String
+  addressSuburb String?
+  lat           Float?
+  lng           Float?
+  scheduledAt   DateTime?
+  notes         String?
+
+  @@map("transport_trip_stops")
+  @@index([tripId, sequence])
+}
+
+model TransportAccessNeed {
+  id                       String                @id @default(cuid())
+  requestId                String?               @unique
+  request                  TransportTripRequest? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  tripId                   String?               @unique
+  trip                     TransportTrip?        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  wheelchairRequired       Boolean               @default(false)
+  assistedPickup           Boolean               @default(false)
+  assistedDropoff          Boolean               @default(false)
+  driverAssistanceRequired Boolean               @default(false)
+  mobilityAidsJson         Json?
+  assistanceNotes          String?
+  shareAccessibility       Boolean               @default(false)
+
+  @@map("transport_access_needs")
+}
+
+model TransportTripEvent {
+  id          String                  @id @default(cuid())
+  tripId      String
+  trip        TransportTrip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  fromStatus  TransportMvpTripStatus?
+  toStatus    TransportMvpTripStatus
+  message     String?
+  actorUserId String?
+  createdAt   DateTime                @default(now())
+
+  @@map("transport_trip_events")
+  @@index([tripId, createdAt])
+}
+
+model TransportVehicle {
+  id                  String                         @id @default(cuid())
+  organisationId      String
+  organisation        Organisation                   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  legacyVehicleId     String?
+  displayName         String
+  registrationNumber  String?
+  verificationStatus  TransportMvpVerificationStatus @default(pending_review)
+  active              Boolean                        @default(true)
+  createdAt           DateTime                       @default(now())
+  updatedAt           DateTime                       @updatedAt
+
+  features   TransportVehicleFeature?
+  dispatches TransportDispatchAssignment[]
+
+  @@map("transport_vehicles")
+  @@index([organisationId])
+}
+
+model TransportVehicleFeature {
+  id                       String           @id @default(cuid())
+  vehicleId                String           @unique
+  vehicle                  TransportVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  wheelchairAccessible     Boolean          @default(false)
+  rampAvailable            Boolean          @default(false)
+  liftAvailable            Boolean          @default(false)
+  seatedCapacity           Int              @default(4)
+  wheelchairSpaces         Int              @default(0)
+  assistanceAnimalFriendly Boolean          @default(true)
+
+  @@map("transport_vehicle_features")
+}
+
+model TransportDriver {
+  id                    String                         @id @default(cuid())
+  organisationId        String
+  organisation          Organisation                   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  legacyDriverProfileId String?
+  userId                String?
+  displayName           String
+  phone                 String?
+  verificationStatus    TransportMvpVerificationStatus @default(pending_review)
+  active                Boolean                        @default(true)
+  createdAt             DateTime                       @default(now())
+  updatedAt             DateTime                       @updatedAt
+
+  verifications TransportDriverVerification[]
+  dispatches    TransportDispatchAssignment[]
+
+  @@map("transport_drivers")
+  @@index([organisationId])
+  @@index([userId])
+}
+
+model TransportDriverVerification {
+  id                          String                         @id @default(cuid())
+  driverId                    String
+  driver                      TransportDriver                @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  licenceStatus               TransportMvpVerificationStatus @default(not_provided)
+  screeningStatus             TransportMvpVerificationStatus @default(not_provided)
+  accessibilityTrainingStatus TransportMvpVerificationStatus @default(not_provided)
+  expiresAt                   DateTime?
+  verifiedAt                  DateTime?
+  notes                       String?
+
+  @@map("transport_driver_verifications")
+  @@index([driverId])
+}
+
+model TransportDispatchAssignment {
+  id                  String           @id @default(cuid())
+  tripId              String           @unique
+  trip                TransportTrip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  driverId            String
+  driver              TransportDriver  @relation(fields: [driverId], references: [id])
+  vehicleId           String
+  vehicle             TransportVehicle @relation(fields: [vehicleId], references: [id])
+  assignedById        String
+  assignedBy          User             @relation("TransportDispatchAssignedBy", fields: [assignedById], references: [id])
+  eligibilitySnapshot Json?
+  assignedAt          DateTime         @default(now())
+
+  @@map("transport_dispatch_assignments")
+  @@index([driverId])
+}
+
+model TransportSafetyCheck {
+  id          String                    @id @default(cuid())
+  tripId      String
+  trip        TransportTrip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  phase       TransportSafetyCheckPhase
+  passed      Boolean                   @default(true)
+  checklist   Json                      @default("{}")
+  notes       String?
+  actorUserId String?
+  createdAt   DateTime                  @default(now())
+
+  @@map("transport_safety_checks")
+  @@index([tripId])
+}
+
+model TransportTripEvidence {
+  id           String        @id @default(cuid())
+  tripId       String        @unique
+  trip         TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  startedAt    DateTime
+  completedAt  DateTime
+  distanceKm   Float
+  notes        String?
+  recordedById String?
+  createdAt    DateTime      @default(now())
+
+  @@map("transport_trip_evidence")
+}
+
+model TransportIncidentLink {
+  id         String        @id @default(cuid())
+  tripId     String
+  trip       TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  incidentId String
+  createdAt  DateTime      @default(now())
+
+  @@map("transport_incident_links")
+  @@index([tripId])
+  @@index([incidentId])
 }
 
 model Vehicle {
