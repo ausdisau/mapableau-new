@@ -2,6 +2,8 @@ import { SkipToContent } from "@/components/core/SkipToContent";
 import { AdminNav } from "@/components/layout/AdminNav";
 import { requireAdmin } from "@/lib/auth/guards";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {

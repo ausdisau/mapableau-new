@@ -3,6 +3,8 @@ import { DashboardNav } from "@/components/layout/DashboardNav";
 import { requireAuth } from "@/lib/auth/guards";
 import type { UserRole } from "@/types/mapable";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {

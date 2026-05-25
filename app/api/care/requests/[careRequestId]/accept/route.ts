@@ -1,5 +1,6 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
-import { jsonOk } from "@/lib/api/response";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import { jsonError, jsonOk } from "@/lib/api/response";
 import { providerAcceptCareRequest } from "@/lib/care/care-request-service";
 
 export async function POST(
@@ -9,6 +10,18 @@ export async function POST(
   const user = await requireApiPermission("care:manage:org");
   if (user instanceof Response) return user;
   const { careRequestId } = await params;
-  const request = await providerAcceptCareRequest(careRequestId, user.id);
-  return jsonOk({ request });
+  const orgIds = await getUserOrganisationIds(user.id);
+  try {
+    const request = await providerAcceptCareRequest(
+      careRequestId,
+      user.id,
+      orgIds
+    );
+    return jsonOk({ request });
+  } catch (e) {
+    if (e instanceof Error && e.message === "ORG_ACCESS_DENIED") {
+      return jsonError("Forbidden", 403);
+    }
+    throw e;
+  }
 }
