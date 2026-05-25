@@ -1,0 +1,519 @@
+// MapAble Foods module — append to schema.prisma
+
+enum FoodProductType {
+  grocery
+  prepared_meal
+  meal_bundle
+  household_essential
+}
+
+enum FoodProductStatus {
+  draft
+  published
+  archived
+}
+
+enum FoodOrderType {
+  one_off
+  recurring
+  subscription
+}
+
+enum FoodOrderStatus {
+  draft
+  submitted
+  confirmed
+  preparing
+  packed
+  cancelled
+  disputed
+  completed
+}
+
+enum FoodPaymentStatus {
+  unpaid
+  pending
+  paid
+  failed
+  refunded
+  blocked
+}
+
+enum FoodInvoiceStatus {
+  none
+  draft
+  sent
+  paid
+  void
+}
+
+enum FoodDeliveryStatus {
+  not_assigned
+  assigned
+  picked_up
+  out_for_delivery
+  arriving_soon
+  delivered
+  handover_confirmed
+  failed
+  disputed
+}
+
+enum FoodOrderItemCostType {
+  food_item
+  preparation
+  delivery
+  support_time
+  packaging
+  other
+}
+
+enum FoodSubstitutionPolicy {
+  allow_similar
+  contact_first
+  no_substitutions
+  vendor_choice
+}
+
+enum FoodSubscriptionStatus {
+  active
+  paused
+  cancelled
+}
+
+enum FoodDisputeStatus {
+  open
+  under_review
+  resolved
+  rejected
+}
+
+enum FoodSafetySeverity {
+  low
+  medium
+  high
+  critical
+}
+
+model DataAccessLog {
+  id            String   @id @default(cuid())
+  actorUserId   String?
+  subjectUserId String
+  resourceType  String
+  resourceId    String?
+  purpose       String
+  consentScope  String?
+  createdAt     DateTime @default(now())
+
+  @@index([subjectUserId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("data_access_logs")
+}
+
+model FoodVendor {
+  id             String       @id @default(cuid())
+  organisationId String       @unique
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  displayName    String
+  status         String       @default("active")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  profile  FoodVendorProfile?
+  products FoodProduct[]
+  orders   FoodOrder[]
+  inventory FoodInventory[]
+
+  @@map("food_vendors")
+}
+
+model FoodVendorProfile {
+  id              String     @id @default(cuid())
+  vendorId        String     @unique
+  vendor          FoodVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  description     String?
+  deliveryRegions Json       @default("[]")
+  operatingHours  Json?
+  contactEmail    String?
+  contactPhone    String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("food_vendor_profiles")
+}
+
+model FoodProductCategory {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("food_product_categories")
+}
+
+model FoodProduct {
+  id                String            @id @default(cuid())
+  vendorId          String
+  vendor            FoodVendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  title             String
+  description       String?
+  category          String
+  productType       FoodProductType
+  priceAmount       Int
+  currency          String            @default("AUD")
+  dietaryTags       Json              @default("[]")
+  allergenTags      Json              @default("[]")
+  accessibilityTags Json              @default("[]")
+  nutritionSummary  String?
+  imageUrl          String?
+  status            FoodProductStatus @default(draft)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  mealItems   FoodMealItem[]
+  cartItems   FoodCartItem[]
+  orderItems  FoodOrderItem[]
+  inventory   FoodInventory?
+  dietaryTagLinks FoodProductDietaryTag[]
+  accessibilityTagLinks FoodProductAccessibilityTag[]
+
+  @@index([vendorId, status])
+  @@index([category, status])
+  @@map("food_products")
+}
+
+model FoodMealItem {
+  id          String      @id @default(cuid())
+  productId   String
+  product     FoodProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String
+  quantity    String?
+  sortOrder   Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  @@map("food_meal_items")
+}
+
+model FoodProductDietaryTag {
+  id        String      @id @default(cuid())
+  productId String
+  product   FoodProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       String
+
+  @@unique([productId, tag])
+  @@map("food_product_dietary_tags")
+}
+
+model FoodProductAccessibilityTag {
+  id        String      @id @default(cuid())
+  productId String
+  product   FoodProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       String
+
+  @@unique([productId, tag])
+  @@map("food_product_accessibility_tags")
+}
+
+model FoodInventory {
+  id               String      @id @default(cuid())
+  vendorId         String
+  vendor           FoodVendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  productId        String      @unique
+  product          FoodProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantityOnHand   Int         @default(0)
+  lowStockThreshold Int        @default(5)
+  updatedAt        DateTime    @updatedAt
+
+  @@map("food_inventory")
+}
+
+model FoodCart {
+  id            String   @id @default(cuid())
+  participantId String   @unique
+  participant   User     @relation("FoodCartParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  vendorId      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items FoodCartItem[]
+
+  @@map("food_carts")
+}
+
+model FoodCartItem {
+  id        String      @id @default(cuid())
+  cartId    String
+  cart      FoodCart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   FoodProduct @relation(fields: [productId], references: [id])
+  quantity  Int         @default(1)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([cartId, productId])
+  @@map("food_cart_items")
+}
+
+model FoodOrder {
+  id                      String               @id @default(cuid())
+  participantId           String
+  participant             User                 @relation("FoodOrderParticipant", fields: [participantId], references: [id])
+  vendorId                String
+  vendor                  FoodVendor           @relation(fields: [vendorId], references: [id])
+  nomineeId               String?
+  nominee                 User?                @relation("FoodOrderNominee", fields: [nomineeId], references: [id], onDelete: SetNull)
+  status                  FoodOrderStatus      @default(draft)
+  orderType               FoodOrderType        @default(one_off)
+  subtotalAmount          Int                  @default(0)
+  deliveryFeeAmount       Int                  @default(0)
+  preparationFeeAmount    Int                  @default(0)
+  supportFeeAmount        Int                  @default(0)
+  taxAmount               Int                  @default(0)
+  totalAmount             Int                  @default(0)
+  currency                String               @default("AUD")
+  paymentStatus           FoodPaymentStatus    @default(unpaid)
+  invoiceStatus           FoodInvoiceStatus    @default(none)
+  deliveryStatus          FoodDeliveryStatus   @default(not_assigned)
+  deliveryAddressFull     String?
+  deliveryAddressSuburb   String?
+  deliveryAddressId       String?
+  deliveryWindowStart     DateTime?
+  deliveryWindowEnd       DateTime?
+  handoverInstructionsJson Json?
+  substitutionPolicy      FoodSubstitutionPolicy @default(contact_first)
+  allergenAcknowledged    Boolean              @default(false)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+
+  items        FoodOrderItem[]
+  events       FoodOrderEvent[]
+  delivery     FoodDeliveryAssignment?
+  payments     FoodPayment[]
+  invoiceLinks FoodInvoiceLink[]
+  refunds      FoodRefund[]
+  disputes     FoodDispute[]
+  safetyEvents FoodSafetyEvent[]
+
+  @@index([participantId, status])
+  @@index([vendorId, status])
+  @@map("food_orders")
+}
+
+model FoodOrderItem {
+  id                   String                @id @default(cuid())
+  orderId              String
+  order                FoodOrder               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId            String?
+  product              FoodProduct?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  titleSnapshot        String
+  quantity             Int
+  unitAmount           Int
+  totalAmount          Int
+  itemCostType         FoodOrderItemCostType   @default(food_item)
+  dietaryTagsSnapshot  Json                    @default("[]")
+  allergenTagsSnapshot Json                    @default("[]")
+  createdAt            DateTime                @default(now())
+
+  @@index([orderId])
+  @@map("food_order_items")
+}
+
+model FoodOrderEvent {
+  id          String    @id @default(cuid())
+  orderId     String
+  order       FoodOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  eventType   String
+  title       String
+  actorUserId String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+
+  @@index([orderId, createdAt])
+  @@map("food_order_events")
+}
+
+model FoodDeliveryAssignment {
+  id                String             @id @default(cuid())
+  orderId           String             @unique
+  order             FoodOrder          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driverUserId      String?
+  driver            User?              @relation("FoodDeliveryDriver", fields: [driverUserId], references: [id], onDelete: SetNull)
+  status            FoodDeliveryStatus @default(not_assigned)
+  publicTrackingToken String           @unique @default(cuid())
+  pickupAt          DateTime?
+  deliveredAt       DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  trackingEvents FoodDeliveryTrackingEvent[]
+  handover       FoodDeliveryHandoverRecord?
+
+  @@index([driverUserId, status])
+  @@map("food_delivery_assignments")
+}
+
+model FoodDeliveryTrackingEvent {
+  id           String                 @id @default(cuid())
+  assignmentId String
+  assignment   FoodDeliveryAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  status       FoodDeliveryStatus
+  message      String?
+  actorUserId  String?
+  latitude     Float?
+  longitude    Float?
+  createdAt    DateTime               @default(now())
+
+  @@index([assignmentId, createdAt])
+  @@map("food_delivery_tracking_events")
+}
+
+model FoodDeliveryHandoverRecord {
+  id              String                 @id @default(cuid())
+  assignmentId    String                 @unique
+  assignment      FoodDeliveryAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  checklistJson   Json                   @default("{}")
+  photoUrl        String?
+  recipientName   String?
+  notes           String?
+  confirmedAt     DateTime?
+  createdAt       DateTime               @default(now())
+
+  @@map("food_delivery_handover_records")
+}
+
+model FoodSubscription {
+  id            String                 @id @default(cuid())
+  participantId String
+  participant   User                   @relation("FoodSubscriptionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  vendorId      String
+  status        FoodSubscriptionStatus @default(active)
+  frequency     String                 @default("weekly")
+  nextOrderAt   DateTime?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  items FoodSubscriptionItem[]
+
+  @@index([participantId, status])
+  @@map("food_subscriptions")
+}
+
+model FoodSubscriptionItem {
+  id             String           @id @default(cuid())
+  subscriptionId String
+  subscription   FoodSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  productId      String
+  quantity       Int              @default(1)
+
+  @@map("food_subscription_items")
+}
+
+model FoodSubstitutionPreference {
+  id            String                 @id @default(cuid())
+  participantId String                 @unique
+  participant   User                   @relation("FoodSubstitutionPrefs", fields: [participantId], references: [id], onDelete: Cascade)
+  policy        FoodSubstitutionPolicy @default(contact_first)
+  notes         String?
+  updatedAt     DateTime               @updatedAt
+
+  @@map("food_substitution_preferences")
+}
+
+model FoodParticipantPreference {
+  id                      String   @id @default(cuid())
+  participantId           String   @unique
+  participant             User     @relation("FoodParticipantPrefs", fields: [participantId], references: [id], onDelete: Cascade)
+  dietaryPreferences      Json     @default("[]")
+  accessibilityPreferences Json    @default("[]")
+  communicationPreferences Json    @default("{}")
+  deliveryNotes           String?
+  updatedAt               DateTime @updatedAt
+
+  @@map("food_participant_preferences")
+}
+
+model FoodAllergyProfile {
+  id            String   @id @default(cuid())
+  participantId String   @unique
+  participant   User     @relation("FoodAllergyProfile", fields: [participantId], references: [id], onDelete: Cascade)
+  allergens     Json     @default("[]")
+  severityNotes String?
+  updatedAt     DateTime @updatedAt
+
+  @@map("food_allergy_profiles")
+}
+
+model FoodPayment {
+  id                    String            @id @default(cuid())
+  orderId               String
+  order                 FoodOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amountCents           Int
+  currency              String            @default("AUD")
+  status                FoodPaymentStatus @default(pending)
+  stripeSessionId       String?
+  stripePaymentIntentId String?
+  billingPaymentId      String?
+  metadata              Json?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([orderId])
+  @@map("food_payments")
+}
+
+model FoodInvoiceLink {
+  id               String          @id @default(cuid())
+  orderId          String
+  order            FoodOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  billingInvoiceId String?
+  legacyInvoiceId  String?
+  xeroSyncStatus   String          @default("pending")
+  ndisReviewStatus String          @default("review_required")
+  createdAt        DateTime        @default(now())
+
+  @@index([orderId])
+  @@map("food_invoice_links")
+}
+
+model FoodRefund {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       FoodOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amountCents Int
+  reason      String?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  @@map("food_refunds")
+}
+
+model FoodDispute {
+  id          String            @id @default(cuid())
+  orderId     String
+  order       FoodOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  raisedById  String
+  raisedBy    User              @relation("FoodDisputeRaisedBy", fields: [raisedById], references: [id])
+  reason      String
+  status      FoodDisputeStatus @default(open)
+  resolution  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([orderId])
+  @@map("food_disputes")
+}
+
+model FoodSafetyEvent {
+  id          String             @id @default(cuid())
+  orderId     String?
+  order       FoodOrder?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  reporterId  String
+  reporter    User               @relation("FoodSafetyReporter", fields: [reporterId], references: [id])
+  description String
+  severity    FoodSafetySeverity @default(medium)
+  status      String             @default("open")
+  createdAt   DateTime           @default(now())
+
+  @@map("food_safety_events")
+}

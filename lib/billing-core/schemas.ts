@@ -34,6 +34,7 @@ export const createInvoiceSchema = z.object({
     "transport",
     "jobs",
     "marketplace",
+    "foods",
     "subscription",
     "other",
   ]),

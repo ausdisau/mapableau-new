@@ -25,6 +25,9 @@ describe("Core UI navigation", () => {
   });
 
   it("provider nav includes care and transport", () => {
+    expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/foods")).toBe(
+      true
+    );
     expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/care")).toBe(
       true
     );
