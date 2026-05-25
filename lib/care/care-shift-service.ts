@@ -10,6 +10,7 @@ export async function createCareShiftFromRequest(params: {
   endAt: Date;
   location?: string;
   workerProfileId?: string;
+  careBookingId?: string;
   createdById: string;
 }) {
   const request = await prisma.careRequest.findUnique({
@@ -20,6 +21,7 @@ export async function createCareShiftFromRequest(params: {
   const shift = await prisma.careShift.create({
     data: {
       careRequestId: params.careRequestId,
+      careBookingId: params.careBookingId,
       bookingId: request.bookingId,
       participantId: request.participantId,
       organisationId: params.organisationId,
@@ -70,6 +72,14 @@ export async function careShiftCheckOut(shiftId: string, actorUserId: string) {
       checkOutTime: new Date(),
     },
   });
+
+  if (shift.careBookingId) {
+    const { ensureServiceLogDraftForShift } = await import(
+      "@/lib/care/care-service-log-service"
+    );
+    await ensureServiceLogDraftForShift(shift.id, actorUserId);
+  }
+
   await createAuditEvent({
     actorUserId,
     action: "care_shift.check_out",
