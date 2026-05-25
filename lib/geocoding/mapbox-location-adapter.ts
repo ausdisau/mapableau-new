@@ -1,9 +1,7 @@
 import { mapboxForwardGeocode } from "@/lib/geocoding/mapbox-geocoding";
 import { isMapboxGeocodingEnabled } from "@/lib/geocoding/mapbox-config";
-import {
-  localLocationAdapter,
-  type LocationAutocompleteAdapter,
-} from "@/lib/search/location-autocomplete-adapter";
+import type { LocationAutocompleteAdapter } from "@/lib/search/location-autocomplete-adapter";
+import { localLocationAdapter } from "@/lib/search/local-location-adapter";
 import type { AutocompleteSuggestion } from "@/types/search";
 
 function normalizeKey(label: string): string {
