@@ -10,6 +10,7 @@ import type { UserRole } from "@/types/mapable";
 
 const LINKS = [
   { href: "/dashboard", label: "Overview" },
+  { href: "/participant", label: "Participant admin" },
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
   { href: "/dashboard/consent", label: "Consent" },
@@ -75,6 +76,16 @@ export function DashboardNav({
               </Link>
             </li>
           ))}
+          {role === "provider_admin" || role === "support_worker" ? (
+            <li>
+              <Link
+                href="/provider"
+                className="inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Provider admin
+              </Link>
+            </li>
+          ) : null}
           {role === "mapable_admin" ? (
             <li>
               <Link
