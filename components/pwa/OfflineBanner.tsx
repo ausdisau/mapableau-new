@@ -2,10 +2,10 @@
 
 import { WifiOff } from "lucide-react";
 
-import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
+import { useNetworkStatusContext } from "@/components/pwa/NetworkStatusProvider";
 
 export function OfflineBanner() {
-  const { online, ready } = useNetworkStatus();
+  const { online, ready } = useNetworkStatusContext();
 
   if (!ready || online) return null;
 

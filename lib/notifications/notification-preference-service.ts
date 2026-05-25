@@ -24,7 +24,7 @@ export function defaultNotificationPreferences(): NotificationPreferences {
       c,
       {
         inApp: true,
-        push: c !== "safety_critical",
+        push: true,
         email: c === "invoice_alerts" || c === "booking_updates",
       },
     ])

@@ -29,6 +29,14 @@ describe("offline policy", () => {
   });
 });
 
+describe("useFormAutosave persist target", () => {
+  it("defaults messages to offline-only storage", async () => {
+    const { defaultPersistTarget } = await import("@/lib/hooks/useFormAutosave");
+    expect(defaultPersistTarget("message")).toBe("offlineOnly");
+    expect(defaultPersistTarget("service_log")).toBe("localStorage");
+  });
+});
+
 describe("notification redaction", () => {
   it("redacts sensitive notification text", async () => {
     const { redactNotificationBody } = await import(
