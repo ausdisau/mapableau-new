@@ -2,7 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true, // Enables additional React checks in dev
-  // todo: check where this is applied and how it works
+  async redirects() {
+    return [
+      { source: "/participant/bookings", destination: "/dashboard/bookings", permanent: false },
+      { source: "/transport/book", destination: "/dashboard/transport/new", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {
@@ -11,6 +16,19 @@ const nextConfig: NextConfig = {
           {
             key: "Cache-Control",
             value: "public, max-age=43200, s-maxage=43200", // 5 days
+          },
+        ],
+      },
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
           },
         ],
       },
