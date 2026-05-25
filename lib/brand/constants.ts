@@ -1,5 +1,20 @@
-/** Public marketing site — https://mapable.com.au */
+import {
+  MAPABLE_WIX_SITE_URL,
+  MAPABLE_WIX_SITE_URL_ALT,
+} from "@/lib/integrations/wix/config";
+
+/** Primary marketing site on Wix (Pymble). */
+export const MAPABLE_WIX_MARKETING_URL = MAPABLE_WIX_SITE_URL;
+
+/** Legacy / alternate marketing host. */
 export const MAPABLE_MARKETING_URL = "https://mapable.com.au";
+
+export const MAPABLE_MARKETING_URLS = [
+  MAPABLE_WIX_MARKETING_URL,
+  MAPABLE_WIX_SITE_URL_ALT,
+  MAPABLE_MARKETING_URL,
+  "https://www.mapable.com.au",
+] as const;
 
 export const MAPABLE_TAGLINE =
   "Enabling people with disabilities to live independent and dignified lives through innovative technology in care, transport, and employment.";

@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+import { applyWixCorsToResponse } from "@/lib/integrations/wix/cors";
 import { searchAutocomplete } from "@/lib/search/autocomplete-service";
 import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
 
@@ -19,20 +20,29 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-export async function GET(request: Request) {
+function withWixCors(request: NextRequest, response: NextResponse) {
+  return applyWixCorsToResponse(request, response);
+}
+
+export async function GET(request: NextRequest | Request) {
+  const req =
+    request instanceof NextRequest ? request : new NextRequest(request);
   const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
     "anonymous";
 
   if (!checkRateLimit(ip)) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait a moment." },
-      { status: 429 },
+    return withWixCors(
+      req,
+      NextResponse.json(
+        { error: "Too many requests. Please wait a moment." },
+        { status: 429 },
+      ),
     );
   }
 
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = new URL(req.url);
   const parsed = autocompleteQuerySchema.safeParse({
     q: searchParams.get("q") ?? "",
     context: searchParams.get("context") ?? "",
@@ -40,9 +50,12 @@ export async function GET(request: Request) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid query", details: parsed.error.flatten() },
-      { status: 400 },
+    return withWixCors(
+      req,
+      NextResponse.json(
+        { error: "Invalid query", details: parsed.error.flatten() },
+        { status: 400 },
+      ),
     );
   }
 
@@ -52,12 +65,21 @@ export async function GET(request: Request) {
     field: parsed.data.field,
   });
 
-  return NextResponse.json(
-    { groups },
-    {
-      headers: {
-        "Cache-Control": "private, max-age=30",
+  return withWixCors(
+    req,
+    NextResponse.json(
+      { groups },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=30",
+        },
       },
-    },
+    ),
   );
+}
+
+export async function OPTIONS(request: NextRequest | Request) {
+  const req =
+    request instanceof NextRequest ? request : new NextRequest(request);
+  return withWixCors(req, new NextResponse(null, { status: 204 }));
 }

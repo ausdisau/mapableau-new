@@ -6,6 +6,7 @@ import {
   MAPABLE_MARKETING_URL,
   MAPABLE_SUPPORT_EMAIL,
   MAPABLE_TAGLINE,
+  MAPABLE_WIX_MARKETING_URL,
 } from "@/lib/brand/constants";
 import { mapablePageContainerClass } from "@/lib/brand/styles";
 
@@ -61,6 +62,16 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  href={MAPABLE_WIX_MARKETING_URL}
+                  className="text-muted-foreground transition hover:text-primary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  mapabl.au
+                </Link>
+              </li>
+              <li>
+                <Link
                   href={MAPABLE_MARKETING_URL}
                   className="text-muted-foreground transition hover:text-primary"
                   target="_blank"
@@ -102,8 +113,8 @@ export function MapAbleMarketingFooter() {
         <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-slate-200 pt-8 text-xs text-muted-foreground md:flex-row">
           <p>© {new Date().getFullYear()} Australian Disability Ltd. All rights reserved.</p>
           <p>
-            <Link href={MAPABLE_MARKETING_URL} className="hover:text-primary" target="_blank" rel="noopener noreferrer">
-              Visit mapable.com.au
+            <Link href={MAPABLE_WIX_MARKETING_URL} className="hover:text-primary" target="_blank" rel="noopener noreferrer">
+              Visit mapabl.au
             </Link>
           </p>
         </div>
