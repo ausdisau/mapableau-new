@@ -1,36 +1,13 @@
 import type { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { CRISIS_RESOURCES } from "@/lib/peer/crisis-resources";
 import { prisma } from "@/lib/prisma";
 import { createSupportTicket } from "@/lib/support/ticket-service";
 import type { safetyEscalationSchema } from "@/lib/validation/peer";
-import type { z } from "zod";
 
-export const CRISIS_RESOURCES = [
-  {
-    name: "Lifeline",
-    detail: "24/7 crisis support",
-    url: "https://www.lifeline.org.au/",
-    phone: "13 11 14",
-  },
-  {
-    name: "Beyond Blue",
-    detail: "Mental wellbeing support",
-    url: "https://www.beyondblue.org.au/",
-    phone: "1300 22 4636",
-  },
-  {
-    name: "1800RESPECT",
-    detail: "Violence and abuse counselling",
-    url: "https://www.1800respect.org.au/",
-    phone: "1800 737 732",
-  },
-  {
-    name: "Emergency",
-    detail: "If you are in immediate danger call emergency services",
-    phone: "000",
-  },
-] as const;
+export { CRISIS_RESOURCES };
 
 export async function createSafetyEvent(params: {
   createdById: string;

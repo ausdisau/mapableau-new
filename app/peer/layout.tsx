@@ -5,7 +5,7 @@ import { PeerBoundaryNotice } from "@/components/peer/PeerBoundaryNotice";
 import { peerConfig } from "@/lib/config/peer";
 import { requireAuth } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
-import { CRISIS_RESOURCES } from "@/lib/peer/peer-safety-service";
+import { CRISIS_RESOURCES } from "@/lib/peer/crisis-resources";
 
 export const dynamic = "force-dynamic";
 

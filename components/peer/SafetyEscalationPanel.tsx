@@ -1,6 +1,6 @@
 "use client";
 
-import { CRISIS_RESOURCES } from "@/lib/peer/peer-safety-service";
+import { CRISIS_RESOURCES } from "@/lib/peer/crisis-resources";
 
 import { Button } from "@/components/ui/button";
 
