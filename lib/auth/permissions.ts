@@ -254,6 +254,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "operator_dispatch:manage",
     "provider_academy:enroll",
     "provider:ndia:claim",
+    "provider_quality:read",
   ],
   transport_operator: [
     "booking:read:any",
