@@ -1,4 +1,5 @@
 import { SkipToContent } from "@/components/core/SkipToContent";
+import { BeamsPushRegistration } from "@/components/notifications/BeamsPushRegistration";
 import { DashboardMessagesOverlay } from "@/components/messages/DashboardMessagesOverlay";
 import { DashboardNav } from "@/components/layout/DashboardNav";
 import { requireAuth } from "@/lib/auth/guards";
@@ -19,6 +20,7 @@ export default async function DashboardLayout({
         {children}
       </main>
       <DashboardMessagesOverlay />
+      <BeamsPushRegistration userId={user.id} />
     </div>
   );
 }

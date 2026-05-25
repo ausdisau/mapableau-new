@@ -47,6 +47,8 @@ export async function notifyThreadRecipients(params: {
 
   for (const profileId of params.recipientProfileIds) {
     if (profileId === params.senderProfileId) continue;
-    await notifyUser(profileId, "support", copy.title, body);
+    await notifyUser(profileId, "support", copy.title, body, {
+      actionPath: `/messages/threads/${params.threadId}`,
+    });
   }
 }

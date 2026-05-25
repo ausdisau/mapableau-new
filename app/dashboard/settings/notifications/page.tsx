@@ -20,7 +20,8 @@ export default async function NotificationSettingsPage() {
         </h1>
         <p className="text-muted-foreground">
           Choose how MapAble contacts you. Status labels always include text, not
-          colour alone.
+          colour alone. For browser push, allow notifications when prompted on the
+          dashboard and enable the <strong>push</strong> channel below.
         </p>
       </header>
       <NotificationSettingsForm
