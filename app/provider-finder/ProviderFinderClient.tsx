@@ -27,7 +27,13 @@ import { useProviderOutlets } from "@/lib/use-provider-outlets";
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
 
-const Map = dynamic(() => import("@/components/Map"), { ssr: false });
+const MapLibreMap = dynamic(
+  () =>
+    import("@/components/map/MapLibreMap").then((m) => ({
+      default: m.MapLibreMap,
+    })),
+  { ssr: false }
+);
 
 type SortMode = "relevance" | "distance" | "rating";
 
@@ -411,10 +417,24 @@ export default function ProviderFinderClient() {
                   </Card>
                 ) : null}
                 <div className="overflow-hidden rounded-xl border border-border/60 shadow-sm">
-                  <Map
-                    providers={mapProviders}
+                  <MapLibreMap
+                    providers={mapProviders
+                      .filter((p) => p.latitude != null && p.longitude != null)
+                      .map((p) => ({
+                        id: p.id,
+                        name: p.name,
+                        suburb: p.suburb,
+                        state: p.state,
+                        lat: p.latitude!,
+                        lng: p.longitude!,
+                        distanceKm: p.distanceKm,
+                      }))}
                     userPosition={userLocation}
-                    centerOnProvider={selectedProvider}
+                    selectedProviderId={selectedProvider?.id ?? null}
+                    onProviderSelect={(id) => {
+                      const p = mapProviders.find((x) => x.id === id);
+                      if (p) setSelectedProvider(p);
+                    }}
                   />
                 </div>
               </section>
