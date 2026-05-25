@@ -1,19 +1,26 @@
-import Link from "next/link";
-
+import { PlanManagerDashboard } from "@/components/plan-manager/PlanManagerDashboard";
 import { requirePermission } from "@/lib/auth/guards";
+import {
+  listLinkedParticipants,
+  listPlanManagerInvoices,
+} from "@/lib/plan-manager/plan-manager-service";
 
 export default async function PlanManagerHomePage() {
-  await requirePermission("plan_manager:portal");
+  const user = await requirePermission("plan_manager:portal");
+  const [participants, invoices] = await Promise.all([
+    listLinkedParticipants(user.id),
+    listPlanManagerInvoices({
+      planManagerId: user.id,
+      actorRole: user.primaryRole,
+    }),
+  ]);
 
   return (
-    <div className="space-y-6 p-4">
-      <h1 className="font-heading text-2xl font-bold">Plan manager portal</h1>
-      <p className="text-muted-foreground">
-        Review invoices and raise queries. Does not submit claims to NDIA or PACE.
-      </p>
-      <Link href="/plan-manager/invoices" className="text-primary underline">
-        Invoices
-      </Link>
+    <div className="mx-auto max-w-5xl p-4 md:p-8">
+      <h1 className="mb-6 font-heading text-2xl font-bold md:text-3xl">
+        Plan manager portal
+      </h1>
+      <PlanManagerDashboard participants={participants} invoices={invoices} />
     </div>
   );
 }
