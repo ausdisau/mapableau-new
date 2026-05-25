@@ -10,6 +10,8 @@ import { assertWorkerAssignedToShift } from "@/lib/care/access-control";
 import { filterParticipantInfoForWorker } from "@/lib/care/care-participant-info";
 import { prisma } from "@/lib/prisma";
 
+export const metadata = { title: "Shift | MapAble Worker" };
+
 export default async function WorkerShiftPage({
   params,
 }: {
@@ -45,10 +47,16 @@ export default async function WorkerShiftPage({
       <AccessNeedsSummary summary={info.accessSummary} />
       <WorkerShiftActions shiftId={shift.id} status={shift.status} />
       <p className="flex flex-wrap gap-4 text-sm">
-        <Link href={`/worker/service-log?shiftId=${shift.id}`} className="underline">
+        <Link
+          href={`/worker/shifts/${shift.id}/service-log`}
+          className="inline-flex min-h-11 items-center underline"
+        >
           Submit service log
         </Link>
-        <Link href={`/worker/report-issue?shiftId=${shift.id}`} className="underline">
+        <Link
+          href={`/worker/report-issue?shiftId=${shift.id}`}
+          className="inline-flex min-h-11 items-center underline"
+        >
           Report issue
         </Link>
       </p>

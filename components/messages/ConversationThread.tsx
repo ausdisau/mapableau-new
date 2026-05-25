@@ -31,6 +31,7 @@ export function ConversationThread({
         ))}
       </div>
       <MessageComposer
+        conversationId={conversationId}
         onSend={async (body) => {
           const res = await fetch(
             `/api/messages/conversations/${conversationId}/messages`,

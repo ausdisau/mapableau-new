@@ -1,9 +1,14 @@
 import Link from "next/link";
-import { startOfDay, endOfDay } from "date-fns";
+import { endOfDay, startOfDay } from "date-fns";
 
+import { TodayScheduleCard } from "@/components/dashboard/TodayScheduleCard";
+import { BigActionButton } from "@/components/field/BigActionButton";
+import { FieldModeShell } from "@/components/field/FieldModeShell";
 import { requirePermission } from "@/lib/auth/guards";
 import { workerProfileForUser } from "@/lib/care/access-control";
 import { prisma } from "@/lib/prisma";
+
+export const metadata = { title: "Today | MapAble Worker" };
 
 export default async function WorkerTodayPage() {
   const user = await requirePermission("care:shift:work");
@@ -26,27 +31,38 @@ export default async function WorkerTodayPage() {
     include: { careRequest: { select: { title: true } } },
   });
 
+  const items = shifts.map((s) => ({
+    id: s.id,
+    title: s.careRequest.title,
+    time: `${s.startAt.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" })} — ${s.status}`,
+  }));
+
   return (
-    <div className="space-y-4">
-      <h1 className="font-heading text-2xl font-bold">Today&apos;s shifts</h1>
-      <ul className="space-y-3">
-        {shifts.map((s) => (
-          <li key={s.id}>
-            <Link
-              href={`/worker/shifts/${s.id}`}
-              className="block rounded-xl border p-4"
-            >
-              <span className="font-medium">{s.careRequest.title}</span>
-              <span className="block text-sm text-muted-foreground">
-                {s.startAt.toLocaleTimeString()} — {s.status}
-              </span>
-            </Link>
-          </li>
-        ))}
-        {shifts.length === 0 ? (
-          <li className="text-sm text-muted-foreground">No shifts scheduled today.</li>
-        ) : null}
-      </ul>
-    </div>
+    <FieldModeShell title="Today's shifts">
+      <TodayScheduleCard
+        items={items}
+        viewAllHref="/worker/shifts"
+        emptyMessage="No shifts scheduled for today."
+      />
+      {shifts[0] ? (
+        <BigActionButton
+          href={`/worker/shifts/${shifts[0].id}`}
+          label="Open next shift"
+          variant="primary"
+        />
+      ) : (
+        <BigActionButton href="/worker/shifts" label="View shifts" variant="primary" />
+      )}
+      <BigActionButton
+        href="/worker/report-issue"
+        label="Report safety issue"
+        variant="secondary"
+      />
+      <p className="text-sm text-muted-foreground">
+        <Link href="/worker/shifts" className="text-primary underline">
+          All shifts
+        </Link>
+      </p>
+    </FieldModeShell>
   );
 }
