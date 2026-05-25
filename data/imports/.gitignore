@@ -1,0 +1,4 @@
+*.kml
+*.geojson
+*.kmz
+!README.md
