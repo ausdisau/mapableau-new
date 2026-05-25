@@ -1,9 +1,9 @@
 import { AnalyticsMetricCard } from "@/components/phase4/AnalyticsMetricCard";
-import { requireAdmin } from "@/lib/auth/guards";
 import {
   getAnalyticsSummary,
   type AnalyticsSummary,
 } from "@/lib/analytics/admin-analytics-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AdminAnalyticsPage() {
   await requireAdmin();

@@ -1,6 +1,7 @@
+import type { TransportNetworkRolloutStatus } from "@prisma/client";
+
 import { phase8Config } from "@/lib/config/phase8";
 import { prisma } from "@/lib/prisma";
-import type { TransportNetworkRolloutStatus } from "@prisma/client";
 
 export async function upsertTransportRegion(params: {
   code: string;

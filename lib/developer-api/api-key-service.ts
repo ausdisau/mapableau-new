@@ -1,10 +1,11 @@
 import { randomBytes } from "crypto";
 
+import type { ApiScope } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase5Config } from "@/lib/config/phase5";
-import { hashApiKey } from "@/lib/stripe-billing/checkout-service";
 import { prisma } from "@/lib/prisma";
-import type { ApiScope } from "@prisma/client";
+import { hashApiKey } from "@/lib/stripe-billing/checkout-service";
 
 export async function createDeveloperApp(
   developerOrganisationId: string,

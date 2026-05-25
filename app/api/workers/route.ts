@@ -1,8 +1,7 @@
 import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { isAdminRole } from "@/lib/auth/roles";
-import { createWorkerProfile } from "@/lib/workers/worker-profile-service";
 import { prisma } from "@/lib/prisma";
+import { createWorkerProfile } from "@/lib/workers/worker-profile-service";
 
 export async function GET() {
   const user = await requireApiSession();

@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { hasActiveConsentForCoordinator } from "@/lib/support-coordinator/consent-gate";
 import { prisma } from "@/lib/prisma";
+import { hasActiveConsentForCoordinator } from "@/lib/support-coordinator/consent-gate";
 
 export async function requestCoordinatorAccess(params: {
   participantId: string;

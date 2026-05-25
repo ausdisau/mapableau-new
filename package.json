@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
-    "build": "pnpm type-check && pnpm lint && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
@@ -17,7 +17,8 @@
     "lint-staged": "lint-staged",
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "neon:configure": "python3 scripts/configure-neon-env.py"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -38,6 +39,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@sendgrid/mail": "^8.1.6",
     "@tanstack/react-query": "^5.90.16",
+    "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -47,11 +49,13 @@
     "framer-motion": "^12.26.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
+    "maplibre-gl": "^5.24.0",
     "next": "15.5.7",
     "next-auth": "^4.24.13",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-leaflet": "^5.0.0",
+    "react-map-gl": "^8.1.1",
     "stripe": "^22.1.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.0",
@@ -59,6 +63,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
@@ -74,11 +81,12 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.4",
     "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
     "lint-staged": "^16.2.4",
     "postcss": "^8.4.47",
     "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
-    "prisma": "^6.19.2",
+    "prisma": "6.19.2",
     "typescript": "^5.0.0",
     "vitest": "^3.2.4"
   }

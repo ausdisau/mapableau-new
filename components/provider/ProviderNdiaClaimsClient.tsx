@@ -2,11 +2,11 @@
 
 import { useCallback, useState } from "react";
 
+import { cn } from "@/app/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mapableEyebrowBadgeClass, mapableSectionCardClass } from "@/lib/brand/styles";
-import { cn } from "@/app/lib/utils";
 
 type ClaimRow = {
   id: string;

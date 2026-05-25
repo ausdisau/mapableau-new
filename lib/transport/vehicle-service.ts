@@ -1,6 +1,7 @@
+import type { VehicleType } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
-import type { VehicleType } from "@prisma/client";
 
 export async function createVehicle(params: {
   organisationId: string;

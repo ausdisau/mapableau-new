@@ -11,7 +11,8 @@ import ProviderSidebar from "@/components/provider/ProviderSidebar";
 import ProviderWorkers from "@/components/provider/ProviderWorkers";
 import { prisma } from "@/lib/prisma";
 
-export const dynamicParams = true;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function generateMetadata({
   params,
@@ -28,11 +29,6 @@ export async function generateMetadata({
 
   // todo: add description, keywords, etc.
   return { title: provider.name };
-}
-
-export async function generateStaticParams() {
-  const providers = await prisma.provider.findMany();
-  return providers.map((provider) => ({ slug: provider.id }));
 }
 
 export default async function ProviderPage({

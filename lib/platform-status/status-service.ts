@@ -1,16 +1,7 @@
-import { phase8Config } from "@/lib/config/phase8";
-import { phase7Config } from "@/lib/config/phase7";
 import { phase5Config } from "@/lib/config/phase5";
+import { phase7Config } from "@/lib/config/phase7";
+import { phase8Config } from "@/lib/config/phase8";
 import { prisma } from "@/lib/prisma";
-
-const COMPONENTS = [
-  "api",
-  "database",
-  "matching",
-  "payments",
-  "ndia",
-  "government_portal",
-] as const;
 
 export async function runPlatformHealthChecks() {
   const checks: { component: string; status: string; message: string }[] = [];

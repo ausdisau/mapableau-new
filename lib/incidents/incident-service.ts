@@ -1,8 +1,9 @@
+import type { IncidentCategory, IncidentSeverity } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { notifyUser } from "@/lib/notifications/notification-service";
 import { phase4Config } from "@/lib/config/phase4";
+import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
-import type { IncidentCategory, IncidentSeverity, IncidentStatus } from "@prisma/client";
 
 export async function createIncident(params: {
   category: IncidentCategory;
@@ -147,6 +148,46 @@ export async function escalateIncident(incidentId: string, adminUserId: string) 
     where: { id: incidentId },
     data: { status: "escalated", adminOwnerId: adminUserId },
   });
+}
+
+export async function escalateToQualitySafeguards(
+  incidentId: string,
+  actorUserId: string
+) {
+  const incident = await prisma.incidentReport.update({
+    where: { id: incidentId },
+    data: {
+      status: "escalated",
+      safeguardingConcern: true,
+      escalatedToQscAt: new Date(),
+      adminOwnerId: actorUserId,
+    },
+  });
+
+  await createAuditEvent({
+    actorUserId,
+    action: "incident.escalated_qsc",
+    entityType: "IncidentReport",
+    entityId: incidentId,
+    participantId: incident.participantId ?? undefined,
+    organisationId: incident.organisationId ?? undefined,
+    metadata: {
+      note: "Flagged for Quality & Safeguards Centre review — not auto-submitted to NDIS Commission.",
+    },
+  });
+
+  await prisma.ndisRuleWarning.create({
+    data: {
+      sourceType: "incident",
+      sourceId: incidentId,
+      warningType: "quality_safeguards_escalation",
+      severity: "warning",
+      message:
+        "Escalated to Quality & Safeguards Centre workflow for human review. This does not constitute NDIS funding approval or Commission submission.",
+    },
+  });
+
+  return incident;
 }
 
 export async function resolveIncident(

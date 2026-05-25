@@ -1,5 +1,5 @@
-import type Stripe from "stripe";
 import type { StripePaymentPurpose } from "@prisma/client";
+import type Stripe from "stripe";
 
 /** Stripe metadata values must be strings; keep keys stable for webhooks. */
 export function billingCheckoutMetadata(params: {

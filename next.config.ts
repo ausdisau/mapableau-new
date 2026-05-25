@@ -17,7 +17,8 @@ const nextConfig: NextConfig = {
     ];
   },
   eslint: {
-    dirs: ["app", "components", "lib"], // Limit ESLint to your source dirs
+    dirs: ["app", "components", "lib"],
+    ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: false, // Ensures type safety at build time

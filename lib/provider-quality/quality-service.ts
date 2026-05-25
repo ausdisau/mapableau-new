@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { phase6Config } from "@/lib/config/phase6";
+import { prisma } from "@/lib/prisma";
 
 export async function calculateProviderQualityScore(organisationId: string) {
   if (!phase6Config.providerQualityDashboardEnabled) {

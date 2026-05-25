@@ -1,7 +1,8 @@
+import { Prisma } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase6Config } from "@/lib/config/phase6";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 
 export async function recordDrExercise(params: {
   title: string;

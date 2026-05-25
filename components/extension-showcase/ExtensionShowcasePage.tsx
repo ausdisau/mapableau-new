@@ -1,4 +1,3 @@
-import Footer from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 
 import { ShowcasePanel } from "./ShowcasePanel";
@@ -58,8 +57,8 @@ const groups: ShowcaseGroup[] = [
 
 export default function ExtensionShowcasePage() {
   return (
-    <div className="min-h-screen bg-background">
-      <main className="py-14 sm:py-18">
+    <div className="bg-background">
+      <div className="py-14 sm:py-18">
         <section className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
             <Badge
@@ -112,9 +111,7 @@ export default function ExtensionShowcasePage() {
             </div>
           ))}
         </section>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { hasPermission } from "@/lib/auth/permissions";
 import { phase6Config } from "@/lib/config/phase6";
-import { sandboxDataGuard } from "@/lib/partner-sandbox/sandbox-service";
 import { validatePriceRows } from "@/lib/ndis-pricing/catalogue-import-service";
+import { sandboxDataGuard } from "@/lib/partner-sandbox/sandbox-service";
 
 describe("Phase 6 config", () => {
   it("dispatch enabled by default", () => {

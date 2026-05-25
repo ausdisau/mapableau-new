@@ -1,10 +1,15 @@
+import { createHash } from "crypto";
+
+import type { ApiScope } from "@prisma/client";
+
+import { listPublishedPlaces } from "@/lib/access-map/access-place-service";
+import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { getApiVersionPolicy } from "@/lib/api-versioning/version-policy-service";
-import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
-import { prisma } from "@/lib/prisma";
 import { scopesAllow } from "@/lib/developer-api/api-key-service";
-import type { ApiScope } from "@prisma/client";
-import { createHash } from "crypto";
+import { prisma } from "@/lib/prisma";
+
+
 
 async function authenticateApiKey(req: Request) {
   const key = req.headers.get("x-api-key");
@@ -31,12 +36,24 @@ export async function GET(req: Request) {
     return jsonError("Forbidden scope", 403);
   }
 
-  const places = await listAccessiblePlaces(50);
+  const accessPlaces = await listPublishedPlaces(50);
+  const places =
+    accessPlaces.length > 0
+      ? accessPlaces.map((p) => ({
+          id: p.id,
+          name: p.name,
+          confidence: p.confidence,
+          features: p.features.map((f) => f.type),
+        }))
+      : (await listAccessiblePlaces(50)).map((p) => ({
+          id: p.id,
+          name: p.name,
+          confidence: p.confidence,
+          features: p.features.map((f) => f.type),
+        }));
+
   const safe = places.map((p) => ({
-    id: p.id,
-    name: p.name,
-    confidence: p.confidence,
-    features: p.features.map((f) => f.type),
+    ...p,
     apiVersion: "v2",
     meta: { paginationHint: "cursor not yet implemented" },
   }));

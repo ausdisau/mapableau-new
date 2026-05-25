@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import type { ConsentScope } from "@/lib/prms/types";
 import { MOCK_CONSENT, isMockParticipant } from "@/lib/prms/mockPrmsData";
+import type { ConsentScope } from "@/lib/prms/types";
 
 const SCOPE_MAP: Record<string, ConsentScope> = {
   transport: "transport_sharing",

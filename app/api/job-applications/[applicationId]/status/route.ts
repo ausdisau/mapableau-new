@@ -1,7 +1,8 @@
+import type { JobApplicationStatus } from "@prisma/client";
+
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { updateApplicationStatus } from "@/lib/jobs/job-service";
-import type { JobApplicationStatus } from "@prisma/client";
 
 export async function POST(
   req: Request,

@@ -1,10 +1,10 @@
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
+import { prisma } from "@/lib/prisma";
 import {
   completeOnboardingTask,
   startProviderOnboarding,
 } from "@/lib/provider-onboarding-automation/onboarding-service";
-import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const user = await requireApiAdmin();

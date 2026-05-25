@@ -35,7 +35,7 @@ export async function createDriverProfile(params: {
 export async function assignDriverToTransport(
   transportBookingId: string,
   driverProfileId: string,
-  actorUserId: string
+  _actorUserId: string
 ) {
   return prisma.transportBooking.update({
     where: { id: transportBookingId },
@@ -46,7 +46,7 @@ export async function assignDriverToTransport(
 export async function assignVehicleToTransport(
   transportBookingId: string,
   vehicleId: string,
-  actorUserId: string
+  _actorUserId: string
 ) {
   return prisma.transportBooking.update({
     where: { id: transportBookingId },
@@ -56,7 +56,7 @@ export async function assignVehicleToTransport(
 
 export async function declineTransportBooking(
   id: string,
-  actorUserId: string
+  _actorUserId: string
 ) {
   return prisma.transportBooking.update({
     where: { id },

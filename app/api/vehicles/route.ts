@@ -1,7 +1,7 @@
 import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk } from "@/lib/api/response";
-import { createVehicle } from "@/lib/transport/vehicle-service";
+import { jsonOk } from "@/lib/api/response";
 import { prisma } from "@/lib/prisma";
+import { createVehicle } from "@/lib/transport/vehicle-service";
 
 export async function GET() {
   const user = await requireApiSession();

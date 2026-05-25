@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
-import { requireAuth } from "@/lib/auth/guards";
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
 export default async function ProviderCarePage() {
@@ -15,7 +15,19 @@ export default async function ProviderCarePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-heading text-2xl font-bold">Assigned care requests</h1>
+      <h1 className="font-heading text-2xl font-bold">Care</h1>
+      <nav className="flex flex-wrap gap-3 text-sm">
+        <Link href="/provider/care/requests" className="underline">
+          Request inbox
+        </Link>
+        <Link href="/provider/care/roster" className="underline">
+          Roster
+        </Link>
+        <Link href="/provider/care/service-logs" className="underline">
+          Service logs
+        </Link>
+      </nav>
+      <h2 className="text-lg font-semibold">Assigned care requests</h2>
       <ul className="space-y-3">
         {requests.map((r) => (
           <li key={r.id}>

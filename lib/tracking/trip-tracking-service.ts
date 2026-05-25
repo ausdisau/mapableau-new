@@ -1,9 +1,10 @@
+import type { TripTrackingStatus } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
-import type { TripTrackingStatus } from "@prisma/client";
 
 const STATUS_LABELS: Record<TripTrackingStatus, string> = {
   not_started: "Trip not started yet",
@@ -22,7 +23,7 @@ export function plainLanguageTripStatus(status: TripTrackingStatus) {
 
 export async function startTripTracking(
   transportBookingId: string,
-  actorUserId: string
+  _actorUserId: string
 ) {
   const session = await prisma.tripTrackingSession.upsert({
     where: { transportBookingId },

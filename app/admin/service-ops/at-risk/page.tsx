@@ -1,6 +1,6 @@
 import { AtRiskReasonPanel } from "@/components/phase3/AtRiskReasonPanel";
-import { requireAdmin } from "@/lib/auth/guards";
 import { getAtRiskItems } from "@/lib/admin/service-ops";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AtRiskPage() {
   await requireAdmin();

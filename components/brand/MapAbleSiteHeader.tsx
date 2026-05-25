@@ -1,12 +1,12 @@
 "use client";
 
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
-import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
 import { cn } from "@/app/lib/utils";
+import { MapAbleLogo, type MapAbleLogoVariant } from "@/components/brand/MapAbleLogo";
 import {
   mapableHeaderClass,
   mapableNavLinkActiveClass,
@@ -29,12 +29,18 @@ export function MapAbleSiteHeader({
   logoSubtitle = "Core",
   navItems = DEFAULT_NAV,
   externalCta,
+  actions,
+  logoVariant = "text",
 }: {
   logoHref?: string;
   logoTitle?: string;
   logoSubtitle?: string;
   navItems?: MapAbleNavItem[];
   externalCta?: { href: string; label: string };
+  /** Replaces default sign-in CTA on desktop (e.g. Log in + Get started). */
+  actions?: ReactNode;
+  /** Use `full` for the official MapAble wordmark image in the header. */
+  logoVariant?: MapAbleLogoVariant;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -47,8 +53,14 @@ export function MapAbleSiteHeader({
   return (
     <header className={mapableHeaderClass}>
       <div className={mapablePageContainerClass}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 py-3">
-          <MapAbleLogo href={logoHref} title={logoTitle} subtitle={logoSubtitle} />
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 py-3 sm:gap-4">
+          <MapAbleLogo
+            href={logoHref}
+            title={logoTitle}
+            subtitle={logoSubtitle}
+            variant={logoVariant}
+            ariaLabel="MapAble home"
+          />
 
           <div className="hidden items-center gap-2 md:flex">
             <nav
@@ -66,7 +78,9 @@ export function MapAbleSiteHeader({
                 </Link>
               ))}
             </nav>
-            {externalCta ? (
+            {actions ? (
+              actions
+            ) : externalCta ? (
               <Link
                 href={externalCta.href}
                 className="inline-flex min-h-10 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
@@ -76,10 +90,7 @@ export function MapAbleSiteHeader({
                 {externalCta.label}
               </Link>
             ) : (
-              <Link
-                href="/login"
-                className={mapableNavLinkClass}
-              >
+              <Link href="/login" className={mapableNavLinkClass}>
                 Sign in
               </Link>
             )}
@@ -122,15 +133,34 @@ export function MapAbleSiteHeader({
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                href="/login"
-                className="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-primary"
-                onClick={() => setOpen(false)}
-              >
-                Sign in
-              </Link>
-            </li>
+            {actions ? (
+              <li className="flex flex-col gap-2 px-3 pt-2">
+                <Link
+                  href="/login"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-input px-4 text-sm font-semibold"
+                  onClick={() => setOpen(false)}
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                  onClick={() => setOpen(false)}
+                >
+                  Get started
+                </Link>
+              </li>
+            ) : (
+              <li>
+                <Link
+                  href="/login"
+                  className="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-primary"
+                  onClick={() => setOpen(false)}
+                >
+                  Sign in
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
       ) : null}

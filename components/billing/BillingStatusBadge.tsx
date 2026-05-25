@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/app/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import {
   mapableEyebrowBadgeClass,
   mapableEyebrowBadgeSecondaryClass,
