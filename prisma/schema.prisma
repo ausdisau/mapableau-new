@@ -98,6 +98,11 @@ model User {
   dataAccessLogsAsActor     DataAccessLog[]        @relation("DataAccessActor")
   dataAccessLogsAsSubject   DataAccessLog[]        @relation("DataAccessSubject")
   rosterAssignments         RosterAssignment[]     @relation("RosterParticipant")
+  agentConversations        AgentConversation[]
+  agentRuns                 AgentRun[]
+  agentApprovalRequests     AgentApprovalRequest[] @relation("AgentApprovalRequestedBy")
+  agentApprovalReviews      AgentApprovalRequest[] @relation("AgentApprovalReviewedBy")
+  agentFeedback             AgentFeedback[]
 }
 
 model Worker {
@@ -5099,4 +5104,163 @@ model DataAccessLog {
 
   @@index([subjectUserId, createdAt])
   @@index([actorUserId, createdAt])
+}
+
+// --- MapAble Strands Agents ---
+
+enum AgentConversationStatus {
+  active
+  archived
+}
+
+enum AgentRunStatus {
+  running
+  completed
+  failed
+  blocked
+  cancelled
+}
+
+enum AgentToolCallStatus {
+  pending
+  completed
+  blocked
+  requires_confirmation
+}
+
+enum AgentApprovalStatus {
+  pending
+  approved
+  rejected
+  expired
+}
+
+model AgentConversation {
+  id         String                  @id @default(cuid())
+  userId     String
+  user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId  String
+  agentId    String
+  title      String?
+  status     AgentConversationStatus @default(active)
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+
+  messages AgentMessage[]
+  runs     AgentRun[]
+  feedback AgentFeedback[]
+
+  @@index([userId, updatedAt])
+}
+
+model AgentMessage {
+  id              String            @id @default(cuid())
+  conversationId  String
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role            String
+  content         String
+  redactedContent String?
+  metadataJson    Json?
+  createdAt       DateTime          @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model AgentRun {
+  id               String            @id @default(cuid())
+  conversationId   String?
+  conversation     AgentConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  agentId          String
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId        String
+  status           AgentRunStatus    @default(running)
+  riskLevel        String            @default("low")
+  modelProvider    String?
+  modelId          String?
+  inputTokens      Int?
+  outputTokens     Int?
+  latencyMs        Int?
+  createdAt        DateTime          @default(now())
+  completedAt      DateTime?
+
+  toolCalls         AgentToolCall[]
+  approvalRequests  AgentApprovalRequest[]
+  safetyEvents      AgentSafetyEvent[]
+  feedback          AgentFeedback[]
+
+  @@index([userId, createdAt])
+  @@index([agentId, status])
+}
+
+model AgentToolCall {
+  id            String              @id @default(cuid())
+  agentRunId    String
+  agentRun      AgentRun            @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  toolName      String
+  inputHash     String?
+  outputSummary String?
+  status        AgentToolCallStatus @default(pending)
+  riskLevel     String              @default("low")
+  blockedReason String?
+  createdAt     DateTime            @default(now())
+
+  @@index([agentRunId])
+  @@index([toolName])
+}
+
+model AgentApprovalRequest {
+  id              String              @id @default(cuid())
+  agentRunId      String
+  agentRun        AgentRun            @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  requestedAction String
+  riskLevel       String
+  status          AgentApprovalStatus @default(pending)
+  requestedById   String
+  requestedBy     User                @relation("AgentApprovalRequestedBy", fields: [requestedById], references: [id])
+  reviewedById    String?
+  reviewedBy      User?               @relation("AgentApprovalReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  createdAt       DateTime            @default(now())
+
+  @@index([agentRunId, status])
+}
+
+model AgentSafetyEvent {
+  id           String   @id @default(cuid())
+  agentRunId   String
+  agentRun     AgentRun @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  eventType    String
+  severity     String
+  reason       String
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([agentRunId, createdAt])
+}
+
+model AgentEvalRun {
+  id         String   @id @default(cuid())
+  agentId    String
+  evalSuite  String
+  status     String
+  scoreJson  Json?
+  createdAt  DateTime @default(now())
+
+  @@index([agentId, evalSuite])
+}
+
+model AgentFeedback {
+  id             String             @id @default(cuid())
+  conversationId String?
+  conversation   AgentConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  agentRunId     String?
+  agentRun       AgentRun?          @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating         Int?
+  comment        String?
+  createdAt      DateTime           @default(now())
+
+  @@index([agentRunId])
 }
