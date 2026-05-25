@@ -12,6 +12,7 @@ import {
 import "leaflet/dist/leaflet.css";
 
 import { getLocationCoords } from "@/lib/locationCoords";
+import { getTileLayerProps } from "@/lib/map/tile-config";
 
 import type { ProviderWithRelations } from "./types";
 
@@ -70,6 +71,8 @@ export default function ProviderLocationMap({
 
   if (provider.locations.length === 0) return null;
 
+  const tileLayer = getTileLayerProps();
+
   return (
     <section className="space-y-4">
       <h2 className="text-lg">Service Areas</h2>
@@ -82,8 +85,8 @@ export default function ProviderLocationMap({
             scrollWheelZoom
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution={tileLayer.attribution}
+              url={tileLayer.url}
             />
             {markers.length > 0 && <FitBounds markers={markers} />}
             {markers.map(({ coords, label }, i) => (

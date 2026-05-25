@@ -6,7 +6,10 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { Provider } from "@/app/provider-finder/providers";
+import { SponsoredMapLayer } from "@/components/map/SponsoredMapLayer";
 import "@/lib/leafletIcons";
+import { getTileLayerProps } from "@/lib/map/tile-config";
+import type { SponsoredAdResult } from "@/types/ads";
 
 // Use divIcons for all markers so we never rely on L.Icon.Default (avoids createIcon undefined in some envs)
 const defaultMarkerIcon = L.divIcon({
@@ -74,6 +77,9 @@ type MapProps = {
   userPosition?: { lat: number; lng: number } | null;
   /** When set, fly map to this provider's position (uses lat/lng or geocode lookup) */
   centerOnProvider?: Provider | null;
+  /** Sponsored overlay pins — separate from OSM data */
+  sponsoredAds?: SponsoredAdResult[];
+  onSponsoredHidden?: (campaignId: string) => void;
 };
 
 // Default center: Sydney, Australia
@@ -150,7 +156,10 @@ export default function Map({
   providers = [],
   userPosition = null,
   centerOnProvider = null,
+  sponsoredAds = [],
+  onSponsoredHidden,
 }: MapProps) {
+  const tileLayer = getTileLayerProps();
   const markers = providers
     .map((provider) => {
       const coords =
@@ -178,9 +187,10 @@ export default function Map({
       scrollWheelZoom={true}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution={tileLayer.attribution}
+        url={tileLayer.url}
       />
+      <SponsoredMapLayer ads={sponsoredAds} onHidden={onSponsoredHidden} />
       <FitBounds markers={markers} userPosition={userPosition ?? null} />
       <FlyToProvider centerOnProvider={centerOnProvider ?? null} />
       {userPosition ? (
