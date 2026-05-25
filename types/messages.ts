@@ -130,6 +130,32 @@ export type RealtimeMessageEvent =
   | { type: "typing:stop"; threadId: string; profileId: string }
   | { type: "presence:update"; threadId: string; profileId: string; state: "online" | "away" | "offline" };
 
+export type ConferenceMode = "audio" | "video";
+export type ConferenceSessionStatus = "scheduled" | "active" | "ended";
+
+export interface ConferenceSession {
+  id: string;
+  threadId: string;
+  mode: ConferenceMode;
+  provider: string;
+  externalRoomId: string;
+  status: ConferenceSessionStatus;
+  createdBy: string;
+  startedAt: string;
+  endedAt: string | null;
+  roomUrl?: string;
+  token?: string;
+}
+
+export interface AacPhrase {
+  id: string;
+  profileId: string;
+  label: string;
+  phrase: string;
+  category: string;
+  sortOrder: number;
+}
+
 export interface ViewerContext {
   profileId: string;
   primaryRole: string;

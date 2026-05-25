@@ -2,12 +2,29 @@
 
 import { useState } from "react";
 
+import { ChatActionsPanel } from "@/components/messages/ChatActionsPanel";
 import { ChatInfoPanel } from "@/components/messages/ChatInfoPanel";
+import { ConferenceCallPanel } from "@/components/messages/ConferenceCallPanel";
 import { InboxPanel } from "@/components/messages/InboxPanel";
 import { MessageThread } from "@/components/messages/MessageThread";
+import { NestedTabPanels } from "@/components/messages/NestedTabPanels";
 import type { ConversationThread, Message, ThreadContextLinks } from "@/types/messages";
 
 type MobilePanel = "inbox" | "thread" | "info";
+type ThreadPanelTab = "chat" | "call" | "details" | "actions";
+type CallSubTab = "audio" | "video";
+
+const THREAD_TABS = [
+  { id: "chat" as const, label: "Chat" },
+  { id: "call" as const, label: "Call" },
+  { id: "details" as const, label: "Details" },
+  { id: "actions" as const, label: "Actions" },
+];
+
+const CALL_SUB_TABS = [
+  { id: "audio" as const, label: "Audio" },
+  { id: "video" as const, label: "Video" },
+];
 
 export function CommunicationCentreShell({
   basePath,
@@ -40,10 +57,66 @@ export function CommunicationCentreShell({
     activeThreadId ? "thread" : "inbox"
   );
   const [infoOpen, setInfoOpen] = useState(false);
+  const [threadPanelTab, setThreadPanelTab] = useState<ThreadPanelTab>("chat");
+  const [callSubTab, setCallSubTab] = useState<CallSubTab>("audio");
 
   const participantNames = Object.fromEntries(
     (threadDetail?.participants ?? []).map((p) => [p.profileId, p.displayName])
   );
+
+  const otherProfileId = threadDetail?.participants.find(
+    (p) => p.profileId !== currentProfileId
+  )?.profileId;
+
+  function renderThreadPanel() {
+    if (!threadDetail || !activeThreadId) {
+      return (
+        <div className="flex flex-1 items-center justify-center p-8 text-center text-muted-foreground">
+          <p>Select a conversation from your inbox.</p>
+        </div>
+      );
+    }
+
+    if (threadPanelTab === "chat") {
+      return (
+        <MessageThread
+          threadId={activeThreadId}
+          initialMessages={threadDetail.messages}
+          currentUserId={currentProfileId}
+          participantNames={participantNames}
+          showAacBar
+        />
+      );
+    }
+
+    if (threadPanelTab === "call") {
+      return <ConferenceCallPanel threadId={activeThreadId} mode={callSubTab} />;
+    }
+
+    if (threadPanelTab === "details") {
+      return (
+        <div className="h-full overflow-y-auto lg:hidden">
+          <ChatInfoPanel
+            threadId={activeThreadId}
+            participants={threadDetail.participants}
+            context={threadDetail.context}
+            currentProfileId={currentProfileId}
+            canEscalateSafety={canEscalateSafety}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-y-auto p-4">
+        <ChatActionsPanel
+          threadId={activeThreadId}
+          otherProfileId={otherProfileId}
+          canEscalateSafety={canEscalateSafety}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-8rem)] min-h-[480px] flex-col rounded-xl border border-border bg-background shadow-sm lg:h-[calc(100vh-6rem)]">
@@ -78,6 +151,32 @@ export function CommunicationCentreShell({
         </div>
       </div>
 
+      {threadDetail && activeThreadId ? (
+        <NestedTabPanels
+          ariaLabel="Conversation sections"
+          tabs={THREAD_TABS.map((t) => ({ id: t.id, label: t.label }))}
+          activeId={threadPanelTab}
+          onChange={(id) => {
+            setThreadPanelTab(id as ThreadPanelTab);
+            if (id !== "call") setCallSubTab("audio");
+            if (id === "details") setMobilePanel("info");
+            else setMobilePanel("thread");
+          }}
+          nestedTabs={
+            threadPanelTab === "call"
+              ? CALL_SUB_TABS.map((t) => ({ id: t.id, label: t.label }))
+              : undefined
+          }
+          nestedActiveId={threadPanelTab === "call" ? callSubTab : undefined}
+          onNestedChange={
+            threadPanelTab === "call"
+              ? (id) => setCallSubTab(id as CallSubTab)
+              : undefined
+          }
+          nestedAriaLabel="Call type"
+        />
+      ) : null}
+
       <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(240px,280px)_1fr_minmax(240px,300px)]">
         <div
           className={`min-h-0 ${
@@ -93,28 +192,17 @@ export function CommunicationCentreShell({
         </div>
 
         <div
-          className={`min-h-0 border-border lg:border-x ${
+          className={`min-h-0 flex flex-col border-border lg:border-x ${
             mobilePanel === "thread" ? "flex" : "hidden"
           } ${activeThreadId ? "lg:flex" : "lg:flex"}`}
         >
-          {threadDetail && activeThreadId ? (
-            <MessageThread
-              threadId={activeThreadId}
-              initialMessages={threadDetail.messages}
-              currentUserId={currentProfileId}
-              participantNames={participantNames}
-            />
-          ) : (
-            <div className="flex flex-1 items-center justify-center p-8 text-center text-muted-foreground">
-              <p>Select a conversation from your inbox.</p>
-            </div>
-          )}
+          <div className="min-h-0 flex-1 overflow-hidden">{renderThreadPanel()}</div>
         </div>
 
         <div
           className={`min-h-0 ${
             mobilePanel === "info" || infoOpen ? "flex" : "hidden"
-          } lg:flex`}
+          } ${threadPanelTab === "details" ? "hidden lg:flex" : "lg:flex"}`}
         >
           {threadDetail && activeThreadId ? (
             <ChatInfoPanel

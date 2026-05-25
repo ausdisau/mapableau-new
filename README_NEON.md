@@ -144,6 +144,8 @@ npx prisma db execute --schema prisma/schema.prisma \
 npx prisma migrate resolve --applied 20260525000000_communication_centre
 ```
 
+Conference and AAC tables: migration `20260525120000_conference_aac` (see [README_CONFERENCING.md](README_CONFERENCING.md)). Add Vercel env vars `CONFERENCE_PROVIDER`, `DAILY_API_KEY`, `DAILY_DOMAIN`, `NEXT_PUBLIC_DAILY_DOMAIN` when using Daily.co.
+
 ## Cursor + Neon MCP (optional)
 
 In Cursor, enable the **Neon** MCP server and complete authentication. Then you can list projects and connection details from the IDE without leaving the editor.

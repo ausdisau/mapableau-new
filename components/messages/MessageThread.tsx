@@ -9,6 +9,7 @@ import { TypingIndicator } from "@/components/messages/TypingIndicator";
 import { AttachmentPicker } from "@/components/messages/AttachmentPicker";
 import { useMessageRealtime } from "@/hooks/useMessageRealtime";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { useAacPreferences } from "@/hooks/useAacPreferences";
 import type { Message } from "@/types/messages";
 
 function dateLabel(iso: string) {
@@ -24,12 +25,17 @@ export function MessageThread({
   initialMessages,
   currentUserId,
   participantNames,
+  showAacBar: showAacBarProp,
 }: {
   threadId: string;
   initialMessages: Message[];
   currentUserId: string;
   participantNames: Record<string, string>;
+  showAacBar?: boolean;
 }) {
+  const { phrases, showAacByDefault } = useAacPreferences();
+  const showAacBar = showAacBarProp ?? showAacByDefault;
+
   const [messages, setMessages] = useState(initialMessages);
   const [attachmentIds, setAttachmentIds] = useState<string[]>([]);
   const [liveStatus, setLiveStatus] = useState("");
@@ -104,6 +110,9 @@ export function MessageThread({
       <div className="border-t border-border p-4">
         <AttachmentPicker documentIds={attachmentIds} onChange={setAttachmentIds} />
         <MessageComposer
+          threadId={threadId}
+          showAacBar={showAacBar}
+          aacPhrases={phrases}
           attachmentDocumentIds={attachmentIds}
           onTyping={notifyTyping}
           onSend={async (body, attachments) => {

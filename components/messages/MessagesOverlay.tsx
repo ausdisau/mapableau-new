@@ -8,6 +8,7 @@ import { ChatActionsPanel } from "@/components/messages/ChatActionsPanel";
 import { ChatInfoPanel } from "@/components/messages/ChatInfoPanel";
 import { CreateGroupChatCard } from "@/components/messages/CreateGroupChatCard";
 import { InboxThreadItem } from "@/components/messages/InboxThreadItem";
+import { ConferenceCallPanel } from "@/components/messages/ConferenceCallPanel";
 import { MessageThread } from "@/components/messages/MessageThread";
 import { NestedTabPanels } from "@/components/messages/NestedTabPanels";
 import {
@@ -19,7 +20,8 @@ import type { ConversationThread, Message, ThreadContextLinks } from "@/types/me
 
 type PrimaryTab = PrimaryInboxTab;
 type LinkedSubTab = LinkedInboxSubTab;
-type ThreadPanelTab = "chat" | "details" | "actions";
+type ThreadPanelTab = "chat" | "call" | "details" | "actions";
+type CallSubTab = "audio" | "video";
 
 const PRIMARY_TABS = [
   { id: "all" as const, label: "All" },
@@ -39,8 +41,14 @@ const LINKED_SUB_TABS = [
 
 const THREAD_TABS = [
   { id: "chat" as const, label: "Chat" },
+  { id: "call" as const, label: "Call" },
   { id: "details" as const, label: "Details" },
   { id: "actions" as const, label: "Actions" },
+];
+
+const CALL_SUB_TABS = [
+  { id: "audio" as const, label: "Audio" },
+  { id: "video" as const, label: "Video" },
 ];
 
 export function MessagesOverlay({
@@ -67,6 +75,7 @@ export function MessagesOverlay({
   const [primaryTab, setPrimaryTab] = useState<PrimaryTab>("all");
   const [linkedSubTab, setLinkedSubTab] = useState<LinkedSubTab>("all_linked");
   const [threadPanelTab, setThreadPanelTab] = useState<ThreadPanelTab>("chat");
+  const [callSubTab, setCallSubTab] = useState<CallSubTab>("audio");
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [threadDetail, setThreadDetail] = useState<{
@@ -133,6 +142,7 @@ export function MessagesOverlay({
       setPrimaryTab("all");
       setLinkedSubTab("all_linked");
       setThreadPanelTab("chat");
+      setCallSubTab("audio");
     }
   }, [open, loadInbox]);
 
@@ -260,7 +270,22 @@ export function MessagesOverlay({
             ariaLabel="Conversation sections"
             tabs={THREAD_TABS.map((t) => ({ id: t.id, label: t.label }))}
             activeId={threadPanelTab}
-            onChange={(id) => setThreadPanelTab(id as ThreadPanelTab)}
+            onChange={(id) => {
+              setThreadPanelTab(id as ThreadPanelTab);
+              if (id !== "call") setCallSubTab("audio");
+            }}
+            nestedTabs={
+              threadPanelTab === "call"
+                ? CALL_SUB_TABS.map((t) => ({ id: t.id, label: t.label }))
+                : undefined
+            }
+            nestedActiveId={threadPanelTab === "call" ? callSubTab : undefined}
+            onNestedChange={
+              threadPanelTab === "call"
+                ? (id) => setCallSubTab(id as CallSubTab)
+                : undefined
+            }
+            nestedAriaLabel="Call type"
           />
         )}
 
@@ -337,7 +362,16 @@ export function MessagesOverlay({
                     initialMessages={threadDetail.messages}
                     currentUserId={currentProfileId}
                     participantNames={participantNames}
+                    showAacBar
                   />
+                </div>
+              ) : threadPanelTab === "call" ? (
+                <div className="flex h-full min-h-[360px] flex-col">
+                  <div className="border-b border-border px-4 py-2">
+                    <p className="font-medium">{threadDetail.thread.title}</p>
+                    <p className="text-xs text-muted-foreground">Call — {callSubTab}</p>
+                  </div>
+                  <ConferenceCallPanel threadId={activeThreadId} mode={callSubTab} />
                 </div>
               ) : threadPanelTab === "details" ? (
                 <ChatInfoPanel
