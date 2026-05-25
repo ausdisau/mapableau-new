@@ -1,6 +1,7 @@
 import { ZodError } from "zod";
 
 import { requireApiAdmin, requireApiSession } from "@/lib/api/auth-handler";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
 import { createCareShiftFromRequest } from "@/lib/care/care-shift-service";
@@ -11,11 +12,17 @@ export async function GET() {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
 
-  const where = isAdminRole(user.primaryRole)
-    ? {}
-    : user.primaryRole === "support_worker"
-      ? { workerProfile: { userId: user.id } }
-      : { participantId: user.id };
+  let where: Record<string, unknown> = {};
+  if (isAdminRole(user.primaryRole)) {
+    where = {};
+  } else if (user.primaryRole === "support_worker") {
+    where = { workerProfile: { userId: user.id } };
+  } else if (user.primaryRole === "provider_admin") {
+    const orgIds = await getUserOrganisationIds(user.id);
+    where = { organisationId: { in: orgIds } };
+  } else {
+    where = { participantId: user.id };
+  }
 
   const shifts = await prisma.careShift.findMany({
     where,
