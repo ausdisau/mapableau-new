@@ -1,6 +1,9 @@
 import { MapAbleMarketingFooter } from "@/components/brand/MapAbleMarketingFooter";
 import { MapAbleMarketingHeader } from "@/components/brand/MapAbleMarketingHeader";
 
+/** Prisma-backed pages; avoid static prerender at build when DATABASE_URL is unset on Vercel. */
+export const dynamic = "force-dynamic";
+
 export default function AccessLayout({
   children,
 }: {
