@@ -155,6 +155,9 @@ export type Permission =
   | "privacy_analytics:run"
   | "federated_research:manage"
   | "provider_academy:enroll"
+  | "academy:read"
+  | "academy:enrol"
+  | "academy:manage:any"
   | "data_trust_report:publish"
   | "sustainability:manage"
   | "outcomes:read"
@@ -209,6 +212,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "safeguards:read",
     "membership:read",
     "transport_investment:read",
+    "academy:read",
+    "academy:enrol",
   ],
   family_member: [
     "profile:read:self",
@@ -224,6 +229,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "invoice:read:self",
   ],
   support_worker: [
+    "academy:read",
+    "academy:enrol",
     "booking:read:any",
     "notification:read:self",
     "care:shift:work",
@@ -253,6 +260,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "enterprise:console",
     "operator_dispatch:manage",
     "provider_academy:enroll",
+    "academy:read",
+    "academy:enrol",
     "provider:ndia:claim",
   ],
   transport_operator: [
@@ -392,6 +401,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "oversight_board:manage",
     "privacy_analytics:run",
     "federated_research:manage",
+    "academy:read",
+    "academy:enrol",
+    "academy:manage:any",
     "provider_academy:enroll",
     "data_trust_report:publish",
     "sustainability:manage",
