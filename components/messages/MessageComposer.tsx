@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { formInputClass } from "@/components/forms/AccessibleFormField";
+import { AccessibleComposeField } from "@/components/accessibility/AccessibleComposeField";
 import { Button } from "@/components/ui/button";
 
 export function MessageComposer({
@@ -31,17 +31,15 @@ export function MessageComposer({
         setLoading(false);
       }}
     >
-      <label htmlFor="message-body" className="font-medium text-sm">
-        Your message
-      </label>
-      <textarea
+      <AccessibleComposeField
         id="message-body"
-        className={formInputClass}
-        rows={4}
+        label="Your message"
         value={body}
-        onChange={(e) => setBody(e.target.value)}
-        required
-        maxLength={10000}
+        onChange={setBody}
+        predictionContext="message"
+        voiceDraftType="provider_message"
+        rows={4}
+        required={true}
       />
       <p className="text-xs text-muted-foreground">
         Only people in this conversation can see your message.

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { AccessibleComposeField } from "@/components/accessibility/AccessibleComposeField";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { intentLabel } from "@/lib/copilot/intentRouter";
@@ -65,16 +66,15 @@ export function CopilotPanel({
     <div className="space-y-6">
       <Card variant="elevated">
         <CardContent className="space-y-4 pt-6">
-          <label htmlFor="ask-query" className="block text-sm font-medium">
-            Ask MapAble
-          </label>
-          <textarea
+          <AccessibleComposeField
             id="ask-query"
-            rows={3}
-            className="w-full rounded-lg border border-input bg-background px-4 py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder="e.g. I need a support worker and wheelchair transport to physio next Tuesday morning"
+            label="Ask MapAble"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={setQuery}
+            predictionContext="copilot"
+            voiceDraftType="search_query"
+            rows={3}
+            placeholder="e.g. I need a support worker and wheelchair transport to physio next Tuesday morning"
           />
           <fieldset>
             <legend className="mb-2 text-sm font-medium">Mode</legend>

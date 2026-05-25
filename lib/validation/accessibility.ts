@@ -48,6 +48,8 @@ export const accessibilityProfileSchema = z.object({
       reducedMotion: z.boolean().optional(),
       screenReaderUser: z.boolean().optional(),
       voiceControlPreferred: z.boolean().optional(),
+      wordPredictionEnabled: z.boolean().optional(),
+      customPhrases: z.array(z.string().max(200)).max(50).optional(),
       dyslexiaFriendlyMode: z.boolean().optional(),
       simpleLanguageMode: z.boolean().optional(),
     })
