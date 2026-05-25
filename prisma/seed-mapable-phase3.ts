@@ -78,9 +78,10 @@ export async function seedMapAblePhase3() {
       languages: ["English"],
       workerScreeningStatus: "verified",
       verificationStatus: "verified",
+      highIntensityCompetencyVerified: true,
       active: true,
     },
-    update: {},
+    update: { highIntensityCompetencyVerified: true },
   });
 
   await prisma.workerProfile.upsert({
@@ -186,7 +187,7 @@ export async function seedMapAblePhase3() {
     update: {},
   });
 
-  await prisma.careRequest.upsert({
+  const careReq3 = await prisma.careRequest.upsert({
     where: { id: "seed-care-req-3" },
     create: {
       id: "seed-care-req-3",
@@ -197,6 +198,34 @@ export async function seedMapAblePhase3() {
       description: "Assigned to care provider.",
       assignedOrganisationId: careOrg.id,
       status: "awaiting_provider_response",
+      tasks: [{ name: "Appointment escort", intensity: "standard" }],
+    },
+    update: {},
+  });
+
+  const careBookingMvp = await prisma.careBooking.upsert({
+    where: { careRequestId: careReq3.id },
+    create: {
+      id: "seed-care-booking-mvp",
+      careRequestId: careReq3.id,
+      participantId: participant.id,
+      organisationId: careOrg.id,
+      status: "pending_provider",
+      tasks: [{ name: "Appointment escort", intensity: "standard" }],
+      location: "Demo Medical Centre",
+      scheduledStartAt: new Date(Date.now() + 86400000 * 4),
+      scheduledEndAt: new Date(Date.now() + 86400000 * 4 + 7200000),
+    },
+    update: {},
+  });
+
+  await prisma.careServiceAgreement.upsert({
+    where: { careBookingId: careBookingMvp.id },
+    create: {
+      careBookingId: careBookingMvp.id,
+      placeholderTitle: "Demo service agreement",
+      placeholderSummary: "Placeholder agreement for MVP walkthrough.",
+      status: "placeholder",
     },
     update: {},
   });

@@ -14,7 +14,7 @@ export default async function CareRequestDetailPage({
   const { careRequestId } = await params;
   const request = await prisma.careRequest.findFirst({
     where: { id: careRequestId, participantId: user.id },
-    include: { booking: true },
+    include: { booking: true, careBooking: true },
   });
   if (!request) {
     return <p role="alert">Care request not found.</p>;
@@ -42,6 +42,17 @@ export default async function CareRequestDetailPage({
       {request.booking ? (
         <p className="rounded-lg border p-3 text-sm">
           Booking status: {request.booking.status.replace(/_/g, " ")}
+        </p>
+      ) : null}
+      {request.careBooking ? (
+        <p className="rounded-lg border p-3 text-sm">
+          Care booking:{" "}
+          <Link
+            href={`/care/bookings/${request.careBooking.id}`}
+            className="text-primary underline"
+          >
+            {request.careBooking.status.replace(/_/g, " ")}
+          </Link>
         </p>
       ) : null}
       <CareRequestActions
