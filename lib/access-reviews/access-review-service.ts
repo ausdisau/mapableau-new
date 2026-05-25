@@ -18,30 +18,6 @@ export async function createAccessReview(params: {
   ratings: { category: string; value: AccessRatingValue }[];
   publish?: boolean;
 }) {
-  const recentCount = await prisma.accessPlaceReview.count({
-    where: {
-      reviewerProfileId: params.reviewerProfileId,
-      createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
-    },
-  });
-  if (recentCount >= REVIEW_RATE_LIMIT_PER_HOUR) {
-    throw new Error("REVIEW_RATE_LIMIT");
-  }
-
-  if (params.publish) {
-    const existingPublished = await prisma.accessPlaceReview.findFirst({
-      where: {
-        placeId: params.placeId,
-        reviewerProfileId: params.reviewerProfileId,
-        status: "published",
-      },
-      select: { id: true },
-    });
-    if (existingPublished) {
-      throw new Error("REVIEW_ALREADY_PUBLISHED");
-    }
-  }
-
   const flags = scanReviewForModerationFlags(params.reviewBody);
   const status = flags.length
     ? "pending"
@@ -49,7 +25,32 @@ export async function createAccessReview(params: {
       ? "published"
       : "draft";
 
-  const review = await prisma.accessPlaceReview.create({
+  const review = await prisma.$transaction(async (tx) => {
+    const recentCount = await tx.accessPlaceReview.count({
+      where: {
+        reviewerProfileId: params.reviewerProfileId,
+        createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
+      },
+    });
+    if (recentCount >= REVIEW_RATE_LIMIT_PER_HOUR) {
+      throw new Error("REVIEW_RATE_LIMIT");
+    }
+
+    if (params.publish) {
+      const existingPublished = await tx.accessPlaceReview.findFirst({
+        where: {
+          placeId: params.placeId,
+          reviewerProfileId: params.reviewerProfileId,
+          status: "published",
+        },
+        select: { id: true },
+      });
+      if (existingPublished) {
+        throw new Error("REVIEW_ALREADY_PUBLISHED");
+      }
+    }
+
+    return tx.accessPlaceReview.create({
     data: {
       placeId: params.placeId,
       reviewerProfileId: params.reviewerProfileId,
@@ -74,6 +75,7 @@ export async function createAccessReview(params: {
       },
     },
     include: { ratings: true },
+    });
   });
 
   if (flags.length) {

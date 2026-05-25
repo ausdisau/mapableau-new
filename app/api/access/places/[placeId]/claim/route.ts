@@ -1,5 +1,9 @@
 import { submitVenueClaim } from "@/lib/venue-access/venue-claim-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  jsonBodyErrorResponse,
+  parseJsonRequestBody,
+} from "@/lib/api/request-body";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { submitVenueClaimSchema } from "@/lib/validation/access-venue-claim";
 
@@ -11,7 +15,13 @@ export async function POST(
   if (user instanceof Response) return user;
 
   const { placeId } = await params;
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await parseJsonRequestBody(req);
+  } catch (e) {
+    const err = jsonBodyErrorResponse(e);
+    return jsonError(err.message, err.status);
+  }
   const parsed = submitVenueClaimSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 

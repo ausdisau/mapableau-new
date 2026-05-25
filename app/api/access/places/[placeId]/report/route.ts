@@ -16,7 +16,13 @@ export async function POST(
   if (user instanceof Response) return user;
   const reporterId = user.id;
 
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await parseJsonRequestBody(req);
+  } catch (e) {
+    const err = jsonBodyErrorResponse(e);
+    return jsonError(err.message, err.status);
+  }
   const parsed = reportPlaceSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
