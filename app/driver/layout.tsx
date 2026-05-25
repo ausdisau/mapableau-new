@@ -16,6 +16,9 @@ export default async function DriverLayout({
           <Link href="/driver/trips" className="min-h-11 inline-flex items-center">
             Trips
           </Link>
+          <Link href="/driver/report-issue" className="min-h-11 inline-flex items-center">
+            Report issue
+          </Link>
           <Link href="/driver/profile" className="min-h-11 inline-flex items-center">
             Profile
           </Link>
