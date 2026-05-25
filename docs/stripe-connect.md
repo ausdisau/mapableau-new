@@ -6,7 +6,8 @@ MapAble already includes Stripe in `lib/stripe/` and `lib/billing-core/`. Connec
 
 1. Open [Stripe Dashboard](https://dashboard.stripe.com) (use **Test mode** for development).
 2. **Developers → API keys**
-3. Copy the **Secret key** (`sk_test_...` or restricted `rk_test_...`).
+3. Copy a **server** key — **Secret** (`sk_test_...`) or **restricted** (`rk_test_...`).  
+   Do **not** put **Publishable** keys (`pk_...`) in `STRIPE_SECRET_KEY`.
 
 Optional but recommended:
 
@@ -29,7 +30,8 @@ cp .env.example .env
 Set at minimum:
 
 ```env
-STRIPE_SECRET_KEY=sk_test_...
+STRIPE_SECRET_KEY=sk_test_...   # or rk_test_... restricted key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...   # optional, client-only
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_DEFAULT_CURRENCY=AUD
 BILLING_ENABLE_STRIPE=true
@@ -94,4 +96,6 @@ API overview: [docs/billing.md](./billing.md)
 | Checkout works but invoice stays unpaid | Webhook not reaching `/api/webhooks/stripe` |
 | `pnpm stripe:verify` fails | Test key typo, wrong mode (live vs test), or network |
 
-Never commit `.env` or paste live `sk_live_` keys into git.
+Never commit `.env` or paste live keys into git or chat.
+
+If live keys were exposed, **roll them immediately** in Stripe Dashboard → Developers → API keys (create new restricted key, revoke old).
