@@ -1,23 +1,7 @@
+import { distanceKm } from "@/lib/geo";
 import { prisma } from "@/lib/prisma";
 
 const PROXIMITY_KM = 0.05;
-
-function haversineKm(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 export async function findDuplicatePlaceCandidates(params: {
   name: string;
@@ -54,7 +38,7 @@ export async function findDuplicatePlaceCandidates(params: {
       conflicts.push({ placeId: match.id, reason: "Same name" });
       continue;
     }
-    const dist = haversineKm(
+    const dist = distanceKm(
       params.latitude,
       params.longitude,
       match.location.latitude,

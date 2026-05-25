@@ -110,4 +110,15 @@ export const accessSearchQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(50),
 });
 
+export const updateAccessPlaceSchema = z.object({
+  name: z.string().min(2).max(200).optional(),
+  category: accessPlaceCategorySchema.optional(),
+  description: z.string().max(5000).optional(),
+  addressText: z.string().max(500).optional(),
+  suburb: z.string().max(120).optional(),
+  stateOrRegion: z.string().max(80).optional(),
+  country: z.string().max(2).optional(),
+});
+
 export type CreateAccessPlaceInput = z.infer<typeof createAccessPlaceSchema>;
+export type UpdateAccessPlaceInput = z.infer<typeof updateAccessPlaceSchema>;

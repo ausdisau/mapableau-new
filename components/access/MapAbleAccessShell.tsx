@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AccessFilterPanel } from "@/components/access/AccessFilterPanel";
 import { AccessMap } from "@/components/access/AccessMap";
@@ -61,6 +61,10 @@ export function MapAbleAccessShell({
       )
     );
   }, [query, category]);
+
+  useEffect(() => {
+    void search();
+  }, [category, search]);
 
   const mapPlaces = places
     .filter((p) => p.latitude != null && p.longitude != null)

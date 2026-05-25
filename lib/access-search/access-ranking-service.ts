@@ -1,4 +1,5 @@
 import type { AccessSearchFilters } from "@/lib/access-map/access-filter-service";
+import { distanceKm } from "@/lib/geo";
 
 const RATING_VALUE_SCORE: Record<string, number> = {
   excellent: 5,
@@ -22,23 +23,6 @@ type PlaceRow = {
   _count: { reviews: number };
 };
 
-function haversineKm(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 function avgCommunityScore(place: PlaceRow): number | null {
   const scores = place.ratingSummaries
     .map((s) => s.avgScore)
@@ -54,7 +38,7 @@ function scorePlace(place: PlaceRow, filters: AccessSearchFilters): number {
   if (q && place.name.toLowerCase().includes(q)) score += 40;
 
   if (filters.lat != null && filters.lng != null && place.location) {
-    const dist = haversineKm(
+    const dist = distanceKm(
       filters.lat,
       filters.lng,
       place.location.latitude,
@@ -94,7 +78,7 @@ export function rankAccessPlaces(places: PlaceRow[], filters: AccessSearchFilter
     if (sort === "distance" && filters.lat != null && filters.lng != null) {
       const da =
         a.place.location &&
-        haversineKm(
+        distanceKm(
           filters.lat,
           filters.lng,
           a.place.location.latitude,
@@ -102,7 +86,7 @@ export function rankAccessPlaces(places: PlaceRow[], filters: AccessSearchFilter
         );
       const db =
         b.place.location &&
-        haversineKm(
+        distanceKm(
           filters.lat,
           filters.lng,
           b.place.location.latitude,

@@ -3,7 +3,8 @@ import { canEditPlace } from "@/lib/access-map/access-place-policy";
 import { confidenceLabel } from "@/lib/access-map/access-confidence-service";
 import { getPublishedAssessmentForPlace } from "@/lib/access-accreditation/accreditation-assessment-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk } from "@/lib/api/response";
+import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { updateAccessPlaceSchema } from "@/types/access-map";
 
 export async function GET(
   _req: Request,
@@ -54,7 +55,9 @@ export async function PATCH(
 
   const { placeId } = await params;
   const body = await req.json();
+  const parsed = updateAccessPlaceSchema.safeParse(body);
+  if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  const place = await updateAccessPlace(placeId, body, user.id);
+  const place = await updateAccessPlace(placeId, parsed.data, user.id);
   return jsonOk({ place: { id: place.id, status: place.status } });
 }

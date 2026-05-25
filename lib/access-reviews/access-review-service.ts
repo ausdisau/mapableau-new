@@ -20,7 +20,7 @@ export async function createAccessReview(params: {
   const status = flags.length
     ? "pending"
     : params.publish
-      ? "pending"
+      ? "published"
       : "draft";
 
   const review = await prisma.accessPlaceReview.create({

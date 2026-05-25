@@ -4,6 +4,7 @@ import { parseAccessibleLocationsGeoJson } from "@/lib/access-import/geojson-par
 import { findDuplicatePlaceCandidates } from "@/lib/access-import/import-deduplication-service";
 import { resolveKmlDocument } from "@/lib/access-import/kml-networklink-service";
 import { sanitizeKmlDescription } from "@/lib/access-import/kml-parser-service";
+import { MAX_IMPORT_ITEMS } from "@/lib/access-import/import-limits";
 import { mapPlacemarkToImportItem } from "@/lib/access-import/kml-to-access-place-mapper";
 import { prisma } from "@/lib/prisma";
 
@@ -54,6 +55,20 @@ export async function parseImportJobContent(
         description: p.description ? sanitizeKmlDescription(p.description) : undefined,
       })
     );
+  }
+
+  if (placemarks.length > MAX_IMPORT_ITEMS) {
+    await prisma.accessImportJob.update({
+      where: { id: jobId },
+      data: {
+        status: "failed",
+        metadata: {
+          error: `Import exceeds maximum of ${MAX_IMPORT_ITEMS} features`,
+          parsed: placemarks.length,
+        },
+      },
+    });
+    throw new Error(`IMPORT_ITEM_LIMIT:${placemarks.length}`);
   }
 
   await prisma.accessImportItem.deleteMany({ where: { jobId } });

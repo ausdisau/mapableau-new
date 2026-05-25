@@ -9,7 +9,8 @@ export async function POST(
 ) {
   const { placeId } = await params;
   const user = await requireApiSession();
-  const reporterId = user instanceof Response ? undefined : user.id;
+  if (user instanceof Response) return user;
+  const reporterId = user.id;
 
   const body = await req.json();
   const parsed = reportPlaceSchema.safeParse(body);

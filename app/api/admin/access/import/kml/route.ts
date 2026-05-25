@@ -2,11 +2,26 @@ import {
   createImportJob,
   parseImportJobContent,
 } from "@/lib/access-import/access-import-job-service";
+import { MAX_IMPORT_BYTES, MAX_IMPORT_ITEMS } from "@/lib/access-import/import-limits";
 import { resolveKmlDocument } from "@/lib/access-import/kml-networklink-service";
+import { escapeXmlText } from "@/lib/access-import/xml-escape";
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 
-const MAX_BYTES = 5_000_000;
+function assertPayloadWithinLimit(payload: string) {
+  const bytes = new TextEncoder().encode(payload).length;
+  if (bytes > MAX_IMPORT_BYTES) {
+    throw new Error("IMPORT_TOO_LARGE");
+  }
+}
+
+function importItemLimitResponse(error: unknown) {
+  const msg = error instanceof Error ? error.message : "";
+  if (msg.startsWith("IMPORT_ITEM_LIMIT:")) {
+    return jsonError(`Too many features (limit ${MAX_IMPORT_ITEMS})`, 413);
+  }
+  return null;
+}
 
 export async function POST(req: Request) {
   const user = await requireApiAdmin();
@@ -22,7 +37,7 @@ export async function POST(req: Request) {
     if (!(file instanceof File)) {
       return jsonError("file required", 400);
     }
-    if (file.size > MAX_BYTES) {
+    if (file.size > MAX_IMPORT_BYTES) {
       return jsonError("File too large", 400);
     }
 
@@ -38,19 +53,31 @@ export async function POST(req: Request) {
       fileName: file.name,
     });
 
-    await parseImportJobContent(
-      job.id,
-      text,
-      isGeoJson ? "geojson_upload" : "uploaded_kml"
-    );
+    try {
+      await parseImportJobContent(
+        job.id,
+        text,
+        isGeoJson ? "geojson_upload" : "uploaded_kml"
+      );
+    } catch (e) {
+      const limitResp = importItemLimitResponse(e);
+      if (limitResp) return limitResp;
+      throw e;
+    }
 
     return jsonOk({ importId: job.id }, 201);
   }
 
+  const contentLength = Number(req.headers.get("content-length") ?? 0);
+  if (contentLength > MAX_IMPORT_BYTES) {
+    return jsonError("Request body too large", 413);
+  }
+
   const body = await req.json();
   if (body.networkLinkUrl) {
+    const href = escapeXmlText(String(body.networkLinkUrl));
     const doc = await resolveKmlDocument(
-      `<?xml version="1.0"?><kml><Document><NetworkLink><Link><href>${body.networkLinkUrl}</href></Link></NetworkLink></Document></kml>`
+      `<?xml version="1.0"?><kml><Document><NetworkLink><Link><href>${href}</href></Link></NetworkLink></Document></kml>`
     );
     const job = await createImportJob({
       createdById: user.id,
@@ -63,26 +90,56 @@ export async function POST(req: Request) {
             body.networkLinkUrl
           )
         : "";
-    if (xml) await parseImportJobContent(job.id, xml, "kml_network_link");
+    if (xml) {
+      try {
+        await parseImportJobContent(job.id, xml, "kml_network_link");
+      } catch (e) {
+        const limitResp = importItemLimitResponse(e);
+        if (limitResp) return limitResp;
+        throw e;
+      }
+    }
     return jsonOk({ importId: job.id, placemarkCount: doc.placemarks.length }, 201);
   }
 
   if (body.kml) {
+    try {
+      assertPayloadWithinLimit(String(body.kml));
+    } catch {
+      return jsonError("KML payload too large", 413);
+    }
     const job = await createImportJob({
       createdById: user.id,
       sourceType: "uploaded_kml",
     });
-    await parseImportJobContent(job.id, body.kml, "uploaded_kml");
+    try {
+      await parseImportJobContent(job.id, body.kml, "uploaded_kml");
+    } catch (e) {
+      const limitResp = importItemLimitResponse(e);
+      if (limitResp) return limitResp;
+      throw e;
+    }
     return jsonOk({ importId: job.id }, 201);
   }
 
   if (body.geojson) {
+    try {
+      assertPayloadWithinLimit(String(body.geojson));
+    } catch {
+      return jsonError("GeoJSON payload too large", 413);
+    }
     const job = await createImportJob({
       createdById: user.id,
       sourceType: "geojson_upload",
       fileName: "accessible_locations_merged.geojson",
     });
-    await parseImportJobContent(job.id, body.geojson, "geojson_upload");
+    try {
+      await parseImportJobContent(job.id, body.geojson, "geojson_upload");
+    } catch (e) {
+      const limitResp = importItemLimitResponse(e);
+      if (limitResp) return limitResp;
+      throw e;
+    }
     return jsonOk({ importId: job.id }, 201);
   }
 

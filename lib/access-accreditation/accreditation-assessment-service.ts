@@ -50,7 +50,11 @@ export async function scoreAssessment(
     });
   }
 
-  const total = calculateAccreditationTotal(scores);
+  const allScores = await prisma.accessAccreditationScore.findMany({
+    where: { assessmentId },
+    select: { criterionCode: true, level: true },
+  });
+  const total = calculateAccreditationTotal(allScores);
   const tier = tierFromTotalScore(total);
 
   return prisma.accessAccreditationAssessment.update({
