@@ -18,7 +18,8 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed:ndis-providers": "npx tsx prisma/seed-ndis-providers.ts"
+    "seed:ndis-providers": "npx tsx prisma/seed-ndis-providers.ts",
+    "stripe:verify": "npx tsx scripts/verify-stripe-connection.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
