@@ -1,7 +1,8 @@
 import { canDeleteReview, canEditReview } from "@/lib/access-reviews/review-access-policy";
 import { recomputePlaceRatingSummaries } from "@/lib/access-reviews/review-summary-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk } from "@/lib/api/response";
+import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { updateAccessReviewSchema } from "@/lib/validation/access-review";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
@@ -21,12 +22,19 @@ export async function PATCH(
   }
 
   const body = await req.json();
+  const parsed = updateAccessReviewSchema.safeParse(body);
+  if (!parsed.success) return zodErrorResponse(parsed.error);
+
   const review = await prisma.accessPlaceReview.update({
     where: { id: reviewId },
     data: {
-      reviewBody: body.reviewBody,
-      mobilityContext: body.mobilityContext,
-      status: body.publish ? "pending" : "draft",
+      ...(parsed.data.reviewBody != null ? { reviewBody: parsed.data.reviewBody } : {}),
+      ...(parsed.data.mobilityContext != null
+        ? { mobilityContext: parsed.data.mobilityContext }
+        : {}),
+      ...(parsed.data.publish != null
+        ? { status: parsed.data.publish ? "pending" : "draft" }
+        : {}),
     },
   });
 

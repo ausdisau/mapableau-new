@@ -4,12 +4,15 @@ import {
 } from "@/lib/access-import/access-import-job-service";
 import { MAX_IMPORT_BYTES, MAX_IMPORT_ITEMS } from "@/lib/access-import/import-limits";
 import {
+  fetchAllowlistedKml,
   isAllowlistedNetworkLinkUrl,
-  resolveKmlDocument,
 } from "@/lib/access-import/kml-networklink-service";
-import { escapeXmlText } from "@/lib/access-import/xml-escape";
+import { readTextWithByteLimit } from "@/lib/access-import/read-limited-body";
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+
+/** Extra bytes for multipart boundaries beyond the file payload. */
+const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
 function assertPayloadWithinLimit(payload: string) {
   const bytes = new TextEncoder().encode(payload).length;
@@ -26,6 +29,20 @@ function importItemLimitResponse(error: unknown) {
   return null;
 }
 
+function parseJsonImportBody(req: Request): Promise<Record<string, unknown>> {
+  return readTextWithByteLimit(req, MAX_IMPORT_BYTES).then((raw) => {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("INVALID_JSON");
+      }
+      return parsed as Record<string, unknown>;
+    } catch {
+      throw new Error("INVALID_JSON");
+    }
+  });
+}
+
 export async function POST(req: Request) {
   const user = await requireApiAdmin();
   if (user instanceof Response) return user;
@@ -33,6 +50,19 @@ export async function POST(req: Request) {
   const contentType = req.headers.get("content-type") ?? "";
 
   if (contentType.includes("multipart/form-data")) {
+    const uploadLength = req.headers.get("content-length");
+    if (uploadLength == null) {
+      return jsonError("Content-Length required for multipart uploads", 411);
+    }
+    const uploadBytes = Number(uploadLength);
+    if (
+      !Number.isFinite(uploadBytes) ||
+      uploadBytes < 0 ||
+      uploadBytes > MAX_IMPORT_BYTES + MULTIPART_OVERHEAD_BYTES
+    ) {
+      return jsonError("Request body too large", 413);
+    }
+
     const form = await req.formData();
     const file = form.get("file");
     const importType = String(form.get("importType") ?? "kml");
@@ -71,42 +101,38 @@ export async function POST(req: Request) {
     return jsonOk({ importId: job.id }, 201);
   }
 
-  const contentLength = Number(req.headers.get("content-length") ?? 0);
-  if (contentLength > MAX_IMPORT_BYTES) {
-    return jsonError("Request body too large", 413);
+  let body: Record<string, unknown>;
+  try {
+    body = await parseJsonImportBody(req);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg === "BODY_TOO_LARGE") {
+      return jsonError("Request body too large", 413);
+    }
+    return jsonError("Invalid JSON body", 400);
   }
 
-  const body = await req.json();
   if (body.networkLinkUrl) {
     const networkLinkUrl = String(body.networkLinkUrl);
     if (!isAllowlistedNetworkLinkUrl(networkLinkUrl)) {
       return jsonError("NetworkLink URL is not on the allowlist", 403);
     }
-    const href = escapeXmlText(networkLinkUrl);
-    const doc = await resolveKmlDocument(
-      `<?xml version="1.0"?><kml><Document><NetworkLink><Link><href>${href}</href></Link></NetworkLink></Document></kml>`
-    );
+
+    const xml = await fetchAllowlistedKml(networkLinkUrl);
     const job = await createImportJob({
       createdById: user.id,
       sourceType: "kml_network_link",
-      sourceUrl: body.networkLinkUrl,
+      sourceUrl: networkLinkUrl,
     });
-    const xml =
-      doc.placemarks.length > 0
-        ? await (await import("@/lib/access-import/kml-networklink-service")).fetchAllowlistedKml(
-            body.networkLinkUrl
-          )
-        : "";
-    if (xml) {
-      try {
-        await parseImportJobContent(job.id, xml, "kml_network_link");
-      } catch (e) {
-        const limitResp = importItemLimitResponse(e);
-        if (limitResp) return limitResp;
-        throw e;
-      }
+
+    try {
+      const result = await parseImportJobContent(job.id, xml, "kml_network_link");
+      return jsonOk({ importId: job.id, placemarkCount: result.count }, 201);
+    } catch (e) {
+      const limitResp = importItemLimitResponse(e);
+      if (limitResp) return limitResp;
+      throw e;
     }
-    return jsonOk({ importId: job.id, placemarkCount: doc.placemarks.length }, 201);
   }
 
   if (body.kml) {
@@ -120,7 +146,7 @@ export async function POST(req: Request) {
       sourceType: "uploaded_kml",
     });
     try {
-      await parseImportJobContent(job.id, body.kml, "uploaded_kml");
+      await parseImportJobContent(job.id, String(body.kml), "uploaded_kml");
     } catch (e) {
       const limitResp = importItemLimitResponse(e);
       if (limitResp) return limitResp;
@@ -141,7 +167,7 @@ export async function POST(req: Request) {
       fileName: "accessible_locations_merged.geojson",
     });
     try {
-      await parseImportJobContent(job.id, body.geojson, "geojson_upload");
+      await parseImportJobContent(job.id, String(body.geojson), "geojson_upload");
     } catch (e) {
       const limitResp = importItemLimitResponse(e);
       if (limitResp) return limitResp;

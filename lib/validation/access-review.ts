@@ -23,3 +23,13 @@ export const createAccessReviewSchema = z.object({
   publish: z.boolean().default(true),
   ratings: z.array(accessReviewRatingSchema).min(1),
 });
+
+export const updateAccessReviewSchema = z
+  .object({
+    reviewBody: z.string().min(10).max(8000).optional(),
+    mobilityContext: z.string().max(500).optional(),
+    publish: z.boolean().optional(),
+  })
+  .refine((v) => v.reviewBody != null || v.mobilityContext != null || v.publish != null, {
+    message: "At least one field required",
+  });

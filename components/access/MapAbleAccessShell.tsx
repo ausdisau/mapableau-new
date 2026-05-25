@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AccessFilterPanel } from "@/components/access/AccessFilterPanel";
 import { AccessMap } from "@/components/access/AccessMap";
@@ -62,11 +62,14 @@ export function MapAbleAccessShell({
     );
   }, [query, category]);
 
+  const skipCategorySearchOnMount = useRef(true);
   useEffect(() => {
+    if (skipCategorySearchOnMount.current) {
+      skipCategorySearchOnMount.current = false;
+      return;
+    }
     void search();
-    // Re-run when category changes; query updates use the search bar submit handler.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- category filter only
-  }, [category]);
+  }, [category, search]);
 
   const mapPlaces = places
     .filter((p) => p.latitude != null && p.longitude != null)
