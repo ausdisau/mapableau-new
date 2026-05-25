@@ -1,6 +1,7 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { isAdminRole } from "@/lib/auth/roles";
+import { assertCanViewCareRequest } from "@/lib/care/access-control";
+import { checkConsent } from "@/lib/consent/consent-service";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
@@ -20,15 +21,30 @@ export async function GET(
   });
   if (!request) return jsonError("Not found", 404);
 
-  const canView =
-    isAdminRole(user.primaryRole) ||
-    request.participantId === user.id ||
-    request.assignedOrganisationId !== null;
+  try {
+    await assertCanViewCareRequest(user, request);
+  } catch {
+    return jsonError("Forbidden", 403);
+  }
 
-  if (!canView) return jsonError("Forbidden", 403);
+  let accessRequirementsSummary = request.accessRequirementsSummary;
+  if (
+    request.shareAccessibility &&
+    request.assignedOrganisationId &&
+    request.participantId !== user.id
+  ) {
+    const hasConsent = await checkConsent({
+      subjectUserId: request.participantId,
+      scope: "care.accessibility_share",
+      grantedToOrganisationId: request.assignedOrganisationId,
+    });
+    if (!hasConsent) {
+      accessRequirementsSummary = null;
+    }
+  }
 
   return jsonOk({
-    request,
+    request: { ...request, accessRequirementsSummary },
     accessNotice:
       "Care request details are visible to you, assigned providers, and MapAble admins.",
   });
@@ -47,6 +63,7 @@ export async function PATCH(
     where: { id: careRequestId },
   });
   if (!existing) return jsonError("Not found", 404);
+  const { isAdminRole } = await import("@/lib/auth/roles");
   if (
     !isAdminRole(user.primaryRole) &&
     existing.participantId !== user.id

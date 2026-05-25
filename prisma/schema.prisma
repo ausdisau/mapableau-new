@@ -67,8 +67,14 @@ model User {
 
   careRequests              CareRequest[]      @relation("CareRequestParticipant")
   careRequestsCreated       CareRequest[]      @relation("CareRequestCreatedBy")
+  careBookings              CareBooking[]      @relation("CareBookingParticipant")
   careShifts                CareShift[]        @relation("CareShiftParticipant")
   careShiftsApproved        CareShift[]        @relation("CareShiftApprovedBy")
+  careServiceLogsConfirmed  CareServiceLog[]   @relation("CareServiceLogConfirmedBy")
+  careParticipantPreferences CareParticipantPreference[]
+  careAccessNeeds           CareAccessNeed[]
+  careRiskFlags             CareRiskFlag[]
+  careLivingAloneSafeguards CareLivingAloneSafeguard[]
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
@@ -91,6 +97,19 @@ model User {
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
   serviceLogsAsParticipant  ServiceLog[]           @relation("ServiceLogParticipant")
   serviceLogsCreated        ServiceLog[]           @relation("ServiceLogCreatedBy")
+
+  accessPlacesCreated       AccessPlace[]          @relation("AccessPlaceCreatedBy")
+  accessPlaceClaims         AccessPlaceClaim[]     @relation("AccessPlaceClaimUser")
+  accessPlaceReports        AccessPlaceReport[]    @relation("AccessPlaceReportReporter")
+  accessPlaceReviews        AccessPlaceReview[]    @relation("AccessPlaceReviewAuthor")
+  accessImportsCreated      AccessImportJob[]      @relation("AccessImportCreatedBy")
+  accessAccreditationAssessments AccessAccreditationAssessment[] @relation("AccessAccreditationAssessor")
+  accessVenueClaims         AccessVenueClaim[]     @relation("AccessVenueClaimUser")
+  accessVenueProfiles       AccessVenueProfile[]   @relation("AccessVenueOwner")
+  accessVenueReviewResponses AccessVenueReviewResponse[] @relation("AccessVenueResponseAuthor")
+  accessAccreditationRequests AccessAccreditationRequest[] @relation("AccessAccreditationRequestUser")
+  accessModerationDecisions AccessModerationDecision[] @relation("AccessModerator")
+  accessContentReports      AccessContentReport[]  @relation("AccessContentReporter")
 }
 
 model Worker {
@@ -610,7 +629,10 @@ model Organisation {
   ndiaProviderClaims NdiaProviderClaim[]
 
   careRequests           CareRequest[]
+  careBookings           CareBooking[]
   careShifts             CareShift[]
+  careRosterAssignments  CareRosterAssignment[]
+  careInvoiceLinks       CareInvoiceLink[]
   workerProfiles         WorkerProfile[]
   capacityBlocks         CapacityBlock[]
   vehicles               Vehicle[]
@@ -1554,6 +1576,29 @@ enum CareShiftStatus {
   disputed
 }
 
+enum CareBookingStatus {
+  pending_provider
+  accepted
+  declined
+  worker_assigned
+  in_progress
+  completed
+  cancelled
+  disputed
+}
+
+enum CareServiceLogStatus {
+  draft
+  submitted
+  confirmed
+  disputed
+}
+
+enum CareInvoiceLinkStatus {
+  placeholder
+  blocked_no_service_log
+}
+
 enum WorkerCredentialStatus {
   not_provided
   pending_review
@@ -1686,15 +1731,19 @@ model CareRequest {
   shifts                  CareShift[]
   calendarEvents          CalendarEvent[]
   orchestrationEvents     OrchestrationEvent[]
+  careBooking             CareBooking?
 
   @@index([participantId, status])
   @@index([assignedOrganisationId])
+  @@map("care_requests")
 }
 
 model CareShift {
   id                      String          @id @default(cuid())
   careRequestId           String
   careRequest             CareRequest     @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
+  careBookingId           String?
+  careBooking             CareBooking?    @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
   bookingId               String?           @unique
   booking                 Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   participantId           String
@@ -1723,10 +1772,261 @@ model CareShift {
 
   calendarEvents          CalendarEvent[]
   timesheet               Timesheet?
+  careServiceLog          CareServiceLog?
+  shiftCancellations      CareShiftCancellation[]
 
   @@index([participantId, status])
   @@index([organisationId])
   @@index([workerProfileId])
+  @@index([careBookingId])
+}
+
+model CareBooking {
+  id                String            @id @default(cuid())
+  careRequestId     String            @unique
+  careRequest       CareRequest       @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
+  participantId     String
+  participant       User              @relation("CareBookingParticipant", fields: [participantId], references: [id])
+  organisationId    String
+  organisation      Organisation      @relation(fields: [organisationId], references: [id])
+  status            CareBookingStatus @default(pending_provider)
+  scheduledStartAt  DateTime?
+  scheduledEndAt    DateTime?
+  location          String?
+  tasks             Json              @default("[]")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  events            CareBookingEvent[]
+  bookingWorkers    CareBookingWorker[]
+  shifts            CareShift[]
+  serviceAgreement  CareServiceAgreement?
+  serviceLogs       CareServiceLog[]
+  rosterAssignments CareRosterAssignment[]
+  accessNeeds       CareAccessNeed[]
+  riskFlags         CareRiskFlag[]
+  livingAloneSafeguards CareLivingAloneSafeguard[]
+  recoveryLinks     CareServiceRecoveryLink[]
+  invoiceLinks      CareInvoiceLink[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@map("care_bookings")
+}
+
+model CareBookingEvent {
+  id            String   @id @default(cuid())
+  careBookingId String
+  careBooking   CareBooking @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  eventType     String
+  title         String
+  actorUserId   String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([careBookingId, createdAt])
+  @@map("care_booking_events")
+}
+
+model CareBookingWorker {
+  id              String        @id @default(cuid())
+  careBookingId   String
+  careBooking     CareBooking   @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  assignedAt      DateTime      @default(now())
+  assignedById    String?
+  active          Boolean       @default(true)
+
+  @@unique([careBookingId, workerProfileId])
+  @@map("care_booking_workers")
+}
+
+model CareRosterAssignment {
+  id              String        @id @default(cuid())
+  careBookingId   String?
+  careBooking     CareBooking?  @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
+  organisationId  String
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerProfileId String?
+  workerProfile   WorkerProfile? @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  participantId   String?
+  scheduledDate   DateTime?
+  notes           String?
+  createdAt       DateTime      @default(now())
+
+  @@index([organisationId])
+  @@map("care_roster_assignments")
+}
+
+model CareServiceAgreement {
+  id                  String   @id @default(cuid())
+  careBookingId       String   @unique
+  careBooking         CareBooking @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  serviceAgreementId  String?
+  placeholderTitle    String   @default("Service agreement")
+  placeholderSummary  String?
+  status              String   @default("placeholder")
+  createdAt           DateTime @default(now())
+
+  @@map("care_service_agreements")
+}
+
+model CareServiceLog {
+  id                String               @id @default(cuid())
+  careBookingId     String
+  careBooking       CareBooking          @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  careShiftId       String?              @unique
+  careShift         CareShift?           @relation(fields: [careShiftId], references: [id], onDelete: SetNull)
+  participantId     String
+  organisationId    String
+  workerProfileId   String?
+  workerProfile     WorkerProfile?       @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  status            CareServiceLogStatus @default(draft)
+  supportsDelivered Json                 @default("[]")
+  durationMinutes   Int?
+  notes             String?
+  submittedAt       DateTime?
+  confirmedById     String?
+  confirmedBy       User?                @relation("CareServiceLogConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
+  confirmedAt       DateTime?
+  disputeReason     String?
+  disputedAt        DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  progressNotes     CareProgressNote[]
+
+  @@index([careBookingId, status])
+  @@index([participantId])
+  @@map("care_service_logs")
+}
+
+model CareProgressNote {
+  id              String         @id @default(cuid())
+  careServiceLogId String
+  careServiceLog  CareServiceLog @relation(fields: [careServiceLogId], references: [id], onDelete: Cascade)
+  authorUserId    String
+  body            String
+  visibility      String         @default("worker_org")
+  createdAt       DateTime       @default(now())
+
+  @@index([careServiceLogId])
+  @@map("care_progress_notes")
+}
+
+model CareParticipantPreference {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  preferenceKey String
+  value         Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([participantId, preferenceKey])
+  @@map("care_participant_preferences")
+}
+
+model CareWorkerPreference {
+  id              String        @id @default(cuid())
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  participantId   String?
+  preferenceKey   String
+  value           Json
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([workerProfileId])
+  @@map("care_worker_preferences")
+}
+
+model CareAccessNeed {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   User         @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  careBookingId String?
+  careBooking   CareBooking? @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
+  category      String
+  summary       String
+  details       Json?
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  @@index([participantId])
+  @@map("care_access_needs")
+}
+
+model CareRiskFlag {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   User         @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  careBookingId String?
+  careBooking   CareBooking? @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
+  flagType      String
+  severity      String       @default("medium")
+  notes         String?
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  @@index([participantId])
+  @@map("care_risk_flags")
+}
+
+model CareLivingAloneSafeguard {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   User         @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  careBookingId String?
+  careBooking   CareBooking? @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
+  safeguardType String
+  checklist     Json         @default("[]")
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  @@index([participantId])
+  @@map("care_living_alone_safeguards")
+}
+
+model CareShiftCancellation {
+  id            String    @id @default(cuid())
+  careShiftId   String
+  careShift     CareShift @relation(fields: [careShiftId], references: [id], onDelete: Cascade)
+  reason        String
+  cancelledById String?
+  cancelledAt   DateTime  @default(now())
+
+  @@index([careShiftId])
+  @@map("care_shift_cancellations")
+}
+
+model CareServiceRecoveryLink {
+  id            String      @id @default(cuid())
+  careBookingId String
+  careBooking   CareBooking @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  linkType      String
+  notes         String?
+  createdAt     DateTime    @default(now())
+
+  @@map("care_service_recovery_links")
+}
+
+model CareInvoiceLink {
+  id                        String                @id @default(cuid())
+  careBookingId             String
+  careBooking               CareBooking           @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  organisationId            String
+  organisation              Organisation          @relation(fields: [organisationId], references: [id])
+  careServiceLogId          String?
+  status                    CareInvoiceLinkStatus @default(blocked_no_service_log)
+  pricingPlaceholder        String?
+  ndisLineItemCodePlaceholder String?
+  externalInvoiceRef        String?
+  createdAt                 DateTime              @default(now())
+
+  @@index([careBookingId])
+  @@map("care_invoice_links")
 }
 
 model WorkerProfile {
@@ -1746,13 +2046,18 @@ model WorkerProfile {
   wwccStatus              WorkerCredentialStatus @default(not_provided)
   firstAidStatus          WorkerCredentialStatus @default(not_provided)
   insuranceStatus         WorkerCredentialStatus @default(not_provided)
-  verificationStatus      WorkerCredentialStatus @default(pending_review)
-  active                  Boolean                @default(true)
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
+  verificationStatus              WorkerCredentialStatus @default(pending_review)
+  highIntensityCompetencyVerified Boolean                @default(false)
+  active                          Boolean                @default(true)
+  createdAt                       DateTime               @default(now())
+  updatedAt                       DateTime               @updatedAt
 
   careRequests            CareRequest[]
   careShifts              CareShift[]
+  careBookingWorkers      CareBookingWorker[]
+  careRosterAssignments   CareRosterAssignment[]
+  careServiceLogs         CareServiceLog[]
+  careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
 
   @@index([organisationId, active])
@@ -2335,6 +2640,7 @@ model IncidentReport {
   adminAcknowledgedAt     DateTime?
   resolutionSummary       String?
   externalReportRef       String?
+  escalatedToQscAt        DateTime?
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
   closedAt                DateTime?
@@ -5149,4 +5455,619 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+enum AccessPlaceCategory {
+  cafe_restaurant
+  bar_pub
+  shop
+  shopping_centre
+  park
+  beach
+  library
+  museum_gallery
+  theatre_cinema
+  sports_venue
+  community_centre
+  health_service
+  education
+  transport_station
+  public_toilet
+  accommodation
+  tourism_attraction
+  government_service
+  other
+}
+
+enum AccessPlaceStatus {
+  draft
+  pending_moderation
+  published
+  hidden
+  archived
+}
+
+enum AccessPlaceSourceType {
+  user_suggested
+  imported
+  venue_claimed
+  mapable_verified
+  manual_admin
+}
+
+enum AccessPlaceFeatureType {
+  step_free_entry
+  accessible_parking
+  accessible_toilet
+  changing_places
+  lift_access
+  ramp_access
+  wide_doorways
+  wide_paths
+  hearing_loop
+  braille_tactile_signage
+  quiet_space
+  low_sensory_environment
+  assistance_animals_welcome
+  accessible_dropoff
+  public_transport_nearby
+}
+
+enum AccessConfidenceLevel {
+  unknown
+  user_reported
+  multiple_user_reports
+  venue_claimed
+  mapable_verified
+  mapable_accredited
+}
+
+enum AccessReviewStatus {
+  draft
+  pending
+  published
+  hidden
+  rejected
+}
+
+enum AccessReviewVisibility {
+  public
+  mapable_only
+}
+
+enum AccessDisplayNameMode {
+  named
+  first_name
+  anonymous_public
+}
+
+enum AccessRatingValue {
+  not_applicable
+  unknown
+  poor
+  basic
+  good
+  excellent
+}
+
+enum AccessRatingCategory {
+  accessible_parking
+  public_transport_dropoff
+  path_to_entrance
+  main_entrance
+  doorway
+  internal_movement
+  ramps_lifts
+  service_counter
+  seating_furniture
+  accessible_toilet
+  ambulant_toilet
+  signage
+  hearing_access
+  lighting_acoustics
+  online_information
+  staff_training
+  service_access
+}
+
+enum AccessImportSourceType {
+  uploaded_kml
+  kml_network_link
+  google_my_maps_kml
+  geojson_upload
+  csv
+  manual_admin_entry
+}
+
+enum AccessImportJobStatus {
+  pending
+  parsing
+  preview_ready
+  committing
+  completed
+  failed
+  cancelled
+}
+
+enum AccessImportItemStatus {
+  pending
+  accepted
+  skipped
+  conflict
+}
+
+enum AccessAccreditationLevel {
+  fail
+  bronze
+  silver
+  gold
+  not_applicable
+}
+
+enum AccessAccreditationAssessmentStatus {
+  draft
+  assessor_review
+  evidence_required
+  scored
+  published
+  expired
+  withdrawn
+}
+
+enum AccessAccreditationTier {
+  not_accredited
+  bronze
+  silver
+  gold
+}
+
+enum AccessVenueClaimStatus {
+  submitted
+  needs_evidence
+  approved
+  rejected
+  revoked
+}
+
+enum AccessModerationStatus {
+  pending
+  approved
+  rejected
+  hidden
+  needs_changes
+  escalated
+}
+
+enum AccessContentReportReason {
+  inaccurate_access_information
+  abusive_or_harassing
+  private_information
+  defamatory_or_unverified_claim
+  unsafe_advice
+  spam
+  duplicate_place
+  closed_or_moved_place
+  other
+}
+
+model AccessPlace {
+  id               String              @id @default(cuid())
+  name             String
+  category         AccessPlaceCategory @default(other)
+  description      String?
+  addressText      String?             @map("address_text")
+  suburb           String?
+  stateOrRegion    String?             @map("state_or_region")
+  country          String              @default("AU")
+  status           AccessPlaceStatus   @default(draft)
+  sourceType       AccessPlaceSourceType @default(user_suggested) @map("source_type")
+  sourceReference  String?             @map("source_reference")
+  confidence       AccessConfidenceLevel @default(unknown)
+  createdById      String?             @map("created_by")
+  createdBy        User?               @relation("AccessPlaceCreatedBy", fields: [createdById], references: [id])
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  location         AccessPlaceLocation?
+  features         AccessPlaceFeature[]
+  sources          AccessPlaceSource[]
+  claims           AccessPlaceClaim[]
+  reports          AccessPlaceReport[]
+  events           AccessPlaceEvent[]
+  reviews          AccessPlaceReview[]
+  ratingSummaries  AccessRatingSummary[]
+  accreditationAssessments AccessAccreditationAssessment[]
+  venueClaims      AccessVenueClaim[]
+  venueProfile     AccessVenueProfile?
+  importItems      AccessImportItem[]
+
+  @@index([status])
+  @@index([suburb, stateOrRegion])
+  @@map("access_places")
+}
+
+model AccessPlaceLocation {
+  id        String   @id @default(cuid())
+  placeId   String   @unique @map("place_id")
+  place     AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  latitude  Float
+  longitude Float
+  geohash   String?
+  @@map("access_place_locations")
+}
+
+model AccessPlaceFeature {
+  id      String               @id @default(cuid())
+  placeId String               @map("place_id")
+  place   AccessPlace          @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  type    AccessPlaceFeatureType
+  notes   String?
+  @@unique([placeId, type])
+  @@map("access_place_features")
+}
+
+model AccessPlaceSource {
+  id        String   @id @default(cuid())
+  placeId   String   @map("place_id")
+  place     AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  sourceType AccessImportSourceType @map("source_type")
+  sourceUrl  String?  @map("source_url")
+  externalId String? @map("external_id")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_place_sources")
+}
+
+model AccessPlaceClaim {
+  id          String   @id @default(cuid())
+  placeId     String   @map("place_id")
+  place       AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id")
+  user        User     @relation("AccessPlaceClaimUser", fields: [userId], references: [id])
+  status      AccessVenueClaimStatus @default(submitted)
+  evidenceNote String? @map("evidence_note")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  @@map("access_place_claims")
+}
+
+model AccessPlaceReport {
+  id        String   @id @default(cuid())
+  placeId   String   @map("place_id")
+  place     AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  reporterId String? @map("reporter_id")
+  reporter  User?    @relation("AccessPlaceReportReporter", fields: [reporterId], references: [id])
+  reason    AccessContentReportReason
+  details   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_place_reports")
+}
+
+model AccessPlaceEvent {
+  id        String   @id @default(cuid())
+  placeId   String   @map("place_id")
+  place     AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  actorId   String?  @map("actor_id")
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_place_events")
+}
+
+model AccessPlaceReview {
+  id                 String   @id @default(cuid())
+  placeId            String   @map("place_id")
+  place              AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  reviewerProfileId  String   @map("reviewer_profile_id")
+  reviewer           User     @relation("AccessPlaceReviewAuthor", fields: [reviewerProfileId], references: [id])
+  displayNameMode    AccessDisplayNameMode @default(anonymous_public) @map("display_name_mode")
+  visitDate          DateTime? @map("visit_date")
+  reviewBody         String   @map("review_body")
+  mobilityContext    String?  @map("mobility_context")
+  status             AccessReviewStatus @default(draft)
+  visibility         AccessReviewVisibility @default(public)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  ratings            AccessPlaceReviewRating[]
+  photos             AccessPlaceReviewPhoto[]
+  reports            AccessPlaceReviewReport[]
+  events             AccessPlaceReviewEvent[]
+  venueResponses     AccessVenueReviewResponse[]
+  moderationItems    AccessModerationQueue[]
+
+  @@index([placeId, status])
+  @@map("access_reviews")
+}
+
+model AccessPlaceReviewRating {
+  id       String              @id @default(cuid())
+  reviewId String              @map("review_id")
+  review   AccessPlaceReview   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  category AccessRatingCategory
+  value    AccessRatingValue
+  @@unique([reviewId, category])
+  @@map("access_review_ratings")
+}
+
+model AccessPlaceReviewPhoto {
+  id        String   @id @default(cuid())
+  reviewId  String   @map("review_id")
+  review    AccessPlaceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  storagePath String @map("storage_path")
+  altText   String?  @map("alt_text")
+  mimeType  String?  @map("mime_type")
+  status    AccessModerationStatus @default(pending)
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_review_photos")
+}
+
+model AccessPlaceReviewReport {
+  id        String   @id @default(cuid())
+  reviewId  String   @map("review_id")
+  review    AccessPlaceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reporterId String? @map("reporter_id")
+  reason    AccessContentReportReason
+  details   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_review_reports")
+}
+
+model AccessPlaceReviewEvent {
+  id        String   @id @default(cuid())
+  reviewId  String   @map("review_id")
+  review    AccessPlaceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  actorId   String?  @map("actor_id")
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_review_events")
+}
+
+model AccessRatingSummary {
+  id        String   @id @default(cuid())
+  placeId   String   @map("place_id")
+  place     AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  category  AccessRatingCategory
+  avgScore  Float?   @map("avg_score")
+  sampleCount Int    @default(0) @map("sample_count")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([placeId, category])
+  @@map("access_rating_summaries")
+}
+
+model AccessImportJob {
+  id          String   @id @default(cuid())
+  status      AccessImportJobStatus @default(pending)
+  sourceType  AccessImportSourceType @map("source_type")
+  sourceUrl   String?  @map("source_url")
+  fileName    String?  @map("file_name")
+  createdById String   @map("created_by")
+  createdBy   User     @relation("AccessImportCreatedBy", fields: [createdById], references: [id])
+  errorMessage String? @map("error_message")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  sources     AccessImportSource[]
+  items       AccessImportItem[]
+  conflicts   AccessImportConflict[]
+
+  @@map("access_import_jobs")
+}
+
+model AccessImportSource {
+  id        String   @id @default(cuid())
+  jobId     String   @map("job_id")
+  job       AccessImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  url       String?
+  rawMeta   Json?    @map("raw_meta")
+  @@map("access_import_sources")
+}
+
+model AccessImportItem {
+  id          String   @id @default(cuid())
+  jobId       String   @map("job_id")
+  job         AccessImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status      AccessImportItemStatus @default(pending)
+  name        String
+  description String?
+  latitude    Float?
+  longitude   Float?
+  category    String?
+  externalRef String?  @map("external_ref")
+  matchedPlaceId String? @map("matched_place_id")
+  matchedPlace AccessPlace? @relation(fields: [matchedPlaceId], references: [id])
+  rawData     Json?    @map("raw_data")
+  @@map("access_import_items")
+}
+
+model AccessImportConflict {
+  id            String   @id @default(cuid())
+  jobId         String   @map("job_id")
+  job           AccessImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  importItemId  String   @map("import_item_id")
+  existingPlaceId String? @map("existing_place_id")
+  resolution    String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  @@map("access_import_conflicts")
+}
+
+model AccessAccreditationCriterion {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  domain      String
+  title       String
+  weight      Int
+  sortOrder   Int      @default(0) @map("sort_order")
+  active      Boolean  @default(true)
+  @@map("access_accreditation_criteria")
+}
+
+model AccessAccreditationAssessment {
+  id          String   @id @default(cuid())
+  placeId     String   @map("place_id")
+  place       AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  assessorId  String   @map("assessor_id")
+  assessor    User     @relation("AccessAccreditationAssessor", fields: [assessorId], references: [id])
+  status      AccessAccreditationAssessmentStatus @default(draft)
+  totalScore  Float?   @map("total_score")
+  tier        AccessAccreditationTier?
+  publishedAt DateTime? @map("published_at")
+  expiresAt   DateTime? @map("expires_at")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  scores      AccessAccreditationScore[]
+  evidence    AccessAccreditationEvidence[]
+  events      AccessAccreditationEvent[]
+
+  @@index([placeId, status])
+  @@map("access_accreditation_assessments")
+}
+
+model AccessAccreditationScore {
+  id            String   @id @default(cuid())
+  assessmentId  String   @map("assessment_id")
+  assessment    AccessAccreditationAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  criterionCode String   @map("criterion_code")
+  level         AccessAccreditationLevel
+  weightedScore Float?   @map("weighted_score")
+  notes         String?
+  @@unique([assessmentId, criterionCode])
+  @@map("access_accreditation_scores")
+}
+
+model AccessAccreditationEvidence {
+  id            String   @id @default(cuid())
+  assessmentId  String   @map("assessment_id")
+  assessment    AccessAccreditationAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  storagePath   String   @map("storage_path")
+  caption       String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  @@map("access_accreditation_evidence")
+}
+
+model AccessAccreditationEvent {
+  id            String   @id @default(cuid())
+  assessmentId  String   @map("assessment_id")
+  assessment    AccessAccreditationAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  actorId       String?  @map("actor_id")
+  action        String
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  @@map("access_accreditation_events")
+}
+
+model AccessVenueClaim {
+  id          String   @id @default(cuid())
+  placeId     String   @map("place_id")
+  place       AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id")
+  user        User     @relation("AccessVenueClaimUser", fields: [userId], references: [id])
+  status      AccessVenueClaimStatus @default(submitted)
+  businessName String? @map("business_name")
+  evidenceNote String? @map("evidence_note")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  @@map("access_venue_claims")
+}
+
+model AccessVenueProfile {
+  id          String   @id @default(cuid())
+  placeId     String   @unique @map("place_id")
+  place       AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  ownerUserId String   @map("owner_user_id")
+  owner       User     @relation("AccessVenueOwner", fields: [ownerUserId], references: [id])
+  accessInfo  String?  @map("access_info")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  @@map("access_venue_profiles")
+}
+
+model AccessVenueReviewResponse {
+  id        String   @id @default(cuid())
+  reviewId  String   @map("review_id")
+  review    AccessPlaceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  venueUserId String @map("venue_user_id")
+  venueUser User     @relation("AccessVenueResponseAuthor", fields: [venueUserId], references: [id])
+  body      String
+  status    AccessModerationStatus @default(pending)
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_venue_review_responses")
+}
+
+model AccessAccreditationRequest {
+  id        String   @id @default(cuid())
+  placeId   String   @map("place_id")
+  userId    String   @map("user_id")
+  user      User     @relation("AccessAccreditationRequestUser", fields: [userId], references: [id])
+  status    String   @default("submitted")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_accreditation_requests")
+}
+
+model AccessVenueEvidence {
+  id        String   @id @default(cuid())
+  claimId   String?  @map("claim_id")
+  placeId   String   @map("place_id")
+  userId    String   @map("user_id")
+  storagePath String @map("storage_path")
+  caption   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_venue_evidence")
+}
+
+model AccessModerationQueue {
+  id          String   @id @default(cuid())
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  reviewId    String?  @map("review_id")
+  review      AccessPlaceReview? @relation(fields: [reviewId], references: [id])
+  status      AccessModerationStatus @default(pending)
+  priority    Int      @default(0)
+  flagReason  String?  @map("flag_reason")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  decisions   AccessModerationDecision[]
+
+  @@index([status, createdAt])
+  @@map("access_moderation_queue")
+}
+
+model AccessModerationDecision {
+  id          String   @id @default(cuid())
+  queueId     String   @map("queue_id")
+  queue       AccessModerationQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  moderatorId String   @map("moderator_id")
+  moderator   User     @relation("AccessModerator", fields: [moderatorId], references: [id])
+  status      AccessModerationStatus
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  @@map("access_moderation_decisions")
+}
+
+model AccessContentReport {
+  id          String   @id @default(cuid())
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  reporterId  String?  @map("reporter_id")
+  reporter    User?    @relation("AccessContentReporter", fields: [reporterId], references: [id])
+  reason      AccessContentReportReason
+  details     String?
+  status      AccessModerationStatus @default(pending)
+  createdAt   DateTime @default(now()) @map("created_at")
+  @@map("access_content_reports")
+}
+
+model AccessTrustEvent {
+  id        String   @id @default(cuid())
+  entityType String  @map("entity_type")
+  entityId  String   @map("entity_id")
+  eventType String   @map("event_type")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("access_trust_events")
 }
