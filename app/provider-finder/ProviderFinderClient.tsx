@@ -1,28 +1,34 @@
 "use client";
 
-import { Bookmark, Loader2, MapPin } from "lucide-react";
+import { Bookmark, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
+import { ProviderFinderLocationControls } from "@/components/provider-finder/ProviderFinderLocationControls";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useUserGeolocation } from "@/hooks/useUserGeolocation";
 import {
-  distanceKm,
-  getLocationAndPostcode,
-  type UserPosition,
-} from "@/lib/geo";
+  enrichProvidersWithDistance,
+  filterProvidersByRadius,
+  sortProviders,
+} from "@/lib/provider-finder/provider-search-service";
 import {
   ACCESS_NEEDS,
   SUPPORT_TYPES,
   type SupportTypeId,
 } from "@/lib/provider-finder/filters";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
+import {
+  DEFAULT_RADIUS_KM,
+  type RadiusKmOption,
+} from "@/types/location";
 
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
@@ -31,7 +37,6 @@ const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
 type SortMode = "relevance" | "distance" | "rating";
 
-const RADIUS_KM = 50;
 const MAP_PIN_LIMIT = 500;
 
 function scoreRelevance(provider: Provider, queryRaw: string) {
@@ -92,13 +97,31 @@ export default function ProviderFinderClient() {
   const [sort, setSort] = useState<SortMode>("relevance");
   const [page, setPage] = useState(1);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
-  const [userLocation, setUserLocation] = useState<UserPosition | null>(null);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const [radiusKm, setRadiusKm] = useState<RadiusKmOption>(DEFAULT_RADIUS_KM);
+  const [flyToUser, setFlyToUser] = useState(false);
+  const geo = useUserGeolocation();
+  const prevGeoActive = useRef(false);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
   const pageSize = 12;
+
+  useEffect(() => {
+    if (geo.isActive && !prevGeoActive.current) {
+      setSearchSubmitted(true);
+      setSort("distance");
+      setPage(1);
+      setFlyToUser(true);
+      setLocation("Near me");
+    }
+    prevGeoActive.current = geo.isActive;
+  }, [geo.isActive]);
+
+  useEffect(() => {
+    if (!flyToUser) return;
+    const t = window.setTimeout(() => setFlyToUser(false), 800);
+    return () => window.clearTimeout(t);
+  }, [flyToUser]);
 
   useEffect(() => {
     const q = searchParams.get("q");
@@ -129,22 +152,12 @@ export default function ProviderFinderClient() {
     }
   }, [searchParams]);
 
-  const useMyLocation = async () => {
-    setLocationLoading(true);
-    setLocationError(null);
-    try {
-      const { position, postcode } = await getLocationAndPostcode();
-      setUserLocation(position);
-      setLocation(postcode);
-      setPage(1);
-      setSearchSubmitted(true);
-    } catch (e) {
-      setLocationError(
-        e instanceof Error ? e.message : "Could not get your location",
-      );
-    } finally {
-      setLocationLoading(false);
-    }
+  const handleClearLocation = () => {
+    geo.clearLocation();
+    setFlyToUser(false);
+    setLocation("");
+    setSort("relevance");
+    setPage(1);
   };
 
   const filteredSorted = useMemo(() => {
@@ -195,7 +208,41 @@ export default function ProviderFinderClient() {
       return true;
     });
 
-    return [...filtered].sort((a, b) => {
+    let result = [...filtered];
+
+    if (geo.isActive && geo.location) {
+      const { latitude, longitude } = geo.location;
+      let withDistance = enrichProvidersWithDistance(
+        result,
+        latitude,
+        longitude,
+      );
+      withDistance = filterProvidersByRadius(
+        withDistance,
+        latitude,
+        longitude,
+        radiusKm,
+      );
+      const effectiveSort =
+        sort === "rating" ? "rating" : sort === "distance" || geo.isActive
+          ? "distance"
+          : "relevance";
+      if (effectiveSort === "distance") {
+        result = sortProviders(withDistance, "distance");
+      } else if (effectiveSort === "rating") {
+        result = sortProviders(withDistance, "rating");
+      } else {
+        result = [...withDistance].sort((a, b) => {
+          const sa = scoreRelevance(a, query);
+          const sb = scoreRelevance(b, query);
+          if (sb !== sa) return sb - sa;
+          return a.name.localeCompare(b.name);
+        });
+      }
+      return result;
+    }
+
+    return result.sort((a, b) => {
       if (sort === "distance") return a.distanceKm - b.distanceKm;
       if (sort === "rating") return b.rating - a.rating;
       const sa = scoreRelevance(a, query);
@@ -207,10 +254,13 @@ export default function ProviderFinderClient() {
     accessNeeds,
     accessQuery,
     funding,
+    geo.isActive,
+    geo.location,
     location,
     providerName,
     providers,
     query,
+    radiusKm,
     serviceQuery,
     sort,
     supportType,
@@ -237,21 +287,8 @@ export default function ProviderFinderClient() {
   }, [currentPage, filteredSorted]);
 
   const mapProviders = useMemo(() => {
-    let list = filteredSorted;
-    if (userLocation) {
-      list = list.filter((p) => {
-        if (p.latitude == null || p.longitude == null) return false;
-        const d = distanceKm(
-          userLocation.lat,
-          userLocation.lng,
-          p.latitude,
-          p.longitude,
-        );
-        return d <= RADIUS_KM;
-      });
-    }
-    return list.slice(0, MAP_PIN_LIMIT);
-  }, [filteredSorted, userLocation]);
+    return filteredSorted.slice(0, MAP_PIN_LIMIT);
+  }, [filteredSorted]);
 
   useEffect(() => {
     if (page !== currentPage) setPage(currentPage);
@@ -276,7 +313,9 @@ export default function ProviderFinderClient() {
     );
   };
 
-  const locationLabel = location.trim() || "your area";
+  const locationLabel = geo.isActive
+    ? "your current location"
+    : location.trim() || "your area";
 
   if (isLoading) {
     return (
@@ -318,6 +357,23 @@ export default function ProviderFinderClient() {
         onSuggestionClick={handleSuggestion}
         onAccessSuggestionSelect={handleAccessSuggestionSelect}
         compact={searchSubmitted}
+        locationControls={
+          <ProviderFinderLocationControls
+            status={geo.status}
+            isActive={geo.isActive}
+            isRequesting={geo.isRequesting}
+            isSupported={geo.isSupported}
+            errorMessage={geo.errorMessage}
+            radiusKm={radiusKm}
+            onRadiusKmChange={(km) => {
+              setRadiusKm(km);
+              setPage(1);
+            }}
+            onRequestLocation={() => geo.requestLocation()}
+            onClearLocation={handleClearLocation}
+            locationFieldId="pf-location"
+          />
+        }
       />
 
       {!searchSubmitted ? <MapAbleCareCombinedSections /> : null}
@@ -357,20 +413,6 @@ export default function ProviderFinderClient() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={useMyLocation}
-                    disabled={locationLoading}
-                  >
-                    {locationLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    ) : (
-                      <MapPin className="h-4 w-4" aria-hidden />
-                    )}
-                    Use my location
-                  </Button>
                   <label className="sr-only" htmlFor="provider-sort">
                     Sort results
                   </label>
@@ -387,12 +429,6 @@ export default function ProviderFinderClient() {
                 </div>
               </div>
 
-              {locationError ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {locationError}
-                </p>
-              ) : null}
-
               {compareIds.length > 0 ? (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Bookmark className="h-4 w-4 text-primary" aria-hidden />
@@ -402,10 +438,10 @@ export default function ProviderFinderClient() {
               ) : null}
 
               <section id="map" className="scroll-mt-24">
-                {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
+                {!geo.isActive && filteredSorted.length > MAP_PIN_LIMIT ? (
                   <Card variant="outlined" className="mb-4 p-4">
                     <p className="text-sm text-muted-foreground">
-                      Set a location or use &quot;Use my location&quot; to see
+                      Use Find my location or enter a suburb or postcode to see
                       providers on the map.
                     </p>
                   </Card>
@@ -413,8 +449,9 @@ export default function ProviderFinderClient() {
                 <div className="overflow-hidden rounded-xl border border-border/60 shadow-sm">
                   <Map
                     providers={mapProviders}
-                    userPosition={userLocation}
+                    userLocation={geo.location}
                     centerOnProvider={selectedProvider}
+                    flyToUser={flyToUser}
                   />
                 </div>
               </section>

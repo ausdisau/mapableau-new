@@ -1,5 +1,7 @@
 export type ProviderSupportMode = "In-person" | "Telehealth";
 
+import type { ProviderDistanceKind } from "@/types/location";
+
 export type Provider = {
   id: string;
   slug: string;
@@ -8,6 +10,9 @@ export type Provider = {
   state: "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "ACT" | "NT";
   postcode: string;
   distanceKm: number;
+  /** Populated when user location search is active */
+  distanceLabel?: string;
+  distanceKind?: ProviderDistanceKind;
   rating: number;
   reviewCount: number;
   registered: boolean;
