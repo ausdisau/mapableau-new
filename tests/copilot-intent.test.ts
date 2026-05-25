@@ -4,10 +4,13 @@ import { planCopilotActions } from "@/lib/copilot/actionPlanner";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { classifyIntent } from "@/lib/copilot/intentRouter";
+import { warnOnImperativeQuery } from "@/lib/copilot/safetyPolicy";
 import { createLedgerEvent, resetLedgerChainForTests } from "@/lib/ledger/createLedgerEvent";
 import { hashPayload } from "@/lib/ledger/hash";
+import { assertLedgerPayloadSafe } from "@/lib/ledger/payloadSafety";
 import { resetDraftStoreForTests } from "@/lib/prms/draftStore";
 import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
+import { buildParticipantGraph } from "@/lib/prms/participantGraph";
 
 describe("Co-Pilot intent router", () => {
   it("classifies combined care + transport queries", () => {
@@ -100,6 +103,57 @@ describe("Co-Pilot action planner and guardrails", () => {
     expect(guarded.warnings.some((w) => w.level === "urgent")).toBe(true);
   });
 
+  it("runs full combined care + transport pipeline end-to-end", async () => {
+    const query =
+      "I need a support worker and wheelchair transport to my physio appointment next Tuesday morning";
+    const intent = classifyIntent(query);
+    expect(intent.type).toBe("combined");
+
+    const graph = buildParticipantGraph(MOCK_PARTICIPANT_ID);
+    expect(graph).not.toBeNull();
+    expect(graph?.documents.length).toBeGreaterThan(0);
+    expect(graph?.invoices.length).toBeGreaterThan(0);
+
+    const context = await buildCopilotContext(MOCK_PARTICIPANT_ID);
+    const planned = await planCopilotActions({
+      query,
+      mode: "All",
+      intent,
+      context,
+      sessionId: "e2e-test",
+      participantId: MOCK_PARTICIPANT_ID,
+    });
+    const guarded = await applyGuardrails({
+      planned,
+      context,
+      participantId: MOCK_PARTICIPANT_ID,
+      query,
+    });
+
+    const draftTypes = guarded.draftRecords.map((r) => r.type);
+    expect(draftTypes).toContain("SERVICE_EVENT");
+    expect(draftTypes).toContain("CARE_REQUEST");
+    expect(draftTypes).toContain("TRANSPORT_REQUEST");
+    expect(
+      guarded.requiredConfirmations.some(
+        (g) => g.type === "PARTICIPANT_CONFIRMATION"
+      )
+    ).toBe(true);
+
+    const draftAction = guarded.actions.find(
+      (a) => a.type === "CREATE_DRAFT_SERVICE_EVENT"
+    );
+    expect(draftAction?.requiresConfirmation).toBe(true);
+  });
+
+  it("warns on imperative book and pay phrasing", () => {
+    const warnings = warnOnImperativeQuery(
+      "book now and pay this invoice immediately"
+    );
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0].message).toMatch(/drafts/i);
+  });
+
   it("billing with missing evidence adds finance review gate", async () => {
     const intent = classifyIntent("review my invoice payment");
     const context = await buildCopilotContext(MOCK_PARTICIPANT_ID);
@@ -143,6 +197,31 @@ describe("Ledger privacy", () => {
     const a = hashPayload({ b: 2, a: 1 });
     const b = hashPayload({ a: 1, b: 2 });
     expect(a).toBe(b);
+  });
+
+  it("rejects ledger payloads with PII field names", () => {
+    expect(() =>
+      assertLedgerPayloadSafe({
+        recordType: "SERVICE_EVENT",
+        preferredName: "Alex",
+      })
+    ).toThrow(/private fields/i);
+  });
+
+  it("copilot draft ledger event does not leak mock profile name", () => {
+    resetLedgerChainForTests();
+    const event = createLedgerEvent({
+      type: "copilot_draft_created",
+      subjectType: "draft_record",
+      subjectRef: "draft-ref-combined",
+      participantRef: MOCK_PARTICIPANT_ID,
+      actorRole: "copilot",
+      payload: {
+        recordType: "SERVICE_EVENT",
+        serviceType: "care_transport_bundle",
+      },
+    });
+    expect(JSON.stringify(event)).not.toMatch(/Alex/);
   });
 });
 

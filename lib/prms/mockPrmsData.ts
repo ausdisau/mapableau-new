@@ -92,6 +92,48 @@ export const MOCK_MISSING_EVIDENCE = [
   "Support log not signed for last transport trip",
 ];
 
+export const MOCK_DOCUMENTS = [
+  {
+    id: "doc-1",
+    documentType: "service_agreement" as const,
+    status: "available" as const,
+  },
+  {
+    id: "doc-2",
+    documentType: "consent_form" as const,
+    status: "available" as const,
+  },
+  {
+    id: "doc-3",
+    documentType: "plan_review" as const,
+    status: "pending" as const,
+  },
+];
+
+export const MOCK_INVOICES = [
+  {
+    id: "inv-1",
+    status: "pending_review" as const,
+    lineItemCount: 4,
+    amountBand: "watch" as const,
+  },
+];
+
+export const MOCK_INCIDENTS = [
+  {
+    id: "inc-0",
+    status: "closed" as const,
+    severityBand: "info" as const,
+  },
+];
+
+export const MOCK_EVIDENCE = {
+  id: "ev-pack-1",
+  packType: "service_delivery",
+  status: "partial" as const,
+  missingItemLabels: [...MOCK_MISSING_EVIDENCE],
+};
+
 export function getMockParticipantIds(): string[] {
   return [MOCK_PARTICIPANT_ID];
 }

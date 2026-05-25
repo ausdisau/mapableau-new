@@ -119,6 +119,7 @@ export type GuardrailInput = {
   planned: CopilotActionPlan;
   context: CopilotContext | null;
   participantId?: string;
+  query?: string;
 };
 
 export type CopilotAskResponse = {

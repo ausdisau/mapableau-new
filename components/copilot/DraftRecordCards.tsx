@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { DraftPrmsRecord } from "@/lib/prms/types";
 
 
@@ -30,10 +31,10 @@ export function DraftRecordCards({ records }: Props) {
                   {formatType(record.type)}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1 text-sm">
-                <p>
-                  <span className="font-medium">Status:</span>{" "}
-                  {record.status.replace(/_/g, " ")}
+              <CardContent className="space-y-2 text-sm">
+                <StatusBadge status={record.status} />
+                <p className="text-muted-foreground">
+                  Draft only — confirm below to add to your official record.
                 </p>
                 {record.payload.serviceType ? (
                   <p>

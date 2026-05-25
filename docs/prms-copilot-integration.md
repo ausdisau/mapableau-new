@@ -11,9 +11,12 @@
 | Layer | Path |
 |-------|------|
 | Types | `lib/copilot/types.ts`, `lib/prms/types.ts`, `lib/ledger/types.ts` |
+| Participant Graph | `lib/prms/participantGraph.ts` (profile, access needs, plan, goals, consent, services, documents, invoices, incidents, evidence) |
 | Intent router | `lib/copilot/intentRouter.ts` (deterministic, no LLM) |
 | Mock PRMS | `lib/prms/mockPrmsData.ts` |
-| Context | `lib/copilot/contextBuilder.ts` |
+| Context | `lib/copilot/contextBuilder.ts` (maps graph → privacy-scoped `CopilotContext`) |
+| Safety policy | `lib/copilot/safetyPolicy.ts` (draft-only actions, imperative-query warnings) |
+| Ledger payload guard | `lib/ledger/payloadSafety.ts` |
 | Action planner | `lib/copilot/actionPlanner.ts` |
 | Guardrails | `lib/copilot/guardrails.ts` |
 | Ask API | `POST /api/mapable/ask` |
@@ -41,5 +44,13 @@
 ## Tests
 
 ```bash
-pnpm test
+pnpm test tests/copilot-intent.test.ts
 ```
+
+## Example (combined care + transport)
+
+```bash
+pnpm exec tsx examples/copilot-combined-care-transport.ts
+```
+
+Participant context API returns `{ graph, copilotContext, profileSummary, ... }` at `GET /api/prms/participants/:id/context`.

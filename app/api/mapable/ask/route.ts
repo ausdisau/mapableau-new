@@ -4,7 +4,18 @@ import { planCopilotActions } from "@/lib/copilot/actionPlanner";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { classifyIntent } from "@/lib/copilot/intentRouter";
-import type { CopilotAskResponse } from "@/lib/copilot/types";
+import type { CopilotAskResponse, CopilotMode } from "@/lib/copilot/types";
+import { buildParticipantGraph } from "@/lib/prms/participantGraph";
+
+const VALID_MODES: CopilotMode[] = [
+  "All",
+  "Support",
+  "Transport",
+  "Places",
+  "Jobs",
+  "Help",
+  "NDIS",
+];
 
 const MAX_QUERY_LENGTH = 2000;
 
@@ -43,7 +54,22 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      mode !== "All" &&
+      !VALID_MODES.includes(mode as CopilotMode)
+    ) {
+      return NextResponse.json(
+        {
+          error: `Unknown mode "${mode}". Use one of: ${VALID_MODES.join(", ")}.`,
+        },
+        { status: 400 }
+      );
+    }
+
     const intent = classifyIntent(query, mode);
+    if (participantId) {
+      buildParticipantGraph(participantId);
+    }
     const context = participantId
       ? await buildCopilotContext(participantId)
       : null;
@@ -61,6 +87,7 @@ export async function POST(request: Request) {
       planned,
       context,
       participantId,
+      query,
     });
 
     const response: CopilotAskResponse = {

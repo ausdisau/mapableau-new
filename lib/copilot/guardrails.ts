@@ -1,3 +1,4 @@
+import { applySafetyPolicy } from "@/lib/copilot/safetyPolicy";
 import type {
   CopilotAction,
   CopilotActionPlan,
@@ -118,12 +119,19 @@ export async function applyGuardrails(
     );
   }
 
-  return {
-    ...planned,
+  const safety = applySafetyPolicy({
+    query: input.query ?? "",
     actions,
     draftRecords,
-    warnings,
+    existingBlocked: blockedActions,
+  });
+
+  return {
+    ...planned,
+    actions: safety.actions,
+    draftRecords,
+    warnings: [...warnings, ...safety.warnings],
     requiredConfirmations,
-    blockedActions,
+    blockedActions: safety.blockedActions,
   };
 }
