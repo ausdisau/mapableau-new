@@ -29,7 +29,6 @@ export function MapAbleAccessShell({
   const [places, setPlaces] = useState(initialPlaces);
   const [view, setView] = useState<"list" | "map">("list");
   const [selectedId, setSelectedId] = useState<string | undefined>();
-
   const search = useCallback(async () => {
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
@@ -69,7 +68,9 @@ export function MapAbleAccessShell({
       return;
     }
     void search();
-  }, [category, search]);
+    // Re-run when category changes; query updates use the search bar submit handler.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- category filter only
+  }, [category]);
 
   const mapPlaces = places
     .filter((p) => p.latitude != null && p.longitude != null)
