@@ -18,6 +18,8 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
+    "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
+    "ingest:ndis-providers:dry": "DRY_RUN=true tsx scripts/ingest-ndis-providers.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py"
   },
   "lint-staged": {
@@ -85,6 +87,8 @@
     "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
     "prisma": "^6.19.2",
+    "dotenv": "^16.6.1",
+    "tsx": "^4.19.4",
     "typescript": "^5.0.0",
     "vitest": "^3.2.4"
   }

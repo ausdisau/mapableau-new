@@ -4763,3 +4763,48 @@ model NdiaProviderClaimAudit {
 
   @@index([claimId, createdAt])
 }
+
+/// NDIS provider finder static JSON ingest (directory data, not MapAble-verified).
+model NdisProviderIngestionRun {
+  id            String    @id @default(uuid()) @db.Uuid
+  sourceUrl     String    @map("source_url")
+  sourceHash    String    @map("source_hash")
+  providerCount Int       @default(0) @map("provider_count")
+  status        String
+  errorMessage  String?   @map("error_message")
+  startedAt     DateTime  @default(now()) @map("started_at")
+  finishedAt    DateTime? @map("finished_at")
+
+  @@map("ndis_provider_ingestion_runs")
+  @@index([startedAt])
+  @@index([status])
+}
+
+model NdisProvider {
+  sourceId            String    @id @map("source_id")
+  providerName        String    @map("provider_name")
+  legalName           String?   @map("legal_name")
+  abn                 String?
+  registrationNumber  String?   @map("registration_number")
+  phone               String?
+  email               String?
+  website             String?
+  address             String?
+  suburb              String?
+  state               String?
+  postcode            String?
+  latitude            Float?
+  longitude           Float?
+  services            String[]  @default([])
+  registrationGroups  String[]  @default([]) @map("registration_groups")
+  raw                 Json
+  rawHash             String    @map("raw_hash")
+  sourceUrl           String    @map("source_url")
+  sourceUpdatedAt     DateTime? @map("source_updated_at")
+  ingestedAt          DateTime  @default(now()) @map("ingested_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@map("ndis_providers")
+  @@index([state])
+  @@index([postcode])
+}

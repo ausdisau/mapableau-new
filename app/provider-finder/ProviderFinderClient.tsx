@@ -22,6 +22,7 @@ import {
   SUPPORT_TYPES,
   type SupportTypeId,
 } from "@/lib/provider-finder/filters";
+import { useProviderMapPins } from "@/lib/use-provider-map-pins";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
 import { mapOutletsToProviders } from "./outletToProvider";
@@ -236,7 +237,38 @@ export default function ProviderFinderClient() {
     return filteredSorted.slice(start, start + pageSize);
   }, [currentPage, filteredSorted]);
 
-  const mapProviders = useMemo(() => {
+  const mapPinsQuery = useMemo(() => {
+    const stateMatch = location.trim().match(/\b(NSW|VIC|QLD|SA|WA|TAS|ACT|NT)\b/i);
+    const text = [query, providerName, serviceQuery, accessQuery]
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(" ");
+    return {
+      lat: userLocation?.lat,
+      lng: userLocation?.lng,
+      radiusKm: userLocation ? RADIUS_KM : undefined,
+      state: stateMatch?.[1]?.toUpperCase(),
+      q: text || undefined,
+      limit: MAP_PIN_LIMIT,
+      enabled: searchSubmitted,
+    };
+  }, [
+    accessQuery,
+    location,
+    providerName,
+    query,
+    searchSubmitted,
+    serviceQuery,
+    userLocation,
+  ]);
+
+  const {
+    data: mapProvidersFromApi,
+    isLoading: mapPinsLoading,
+    isError: mapPinsError,
+  } = useProviderMapPins(mapPinsQuery);
+
+  const mapProvidersFallback = useMemo(() => {
     let list = filteredSorted;
     if (userLocation) {
       list = list.filter((p) => {
@@ -250,8 +282,17 @@ export default function ProviderFinderClient() {
         return d <= RADIUS_KM;
       });
     }
-    return list.slice(0, MAP_PIN_LIMIT);
+    return list
+      .filter(
+        (p) =>
+          p.latitude != null &&
+          p.longitude != null &&
+          (p.latitude !== 0 || p.longitude !== 0),
+      )
+      .slice(0, MAP_PIN_LIMIT);
   }, [filteredSorted, userLocation]);
+
+  const mapProviders = mapProvidersFromApi ?? mapProvidersFallback;
 
   useEffect(() => {
     if (page !== currentPage) setPage(currentPage);
@@ -402,11 +443,29 @@ export default function ProviderFinderClient() {
               ) : null}
 
               <section id="map" className="scroll-mt-24">
-                {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Map data from the NDIS provider finder register (updated via
+                  MapAble ingestion).
+                </p>
+                {mapPinsLoading ? (
                   <Card variant="outlined" className="mb-4 p-4">
                     <p className="text-sm text-muted-foreground">
-                      Set a location or use &quot;Use my location&quot; to see
-                      providers on the map.
+                      Loading map pins…
+                    </p>
+                  </Card>
+                ) : null}
+                {mapPinsError ? (
+                  <Card variant="outlined" className="mb-4 p-4">
+                    <p className="text-sm text-destructive" role="alert">
+                      Map pins could not be loaded. Showing list results only.
+                    </p>
+                  </Card>
+                ) : null}
+                {!userLocation && mapProviders.length === 0 && !mapPinsLoading ? (
+                  <Card variant="outlined" className="mb-4 p-4">
+                    <p className="text-sm text-muted-foreground">
+                      Use &quot;Use my location&quot; or narrow your search to
+                      see providers on the map.
                     </p>
                   </Card>
                 ) : null}

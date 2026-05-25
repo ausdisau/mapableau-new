@@ -32,6 +32,7 @@ const LINKS = [
   { href: "/admin/fairness", label: "Fairness" },
   { href: "/admin/reporting", label: "Reporting" },
   { href: "/admin/ndia-readiness", label: "NDIA readiness" },
+  { href: "/admin/ndis-provider-ingestion", label: "NDIS ingest" },
   { href: "/admin/compliance", label: "Compliance" },
   { href: "/admin/security-readiness", label: "Security" },
   { href: "/admin/launch-readiness", label: "Launch" },
