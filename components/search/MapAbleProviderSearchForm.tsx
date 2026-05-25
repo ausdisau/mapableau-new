@@ -35,6 +35,8 @@ type MapAbleProviderSearchFormProps = {
   showOptionalFields?: boolean;
   formId?: string;
   className?: string;
+  /** Provider Finder: geolocation controls below location field */
+  locationControls?: React.ReactNode;
 };
 
 export function MapAbleProviderSearchForm({
@@ -51,6 +53,7 @@ export function MapAbleProviderSearchForm({
   showOptionalFields = true,
   formId = "mapable-provider-search",
   className,
+  locationControls,
 }: MapAbleProviderSearchFormProps) {
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -105,19 +108,28 @@ export function MapAbleProviderSearchForm({
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <AccessibleAutocomplete
-            id={`${idPrefix}-location`}
-            label="Location"
-            placeholder="Suburb or postcode"
-            context={context}
-            field="location"
-            value={values.location}
-            onChange={onLocationChange}
-            onSelect={(s) => onLocationChange(s.value)}
-            disabled={isSubmitting}
-            icon={<MapPin className="h-4 w-4" aria-hidden />}
-            helperText="Uses MapAble’s local location list — not a public geocoding API."
-          />
+          <div className="flex flex-col gap-3">
+            <AccessibleAutocomplete
+              id={`${idPrefix}-location`}
+              label="Location"
+              placeholder="Suburb or postcode"
+              context={context}
+              field="location"
+              value={values.location}
+              onChange={onLocationChange}
+              onSelect={(s) => onLocationChange(s.value)}
+              disabled={isSubmitting}
+              icon={<MapPin className="h-4 w-4" aria-hidden />}
+              helperText={
+                context === "provider_finder"
+                  ? undefined
+                  : "Uses MapAble’s local location list — not a public geocoding API."
+              }
+            />
+            {context === "provider_finder" && locationControls
+              ? locationControls
+              : null}
+          </div>
           <AccessibleAutocomplete
             id={`${idPrefix}-access`}
             label="Access needs"

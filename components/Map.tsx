@@ -6,6 +6,9 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { Provider } from "@/app/provider-finder/providers";
+import { UserLocationLayer } from "@/components/map/UserLocationLayer";
+import { prefersReducedMotion } from "@/lib/hooks/prefers-reduced-motion";
+import type { UserLocation } from "@/types/location";
 import "@/lib/leafletIcons";
 
 // Use divIcons for all markers so we never rely on L.Icon.Default (avoids createIcon undefined in some envs)
@@ -21,13 +24,6 @@ const redMarkerIcon = L.divIcon({
   html: `<div style="width:24px;height:24px;background:#dc2626;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>`,
   iconSize: [24, 24],
   iconAnchor: [12, 12],
-});
-
-const userPositionIcon = L.divIcon({
-  className: "user-marker-icon",
-  html: `<div style="width:20px;height:20px;background:#16a34a;border:2px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
 });
 
 // Approximate coordinates for Australian locations
@@ -72,8 +68,12 @@ type MapProps = {
   providers?: Provider[];
   /** When set, show user position and fit bounds to include it */
   userPosition?: { lat: number; lng: number } | null;
+  /** Rich user location (marker + optional accuracy circle) */
+  userLocation?: UserLocation | null;
   /** When set, fly map to this provider's position (uses lat/lng or geocode lookup) */
   centerOnProvider?: Provider | null;
+  /** Fly map to user when location is first obtained */
+  flyToUser?: boolean;
 };
 
 // Default center: Sydney, Australia
@@ -140,8 +140,39 @@ function FlyToProvider({
     if (!centerOnProvider) return;
     const coords = getCoords(centerOnProvider);
     if (!coords) return;
-    map.flyTo(coords, CENTER_ZOOM, { duration: 0.5 });
+    const reduceMotion = prefersReducedMotion();
+    if (reduceMotion) {
+      map.setView(coords, CENTER_ZOOM);
+    } else {
+      map.flyTo(coords, CENTER_ZOOM, { duration: 0.5 });
+    }
   }, [map, centerOnProvider]);
+
+  return null;
+}
+
+function FlyToUserLocation({
+  userLocation,
+  enabled,
+}: {
+  userLocation: UserLocation | null | undefined;
+  enabled?: boolean;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!enabled || !userLocation) return;
+    const coords: [number, number] = [
+      userLocation.latitude,
+      userLocation.longitude,
+    ];
+    const reduceMotion = prefersReducedMotion();
+    if (reduceMotion) {
+      map.setView(coords, CENTER_ZOOM);
+    } else {
+      map.flyTo(coords, CENTER_ZOOM, { duration: 0.6 });
+    }
+  }, [map, userLocation, enabled]);
 
   return null;
 }
@@ -149,8 +180,14 @@ function FlyToProvider({
 export default function Map({
   providers = [],
   userPosition = null,
+  userLocation = null,
   centerOnProvider = null,
+  flyToUser = false,
 }: MapProps) {
+  const positionFromUser =
+    userLocation != null
+      ? { lat: userLocation.latitude, lng: userLocation.longitude }
+      : userPosition;
   const markers = providers
     .map((provider) => {
       const coords =
@@ -169,8 +206,8 @@ export default function Map({
   return (
     <MapContainer
       center={
-        userPosition
-          ? ([userPosition.lat, userPosition.lng] as LatLngExpression)
+        positionFromUser
+          ? ([positionFromUser.lat, positionFromUser.lng] as LatLngExpression)
           : initialCenter
       }
       zoom={initialZoom}
@@ -181,12 +218,20 @@ export default function Map({
         attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <FitBounds markers={markers} userPosition={userPosition ?? null} />
+      <FitBounds markers={markers} userPosition={positionFromUser ?? null} />
       <FlyToProvider centerOnProvider={centerOnProvider ?? null} />
-      {userPosition ? (
-        <Marker position={[userPosition.lat, userPosition.lng]} icon={userPositionIcon}>
-          <Popup>You are here</Popup>
-        </Marker>
+      <FlyToUserLocation userLocation={userLocation} enabled={flyToUser} />
+      {userLocation ? <UserLocationLayer location={userLocation} /> : null}
+      {!userLocation && positionFromUser ? (
+        <UserLocationLayer
+          location={{
+            latitude: positionFromUser.lat,
+            longitude: positionFromUser.lng,
+            source: "browser_geolocation",
+            capturedAt: new Date().toISOString(),
+          }}
+          showAccuracyCircle={false}
+        />
       ) : null}
       {markers.map(({ provider, coords }) => (
         <Marker

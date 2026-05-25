@@ -50,8 +50,11 @@ export function ProviderFinderResultCard({
   onToggleCompare,
 }: ProviderFinderResultCardProps) {
   const rating = Math.max(0, Math.min(5, provider.rating));
-  const showDistance =
-    provider.distanceKm > 0 && provider.suburb !== "Remote";
+  const distanceText =
+    provider.distanceLabel ??
+    (provider.distanceKm > 0 && provider.suburb !== "Remote"
+      ? `${provider.distanceKm.toFixed(1)} km away`
+      : null);
   const featured = provider.rating >= 4.7 && provider.reviewCount >= 50;
 
   return (
@@ -93,14 +96,9 @@ export function ProviderFinderResultCard({
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
           {provider.categories[0] ?? "Support services"}
-          {showDistance ? (
-            <>
-              {" "}
-              · {formatLocation(provider)} · {provider.distanceKm.toFixed(1)} km
-            </>
-          ) : (
-            <> · {formatLocation(provider)}</>
-          )}
+          {" "}
+          · {formatLocation(provider)}
+          {distanceText ? <> · {distanceText}</> : null}
         </p>
       </button>
 

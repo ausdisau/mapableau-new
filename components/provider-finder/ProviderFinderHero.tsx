@@ -25,6 +25,7 @@ type ProviderFinderHeroProps = {
   onAccessSuggestionSelect?: (label: string) => void;
   isSubmitting?: boolean;
   compact?: boolean;
+  locationControls?: React.ReactNode;
 };
 
 export function ProviderFinderHero({
@@ -43,6 +44,7 @@ export function ProviderFinderHero({
   onAccessSuggestionSelect,
   isSubmitting = false,
   compact = false,
+  locationControls,
 }: ProviderFinderHeroProps) {
   return (
     <section
@@ -90,6 +92,7 @@ export function ProviderFinderHero({
             onAccessSuggestionSelect={onAccessSuggestionSelect}
             isSubmitting={isSubmitting}
             formId="provider-finder-search"
+            locationControls={locationControls}
           />
         </div>
 
