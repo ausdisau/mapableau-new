@@ -1,5 +1,5 @@
 import { PortalNav } from "@/components/core/PortalNav";
-import { requireAuth } from "@/lib/auth/guards";
+import { requireAuth, requirePermission } from "@/lib/auth/guards";
 import { PROVIDER_NAV_LINKS } from "@/lib/core-ui/provider-nav";
 
 export default async function ProviderLayout({
@@ -8,6 +8,7 @@ export default async function ProviderLayout({
   children: React.ReactNode;
 }) {
   await requireAuth();
+  await requirePermission("care:read:org");
 
   return (
     <div className="min-h-screen bg-background">
