@@ -4,6 +4,7 @@ import { AccessConfidenceBadge } from "@/components/access/AccessConfidenceBadge
 import { AccessFeatureBadges } from "@/components/access/AccessFeatureBadges";
 import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityDisclaimerPanel";
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
+import { AccessFloorPlanPreview } from "@/components/access-intelligence/AccessFloorPlanPreview";
 import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
 import type {
@@ -15,6 +16,7 @@ export function AccessPlaceProfile({
   place,
   reviews,
   accreditation,
+  floorPlans,
 }: {
   place: {
     id: string;
@@ -40,6 +42,13 @@ export function AccessPlaceProfile({
     totalScore: number;
     expired?: boolean;
   } | null;
+  floorPlans: {
+    id: string;
+    title: string;
+    levelLabel?: string | null;
+    publicNotes?: string | null;
+    markerCount: number;
+  }[];
 }) {
   return (
     <div className="space-y-8">
@@ -93,6 +102,8 @@ export function AccessPlaceProfile({
         />
       ) : null}
 
+      <AccessFloorPlanPreview placeId={place.id} floorPlans={floorPlans} />
+
       {place.description ? (
         <section>
           <h2 className="text-lg font-semibold">About</h2>
@@ -112,6 +123,12 @@ export function AccessPlaceProfile({
           className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
         >
           Claim as venue owner
+        </Link>
+        <Link
+          href={`/access/places/${place.id}/floor-plans/manage`}
+          className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
+        >
+          Manage floor plans
         </Link>
       </div>
 

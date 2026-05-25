@@ -106,6 +106,7 @@ model User {
   accessAccreditationRequests AccessAccreditationRequest[] @relation("AccessAccreditationRequestUser")
   accessModerationDecisions AccessModerationDecision[] @relation("AccessModerator")
   accessContentReports      AccessContentReport[]  @relation("AccessContentReporter")
+  accessFloorPlansUploaded  AccessFloorPlan[]      @relation("AccessFloorPlanUploader")
 }
 
 model Worker {
@@ -5263,6 +5264,41 @@ enum AccessContentReportReason {
   other
 }
 
+enum AccessFloorPlanStatus {
+  draft
+  published
+  archived
+}
+
+enum AccessFloorPlanSourceType {
+  admin_uploaded
+  venue_uploaded
+  external_url
+}
+
+enum AccessFloorPlanMarkerType {
+  entrance
+  exit
+  accessible_toilet
+  lift
+  stairs
+  ramp
+  accessible_parking
+  reception
+  service_counter
+  seating
+  sensory_quiet_area
+  path_of_travel
+  hazard
+  other
+}
+
+enum AccessFloorPlanMarkerConfidence {
+  venue_provided
+  mapable_verified
+  community_reported
+}
+
 model AccessPlace {
   id               String              @id @default(cuid())
   name             String
@@ -5293,6 +5329,7 @@ model AccessPlace {
   venueClaims      AccessVenueClaim[]
   venueProfile     AccessVenueProfile?
   importItems      AccessImportItem[]
+  floorPlans       AccessFloorPlan[]
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -5447,6 +5484,66 @@ model AccessRatingSummary {
   updatedAt DateTime @updatedAt @map("updated_at")
   @@unique([placeId, category])
   @@map("access_rating_summaries")
+}
+
+model AccessFloorPlan {
+  id          String   @id @default(cuid())
+  placeId     String   @map("place_id")
+  place       AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  title       String
+  levelLabel  String?  @map("level_label")
+  storagePath String   @map("storage_path")
+  publicUrl   String?  @map("public_url")
+  mimeType    String   @map("mime_type")
+  width       Int?
+  height      Int?
+  altText     String   @map("alt_text")
+  publicNotes String?  @map("public_notes")
+  status      AccessFloorPlanStatus @default(draft)
+  sourceType  AccessFloorPlanSourceType @default(admin_uploaded) @map("source_type")
+  uploadedById String @map("uploaded_by")
+  uploadedBy User @relation("AccessFloorPlanUploader", fields: [uploadedById], references: [id])
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  markers AccessFloorPlanMarker[]
+  events  AccessFloorPlanEvent[]
+
+  @@index([placeId, status])
+  @@map("access_floor_plans")
+}
+
+model AccessFloorPlanMarker {
+  id          String   @id @default(cuid())
+  floorPlanId String  @map("floor_plan_id")
+  floorPlan   AccessFloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  type        AccessFloorPlanMarkerType
+  title       String
+  description String?
+  xPercent    Float   @map("x_percent")
+  yPercent    Float   @map("y_percent")
+  confidence  AccessFloorPlanMarkerConfidence @default(venue_provided)
+  severity    String?
+  sortOrder   Int     @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([floorPlanId, sortOrder])
+  @@map("access_floor_plan_markers")
+}
+
+model AccessFloorPlanEvent {
+  id          String   @id @default(cuid())
+  floorPlanId String  @map("floor_plan_id")
+  floorPlan   AccessFloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  actorId     String? @map("actor_id")
+  action      String
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([floorPlanId, createdAt])
+  @@map("access_floor_plan_events")
 }
 
 model AccessImportJob {

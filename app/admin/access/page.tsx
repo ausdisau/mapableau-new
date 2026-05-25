@@ -19,7 +19,9 @@ export default async function AdminAccessDashboardPage() {
     prisma.accessModerationQueue.count({ where: { status: "pending" } }),
     prisma.accessContentReport.count({ where: { status: "pending" } }),
     prisma.accessImportJob.count(),
-    prisma.accessAccreditationAssessment.count({ where: { status: "published" } }),
+    prisma.accessAccreditationAssessment.count({
+      where: { status: "published" },
+    }),
   ]);
 
   return (
@@ -46,6 +48,9 @@ export default async function AdminAccessDashboardPage() {
         <Link href="/admin/access/accreditation" className="underline">
           Accreditation
         </Link>
+        <Link href="/admin/access/floor-plans" className="underline">
+          Access Intelligence floor plans
+        </Link>
         <Link href="/admin/access/moderation" className="underline">
           Moderation
         </Link>
@@ -57,8 +62,8 @@ export default async function AdminAccessDashboardPage() {
         </Link>
       </nav>
       <p className="text-sm text-muted-foreground">
-        Legacy data: copy MapAble.kml and accessible_locations_merged.geojson into{" "}
-        <code>data/imports/</code> then import via KML / GeoJSON admin UI.
+        Legacy data: copy MapAble.kml and accessible_locations_merged.geojson
+        into <code>data/imports/</code> then import via KML / GeoJSON admin UI.
       </p>
     </div>
   );

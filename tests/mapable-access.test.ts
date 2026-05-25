@@ -6,7 +6,10 @@ import {
   verifyCriteriaTotalWeight,
   weightedScoreForLevel,
 } from "@/lib/access-accreditation/accreditation-scoring-service";
-import { parseKmlXml, sanitizeKmlDescription } from "@/lib/access-import/kml-parser-service";
+import {
+  parseKmlXml,
+  sanitizeKmlDescription,
+} from "@/lib/access-import/kml-parser-service";
 import { parseAccessibleLocationsGeoJson } from "@/lib/access-import/geojson-parser-service";
 import { findDuplicatePlaceCandidates } from "@/lib/access-import/import-deduplication-service";
 import { scanReviewForModerationFlags } from "@/lib/access-moderation/content-safety-rules";
@@ -16,6 +19,11 @@ import {
 } from "@/lib/access-map/access-place-policy";
 import { rankAccessPlaces } from "@/lib/access-search/access-ranking-service";
 import { confidenceLabel } from "@/lib/access-map/access-confidence-service";
+import {
+  floorPlanAssetUrl,
+  isInteractiveFloorPlanMimeType,
+} from "@/lib/access-intelligence/floor-plan-service";
+import { createFloorPlanMarkerSchema } from "@/lib/validation/access-floor-plan";
 import { createAccessPlaceSchema } from "@/types/access-map";
 
 describe("access place validation", () => {
@@ -48,14 +56,46 @@ describe("access place policy", () => {
 describe("confidence labels", () => {
   it("uses accreditation tier for mapable_accredited", () => {
     expect(confidenceLabel("mapable_accredited", "bronze")).toBe(
-      "MapAble Accredited: Bronze"
+      "MapAble Accredited: Bronze",
     );
     expect(confidenceLabel("mapable_accredited", "silver")).toBe(
-      "MapAble Accredited: Silver"
+      "MapAble Accredited: Silver",
     );
     expect(confidenceLabel("mapable_accredited", "gold")).toBe(
-      "MapAble Accredited: Gold"
+      "MapAble Accredited: Gold",
     );
+  });
+});
+
+describe("access intelligence floor plans", () => {
+  it("validates normalized marker coordinates", () => {
+    const valid = createFloorPlanMarkerSchema.safeParse({
+      type: "entrance",
+      title: "Accessible entry",
+      xPercent: 25.5,
+      yPercent: 80,
+    });
+    expect(valid.success).toBe(true);
+
+    const invalid = createFloorPlanMarkerSchema.safeParse({
+      type: "entrance",
+      title: "Off plan",
+      xPercent: 101,
+      yPercent: 20,
+    });
+    expect(invalid.success).toBe(false);
+  });
+
+  it("identifies image plans as interactive and builds asset URLs", () => {
+    expect(isInteractiveFloorPlanMimeType("image/png")).toBe(true);
+    expect(isInteractiveFloorPlanMimeType("application/pdf")).toBe(false);
+    expect(
+      floorPlanAssetUrl({
+        id: "floor_1",
+        placeId: "place_1",
+        publicUrl: null,
+      }),
+    ).toBe("/api/access/places/place_1/floor-plans/floor_1/asset");
   });
 });
 
@@ -127,12 +167,14 @@ describe("kml parser", () => {
   it("decodes XML entities in network link href", () => {
     const xml = `<kml><NetworkLink><Link><href>https://example.com/x.kml?a=1&amp;b=2</href></Link></NetworkLink></kml>`;
     expect(parseKmlXml(xml).networkLinkHref).toBe(
-      "https://example.com/x.kml?a=1&b=2"
+      "https://example.com/x.kml?a=1&b=2",
     );
   });
 
   it("sanitizes description", () => {
-    expect(sanitizeKmlDescription("<script>x</script>hello")).not.toContain("<script");
+    expect(sanitizeKmlDescription("<script>x</script>hello")).not.toContain(
+      "<script",
+    );
   });
 });
 
@@ -157,7 +199,7 @@ describe("geojson parser", () => {
 describe("content safety", () => {
   it("flags phone and legal claims", () => {
     const flags = scanReviewForModerationFlags(
-      "Call 0412 345 678 — this place is DDA certified guaranteed accessible"
+      "Call 0412 345 678 — this place is DDA certified guaranteed accessible",
     );
     expect(flags.length).toBeGreaterThan(0);
   });

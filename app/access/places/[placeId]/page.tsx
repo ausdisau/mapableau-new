@@ -4,6 +4,7 @@ import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { AccessMap } from "@/components/access/AccessMap";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access-accreditation/accreditation-assessment-service";
+import { listPublishedFloorPlansForPlace } from "@/lib/access-intelligence/floor-plan-service";
 import { getPlaceById } from "@/lib/access-map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access-reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access-reviews/review-access-policy";
@@ -46,6 +47,7 @@ export default async function AccessPlacePage({
   }));
 
   const accreditationDisplay = await getAccreditationDisplayForPlace(placeId);
+  const floorPlans = await listPublishedFloorPlansForPlace(placeId);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
@@ -73,14 +75,21 @@ export default async function AccessPlacePage({
               }
             : null
         }
+        floorPlans={floorPlans.map((floorPlan) => ({
+          id: floorPlan.id,
+          title: floorPlan.title,
+          levelLabel: floorPlan.levelLabel,
+          publicNotes: floorPlan.publicNotes,
+          markerCount: floorPlan.markers.length,
+        }))}
       />
 
       {place.location ? (
         <section aria-label="Location map">
           <h2 className="text-lg font-semibold">Location</h2>
           <p className="text-sm text-muted-foreground">
-            Text alternative: {place.addressText ?? place.name},{" "}
-            {place.suburb} {place.stateOrRegion}. Coordinates{" "}
+            Text alternative: {place.addressText ?? place.name}, {place.suburb}{" "}
+            {place.stateOrRegion}. Coordinates{" "}
             {place.location.latitude.toFixed(5)},{" "}
             {place.location.longitude.toFixed(5)}.
           </p>
