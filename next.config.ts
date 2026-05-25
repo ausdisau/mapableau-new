@@ -1,6 +1,26 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Vercel serverless functions must stay under 250 MB uncompressed. NFT tracing
+  // can pull in build caches and repo metadata; exclude them from all routes.
+  outputFileTracingExcludes: {
+    "*": [
+      ".next/cache/**",
+      ".pnpm-store/**",
+      ".git/**",
+      "node_modules/.cache/**",
+      "tsconfig.tsbuildinfo",
+      "pnpm-lock.yaml",
+    ],
+    "/api/admin/access/import/kml": [
+      "public/data/provider-outlets.json",
+      "public/data/provider-outlets2.json",
+    ],
+    "/api/admin/access/import/[importId]/commit": [
+      "public/data/provider-outlets.json",
+      "public/data/provider-outlets2.json",
+    ],
+  },
   reactStrictMode: true, // Enables additional React checks in dev
   async redirects() {
     return [
