@@ -18,7 +18,9 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
-    "neon:configure": "python3 scripts/configure-neon-env.py"
+    "neon:configure": "python3 scripts/configure-neon-env.py",
+    "neon:sync": "python3 scripts/sync-neon-vercel-env.py",
+    "vercel:env:push": "bash scripts/vercel-env-push.sh"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -34,10 +36,12 @@
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
   "dependencies": {
+    "@daily-co/daily-js": "^0.90.0",
     "@prisma/client": "6.19.2",
     "@pusher/push-notifications-web": "^1.1.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@sendgrid/mail": "^8.1.6",
+    "@supabase/supabase-js": "^2.49.8",
     "@tanstack/react-query": "^5.90.16",
     "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
@@ -54,6 +58,7 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-leaflet": "^5.0.0",
+    "socket.io-client": "^4.8.1",
     "stripe": "^22.1.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.0",

@@ -2,7 +2,7 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
 import {
-  sendMessage,
+  sendLegacyConversationMessage,
   userCanAccessConversation,
 } from "@/lib/messages/message-service";
 
@@ -27,7 +27,7 @@ export async function POST(
   const { body, plainLanguageSummary, attachmentDocumentIds } =
     await req.json();
   try {
-    const message = await sendMessage({
+    const message = await sendLegacyConversationMessage({
       conversationId,
       senderUserId: user.id,
       body,

@@ -24,7 +24,7 @@ const LINKS = [
   { href: "/dashboard/incidents", label: "Incidents" },
   { href: "/dashboard/incidents/new", label: "Report concern" },
   { href: "/dashboard/notifications", label: "Notifications" },
-  { href: "/dashboard/messages", label: "Messages" },
+  { href: "/messages", label: "Messages" },
   { href: "/dashboard/support", label: "Support" },
   { href: "/dashboard/documents", label: "Documents" },
   { href: "/dashboard/funding", label: "Funding" },

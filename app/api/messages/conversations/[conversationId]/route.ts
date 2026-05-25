@@ -2,7 +2,7 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
 import {
-  getUnreadCount,
+  getLegacyUnreadCount,
   logAdminConversationAccess,
   userCanAccessConversation,
 } from "@/lib/messages/message-service";
@@ -46,6 +46,6 @@ export async function GET(
   });
   if (!conversation) return jsonError("Not found", 404);
 
-  const unreadCount = await getUnreadCount(user.id, conversationId);
+  const unreadCount = await getLegacyUnreadCount(user.id, conversationId);
   return jsonOk({ conversation, unreadCount });
 }

@@ -51,6 +51,17 @@ model User {
   conversationParticipants ConversationParticipant[]
   messagesSent           Message[]          @relation("MessageSender")
   messageReadReceipts    MessageReadReceipt[]
+  communicationThreadsCreated CommunicationThread[] @relation("CommunicationThreadCreatedBy")
+  communicationThreadParticipants CommunicationThreadParticipant[]
+  communicationMessagesSent CommunicationMessage[] @relation("CommunicationMessageSender")
+  communicationMessageReceipts CommunicationMessageReceipt[]
+  communicationThreadMutes CommunicationThreadMute[]
+  blockedChatUsersAsBlocker BlockedChatUser[] @relation("BlockedChatBlocker")
+  blockedChatUsersAsBlocked BlockedChatUser[] @relation("BlockedChatBlocked")
+  communicationMessageReports CommunicationMessageReport[]
+  conferenceSessionsCreated ConferenceSession[] @relation("ConferenceSessionCreatedBy")
+  conferenceParticipants ConferenceParticipant[]
+  aacPhrases             AacPhrase[]
   ticketsCreated         SupportTicket[]    @relation("TicketCreatedBy")
   ticketsAssigned        SupportTicket[]    @relation("TicketAssignedAdmin")
   ticketComments         SupportTicketComment[]
@@ -4762,4 +4773,293 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- MapAble Communication Centre ---
+
+enum ThreadType {
+  direct
+  group
+  booking
+  transport_trip
+  invoice
+  service_agreement
+  support_ticket
+  complaint
+  incident_safe_comms
+  telehealth
+  provider_team
+  admin_support
+}
+
+enum CentreMessageType {
+  text
+  attachment
+  image
+  voice_note
+  system_event
+  booking_card
+  invoice_card
+  service_agreement_card
+  telehealth_link
+  support_ticket_update
+  incident_safety_update
+}
+
+enum CentreMessageStatus {
+  draft
+  sending
+  sent
+  delivered
+  read
+  failed
+  deleted
+}
+
+enum MessageReportReason {
+  abusive_or_harassing
+  unsafe_support
+  billing_issue
+  privacy_concern
+  discrimination
+  worker_no_show
+  inappropriate_contact
+  other
+}
+
+enum MessageReportStatus {
+  open
+  reviewing
+  resolved
+  dismissed
+}
+
+enum CommunicationThreadStatus {
+  active
+  archived
+  closed
+  escalated
+}
+
+model CommunicationThread {
+  id                  String                    @id @default(cuid())
+  threadType          ThreadType
+  title               String
+  participantId       String?
+  providerId          String?
+  bookingId           String?
+  transportTripId     String?
+  invoiceId           String?
+  serviceAgreementId  String?
+  supportTicketId     String?
+  incidentId          String?
+  complaintId         String?
+  status              CommunicationThreadStatus @default(active)
+  createdById         String                    @map("created_by")
+  createdBy           User                      @relation("CommunicationThreadCreatedBy", fields: [createdById], references: [id])
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+
+  participants CommunicationThreadParticipant[]
+  messages     CommunicationMessage[]
+  reports      CommunicationMessageReport[]
+  mutes        CommunicationThreadMute[]
+  events             CommunicationMessageEvent[]
+  conferenceSessions ConferenceSession[]
+
+  @@index([updatedAt])
+  @@map("conversation_threads")
+}
+
+model CommunicationThreadParticipant {
+  id              String              @id @default(cuid())
+  threadId        String              @map("thread_id")
+  thread          CommunicationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  profileId       String              @map("profile_id")
+  profile         User                @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  role            String
+  displayName     String              @map("display_name")
+  canSend         Boolean             @default(true) @map("can_send")
+  canAttachFiles  Boolean             @default(true) @map("can_attach_files")
+  muted           Boolean             @default(false)
+  blocked         Boolean             @default(false)
+  joinedAt        DateTime            @default(now()) @map("joined_at")
+  leftAt          DateTime?           @map("left_at")
+
+  @@unique([threadId, profileId])
+  @@index([profileId])
+  @@index([threadId])
+  @@map("conversation_participants")
+}
+
+model CommunicationMessage {
+  id              String              @id @default(cuid())
+  threadId        String              @map("thread_id")
+  thread          CommunicationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderProfileId String              @map("sender_profile_id")
+  sender          User                @relation("CommunicationMessageSender", fields: [senderProfileId], references: [id])
+  messageType     CentreMessageType   @default(text) @map("message_type")
+  body            String
+  status          CentreMessageStatus @default(sent)
+  metadataJson    Json?               @map("metadata_json")
+  createdAt       DateTime            @default(now())
+  editedAt        DateTime?
+  deletedAt       DateTime?
+
+  receipts    CommunicationMessageReceipt[]
+  attachments CommunicationMessageAttachment[]
+  reports     CommunicationMessageReport[]
+
+  @@index([threadId])
+  @@index([createdAt])
+  @@map("communication_messages")
+}
+
+model CommunicationMessageReceipt {
+  id          String               @id @default(cuid())
+  messageId   String               @map("message_id")
+  message     CommunicationMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  profileId   String               @map("profile_id")
+  profile     User                 @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  deliveredAt DateTime?            @map("delivered_at")
+  readAt      DateTime?            @map("read_at")
+
+  @@unique([messageId, profileId])
+  @@index([profileId])
+  @@map("message_receipts")
+}
+
+model CommunicationMessageAttachment {
+  id             String               @id @default(cuid())
+  messageId      String               @map("message_id")
+  message        CommunicationMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  documentId     String               @map("document_id")
+  attachmentType String               @map("attachment_type")
+  createdAt      DateTime             @default(now())
+
+  @@map("message_attachments")
+}
+
+model CommunicationMessageReport {
+  id                String              @id @default(cuid())
+  messageId         String?             @map("message_id")
+  message           CommunicationMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  threadId          String              @map("thread_id")
+  thread            CommunicationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  reporterProfileId String              @map("reporter_profile_id")
+  reporter          User                @relation(fields: [reporterProfileId], references: [id])
+  reason            MessageReportReason
+  details           String?
+  status            MessageReportStatus @default(open)
+  createdAt         DateTime            @default(now())
+
+  @@index([status])
+  @@map("message_reports")
+}
+
+model CommunicationThreadMute {
+  id          String              @id @default(cuid())
+  threadId    String              @map("thread_id")
+  thread      CommunicationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  profileId   String              @map("profile_id")
+  profile     User                @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  mutedUntil  DateTime?           @map("muted_until")
+  createdAt   DateTime            @default(now())
+
+  @@unique([threadId, profileId])
+  @@map("thread_mutes")
+}
+
+model BlockedChatUser {
+  id                String   @id @default(cuid())
+  blockerProfileId  String   @map("blocker_profile_id")
+  blocker           User     @relation("BlockedChatBlocker", fields: [blockerProfileId], references: [id], onDelete: Cascade)
+  blockedProfileId  String   @map("blocked_profile_id")
+  blocked           User     @relation("BlockedChatBlocked", fields: [blockedProfileId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  @@unique([blockerProfileId, blockedProfileId])
+  @@map("blocked_chat_users")
+}
+
+model CommunicationMessageEvent {
+  id          String              @id @default(cuid())
+  threadId    String              @map("thread_id")
+  thread      CommunicationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  eventType   String              @map("event_type")
+  payloadJson Json                @map("payload_json")
+  createdAt   DateTime            @default(now())
+
+  @@map("message_events")
+}
+
+// --- Conference + AAC ---
+
+enum ConferenceMode {
+  audio
+  video
+}
+
+enum ConferenceProvider {
+  daily
+  livekit
+  twilio
+  mock
+}
+
+enum ConferenceSessionStatus {
+  scheduled
+  active
+  ended
+}
+
+model ConferenceSession {
+  id             String                  @id @default(cuid())
+  threadId       String                  @map("thread_id")
+  thread         CommunicationThread     @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  mode           ConferenceMode
+  provider       ConferenceProvider      @default(daily)
+  externalRoomId String                  @map("external_room_id")
+  status         ConferenceSessionStatus @default(active)
+  createdById    String                  @map("created_by")
+  createdBy      User                    @relation("ConferenceSessionCreatedBy", fields: [createdById], references: [id])
+  startedAt      DateTime                @default(now()) @map("started_at")
+  endedAt        DateTime?               @map("ended_at")
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  participants ConferenceParticipant[]
+
+  @@index([threadId, status])
+  @@index([createdById])
+  @@map("conference_sessions")
+}
+
+model ConferenceParticipant {
+  id        String            @id @default(cuid())
+  sessionId String            @map("session_id")
+  session   ConferenceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  profileId String            @map("profile_id")
+  profile   User              @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime          @default(now()) @map("joined_at")
+  leftAt    DateTime?         @map("left_at")
+
+  @@unique([sessionId, profileId])
+  @@index([profileId])
+  @@map("conference_participants")
+}
+
+model AacPhrase {
+  id        String   @id @default(cuid())
+  profileId String   @map("profile_id")
+  profile   User     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label     String
+  phrase    String
+  category  String   @default("custom")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId, sortOrder])
+  @@map("aac_phrases")
 }

@@ -1,3 +1,4 @@
+import { AacPhraseEditor } from "@/components/messages/AacPhraseEditor";
 import { AccessibilityProfileForm } from "@/components/forms/AccessibilityProfileForm";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
@@ -33,6 +34,7 @@ export default async function EditAccessibilityPage() {
             (profile?.digitalPreferences as DigitalPreferences) ?? {},
         }}
       />
+      <AacPhraseEditor />
     </div>
   );
 }

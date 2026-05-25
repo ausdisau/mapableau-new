@@ -77,16 +77,74 @@ npx prisma migrate status
 
 ## Vercel (`mapableau-new`)
 
-The Vercel project is linked to GitHub `ausdisau/mapableau-new`. Add these **Environment Variables** in [Vercel → mapableau-new → Settings → Environment Variables](https://vercel.com/mapableau/mapableau-new/settings/environment-variables) for **Production**, **Preview**, and **Development**:
+| | |
+|---|---|
+| **Team** | `mapableau` |
+| **Project** | `mapableau-new` (`prj_iAhQk0b6IhigXw58PFiYfiHSATmW`) |
+| **Repo** | `ausdisau/mapableau-new` |
+
+`vercel.json` runs `prisma generate && next build` on deploy so the Prisma client matches `schema.prisma` (including Communication Centre models).
+
+### Sync Neon → local `.env` → Vercel
+
+1. Copy a **pooled** connection string from [Neon console](https://console.neon.tech) (project `mapableau`) or Cursor Neon MCP `get_connection_string`.
+2. From repo root:
+
+```bash
+cp .env.example .env
+pnpm neon:sync 'postgresql://USER:PASS@ep-xxx-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require'
+```
+
+This updates `DATABASE_URL` / `DIRECT_URL` in `.env` and generates `scripts/vercel-env-push.sh`.
+
+3. Push env vars to Vercel (requires [Vercel CLI](https://vercel.com/docs/cli) and `vercel login`):
+
+```bash
+pnpm vercel:env:push
+# or: pnpm neon:sync '<url>' --push-vercel
+```
+
+4. Before `vercel:env:push`, set production URLs in `.env` (used as the source of truth):
+
+```env
+NEXTAUTH_URL="https://mapableau-new-mapableau.vercel.app"
+NEXT_PUBLIC_APP_URL="https://mapableau-new-mapableau.vercel.app"
+REALTIME_DRIVER="memory"
+```
+
+5. **Redeploy** Production and Preview so functions load the new variables (merge `cursor/communication-centre-e3d6` or redeploy from Vercel dashboard).
+
+### Environment variables (Production, Preview, Development)
 
 | Name | Value |
 |------|--------|
 | `DATABASE_URL` | Neon **pooled** URL (`-pooler` in hostname) |
 | `DIRECT_URL` | Neon **direct** URL (no `-pooler`) |
+| `NEXTAUTH_SECRET` | Strong random secret (same across envs or per-env) |
+| `NEXTAUTH_URL` | `https://mapableau-new-mapableau.vercel.app` or your production domain |
+| `NEXT_PUBLIC_APP_URL` | Same as public site URL |
+| `NDIS_ENCRYPTION_KEY` | Strong random secret |
+| `REALTIME_DRIVER` | `memory` (default), `supabase`, or `socketio` |
+| `NEXT_PUBLIC_SUPABASE_URL` | If using Supabase Realtime |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | If using Supabase Realtime |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server broadcast only (optional) |
+| `NEXT_PUBLIC_REALTIME_GATEWAY_URL` | If using Socket.IO gateway |
+| `REALTIME_INTERNAL_KEY` | Protects gateway `/internal/publish` |
 
-Copy the same values from your local `.env` (do not commit `.env`). Alternatively, install the [Neon Vercel integration](https://vercel.com/marketplace/neon) on the project — it can provision `DATABASE_URL` automatically.
+Copy values from your local `.env` (never commit `.env`). Or install the [Neon Vercel integration](https://vercel.com/marketplace/neon) — it can inject `DATABASE_URL` / `POSTGRES_URL`; you still need `DIRECT_URL` for CI migrations.
 
-Redeploy after saving env vars so serverless functions pick up the database connection.
+### Communication Centre on Neon
+
+Tables are applied via migration `20260525000000_communication_centre`. If `migrate deploy` fails due to history drift, the SQL was applied with:
+
+```bash
+set -a && source .env && set +a
+npx prisma db execute --schema prisma/schema.prisma \
+  --file prisma/migrations/20260525000000_communication_centre/migration.sql
+npx prisma migrate resolve --applied 20260525000000_communication_centre
+```
+
+Conference and AAC tables: migration `20260525120000_conference_aac` (see [README_CONFERENCING.md](README_CONFERENCING.md)). Add Vercel env vars `CONFERENCE_PROVIDER`, `DAILY_API_KEY`, `DAILY_DOMAIN`, `NEXT_PUBLIC_DAILY_DOMAIN` when using Daily.co.
 
 ## Cursor + Neon MCP (optional)
 
