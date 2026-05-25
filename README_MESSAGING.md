@@ -2,6 +2,16 @@
 
 Postgres (via Prisma) is the **source of truth** for messages. Realtime (Supabase Broadcast or Socket.IO gateway) is used for live delivery, typing, read receipts, and presence only.
 
+## Messages overlay (nested tabs)
+
+On dashboard pages, a floating **Messages** button opens a modal overlay with:
+
+- **Primary tabs:** All | Direct | Groups | Linked | Safety
+- **Nested tabs** (under Linked): All linked | Bookings | Transport | Invoices | Support
+- **Thread tabs** (when a conversation is open): Chat | Details | Actions
+
+Components: `MessagesOverlay`, `NestedTabPanels`, `MessagesOverlayLauncher` (wired in `app/dashboard/layout.tsx`).
+
 ## Routes
 
 | Route | Audience |

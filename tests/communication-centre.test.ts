@@ -105,6 +105,53 @@ describe("access policy exports", () => {
   });
 });
 
+describe("inbox overlay filters", () => {
+  it("filters linked booking threads", async () => {
+    const { filterInboxThreads } = await import("@/lib/messages/inbox-filters");
+    const threads = [
+      {
+        id: "1",
+        threadType: "booking" as const,
+        title: "B",
+        participantId: null,
+        providerId: null,
+        bookingId: "b1",
+        transportTripId: null,
+        invoiceId: null,
+        serviceAgreementId: null,
+        supportTicketId: null,
+        incidentId: null,
+        complaintId: null,
+        status: "active",
+        createdBy: "u1",
+        createdAt: "",
+        updatedAt: "",
+      },
+      {
+        id: "2",
+        threadType: "direct" as const,
+        title: "D",
+        participantId: null,
+        providerId: null,
+        bookingId: null,
+        transportTripId: null,
+        invoiceId: null,
+        serviceAgreementId: null,
+        supportTicketId: null,
+        incidentId: null,
+        complaintId: null,
+        status: "active",
+        createdBy: "u1",
+        createdAt: "",
+        updatedAt: "",
+      },
+    ];
+    const bookingOnly = filterInboxThreads(threads, "linked", "booking");
+    expect(bookingOnly).toHaveLength(1);
+    expect(bookingOnly[0]?.threadType).toBe("booking");
+  });
+});
+
 describe("CommunicationCentreShell mobile layout", () => {
   it("module exports shell component", async () => {
     const mod = await import("@/components/messages/CommunicationCentreShell");
