@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 
 import { chainEventHash, hashPayload } from "@/lib/ledger/hash";
+import { assertLedgerPayloadSafe } from "@/lib/ledger/payloadSafety";
 import type { LedgerEvent, LedgerEventType, LedgerSubjectType } from "@/lib/ledger/types";
 
 /** In-memory chain for mock/demo — replace with persistent store in production. */
@@ -19,6 +20,7 @@ export type CreateLedgerEventInput = {
 export function createLedgerEvent(
   input: CreateLedgerEventInput
 ): LedgerEvent {
+  assertLedgerPayloadSafe(input.payload);
   const payloadHash = hashPayload(input.payload);
   const previousEventHash =
     eventChain.length > 0
