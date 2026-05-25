@@ -1,6 +1,7 @@
 import "@/app/index.css";
 import "leaflet/dist/leaflet.css";
 
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 
 import { Providers } from "@/components/providers";
@@ -26,6 +27,7 @@ export default function RootLayout({
     <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`}>
       <body className={plusJakarta.className}>
         <Providers>{children}</Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
