@@ -1,0 +1,52 @@
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  formatEnvIssues,
+  validateIntegrationEnv,
+  validateCoreEnv,
+} from "@/lib/env";
+
+describe("integration env validation", () => {
+  it("disabled optional integration does not require env vars", () => {
+    const origStripe = process.env.STRIPE_ENABLED;
+    process.env.STRIPE_ENABLED = "false";
+    const issues = validateIntegrationEnv().filter(
+      (i) => i.integrationKey === "stripe"
+    );
+    process.env.STRIPE_ENABLED = origStripe;
+    expect(issues.length).toBe(0);
+  });
+
+  it("enabled stripe requires STRIPE_SECRET_KEY", () => {
+    const origEnabled = process.env.STRIPE_ENABLED;
+    const origKey = process.env.STRIPE_SECRET_KEY;
+    process.env.STRIPE_ENABLED = "true";
+    delete process.env.STRIPE_SECRET_KEY;
+    const issues = validateIntegrationEnv().filter(
+      (i) => i.integrationKey === "stripe"
+    );
+    process.env.STRIPE_ENABLED = origEnabled;
+    process.env.STRIPE_SECRET_KEY = origKey;
+    expect(issues.some((i) => i.variable === "STRIPE_SECRET_KEY")).toBe(true);
+  });
+
+  it("formatEnvIssues does not include secret values", () => {
+    const text = formatEnvIssues([
+      { variable: "STRIPE_SECRET_KEY", message: "Required", integrationKey: "stripe" },
+    ]);
+    expect(text).not.toContain("sk_live");
+    expect(text).toContain("STRIPE_SECRET_KEY");
+  });
+});
+
+describe("core env validation", () => {
+  it("production requires DATABASE_URL when NODE_ENV production", () => {
+    const origDb = process.env.DATABASE_URL;
+    vi.stubEnv("NODE_ENV", "production");
+    delete process.env.DATABASE_URL;
+    const issues = validateCoreEnv();
+    vi.unstubAllEnvs();
+    process.env.DATABASE_URL = origDb;
+    expect(issues.some((i) => i.variable === "DATABASE_URL")).toBe(true);
+  });
+});

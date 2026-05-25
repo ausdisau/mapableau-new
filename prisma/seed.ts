@@ -378,6 +378,32 @@ async function main() {
   }
   console.log(`  Created ${providerUserRoles.length} provider user roles`);
 
+  const { seedMapAbleCore } = await import("./seed-mapable-core");
+  await seedMapAbleCore();
+
+  const { seedMapAblePhase2 } = await import("./seed-mapable-phase2");
+  await seedMapAblePhase2();
+
+  const { seedMapAblePhase3 } = await import("./seed-mapable-phase3");
+  await seedMapAblePhase3();
+
+  const { seedMapAblePhase4 } = await import("./seed-mapable-phase4");
+  await seedMapAblePhase4();
+  const { seedMapAblePhase5 } = await import("./seed-mapable-phase5");
+  await seedMapAblePhase5();
+  const { seedMapAblePhase6 } = await import("./seed-mapable-phase6");
+  await seedMapAblePhase6();
+  const { seedMapAblePhase7 } = await import("./seed-mapable-phase7");
+  await seedMapAblePhase7();
+  const { seedMapAblePhase8 } = await import("./seed-mapable-phase8");
+  await seedMapAblePhase8();
+  const { seedMapAblePhase9 } = await import("./seed-mapable-phase9");
+  await seedMapAblePhase9();
+  const { seedMapAblePhase10 } = await import("./seed-mapable-phase10");
+  await seedMapAblePhase10();
+  const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
+  await seedMapAblePhase12();
+
   console.log("Seed complete.");
 }
 

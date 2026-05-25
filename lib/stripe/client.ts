@@ -1,31 +1,30 @@
 import Stripe from "stripe";
 
-/** Pinned Stripe API version — keep in sync with Stripe dashboard/webhook version */
-const STRIPE_API_VERSION = "2026-04-22.dahlia";
+import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
+import { StripeNotConfiguredError } from "@/lib/stripe/errors";
 
-function getStripeSecretKey(): string {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    throw new Error("STRIPE_SECRET_KEY is not configured");
-  }
-  return key;
-}
+/** Pinned Stripe API version for MapAble Core billing. */
+export const STRIPE_API_VERSION = "2026-04-22.dahlia" as const;
 
 let stripeClient: Stripe | null = null;
 
-/**
- * Server-only Stripe client. Never import this module from client components.
- */
-export function getStripe(): Stripe {
+export function getStripeClient(): Stripe {
+  if (!isStripeSdkAvailable()) {
+    throw new StripeNotConfiguredError();
+  }
   if (!stripeClient) {
-    stripeClient = new Stripe(getStripeSecretKey(), {
+    stripeClient = new Stripe(stripeConfig.secretKey!, {
       apiVersion: STRIPE_API_VERSION,
       typescript: true,
+      appInfo: {
+        name: "MapAble Core",
+        url: "https://mapable.com.au",
+      },
     });
   }
   return stripeClient;
 }
 
-export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+export function resetStripeClientForTests() {
+  stripeClient = null;
 }

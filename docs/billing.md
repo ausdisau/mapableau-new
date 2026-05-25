@@ -1,137 +1,129 @@
-# MapAble Core Billing
+# MapAble Core Billing Service
 
-Stripe-powered billing for MapAble with NDIS-aware workflows, plan-managed exports, Connect payouts, and subscriptions.
+Stripe-powered billing for private pay, self-managed NDIS, co-pays, provider subscriptions, and marketplace transactions. NDIS **plan-managed** funding never uses Stripe Checkout — invoices are exported to plan managers (CSV / email-ready JSON; Xero scaffold).
+
+## Stripe SDK (`lib/stripe/`)
+
+Server-only Stripe Node SDK (pinned API version in `lib/stripe/client.ts`):
+
+| Module | Purpose |
+|--------|---------|
+| `config.ts` | `STRIPE_SECRET_KEY`, webhook secret, price IDs |
+| `checkout.ts` | Payment & subscription Checkout sessions |
+| `payment-intents.ts` | Legacy `Invoice` payment intents |
+| `connect.ts` | Express Connect accounts & onboarding links |
+| `portal.ts` | Customer Billing Portal |
+| `webhooks.ts` | Signature verification + billing-core & legacy dispatch |
+| `index.ts` | Public exports |
+
+**Enable legacy routes:** `STRIPE_SECRET_KEY` + `BILLING_ENABLE_STRIPE=true` or `STRIPE_ENABLED=true`.  
+**Billing-core routes:** only require `STRIPE_SECRET_KEY`.
 
 ## Architecture
 
-- **Stripe** is the source of payment processing truth (cards, Checkout, Connect, subscriptions).
-- **PostgreSQL (Prisma)** is the source of business workflow truth (invoices, funding sources, audit logs).
-- **Webhooks** confirm payment success — never mark invoices paid from client redirects alone.
-- **No card data** is stored locally; use Stripe Checkout and Customer Portal.
+- **Stripe** — payment processing truth (Checkout, Connect, Customer Portal, webhooks).
+- **PostgreSQL (Prisma)** — business workflow truth (`BillingInvoice`, `BillingPayment`, `BillingFundingSource`, etc.).
+- **Amounts** — integer cents only.
+- **Audit** — every material change writes `BillingAuditLog`.
+- **PCI** — no card data stored locally; use Stripe-hosted Checkout and Billing Portal.
 
 ## Payment flows
 
-### NDIS plan-managed
+### Plan-managed NDIS
 
-1. Participant adds a funding source with type `ndis_plan_managed`.
-2. Invoice is created with status `issued` (not charged via Stripe).
-3. Checkout API returns `plan_manager_export` instructions instead of a Stripe URL.
-4. Export via `POST /api/billing/invoices/export` with `format: csv` or `plan_manager`.
+1. Participant adds funding source `ndis_plan_managed`.
+2. Invoice created in `draft` / `issued`.
+3. `POST /api/billing/checkout` returns instructions (no Checkout URL).
+4. `POST /api/billing/invoices/export` with `format: csv` or `plan_manager`.
 
-### NDIS self-managed / private card
+### Self-managed / private card
 
-1. Participant selects `ndis_self_managed` or `private_card` funding.
-2. `POST /api/billing/checkout` creates a Stripe Checkout Session (AUD).
-3. Webhook `checkout.session.completed` or `payment_intent.succeeded` marks invoice `paid`.
-4. Receipt is available in the billing dashboard after webhook processing.
+1. Funding source `ndis_self_managed` or `private_card`.
+2. `POST /api/billing/checkout` creates Stripe Checkout (AUD).
+3. Webhook `checkout.session.completed` marks invoice `paid` — **never** trust redirect alone.
 
-### Stripe Connect (single provider)
+### Single provider + Connect
 
-When the invoice has one `providerId` and the provider has `stripeConnectedAccountId`:
+When the provider has `stripeConnectedAccountId`, Checkout uses a destination charge:
 
-- Destination charge with `application_fee_amount` = `platformFeeCents`
-- `transfer_data.destination` = provider connected account
+- `application_fee_amount` = `platformFeeCents`
+- `transfer_data.destination` = connected account
 
 ### Multiple providers
 
-`PaymentSplit` records are created with status `pending`. Separate charges/transfers are stubbed for a future release.
-
-## Environment variables
-
-See `.env.example`:
-
-| Variable | Purpose |
-|----------|---------|
-| `STRIPE_SECRET_KEY` | Server-only Stripe API key |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification |
-| `NEXT_PUBLIC_APP_URL` | Checkout success/cancel URLs |
-| `STRIPE_CONNECT_CLIENT_ID` | Connect OAuth (if used) |
-| `STRIPE_PROVIDER_PRO_PRICE_ID` | Provider Pro subscription price |
-| `STRIPE_EMPLOYER_PRO_PRICE_ID` | Employer Pro subscription price |
+`providerSplits` on invoice create records `BillingPaymentSplit` rows; separate charges/transfers are stubbed for a later release.
 
 ## API routes
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET/POST | `/api/billing/funding-sources` | List/create funding sources |
-| POST | `/api/billing/invoices` | Create draft invoice |
-| GET | `/api/billing/invoices/list` | List participant invoices |
-| POST | `/api/billing/checkout` | Start Stripe Checkout or plan-manager path |
-| POST | `/api/billing/connect/create-account` | Create Connect Express account |
-| POST | `/api/billing/connect/onboarding-link` | Refresh onboarding link |
-| POST | `/api/billing/subscriptions/checkout` | Subscription Checkout |
-| POST | `/api/billing/customer-portal` | Stripe billing portal |
-| POST | `/api/billing/invoices/export` | CSV / plan-manager export |
-| POST | `/api/webhooks/stripe` | Stripe webhooks (raw body) |
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET/POST | `/api/billing/funding-sources` | List / create funding sources |
+| GET/POST | `/api/billing/invoices` | List / create draft invoices |
+| POST | `/api/billing/checkout` | Stripe Checkout or plan-managed instruction |
+| POST | `/api/billing/connect/create-account` | Express Connect account + onboarding link |
+| POST | `/api/billing/connect/onboarding-link` | Refresh onboarding |
+| POST | `/api/billing/subscriptions/checkout` | Provider Pro / Employer Pro subscription Checkout |
+| POST | `/api/billing/customer-portal` | Stripe Billing Portal URL |
+| POST | `/api/billing/invoices/export` | CSV / plan-manager JSON / Xero scaffold |
+| POST | `/api/webhooks/stripe` | Signed webhook (raw body) |
+| GET | `/api/admin/billing/invoices` | Admin search + flagged list |
 
-## UI pages
+## Environment variables
 
-- `/billing` — Participant dashboard (WCAG 2.2 AA: large targets, labels, keyboard nav)
-- `/provider/billing` — Connect onboarding, payouts, subscriptions
-- `/admin/billing` — Invoice search, failed payments, disputes
+```env
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+STRIPE_CONNECT_CLIENT_ID=
+STRIPE_PROVIDER_PRO_PRICE_ID=
+STRIPE_EMPLOYER_PRO_PRICE_ID=
+BILLING_PLATFORM_FEE_BPS=1000
+BILLING_GST_BPS=1000
+```
+
+Enable Stripe in development by setting `STRIPE_SECRET_KEY` (and optionally `BILLING_ENABLE_STRIPE=true` for legacy phase-2 guards).
 
 ## Webhook setup
 
-1. In Stripe Dashboard → Developers → Webhooks, add endpoint:
-   `https://your-domain/api/webhooks/stripe`
-2. Select events: `checkout.session.*`, `payment_intent.*`, `charge.refunded`, `charge.dispute.created`, `customer.subscription.*`, `account.updated`
+1. Stripe Dashboard → Developers → Webhooks → Add endpoint: `https://<host>/api/webhooks/stripe`
+2. Events: `checkout.session.*`, `payment_intent.*`, `charge.refunded`, `charge.dispute.created`, `invoice.*`, `customer.subscription.*`, `account.updated`
 3. Copy signing secret to `STRIPE_WEBHOOK_SECRET`
 
-### Local testing with Stripe CLI
+### Local testing (Stripe CLI)
 
 ```bash
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
-```
-
-Use the CLI webhook secret in `.env.local`.
-
-Trigger test events:
-
-```bash
+export STRIPE_WEBHOOK_SECRET=whsec_...
 stripe trigger checkout.session.completed
 ```
 
+## UI
+
+- `/billing` — participant dashboard (WCAG-minded large targets, labels, live regions)
+- `/provider/billing` — Connect onboarding + subscription
+- `/admin/billing` — search and flagged payments
+
 ## Production checklist
 
-- [ ] Restricted API keys (RAK) where possible
-- [ ] Webhook endpoint HTTPS only
-- [ ] `STRIPE_WEBHOOK_SECRET` set per environment
-- [ ] Connect platform settings and branding completed
-- [ ] Price IDs for Provider Pro / Employer Pro in live mode
-- [ ] Audit logs monitored for payment state changes
-- [ ] Admin billing access restricted to `admin` role (enable when RBAC ready)
+- [ ] Live Stripe keys in secrets manager
+- [ ] Webhook endpoint on production URL with signature verification
+- [ ] Connect platform settings and OAuth client ID
+- [ ] Price IDs for Provider Pro / Employer Pro
+- [ ] Database migration applied (`prisma db push` or migrate)
+- [ ] Monitor `BillingStripeWebhookEvent` for unprocessed rows
+- [ ] Reconciliation job for `BillingPaymentSplit` transfers (future)
 
-## Security notes
+## Security
 
-- Never expose `STRIPE_SECRET_KEY` to the browser.
-- Webhook handler uses raw body + signature verification.
-- Events stored by `stripeEventId` for idempotency.
-- All money stored as integer cents (AUD).
-- Immutable audit trail via `AuditLog` on create/export/payment changes.
+- Secret keys only in server env / `lib/stripe/client.ts`
+- Webhook raw body + `constructEvent`
+- Idempotent `stripeEventId` storage
+- No client-side payment confirmation
 
-## Accessibility requirements
+## Accessibility
 
-Participant UI must meet **WCAG 2.2 AA**:
-
-- Minimum 44×44px touch targets (`min-h-11` buttons)
-- Visible focus rings on interactive elements
-- `aria-label` / `sr-only` for amounts and status
-- `role="status"` / `role="alert"` for dynamic messages
-- Semantic headings and table headers in admin console
+Participant billing UI targets WCAG 2.2 AA: semantic headings, `aria-live` status, visible focus rings, minimum 44px tap targets, screen reader labels on totals and status.
 
 ## Future: AbilityPay
 
-This module is designed so plan-management and AbilityPay can extend:
-
-- `FundingSource` metadata JSON
-- Plan-managed export without Stripe
-- `PaymentSplit` for multi-party settlements
-- Xero export scaffold (`format: xero` returns 501)
-
-## Running tests
-
-```bash
-pnpm test
-```
-
-Tests cover invoice totals, platform fees, funding decisions, checkout guards, and webhook idempotency.
+Models are prefixed `Billing*` and modular under `lib/billing-core/` so plan-management and AbilityPay can extend exports and funding rules without replacing Stripe primitives.

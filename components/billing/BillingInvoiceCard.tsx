@@ -1,203 +1,115 @@
 "use client";
 
-import { Download, CreditCard, Send, Eye } from "lucide-react";
-import { useState } from "react";
+import type { BillingFundingSource, BillingInvoice } from "@prisma/client";
+import { format } from "date-fns";
 
+import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { formatAudCents, formatInvoiceDate, formatInvoiceStatus } from "@/lib/billing/format";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 
-export type BillingInvoiceSummary = {
-  id: string;
-  serviceType: string;
-  status: string;
-  totalCents: number;
-  dueAt: string | null;
-  fundingSource?: { type: string; label: string } | null;
-  payments?: { status: string }[];
+type InvoiceWithFunding = BillingInvoice & {
+  fundingSource: BillingFundingSource | null;
 };
 
-type Props = {
-  invoice: BillingInvoiceSummary;
-  onRefresh?: () => void;
-};
+function formatAud(cents: number) {
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+  }).format(cents / 100);
+}
 
-export function BillingInvoiceCard({ invoice, onRefresh }: Props) {
-  const [loading, setLoading] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const isPlanManaged =
-    invoice.fundingSource?.type === "ndis_plan_managed";
+export function BillingInvoiceCard({
+  invoice,
+  onPay,
+  onPlanManager,
+  onDownload,
+  onStatus,
+  busy,
+}: {
+  invoice: InvoiceWithFunding;
+  onPay: () => void;
+  onPlanManager: () => void;
+  onDownload: () => void;
+  onStatus: () => void;
+  busy?: boolean;
+}) {
+  const planManaged = invoice.fundingSource?.type === "ndis_plan_managed";
   const canPay =
-    !isPlanManaged &&
+    !planManaged &&
     ["draft", "issued", "pending_payment", "failed"].includes(invoice.status);
 
-  async function handlePay() {
-    setLoading("pay");
-    setMessage(null);
-    try {
-      const res = await fetch("/api/billing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoiceId: invoice.id }),
-      });
-      const data = await res.json();
-      if (data.checkoutBlocked) {
-        setMessage(data.message);
-        return;
-      }
-      if (data.url) {
-        window.location.href = data.url;
-        return;
-      }
-      setMessage(data.error ?? "Unable to start checkout");
-    } finally {
-      setLoading(null);
-    }
-  }
-
-  async function handlePlanManagerExport() {
-    setLoading("plan");
-    setMessage(null);
-    try {
-      const res = await fetch("/api/billing/invoices/export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoiceId: invoice.id, format: "plan_manager" }),
-      });
-      const data = await res.json();
-      if (data.suggestedRecipient) {
-        setMessage(
-          `Plan manager export ready. Send to ${data.suggestedRecipient}.`
-        );
-      } else {
-        setMessage("Plan manager export ready. Download JSON from console or email manually.");
-        console.info("Plan manager payload", data.payload);
-      }
-      onRefresh?.();
-    } finally {
-      setLoading(null);
-    }
-  }
-
-  async function handleDownload() {
-    setLoading("download");
-    try {
-      const res = await fetch("/api/billing/invoices/export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoiceId: invoice.id, format: "csv" }),
-      });
-      const data = await res.json();
-      if (data.content) {
-        const blob = new Blob([data.content], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.filename ?? `invoice-${invoice.id}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-      onRefresh?.();
-    } finally {
-      setLoading(null);
-    }
-  }
-
-  const paymentStatus = invoice.payments?.[0]?.status;
-
   return (
-    <Card className="w-full" aria-labelledby={`invoice-title-${invoice.id}`}>
-      <CardHeader>
-        <CardTitle id={`invoice-title-${invoice.id}`} className="text-lg">
-          {invoice.serviceType} invoice
-        </CardTitle>
-        <CardDescription>
-          <span className="sr-only">Status: </span>
-          {formatInvoiceStatus(invoice.status)}
-          {invoice.fundingSource && (
-            <>
-              {" "}
-              · <span className="sr-only">Funding: </span>
-              {invoice.fundingSource.label}
-            </>
-          )}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <p className="text-2xl font-semibold" aria-label={`Total ${formatAudCents(invoice.totalCents)}`}>
-          {formatAudCents(invoice.totalCents)}
-        </p>
-        <dl className="grid grid-cols-2 gap-2 text-sm">
-          <dt>Due date</dt>
-          <dd>{formatInvoiceDate(invoice.dueAt)}</dd>
-          {paymentStatus && (
-            <>
-              <dt>Payment</dt>
-              <dd>{formatInvoiceStatus(paymentStatus)}</dd>
-            </>
-          )}
-        </dl>
-        {message && (
-          <p role="status" className="text-sm text-muted-foreground">
-            {message}
-          </p>
-        )}
-      </CardContent>
-      <CardFooter className="flex flex-wrap gap-3">
-        {canPay && (
-          <Button
-            size="lg"
-            variant="default"
-            loading={loading === "pay"}
-            onClick={handlePay}
-            aria-label={`Pay now for ${invoice.serviceType} invoice, ${formatAudCents(invoice.totalCents)}`}
+    <Card
+      variant="gradient"
+      className="h-full"
+      aria-labelledby={`invoice-title-${invoice.id}`}
+    >
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
+        <div className="space-y-2">
+          <BillingStatusBadge status={invoice.status} />
+          <h2
+            id={`invoice-title-${invoice.id}`}
+            className="font-heading text-lg font-semibold capitalize tracking-tight"
           >
-            <CreditCard aria-hidden />
+            {invoice.serviceType} invoice
+          </h2>
+        </div>
+        <p
+          className="font-heading text-2xl font-bold text-primary"
+          aria-label={`Total ${formatAud(invoice.totalCents)}`}
+        >
+          {formatAud(invoice.totalCents)}
+        </p>
+      </CardHeader>
+
+      <CardContent>
+        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="font-medium text-muted-foreground">Funding</dt>
+            <dd className="mt-0.5">{invoice.fundingSource?.label ?? "Not set"}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-muted-foreground">Due</dt>
+            <dd className="mt-0.5">
+              {invoice.dueAt
+                ? format(new Date(invoice.dueAt), "d MMM yyyy")
+                : "—"}
+            </dd>
+          </div>
+        </dl>
+      </CardContent>
+
+      <CardFooter
+        className="flex flex-wrap gap-3"
+        role="group"
+        aria-label={`Actions for ${invoice.serviceType} invoice`}
+      >
+        {canPay && (
+          <Button type="button" variant="default" onClick={onPay} disabled={busy} size="lg">
             Pay now
           </Button>
         )}
-        {isPlanManaged && (
+        {planManaged && (
           <Button
+            type="button"
+            variant="outline"
+            onClick={onPlanManager}
+            disabled={busy}
             size="lg"
-            variant="secondary"
-            loading={loading === "plan"}
-            onClick={handlePlanManagerExport}
-            aria-label="Send invoice to plan manager"
           >
-            <Send aria-hidden />
             Send to plan manager
           </Button>
         )}
         <Button
-          size="lg"
+          type="button"
           variant="outline"
-          loading={loading === "download"}
-          onClick={handleDownload}
-          aria-label="Download invoice as CSV"
+          onClick={onDownload}
+          disabled={busy}
+          size="lg"
         >
-          <Download aria-hidden />
           Download invoice
         </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          aria-label={`View payment status for invoice ${invoice.id}`}
-          onClick={() =>
-            setMessage(
-              paymentStatus
-                ? `Latest payment status: ${paymentStatus}`
-                : "No payment recorded yet."
-            )
-          }
-        >
-          <Eye aria-hidden />
+        <Button type="button" variant="outline" onClick={onStatus} size="lg">
           View payment status
         </Button>
       </CardFooter>
