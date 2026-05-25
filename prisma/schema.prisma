@@ -34,6 +34,8 @@ model User {
   memberships            ProviderUserRole[]
   roleAssignments        UserRoleAssignment[]
   participantProfile     ParticipantProfile?
+  participantAccessNeeds ParticipantAccessNeed[]
+  participantPreferences ParticipantPreference?
   accessibilityProfile   AccessibilityProfile?
   organisationMemberships OrganisationMember[]
   consentsAsSubject      ConsentRecord[]    @relation("ConsentSubject")
@@ -93,6 +95,8 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+  serviceLogsAsParticipant  ServiceLog[]           @relation("ServiceLogParticipant")
+  serviceLogsCreated        ServiceLog[]           @relation("ServiceLogCreatedBy")
 
   accessPlacesCreated       AccessPlace[]          @relation("AccessPlaceCreatedBy")
   accessPlaceClaims         AccessPlaceClaim[]     @relation("AccessPlaceClaimUser")
@@ -438,6 +442,47 @@ enum ConsentStatus {
   pending
 }
 
+enum ProfileRoleStatus {
+  pending
+  active
+  suspended
+  revoked
+}
+
+enum PlatformConsentScope {
+  view_profile
+  view_bookings
+  view_documents
+  view_invoices
+  view_messages
+  view_service_logs
+  view_outcomes
+  approve_invoices
+  manage_bookings
+  emergency_access
+}
+
+enum ConsentEventType {
+  granted
+  revoked
+  expired
+  scope_changed
+  emergency_used
+}
+
+enum DataAccessAction {
+  read
+  export
+  search
+  list
+}
+
+enum FeatureFlagRuleOperator {
+  equals
+  in
+  not_in
+}
+
 enum NotificationChannel {
   in_app
   email
@@ -466,6 +511,10 @@ enum BookingStatus {
   draft
   requested
   awaiting_provider_acceptance
+  provider_review
+  more_information_requested
+  accepted
+  declined
   confirmed
   in_progress
   completed
@@ -473,15 +522,47 @@ enum BookingStatus {
   disputed
 }
 
+enum BookingEligibilityStatus {
+  not_eligible
+  profile_incomplete
+  submitted
+  eligible
+}
+
+enum ServiceLogStatus {
+  draft
+  submitted
+  participant_review
+  approved
+  disputed
+  locked
+}
+
+enum InvoiceParticipantStatus {
+  draft
+  awaiting_participant_approval
+  approved
+  issued
+  disputed
+  void
+}
+
 model UserRoleAssignment {
-  id        String          @id @default(cuid())
-  userId    String
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      MapAbleUserRole
-  isPrimary Boolean         @default(false)
-  createdAt DateTime        @default(now())
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         MapAbleUserRole
+  status       ProfileRoleStatus @default(pending)
+  isPrimary    Boolean           @default(false)
+  approvedAt   DateTime?
+  approvedById String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   @@unique([userId, role])
+  @@index([userId, status])
+  @@index([role, status])
+  @@map("profile_roles")
 }
 
 model ParticipantProfile {
@@ -564,6 +645,11 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  organisationProfile    ProviderOrganisationProfile?
+  providerServices       ProviderOrganisationService[]
+  providerServiceRegions ProviderServiceRegion[]
+  accessCapabilities     ProviderAccessCapability[]
+  serviceLogs            ServiceLog[]
 }
 
 model OrganisationMember {
@@ -597,9 +683,11 @@ model ConsentRecord {
   revokedAt               DateTime?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
+  events                  ConsentEvent[]
 
   @@index([subjectUserId, status])
   @@index([grantedToOrganisationId])
+  @@map("consent_grants")
 }
 
 model NotificationPreference {
@@ -647,6 +735,92 @@ model AuditEvent {
   @@index([action])
   @@index([participantId])
   @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model RolePermission {
+  id         String          @id @default(cuid())
+  role       MapAbleUserRole
+  permission String
+  createdAt  DateTime        @default(now())
+
+  @@unique([role, permission])
+  @@index([role])
+  @@map("role_permissions")
+}
+
+model ConsentEvent {
+  id              String           @id @default(cuid())
+  consentRecordId String
+  consentRecord   ConsentRecord    @relation(fields: [consentRecordId], references: [id], onDelete: Cascade)
+  eventType       ConsentEventType
+  actorUserId     String?
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+
+  @@index([consentRecordId, createdAt])
+  @@map("consent_events")
+}
+
+model DataAccessLog {
+  id             String                @id @default(cuid())
+  actorUserId    String
+  actorRole      MapAbleUserRole?
+  resourceType   String
+  resourceId     String?
+  participantId  String?
+  organisationId String?
+  action         DataAccessAction      @default(read)
+  consentScope   PlatformConsentScope?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime              @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([participantId, createdAt])
+  @@index([organisationId, createdAt])
+  @@index([resourceType, createdAt])
+  @@map("data_access_logs")
+}
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  description String?
+  enabled     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rules  FeatureFlagRule[]
+  events FeatureFlagEvent[]
+
+  @@map("feature_flags")
+}
+
+model FeatureFlagRule {
+  id            String                @id @default(cuid())
+  featureFlagId String
+  featureFlag   FeatureFlag           @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  attribute     String
+  operator      FeatureFlagRuleOperator @default(equals)
+  value         Json
+  createdAt     DateTime              @default(now())
+
+  @@index([featureFlagId])
+  @@map("feature_flag_rules")
+}
+
+model FeatureFlagEvent {
+  id            String      @id @default(cuid())
+  featureFlagId String
+  featureFlag   FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  actorUserId   String?
+  evaluated     Boolean
+  context       Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([featureFlagId, createdAt])
+  @@map("feature_flag_events")
 }
 
 model Booking {
@@ -687,12 +861,218 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  serviceLogs        ServiceLog[]
+  bookingEvents      BookingEvent[]
 
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
 
   @@index([participantId, status])
+}
+
+model ParticipantAccessNeed {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category           String
+  plainLanguageNeed  String
+  importance         String?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+  @@map("participant_access_needs")
+}
+
+model ParticipantPreference {
+  id                            String   @id @default(cuid())
+  userId                        String   @unique
+  user                          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  participantType               String?
+  fundingType                   String?
+  primaryServiceRegion          String?
+  mainSupportGoals              String?
+  accessNeedsSummary            String?
+  communicationPreferencesJson  Json     @default("{}")
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+
+  @@map("participant_preferences")
+}
+
+model ProviderOrganisationProfile {
+  id                         String                 @id @default(cuid())
+  organisationId             String                 @unique
+  organisation               Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisationLegalName      String?
+  tradingName                String?
+  abnOrNzbn                  String?
+  primaryContactName         String?
+  primaryContactRole         String?
+  phone                      String?
+  website                    String?
+  businessAddress            String?
+  publicServiceRegions       String[]               @default([])
+  providerTypes              String[]               @default([])
+  ndisRegistrationClaimStatus String?
+  bookingEligibilityStatus   BookingEligibilityStatus @default(not_eligible)
+  listingStatus              String                 @default("profile_incomplete")
+  createdAt                  DateTime               @default(now())
+  updatedAt                  DateTime               @updatedAt
+
+  @@map("provider_organisation_profiles")
+}
+
+model ProviderOrganisationService {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  serviceName    String
+  serviceType    String?
+  telehealthAvailable Boolean @default(false)
+  acceptingNewParticipants Boolean @default(true)
+  createdAt      DateTime     @default(now())
+
+  @@index([organisationId])
+  @@map("provider_organisation_services")
+}
+
+model ProviderServiceRegion {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  suburb         String?
+  postcode       String?
+  state          String?
+  radiusKm       Int?
+  createdAt      DateTime     @default(now())
+
+  @@index([organisationId, postcode])
+  @@map("provider_service_regions")
+}
+
+model ProviderAccessCapability {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  capability     String
+  createdAt      DateTime     @default(now())
+
+  @@index([organisationId])
+  @@map("provider_access_capabilities")
+}
+
+model BookingEvent {
+  id          String   @id @default(cuid())
+  bookingId   String
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  note        String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([bookingId, createdAt])
+  @@map("booking_events")
+}
+
+model ServiceLog {
+  id               String           @id @default(cuid())
+  bookingId        String
+  booking          Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  organisationId   String
+  organisation     Organisation     @relation(fields: [organisationId], references: [id])
+  participantId    String
+  participant      User             @relation("ServiceLogParticipant", fields: [participantId], references: [id])
+  serviceDate      DateTime
+  startTime        String?
+  endTime          String?
+  durationMinutes  Int?
+  serviceSummary   String
+  supportItemCode  String?
+  travelMinutes    Int?
+  travelKm         Decimal?
+  status           ServiceLogStatus @default(draft)
+  createdById      String
+  createdBy        User             @relation("ServiceLogCreatedBy", fields: [createdById], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  events    ServiceLogEvent[]
+  approvals ServiceLogApproval[]
+  invoices  Invoice[]
+
+  @@index([bookingId])
+  @@index([participantId, status])
+  @@map("service_logs")
+}
+
+model ServiceLogEvent {
+  id           String     @id @default(cuid())
+  serviceLogId String
+  serviceLog   ServiceLog @relation(fields: [serviceLogId], references: [id], onDelete: Cascade)
+  eventType    String
+  actorUserId  String?
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  @@index([serviceLogId, createdAt])
+  @@map("service_log_events")
+}
+
+model ServiceLogApproval {
+  id            String     @id @default(cuid())
+  serviceLogId  String     @unique
+  serviceLog    ServiceLog @relation(fields: [serviceLogId], references: [id], onDelete: Cascade)
+  participantId String
+  approvedAt    DateTime?
+  disputedAt    DateTime?
+  disputeReason String?
+  createdAt     DateTime   @default(now())
+
+  @@map("service_log_approvals")
+}
+
+model InvoiceParticipantApproval {
+  id            String   @id @default(cuid())
+  invoiceId     String   @unique
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  participantId String
+  approvedAt    DateTime?
+  disputedAt    DateTime?
+  disputeReason String?
+  createdAt     DateTime @default(now())
+
+  @@map("invoice_approvals")
+}
+
+model InvoiceDispute {
+  id         String   @id @default(cuid())
+  invoiceId  String
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  reason     String
+  status     String   @default("open")
+  createdAt  DateTime @default(now())
+
+  @@index([invoiceId])
+  @@map("invoice_disputes")
+}
+
+model BillingEvent {
+  id             String   @id @default(cuid())
+  invoiceId      String?
+  invoice        Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  serviceLogId   String?
+  participantId  String?
+  organisationId String?
+  eventType      String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([invoiceId, createdAt])
+  @@map("billing_events")
 }
 
 model BookingSegment {
@@ -1010,6 +1390,9 @@ model Invoice {
   organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
   bookingId       String?
   booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  serviceLogId    String?
+  serviceLog      ServiceLog?   @relation(fields: [serviceLogId], references: [id], onDelete: SetNull)
+  participantApprovalStatus InvoiceParticipantStatus @default(draft)
   fundingSourceId String?
   fundingSource   ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
   status          InvoiceStatus @default(draft)
@@ -1030,9 +1413,13 @@ model Invoice {
   preflightResults BillingPreflightResult[]
   xeroSyncRecords  XeroInvoiceSyncRecord[]
   stripePayments   StripePaymentIntentRecord[]
+  participantApproval InvoiceParticipantApproval?
+  disputes         InvoiceDispute[]
+  billingEvents    BillingEvent[]
 
   @@index([participantId, status])
   @@index([organisationId])
+  @@index([serviceLogId])
 }
 
 model InvoiceLine {

@@ -107,3 +107,91 @@ export function isSafeguardingTicket(ticket: {
     ticket.requiresIncidentReview
   );
 }
+
+export async function getSupportTicketForUser(
+  ticketId: string,
+  userId: string,
+  isAdmin: boolean
+) {
+  const ticket = await prisma.supportTicket.findUnique({
+    where: { id: ticketId },
+    include: {
+      comments: {
+        where: isAdmin ? {} : { isInternal: false },
+        orderBy: { createdAt: "asc" },
+        include: { author: { select: { id: true, name: true } } },
+      },
+      createdBy: { select: { name: true } },
+      assignedAdmin: { select: { name: true } },
+    },
+  });
+  if (!ticket) return null;
+  if (
+    !isAdmin &&
+    ticket.createdById !== userId &&
+    ticket.participantId !== userId
+  ) {
+    return null;
+  }
+  return ticket;
+}
+
+export async function addTicketMessage(params: {
+  ticketId: string;
+  authorId: string;
+  body: string;
+  isInternal?: boolean;
+}) {
+  const comment = await prisma.supportTicketComment.create({
+    data: {
+      ticketId: params.ticketId,
+      authorId: params.authorId,
+      body: params.body.trim().slice(0, 10000),
+      isInternal: params.isInternal ?? false,
+    },
+  });
+
+  await createAuditEvent({
+    actorUserId: params.authorId,
+    action: "support_ticket.reply",
+    entityType: "SupportTicket",
+    entityId: params.ticketId,
+  });
+
+  return comment;
+}
+
+export async function assignSupportTicket(
+  ticketId: string,
+  assignedAdminId: string,
+  actorUserId: string
+) {
+  return updateTicketStatus(ticketId, "triage", actorUserId, {
+    assignedAdminId,
+  });
+}
+
+export async function escalateSupportTicket(
+  ticketId: string,
+  reason: string,
+  actorUserId: string
+) {
+  const ticket = await prisma.supportTicket.update({
+    where: { id: ticketId },
+    data: {
+      status: "escalated",
+      escalationReason: reason,
+      requiresIncidentReview: true,
+    },
+  });
+
+  await createAuditEvent({
+    actorUserId,
+    action: "support_ticket.escalated",
+    entityType: "SupportTicket",
+    entityId: ticketId,
+    metadata: { reason },
+  });
+
+  return ticket;
+}
