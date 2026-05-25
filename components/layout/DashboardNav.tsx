@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-
 import { cn } from "@/app/lib/utils";
 import { RoleBadge } from "@/components/ui/role-badge";
 import type { UserRole } from "@/types/mapable";
@@ -13,6 +11,7 @@ const LINKS = [
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
   { href: "/dashboard/consent", label: "Consent" },
+  { href: "/dashboard/privacy", label: "Privacy" },
   { href: "/dashboard/bookings", label: "Bookings" },
   { href: "/dashboard/care", label: "Care" },
   { href: "/dashboard/transport", label: "Transport" },
@@ -86,13 +85,12 @@ export function DashboardNav({
             </li>
           ) : null}
         </ul>
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="min-h-10 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <a
+          href="/auth/logout"
+          className="inline-flex min-h-10 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Sign out
-        </button>
+        </a>
       </div>
     </nav>
   );

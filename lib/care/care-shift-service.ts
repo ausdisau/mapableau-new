@@ -1,6 +1,7 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareShift } from "@/lib/calendar/calendar-service";
+import { createServiceLogDraftForShift } from "@/lib/care/care-service-log-service";
 import { prisma } from "@/lib/prisma";
 
 export async function createCareShiftFromRequest(params: {
@@ -48,6 +49,12 @@ export async function createCareShiftFromRequest(params: {
 }
 
 export async function careShiftCheckIn(shiftId: string, actorUserId: string) {
+  const existing = await prisma.careShift.findUnique({
+    where: { id: shiftId },
+    include: { workerProfile: true },
+  });
+  if (!existing) throw new Error("SHIFT_NOT_FOUND");
+  if (existing.workerProfile?.userId !== actorUserId) throw new Error("FORBIDDEN");
   const shift = await prisma.careShift.update({
     where: { id: shiftId },
     data: { status: "checked_in", checkInTime: new Date() },
@@ -63,6 +70,12 @@ export async function careShiftCheckIn(shiftId: string, actorUserId: string) {
 }
 
 export async function careShiftCheckOut(shiftId: string, actorUserId: string) {
+  const existing = await prisma.careShift.findUnique({
+    where: { id: shiftId },
+    include: { workerProfile: true },
+  });
+  if (!existing) throw new Error("SHIFT_NOT_FOUND");
+  if (existing.workerProfile?.userId !== actorUserId) throw new Error("FORBIDDEN");
   const shift = await prisma.careShift.update({
     where: { id: shiftId },
     data: {
@@ -77,6 +90,9 @@ export async function careShiftCheckOut(shiftId: string, actorUserId: string) {
     entityId: shiftId,
     participantId: shift.participantId,
   });
+  if (shift.careBookingId) {
+    await createServiceLogDraftForShift(shiftId);
+  }
   return shift;
 }
 

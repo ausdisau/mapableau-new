@@ -67,6 +67,7 @@ export const CORE_HUB_SECTIONS: {
   {
     title: "For providers & partners",
     links: [
+      { href: "/provider-finder", label: "Provider finder" },
       { href: "/enterprise-provider", label: "Enterprise console" },
       { href: "/academy", label: "Provider academy" },
       { href: "/assessor", label: "Assessor tools" },

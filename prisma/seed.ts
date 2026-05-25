@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
+import { seedVendorCompliance } from "./seed-auth-vendors";
+
 const prisma = new PrismaClient();
 
 const PASSWORD_HASH = "$2b$10$iLyIbD98gF/4Wnghy5CnY.m4JK0/bL8CLbc/pUtnQ/nXr4Wuep.8O";
@@ -404,6 +406,7 @@ async function main() {
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
 
+  await seedVendorCompliance();
   console.log("Seed complete.");
 }
 

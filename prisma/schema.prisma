@@ -25,10 +25,21 @@ model User {
   preferredContactMethod PreferredContactMethod @default(email)
   primaryRole            MapAbleUserRole    @default(participant)
   worker                 Worker?
-  passwordHash           String
+  passwordHash           String?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
+  authIdentityLinks      AuthIdentityLink[]
+  authLoginEvents        AuthLoginEvent[]
+  authSecurityEvents     AuthSecurityEvent[]
+  authStepUpChallenges   AuthStepUpChallenge[]
+  profileRoles           ProfileRole[]
+  profileOnboardingStatus ProfileOnboardingStatus?
+  consentGrants          ConsentGrant[]
+  consentEvents          ConsentEvent[]
+  auditLogs              AuditLog[]
+  dataAccessLogs         DataAccessLog[]    @relation("DataAccessActor")
+  dataAccessLogsSubject  DataAccessLog[]    @relation("DataAccessSubject")
   claimedProviders       ClaimedProvider[]
 
   memberships            ProviderUserRole[]
@@ -67,6 +78,15 @@ model User {
   careRequestsCreated       CareRequest[]      @relation("CareRequestCreatedBy")
   careShifts                CareShift[]        @relation("CareShiftParticipant")
   careShiftsApproved        CareShift[]        @relation("CareShiftApprovedBy")
+  careBookings              CareBooking[]      @relation("CareBookingParticipant")
+  careBookingEvents         CareBookingEvent[] @relation("CareBookingEventActor")
+  careRosterAssignmentsCreated CareRosterAssignment[] @relation("CareRosterAssignmentCreatedBy")
+  careServiceLogsConfirmed  CareServiceLog[]   @relation("CareServiceLogConfirmedBy")
+  careProgressNotesAuthored CareProgressNote[] @relation("CareProgressNoteAuthor")
+  careInvoiceLinksCreated   CareInvoiceLink[]  @relation("CareInvoiceLinkCreatedBy")
+  careParticipantPreferences CareParticipantPreference[]
+  careAccessNeeds           CareAccessNeed[]
+  careSafeguards            CareLivingAloneSafeguard[]
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
@@ -530,6 +550,16 @@ model Organisation {
 
   careRequests           CareRequest[]
   careShifts             CareShift[]
+  careBookings           CareBooking[]
+  careRosterAssignments  CareRosterAssignment[]
+  careServiceAgreements  CareServiceAgreement[]
+  careServiceLogs        CareServiceLog[]
+  careProgressNotes      CareProgressNote[]
+  careWorkerPreferences  CareWorkerPreference[]
+  careRiskFlags          CareRiskFlag[]
+  careShiftCancellations CareShiftCancellation[]
+  careRecoveryLinks      CareServiceRecoveryLink[]
+  careInvoiceLinks       CareInvoiceLink[]
   workerProfiles         WorkerProfile[]
   capacityBlocks         CapacityBlock[]
   vehicles               Vehicle[]
@@ -664,6 +694,8 @@ model Booking {
 
   careRequest        CareRequest?
   careShifts         CareShift[]
+  careBooking        CareBooking?
+  careRecoveryLinks  CareServiceRecoveryLink[]
   transportBooking   TransportBooking?
 
   segments               BookingSegment[]
@@ -1008,6 +1040,7 @@ model Invoice {
   preflightResults BillingPreflightResult[]
   xeroSyncRecords  XeroInvoiceSyncRecord[]
   stripePayments   StripePaymentIntentRecord[]
+  careInvoiceLinks  CareInvoiceLink[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -1167,6 +1200,35 @@ enum CareShiftStatus {
   disputed
 }
 
+enum CareBookingStatus {
+  draft
+  provider_accepted
+  worker_assigned
+  confirmed
+  in_progress
+  awaiting_service_log
+  awaiting_participant_confirmation
+  completed
+  cancelled
+  declined
+}
+
+enum CareServiceLogStatus {
+  draft
+  submitted
+  confirmed
+  disputed
+  cancelled
+}
+
+enum CareInvoiceLinkStatus {
+  placeholder
+  ready_for_invoice
+  invoiced
+  disputed
+  void
+}
+
 enum WorkerCredentialStatus {
   not_provided
   pending_review
@@ -1297,11 +1359,18 @@ model CareRequest {
   updatedAt               DateTime          @updatedAt
 
   shifts                  CareShift[]
+  careBooking             CareBooking?
+  careServiceAgreements   CareServiceAgreement[]
+  careProgressNotes       CareProgressNote[]
+  careParticipantPreferences CareParticipantPreference[]
+  careAccessNeeds         CareAccessNeed[]
+  careRiskFlags           CareRiskFlag[]
   calendarEvents          CalendarEvent[]
   orchestrationEvents     OrchestrationEvent[]
 
   @@index([participantId, status])
   @@index([assignedOrganisationId])
+  @@map("care_requests")
 }
 
 model CareShift {
@@ -1310,6 +1379,8 @@ model CareShift {
   careRequest             CareRequest     @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
   bookingId               String?           @unique
   booking                 Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  careBookingId           String?
+  careBooking             CareBooking?    @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
   participantId           String
   participant             User              @relation("CareShiftParticipant", fields: [participantId], references: [id])
   organisationId          String
@@ -1336,10 +1407,326 @@ model CareShift {
 
   calendarEvents          CalendarEvent[]
   timesheet               Timesheet?
+  serviceLog              CareServiceLog?
+  progressNotes           CareProgressNote[]
+  cancellations           CareShiftCancellation[]
+  recoveryLinks           CareServiceRecoveryLink[]
 
   @@index([participantId, status])
   @@index([organisationId])
   @@index([workerProfileId])
+  @@index([careBookingId])
+}
+
+model CareBooking {
+  id                         String            @id @default(cuid())
+  careRequestId              String            @unique
+  careRequest                CareRequest       @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
+  bookingId                  String?           @unique
+  booking                    Booking?          @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  participantId              String
+  participant                User              @relation("CareBookingParticipant", fields: [participantId], references: [id])
+  organisationId             String
+  organisation               Organisation      @relation(fields: [organisationId], references: [id])
+  status                     CareBookingStatus @default(provider_accepted)
+  scheduledStart             DateTime?
+  scheduledEnd               DateTime?
+  location                   String?
+  tasks                      Json              @default("[]")
+  accessRequirementsSnapshot Json?
+  fundingSourceSnapshot      Json?
+  providerNotes              String?
+  participantNotes           String?
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+
+  events                     CareBookingEvent[]
+  workers                    CareBookingWorker[]
+  rosterAssignments          CareRosterAssignment[]
+  serviceAgreements          CareServiceAgreement[]
+  serviceLogs                CareServiceLog[]
+  progressNotes              CareProgressNote[]
+  participantPreferences     CareParticipantPreference[]
+  accessNeeds                CareAccessNeed[]
+  riskFlags                  CareRiskFlag[]
+  livingAloneSafeguards      CareLivingAloneSafeguard[]
+  shiftCancellations         CareShiftCancellation[]
+  recoveryLinks              CareServiceRecoveryLink[]
+  invoiceLinks               CareInvoiceLink[]
+  shifts                     CareShift[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@map("care_bookings")
+}
+
+model CareBookingEvent {
+  id          String      @id @default(cuid())
+  bookingId   String
+  booking     CareBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  actor       User?       @relation("CareBookingEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  notes       String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  @@index([bookingId, createdAt])
+  @@map("care_booking_events")
+}
+
+model CareBookingWorker {
+  id              String        @id @default(cuid())
+  bookingId       String
+  booking         CareBooking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  assignedById    String?
+  notes           String?
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([bookingId, workerProfileId])
+  @@index([workerProfileId, active])
+  @@map("care_booking_workers")
+}
+
+model CareRosterAssignment {
+  id              String        @id @default(cuid())
+  bookingId       String
+  booking         CareBooking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  organisationId  String
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerProfileId String?
+  workerProfile   WorkerProfile? @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  startAt         DateTime
+  endAt           DateTime
+  notes           String?
+  createdById     String?
+  createdBy       User?         @relation("CareRosterAssignmentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime      @default(now())
+
+  @@index([organisationId, startAt])
+  @@index([workerProfileId, startAt])
+  @@map("care_roster_assignments")
+}
+
+model CareServiceAgreement {
+  id                 String           @id @default(cuid())
+  bookingId          String
+  booking            CareBooking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  careRequestId      String?
+  careRequest        CareRequest?     @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  serviceAgreementId String?
+  serviceAgreement   ServiceAgreement? @relation(fields: [serviceAgreementId], references: [id], onDelete: SetNull)
+  organisationId     String
+  organisation       Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  status             String           @default("placeholder")
+  plainLanguageSummary String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([bookingId])
+  @@index([organisationId])
+  @@map("care_service_agreements")
+}
+
+model CareServiceLog {
+  id              String               @id @default(cuid())
+  bookingId       String
+  booking         CareBooking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  shiftId         String?              @unique
+  shift           CareShift?           @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  participantId   String
+  organisationId  String
+  organisation    Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerProfileId String?
+  workerProfile   WorkerProfile?       @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  status          CareServiceLogStatus @default(draft)
+  startedAt       DateTime?
+  endedAt         DateTime?
+  supportItems    Json                 @default("[]")
+  tasksCompleted  Json                 @default("[]")
+  workerNotes     String?
+  participantNotes String?
+  submittedAt     DateTime?
+  confirmedById   String?
+  confirmedBy     User?                @relation("CareServiceLogConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
+  confirmedAt     DateTime?
+  disputedAt      DateTime?
+  disputeReason   String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  progressNotes   CareProgressNote[]
+  invoiceLinks    CareInvoiceLink[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@index([workerProfileId])
+  @@map("care_service_logs")
+}
+
+model CareProgressNote {
+  id              String       @id @default(cuid())
+  bookingId       String
+  booking         CareBooking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  careRequestId   String?
+  careRequest     CareRequest? @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  shiftId         String?
+  shift           CareShift?   @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  serviceLogId    String?
+  serviceLog      CareServiceLog? @relation(fields: [serviceLogId], references: [id], onDelete: SetNull)
+  organisationId  String
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  authorId        String?
+  author          User?        @relation("CareProgressNoteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  body            String
+  visibleToParticipant Boolean @default(false)
+  createdAt       DateTime     @default(now())
+
+  @@index([bookingId, createdAt])
+  @@map("care_progress_notes")
+}
+
+model CareParticipantPreference {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   User         @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  bookingId     String?
+  booking       CareBooking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  careRequestId String?
+  careRequest   CareRequest? @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  preferenceType String
+  value         Json
+  createdAt     DateTime     @default(now())
+
+  @@index([participantId])
+  @@map("care_participant_preferences")
+}
+
+model CareWorkerPreference {
+  id              String        @id @default(cuid())
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  organisationId  String
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  preferenceType  String
+  value           Json
+  createdAt       DateTime      @default(now())
+
+  @@index([workerProfileId])
+  @@map("care_worker_preferences")
+}
+
+model CareAccessNeed {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   User         @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  bookingId     String?
+  booking       CareBooking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  careRequestId String?
+  careRequest   CareRequest? @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  category      String
+  description   String
+  intensity     String?
+  createdAt     DateTime     @default(now())
+
+  @@index([participantId])
+  @@map("care_access_needs")
+}
+
+model CareRiskFlag {
+  id            String       @id @default(cuid())
+  bookingId     String?
+  booking       CareBooking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  careRequestId String?
+  careRequest   CareRequest? @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  incidentId    String?
+  incident      IncidentReport? @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  organisationId String?
+  organisation  Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  flagType      String
+  severity      String
+  notes         String?
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  @@index([active, severity])
+  @@map("care_risk_flags")
+}
+
+model CareLivingAloneSafeguard {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   User         @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  bookingId     String?
+  booking       CareBooking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  checkInRequired Boolean    @default(false)
+  escalationContact String?
+  notes         String?
+  createdAt     DateTime     @default(now())
+
+  @@index([participantId])
+  @@map("care_living_alone_safeguards")
+}
+
+model CareShiftCancellation {
+  id              String        @id @default(cuid())
+  bookingId       String
+  booking         CareBooking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  shiftId         String?
+  shift           CareShift?    @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  organisationId  String
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerProfileId String?
+  workerProfile   WorkerProfile? @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  reason          String
+  createdAt       DateTime      @default(now())
+
+  @@index([bookingId])
+  @@map("care_shift_cancellations")
+}
+
+model CareServiceRecoveryLink {
+  id             String       @id @default(cuid())
+  bookingId      String
+  booking        CareBooking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  shiftId        String?
+  shift          CareShift?   @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  replacementBookingId String?
+  replacementBooking   Booking? @relation(fields: [replacementBookingId], references: [id], onDelete: SetNull)
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([bookingId])
+  @@map("care_service_recovery_links")
+}
+
+model CareInvoiceLink {
+  id              String                @id @default(cuid())
+  bookingId       String
+  booking         CareBooking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceLogId    String                @unique
+  serviceLog      CareServiceLog        @relation(fields: [serviceLogId], references: [id], onDelete: Cascade)
+  invoiceId       String?
+  invoice         Invoice?              @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  organisationId  String
+  organisation    Organisation          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  status          CareInvoiceLinkStatus @default(placeholder)
+  pricingPlaceholder String?
+  ndisLineItemCodePlaceholder String?
+  createdById     String?
+  createdBy       User?                 @relation("CareInvoiceLinkCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([bookingId])
+  @@index([organisationId, status])
+  @@map("care_invoice_links")
 }
 
 model WorkerProfile {
@@ -1360,12 +1747,18 @@ model WorkerProfile {
   firstAidStatus          WorkerCredentialStatus @default(not_provided)
   insuranceStatus         WorkerCredentialStatus @default(not_provided)
   verificationStatus      WorkerCredentialStatus @default(pending_review)
+  highIntensityCompetencyVerified Boolean        @default(false)
   active                  Boolean                @default(true)
   createdAt               DateTime               @default(now())
   updatedAt               DateTime               @updatedAt
 
   careRequests            CareRequest[]
   careShifts              CareShift[]
+  careBookingAssignments  CareBookingWorker[]
+  careRosterAssignments   CareRosterAssignment[]
+  careServiceLogs         CareServiceLog[]
+  careWorkerPreferences   CareWorkerPreference[]
+  careShiftCancellations  CareShiftCancellation[]
   availabilityWindows     AvailabilityWindow[]
 
   @@index([organisationId, active])
@@ -1955,6 +2348,7 @@ model IncidentReport {
   updates   IncidentUpdate[]
   actions   IncidentAction[]
   evidence  IncidentEvidence[]
+  careRiskFlags CareRiskFlag[]
 
   @@index([status, severity])
   @@index([participantId])
@@ -2019,6 +2413,7 @@ model ServiceAgreement {
   documentId                String?
   createdAt                 DateTime               @default(now())
   updatedAt                 DateTime               @updatedAt
+  careServiceAgreements     CareServiceAgreement[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -4762,4 +5157,246 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- Auth0 / privacy / compliance (MapAble identity bridge) ---
+
+enum AuthProvider {
+  auth0
+  google
+  credentials
+}
+
+enum AuthLoginEventType {
+  login
+  logout
+  login_failed
+  callback
+  link_account
+}
+
+enum AuthSecurityEventType {
+  account_link_requested
+  account_link_confirmed
+  account_link_rejected
+  step_up_required
+  step_up_verified
+  step_up_failed
+  mfa_challenge
+  lockout
+}
+
+enum ProfileOnboardingStatusEnum {
+  pending_role
+  pending_privacy_consent
+  pending_approval
+  complete
+}
+
+enum ProfileRoleStatus {
+  requested
+  pending_approval
+  approved
+  rejected
+}
+
+enum ConsentGrantType {
+  privacy_policy
+  terms_of_service
+  data_collection
+  marketing
+}
+
+enum ConsentGrantStatus {
+  granted
+  revoked
+}
+
+enum DataClassification {
+  identity_data
+  personal_information
+  sensitive_information
+  health_information
+  ephi_possible
+}
+
+enum AustralianPrivacyReviewStatus {
+  not_reviewed
+  in_review
+  approved
+  requires_action
+}
+
+model AuthIdentityLink {
+  id              String       @id @default(uuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auth0UserId     String       @unique
+  provider        AuthProvider @default(auth0)
+  providerUserId  String?
+  email           String?
+  emailVerified   Boolean      @default(false)
+  linkedAt        DateTime     @default(now())
+  lastLoginAt     DateTime?
+
+  @@index([userId])
+  @@index([email])
+  @@map("auth_identity_links")
+}
+
+model AuthLoginEvent {
+  id             String             @id @default(uuid())
+  userId         String?
+  user           User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  auth0UserId    String?
+  provider       AuthProvider?
+  eventType      AuthLoginEventType
+  ipAddressHash  String?
+  userAgentHash  String?
+  success        Boolean            @default(true)
+  riskLevel      String?
+  createdAt      DateTime           @default(now())
+
+  @@index([userId, createdAt])
+  @@index([auth0UserId, createdAt])
+  @@map("auth_login_events")
+}
+
+model AuthSecurityEvent {
+  id            String                @id @default(uuid())
+  userId        String?
+  user          User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  auth0UserId   String?
+  eventType     AuthSecurityEventType
+  metadata      Json?
+  ipAddressHash String?
+  createdAt     DateTime              @default(now())
+
+  @@index([userId, createdAt])
+  @@map("auth_security_events")
+}
+
+model AuthStepUpChallenge {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionKey  String
+  verifiedAt DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([userId, actionKey, expiresAt])
+  @@map("auth_step_up_challenges")
+}
+
+model ProfileRole {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        MapAbleUserRole
+  status      ProfileRoleStatus @default(requested)
+  requestedAt DateTime          @default(now())
+  approvedAt  DateTime?
+  approvedById String?
+
+  @@unique([userId, role])
+  @@index([userId, status])
+  @@map("profile_roles")
+}
+
+model ProfileOnboardingStatus {
+  id                String                      @id @default(uuid())
+  userId            String                      @unique
+  user              User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status            ProfileOnboardingStatusEnum @default(pending_role)
+  roleSelected      MapAbleUserRole?
+  privacyConsentAt  DateTime?
+  approvedAt        DateTime?
+  updatedAt         DateTime                    @updatedAt
+  createdAt         DateTime                    @default(now())
+
+  @@map("profile_onboarding_status")
+}
+
+model ConsentGrant {
+  id          String             @id @default(uuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantType   ConsentGrantType
+  status      ConsentGrantStatus @default(granted)
+  purpose     String
+  version     String             @default("1.0")
+  grantedAt   DateTime           @default(now())
+  revokedAt   DateTime?
+
+  @@index([userId, grantType, status])
+  @@map("consent_grants")
+}
+
+model ConsentEvent {
+  id          String             @id @default(uuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantId     String?
+  eventType   String
+  grantType   ConsentGrantType?
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+
+  @@index([userId, createdAt])
+  @@map("consent_events")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  category       String
+  action         String
+  entityType     String?
+  entityId       String?
+  metadata       Json?
+  ipAddressHash  String?
+  createdAt      DateTime @default(now())
+
+  @@index([category, createdAt])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model DataAccessLog {
+  id             String             @id @default(uuid())
+  actorUserId    String
+  actorUser      User               @relation("DataAccessActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  subjectUserId  String?
+  subjectUser    User?              @relation("DataAccessSubject", fields: [subjectUserId], references: [id], onDelete: SetNull)
+  resourceType   String
+  resourceId     String?
+  classification DataClassification
+  purpose        String
+  createdAt      DateTime           @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([subjectUserId, createdAt])
+  @@map("data_access_logs")
+}
+
+model VendorComplianceRecord {
+  id                            String                        @id @default(uuid())
+  vendorName                    String
+  serviceName                   String
+  dataCategories                String[]
+  handlesPhiOrEphi              Boolean                       @default(false)
+  handlesHealthInformation      Boolean                       @default(false)
+  baaRequired                   Boolean                       @default(false)
+  baaSigned                     Boolean                       @default(false)
+  australianPrivacyReviewStatus AustralianPrivacyReviewStatus @default(not_reviewed)
+  subprocessorsReviewed         Boolean                       @default(false)
+  notes                         String?
+  reviewedAt                    DateTime?
+  nextReviewAt                  DateTime?
+  createdAt                     DateTime                      @default(now())
+  updatedAt                     DateTime                      @updatedAt
+
+  @@unique([vendorName, serviceName])
+  @@map("vendor_compliance_records")
 }

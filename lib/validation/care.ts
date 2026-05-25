@@ -28,7 +28,14 @@ export const createCareRequestSchema = z.object({
   shareAccessibility: z.boolean().optional(),
   shareAccessibilityConfirmed: z.boolean().optional(),
   fundingSourceId: z.string().optional(),
-  tasks: z.array(z.record(z.string(), z.unknown())).optional(),
+  tasks: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        intensity: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const createCareShiftSchema = z.object({
@@ -42,4 +49,45 @@ export const createCareShiftSchema = z.object({
 
 export const assignCareProviderSchema = z.object({
   organisationId: z.string(),
+});
+
+export const createCareBookingSchema = z.object({
+  careRequestId: z.string(),
+});
+
+export const assignCareWorkerSchema = z.object({
+  workerProfileId: z.string(),
+  startAt: z.string().datetime().optional(),
+  endAt: z.string().datetime().optional(),
+  notes: z.string().optional(),
+});
+
+export const serviceLogSchema = z.object({
+  shiftId: z.string(),
+  supportItems: z.array(z.record(z.string(), z.unknown())).optional(),
+  tasksCompleted: z.array(z.record(z.string(), z.unknown())).optional(),
+  workerNotes: z.string().optional(),
+});
+
+export const confirmServiceLogSchema = z.object({
+  notes: z.string().optional(),
+});
+
+export const disputeServiceLogSchema = z.object({
+  reason: z.string().min(3).max(1000),
+});
+
+export const invoicePlaceholderSchema = z.object({
+  pricingPlaceholder: z.string().optional(),
+  ndisLineItemCodePlaceholder: z.string().optional(),
+});
+
+export const careIncidentSchema = z.object({
+  title: z.string().min(3).max(200),
+  description: z.string().min(3).max(5000),
+  category: z.string().default("safety"),
+  severity: z.string().default("medium"),
+  shiftId: z.string().optional(),
+  immediateRiskPresent: z.boolean().optional(),
+  safeguardingConcern: z.boolean().optional(),
 });

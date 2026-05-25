@@ -9,6 +9,6 @@ export async function POST(
   const user = await requireApiPermission("care:manage:org");
   if (user instanceof Response) return user;
   const { careRequestId } = await params;
-  const request = await providerAcceptCareRequest(careRequestId, user.id);
-  return jsonOk({ request });
+  const result = await providerAcceptCareRequest(careRequestId, user.id);
+  return jsonOk(result);
 }

@@ -6,6 +6,8 @@ import { syncCalendarForCareRequest } from "@/lib/calendar/calendar-service";
 import { checkConsent } from "@/lib/consent/consent-service";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
+import { assertProviderOrgAccess } from "@/lib/care/access-control";
+import { createCareBookingForRequest } from "@/lib/care/care-booking-service";
 
 export async function createCareRequest(params: {
   participantId: string;
@@ -133,9 +135,18 @@ export async function providerAcceptCareRequest(
   careRequestId: string,
   actorUserId: string
 ) {
-  const request = await prisma.careRequest.update({
+  const request = await prisma.careRequest.findUnique({
     where: { id: careRequestId },
-    data: { status: "confirmed" },
+  });
+  if (!request) throw new Error("REQUEST_NOT_FOUND");
+  if (!request.assignedOrganisationId) throw new Error("ORGANISATION_REQUIRED");
+  await assertProviderOrgAccess(
+    { id: actorUserId, email: "", name: "", phone: null, timezone: "Australia/Sydney", locale: "en-AU", primaryRole: "provider_admin", roles: ["provider_admin"] },
+    request.assignedOrganisationId
+  );
+  const careBooking = await createCareBookingForRequest({
+    careRequestId,
+    actorUserId,
   });
 
   if (request.bookingId) {
@@ -154,5 +165,26 @@ export async function providerAcceptCareRequest(
     "Your care provider has accepted your request."
   );
 
+  return { request, careBooking };
+}
+
+export async function providerDeclineCareRequest(
+  careRequestId: string,
+  actorUserId: string,
+  note?: string
+) {
+  const request = await prisma.careRequest.update({
+    where: { id: careRequestId },
+    data: { status: "cancelled" },
+  });
+  await createAuditEvent({
+    actorUserId,
+    action: "care_request.provider_declined",
+    entityType: "CareRequest",
+    entityId: request.id,
+    organisationId: request.assignedOrganisationId,
+    participantId: request.participantId,
+    metadata: note ? { note } : undefined,
+  });
   return request;
 }

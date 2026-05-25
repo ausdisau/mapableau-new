@@ -150,6 +150,34 @@ export async function escalateIncident(incidentId: string, adminUserId: string) 
   });
 }
 
+export async function escalateIncidentToQualitySafeguards(
+  incidentId: string,
+  actorUserId: string,
+  notes?: string
+) {
+  const incident = await prisma.incidentReport.update({
+    where: { id: incidentId },
+    data: { status: "escalated", safeguardingConcern: true },
+  });
+  await prisma.incidentAction.create({
+    data: {
+      incidentId,
+      actionType: "quality_safeguards_escalation",
+      actorId: actorUserId,
+      notes,
+    },
+  });
+  await createAuditEvent({
+    actorUserId,
+    action: "incident.quality_safeguards_escalated",
+    entityType: "IncidentReport",
+    entityId: incidentId,
+    participantId: incident.participantId ?? undefined,
+    organisationId: incident.organisationId ?? undefined,
+  });
+  return incident;
+}
+
 export async function resolveIncident(
   incidentId: string,
   adminUserId: string,

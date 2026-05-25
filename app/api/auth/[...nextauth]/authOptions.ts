@@ -23,7 +23,7 @@ export const authOptions: AuthOptions = {
           where: { email: credentials.email },
         });
 
-        if (!user) return null;
+        if (!user?.passwordHash) return null;
 
         const valid = await compare(credentials.password, user.passwordHash);
         if (!valid) return null;
