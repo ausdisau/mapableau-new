@@ -19,7 +19,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "neon:configure": "python3 scripts/configure-neon-env.py",
-    "check:integrations-env": "pnpm exec tsx scripts/check-integrations-env.ts"
+    "check:integrations-env": "pnpm exec tsx scripts/check-integrations-env.ts",
+    "provider-finder:supabase:dry-run": "pnpm exec tsx scripts/prepare-provider-finder-supabase-import.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
