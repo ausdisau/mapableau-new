@@ -35,7 +35,7 @@ See `package.json` scripts. Key ones:
 
 ### Seeded test accounts
 
-All seeded users share password `Test123!`:
+After running `npx prisma db seed`, these local-only accounts are available. The shared password is derived from the bcrypt hash in `prisma/seed.ts` — do not hard-code it here or use seed credentials on any deployed environment.
 
 | Email | Role |
 |-------|------|
