@@ -2,6 +2,11 @@ import type { MapAbleUserRole } from "@prisma/client";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import {
+  loadCurrentUserFromAuth0,
+  loadCurrentUserFromProfileId,
+} from "@/lib/auth/auth-profile-bridge";
+import { getAuth0Env } from "@/lib/auth0/env";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/mapable";
 
@@ -16,7 +21,7 @@ export interface CurrentUser {
   roles: UserRole[];
 }
 
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+async function loadFromNextAuth(): Promise<CurrentUser | null> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
 
@@ -45,6 +50,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   };
 }
 
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  if (getAuth0Env().AUTH_PROVIDER === "auth0") {
+    return loadCurrentUserFromAuth0();
+  }
+  return loadFromNextAuth();
+}
+
 export async function requireCurrentUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) throw new Error("UNAUTHORIZED");
@@ -57,3 +69,5 @@ export function userHasRole(
 ): boolean {
   return user.roles.includes(role as UserRole);
 }
+
+export { loadCurrentUserFromProfileId };

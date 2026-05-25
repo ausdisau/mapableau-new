@@ -6,13 +6,15 @@ Phase 1 delivers the platform spine: identity, roles, participant profiles, acce
 
 ```bash
 pnpm install
-cp .env.example .env   # set DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL
+cp .env.example .env   # set DATABASE_URL, AUTH0_* (see docs/auth0-mapable-setup.md)
 npx prisma migrate deploy
 npx prisma db seed
 pnpm dev
 ```
 
-Sign in with seed users (password matches existing seed hash — same as `alice@example.com` in legacy seed):
+**Auth0 + Google (default):** Set `AUTH_PROVIDER=auth0`, `AUTH0_SECRET` (32+ chars), `AUTH0_DOMAIN=login.ad.org.au`, client credentials, and `APP_BASE_URL`. Sign in at `/login` → Continue with Google. See [docs/auth0-mapable-setup.md](docs/auth0-mapable-setup.md).
+
+**Legacy credentials** (`AUTH_PROVIDER=nextauth`): seed users with password hash:
 
 - `participant@mapable.test` — participant dashboard
 - `admin@mapable.test` — admin console
@@ -32,8 +34,9 @@ Sign in with seed users (password matches existing seed hash — same as `alice@
 ## Environment variables
 
 - `DATABASE_URL` — PostgreSQL
-- `NEXTAUTH_SECRET` — session signing
-- `NEXTAUTH_URL` — app URL (e.g. `http://localhost:3000`)
+- `AUTH0_SECRET`, `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `APP_BASE_URL` — Auth0 session (HttpOnly cookies)
+- `AUTH_PROVIDER` — `auth0` (default) or `nextauth`
+- `NEXTAUTH_SECRET` / `NEXTAUTH_URL` — legacy credentials only
 - `NDIS_ENCRYPTION_KEY` — optional; falls back to `NEXTAUTH_SECRET` for NDIS number encryption
 
 ## Limitations (Phase 1)
