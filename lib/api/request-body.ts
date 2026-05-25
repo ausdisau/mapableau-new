@@ -8,7 +8,11 @@ export async function parseJsonRequestBody(
   maxBytes: number = ACCESS_API_MAX_JSON_BYTES
 ): Promise<unknown> {
   const raw = await readTextWithByteLimit(req, maxBytes);
-  return JSON.parse(raw) as unknown;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    throw new Error("INVALID_JSON");
+  }
 }
 
 export function jsonBodyErrorResponse(error: unknown) {
@@ -19,7 +23,7 @@ export function jsonBodyErrorResponse(error: unknown) {
   if (msg === "CONTENT_LENGTH_REQUIRED") {
     return { status: 411 as const, message: "Content-Length required" };
   }
-  if (msg instanceof SyntaxError || msg === "INVALID_JSON") {
+  if (msg === "INVALID_JSON") {
     return { status: 400 as const, message: "Invalid JSON body" };
   }
   return { status: 400 as const, message: "Invalid JSON body" };
