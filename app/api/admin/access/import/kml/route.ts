@@ -3,7 +3,10 @@ import {
   parseImportJobContent,
 } from "@/lib/access-import/access-import-job-service";
 import { MAX_IMPORT_BYTES, MAX_IMPORT_ITEMS } from "@/lib/access-import/import-limits";
-import { resolveKmlDocument } from "@/lib/access-import/kml-networklink-service";
+import {
+  isAllowlistedNetworkLinkUrl,
+  resolveKmlDocument,
+} from "@/lib/access-import/kml-networklink-service";
 import { escapeXmlText } from "@/lib/access-import/xml-escape";
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
@@ -75,7 +78,11 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   if (body.networkLinkUrl) {
-    const href = escapeXmlText(String(body.networkLinkUrl));
+    const networkLinkUrl = String(body.networkLinkUrl);
+    if (!isAllowlistedNetworkLinkUrl(networkLinkUrl)) {
+      return jsonError("NetworkLink URL is not on the allowlist", 403);
+    }
+    const href = escapeXmlText(networkLinkUrl);
     const doc = await resolveKmlDocument(
       `<?xml version="1.0"?><kml><Document><NetworkLink><Link><href>${href}</href></Link></NetworkLink></Document></kml>`
     );

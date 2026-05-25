@@ -68,6 +68,10 @@ export async function createAccessReview(params: {
     entityId: review.id,
   });
 
+  if (status === "published") {
+    await recomputePlaceRatingSummaries(params.placeId);
+  }
+
   return review;
 }
 

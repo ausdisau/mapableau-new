@@ -108,6 +108,13 @@ describe("kml parser", () => {
     expect(parseKmlXml(xml).networkLinkHref).toContain("example.com");
   });
 
+  it("decodes XML entities in network link href", () => {
+    const xml = `<kml><NetworkLink><Link><href>https://example.com/x.kml?a=1&amp;b=2</href></Link></NetworkLink></kml>`;
+    expect(parseKmlXml(xml).networkLinkHref).toBe(
+      "https://example.com/x.kml?a=1&b=2"
+    );
+  });
+
   it("sanitizes description", () => {
     expect(sanitizeKmlDescription("<script>x</script>hello")).not.toContain("<script");
   });

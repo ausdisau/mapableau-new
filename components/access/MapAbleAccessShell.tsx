@@ -64,7 +64,9 @@ export function MapAbleAccessShell({
 
   useEffect(() => {
     void search();
-  }, [category, search]);
+    // Re-run when category changes; query updates use the search bar submit handler.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- category filter only
+  }, [category]);
 
   const mapPlaces = places
     .filter((p) => p.latitude != null && p.longitude != null)

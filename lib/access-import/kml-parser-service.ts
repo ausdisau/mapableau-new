@@ -7,6 +7,8 @@ export interface ParsedKmlPlacemark {
   externalRef?: string;
 }
 
+import { decodeXmlText } from "@/lib/access-import/xml-escape";
+
 export interface ParsedKmlDocument {
   placemarks: ParsedKmlPlacemark[];
   networkLinkHref?: string;
@@ -36,7 +38,8 @@ export function parseKmlXml(xml: string): ParsedKmlDocument {
   const networkMatch = xml.match(
     /<NetworkLink[^>]*>[\s\S]*?<href[^>]*>([^<]+)<\/href>/i
   );
-  const networkLinkHref = networkMatch?.[1]?.trim();
+  const rawHref = networkMatch?.[1]?.trim();
+  const networkLinkHref = rawHref ? decodeXmlText(rawHref) : undefined;
 
   const placemarkBlocks = xml.match(/<Placemark[\s\S]*?<\/Placemark>/gi) ?? [];
 
