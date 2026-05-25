@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { getPublicQualitySignals } from "@/lib/provider-quality/provider-quality-service";
+import { isModuleEnabled } from "@/lib/feature-flags/server-feature-flag";
 
 export type ProviderSearchFilters = {
   serviceRegion?: string;
@@ -25,18 +27,40 @@ export async function searchCareProviders(filters: ProviderSearchFilters) {
     orderBy: { name: "asc" },
   });
 
-  return orgs.map((o) => ({
-    id: o.id,
-    name: o.name,
-    organisationType: o.organisationType,
-    verificationStatus: o.verificationStatus,
-    verificationCaution:
-      o.verificationStatus !== "verified"
-        ? "This provider is not fully verified. Details require review."
-        : null,
-    serviceRegions: o.serviceRegions,
-    // Never expose private credential documents
-  }));
+  const qualityEnabled = await isModuleEnabled("provider_quality_signals_enabled");
+  const capacityEnabled = await isModuleEnabled("waitlist_exchange_enabled");
+
+  return Promise.all(
+    orgs.map(async (o) => {
+      const capacity = capacityEnabled
+        ? await prisma.providerCapacityBlock.findFirst({
+            where: {
+              organisationId: o.id,
+              acceptingNewParticipants: true,
+            },
+          })
+        : null;
+      const qualitySignals = qualityEnabled
+        ? await getPublicQualitySignals(o.id)
+        : [];
+
+      return {
+        id: o.id,
+        name: o.name,
+        organisationType: o.organisationType,
+        verificationStatus: o.verificationStatus,
+        verificationCaution:
+          o.verificationStatus !== "verified"
+            ? "This provider is not fully verified. Details require review."
+            : null,
+        serviceRegions: o.serviceRegions,
+        acceptingNewParticipants: Boolean(capacity),
+        qualitySignals: qualitySignals.map((s) =>
+          "label" in s ? s.label : (s as { label: string }).label
+        ),
+      };
+    })
+  );
 }
 
 export async function searchTransportOperators(filters: ProviderSearchFilters) {

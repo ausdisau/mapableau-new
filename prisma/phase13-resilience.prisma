@@ -1,0 +1,794 @@
+// MapAble Phase 13 — Service Resilience & Growth (merge into schema.prisma)
+
+enum FeatureFlagEnvironment {
+  development
+  staging
+  production
+  all
+}
+
+enum FeatureFlagRuleType {
+  role
+  user_id
+  provider_id
+  region
+  beta_group
+  environment
+  percentage_rollout
+}
+
+enum ServiceRecoveryTrigger {
+  worker_cancelled
+  driver_late
+  provider_declined
+  provider_no_response
+  vehicle_unavailable
+  worker_no_show
+  participant_reported_issue
+  high_late_risk
+  service_gap_detected
+}
+
+enum ServiceRecoveryStatus {
+  open
+  backup_options_found
+  awaiting_participant_choice
+  awaiting_provider_confirmation
+  resolved
+  unresolved
+  escalated
+  cancelled
+}
+
+enum WaitlistStatus {
+  pending
+  active
+  matched
+  fulfilled
+  cancelled
+  expired
+}
+
+enum WaitlistUrgency {
+  routine
+  soon
+  urgent
+}
+
+enum CapacityMatchStatus {
+  suggested
+  notified
+  accepted
+  declined
+  expired
+}
+
+enum OutcomeGoalSource {
+  participant_entered
+  ndis_plan_ocr
+  support_coordinator
+  imported
+}
+
+enum OutcomeGoalStatus {
+  active
+  paused
+  achieved
+  archived
+}
+
+enum QuoteRequestStatus {
+  draft
+  sent
+  responses_received
+  accepted
+  declined
+  expired
+  cancelled
+}
+
+enum QuoteType {
+  care_package
+  accessible_transport
+  therapy_package
+  home_modification
+  assistive_technology
+  employment_support
+  food_subscription
+  mixed_bundle
+}
+
+enum EvidencePackType {
+  ndis_plan_review
+  home_modification
+  assistive_technology
+  complaint_or_dispute
+  support_coordination_report
+  employment_support
+  unmet_need
+  therapy_progress
+}
+
+enum EvidencePackStatus {
+  draft
+  ready
+  exported
+  archived
+}
+
+enum UnmetNeedType {
+  no_provider_found
+  no_worker_available
+  no_accessible_transport
+  no_provider_with_access_feature
+  wait_time_too_long
+  provider_declined
+  cost_or_quote_issue
+  communication_support_missing
+  rural_remote_gap
+  child_support_gap
+}
+
+enum UnmetNeedStatus {
+  open
+  reviewing
+  waitlist_created
+  resolved
+  closed
+}
+
+enum ProviderQualitySignalCategory {
+  verification_status
+  response_time
+  booking_completion_rate
+  cancellation_rate
+  no_show_rate
+  complaint_rate
+  incident_rate
+  invoice_dispute_rate
+  participant_feedback_summary
+  access_needs_fit
+  service_recovery_history
+  capacity_reliability
+}
+
+enum TimelineEventType {
+  booking_created
+  booking_completed
+  transport_trip_completed
+  invoice_issued
+  invoice_approved
+  invoice_disputed
+  message_thread_created
+  document_uploaded
+  consent_granted
+  consent_revoked
+  goal_created
+  outcome_checkin_added
+  service_recovery_case_opened
+  support_ticket_opened
+  incident_reported
+  home_modification_milestone_completed
+  quote_accepted
+  provider_changed
+  waitlist_created
+  unmet_need_recorded
+}
+
+model FeatureFlag {
+  id                 String               @id @default(cuid())
+  key                String               @unique
+  name               String
+  description        String?
+  enabled            Boolean              @default(false)
+  rolloutPercentage  Int                  @default(0)
+  environment        FeatureFlagEnvironment @default(all)
+  moduleArea         String?
+  killSwitch         Boolean              @default(false)
+  createdById        String?
+  updatedById        String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  rules              FeatureFlagRule[]
+  assignments        FeatureFlagAssignment[]
+  events             FeatureFlagEvent[]
+}
+
+model FeatureFlagRule {
+  id            String              @id @default(cuid())
+  featureFlagId String
+  featureFlag   FeatureFlag         @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  ruleType      FeatureFlagRuleType
+  ruleValue     String
+  enabled       Boolean             @default(true)
+  priority      Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  @@index([featureFlagId])
+}
+
+model FeatureFlagAssignment {
+  id            String      @id @default(cuid())
+  featureFlagId String
+  featureFlag   FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  userId        String?
+  betaGroupId   String?
+  betaGroup     BetaGroup?  @relation(fields: [betaGroupId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  @@index([featureFlagId])
+  @@index([userId])
+}
+
+model FeatureFlagEvent {
+  id            String      @id @default(cuid())
+  featureFlagId String
+  featureFlag   FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  actorUserId   String?
+  eventType     String
+  beforeJson    Json?
+  afterJson     Json?
+  createdAt     DateTime    @default(now())
+  @@index([featureFlagId, createdAt])
+}
+
+model BetaGroup {
+  id          String              @id @default(cuid())
+  key         String              @unique
+  name        String
+  description String?
+  createdAt   DateTime            @default(now())
+  members     BetaGroupMember[]
+  assignments FeatureFlagAssignment[]
+}
+
+model BetaGroupMember {
+  id          String    @id @default(cuid())
+  betaGroupId String
+  betaGroup   BetaGroup @relation(fields: [betaGroupId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime  @default(now())
+  @@unique([betaGroupId, userId])
+  @@index([userId])
+}
+
+model ServiceRecoveryCase {
+  id              String                 @id @default(cuid())
+  participantId   String
+  organisationId  String?
+  bookingId       String?
+  trigger         ServiceRecoveryTrigger
+  status          ServiceRecoveryStatus  @default(open)
+  summary         String
+  highRisk        Boolean                @default(false)
+  supportTicketId String?
+  incidentId      String?
+  createdById     String?
+  resolvedAt      DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  events          ServiceRecoveryEvent[]
+  backupOptions   ServiceRecoveryBackupOption[]
+  actions         ServiceRecoveryAction[]
+  escalations     RecoveryEscalation[]
+  notifications   RecoveryNotificationLog[]
+  @@index([participantId, status])
+  @@index([bookingId])
+}
+
+model ServiceRecoveryEvent {
+  id          String              @id @default(cuid())
+  caseId      String
+  case        ServiceRecoveryCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  metadata    Json?
+  createdAt   DateTime            @default(now())
+  @@index([caseId])
+}
+
+model ServiceRecoveryBackupOption {
+  id              String              @id @default(cuid())
+  caseId          String
+  case            ServiceRecoveryCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  workerId        String?
+  driverId        String?
+  organisationId  String?
+  label           String
+  availableAt     DateTime?
+  passesGates     Boolean             @default(true)
+  selected        Boolean             @default(false)
+  confirmed       Boolean             @default(false)
+  createdAt       DateTime            @default(now())
+  @@index([caseId])
+}
+
+model ServiceRecoveryAction {
+  id          String              @id @default(cuid())
+  caseId      String
+  case        ServiceRecoveryCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  actionType  String
+  actorUserId String?
+  notes       String?
+  createdAt   DateTime            @default(now())
+  @@index([caseId])
+}
+
+model RecoveryEscalation {
+  id          String              @id @default(cuid())
+  caseId      String
+  case        ServiceRecoveryCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  reason      String
+  escalatedBy String?
+  createdAt   DateTime            @default(now())
+}
+
+model RecoveryNotificationLog {
+  id          String              @id @default(cuid())
+  caseId      String
+  case        ServiceRecoveryCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  recipientId String
+  channel     String
+  bodyPreview String
+  sentAt      DateTime            @default(now())
+  @@index([caseId])
+}
+
+model WaitlistRequest {
+  id                      String          @id @default(cuid())
+  participantId           String
+  requestedServiceType    String
+  accessNeeds             Json?
+  suburb                  String?
+  postcode                String?
+  urgencyLevel            WaitlistUrgency @default(routine)
+  preferredDaysTimes      Json?
+  fundingContextOptional  String?
+  consentToNotifyProviders Boolean        @default(false)
+  status                  WaitlistStatus  @default(pending)
+  createdById             String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  events                  WaitlistEvent[]
+  matchSuggestions        CapacityMatchSuggestion[]
+  @@index([participantId, status])
+}
+
+model WaitlistEvent {
+  id              String          @id @default(cuid())
+  waitlistId      String
+  waitlist        WaitlistRequest @relation(fields: [waitlistId], references: [id], onDelete: Cascade)
+  eventType       String
+  actorUserId     String?
+  metadata        Json?
+  createdAt       DateTime        @default(now())
+  @@index([waitlistId])
+}
+
+model ProviderCapacityBlock {
+  id                      String   @id @default(cuid())
+  organisationId          String
+  serviceType             String
+  locationRadiusKm        Int?
+  availableDates          Json?
+  accessCapabilities      Json?
+  workerCount             Int?
+  acceptingNewParticipants Boolean @default(true)
+  verificationRequiredLevel String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  services                ProviderCapacityService[]
+  @@index([organisationId])
+}
+
+model ProviderCapacityService {
+  id          String                @id @default(cuid())
+  capacityId  String
+  capacity    ProviderCapacityBlock @relation(fields: [capacityId], references: [id], onDelete: Cascade)
+  serviceCode String
+  label       String
+}
+
+model CapacityMatchSuggestion {
+  id              String              @id @default(cuid())
+  waitlistId      String
+  waitlist        WaitlistRequest     @relation(fields: [waitlistId], references: [id], onDelete: Cascade)
+  organisationId  String
+  capacityId      String?
+  status          CapacityMatchStatus @default(suggested)
+  matchScore      Float?
+  createdAt       DateTime            @default(now())
+  notifications   CapacityExchangeNotification[]
+  @@index([waitlistId])
+}
+
+model CapacityExchangeNotification {
+  id           String                  @id @default(cuid())
+  matchId      String
+  match        CapacityMatchSuggestion @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  recipientId  String
+  sentAt       DateTime                @default(now())
+}
+
+model OutcomeGoal {
+  id            String            @id @default(cuid())
+  participantId String
+  goalText      String
+  goalArea      String?
+  source        OutcomeGoalSource @default(participant_entered)
+  status        OutcomeGoalStatus @default(active)
+  reviewDate    DateTime?
+  visibility    String            @default("participant_only")
+  createdById   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  checkins      OutcomeCheckin[]
+  links         OutcomeGoalLink[]
+  progress      OutcomeProgressEntry[]
+  activityLinks SupportActivityOutcomeLink[]
+  @@index([participantId])
+}
+
+model OutcomeGoalLink {
+  id         String      @id @default(cuid())
+  goalId     String
+  goal       OutcomeGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  linkedType String
+  linkedId   String
+}
+
+model OutcomeCheckin {
+  id                 String      @id @default(cuid())
+  goalId             String
+  goal               OutcomeGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  submittedById      String
+  progressRating     Int?
+  narrativeUpdate    String?
+  barriers           String?
+  nextSteps          String?
+  participantVisible Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  @@index([goalId])
+}
+
+model OutcomeProgressEntry {
+  id        String      @id @default(cuid())
+  goalId    String
+  goal      OutcomeGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  entryText String
+  createdAt DateTime    @default(now())
+}
+
+model SupportActivityOutcomeLink {
+  id            String      @id @default(cuid())
+  goalId        String
+  goal          OutcomeGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  activityType  String
+  activityId    String
+  createdAt     DateTime    @default(now())
+  @@index([goalId])
+}
+
+model OutcomeSummarySnapshot {
+  id            String   @id @default(cuid())
+  participantId String
+  summaryJson   Json
+  createdAt     DateTime @default(now())
+  @@index([participantId])
+}
+
+model QuoteRequest {
+  id            String             @id @default(cuid())
+  participantId String
+  quoteType     QuoteType
+  title         String
+  description   String?
+  status        QuoteRequestStatus @default(draft)
+  metadata      Json?
+  createdById   String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  providers     QuoteRequestProvider[]
+  responses     QuoteResponse[]
+  events        QuoteEvent[]
+  @@index([participantId])
+}
+
+model QuoteRequestProvider {
+  id              String       @id @default(cuid())
+  quoteRequestId  String
+  quoteRequest    QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  organisationId  String
+  status          String       @default("invited")
+  @@unique([quoteRequestId, organisationId])
+}
+
+model QuoteResponse {
+  id              String       @id @default(cuid())
+  quoteRequestId  String
+  quoteRequest    QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  organisationId  String
+  totalCents      Int
+  notes           String?
+  validUntil      DateTime?
+  accepted        Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  lineItems       QuoteResponseLineItem[]
+  @@index([quoteRequestId])
+}
+
+model QuoteResponseLineItem {
+  id           String        @id @default(cuid())
+  responseId   String
+  response     QuoteResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  description  String
+  amountCents  Int
+  ndisItemCode String?
+}
+
+model QuoteEvent {
+  id             String       @id @default(cuid())
+  quoteRequestId String
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  eventType      String
+  actorUserId    String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+}
+
+model QuoteComparisonSnapshot {
+  id             String   @id @default(cuid())
+  quoteRequestId String
+  snapshotJson   Json
+  createdAt      DateTime @default(now())
+}
+
+model SupportTicketMessage {
+  id         String        @id @default(cuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId   String
+  body       String
+  isInternal Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  @@index([ticketId])
+}
+
+model SupportTicketEvent {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  @@index([ticketId])
+}
+
+model SupportTicketAttachment {
+  id         String        @id @default(cuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  documentId String?
+  fileKey    String?
+  createdAt  DateTime      @default(now())
+}
+
+model SupportTicketAssignment {
+  id         String        @id @default(cuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  adminId    String
+  assignedAt DateTime      @default(now())
+  @@index([ticketId])
+}
+
+model SupportTicketTag {
+  id       String        @id @default(cuid())
+  ticketId String
+  ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tag      String
+  @@index([ticketId])
+}
+
+model ParticipantTimelineEvent {
+  id            String            @id @default(cuid())
+  participantId String
+  eventType     TimelineEventType
+  title         String
+  summary       String?
+  sourceType    String?
+  sourceId      String?
+  occurredAt    DateTime          @default(now())
+  redacted      Boolean           @default(false)
+  visibility    String            @default("participant")
+  metadata      Json?
+  createdAt     DateTime          @default(now())
+  links         TimelineEventLink[]
+  @@index([participantId, occurredAt])
+}
+
+model TimelineEventLink {
+  id         String                 @id @default(cuid())
+  eventId    String
+  event      ParticipantTimelineEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  linkedType String
+  linkedId   String
+}
+
+model TimelineExport {
+  id            String   @id @default(cuid())
+  participantId String
+  exportedById  String
+  format        String
+  createdAt     DateTime @default(now())
+}
+
+model TimelineVisibilityRule {
+  id            String @id @default(cuid())
+  participantId String
+  eventType     TimelineEventType
+  viewerRole    String
+  allowed       Boolean @default(false)
+  @@index([participantId])
+}
+
+model EvidencePack {
+  id            String             @id @default(cuid())
+  participantId String
+  packType      EvidencePackType
+  title         String
+  status        EvidencePackStatus @default(draft)
+  createdById   String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  sections      EvidencePackSection[]
+  items         EvidencePackItem[]
+  exports       EvidencePackExport[]
+  events        EvidencePackEvent[]
+  @@index([participantId])
+}
+
+model EvidencePackSection {
+  id          String       @id @default(cuid())
+  packId      String
+  pack        EvidencePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+  title       String
+  summary     String?
+  sortOrder   Int          @default(0)
+}
+
+model EvidencePackItem {
+  id          String       @id @default(cuid())
+  packId      String
+  pack        EvidencePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+  sectionId   String?
+  sourceType  String
+  sourceId    String?
+  label       String
+  snapshot    Json?
+  createdAt   DateTime     @default(now())
+}
+
+model EvidencePackExport {
+  id          String       @id @default(cuid())
+  packId      String
+  pack        EvidencePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+  exportedById String
+  format      String
+  createdAt   DateTime     @default(now())
+}
+
+model EvidencePackEvent {
+  id          String       @id @default(cuid())
+  packId      String
+  pack        EvidencePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  createdAt   DateTime     @default(now())
+}
+
+model UnmetNeedRecord {
+  id              String          @id @default(cuid())
+  participantId   String
+  needType        UnmetNeedType
+  status          UnmetNeedStatus @default(open)
+  description     String?
+  suburb          String?
+  postcode        String?
+  regionKey       String?
+  createdById     String?
+  waitlistId      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  events          UnmetNeedEvent[]
+  searchContexts  UnmetNeedSearchContext[]
+  @@index([participantId])
+  @@index([regionKey, needType])
+}
+
+model UnmetNeedEvent {
+  id          String          @id @default(cuid())
+  recordId    String
+  record      UnmetNeedRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  createdAt   DateTime        @default(now())
+}
+
+model UnmetNeedSearchContext {
+  id          String          @id @default(cuid())
+  recordId    String
+  record      UnmetNeedRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  queryJson   Json
+  createdAt   DateTime        @default(now())
+}
+
+model UnmetNeedAggregate {
+  id          String   @id @default(cuid())
+  regionKey   String
+  needType    UnmetNeedType
+  count       Int
+  periodStart DateTime
+  periodEnd   DateTime
+  suppressed  Boolean  @default(false)
+  @@index([regionKey, needType])
+}
+
+model ServiceGapRegion {
+  id          String   @id @default(cuid())
+  regionKey   String   @unique
+  label       String
+  summaryJson Json?
+  updatedAt   DateTime @updatedAt
+}
+
+model ProviderQualityProfile {
+  id             String   @id @default(cuid())
+  organisationId String   @unique
+  publicLabel    String?
+  updatedAt      DateTime @updatedAt
+  signals        ProviderQualitySignal[]
+  events         ProviderQualitySignalEvent[]
+  runs           ProviderQualityCalculationRun[]
+  feedback       ProviderQualityFeedbackInput[]
+}
+
+model ProviderQualitySignal {
+  id             String                      @id @default(cuid())
+  profileId      String
+  profile        ProviderQualityProfile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  category       ProviderQualitySignalCategory
+  label          String
+  value          String?
+  numericValue   Float?
+  explanation    String?
+  visiblePublic  Boolean                     @default(true)
+  calculatedAt   DateTime                    @default(now())
+  @@index([profileId])
+}
+
+model ProviderQualitySignalEvent {
+  id          String                 @id @default(cuid())
+  profileId   String
+  profile     ProviderQualityProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  eventType   String
+  metadata    Json?
+  createdAt   DateTime               @default(now())
+}
+
+model ProviderQualityCalculationRun {
+  id             String                 @id @default(cuid())
+  profileId      String
+  profile        ProviderQualityProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  triggeredById  String?
+  status         String                 @default("completed")
+  createdAt      DateTime               @default(now())
+}
+
+model ProviderQualityFeedbackInput {
+  id             String                 @id @default(cuid())
+  profileId      String
+  profile        ProviderQualityProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  source         String
+  summary        String
+  createdAt      DateTime               @default(now())
+}

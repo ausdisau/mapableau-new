@@ -1,3 +1,9 @@
 export { createLinkedTransportFromCareRequest } from "./care-transport-orchestrator";
 export { createInterviewSupportDraft } from "./jobs-support-orchestrator";
 export { createInvoiceLinesFromApprovedCareShift } from "./invoice-orchestrator";
+export { openRecoveryCaseFromBookingEvent } from "./service-recovery-orchestrator";
+export { matchWaitlistWhenReady } from "./capacity-orchestrator";
+export { linkActivityToOutcomeGoal } from "./outcomes-orchestrator";
+export { addTimelineToEvidencePack } from "./evidence-pack-orchestrator";
+export { openSupportTicketWithDesk } from "./support-desk-orchestrator";
+export { refreshProviderQualityIfEnabled } from "./provider-quality-orchestrator";

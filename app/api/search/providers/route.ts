@@ -10,5 +10,25 @@ export async function GET(req: Request) {
     serviceRegion: searchParams.get("region") ?? undefined,
     verificationStatus: searchParams.get("verification") ?? undefined,
   });
+
+  if (results.length === 0 && searchParams.get("recordUnmet") === "true") {
+    try {
+      const { createUnmetNeed } = await import("@/lib/unmet-needs/unmet-need-service");
+      await createUnmetNeed({
+        participantId: user.id,
+        needType: "no_provider_found",
+        description: "No providers matched search filters.",
+        suburb: searchParams.get("region") ?? undefined,
+        searchContext: {
+          region: searchParams.get("region"),
+          verification: searchParams.get("verification"),
+        },
+        createdById: user.id,
+      });
+    } catch {
+      // Module disabled or not applicable
+    }
+  }
+
   return jsonOk({ results });
 }

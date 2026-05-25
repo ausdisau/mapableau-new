@@ -169,7 +169,18 @@ export type Permission =
   | "research_federation:manage"
   | "continuity:manage"
   | "civic_audit:publish"
-  | "federation_partner:manage";
+  | "federation_partner:manage"
+  | "feature_flags:manage"
+  | "service_recovery:read"
+  | "service_recovery:manage"
+  | "waitlist:manage"
+  | "outcomes:write"
+  | "quotes:manage"
+  | "support_desk:manage"
+  | "timeline:read"
+  | "evidence_pack:manage"
+  | "unmet_need:read"
+  | "provider_quality:admin";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -206,6 +217,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "attestation:read:self",
     "data_vault:self",
     "outcomes:read",
+    "outcomes:write",
+    "timeline:read",
+    "evidence_pack:manage",
+    "waitlist:manage",
+    "quotes:manage",
+    "service_recovery:read",
     "safeguards:read",
     "membership:read",
     "transport_investment:read",
@@ -222,6 +239,11 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "coordinator:portal",
     "document:read",
     "invoice:read:self",
+    "waitlist:manage",
+    "outcomes:read",
+    "timeline:read",
+    "quotes:manage",
+    "unmet_need:read",
   ],
   support_worker: [
     "booking:read:any",
@@ -408,6 +430,17 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "continuity:manage",
     "civic_audit:publish",
     "federation_partner:manage",
+    "feature_flags:manage",
+    "service_recovery:read",
+    "service_recovery:manage",
+    "waitlist:manage",
+    "outcomes:write",
+    "quotes:manage",
+    "support_desk:manage",
+    "timeline:read",
+    "evidence_pack:manage",
+    "unmet_need:read",
+    "provider_quality:admin",
   ],
 };
 
