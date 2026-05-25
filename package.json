@@ -18,6 +18,7 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
+    "ingest:ndis-providers": "npx tsx scripts/ingest-ndis-list-providers.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py"
   },
   "lint-staged": {

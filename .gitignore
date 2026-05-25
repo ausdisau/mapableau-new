@@ -77,3 +77,6 @@ yarn.lock
 # Logs
 logs
 *.log
+
+# Generated NDIS map pin index (pnpm ingest:ndis-providers)
+public/data/provider-outlets-map.json
