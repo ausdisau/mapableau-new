@@ -15,7 +15,7 @@ export function MessageComposer({
 }) {
   const { online } = useNetworkStatus();
   const draftKey = `message:${conversationId}`;
-  const { value, setValue, status } = useFormAutosave(draftKey, "");
+  const { value, setValue, status } = useFormAutosave(draftKey, "", "message");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

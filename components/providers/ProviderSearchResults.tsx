@@ -6,6 +6,7 @@ export type ProviderResult = {
   suburb?: string;
   distanceKm?: number | null;
   sponsored?: boolean;
+  categories?: string[];
 };
 
 export function ProviderSearchResults({

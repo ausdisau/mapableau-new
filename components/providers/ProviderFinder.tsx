@@ -41,13 +41,36 @@ export function ProviderFinder({
           p.suburb?.toLowerCase().includes(q)
       );
     }
+    if (chip === "transport") {
+      list = list.filter((p) =>
+        (p.categories ?? []).some((c) => /transport/i.test(c)) ||
+        /transport/i.test(p.name)
+      );
+    } else if (chip === "ndis") {
+      list = list.filter(
+        (p) =>
+          p.sponsored ||
+          (p.categories ?? []).some((c) => /ndis/i.test(c)) ||
+          /ndis/i.test(p.name)
+      );
+    } else if (chip === "nearby" && position) {
+      list = list.filter((p) => p.distanceKm != null && p.distanceKm <= 25);
+    }
+    if (supportType) {
+      const st = supportType.replace(/_/g, " ");
+      list = list.filter((p) =>
+        (p.categories ?? []).some((c) =>
+          c.toLowerCase().includes(st.toLowerCase())
+        )
+      );
+    }
     if (position && list.some((p) => p.distanceKm != null)) {
       list = [...list].sort(
         (a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999)
       );
     }
     return list;
-  }, [initialResults, query, position]);
+  }, [initialResults, query, position, chip, supportType]);
 
 
   const requestLocation = () => {

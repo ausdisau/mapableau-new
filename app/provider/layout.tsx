@@ -1,5 +1,5 @@
 import { PwaAppLayout } from "@/components/layout/PwaAppLayout";
-import { requireAuth } from "@/lib/auth/guards";
+import { requireAuth, requirePermission } from "@/lib/auth/guards";
 
 export default async function ProviderLayout({
   children,
@@ -7,6 +7,7 @@ export default async function ProviderLayout({
   children: React.ReactNode;
 }) {
   await requireAuth();
+  await requirePermission("care:read:org");
 
   return <PwaAppLayout>{children}</PwaAppLayout>;
 }

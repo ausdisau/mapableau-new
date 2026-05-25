@@ -1,9 +1,14 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import { BigActionButton } from "@/components/field/BigActionButton";
-import { FieldModeShell } from "@/components/field/FieldModeShell";
-import { ShiftStatusStepper } from "@/components/field/ShiftStatusStepper";
-import { requireAuth } from "@/lib/auth/guards";
+import { AccessNeedsSummary } from "@/components/care/AccessNeedsSummary";
+import { ShiftStatusStepper } from "@/components/care/ShiftStatusStepper";
+import { SupportTasksSummary } from "@/components/care/SupportTasksSummary";
+import { WorkerShiftActions } from "@/components/care/WorkerShiftActions";
+import { requirePermission } from "@/lib/auth/guards";
+import { assertWorkerAssignedToShift } from "@/lib/care/access-control";
+import { filterParticipantInfoForWorker } from "@/lib/care/care-participant-info";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Shift | MapAble Worker" };
 
@@ -12,20 +17,49 @@ export default async function WorkerShiftPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAuth();
+  const user = await requirePermission("care:shift:work");
   const { id } = await params;
 
+  const shift = await prisma.careShift.findUnique({
+    where: { id },
+    include: { careRequest: true },
+  });
+  if (!shift) notFound();
+
+  try {
+    await assertWorkerAssignedToShift(user, shift);
+  } catch {
+    notFound();
+  }
+
+  const info = filterParticipantInfoForWorker(user, shift.careRequest, shift);
+
   return (
-    <FieldModeShell title={`Shift ${id.slice(0, 8)}`}>
-      <ShiftStatusStepper current="scheduled" />
-      <BigActionButton href={`/worker/shifts/${id}/service-log`} label="Service log" variant="primary" />
-      <BigActionButton href="/dashboard/messages" label="Message team" variant="secondary" />
-      <Link
-        href="/dashboard/incidents/new"
-        className="block min-h-11 text-center text-sm font-medium text-destructive underline"
-      >
-        Report incident
-      </Link>
-    </FieldModeShell>
+    <div className="space-y-6">
+      <h1 className="font-heading text-2xl font-bold">{info.displayLabel}</h1>
+      <ShiftStatusStepper status={shift.status} />
+      {info.location ? (
+        <p className="text-sm">
+          <span className="font-medium">Location:</span> {info.location}
+        </p>
+      ) : null}
+      <SupportTasksSummary tasks={info.tasks} />
+      <AccessNeedsSummary summary={info.accessSummary} />
+      <WorkerShiftActions shiftId={shift.id} status={shift.status} />
+      <p className="flex flex-wrap gap-4 text-sm">
+        <Link
+          href={`/worker/shifts/${shift.id}/service-log`}
+          className="inline-flex min-h-11 items-center underline"
+        >
+          Submit service log
+        </Link>
+        <Link
+          href={`/worker/report-issue?shiftId=${shift.id}`}
+          className="inline-flex min-h-11 items-center underline"
+        >
+          Report issue
+        </Link>
+      </p>
+    </div>
   );
 }

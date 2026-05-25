@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import type { OfflineDraftType } from "@/lib/offline/offline-policy";
 import { enqueueDraft, getDraftByKey } from "@/lib/offline/offline-queue-service";
 import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 
@@ -9,7 +10,11 @@ const LS_PREFIX = "mapable-form-draft:";
 
 export type AutosaveStatus = "idle" | "saving" | "saved" | "error";
 
-export function useFormAutosave(key: string, initial = "") {
+export function useFormAutosave(
+  key: string,
+  initial = "",
+  draftType: OfflineDraftType = "service_log"
+) {
   const { online } = useNetworkStatus();
   const [value, setValue] = useState(initial);
   const [status, setStatus] = useState<AutosaveStatus>("idle");
@@ -31,14 +36,14 @@ export function useFormAutosave(key: string, initial = "") {
       try {
         localStorage.setItem(`${LS_PREFIX}${key}`, text);
         if (!online) {
-          await enqueueDraft("service_log", key, { text });
+          await enqueueDraft(draftType, key, { text });
         }
         setStatus("saved");
       } catch {
         setStatus("error");
       }
     },
-    [key, online]
+    [key, online, draftType]
   );
 
   useEffect(() => {

@@ -1,11 +1,12 @@
 import { PwaAppLayout } from "@/components/layout/PwaAppLayout";
-import { requireAuth } from "@/lib/auth/guards";
+import { requirePermission } from "@/lib/auth/guards";
 
 export default async function WorkerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  await requirePermission("care:shift:work");
+
   return <PwaAppLayout>{children}</PwaAppLayout>;
 }
