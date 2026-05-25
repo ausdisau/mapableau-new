@@ -1,3 +1,7 @@
+﻿import { distanceKm } from "@/lib/geo";
+
+export { distanceKm };
+
 /** Haversine distance in kilometres between two WGS84 points. */
 export function haversineKm(
   lat1: number,
@@ -15,4 +19,12 @@ export function haversineKm(
       Math.cos(toRad(lat2)) *
       Math.sin(dLng / 2) ** 2;
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10) / 10;
+}
+
+export function sortByDistance<T extends { distanceKm?: number | null }>(
+  items: T[]
+): T[] {
+  return [...items].sort(
+    (a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity)
+  );
 }

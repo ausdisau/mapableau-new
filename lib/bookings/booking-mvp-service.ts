@@ -1,6 +1,7 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { isOrganisationBookingEligible } from "@/lib/providers/provider-org-profile-service";
 import { prisma } from "@/lib/prisma";
+import { createRecoveryCaseFromDeclinedBooking } from "@/lib/service-recovery/service-recovery-service";
 
 export async function recordBookingEvent(
   bookingId: string,
@@ -79,6 +80,8 @@ export async function providerDeclineBookingMvp(
     participantId: booking.participantId,
     organisationId,
   });
+
+  await createRecoveryCaseFromDeclinedBooking(bookingId, actorUserId, note);
 
   return booking;
 }

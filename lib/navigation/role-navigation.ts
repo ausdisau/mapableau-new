@@ -19,7 +19,7 @@ const PROVIDER_ADMIN_NAV: NavItem[] = [
   { href: "/jobs", label: "Jobs" },
   { href: "/provider/bookings", label: "Roster" },
   { href: "/provider/messages", label: "Messages" },
-  { href: "/provider/profile", label: "More" },
+  { href: "/provider/service-recovery", label: "More" },
 ];
 
 const WORKER_NAV: NavItem[] = [
@@ -49,7 +49,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
   { href: "/quality", label: "Quality" },
   { href: "/admin/support-desk", label: "Support" },
-  { href: "/admin/analytics", label: "Reports" },
+  { href: "/admin/verification", label: "Verify" },
   { href: "/admin/settings", label: "More" },
 ];
 

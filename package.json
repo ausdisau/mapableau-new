@@ -18,7 +18,8 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
-    "neon:configure": "python3 scripts/configure-neon-env.py"
+    "neon:configure": "python3 scripts/configure-neon-env.py",
+    "check:integrations-env": "pnpm exec tsx scripts/check-integrations-env.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -38,6 +39,7 @@
     "@pusher/push-notifications-web": "^1.1.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@sendgrid/mail": "^8.1.6",
+    "@supabase/supabase-js": "^2.106.2",
     "@tanstack/react-query": "^5.90.16",
     "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
@@ -49,6 +51,7 @@
     "framer-motion": "^12.26.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
+    "maplibre-gl": "^5.24.0",
     "next": "15.5.7",
     "next-auth": "^4.24.13",
     "react": "^18.0.0",
@@ -85,6 +88,7 @@
     "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
     "prisma": "^6.19.2",
+    "tsx": "^4.22.3",
     "typescript": "^5.0.0",
     "vitest": "^3.2.4"
   }

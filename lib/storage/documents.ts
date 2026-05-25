@@ -3,18 +3,35 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 
 import { phase2Config } from "@/lib/config/phase2";
+import {
+  readSupabaseDocumentFile,
+  storeSupabaseDocumentFile,
+} from "@/lib/storage/supabase-document-storage";
 
 const UPLOAD_ROOT = path.join(process.cwd(), ".data", "documents");
 
+function getDocumentStorageMode(): "local" | "supabase" | string {
+  return (
+    process.env.DOCUMENT_STORAGE_BACKEND ?? phase2Config.documentStorageMode
+  );
+}
+
 export async function storeDocumentFile(
   buffer: Buffer,
-  originalName: string
+  originalName: string,
 ): Promise<{ fileKey: string; mimeType: string; fileSize: number }> {
-  if (phase2Config.documentStorageMode !== "local") {
+  const mode = getDocumentStorageMode();
+  const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const mimeType = guessMime(safeName);
+
+  if (mode === "supabase") {
+    return storeSupabaseDocumentFile(buffer, safeName, mimeType);
+  }
+
+  if (mode !== "local") {
     throw new Error("Only local document storage is configured in Phase 2");
   }
 
-  const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
   const fileKey = `${hash}-${safeName}`;
   const dir = UPLOAD_ROOT;
@@ -23,12 +40,16 @@ export async function storeDocumentFile(
 
   return {
     fileKey,
-    mimeType: guessMime(safeName),
+    mimeType,
     fileSize: buffer.length,
   };
 }
 
 export async function readDocumentFile(fileKey: string): Promise<Buffer> {
+  if (getDocumentStorageMode() === "supabase") {
+    return readSupabaseDocumentFile(fileKey);
+  }
+
   const safeKey = path.basename(fileKey);
   return readFile(path.join(UPLOAD_ROOT, safeKey));
 }
@@ -49,7 +70,7 @@ export const ALLOWED_MIME_TYPES = [
 
 export function validateUpload(
   mimeType: string,
-  fileSize: number
+  fileSize: number,
 ): string | null {
   const maxBytes = phase2Config.documentMaxUploadMb * 1024 * 1024;
   if (fileSize > maxBytes) {

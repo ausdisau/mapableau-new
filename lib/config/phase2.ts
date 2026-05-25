@@ -5,7 +5,10 @@ import {
 } from "@/lib/stripe/config";
 
 export const phase2Config = {
-  documentStorageMode: process.env.DOCUMENT_STORAGE_MODE ?? "local",
+  documentStorageMode:
+    process.env.DOCUMENT_STORAGE_MODE ??
+    process.env.DOCUMENT_STORAGE_BACKEND ??
+    "local",
   documentMaxUploadMb: Number(process.env.DOCUMENT_MAX_UPLOAD_MB ?? "10"),
   billingDefaultCurrency: process.env.BILLING_DEFAULT_CURRENCY ?? "AUD",
   billingRequirePreflight: process.env.BILLING_REQUIRE_PREFLIGHT !== "false",
@@ -28,7 +31,7 @@ export { isStripeSdkAvailable };
 export function isXeroConfigured(): boolean {
   return Boolean(
     phase2Config.billingEnableXero &&
-      phase2Config.xeroClientId &&
-      phase2Config.xeroClientSecret
+    phase2Config.xeroClientId &&
+    phase2Config.xeroClientSecret,
   );
 }

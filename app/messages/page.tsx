@@ -1,40 +1,52 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 
 import { PageContainer } from "@/components/layout/PageContainer";
-import { getCurrentUser } from "@/lib/auth/current-user";
-import { listConversationsForUser } from "@/lib/messages/message-service";
+import { CommunicationCentreShell } from "@/components/messages/CommunicationCentreShell";
+import { InboxPanel } from "@/components/messages/InboxPanel";
+import { requireAuth } from "@/lib/auth/guards";
 import { isAdminRole } from "@/lib/auth/roles";
+import { listConversationsForUser } from "@/lib/messages/message-service";
 
-export default async function MessagesPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login?returnTo=/messages");
+export const metadata = { title: "Communication Centre | MapAble" };
 
+export default async function MessagesHubPage() {
+  const user = await requireAuth("/login?returnTo=/messages");
   const conversations = await listConversationsForUser(
     user.id,
     isAdminRole(user.primaryRole)
   );
 
+  if (conversations.length === 1) {
+    redirect(`/messages/${conversations[0].id}`);
+  }
+
   return (
-    <PageContainer title="Messages">
-      {conversations.length === 0 ? (
-        <p role="status" className="text-slate-600">
-          No conversations yet. Message a provider from their profile.
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {conversations.map((c) => (
-            <li key={c.id}>
-              <Link
-                href={`/messages/${c.id}`}
-                className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-blue-300 min-h-11 focus-visible:ring-2 focus-visible:ring-blue-600"
-              >
-                <span className="font-medium">{c.title}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+    <PageContainer title="Communication Centre">
+      <p className="mb-4 text-sm text-muted-foreground">
+        Secure, consent-aware messaging. Select a conversation to continue.
+      </p>
+      <CommunicationCentreShell
+        sidebar={
+          <InboxPanel
+            conversations={conversations.map((c) => ({
+              id: c.id,
+              title: c.title,
+              lastMessageAt: c.lastMessageAt,
+            }))}
+          />
+        }
+        main={
+          conversations.length === 0 ? (
+            <p role="status" className="p-8 text-slate-600">
+              No conversations yet. Message a provider from their profile.
+            </p>
+          ) : (
+            <p className="p-8 text-muted-foreground">
+              Choose a thread from the inbox to view messages.
+            </p>
+          )
+        }
+      />
     </PageContainer>
   );
 }

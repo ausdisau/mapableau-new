@@ -1,5 +1,5 @@
-/**
- * Re-exports Prisma-generated types for the P0 platform spine.
+﻿/**
+ * Re-exports Prisma-generated types for the platform spine.
  * Backend remains source of truth via Prisma models.
  */
 
@@ -24,4 +24,7 @@ export type {
   OrganisationType,
   OrganisationStatus,
   ConsentStatus,
+  Prisma,
 } from "@prisma/client";
+
+export * from "@prisma/client";
