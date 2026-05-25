@@ -79,7 +79,7 @@ export function BookingWizard() {
       return;
     }
     const data = await res.json();
-    router.push(`/dashboard/bookings/${data.booking.id}`);
+    router.push(`/bookings/${data.booking.id}`);
   }
 
   return (

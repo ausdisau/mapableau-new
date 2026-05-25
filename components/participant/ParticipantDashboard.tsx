@@ -82,6 +82,16 @@ export function ParticipantDashboard({ data }: { data: DashboardData }) {
         )}
       </section>
 
+      <p className="text-sm">
+        <Link href="/participant/access-needs" className="text-blue-800 font-medium">
+          Update access needs
+        </Link>
+        {" · "}
+        <Link href="/support" className="text-blue-800 font-medium">
+          Get support
+        </Link>
+      </p>
+
       {data.unreadMessageCount > 0 ? (
         <p className="text-sm" role="status">
           <Link href="/messages" className="text-blue-800 font-medium">

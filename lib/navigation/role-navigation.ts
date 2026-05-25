@@ -48,7 +48,7 @@ const PLAN_MANAGER_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
   { href: "/quality", label: "Quality" },
-  { href: "/support", label: "Support" },
+  { href: "/admin/support-desk", label: "Support" },
   { href: "/admin/analytics", label: "Reports" },
   { href: "/admin/settings", label: "More" },
 ];
