@@ -32,6 +32,12 @@ export async function POST(req: Request) {
       name,
       email,
       passwordHash: passwordHash,
+      profileOnboardingStatus: {
+        create: {
+          onboardingStatus: "not_started",
+          completedSteps: [],
+        },
+      },
     },
   });
 

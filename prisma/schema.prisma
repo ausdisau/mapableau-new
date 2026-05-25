@@ -78,6 +78,13 @@ model User {
   incidentsReported         IncidentReport[]   @relation("IncidentReportedBy")
   incidentsOwned            IncidentReport[]   @relation("IncidentAdminOwner")
   serviceAgreementsParticipant ServiceAgreement[] @relation("ServiceAgreementParticipant")
+  profileOnboardingStatus    ProfileOnboardingStatus?
+  registrationConsents       RegistrationConsent[]
+  onboardingEvents           OnboardingEvent[]
+  nomineeOnboardingProfile     NomineeOnboardingProfile?
+  alliedHealthOnboarding     AlliedHealthOnboardingProfile?
+  planManagerOnboarding      PlanManagerOnboardingProfile?
+  employerOnboarding         EmployerOnboardingProfile?
   serviceAgreementsCreated  ServiceAgreement[] @relation("ServiceAgreementCreatedBy")
   attestationsAsActor       Attestation[]      @relation("AttestationActor")
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
@@ -372,7 +379,28 @@ enum MapAbleUserRole {
   driver
   employer
   plan_manager
+  allied_health_practitioner
   mapable_admin
+}
+
+enum OnboardingFlowStatus {
+  not_started
+  in_progress
+  submitted
+  complete
+  needs_review
+}
+
+enum ServiceEligibilityStatus {
+  onboarding_incomplete
+  submitted
+  needs_review
+  listed
+  verified
+  booking_eligible
+  matching_eligible
+  dispatch_eligible
+  not_eligible
 }
 
 enum OrganisationType {
@@ -4762,4 +4790,109 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+model ProfileOnboardingStatus {
+  id                String                   @id @default(cuid())
+  userId            String                   @unique
+  user              User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  selectedRole      String?
+  onboardingStatus  OnboardingFlowStatus     @default(not_started)
+  completedSteps    Json                     @default("[]")
+  nextStep          String?
+  eligibilityStatus ServiceEligibilityStatus @default(onboarding_incomplete)
+  roleDataJson      Json                     @default("{}")
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([onboardingStatus])
+}
+
+model RegistrationConsent {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consentType String
+  accepted    Boolean
+  acceptedAt  DateTime?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, consentType])
+  @@index([userId])
+}
+
+model OnboardingEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        String?
+  eventType   String
+  actorId     String?
+  payloadJson Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+}
+
+model NomineeOnboardingProfile {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relationshipToParticipant String
+  authorityType           String
+  participantLinkMethod   String?
+  permissionScopes        Json     @default("[]")
+  proofRequired           Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model AlliedHealthOnboardingProfile {
+  id                            String                   @id @default(cuid())
+  userId                        String                   @unique
+  user                          User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profession                    String
+  qualificationsSummary         String
+  ahpraRegistrationNumber       String?
+  professionalBody              String?
+  deliveryModes                 Json                     @default("[]")
+  serviceRegions                Json                     @default("[]")
+  clinicalBookingEligibilityStatus ServiceEligibilityStatus @default(onboarding_incomplete)
+  createdAt                     DateTime                 @default(now())
+  updatedAt                     DateTime                 @updatedAt
+}
+
+model PlanManagerOnboardingProfile {
+  id                              String   @id @default(cuid())
+  userId                          String   @unique
+  user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisationName                String
+  abnOrNzbn                       String
+  primaryContactName              String
+  invoiceReceivingEmail           String
+  paymentProcessingContact        String?
+  planManagementRegistrationDetails String?
+  createdAt                       DateTime @default(now())
+  updatedAt                       DateTime @updatedAt
+}
+
+model EmployerOnboardingProfile {
+  id                          String                   @id @default(cuid())
+  userId                      String                   @unique
+  user                        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisationName            String
+  abnOrNzbn                   String
+  contactPerson               String
+  contactRole                 String
+  industry                    String
+  locations                   Json                     @default("[]")
+  website                     String?
+  inclusiveHiringCommitment   String
+  workplaceAccessibilitySummary String
+  jobPostingPermissionStatus  ServiceEligibilityStatus @default(onboarding_incomplete)
+  createdAt                   DateTime                 @default(now())
+  updatedAt                   DateTime                 @updatedAt
 }
