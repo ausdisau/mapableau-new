@@ -18,7 +18,9 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
-    "neon:configure": "python3 scripts/configure-neon-env.py"
+    "neon:configure": "python3 scripts/configure-neon-env.py",
+    "neon:sync": "python3 scripts/sync-neon-vercel-env.py",
+    "vercel:env:push": "bash scripts/vercel-env-push.sh"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
