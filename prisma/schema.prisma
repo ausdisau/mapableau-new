@@ -4763,3 +4763,80 @@ model NdiaProviderClaimAudit {
 
   @@index([claimId, createdAt])
 }
+
+// MapAble Graph Intelligence Layer — PostgreSQL graph store (nodes, edges, events, snapshots)
+
+model GraphNode {
+  id            String   @id @default(uuid()) @db.Uuid
+  graphType     String
+  nodeType      String
+  entityId      String?
+  participantId String?
+  label         String
+  status        String?
+  dataJson      Json     @default("{}")
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  edgesFrom GraphEdge[] @relation("GraphEdgeFrom")
+  edgesTo   GraphEdge[] @relation("GraphEdgeTo")
+
+  @@index([participantId])
+  @@index([graphType])
+  @@index([nodeType])
+  @@map("graph_nodes")
+}
+
+model GraphEdge {
+  id            String   @id @default(uuid()) @db.Uuid
+  graphType     String
+  edgeType      String
+  fromNodeId    String   @db.Uuid
+  toNodeId      String   @db.Uuid
+  fromNode      GraphNode @relation("GraphEdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode        GraphNode @relation("GraphEdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  participantId String?
+  confidence    Decimal? @db.Decimal(5, 4)
+  weight        Decimal? @db.Decimal(8, 4)
+  dataJson      Json     @default("{}")
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  @@index([participantId])
+  @@index([graphType])
+  @@index([edgeType])
+  @@index([fromNodeId])
+  @@index([toNodeId])
+  @@map("graph_edges")
+}
+
+model GraphEvent {
+  id             String   @id @default(uuid()) @db.Uuid
+  graphType      String
+  participantId  String?
+  eventType      String
+  relatedNodeId  String?  @db.Uuid
+  relatedEdgeId  String?  @db.Uuid
+  actorType      String?
+  actorId        String?
+  payloadJson    Json     @default("{}")
+  createdAt      DateTime @default(now())
+
+  @@index([participantId])
+  @@index([eventType])
+  @@map("graph_events")
+}
+
+model GraphSnapshot {
+  id            String   @id @default(uuid()) @db.Uuid
+  graphType     String
+  participantId String
+  snapshotJson  Json
+  reason        String?
+  createdAt     DateTime @default(now())
+
+  @@index([participantId])
+  @@index([graphType])
+  @@map("graph_snapshots")
+}

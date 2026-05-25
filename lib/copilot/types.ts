@@ -136,4 +136,10 @@ export type CopilotAskResponse = {
   /** Legacy-compatible fields for existing UI consumers */
   results?: unknown[];
   suggestedPrompts?: string[];
+  /** Graph intelligence layer sync when participant is signed in */
+  graphSync?: {
+    goals: Array<{ key: string; label: string }>;
+    supportNeeds: Array<{ key: string; label: string }>;
+    checkpointRequired: boolean;
+  };
 };

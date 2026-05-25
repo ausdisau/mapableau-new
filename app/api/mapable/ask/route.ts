@@ -5,6 +5,7 @@ import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { classifyIntent } from "@/lib/copilot/intentRouter";
 import type { CopilotAskResponse } from "@/lib/copilot/types";
+import { graphService } from "@/lib/mapable-graphs/service";
 
 const MAX_QUERY_LENGTH = 2000;
 
@@ -63,6 +64,34 @@ export async function POST(request: Request) {
       participantId,
     });
 
+    let graphSync: Awaited<
+      ReturnType<typeof graphService.syncFromLlmClassification>
+    > | null = null;
+    if (
+      participantId &&
+      (intent.type === "support" ||
+        intent.type === "combined" ||
+        intent.type === "transport" ||
+        intent.type === "unknown")
+    ) {
+      try {
+        graphSync = await graphService.syncFromLlmClassification(
+          participantId,
+          query
+        );
+        if (graphSync.checkpointRequired) {
+          guarded.requiredConfirmations.push({
+            type: "PARTICIPANT_CONFIRMATION",
+            title: "Confirm your support story",
+            explanation:
+              "MapAble drafted goals and support needs from your message. Nothing is booked until you review and confirm.",
+          });
+        }
+      } catch {
+        // Graph layer is best-effort; copilot still responds safely
+      }
+    }
+
     const response: CopilotAskResponse = {
       source: "mapable-copilot",
       intent: intent.type,
@@ -77,6 +106,13 @@ export async function POST(request: Request) {
       blockedActions: guarded.blockedActions,
       results: [],
       suggestedPrompts: buildSuggestedPrompts(intent.type),
+      graphSync: graphSync
+        ? {
+            goals: graphSync.classification.goals,
+            supportNeeds: graphSync.classification.supportNeeds,
+            checkpointRequired: graphSync.checkpointRequired,
+          }
+        : undefined,
     };
 
     return NextResponse.json(response);

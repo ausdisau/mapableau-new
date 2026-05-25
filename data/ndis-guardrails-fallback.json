@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ndis_no_auto_eligibility",
+    "title": "No automatic eligibility decisions",
+    "riskTier": "tier_3",
+    "outcome": "REQUIRE_HUMAN_REVIEW",
+    "patterns": ["eligibility", "funding decision", "plan reduction"],
+    "explanation": "Assessment and graph evidence cannot automatically decide eligibility or reduce support."
+  },
+  {
+    "id": "ndis_participant_confirmation",
+    "title": "Participant confirmation for service plans",
+    "riskTier": "tier_1",
+    "outcome": "REQUIRE_PARTICIPANT_CONFIRMATION",
+    "patterns": ["service plan", "booking commit", "recommendation accept"],
+    "explanation": "Service plans and bookings require explicit participant confirmation."
+  },
+  {
+    "id": "ndis_sensitive_sharing",
+    "title": "Scoped consent for data sharing",
+    "riskTier": "tier_2",
+    "outcome": "REQUIRE_SCOPED_CONSENT",
+    "patterns": ["share", "driver", "provider", "assessment summary"],
+    "explanation": "Only minimum necessary data may be shared with explicit consent scope."
+  },
+  {
+    "id": "ndis_safeguarding",
+    "title": "Safeguarding escalation",
+    "riskTier": "tier_4",
+    "outcome": "ESCALATE_SAFEGUARDING",
+    "patterns": ["angry", "unsafe", "abuse", "neglect", "harm", "complain about worker"],
+    "explanation": "Safeguarding signals pause normal booking flow and require human review."
+  },
+  {
+    "id": "ndis_manual_handling",
+    "title": "Credential check for manual handling",
+    "riskTier": "tier_2",
+    "outcome": "REQUIRE_CREDENTIAL_AND_TRAINING_CHECK",
+    "patterns": ["manual handling", "hoist", "two person transfer"],
+    "explanation": "Workers must have verified credentials before manual handling supports."
+  },
+  {
+    "id": "ndis_draft_only_ai",
+    "title": "AI outputs are draft-only",
+    "riskTier": "tier_1",
+    "outcome": "ALLOW_DRAFT_ONLY",
+    "patterns": ["infer", "recommend", "classify", "llm"],
+    "explanation": "AI-generated support suggestions remain drafts until participant confirms."
+  }
+]
