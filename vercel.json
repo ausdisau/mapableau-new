@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/admin/ingest/ndis-providers",
+      "schedule": "15 17 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
