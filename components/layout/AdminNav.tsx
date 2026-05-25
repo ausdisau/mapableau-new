@@ -41,6 +41,7 @@ const LINKS = [
   { href: "/admin/partner-sandbox", label: "Sandbox" },
   { href: "/admin/board-reporting", label: "Board" },
   { href: "/admin/community-governance", label: "Governance" },
+  { href: "/admin/peer", label: "MapAble Peer" },
   { href: "/admin/payment-reconciliation", label: "Reconcile" },
   { href: "/admin/operator-dispatch", label: "Op dispatch" },
   { href: "/admin/mobile-release", label: "Mobile" },

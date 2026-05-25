@@ -11,6 +11,7 @@ const consentScope = z.enum([
   "plan_manager.invoice_access",
   "transport.accessibility_share",
   "care.accessibility_share",
+  "peer.activity.read",
 ]);
 
 export const grantConsentSchema = z

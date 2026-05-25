@@ -169,7 +169,13 @@ export type Permission =
   | "research_federation:manage"
   | "continuity:manage"
   | "civic_audit:publish"
-  | "federation_partner:manage";
+  | "federation_partner:manage"
+  | "peer:access"
+  | "peer:profile:manage:self"
+  | "peer:circle:post"
+  | "peer:mentor:manage:self"
+  | "peer:moderate"
+  | "peer:admin";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -209,11 +215,17 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "safeguards:read",
     "membership:read",
     "transport_investment:read",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:circle:post",
   ],
   family_member: [
     "profile:read:self",
     "booking:read:self",
     "notification:read:self",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:circle:post",
   ],
   support_coordinator: [
     "profile:read:any",
@@ -291,6 +303,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "invoice:read:self",
     "booking:read:any",
     "notification:read:self",
+  ],
+  peer_mentor: [
+    "profile:read:self",
+    "notification:read:self",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:mentor:manage:self",
+    "peer:circle:post",
   ],
   mapable_admin: [
     "profile:read:any",
@@ -408,6 +428,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "continuity:manage",
     "civic_audit:publish",
     "federation_partner:manage",
+    "peer:access",
+    "peer:profile:manage:self",
+    "peer:circle:post",
+    "peer:mentor:manage:self",
+    "peer:moderate",
+    "peer:admin",
   ],
 };
 
