@@ -98,7 +98,7 @@ export async function runAndStorePreflight(
 export async function voidInvoice(invoiceId: string, actorUserId: string) {
   const invoice = await prisma.invoice.update({
     where: { id: invoiceId },
-    data: { status: "voided" },
+    data: { status: "void" },
   });
   await createAuditEvent({
     actorUserId,
