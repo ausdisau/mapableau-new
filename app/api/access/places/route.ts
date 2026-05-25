@@ -9,6 +9,10 @@ import {
   canSuggestPlace,
 } from "@/lib/access-map/access-place-policy";
 import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  jsonBodyErrorResponse,
+  parseJsonRequestBody,
+} from "@/lib/api/request-body";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 
 export async function GET(req: Request) {
@@ -49,7 +53,13 @@ export async function POST(req: Request) {
     return jsonError("Sign in to suggest a place", 401);
   }
 
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await parseJsonRequestBody(req);
+  } catch (e) {
+    const err = jsonBodyErrorResponse(e);
+    return jsonError(err.message, err.status);
+  }
   const parsed = createAccessPlaceSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 

@@ -2,6 +2,10 @@ import { createAccessReviewSchema } from "@/lib/validation/access-review";
 import { createAccessReview, listPublishedReviewsForPlace } from "@/lib/access-reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access-reviews/review-access-policy";
 import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  jsonBodyErrorResponse,
+  parseJsonRequestBody,
+} from "@/lib/api/request-body";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { prisma } from "@/lib/prisma";
 
@@ -42,11 +46,19 @@ export async function POST(
   if (user instanceof Response) return user;
 
   const { placeId } = await params;
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await parseJsonRequestBody(req);
+  } catch (e) {
+    const err = jsonBodyErrorResponse(e);
+    return jsonError(err.message, err.status);
+  }
   const parsed = createAccessReviewSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  const review = await createAccessReview({
+  let review;
+  try {
+    review = await createAccessReview({
     placeId,
     reviewerProfileId: user.id,
     displayNameMode: parsed.data.displayNameMode,
@@ -56,7 +68,20 @@ export async function POST(
     visibility: parsed.data.visibility,
     ratings: parsed.data.ratings,
     publish: parsed.data.publish,
-  });
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg === "REVIEW_RATE_LIMIT") {
+      return jsonError("Too many reviews submitted recently", 429);
+    }
+    if (msg === "REVIEW_ALREADY_PUBLISHED") {
+      return jsonError(
+        "You already have a published review for this place; update it instead",
+        409
+      );
+    }
+    throw e;
+  }
 
   return jsonOk({ review: { id: review.id, status: review.status } }, 201);
 }

@@ -5,6 +5,8 @@ import { scanReviewForModerationFlags } from "@/lib/access-moderation/content-sa
 import { recomputePlaceRatingSummaries } from "@/lib/access-reviews/review-summary-service";
 import { prisma } from "@/lib/prisma";
 
+const REVIEW_RATE_LIMIT_PER_HOUR = 10;
+
 export async function createAccessReview(params: {
   placeId: string;
   reviewerProfileId: string;
@@ -16,6 +18,30 @@ export async function createAccessReview(params: {
   ratings: { category: string; value: AccessRatingValue }[];
   publish?: boolean;
 }) {
+  const recentCount = await prisma.accessPlaceReview.count({
+    where: {
+      reviewerProfileId: params.reviewerProfileId,
+      createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
+    },
+  });
+  if (recentCount >= REVIEW_RATE_LIMIT_PER_HOUR) {
+    throw new Error("REVIEW_RATE_LIMIT");
+  }
+
+  if (params.publish) {
+    const existingPublished = await prisma.accessPlaceReview.findFirst({
+      where: {
+        placeId: params.placeId,
+        reviewerProfileId: params.reviewerProfileId,
+        status: "published",
+      },
+      select: { id: true },
+    });
+    if (existingPublished) {
+      throw new Error("REVIEW_ALREADY_PUBLISHED");
+    }
+  }
+
   const flags = scanReviewForModerationFlags(params.reviewBody);
   const status = flags.length
     ? "pending"
