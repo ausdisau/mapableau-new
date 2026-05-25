@@ -403,6 +403,8 @@ async function main() {
   await seedMapAblePhase10();
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
+  const { seedMapableResilience } = await import("./seed-mapable-resilience");
+  await seedMapableResilience(prisma);
 
   console.log("Seed complete.");
 }

@@ -88,6 +88,22 @@ export async function providerDeclineBooking(
     "Your booking request was declined by the provider. Our team will follow up."
   );
 
+  try {
+    const { openRecoveryCaseFromBookingEvent } = await import(
+      "@/lib/orchestration/service-recovery-orchestrator"
+    );
+    await openRecoveryCaseFromBookingEvent({
+      participantId: booking.participantId,
+      bookingId,
+      organisationId,
+      trigger: "provider_declined",
+      summary: note ?? "Provider declined the booking request.",
+      createdById: actorUserId,
+    });
+  } catch {
+    // Recovery module may be disabled
+  }
+
   return booking;
 }
 
