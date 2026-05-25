@@ -4,11 +4,12 @@ export async function readTextWithByteLimit(
   maxBytes: number
 ): Promise<string> {
   const contentLength = req.headers.get("content-length");
-  if (contentLength != null) {
-    const n = Number(contentLength);
-    if (!Number.isFinite(n) || n < 0 || n > maxBytes) {
-      throw new Error("BODY_TOO_LARGE");
-    }
+  if (contentLength == null) {
+    throw new Error("CONTENT_LENGTH_REQUIRED");
+  }
+  const n = Number(contentLength);
+  if (!Number.isFinite(n) || n < 0 || n > maxBytes) {
+    throw new Error("BODY_TOO_LARGE");
   }
 
   const text = await req.text();

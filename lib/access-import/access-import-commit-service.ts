@@ -2,8 +2,17 @@ import { createAccessPlace } from "@/lib/access-map/access-place-service";
 import { prisma } from "@/lib/prisma";
 
 export async function commitImportJob(jobId: string, actorId: string) {
+  const job = await prisma.accessImportJob.findUnique({ where: { id: jobId } });
+  if (!job) {
+    throw new Error("IMPORT_JOB_NOT_FOUND");
+  }
+  if (job.status === "completed") {
+    const metadata = job.metadata as { created?: number } | null;
+    return { created: metadata?.created ?? 0, alreadyCommitted: true as const };
+  }
+
   const items = await prisma.accessImportItem.findMany({
-    where: { jobId, status: { in: ["pending", "accepted"] } },
+    where: { jobId, status: "pending", matchedPlaceId: null },
   });
 
   let created = 0;

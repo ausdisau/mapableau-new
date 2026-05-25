@@ -6,7 +6,10 @@ import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityD
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
 import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
-import type { AccessConfidenceLevel } from "@prisma/client";
+import type {
+  AccessAccreditationTier,
+  AccessConfidenceLevel,
+} from "@prisma/client";
 
 export function AccessPlaceProfile({
   place,
@@ -35,7 +38,7 @@ export function AccessPlaceProfile({
   accreditation: {
     tier: string;
     totalScore: number;
-    expiresAt?: string | null;
+    expired?: boolean;
   } | null;
 }) {
   return (
@@ -51,7 +54,14 @@ export function AccessPlaceProfile({
             .join(", ")}
         </p>
         <div className="mt-3">
-          <AccessConfidenceBadge level={place.confidence} />
+          <AccessConfidenceBadge
+            level={place.confidence}
+            accreditationTier={
+              place.confidence === "mapable_accredited" && accreditation
+                ? (accreditation.tier as AccessAccreditationTier)
+                : null
+            }
+          />
         </div>
       </header>
 
@@ -78,7 +88,7 @@ export function AccessPlaceProfile({
         <AccreditationSummaryPanel
           tier={accreditation.tier}
           totalScore={accreditation.totalScore}
-          expiresAt={accreditation.expiresAt}
+          expired={accreditation.expired}
           placeId={place.id}
         />
       ) : null}

@@ -99,3 +99,17 @@ export async function getPublishedAssessmentForPlace(placeId: string) {
     orderBy: { publishedAt: "desc" },
   });
 }
+
+/** Latest published assessment for profile UI, including expired (for renewal messaging). */
+export async function getAccreditationDisplayForPlace(placeId: string) {
+  const assessment = await prisma.accessAccreditationAssessment.findFirst({
+    where: { placeId, status: "published" },
+    include: { scores: true },
+    orderBy: { publishedAt: "desc" },
+  });
+  if (!assessment) return null;
+  const expired =
+    assessment.expiresAt != null &&
+    assessment.expiresAt.getTime() <= Date.now();
+  return { assessment, expired };
+}

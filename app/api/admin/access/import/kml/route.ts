@@ -109,6 +109,9 @@ export async function POST(req: Request) {
     if (msg === "BODY_TOO_LARGE") {
       return jsonError("Request body too large", 413);
     }
+    if (msg === "CONTENT_LENGTH_REQUIRED") {
+      return jsonError("Content-Length required for JSON imports", 411);
+    }
     return jsonError("Invalid JSON body", 400);
   }
 

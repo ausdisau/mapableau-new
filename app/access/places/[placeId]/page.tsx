@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { AccessMap } from "@/components/access/AccessMap";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
-import { getPublishedAssessmentForPlace } from "@/lib/access-accreditation/accreditation-assessment-service";
+import { getAccreditationDisplayForPlace } from "@/lib/access-accreditation/accreditation-assessment-service";
 import { getPlaceById } from "@/lib/access-map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access-reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access-reviews/review-access-policy";
@@ -45,7 +45,7 @@ export default async function AccessPlacePage({
     createdAt: r.createdAt.toISOString(),
   }));
 
-  const accreditation = await getPublishedAssessmentForPlace(placeId);
+  const accreditationDisplay = await getAccreditationDisplayForPlace(placeId);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
@@ -64,11 +64,12 @@ export default async function AccessPlacePage({
         }}
         reviews={reviews}
         accreditation={
-          accreditation?.totalScore != null && accreditation.tier
+          accreditationDisplay?.assessment.totalScore != null &&
+          accreditationDisplay.assessment.tier
             ? {
-                tier: accreditation.tier,
-                totalScore: accreditation.totalScore,
-                expiresAt: accreditation.expiresAt?.toISOString(),
+                tier: accreditationDisplay.assessment.tier,
+                totalScore: accreditationDisplay.assessment.totalScore,
+                expired: accreditationDisplay.expired,
               }
             : null
         }

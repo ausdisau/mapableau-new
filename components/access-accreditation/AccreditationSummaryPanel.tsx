@@ -6,17 +6,14 @@ import { AccreditationTierBadge } from "@/components/access-accreditation/Accred
 export function AccreditationSummaryPanel({
   tier,
   totalScore,
-  expiresAt,
+  expired = false,
   placeId,
 }: {
   tier: string;
   totalScore: number;
-  expiresAt?: string | null;
+  expired?: boolean;
   placeId: string;
 }) {
-  const expired =
-    expiresAt && new Date(expiresAt).getTime() < Date.now();
-
   return (
     <section
       aria-labelledby="accreditation-heading"

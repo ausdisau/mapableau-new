@@ -15,6 +15,7 @@ import {
   canSuggestPlace,
 } from "@/lib/access-map/access-place-policy";
 import { rankAccessPlaces } from "@/lib/access-search/access-ranking-service";
+import { confidenceLabel } from "@/lib/access-map/access-confidence-service";
 import { createAccessPlaceSchema } from "@/types/access-map";
 
 describe("access place validation", () => {
@@ -41,6 +42,20 @@ describe("access place policy", () => {
   it("blocks anonymous edit", () => {
     expect(canEditPlace(null)).toBe(false);
     expect(canSuggestPlace(null)).toBe(false);
+  });
+});
+
+describe("confidence labels", () => {
+  it("uses accreditation tier for mapable_accredited", () => {
+    expect(confidenceLabel("mapable_accredited", "bronze")).toBe(
+      "MapAble Accredited: Bronze"
+    );
+    expect(confidenceLabel("mapable_accredited", "silver")).toBe(
+      "MapAble Accredited: Silver"
+    );
+    expect(confidenceLabel("mapable_accredited", "gold")).toBe(
+      "MapAble Accredited: Gold"
+    );
   });
 });
 

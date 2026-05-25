@@ -1,4 +1,8 @@
-import type { AccessConfidenceLevel, AccessPlaceSourceType } from "@prisma/client";
+import type {
+  AccessAccreditationTier,
+  AccessConfidenceLevel,
+  AccessPlaceSourceType,
+} from "@prisma/client";
 
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
 
@@ -17,7 +21,23 @@ export function confidenceFromSource(
   return "unknown";
 }
 
-export function confidenceLabel(level: AccessConfidenceLevel): string {
+function accreditedLabel(tier: AccessAccreditationTier): string {
+  switch (tier) {
+    case "bronze":
+      return ACCESS_LABELS.mapableAccreditedBronze;
+    case "silver":
+      return ACCESS_LABELS.mapableAccreditedSilver;
+    case "gold":
+      return ACCESS_LABELS.mapableAccreditedGold;
+    default:
+      return ACCESS_LABELS.mapableAccreditedGold;
+  }
+}
+
+export function confidenceLabel(
+  level: AccessConfidenceLevel,
+  accreditationTier?: AccessAccreditationTier | null
+): string {
   switch (level) {
     case "user_reported":
       return ACCESS_LABELS.userReported;
@@ -28,7 +48,9 @@ export function confidenceLabel(level: AccessConfidenceLevel): string {
     case "mapable_verified":
       return ACCESS_LABELS.mapableVerified;
     case "mapable_accredited":
-      return ACCESS_LABELS.mapableAccreditedGold;
+      return accreditationTier
+        ? accreditedLabel(accreditationTier)
+        : ACCESS_LABELS.mapableAccreditedGold;
     default:
       return ACCESS_LABELS.unknown;
   }
