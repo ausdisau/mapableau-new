@@ -25,11 +25,11 @@ const LINKS = [
   },
 ] as const;
 
-export function SquareRelatedLinks() {
+export function PeersRelatedLinks() {
   return (
-    <nav className={mapableSectionCardClass} aria-labelledby="square-related-heading">
+    <nav className={mapableSectionCardClass} aria-labelledby="peers-related-heading">
       <div className="p-6">
-        <h2 id="square-related-heading" className="font-heading text-lg font-semibold">
+        <h2 id="peers-related-heading" className="font-heading text-lg font-semibold">
           Related on MapAble
         </h2>
         <ul className="mt-4 space-y-3">

@@ -2,12 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CorePageHeader } from "@/components/core/CorePageHeader";
-import { SquareThreadList } from "@/components/mapable-square/SquareThreadList";
-import { getSquareRoom, SQUARE_ROOMS } from "@/lib/mapable-square/rooms";
-import { threadsForRoom } from "@/lib/mapable-square/seed-threads";
+import { PeersThreadList } from "@/components/mapable-peers/PeersThreadList";
+import { getPeersRoom, PEERS_ROOMS } from "@/lib/mapable-peers/rooms";
+import { getPeersLinkHelpers } from "@/lib/mapable-peers/peers-request";
+import { threadsForRoom } from "@/lib/mapable-peers/seed-threads";
 
 export function generateStaticParams() {
-  return SQUARE_ROOMS.map((room) => ({ slug: room.slug }));
+  return PEERS_ROOMS.map((room) => ({ slug: room.slug }));
 }
 
 export async function generateMetadata({
@@ -16,29 +17,31 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const room = getSquareRoom(slug);
+  const room = getPeersRoom(slug);
   if (!room) return { title: "Room not found" };
   return {
-    title: `${room.title} — MapAble Square`,
+    title: `${room.title} — MapAble PEERS`,
     description: room.description,
   };
 }
 
-export default async function SquareRoomPage({
+export default async function PeersRoomPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const room = getSquareRoom(slug);
+  const room = getPeersRoom(slug);
   if (!room) notFound();
 
   const threads = threadsForRoom(slug);
+  const links = await getPeersLinkHelpers();
+  const roomPath = links.room(slug);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-10">
       <CorePageHeader
-        eyebrow="MapAble Square"
+        eyebrow="MapAble PEERS"
         title={room.title}
         description={room.description}
       >
@@ -50,14 +53,14 @@ export default async function SquareRoomPage({
         role="note"
       >
         <strong className="text-secondary">Chronological order.</strong> Threads below are sorted by
-        last activity only. No personalised ranking. Posting will open when Square accounts connect
+        last activity only. No personalised ranking. Posting will open when PEERS accounts connect
         to MapAble sign-in.
       </div>
 
-      <SquareThreadList threads={threads} roomSlug={slug} />
+      <PeersThreadList threads={threads} roomPath={roomPath} />
 
       <p className="text-sm text-muted-foreground">
-        <Link href="/square" className="font-medium text-primary hover:underline">
+        <Link href={links.home} className="font-medium text-primary hover:underline">
           ← All rooms
         </Link>
         {" · "}
