@@ -21,7 +21,7 @@ describe("searchProviders", () => {
     expect(prisma.providerProfile.findMany).not.toHaveBeenCalled();
   });
 
-  it("queries only visible verified providers", async () => {
+  it("queries visible providers and prefers verified in sort", async () => {
     vi.mocked(prisma.providerProfile.findMany).mockResolvedValue([
       {
         id: "1",
@@ -31,6 +31,7 @@ describe("searchProviders", () => {
         state: "NSW",
         postcode: "2000",
         legacyProviderId: null,
+        isVerified: true,
       },
     ] as never);
 
@@ -40,8 +41,9 @@ describe("searchProviders", () => {
       expect.objectContaining({
         where: expect.objectContaining({
           isSearchVisible: true,
-          isVerified: true,
+          name: { contains: "vis", mode: "insensitive" },
         }),
+        orderBy: [{ isVerified: "desc" }, { name: "asc" }],
       }),
     );
   });

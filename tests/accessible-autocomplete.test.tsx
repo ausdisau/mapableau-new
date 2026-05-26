@@ -12,7 +12,7 @@ import React from "react";
 import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
 
 import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomplete";
-import { buildLiveRegionMessage } from "@/lib/search/autocomplete-service";
+import { buildLiveRegionMessage } from "@/lib/search/autocomplete-utils";
 
 afterEach(() => {
   cleanup();
