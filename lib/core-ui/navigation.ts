@@ -44,6 +44,11 @@ export const CORE_HUB_SECTIONS: {
       { href: "/dashboard", label: "Dashboard", description: "Bookings, care, transport and profile" },
       { href: "/dashboard/bookings", label: "Bookings" },
       { href: "/dashboard/care", label: "Care" },
+      {
+        href: "/care/support",
+        label: "Care & support",
+        description: "Support needs assessment, referrals, and coordination",
+      },
       { href: "/dashboard/transport", label: "Transport" },
       { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
     ],
