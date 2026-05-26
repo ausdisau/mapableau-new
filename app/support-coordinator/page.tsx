@@ -25,6 +25,13 @@ export default async function SupportCoordinatorHomePage() {
           </li>
         </ul>
       </nav>
+      <p className="text-sm text-muted-foreground">
+        Participants can approve access at{" "}
+        <Link href="/support-coordinator/access" className="text-primary underline">
+          /support-coordinator/access
+        </Link>{" "}
+        (participant view) or via dashboard consent.
+      </p>
     </div>
   );
 }

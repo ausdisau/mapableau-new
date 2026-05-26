@@ -31,6 +31,9 @@ export default async function CareLayout({
           <Link href="/care/find" className="text-sm underline">
             Find providers
           </Link>
+          <Link href="/care/support" className="text-sm underline">
+            Care &amp; support
+          </Link>
           <Link href="/dashboard" className="ml-auto text-sm text-muted-foreground">
             Dashboard
           </Link>
