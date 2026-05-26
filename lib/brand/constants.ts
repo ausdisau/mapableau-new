@@ -1,6 +1,9 @@
 /** Public marketing site — https://mapable.com.au */
 export const MAPABLE_MARKETING_URL = "https://mapable.com.au";
 
+/** MapAble PEERS community — https://peer.mapable.com.au */
+export const MAPABLE_PEER_PEERS_URL = "https://peer.mapable.com.au";
+
 export const MAPABLE_TAGLINE =
   "Enabling people with disabilities to live independent and dignified lives through innovative technology in care, transport, and employment.";
 

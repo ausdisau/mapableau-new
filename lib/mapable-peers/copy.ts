@@ -1,20 +1,20 @@
-/** MapAble Square — community product copy and design principles. */
+/** MapAble PEERS — community product copy and design principles. */
 
-export const SQUARE_TAGLINE =
+export const PEERS_TAGLINE =
   "A meeting place built for disability life — not a feed built to keep you scrolling.";
 
-export const SQUARE_DESCRIPTION =
-  "MapAble Square is a modern reinterpretation of disability portals like EnableNet and Disaboom: " +
+export const PEERS_DESCRIPTION =
+  "MapAble PEERS is a modern reinterpretation of disability portals like EnableNet and Disaboom: " +
   "information, debate, and peer support in the open — without additive ranking algorithms " +
   "substituting for genuine community.";
 
-export type SquarePrinciple = {
+export type PeersPrinciple = {
   id: string;
   title: string;
   body: string;
 };
 
-export const SQUARE_PRINCIPLES: SquarePrinciple[] = [
+export const PEERS_PRINCIPLES: PeersPrinciple[] = [
   {
     id: "chronology",
     title: "Time, not traction",
@@ -48,47 +48,48 @@ export const SQUARE_PRINCIPLES: SquarePrinciple[] = [
     title: "Algorithms elsewhere, declared",
     body:
       "Where MapAble uses automated ranking (search, provider discovery, access maps), it is " +
-      "registered publicly. Square itself does not use additive feed algorithms.",
+      "registered publicly. PEERS itself does not use additive feed algorithms.",
   },
 ];
 
-export type SquareAntiPattern = {
+export type PeersAntiPattern = {
   title: string;
   feed: string;
-  square: string;
+  peers: string;
 };
 
-export const SQUARE_CONTRAST: SquareAntiPattern[] = [
+export const PEERS_CONTRAST: PeersAntiPattern[] = [
   {
     title: "What you see",
     feed: "“Top discussions” and “for you” blends — order changes per viewer.",
-    square: "Room home shows every thread by last activity; same order for everyone signed in.",
+    peers: "Room home shows every thread by last activity; same order for everyone signed in.",
   },
   {
     title: "Why it exists",
     feed: "Maximise time-on-site and ad or data value.",
-    square: "Help people find experience, evidence, and solidarity around disability life.",
+    peers: "Help people find experience, evidence, and solidarity around disability life.",
   },
   {
     title: "Missing voices",
     feed: "Quiet posts disappear; controversial posts get amplified.",
-    square: "Low-activity threads stay findable; heated threads are moderated, not boosted.",
+    peers: "Low-activity threads stay findable; heated threads are moderated, not boosted.",
   },
   {
     title: "Legacy lesson",
     feed: "Disaboom (2007–2010) mixed health content with profiles and forums — but still chased scale.",
-    square: "EnableNet (1990s–2000s) put information and advocacy first — Square inherits that spine with modern accessibility.",
+    peers:
+      "EnableNet (1990s–2000s) put information and advocacy first — PEERS inherits that spine with modern accessibility.",
   },
 ];
 
-export const SQUARE_HERITAGE = {
+export const PEERS_HERITAGE = {
   enableNet:
     "EnableNet (Australia) and similar portals treated the web as a civic meeting place: " +
     "directories, news, forums, and chat in service of disability advocacy.",
   disaboom:
     "Disaboom (United States) showed appetite for condition-based community at national scale — " +
-    "but its social-network framing leaned on growth metrics MapAble Square explicitly rejects.",
+    "but its social-network framing leaned on growth metrics MapAble PEERS explicitly rejects.",
   mapable:
-    "Square links to MapAble Access for place-based reviews and to platform accountability pages — " +
+    "PEERS links to MapAble Access for place-based reviews and to platform accountability pages — " +
     "community here is conversational; evidence about venues lives there.",
 } as const;

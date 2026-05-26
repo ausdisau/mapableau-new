@@ -1,6 +1,6 @@
-/** Static seed threads — chronological demo content until Square persistence ships. */
+/** Static seed threads — chronological demo content until PEERS persistence ships. */
 
-export type SquareThread = {
+export type PeersThread = {
   id: string;
   roomSlug: string;
   title: string;
@@ -11,7 +11,7 @@ export type SquareThread = {
   excerpt: string;
 };
 
-export const SQUARE_SEED_THREADS: SquareThread[] = [
+export const PEERS_SEED_THREADS: PeersThread[] = [
   {
     id: "t1",
     roomSlug: "access-and-places",
@@ -30,7 +30,7 @@ export const SQUARE_SEED_THREADS: SquareThread[] = [
     lastActivityAt: "2026-05-18T14:00:00.000Z",
     replyCount: 4,
     excerpt:
-      "Reviews are for factual accessibility at a place; Square is for discussion and advocacy.",
+      "Reviews are for factual accessibility at a place; PEERS is for discussion and advocacy.",
   },
   {
     id: "t3",
@@ -70,8 +70,8 @@ export const SQUARE_SEED_THREADS: SquareThread[] = [
   },
 ];
 
-export function threadsForRoom(roomSlug: string): SquareThread[] {
-  return SQUARE_SEED_THREADS.filter((t) => t.roomSlug === roomSlug).sort(
+export function threadsForRoom(roomSlug: string): PeersThread[] {
+  return PEERS_SEED_THREADS.filter((t) => t.roomSlug === roomSlug).sort(
     (a, b) =>
       new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime()
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { SquareThread } from "@/lib/mapable-square/seed-threads";
+import type { PeersThread } from "@/lib/mapable-peers/seed-threads";
 
 function formatActivity(iso: string) {
   return new Intl.DateTimeFormat("en-AU", {
@@ -9,18 +9,18 @@ function formatActivity(iso: string) {
   }).format(new Date(iso));
 }
 
-export function SquareThreadList({
+export function PeersThreadList({
   threads,
-  roomSlug,
+  roomPath,
 }: {
-  threads: SquareThread[];
-  roomSlug: string;
+  threads: PeersThread[];
+  roomPath: string;
 }) {
   if (threads.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-        No threads yet in this room. When Square persistence launches, new posts will appear here
-        in chronological order — never in a personalised “for you” order.
+        No threads yet in this room. When PEERS persistence launches, new posts will appear here in
+        chronological order — never in a personalised “for you” order.
       </p>
     );
   }
@@ -44,7 +44,7 @@ export function SquareThreadList({
             </div>
             <h3 className="mt-2 font-semibold">
               <Link
-                href={`/square/rooms/${roomSlug}#thread-${thread.id}`}
+                href={`${roomPath}#thread-${thread.id}`}
                 className="text-foreground hover:text-primary focus-visible:underline"
               >
                 {thread.title}

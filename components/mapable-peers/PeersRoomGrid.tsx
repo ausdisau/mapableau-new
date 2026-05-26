@@ -1,15 +1,21 @@
 import Link from "next/link";
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { SquareRoom } from "@/lib/mapable-square/rooms";
+import type { PeersRoom } from "@/lib/mapable-peers/rooms";
 
-export function SquareRoomGrid({ rooms }: { rooms: SquareRoom[] }) {
+export function PeersRoomGrid({
+  rooms,
+  roomHref,
+}: {
+  rooms: PeersRoom[];
+  roomHref: (slug: string) => string;
+}) {
   return (
     <ul className="grid gap-4 sm:grid-cols-2">
       {rooms.map((room) => (
         <li key={room.slug}>
           <Link
-            href={`/square/rooms/${room.slug}`}
+            href={roomHref(room.slug)}
             className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <Card variant="interactive" className="h-full">

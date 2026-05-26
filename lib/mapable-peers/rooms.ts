@@ -1,4 +1,4 @@
-export type SquareRoom = {
+export type PeersRoom = {
   slug: string;
   title: string;
   description: string;
@@ -6,7 +6,7 @@ export type SquareRoom = {
   purpose: string;
 };
 
-export const SQUARE_ROOMS: SquareRoom[] = [
+export const PEERS_ROOMS: PeersRoom[] = [
   {
     slug: "access-and-places",
     title: "Access & places",
@@ -40,6 +40,6 @@ export const SQUARE_ROOMS: SquareRoom[] = [
   },
 ];
 
-export function getSquareRoom(slug: string): SquareRoom | undefined {
-  return SQUARE_ROOMS.find((r) => r.slug === slug);
+export function getPeersRoom(slug: string): PeersRoom | undefined {
+  return PEERS_ROOMS.find((r) => r.slug === slug);
 }

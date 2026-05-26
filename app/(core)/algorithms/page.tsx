@@ -8,8 +8,8 @@ export default async function AlgorithmsPage() {
       <h1 className="font-heading text-2xl font-bold">Public algorithm register</h1>
       <p className="text-muted-foreground">
         Algorithms used in MapAble — transparency, not legal certification of fairness.{" "}
-        <a href="/square" className="font-medium text-primary hover:underline">
-          MapAble Square
+        <a href="/peers" className="font-medium text-primary hover:underline">
+          MapAble PEERS
         </a>{" "}
         does not use additive feed ranking; discussion rooms stay chronological.
       </p>

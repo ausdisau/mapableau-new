@@ -14,7 +14,7 @@ export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
 ];
 
 export const CORE_CIVIC_LINKS: CoreNavLink[] = [
-  { href: "/square", label: "MapAble Square", description: "Disability community without feed algorithms" },
+  { href: "/peers", label: "MapAble PEERS", description: "Disability community without feed algorithms" },
   { href: "/transparency", label: "Transparency" },
   { href: "/accountability", label: "Accountability" },
   { href: "/decisions", label: "Decisions" },
@@ -38,8 +38,8 @@ export const CORE_HUB_SECTIONS: {
     title: "Community",
     links: [
       {
-        href: "/square",
-        label: "MapAble Square",
+        href: "/peers",
+        label: "MapAble PEERS",
         description: "Rooms and discussion — chronological, not algorithmic",
       },
       {
