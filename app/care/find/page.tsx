@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { routes } from "@/lib/routing/canonical-routes";
+
 export default function CareFindPage() {
   return (
     <div className="space-y-4">
@@ -8,7 +10,7 @@ export default function CareFindPage() {
         Browse registered providers or use the provider finder to explore services in your
         area.
       </p>
-      <Link href="/provider-finder" className="text-primary underline">
+      <Link href={routes.care.findProviders} className="text-primary underline">
         Open provider finder
       </Link>
     </div>
