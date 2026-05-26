@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { requireAuth } from "@/lib/auth/guards";
 
+export const dynamic = "force-dynamic";
+
 export default async function DriverLayout({
   children,
 }: {

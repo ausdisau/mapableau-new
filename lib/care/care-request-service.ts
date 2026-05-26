@@ -126,16 +126,66 @@ export async function assignCareRequestProvider(
     participantId: request.participantId,
   });
 
+  const existingBooking = await prisma.careBooking.findUnique({
+    where: { careRequestId },
+  });
+  if (!existingBooking) {
+    await prisma.careBooking.create({
+      data: {
+        careRequestId,
+        participantId: request.participantId,
+        organisationId,
+        status: "pending_provider",
+        tasks: request.tasks ?? [],
+        location: request.address ?? undefined,
+        scheduledStartAt: request.preferredDate ?? undefined,
+      },
+    });
+  }
+
   return request;
 }
 
 export async function providerAcceptCareRequest(
   careRequestId: string,
-  actorUserId: string
+  actorUserId: string,
+  actorOrganisationIds?: string[]
 ) {
+  const existing = await prisma.careRequest.findUnique({
+    where: { id: careRequestId },
+  });
+  if (!existing) throw new Error("NOT_FOUND");
+  if (
+    existing.assignedOrganisationId &&
+    actorOrganisationIds &&
+    !actorOrganisationIds.includes(existing.assignedOrganisationId)
+  ) {
+    throw new Error("ORG_ACCESS_DENIED");
+  }
+
   const request = await prisma.careRequest.update({
     where: { id: careRequestId },
     data: { status: "confirmed" },
+  });
+
+  if (existing.assignedOrganisationId) {
+    const { createCareBookingFromRequest } = await import(
+      "@/lib/care/care-booking-service"
+    );
+    await createCareBookingFromRequest({
+      careRequestId,
+      organisationId: existing.assignedOrganisationId,
+      actorUserId,
+    });
+  }
+
+  await createAuditEvent({
+    actorUserId,
+    action: "care_request.provider_accepted",
+    entityType: "CareRequest",
+    entityId: careRequestId,
+    participantId: request.participantId,
+    organisationId: existing.assignedOrganisationId ?? undefined,
   });
 
   if (request.bookingId) {
