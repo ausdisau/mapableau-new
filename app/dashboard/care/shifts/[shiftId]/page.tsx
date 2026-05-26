@@ -1,29 +1,12 @@
-import { CareShiftApproval } from "@/components/phase3/CareShiftApproval";
-import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
-import { requireAuth } from "@/lib/auth/guards";
-import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
-export default async function CareShiftDetailPage({
+import { routes } from "@/lib/routing/canonical-routes";
+
+export default async function DashboardCareShiftDetailRedirect({
   params,
 }: {
   params: Promise<{ shiftId: string }>;
 }) {
-  const user = await requireAuth();
   const { shiftId } = await params;
-  const shift = await prisma.careShift.findFirst({
-    where: { id: shiftId, participantId: user.id },
-  });
-  if (!shift) return <p role="alert">Shift not found.</p>;
-
-  return (
-    <div className="space-y-4">
-      <h1 className="font-heading text-2xl font-bold">Care shift</h1>
-      <StatusTextBadge status={shift.status} />
-      <p>
-        {shift.startAt.toLocaleString("en-AU")} —{" "}
-        {shift.endAt.toLocaleString("en-AU")}
-      </p>
-      <CareShiftApproval shiftId={shift.id} status={shift.status} />
-    </div>
-  );
+  redirect(routes.care.shift(shiftId));
 }

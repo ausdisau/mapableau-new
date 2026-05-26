@@ -18,11 +18,11 @@
 
 | Audience | Routes |
 |----------|--------|
-| Participant | `/care`, `/care/find`, `/care/request`, `/care/bookings`, `/care/bookings/[id]`, `/care/service-logs` |
+| Participant | `/care`, `/care/find`, `/care/request`, `/care/bookings`, `/care/bookings/[id]`, `/care/shifts`, `/care/shifts/[shiftId]`, `/care/service-logs`, `/care/support/*` |
 | Provider | `/provider/care`, `/provider/care/requests`, `/provider/care/roster`, `/provider/care/bookings/[id]`, `/provider/care/service-logs` |
 | Worker | `/worker/today`, `/worker/shifts/[id]`, `/worker/service-log`, `/worker/report-issue` |
 
-Legacy redirects: `/dashboard/care/*` → `/care/*`
+Legacy redirects: `/dashboard/care/*` → `/care/*` (see `docs/routes-consolidation.md` and `next.config.ts`)
 
 ## APIs
 

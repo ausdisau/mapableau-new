@@ -36,6 +36,9 @@ export default async function CareHubPage() {
         <Link href="/care/bookings" className="inline-flex rounded-lg border px-4 py-2 text-sm">
           My bookings
         </Link>
+        <Link href="/care/support" className="inline-flex rounded-lg border px-4 py-2 text-sm">
+          Care &amp; support
+        </Link>
       </div>
       <section>
         <h2 className="text-lg font-semibold">Recent bookings</h2>

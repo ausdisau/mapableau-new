@@ -17,6 +17,16 @@ Dot-notation in API (`profile.read`) maps to Prisma enums (`profile_read`). See 
 - `/admin/consents`
 - `POST /api/consents`, `POST /api/consents/:id/revoke`
 
+## Care & support coordinator scopes
+
+When a participant approves coordinator access (`SupportCoordinatorRelationship`), scopes in `scopesJson` gate the super-app. If empty, defaults apply (see `lib/support-coordinator/consent-gate.ts`):
+
+- `care_support.assessment_share` — read assessment rollup / triage
+- `care_support.referral_manage` — list and update referrals, coordination timeline
+- `care_support.assessment_detail` — optional full `sectionsJson` (otherwise rollup only)
+
+Participant UI: `/support-coordinator/access`. See `docs/care-support-super-app.md`.
+
 ## Phase 2
 
 Consent templates, expiry automation, and support coordinator delegated grants.
