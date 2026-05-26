@@ -1,26 +1,20 @@
-import Link from "next/link";
-
+import { PortalShell } from "@/components/core/PortalShell";
 import { requireAuth } from "@/lib/auth/guards";
 
+import { PORTAL_MODULES } from "@/lib/platform/portal-nav";
+
 export const dynamic = "force-dynamic";
+
+const employer = PORTAL_MODULES.employer;
 
 export default async function EmployerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
   return (
-    <div className="min-h-screen">
-      <nav className="border-b bg-card px-4 py-3" aria-label="Employer">
-        <div className="mx-auto flex max-w-6xl flex-wrap gap-4">
-          <Link href="/employer/jobs">Jobs</Link>
-          <Link href="/employer/applications">Applications</Link>
-          <Link href="/employer/calendar">Calendar</Link>
-          <Link href="/dashboard">Dashboard</Link>
-        </div>
-      </nav>
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
-    </div>
+    <PortalShell title={employer.title} links={employer.links} guard={requireAuth}>
+      {children}
+    </PortalShell>
   );
 }

@@ -1,39 +1,24 @@
-import Link from "next/link";
-
+import { PortalShell } from "@/components/core/PortalShell";
 import { requirePermission } from "@/lib/auth/guards";
+
+import { PORTAL_MODULES } from "@/lib/platform/portal-nav";
+
+export const dynamic = "force-dynamic";
+
+const worker = PORTAL_MODULES.worker;
 
 export default async function WorkerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requirePermission("care:shift:work");
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <nav
-          className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-4"
-          aria-label="Worker navigation"
-        >
-          <span className="font-heading font-bold">Worker</span>
-          <Link href="/worker/today" className="text-sm underline">
-            Today
-          </Link>
-          <Link href="/worker/service-log" className="text-sm underline">
-            Service log
-          </Link>
-          <Link href="/worker/report-issue" className="text-sm underline">
-            Report issue
-          </Link>
-          <Link href="/dashboard" className="ml-auto text-sm text-muted-foreground">
-            Dashboard
-          </Link>
-        </nav>
-      </header>
-      <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
-        {children}
-      </main>
-    </div>
+    <PortalShell
+      title={worker.title}
+      links={worker.links}
+      guard={() => requirePermission("care:shift:work")}
+    >
+      {children}
+    </PortalShell>
   );
 }

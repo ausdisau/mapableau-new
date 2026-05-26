@@ -4,4 +4,6 @@ export { CoreHubCard } from "./CoreHubCard";
 export { CorePageHeader } from "./CorePageHeader";
 export { CoreShell } from "./CoreShell";
 export { PortalNav } from "./PortalNav";
+export { PortalShell } from "./PortalShell";
+export { PublicShell } from "./PublicShell";
 export { SkipToContent } from "./SkipToContent";
