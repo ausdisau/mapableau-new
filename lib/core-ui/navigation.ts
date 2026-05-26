@@ -1,3 +1,5 @@
+import { participantServiceNavLinks } from "@/lib/routing/canonical-routes";
+
 export type CoreNavLink = {
   href: string;
   label: string;
@@ -35,23 +37,7 @@ export const CORE_HUB_SECTIONS: {
 }[] = [
   {
     title: "Your services",
-    links: [
-      {
-        href: "/ask",
-        label: "Ask MapAble",
-        description: "Co-Pilot guidance with PRMS records underneath",
-      },
-      { href: "/dashboard", label: "Dashboard", description: "Bookings, care, transport and profile" },
-      { href: "/dashboard/bookings", label: "Bookings" },
-      { href: "/dashboard/care", label: "Care" },
-      {
-        href: "/care/support",
-        label: "Care & support",
-        description: "Support needs assessment, referrals, and coordination",
-      },
-      { href: "/dashboard/transport", label: "Transport" },
-      { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
-    ],
+    links: [...participantServiceNavLinks],
   },
   {
     title: "Public accountability",

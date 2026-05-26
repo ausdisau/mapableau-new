@@ -6,29 +6,31 @@ import { signOut } from "next-auth/react";
 
 import { cn } from "@/app/lib/utils";
 import { RoleBadge } from "@/components/ui/role-badge";
+import { routes } from "@/lib/routing/canonical-routes";
 import type { UserRole } from "@/types/mapable";
 
 const LINKS = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/dashboard/profile", label: "Profile" },
+  { href: routes.dashboard.hub, label: "Overview" },
+  { href: routes.dashboard.profile, label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
-  { href: "/dashboard/consent", label: "Consent" },
-  { href: "/dashboard/bookings", label: "Bookings" },
-  { href: "/dashboard/care", label: "Care" },
-  { href: "/dashboard/transport", label: "Transport" },
+  { href: routes.dashboard.consent, label: "Consent" },
+  { href: routes.dashboard.bookings, label: "Bookings" },
+  { href: routes.care.hub, label: "Care" },
+  { href: routes.care.support.hub, label: "Care & support" },
+  { href: routes.dashboard.transport, label: "Transport" },
   { href: "/dashboard/jobs", label: "Jobs" },
   { href: "/dashboard/calendar", label: "Calendar" },
-  { href: "/dashboard/find-support", label: "Find support" },
+  { href: routes.dashboard.findSupport, label: "Find support" },
   { href: "/dashboard/find-transport", label: "Find transport" },
   { href: "/dashboard/timesheets", label: "Timesheets" },
-  { href: "/dashboard/incidents", label: "Incidents" },
-  { href: "/dashboard/incidents/new", label: "Report concern" },
+  { href: routes.dashboard.incidents, label: "Incidents" },
+  { href: routes.dashboard.incidentNew, label: "Report concern" },
   { href: "/dashboard/notifications", label: "Notifications" },
-  { href: "/dashboard/messages", label: "Messages" },
+  { href: routes.messages.hub, label: "Messages" },
   { href: "/dashboard/support", label: "Support" },
   { href: "/dashboard/documents", label: "Documents" },
   { href: "/dashboard/funding", label: "Funding" },
-  { href: "/dashboard/invoices", label: "Invoices" },
+  { href: routes.billing.hub, label: "Billing" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
 ];
 

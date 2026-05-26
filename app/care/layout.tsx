@@ -25,6 +25,9 @@ export default async function CareLayout({
           <Link href="/care/bookings" className="text-sm underline">
             Bookings
           </Link>
+          <Link href="/care/shifts" className="text-sm underline">
+            Shifts
+          </Link>
           <Link href="/care/service-logs" className="text-sm underline">
             Service logs
           </Link>
