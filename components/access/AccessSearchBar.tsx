@@ -11,7 +11,7 @@ export function AccessSearchBar({
 }) {
   return (
     <form
-      className="flex gap-2"
+      className="flex flex-col gap-2 rounded-[1.4rem] border border-slate-200 bg-white p-3 shadow-sm sm:flex-row"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -27,11 +27,11 @@ export function AccessSearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search by name, suburb, or address"
-        className="min-h-11 flex-1 rounded-lg border border-input bg-background px-3 text-base"
+        className="min-h-12 flex-1 rounded-2xl border-2 border-slate-200 bg-white px-4 text-base font-semibold outline-none placeholder:text-slate-500 focus:border-primary/60 focus:ring-4 focus:ring-ring/30"
       />
       <button
         type="submit"
-        className="min-h-11 rounded-lg bg-primary px-4 text-primary-foreground"
+        className="min-h-12 rounded-xl bg-primary px-6 font-black text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-4 focus:ring-ring/40"
       >
         Search
       </button>

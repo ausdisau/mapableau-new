@@ -5,6 +5,26 @@ import { auth } from "@/app/lib/auth";
 import { mapOutletsToProviders } from "@/app/provider-finder/outletToProvider";
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import { prisma } from "@/lib/prisma";
+import { parseProviderOutletsPayload } from "@/lib/provider-outlets";
+
+const PROVIDER_OUTLET_FILES = ["provider-outlets.json", "provider-outlets2.json"];
+
+async function readProviderOutlets(): Promise<ProviderOutlet[]> {
+  let lastError: unknown;
+
+  for (const fileName of PROVIDER_OUTLET_FILES) {
+    try {
+      const path = join(process.cwd(), "public", "data", fileName);
+      return parseProviderOutletsPayload(JSON.parse(await readFile(path, "utf-8")));
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Provider outlets file not found");
+}
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -30,10 +50,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const path = join(process.cwd(), "public", "data", "provider-outlets.json");
-  const raw = await readFile(path, "utf-8");
-  const json = JSON.parse(raw) as { data: ProviderOutlet[] };
-  const outlets = json.data ?? [];
+  const outlets = await readProviderOutlets();
   const providers = mapOutletsToProviders(outlets);
   const provider = providers.find((p) => p.outletKey === outletKey);
 

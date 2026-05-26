@@ -1,7 +1,6 @@
 "use client";
 
 import { Bookmark, Loader2, MapPin } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -12,11 +11,7 @@ import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderF
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  distanceKm,
-  getLocationAndPostcode,
-  type UserPosition,
-} from "@/lib/geo";
+import { getLocationAndPostcode } from "@/lib/geo";
 import {
   ACCESS_NEEDS,
   SUPPORT_TYPES,
@@ -27,12 +22,44 @@ import { useProviderOutlets } from "@/lib/use-provider-outlets";
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
 
-const Map = dynamic(() => import("@/components/Map"), { ssr: false });
-
 type SortMode = "relevance" | "distance" | "rating";
 
-const RADIUS_KM = 50;
-const MAP_PIN_LIMIT = 500;
+const SEARCH_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "for",
+  "in",
+  "near",
+  "the",
+  "to",
+  "with",
+]);
+
+function searchTerms(queryRaw: string) {
+  return queryRaw
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((term) => term.replace(/[^a-z0-9]/g, ""))
+    .filter((term) => term.length >= 2 && !SEARCH_STOP_WORDS.has(term));
+}
+
+function haystackIncludesTerm(haystack: string, term: string) {
+  if (haystack.includes(term)) return true;
+  return term.length >= 5 && haystack.includes(term.slice(0, 5));
+}
+
+function matchesSearchText(haystack: string, queryRaw: string) {
+  const query = queryRaw.trim().toLowerCase();
+  if (!query) return true;
+  if (haystack.includes(query)) return true;
+
+  const terms = searchTerms(query);
+  if (terms.length === 0) return true;
+
+  return terms.some((term) => haystackIncludesTerm(haystack, term));
+}
 
 function scoreRelevance(provider: Provider, queryRaw: string) {
   const query = queryRaw.trim().toLowerCase();
@@ -92,10 +119,11 @@ export default function ProviderFinderClient() {
   const [sort, setSort] = useState<SortMode>("relevance");
   const [page, setPage] = useState(1);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
-  const [userLocation, setUserLocation] = useState<UserPosition | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
+    null,
+  );
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
   const pageSize = 12;
@@ -133,8 +161,7 @@ export default function ProviderFinderClient() {
     setLocationLoading(true);
     setLocationError(null);
     try {
-      const { position, postcode } = await getLocationAndPostcode();
-      setUserLocation(position);
+      const { postcode } = await getLocationAndPostcode();
       setLocation(postcode);
       setPage(1);
       setSearchSubmitted(true);
@@ -181,15 +208,15 @@ export default function ProviderFinderClient() {
         if (!locHaystack.includes(loc)) return false;
       }
 
-      if (q && !providerHaystack(p).includes(q)) return false;
+      if (q && !matchesSearchText(providerHaystack(p), q)) return false;
       if (providerQ && !p.name.toLowerCase().includes(providerQ)) return false;
       if (serviceQ) {
         const hay = providerHaystack(p);
-        if (!hay.includes(serviceQ)) return false;
+        if (!matchesSearchText(hay, serviceQ)) return false;
       }
       if (accessQuery.trim()) {
         const accessQ = accessQuery.trim().toLowerCase();
-        if (!providerHaystack(p).includes(accessQ)) return false;
+        if (!matchesSearchText(providerHaystack(p), accessQ)) return false;
       }
 
       return true;
@@ -235,23 +262,6 @@ export default function ProviderFinderClient() {
     const start = (currentPage - 1) * pageSize;
     return filteredSorted.slice(start, start + pageSize);
   }, [currentPage, filteredSorted]);
-
-  const mapProviders = useMemo(() => {
-    let list = filteredSorted;
-    if (userLocation) {
-      list = list.filter((p) => {
-        if (p.latitude == null || p.longitude == null) return false;
-        const d = distanceKm(
-          userLocation.lat,
-          userLocation.lng,
-          p.latitude,
-          p.longitude,
-        );
-        return d <= RADIUS_KM;
-      });
-    }
-    return list.slice(0, MAP_PIN_LIMIT);
-  }, [filteredSorted, userLocation]);
 
   useEffect(() => {
     if (page !== currentPage) setPage(currentPage);
@@ -303,27 +313,28 @@ export default function ProviderFinderClient() {
 
   return (
     <>
-      <ProviderFinderHero
-        query={query}
-        location={location}
-        providerName={providerName}
-        serviceQuery={serviceQuery}
-        accessQuery={accessQuery}
-        onQueryChange={setQuery}
-        onLocationChange={setLocation}
-        onProviderNameChange={setProviderName}
-        onServiceQueryChange={setServiceQuery}
-        onAccessQueryChange={setAccessQuery}
-        onSearch={handleSearch}
-        onSuggestionClick={handleSuggestion}
-        onAccessSuggestionSelect={handleAccessSuggestionSelect}
-        compact={searchSubmitted}
-      />
+      {!searchSubmitted ? (
+        <ProviderFinderHero
+          query={query}
+          location={location}
+          providerName={providerName}
+          serviceQuery={serviceQuery}
+          accessQuery={accessQuery}
+          onQueryChange={setQuery}
+          onLocationChange={setLocation}
+          onProviderNameChange={setProviderName}
+          onServiceQueryChange={setServiceQuery}
+          onAccessQueryChange={setAccessQuery}
+          onSearch={handleSearch}
+          onSuggestionClick={handleSuggestion}
+          onAccessSuggestionSelect={handleAccessSuggestionSelect}
+        />
+      ) : null}
 
       {!searchSubmitted ? <MapAbleCareCombinedSections /> : null}
 
       {searchSubmitted ? (
-        <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="container mx-auto max-w-7xl px-4 py-8 sm:px-5 lg:px-8">
           <div className="flex flex-col gap-8 lg:flex-row">
             <div className="lg:w-56 xl:w-64">
               <ProviderFinderSidebar
@@ -346,44 +357,52 @@ export default function ProviderFinderClient() {
             </div>
 
             <div className="min-w-0 flex-1 space-y-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="font-heading text-2xl font-bold">
-                    {total} matched provider{total === 1 ? "" : "s"}
-                  </h2>
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-                    Showing results near {locationLabel}.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={useMyLocation}
-                    disabled={locationLoading}
-                  >
-                    {locationLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    ) : (
-                      <MapPin className="h-4 w-4" aria-hidden />
-                    )}
-                    Use my location
-                  </Button>
-                  <label className="sr-only" htmlFor="provider-sort">
-                    Sort results
-                  </label>
-                  <select
-                    id="provider-sort"
-                    value={sort}
-                    onChange={(e) => setSort(e.target.value as SortMode)}
-                    className="min-h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="relevance">Relevance</option>
-                    <option value="distance">Distance</option>
-                    <option value="rating">Rating</option>
-                  </select>
+              <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">
+                      Provider results
+                    </p>
+                    <h2 className="mt-1 text-3xl font-black tracking-[-0.04em]">
+                      {total} matched provider{total === 1 ? "" : "s"}
+                    </h2>
+                    <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                      Showing results near {locationLabel}.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="button" variant="outline" size="sm">
+                      Save search
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={useMyLocation}
+                      disabled={locationLoading}
+                    >
+                      {locationLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <MapPin className="h-4 w-4" aria-hidden />
+                      )}
+                      Use my location
+                    </Button>
+                    <label className="sr-only" htmlFor="provider-sort">
+                      Sort results
+                    </label>
+                    <select
+                      id="provider-sort"
+                      value={sort}
+                      onChange={(e) => setSort(e.target.value as SortMode)}
+                      className="min-h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="relevance">Relevance</option>
+                      <option value="distance">Distance</option>
+                      <option value="rating">Rating</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -396,28 +415,10 @@ export default function ProviderFinderClient() {
               {compareIds.length > 0 ? (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Bookmark className="h-4 w-4 text-primary" aria-hidden />
-                  {compareIds.length} provider{compareIds.length === 1 ? "" : "s"}{" "}
-                  selected to compare
+                  {compareIds.length} provider
+                  {compareIds.length === 1 ? "" : "s"} selected to compare
                 </p>
               ) : null}
-
-              <section id="map" className="scroll-mt-24">
-                {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
-                  <Card variant="outlined" className="mb-4 p-4">
-                    <p className="text-sm text-muted-foreground">
-                      Set a location or use &quot;Use my location&quot; to see
-                      providers on the map.
-                    </p>
-                  </Card>
-                ) : null}
-                <div className="overflow-hidden rounded-xl border border-border/60 shadow-sm">
-                  <Map
-                    providers={mapProviders}
-                    userPosition={userLocation}
-                    centerOnProvider={selectedProvider}
-                  />
-                </div>
-              </section>
 
               {total === 0 ? (
                 <Card variant="outlined" className="p-8 text-center">

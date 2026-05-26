@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { searchAutocomplete } from "@/lib/search/autocomplete-service";
-import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
+import {
+  autocompleteGroupedResultSchema,
+  autocompleteQuerySchema,
+} from "@/lib/search/autocomplete-validation";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -46,11 +49,13 @@ export async function GET(request: Request) {
     );
   }
 
-  const groups = await searchAutocomplete({
-    query: parsed.data.q,
-    context: parsed.data.context,
-    field: parsed.data.field,
-  });
+  const groups = autocompleteGroupedResultSchema.parse(
+    await searchAutocomplete({
+      query: parsed.data.q,
+      context: parsed.data.context,
+      field: parsed.data.field,
+    }),
+  );
 
   return NextResponse.json(
     { groups },

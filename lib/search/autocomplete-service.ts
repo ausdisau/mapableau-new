@@ -33,6 +33,7 @@ function shouldInclude(
   field: AutocompleteField,
   target: AutocompleteField,
 ): boolean {
+  if (field === "postcode" && target === "location") return true;
   return field === "all" || field === target;
 }
 

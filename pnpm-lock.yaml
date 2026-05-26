@@ -47,6 +47,12 @@ importers:
       framer-motion:
         specifier: ^12.26.1
         version: 12.29.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      jquery:
+        specifier: ^4.0.0
+        version: 4.0.0
+      jquery-ui-dist:
+        specifier: ^1.13.3
+        version: 1.13.3
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -99,6 +105,12 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.1)
+      '@types/jquery':
+        specifier: ^4.0.0
+        version: 4.0.0
+      '@types/jqueryui':
+        specifier: ^1.12.24
+        version: 1.12.24
       '@types/leaflet':
         specifier: ^1.9.21
         version: 1.9.21
@@ -984,6 +996,12 @@ packages:
 
   '@types/geojson@7946.0.16':
     resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
+
+  '@types/jquery@4.0.0':
+    resolution: {integrity: sha512-Z+to+A2VkaHq1DfI2oSwsoCdhCHMpTSgjWzNcbNlRGYzksDBpPUgEcAL+RQjOBJRaLoEAOHXxqDGBVP+BblBwg==}
+
+  '@types/jqueryui@1.12.24':
+    resolution: {integrity: sha512-E2sGULwzMhg4kAeOV+gYcXjg988RuPkviWCt09jLe6GGK9sHM7dTqS8H7JMuUWoZQBucIBzBAgM5o/ezKUFkeg==}
 
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
@@ -2353,6 +2371,15 @@ packages:
 
   jose@4.15.9:
     resolution: {integrity: sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==}
+
+  jquery-ui-dist@1.13.3:
+    resolution: {integrity: sha512-qeTR3SOSQ0jgxaNXSFU6+JtxdzNUSJKgp8LCzVrVKntM25+2YBJW1Ea8B2AwjmmSHfPLy2dSlZxJQN06OfVFhg==}
+
+  jquery@3.7.1:
+    resolution: {integrity: sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==}
+
+  jquery@4.0.0:
+    resolution: {integrity: sha512-TXCHVR3Lb6TZdtw1l3RTLf8RBWVGexdxL6AC8/e0xZKEpBflBsjh9/8LXw+dkNFuOyW9B7iB3O1sP7hS0Kiacg==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -4168,6 +4195,12 @@ snapshots:
 
   '@types/geojson@7946.0.16': {}
 
+  '@types/jquery@4.0.0': {}
+
+  '@types/jqueryui@1.12.24':
+    dependencies:
+      '@types/jquery': 4.0.0
+
   '@types/json5@0.0.29': {}
 
   '@types/leaflet@1.9.21':
@@ -5685,6 +5718,14 @@ snapshots:
   jiti@2.6.1: {}
 
   jose@4.15.9: {}
+
+  jquery-ui-dist@1.13.3:
+    dependencies:
+      jquery: 3.7.1
+
+  jquery@3.7.1: {}
+
+  jquery@4.0.0: {}
 
   js-tokens@4.0.0: {}
 

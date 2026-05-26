@@ -3,21 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.9rem;
   --badge-outline: hsl(215 20% 88%);
 
-  /* Brand Colors: Blue & Green from Logo — https://mapable.com.au */
-  /* Primary Blue: Trust, Professionalism */
-  --primary: 215 100% 35%; /* #003F88 roughly */
+  /* Brand colors from the combined care design. */
+  --mapable-navy: 225 62% 12%; /* #0C1833 */
+  --mapable-blue: 197 100% 25%; /* #005B7F */
+  --mapable-green: 163 100% 33%; /* #00A979 */
+  --mapable-yellow: 47 94% 54%; /* #F8C51C */
+
+  /* Primary Blue: trust, professionalism */
+  --primary: var(--mapable-blue);
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary Green: Growth, Action */
-  --secondary: 145 65% 45%; /* #28BD6B roughly */
+  /* Secondary Green: growth, action */
+  --secondary: var(--mapable-green);
   --secondary-foreground: 0 0% 100%;
 
   /* Backgrounds */
-  --background: 210 30% 98%; /* Very light cool gray */
-  --foreground: 215 40% 15%; /* Dark blue-gray text */
+  --background: 190 43% 98%; /* warm off-white */
+  --foreground: var(--mapable-navy);
 
   /* Components */
   --card: 0 0% 100%;
@@ -26,18 +31,18 @@
   --popover: 0 0% 100%;
   --popover-foreground: 215 40% 15%;
 
-  --muted: 210 20% 90%;
-  --muted-foreground: 215 25% 35%;
+  --muted: 200 25% 92%;
+  --muted-foreground: 215 25% 36%;
 
-  --accent: 210 30% 94%;
-  --accent-foreground: 215 100% 35%;
+  --accent: 47 94% 92%;
+  --accent-foreground: var(--mapable-blue);
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
   --border: 215 20% 90%;
   --input: 215 20% 90%;
-  --ring: 215 100% 35%;
+  --ring: var(--mapable-yellow);
 }
 
 .dark {
@@ -84,5 +89,53 @@
   h5,
   h6 {
     @apply font-heading font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .ui-helper-hidden-accessible {
+    @apply sr-only;
+  }
+
+  .ui-autocomplete {
+    @apply z-50 max-h-72 overflow-auto rounded-xl border border-border bg-popover p-1 shadow-lg;
+  }
+
+  .ui-autocomplete .ui-menu-item {
+    @apply list-none;
+  }
+
+  .ui-autocomplete .ui-menu-item-wrapper,
+  .ui-autocomplete .ui-state-active {
+    @apply rounded-lg outline-none;
+  }
+
+  .ui-autocomplete .ui-state-active {
+    @apply bg-accent text-accent-foreground ring-2 ring-ring;
+  }
+
+  .mapable-display {
+    font-family:
+      ui-rounded, "Arial Rounded MT Bold", var(--font-heading), "Trebuchet MS",
+      system-ui, sans-serif;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .mapable-soft {
+    font-family:
+      "Trebuchet MS", var(--font-sans), ui-rounded, system-ui, sans-serif;
+  }
+
+  .mapable-wavy-letter {
+    display: inline-block;
+    transform: translateY(var(--wave-y, 0em)) rotate(var(--wave-r, 0deg));
+    transform-origin: 50% 80%;
+  }
+
+  .mapable-wavy-word {
+    display: inline-block;
+    margin-right: 0.34em;
+    white-space: nowrap;
   }
 }

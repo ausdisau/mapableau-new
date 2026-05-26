@@ -9,7 +9,7 @@ import { submitVenueClaimSchema } from "@/lib/validation/access-venue-claim";
 
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ placeId: string }> }
+  { params }: { params: Promise<{ placeId: string }> },
 ) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
@@ -25,12 +25,23 @@ export async function POST(
   const parsed = submitVenueClaimSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  const claim = await submitVenueClaim({
-    placeId,
-    userId: user.id,
-    businessName: parsed.data.businessName,
-    evidenceNote: parsed.data.evidenceNote,
-  });
+  try {
+    const claim = await submitVenueClaim({
+      placeId,
+      userId: user.id,
+      businessName: parsed.data.businessName,
+      evidenceNote: parsed.data.evidenceNote,
+    });
 
-  return jsonOk({ claim: { id: claim.id, status: claim.status } }, 201);
+    return jsonOk({ claim: { id: claim.id, status: claim.status } }, 201);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg === "VENUE_CLAIM_RATE_LIMIT") {
+      return jsonError("Too many venue claims submitted recently", 429);
+    }
+    if (msg === "VENUE_CLAIM_ALREADY_SUBMITTED") {
+      return jsonError("You already have an active claim for this venue", 409);
+    }
+    throw e;
+  }
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
+import { MapAbleWavyText } from "@/components/brand/MapAbleWavyText";
 import { Button } from "@/components/ui/button";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
 
@@ -43,7 +44,10 @@ const JOURNEY_STEPS = [
 export function MapAbleCareCombinedSections() {
   return (
     <>
-      <section className="container mx-auto max-w-6xl px-4 py-12" aria-labelledby="value-stats">
+      <section
+        className="container mx-auto max-w-7xl px-4 py-12 sm:px-5 lg:px-8"
+        aria-labelledby="value-stats"
+      >
         <h2 id="value-stats" className="sr-only">
           Why MapAble Provider Finder
         </h2>
@@ -56,10 +60,10 @@ export function MapAbleCareCombinedSections() {
                 "flex flex-col items-start gap-2 p-6 sm:p-8",
               )}
             >
-              <span className="font-heading text-5xl font-bold text-primary sm:text-6xl">
+              <span className="mapable-display text-5xl font-black text-primary sm:text-6xl">
                 {stat.value}
               </span>
-              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p className="text-sm font-semibold leading-relaxed text-muted-foreground sm:text-base">
                 {stat.label}
               </p>
             </div>
@@ -69,35 +73,38 @@ export function MapAbleCareCombinedSections() {
 
       <section
         id="how-it-works"
-        className="border-y border-border/50 bg-muted/30 py-14"
+        className="border-y border-slate-200 bg-slate-50/70 py-14"
         aria-labelledby="guided-journey-heading"
       >
-        <div className="container mx-auto max-w-6xl px-4">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-5 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">
               Guided support journey
             </p>
             <h2
               id="guided-journey-heading"
-              className="mt-2 font-heading text-2xl font-bold sm:text-3xl"
+              className="mt-3 text-3xl font-black leading-[1.08] tracking-[-0.04em] sm:text-5xl"
             >
-              From search to support, without the guesswork
+              <MapAbleWavyText text="One place to start, many ways to be supported." />
             </h2>
-            <p className="mt-3 text-muted-foreground">
-              Built for participants, families and coordinators who need clarity
-              before they commit — not another generic directory.
+            <p className="mt-4 text-base leading-8 text-muted-foreground">
+              Built for participants, families and coordinators who need clear
+              comparison, practical next steps and support that understands
+              access needs.
             </p>
           </div>
           <ol className="mt-10 grid gap-6 md:grid-cols-3">
             {JOURNEY_STEPS.map((item) => (
               <li
                 key={item.step}
-                className="rounded-xl border border-border/50 bg-card p-6 shadow-sm"
+                className="rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm"
               >
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[hsl(var(--mapable-yellow))]/25 text-sm font-black text-primary">
                   {item.step}
                 </span>
-                <h3 className="mt-4 font-heading text-lg font-semibold">{item.title}</h3>
+                <h3 className="mapable-display mt-4 text-xl font-black tracking-[-0.045em]">
+                  {item.title}
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {item.description}
                 </p>
@@ -105,10 +112,20 @@ export function MapAbleCareCombinedSections() {
             ))}
           </ol>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Button variant="default" asChild size="lg">
+            <Button
+              variant="default"
+              asChild
+              size="lg"
+              className="rounded-2xl font-black"
+            >
               <Link href="/ask">Ask MapAble</Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="rounded-2xl border-2 border-foreground font-black"
+            >
               <Link href="/register">List your service</Link>
             </Button>
           </div>

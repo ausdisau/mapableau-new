@@ -1,27 +1,28 @@
 /** Shared Tailwind class groups aligned with mapable.com.au */
 export const mapableHeaderClass =
-  "sticky top-0 z-50 border-b border-border/60 bg-card/85 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-card/70";
+  "sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-white/85";
 
 export const mapableNavLinkClass =
-  "rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "rounded-xl px-3 py-2 text-sm font-black text-muted-foreground transition-colors hover:bg-accent hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:ring-offset-2";
 
 export const mapableNavLinkActiveClass =
-  "rounded-lg px-3 py-2 text-sm font-medium bg-primary/10 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "rounded-xl bg-primary/10 px-3 py-2 text-sm font-black text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:ring-offset-2";
 
-export const mapablePageContainerClass = "container mx-auto px-4";
+export const mapablePageContainerClass =
+  "container mx-auto max-w-7xl px-4 sm:px-5 lg:px-8";
 
 export const mapableSectionCardClass =
-  "rounded-xl border border-border/40 bg-gradient-to-br from-card via-card to-primary/5 shadow-md";
+  "rounded-[1.6rem] border border-slate-200 bg-gradient-to-br from-white via-white to-primary/5 shadow-sm";
 
 export const mapableEyebrowBadgeClass =
-  "border-primary/30 bg-primary/10 font-semibold text-primary shadow-sm";
+  "rounded-full border-primary/30 bg-white/80 px-4 py-1.5 font-black text-primary shadow-sm ring-1 ring-slate-200";
 
 export const mapableEyebrowBadgeSecondaryClass =
-  "border-secondary/20 bg-secondary/5 text-secondary";
+  "rounded-full border-secondary/20 bg-secondary/5 px-4 py-1.5 font-black text-secondary";
 
 /** Accessible search inputs — stronger placeholder contrast than default muted. */
 export const mapableSearchInputClass =
-  "min-h-12 w-full rounded-xl border border-input bg-background py-3 pr-3 text-base text-foreground shadow-sm outline-none transition placeholder:text-slate-500 focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60";
+  "min-h-12 w-full rounded-2xl border-2 border-slate-200 bg-white py-3 pr-3 text-base font-semibold text-foreground shadow-sm outline-none transition placeholder:text-slate-500 focus-visible:border-primary/60 focus-visible:ring-4 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const mapableSearchFieldSecondaryClass =
-  "rounded-xl border border-dashed border-border/70 bg-muted/20 p-3 sm:p-4";
+  "rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-3 sm:p-4";

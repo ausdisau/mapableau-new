@@ -1,5 +1,10 @@
+import { Prisma, type AccessVenueClaim } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
+import { isPrismaErrorCode } from "@/lib/prisma-errors";
+
+export const VENUE_CLAIM_RATE_LIMIT_PER_HOUR = 5;
 
 export async function submitVenueClaim(params: {
   placeId: string;
@@ -7,15 +12,52 @@ export async function submitVenueClaim(params: {
   businessName?: string;
   evidenceNote?: string;
 }) {
-  const claim = await prisma.accessVenueClaim.create({
-    data: {
-      placeId: params.placeId,
-      userId: params.userId,
-      businessName: params.businessName,
-      evidenceNote: params.evidenceNote,
-      status: "submitted",
-    },
-  });
+  let claim: AccessVenueClaim;
+  try {
+    claim = await prisma.$transaction(
+      async (tx) => {
+        const recentCount = await tx.accessVenueClaim.count({
+          where: {
+            userId: params.userId,
+            createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
+          },
+        });
+
+        const existingActiveClaim = await tx.accessVenueClaim.findFirst({
+          where: {
+            placeId: params.placeId,
+            userId: params.userId,
+            status: { in: ["submitted", "needs_evidence"] },
+          },
+          select: { id: true },
+        });
+
+        if (recentCount >= VENUE_CLAIM_RATE_LIMIT_PER_HOUR) {
+          throw new Error("VENUE_CLAIM_RATE_LIMIT");
+        }
+
+        if (existingActiveClaim) {
+          throw new Error("VENUE_CLAIM_ALREADY_SUBMITTED");
+        }
+
+        return tx.accessVenueClaim.create({
+          data: {
+            placeId: params.placeId,
+            userId: params.userId,
+            businessName: params.businessName,
+            evidenceNote: params.evidenceNote,
+            status: "submitted",
+          },
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+  } catch (error) {
+    if (isPrismaErrorCode(error, "P2034")) {
+      throw new Error("VENUE_CLAIM_RATE_LIMIT");
+    }
+    throw error;
+  }
 
   await createAuditEvent({
     actorUserId: params.userId,

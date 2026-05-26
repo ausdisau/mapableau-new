@@ -1,5 +1,6 @@
 import { createAccessPlaceSchema } from "@/types/access-map";
 import {
+  assertAccessPlaceSuggestionQuota,
   createAccessPlace,
   listPublishedPlaces,
   placeToGeoJsonFeature,
@@ -63,11 +64,26 @@ export async function POST(req: Request) {
   const parsed = createAccessPlaceSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
+  const canPublishDirectly = canEditPlace(user);
+  if (!canPublishDirectly) {
+    try {
+      await assertAccessPlaceSuggestionQuota(user.id);
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        e.message === "ACCESS_PLACE_SUGGESTION_RATE_LIMIT"
+      ) {
+        return jsonError("Too many place suggestions submitted recently", 429);
+      }
+      throw e;
+    }
+  }
+
   const place = await createAccessPlace({
     input: parsed.data,
     createdById: user.id,
-    status: canEditPlace(user) ? "published" : "pending_moderation",
-    sourceType: canEditPlace(user) ? "mapable_verified" : "user_suggested",
+    status: canPublishDirectly ? "published" : "pending_moderation",
+    sourceType: canPublishDirectly ? "mapable_verified" : "user_suggested",
   });
 
   return jsonOk({ place: { id: place.id, status: place.status } }, 201);

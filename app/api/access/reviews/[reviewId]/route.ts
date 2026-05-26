@@ -1,13 +1,20 @@
-import { canDeleteReview, canEditReview } from "@/lib/access-reviews/review-access-policy";
+import {
+  canDeleteReview,
+  canEditReview,
+} from "@/lib/access-reviews/review-access-policy";
 import { recomputePlaceRatingSummaries } from "@/lib/access-reviews/review-summary-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  jsonBodyErrorResponse,
+  parseJsonRequestBody,
+} from "@/lib/api/request-body";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { updateAccessReviewSchema } from "@/lib/validation/access-review";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ reviewId: string }> }
+  { params }: { params: Promise<{ reviewId: string }> },
 ) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
@@ -21,14 +28,22 @@ export async function PATCH(
     return jsonError("Forbidden", 403);
   }
 
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await parseJsonRequestBody(req);
+  } catch (e) {
+    const err = jsonBodyErrorResponse(e);
+    return jsonError(err.message, err.status);
+  }
   const parsed = updateAccessReviewSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
   const review = await prisma.accessPlaceReview.update({
     where: { id: reviewId },
     data: {
-      ...(parsed.data.reviewBody != null ? { reviewBody: parsed.data.reviewBody } : {}),
+      ...(parsed.data.reviewBody != null
+        ? { reviewBody: parsed.data.reviewBody }
+        : {}),
       ...(parsed.data.mobilityContext != null
         ? { mobilityContext: parsed.data.mobilityContext }
         : {}),
@@ -43,7 +58,7 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: Promise<{ reviewId: string }> }
+  { params }: { params: Promise<{ reviewId: string }> },
 ) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;

@@ -6,7 +6,7 @@ import * as React from "react";
 import { cn } from "@/app/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.97] hover:-translate-y-0.5",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-black transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.97] hover:-translate-y-0.5",
   {
     variants: {
       variant: {
@@ -15,7 +15,7 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-lg hover:shadow-destructive/20 active:shadow-sm active:bg-destructive/95 active:translate-y-0",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-primary/30 hover:shadow-md active:shadow-sm active:bg-accent/80 active:translate-y-0",
+          "border border-slate-200 bg-white shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-primary/30 hover:shadow-md active:shadow-sm active:bg-accent/80 active:translate-y-0",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-lg hover:shadow-secondary/20 active:shadow-sm active:bg-secondary/90 active:translate-y-0",
         ghost:
@@ -24,16 +24,16 @@ const buttonVariants = cva(
       },
       size: {
         default: "min-h-11 px-5 py-2.5 md:min-h-10",
-        sm: "min-h-9 rounded-md px-3.5 text-xs md:min-h-8",
-        lg: "min-h-12 rounded-lg px-8 text-base md:min-h-11",
-        icon: "h-11 w-11 md:h-10 md:w-10 rounded-lg",
+        sm: "min-h-9 rounded-xl px-3.5 text-xs md:min-h-8",
+        lg: "min-h-12 rounded-2xl px-8 text-base md:min-h-11",
+        icon: "h-11 w-11 rounded-xl md:h-10 md:w-10",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -59,7 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
     const Comp = asChild ? Slot : "button";
     return (
@@ -82,7 +82,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </Comp>
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

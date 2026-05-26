@@ -35,11 +35,11 @@ export function ProviderFinderSidebar({
 
   return (
     <aside
-      className="space-y-8 rounded-xl border border-border/60 bg-card p-5 shadow-sm lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
+      className="space-y-7 rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
       aria-label="Refine search"
     >
       <div>
-        <h2 className="font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h2 className="text-lg font-black tracking-[-0.02em] text-foreground">
           Refine search
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -48,7 +48,9 @@ export function ProviderFinderSidebar({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-foreground">Support type</h3>
+        <h3 className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+          Support type
+        </h3>
         <ul className="mt-3 space-y-1">
           {SUPPORT_TYPES.map((type) => (
             <li key={type.id}>
@@ -56,10 +58,10 @@ export function ProviderFinderSidebar({
                 type="button"
                 onClick={() => onSupportTypeChange(type.id)}
                 className={cn(
-                  "w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "w-full rounded-xl px-3 py-2.5 text-left text-sm font-black transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
                   supportType === type.id
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    : "bg-slate-50 text-foreground hover:bg-accent hover:text-accent-foreground",
                 )}
                 aria-pressed={supportType === type.id}
               >
@@ -71,8 +73,10 @@ export function ProviderFinderSidebar({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-foreground">Access needs</h3>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <h3 className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+          Access needs
+        </h3>
+        <div className="mt-3 grid gap-2">
           {ACCESS_NEEDS.map((need) => {
             const active = accessNeeds.includes(need.id);
             return (
@@ -81,10 +85,10 @@ export function ProviderFinderSidebar({
                 type="button"
                 onClick={() => toggleAccessNeed(need.id)}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "rounded-xl border px-3 py-2 text-left text-xs font-black transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
                   active
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-accent",
+                    : "border-slate-200 bg-white text-foreground hover:border-primary/30 hover:bg-accent",
                 )}
                 aria-pressed={active}
               >
@@ -96,7 +100,9 @@ export function ProviderFinderSidebar({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-foreground">Funding</h3>
+        <h3 className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+          Funding
+        </h3>
         <div className="mt-3 space-y-1">
           {FUNDING_OPTIONS.map((option) => (
             <button
@@ -104,10 +110,10 @@ export function ProviderFinderSidebar({
               type="button"
               onClick={() => onFundingChange(option.id)}
               className={cn(
-                "w-full rounded-lg px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "w-full rounded-xl px-3 py-2 text-left text-sm font-black transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
                 funding === option.id
                   ? "bg-primary/10 font-medium text-primary"
-                  : "text-muted-foreground hover:bg-accent",
+                  : "bg-slate-50 text-foreground hover:bg-accent",
               )}
               aria-pressed={funding === option.id}
             >

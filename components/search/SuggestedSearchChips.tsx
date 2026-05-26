@@ -24,7 +24,7 @@ export function SuggestedSearchChips({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="text-xs font-medium text-muted-foreground">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
         Try a suggested search
       </p>
       <div className="flex flex-wrap gap-2">
@@ -34,7 +34,7 @@ export function SuggestedSearchChips({
             type="button"
             onClick={() => selectChip(suggestion)}
             aria-label={`Use suggested search: ${suggestion}`}
-            className="max-w-full rounded-full border border-primary/20 bg-primary/5 px-3 py-2 text-left text-xs font-medium text-primary transition hover:border-primary/35 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:text-sm"
+            className="max-w-full rounded-full border border-primary/20 bg-primary/5 px-3 py-2 text-left text-xs font-black text-primary transition hover:border-primary/35 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:ring-offset-2 sm:text-sm"
           >
             {suggestion}
           </button>

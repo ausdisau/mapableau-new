@@ -22,7 +22,10 @@ export type AutocompleteSuggestion = {
     suburb?: string;
     state?: string;
     postcode?: string;
+    legacyProviderId?: string;
+    providerProfileId?: string;
     providerId?: string;
+    outletName?: string;
   };
 };
 
@@ -31,6 +34,7 @@ export type AutocompleteField =
   | "provider"
   | "service"
   | "location"
+  | "postcode"
   | "accessibility"
   | "language";
 

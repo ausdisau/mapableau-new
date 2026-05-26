@@ -5,9 +5,11 @@ import React, { useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomplete";
+import { JQueryAutocomplete } from "@/components/search/JQueryAutocomplete";
 import { SearchTrustRow } from "@/components/search/SearchTrustRow";
 import { Button } from "@/components/ui/button";
 import { mapableSearchFieldSecondaryClass } from "@/lib/brand/styles";
+import { MAPABLE_PROVIDER_SEARCH_FIELD_SCHEMA } from "@/lib/provider-finder/provider-search-field-schema";
 import type {
   AutocompleteContext,
   AutocompleteSuggestion,
@@ -35,6 +37,8 @@ type MapAbleProviderSearchFormProps = {
   showOptionalFields?: boolean;
   formId?: string;
   className?: string;
+  autocompleteMode?: "accessible" | "jquery";
+  variant?: "stacked" | "hero";
 };
 
 export function MapAbleProviderSearchForm({
@@ -51,10 +55,15 @@ export function MapAbleProviderSearchForm({
   showOptionalFields = true,
   formId = "mapable-provider-search",
   className,
+  autocompleteMode = "accessible",
+  variant = "stacked",
 }: MapAbleProviderSearchFormProps) {
   const [statusMessage, setStatusMessage] = useState("");
 
   const idPrefix = context === "homepage" ? "home" : "pf";
+  const Autocomplete =
+    autocompleteMode === "jquery" ? JQueryAutocomplete : AccessibleAutocomplete;
+  const isHero = variant === "hero";
 
   function mergeQueryFromSuggestion(suggestion: AutocompleteSuggestion) {
     if (suggestion.type === "provider") {
@@ -90,60 +99,115 @@ export function MapAbleProviderSearchForm({
         onSubmit();
       }}
     >
-      <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-4 shadow-lg shadow-primary/5 sm:p-5">
-        <AccessibleAutocomplete
-          id={`${idPrefix}-search-primary`}
-          label="Search for support"
-          placeholder='Try "support worker", "wheelchair transport" or "OT"'
-          context={context}
-          field="all"
-          value={values.query}
-          onChange={onQueryChange}
-          onSelect={mergeQueryFromSuggestion}
-          disabled={isSubmitting}
-          icon={<Search className="h-4 w-4" aria-hidden />}
-        />
+      <div
+        className={cn(
+          "rounded-[1.4rem] border border-slate-200 bg-white",
+          isHero
+            ? "p-3 shadow-xl shadow-slate-200/70"
+            : "flex flex-col gap-4 p-4 shadow-sm sm:p-5",
+        )}
+      >
+        <div
+          className={cn(
+            isHero
+              ? "grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,0.75fr)_auto]"
+              : "contents",
+          )}
+        >
+          <Autocomplete
+            id={`${idPrefix}-search-primary`}
+            label="Search for support"
+            placeholder={
+              isHero
+                ? "What support are you looking for?"
+                : 'Try "support worker", "wheelchair transport" or "OT"'
+            }
+            context={context}
+            field={MAPABLE_PROVIDER_SEARCH_FIELD_SCHEMA.all.autocompleteField}
+            value={values.query}
+            onChange={onQueryChange}
+            onSelect={mergeQueryFromSuggestion}
+            disabled={isSubmitting}
+            icon={<Search className="h-4 w-4" aria-hidden />}
+          />
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <AccessibleAutocomplete
-            id={`${idPrefix}-location`}
-            label="Location"
-            placeholder="Suburb or postcode"
-            context={context}
-            field="location"
-            value={values.location}
-            onChange={onLocationChange}
-            onSelect={(s) => onLocationChange(s.value)}
-            disabled={isSubmitting}
-            icon={<MapPin className="h-4 w-4" aria-hidden />}
-            helperText="Uses MapAble’s local location list — not a public geocoding API."
-          />
-          <AccessibleAutocomplete
-            id={`${idPrefix}-access`}
-            label="Access needs"
-            placeholder="Wheelchair access, Auslan, low sensory..."
-            context={context}
-            field="accessibility"
-            value={values.accessQuery}
-            onChange={onAccessQueryChange}
-            onSelect={(s) => {
-              onAccessQueryChange(s.value);
-              onAccessSuggestionSelect?.(s.value);
-            }}
-            disabled={isSubmitting}
-          />
+          <div className={cn(!isHero && "grid gap-3 sm:grid-cols-2")}>
+            <Autocomplete
+              id={`${idPrefix}-location`}
+              label="Postcode or suburb"
+              placeholder="Suburb or postcode"
+              context={context}
+              field={
+                MAPABLE_PROVIDER_SEARCH_FIELD_SCHEMA.location.autocompleteField
+              }
+              value={values.location}
+              onChange={onLocationChange}
+              onSelect={(s) => onLocationChange(s.value)}
+              disabled={isSubmitting}
+              icon={<MapPin className="h-4 w-4" aria-hidden />}
+              helperText={
+                isHero
+                  ? undefined
+                  : "Uses MapAble’s local location list — not a public geocoding API."
+              }
+            />
+            {!isHero ? (
+              <Autocomplete
+                id={`${idPrefix}-access`}
+                label="Access needs"
+                placeholder="Wheelchair access, Auslan, low sensory..."
+                context={context}
+                field={
+                  MAPABLE_PROVIDER_SEARCH_FIELD_SCHEMA.accessibility
+                    .autocompleteField
+                }
+                value={values.accessQuery}
+                onChange={onAccessQueryChange}
+                onSelect={(s) => {
+                  onAccessQueryChange(s.value);
+                  onAccessSuggestionSelect?.(s.value);
+                }}
+                disabled={isSubmitting}
+              />
+            ) : null}
+          </div>
+
+          {isHero ? (
+            <Button
+              type="submit"
+              variant="default"
+              size="lg"
+              className="min-h-12 w-full rounded-xl px-6 font-black lg:w-auto"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Finding…
+                </>
+              ) : (
+                "Find providers"
+              )}
+            </Button>
+          ) : null}
         </div>
 
-        {showOptionalFields ? (
+        {showOptionalFields && !isHero ? (
           <div
-            className={cn("grid gap-3 sm:grid-cols-2", mapableSearchFieldSecondaryClass)}
+            className={cn(
+              "grid gap-3 sm:grid-cols-2",
+              mapableSearchFieldSecondaryClass,
+            )}
           >
-            <AccessibleAutocomplete
+            <Autocomplete
               id={`${idPrefix}-service`}
               label="Service type (optional)"
               placeholder="e.g. physiotherapy"
               context={context}
-              field="service"
+              field={
+                MAPABLE_PROVIDER_SEARCH_FIELD_SCHEMA.service.autocompleteField
+              }
               value={values.serviceQuery}
               onChange={onServiceQueryChange}
               onSelect={(s) => {
@@ -152,12 +216,14 @@ export function MapAbleProviderSearchForm({
               }}
               disabled={isSubmitting}
             />
-            <AccessibleAutocomplete
+            <Autocomplete
               id={`${idPrefix}-provider`}
               label="Provider name (optional)"
               placeholder="Provider or organisation"
               context={context}
-              field="provider"
+              field={
+                MAPABLE_PROVIDER_SEARCH_FIELD_SCHEMA.provider.autocompleteField
+              }
               value={values.providerName}
               onChange={onProviderNameChange}
               onSelect={(s) => {
@@ -169,30 +235,36 @@ export function MapAbleProviderSearchForm({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+        {!isHero ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <p className="sr-only" aria-live="polite" aria-atomic="true">
+              {statusMessage}
+            </p>
+            <Button
+              type="submit"
+              variant="default"
+              size="lg"
+              className="min-h-11 w-full rounded-xl font-black sm:min-h-12 sm:w-auto sm:px-10"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Finding providers…
+                </>
+              ) : (
+                "Find matching providers"
+              )}
+            </Button>
+          </div>
+        ) : (
           <p className="sr-only" aria-live="polite" aria-atomic="true">
             {statusMessage}
           </p>
-          <Button
-            type="submit"
-            variant="default"
-            size="lg"
-            className="min-h-11 w-full sm:min-h-12 sm:w-auto sm:px-10"
-            disabled={isSubmitting}
-            aria-busy={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                Finding providers…
-              </>
-            ) : (
-              "Find matching providers"
-            )}
-          </Button>
-        </div>
+        )}
 
-        <SearchTrustRow />
+        {!isHero ? <SearchTrustRow /> : null}
       </div>
     </form>
   );

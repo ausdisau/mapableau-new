@@ -44,4 +44,13 @@ describe("GET /api/search/autocomplete", () => {
     const body = await res.json();
     expect(body.groups.providers).toHaveLength(1);
   });
+
+  it("accepts postcode field used by the homepage location autocomplete", async () => {
+    const res = await GET(
+      new Request(
+        "http://localhost/api/search/autocomplete?q=2150&context=homepage&field=postcode",
+      ),
+    );
+    expect(res.status).toBe(200);
+  });
 });

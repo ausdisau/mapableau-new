@@ -1,15 +1,40 @@
-import type {
-  AccessPlaceCategory,
-  AccessPlaceFeatureType,
-  AccessPlaceSourceType,
-  AccessPlaceStatus,
+import {
   Prisma,
+  type AccessPlaceCategory,
+  type AccessPlaceFeatureType,
+  type AccessPlaceSourceType,
+  type AccessPlaceStatus,
 } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { confidenceFromSource } from "@/lib/access-map/access-confidence-service";
 import { prisma } from "@/lib/prisma";
+import { isPrismaErrorCode } from "@/lib/prisma-errors";
 import type { CreateAccessPlaceInput } from "@/types/access-map";
+
+type AccessPlaceCreateClient = Pick<
+  Prisma.TransactionClient,
+  "accessPlace" | "auditEvent"
+>;
+
+export const ACCESS_PLACE_SUGGESTION_RATE_LIMIT_PER_HOUR = 10;
+
+export async function assertAccessPlaceSuggestionQuota(
+  createdById: string,
+  now = new Date(),
+) {
+  const recentCount = await prisma.accessPlace.count({
+    where: {
+      createdById,
+      sourceType: "user_suggested",
+      createdAt: { gte: new Date(now.getTime() - 60 * 60 * 1000) },
+    },
+  });
+
+  if (recentCount >= ACCESS_PLACE_SUGGESTION_RATE_LIMIT_PER_HOUR) {
+    throw new Error("ACCESS_PLACE_SUGGESTION_RATE_LIMIT");
+  }
+}
 
 const placeInclude = {
   location: true,
@@ -48,9 +73,7 @@ export async function listPublishedPlaces(take = 50) {
 
 export async function getPlaceById(placeId: string, publicOnly = true) {
   return prisma.accessPlace.findFirst({
-    where: publicOnly
-      ? { id: placeId, status: "published" }
-      : { id: placeId },
+    where: publicOnly ? { id: placeId, status: "published" } : { id: placeId },
     include: placeInclude,
   });
 }
@@ -61,11 +84,13 @@ export async function createAccessPlace(params: {
   status?: AccessPlaceStatus;
   sourceType?: AccessPlaceSourceType;
   sourceReference?: string;
+  db?: AccessPlaceCreateClient;
 }) {
   const status = params.status ?? "pending_moderation";
   const sourceType = params.sourceType ?? "user_suggested";
+  const db = params.db ?? prisma;
 
-  const place = await prisma.accessPlace.create({
+  const place = await db.accessPlace.create({
     data: {
       name: params.input.name,
       category: params.input.category as AccessPlaceCategory,
@@ -103,13 +128,16 @@ export async function createAccessPlace(params: {
     include: { location: true, features: true },
   });
 
-  await createAuditEvent({
-    actorUserId: params.createdById,
-    action: "access_place.created",
-    entityType: "AccessPlace",
-    entityId: place.id,
-    metadata: { status, sourceType },
-  });
+  await createAuditEvent(
+    {
+      actorUserId: params.createdById,
+      action: "access_place.created",
+      entityType: "AccessPlace",
+      entityId: place.id,
+      metadata: { status, sourceType },
+    },
+    db,
+  );
 
   return place;
 }
@@ -117,7 +145,7 @@ export async function createAccessPlace(params: {
 export async function updateAccessPlace(
   placeId: string,
   data: Prisma.AccessPlaceUpdateInput,
-  actorId: string
+  actorId: string,
 ) {
   const place = await prisma.accessPlace.update({
     where: { id: placeId },
@@ -162,10 +190,10 @@ export async function publishAccessPlace(placeId: string, actorId: string) {
       confidence: confidenceFromSource(
         place.sourceType,
         reviewCount,
-        hasAccred > 0
+        hasAccred > 0,
       ),
     },
-    actorId
+    actorId,
   );
 }
 
@@ -175,48 +203,60 @@ export async function reportAccessPlace(params: {
   reason: string;
   details?: string;
 }) {
-  if (params.reporterId) {
-    const existing = await prisma.accessPlaceReport.findFirst({
-      where: {
-        placeId: params.placeId,
-        reporterId: params.reporterId,
-        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+  try {
+    return await prisma.$transaction(
+      async (tx) => {
+        if (params.reporterId) {
+          const existing = await tx.accessPlaceReport.findFirst({
+            where: {
+              placeId: params.placeId,
+              reporterId: params.reporterId,
+              createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            },
+            select: { id: true },
+          });
+          if (existing) {
+            throw new Error("PLACE_REPORT_ALREADY_SUBMITTED");
+          }
+        }
+
+        const report = await tx.accessPlaceReport.create({
+          data: {
+            placeId: params.placeId,
+            reporterId: params.reporterId,
+            reason: params.reason as never,
+            details: params.details,
+          },
+        });
+
+        await tx.accessContentReport.create({
+          data: {
+            entityType: "AccessPlace",
+            entityId: params.placeId,
+            reporterId: params.reporterId,
+            reason: params.reason as never,
+            details: params.details,
+          },
+        });
+
+        await tx.accessModerationQueue.create({
+          data: {
+            entityType: "AccessPlace",
+            entityId: params.placeId,
+            flagReason: params.reason,
+          },
+        });
+
+        return report;
       },
-      select: { id: true },
-    });
-    if (existing) {
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+  } catch (error) {
+    if (params.reporterId && isPrismaErrorCode(error, "P2034")) {
       throw new Error("PLACE_REPORT_ALREADY_SUBMITTED");
     }
+    throw error;
   }
-
-  const report = await prisma.accessPlaceReport.create({
-    data: {
-      placeId: params.placeId,
-      reporterId: params.reporterId,
-      reason: params.reason as never,
-      details: params.details,
-    },
-  });
-
-  await prisma.accessContentReport.create({
-    data: {
-      entityType: "AccessPlace",
-      entityId: params.placeId,
-      reporterId: params.reporterId,
-      reason: params.reason as never,
-      details: params.details,
-    },
-  });
-
-  await prisma.accessModerationQueue.create({
-    data: {
-      entityType: "AccessPlace",
-      entityId: params.placeId,
-      flagReason: params.reason,
-    },
-  });
-
-  return report;
 }
 
 export function placeToGeoJsonFeature(place: {

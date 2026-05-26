@@ -1,8 +1,10 @@
-import type { MapAbleUserRole } from "@prisma/client";
+import type { MapAbleUserRole, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 
 import { prisma } from "@/lib/prisma";
 import type { AuditAction } from "@/types/mapable";
+
+type AuditEventClient = Pick<Prisma.TransactionClient, "auditEvent">;
 
 export interface CreateAuditEventInput {
   actorUserId?: string | null;
@@ -34,7 +36,8 @@ async function requestMeta(): Promise<{
 }
 
 export async function createAuditEvent(
-  input: CreateAuditEventInput
+  input: CreateAuditEventInput,
+  db: AuditEventClient = prisma
 ): Promise<void> {
   const meta = await requestMeta();
   const safeMetadata = input.metadata
@@ -51,7 +54,7 @@ export async function createAuditEvent(
       )
     : undefined;
 
-  await prisma.auditEvent.create({
+  await db.auditEvent.create({
     data: {
       actorUserId: input.actorUserId ?? null,
       actorRole: input.actorRole ?? null,

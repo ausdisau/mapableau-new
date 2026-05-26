@@ -13,17 +13,20 @@ export type AccessPlaceCardData = {
 
 export function AccessPlaceCard({ place }: { place: AccessPlaceCardData }) {
   return (
-    <article className="rounded-lg border border-border p-4">
-      <h3 className="text-lg font-semibold">
-        <Link href={`/access/places/${place.id}`} className="hover:underline">
+    <article className="rounded-[1.4rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="mapable-display text-xl font-black tracking-[-0.04em]">
+        <Link
+          href={`/access/places/${place.id}`}
+          className="rounded-lg hover:text-primary focus:outline-none focus:ring-4 focus:ring-ring/40"
+        >
           {place.name}
         </Link>
       </h3>
-      <p className="text-sm text-muted-foreground capitalize">
+      <p className="mt-1 text-sm font-semibold text-muted-foreground capitalize">
         {place.category.replace(/_/g, " ")}
         {place.suburb ? ` · ${place.suburb}` : ""}
       </p>
-      <p className="mt-2 text-sm">
+      <p className="mt-3 rounded-2xl bg-primary/10 px-3 py-2 text-sm font-semibold text-primary">
         {(place.reviewCount ?? 0) > 0
           ? ACCESS_LABELS.communityReviewed
           : ACCESS_LABELS.needsMore}

@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowRight, Bookmark, MessageCircle, ShieldCheck, Star } from "lucide-react";
+import {
+  ArrowRight,
+  Bookmark,
+  MessageCircle,
+  ShieldCheck,
+  Star,
+} from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
@@ -50,15 +56,14 @@ export function ProviderFinderResultCard({
   onToggleCompare,
 }: ProviderFinderResultCardProps) {
   const rating = Math.max(0, Math.min(5, provider.rating));
-  const showDistance =
-    provider.distanceKm > 0 && provider.suburb !== "Remote";
+  const showDistance = provider.distanceKm > 0 && provider.suburb !== "Remote";
   const featured = provider.rating >= 4.7 && provider.reviewCount >= 50;
 
   return (
     <article
       className={cn(
-        "rounded-xl border border-border/60 bg-card p-5 shadow-sm transition",
-        isSelected && "border-primary/30 ring-2 ring-primary/15",
+        "rounded-[1.6rem] border border-slate-200 bg-white p-5 shadow-sm transition",
+        isSelected && "border-primary/30 ring-4 ring-primary/15",
       )}
     >
       <div className="flex flex-wrap items-start gap-2">
@@ -72,23 +77,28 @@ export function ProviderFinderResultCard({
           </Badge>
         ) : null}
         {featured ? (
-          <Badge variant="outline" className="border-secondary/30 bg-secondary/5 text-secondary">
+          <Badge
+            variant="outline"
+            className="border-secondary/30 bg-secondary/5 text-secondary"
+          >
             Featured partner
           </Badge>
         ) : null}
         <div className="ml-auto flex items-center gap-1 text-sm">
           <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
           <span className="font-semibold">{rating.toFixed(1)}</span>
-          <span className="text-muted-foreground">({provider.reviewCount} reviews)</span>
+          <span className="text-muted-foreground">
+            ({provider.reviewCount} reviews)
+          </span>
         </div>
       </div>
 
       <button
         type="button"
-        className="mt-3 w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+        className="mt-3 w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40"
         onClick={() => onSelect?.(provider)}
       >
-        <h3 className="font-heading text-lg font-semibold text-foreground">
+        <h3 className="mapable-display text-xl font-black tracking-[-0.04em] text-foreground">
           {provider.name}
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -112,40 +122,40 @@ export function ProviderFinderResultCard({
         {provider.categories.slice(0, 2).map((cat) => (
           <span
             key={cat}
-            className="rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs text-foreground"
+            className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-foreground"
           >
             {cat}
           </span>
         ))}
         {provider.supports.includes("Telehealth") ? (
-          <span className="rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs text-foreground">
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-foreground">
             Telehealth
           </span>
         ) : null}
       </div>
 
-      <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-border/60 pt-4 text-center sm:gap-4">
+      <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-slate-200 pt-4 text-center sm:gap-4">
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <dt className="text-[10px] font-black uppercase tracking-wide text-muted-foreground">
             Availability
           </dt>
-          <dd className="mt-1 text-xs font-medium text-foreground sm:text-sm">
+          <dd className="mt-1 text-xs font-semibold text-foreground sm:text-sm">
             {availabilityLabel(provider)}
           </dd>
         </div>
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <dt className="text-[10px] font-black uppercase tracking-wide text-muted-foreground">
             Response
           </dt>
-          <dd className="mt-1 text-xs font-medium text-foreground sm:text-sm">
+          <dd className="mt-1 text-xs font-semibold text-foreground sm:text-sm">
             {responseLabel(provider)}
           </dd>
         </div>
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <dt className="text-[10px] font-black uppercase tracking-wide text-muted-foreground">
             Funding
           </dt>
-          <dd className="mt-1 text-xs font-medium text-foreground sm:text-sm">
+          <dd className="mt-1 text-xs font-semibold text-foreground sm:text-sm">
             {fundingLabel(provider)}
           </dd>
         </div>

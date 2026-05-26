@@ -24,7 +24,7 @@ export function MapAbleLogo({
   ariaLabel?: string;
 }) {
   const linkClass = cn(
-    "inline-flex min-w-0 shrink-0 bg-transparent outline-none ring-offset-background transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    "inline-flex min-w-0 shrink-0 bg-transparent outline-none ring-offset-background transition hover:opacity-90 focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:ring-offset-2",
     variant === "full" ? "items-center" : "items-center gap-3",
     className,
   );
@@ -37,7 +37,7 @@ export function MapAbleLogo({
           alt=""
           width={280}
           height={140}
-          className="h-[4.25rem] w-auto max-w-[min(280px,58vw)] bg-transparent object-contain object-left sm:h-[4.75rem]"
+          className="h-[4rem] w-auto max-w-[min(270px,58vw)] bg-transparent object-contain object-left sm:h-[4.5rem]"
           priority
           unoptimized
           aria-hidden
@@ -57,10 +57,10 @@ export function MapAbleLogo({
         aria-hidden
       />
       {variant === "text" ? (
-        <span className="min-w-0 truncate font-heading text-lg font-bold tracking-tight text-foreground sm:text-xl">
+        <span className="mapable-display min-w-0 truncate text-2xl font-black tracking-[-0.06em] text-primary sm:text-3xl">
           {title}
           {subtitle ? (
-            <span className="mt-0.5 hidden truncate text-xs font-normal text-muted-foreground sm:block">
+            <span className="mapable-soft mt-0.5 hidden truncate text-xs font-black tracking-wide text-[hsl(var(--mapable-yellow))] sm:block">
               {subtitle}
             </span>
           ) : null}

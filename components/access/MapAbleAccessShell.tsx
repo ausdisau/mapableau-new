@@ -7,6 +7,7 @@ import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceList } from "@/components/access/AccessPlaceList";
 import { AccessSearchBar } from "@/components/access/AccessSearchBar";
 import { MobileAccessMapShell } from "@/components/access/MobileAccessMapShell";
+import { MapAbleWavyText } from "@/components/brand/MapAbleWavyText";
 import { ACCESS_DISCLAIMER } from "@/lib/access-map/copy";
 
 export type AccessPlaceView = {
@@ -56,8 +57,8 @@ export function MapAbleAccessShell({
           reviewCount: r.place.reviewCount,
           latitude: r.place.latitude,
           longitude: r.place.longitude,
-        })
-      )
+        }),
+      ),
     );
   }, [query, category]);
 
@@ -83,25 +84,45 @@ export function MapAbleAccessShell({
 
   return (
     <MobileAccessMapShell view={view} onViewChange={setView}>
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-        <header>
-          <h1 className="text-3xl font-bold tracking-tight">MapAble Access</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
-            Public accessibility map with community reviews and optional MapAble
-            Accreditation. This venue has user-reported accessibility information
-            where shown.
-          </p>
-        </header>
+      <div className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-[#F6FBFC] via-white to-white">
+        <div
+          className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[hsl(var(--mapable-yellow))]/30 blur-3xl motion-reduce:blur-none"
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-7xl space-y-6 px-4 py-10 sm:px-5 lg:px-8">
+          <header>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">
+              Accessible places
+            </p>
+            <h1 className="mt-3 max-w-4xl text-5xl font-black leading-[0.96] tracking-[-0.045em]">
+              <MapAbleWavyText text="Places with access notes, not guesswork." />
+            </h1>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+              Public accessibility map with community reviews and optional
+              MapAble Accreditation. Find cafes, venues and everyday places with
+              access notes from people who have been there.
+            </p>
+          </header>
 
-        <AccessSearchBar value={query} onChange={setQuery} onSubmit={search} />
+          <AccessSearchBar
+            value={query}
+            onChange={setQuery}
+            onSubmit={search}
+          />
+        </div>
+      </div>
 
-        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-          <AccessFilterPanel category={category} onCategoryChange={setCategory} />
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-5 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+          <AccessFilterPanel
+            category={category}
+            onCategoryChange={setCategory}
+          />
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`min-h-11 rounded-lg px-4 ${view === "list" ? "bg-primary text-primary-foreground" : "border border-border"}`}
+                className={`min-h-11 rounded-xl px-4 font-black transition focus:outline-none focus:ring-4 focus:ring-ring/40 ${view === "list" ? "bg-primary text-primary-foreground" : "border border-slate-200 bg-white text-foreground hover:bg-accent"}`}
                 onClick={() => setView("list")}
                 aria-pressed={view === "list"}
               >
@@ -109,7 +130,7 @@ export function MapAbleAccessShell({
               </button>
               <button
                 type="button"
-                className={`min-h-11 rounded-lg px-4 ${view === "map" ? "bg-primary text-primary-foreground" : "border border-border"}`}
+                className={`min-h-11 rounded-xl px-4 font-black transition focus:outline-none focus:ring-4 focus:ring-ring/40 ${view === "map" ? "bg-primary text-primary-foreground" : "border border-slate-200 bg-white text-foreground hover:bg-accent"}`}
                 onClick={() => setView("map")}
                 aria-pressed={view === "map"}
               >

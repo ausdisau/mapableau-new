@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { cn } from "@/app/lib/utils";
-import { MapAbleLogo, type MapAbleLogoVariant } from "@/components/brand/MapAbleLogo";
+import {
+  MapAbleLogo,
+  type MapAbleLogoVariant,
+} from "@/components/brand/MapAbleLogo";
 import {
   mapableHeaderClass,
   mapableNavLinkActiveClass,
@@ -26,7 +29,7 @@ const DEFAULT_NAV: MapAbleNavItem[] = [
 export function MapAbleSiteHeader({
   logoHref = "/core",
   logoTitle = "MapAble",
-  logoSubtitle = "Core",
+  logoSubtitle = "Empowering Independence",
   navItems = DEFAULT_NAV,
   externalCta,
   actions,
@@ -53,7 +56,7 @@ export function MapAbleSiteHeader({
   return (
     <header className={mapableHeaderClass}>
       <div className={mapablePageContainerClass}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 py-3 sm:gap-4">
+        <div className="mx-auto grid items-center gap-3 py-3 md:grid-cols-[1fr_auto_1fr] md:gap-6">
           <MapAbleLogo
             href={logoHref}
             title={logoTitle}
@@ -62,30 +65,41 @@ export function MapAbleSiteHeader({
             ariaLabel="MapAble home"
           />
 
-          <div className="hidden items-center gap-2 md:flex">
-            <nav
-              className="mr-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1"
-              aria-label="Primary"
-            >
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={isActive(item.href) ? mapableNavLinkActiveClass : mapableNavLinkClass}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+          <nav
+            className="hidden items-center justify-center gap-1 md:flex"
+            aria-label="Primary"
+          >
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={
+                  isActive(item.href)
+                    ? mapableNavLinkActiveClass
+                    : mapableNavLinkClass
+                }
+                aria-current={isActive(item.href) ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="hidden items-center justify-end gap-2 md:flex">
             {actions ? (
               actions
             ) : externalCta ? (
               <Link
                 href={externalCta.href}
-                className="inline-flex min-h-10 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
-                target={externalCta.href.startsWith("http") ? "_blank" : undefined}
-                rel={externalCta.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="inline-flex min-h-11 items-center rounded-xl bg-primary px-5 text-sm font-black text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40"
+                target={
+                  externalCta.href.startsWith("http") ? "_blank" : undefined
+                }
+                rel={
+                  externalCta.href.startsWith("http")
+                    ? "noopener noreferrer"
+                    : undefined
+                }
               >
                 {externalCta.label}
               </Link>
@@ -98,13 +112,17 @@ export function MapAbleSiteHeader({
 
           <button
             type="button"
-            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground md:hidden"
+            className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-primary shadow-sm transition hover:bg-accent hover:text-primary md:hidden"
             aria-expanded={open}
             aria-controls="mapable-mobile-nav"
             onClick={() => setOpen(!open)}
           >
             <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-            {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+            {open ? (
+              <X className="h-5 w-5" aria-hidden />
+            ) : (
+              <Menu className="h-5 w-5" aria-hidden />
+            )}
           </button>
         </div>
       </div>
@@ -121,10 +139,10 @@ export function MapAbleSiteHeader({
                 <Link
                   href={item.href}
                   className={cn(
-                    "block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium",
+                    "block min-h-11 rounded-xl px-3 py-2.5 text-sm font-black",
                     isActive(item.href)
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-accent"
+                      : "text-muted-foreground hover:bg-accent",
                   )}
                   onClick={() => setOpen(false)}
                   aria-current={isActive(item.href) ? "page" : undefined}
@@ -137,14 +155,14 @@ export function MapAbleSiteHeader({
               <li className="flex flex-col gap-2 px-3 pt-2">
                 <Link
                   href="/login"
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-input px-4 text-sm font-semibold"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-black"
                   onClick={() => setOpen(false)}
                 >
                   Log in
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-black text-primary-foreground"
                   onClick={() => setOpen(false)}
                 >
                   Get started
@@ -154,7 +172,7 @@ export function MapAbleSiteHeader({
               <li>
                 <Link
                   href="/login"
-                  className="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-primary"
+                  className="block min-h-11 rounded-xl px-3 py-2.5 text-sm font-black text-primary"
                   onClick={() => setOpen(false)}
                 >
                   Sign in

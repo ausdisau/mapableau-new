@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 
 import Footer from "@/components/footer";
+import { HomeSearch } from "@/components/home/HomeSearch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -58,102 +59,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background" data-testid="page-home">
-      {/* Hero Section - Simplified */}
-      <section className="pt-16 pb-20 bg-gradient-to-b from-primary/5 to-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <Badge
-              variant="outline"
-              className="mb-4 px-3 py-1.5 border-primary/20 bg-primary/5 text-primary"
-              data-testid="badge-tagline"
-            >
-              NDIS Service Platform
-            </Badge>
-
-            <h1
-              className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-foreground leading-tight mb-4"
-              data-testid="text-hero-title"
-            >
-              Living with <span className="text-primary">Dignity</span> &{" "}
-              <span className="text-secondary">Independence</span>
-            </h1>
-
-            <p
-              className="text-base md:text-lg text-muted-foreground mb-6 max-w-xl mx-auto"
-              data-testid="text-hero-description"
-            >
-              Connect with verified care providers, accessible transport,
-              employment opportunities, and essential NDIS services.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
-              {user ? (
-                <Link href="/dashboard">
-                  <Button
-                    variant="default"
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-white px-6 h-12 rounded-lg"
-                    data-testid="button-go-dashboard"
-                  >
-                    Go to Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  <Button
-                    variant="default"
-                    size="lg"
-                    // onClick={login}
-                    className="bg-primary hover:bg-primary/90 text-white px-6 h-12 rounded-lg"
-                    data-testid="button-get-started"
-                  >
-                    Get Started
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                  <Link href="/care">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="px-6 h-12 rounded-lg"
-                      data-testid="button-explore-services"
-                    >
-                      Explore Services
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Real Stats from Database */}
-            {/* {platformStats && ( */}
-            <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-              <div className="text-center" data-testid="stat-users">
-                <div className="text-xl md:text-2xl font-bold text-foreground">
-                  {/* {platformStats.userCount || 0} */}
-                  100
-                </div>
-                <div className="text-xs text-muted-foreground">Users</div>
-              </div>
-              <div className="text-center" data-testid="stat-providers">
-                <div className="text-xl md:text-2xl font-bold text-foreground">
-                  {/* {platformStats.providerCount || 0} */}
-                  100
-                </div>
-                <div className="text-xs text-muted-foreground">Providers</div>
-              </div>
-              <div className="text-center" data-testid="stat-bookings">
-                <div className="text-xl md:text-2xl font-bold text-foreground">
-                  {/* {platformStats.bookingCount || 0} */}
-                  100
-                </div>
-                <div className="text-xs text-muted-foreground">Bookings</div>
-              </div>
-            </div>
-            {/* )} */}
-          </div>
-        </div>
-      </section>
+      <HomeSearch />
 
       {/* Services Carousel */}
       <section className="py-16 bg-white" id="services">
