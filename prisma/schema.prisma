@@ -93,6 +93,9 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+  ndisClaimLinesParticipant NdisClaimLine[]        @relation("NdisClaimLinesParticipant")
+  ndisInvoicesParticipant   NdisInvoice[]          @relation("NdisInvoicesParticipant")
+  participantProviderRelationships ParticipantProviderRelationship[] @relation("ParticipantProviderRelationships")
 
   accessPlacesCreated       AccessPlace[]          @relation("AccessPlaceCreatedBy")
   accessPlaceClaims         AccessPlaceClaim[]     @relation("AccessPlaceClaimUser")
@@ -546,6 +549,10 @@ model Organisation {
   invoices    Invoice[]
   billingInvoices BillingInvoice[] @relation("BillingInvoiceProvider")
   ndiaProviderClaims NdiaProviderClaim[]
+  ndisClaimBatches       NdisClaimBatch[]
+  ndisClaimLines         NdisClaimLine[]
+  ndisInvoices           NdisInvoice[]
+  participantProviderRelationships ParticipantProviderRelationship[]
 
   careRequests           CareRequest[]
   careBookings           CareBooking[]
@@ -687,6 +694,7 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  ndisClaimLines     NdisClaimLine[]
 
   segments               BookingSegment[]
   createdAt              DateTime      @default(now())
@@ -5068,6 +5076,721 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+// --- NDIS portal-assisted direct claiming ---
+
+enum NdisPaymentRoute {
+  self_managed
+  plan_managed
+  ndia_managed
+}
+
+enum NdisClaimLineStatus {
+  draft
+  validated
+  validation_failed
+  included_in_batch
+  exported
+  submitted
+  pending
+  paid
+  rejected
+  corrected
+  resubmitted
+  voided
+}
+
+enum NdisClaimBatchStatus {
+  draft
+  validated
+  approved
+  exported
+  submitted_in_portal
+  partially_paid
+  paid
+  rejected
+  closed
+}
+
+enum NdisClaimType {
+  standard
+  cancellation
+  non_face_to_face
+  irregular_sil
+  other
+}
+
+enum NdisInvoiceStatus {
+  draft
+  issued
+  sent
+  paid
+  voided
+}
+
+enum ParticipantProviderRelationshipStatus {
+  unknown
+  active
+  inactive
+  pending_verification
+}
+
+model ParticipantProviderRelationship {
+  id                   String                                @id @default(cuid())
+  participantId        String
+  participant          User                                  @relation("ParticipantProviderRelationships", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId        String
+  providerOrg          Organisation                          @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  status               ParticipantProviderRelationshipStatus @default(unknown)
+  myProviderVerifiedAt DateTime?
+  notes                String?
+  createdAt            DateTime                              @default(now())
+  updatedAt            DateTime                              @updatedAt
+
+  @@unique([participantId, providerOrgId])
+  @@index([providerOrgId, status])
+}
+
+model NdisPricingCatalogueItem {
+  id                String    @id @default(cuid())
+  supportItemCode   String    @unique
+  description       String
+  unitType          String?
+  priceLimitCents   Int?
+  ndisSupportItemId String?
+  active            Boolean   @default(true)
+  effectiveFrom     DateTime?
+  effectiveTo       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([active])
+}
+
+model NdisClaimBatch {
+  id             String               @id @default(cuid())
+  providerOrgId  String
+  providerOrg    Organisation         @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  paymentRoute   NdisPaymentRoute
+  status         NdisClaimBatchStatus @default(draft)
+  batchReference String?
+  exportFileName String?
+  exportChecksum String?
+  exportedAt     DateTime?
+  submittedAt    DateTime?
+  closedAt       DateTime?
+  createdById    String
+  approvedById   String?
+  metadataJson   Json?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  lines NdisClaimLine[]
+
+  @@index([providerOrgId, status])
+  @@index([paymentRoute, status])
+}
+
+model NdisClaimLine {
+  id                    String              @id @default(cuid())
+  batchId               String?
+  batch                 NdisClaimBatch?     @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  participantId         String
+  participant           User                @relation("NdisClaimLinesParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId         String
+  providerOrg           Organisation        @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  bookingId             String?
+  booking               Booking?            @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  invoiceId             String?
+  ndisInvoiceId         String?
+  ndisInvoice           NdisInvoice?        @relation(fields: [ndisInvoiceId], references: [id], onDelete: SetNull)
+  ndisParticipantNumber String?
+  participantName       String
+  supportItemCode       String
+  supportDescription    String
+  serviceStartDate      DateTime
+  serviceEndDate        DateTime
+  quantity              Decimal             @db.Decimal(12, 4)
+  unitPriceCents        Int
+  totalAmountCents      Int
+  paymentRoute          NdisPaymentRoute
+  claimType             NdisClaimType       @default(standard)
+  cancellationReason    String?
+  status                NdisClaimLineStatus @default(draft)
+  rejectionCode         String?
+  rejectionMessage      String?
+  evidenceJson          Json?
+  validationJson        Json?
+  correctedFromLineId   String?
+  createdById           String
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  auditEvents ClaimAuditEvent[]
+
+  @@index([providerOrgId, status])
+  @@index([participantId, providerOrgId, supportItemCode, serviceStartDate])
+  @@index([bookingId])
+  @@index([batchId])
+}
+
+model NdisInvoice {
+  id               String            @id @default(cuid())
+  providerOrgId    String
+  providerOrg      Organisation      @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  participantId    String
+  participant      User              @relation("NdisInvoicesParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  paymentRoute     NdisPaymentRoute
+  invoiceNumber    String
+  status           NdisInvoiceStatus @default(draft)
+  planManagerName  String?
+  planManagerEmail String?
+  issuedAt         DateTime?
+  dueAt            DateTime?
+  totalCents       Int               @default(0)
+  createdById      String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  lines      NdisInvoiceLine[]
+  claimLines NdisClaimLine[]
+
+  @@index([providerOrgId, status])
+  @@index([participantId])
+}
+
+model NdisInvoiceLine {
+  id              String      @id @default(cuid())
+  invoiceId       String
+  invoice         NdisInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  claimLineId     String?     @unique
+  supportItemCode String
+  description     String
+  serviceDate     DateTime
+  quantity        Decimal     @db.Decimal(12, 4)
+  unitPriceCents  Int
+  totalCents      Int
+  sortOrder       Int         @default(0)
+
+  @@index([invoiceId])
+}
+
+model ClaimAuditEvent {
+  id           String         @id @default(cuid())
+  claimLineId  String?
+  claimLine    NdisClaimLine? @relation(fields: [claimLineId], references: [id], onDelete: SetNull)
+  batchId      String?
+  entityType   String
+  entityId     String
+  action       String
+  actorUserId  String?
+  beforeJson   Json?
+  afterJson    Json?
+  metadataJson Json?
+  createdAt    DateTime       @default(now())
+
+  @@index([claimLineId, createdAt])
+  @@index([batchId, createdAt])
+  @@index([entityType, entityId])
+}
+
+// --- MapAble Open-Source Integration Pack ---
+
+enum IntegrationType {
+  identity
+  database
+  realtime
+  maps
+  workflow
+  automation
+  cms
+  analytics
+  clinical_fhir
+  telehealth
+  scheduling
+  finance
+}
+
+enum IntegrationConnectionStatus {
+  disabled
+  enabled
+  degraded
+  error
+}
+
+model IntegrationConnection {
+  id                  String                      @id @default(cuid())
+  integrationKey      String                      @unique
+  integrationType     IntegrationType
+  displayName         String
+  status              IntegrationConnectionStatus @default(disabled)
+  environment         String                      @default("development")
+  configJsonEncrypted String?
+  connectedById       String?
+  connectedAt         DateTime?
+  lastHealthCheckAt   DateTime?
+  lastError           String?
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+
+  healthChecks IntegrationHealthCheck[]
+  events       IntegrationEvent[]
+  syncJobs     IntegrationSyncJob[]
+  featureFlags IntegrationFeatureFlag[]
+
+  @@index([integrationType, status])
+}
+
+model IntegrationHealthCheck {
+  id             String              @id @default(cuid())
+  connectionId   String
+  connection     IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  status         String
+  latencyMs      Int?
+  message        String?
+  checkedAt      DateTime            @default(now())
+
+  @@index([connectionId, checkedAt])
+}
+
+model IntegrationEvent {
+  id             String              @id @default(cuid())
+  connectionId   String
+  connection     IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  eventType      String
+  severity       String              @default("info")
+  message        String?
+  metadataJson   Json?
+  actorUserId    String?
+  createdAt      DateTime            @default(now())
+
+  @@index([connectionId, createdAt])
+}
+
+model IntegrationSyncJob {
+  id             String              @id @default(cuid())
+  connectionId   String
+  connection     IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  jobKey         String
+  status         String              @default("pending")
+  idempotencyKey String?
+  payloadJson    Json?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  retryCount     Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  errors IntegrationSyncError[]
+
+  @@unique([connectionId, idempotencyKey])
+  @@index([connectionId, status])
+}
+
+model IntegrationSyncError {
+  id           String             @id @default(cuid())
+  syncJobId    String
+  syncJob      IntegrationSyncJob @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+  errorCode    String?
+  errorMessage String
+  retryable    Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+
+  @@index([syncJobId, createdAt])
+}
+
+model IntegrationFeatureFlag {
+  id             String              @id @default(cuid())
+  connectionId   String
+  connection     IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  flagKey        String
+  enabled        Boolean             @default(false)
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([connectionId, flagKey])
+}
+
+// Keycloak / identity bridge
+model IdentityProviderLink {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String
+  externalSubjectId String
+  externalEmail     String?
+  linkedAt          DateTime @default(now())
+  metadataJson      Json?
+
+  @@unique([provider, externalSubjectId])
+  @@index([userId])
+}
+
+model AuthIdentityLink {
+  id           String   @id @default(cuid())
+  userId       String?
+  provider     String
+  externalId   String
+  email        String?
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  resolvedAt   DateTime?
+
+  @@index([email, provider])
+}
+
+model AuthBridgeEvent {
+  id           String   @id @default(cuid())
+  userId       String?
+  eventType    String
+  provider     String
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model ExternalRoleMapping {
+  id              String   @id @default(cuid())
+  provider        String
+  externalGroup   String
+  suggestedRole   String
+  requiresApproval Boolean @default(true)
+  createdAt       DateTime @default(now())
+
+  @@unique([provider, externalGroup])
+}
+
+// Temporal / workflow mirror
+model WorkflowRun {
+  id              String   @id @default(cuid())
+  workflowKey     String
+  workflowRunId   String?
+  status          String   @default("running")
+  entityType      String?
+  entityId        String?
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  metadataJson    Json?
+
+  events    WorkflowEvent[]
+  deadlines WorkflowDeadline[]
+  failures  WorkflowFailure[]
+
+  @@index([workflowKey, status])
+}
+
+model WorkflowEvent {
+  id           String      @id @default(cuid())
+  workflowRunId String
+  workflowRun  WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  eventType    String
+  payloadJson  Json?
+  createdAt    DateTime    @default(now())
+
+  @@index([workflowRunId, createdAt])
+}
+
+model WorkflowDeadline {
+  id            String      @id @default(cuid())
+  workflowRunId String
+  workflowRun   WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  deadlineAt    DateTime
+  label         String
+  metAt         DateTime?
+  breachedAt    DateTime?
+
+  @@index([workflowRunId, deadlineAt])
+}
+
+model WorkflowFailure {
+  id            String      @id @default(cuid())
+  workflowRunId String
+  workflowRun   WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  errorMessage  String
+  retryable     Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  @@index([workflowRunId, createdAt])
+}
+
+// Directus content sync
+model ContentSyncRecord {
+  id              String   @id @default(cuid())
+  contentType     String
+  externalId      String
+  mapableSlug     String?
+  lastSyncedAt    DateTime?
+  status          String   @default("pending")
+  payloadHash     String?
+
+  @@unique([contentType, externalId])
+}
+
+model ContentSyncEvent {
+  id           String   @id @default(cuid())
+  contentType  String
+  eventType    String
+  message      String?
+  createdAt    DateTime @default(now())
+
+  @@index([contentType, createdAt])
+}
+
+model ExternalContentReference {
+  id           String   @id @default(cuid())
+  contentType  String
+  slug         String   @unique
+  externalId   String
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+}
+
+// FHIR sidecar
+model FhirSyncLink {
+  id              String   @id @default(cuid())
+  mapableEntityType String
+  mapableEntityId String
+  fhirResourceType String
+  fhirResourceId  String?
+  lastSyncedAt    DateTime?
+
+  @@unique([mapableEntityType, mapableEntityId, fhirResourceType])
+}
+
+model FhirSyncEvent {
+  id           String   @id @default(cuid())
+  linkId       String?
+  eventType    String
+  status       String
+  message      String?
+  createdAt    DateTime @default(now())
+}
+
+model FhirConsentRecord {
+  id             String   @id @default(cuid())
+  participantId  String
+  purpose        String
+  granted        Boolean  @default(false)
+  grantedAt      DateTime?
+  revokedAt      DateTime?
+}
+
+model FhirSyncError {
+  id           String   @id @default(cuid())
+  linkId       String?
+  errorMessage String
+  retryable    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+// Telehealth
+model TelehealthVideoRoom {
+  id              String   @id @default(cuid())
+  appointmentId   String?
+  bookingId       String?
+  provider        String
+  externalRoomId  String?
+  status          String   @default("scheduled")
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  participants TelehealthRoomParticipant[]
+  events       TelehealthRoomEvent[]
+}
+
+model TelehealthRoomParticipant {
+  id        String              @id @default(cuid())
+  roomId    String
+  room      TelehealthVideoRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  role      String
+  joinedAt  DateTime?
+
+  @@unique([roomId, userId])
+}
+
+model TelehealthRoomEvent {
+  id        String              @id @default(cuid())
+  roomId    String
+  room      TelehealthVideoRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  eventType String
+  actorId   String?
+  createdAt DateTime            @default(now())
+}
+
+model TelehealthRecordingConsent {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  consented Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+}
+
+// Scheduling
+model AppointmentEventType {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  displayName String
+  durationMin Int      @default(30)
+  active      Boolean  @default(true)
+}
+
+model PractitionerAvailability {
+  id             String   @id @default(cuid())
+  practitionerId String
+  dayOfWeek      Int
+  startTime      String
+  endTime        String
+  timezone       String   @default("Australia/Sydney")
+}
+
+model AppointmentSlot {
+  id             String   @id @default(cuid())
+  practitionerId String
+  startsAt       DateTime
+  endsAt         DateTime
+  status         String   @default("available")
+  bookingId      String?
+}
+
+model ExternalSchedulingLink {
+  id                String   @id @default(cuid())
+  appointmentId     String?
+  externalProvider  String
+  externalBookingId String?
+  createdAt         DateTime @default(now())
+}
+
+model SchedulingSyncEvent {
+  id        String   @id @default(cuid())
+  eventType String
+  status    String
+  message   String?
+  createdAt DateTime @default(now())
+}
+
+// n8n automation
+model AutomationWebhookEvent {
+  id         String   @id @default(cuid())
+  eventKey   String
+  payloadHash String?
+  receivedAt DateTime @default(now())
+  status     String   @default("received")
+
+  deliveries AutomationDelivery[]
+}
+
+model AutomationDelivery {
+  id        String                 @id @default(cuid())
+  eventId   String
+  event     AutomationWebhookEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  status    String                 @default("pending")
+  attempts  Int                    @default(0)
+  sentAt    DateTime?
+}
+
+model AutomationFailure {
+  id           String   @id @default(cuid())
+  eventKey     String
+  errorMessage String
+  retryable    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+// ERPNext
+model ErpnextConnection {
+  id           String   @id @default(cuid())
+  organisationId String?
+  baseUrl      String
+  status       String   @default("disabled")
+  createdAt    DateTime @default(now())
+}
+
+model ErpnextSyncRecord {
+  id              String   @id @default(cuid())
+  mapableEntityType String
+  mapableEntityId String
+  erpnextId       String?
+  lastSyncedAt    DateTime?
+  status          String   @default("pending")
+
+  @@unique([mapableEntityType, mapableEntityId])
+}
+
+model ErpnextSyncEvent {
+  id        String   @id @default(cuid())
+  recordId  String?
+  eventType String
+  status    String
+  createdAt DateTime @default(now())
+}
+
+model ErpnextSyncError {
+  id           String   @id @default(cuid())
+  recordId     String?
+  errorMessage String
+  retryable    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+// Data governance
+model DataExport {
+  id          String   @id @default(cuid())
+  requestedBy String
+  purpose     String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+}
+
+model DataExportEvent {
+  id        String   @id @default(cuid())
+  exportId  String
+  eventType String
+  createdAt DateTime @default(now())
+}
+
+model AnalyticsAccessLog {
+  id           String   @id @default(cuid())
+  userId       String
+  dashboardKey String
+  accessedAt   DateTime @default(now())
+}
+
+model DeidentificationRule {
+  id          String   @id @default(cuid())
+  fieldKey    String   @unique
+  strategy    String
+  active      Boolean  @default(true)
+}
+
+// Message extensions
+model MessageReport {
+  id        String   @id @default(cuid())
+  messageId String
+  reporterId String
+  reason    String
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+}
+
+model ThreadMute {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  mutedAt        DateTime @default(now())
+
+  @@unique([conversationId, userId])
+}
+
+model BlockedChatUser {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
 }
 
 enum AccessPlaceCategory {

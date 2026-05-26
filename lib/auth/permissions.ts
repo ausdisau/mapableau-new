@@ -91,6 +91,7 @@ export type Permission =
   | "verification:manage:any"
   | "ndis:pricing:manage"
   | "provider:ndia:claim"
+  | "provider:ndis:claim"
   | "xero:manage"
   | "stripe:manage"
   | "route:manage"
@@ -254,6 +255,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "operator_dispatch:manage",
     "provider_academy:enroll",
     "provider:ndia:claim",
+    "provider:ndis:claim",
   ],
   transport_operator: [
     "booking:read:any",
@@ -333,6 +335,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "verification:manage:any",
     "ndis:pricing:manage",
     "provider:ndia:claim",
+    "provider:ndis:claim",
     "xero:manage",
     "stripe:manage",
     "route:manage",

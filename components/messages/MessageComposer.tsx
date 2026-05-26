@@ -7,8 +7,12 @@ import { Button } from "@/components/ui/button";
 
 export function MessageComposer({
   onSend,
+  onTyping,
+  disabled,
 }: {
   onSend: (body: string) => Promise<void>;
+  onTyping?: () => void;
+  disabled?: boolean;
 }) {
   const [body, setBody] = useState("");
   const [status, setStatus] = useState("");
@@ -39,7 +43,11 @@ export function MessageComposer({
         className={formInputClass}
         rows={4}
         value={body}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={(e) => {
+          setBody(e.target.value);
+          onTyping?.();
+        }}
+        disabled={disabled}
         required
         maxLength={10000}
       />
@@ -51,7 +59,13 @@ export function MessageComposer({
           {status}
         </p>
       ) : null}
-      <Button type="submit" variant="default" size="default" loading={loading}>
+      <Button
+        type="submit"
+        variant="default"
+        size="default"
+        loading={loading || disabled}
+        disabled={disabled}
+      >
         Send message
       </Button>
     </form>

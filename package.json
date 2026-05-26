@@ -18,7 +18,8 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
-    "neon:configure": "python3 scripts/configure-neon-env.py"
+    "neon:configure": "python3 scripts/configure-neon-env.py",
+    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

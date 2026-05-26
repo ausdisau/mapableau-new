@@ -7,7 +7,11 @@ export default async function AlgorithmsPage() {
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <h1 className="font-heading text-2xl font-bold">Public algorithm register</h1>
       <p className="text-muted-foreground">
-        Algorithms used in MapAble — transparency, not legal certification of fairness.
+        Algorithms used in MapAble — transparency, not legal certification of fairness.{" "}
+        <a href="/peers" className="font-medium text-primary hover:underline">
+          MapAble PEERS
+        </a>{" "}
+        does not use additive feed ranking; discussion rooms stay chronological.
       </p>
       <ul className="space-y-4">
         {algorithms.map((a) => (
