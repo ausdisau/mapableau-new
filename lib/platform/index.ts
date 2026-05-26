@@ -13,7 +13,15 @@ export {
   WORKER_NAV_LINKS,
 } from "@/lib/platform/portal-nav";
 export type { ModuleShell, PortalModuleConfig, ProductModule } from "@/lib/platform/types";
-export { CoreModuleLayout } from "@/lib/platform/layouts";
+export {
+  AdminShell,
+  CoreModuleLayout,
+  DashboardShell,
+} from "@/lib/platform/layouts";
+export {
+  moduleAvailabilityLabel,
+  resolveModuleHref,
+} from "@/lib/platform/module-links";
 export {
   getModuleByKey,
   getModuleIcon,
@@ -22,5 +30,6 @@ export {
   modules,
   type IconStyle,
   type MapAbleModule,
+  type ModuleAvailability,
   type ModuleIcons,
 } from "@/lib/platform/modules-catalog";

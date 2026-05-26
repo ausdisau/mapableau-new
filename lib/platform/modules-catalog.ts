@@ -3,6 +3,8 @@
 
 export type IconStyle = "organic" | "3d";
 
+export type ModuleAvailability = "live" | "beta" | "coming_soon";
+
 export interface ModuleIcons {
   organic: string;
   "3d": string;
@@ -10,6 +12,8 @@ export interface ModuleIcons {
 
 export interface MapAbleModule {
   key: string;
+  /** Key in PRODUCT_MODULES when it differs from catalog key (e.g. jobs → employer). */
+  productKey?: string;
   name: string;
   shortName: string;
   tagline: string;
@@ -18,7 +22,9 @@ export interface MapAbleModule {
   icons: ModuleIcons;
   color: string;
   gradient: string;
+  /** Legacy href field; prefer resolveModuleHref() for links. */
   href: string;
+  availability: ModuleAvailability;
   features: string[];
 }
 
@@ -26,6 +32,8 @@ export interface MapAbleModule {
 export const moduleIcons: Record<string, ModuleIcons> = {
   main: { organic: "/icons/main-organic.png", "3d": "/icons/main-3d.png" },
   care: { organic: "/icons/care-organic.png", "3d": "/icons/care-3d.png" },
+  access: { organic: "/icons/main-organic.png", "3d": "/icons/main-3d.png" },
+  peers: { organic: "/icons/main-organic.png", "3d": "/icons/main-3d.png" },
   transport: {
     organic: "/icons/transport-organic.png",
     "3d": "/icons/transport-3d.png",
@@ -49,6 +57,36 @@ export function getModuleIcon(
 
 export const modules: MapAbleModule[] = [
   {
+    key: "access",
+    name: "MapAble Access",
+    shortName: "Access",
+    tagline: "Places that work for you",
+    description:
+      "Community accessibility map, reviews, and place intelligence — no algorithmic ranking.",
+    logo: moduleIcons.access.organic,
+    icons: moduleIcons.access,
+    color: "#0D9488",
+    gradient: "from-teal-500 to-cyan-600",
+    href: "/access",
+    availability: "live",
+    features: ["Place reviews", "Map layers", "Import KML", "Accreditation"],
+  },
+  {
+    key: "peers",
+    name: "MapAble PEERS",
+    shortName: "PEERS",
+    tagline: "Community without the feed",
+    description:
+      "Room-based discussion in chronological order — no engagement algorithms.",
+    logo: moduleIcons.peers.organic,
+    icons: moduleIcons.peers,
+    color: "#7C3AED",
+    gradient: "from-violet-500 to-purple-600",
+    href: "/peers",
+    availability: "live",
+    features: ["Topic rooms", "Chronological threads", "Principles", "Moderation"],
+  },
+  {
     key: "care",
     name: "MapAble Care",
     shortName: "Care",
@@ -60,10 +98,12 @@ export const modules: MapAbleModule[] = [
     color: "#E91E63",
     gradient: "from-pink-500 to-rose-600",
     href: "/care",
+    availability: "live",
     features: ["Support Workers", "Care Plans", "Case Notes", "NDIS Funding"],
   },
   {
     key: "transport",
+    productKey: "driver",
     name: "MapAble Transport",
     shortName: "Transport",
     tagline: "Accessible Journeys",
@@ -72,7 +112,8 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.transport,
     color: "#4CAF50",
     gradient: "from-green-500 to-emerald-600",
-    href: "/transport",
+    href: "/driver/trips",
+    availability: "live",
     features: [
       "Wheelchair Access",
       "Door-to-Door",
@@ -82,6 +123,7 @@ export const modules: MapAbleModule[] = [
   },
   {
     key: "jobs",
+    productKey: "employer",
     name: "MapAble Jobs",
     shortName: "Jobs",
     tagline: "Inclusive Employment",
@@ -91,7 +133,8 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.jobs,
     color: "#2196F3",
     gradient: "from-blue-500 to-indigo-600",
-    href: "/employment",
+    href: "/employer/jobs",
+    availability: "live",
     features: [
       "Job Matching",
       "Employer Network",
@@ -111,6 +154,7 @@ export const modules: MapAbleModule[] = [
     color: "#FF9800",
     gradient: "from-orange-500 to-amber-600",
     href: "/foods",
+    availability: "coming_soon",
     features: [
       "Meal Delivery",
       "Dietary Plans",
@@ -130,6 +174,7 @@ export const modules: MapAbleModule[] = [
     color: "#9C27B0",
     gradient: "from-purple-500 to-violet-600",
     href: "/moves",
+    availability: "coming_soon",
     features: [
       "Physical Therapy",
       "Rehabilitation",
@@ -149,6 +194,7 @@ export const modules: MapAbleModule[] = [
     color: "#00BCD4",
     gradient: "from-cyan-500 to-teal-600",
     href: "/marketplace",
+    availability: "coming_soon",
     features: [
       "Mobility Aids",
       "Daily Living",
@@ -168,6 +214,7 @@ export const modules: MapAbleModule[] = [
     color: "#FFEB3B",
     gradient: "from-yellow-400 to-orange-500",
     href: "/kids",
+    availability: "coming_soon",
     features: [
       "Early Intervention",
       "Therapy Services",

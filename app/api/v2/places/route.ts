@@ -3,7 +3,6 @@ import { createHash } from "crypto";
 import type { ApiScope } from "@prisma/client";
 
 import { listPublishedPlaces } from "@/lib/access-map/access-place-service";
-import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { getApiVersionPolicy } from "@/lib/api-versioning/version-policy-service";
 import { scopesAllow } from "@/lib/developer-api/api-key-service";
@@ -37,20 +36,12 @@ export async function GET(req: Request) {
   }
 
   const accessPlaces = await listPublishedPlaces(50);
-  const places =
-    accessPlaces.length > 0
-      ? accessPlaces.map((p) => ({
-          id: p.id,
-          name: p.name,
-          confidence: p.confidence,
-          features: p.features.map((f) => f.type),
-        }))
-      : (await listAccessiblePlaces(50)).map((p) => ({
-          id: p.id,
-          name: p.name,
-          confidence: p.confidence,
-          features: p.features.map((f) => f.type),
-        }));
+  const places = accessPlaces.map((p) => ({
+    id: p.id,
+    name: p.name,
+    confidence: p.confidence,
+    features: p.features.map((f) => f.type),
+  }));
 
   const safe = places.map((p) => ({
     ...p,

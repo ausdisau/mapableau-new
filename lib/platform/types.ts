@@ -18,4 +18,5 @@ export type PortalModuleConfig = {
   links: PortalNavLink[];
   backHref?: string;
   backLabel?: string;
+  logoHref?: string;
 };

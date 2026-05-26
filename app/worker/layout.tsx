@@ -16,6 +16,7 @@ export default async function WorkerLayout({
     <PortalShell
       title={worker.title}
       links={worker.links}
+      logoHref={worker.logoHref}
       guard={() => requirePermission("care:shift:work")}
     >
       {children}

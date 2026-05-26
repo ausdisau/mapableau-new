@@ -7,6 +7,7 @@ export async function PortalShell({
   links,
   backHref = "/dashboard",
   backLabel = "Dashboard",
+  logoHref = "/core",
   guard,
   children,
   mainClassName = MODULE_MAIN_CLASS,
@@ -15,6 +16,7 @@ export async function PortalShell({
   links: PortalNavLink[];
   backHref?: string;
   backLabel?: string;
+  logoHref?: string;
   /** Run auth/permission checks before rendering (e.g. requirePermission). */
   guard?: () => Promise<unknown>;
   children: React.ReactNode;
@@ -32,6 +34,7 @@ export async function PortalShell({
         links={links}
         backHref={backHref}
         backLabel={backLabel}
+        logoHref={logoHref}
       />
       <main id="main-content" className={mainClassName}>
         {children}

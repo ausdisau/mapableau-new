@@ -13,7 +13,12 @@ export default async function EmployerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <PortalShell title={employer.title} links={employer.links} guard={requireAuth}>
+    <PortalShell
+      title={employer.title}
+      links={employer.links}
+      logoHref={employer.logoHref}
+      guard={requireAuth}
+    >
       {children}
     </PortalShell>
   );

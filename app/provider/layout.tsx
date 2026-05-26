@@ -16,6 +16,7 @@ export default async function ProviderLayout({
     <PortalShell
       title={provider.title}
       links={provider.links}
+      logoHref={provider.logoHref}
       guard={async () => {
         await requireAuth();
         await requirePermission("care:read:org");

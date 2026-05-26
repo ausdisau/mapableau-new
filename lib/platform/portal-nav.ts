@@ -52,25 +52,30 @@ export const PORTAL_MODULES: Record<string, PortalModuleConfig> = {
     key: "care",
     title: "MapAble Care",
     links: CARE_NAV_LINKS,
+    logoHref: "/care",
   },
   worker: {
     key: "worker",
     title: "Worker",
     links: WORKER_NAV_LINKS,
+    logoHref: "/worker/today",
   },
   employer: {
     key: "employer",
     title: "Employer",
     links: EMPLOYER_NAV_LINKS,
+    logoHref: "/employer/jobs",
   },
   driver: {
     key: "driver",
     title: "MapAble Driver",
     links: DRIVER_NAV_LINKS,
+    logoHref: "/driver/trips",
   },
   provider: {
     key: "provider",
     title: "Provider console",
     links: PROVIDER_NAV_LINKS,
+    logoHref: "/provider/bookings",
   },
 };

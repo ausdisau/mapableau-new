@@ -16,6 +16,7 @@ export default async function DriverLayout({
     <PortalShell
       title={driver.title}
       links={driver.links}
+      logoHref={driver.logoHref}
       guard={requireAuth}
       mainClassName="px-4 py-4 pb-20"
     >

@@ -16,6 +16,10 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useBrandSafe } from "@/app/contexts/BrandContext";
 import { modules, type MapAbleModule } from "@/app/lib/modules";
+import {
+  moduleAvailabilityLabel,
+  resolveModuleHref,
+} from "@/lib/platform/module-links";
 import { cn } from "@/app/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,9 +32,11 @@ interface ServiceSlideProps {
 function ServiceSlide({ module }: ServiceSlideProps) {
   const { iconStyle } = useBrandSafe();
   const currentLogo = module.icons?.[iconStyle] || module.logo;
+  const href = resolveModuleHref(module);
+  const statusLabel = moduleAvailabilityLabel(module.availability);
 
   return (
-    <Link href={module.href}>
+    <Link href={href}>
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -55,9 +61,16 @@ function ServiceSlide({ module }: ServiceSlideProps) {
                 />
               </div>
               <div>
-                <h3 className="text-xl font-heading font-bold">
-                  {module.name}
-                </h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-xl font-heading font-bold">
+                    {module.name}
+                  </h3>
+                  {statusLabel ? (
+                    <Badge variant="outline" className="text-xs">
+                      {statusLabel}
+                    </Badge>
+                  ) : null}
+                </div>
                 <p className="text-sm text-muted-foreground">
                   {module.tagline}
                 </p>
@@ -90,7 +103,7 @@ function ServiceSlide({ module }: ServiceSlideProps) {
                 style={{ color: module.color }}
                 whileHover={{ x: 4 }}
               >
-                Explore
+                {module.availability === "coming_soon" ? "Learn more" : "Explore"}
                 <ArrowRight className="h-4 w-4" />
               </motion.div>
             </div>

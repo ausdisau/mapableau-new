@@ -16,6 +16,7 @@ export default async function CareLayout({
     <PortalShell
       title={care.title}
       links={care.links}
+      logoHref={care.logoHref}
       guard={() => requirePermission("care:read:self")}
     >
       {children}

@@ -7,6 +7,7 @@ export {
   modules,
   type IconStyle,
   type MapAbleModule,
+  type ModuleAvailability,
   type ModuleIcons,
 } from "@/lib/platform/modules-catalog";
 

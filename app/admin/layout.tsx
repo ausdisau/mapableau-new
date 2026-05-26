@@ -1,24 +1,11 @@
-import { SkipToContent } from "@/components/core/SkipToContent";
-import { AdminNav } from "@/components/layout/AdminNav";
-import { requireAdmin } from "@/lib/auth/guards";
-import { MODULE_MAIN_CLASS } from "@/lib/platform/constants";
+import { AdminShell } from "@/lib/platform/layouts";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAdmin();
-
-  return (
-    <div className="min-h-screen bg-background">
-      <SkipToContent />
-      <AdminNav />
-      <main id="main-content" className={MODULE_MAIN_CLASS}>
-        {children}
-      </main>
-    </div>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }
