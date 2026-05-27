@@ -1,4 +1,7 @@
-import { prisma } from "@/lib/prisma";
+import {
+  accessGeoGeocodeAddress,
+  isAccessGeocodingAvailable,
+} from "@/lib/access-map/access-geocoding-service";
 
 export async function geocodeSuburbPostcode(
   suburb?: string,
@@ -6,16 +9,11 @@ export async function geocodeSuburbPostcode(
 ): Promise<{ lat: number; lng: number } | null> {
   if (!suburb && !postcode) return null;
 
-  const row = await prisma.searchableLocation.findFirst({
-    where: {
-      OR: [
-        suburb ? { suburb: { equals: suburb, mode: "insensitive" } } : undefined,
-        postcode ? { postcode } : undefined,
-      ].filter(Boolean) as never[],
-    },
-  });
+  if (!isAccessGeocodingAvailable()) return null;
 
-  // Coarse geocoding: use suburb/state lookup table in locationCoords when needed.
-  void row;
-  return null;
+  const query = [suburb, postcode, "Australia"].filter(Boolean).join(", ");
+  const resolved = await accessGeoGeocodeAddress(query);
+  if (!resolved) return null;
+
+  return { lat: resolved.latitude, lng: resolved.longitude };
 }

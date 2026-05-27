@@ -1,3 +1,4 @@
+import { amazonLocationAdapter } from "@/lib/integrations/adapters/amazon-location-adapter";
 import { maplibreAdapter } from "@/lib/integrations/adapters/maplibre-adapter";
 import { ndiaAdapter } from "@/lib/integrations/adapters/ndia-adapter";
 import { postgresAdapter } from "@/lib/integrations/adapters/postgres-adapter";
@@ -34,6 +35,7 @@ register(stripeAdapter);
 register(xeroAdapter);
 register(ndiaAdapter);
 register(maplibreAdapter);
+register(amazonLocationAdapter);
 
 const stubKeys: Array<[string, IntegrationAdapter["type"], string]> = [
   ["keycloak", "identity", "Keycloak"],

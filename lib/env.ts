@@ -54,6 +54,11 @@ const integrationRules: IntegrationEnvRule[] = [
     requiredVars: ["NEXT_PUBLIC_MAP_STYLE_URL"],
   },
   {
+    key: "amazon_location",
+    enabledWhen: () => process.env.AMAZON_LOCATION_ENABLED === "true",
+    requiredVars: ["AMAZON_LOCATION_REGION"],
+  },
+  {
     key: "temporal",
     enabledWhen: () => envTrue("TEMPORAL_ENABLED"),
     requiredVars: ["TEMPORAL_ADDRESS", "TEMPORAL_NAMESPACE", "TEMPORAL_TASK_QUEUE"],
