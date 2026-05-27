@@ -73,17 +73,35 @@ export type NotificationCategory =
   | "safeguarding"
   | "system";
 
-export type BookingType = "care" | "transport" | "care_transport";
+export type BookingType =
+  | "care"
+  | "transport"
+  | "care_transport"
+  | "telehealth"
+  | "marketplace"
+  | "foods"
+  | "employment"
+  | "support_coordination";
 
 export type BookingStatus =
   | "draft"
   | "requested"
-  | "awaiting_provider_acceptance"
-  | "confirmed"
+  | "provider_review"
+  | "more_information_requested"
+  | "accepted"
+  | "assigned"
+  | "participant_confirmed"
   | "in_progress"
   | "completed"
+  | "service_log_pending"
+  | "service_log_submitted"
+  | "participant_review"
+  | "closed"
   | "cancelled"
-  | "disputed";
+  | "declined"
+  | "disputed"
+  | "awaiting_provider_acceptance"
+  | "confirmed";
 
 export type AuditAction =
   | "user.created"

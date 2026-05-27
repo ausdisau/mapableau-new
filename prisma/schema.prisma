@@ -44,9 +44,15 @@ model User {
   notifications          Notification[]
   auditEvents            AuditEvent[]       @relation("AuditActor")
   bookingsCreated        Booking[]          @relation("BookingCreatedBy")
-  bookingsAsParticipant  Booking[]          @relation("BookingParticipant")
-  bookingsAssignedWorker Booking[]          @relation("BookingAssignedWorker")
-  bookingsAssignedDriver Booking[]          @relation("BookingAssignedDriver")
+  bookingsAsParticipant       Booking[]          @relation("BookingParticipant")
+  bookingsAssignedWorker      Booking[]          @relation("BookingAssignedWorker")
+  bookingsAssignedDriver      Booking[]          @relation("BookingAssignedDriver")
+  bookingsAssignedPractitioner  Booking[]          @relation("BookingAssignedPractitioner")
+  bookingEventsActed          BookingEvent[]     @relation("BookingEventActor")
+  bookingAssignmentsMade      BookingAssignment[] @relation("BookingAssignmentAssigner")
+  bookingAssignmentsReceived  BookingAssignment[] @relation("BookingAssignmentAssignee")
+  dataAccessLogs              DataAccessLog[]    @relation("DataAccessActor")
+  bookingServiceLogsCreated   BookingServiceLog[] @relation("BookingServiceLogCreatedBy")
   conversationsCreated   Conversation[]     @relation("ConversationCreatedBy")
   conversationParticipants ConversationParticipant[]
   messagesSent           Message[]          @relation("MessageSender")
@@ -463,17 +469,53 @@ enum BookingType {
   care
   transport
   care_transport
+  telehealth
+  marketplace
+  foods
+  employment
+  support_coordination
 }
 
 enum BookingStatus {
   draft
   requested
-  awaiting_provider_acceptance
-  confirmed
+  provider_review
+  more_information_requested
+  accepted
+  assigned
+  participant_confirmed
   in_progress
   completed
+  service_log_pending
+  service_log_submitted
+  participant_review
+  closed
   cancelled
+  declined
   disputed
+  awaiting_provider_acceptance
+  confirmed
+}
+
+enum BookingAssigneeRole {
+  worker
+  driver
+  practitioner
+}
+
+enum BookingServiceLogStatus {
+  draft
+  submitted
+  approved
+  disputed
+}
+
+enum DataAccessReason {
+  booking_view
+  booking_list
+  admin_review
+  plan_manager_invoice
+  support_coordination
 }
 
 model UserRoleAssignment {
@@ -545,6 +587,7 @@ model Organisation {
   members     OrganisationMember[]
   consents    ConsentRecord[]
   bookings    Booking[]
+  bookingAssignments BookingAssignment[]
   auditEvents AuditEvent[]
   invoices    Invoice[]
   billingInvoices BillingInvoice[] @relation("BillingInvoiceProvider")
@@ -676,6 +719,9 @@ model Booking {
   assignedWorker         User?         @relation("BookingAssignedWorker", fields: [assignedWorkerId], references: [id], onDelete: SetNull)
   assignedDriverId       String?
   assignedDriver         User?         @relation("BookingAssignedDriver", fields: [assignedDriverId], references: [id], onDelete: SetNull)
+  assignedPractitionerId String?
+  assignedPractitioner   User?         @relation("BookingAssignedPractitioner", fields: [assignedPractitionerId], references: [id], onDelete: SetNull)
+  module                 BookingType?
   fundingSourceTag       String?
   shareAccessibility     Boolean       @default(false)
   createdById            String
@@ -688,6 +734,10 @@ model Booking {
   invoices             Invoice[]
   billingInvoices      BillingInvoice[] @relation("BillingInvoices")
   timelineEvents       BookingTimelineEvent[]
+  events               BookingEvent[]
+  assignments          BookingAssignment[]
+  serviceLogs          BookingServiceLog[]
+  dataAccessLogs       DataAccessLog[]
   conversations        Conversation[]
   documents            Document[]
 
@@ -716,6 +766,83 @@ model BookingSegment {
   bufferAfterMinutes  Int       @default(0)
   sortOrder           Int       @default(0)
   createdAt           DateTime  @default(now())
+}
+
+model BookingEvent {
+  id              String        @id @default(cuid())
+  bookingId       String
+  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  eventType       String
+  fromStatus      BookingStatus?
+  toStatus        BookingStatus?
+  title           String
+  description     String?
+  actorUserId     String?
+  actor           User?         @relation("BookingEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+
+  @@index([bookingId, createdAt])
+  @@map("booking_events")
+}
+
+model BookingAssignment {
+  id              String              @id @default(cuid())
+  bookingId       String
+  booking         Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  assigneeUserId  String
+  assignee        User                @relation("BookingAssignmentAssignee", fields: [assigneeUserId], references: [id], onDelete: Cascade)
+  assigneeRole    BookingAssigneeRole
+  assignedById    String?
+  assignedBy      User?               @relation("BookingAssignmentAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+  organisationId  String?
+  organisation    Organisation?       @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  active          Boolean             @default(true)
+  notes           String?
+  assignedAt      DateTime            @default(now())
+  unassignedAt    DateTime?
+
+  @@index([bookingId, active])
+  @@index([assigneeUserId, active])
+  @@map("booking_assignments")
+}
+
+model BookingServiceLog {
+  id              String                  @id @default(cuid())
+  bookingId       String
+  booking         Booking                 @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status          BookingServiceLogStatus @default(draft)
+  summary         String?
+  notes           String?
+  evidenceDocumentIds String[]            @default([])
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  createdById     String
+  createdBy       User                    @relation("BookingServiceLogCreatedBy", fields: [createdById], references: [id])
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([bookingId, status])
+  @@map("booking_service_logs")
+}
+
+model DataAccessLog {
+  id              String           @id @default(cuid())
+  actorUserId     String
+  actor           User             @relation("DataAccessActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  entityType      String
+  entityId        String
+  participantId   String?
+  bookingId       String?
+  booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  reason          DataAccessReason
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorUserId, createdAt])
+  @@index([bookingId])
+  @@map("data_access_logs")
 }
 
 // --- MapAble Core Phase 2 ---
