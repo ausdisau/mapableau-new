@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
+import { caseListWhereForUser } from "@/lib/cases/case-access";
+import { caseManagementConfig } from "@/lib/config/case-management";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Control panel | MapAble Core" };
@@ -16,6 +18,7 @@ export default async function DashboardPage() {
     unreadNotifications,
     incidentCount,
     openSupportCount,
+    openCaseCount,
   ] = await Promise.all([
     prisma.participantProfile.findUnique({ where: { userId: user.id } }),
     prisma.booking.count({ where: { participantId: user.id } }),
@@ -34,6 +37,16 @@ export default async function DashboardPage() {
         status: { notIn: ["resolved", "closed"] },
       },
     }),
+    caseManagementConfig.enabled
+      ? prisma.case.count({
+          where: {
+            AND: [
+              caseListWhereForUser(user.id, user.primaryRole),
+              { status: { not: "closed" } },
+            ],
+          },
+        })
+      : Promise.resolve(0),
   ]);
 
   return (
@@ -105,6 +118,17 @@ export default async function DashboardPage() {
           }
           href="/dashboard/notifications"
         />
+        {caseManagementConfig.enabled ? (
+          <DashboardCard
+            title="Cases (AI)"
+            description={
+              openCaseCount
+                ? `${openCaseCount} open case(s) · AI insights are advisory only`
+                : "AI-enabled case management for support coordination"
+            }
+            href="/dashboard/cases"
+          />
+        ) : null}
       </div>
     </div>
   );

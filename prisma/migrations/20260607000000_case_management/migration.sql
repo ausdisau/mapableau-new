@@ -1,0 +1,9 @@
+-- MapAble — AI-Enabled Case Management
+--
+-- Schema is authoritative in prisma/schema.prisma. Run one of:
+--   Development:  npx prisma db push && npx prisma generate
+--   Deploy:       npx prisma migrate deploy
+--
+-- This migration adds the Case, CaseNote, CaseTask, CaseLink and
+-- CaseAIInsight models plus their enums. See README_CASE_MANAGEMENT.md
+-- for the module overview and AI engine notes.
