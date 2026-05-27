@@ -13,6 +13,19 @@ Parallel scheduling domain alongside legacy `TransportBooking` (Phase 3). New tr
 
 Responses include `permissions`, `nextActions`, optional `routeEstimate`, and role-shaped addresses (exact pickup/dropoff only for participant, consented nominee summary, provider org, assigned driver).
 
+## Participant UI (control panel)
+
+Signed-in participants use the control panel at `/dashboard` with transport trips under:
+
+| Route | Purpose |
+|-------|---------|
+| `/dashboard/transport` | List scheduled transport trips (`listTransportTripsForUser`) |
+| `/dashboard/transport/new` | Create a trip via `POST /api/transport/trips` |
+| `/dashboard/transport/[tripId]` | Trip detail, advisory route estimate, actions from `nextActions` |
+| `/dashboard/transport/legacy` | Older `TransportBooking` records (previous flow) |
+
+Shared components live in `components/transport/` (`TransportTripStatusBadge`, `TransportTripListItem`, `TransportTripActions`, `TransportRouteAdvisory`).
+
 ## Environment
 
 ```env

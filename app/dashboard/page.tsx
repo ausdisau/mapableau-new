@@ -4,31 +4,43 @@ import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Dashboard | MapAble Core" };
+export const metadata = { title: "Control panel | MapAble Core" };
 
 export default async function DashboardPage() {
   const user = await requireAuth();
 
-  const [profile, bookingsCount, unreadNotifications] = await Promise.all([
-    prisma.participantProfile.findUnique({ where: { userId: user.id } }),
-    prisma.booking.count({ where: { participantId: user.id } }),
-    prisma.notification.count({
-      where: { userId: user.id, readAt: null },
-    }),
-  ]);
+  const [profile, bookingsCount, transportTripsCount, unreadNotifications] =
+    await Promise.all([
+      prisma.participantProfile.findUnique({ where: { userId: user.id } }),
+      prisma.booking.count({ where: { participantId: user.id } }),
+      prisma.transportTrip.count({ where: { participantId: user.id } }),
+      prisma.notification.count({
+        where: { userId: user.id, readAt: null },
+      }),
+    ]);
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-heading text-3xl font-bold">Your dashboard</h1>
+        <h1 className="font-heading text-3xl font-bold">Your control panel</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Welcome to MapAble Core. You are signed in as a{" "}
           <strong>{roleLabel(user.primaryRole)}</strong>. Manage your profile,
-          accessibility preferences, consent and bookings from here.
+          accessibility preferences, consent, bookings and transport trips from
+          here.
         </p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <DashboardCard
+          title="Transport trips"
+          description={
+            transportTripsCount
+              ? `${transportTripsCount} scheduled transport trip(s)`
+              : "Request and track scheduled transport"
+          }
+          href="/dashboard/transport"
+        />
         <DashboardCard
           title="Profile"
           description={

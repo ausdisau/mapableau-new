@@ -9,13 +9,13 @@ import { RoleBadge } from "@/components/ui/role-badge";
 import type { UserRole } from "@/types/mapable";
 
 const LINKS = [
-  { href: "/dashboard", label: "Overview" },
+  { href: "/dashboard", label: "Control panel" },
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
   { href: "/dashboard/consent", label: "Consent" },
   { href: "/dashboard/bookings", label: "Bookings" },
   { href: "/dashboard/care", label: "Care" },
-  { href: "/dashboard/transport", label: "Transport" },
+  { href: "/dashboard/transport", label: "Transport trips" },
   { href: "/dashboard/jobs", label: "Jobs" },
   { href: "/dashboard/calendar", label: "Calendar" },
   { href: "/dashboard/find-support", label: "Find support" },

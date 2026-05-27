@@ -20,7 +20,7 @@ export default function CoreHubPage() {
             Care, transport & <span className="text-primary">accountability</span>
           </>
         }
-        description="Your dashboard for care and transport, plus public transparency and accountability tools. Plain language, accessible design, and consent-aware by default."
+        description="Your control panel for care and scheduled transport trips, plus public transparency and accountability tools. Plain language, accessible design, and consent-aware by default."
       >
         <div className="flex flex-wrap justify-center gap-3 pt-2">
           <Link
@@ -33,7 +33,7 @@ export default function CoreHubPage() {
             href="/dashboard"
             className="inline-flex min-h-10 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
           >
-            Go to dashboard
+            Go to control panel
           </Link>
         </div>
       </CorePageHeader>
