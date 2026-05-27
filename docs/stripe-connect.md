@@ -2,6 +2,22 @@
 
 MapAble already includes Stripe in `lib/stripe/` and `lib/billing-core/`. Connecting Stripe means adding **API keys**, **enabling env flags**, and (for local dev) **forwarding webhooks**.
 
+For hosted **Checkout** (invoice pay, Pro subscriptions), see [stripe-checkout.md](./stripe-checkout.md).
+
+## Stripe Connect Express (provider payouts)
+
+Providers onboard via **Connect Express** accounts created in `lib/stripe/connect.ts` (`type: "express"`, country `AU`). MapAble uses **destination charges**: participant Checkout sessions include `payment_intent_data.transfer_data.destination` and an optional platform fee when the provider has completed Connect onboarding.
+
+| Step | API / UI |
+| ---- | -------- |
+| Create Express account | `POST /api/billing/connect/create-account` or first `POST /api/billing/connect/onboarding-link` |
+| Finish onboarding | Stripe-hosted Account Link → `/provider/billing` |
+| Receive payouts | After `account.updated` (charges enabled), invoice Checkout routes funds to `stripeConnectedAccountId` |
+
+Set `STRIPE_CONNECT_CLIENT_ID` if you use OAuth-based Connect settings in the Dashboard; account creation works with the secret key alone for standard Express onboarding.
+
+Enable Connect webhooks: include `account.updated` on `/api/webhooks/stripe` so `connectOnboardingComplete` updates in `BillingAccount`.
+
 ## 1. Get API keys
 
 1. Open [Stripe Dashboard](https://dashboard.stripe.com) (use **Test mode** for development).
