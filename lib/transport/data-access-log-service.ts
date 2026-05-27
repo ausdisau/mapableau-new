@@ -1,4 +1,4 @@
-import type { TransportDataAccessType } from "@prisma/client";
+import type { Prisma, TransportDataAccessType } from "@prisma/client";
 import { headers } from "next/headers";
 
 import type { CurrentUser } from "@/lib/auth/current-user";
@@ -23,7 +23,7 @@ export async function logDataAccess(params: {
       accessType: params.accessType,
       participantId: params.participantId,
       organisationId: params.organisationId,
-      metadata: params.metadata ?? undefined,
+      metadata: (params.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
       ipAddress: h.get("x-forwarded-for") ?? h.get("x-real-ip") ?? undefined,
       userAgent: h.get("user-agent") ?? undefined,
     },

@@ -1,4 +1,4 @@
-import type { TransportTripStatus } from "@prisma/client";
+import type { Prisma, TransportTripStatus } from "@prisma/client";
 
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
@@ -41,7 +41,8 @@ export async function createTransportTrip(
       scheduledStart,
       scheduledEnd,
       accessNotes: input.accessNotes,
-      mobilityRequirements: input.mobilityRequirements ?? {},
+      mobilityRequirements: (input.mobilityRequirements ??
+        {}) as Prisma.InputJsonValue,
       status: "open",
     },
   });
@@ -63,7 +64,8 @@ export async function createTransportTrip(
       accessNotes: input.accessNotes,
       scheduledStart,
       scheduledEnd,
-      mobilityRequirements: input.mobilityRequirements ?? {},
+      mobilityRequirements: (input.mobilityRequirements ??
+        {}) as Prisma.InputJsonValue,
     },
   });
 
@@ -189,7 +191,9 @@ export async function patchTransportTrip(
         : undefined,
       scheduledEnd: data.scheduledEnd ? new Date(data.scheduledEnd) : undefined,
       accessNotes: data.accessNotes,
-      mobilityRequirements: data.mobilityRequirements,
+      mobilityRequirements: data.mobilityRequirements as
+        | Prisma.InputJsonValue
+        | undefined,
     },
   });
 

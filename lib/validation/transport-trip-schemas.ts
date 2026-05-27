@@ -1,9 +1,13 @@
+import type { TransportTripStatus } from "@prisma/client";
 import { z } from "zod";
 
 import { TRANSPORT_TRIP_STATUSES } from "@/types/transport";
 
 const statusEnum = z.enum(
-  TRANSPORT_TRIP_STATUSES as unknown as [string, ...string[]]
+  TRANSPORT_TRIP_STATUSES as unknown as [
+    TransportTripStatus,
+    ...TransportTripStatus[],
+  ]
 );
 
 export const createTransportTripSchema = z.object({
@@ -18,7 +22,7 @@ export const createTransportTripSchema = z.object({
   scheduledStart: z.string().datetime(),
   scheduledEnd: z.string().datetime().optional(),
   accessNotes: z.string().max(2000).optional(),
-  mobilityRequirements: z.record(z.unknown()).optional(),
+  mobilityRequirements: z.record(z.string(), z.unknown()).optional(),
   providerOrganisationId: z.string().optional(),
 });
 
@@ -26,7 +30,7 @@ export const patchTransportTripSchema = z.object({
   scheduledStart: z.string().datetime().optional(),
   scheduledEnd: z.string().datetime().optional(),
   accessNotes: z.string().max(2000).optional(),
-  mobilityRequirements: z.record(z.unknown()).optional(),
+  mobilityRequirements: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const cancelTransportTripSchema = z.object({
@@ -54,7 +58,7 @@ export const driverLocationSchema = z.object({
 export const tripEvidenceSchema = z.object({
   evidenceType: z.string().min(1),
   notes: z.string().max(2000).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const reportSafetyIssueSchema = z.object({

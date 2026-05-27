@@ -1,4 +1,4 @@
-import type { TransportTripStatus } from "@prisma/client";
+import type { Prisma, TransportTripStatus } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
@@ -22,7 +22,7 @@ export async function recordTripEvent(params: {
       toStatus: params.toStatus ?? undefined,
       eventType: params.eventType,
       message: params.message,
-      metadata: params.metadata ?? undefined,
+      metadata: (params.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
     },
   });
 

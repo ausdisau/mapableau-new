@@ -5,6 +5,7 @@ import type {
   RouteEstimateInput,
   RouteMatrixInput,
   RouteOptimisationInput,
+  RouteOptimisationSuggestion,
 } from "@/types/transport-routing";
 
 function coordPair(p: { lat: number; lng: number }) {
@@ -83,7 +84,9 @@ export class OsrmRoutingAdapter implements RoutingAdapter {
     };
   }
 
-  async optimise(input: RouteOptimisationInput) {
+  async optimise(
+    input: RouteOptimisationInput
+  ): Promise<RouteOptimisationSuggestion[]> {
     void input;
     throw new TransportApiError(
       "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",

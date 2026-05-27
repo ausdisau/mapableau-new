@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
 import { assertAssignedDriver } from "@/lib/transport/transport-access-policy";
@@ -24,7 +26,7 @@ export async function submitTripEvidence(
       tripId,
       evidenceType: input.evidenceType,
       notes: input.notes,
-      metadata: input.metadata ?? undefined,
+      metadata: (input.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
       submittedByUserId: user.id,
     },
   });
