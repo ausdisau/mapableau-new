@@ -12,6 +12,14 @@ export default async function ProviderVehiclesPage() {
   });
   return (
     <div className="space-y-4">
+      <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+        For scheduled trip dispatch, manage your transport fleet (verified
+        drivers and accessible vehicles) in{" "}
+        <Link href="/provider/transport/fleet" className="text-primary hover:underline">
+          Transport fleet
+        </Link>
+        . Legacy vehicles below are used by older transport bookings only.
+      </p>
       <header className="flex justify-between">
         <h1 className="font-heading text-2xl font-bold">Vehicles</h1>
         <Link href="/provider/vehicles/new" className="text-primary underline">Add vehicle</Link>

@@ -15,6 +15,13 @@ import {
   AV_TRIP_TRANSITIONS,
   checkAvVehicleSuitability,
 } from "../../lib/av-framework";
+import { prisma } from "../../lib/prisma";
+import { checkVehicleEligibility } from "../../lib/transport/transport-eligibility-service";
+import {
+  FLEET_DRIVER_VERIFICATION_KINDS,
+  FLEET_VEHICLE_VERIFICATION_KINDS,
+  verificationSummary,
+} from "../../lib/transport/transport-fleet-verification";
 
 const server = new McpServer({
   name: "mapable-av",
@@ -214,6 +221,124 @@ server.tool(
 );
 
 server.tool(
+  "av_list_fleet_summary",
+  "Read-only summary of TransportVehicle and TransportDriver fleet for an organisation (inventory and verification readiness — not dispatch).",
+  {
+    organisationId: z.string().describe("Provider organisation ID"),
+  },
+  async ({ organisationId }) => {
+    const [vehicles, drivers] = await Promise.all([
+      prisma.transportVehicle.findMany({
+        where: { organisationId },
+        include: { verifications: true, features: true },
+        take: 50,
+      }),
+      prisma.transportDriver.findMany({
+        where: { organisationId },
+        include: { verifications: true },
+        take: 50,
+      }),
+    ]);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(
+            {
+              advisory: true,
+              note: "Read-only fleet inventory. Human dispatch still required.",
+              vehicles: vehicles.map((v) => ({
+                id: v.id,
+                displayName: v.displayName,
+                active: v.active,
+                verification: verificationSummary(
+                  v.verifications,
+                  FLEET_VEHICLE_VERIFICATION_KINDS
+                ),
+                features: v.features[0] ?? null,
+              })),
+              drivers: drivers.map((d) => ({
+                id: d.id,
+                displayName: d.displayName,
+                active: d.active,
+                verification: verificationSummary(
+                  d.verifications,
+                  FLEET_DRIVER_VERIFICATION_KINDS
+                ),
+              })),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+);
+
+server.tool(
+  "av_check_fleet_readiness",
+  "Checks whether a transport fleet vehicle is dispatch-ready for given mobility needs (verifications + features). Advisory only.",
+  {
+    vehicleId: z.string(),
+    requiresWheelchairAccessible: z.boolean().optional(),
+    requiresRamp: z.boolean().optional(),
+    requiresLift: z.boolean().optional(),
+    requiresHoist: z.boolean().optional(),
+    assistanceAnimalPresent: z.boolean().optional(),
+  },
+  async (input) => {
+    const mobility = {
+      requiresWheelchairAccessible: input.requiresWheelchairAccessible,
+      requiresRamp: input.requiresRamp,
+      requiresLift: input.requiresLift,
+      requiresHoist: input.requiresHoist,
+      assistanceAnimalPresent: input.assistanceAnimalPresent,
+    };
+    const eligibility = await checkVehicleEligibility(input.vehicleId, mobility);
+    const vehicle = await prisma.transportVehicle.findUnique({
+      where: { id: input.vehicleId },
+      include: { features: true },
+    });
+    const feature = vehicle?.features[0];
+    const suitability = checkAvVehicleSuitability(
+      {
+        requiresWheelchairAccessible: input.requiresWheelchairAccessible,
+        requiresRamp: input.requiresRamp,
+        requiresLift: input.requiresLift,
+        assistanceAnimal: input.assistanceAnimalPresent,
+      },
+      feature
+        ? {
+            wheelchairAccessible: feature.wheelchairAccessible,
+            rampAvailable: feature.rampAvailable,
+            liftAvailable: feature.liftAvailable,
+            assistanceAnimalFriendly: feature.assistanceAnimalFriendly,
+          }
+        : null
+    );
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(
+            {
+              advisory: true,
+              requiresHumanReview: true,
+              eligible: eligibility.eligible,
+              reasons: eligibility.reasons,
+              suitability,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+);
+
+server.tool(
   "av_mapable_transport_api_reference",
   "Lists MapAble transport HTTP API paths agents can call when MAPABLE_BASE_URL and auth are configured.",
   {},
@@ -235,6 +360,9 @@ server.tool(
                 { method: "PATCH", path: "/api/transport/trips/:tripId" },
                 { method: "POST", path: "/api/transport/routing/estimate" },
                 { method: "POST", path: "/api/transport/routing/optimise" },
+                { method: "GET", path: "/api/provider/transport/fleet/vehicles" },
+                { method: "GET", path: "/api/provider/transport/fleet/drivers" },
+                { method: "GET", path: "/api/provider/transport/fleet/health" },
               ],
               ui: AV_GOVERNANCE.mapableIntegration,
             },

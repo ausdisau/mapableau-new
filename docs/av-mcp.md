@@ -26,6 +26,8 @@ The server uses **stdio** transport only.
 | `av_get_trip_status_graph` | Provider or driver status transition map |
 | `av_validate_trip_status_transition` | Whether `from` → `to` is allowed |
 | `av_check_vehicle_suitability` | Accessibility requirement vs vehicle flags |
+| `av_list_fleet_summary` | Read-only org fleet inventory and verification summary |
+| `av_check_fleet_readiness` | Vehicle eligibility + suitability for mobility needs (advisory) |
 | `av_route_estimate_advisory` | OSRM distance/duration (advisory, `requiresHumanReview`) |
 | `av_mapable_transport_api_reference` | Transport REST paths and base URL hint |
 

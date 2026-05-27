@@ -39,6 +39,7 @@ Grant via `/dashboard/consent` (includes `transport.trip_access`).
 | Route | Purpose |
 |-------|---------|
 | `/provider/transport/dispatch` | Dispatch board, suggestions, assign |
+| `/provider/transport/fleet` | Vehicles, drivers, verifications ([fleet doc](av-fleet-management.md)) |
 | `/provider/transport/runs` | Create/lock ride runs, attach trips |
 
 ## APIs (Phase 1)

@@ -24,6 +24,9 @@ export default async function ProviderTransportPage() {
         <Link href="/provider/transport/dispatch" className="text-primary hover:underline">
           Dispatch board ({tripCount} scheduled trips)
         </Link>
+        <Link href="/provider/transport/fleet" className="text-primary hover:underline">
+          Fleet (vehicles & drivers)
+        </Link>
         <Link href="/provider/transport/runs" className="text-primary hover:underline">
           Ride runs (pooling)
         </Link>

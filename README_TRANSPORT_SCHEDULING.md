@@ -8,6 +8,7 @@ Parallel scheduling domain alongside legacy `TransportBooking` (Phase 3). New tr
 |----------|-----------|
 | Participant / nominee (consent) | `/api/transport/trips` |
 | Provider dispatch | `/api/provider/transport/*` |
+| Provider fleet | `/api/provider/transport/fleet/*` |
 | Driver | `/api/driver/transport/trips` |
 | Routing (provider) | `/api/transport/routing/*` |
 | Live Traffic NSW (provider) | `/api/transport/traffic/*` |
@@ -69,6 +70,10 @@ This module does not perform or imply NDIS payment approval.
 ## Accessible ride-sharing
 
 Managed accessible transport and optional pooling: [docs/accessible-ride-share.md](docs/accessible-ride-share.md), [STRATEGY.md](STRATEGY.md).
+
+## AV fleet management
+
+Provider fleet CRUD and health: [docs/av-fleet-management.md](docs/av-fleet-management.md).
 
 ```env
 TRANSPORT_BOOKING_BRIDGE_ENABLED=false
