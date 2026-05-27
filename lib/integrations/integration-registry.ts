@@ -1,3 +1,4 @@
+import { googleMapsAdapter } from "@/lib/integrations/adapters/google-maps-adapter";
 import { maplibreAdapter } from "@/lib/integrations/adapters/maplibre-adapter";
 import { ndiaAdapter } from "@/lib/integrations/adapters/ndia-adapter";
 import { postgresAdapter } from "@/lib/integrations/adapters/postgres-adapter";
@@ -34,6 +35,7 @@ register(stripeAdapter);
 register(xeroAdapter);
 register(ndiaAdapter);
 register(maplibreAdapter);
+register(googleMapsAdapter);
 
 const stubKeys: Array<[string, IntegrationAdapter["type"], string]> = [
   ["keycloak", "identity", "Keycloak"],
