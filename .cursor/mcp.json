@@ -9,6 +9,20 @@
         "OSRM_BASE_URL": "${env:OSRM_BASE_URL}"
       },
       "envFile": "${workspaceFolder}/.env"
+    },
+    "ros-mcp-server": {
+      "command": "uvx",
+      "args": ["ros-mcp", "--transport=stdio"]
+    },
+    "mapable-robotics": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "${workspaceFolder}/mcp/robotics/server.ts"],
+      "env": {
+        "DOFBOT_JETSON_IP": "${env:DOFBOT_JETSON_IP}",
+        "ROBOTICS_ROSBRIDGE_PORT": "${env:ROBOTICS_ROSBRIDGE_PORT}"
+      },
+      "envFile": "${workspaceFolder}/.env"
     }
   }
 }

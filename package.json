@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "mcp:av": "tsx mcp/av/server.ts",
+    "mcp:robotics": "tsx mcp/robotics/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",
     "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
   },
