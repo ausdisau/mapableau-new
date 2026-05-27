@@ -2,15 +2,35 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { formInputClass } from "@/components/forms/AccessibleFormField";
+import { MobilityRequirementsFields } from "@/components/transport/MobilityRequirementsFields";
 import { Button } from "@/components/ui/button";
+import type { MobilityRequirements } from "@/lib/transport/mobility-schema";
 
 export default function NewTransportTripPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [prefillLoading, setPrefillLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mobility, setMobility] = useState<MobilityRequirements>({});
+  const [prefillSource, setPrefillSource] = useState<"profile" | "empty">("empty");
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/transport/trips/prefill");
+        const data = await res.json();
+        if (res.ok && data.mobility) {
+          setMobility(data.mobility);
+          setPrefillSource(data.source ?? "empty");
+        }
+      } finally {
+        setPrefillLoading(false);
+      }
+    })();
+  }, []);
 
   return (
     <form
@@ -27,14 +47,6 @@ export default function NewTransportTripPage() {
             ? new Date(String(scheduledEndRaw)).toISOString()
             : undefined;
 
-        const mobilityRequirements: Record<string, unknown> = {};
-        if (fd.get("wheelchair") === "on") {
-          mobilityRequirements.requiresWheelchairAccessible = true;
-        }
-        if (fd.get("assistance") === "on") {
-          mobilityRequirements.driverAssistanceRequired = true;
-        }
-
         const res = await fetch("/api/transport/trips", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -46,10 +58,8 @@ export default function NewTransportTripPage() {
             scheduledStart,
             scheduledEnd,
             accessNotes: fd.get("accessNotes") || undefined,
-            mobilityRequirements:
-              Object.keys(mobilityRequirements).length > 0
-                ? mobilityRequirements
-                : undefined,
+            mobilityRequirements: mobility,
+            prefillFromProfile: prefillSource === "profile",
           }),
         });
         setLoading(false);
@@ -70,11 +80,19 @@ export default function NewTransportTripPage() {
         }
       }}
     >
-      <h1 className="font-heading text-2xl font-bold">New transport trip</h1>
+      <h1 className="font-heading text-2xl font-bold">Book accessible transport</h1>
       <p className="text-sm text-muted-foreground">
         Route estimates are advisory and are not a guarantee of timing or NDIS
-        payment approval. Live GPS tracking is not available in this pilot.
+        payment approval.
       </p>
+      {prefillLoading ? (
+        <p className="text-sm text-muted-foreground">Loading your accessibility profile…</p>
+      ) : prefillSource === "profile" ? (
+        <p className="text-sm text-muted-foreground">
+          Mobility needs were prefilled from your accessibility profile. Review and
+          adjust before submitting.
+        </p>
+      ) : null}
       {error ? (
         <p role="alert" className="text-sm text-destructive">
           {error}
@@ -137,14 +155,7 @@ export default function NewTransportTripPage() {
         rows={3}
         maxLength={2000}
       />
-      <label className="flex min-h-11 items-center gap-2">
-        <input type="checkbox" name="wheelchair" />
-        Wheelchair accessible vehicle required
-      </label>
-      <label className="flex min-h-11 items-center gap-2">
-        <input type="checkbox" name="assistance" />
-        Driver assistance required
-      </label>
+      <MobilityRequirementsFields value={mobility} onChange={setMobility} />
       <div className="flex flex-wrap gap-3 pt-2">
         <Button type="submit" variant="default" size="default" loading={loading}>
           Request transport trip

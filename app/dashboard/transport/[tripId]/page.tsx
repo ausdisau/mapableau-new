@@ -1,8 +1,10 @@
 import Link from "next/link";
 
+import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
 import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
-import { TransportTripActions } from "@/components/transport/TransportTripActions";
+import { TransportTripDetailActions } from "@/components/transport/TransportTripDetailActions";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
+import { mobilityRequirementLabels, parseMobilityRequirements } from "@/lib/transport/mobility-schema";
 import { requireAuth } from "@/lib/auth/guards";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { getTransportTripForUser } from "@/lib/transport/transport-trip-service";
@@ -36,7 +38,17 @@ export default async function TransportTripDetailPage({
 
   try {
     const response = await getTransportTripForUser(user, tripId);
-    const { trip, nextActions, routeEstimate } = response;
+    const {
+      trip,
+      nextActions,
+      routeEstimate,
+      suitabilityWarnings,
+      handoverStatus,
+      linkedBookingId,
+    } = response;
+    const mobilityLabels = mobilityRequirementLabels(
+      parseMobilityRequirements(trip.mobilityRequirements)
+    );
     const when = new Date(trip.scheduledStart).toLocaleString("en-AU", {
       dateStyle: "full",
       timeStyle: "short",
@@ -87,18 +99,49 @@ export default async function TransportTripDetailPage({
           ) : null}
         </section>
 
-        {Object.keys(trip.mobilityRequirements).length > 0 ? (
+        {mobilityLabels.length > 0 ? (
           <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="font-semibold">Mobility requirements</h2>
             <ul className="mt-2 list-inside list-disc text-sm">
-              {Object.entries(trip.mobilityRequirements).map(([key, value]) => (
-                <li key={key}>
-                  {key.replace(/([A-Z])/g, " $1").replace(/_/g, " ")}:{" "}
-                  {String(value)}
-                </li>
+              {mobilityLabels.map((label) => (
+                <li key={label}>{label}</li>
               ))}
             </ul>
           </section>
+        ) : null}
+
+        {suitabilityWarnings && suitabilityWarnings.length > 0 ? (
+          <VehicleSuitabilityWarning warnings={suitabilityWarnings} />
+        ) : null}
+
+        {handoverStatus ? (
+          <section className="rounded-xl border border-border bg-card p-4 text-sm space-y-1">
+            <h2 className="font-semibold">Handover and safety checks</h2>
+            <p>
+              Pre-start check:{" "}
+              {handoverStatus.preStartComplete ? "Complete" : "Pending"}
+            </p>
+            <p>
+              Pickup handover:{" "}
+              {handoverStatus.pickupHandoverComplete ? "Complete" : "Pending"}
+            </p>
+            <p>
+              Drop-off handover:{" "}
+              {handoverStatus.dropoffHandoverComplete ? "Complete" : "Pending"}
+            </p>
+          </section>
+        ) : null}
+
+        {linkedBookingId ? (
+          <p className="text-sm">
+            <span className="font-medium">NDIS booking link:</span>{" "}
+            <Link
+              href={`/dashboard/bookings/${linkedBookingId}`}
+              className="text-primary hover:underline"
+            >
+              View linked booking (human approval required for claims)
+            </Link>
+          </p>
         ) : null}
 
         {trip.disputeReason ? (
@@ -109,7 +152,15 @@ export default async function TransportTripDetailPage({
 
         {routeEstimate ? <TransportRouteAdvisory routeEstimate={routeEstimate} /> : null}
 
-        <TransportTripActions tripId={trip.id} actions={nextActions} />
+        <TransportTripDetailActions tripId={trip.id} actions={nextActions} />
+        <p className="text-sm">
+          <Link
+            href="/dashboard/safety"
+            className="text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Report a safety concern
+          </Link>
+        </p>
       </div>
     );
   } catch (e) {

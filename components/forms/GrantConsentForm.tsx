@@ -15,7 +15,19 @@ const SCOPES = [
   "booking.read",
   "care.accessibility_share",
   "transport.accessibility_share",
+  "transport.trip_access",
 ] as const;
+
+const SCOPE_LABELS: Record<(typeof SCOPES)[number], string> = {
+  "profile.read": "Profile summary",
+  "accessibility.read": "Accessibility profile",
+  "booking.read": "Booking details",
+  "care.accessibility_share": "Share care accessibility with provider",
+  "transport.accessibility_share":
+    "Share transport mobility needs with provider (for matching vehicles)",
+  "transport.trip_access":
+    "View transport trip summary (pickup suburb, status — not full addresses)",
+};
 
 export function GrantConsentForm({
   organisations,
@@ -64,7 +76,7 @@ export function GrantConsentForm({
         >
           {SCOPES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {SCOPE_LABELS[s]}
             </option>
           ))}
         </select>

@@ -116,6 +116,11 @@ vi.mock("@/lib/prisma", () => ({
     transportTripEvidence: { create: vi.fn() },
     transportSafetyEvent: { create: vi.fn() },
     transportIncidentLink: { create: vi.fn() },
+    transportSafetyCheck: { findMany: vi.fn().mockResolvedValue([]), create: vi.fn() },
+    transportHandoverRecord: { findMany: vi.fn().mockResolvedValue([]), create: vi.fn() },
+    booking: { findFirst: vi.fn().mockResolvedValue(null), create: vi.fn() },
+    bookingTimelineEvent: { create: vi.fn() },
+    rideRun: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn(), update: vi.fn() },
     dataAccessLog: { create: vi.fn() },
     consentRecord: { findFirst: vi.fn() },
     organisationMember: { findMany: vi.fn() },
@@ -306,6 +311,30 @@ describe("eligibility checks", () => {
       requiresWheelchairAccessible: true,
     });
     expect(r2.eligible).toBe(false);
+  });
+
+  it("rejects vehicle without hoist when required", async () => {
+    vi.mocked(prisma.transportVehicle.findUnique).mockResolvedValue({
+      id: "tv-1",
+      active: true,
+      verifications: [
+        { kind: "registration", status: "verified", expiresAt: null },
+        { kind: "insurance", status: "verified", expiresAt: null },
+        { kind: "inspection", status: "verified", expiresAt: null },
+      ],
+      features: [
+        {
+          wheelchairAccessible: true,
+          rampAvailable: true,
+          liftAvailable: false,
+          hoistAvailable: false,
+          assistanceAnimalFriendly: true,
+        },
+      ],
+    } as never);
+    const r = await checkVehicleEligibility("tv-1", { requiresHoist: true });
+    expect(r.eligible).toBe(false);
+    expect(r.reasons.some((x) => x.includes("hoist"))).toBe(true);
   });
 });
 

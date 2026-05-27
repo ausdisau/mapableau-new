@@ -63,9 +63,21 @@ Autonomous Vehicle framework tools for agents: governance, trip transitions, sui
 npm run mcp:av
 ```
 
+## Accessible ride-share
+
+Product design for disability-focused managed transport (mobility schema, consent, dispatch, handover, optional pooling, NDIS booking bridge): see [docs/accessible-ride-share.md](docs/accessible-ride-share.md) and [STRATEGY.md](STRATEGY.md).
+
+Provider UI:
+
+| Route | Purpose |
+|-------|---------|
+| `/provider/transport/dispatch` | `TransportTrip` dispatch board with advisory match suggestions |
+| `/provider/transport/runs` | Phase 2 ride pooling (`TRANSPORT_RIDE_POOLING_ENABLED=true`) |
+
 ## Tests
 
 ```bash
 npm test -- tests/transport-scheduling-routing.test.ts
+npm test -- tests/mobility-schema.test.ts
 npm test -- tests/av-framework.test.ts
 ```

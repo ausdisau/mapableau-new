@@ -3,7 +3,8 @@
 import { Bookmark, Loader2, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
@@ -17,6 +18,13 @@ import {
   getLocationAndPostcode,
   type UserPosition,
 } from "@/lib/geo";
+import {
+  fetchMapLayers,
+  searchCenterToBbox,
+  type MapLayerPayload,
+  type MapLayerVisibility,
+} from "@/lib/map/fetch-map-layers";
+import { fetchGeocode } from "@/lib/map/geocode-client";
 import {
   ACCESS_NEEDS,
   SUPPORT_TYPES,
@@ -99,8 +107,27 @@ export default function ProviderFinderClient() {
   const [page, setPage] = useState(1);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
   const [userLocation, setUserLocation] = useState<UserPosition | null>(null);
+  const [searchCenter, setSearchCenter] = useState<{
+    lat: number;
+    lng: number;
+    label?: string;
+  } | null>(null);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [layerVisibility, setLayerVisibility] = useState<MapLayerVisibility>({
+    access: true,
+    care: false,
+    transport: false,
+  });
+  const [mapLayers, setMapLayers] = useState<MapLayerPayload>({
+    access: null,
+    care: null,
+    transportLines: null,
+    transportStops: null,
+  });
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const { status: sessionStatus } = useSession();
+  const isSignedIn = sessionStatus === "authenticated";
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
@@ -120,6 +147,19 @@ export default function ProviderFinderClient() {
     if (loc) {
       setLocation(loc);
       setSearchSubmitted(true);
+      void fetchGeocode(loc, { limit: 1, country: "au" })
+        .then((result) => {
+          if (result) {
+            setSearchCenter({
+              lat: result.lat,
+              lng: result.lng,
+              label: result.displayName,
+            });
+          }
+        })
+        .catch(() => {
+          // URL location still filters by text match
+        });
     }
     if (access) {
       setAccessQuery(access);
@@ -135,12 +175,41 @@ export default function ProviderFinderClient() {
     }
   }, [searchParams]);
 
+  const resolveSearchCenter = useCallback(async (loc: string) => {
+    const trimmed = loc.trim();
+    if (!trimmed) {
+      setSearchCenter(null);
+      return;
+    }
+    setGeocodeError(null);
+    try {
+      const result = await fetchGeocode(trimmed, { limit: 1, country: "au" });
+      if (result) {
+        setSearchCenter({
+          lat: result.lat,
+          lng: result.lng,
+          label: result.displayName,
+        });
+      } else {
+        setSearchCenter(null);
+        setGeocodeError("Could not find that location on the map.");
+      }
+    } catch (e) {
+      setSearchCenter(null);
+      setGeocodeError(
+        e instanceof Error ? e.message : "Location lookup failed",
+      );
+    }
+  }, []);
+
   const useMyLocation = async () => {
     setLocationLoading(true);
     setLocationError(null);
+    setGeocodeError(null);
     try {
       const { position, postcode } = await getLocationAndPostcode();
       setUserLocation(position);
+      setSearchCenter({ lat: position.lat, lng: position.lng, label: postcode });
       setLocation(postcode);
       setPage(1);
       setSearchSubmitted(true);
@@ -181,7 +250,16 @@ export default function ProviderFinderClient() {
         if (!matchesAccess) return false;
       }
 
-      if (loc) {
+      if (searchCenter) {
+        if (p.latitude == null || p.longitude == null) return false;
+        const d = distanceKm(
+          searchCenter.lat,
+          searchCenter.lng,
+          p.latitude,
+          p.longitude,
+        );
+        if (d > RADIUS_KM) return false;
+      } else if (loc) {
         const locHaystack =
           `${p.suburb} ${p.state} ${p.postcode}`.toLowerCase();
         if (!locHaystack.includes(loc)) return false;
@@ -201,7 +279,26 @@ export default function ProviderFinderClient() {
       return true;
     });
 
-    return [...filtered].sort((a, b) => {
+    const withDistance = filtered.map((p) => {
+      if (
+        !searchCenter ||
+        p.latitude == null ||
+        p.longitude == null
+      ) {
+        return p;
+      }
+      return {
+        ...p,
+        distanceKm: distanceKm(
+          searchCenter.lat,
+          searchCenter.lng,
+          p.latitude,
+          p.longitude,
+        ),
+      };
+    });
+
+    return [...withDistance].sort((a, b) => {
       if (sort === "distance") return a.distanceKm - b.distanceKm;
       if (sort === "rating") return b.rating - a.rating;
       const sa = scoreRelevance(a, query);
@@ -217,6 +314,7 @@ export default function ProviderFinderClient() {
     providerName,
     providers,
     query,
+    searchCenter,
     serviceQuery,
     sort,
     supportType,
@@ -243,29 +341,50 @@ export default function ProviderFinderClient() {
   }, [currentPage, filteredSorted]);
 
   const mapProviders = useMemo(() => {
-    let list = filteredSorted;
-    if (userLocation) {
-      list = list.filter((p) => {
-        if (p.latitude == null || p.longitude == null) return false;
-        const d = distanceKm(
-          userLocation.lat,
-          userLocation.lng,
-          p.latitude,
-          p.longitude,
-        );
-        return d <= RADIUS_KM;
+    return filteredSorted.slice(0, MAP_PIN_LIMIT);
+  }, [filteredSorted]);
+
+  const mapCenter = searchCenter ?? userLocation;
+
+  useEffect(() => {
+    if (!searchSubmitted || !searchCenter) {
+      setMapLayers({
+        access: null,
+        care: null,
+        transportLines: null,
+        transportStops: null,
       });
+      return;
     }
-    return list.slice(0, MAP_PIN_LIMIT);
-  }, [filteredSorted, userLocation]);
+
+    let cancelled = false;
+    const bbox = searchCenterToBbox(searchCenter, RADIUS_KM);
+
+    fetchMapLayers({
+      bbox,
+      visibility: layerVisibility,
+      isSignedIn,
+    }).then((data) => {
+      if (!cancelled) setMapLayers(data);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchSubmitted, searchCenter, layerVisibility, isSignedIn]);
 
   useEffect(() => {
     if (page !== currentPage) setPage(currentPage);
   }, [currentPage, page]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setSearchSubmitted(true);
     setPage(1);
+    if (location.trim()) {
+      await resolveSearchCenter(location);
+    } else {
+      setSearchCenter(userLocation ? { ...userLocation } : null);
+    }
   };
 
   const handleSuggestion = (suggestion: string) => {
@@ -282,7 +401,10 @@ export default function ProviderFinderClient() {
     );
   };
 
-  const locationLabel = location.trim() || "your area";
+  const locationLabel =
+    searchCenter?.label?.split(",")[0]?.trim() ||
+    location.trim() ||
+    "your area";
 
   if (isLoading) {
     return (
@@ -348,6 +470,9 @@ export default function ProviderFinderClient() {
                   setFunding(id);
                   setPage(1);
                 }}
+                layerVisibility={layerVisibility}
+                onLayerVisibilityChange={setLayerVisibility}
+                isSignedIn={isSignedIn}
               />
             </div>
 
@@ -398,6 +523,11 @@ export default function ProviderFinderClient() {
                   {locationError}
                 </p>
               ) : null}
+              {geocodeError ? (
+                <p className="text-sm text-amber-700 dark:text-amber-400" role="status">
+                  {geocodeError} Text matching for suburb or postcode still applies.
+                </p>
+              ) : null}
 
               {compareIds.length > 0 ? (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -408,11 +538,11 @@ export default function ProviderFinderClient() {
               ) : null}
 
               <section id="map" className="scroll-mt-24">
-                {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
+                {!mapCenter && filteredSorted.length > MAP_PIN_LIMIT ? (
                   <Card variant="outlined" className="mb-4 p-4">
                     <p className="text-sm text-muted-foreground">
-                      Set a location or use &quot;Use my location&quot; to see
-                      providers on the map.
+                      Set a location or use &quot;Use my location&quot; to center
+                      the map and filter by distance.
                     </p>
                   </Card>
                 ) : null}
@@ -429,7 +559,12 @@ export default function ProviderFinderClient() {
                         lng: p.longitude!,
                         distanceKm: p.distanceKm,
                       }))}
-                    userPosition={userLocation}
+                    center={mapCenter}
+                    accessGeoJson={mapLayers.access}
+                    careGeoJson={mapLayers.care}
+                    transportLines={mapLayers.transportLines}
+                    transportStops={mapLayers.transportStops}
+                    visibility={layerVisibility}
                     selectedProviderId={selectedProvider?.id ?? null}
                     onProviderSelect={(id) => {
                       const p = mapProviders.find((x) => x.id === id);
@@ -493,11 +628,7 @@ export default function ProviderFinderClient() {
               ) : null}
             </div>
 
-            <ProviderFinderAccessLayer
-              providers={filteredSorted}
-              selectedId={selectedProvider?.id}
-              onSelect={setSelectedProvider}
-            />
+            <ProviderFinderAccessLayer />
           </div>
         </div>
       ) : null}

@@ -77,3 +77,4 @@ yarn.lock
 # Logs
 logs
 *.log
+.env*

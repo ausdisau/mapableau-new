@@ -132,10 +132,10 @@ export function validateCoreEnv(): EnvValidationIssue[] {
         message: "Required in production",
       });
     }
-    if (!process.env.NEXTAUTH_SECRET) {
+    if (!process.env.NEXTAUTH_SECRET?.trim() && !process.env.AUTH_SECRET?.trim()) {
       issues.push({
         variable: "NEXTAUTH_SECRET",
-        message: "Required in production",
+        message: "Required in production (or set AUTH_SECRET)",
       });
     }
   }

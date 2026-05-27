@@ -2,9 +2,11 @@ import { compare } from "bcryptjs";
 import type { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+import { resolveNextAuthSecret } from "@/lib/auth/resolve-nextauth-secret";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: AuthOptions = {
+  secret: resolveNextAuthSecret(),
   session: {
     strategy: "jwt",
   },
