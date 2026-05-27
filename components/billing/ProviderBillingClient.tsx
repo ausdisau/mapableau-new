@@ -5,6 +5,7 @@ import { useState } from "react";
 import { cn } from "@/app/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { StripeCheckoutStatusBanner } from "@/components/billing/StripeCheckoutStatusBanner";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
 
 export function ProviderBillingClient() {
@@ -40,6 +41,7 @@ export function ProviderBillingClient() {
 
   return (
     <div className="space-y-6">
+      <StripeCheckoutStatusBanner showSubscriptionHint />
       {message && (
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="p-4 text-sm" role="status" aria-live="polite">
