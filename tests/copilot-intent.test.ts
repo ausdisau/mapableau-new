@@ -33,6 +33,12 @@ describe("Co-Pilot intent router", () => {
     expect(intent.type).toBe("needs_assessment");
     expect(intent.confidence).toBeGreaterThan(0.8);
   });
+
+  it("classifies shift creator queries before generic support", () => {
+    const intent = classifyIntent("Schedule a care shift for Tuesday 9am with Sam");
+    expect(intent.type).toBe("shift_creator");
+    expect(intent.confidence).toBeGreaterThan(0.8);
+  });
 });
 
 describe("Co-Pilot action planner and guardrails", () => {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AccessNeedsSummary } from "@/components/care/AccessNeedsSummary";
@@ -68,7 +69,15 @@ export default async function ProviderCareBookingPage({
         summary={booking.serviceAgreement?.placeholderSummary}
       />
       <section className="rounded-xl border p-4">
-        <h2 className="font-semibold">Assign worker</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold">Assign worker</h2>
+          <Link
+            href={`/provider/care/shift-creator?careBookingId=${encodeURIComponent(booking.id)}&q=${encodeURIComponent(`Assign a worker for ${booking.careRequest.title}`)}`}
+            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Create shift with assistant
+          </Link>
+        </div>
         <AssignWorkerForm careBookingId={booking.id} workers={workers} />
       </section>
       <InvoicePlaceholderCard careBookingId={booking.id} />

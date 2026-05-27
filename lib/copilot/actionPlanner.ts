@@ -221,6 +221,29 @@ export async function planCopilotActions(
         warnings: [],
       };
 
+    case "shift_creator": {
+      const shiftPath = "/provider/care/shift-creator";
+      return {
+        summary: "Care shift scheduling",
+        plainLanguageAnswer:
+          "I can help plan a care shift from your message — resolving the booking, worker, and times. Open the shift creator for live progress, then confirm before anyone is assigned.",
+        filters: {
+          ...filters,
+          shiftCreatorPath: shiftPath,
+        },
+        actions: [
+          {
+            type: "GUIDANCE_ONLY",
+            label: "Open shift creator",
+            requiresConfirmation: false,
+          },
+        ],
+        draftRecords: [],
+        requiredConfirmations: [],
+        warnings: [],
+      };
+    }
+
     case "needs_assessment": {
       const gapHint =
         context?.needsGaps?.length ?

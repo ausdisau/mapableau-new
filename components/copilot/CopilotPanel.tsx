@@ -141,6 +141,16 @@ export function CopilotPanel({
               </Link>
             </p>
           ) : null}
+          {response.shiftCreatorUrl ? (
+            <p className="text-sm">
+              <Link
+                href={response.shiftCreatorUrl}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Open shift creator
+              </Link>
+            </p>
+          ) : null}
           <CopilotWarnings warnings={response.warnings} />
           <CopilotActionCards
             actions={response.actions}

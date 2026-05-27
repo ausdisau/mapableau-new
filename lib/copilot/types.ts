@@ -11,6 +11,7 @@ export type CopilotIntentType =
   | "incident"
   | "health"
   | "needs_assessment"
+  | "shift_creator"
   | "unknown";
 
 export type CopilotMode =
@@ -141,4 +142,5 @@ export type CopilotAskResponse = {
   results?: unknown[];
   suggestedPrompts?: string[];
   assessmentUrl?: string;
+  shiftCreatorUrl?: string;
 };
