@@ -241,122 +241,82 @@ async function main() {
     providers[p.name] = { id: provider.id };
   }
 
-  console.log("Seeding workers...");
-  const workers: Record<string, { id: string }> = {};
+  console.log("Linking providers to organisations and seeding WorkerProfiles...");
+  const { ensureProviderOrganisation } = await import(
+    "@/lib/providers/ensure-provider-organisation"
+  );
+
+  for (const name of Object.keys(providers)) {
+    await ensureProviderOrganisation(providers[name].id);
+  }
+
   const workerUsers = [
-    { email: "alice@example.com", bio: "Experienced support worker specialising in SIL and community participation.", qualifications: "Cert III Individual Support, First Aid" },
-    { email: "bob@example.com", bio: "Therapeutic supports and assistive technology specialist.", qualifications: "OT degree, NDIS orientation" },
+    {
+      email: "alice@example.com",
+      providerName: "Sunrise Care Services",
+      bio: "Experienced support worker specialising in SIL and community participation.",
+      qualifications: "Cert III Individual Support, First Aid",
+      languages: ["English", "Auslan"],
+      specialisations: ["Autism", "Young People"],
+    },
+    {
+      email: "bob@example.com",
+      providerName: "Blue Mountains Support Co",
+      bio: "Therapeutic supports and assistive technology specialist.",
+      qualifications: "OT degree, NDIS orientation",
+      languages: ["English"],
+      specialisations: ["Complex Behaviour", "Mental Health"],
+    },
   ];
+
   for (const w of workerUsers) {
     const userId = users[w.email]?.id;
-    if (!userId) continue;
-    let worker = await prisma.worker.findUnique({ where: { userId } });
-    if (!worker) {
-      worker = await prisma.worker.create({
-        data: {
-          userId,
-          bio: w.bio,
-          qualifications: w.qualifications,
-        },
-      });
-      console.log(`  Created worker for ${w.email} (${worker.id})`);
-    } else {
-      console.log(`  Found existing worker for ${w.email}`);
-    }
-    workers[w.email] = { id: worker.id };
-  }
+    const providerId = providers[w.providerName]?.id;
+    if (!userId || !providerId) continue;
 
-  console.log("Seeding languages...");
-  const langNames = ["English", "Auslan", "Mandarin"];
-  const languages: Record<string, { id: string }> = {};
-  for (const name of langNames) {
-    const existing = await prisma.language.findFirst({ where: { name } });
-    if (existing) languages[name] = { id: existing.id };
-    else {
-      const lang = await prisma.language.create({ data: { name } });
-      languages[name] = { id: lang.id };
-    }
-  }
+    const organisationId = await ensureProviderOrganisation(providerId);
+    if (!organisationId) continue;
 
-  console.log("Seeding specialisations...");
-  const specNames = ["Autism", "Complex Behaviour", "Mental Health", "Young People"];
-  const specialisations: Record<string, { id: string }> = {};
-  for (const name of specNames) {
-    const existing = await prisma.specialisation.findFirst({ where: { name } });
-    if (existing) specialisations[name] = { id: existing.id };
-    else {
-      const spec = await prisma.specialisation.create({ data: { name } });
-      specialisations[name] = { id: spec.id };
-    }
-  }
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const profile = await prisma.workerProfile.upsert({
+      where: {
+        userId_organisationId: { userId, organisationId },
+      },
+      create: {
+        userId,
+        organisationId,
+        displayName: user?.name ?? w.email,
+        profileSummary: w.bio,
+        qualificationsSummary: w.qualifications,
+        languages: w.languages,
+        specialisations: w.specialisations,
+        verificationStatus: "pending_review",
+        active: true,
+      },
+      update: {
+        profileSummary: w.bio,
+        qualificationsSummary: w.qualifications,
+        languages: w.languages,
+        specialisations: w.specialisations,
+      },
+    });
 
-  console.log("Connecting workers to languages and specialisations...");
-  const aliceWorker = workers["alice@example.com"];
-  const bobWorker = workers["bob@example.com"];
-  if (aliceWorker) {
-    const langIds = [languages["English"], languages["Auslan"]].filter(Boolean).map((l) => ({ id: l!.id }));
-    const specIds = [specialisations["Autism"], specialisations["Young People"]].filter(Boolean).map((s) => ({ id: s!.id }));
-    if (langIds.length || specIds.length) {
-      await prisma.worker.update({
-        where: { id: aliceWorker.id },
-        data: {
-          ...(langIds.length && { languages: { connect: langIds } }),
-          ...(specIds.length && { specialisations: { connect: specIds } }),
-        },
-      }).catch(() => {});
-    }
-  }
-  if (bobWorker) {
-    const langIds = [languages["English"]].filter(Boolean).map((l) => ({ id: l!.id }));
-    const specIds = [specialisations["Complex Behaviour"], specialisations["Mental Health"]].filter(Boolean).map((s) => ({ id: s!.id }));
-    if (langIds.length || specIds.length) {
-      await prisma.worker.update({
-        where: { id: bobWorker.id },
-        data: {
-          ...(langIds.length && { languages: { connect: langIds } }),
-          ...(specIds.length && { specialisations: { connect: specIds } }),
-        },
-      }).catch(() => {});
-    }
-  }
-
-  console.log("Seeding worker availability...");
-  for (const w of workerUsers) {
-    const workerId = workers[w.email]?.id;
-    if (!workerId) continue;
-    const existing = await prisma.workerAvailability.findFirst({ where: { workerId } });
-    if (!existing) {
-      await prisma.workerAvailability.createMany({
+    const existingWindow = await prisma.availabilityWindow.findFirst({
+      where: { workerProfileId: profile.id },
+    });
+    if (!existingWindow) {
+      await prisma.availabilityWindow.createMany({
         data: DAYS.filter((d) => d !== "SUNDAY").map((dayOfWeek) => ({
-          workerId,
+          organisationId,
+          workerProfileId: profile.id,
           dayOfWeek,
           startTime: "09:00",
           endTime: "17:00",
         })),
       });
-      console.log(`  Created availability for ${w.email}`);
     }
+    console.log(`  WorkerProfile for ${w.email} @ ${w.providerName}`);
   }
-
-  console.log("Seeding WorkerProvider links...");
-  const workerProviderLinks = [
-    { workerEmail: "alice@example.com", providerName: "Sunrise Care Services" },
-    { workerEmail: "bob@example.com", providerName: "Blue Mountains Support Co" },
-    { workerEmail: "alice@example.com", providerName: "Coastal Disability Services" },
-  ];
-  for (const link of workerProviderLinks) {
-    const workerId = workers[link.workerEmail]?.id;
-    const providerId = providers[link.providerName]?.id;
-    if (!workerId || !providerId) continue;
-    await prisma.workerProvider.upsert({
-      where: {
-        workerId_providerId: { workerId, providerId },
-      },
-      create: { workerId, providerId, startDate: new Date() },
-      update: {},
-    });
-  }
-  console.log(`  Created ${workerProviderLinks.length} worker-provider links`);
 
   console.log("Seeding ProviderUserRole...");
   const providerUserRoles = [

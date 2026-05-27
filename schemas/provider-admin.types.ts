@@ -85,6 +85,7 @@ export const membershipResponseSchema = z.object({
       providerId: z.string(),
       providerName: z.string(),
       role: z.string(),
+      organisationId: z.string().nullable().optional(),
     }),
   ),
 });

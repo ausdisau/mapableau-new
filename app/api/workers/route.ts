@@ -1,12 +1,20 @@
 import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createWorkerProfile } from "@/lib/workers/worker-profile-service";
 
 export async function GET() {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
+
+  const orgIds = isAdminRole(user.primaryRole)
+    ? undefined
+    : await getUserOrganisationIds(user.id);
+
   const workers = await prisma.workerProfile.findMany({
+    where: orgIds ? { organisationId: { in: orgIds } } : undefined,
     take: 100,
     orderBy: { createdAt: "desc" },
   });

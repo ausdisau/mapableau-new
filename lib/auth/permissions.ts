@@ -56,6 +56,7 @@ export type Permission =
   | "driver:manage:org"
   | "driver:read:any"
   | "availability:manage:org"
+  | "availability:manage:self"
   | "jobs:read:public"
   | "jobs:manage:employer"
   | "jobs:manage:any"
@@ -226,6 +227,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "invoice:read:self",
   ],
   support_worker: [
+    "profile:read:self",
+    "profile:write:self",
+    "availability:manage:self",
     "booking:read:any",
     "notification:read:self",
     "care:shift:work",
