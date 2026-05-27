@@ -28,13 +28,18 @@ export async function applyGuardrails(
   let draftRecords = [...planned.draftRecords];
   let actions = [...planned.actions];
 
+  const needsAssessmentDraft = draftRecords.some(
+    (r) => r.type === "NEEDS_ASSESSMENT_SUMMARY",
+  );
+
   if (!participantId) {
     draftRecords = [];
     actions = actions.filter((a) => {
       if (
         a.type === "CREATE_DRAFT_SERVICE_EVENT" ||
         a.type === "INCIDENT_REPORT" ||
-        a.type === "INVOICE_REVIEW"
+        a.type === "INVOICE_REVIEW" ||
+        a.type === "ASSESS_PARTICIPANT_NEEDS"
       ) {
         blockedActions.push(a);
         return false;
@@ -100,6 +105,23 @@ export async function applyGuardrails(
           ? { ...a, requiresConfirmation: true }
           : a
       );
+    }
+  }
+
+  if (needsAssessmentDraft && participantId) {
+    requiredConfirmations.push({
+      type: "PARTICIPANT_CONFIRMATION",
+      title: "Confirm needs assessment summary",
+      explanation:
+        "Your needs assessment summary is stored only after you explicitly confirm.",
+    });
+    if (context?.consentSummary.openConsentConflicts.length) {
+      requiredConfirmations.push({
+        type: "CONSENT_CONFIRMATION",
+        title: "Consent before sharing access details",
+        explanation:
+          "If you share assessment results with providers, choose which access notes are included.",
+      });
     }
   }
 

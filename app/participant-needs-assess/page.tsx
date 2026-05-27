@@ -1,17 +1,17 @@
 import { Suspense } from "react";
 
-import { WorkerSearchPageClient } from "./WorkerSearchPageClient";
+import { NeedsAssessmentPageClient } from "./NeedsAssessmentPageClient";
 
-export default function WorkerSearchPage() {
+export default function ParticipantNeedsAssessPage() {
   return (
     <Suspense
       fallback={
         <p className="container mx-auto px-4 py-12 text-muted-foreground">
-          Loading worker search…
+          Loading needs assessment…
         </p>
       }
     >
-      <WorkerSearchPageClient />
+      <NeedsAssessmentPageClient />
     </Suspense>
   );
 }

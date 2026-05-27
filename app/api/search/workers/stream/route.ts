@@ -1,17 +1,17 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  assertParticipantAccess,
+  ParticipantAccessError,
+} from "@/lib/participant-needs/assert-participant-access";
+import { buildParticipantNeedsSnapshot } from "@/lib/participant-needs/build-needs-snapshot";
+import { needsSnapshotToWorkerFilters } from "@/lib/participant-needs/needs-to-worker-filters";
 import { runWorkerSearchStream } from "@/lib/search/worker-search-stream-service";
+import type { WorkerSearchFilters } from "@/lib/search/worker-search-types";
 
 type WorkerSearchStreamRequest = {
   query?: string;
-  filters?: {
-    serviceRegion?: string;
-    serviceType?: string;
-    wheelchairAccessible?: boolean;
-    verificationStatus?: string;
-    language?: string;
-    organisationType?: string;
-    query?: string;
-  };
+  filters?: WorkerSearchFilters;
+  participantId?: string;
 };
 
 const encoder = new TextEncoder();
@@ -35,6 +35,30 @@ export async function POST(request: Request) {
     );
   }
 
+  let mergedFilters: WorkerSearchFilters | undefined = body.filters;
+
+  if (body.participantId) {
+    try {
+      assertParticipantAccess(user, body.participantId);
+      const snapshot = await buildParticipantNeedsSnapshot(
+        body.participantId,
+        query,
+      );
+      if (snapshot) {
+        mergedFilters = {
+          ...needsSnapshotToWorkerFilters(snapshot),
+          ...body.filters,
+          query,
+        };
+      }
+    } catch (e) {
+      if (e instanceof ParticipantAccessError) {
+        return Response.json({ error: e.message }, { status: 403 });
+      }
+      throw e;
+    }
+  }
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const writeEvent = (event: string, data: unknown) => {
@@ -45,7 +69,7 @@ export async function POST(request: Request) {
       try {
         const result = await runWorkerSearchStream({
           query,
-          filters: body.filters,
+          filters: mergedFilters,
           onEvent: async (event) => {
             writeEvent("progress", event);
           },

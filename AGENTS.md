@@ -18,4 +18,11 @@ Common commands after bootstrap:
 - `pnpm type-check`
 - `pnpm dev`
 
+## Participant needs assessment
+
+- Live streaming assessment: `/participant-needs-assess?participantId=participant-demo-001`
+- API: `POST /api/prms/participants/{id}/needs/assess/stream` (SSE progress + result)
+- Co-Pilot intent `needs_assessment` links to the assessment page via `assessmentUrl` in `/api/mapable/ask` responses
+- Worker search accepts `participantId` on `POST /api/search/workers/stream` to merge needs-derived filters
+
 Do not commit `.env` or secrets. Use Cursor Cloud **Secrets** for `DATABASE_URL` and other credentials when tests need a database.

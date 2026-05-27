@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   type WorkerMarketplaceCandidate,
+  type WorkerSearchFilters,
   type WorkerSearchStreamEvent,
 } from "@/lib/search/worker-search-types";
 
@@ -16,8 +17,18 @@ type StreamState = {
   candidates: WorkerMarketplaceCandidate[];
 };
 
-export function WorkerSearchClient() {
-  const [query, setQuery] = useState("");
+type Props = {
+  participantId?: string;
+  initialQuery?: string;
+  initialFilters?: WorkerSearchFilters;
+};
+
+export function WorkerSearchClient({
+  participantId,
+  initialQuery = "",
+  initialFilters,
+}: Props) {
+  const [query, setQuery] = useState(initialQuery);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<StreamState>({ events: [], candidates: [] });
@@ -43,7 +54,11 @@ export function WorkerSearchClient() {
       const response = await fetch("/api/search/workers/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: trimmed }),
+        body: JSON.stringify({
+          query: trimmed,
+          participantId,
+          filters: initialFilters,
+        }),
       });
 
       if (!response.ok || !response.body) {
