@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 
 import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
+import { StripeCheckoutStatusBanner } from "@/components/billing/StripeCheckoutStatusBanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
@@ -56,7 +57,11 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
       window.location.href = data.checkoutUrl;
       return;
     }
-    setMessage(data.checkout?.instruction ?? data.error ?? "Checkout unavailable.");
+    setMessage(
+      data.error ??
+        data.checkout?.instruction ??
+        "Checkout unavailable. See docs/stripe-checkout.md for setup."
+    );
     setBusy(false);
   }
 
@@ -96,6 +101,7 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
 
   return (
     <div className="space-y-6">
+      <StripeCheckoutStatusBanner />
       <p>
         <Link
           href="/dashboard/billing/invoices"
