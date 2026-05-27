@@ -214,6 +214,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   family_member: [
     "profile:read:self",
     "booking:read:self",
+    "transport:read:self",
     "notification:read:self",
   ],
   support_coordinator: [

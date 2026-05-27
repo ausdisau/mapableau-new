@@ -12,6 +12,7 @@ const TO_PRISMA: Record<ConsentScope, PrismaConsentScope> = {
   "support_coordination.access": "support_coordination_access",
   "plan_manager.invoice_access": "plan_manager_invoice_access",
   "transport.accessibility_share": "transport_accessibility_share",
+  "transport.trip_access": "transport_trip_access",
   "care.accessibility_share": "care_accessibility_share",
 };
 
