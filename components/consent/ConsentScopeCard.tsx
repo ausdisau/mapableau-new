@@ -11,6 +11,8 @@ const SCOPE_DESCRIPTIONS: Record<string, string> = {
   "plan_manager.invoice_access": "Plan manager invoice access",
   "transport.accessibility_share":
     "Share transport accessibility needs for bookings",
+  "transport.trip_access":
+    "Allow a family member or nominee to view summary details of your transport trips",
   "care.accessibility_share": "Share care accessibility needs for bookings",
 };
 

@@ -2,6 +2,11 @@ import type { Prisma, TransportTripStatus } from "@prisma/client";
 
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
+import {
+  normalizeMobilityRequirements,
+  parseMobilityRequirements,
+} from "@/lib/transport/mobility-schema";
+import { getMobilityPrefillForUser } from "@/lib/transport/profile-prefill-service";
 import type { CreateTransportTripInput } from "@/lib/validation/transport-trip-schemas";
 import {
   assertCanAccessTrip,
@@ -10,6 +15,7 @@ import {
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
+import { bridgeTransportTripToBooking } from "@/lib/transport/booking-bridge-service";
 import { buildTripResponse } from "@/lib/transport/transport-response";
 import { logDataAccess } from "@/lib/transport/data-access-log-service";
 
@@ -26,6 +32,26 @@ export async function createTransportTrip(
     ? new Date(input.scheduledEnd)
     : defaultScheduledEnd(scheduledStart);
 
+  let mobilityRequirements = parseMobilityRequirements(
+    input.mobilityRequirements
+  );
+  let accessNotes = input.accessNotes;
+
+  if (input.prefillFromProfile) {
+    const prefill = await getMobilityPrefillForUser(user);
+    mobilityRequirements = normalizeMobilityRequirements({
+      ...prefill.mobilityRequirements,
+      ...mobilityRequirements,
+    });
+    if (!accessNotes && prefill.accessNotes) {
+      accessNotes = prefill.accessNotes;
+    }
+  } else {
+    mobilityRequirements = normalizeMobilityRequirements(mobilityRequirements);
+  }
+
+  const mobilityJson = mobilityRequirements as Prisma.InputJsonValue;
+
   const request = await prisma.transportTripRequest.create({
     data: {
       participantId: user.id,
@@ -40,9 +66,8 @@ export async function createTransportTrip(
       dropoffLng: input.dropoffLng,
       scheduledStart,
       scheduledEnd,
-      accessNotes: input.accessNotes,
-      mobilityRequirements: (input.mobilityRequirements ??
-        {}) as Prisma.InputJsonValue,
+      accessNotes,
+      mobilityRequirements: mobilityJson,
       status: "open",
     },
   });
@@ -61,11 +86,10 @@ export async function createTransportTrip(
       dropoffSuburb: input.dropoffSuburb,
       dropoffLat: input.dropoffLat,
       dropoffLng: input.dropoffLng,
-      accessNotes: input.accessNotes,
+      accessNotes,
       scheduledStart,
       scheduledEnd,
-      mobilityRequirements: (input.mobilityRequirements ??
-        {}) as Prisma.InputJsonValue,
+      mobilityRequirements: mobilityJson,
     },
   });
 
@@ -237,6 +261,10 @@ async function transitionTrip(
     participantId: trip.participantId,
     organisationId: trip.providerOrganisationId ?? undefined,
   });
+
+  if (toStatus === "trip_completed" || toStatus === "closed") {
+    await bridgeTransportTripToBooking(updated);
+  }
 
   return buildTripResponse({ trip: updated, user });
 }

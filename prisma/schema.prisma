@@ -580,6 +580,7 @@ model Organisation {
   transportTrips         TransportTrip[]        @relation("TransportTripProvider")
   transportDrivers       TransportDriver[]      @relation("TransportDrivers")
   transportVehicles      TransportVehicle[]     @relation("TransportVehicles")
+  rideRuns               RideRun[]              @relation("RideRuns")
 }
 
 model OrganisationMember {
@@ -703,6 +704,8 @@ model Booking {
   careRequest        CareRequest?
   careShifts         CareShift[]
   transportBooking   TransportBooking?
+  transportTripId    String?       @unique
+  transportTrip      TransportTrip? @relation("BookingTransportTrip", fields: [transportTripId], references: [id], onDelete: SetNull)
   ndisClaimLines     NdisClaimLine[]
 
   segments               BookingSegment[]
@@ -6588,11 +6591,47 @@ model TransportTrip {
   handoverRecords         TransportHandoverRecord[]
   safetyEvents            TransportSafetyEvent[]
   incidentLinks           TransportIncidentLink[]
+  booking                 Booking?         @relation("BookingTransportTrip")
+  rideRunId               String?
+  rideRun                 RideRun?         @relation(fields: [rideRunId], references: [id], onDelete: SetNull)
 
   @@index([participantId, status])
   @@index([providerOrganisationId, status])
+  @@index([rideRunId])
   @@index([scheduledStart])
   @@map("transport_trips")
+}
+
+enum RideRunStatus {
+  planning
+  open
+  locked
+  in_progress
+  completed
+  cancelled
+}
+
+model RideRun {
+  id                     String         @id @default(cuid())
+  providerOrganisationId String
+  providerOrganisation   Organisation   @relation("RideRuns", fields: [providerOrganisationId], references: [id], onDelete: Cascade)
+  vehicleId              String
+  vehicle                TransportVehicle @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  driverId               String?
+  driver                 TransportDriver? @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  scheduledStart         DateTime
+  scheduledEnd           DateTime?
+  maxPassengers          Int            @default(4)
+  status                 RideRunStatus  @default(planning)
+  requiresHumanReview    Boolean        @default(true)
+  notes                  String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  trips                  TransportTrip[]
+
+  @@index([providerOrganisationId, status])
+  @@index([scheduledStart])
+  @@map("ride_runs")
 }
 
 model TransportTripStop {
@@ -6662,6 +6701,7 @@ model TransportDriver {
   availability     TransportDriverAvailability[]
   dispatchAssignments TransportDispatchAssignment[]
   scheduleConflicts TransportScheduleConflict[] @relation("TransportScheduleConflictDriver")
+  rideRuns            RideRun[]
 
   @@index([organisationId])
   @@map("transport_drivers")
@@ -6684,6 +6724,7 @@ model TransportVehicle {
   availability     TransportVehicleAvailability[]
   dispatchAssignments TransportDispatchAssignment[]
   scheduleConflicts TransportScheduleConflict[] @relation("TransportScheduleConflictVehicle")
+  rideRuns            RideRun[]
 
   @@index([organisationId])
   @@map("transport_vehicles")

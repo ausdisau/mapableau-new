@@ -2,15 +2,39 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { formInputClass } from "@/components/forms/AccessibleFormField";
+import {
+  AccessibleFormField,
+  formInputClass,
+} from "@/components/forms/AccessibleFormField";
+import { MobilityRequirementsForm } from "@/components/transport/MobilityRequirementsForm";
 import { Button } from "@/components/ui/button";
+import type { MobilityRequirements } from "@/lib/transport/mobility-schema";
 
 export default function NewTransportTripPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefillFromProfile, setPrefillFromProfile] = useState(true);
+  const [mobility, setMobility] = useState<MobilityRequirements>({});
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!prefillFromProfile) return;
+    fetch("/api/transport/mobility-prefill")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.mobilityRequirements) {
+          setMobility((prev) => ({
+            ...data.mobilityRequirements,
+            ...prev,
+          }));
+        }
+        setProfileLoaded(data.fromProfile === true);
+      })
+      .catch(() => {});
+  }, [prefillFromProfile]);
 
   return (
     <form
@@ -27,14 +51,6 @@ export default function NewTransportTripPage() {
             ? new Date(String(scheduledEndRaw)).toISOString()
             : undefined;
 
-        const mobilityRequirements: Record<string, unknown> = {};
-        if (fd.get("wheelchair") === "on") {
-          mobilityRequirements.requiresWheelchairAccessible = true;
-        }
-        if (fd.get("assistance") === "on") {
-          mobilityRequirements.driverAssistanceRequired = true;
-        }
-
         const res = await fetch("/api/transport/trips", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -47,9 +63,8 @@ export default function NewTransportTripPage() {
             scheduledEnd,
             accessNotes: fd.get("accessNotes") || undefined,
             mobilityRequirements:
-              Object.keys(mobilityRequirements).length > 0
-                ? mobilityRequirements
-                : undefined,
+              Object.keys(mobility).length > 0 ? mobility : undefined,
+            prefillFromProfile,
           }),
         });
         setLoading(false);
@@ -70,88 +85,86 @@ export default function NewTransportTripPage() {
         }
       }}
     >
-      <h1 className="font-heading text-2xl font-bold">New transport trip</h1>
+      <h1 className="font-heading text-2xl font-bold">Book accessible transport</h1>
       <p className="text-sm text-muted-foreground">
         Route estimates are advisory and are not a guarantee of timing or NDIS
-        payment approval. Live GPS tracking is not available in this pilot.
+        payment approval. A provider will assign a verified driver and vehicle
+        that matches your access needs.
       </p>
       {error ? (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       ) : null}
-      <label htmlFor="pickupAddress" className="text-sm font-medium">
-        Pickup address
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={prefillFromProfile}
+          onChange={(e) => setPrefillFromProfile(e.target.checked)}
+        />
+        <span>
+          Use my accessibility profile to prefill mobility needs
+          {profileLoaded ? " (profile found)" : ""}
+        </span>
       </label>
-      <input
-        id="pickupAddress"
-        name="pickupAddress"
-        className={formInputClass}
-        required
-        minLength={3}
-      />
-      <label htmlFor="pickupSuburb" className="text-sm font-medium">
-        Pickup suburb (optional)
-      </label>
-      <input id="pickupSuburb" name="pickupSuburb" className={formInputClass} />
-      <label htmlFor="dropoffAddress" className="text-sm font-medium">
-        Drop-off address
-      </label>
-      <input
-        id="dropoffAddress"
-        name="dropoffAddress"
-        className={formInputClass}
-        required
-        minLength={3}
-      />
-      <label htmlFor="dropoffSuburb" className="text-sm font-medium">
-        Drop-off suburb (optional)
-      </label>
-      <input id="dropoffSuburb" name="dropoffSuburb" className={formInputClass} />
-      <label htmlFor="scheduledStart" className="text-sm font-medium">
-        Scheduled start
-      </label>
-      <input
-        id="scheduledStart"
-        name="scheduledStart"
-        type="datetime-local"
-        className={formInputClass}
-        required
-      />
-      <label htmlFor="scheduledEnd" className="text-sm font-medium">
-        Scheduled end (optional)
-      </label>
-      <input
-        id="scheduledEnd"
-        name="scheduledEnd"
-        type="datetime-local"
-        className={formInputClass}
-      />
-      <label htmlFor="accessNotes" className="text-sm font-medium">
-        Access notes (optional)
-      </label>
-      <textarea
+
+      <MobilityRequirementsForm values={mobility} onChange={setMobility} />
+
+      <AccessibleFormField id="pickupAddress" label="Pickup address" required>
+        <input
+          id="pickupAddress"
+          name="pickupAddress"
+          className={formInputClass}
+          required
+        />
+      </AccessibleFormField>
+      <AccessibleFormField id="pickupSuburb" label="Pickup suburb">
+        <input id="pickupSuburb" name="pickupSuburb" className={formInputClass} />
+      </AccessibleFormField>
+      <AccessibleFormField id="dropoffAddress" label="Drop-off address" required>
+        <input
+          id="dropoffAddress"
+          name="dropoffAddress"
+          className={formInputClass}
+          required
+        />
+      </AccessibleFormField>
+      <AccessibleFormField id="dropoffSuburb" label="Drop-off suburb">
+        <input id="dropoffSuburb" name="dropoffSuburb" className={formInputClass} />
+      </AccessibleFormField>
+      <AccessibleFormField id="scheduledStart" label="Scheduled start" required>
+        <input
+          id="scheduledStart"
+          name="scheduledStart"
+          type="datetime-local"
+          className={formInputClass}
+          required
+        />
+      </AccessibleFormField>
+      <AccessibleFormField id="scheduledEnd" label="Scheduled end (optional)">
+        <input
+          id="scheduledEnd"
+          name="scheduledEnd"
+          type="datetime-local"
+          className={formInputClass}
+        />
+      </AccessibleFormField>
+      <AccessibleFormField
         id="accessNotes"
-        name="accessNotes"
-        className={formInputClass}
-        rows={3}
-        maxLength={2000}
-      />
-      <label className="flex min-h-11 items-center gap-2">
-        <input type="checkbox" name="wheelchair" />
-        Wheelchair accessible vehicle required
-      </label>
-      <label className="flex min-h-11 items-center gap-2">
-        <input type="checkbox" name="assistance" />
-        Driver assistance required
-      </label>
-      <div className="flex flex-wrap gap-3 pt-2">
+        label="Access notes at pickup"
+        hint="e.g. ramp, buzzer, support person meeting you"
+      >
+        <textarea id="accessNotes" name="accessNotes" className={formInputClass} rows={3} />
+      </AccessibleFormField>
+
+      <div className="flex gap-2">
         <Button type="submit" variant="default" size="default" loading={loading}>
-          Request transport trip
+          Request trip
         </Button>
         <Link
           href="/dashboard/transport"
-          className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
         >
           Cancel
         </Link>

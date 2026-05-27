@@ -42,11 +42,9 @@ export async function assignDriverAndVehicle(
     throw new TransportApiError("TRANSPORT_VALIDATION_FAILED");
   }
 
-  await assertDriverEligible(driverId);
-  await assertVehicleEligible(
-    vehicleId,
-    (trip.mobilityRequirements as Record<string, unknown>) ?? {}
-  );
+  const mobility = (trip.mobilityRequirements as Record<string, unknown>) ?? {};
+  await assertDriverEligible(driverId, mobility);
+  await assertVehicleEligible(vehicleId, mobility);
 
   const end = tripEnd(trip);
   await assertNoScheduleConflict({
