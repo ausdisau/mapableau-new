@@ -68,6 +68,12 @@ See `.env.example` for a full template.
 
 Use the preview URL as `NEXT_PUBLIC_APP_URL` for that environment, and add a **separate** webhook endpoint in Stripe pointing at `https://<preview-host>/api/webhooks/stripe` with the matching signing secret in Vercel env vars.
 
+Pull preview env locally when debugging a branch deployment:
+
+```bash
+vercel env pull --environment=preview
+```
+
 ## Local development webhooks
 
 Forward events to your app:
