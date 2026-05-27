@@ -1,7 +1,7 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonOk } from "@/lib/api/response";
+import { syncAllocationAfterMatchSelection } from "@/lib/care-allocation/matching-bridge";
 import { selectMatchCandidate } from "@/lib/matching/matching-service";
-
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ candidateId: string }> }
@@ -15,5 +15,14 @@ export async function POST(
     user.id,
     body.notes
   );
-  return jsonOk({ candidate });
+
+  let allocation = null;
+  if (candidate.matchRun.careRequestId) {
+    allocation = await syncAllocationAfterMatchSelection({
+      careRequestId: candidate.matchRun.careRequestId,
+      actorUser: user,
+    });
+  }
+
+  return jsonOk({ candidate, allocation });
 }

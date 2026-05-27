@@ -41,6 +41,31 @@ const CONTRACTS = [
     type: "incident_escalation_gate" as const,
     rulesJson: [],
   },
+  {
+    code: "CARE_ALLOCATION_V1",
+    name: "Care worker allocation safeguards",
+    type: "care_allocation_gate" as const,
+    rulesJson: [
+      {
+        field: "workerVerified",
+        operator: "eq",
+        value: true,
+        message: "Worker must be verified",
+      },
+      {
+        field: "providerVerified",
+        operator: "eq",
+        value: true,
+        message: "Provider must be verified",
+      },
+      {
+        field: "hasScheduleConflict",
+        operator: "eq",
+        value: false,
+        message: "Worker has a schedule conflict",
+      },
+    ],
+  },
 ];
 
 export async function seedMapAblePhase4() {

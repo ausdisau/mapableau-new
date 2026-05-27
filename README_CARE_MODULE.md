@@ -40,9 +40,16 @@ Prisma models mapped with `@@map` to: `care_requests`, `care_bookings`, `care_bo
 
 Accessibility details require consent (`care.accessibility_share`), including organisation-scoped checks for providers.
 
+## Allocation (HITL)
+
+When `CARE_ALLOCATION_ENABLED=true`, providers can run ranked worker suggestions with compliance gates and an approval inbox. See [README_CARE_ALLOCATION.md](README_CARE_ALLOCATION.md).
+
+- APIs under `/api/care/allocations`
+- Provider UI: booking detail **Suggest workers**, [`/provider/care/allocations`](/provider/care/allocations)
+
 ## Limitations
 
-- No AI matching, GPS check-in, or recurring bookings
+- No GPS check-in or recurring bookings (allocation uses existing matching when enabled)
 - NDIS pricing is placeholder only — no funding approval claims
 - Invoice generation is a stub until NDIS Pricing Intelligence is wired
 

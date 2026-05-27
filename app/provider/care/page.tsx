@@ -26,6 +26,9 @@ export default async function ProviderCarePage() {
         <Link href="/provider/care/service-logs" className="underline">
           Service logs
         </Link>
+        <Link href="/provider/care/allocations" className="underline">
+          Allocation review
+        </Link>
       </nav>
       <h2 className="text-lg font-semibold">Assigned care requests</h2>
       <ul className="space-y-3">
