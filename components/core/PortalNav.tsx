@@ -19,11 +19,13 @@ export function PortalNav({
   links,
   backHref = "/dashboard",
   backLabel = "Dashboard",
+  logoHref = "/core",
 }: {
   title: string;
   links: PortalNavLink[];
   backHref?: string;
   backLabel?: string;
+  logoHref?: string;
 }) {
   const pathname = usePathname();
 
@@ -35,7 +37,7 @@ export function PortalNav({
     <nav aria-label={title} className={mapableHeaderClass}>
       <div className={mapablePageContainerClass}>
         <div className="mx-auto flex max-w-6xl flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
-          <MapAbleLogo href="/core" title="MapAble" subtitle={title} />
+          <MapAbleLogo href={logoHref} title="MapAble" subtitle={title} />
           <ul className="flex flex-wrap gap-2">
             {links.map((link) => (
               <li key={link.href}>

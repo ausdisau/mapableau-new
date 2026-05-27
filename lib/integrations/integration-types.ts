@@ -51,6 +51,7 @@ export const INITIAL_INTEGRATION_KEYS = [
   "ndia",
   "keycloak",
   "maplibre",
+  "amazon_location",
   "supabase",
   "supabase_realtime",
   "socketio",

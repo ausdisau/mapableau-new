@@ -1,4 +1,5 @@
 import { createAccessPlaceSchema } from "@/types/access-map";
+import { accessGeoEnrichCreateInput } from "@/lib/access-map/access-geocoding-service";
 import {
   createAccessPlace,
   listPublishedPlaces,
@@ -63,8 +64,10 @@ export async function POST(req: Request) {
   const parsed = createAccessPlaceSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
+  const input = await accessGeoEnrichCreateInput(parsed.data);
+
   const place = await createAccessPlace({
-    input: parsed.data,
+    input,
     createdById: user.id,
     status: canEditPlace(user) ? "published" : "pending_moderation",
     sourceType: canEditPlace(user) ? "mapable_verified" : "user_suggested",

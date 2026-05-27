@@ -2,12 +2,10 @@ import { createHash } from "crypto";
 
 import type { ApiScope } from "@prisma/client";
 
-import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
+import { listPublishedPlaces } from "@/lib/access-map/access-place-service";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { scopesAllow } from "@/lib/developer-api/api-key-service";
 import { prisma } from "@/lib/prisma";
-
-
 
 async function authenticateApiKey(req: Request) {
   const key = req.headers.get("x-api-key");
@@ -21,14 +19,15 @@ async function authenticateApiKey(req: Request) {
   return record;
 }
 
+/** Places API v1 — backed by MapAble Access published places. */
 export async function GET(req: Request) {
   const record = await authenticateApiKey(req);
   if (!record) return jsonError("Unauthorized", 401);
   if (!scopesAllow(record.scopes, "places_read" as ApiScope)) {
     return jsonError("Forbidden scope", 403);
   }
-  const places = await listAccessiblePlaces(30);
-  const safe = places.map((p) => ({
+  const accessPlaces = await listPublishedPlaces(30);
+  const safe = accessPlaces.map((p) => ({
     id: p.id,
     name: p.name,
     confidence: p.confidence,
