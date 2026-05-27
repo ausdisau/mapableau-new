@@ -1,6 +1,11 @@
-import type { WorkerCredentialStatus } from "@prisma/client";
+import type {
+  WorkerAffiliationStatus,
+  WorkerCredentialStatus,
+} from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { getProvidersForOrganisation } from "@/lib/providers/resolve-provider-from-org";
+import { ensureProviderOrganisation } from "@/lib/providers/ensure-provider-organisation";
 import { prisma } from "@/lib/prisma";
 import type { workerProfileSelfSchema } from "@/lib/validation/worker";
 import type { z } from "zod";
@@ -49,6 +54,95 @@ export async function getOrCreateWorkerProfileForUser(
   });
 }
 
+export async function affiliateWorkerToOrganisation(params: {
+  userId: string;
+  organisationId: string;
+  displayName: string;
+  profileSummary?: string;
+  serviceTypes?: string[];
+  serviceRegions?: string[];
+  specialisations?: string[];
+  languages?: string[];
+  communicationCapabilities?: string[];
+  qualificationsSummary?: string;
+  createdById: string;
+  affiliationStatus?: WorkerAffiliationStatus;
+  invitedByUserId?: string;
+}) {
+  const now = new Date();
+  const status = params.affiliationStatus ?? "active";
+
+  const profile = await prisma.$transaction(async (tx) => {
+    const upserted = await tx.workerProfile.upsert({
+      where: {
+        userId_organisationId: {
+          userId: params.userId,
+          organisationId: params.organisationId,
+        },
+      },
+      create: {
+        userId: params.userId,
+        organisationId: params.organisationId,
+        displayName: params.displayName,
+        profileSummary: params.profileSummary,
+        serviceTypes: params.serviceTypes ?? [],
+        serviceRegions: params.serviceRegions ?? [],
+        specialisations: params.specialisations ?? [],
+        languages: params.languages ?? [],
+        communicationCapabilities: params.communicationCapabilities ?? [],
+        qualificationsSummary: params.qualificationsSummary,
+        workerScreeningStatus: "not_provided",
+        verificationStatus: "pending_review",
+        active: status === "active" || status === "pending",
+        affiliationStatus: status,
+        affiliatedAt: now,
+        invitedByUserId: params.invitedByUserId,
+        acceptedAt: status === "active" ? now : null,
+      },
+      update: {
+        displayName: params.displayName,
+        profileSummary: params.profileSummary,
+        serviceTypes: params.serviceTypes,
+        serviceRegions: params.serviceRegions,
+        specialisations: params.specialisations,
+        languages: params.languages,
+        active: status === "active" || status === "pending",
+        affiliationStatus: status,
+        endedAt: null,
+        affiliatedAt: now,
+      },
+    });
+
+    await tx.organisationMember.upsert({
+      where: {
+        userId_organisationId: {
+          userId: params.userId,
+          organisationId: params.organisationId,
+        },
+      },
+      create: {
+        userId: params.userId,
+        organisationId: params.organisationId,
+        role: "support_worker",
+      },
+      update: { role: "support_worker" },
+    });
+
+    return upserted;
+  });
+
+  await createAuditEvent({
+    actorUserId: params.createdById,
+    action: "worker.affiliated",
+    entityType: "WorkerProfile",
+    entityId: profile.id,
+    organisationId: params.organisationId,
+    metadata: { affiliationStatus: status },
+  });
+
+  return profile;
+}
+
 export async function createWorkerProfile(params: {
   userId: string;
   organisationId: string;
@@ -62,47 +156,87 @@ export async function createWorkerProfile(params: {
   qualificationsSummary?: string;
   createdById: string;
 }) {
-  const profile = await prisma.workerProfile.upsert({
-    where: {
-      userId_organisationId: {
-        userId: params.userId,
-        organisationId: params.organisationId,
-      },
-    },
-    create: {
-      userId: params.userId,
-      organisationId: params.organisationId,
-      displayName: params.displayName,
-      profileSummary: params.profileSummary,
-      serviceTypes: params.serviceTypes ?? [],
-      serviceRegions: params.serviceRegions ?? [],
-      specialisations: params.specialisations ?? [],
-      languages: params.languages ?? [],
-      communicationCapabilities: params.communicationCapabilities ?? [],
-      qualificationsSummary: params.qualificationsSummary,
-      workerScreeningStatus: "not_provided",
-      verificationStatus: "pending_review",
-      active: true,
-    },
-    update: {
-      displayName: params.displayName,
-      profileSummary: params.profileSummary,
-      serviceTypes: params.serviceTypes,
-      serviceRegions: params.serviceRegions,
-      specialisations: params.specialisations,
-      languages: params.languages,
+  return affiliateWorkerToOrganisation(params);
+}
+
+export async function endWorkerAffiliation(params: {
+  workerProfileId: string;
+  endedById: string;
+}) {
+  const existing = await prisma.workerProfile.findUnique({
+    where: { id: params.workerProfileId },
+  });
+  if (!existing) return null;
+
+  const now = new Date();
+  const profile = await prisma.workerProfile.update({
+    where: { id: params.workerProfileId },
+    data: {
+      affiliationStatus: "ended",
+      active: false,
+      endedAt: now,
     },
   });
 
   await createAuditEvent({
-    actorUserId: params.createdById,
-    action: "worker_profile.created",
+    actorUserId: params.endedById,
+    action: "worker.affiliation_ended",
     entityType: "WorkerProfile",
     entityId: profile.id,
-    organisationId: params.organisationId,
+    organisationId: profile.organisationId,
   });
 
   return profile;
+}
+
+export async function listWorkerAffiliationsForUser(userId: string) {
+  const profiles = await prisma.workerProfile.findMany({
+    where: {
+      userId,
+      affiliationStatus: { not: "ended" },
+    },
+    include: {
+      organisation: {
+        select: { id: true, name: true, organisationType: true },
+      },
+    },
+    orderBy: [{ affiliationStatus: "asc" }, { affiliatedAt: "desc" }],
+  });
+
+  const enriched = await Promise.all(
+    profiles.map(async (p) => {
+      const providers = await getProvidersForOrganisation(p.organisationId);
+      return {
+        ...p,
+        providers,
+      };
+    })
+  );
+
+  return enriched;
+}
+
+export async function listAffiliatedWorkersForProvider(providerId: string) {
+  const organisationId = await ensureProviderOrganisation(providerId);
+  if (!organisationId) return null;
+
+  const provider = await prisma.provider.findUnique({
+    where: { id: providerId },
+  });
+  if (!provider) return null;
+
+  const workerProfiles = await prisma.workerProfile.findMany({
+    where: {
+      organisationId,
+      affiliationStatus: { in: ["pending", "active", "suspended"] },
+    },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+    orderBy: { displayName: "asc" },
+  });
+
+  return { provider, organisationId, workerProfiles };
 }
 
 export async function verifyWorkerProfile(

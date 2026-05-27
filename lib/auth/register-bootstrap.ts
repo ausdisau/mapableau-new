@@ -85,6 +85,8 @@ export async function bootstrapUserAfterRegister(
       displayName: name.trim() || "Support worker",
       verificationStatus: "pending_review",
       active: true,
+      affiliationStatus: "active",
+      affiliatedAt: new Date(),
     },
   });
 

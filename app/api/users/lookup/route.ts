@@ -1,10 +1,19 @@
-import { requireApiPermission } from "@/lib/api/auth-handler";
+import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { getManageableOrganisationIds } from "@/lib/providers/can-manage-provider-workers";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
-  const user = await requireApiPermission("worker:manage:org");
+  const user = await requireApiSession();
   if (user instanceof Response) return user;
+
+  const manageable = await getManageableOrganisationIds(
+    user.id,
+    user.primaryRole
+  );
+  if (manageable.length === 0) {
+    return jsonError("Forbidden", 403);
+  }
 
   const email = new URL(req.url).searchParams.get("email")?.trim().toLowerCase();
   if (!email) {

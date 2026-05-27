@@ -292,13 +292,29 @@ async function main() {
         specialisations: w.specialisations,
         verificationStatus: "pending_review",
         active: true,
+        affiliationStatus: "active",
+        affiliatedAt: new Date(),
       },
       update: {
         profileSummary: w.bio,
         qualificationsSummary: w.qualifications,
         languages: w.languages,
         specialisations: w.specialisations,
+        affiliationStatus: "active",
+        active: true,
       },
+    });
+
+    await prisma.organisationMember.upsert({
+      where: {
+        userId_organisationId: { userId, organisationId },
+      },
+      create: {
+        userId,
+        organisationId,
+        role: "support_worker",
+      },
+      update: { role: "support_worker" },
     });
 
     const existingWindow = await prisma.availabilityWindow.findFirst({
@@ -335,6 +351,21 @@ async function main() {
       create: { userId, providerId, role: pur.role },
       update: { role: pur.role },
     });
+
+    const organisationId = await ensureProviderOrganisation(providerId);
+    if (organisationId) {
+      await prisma.organisationMember.upsert({
+        where: {
+          userId_organisationId: { userId, organisationId },
+        },
+        create: {
+          userId,
+          organisationId,
+          role: "provider_admin",
+        },
+        update: { role: "provider_admin" },
+      });
+    }
   }
   console.log(`  Created ${providerUserRoles.length} provider user roles`);
 

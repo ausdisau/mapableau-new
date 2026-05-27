@@ -1,6 +1,7 @@
 import type { ProviderRole } from "@prisma/client";
 
 import { ensureProviderOrganisation } from "@/lib/providers/ensure-provider-organisation";
+import { listAffiliatedWorkersForProvider } from "@/lib/workers/worker-profile-service";
 import { prisma } from "@/lib/prisma";
 import {
   GetAdminResponse,
@@ -47,27 +48,7 @@ export function isValidProviderId(id: string) {
 }
 
 export async function getProviderWithWorkers(providerId: string) {
-  const organisationId = await ensureProviderOrganisation(providerId);
-  if (!organisationId) return null;
-
-  const provider = await prisma.provider.findUnique({
-    where: { id: providerId },
-  });
-  if (!provider) return null;
-
-  const workerProfiles = await prisma.workerProfile.findMany({
-    where: { organisationId, active: true },
-    include: {
-      user: { select: { id: true, name: true, email: true } },
-    },
-    orderBy: { displayName: "asc" },
-  });
-
-  return {
-    provider,
-    organisationId,
-    workerProfiles,
-  };
+  return listAffiliatedWorkersForProvider(providerId);
 }
 
 export const getAdminResponse = (
@@ -100,6 +81,8 @@ export const getAdminResponse = (
       email: wp.user?.email ?? null,
       bio: wp.profileSummary,
       qualifications: wp.qualificationsSummary,
+      affiliationStatus: wp.affiliationStatus,
+      active: wp.active,
       languages: wp.languages.map((name) => ({ id: name, name })),
       specialisations: wp.specialisations.map((name) => ({
         id: name,
