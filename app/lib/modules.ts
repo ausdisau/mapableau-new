@@ -72,7 +72,7 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.transport,
     color: "#4CAF50",
     gradient: "from-green-500 to-emerald-600",
-    href: "/transport",
+    href: "/dashboard/transport",
     features: [
       "Wheelchair Access",
       "Door-to-Door",
@@ -91,7 +91,7 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.jobs,
     color: "#2196F3",
     gradient: "from-blue-500 to-indigo-600",
-    href: "/employment",
+    href: "/dashboard/jobs",
     features: [
       "Job Matching",
       "Employer Network",
@@ -110,7 +110,7 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.foods,
     color: "#FF9800",
     gradient: "from-orange-500 to-amber-600",
-    href: "/foods",
+    href: "/dashboard/find-support",
     features: [
       "Meal Delivery",
       "Dietary Plans",
@@ -129,7 +129,7 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.moves,
     color: "#9C27B0",
     gradient: "from-purple-500 to-violet-600",
-    href: "/moves",
+    href: "/dashboard/find-support",
     features: [
       "Physical Therapy",
       "Rehabilitation",
@@ -148,7 +148,7 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.marketplace,
     color: "#00BCD4",
     gradient: "from-cyan-500 to-teal-600",
-    href: "/marketplace",
+    href: "/provider-finder",
     features: [
       "Mobility Aids",
       "Daily Living",
@@ -167,7 +167,7 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.kids,
     color: "#FFEB3B",
     gradient: "from-yellow-400 to-orange-500",
-    href: "/kids",
+    href: "/dashboard/find-support",
     features: [
       "Early Intervention",
       "Therapy Services",
