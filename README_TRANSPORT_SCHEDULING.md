@@ -55,8 +55,17 @@ Nominee / family access requires active `transport.trip_access` consent from the
 
 This module does not perform or imply NDIS payment approval.
 
+## AV MCP (Cursor)
+
+Autonomous Vehicle framework tools for agents: governance, trip transitions, suitability, advisory OSRM. See [docs/av-mcp.md](docs/av-mcp.md) and `.cursor/mcp.json` (`mapable-av` server).
+
+```bash
+npm run mcp:av
+```
+
 ## Tests
 
 ```bash
 npm test -- tests/transport-scheduling-routing.test.ts
+npm test -- tests/av-framework.test.ts
 ```
