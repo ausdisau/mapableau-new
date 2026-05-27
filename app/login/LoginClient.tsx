@@ -45,7 +45,11 @@ export default function LoginClient() {
               try {
                 const redirectRes = await fetch("/api/auth/post-login-redirect");
                 const redirectData = await redirectRes.json();
-                if (redirectRes.ok && redirectData.redirectTo) {
+                if (
+                  redirectRes.ok &&
+                  redirectData.redirectTo &&
+                  isSafeRedirect(redirectData.redirectTo)
+                ) {
                   destination = redirectData.redirectTo;
                 }
               } catch {
