@@ -1,7 +1,9 @@
 import { requireApiSession, requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { isAdminRole } from "@/lib/auth/roles";
 import { acknowledgeCriticalIncident, submitIncident } from "@/lib/incidents/incident-service";
 import { prisma } from "@/lib/prisma";
+import { canUserAccessIncident } from "@/lib/safety/incident-access";
 
 export async function GET(
   _req: Request,
@@ -15,6 +17,15 @@ export async function GET(
     include: { updates: { orderBy: { createdAt: "asc" } } },
   });
   if (!incident) return jsonError("Not found", 404);
+  if (
+    !canUserAccessIncident(
+      incident,
+      user.id,
+      isAdminRole(user.primaryRole)
+    )
+  ) {
+    return jsonError("Forbidden", 403);
+  }
   return jsonOk({ incident });
 }
 

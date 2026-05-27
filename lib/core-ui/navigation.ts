@@ -69,6 +69,7 @@ export const CORE_HUB_SECTIONS: {
       { href: "/dashboard/bookings", label: "Bookings" },
       { href: "/dashboard/care", label: "Care" },
       { href: "/dashboard/billing", label: "Billing centre" },
+      { href: "/dashboard/safety", label: "Safety centre" },
       { href: "/dashboard/transport", label: "Transport trips" },
       { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
     ],

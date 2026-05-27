@@ -9,15 +9,32 @@ export const metadata = { title: "Control panel | MapAble Core" };
 export default async function DashboardPage() {
   const user = await requireAuth();
 
-  const [profile, bookingsCount, transportTripsCount, unreadNotifications] =
-    await Promise.all([
-      prisma.participantProfile.findUnique({ where: { userId: user.id } }),
-      prisma.booking.count({ where: { participantId: user.id } }),
-      prisma.transportTrip.count({ where: { participantId: user.id } }),
-      prisma.notification.count({
-        where: { userId: user.id, readAt: null },
-      }),
-    ]);
+  const [
+    profile,
+    bookingsCount,
+    transportTripsCount,
+    unreadNotifications,
+    incidentCount,
+    openSupportCount,
+  ] = await Promise.all([
+    prisma.participantProfile.findUnique({ where: { userId: user.id } }),
+    prisma.booking.count({ where: { participantId: user.id } }),
+    prisma.transportTrip.count({ where: { participantId: user.id } }),
+    prisma.notification.count({
+      where: { userId: user.id, readAt: null },
+    }),
+    prisma.incidentReport.count({
+      where: {
+        OR: [{ participantId: user.id }, { reportedById: user.id }],
+      },
+    }),
+    prisma.supportTicket.count({
+      where: {
+        OR: [{ createdById: user.id }, { participantId: user.id }],
+        status: { notIn: ["resolved", "closed"] },
+      },
+    }),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -36,6 +53,15 @@ export default async function DashboardPage() {
           title="Billing centre"
           description="Invoices, funding sources and payments"
           href="/dashboard/billing"
+        />
+        <DashboardCard
+          title="Safety centre"
+          description={
+            openSupportCount || incidentCount
+              ? `${incidentCount} incident report(s) · ${openSupportCount} open support ticket(s)`
+              : "Incident reports and support tickets"
+          }
+          href="/dashboard/safety"
         />
         <DashboardCard
           title="Transport trips"
