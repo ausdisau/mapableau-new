@@ -22,9 +22,4 @@ export async function consumeKeycloakOAuthState(
   return Boolean(expected && expected === state);
 }
 
-export function isSafeRedirect(path: string): boolean {
-  if (!path.startsWith("/")) return false;
-  if (path.startsWith("//")) return false;
-  if (path.includes("://")) return false;
-  return true;
-}
+export { isSafeRedirect } from "@/lib/auth/safe-redirect";

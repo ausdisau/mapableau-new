@@ -4,10 +4,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { isSafeRedirect } from "@/lib/auth/safe-redirect";
+
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const rawCallback = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = isSafeRedirect(rawCallback) ? rawCallback : "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

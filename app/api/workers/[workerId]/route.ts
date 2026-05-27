@@ -63,14 +63,15 @@ export async function PATCH(
     const parsed = workerProfileOrgSchema.parse(raw);
 
     if (isSelf) {
-      const updated = await updateWorkerProfileSelf(profile.id, user.id, parsed);
+      await updateWorkerProfileSelf(profile.id, user.id, parsed);
       if (parsed.active !== undefined && canManageOrg) {
         await prisma.workerProfile.update({
           where: { id: profile.id },
           data: { active: parsed.active },
         });
       }
-      return jsonOk({ profile: updated });
+      const fresh = await loadWorkerProfileOrNull(workerId);
+      return jsonOk({ profile: fresh ?? profile });
     }
 
     const updated = await prisma.workerProfile.update({

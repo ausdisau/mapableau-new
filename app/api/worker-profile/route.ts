@@ -1,6 +1,7 @@
 import { ZodError } from "zod";
 
 import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
+import { isAdminRole } from "@/lib/auth/roles";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import {
   getOrCreateWorkerProfileForUser,
@@ -40,7 +41,10 @@ export async function GET() {
   if (user instanceof Response) return user;
 
   let profile = await getPrimaryWorkerProfileForUser(user.id);
-  if (!profile) {
+  if (
+    !profile &&
+    (user.primaryRole === "support_worker" || isAdminRole(user.primaryRole))
+  ) {
     profile = await getOrCreateWorkerProfileForUser(
       user.id,
       user.name ?? "Support worker"

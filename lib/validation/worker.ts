@@ -32,5 +32,5 @@ export const availabilityWindowSchema = z.object({
 });
 
 export const availabilityWindowsPatchSchema = z.object({
-  windows: z.array(availabilityWindowSchema),
+  windows: z.array(availabilityWindowSchema).max(56),
 });
