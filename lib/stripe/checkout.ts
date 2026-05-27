@@ -97,8 +97,8 @@ export function buildBillingPaymentCheckout(params: {
     currency: params.currency,
     customerId: params.customerId,
     productName: params.productLabel,
-    successUrl: `${stripeConfig.appUrl}/billing?checkout=success&invoiceId=${params.invoiceId}`,
-    cancelUrl: `${stripeConfig.appUrl}/billing?checkout=cancelled&invoiceId=${params.invoiceId}`,
+    successUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`,
+    cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`,
     metadata,
     applicationFeeAmount:
       params.providerConnectedAccountId && params.platformFeeCents !== undefined
@@ -125,8 +125,8 @@ export function buildLegacyInvoiceCheckout(params: {
     amountCents: params.amountCents,
     customerId: params.customerId,
     productName: "MapAble invoice payment",
-    successUrl: `${stripeConfig.appUrl}/dashboard/invoices/${params.invoiceId}?checkout=success`,
-    cancelUrl: `${stripeConfig.appUrl}/dashboard/invoices/${params.invoiceId}?checkout=cancelled`,
+    successUrl: `${stripeConfig.appUrl}/dashboard/billing/legacy/${params.invoiceId}?checkout=success`,
+    cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/legacy/${params.invoiceId}?checkout=cancelled`,
     metadata,
   });
 }

@@ -11,7 +11,7 @@ Shared shell, navigation and hub for the MapAble Core platform.
 | Public civic pages | `(core)` route group + `CoreShell` | Transparency, accountability, algorithms, etc. |
 | `/data-vault`, `/academy`, `/assessor` | `CoreShell` | Authenticated portals with public chrome |
 | `/provider/*` | `PortalNav` | Provider console |
-| `/dashboard`, `/admin` | `DashboardNav` + skip link | Participant control panel and admin |
+| `/dashboard`, `/admin` | `DashboardNav` + skip link | Participant control panel (incl. `/dashboard/billing` invoice & billing centre) and admin |
 
 ## Components (`components/core/`)
 

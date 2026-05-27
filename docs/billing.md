@@ -99,7 +99,12 @@ stripe trigger checkout.session.completed
 
 ## UI
 
-- `/billing` — participant dashboard (WCAG-minded large targets, labels, live regions)
+- `/dashboard/billing` — **Invoice & billing centre** (participant control panel): overview, invoices & payments, funding sources, legacy invoice drafts
+- `/dashboard/billing/invoices` — list, pay, export (Stripe Checkout / plan manager)
+- `/dashboard/billing/invoices/[invoiceId]` — invoice detail
+- `/dashboard/billing/funding` — billing-core funding sources
+- `/dashboard/billing/legacy` — Phase 2 `Invoice` drafts
+- `/billing` — redirects to `/dashboard/billing`
 - `/provider/billing` — Connect onboarding + subscription
 - `/admin/billing` — search and flagged payments
 

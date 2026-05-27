@@ -27,8 +27,7 @@ const LINKS = [
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/support", label: "Support" },
   { href: "/dashboard/documents", label: "Documents" },
-  { href: "/dashboard/funding", label: "Funding" },
-  { href: "/dashboard/invoices", label: "Invoices" },
+  { href: "/dashboard/billing", label: "Billing centre" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
 ];
 
