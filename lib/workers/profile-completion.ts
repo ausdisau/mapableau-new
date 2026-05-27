@@ -1,7 +1,9 @@
 import type { WorkerProfile } from "@prisma/client";
+import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { defaultDashboardPath } from "@/lib/auth/roles";
+import { getPrimaryWorkerProfileForUser } from "@/lib/workers/worker-profile-service";
 import type { UserRole } from "@/types/mapable";
 
 type ProfileSlice = Pick<
@@ -30,6 +32,47 @@ export function participantProfileEditPath(): string {
   return "/dashboard/profile/edit";
 }
 
+export function isParticipantProfileComplete(profile: {
+  preferredName: string | null;
+  homeSuburb: string | null;
+}): boolean {
+  return Boolean(profile.preferredName?.trim() || profile.homeSuburb?.trim());
+}
+
+/** Redirect support workers with incomplete profiles to onboarding. */
+export async function ensureWorkerProfileComplete(userId: string) {
+  const profile = await getPrimaryWorkerProfileForUser(userId);
+  if (!profile || !isWorkerProfileComplete(profile)) {
+    redirect(workerOnboardingPath());
+  }
+  return profile;
+}
+
+export function postLoginPathForRole(
+  primaryRole: string,
+  workerProfile: ProfileSlice | null,
+  participantProfile: {
+    preferredName: string | null;
+    homeSuburb: string | null;
+  } | null
+): string {
+  if (primaryRole === "support_worker") {
+    if (!workerProfile || !isWorkerProfileComplete(workerProfile)) {
+      return workerOnboardingPath();
+    }
+    return "/worker/today";
+  }
+
+  if (primaryRole === "participant") {
+    if (!participantProfile || !isParticipantProfileComplete(participantProfile)) {
+      return participantProfileEditPath();
+    }
+    return "/dashboard";
+  }
+
+  return defaultDashboardPath(primaryRole as UserRole);
+}
+
 export async function resolvePostLoginPathForUser(
   userId: string,
   primaryRole: string
@@ -39,21 +82,16 @@ export async function resolvePostLoginPathForUser(
       where: { userId, active: true },
       orderBy: { createdAt: "asc" },
     });
-    if (!profile || !isWorkerProfileComplete(profile)) {
-      return workerOnboardingPath();
-    }
-    return "/worker/today";
+    return postLoginPathForRole(primaryRole, profile, null);
   }
 
   if (primaryRole === "participant") {
     const profile = await prisma.participantProfile.findUnique({
       where: { userId },
+      select: { preferredName: true, homeSuburb: true },
     });
-    if (!profile?.homeSuburb && !profile?.preferredName) {
-      return participantProfileEditPath();
-    }
-    return "/dashboard";
+    return postLoginPathForRole(primaryRole, null, profile);
   }
 
-  return defaultDashboardPath(primaryRole as UserRole);
+  return postLoginPathForRole(primaryRole, null, null);
 }

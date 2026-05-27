@@ -1,4 +1,4 @@
-import type { MapAbleUserRole } from "@prisma/client";
+import type { MapAbleUserRole, Prisma } from "@prisma/client";
 
 import {
   isWorkerProfileComplete,
@@ -6,6 +6,8 @@ import {
 } from "@/lib/workers/profile-completion";
 import { prisma } from "@/lib/prisma";
 import type { RegisterInput } from "@/lib/validation/register";
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export type RegisterBootstrapResult = {
   userId: string;
@@ -16,17 +18,18 @@ export type RegisterBootstrapResult = {
 export async function bootstrapUserAfterRegister(
   userId: string,
   name: string,
-  accountType: RegisterInput["accountType"]
+  accountType: RegisterInput["accountType"],
+  db: DbClient = prisma
 ): Promise<RegisterBootstrapResult> {
   const primaryRole: MapAbleUserRole =
     accountType === "support_worker" ? "support_worker" : "participant";
 
-  await prisma.user.update({
+  await db.user.update({
     where: { id: userId },
     data: { primaryRole },
   });
 
-  await prisma.userRoleAssignment.upsert({
+  await db.userRoleAssignment.upsert({
     where: {
       userId_role: { userId, role: primaryRole },
     },
@@ -35,7 +38,7 @@ export async function bootstrapUserAfterRegister(
   });
 
   if (accountType === "participant") {
-    await prisma.participantProfile.upsert({
+    await db.participantProfile.upsert({
       where: { userId },
       create: {
         userId,
@@ -43,7 +46,7 @@ export async function bootstrapUserAfterRegister(
       },
       update: {},
     });
-    await prisma.accessibilityProfile.upsert({
+    await db.accessibilityProfile.upsert({
       where: { userId },
       create: { userId },
       update: {},
@@ -60,7 +63,7 @@ export async function bootstrapUserAfterRegister(
     ? `${name.trim()} — Support services`
     : "Independent support worker";
 
-  const organisation = await prisma.organisation.create({
+  const organisation = await db.organisation.create({
     data: {
       name: orgName,
       organisationType: "independent_support_worker",
@@ -70,7 +73,7 @@ export async function bootstrapUserAfterRegister(
     },
   });
 
-  await prisma.organisationMember.create({
+  await db.organisationMember.create({
     data: {
       userId,
       organisationId: organisation.id,
@@ -78,7 +81,7 @@ export async function bootstrapUserAfterRegister(
     },
   });
 
-  await prisma.workerProfile.create({
+  await db.workerProfile.create({
     data: {
       userId,
       organisationId: organisation.id,
@@ -88,7 +91,7 @@ export async function bootstrapUserAfterRegister(
     },
   });
 
-  const profile = await prisma.workerProfile.findFirst({
+  const profile = await db.workerProfile.findFirst({
     where: { userId, organisationId: organisation.id },
   });
 

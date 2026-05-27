@@ -20,6 +20,9 @@ Legacy models `Worker`, `WorkerProvider`, and `WorkerAvailability` are **depreca
 |-------|-------------|
 | `GET/PATCH /api/worker-profile` | Current user's primary worker profile |
 | `GET/PATCH /api/worker-profile/availability` | Availability windows for that profile |
+| `GET /api/auth/post-login-redirect` | Role-aware path after sign-in (onboarding vs dashboard) |
+
+Incomplete worker profiles are redirected to `/worker/onboarding` from shift workflows; sign-in uses `resolvePostLoginPathForUser`.
 
 ## Provider admin
 

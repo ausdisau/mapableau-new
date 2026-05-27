@@ -37,7 +37,19 @@ export default function LoginClient() {
 
           if (result?.ok === true) {
             setIsLoading(false);
-            router.push(callbackUrl);
+            let destination = callbackUrl;
+            if (callbackUrl === "/dashboard" || !searchParams.get("callbackUrl")) {
+              try {
+                const redirectRes = await fetch("/api/auth/post-login-redirect");
+                const redirectData = await redirectRes.json();
+                if (redirectRes.ok && redirectData.redirectTo) {
+                  destination = redirectData.redirectTo;
+                }
+              } catch {
+                // fall back to callbackUrl
+              }
+            }
+            router.push(destination);
             router.refresh();
             return;
           }

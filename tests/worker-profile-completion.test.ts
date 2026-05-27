@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { isWorkerProfileComplete } from "@/lib/workers/profile-completion";
+import {
+  isWorkerProfileComplete,
+  postLoginPathForRole,
+  workerOnboardingPath,
+} from "@/lib/workers/profile-completion";
 
 describe("isWorkerProfileComplete", () => {
   it("returns false when required fields are missing", () => {
@@ -25,5 +29,21 @@ describe("isWorkerProfileComplete", () => {
         qualificationsSummary: "Cert III",
       })
     ).toBe(true);
+  });
+
+  it("routes incomplete support workers to onboarding", () => {
+    expect(
+      postLoginPathForRole(
+        "support_worker",
+        {
+          displayName: "Alex",
+          profileSummary: null,
+          serviceTypes: [],
+          serviceRegions: [],
+          qualificationsSummary: null,
+        },
+        null
+      )
+    ).toBe(workerOnboardingPath());
   });
 });

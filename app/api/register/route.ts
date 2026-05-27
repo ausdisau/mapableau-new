@@ -33,20 +33,26 @@ export async function POST(req: Request) {
 
   const passwordHash = await hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      passwordHash,
-      primaryRole: accountType === "support_worker" ? "support_worker" : "participant",
-    },
-  });
+  const { user, bootstrap } = await prisma.$transaction(async (tx) => {
+    const created = await tx.user.create({
+      data: {
+        name,
+        email,
+        passwordHash,
+        primaryRole:
+          accountType === "support_worker" ? "support_worker" : "participant",
+      },
+    });
 
-  const bootstrap = await bootstrapUserAfterRegister(
-    user.id,
-    name,
-    accountType
-  );
+    const boot = await bootstrapUserAfterRegister(
+      created.id,
+      name,
+      accountType,
+      tx
+    );
+
+    return { user: created, bootstrap: boot };
+  });
 
   return NextResponse.json({
     id: user.id,
