@@ -77,7 +77,12 @@ export default function WorkerOnboardingPage() {
             initial={profile}
             onSuccessRedirect={undefined}
           />
-          <Button type="button" onClick={() => setStep("availability")}>
+          <Button
+            type="button"
+            variant="default"
+            size="default"
+            onClick={() => setStep("availability")}
+          >
             Continue to availability
           </Button>
         </>
@@ -89,7 +94,12 @@ export default function WorkerOnboardingPage() {
             initialWindows={windows}
             onSaved={() => setStep("done")}
           />
-          <Button type="button" variant="outline" onClick={() => setStep("basics")}>
+          <Button
+            type="button"
+            variant="outline"
+            size="default"
+            onClick={() => setStep("basics")}
+          >
             Back
           </Button>
         </>
@@ -100,6 +110,8 @@ export default function WorkerOnboardingPage() {
           <p>Your profile is ready for review. You can update it anytime.</p>
           <Button
             type="button"
+            variant="default"
+            size="default"
             onClick={() => router.push("/worker/today")}
           >
             Go to today&apos;s shifts

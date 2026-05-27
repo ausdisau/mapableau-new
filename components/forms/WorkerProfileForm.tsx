@@ -162,7 +162,7 @@ export function WorkerProfileForm({
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
       {status && <p className="text-green-700 text-sm">{status}</p>}
-      <Button type="submit" variant="default" loading={loading}>
+      <Button type="submit" variant="default" size="default" loading={loading}>
         Save profile
       </Button>
     </form>

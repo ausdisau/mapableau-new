@@ -126,6 +126,7 @@ export function WorkerAvailabilityForm({
       <Button
         type="button"
         variant="outline"
+        size="default"
         onClick={() =>
           setWindows([
             ...windows,
@@ -136,7 +137,7 @@ export function WorkerAvailabilityForm({
         Add slot
       </Button>
       {error && <p className="text-red-600 text-sm">{error}</p>}
-      <Button type="submit" variant="default" loading={loading}>
+      <Button type="submit" variant="default" size="default" loading={loading}>
         Save availability
       </Button>
     </form>
