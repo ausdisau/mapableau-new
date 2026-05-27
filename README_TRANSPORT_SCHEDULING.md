@@ -10,6 +10,8 @@ Parallel scheduling domain alongside legacy `TransportBooking` (Phase 3). New tr
 | Provider dispatch | `/api/provider/transport/*` |
 | Driver | `/api/driver/transport/trips` |
 | Routing (provider) | `/api/transport/routing/*` |
+| Live Traffic NSW (provider) | `/api/transport/traffic/*` |
+| Trip Planner proxy (provider) | `/api/transport/tp/*` |
 
 Responses include `permissions`, `nextActions`, optional `routeEstimate`, and role-shaped addresses (exact pickup/dropoff only for participant, consented nominee summary, provider org, assigned driver).
 
@@ -34,7 +36,15 @@ TRANSPORT_ROUTING_PROVIDER=mock   # mock | osrm | graphhopper | openrouteservice
 OSRM_BASE_URL=http://router.project-osrm.org
 GRAPHHOPPER_API_KEY=
 OPENROUTESERVICE_API_KEY=
+
+# TfNSW Open Data (server-side key only)
+TFNSW_API_KEY=
+TFNSW_LIVE_TRAFFIC_ENABLED=true
+TFNSW_TRIP_PLANNER_ENABLED=true
+TFNSW_ENRICH_ROUTE_ESTIMATES=false
 ```
+
+See [docs/tfnsw-traffic.md](docs/tfnsw-traffic.md) for hazard feeds, cameras, departures, and stop search.
 
 ## Consent
 
@@ -67,5 +77,6 @@ npm run mcp:av
 
 ```bash
 npm test -- tests/transport-scheduling-routing.test.ts
+npm test -- tests/tfnsw-traffic.test.ts
 npm test -- tests/av-framework.test.ts
 ```
