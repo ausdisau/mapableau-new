@@ -8,7 +8,10 @@ export type UserRole =
   | "driver"
   | "employer"
   | "plan_manager"
-  | "mapable_admin";
+  | "mapable_admin"
+  | "quality_lead"
+  | "finance_lead"
+  | "board_viewer";
 
 export type CommunicationPreference =
   | "plain_language"

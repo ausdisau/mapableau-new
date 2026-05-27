@@ -13,6 +13,9 @@ export const ALL_ROLES: UserRole[] = [
   "employer",
   "plan_manager",
   "mapable_admin",
+  "quality_lead",
+  "finance_lead",
+  "board_viewer",
 ];
 
 export const ADMIN_ROLES: UserRole[] = ["mapable_admin"];
@@ -44,12 +47,18 @@ export function roleLabel(role: UserRole | MapAbleUserRole): string {
     employer: "Employer",
     plan_manager: "Plan manager",
     mapable_admin: "MapAble admin",
+    quality_lead: "Quality lead",
+    finance_lead: "Finance lead",
+    board_viewer: "Board viewer",
   };
   return labels[role] ?? role;
 }
 
 export function defaultDashboardPath(role: UserRole | MapAbleUserRole): string {
   if (isAdminRole(role)) return "/admin";
+  if (role === "quality_lead") return "/quality/reports";
+  if (role === "finance_lead") return "/finance/reports";
+  if (role === "board_viewer") return "/admin/reports/board_pack";
   if (role === "provider_admin" || role === "transport_operator") {
     return "/provider/onboarding";
   }

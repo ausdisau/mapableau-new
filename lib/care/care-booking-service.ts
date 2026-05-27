@@ -202,10 +202,17 @@ export async function getCareBookingForUser(
   );
   const { isAdminRole } = await import("@/lib/auth/roles");
 
-  if (isAdminRole(user.primaryRole)) return booking;
-  if (booking.participantId === user.id) return booking;
+  if (isAdminRole(user.primaryRole)) {
+    await logCareRecordAccess(user, booking.participantId, careBookingId);
+    return booking;
+  }
+  if (booking.participantId === user.id) {
+    await logCareRecordAccess(user, booking.participantId, careBookingId);
+    return booking;
+  }
   try {
     await assertProviderOrgAccess(user, booking.organisationId);
+    await logCareRecordAccess(user, booking.participantId, careBookingId, booking.organisationId);
     return booking;
   } catch {
     /* worker may view assigned shift booking via shift route */
@@ -218,8 +225,31 @@ export async function getCareBookingForUser(
     const profile = await prisma.workerProfile.findFirst({
       where: { userId: user.id, id: workerShift.workerProfileId ?? "" },
     });
-    if (profile) return booking;
+    if (profile) {
+      await logCareRecordAccess(user, booking.participantId, careBookingId, booking.organisationId);
+      return booking;
+    }
   }
 
   throw new Error("FORBIDDEN");
+}
+
+async function logCareRecordAccess(
+  user: CurrentUser,
+  participantId: string,
+  careBookingId: string,
+  organisationId?: string
+) {
+  const { logDataAccess } = await import("@/lib/audit/data-access-log-service");
+  await logDataAccess({
+    actorUserId: user.id,
+    actorRole: user.primaryRole,
+    organisationId,
+    entityType: "CareBooking",
+    entityId: careBookingId,
+    participantId,
+    sensitivityLevel: "confidential",
+    accessReason: "Care booking viewed",
+    result: "allowed",
+  });
 }

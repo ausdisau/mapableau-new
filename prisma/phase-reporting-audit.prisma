@@ -1,0 +1,277 @@
+// Reporting & audit trail system — merge into schema.prisma
+
+enum AuditRiskLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum AuditOutcome {
+  success
+  denied
+  partial
+  error
+}
+
+enum DataAccessResult {
+  allowed
+  denied
+}
+
+enum SensitivityLevel {
+  public
+  internal
+  confidential
+  restricted
+}
+
+enum ReportCategory {
+  participant_activity
+  provider_operations
+  care_delivery
+  transport_delivery
+  employment_outcomes
+  marketplace_activity
+  food_delivery
+  billing_finance
+  plan_manager_review
+  quality_safeguards
+  privacy_security
+  peer_community
+  access_map
+  board_pack
+}
+
+enum ReportRunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+enum ReportExportFormat {
+  csv
+  pdf
+  json
+}
+
+enum PrivacyBreachStatus {
+  draft
+  investigating
+  notifiable
+  closed
+}
+
+model AuditLog {
+  id             String          @id @default(cuid())
+  actorUserId    String?         @map("actor_user_id")
+  actorUser      User?           @relation("AuditLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorRole      MapAbleUserRole?  @map("actor_role")
+  organisationId String?         @map("organisation_id")
+  organisation   Organisation?   @relation("AuditLogOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+  action         String
+  domain         String?
+  entityType     String          @map("entity_type")
+  entityId       String?         @map("entity_id")
+  participantId  String?         @map("participant_id")
+  providerId     String?         @map("provider_id")
+  beforeJson     Json?           @map("before_json")
+  afterJson      Json?           @map("after_json")
+  riskLevel      AuditRiskLevel  @default(low) @map("risk_level")
+  outcome        AuditOutcome    @default(success)
+  reason         String?
+  metadata       Json?
+  requestId      String?         @map("request_id")
+  correlationId  String?         @map("correlation_id")
+  ipAddress      String?         @map("ip_address")
+  userAgent      String?         @map("user_agent")
+  previousHash   String?         @map("previous_hash")
+  recordHash     String?         @map("record_hash")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  @@index([domain, entityType, entityId, createdAt])
+  @@index([participantId, createdAt])
+  @@index([organisationId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model DataAccessLog {
+  id              String            @id @default(cuid())
+  actorUserId     String?           @map("actor_user_id")
+  actorUser       User?             @relation("DataAccessActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorRole       MapAbleUserRole?  @map("actor_role")
+  organisationId  String?           @map("organisation_id")
+  organisation    Organisation?     @relation("DataAccessOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+  entityType      String            @map("entity_type")
+  entityId        String?           @map("entity_id")
+  participantId   String?           @map("participant_id")
+  sensitivityLevel SensitivityLevel @default(internal) @map("sensitivity_level")
+  consentGrantId  String?           @map("consent_grant_id")
+  accessReason    String?           @map("access_reason")
+  result          DataAccessResult  @default(allowed)
+  metadata        Json?
+  ipAddress       String?           @map("ip_address")
+  userAgent       String?           @map("user_agent")
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  @@index([participantId, createdAt])
+  @@index([organisationId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@map("data_access_logs")
+}
+
+model DomainEvent {
+  id             String   @id @default(cuid())
+  domain         String
+  eventType      String   @map("event_type")
+  entityType     String   @map("entity_type")
+  entityId       String   @map("entity_id")
+  participantId  String?  @map("participant_id")
+  organisationId String?  @map("organisation_id")
+  actorUserId    String?  @map("actor_user_id")
+  actorUser      User?    @relation("DomainEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  summary        String
+  metadata       Json?
+  correlationId  String?  @map("correlation_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId, createdAt])
+  @@index([participantId, createdAt])
+  @@index([domain, createdAt])
+  @@map("domain_events")
+}
+
+model ReportDefinition {
+  id          String         @id @default(cuid())
+  reportKey   String         @unique @map("report_key")
+  title       String
+  description String?
+  category    ReportCategory
+  deidentified Boolean       @default(false) @map("deidentified")
+  active      Boolean        @default(true)
+  configJson  Json?          @map("config_json")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  runs        ReportRun[]
+
+  @@map("report_definitions")
+}
+
+model ReportRun {
+  id               String           @id @default(cuid())
+  reportDefinitionId String         @map("report_definition_id")
+  reportDefinition ReportDefinition @relation(fields: [reportDefinitionId], references: [id], onDelete: Cascade)
+  reportKey        String           @map("report_key")
+  status           ReportRunStatus  @default(pending)
+  parametersJson   Json?            @map("parameters_json")
+  resultSummaryJson Json?           @map("result_summary_json")
+  organisationId   String?          @map("organisation_id")
+  organisation     Organisation?    @relation("ReportRunOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+  actorUserId      String           @map("actor_user_id")
+  actorUser        User             @relation("ReportRunActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  errorMessage     String?          @map("error_message")
+  startedAt        DateTime?        @map("started_at")
+  completedAt      DateTime?        @map("completed_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  snapshots        ReportingSnapshot[]
+  exports          ReportExport[]
+
+  @@index([reportKey, createdAt])
+  @@index([organisationId, createdAt])
+  @@map("report_runs")
+}
+
+model ReportExport {
+  id           String             @id @default(cuid())
+  reportRunId  String             @map("report_run_id")
+  reportRun    ReportRun          @relation(fields: [reportRunId], references: [id], onDelete: Cascade)
+  format       ReportExportFormat @default(csv)
+  status       String             @default("pending")
+  rowCount     Int?               @map("row_count")
+  fileName     String?            @map("file_name")
+  purpose      String?
+  actorUserId  String             @map("actor_user_id")
+  actorUser    User               @relation("ReportExportActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  createdAt    DateTime           @default(now()) @map("created_at")
+  events       ReportExportEvent[]
+
+  @@index([reportRunId, createdAt])
+  @@map("report_exports")
+}
+
+model ReportExportEvent {
+  id         String   @id @default(cuid())
+  exportId   String   @map("export_id")
+  export     ReportExport @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  eventType  String   @map("event_type")
+  actorUserId String? @map("actor_user_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([exportId, createdAt])
+  @@map("report_export_events")
+}
+
+model PrivacyBreachRecord {
+  id              String              @id @default(cuid())
+  title           String
+  description     String?
+  status          PrivacyBreachStatus @default(draft)
+  discoveredAt    DateTime            @map("discovered_at")
+  reportedAt      DateTime?           @map("reported_at")
+  notifiable      Boolean             @default(false)
+  remediationNotes String?            @map("remediation_notes")
+  createdById     String              @map("created_by_id")
+  createdBy       User                @relation("PrivacyBreachCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  events          PrivacyBreachEvent[]
+  affectedPeople  AffectedPeopleRecord[]
+
+  @@map("privacy_breach_records")
+}
+
+model PrivacyBreachEvent {
+  id        String              @id @default(cuid())
+  breachId  String              @map("breach_id")
+  breach    PrivacyBreachRecord @relation(fields: [breachId], references: [id], onDelete: Cascade)
+  eventType String              @map("event_type")
+  summary   String
+  actorUserId String?           @map("actor_user_id")
+  metadata  Json?
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  @@index([breachId, createdAt])
+  @@map("privacy_breach_events")
+}
+
+model AffectedPeopleRecord {
+  id            String              @id @default(cuid())
+  breachId      String              @map("breach_id")
+  breach        PrivacyBreachRecord @relation(fields: [breachId], references: [id], onDelete: Cascade)
+  participantId String?             @map("participant_id")
+  roleLabel     String?             @map("role_label")
+  impactSummary String?             @map("impact_summary")
+  notifiedAt    DateTime?           @map("notified_at")
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  @@index([breachId])
+  @@map("affected_people_records")
+}
+
+model AuditLogIntegrityBatch {
+  id           String   @id @default(cuid())
+  batchNumber  Int      @map("batch_number")
+  startLogId   String?  @map("start_log_id")
+  endLogId     String?  @map("end_log_id")
+  recordCount  Int      @map("record_count")
+  batchHash    String   @map("batch_hash")
+  previousBatchHash String? @map("previous_batch_hash")
+  sealedAt     DateTime @default(now()) @map("sealed_at")
+
+  @@unique([batchNumber])
+  @@map("audit_log_integrity_batches")
+}
