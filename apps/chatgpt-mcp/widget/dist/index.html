@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MapAble result</title>
+    <style>
+      :root {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        color: #0f172a;
+        background: #f8fafc;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+      }
+      p {
+        margin: 0 0 12px;
+        line-height: 1.45;
+        color: #475569;
+        font-size: 0.9rem;
+      }
+      a.cta {
+        display: inline-block;
+        padding: 10px 14px;
+        background: #0d9488;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+      a.cta:hover {
+        background: #0f766e;
+      }
+      .muted {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1 id="title">MapAble</h1>
+      <p id="summary">Loading…</p>
+      <a id="cta" class="cta" href="#" target="_blank" rel="noopener">Open in MapAble</a>
+      <p class="muted">Draft only — confirm actions in MapAble.</p>
+    </div>
+    <script>
+      function readToolOutput() {
+        if (window.openai && window.openai.toolOutput) {
+          return window.openai.toolOutput;
+        }
+        return null;
+      }
+      function applyState(state) {
+        if (!state) return;
+        var title = document.getElementById("title");
+        var summary = document.getElementById("summary");
+        var cta = document.getElementById("cta");
+        if (state.title) title.textContent = state.title;
+        if (state.summary) summary.textContent = state.summary;
+        if (state.primaryUrl) {
+          cta.href = state.primaryUrl;
+          cta.textContent = state.primaryLabel || "Open in MapAble";
+        }
+      }
+      applyState(readToolOutput());
+      window.addEventListener("openai:set_globals", function (ev) {
+        var detail = ev.detail || {};
+        if (detail.globals && detail.globals.toolOutput) {
+          applyState(detail.globals.toolOutput);
+        }
+      });
+    </script>
+  </body>
+</html>

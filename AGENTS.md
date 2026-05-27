@@ -26,3 +26,10 @@ Common commands after bootstrap:
 - Worker search accepts `participantId` on `POST /api/search/workers/stream` to merge needs-derived filters
 
 Do not commit `.env` or secrets. Use Cursor Cloud **Secrets** for `DATABASE_URL` and other credentials when tests need a database.
+
+## ChatGPT App MCP (HTTP)
+
+- **ChatGPT / Apps SDK:** `pnpm mcp:chatgpt` → Streamable HTTP at `http://127.0.0.1:8787/mcp` (see [`docs/chatgpt-mcp-app.md`](docs/chatgpt-mcp-app.md))
+- **Cursor (stdio):** `pnpm mcp:av` — separate server in [`mcp/av/server.ts`](mcp/av/server.ts); do not conflate with ChatGPT connector
+- Tool handlers live in [`lib/mcp/`](lib/mcp/); v1 is **draft/plan only** (no writes via MCP)
+- Expose HTTPS with ngrok for ChatGPT Developer Mode; set `CHATGPT_MCP_BEARER_TOKEN` on the connector
