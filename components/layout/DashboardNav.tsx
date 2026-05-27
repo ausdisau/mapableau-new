@@ -22,6 +22,7 @@ const LINKS = [
   { href: "/dashboard/find-transport", label: "Find transport" },
   { href: "/dashboard/timesheets", label: "Timesheets" },
   { href: "/dashboard/safety", label: "Safety centre" },
+  { href: "/dashboard/cases", label: "Cases (AI)" },
   { href: "/dashboard/notifications", label: "Notifications" },
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/documents", label: "Documents" },
@@ -58,14 +59,12 @@ export function DashboardNav({
             <li key={link.href}>
               <Link
                 href={link.href}
-                aria-current={
-                  pathname === link.href ? "page" : undefined
-                }
+                aria-current={pathname === link.href ? "page" : undefined}
                 className={cn(
                   "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   pathname === link.href
                     ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
+                    : "hover:bg-muted",
                 )}
               >
                 {link.label}

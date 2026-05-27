@@ -1,0 +1,152 @@
+// MapAble — AI-Enabled Case Management
+//
+// This file mirrors the additions in prisma/schema.prisma for the
+// case-management module. schema.prisma is authoritative; this file is
+// kept alongside the other phase-extension files for reviewability.
+//
+// Deploy: npx prisma db push && npx prisma generate
+
+enum CaseStatus {
+  open
+  monitoring
+  on_hold
+  closed
+}
+
+enum CasePriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum CaseCategory {
+  intake
+  goal_planning
+  service_coordination
+  funding_review
+  safeguarding
+  housing
+  health
+  employment
+  education
+  legal
+  other
+}
+
+enum CaseRiskLevel {
+  low
+  moderate
+  elevated
+  high
+  critical
+}
+
+enum CaseTaskStatus {
+  pending
+  in_progress
+  blocked
+  done
+  cancelled
+}
+
+enum CaseLinkType {
+  booking
+  incident
+  support_ticket
+  document
+  funding_source
+  service_agreement
+  external
+  note
+}
+
+enum CaseAIInsightKind {
+  summary
+  risk_assessment
+  next_action
+  search_result
+}
+
+model Case {
+  id                String       @id @default(cuid())
+  reference         String       @unique
+  title             String
+  description       String       @default("")
+  status            CaseStatus   @default(open)
+  priority          CasePriority @default(medium)
+  category          CaseCategory @default(other)
+  riskLevel         CaseRiskLevel @default(low)
+
+  participantId     String?
+  assignedToId      String?
+  createdById       String
+  closedById        String?
+
+  organisationId    String?
+  goalsJson         Json?
+  tagsJson          Json?
+  aiOptOut          Boolean      @default(false)
+  lastAiRunAt       DateTime?
+
+  openedAt          DateTime     @default(now())
+  dueAt             DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model CaseNote {
+  id          String   @id @default(cuid())
+  caseId      String
+  authorId    String
+  body        String
+  isPrivate   Boolean  @default(false)
+  pinned      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CaseTask {
+  id            String         @id @default(cuid())
+  caseId        String
+  title         String
+  details       String?
+  status        CaseTaskStatus @default(pending)
+  priority      CasePriority   @default(medium)
+  assigneeId    String?
+  createdById   String
+  completedById String?
+  aiSuggested   Boolean        @default(false)
+  dueAt         DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model CaseLink {
+  id          String       @id @default(cuid())
+  caseId      String
+  linkType    CaseLinkType
+  targetId    String?
+  label       String
+  url         String?
+  notes       String?
+  createdById String
+  createdAt   DateTime     @default(now())
+}
+
+model CaseAIInsight {
+  id              String            @id @default(cuid())
+  caseId          String
+  kind            CaseAIInsightKind
+  engine          String            @default("rules-v1")
+  summary         String
+  detailJson      Json?
+  confidence      Float             @default(0.5)
+  requiresReview  Boolean           @default(true)
+  acknowledgedAt  DateTime?
+  acknowledgedById String?
+  requestedById   String
+  createdAt       DateTime          @default(now())
+}
