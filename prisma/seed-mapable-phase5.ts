@@ -47,5 +47,24 @@ export async function seedMapAblePhase5() {
     update: {},
   });
 
+  const { seedReportDefinitions } = await import(
+    "@/lib/reports/report-definition-service"
+  );
+  const reportCount = await seedReportDefinitions();
+  console.log(`  Seeded ${reportCount} report definitions`);
+
+  const deidRules = [
+    { fieldKey: "participantId", strategy: "hash" },
+    { fieldKey: "email", strategy: "remove" },
+    { fieldKey: "homeSuburb", strategy: "bucket" },
+  ];
+  for (const rule of deidRules) {
+    await prisma.deidentificationRule.upsert({
+      where: { fieldKey: rule.fieldKey },
+      create: rule,
+      update: { strategy: rule.strategy, active: true },
+    });
+  }
+
   console.log("  Phase 5 seed complete");
 }

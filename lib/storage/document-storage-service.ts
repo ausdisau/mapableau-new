@@ -1,4 +1,5 @@
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { logAuditEvent } from "@/lib/audit/audit-service";
+import { logDataAccess } from "@/lib/audit/data-access-log-service";
 import { phase2Config } from "@/lib/config/phase2";
 import {
   readDocumentFile,
@@ -30,13 +31,15 @@ export async function storePrivateDocument(
 
   const stored = await storeDocumentFile(buffer, originalName);
 
-  await createAuditEvent({
+  await logAuditEvent({
     actorUserId: context.uploadedById,
     action: "document:stored",
+    domain: "documents",
     entityType: "document",
     entityId: stored.fileKey,
     participantId: context.participantId,
     organisationId: context.organisationId,
+    riskLevel: "medium",
     metadata: {
       bucketHint: context.bucketHint ?? "private",
       fileSize: stored.fileSize,
@@ -58,11 +61,22 @@ export async function readPrivateDocument(
 
   const buffer = await readDocumentFile(fileKey);
 
-  await createAuditEvent({
+  await logDataAccess({
     actorUserId,
-    action: "document:read",
     entityType: "document",
     entityId: fileKey,
+    sensitivityLevel: "restricted",
+    accessReason: "Document read",
+    result: "allowed",
+  });
+
+  await logAuditEvent({
+    actorUserId,
+    action: "document:read",
+    domain: "documents",
+    entityType: "document",
+    entityId: fileKey,
+    riskLevel: "high",
   });
 
   return buffer;

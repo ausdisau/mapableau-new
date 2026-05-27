@@ -34,6 +34,7 @@ export type Permission =
   | "funding:read:any"
   | "invoice:read:self"
   | "invoice:read:org"
+  | "invoice:read:any"
   | "invoice:manage:any"
   | "provider:booking:respond"
   | "admin:operations"
@@ -170,7 +171,14 @@ export type Permission =
   | "research_federation:manage"
   | "continuity:manage"
   | "civic_audit:publish"
-  | "federation_partner:manage";
+  | "federation_partner:manage"
+  | "audit:read:privileged"
+  | "audit:read:org"
+  | "data_access:read:self"
+  | "data_access:read:any"
+  | "report:run"
+  | "report:export"
+  | "privacy:breach:manage";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -210,6 +218,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "safeguards:read",
     "membership:read",
     "transport_investment:read",
+    "data_access:read:self",
+    "report:run",
   ],
   family_member: [
     "profile:read:self",
@@ -256,6 +266,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider_academy:enroll",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "audit:read:org",
+    "report:run",
   ],
   transport_operator: [
     "booking:read:any",
@@ -293,6 +305,27 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "invoice:read:self",
     "booking:read:any",
     "notification:read:self",
+    "report:run",
+    "report:export",
+  ],
+  quality_lead: [
+    "provider_quality:read",
+    "report:run",
+    "audit:read",
+    "data_access:read:any",
+    "incident:manage:any",
+    "privacy:breach:manage",
+  ],
+  finance_lead: [
+    "invoice:read:any",
+    "reconciliation:manage",
+    "report:run",
+    "report:export",
+  ],
+  board_viewer: [
+    "board:reporting",
+    "report:run",
+    "social_impact:read",
   ],
   mapable_admin: [
     "profile:read:any",
@@ -411,6 +444,11 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "continuity:manage",
     "civic_audit:publish",
     "federation_partner:manage",
+    "audit:read:privileged",
+    "data_access:read:any",
+    "report:run",
+    "report:export",
+    "privacy:breach:manage",
   ],
 };
 

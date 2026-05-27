@@ -27,6 +27,7 @@ export default async function AdminParticipantDetailPage({
     entityType: "ParticipantProfile",
     entityId: profile.id,
     participantId: id,
+    accessReason: "Admin participant profile view",
   });
 
   return (
