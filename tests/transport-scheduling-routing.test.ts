@@ -338,12 +338,16 @@ describe("schedule conflicts", () => {
 
 describe("trip access via service", () => {
   beforeEach(() => {
-    vi.mocked(prisma.transportTrip.findUnique).mockImplementation(async ({
-      where,
-    }) => {
-      if (where.id === "trip-1") return baseTrip;
-      return null;
-    });
+    vi.mocked(prisma.transportTrip.findUnique).mockImplementation(
+      (async ({
+        where,
+      }: {
+        where: { id?: string };
+      }) => {
+        if (where.id === "trip-1") return baseTrip;
+        return null;
+      }) as never
+    );
     vi.mocked(prisma.transportRouteEstimate.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.dataAccessLog.create).mockResolvedValue({} as never);
   });
