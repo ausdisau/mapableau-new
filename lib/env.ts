@@ -49,6 +49,15 @@ const integrationRules: IntegrationEnvRule[] = [
     ],
   },
   {
+    key: "wix",
+    enabledWhen: () => envTrue("WIX_ENABLED"),
+    requiredVars: [
+      "WIX_CLIENT_ID",
+      "WIX_REDIRECT_URI",
+      "WIX_LOGIN_ORIGIN_URI",
+    ],
+  },
+  {
     key: "maplibre",
     enabledWhen: () => process.env.MAP_INTEGRATION_ENABLED !== "false",
     requiredVars: ["NEXT_PUBLIC_MAP_STYLE_URL"],

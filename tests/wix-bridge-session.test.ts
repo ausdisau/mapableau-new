@@ -1,0 +1,39 @@
+import { afterEach, describe, expect, it } from "vitest";
+
+import {
+  createWixBridgeToken,
+  verifyWixBridgeToken,
+} from "@/lib/auth/wix/wix-bridge-session";
+
+describe("wix-bridge-session", () => {
+  const prev = process.env.NEXTAUTH_SECRET;
+
+  afterEach(() => {
+    process.env.NEXTAUTH_SECRET = prev;
+  });
+
+  it("creates and verifies a one-time bridge token", async () => {
+    process.env.NEXTAUTH_SECRET = "test-secret-for-wix-bridge";
+
+    const token = await createWixBridgeToken({
+      userId: "user_1",
+      returnTo: "/dashboard",
+    });
+
+    const payload = await verifyWixBridgeToken(token);
+    expect(payload).toEqual({
+      userId: "user_1",
+      returnTo: "/dashboard",
+    });
+  });
+
+  it("rejects tampered tokens", async () => {
+    process.env.NEXTAUTH_SECRET = "test-secret-for-wix-bridge";
+    const token = await createWixBridgeToken({
+      userId: "user_1",
+      returnTo: "/dashboard",
+    });
+    const payload = await verifyWixBridgeToken(`${token}x`);
+    expect(payload).toBeNull();
+  });
+});

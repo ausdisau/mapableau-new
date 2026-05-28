@@ -37,6 +37,7 @@ register(maplibreAdapter);
 
 const stubKeys: Array<[string, IntegrationAdapter["type"], string]> = [
   ["keycloak", "identity", "Keycloak"],
+  ["wix", "identity", "Wix Headless"],
   ["supabase", "database", "Supabase"],
   ["supabase_realtime", "realtime", "Supabase Realtime"],
   ["socketio", "realtime", "Socket.IO"],

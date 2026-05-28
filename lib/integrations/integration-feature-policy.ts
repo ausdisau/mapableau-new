@@ -55,6 +55,7 @@ export function isIntegrationEnvEnabled(key: string): boolean {
     xero: process.env.XERO_ENABLED,
     ndia: process.env.NDIA_READINESS_ENABLED,
     keycloak: process.env.KEYCLOAK_ENABLED,
+    wix: process.env.WIX_ENABLED,
     maplibre: process.env.MAP_INTEGRATION_ENABLED,
     supabase: process.env.SUPABASE_ENABLED,
     supabase_realtime: process.env.SUPABASE_REALTIME_ENABLED,

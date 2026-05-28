@@ -13,6 +13,7 @@ const SEED_DEFINITIONS: Array<{
   { key: "xero", type: "finance", displayName: "Xero" },
   { key: "ndia", type: "finance", displayName: "NDIA Provider Claiming" },
   { key: "keycloak", type: "identity", displayName: "Keycloak" },
+  { key: "wix", type: "identity", displayName: "Wix Headless" },
   { key: "maplibre", type: "maps", displayName: "MapLibre" },
   { key: "supabase", type: "database", displayName: "Supabase (optional)" },
   { key: "supabase_realtime", type: "realtime", displayName: "Supabase Realtime" },

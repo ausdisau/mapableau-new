@@ -100,6 +100,18 @@ export default function LoginClient() {
       >
         Continue with Auth0
       </button>
+      {process.env.NEXT_PUBLIC_WIX_ENABLED === "true" ? (
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => {
+            const params = new URLSearchParams({ returnTo: callbackUrl });
+            window.location.href = `/api/auth/wix/login?${params.toString()}`;
+          }}
+        >
+          Continue with Wix
+        </button>
+      ) : null}
     </form>
   );
 }
