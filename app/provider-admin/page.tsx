@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
+import { listProviderMembershipsForUser } from "@/lib/providers/provider-access";
 
 export const metadata = {
   title: "Provider admin",
@@ -22,14 +22,10 @@ export default async function ProviderAdminHomePage() {
     redirect("/login?callbackUrl=/provider-admin");
   }
 
-  const memberships = await prisma.providerUserRole.findMany({
-    where: { userId },
-    include: { provider: { select: { id: true, name: true } } },
-    orderBy: { provider: { name: "asc" } },
-  });
+  const memberships = await listProviderMembershipsForUser(userId);
 
   if (memberships.length === 1) {
-    redirect(`/provider-admin/${memberships[0].providerId}`);
+    redirect(`/provider-admin/${memberships[0]!.providerId}`);
   }
 
   if (memberships.length === 0) {
@@ -74,7 +70,7 @@ export default async function ProviderAdminHomePage() {
               href={`/provider-admin/${m.providerId}`}
               className="block rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30 hover:shadow-md"
             >
-              <span className="font-semibold">{m.provider.name}</span>
+              <span className="font-semibold">{m.providerName}</span>
               <span className="mt-1 block text-xs text-muted-foreground">
                 Role: {m.role}
               </span>

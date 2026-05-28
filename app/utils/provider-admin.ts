@@ -1,7 +1,10 @@
 import type { ProviderRole } from "@prisma/client";
 
 import { ensureProviderOrganisation } from "@/lib/providers/ensure-provider-organisation";
+import { getProviderMembership } from "@/lib/providers/provider-access";
 import { prisma } from "@/lib/prisma";
+
+export { getProviderMembership };
 import {
   GetAdminResponse,
   GetCatalogResponse,
@@ -27,16 +30,6 @@ export function canEditWorkerProfile(params: {
 export async function getSessionUserId() {
   const session = await auth();
   return session?.user?.id ?? null;
-}
-
-export async function getProviderMembership(
-  userId: string,
-  providerId: string,
-) {
-  return prisma.providerUserRole.findUnique({
-    where: { userId_providerId: { userId, providerId } },
-    include: { provider: { select: { id: true, name: true } } },
-  });
 }
 
 const UUID_RE =

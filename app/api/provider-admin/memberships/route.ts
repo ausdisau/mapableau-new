@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/app/lib/auth";
-import { ensureProviderOrganisation } from "@/lib/providers/ensure-provider-organisation";
-import { prisma } from "@/lib/prisma";
+import { listProviderMembershipsForUser } from "@/lib/providers/provider-access";
 import { MembershipResponse } from "@/schemas/provider-admin.types";
 
 export async function GET(): Promise<
@@ -13,22 +12,14 @@ export async function GET(): Promise<
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const memberships = await prisma.providerUserRole.findMany({
-    where: { userId: session.user.id },
-    include: {
-      provider: { select: { id: true, name: true } },
-    },
-    orderBy: { provider: { name: "asc" } },
-  });
+  const memberships = await listProviderMembershipsForUser(session.user.id);
 
-  const enriched = await Promise.all(
-    memberships.map(async (m) => ({
-      providerId: m.provider.id,
-      providerName: m.provider.name,
+  return NextResponse.json({
+    memberships: memberships.map((m) => ({
+      providerId: m.providerId,
+      providerName: m.providerName,
       role: m.role,
-      organisationId: await ensureProviderOrganisation(m.provider.id),
-    }))
-  );
-
-  return NextResponse.json({ memberships: enriched });
+      organisationId: m.organisationId,
+    })),
+  });
 }

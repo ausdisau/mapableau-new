@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/app/lib/auth";
 import { getAdminCatalog } from "@/app/utils/provider-admin";
-import { prisma } from "@/lib/prisma";
+import { userHasProviderConsoleAccess } from "@/lib/providers/provider-access";
 import { GetCatalogResponse } from "@/schemas/provider-admin.types";
 
 /**
@@ -16,10 +16,8 @@ export async function GET(): Promise<
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const hasMembership = await prisma.providerUserRole.findFirst({
-    where: { userId: session.user.id },
-  });
-  if (!hasMembership) {
+  const hasAccess = await userHasProviderConsoleAccess(session.user.id);
+  if (!hasAccess) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

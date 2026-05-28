@@ -1,6 +1,7 @@
 import type { PortalNavLink } from "@/components/core/PortalNav";
 
 export const PROVIDER_NAV_LINKS: PortalNavLink[] = [
+  { href: "/provider/cloud", label: "Provider Cloud" },
   { href: "/provider/bookings", label: "Bookings" },
   { href: "/provider/care", label: "Care" },
   { href: "/provider/care/requests", label: "Care inbox" },
