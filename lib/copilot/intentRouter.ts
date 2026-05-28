@@ -20,6 +20,10 @@ const PLACES =
   /\b(place|venue|accessible|map|location|find\s*near)\b/i;
 const HEALTH =
   /\b(health|medication|allied\s*health|therapy|physio|hospital|gp)\b/i;
+const NEEDS_ASSESSMENT =
+  /\b(assess\s*(my\s*)?needs|what\s+support\s+do\s+i\s+need|help\s+me\s+figure\s+out|gaps?\s+in\s+my\s+profile|needs?\s+assessment|understand\s+my\s+needs)\b/i;
+const SHIFT_CREATOR =
+  /\b((create|schedule|book|assign|set\s*up)\s+(a\s+)?(care\s+)?shift|shift\s+for|care\s+shift)\b/i;
 
 function normalizeQuery(query: string): string {
   return query.trim().toLowerCase();
@@ -41,6 +45,24 @@ export function classifyIntent(
       confidence: 0,
       filters,
       reason: "Empty query",
+    };
+  }
+
+  if (NEEDS_ASSESSMENT.test(q)) {
+    return {
+      type: "needs_assessment",
+      confidence: 0.9,
+      filters,
+      reason: "Needs assessment keywords",
+    };
+  }
+
+  if (SHIFT_CREATOR.test(q)) {
+    return {
+      type: "shift_creator",
+      confidence: 0.9,
+      filters,
+      reason: "Shift scheduling keywords",
     };
   }
 
@@ -165,6 +187,8 @@ export function intentLabel(type: CopilotIntentType): string {
     billing: "Billing",
     incident: "Safety",
     health: "Health",
+    needs_assessment: "Needs assessment",
+    shift_creator: "Shift creator",
     unknown: "General",
   };
   return labels[type];

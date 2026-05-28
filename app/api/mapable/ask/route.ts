@@ -63,6 +63,16 @@ export async function POST(request: Request) {
       participantId,
     });
 
+    const assessmentUrl =
+      intent.type === "needs_assessment" && participantId
+        ? `/participant-needs-assess?participantId=${encodeURIComponent(participantId)}${query ? `&q=${encodeURIComponent(query)}` : ""}`
+        : undefined;
+
+    const shiftCreatorUrl =
+      intent.type === "shift_creator"
+        ? `/provider/care/shift-creator${query ? `?q=${encodeURIComponent(query)}` : ""}`
+        : undefined;
+
     const response: CopilotAskResponse = {
       source: "mapable-copilot",
       intent: intent.type,
@@ -77,6 +87,8 @@ export async function POST(request: Request) {
       blockedActions: guarded.blockedActions,
       results: [],
       suggestedPrompts: buildSuggestedPrompts(intent.type),
+      assessmentUrl,
+      shiftCreatorUrl,
     };
 
     return NextResponse.json(response);
@@ -104,6 +116,16 @@ function buildSuggestedPrompts(
       return ["What evidence is missing?", "Explain this line item"];
     case "incident":
       return ["I need urgent help", "Start a complaint"];
+    case "needs_assessment":
+      return [
+        "What support do I need at home?",
+        "Gaps in my accessibility profile",
+      ];
+    case "shift_creator":
+      return [
+        "Schedule a care shift Tuesday 9am to 1pm",
+        "Assign worker to medical appointment booking",
+      ];
     default:
       return [
         "I need support and transport to physio",
