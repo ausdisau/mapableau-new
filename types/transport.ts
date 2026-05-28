@@ -80,6 +80,12 @@ export type TransportTripDetail = TransportTripListItem & {
   updatedAt: string;
 };
 
+export type TransportHandoverStatusView = {
+  preStartComplete: boolean;
+  pickupHandoverComplete: boolean;
+  dropoffHandoverComplete: boolean;
+};
+
 export type TransportTripApiResponse = {
   trip: TransportTripDetail;
   permissions: TransportTripPermissions;
@@ -90,6 +96,11 @@ export type TransportTripApiResponse = {
     advisoryDisclaimer: string;
     provider: string;
   };
+  suitabilityWarnings?: string[];
+  handoverStatus?: TransportHandoverStatusView;
+  trafficAdvisory?: import("@/types/tfnsw").TrafficAdvisory;
+  assignedVehicle?: { id: string; displayName: string };
+  linkedBookingId?: string;
 };
 
 export type TransportErrorCode =
