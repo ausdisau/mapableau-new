@@ -98,12 +98,4 @@ export async function updateTicketStatus(
   return ticket;
 }
 
-export function isSafeguardingTicket(ticket: {
-  category: string;
-  requiresIncidentReview: boolean;
-}): boolean {
-  return (
-    ticket.category === "safeguarding_concern" ||
-    ticket.requiresIncidentReview
-  );
-}
+export { isSafeguardingTicket } from "@/lib/support/safeguarding-helpers";

@@ -1,8 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// MapAble — unified Prisma schema (single source of truth).
+// All domain models live in this file. Phase-specific extension files were
+// removed; use migrations under prisma/migrations/ for history.
+// Docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -109,6 +108,22 @@ model User {
   accessAccreditationRequests AccessAccreditationRequest[] @relation("AccessAccreditationRequestUser")
   accessModerationDecisions AccessModerationDecision[] @relation("AccessModerator")
   accessContentReports      AccessContentReport[]  @relation("AccessContentReporter")
+  dataAccessLogs            DataAccessLog[]        @relation("DataAccessActor")
+  transportTripRequests     TransportTripRequest[] @relation("TransportTripRequestParticipant")
+  transportTrips            TransportTrip[]        @relation("TransportTripParticipant")
+  transportTripEvents       TransportTripEvent[]   @relation("TransportTripEventActor")
+
+  // AI-enabled case management
+  caseManagementOwned       Case[]                 @relation("CaseAssignedToUser")
+  caseManagementCreated     Case[]                 @relation("CaseCreatedByUser")
+  caseManagementClosed      Case[]                 @relation("CaseClosedByUser")
+  caseManagementParticipant Case[]                 @relation("CaseParticipant")
+  caseNotesAuthored         CaseNote[]             @relation("CaseNoteAuthor")
+  caseTasksAssigned         CaseTask[]             @relation("CaseTaskAssignee")
+  caseTasksCreated          CaseTask[]             @relation("CaseTaskCreator")
+  caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
+  caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
+  caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
 }
 
 model Worker {
@@ -431,6 +446,7 @@ enum ConsentScope {
   support_coordination_access
   plan_manager_invoice_access
   transport_accessibility_share
+  transport_trip_access
   care_accessibility_share
 }
 
@@ -571,6 +587,10 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  transportTripRequests  TransportTripRequest[] @relation("TransportTripRequestProvider")
+  transportTrips         TransportTrip[]        @relation("TransportTripProvider")
+  transportDrivers       TransportDriver[]      @relation("TransportDrivers")
+  transportVehicles      TransportVehicle[]     @relation("TransportVehicles")
 }
 
 model OrganisationMember {
@@ -1784,6 +1804,7 @@ model Vehicle {
   updatedAt            DateTime               @updatedAt
 
   transportBookings    TransportBooking[]
+  transportVehicles    TransportVehicle[]   @relation("TransportVehicleLegacy")
   availabilityWindows  AvailabilityWindow[]
 
   @@index([organisationId])
@@ -1807,6 +1828,7 @@ model DriverProfile {
   updatedAt               DateTime               @updatedAt
 
   transportBookings       TransportBooking[]
+  transportDrivers        TransportDriver[]    @relation("TransportDriverProfile")
   availabilityWindows     AvailabilityWindow[]
 
   @@index([organisationId])
@@ -2269,6 +2291,7 @@ model IncidentReport {
   updates   IncidentUpdate[]
   actions   IncidentAction[]
   evidence  IncidentEvidence[]
+  transportIncidentLinks TransportIncidentLink[] @relation("TransportIncidentLink")
 
   @@index([status, severity])
   @@index([participantId])
@@ -6406,4 +6429,749 @@ model AccessTrustEvent {
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
   @@map("access_trust_events")
+}
+
+enum TransportTripStatus {
+  requested
+  provider_review
+  accepted
+  dispatch_pending
+  driver_vehicle_assigned
+  driver_accepted
+  pre_start_check_required
+  en_route_to_pickup
+  arrived_at_pickup
+  participant_boarded
+  en_route_to_dropoff
+  arrived_at_dropoff
+  handover_completed
+  trip_completed
+  evidence_submitted
+  participant_review
+  closed
+  cancelled
+  declined
+  driver_no_show
+  participant_no_show
+  handover_failed
+  unsafe_to_continue
+  disputed
+  service_recovery_required
+}
+
+enum TransportRoutingProvider {
+  mock
+  osrm
+  graphhopper
+  openrouteservice
+  disabled
+}
+
+enum TransportOptimisationJobStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+enum TransportVerificationKind {
+  licence
+  screening
+  training
+  registration
+  insurance
+  inspection
+  access_equipment
+}
+
+enum TransportVerificationStatus {
+  not_provided
+  pending_review
+  verified
+  expired
+  rejected
+}
+
+enum TransportStopType {
+  pickup
+  dropoff
+  waypoint
+}
+
+enum TransportDataAccessType {
+  read_list
+  read_detail
+  location_stream
+}
+
+enum TransportSafetyEventSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+model DataAccessLog {
+  id           String                  @id @default(cuid())
+  actorUserId  String?
+  actorUser    User?                   @relation("DataAccessActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorRole    MapAbleUserRole?
+  resourceType String
+  resourceId   String
+  accessType   TransportDataAccessType
+  participantId String?
+  organisationId String?
+  metadata     Json?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime                @default(now())
+
+  @@index([resourceType, resourceId])
+  @@index([actorUserId, createdAt])
+  @@map("data_access_logs")
+}
+
+model TransportTripRequest {
+  id                    String   @id @default(cuid())
+  participantId         String
+  participant           User     @relation("TransportTripRequestParticipant", fields: [participantId], references: [id])
+  providerOrganisationId String?
+  providerOrganisation  Organisation? @relation("TransportTripRequestProvider", fields: [providerOrganisationId], references: [id], onDelete: SetNull)
+  pickupAddress         String
+  pickupSuburb          String?
+  pickupLat             Float?
+  pickupLng             Float?
+  dropoffAddress        String
+  dropoffSuburb         String?
+  dropoffLat            Float?
+  dropoffLng            Float?
+  scheduledStart        DateTime
+  scheduledEnd          DateTime?
+  accessNotes           String?
+  mobilityRequirements  Json     @default("{}")
+  status                String   @default("open")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  trip                  TransportTrip?
+
+  @@index([participantId, status])
+  @@map("transport_trip_requests")
+}
+
+model TransportTrip {
+  id                      String              @id @default(cuid())
+  tripRequestId           String?             @unique
+  tripRequest             TransportTripRequest? @relation(fields: [tripRequestId], references: [id], onDelete: SetNull)
+  participantId           String
+  participant             User                @relation("TransportTripParticipant", fields: [participantId], references: [id])
+  providerOrganisationId  String?
+  providerOrganisation    Organisation?       @relation("TransportTripProvider", fields: [providerOrganisationId], references: [id], onDelete: SetNull)
+  legacyTransportBookingId String?
+  status                  TransportTripStatus @default(requested)
+  pickupAddress           String
+  pickupSuburb            String?
+  pickupLat               Float?
+  pickupLng               Float?
+  dropoffAddress          String
+  dropoffSuburb           String?
+  dropoffLat              Float?
+  dropoffLng              Float?
+  accessNotes             String?
+  scheduledStart          DateTime
+  scheduledEnd            DateTime?
+  mobilityRequirements    Json                @default("{}")
+  disputeReason           String?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  stops                   TransportTripStop[]
+  events                  TransportTripEvent[]
+  dispatchAssignments     TransportDispatchAssignment[]
+  scheduleConflicts       TransportScheduleConflict[]
+  routeEstimates          TransportRouteEstimate[]
+  optimisationJobs        TransportRouteOptimisationJob[]
+  liveLocations           TransportLiveLocation[]
+  etaEvents               TransportEtaEvent[]
+  pickupPoints            TransportPickupPoint[]
+  dropoffPoints           TransportDropoffPoint[]
+  safetyChecks            TransportSafetyCheck[]
+  evidence                TransportTripEvidence[]
+  handoverRecords         TransportHandoverRecord[]
+  safetyEvents            TransportSafetyEvent[]
+  incidentLinks           TransportIncidentLink[]
+
+  @@index([participantId, status])
+  @@index([providerOrganisationId, status])
+  @@index([scheduledStart])
+  @@map("transport_trips")
+}
+
+model TransportTripStop {
+  id        String            @id @default(cuid())
+  tripId    String
+  trip      TransportTrip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  sequence  Int
+  stopType  TransportStopType
+  label     String?
+  address   String
+  suburb    String?
+  lat       Float?
+  lng       Float?
+  windowStart DateTime?
+  windowEnd   DateTime?
+  createdAt DateTime          @default(now())
+
+  @@unique([tripId, sequence])
+  @@map("transport_trip_stops")
+}
+
+model TransportTripEvent {
+  id           String              @id @default(cuid())
+  tripId       String
+  trip         TransportTrip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  actorUserId  String?
+  actorUser    User?               @relation("TransportTripEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  fromStatus   TransportTripStatus?
+  toStatus     TransportTripStatus?
+  eventType    String
+  message      String?
+  metadata     Json?
+  createdAt    DateTime            @default(now())
+
+  @@index([tripId, createdAt])
+  @@map("transport_trip_events")
+}
+
+model TransportRecurringSchedule {
+  id                    String   @id @default(cuid())
+  participantId         String
+  providerOrganisationId String?
+  rruleJson             Json
+  templatePickupAddress String
+  templateDropoffAddress String
+  active                Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([participantId])
+  @@map("transport_recurring_schedules")
+}
+
+model TransportDriver {
+  id               String   @id @default(cuid())
+  organisationId   String
+  organisation     Organisation @relation("TransportDrivers", fields: [organisationId], references: [id], onDelete: Cascade)
+  driverProfileId  String?
+  driverProfile    DriverProfile? @relation("TransportDriverProfile", fields: [driverProfileId], references: [id], onDelete: SetNull)
+  displayName      String
+  userId           String?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  verifications    TransportDriverVerification[]
+  availability     TransportDriverAvailability[]
+  dispatchAssignments TransportDispatchAssignment[]
+  scheduleConflicts TransportScheduleConflict[] @relation("TransportScheduleConflictDriver")
+
+  @@index([organisationId])
+  @@map("transport_drivers")
+}
+
+model TransportVehicle {
+  id               String   @id @default(cuid())
+  organisationId   String
+  organisation     Organisation @relation("TransportVehicles", fields: [organisationId], references: [id], onDelete: Cascade)
+  vehicleId        String?
+  vehicle          Vehicle? @relation("TransportVehicleLegacy", fields: [vehicleId], references: [id], onDelete: SetNull)
+  displayName      String
+  registrationNumber String?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  features         TransportVehicleFeature[]
+  verifications    TransportVehicleVerification[]
+  availability     TransportVehicleAvailability[]
+  dispatchAssignments TransportDispatchAssignment[]
+  scheduleConflicts TransportScheduleConflict[] @relation("TransportScheduleConflictVehicle")
+
+  @@index([organisationId])
+  @@map("transport_vehicles")
+}
+
+model TransportVehicleFeature {
+  id                    String   @id @default(cuid())
+  vehicleId             String
+  vehicle               TransportVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  wheelchairAccessible  Boolean  @default(false)
+  rampAvailable         Boolean  @default(false)
+  liftAvailable         Boolean  @default(false)
+  hoistAvailable        Boolean  @default(false)
+  assistanceAnimalFriendly Boolean @default(true)
+  metadata              Json?
+
+  @@map("transport_vehicle_features")
+}
+
+model TransportDriverVerification {
+  id        String                    @id @default(cuid())
+  driverId  String
+  driver    TransportDriver           @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  kind      TransportVerificationKind
+  status    TransportVerificationStatus @default(pending_review)
+  expiresAt DateTime?
+  notes     String?
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                    @updatedAt
+
+  @@index([driverId, kind])
+  @@map("transport_driver_verifications")
+}
+
+model TransportVehicleVerification {
+  id        String                    @id @default(cuid())
+  vehicleId String
+  vehicle   TransportVehicle          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  kind      TransportVerificationKind
+  status    TransportVerificationStatus @default(pending_review)
+  expiresAt DateTime?
+  notes     String?
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                    @updatedAt
+
+  @@index([vehicleId, kind])
+  @@map("transport_vehicle_verifications")
+}
+
+model TransportDriverAvailability {
+  id        String   @id @default(cuid())
+  driverId  String
+  driver    TransportDriver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  startAt   DateTime
+  endAt     DateTime
+  available Boolean  @default(true)
+
+  @@index([driverId, startAt, endAt])
+  @@map("transport_driver_availability")
+}
+
+model TransportVehicleAvailability {
+  id        String   @id @default(cuid())
+  vehicleId String
+  vehicle   TransportVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  startAt   DateTime
+  endAt     DateTime
+  available Boolean  @default(true)
+
+  @@index([vehicleId, startAt, endAt])
+  @@map("transport_vehicle_availability")
+}
+
+model TransportDispatchAssignment {
+  id               String   @id @default(cuid())
+  tripId           String
+  trip             TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  organisationId   String
+  driverId         String?
+  driver           TransportDriver? @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  vehicleId        String?
+  vehicle          TransportVehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  assignedByUserId String?
+  active           Boolean  @default(true)
+  assignedAt       DateTime @default(now())
+  unassignedAt     DateTime?
+
+  @@index([tripId, active])
+  @@index([driverId])
+  @@map("transport_dispatch_assignments")
+}
+
+model TransportScheduleConflict {
+  id          String   @id @default(cuid())
+  tripId      String?
+  trip        TransportTrip? @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  driverId    String?
+  driver      TransportDriver? @relation("TransportScheduleConflictDriver", fields: [driverId], references: [id], onDelete: SetNull)
+  vehicleId   String?
+  vehicle     TransportVehicle? @relation("TransportScheduleConflictVehicle", fields: [vehicleId], references: [id], onDelete: SetNull)
+  conflictType String
+  details     String?
+  resolved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("transport_schedule_conflicts")
+}
+
+model TransportRouteEstimate {
+  id              String                 @id @default(cuid())
+  tripId          String?
+  trip            TransportTrip?         @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  provider        TransportRoutingProvider
+  distanceMetres  Int
+  durationSeconds Int
+  advisoryOnly    Boolean                @default(true)
+  cacheKey        String?
+  rawResponse     Json?
+  createdAt       DateTime               @default(now())
+
+  segments        TransportRouteSegment[]
+
+  @@index([tripId, createdAt])
+  @@map("transport_route_estimates")
+}
+
+model TransportRouteSegment {
+  id          String   @id @default(cuid())
+  estimateId  String
+  estimate    TransportRouteEstimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  sequence    Int
+  fromLat     Float
+  fromLng     Float
+  toLat       Float
+  toLng       Float
+  distanceMetres Int?
+  durationSeconds Int?
+
+  @@map("transport_route_segments")
+}
+
+model TransportRouteOptimisationJob {
+  id              String                       @id @default(cuid())
+  tripId          String?
+  trip            TransportTrip?               @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  organisationId  String?
+  provider        TransportRoutingProvider
+  status          TransportOptimisationJobStatus @default(pending)
+  requiresHumanReview Boolean                  @default(true)
+  inputPayload    Json?
+  errorMessage    String?
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+  results         TransportRouteOptimisationResult[]
+
+  @@map("transport_route_optimisation_jobs")
+}
+
+model TransportRouteOptimisationResult {
+  id          String   @id @default(cuid())
+  jobId       String
+  job         TransportRouteOptimisationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  summary     String
+  score       Float?
+  suggestionPayload Json?
+  createdAt   DateTime @default(now())
+
+  @@map("transport_route_optimisation_results")
+}
+
+model TransportLiveLocation {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  driverId  String?
+  lat       Float
+  lng       Float
+  recordedAt DateTime @default(now())
+
+  @@index([tripId, recordedAt])
+  @@map("transport_live_locations")
+}
+
+model TransportEtaEvent {
+  id              String   @id @default(cuid())
+  tripId          String
+  trip            TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  etaMinutes      Int?
+  distanceMetres  Int?
+  source          String?
+  createdAt       DateTime @default(now())
+
+  @@map("transport_eta_events")
+}
+
+model TransportPickupPoint {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  address   String
+  suburb    String?
+  lat       Float?
+  lng       Float?
+  notes     String?
+
+  @@map("transport_pickup_points")
+}
+
+model TransportDropoffPoint {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  address   String
+  suburb    String?
+  lat       Float?
+  lng       Float?
+  notes     String?
+
+  @@map("transport_dropoff_points")
+}
+
+model TransportSafetyCheck {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  checkType String
+  passed    Boolean
+  notes     String?
+  actorUserId String?
+  createdAt DateTime @default(now())
+
+  @@map("transport_safety_checks")
+}
+
+model TransportTripEvidence {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  evidenceType String
+  notes       String?
+  metadata    Json?
+  submittedByUserId String?
+  createdAt   DateTime @default(now())
+
+  @@map("transport_trip_evidence")
+}
+
+model TransportHandoverRecord {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  completed   Boolean  @default(false)
+  notes       String?
+  actorUserId String?
+  createdAt   DateTime @default(now())
+
+  @@map("transport_handover_records")
+}
+
+model TransportSafetyEvent {
+  id          String                     @id @default(cuid())
+  tripId      String
+  trip        TransportTrip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  severity    TransportSafetyEventSeverity @default(medium)
+  category    String
+  description String
+  reportedByUserId String?
+  escalated   Boolean                    @default(false)
+  createdAt   DateTime                   @default(now())
+
+  incidentLinks TransportIncidentLink[]
+
+  @@map("transport_safety_events")
+}
+
+model TransportIncidentLink {
+  id              String   @id @default(cuid())
+  tripId          String
+  trip            TransportTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  safetyEventId   String?
+  safetyEvent     TransportSafetyEvent? @relation(fields: [safetyEventId], references: [id], onDelete: SetNull)
+  incidentReportId String?
+  incidentReport  IncidentReport? @relation("TransportIncidentLink", fields: [incidentReportId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+
+  @@map("transport_incident_links")
+}
+
+// =========================================================================
+// AI-Enabled Case Management
+// -------------------------------------------------------------------------
+// A Case is a longitudinal record opened by a support coordinator, plan
+// manager, or admin for a participant. It binds together notes, tasks and
+// links to other entities, and stores AI-generated insights (summary,
+// risk classification, next-best-action) generated by a deterministic
+// rule-based engine that can be swapped for an LLM backend.
+// =========================================================================
+
+enum CaseStatus {
+  open
+  monitoring
+  on_hold
+  closed
+}
+
+enum CasePriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum CaseCategory {
+  intake
+  goal_planning
+  service_coordination
+  funding_review
+  safeguarding
+  housing
+  health
+  employment
+  education
+  legal
+  other
+}
+
+enum CaseRiskLevel {
+  low
+  moderate
+  elevated
+  high
+  critical
+}
+
+enum CaseTaskStatus {
+  pending
+  in_progress
+  blocked
+  done
+  cancelled
+}
+
+enum CaseLinkType {
+  booking
+  incident
+  support_ticket
+  document
+  funding_source
+  service_agreement
+  external
+  note
+}
+
+enum CaseAIInsightKind {
+  summary
+  risk_assessment
+  next_action
+  search_result
+}
+
+model Case {
+  id                String       @id @default(cuid())
+  reference         String       @unique
+  title             String
+  description       String       @default("")
+  status            CaseStatus   @default(open)
+  priority          CasePriority @default(medium)
+  category          CaseCategory @default(other)
+  riskLevel         CaseRiskLevel @default(low)
+
+  participantId     String?
+  participant       User?        @relation("CaseParticipant", fields: [participantId], references: [id], onDelete: SetNull)
+  assignedToId      String?
+  assignedTo        User?        @relation("CaseAssignedToUser", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdById       String
+  createdBy         User         @relation("CaseCreatedByUser", fields: [createdById], references: [id])
+  closedById        String?
+  closedBy          User?        @relation("CaseClosedByUser", fields: [closedById], references: [id], onDelete: SetNull)
+
+  organisationId    String?
+  goalsJson         Json?
+  tagsJson          Json?
+  aiOptOut          Boolean      @default(false)
+  lastAiRunAt       DateTime?
+
+  openedAt          DateTime     @default(now())
+  dueAt             DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  notes             CaseNote[]
+  tasks             CaseTask[]
+  links             CaseLink[]
+  insights          CaseAIInsight[]
+
+  @@index([participantId])
+  @@index([assignedToId])
+  @@index([status])
+  @@map("cases")
+}
+
+model CaseNote {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation("CaseNoteAuthor", fields: [authorId], references: [id])
+  body        String
+  isPrivate   Boolean  @default(false)
+  pinned      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([caseId])
+  @@map("case_notes")
+}
+
+model CaseTask {
+  id            String         @id @default(cuid())
+  caseId        String
+  case          Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title         String
+  details       String?
+  status        CaseTaskStatus @default(pending)
+  priority      CasePriority   @default(medium)
+  assigneeId    String?
+  assignee      User?          @relation("CaseTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdById   String
+  createdBy     User           @relation("CaseTaskCreator", fields: [createdById], references: [id])
+  completedById String?
+  completedBy   User?          @relation("CaseTaskCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
+  aiSuggested   Boolean        @default(false)
+  dueAt         DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([caseId])
+  @@index([assigneeId])
+  @@map("case_tasks")
+}
+
+model CaseLink {
+  id          String       @id @default(cuid())
+  caseId      String
+  case        Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  linkType    CaseLinkType
+  targetId    String?
+  label       String
+  url         String?
+  notes       String?
+  createdById String
+  createdBy   User         @relation("CaseLinkCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+
+  @@index([caseId])
+  @@map("case_links")
+}
+
+model CaseAIInsight {
+  id              String            @id @default(cuid())
+  caseId          String
+  case            Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind            CaseAIInsightKind
+  engine          String            @default("rules-v1")
+  summary         String
+  detailJson      Json?
+  confidence      Float             @default(0.5)
+  requiresReview  Boolean           @default(true)
+  acknowledgedAt  DateTime?
+  acknowledgedById String?
+  requestedById   String
+  requestedBy     User              @relation("CaseAIInsightRequestedBy", fields: [requestedById], references: [id])
+  createdAt       DateTime          @default(now())
+
+  @@index([caseId])
+  @@index([kind])
+  @@map("case_ai_insights")
 }

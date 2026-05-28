@@ -2,33 +2,89 @@ import Link from "next/link";
 
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
+import { caseListWhereForUser } from "@/lib/cases/case-access";
+import { caseManagementConfig } from "@/lib/config/case-management";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Dashboard | MapAble Core" };
+export const metadata = { title: "Control panel | MapAble Core" };
 
 export default async function DashboardPage() {
   const user = await requireAuth();
 
-  const [profile, bookingsCount, unreadNotifications] = await Promise.all([
+  const [
+    profile,
+    bookingsCount,
+    transportTripsCount,
+    unreadNotifications,
+    incidentCount,
+    openSupportCount,
+    openCaseCount,
+  ] = await Promise.all([
     prisma.participantProfile.findUnique({ where: { userId: user.id } }),
     prisma.booking.count({ where: { participantId: user.id } }),
+    prisma.transportTrip.count({ where: { participantId: user.id } }),
     prisma.notification.count({
       where: { userId: user.id, readAt: null },
     }),
+    prisma.incidentReport.count({
+      where: {
+        OR: [{ participantId: user.id }, { reportedById: user.id }],
+      },
+    }),
+    prisma.supportTicket.count({
+      where: {
+        OR: [{ createdById: user.id }, { participantId: user.id }],
+        status: { notIn: ["resolved", "closed"] },
+      },
+    }),
+    caseManagementConfig.enabled
+      ? prisma.case.count({
+          where: {
+            AND: [
+              caseListWhereForUser(user.id, user.primaryRole),
+              { status: { not: "closed" } },
+            ],
+          },
+        })
+      : Promise.resolve(0),
   ]);
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-heading text-3xl font-bold">Your dashboard</h1>
+        <h1 className="font-heading text-3xl font-bold">Your control panel</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Welcome to MapAble Core. You are signed in as a{" "}
           <strong>{roleLabel(user.primaryRole)}</strong>. Manage your profile,
-          accessibility preferences, consent and bookings from here.
+          accessibility preferences, consent, bookings and transport trips from
+          here.
         </p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <DashboardCard
+          title="Billing centre"
+          description="Invoices, funding sources and payments"
+          href="/dashboard/billing"
+        />
+        <DashboardCard
+          title="Safety centre"
+          description={
+            openSupportCount || incidentCount
+              ? `${incidentCount} incident report(s) · ${openSupportCount} open support ticket(s)`
+              : "Incident reports and support tickets"
+          }
+          href="/dashboard/safety"
+        />
+        <DashboardCard
+          title="Transport trips"
+          description={
+            transportTripsCount
+              ? `${transportTripsCount} scheduled transport trip(s)`
+              : "Request and track scheduled transport"
+          }
+          href="/dashboard/transport"
+        />
         <DashboardCard
           title="Profile"
           description={
@@ -62,6 +118,17 @@ export default async function DashboardPage() {
           }
           href="/dashboard/notifications"
         />
+        {caseManagementConfig.enabled ? (
+          <DashboardCard
+            title="Cases (AI)"
+            description={
+              openCaseCount
+                ? `${openCaseCount} open case(s) · AI insights are advisory only`
+                : "AI-enabled case management for support coordination"
+            }
+            href="/dashboard/cases"
+          />
+        ) : null}
       </div>
     </div>
   );

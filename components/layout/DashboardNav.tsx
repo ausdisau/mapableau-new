@@ -9,26 +9,24 @@ import { RoleBadge } from "@/components/ui/role-badge";
 import type { UserRole } from "@/types/mapable";
 
 const LINKS = [
-  { href: "/dashboard", label: "Overview" },
+  { href: "/dashboard", label: "Control panel" },
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
   { href: "/dashboard/consent", label: "Consent" },
   { href: "/dashboard/bookings", label: "Bookings" },
   { href: "/dashboard/care", label: "Care" },
-  { href: "/dashboard/transport", label: "Transport" },
+  { href: "/dashboard/transport", label: "Transport trips" },
   { href: "/dashboard/jobs", label: "Jobs" },
   { href: "/dashboard/calendar", label: "Calendar" },
   { href: "/dashboard/find-support", label: "Find support" },
   { href: "/dashboard/find-transport", label: "Find transport" },
   { href: "/dashboard/timesheets", label: "Timesheets" },
-  { href: "/dashboard/incidents", label: "Incidents" },
-  { href: "/dashboard/incidents/new", label: "Report concern" },
+  { href: "/dashboard/safety", label: "Safety centre" },
+  { href: "/dashboard/cases", label: "Cases (AI)" },
   { href: "/dashboard/notifications", label: "Notifications" },
   { href: "/dashboard/messages", label: "Messages" },
-  { href: "/dashboard/support", label: "Support" },
   { href: "/dashboard/documents", label: "Documents" },
-  { href: "/dashboard/funding", label: "Funding" },
-  { href: "/dashboard/invoices", label: "Invoices" },
+  { href: "/dashboard/billing", label: "Billing centre" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
 ];
 
@@ -61,14 +59,12 @@ export function DashboardNav({
             <li key={link.href}>
               <Link
                 href={link.href}
-                aria-current={
-                  pathname === link.href ? "page" : undefined
-                }
+                aria-current={pathname === link.href ? "page" : undefined}
                 className={cn(
                   "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   pathname === link.href
                     ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
+                    : "hover:bg-muted",
                 )}
               >
                 {link.label}

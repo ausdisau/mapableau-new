@@ -7,10 +7,23 @@ export type CoreNavLink = {
 export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
   { href: "/core", label: "Home" },
   { href: "/ask", label: "Ask MapAble", description: "Co-Pilot + PRMS" },
-  { href: "/dashboard", label: "Dashboard", description: "Your profile, bookings and care" },
+  {
+    href: "/dashboard",
+    label: "Control panel",
+    description: "Your profile, bookings, care and scheduled transport trips",
+  },
   { href: "/care", label: "Care", description: "Care portal" },
-  { href: "/billing", label: "Billing", description: "Invoices and payments" },
-  { href: "/provider-finder", label: "Provider finder", description: "Search registered providers" },
+  {
+    href: "/dashboard/billing",
+    label: "Billing centre",
+    description: "Invoices and payment management",
+  },
+  { href: "/dashboard/safety", label: "Safety centre" },
+  {
+    href: "/provider-finder",
+    label: "Provider finder",
+    description: "Search registered providers",
+  },
   { href: "/access", label: "Access map", description: "Accessibility map and reviews" },
   { href: "/worker", label: "Worker portal", description: "Support worker tools" },
   { href: "/driver", label: "Driver portal", description: "Trips and tracking" },
@@ -67,14 +80,23 @@ export const CORE_HUB_SECTIONS: {
         label: "Ask MapAble",
         description: "Co-Pilot guidance with PRMS records underneath",
       },
-      { href: "/dashboard", label: "Dashboard", description: "Bookings, care, transport and profile" },
+      {
+        href: "/dashboard",
+        label: "Control panel",
+        description: "Bookings, care, scheduled transport trips and profile",
+      },
       { href: "/dashboard/bookings", label: "Bookings" },
       { href: "/dashboard/care", label: "Care" },
-      { href: "/dashboard/transport", label: "Transport" },
+      { href: "/dashboard/billing", label: "Billing centre" },
+      { href: "/dashboard/safety", label: "Safety centre" },
+      { href: "/dashboard/transport", label: "Transport trips" },
       { href: "/care", label: "Care portal", description: "Standalone care module" },
-      { href: "/billing", label: "Billing", description: "Invoices and payment management" },
       { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
-      { href: "/provider-finder", label: "Provider finder", description: "Search registered providers" },
+      {
+        href: "/provider-finder",
+        label: "Provider finder",
+        description: "Search registered providers",
+      },
     ],
   },
   {
@@ -84,8 +106,16 @@ export const CORE_HUB_SECTIONS: {
       { href: "/driver", label: "Driver", description: "Trips and schedule" },
       { href: "/employer", label: "Employer", description: "Jobs and applications" },
       { href: "/plan-manager", label: "Plan manager", description: "Plan management portal" },
-      { href: "/support-coordinator", label: "Support coordinator", description: "Coordination tools" },
-      { href: "/practitioner/scheduling", label: "Practitioner", description: "Practitioner scheduling" },
+      {
+        href: "/support-coordinator",
+        label: "Support coordinator",
+        description: "Coordination tools",
+      },
+      {
+        href: "/practitioner/scheduling",
+        label: "Practitioner",
+        description: "Practitioner scheduling",
+      },
     ],
   },
   {
@@ -113,7 +143,11 @@ export const CORE_HUB_SECTIONS: {
   {
     title: "For providers & partners",
     links: [
-      { href: "/provider/bookings", label: "Provider console", description: "Manage bookings and care" },
+      {
+        href: "/provider/bookings",
+        label: "Provider console",
+        description: "Manage bookings and care",
+      },
       { href: "/enterprise-provider", label: "Enterprise console" },
       { href: "/provider-admin", label: "Provider admin", description: "Multi-tenant management" },
       { href: "/academy", label: "Provider academy" },
