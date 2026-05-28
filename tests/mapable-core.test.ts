@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { userHasPermission } from "@/lib/auth/account-access";
 import { hasPermission, canViewParticipantProfile } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
 import { consentScopeToPrisma, consentScopeFromPrisma } from "@/lib/consent/scope-map";
@@ -13,6 +14,28 @@ describe("role permission checks", () => {
 
   it("denies participant admin dashboard", () => {
     expect(hasPermission("participant", "admin:dashboard")).toBe(false);
+  });
+
+  it("allows account centre read for participant", () => {
+    expect(hasPermission("participant", "account:read:self")).toBe(true);
+  });
+
+  it("uses any role for permission union", () => {
+    expect(
+      userHasPermission(
+        {
+          id: "u1",
+          email: "a@b.c",
+          name: "A",
+          phone: null,
+          timezone: "Australia/Sydney",
+          locale: "en-AU",
+          primaryRole: "participant",
+          roles: ["participant", "support_worker"],
+        },
+        "care:shift:work"
+      )
+    ).toBe(true);
   });
 
   it("allows participant to view own profile context", () => {

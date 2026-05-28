@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth/current-user";
 import { apiForbidden, apiUnauthorized } from "@/lib/auth/guards";
-import { hasPermission, type Permission } from "@/lib/auth/permissions";
+import { userHasPermission } from "@/lib/auth/account-access";
+import type { Permission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
 
 export async function requireApiSession(): Promise<
@@ -21,7 +22,7 @@ export async function requireApiPermission(
 ): Promise<CurrentUser | Response> {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
-  if (!hasPermission(user.primaryRole, permission)) return apiForbidden();
+  if (!userHasPermission(user, permission)) return apiForbidden();
   return user;
 }
 

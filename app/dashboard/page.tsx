@@ -50,6 +50,11 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
+          title="Accounts centre"
+          description="Profile, billing, notifications and security in one place"
+          href="/dashboard/account"
+        />
+        <DashboardCard
           title="Billing centre"
           description="Invoices, funding sources and payments"
           href="/dashboard/billing"

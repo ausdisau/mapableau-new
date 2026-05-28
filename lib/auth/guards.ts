@@ -5,8 +5,8 @@ import {
   requireCurrentUser,
   type CurrentUser,
 } from "@/lib/auth/current-user";
+import { userHasPermission } from "@/lib/auth/account-access";
 import type { Permission } from "@/lib/auth/permissions";
-import { hasPermission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
 import type { UserRole } from "@/types/mapable";
 
@@ -26,10 +26,14 @@ export async function requirePermission(
   permission: Permission
 ): Promise<CurrentUser> {
   const user = await requireAuth();
-  if (!hasPermission(user.primaryRole, permission)) {
+  if (!userHasPermission(user, permission)) {
     redirect("/dashboard");
   }
   return user;
+}
+
+export async function requireAccountAccess(): Promise<CurrentUser> {
+  return requirePermission("account:read:self");
 }
 
 export async function requireParticipantOrAdmin(

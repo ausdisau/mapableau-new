@@ -1,6 +1,7 @@
 import { SkipToContent } from "@/components/core/SkipToContent";
 import { DashboardNav } from "@/components/layout/DashboardNav";
 import { requireAuth } from "@/lib/auth/guards";
+import { getDashboardNavLinks } from "@/lib/core-ui/dashboard-nav";
 import type { UserRole } from "@/types/mapable";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,11 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <SkipToContent />
-      <DashboardNav userName={user.name} role={user.primaryRole as UserRole} />
+      <DashboardNav
+        userName={user.name}
+        role={user.primaryRole as UserRole}
+        links={getDashboardNavLinks(user)}
+      />
       <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
         {children}
       </main>

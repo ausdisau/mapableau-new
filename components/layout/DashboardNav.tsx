@@ -8,33 +8,14 @@ import { cn } from "@/app/lib/utils";
 import { RoleBadge } from "@/components/ui/role-badge";
 import type { UserRole } from "@/types/mapable";
 
-const LINKS = [
-  { href: "/dashboard", label: "Control panel" },
-  { href: "/dashboard/profile", label: "Profile" },
-  { href: "/dashboard/accessibility", label: "Accessibility" },
-  { href: "/dashboard/consent", label: "Consent" },
-  { href: "/dashboard/bookings", label: "Bookings" },
-  { href: "/dashboard/care", label: "Care" },
-  { href: "/dashboard/transport", label: "Transport trips" },
-  { href: "/dashboard/jobs", label: "Jobs" },
-  { href: "/dashboard/calendar", label: "Calendar" },
-  { href: "/dashboard/find-support", label: "Find support" },
-  { href: "/dashboard/find-transport", label: "Find transport" },
-  { href: "/dashboard/timesheets", label: "Timesheets" },
-  { href: "/dashboard/safety", label: "Safety centre" },
-  { href: "/dashboard/notifications", label: "Notifications" },
-  { href: "/dashboard/messages", label: "Messages" },
-  { href: "/dashboard/documents", label: "Documents" },
-  { href: "/dashboard/billing", label: "Billing centre" },
-  { href: "/dashboard/settings/notifications", label: "Notification settings" },
-];
-
 export function DashboardNav({
   userName,
   role,
+  links,
 }: {
   userName: string;
   role: UserRole;
+  links: { href: string; label: string }[];
 }) {
   const pathname = usePathname();
 
@@ -54,7 +35,7 @@ export function DashboardNav({
           <RoleBadge role={role} className="mt-1" />
         </div>
         <ul className="flex flex-wrap gap-2">
-          {LINKS.map((link) => (
+          {links.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}

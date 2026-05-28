@@ -170,10 +170,14 @@ export type Permission =
   | "research_federation:manage"
   | "continuity:manage"
   | "civic_audit:publish"
-  | "federation_partner:manage";
+  | "federation_partner:manage"
+  | "account:read:self"
+  | "account:manage:self";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
+    "account:read:self",
+    "account:manage:self",
     "profile:read:self",
     "message:read",
     "message:send",
@@ -212,12 +216,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "transport_investment:read",
   ],
   family_member: [
+    "account:read:self",
     "profile:read:self",
     "booking:read:self",
     "transport:read:self",
     "notification:read:self",
   ],
   support_coordinator: [
+    "account:read:self",
     "profile:read:any",
     "booking:read:any",
     "notification:read:self",
@@ -226,6 +232,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "invoice:read:self",
   ],
   support_worker: [
+    "account:read:self",
+    "account:manage:self",
     "booking:read:any",
     "notification:read:self",
     "care:shift:work",
@@ -234,6 +242,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "incident:create",
   ],
   provider_admin: [
+    "account:read:self",
+    "account:manage:self",
     "booking:read:any",
     "notification:read:self",
     "message:read",
@@ -259,6 +269,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:ndis:claim",
   ],
   transport_operator: [
+    "account:read:self",
+    "account:manage:self",
     "booking:read:any",
     "notification:read:self",
     "message:read",
@@ -274,6 +286,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "operator_dispatch:manage",
   ],
   driver: [
+    "account:read:self",
+    "account:manage:self",
     "booking:read:any",
     "notification:read:self",
     "transport:drive",
@@ -283,6 +297,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "calendar:read:org",
   ],
   employer: [
+    "account:read:self",
     "notification:read:self",
     "jobs:manage:employer",
     "employer:ats",
@@ -290,6 +305,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "message:read",
   ],
   plan_manager: [
+    "account:read:self",
     "plan_manager:portal",
     "invoice:read:self",
     "booking:read:any",
