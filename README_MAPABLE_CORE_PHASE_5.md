@@ -26,7 +26,7 @@ Phase 5 adds **regulated pilot maturity and production-readiness** on top of Pha
 
 ## What Phase 5 does **not** add
 
-- Autonomous AI assignment
+- Unconditional autonomous assignment (tiered care allocation with HITL is available when `CARE_ALLOCATION_ENABLED=true`)
 - Real NDIA / PACE claim submission
 - NDIS Commission auto-reporting
 - SOC 2 or ISO 27001 certification

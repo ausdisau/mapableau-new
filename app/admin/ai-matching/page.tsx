@@ -14,8 +14,9 @@ export default async function AdminAiMatchingPage() {
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">AI-assisted matching</h1>
       <p className="text-muted-foreground">
-        Recommendations require human review and fairness checks. Not autonomous
-        assignment.
+        Recommendations require human review and fairness checks. Accepting a
+        candidate can refresh care allocation proposals when
+        CARE_ALLOCATION_ENABLED is set; execution still uses approval gates.
       </p>
       <ul className="space-y-2">
         {runs.map((r) => (

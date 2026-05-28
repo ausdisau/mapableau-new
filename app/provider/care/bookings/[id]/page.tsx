@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 
 import { AccessNeedsSummary } from "@/components/care/AccessNeedsSummary";
 import { AssignWorkerForm } from "@/components/care/AssignWorkerForm";
+import { CareAllocationPanel } from "@/components/care/CareAllocationPanel";
+import { listAllocationProposals } from "@/lib/care-allocation/allocation-service";
 import { InvoicePlaceholderCard } from "@/components/care/InvoicePlaceholderCard";
 import { ProviderCareBookingActions } from "@/components/care/ProviderCareBookingActions";
 import { ServiceAgreementPlaceholder } from "@/components/care/ServiceAgreementPlaceholder";
@@ -54,6 +56,11 @@ export default async function ProviderCareBookingPage({
     select: { id: true, displayName: true },
   });
 
+  const allocationProposals = await listAllocationProposals({
+    organisationId: booking.organisationId,
+    careBookingId: booking.id,
+  });
+
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">{booking.careRequest.title}</h1>
@@ -67,8 +74,16 @@ export default async function ProviderCareBookingPage({
         title={booking.serviceAgreement?.placeholderTitle}
         summary={booking.serviceAgreement?.placeholderSummary}
       />
+      <CareAllocationPanel
+        careBookingId={booking.id}
+        organisationId={booking.organisationId}
+        initialProposals={allocationProposals}
+      />
       <section className="rounded-xl border p-4">
-        <h2 className="font-semibold">Assign worker</h2>
+        <h2 className="font-semibold">Assign worker manually</h2>
+        <p className="text-sm text-muted-foreground mb-2">
+          Or choose a worker directly without running allocation suggestions.
+        </p>
         <AssignWorkerForm careBookingId={booking.id} workers={workers} />
       </section>
       <InvoicePlaceholderCard careBookingId={booking.id} />

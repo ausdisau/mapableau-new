@@ -7,9 +7,18 @@ import { prisma } from "@/lib/prisma";
 export async function syncOperationalQueues(actorUserId: string) {
   if (!phase6Config.dispatchConsoleEnabled) return { skipped: true };
 
-  const [careShifts, transports, criticalIncidents] = await Promise.all([
+  const [careShifts, allocationReviews, transports, criticalIncidents] =
+    await Promise.all([
     prisma.careShift.findMany({
       where: { status: { in: ["scheduled", "in_progress"] } },
+      take: 20,
+    }),
+    prisma.careAllocationProposal.findMany({
+      where: { status: "review_required" },
+      include: {
+        workerProfile: { select: { displayName: true } },
+        allocationRun: { select: { careBookingId: true, organisationId: true } },
+      },
       take: 20,
     }),
     prisma.transportBooking.findMany({
@@ -34,6 +43,19 @@ export async function syncOperationalQueues(actorUserId: string) {
       organisationId: s.organisationId,
       priority: "normal",
       plainLanguageSummary: "Scheduled care support",
+    });
+  }
+
+  for (const p of allocationReviews) {
+    await upsertQueue({
+      queueType: "care_allocation",
+      title: `Allocate ${p.workerProfile.displayName}`,
+      entityType: "CareAllocationProposal",
+      entityId: p.id,
+      organisationId: p.allocationRun.organisationId,
+      priority: "high",
+      plainLanguageSummary:
+        "Care worker allocation proposal requires human approval",
     });
   }
 
