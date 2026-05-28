@@ -1,5 +1,6 @@
 import { compare } from "bcryptjs";
 import type { AuthOptions } from "next-auth";
+import Auth0 from "next-auth/providers/auth0";
 import Credentials from "next-auth/providers/credentials";
 
 import { prisma } from "@/lib/prisma";
@@ -9,6 +10,11 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
   },
   providers: [
+    Auth0({
+      clientId: process.env.AUTH0_ID ?? "",
+      clientSecret: process.env.AUTH0_SECRET ?? "",
+      issuer: process.env.AUTH0_ISSUER,
+    }),
     Credentials({
       id: "credentials",
       name: "credentials",
@@ -40,10 +46,35 @@ export const authOptions: AuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    jwt({ token, user }) {
+    async signIn({ user, account }) {
+      if (account?.provider !== "auth0") return true;
+      if (!user.email) return false;
+
+      const existing = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { id: true },
+      });
+
+      if (!existing) return false;
+
+      // Bind Auth0 session to our existing app user record.
+      user.id = existing.id;
+      return true;
+    },
+    async jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
-        token.role = (user as { role?: string }).role;
+      }
+
+      if (!token.role && token.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email },
+          select: { id: true, primaryRole: true },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.primaryRole;
+        }
       }
       return token;
     },

@@ -13,7 +13,7 @@ const completeProfile = {
   serviceTypes: ["personal_care"],
   serviceRegions: ["Melbourne Metro"],
   qualificationsSummary: "Cert III",
-  verificationStatus: "pending" as const,
+  verificationStatus: "pending_review" as const,
 };
 
 describe("isWorkerProfileComplete", () => {
@@ -25,6 +25,7 @@ describe("isWorkerProfileComplete", () => {
         serviceTypes: [],
         serviceRegions: [],
         qualificationsSummary: null,
+        verificationStatus: "not_provided",
       })
     ).toBe(false);
   });
@@ -37,6 +38,7 @@ describe("isWorkerProfileComplete", () => {
         serviceTypes: ["personal_care"],
         serviceRegions: ["Melbourne Metro"],
         qualificationsSummary: "Cert III",
+        verificationStatus: "verified",
       })
     ).toBe(true);
   });
@@ -51,7 +53,7 @@ describe("isWorkerProfileComplete", () => {
           serviceTypes: [],
           serviceRegions: [],
           qualificationsSummary: null,
-          verificationStatus: "pending",
+          verificationStatus: "pending_review",
         },
         null
       )

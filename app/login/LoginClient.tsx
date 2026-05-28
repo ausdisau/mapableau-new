@@ -89,6 +89,17 @@ export default function LoginClient() {
       <button type="submit" disabled={isLoading}>
         {isLoading ? "Signing in..." : "Sign in"}
       </button>
+      <button
+        type="button"
+        disabled={isLoading}
+        onClick={() =>
+          signIn("auth0", {
+            callbackUrl,
+          })
+        }
+      >
+        Continue with Auth0
+      </button>
     </form>
   );
 }
