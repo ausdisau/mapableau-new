@@ -27,6 +27,12 @@ Common commands after bootstrap:
 
 Do not commit `.env` or secrets. Use Cursor Cloud **Secrets** for `DATABASE_URL` and other credentials when tests need a database.
 
+## Realtime message streaming (WebSockets)
+
+- Server: [`apps/realtime-server`](apps/realtime-server) — Socket.IO on port `4010` by default
+- Core logic: `apps/realtime-server/src/core/` (room-scoped publish, ack, typing, presence)
+- Run: `cd apps/realtime-server && pnpm dev` — see [`apps/realtime-server/README.md`](apps/realtime-server/README.md)
+
 ## ChatGPT App MCP (HTTP)
 
 - **ChatGPT / Apps SDK:** `pnpm mcp:chatgpt` → Streamable HTTP at `http://127.0.0.1:8787/mcp` (see [`docs/chatgpt-mcp-app.md`](docs/chatgpt-mcp-app.md))
