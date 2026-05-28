@@ -23,6 +23,9 @@ export type AutocompleteSuggestion = {
     state?: string;
     postcode?: string;
     providerId?: string;
+    placeId?: string;
+    lat?: number;
+    lng?: number;
   };
 };
 

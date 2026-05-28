@@ -8,6 +8,7 @@ import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomple
 import { SearchTrustRow } from "@/components/search/SearchTrustRow";
 import { Button } from "@/components/ui/button";
 import { mapableSearchFieldSecondaryClass } from "@/lib/brand/styles";
+import { isGoogleMapsPublicEnabled } from "@/lib/geocoding/google-config";
 import type {
   AutocompleteContext,
   AutocompleteSuggestion,
@@ -55,6 +56,9 @@ export function MapAbleProviderSearchForm({
   const [statusMessage, setStatusMessage] = useState("");
 
   const idPrefix = context === "homepage" ? "home" : "pf";
+  const locationHelperText = isGoogleMapsPublicEnabled()
+    ? "Suburb and postcode suggestions include Google Places (Australia)."
+    : "Uses MapAble’s local location list — not a public geocoding API.";
 
   function mergeQueryFromSuggestion(suggestion: AutocompleteSuggestion) {
     if (suggestion.type === "provider") {
@@ -116,7 +120,7 @@ export function MapAbleProviderSearchForm({
             onSelect={(s) => onLocationChange(s.value)}
             disabled={isSubmitting}
             icon={<MapPin className="h-4 w-4" aria-hidden />}
-            helperText="Uses MapAble’s local location list — not a public geocoding API."
+            helperText={locationHelperText}
           />
           <AccessibleAutocomplete
             id={`${idPrefix}-access`}

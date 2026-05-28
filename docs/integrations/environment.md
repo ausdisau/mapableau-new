@@ -50,6 +50,14 @@ Always required when the app runs against a database.
 - `NEXT_PUBLIC_MAP_ATTRIBUTION` (recommended)
 - `NEXT_PUBLIC_MAP_DEFAULT_LAT`, `NEXT_PUBLIC_MAP_DEFAULT_LNG`, `NEXT_PUBLIC_MAP_DEFAULT_ZOOM`
 
+### Google Maps (`GOOGLE_MAPS_ENABLED=true`)
+
+Server-side only — Places Autocomplete (New) for location search and Geocoding API for reverse/forward geocode. Do not expose `GOOGLE_MAPS_API_KEY` to the client.
+
+- `GOOGLE_MAPS_API_KEY` (required when enabled)
+- `GOOGLE_MAPS_REGION` (optional, default `au`)
+- `NEXT_PUBLIC_GOOGLE_MAPS_ENABLED=true` (optional UI flag; no secrets)
+
 ### Temporal (`TEMPORAL_ENABLED=true`)
 
 - `TEMPORAL_ADDRESS`

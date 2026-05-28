@@ -54,6 +54,11 @@ const integrationRules: IntegrationEnvRule[] = [
     requiredVars: ["NEXT_PUBLIC_MAP_STYLE_URL"],
   },
   {
+    key: "google_maps",
+    enabledWhen: () => envTrue("GOOGLE_MAPS_ENABLED"),
+    requiredVars: ["GOOGLE_MAPS_API_KEY"],
+  },
+  {
     key: "temporal",
     enabledWhen: () => envTrue("TEMPORAL_ENABLED"),
     requiredVars: ["TEMPORAL_ADDRESS", "TEMPORAL_NAMESPACE", "TEMPORAL_TASK_QUEUE"],
