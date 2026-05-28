@@ -20,5 +20,10 @@ export async function POST(req: Request) {
   if (!result.ok) {
     return jsonOk(result, 503);
   }
-  return jsonOk(result);
+  return jsonOk({
+    ...result,
+    // Legacy route now returns Checkout data as the preferred integration.
+    checkoutUrl: result.checkoutUrl,
+    sessionId: result.checkoutSessionId,
+  });
 }

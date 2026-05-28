@@ -4,7 +4,7 @@ import {
   isStripeIntegrationEnabled,
   stripeNotConfiguredResponse,
 } from "@/lib/stripe/config";
-import { createPaymentIntentForLegacyInvoice } from "@/lib/stripe/payment-intents";
+import { createCheckoutForInvoice as createLegacyCheckoutForInvoice } from "@/lib/stripe-billing/checkout-service";
 import {
   dispatchStripeWebhook,
   parseAndProcessWebhookRequest,
@@ -22,11 +22,25 @@ export async function createPaymentIntentPlaceholder(params: {
     return { ok: false as const, ...stripeNotConfiguredResponse() };
   }
 
-  return createPaymentIntentForLegacyInvoice({
+  // Wire legacy clients to Stripe Checkout while preserving route compatibility.
+  const checkout = await createLegacyCheckoutForInvoice({
     invoiceId: params.invoiceId,
     amountCents: params.amountCents,
     userId: params.userId,
+    purpose: "participant_private_pay",
   });
+
+  if (!checkout.ok) {
+    return checkout;
+  }
+
+  return {
+    ok: true as const,
+    configured: true as const,
+    checkoutSessionId: checkout.sessionId,
+    checkoutUrl: checkout.url,
+    metadata: checkout.metadata,
+  };
 }
 
 /** @deprecated Use dispatchStripeWebhook with a verified Stripe.Event */

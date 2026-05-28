@@ -1,7 +1,9 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { hasPermission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
 import { signServiceAgreement } from "@/lib/service-agreements/agreement-service";
+import { ServiceAgreementLifecycleError } from "@/lib/service-agreements/lifecycle-service";
 
 export async function POST(
   req: Request,
@@ -18,16 +20,26 @@ export async function POST(
 
   const role =
     body.role === "provider"
-      ? "provider"
+      ? hasPermission(user.primaryRole, "agreement:manage:org")
+        ? "provider"
+        : null
       : agreement.participantId === user.id
         ? "participant"
         : null;
   if (!role) return jsonError("Forbidden", 403);
 
-  const updated = await signServiceAgreement({
-    agreementId,
-    signerUserId: user.id,
-    role,
-  });
-  return jsonOk({ agreement: updated });
+  try {
+    const updated = await signServiceAgreement({
+      agreementId,
+      signerUserId: user.id,
+      role,
+    });
+    return jsonOk({ agreement: updated });
+  } catch (error) {
+    if (error instanceof ServiceAgreementLifecycleError) {
+      if (error.code === "NOT_FOUND") return jsonError(error.message, 404);
+      return jsonError(error.message, 400);
+    }
+    throw error;
+  }
 }

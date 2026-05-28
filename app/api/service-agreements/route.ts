@@ -7,12 +7,23 @@ import {
   sendAgreementForReview,
 } from "@/lib/service-agreements/agreement-service";
 
-export async function GET() {
+export async function GET(req: Request) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status");
+  const participantId = searchParams.get("participantId");
+  const organisationId = searchParams.get("organisationId");
   const where = isAdminRole(user.primaryRole)
-    ? {}
-    : { participantId: user.id };
+    ? {
+        ...(status ? { status: status as never } : {}),
+        ...(participantId ? { participantId } : {}),
+        ...(organisationId ? { organisationId } : {}),
+      }
+    : {
+        participantId: user.id,
+        ...(status ? { status: status as never } : {}),
+      };
   const agreements = await prisma.serviceAgreement.findMany({
     where,
     orderBy: { createdAt: "desc" },
@@ -37,7 +48,7 @@ export async function POST(req: Request) {
     fundingSourceId: body.fundingSourceId,
   });
   if (body.sendForReview) {
-    await sendAgreementForReview(agreement.id);
+    await sendAgreementForReview(agreement.id, user.id);
   }
   return jsonOk({ agreement }, 201);
 }

@@ -27,6 +27,7 @@ const LINKS = [
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/documents", label: "Documents" },
   { href: "/dashboard/billing", label: "Billing centre" },
+  { href: "/dashboard/service-agreements", label: "Service agreements" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
 ];
 
