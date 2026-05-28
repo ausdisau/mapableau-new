@@ -58,9 +58,9 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply changes w
 ├── lib/                      # Domain logic (~165 packages: auth, billing, care, cases, …)
 │   ├── auth/                 # Sessions, permissions, roles
 │   ├── integrations/       # Keycloak, Temporal, n8n, Directus, …
-│   ├── transport/            # Trips, dispatch, eligibility
-│   ├── transport-routing/    # OSRM / routing adapters
-│   ├── cases/                # Case management + AI engine
+│   ├── transport/              # Trips, dispatch, eligibility
+│   ├── transport-routing/        # OSRM / routing adapters
+│   ├── cases/                  # Case management + AI engine
 │   └── …
 ├── prisma/
 │   ├── schema.prisma         # Unified PostgreSQL schema
