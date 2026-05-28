@@ -37,6 +37,12 @@ export default async function AdminServiceOpsPage() {
           description="Bookings waiting for operator response."
         />
         <AdminServiceOpsCard
+          title="Fleet verification gaps"
+          count={summary.transportFleetVerificationIssues}
+          href="/provider/transport/fleet/health"
+          description="Active transport vehicles or drivers with missing or expired verifications."
+        />
+        <AdminServiceOpsCard
           title="Jobs to publish"
           count={summary.jobsAwaitingPublish}
           href="/admin/service-ops/jobs"

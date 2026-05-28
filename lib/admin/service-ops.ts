@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { countTransportFleetVerificationIssues } from "@/lib/transport/transport-fleet-ops-count";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 export async function getServiceOpsSummary() {
@@ -7,6 +8,7 @@ export async function getServiceOpsSummary() {
     shiftsAwaitingWorker,
     transportAwaitingOperator,
     transportVehicleIssues,
+    transportFleetVerificationIssues,
     jobsAwaitingPublish,
     applicationsWithAdjustments,
     shiftsAwaitingApproval,
@@ -27,6 +29,7 @@ export async function getServiceOpsSummary() {
         vehicleId: null,
       },
     }),
+    countTransportFleetVerificationIssues(),
     prisma.job.count({ where: { status: "draft" } }),
     prisma.jobApplication.count({
       where: {
@@ -46,6 +49,7 @@ export async function getServiceOpsSummary() {
     shiftsAwaitingWorker,
     transportAwaitingOperator,
     transportVehicleIssues,
+    transportFleetVerificationIssues,
     jobsAwaitingPublish,
     applicationsWithAdjustments,
     shiftsAwaitingApproval,

@@ -1,39 +1,15 @@
-import type { TransportVerificationKind } from "@prisma/client";
-
 import { prisma } from "@/lib/prisma";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
+import { parseMobilityRequirements } from "@/lib/transport/mobility-schema";
+import {
+  checkVerificationRecords,
+  FLEET_DRIVER_VERIFICATION_KINDS,
+  FLEET_VEHICLE_VERIFICATION_KINDS,
+} from "@/lib/transport/transport-fleet-verification";
 import type { EligibilityCheckResult } from "@/types/transport-scheduling";
 
-const DRIVER_REQUIRED: TransportVerificationKind[] = [
-  "licence",
-  "screening",
-  "training",
-];
-
-const VEHICLE_REQUIRED: TransportVerificationKind[] = [
-  "registration",
-  "insurance",
-  "inspection",
-];
-
-function checkVerifications(
-  records: Array<{ kind: TransportVerificationKind; status: string; expiresAt: Date | null }>,
-  required: TransportVerificationKind[]
-): string[] {
-  const reasons: string[] = [];
-  const now = new Date();
-  for (const kind of required) {
-    const rec = records.find((r) => r.kind === kind);
-    if (!rec || rec.status !== "verified") {
-      reasons.push(`${kind} is not verified`);
-      continue;
-    }
-    if (rec.expiresAt && rec.expiresAt < now) {
-      reasons.push(`${kind} has expired`);
-    }
-  }
-  return reasons;
-}
+const DRIVER_REQUIRED = FLEET_DRIVER_VERIFICATION_KINDS;
+const VEHICLE_REQUIRED = FLEET_VEHICLE_VERIFICATION_KINDS;
 
 export async function checkDriverEligibility(
   driverId: string,
@@ -50,7 +26,7 @@ export async function checkDriverEligibility(
   const required = [...DRIVER_REQUIRED];
   if (options?.requireAccessTraining) required.push("training");
 
-  const reasons = checkVerifications(driver.verifications, required);
+  const reasons = checkVerificationRecords(driver.verifications, required);
   return { eligible: reasons.length === 0, reasons };
 }
 
@@ -66,9 +42,9 @@ export async function checkVehicleEligibility(
     return { eligible: false, reasons: ["Vehicle not found or inactive"] };
   }
 
-  const reasons = checkVerifications(vehicle.verifications, VEHICLE_REQUIRED);
+  const reasons = checkVerificationRecords(vehicle.verifications, VEHICLE_REQUIRED);
 
-  const reqs = mobilityRequirements ?? {};
+  const reqs = parseMobilityRequirements(mobilityRequirements ?? {});
   const feature = vehicle.features[0];
   if (reqs.requiresWheelchairAccessible && feature && !feature.wheelchairAccessible) {
     reasons.push("Vehicle is not wheelchair accessible");
@@ -76,19 +52,48 @@ export async function checkVehicleEligibility(
   if (reqs.requiresRamp && feature && !feature.rampAvailable && !feature.liftAvailable) {
     reasons.push("Vehicle does not have ramp or lift");
   }
+  if (reqs.requiresLift && feature && !feature.liftAvailable) {
+    reasons.push("Vehicle does not have a lift");
+  }
+  if (reqs.requiresHoist && feature && !feature.hoistAvailable) {
+    reasons.push("Vehicle does not have a hoist");
+  }
 
   const equipment = vehicle.verifications.find((v) => v.kind === "access_equipment");
   if (reqs.requiresAccessEquipment && equipment?.status !== "verified") {
     reasons.push("Access equipment verification missing");
   }
+  if (
+    reqs.assistanceAnimalPresent &&
+    feature &&
+    !feature.assistanceAnimalFriendly
+  ) {
+    reasons.push("Vehicle is not marked assistance-animal friendly");
+  }
 
   return { eligible: reasons.length === 0, reasons };
 }
 
-export async function assertDriverEligible(driverId: string) {
-  const result = await checkDriverEligibility(driverId, {
-    requireAccessTraining: true,
+export async function checkDriverEligibilityForTrip(
+  driverId: string,
+  mobilityRequirements?: Record<string, unknown>
+): Promise<EligibilityCheckResult> {
+  const reqs = parseMobilityRequirements(mobilityRequirements ?? {});
+  const requireTraining =
+    reqs.driverAssistanceRequired ||
+    reqs.needsDriverAssistanceToDoor ||
+    reqs.requiresWheelchairAccessible ||
+    reqs.requiresHoist;
+  return checkDriverEligibility(driverId, {
+    requireAccessTraining: requireTraining,
   });
+}
+
+export async function assertDriverEligible(
+  driverId: string,
+  mobilityRequirements?: Record<string, unknown>
+) {
+  const result = await checkDriverEligibilityForTrip(driverId, mobilityRequirements);
   if (!result.eligible) {
     throw new TransportApiError("TRANSPORT_DRIVER_NOT_ELIGIBLE", undefined, result);
   }

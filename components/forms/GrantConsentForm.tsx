@@ -15,7 +15,17 @@ const SCOPES = [
   "booking.read",
   "care.accessibility_share",
   "transport.accessibility_share",
+  "transport.trip_access",
 ] as const;
+
+const SCOPE_LABELS: Record<string, string> = {
+  "profile.read": "Profile (basic)",
+  "accessibility.read": "Accessibility profile",
+  "booking.read": "Bookings",
+  "care.accessibility_share": "Care accessibility for bookings",
+  "transport.accessibility_share": "Transport accessibility for bookings",
+  "transport.trip_access": "Transport trip summary (family/nominee)",
+};
 
 export function GrantConsentForm({
   organisations,
@@ -25,6 +35,7 @@ export function GrantConsentForm({
   const router = useRouter();
   const [scope, setScope] = useState<string>(SCOPES[0]);
   const [organisationId, setOrganisationId] = useState("");
+  const [grantedToUserId, setGrantedToUserId] = useState("");
   const [purpose, setPurpose] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,6 +54,7 @@ export function GrantConsentForm({
             scope,
             purpose,
             grantedToOrganisationId: organisationId || undefined,
+            grantedToUserId: grantedToUserId.trim() || undefined,
           }),
         });
         setLoading(false);
@@ -64,24 +76,39 @@ export function GrantConsentForm({
         >
           {SCOPES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {SCOPE_LABELS[s] ?? s}
             </option>
           ))}
         </select>
       </AccessibleFormField>
 
+      {scope === "transport.trip_access" ? (
+        <AccessibleFormField
+          id="grantee-user"
+          label="Family member user ID"
+          hint="Optional if granting to a person directly (from their MapAble account)"
+        >
+          <input
+            id="grantee-user"
+            className={formInputClass}
+            value={grantedToUserId}
+            onChange={(e) => setGrantedToUserId(e.target.value)}
+          />
+        </AccessibleFormField>
+      ) : null}
+
       <AccessibleFormField
         id="org"
         label="Organisation"
-        hint="Who can use this consent"
-        required
+        hint="Who can use this consent (required unless user ID above is set)"
+        required={scope !== "transport.trip_access" || !grantedToUserId.trim()}
       >
         <select
           id="org"
           className={formInputClass}
           value={organisationId}
           onChange={(e) => setOrganisationId(e.target.value)}
-          required
+          required={scope !== "transport.trip_access" || !grantedToUserId.trim()}
         >
           <option value="">Select organisation</option>
           {organisations.map((o) => (
