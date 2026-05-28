@@ -27,6 +27,18 @@ describe("Co-Pilot intent router", () => {
     const intent = classifyIntent("I want to report neglect and need urgent help");
     expect(intent.type).toBe("incident");
   });
+
+  it("classifies needs assessment queries", () => {
+    const intent = classifyIntent("Help me assess my needs and gaps in my profile");
+    expect(intent.type).toBe("needs_assessment");
+    expect(intent.confidence).toBeGreaterThan(0.8);
+  });
+
+  it("classifies shift creator queries before generic support", () => {
+    const intent = classifyIntent("Schedule a care shift for Tuesday 9am with Sam");
+    expect(intent.type).toBe("shift_creator");
+    expect(intent.confidence).toBeGreaterThan(0.8);
+  });
 });
 
 describe("Co-Pilot action planner and guardrails", () => {
@@ -98,6 +110,29 @@ describe("Co-Pilot action planner and guardrails", () => {
       guarded.requiredConfirmations.some((g) => g.type === "SAFETY_REVIEW")
     ).toBe(true);
     expect(guarded.warnings.some((w) => w.level === "urgent")).toBe(true);
+  });
+
+  it("plans needs assessment actions with draft summary", async () => {
+    const query = "assess my needs for support at home";
+    const intent = classifyIntent(query);
+    expect(intent.type).toBe("needs_assessment");
+
+    const context = await buildCopilotContext(MOCK_PARTICIPANT_ID);
+    const planned = await planCopilotActions({
+      query,
+      mode: "All",
+      intent,
+      context,
+      sessionId: "test",
+      participantId: MOCK_PARTICIPANT_ID,
+    });
+
+    expect(
+      planned.actions.some((a) => a.type === "ASSESS_PARTICIPANT_NEEDS"),
+    ).toBe(true);
+    expect(
+      planned.draftRecords.some((r) => r.type === "NEEDS_ASSESSMENT_SUMMARY"),
+    ).toBe(true);
   });
 
   it("billing with missing evidence adds finance review gate", async () => {

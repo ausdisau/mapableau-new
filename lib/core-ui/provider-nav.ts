@@ -7,6 +7,7 @@ export const PROVIDER_NAV_LINKS: PortalNavLink[] = [
   { href: "/provider/care/roster", label: "Care roster" },
   { href: "/provider/care/service-logs", label: "Care logs" },
   { href: "/provider/care/shifts", label: "Shifts" },
+  { href: "/provider/care/shift-creator", label: "Shift creator" },
   { href: "/provider/transport", label: "Transport" },
   { href: "/provider/workers", label: "Workers" },
   { href: "/provider/vehicles", label: "Vehicles" },

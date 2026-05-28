@@ -41,7 +41,8 @@ export type PrmsRecordType =
   | "PROGRESS_NOTE"
   | "DOCUMENT"
   | "INVOICE"
-  | "EVIDENCE_PACK";
+  | "EVIDENCE_PACK"
+  | "NEEDS_ASSESSMENT_SUMMARY";
 
 export type ServiceEventType =
   | "care"
