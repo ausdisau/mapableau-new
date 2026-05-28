@@ -10,6 +10,7 @@ export type CopilotIntentType =
   | "billing"
   | "incident"
   | "health"
+  | "needs_assessment"
   | "unknown";
 
 export type CopilotMode =
@@ -39,6 +40,8 @@ export type CopilotActionType =
   | "INCIDENT_REPORT"
   | "SAFETY_ESCALATION"
   | "EMPLOYMENT_SUPPORT"
+  | "ASSESS_PARTICIPANT_NEEDS"
+  | "MATCH_WORKERS_FROM_NEEDS"
   | "GUIDANCE_ONLY";
 
 export type CopilotAction = {
@@ -94,6 +97,7 @@ export type CopilotContext = {
   upcomingEvents: { id: string; title: string; scheduledAt: string }[];
   openRisks: { id: string; level: string; label: string }[];
   missingEvidence: string[];
+  needsGaps?: string[];
 };
 
 export type CopilotPlanningInput = {
@@ -136,4 +140,5 @@ export type CopilotAskResponse = {
   /** Legacy-compatible fields for existing UI consumers */
   results?: unknown[];
   suggestedPrompts?: string[];
+  assessmentUrl?: string;
 };

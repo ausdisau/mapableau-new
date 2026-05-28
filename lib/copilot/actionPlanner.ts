@@ -221,6 +221,56 @@ export async function planCopilotActions(
         warnings: [],
       };
 
+    case "needs_assessment": {
+      const gapHint =
+        context?.needsGaps?.length ?
+          ` We noticed ${context.needsGaps.length} possible gap(s) in your profile.`
+        : "";
+      return {
+        summary: "Participant needs assessment",
+        plainLanguageAnswer:
+          `I can walk through a live needs assessment using your profile and accessibility information.${gapHint} Nothing is saved until you confirm.`,
+        filters: {
+          ...filters,
+          assessmentPath: `/participant-needs-assess?participantId=${encodeURIComponent(pid)}`,
+        },
+        actions: [
+          {
+            type: "ASSESS_PARTICIPANT_NEEDS",
+            label: "Run live needs assessment",
+            requiresConfirmation: false,
+          },
+          {
+            type: "MATCH_WORKERS_FROM_NEEDS",
+            label: "Find workers from your needs",
+            requiresConfirmation: false,
+          },
+        ],
+        draftRecords: [
+          draft("NEEDS_ASSESSMENT_SUMMARY", pid, {
+            sourceQuery: query,
+            status: "pending_assessment",
+          }),
+        ],
+        requiredConfirmations: [
+          {
+            type: "PARTICIPANT_CONFIRMATION",
+            title: "Confirm needs assessment summary",
+            explanation:
+              "Saving the assessment summary updates your participant record only after you review it.",
+          },
+        ],
+        warnings: !participantId
+          ? [
+              {
+                level: "info",
+                message: "Sign in to run an assessment on your participant record.",
+              },
+            ]
+          : [],
+      };
+    }
+
     case "transport":
     case "support":
       return {

@@ -12,6 +12,7 @@ const VALID_TYPES: PrmsRecordType[] = [
   "PLAN_MANAGEMENT_INVOICE",
   "INCIDENT",
   "PROGRESS_NOTE",
+  "NEEDS_ASSESSMENT_SUMMARY",
 ];
 
 export async function POST(request: Request) {
