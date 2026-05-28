@@ -4,7 +4,17 @@ import {
   isWorkerProfileComplete,
   postLoginPathForRole,
   workerOnboardingPath,
+  workerProfilePath,
 } from "@/lib/workers/profile-completion";
+
+const completeProfile = {
+  displayName: "Alex",
+  profileSummary: "NDIS support worker",
+  serviceTypes: ["personal_care"],
+  serviceRegions: ["Melbourne Metro"],
+  qualificationsSummary: "Cert III",
+  verificationStatus: "pending" as const,
+};
 
 describe("isWorkerProfileComplete", () => {
   it("returns false when required fields are missing", () => {
@@ -41,9 +51,26 @@ describe("isWorkerProfileComplete", () => {
           serviceTypes: [],
           serviceRegions: [],
           qualificationsSummary: null,
+          verificationStatus: "pending",
         },
         null
       )
     ).toBe(workerOnboardingPath());
+  });
+
+  it("routes complete but unverified workers to profile", () => {
+    expect(
+      postLoginPathForRole("support_worker", completeProfile, null)
+    ).toBe(workerProfilePath());
+  });
+
+  it("routes verified workers to today", () => {
+    expect(
+      postLoginPathForRole(
+        "support_worker",
+        { ...completeProfile, verificationStatus: "verified" },
+        null
+      )
+    ).toBe("/worker/today");
   });
 });

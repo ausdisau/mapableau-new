@@ -33,8 +33,18 @@ export default async function WorkerProfilePage() {
     );
   }
 
+  const awaitingVerification =
+    profile.verificationStatus !== "verified";
+
   return (
     <div className="space-y-6 max-w-xl">
+      {awaitingVerification && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+          Your profile is complete. Shift and timesheet features unlock after
+          an administrator verifies your worker profile (current status:{" "}
+          {profile.verificationStatus}).
+        </p>
+      )}
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-heading text-2xl font-bold">Your profile</h1>
         <Link href="/worker/profile/edit" className="text-sm underline">

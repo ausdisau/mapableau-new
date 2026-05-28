@@ -1,13 +1,18 @@
 import Link from "next/link";
 
 import { requireAuth } from "@/lib/auth/guards";
+import { isAdminRole } from "@/lib/auth/roles";
+import { redirect } from "next/navigation";
 
 export default async function WorkerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
+  if (user.primaryRole !== "support_worker" && !isAdminRole(user.primaryRole)) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="min-h-screen bg-background">

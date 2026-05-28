@@ -13,6 +13,7 @@ type ProfileSlice = Pick<
   | "serviceTypes"
   | "serviceRegions"
   | "qualificationsSummary"
+  | "verificationStatus"
 >;
 
 export function isWorkerProfileComplete(profile: ProfileSlice): boolean {
@@ -26,6 +27,10 @@ export function isWorkerProfileComplete(profile: ProfileSlice): boolean {
 
 export function workerOnboardingPath(): string {
   return "/worker/onboarding";
+}
+
+export function workerProfilePath(): string {
+  return "/worker/profile";
 }
 
 export function participantProfileEditPath(): string {
@@ -60,6 +65,9 @@ export function postLoginPathForRole(
     if (!workerProfile || !isWorkerProfileComplete(workerProfile)) {
       return workerOnboardingPath();
     }
+    if (workerProfile.verificationStatus !== "verified") {
+      return workerProfilePath();
+    }
     return "/worker/today";
   }
 
@@ -81,6 +89,14 @@ export async function resolvePostLoginPathForUser(
     const profile = await prisma.workerProfile.findFirst({
       where: { userId, active: true },
       orderBy: { createdAt: "asc" },
+      select: {
+        displayName: true,
+        profileSummary: true,
+        serviceTypes: true,
+        serviceRegions: true,
+        qualificationsSummary: true,
+        verificationStatus: true,
+      },
     });
     return postLoginPathForRole(primaryRole, profile, null);
   }

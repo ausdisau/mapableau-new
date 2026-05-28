@@ -5,7 +5,10 @@ import { getCurrentUser, type CurrentUser } from "@/lib/auth/current-user";
 import { apiForbidden, apiUnauthorized } from "@/lib/auth/guards";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
-import { canUseOperationalWorkerPermissions } from "@/lib/workers/worker-org-access";
+import {
+  canUseOperationalWorkerPermissions,
+  isOperationalWorkerPermission,
+} from "@/lib/workers/worker-org-access";
 
 export async function requireApiSession(): Promise<
   CurrentUser | Response
@@ -30,6 +33,9 @@ export async function requireApiPermission(
 export async function requireApiVerifiedWorkerOperations(
   permission: "care:shift:work" | "timesheet:manage:org"
 ): Promise<CurrentUser | Response> {
+  if (!isOperationalWorkerPermission(permission)) {
+    return apiForbidden("Invalid worker operations permission");
+  }
   const user = await requireApiPermission(permission);
   if (user instanceof Response) return user;
   if (!(await canUseOperationalWorkerPermissions(user.id, user.primaryRole))) {
