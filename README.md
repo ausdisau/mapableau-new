@@ -43,16 +43,50 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply changes w
 ## Project layout
 
 ```
-app/              Next.js routes (dashboard, provider, admin, care, …)
-components/       Shared UI (incl. `components/core/` hub shell)
-lib/              Domain logic, auth, integrations (incl. `lib/core-ui/`)
-prisma/           Schema, migrations, seeds
-docs/             Platform docs (`docs/mapable/`, `docs/modules/`, …)
-apps/             Workspace packages (e.g. `apps/realtime-server`)
-mcp/              MCP servers
-mobile-contracts/ Mobile API contracts
-tests/            Vitest suites
+.
+├── app/                      # Next.js App Router
+│   ├── api/                  # Route handlers (REST, webhooks, transport, care, …)
+│   ├── admin/                # Admin console (bookings, care, transport, governance, …)
+│   ├── dashboard/            # Participant dashboard (bookings, care, cases, safety, …)
+│   ├── provider/             # Provider portal
+│   ├── care/                 # Care module pages
+│   ├── core/                 # Platform hub (/core)
+│   ├── access/               # Accessible places
+│   ├── driver/, worker/      # Field worker UIs
+│   └── …                     # employer, plan-manager, assessor, billing, …
+├── components/               # React UI (admin, care, transport, core shell, …)
+├── lib/                      # Domain logic (~165 packages: auth, billing, care, cases, …)
+│   ├── auth/                 # Sessions, permissions, roles
+│   ├── integrations/       # Keycloak, Temporal, n8n, Directus, …
+│   ├── transport/            # Trips, dispatch, eligibility
+│   ├── transport-routing/    # OSRM / routing adapters
+│   ├── cases/                # Case management + AI engine
+│   └── …
+├── prisma/
+│   ├── schema.prisma         # Unified PostgreSQL schema
+│   ├── migrations/           # SQL migrations
+│   └── seed*.ts              # Seed scripts
+├── docs/
+│   ├── mapable/              # Core hub, phases 1–12, Cursor prompts
+│   ├── modules/              # Feature guides (care, transport, cases, …)
+│   ├── operations/           # Neon, ops notes
+│   ├── integrations/         # Env var reference
+│   └── qa/                   # QA checklists
+├── apps/
+│   └── realtime-server/      # Socket.IO server (pnpm workspace)
+├── mcp/
+│   └── av/                   # Autonomous-vehicle MCP server
+├── mobile-contracts/         # Mobile API / screen contracts
+├── tests/                    # Vitest (`*.test.ts`)
+├── types/                    # Shared TypeScript types
+├── scripts/                  # CLI helpers (Neon env, integrations check, …)
+├── data/
+│   └── imports/              # Access KML/GeoJSON imports (often gitignored)
+├── public/                   # Static assets
+└── schemas/                  # JSON validation schemas
 ```
+
+Config at repo root: `package.json`, `tsconfig.json`, `next.config.ts`, `middleware.ts`, `vercel.json`, `vitest.config.ts`.
 
 ## Documentation
 
