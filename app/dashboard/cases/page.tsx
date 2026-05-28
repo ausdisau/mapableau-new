@@ -176,7 +176,7 @@ function NaturalLanguageSearch() {
       <p className="text-xs text-muted-foreground">
         e.g. &ldquo;show me high-risk cases about housing&rdquo;. Search is
         rules-based and runs locally — see{" "}
-        <code className="rounded bg-muted px-1">README_CASE_MANAGEMENT.md</code>{" "}
+        <code className="rounded bg-muted px-1">docs/case-management.md</code>{" "}
         for details.
       </p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">

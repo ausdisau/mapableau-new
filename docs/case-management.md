@@ -15,7 +15,7 @@ backend can replace it by implementing the `CaseAIEngine` interface in
 `lib/cases/ai/types.ts` and calling `setCaseAIEngine()` at startup.
 
 This mirrors how the rest of the platform handles automated decisions:
-suggestions, not actions (see `README_INCIDENT_REPORTING.md` and the
+suggestions, not actions (see [incidents](incidents.md) and the
 existing `NdisRuleWarning` model). All insights are written with
 `requiresReview: true` and must be explicitly acknowledged.
 

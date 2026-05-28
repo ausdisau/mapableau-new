@@ -9,7 +9,7 @@ import type { UserRole } from "@/types/mapable";
  * - mapable_admin sees everything (regardless of the `userId`).
  * - support_coordinator and plan_manager see cases they created, own, or
  *   are listed as the participant on. (Provider-org scoping is intentionally
- *   not modelled yet — see TODO in README_CASE_MANAGEMENT.md.)
+ *   not modelled yet — see TODO in docs/case-management.md.)
  * - everyone else only sees cases where they are the participant.
  */
 export function caseListWhereForUser(

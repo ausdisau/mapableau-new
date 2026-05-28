@@ -5,5 +5,5 @@
 --   Deploy:       npx prisma migrate deploy
 --
 -- This migration adds the Case, CaseNote, CaseTask, CaseLink and
--- CaseAIInsight models plus their enums. See README_CASE_MANAGEMENT.md
+-- CaseAIInsight models plus their enums. See docs/case-management.md
 -- for the module overview and AI engine notes.

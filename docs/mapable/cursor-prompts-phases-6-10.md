@@ -70,7 +70,7 @@ See `.env.example` sections **Phase 6** through **Phase 10**. All sensitive inte
 
 ## Recommended build order
 
-1. Phase 6 master architecture + `README_MAPABLE_CORE_PHASE_6.md`
+1. Phase 6 master architecture + [Phase 6](core-phases.md#phase-6)`
 2. Launch readiness + dispatch console (operational value first)
 3. Provider quality + AI governance
 4. Phase 7 reconciliation + multi-tenant (before public beta)
@@ -84,10 +84,10 @@ After each phase, document: files created/changed, migrations, models, APIs, UI 
 
 ## Phase 11 preview (implemented in Phase 12)
 
-National accountability portal, certified API ecosystem at scale, privacy-preserving research federation, transport investment modelling, community-owned governance membership, platform constitutional safeguards. See `README_MAPABLE_CORE_PHASE_12.md`.
+National accountability portal, certified API ecosystem at scale, privacy-preserving research federation, transport investment modelling, community-owned governance membership, platform constitutional safeguards. See `[Phase 12](core-phases.md#phase-12).
 
 ## Related docs
 
-- `README_MAPABLE_CORE_PHASE_4.md`
-- `README_MAPABLE_CORE_PHASE_5.md`
+- `[Phase 4](core-phases.md#phase-4)
+- `[Phase 5](core-phases.md#phase-5)
 - Individual phase READMEs under `README_*` from earlier builds
