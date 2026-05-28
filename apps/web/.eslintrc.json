@@ -14,7 +14,7 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "project": "./apps/web/tsconfig.json"
+    "project": "./tsconfig.json"
   },
   "plugins": ["@typescript-eslint", "import", "jsx-a11y"],
   "rules": {
@@ -53,7 +53,7 @@
     "import/resolver": {
       "typescript": {
         "alwaysTryTypes": true,
-        "project": "./apps/web/tsconfig.json"
+        "project": "./tsconfig.json"
       },
       "node": {
         "extensions": [".js", ".jsx", ".ts", ".tsx"]

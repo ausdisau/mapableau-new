@@ -11,18 +11,18 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./apps/web/*"]
+      "@/*": ["./*"]
     },
     "target": "ES2021"
   },
-  "include": [
-    "tests/**/*.ts",
-    "tests/**/*.tsx",
-    "mcp/**/*.ts",
-    "scripts/**/*.ts",
-    "prisma/**/*.ts"
-  ],
-  "exclude": ["node_modules", "apps/realtime-server", "apps/web"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

@@ -6,7 +6,7 @@
 import {
   formatEnvIssues,
   validateAllEnv,
-} from "../lib/env";
+} from "../apps/web/lib/env";
 
 const result = validateAllEnv();
 
