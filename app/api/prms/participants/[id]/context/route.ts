@@ -1,13 +1,29 @@
 import { NextResponse } from "next/server";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  assertParticipantAccess,
+  ParticipantAccessError,
+} from "@/lib/participant-needs/assert-participant-access";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: RouteParams) {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
   const { id } = await params;
 
-  // TODO: authenticate user and verify participant access
+  try {
+    assertParticipantAccess(user, id);
+  } catch (e) {
+    if (e instanceof ParticipantAccessError) {
+      return NextResponse.json({ error: e.message }, { status: 403 });
+    }
+    throw e;
+  }
+
   const context = await buildCopilotContext(id);
 
   if (!context) {
@@ -15,7 +31,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       {
         error: "Participant context not found. Sign in or check your account.",
       },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -33,5 +49,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
     openRisks: context.openRisks,
     missingEvidence: context.missingEvidence,
     activeGoals: context.activeGoals,
+    needsGaps: context.needsGaps ?? [],
   });
 }

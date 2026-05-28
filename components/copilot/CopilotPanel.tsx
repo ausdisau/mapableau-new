@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -130,6 +131,26 @@ export function CopilotPanel({
             answer={response.answer}
             intentLabel={intentLabel(response.intent)}
           />
+          {response.assessmentUrl ? (
+            <p className="text-sm">
+              <Link
+                href={response.assessmentUrl}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Open live needs assessment
+              </Link>
+            </p>
+          ) : null}
+          {response.shiftCreatorUrl ? (
+            <p className="text-sm">
+              <Link
+                href={response.shiftCreatorUrl}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Open shift creator
+              </Link>
+            </p>
+          ) : null}
           <CopilotWarnings warnings={response.warnings} />
           <CopilotActionCards
             actions={response.actions}
