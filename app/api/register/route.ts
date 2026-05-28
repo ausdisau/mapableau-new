@@ -39,8 +39,6 @@ export async function POST(req: Request) {
         name,
         email,
         passwordHash,
-        primaryRole:
-          accountType === "support_worker" ? "support_worker" : "participant",
       },
     });
 

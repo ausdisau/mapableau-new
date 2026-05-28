@@ -1,5 +1,3 @@
-import type { Worker } from "@prisma/client";
-
 /** Maps legacy Worker row fields into WorkerProfile create/update payload. */
 export function mapLegacyWorkerToProfileFields(worker: {
   id: string;
@@ -17,7 +15,3 @@ export function mapLegacyWorkerToProfileFields(worker: {
   };
 }
 
-export type LegacyWorkerShape = Pick<
-  Worker,
-  "id" | "bio" | "qualifications"
->;

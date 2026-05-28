@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/app/lib/auth";
-import { ensureProviderOrganisation } from "@/lib/providers/ensure-provider-organisation";
 import { prisma } from "@/lib/prisma";
 import { MembershipResponse } from "@/schemas/provider-admin.types";
 
@@ -16,19 +15,17 @@ export async function GET(): Promise<
   const memberships = await prisma.providerUserRole.findMany({
     where: { userId: session.user.id },
     include: {
-      provider: { select: { id: true, name: true } },
+      provider: { select: { id: true, name: true, organisationId: true } },
     },
     orderBy: { provider: { name: "asc" } },
   });
 
-  const enriched = await Promise.all(
-    memberships.map(async (m) => ({
+  return NextResponse.json({
+    memberships: memberships.map((m) => ({
       providerId: m.provider.id,
       providerName: m.provider.name,
       role: m.role,
-      organisationId: await ensureProviderOrganisation(m.provider.id),
-    }))
-  );
-
-  return NextResponse.json({ memberships: enriched });
+      organisationId: m.provider.organisationId,
+    })),
+  });
 }

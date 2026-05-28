@@ -1,5 +1,6 @@
 "use client";
 
+import type { DayOfWeek } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -24,7 +25,7 @@ export default function WorkerOnboardingPage() {
     qualificationsSummary: string | null;
   } | null>(null);
   const [windows, setWindows] = useState<
-    { dayOfWeek: "MONDAY"; startTime: string; endTime: string }[]
+    { dayOfWeek: DayOfWeek; startTime: string; endTime: string }[]
   >([]);
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export default function WorkerOnboardingPage() {
           setWindows(
             (data.profile.availabilityWindows ?? []).map(
               (w: {
-                dayOfWeek: "MONDAY";
+                dayOfWeek: DayOfWeek;
                 startTime: string;
                 endTime: string;
               }) => ({

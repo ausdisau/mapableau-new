@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { startOfDay, endOfDay } from "date-fns";
 
-import { requirePermission } from "@/lib/auth/guards";
+import { requireVerifiedWorkerOperations } from "@/lib/auth/guards";
 import { workerProfileForUser } from "@/lib/care/access-control";
 import { ensureWorkerProfileComplete } from "@/lib/workers/profile-completion";
 import { prisma } from "@/lib/prisma";
 
 export default async function WorkerTodayPage() {
-  const user = await requirePermission("care:shift:work");
+  const user = await requireVerifiedWorkerOperations("care:shift:work");
   await ensureWorkerProfileComplete(user.id);
   const profile = await workerProfileForUser(user.id);
   if (!profile) {

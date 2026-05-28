@@ -31,7 +31,10 @@ USING "WorkerProfile" wp2
 WHERE wp1."userId" IS NOT NULL
   AND wp1."userId" = wp2."userId"
   AND wp1."organisationId" = wp2."organisationId"
-  AND wp1."createdAt" > wp2."createdAt";
+  AND (
+    wp1."createdAt" > wp2."createdAt"
+    OR (wp1."createdAt" = wp2."createdAt" AND wp1."id" > wp2."id")
+  );
 
 CREATE UNIQUE INDEX IF NOT EXISTS "WorkerProfile_userId_organisationId_key"
   ON "WorkerProfile"("userId", "organisationId")

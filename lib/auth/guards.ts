@@ -8,6 +8,8 @@ import {
 import type { Permission } from "@/lib/auth/permissions";
 import { hasPermission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
+import { workerOnboardingPath } from "@/lib/workers/profile-completion";
+import { canUseOperationalWorkerPermissions } from "@/lib/workers/worker-org-access";
 import type { UserRole } from "@/types/mapable";
 
 export async function requireAuth(redirectTo = "/login"): Promise<CurrentUser> {
@@ -28,6 +30,16 @@ export async function requirePermission(
   const user = await requireAuth();
   if (!hasPermission(user.primaryRole, permission)) {
     redirect("/dashboard");
+  }
+  return user;
+}
+
+export async function requireVerifiedWorkerOperations(
+  permission: "care:shift:work" | "timesheet:manage:org"
+): Promise<CurrentUser> {
+  const user = await requirePermission(permission);
+  if (!(await canUseOperationalWorkerPermissions(user.id, user.primaryRole))) {
+    redirect(workerOnboardingPath());
   }
   return user;
 }

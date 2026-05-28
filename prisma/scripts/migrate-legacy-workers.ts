@@ -5,6 +5,8 @@
  */
 import { PrismaClient } from "@prisma/client";
 
+import { mapLegacyWorkerToProfileFields } from "../../lib/workers/migrate-legacy-worker-fields";
+
 const prisma = new PrismaClient();
 
 async function ensureProviderOrganisation(provider: {
@@ -72,8 +74,7 @@ export async function migrateLegacyWorkers() {
     const { worker, provider } = link;
     const organisationId = await ensureProviderOrganisation(provider);
 
-    const languageNames = worker.languages.map((l) => l.name);
-    const specNames = worker.specialisations.map((s) => s.name);
+    const mapped = mapLegacyWorkerToProfileFields(worker);
 
     const existing = await prisma.workerProfile.findFirst({
       where: {
@@ -87,15 +88,17 @@ export async function migrateLegacyWorkers() {
       const updated = await prisma.workerProfile.update({
         where: { id: existing.id },
         data: {
-          legacyWorkerId: worker.id,
+          ...mapped,
           displayName: worker.user.name ?? existing.displayName,
-          profileSummary: worker.bio ?? existing.profileSummary,
+          profileSummary: mapped.profileSummary ?? existing.profileSummary,
           qualificationsSummary:
-            worker.qualifications ?? existing.qualificationsSummary,
+            mapped.qualificationsSummary ?? existing.qualificationsSummary,
           languages:
-            languageNames.length > 0 ? languageNames : existing.languages,
+            mapped.languages.length > 0 ? mapped.languages : existing.languages,
           specialisations:
-            specNames.length > 0 ? specNames : existing.specialisations,
+            mapped.specialisations.length > 0
+              ? mapped.specialisations
+              : existing.specialisations,
         },
       });
       profileId = updated.id;
@@ -104,12 +107,8 @@ export async function migrateLegacyWorkers() {
         data: {
           userId: worker.userId,
           organisationId,
-          legacyWorkerId: worker.id,
+          ...mapped,
           displayName: worker.user.name ?? "Worker",
-          profileSummary: worker.bio,
-          qualificationsSummary: worker.qualifications,
-          languages: languageNames,
-          specialisations: specNames,
           verificationStatus: "pending_review",
           active: true,
         },

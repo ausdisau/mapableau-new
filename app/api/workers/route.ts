@@ -3,6 +3,7 @@ import { jsonError, jsonOk } from "@/lib/api/response";
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
+import { canManageWorkersInOrganisation } from "@/lib/workers/worker-org-access";
 import { createWorkerProfile } from "@/lib/workers/worker-profile-service";
 
 export async function GET() {
@@ -29,10 +30,13 @@ export async function POST(req: Request) {
     return jsonError("organisationId, userId, displayName required", 400);
   }
 
-  const orgIds = isAdminRole(user.primaryRole)
-    ? null
-    : await getUserOrganisationIds(user.id);
-  if (orgIds && !orgIds.includes(body.organisationId)) {
+  if (
+    !(await canManageWorkersInOrganisation(
+      user.id,
+      body.organisationId,
+      user.primaryRole
+    ))
+  ) {
     return jsonError("Forbidden", 403);
   }
 

@@ -30,6 +30,21 @@ function joinList(items: string[]): string {
   return items.join(", ");
 }
 
+type ListField =
+  | "serviceTypes"
+  | "serviceRegions"
+  | "languages"
+  | "specialisations";
+
+function listDraftsFromData(data: WorkerProfileFormData) {
+  return {
+    serviceTypes: joinList(data.serviceTypes),
+    serviceRegions: joinList(data.serviceRegions),
+    languages: joinList(data.languages),
+    specialisations: joinList(data.specialisations),
+  };
+}
+
 export function WorkerProfileForm({
   initial,
   onSuccessRedirect,
@@ -39,9 +54,37 @@ export function WorkerProfileForm({
 }) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
+  const [listDrafts, setListDrafts] = useState(() => listDraftsFromData(initial));
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const commitListField = (field: ListField) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: parseList(listDrafts[field]),
+    }));
+  };
+
+  const commitAllListFields = () => {
+    setForm((prev) => ({
+      ...prev,
+      serviceTypes: parseList(listDrafts.serviceTypes),
+      serviceRegions: parseList(listDrafts.serviceRegions),
+      languages: parseList(listDrafts.languages),
+      specialisations: parseList(listDrafts.specialisations),
+    }));
+  };
+
+  const listInputProps = (field: ListField, id: string) => ({
+    id,
+    className: formInputClass,
+    value: listDrafts[field],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      setListDrafts((prev) => ({ ...prev, [field]: e.target.value }));
+    },
+    onBlur: () => commitListField(field),
+  });
 
   return (
     <form
@@ -50,10 +93,18 @@ export function WorkerProfileForm({
         e.preventDefault();
         setLoading(true);
         setError("");
+        commitAllListFields();
+        const payload = {
+          ...form,
+          serviceTypes: parseList(listDrafts.serviceTypes),
+          serviceRegions: parseList(listDrafts.serviceRegions),
+          languages: parseList(listDrafts.languages),
+          specialisations: parseList(listDrafts.specialisations),
+        };
         const res = await fetch("/api/worker-profile", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         });
         setLoading(false);
         if (!res.ok) {
@@ -113,14 +164,7 @@ export function WorkerProfileForm({
         label="Service types"
         hint="Comma-separated, e.g. personal_care, community_access"
       >
-        <input
-          id="serviceTypes"
-          className={formInputClass}
-          value={joinList(form.serviceTypes)}
-          onChange={(e) =>
-            setForm({ ...form, serviceTypes: parseList(e.target.value) })
-          }
-        />
+        <input {...listInputProps("serviceTypes", "serviceTypes")} />
       </AccessibleFormField>
 
       <AccessibleFormField
@@ -128,36 +172,15 @@ export function WorkerProfileForm({
         label="Service regions"
         hint="Comma-separated areas you work in"
       >
-        <input
-          id="serviceRegions"
-          className={formInputClass}
-          value={joinList(form.serviceRegions)}
-          onChange={(e) =>
-            setForm({ ...form, serviceRegions: parseList(e.target.value) })
-          }
-        />
+        <input {...listInputProps("serviceRegions", "serviceRegions")} />
       </AccessibleFormField>
 
       <AccessibleFormField id="languages" label="Languages">
-        <input
-          id="languages"
-          className={formInputClass}
-          value={joinList(form.languages)}
-          onChange={(e) =>
-            setForm({ ...form, languages: parseList(e.target.value) })
-          }
-        />
+        <input {...listInputProps("languages", "languages")} />
       </AccessibleFormField>
 
       <AccessibleFormField id="specialisations" label="Specialisations">
-        <input
-          id="specialisations"
-          className={formInputClass}
-          value={joinList(form.specialisations)}
-          onChange={(e) =>
-            setForm({ ...form, specialisations: parseList(e.target.value) })
-          }
-        />
+        <input {...listInputProps("specialisations", "specialisations")} />
       </AccessibleFormField>
 
       {error && <p className="text-red-600 text-sm">{error}</p>}

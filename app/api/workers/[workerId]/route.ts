@@ -7,6 +7,7 @@ import {
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { hasPermission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
+import { canManageWorkersInOrganisation } from "@/lib/workers/worker-org-access";
 import { updateWorkerProfileSelf } from "@/lib/workers/worker-profile-service";
 import {
   canAccessWorkerProfile,
@@ -48,7 +49,11 @@ export async function PATCH(
   }
 
   const isSelf = profile.userId === user.id;
-  const canManageOrg = hasPermission(user.primaryRole, "worker:manage:org");
+  const canManageOrg = await canManageWorkersInOrganisation(
+    user.id,
+    profile.organisationId,
+    user.primaryRole
+  );
 
   if (!isSelf && !canManageOrg) {
     return jsonError("Forbidden", 403);
