@@ -1,8 +1,0 @@
-  providerResponseStatus ProviderResponseStatus @default(not_sent)
-  providerResponseNote   String?
-  providerRespondedAt    DateTime?
-  fundingSourceId      String?
-  fundingSource        ParticipantFundingSource? @relation(fields: [fundingSourceId], references: [id], onDelete: SetNull)
-  invoices             Invoice[]
-  timelineEvents       BookingTimelineEvent[]
-  conversations        Conversation[]

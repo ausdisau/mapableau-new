@@ -81,8 +81,7 @@ CASE_MANAGEMENT_AI_ENGINE_ID=rules-v1  # stamped on every CaseAIInsight row
 
 ## Database
 
-New models in `prisma/schema.prisma` (also mirrored in
-`prisma/phase-case-management.prisma`):
+New models in `prisma/schema.prisma`:
 
 - `Case` — reference, title, description, status, priority, category,
   riskLevel, participant/assignedTo/createdBy/closedBy, tagsJson,
