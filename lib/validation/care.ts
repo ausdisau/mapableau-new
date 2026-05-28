@@ -44,6 +44,16 @@ export const assignCareProviderSchema = z.object({
   organisationId: z.string(),
 });
 
+export const recordServiceRequestApprovalSchema = z.object({
+  decision: z.enum(["pending", "approved", "rejected"]),
+  reason: z.string().max(2000).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const rejectQuotationSchema = z.object({
+  reason: z.string().min(3).max(2000),
+});
+
 export const careTaskSchema = z.object({
   name: z.string().optional(),
   intensity: z.enum(["standard", "high"]).optional(),

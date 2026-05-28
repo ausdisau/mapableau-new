@@ -6,6 +6,7 @@ import { syncCalendarForCareRequest } from "@/lib/calendar/calendar-service";
 import { checkConsent } from "@/lib/consent/consent-service";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
+import { onCareRequestSubmitted } from "@/lib/care/service-request-worker";
 
 export async function createCareRequest(params: {
   participantId: string;
@@ -100,6 +101,11 @@ export async function submitCareRequest(
   for (const a of admins) {
     await notifyUser(a.id, "booking", "Care request submitted", request.title);
   }
+
+  await onCareRequestSubmitted({
+    careRequestId: request.id,
+    actorUserId,
+  });
 
   return request;
 }
