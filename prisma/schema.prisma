@@ -1240,6 +1240,21 @@ enum CareInvoiceLinkStatus {
   blocked_no_service_log
 }
 
+enum ServiceQuotationStatus {
+  draft
+  awaiting_approval
+  ready_for_review
+  confirmed
+  rejected
+  expired
+}
+
+enum ServiceRequestApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
 enum WorkerCredentialStatus {
   not_provided
   pending_review
@@ -1373,10 +1388,54 @@ model CareRequest {
   calendarEvents          CalendarEvent[]
   orchestrationEvents     OrchestrationEvent[]
   careBooking             CareBooking?
+  serviceQuotations       ServiceQuotation[]
+  serviceRequestApprovals ServiceRequestApproval[]
 
   @@index([participantId, status])
   @@index([assignedOrganisationId])
   @@map("care_requests")
+}
+
+model ServiceQuotation {
+  id                 String                 @id @default(cuid())
+  careRequestId      String
+  careRequest        CareRequest            @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
+  status             ServiceQuotationStatus @default(draft)
+  currency           String                 @default("AUD")
+  subtotalCents      Int                    @default(0)
+  taxCents           Int                    @default(0)
+  totalCents         Int                    @default(0)
+  lineItems          Json                   @default("[]")
+  notes              String?
+  version            Int                    @default(1)
+  createdById        String
+  approvedByUserId   String?
+  rejectedReason     String?
+  expiresAt          DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@index([careRequestId, status])
+  @@index([status, updatedAt])
+  @@map("service_quotations")
+}
+
+model ServiceRequestApproval {
+  id              String                       @id @default(cuid())
+  careRequestId   String
+  careRequest     CareRequest                  @relation(fields: [careRequestId], references: [id], onDelete: Cascade)
+  actorUserId     String
+  actorRole       String
+  decision        ServiceRequestApprovalStatus
+  reason          String?
+  metadata        Json?
+  decidedAt       DateTime                     @default(now())
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  @@index([careRequestId, decision])
+  @@index([actorUserId, decidedAt])
+  @@map("service_request_approvals")
 }
 
 model CareShift {
