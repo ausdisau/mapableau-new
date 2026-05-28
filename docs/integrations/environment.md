@@ -44,6 +44,45 @@ Always required when the app runs against a database.
 - `KEYCLOAK_ISSUER_URL`
 - `KEYCLOAK_REDIRECT_URI`
 
+### Auth0 (`AUTH0_ENABLED=true`)
+
+Social / enterprise login via NextAuth (alongside email/password).
+
+- `AUTH0_CLIENT_ID`
+- `AUTH0_CLIENT_SECRET`
+- `AUTH0_ISSUER` — full issuer URL, e.g. `https://ad-id.au.auth0.com` (or set `AUTH0_DOMAIN=ad-id.au.auth0.com`)
+
+In the Auth0 application settings, add callback URLs:
+
+- `https://<your-domain>/api/auth/callback/auth0`
+- `http://localhost:3000/api/auth/callback/auth0` (local)
+
+Also set **Allowed Logout URLs** and **Allowed Web Origins** to your app origin(s).
+
+`NEXTAUTH_SECRET` and `NEXTAUTH_URL` remain required for sessions.
+
+#### Social login (Google, Facebook, Microsoft)
+
+Enable each connection in the Auth0 dashboard for the **MapAble** application, then sign-in buttons appear on `/login`.
+
+| Provider | Auth0 connection name (default) | Override env |
+|----------|----------------------------------|--------------|
+| Google | `google-oauth2` | `AUTH0_GOOGLE_CONNECTION` |
+| Facebook | `facebook` | `AUTH0_FACEBOOK_CONNECTION` |
+| Microsoft (personal) | `windowslive` | `AUTH0_MICROSOFT_CONNECTION` |
+
+For **Microsoft work/school (Entra ID)**, create an **Azure AD** connection in Auth0 and set `AUTH0_MICROSOFT_CONNECTION` to that connection’s name (often not `windowslive`).
+
+Disable a button without disabling Auth0:
+
+- `AUTH0_SOCIAL_GOOGLE_ENABLED=false`
+- `AUTH0_SOCIAL_FACEBOOK_ENABLED=false`
+- `AUTH0_SOCIAL_MICROSOFT_ENABLED=false`
+
+**Facebook:** In Auth0 → Authentication → Social → Facebook, enable **email** permission so MapAble can link accounts by email.
+
+**Google / Microsoft:** Use the connection’s client ID and secret from Google Cloud / Microsoft Entra as prompted in Auth0.
+
 ### MapLibre (`MAP_INTEGRATION_ENABLED` not `false`)
 
 - `NEXT_PUBLIC_MAP_STYLE_URL`

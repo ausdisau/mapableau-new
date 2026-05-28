@@ -176,12 +176,18 @@ export function Footer() {
             © 2025 Australian Disability Ltd. All rights reserved.
           </p>
           <div className="flex gap-6 text-xs text-muted-foreground">
-            <span className="hover:text-primary cursor-pointer">
+            <Link
+              href="/privacy"
+              className="hover:text-primary underline-offset-2 hover:underline"
+            >
               Privacy Policy
-            </span>
-            <span className="hover:text-primary cursor-pointer">
+            </Link>
+            <Link
+              href="/terms"
+              className="hover:text-primary underline-offset-2 hover:underline"
+            >
               Terms of Service
-            </span>
+            </Link>
           </div>
         </div>
       </div>

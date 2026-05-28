@@ -4,6 +4,17 @@ export type CoreNavLink = {
   description?: string;
 };
 
+/** Hero copy for `/core` — aligned with Master Business Plan single-account language. */
+export const CORE_HUB_HERO = {
+  eyebrow: "MapAble Core · Australian Disability Ltd",
+  titleLead: "One account for care, transport",
+  titleAccent: "and employment",
+  description:
+    "MapAble Core is the ecosystem backbone: a single secure account, billing and subscriptions in one place, unified messaging, and support when you need it. Built for participants, providers and administrators — consent-aware by default, with plain language and accessible design.",
+  socialEnterpriseNote:
+    "MapAble is an Australian Disability Ltd social-enterprise initiative — disability justice, transparency and participant control are built in, not bolted on.",
+} as const;
+
 export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
   { href: "/core", label: "Home" },
   { href: "/ask", label: "Ask MapAble", description: "Co-Pilot + PRMS" },

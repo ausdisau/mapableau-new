@@ -4,7 +4,10 @@ import {
   mapOrganisationRoleToProviderRole,
   PROVIDER_CONSOLE_ORG_ROLES,
 } from "@/lib/providers/provider-access";
-import { PROVIDER_BILLING_TENANCY_NOTE } from "@/lib/providers/provider-cloud-context";
+import {
+  PROVIDER_BILLING_TENANCY_NOTE_ORG,
+  PROVIDER_BILLING_TENANCY_NOTE_USER,
+} from "@/lib/providers/provider-cloud-context";
 import { formatProviderIntegrationHealthLabel } from "@/lib/providers/provider-cloud-integrations";
 
 describe("provider access", () => {
@@ -23,9 +26,9 @@ describe("provider access", () => {
 });
 
 describe("provider cloud billing tenancy", () => {
-  it("documents user-scoped billing", () => {
-    expect(PROVIDER_BILLING_TENANCY_NOTE).toMatch(/signed-in MapAble account/i);
-    expect(PROVIDER_BILLING_TENANCY_NOTE).toMatch(/organisation row/i);
+  it("documents user- and org-scoped billing copy", () => {
+    expect(PROVIDER_BILLING_TENANCY_NOTE_USER).toMatch(/personal MapAble billing/i);
+    expect(PROVIDER_BILLING_TENANCY_NOTE_ORG).toMatch(/organisation billing account/i);
   });
 });
 

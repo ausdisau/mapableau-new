@@ -75,6 +75,7 @@ export const subscriptionCheckoutSchema = z.object({
     "marketplace_featured",
     "other",
   ]),
+  organisationId: z.string().cuid().optional(),
 });
 
 export const connectOnboardingSchema = z.object({

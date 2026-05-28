@@ -3,8 +3,8 @@ import Stripe from "stripe";
 import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
 import { StripeNotConfiguredError } from "@/lib/stripe/errors";
 
-/** Pinned Stripe API version for MapAble Core billing. */
-export const STRIPE_API_VERSION = "2026-04-22.dahlia" as const;
+/** Pinned Stripe API version for MapAble Core billing (matches stripe npm SDK). */
+export const STRIPE_API_VERSION = "2026-05-27.dahlia" as const;
 
 let stripeClient: Stripe | null = null;
 

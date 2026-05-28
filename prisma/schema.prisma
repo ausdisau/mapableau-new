@@ -81,6 +81,8 @@ model User {
   calendarEvents            CalendarEvent[]    @relation("CalendarEventParticipant")
   calendarEventsCreated     CalendarEvent[]    @relation("CalendarEventCreatedBy")
   matchRunsRequested        MatchRun[]         @relation("MatchRunRequestedBy")
+  careAllocationRunsRequested CareAllocationRun[] @relation("CareAllocationRunRequestedBy")
+  careAllocationDecisions   CareAllocationDecision[] @relation("CareAllocationDecisionBy")
   incidentsReported         IncidentReport[]   @relation("IncidentReportedBy")
   incidentsOwned            IncidentReport[]   @relation("IncidentAdminOwner")
   serviceAgreementsParticipant ServiceAgreement[] @relation("ServiceAgreementParticipant")
@@ -565,6 +567,8 @@ model Organisation {
   ndisRegistrationNumber  String?
   insuranceStatus         String?
   notes                   String?
+  billingAccountId        String?            @unique
+  billingAccount          BillingAccount?    @relation("OrganisationBillingAccount", fields: [billingAccountId], references: [id], onDelete: SetNull)
   createdAt               DateTime           @default(now())
   updatedAt               DateTime           @updatedAt
 
@@ -585,6 +589,7 @@ model Organisation {
   careShifts             CareShift[]
   careRosterAssignments  CareRosterAssignment[]
   careInvoiceLinks       CareInvoiceLink[]
+  careAllocationRuns     CareAllocationRun[]
   workerProfiles         WorkerProfile[]
   capacityBlocks         CapacityBlock[]
   vehicles               Vehicle[]
@@ -1239,6 +1244,43 @@ enum CareBookingStatus {
   disputed
 }
 
+enum CareAllocationTrigger {
+  booking_accepted
+  manual
+  scheduled
+}
+
+enum CareAllocationRunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+enum CareAllocationProposalStatus {
+  generated
+  recommended
+  auto_eligible
+  review_required
+  approved
+  rejected
+  executed
+  blocked
+}
+
+enum CareAllocationAutonomyTier {
+  recommend_only
+  conditional_auto
+  org_default
+}
+
+enum CareAllocationDecisionType {
+  approved
+  rejected
+  auto_executed
+  override
+}
+
 enum CareServiceLogStatus {
   draft
   submitted
@@ -1460,10 +1502,74 @@ model CareBooking {
   livingAloneSafeguards CareLivingAloneSafeguard[]
   recoveryLinks     CareServiceRecoveryLink[]
   invoiceLinks      CareInvoiceLink[]
+  allocationRuns    CareAllocationRun[]
 
   @@index([participantId, status])
   @@index([organisationId, status])
   @@map("care_bookings")
+}
+
+model CareAllocationRun {
+  id              String                     @id @default(cuid())
+  careBookingId   String
+  careBooking     CareBooking                @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  careRequestId   String
+  organisationId  String
+  organisation    Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantId   String
+  trigger         CareAllocationTrigger
+  status          CareAllocationRunStatus    @default(pending)
+  autonomyTier    CareAllocationAutonomyTier @default(recommend_only)
+  matchRunId      String?
+  aiMatchRunId    String?
+  requestedById   String
+  requestedBy     User                       @relation("CareAllocationRunRequestedBy", fields: [requestedById], references: [id])
+  errorMessage    String?
+  createdAt       DateTime                   @default(now())
+  completedAt     DateTime?
+
+  proposals CareAllocationProposal[]
+
+  @@index([careBookingId, createdAt])
+  @@index([organisationId, status])
+  @@map("care_allocation_runs")
+}
+
+model CareAllocationProposal {
+  id                String                       @id @default(cuid())
+  allocationRunId   String
+  allocationRun     CareAllocationRun            @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
+  workerProfileId   String
+  workerProfile     WorkerProfile                @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  matchCandidateId  String?
+  rank              Int                          @default(0)
+  combinedScore     Float                        @default(0)
+  gateResult        String                       @default("review_required")
+  gateSummary       Json                         @default("[]")
+  status            CareAllocationProposalStatus @default(generated)
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+
+  decisions CareAllocationDecision[]
+
+  @@index([allocationRunId, status])
+  @@index([workerProfileId])
+  @@map("care_allocation_proposals")
+}
+
+model CareAllocationDecision {
+  id           String                       @id @default(cuid())
+  proposalId   String
+  proposal     CareAllocationProposal       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  decidedById  String?
+  decidedBy    User?                        @relation("CareAllocationDecisionBy", fields: [decidedById], references: [id], onDelete: SetNull)
+  decision     CareAllocationDecisionType
+  autonomyTier CareAllocationAutonomyTier
+  notes        String?
+  createdAt    DateTime                     @default(now())
+
+  @@index([proposalId, createdAt])
+  @@map("care_allocation_decisions")
 }
 
 model CareBookingEvent {
@@ -1713,6 +1819,7 @@ model WorkerProfile {
   careServiceLogs         CareServiceLog[]
   careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
+  allocationProposals     CareAllocationProposal[]
 
   @@unique([userId, organisationId])
   @@index([organisationId, active])
@@ -2081,6 +2188,7 @@ enum SmartContractType {
   provider_verification_gate
   worker_assignment_gate
   transport_assignment_gate
+  care_allocation_gate
   invoice_preflight_gate
   payment_release_gate
   incident_escalation_gate
@@ -3682,9 +3790,21 @@ enum LaunchReadinessStatus {
   waived
 }
 
+enum PlatformGapResolutionStatus {
+  open
+  in_progress
+  mitigated
+  accepted_risk
+  closed
+}
+
 enum DispatchQueueType {
   care_shift
+  care_allocation
   transport_booking
+  transport_plan_review
+  transport_dispatch
+  transport_optimisation_review
   incident
   general
 }
@@ -3709,12 +3829,23 @@ model LaunchReadinessItem {
   title       String
   description String?
   status      LaunchReadinessStatus @default(not_started)
+  notes       String?
   evidenceDocumentId String?
   completedAt DateTime?
   completedById String?
   sortOrder   Int                   @default(0)
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
+}
+
+model PlatformGapOverride {
+  id          String                      @id @default(cuid())
+  code        String                      @unique
+  status      PlatformGapResolutionStatus @default(open)
+  notes       String?
+  updatedById String?
+  updatedAt   DateTime                    @updatedAt
+  createdAt   DateTime                    @default(now())
 }
 
 model MobileReleaseTrack {
@@ -4892,6 +5023,7 @@ model BillingAccount {
 
   fundingSources BillingFundingSource[]
   subscriptions  BillingSubscription[]
+  organisation   Organisation?          @relation("OrganisationBillingAccount")
 
   @@unique([userId, role])
   @@index([stripeCustomerId])

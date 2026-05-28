@@ -1,58 +1,93 @@
-import Link from "next/link";
-
-import { CoreHubCard } from "@/components/core/CoreHubCard";
-import { CorePageHeader } from "@/components/core/CorePageHeader";
-import { CORE_HUB_SECTIONS } from "@/lib/core-ui/navigation";
+import {
+  CoreCapabilityStrip,
+  CoreEcosystemCard,
+  CoreHubCard,
+  CorePageHeader,
+  CorePillarCard,
+  CoreQuickActions,
+  CoreSection,
+} from "@/components/core";
+import { CORE_CAPABILITIES, CORE_CAPABILITIES_SECTION } from "@/lib/core-ui/core-capabilities";
+import { CORE_ECOSYSTEM_APPS, CORE_ECOSYSTEM_SECTION } from "@/lib/core-ui/ecosystem";
+import { CORE_HUB_HERO, CORE_HUB_SECTIONS } from "@/lib/core-ui/navigation";
+import { CORE_PILLARS_SECTION, CORE_SERVICE_PILLARS } from "@/lib/core-ui/pillars";
 
 export const metadata = {
   title: "MapAble Core",
-  description: "Disability support, transport and public accountability in one platform.",
+  description:
+    "One account for care, transport and employment — billing, messaging and support in a single accessible hub.",
 };
 
 export default function CoreHubPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-12 px-4 py-10">
       <CorePageHeader
-        eyebrow="MapAble Core"
+        eyebrow={CORE_HUB_HERO.eyebrow}
         centered
         title={
           <>
-            Care, transport & <span className="text-primary">accountability</span>
+            {CORE_HUB_HERO.titleLead}{" "}
+            <span className="text-primary">{CORE_HUB_HERO.titleAccent}</span>
           </>
         }
-        description="Your control panel for care and scheduled transport trips, plus public transparency and accountability tools. Plain language, accessible design, and consent-aware by default."
+        description={CORE_HUB_HERO.description}
       >
-        <div className="flex flex-wrap justify-center gap-3 pt-2">
-          <Link
-            href="/login"
-            className="inline-flex min-h-10 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/dashboard"
-            className="inline-flex min-h-10 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Go to control panel
-          </Link>
-        </div>
+        <CoreQuickActions />
       </CorePageHeader>
 
+      <CoreSection
+        title={CORE_CAPABILITIES_SECTION.title}
+        description={CORE_CAPABILITIES_SECTION.description}
+      >
+        <CoreCapabilityStrip capabilities={CORE_CAPABILITIES} />
+      </CoreSection>
+
+      <CoreSection
+        title={CORE_PILLARS_SECTION.title}
+        description={CORE_PILLARS_SECTION.description}
+      >
+        <div className="grid gap-4 lg:grid-cols-3">
+          {CORE_SERVICE_PILLARS.map((pillar) => (
+            <CorePillarCard key={pillar.id} pillar={pillar} />
+          ))}
+        </div>
+      </CoreSection>
+
+      <CoreSection
+        id={CORE_ECOSYSTEM_SECTION.id}
+        title={CORE_ECOSYSTEM_SECTION.title}
+        description={CORE_ECOSYSTEM_SECTION.description}
+      >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CORE_ECOSYSTEM_APPS.map((app) => (
+            <CoreEcosystemCard key={app.id} app={app} />
+          ))}
+        </div>
+      </CoreSection>
+
       {CORE_HUB_SECTIONS.map((section) => (
-        <section key={section.title} id={section.title === "Public accountability" ? "civic" : undefined}>
-          <h2 className="font-heading text-xl font-semibold">{section.title}</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <CoreSection
+          key={section.title}
+          id={section.title === "Public accountability" ? "civic" : undefined}
+          title={section.title}
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {section.links.map((link) => (
               <CoreHubCard
                 key={link.href}
                 href={link.href}
                 title={link.label}
                 description={link.description}
+                status="live"
               />
             ))}
           </div>
-        </section>
+        </CoreSection>
       ))}
+
+      <footer className="border-t border-border/60 pt-8 text-center text-sm text-muted-foreground">
+        <p className="mx-auto max-w-2xl">{CORE_HUB_HERO.socialEnterpriseNote}</p>
+      </footer>
     </div>
   );
 }

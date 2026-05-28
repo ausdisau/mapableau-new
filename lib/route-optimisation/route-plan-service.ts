@@ -1,6 +1,7 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase5Config } from "@/lib/config/phase5";
 import { prisma } from "@/lib/prisma";
+import { enqueueTransportPlanReview } from "@/lib/transport-dispatch/planning-bridge";
 
 export async function planFromTransportBooking(
   transportBookingId: string,
@@ -70,6 +71,17 @@ export async function planFromTransportBooking(
     entityId: plan.id,
   });
 
+  if (plan.transportBookingId) {
+    const booking = await prisma.transportBooking.findUnique({
+      where: { id: plan.transportBookingId },
+      select: { operatorOrganisationId: true },
+    });
+    await enqueueTransportPlanReview(
+      plan.id,
+      booking?.operatorOrganisationId ?? undefined
+    );
+  }
+
   return plan;
 }
 
@@ -112,6 +124,11 @@ export async function selectRoutePlan(
     entityType: "RoutePlan",
     entityId: routePlanId,
   });
+
+  const { closeDispatchQueueForEntity } = await import(
+    "@/lib/dispatch-console/dispatch-service"
+  );
+  await closeDispatchQueueForEntity("RoutePlan", routePlanId);
 
   return plan;
 }

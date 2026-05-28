@@ -49,6 +49,11 @@ const integrationRules: IntegrationEnvRule[] = [
     ],
   },
   {
+    key: "auth0",
+    enabledWhen: () => envTrue("AUTH0_ENABLED"),
+    requiredVars: ["AUTH0_CLIENT_ID", "AUTH0_CLIENT_SECRET"],
+  },
+  {
     key: "maplibre",
     enabledWhen: () => process.env.MAP_INTEGRATION_ENABLED !== "false",
     requiredVars: ["NEXT_PUBLIC_MAP_STYLE_URL"],

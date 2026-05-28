@@ -19,6 +19,8 @@ Grant `transport.trip_access` via `/dashboard/consent` — summary view (suburb-
 
 `/provider/transport/dispatch` lists org trips. Match suggestions from `/api/provider/transport/trips/[id]/match-suggestions` are **advisory**; assignment stays manual via `POST .../assign` (422 returns eligibility reasons).
 
+Route plans and optimisation jobs with `review_required` / `requiresHumanReview` appear in the **admin dispatch console** and require human approval before dispatch — they do not auto-assign drivers or vehicles.
+
 ### Pooling (phase 2)
 
 Enable `TRANSPORT_RIDE_POOLING_ENABLED=true`. Use `/provider/transport/runs` to create a `RideRun`, attach trips, and **lock** the run after human review. Combined mobility uses strictest-wins intersection; vehicle must pass eligibility for all attached trips.

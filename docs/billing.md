@@ -19,6 +19,16 @@ Server-only Stripe Node SDK (pinned API version in `lib/stripe/client.ts`):
 **Enable legacy routes:** `STRIPE_SECRET_KEY` + `BILLING_ENABLE_STRIPE=true` or `STRIPE_ENABLED=true`.  
 **Billing-core routes:** only require `STRIPE_SECRET_KEY`.
 
+### PayPal (via Stripe Checkout)
+
+MapAble does **not** use a separate PayPal SDK. Checkout uses [dynamic payment methods](https://docs.stripe.com/payments/payment-methods/dynamic-payment-methods) (no `payment_method_types` in code — see `lib/stripe/checkout.ts`).
+
+**Dashboard:** [Payment methods](https://dashboard.stripe.com/settings/payment_methods) → enable **PayPal** → [activate and link PayPal](https://docs.stripe.com/payments/paypal/activate).
+
+**Australia caveat:** Stripe’s standard PayPal payment method is only available when your **Stripe account country** is in Stripe’s [supported business locations list](https://docs.stripe.com/payments/paypal) (primarily EEA). AUD is a supported **presentment** currency, but an Australian platform account may not see PayPal until Stripe enables it — check the Dashboard or contact Stripe Support. If unavailable, use a [PayPal custom payment method](https://docs.stripe.com/payments/payment-methods/custom-payment-methods/paypal) or a direct PayPal integration instead.
+
+Full steps: [docs/billing-paypal-via-stripe.md](billing-paypal-via-stripe.md).
+
 ## Architecture
 
 - **Stripe** — payment processing truth (Checkout, Connect, Customer Portal, webhooks).

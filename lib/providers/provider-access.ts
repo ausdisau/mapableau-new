@@ -10,6 +10,42 @@ export const PROVIDER_CONSOLE_ORG_ROLES: MapAbleUserRole[] = [
   "driver",
 ];
 
+/**
+ * Preferred path for granting provider console access (replaces ProviderUserRole writes).
+ */
+export async function assignOrganisationProviderAccess(input: {
+  userId: string;
+  organisationId: string;
+  role: MapAbleUserRole;
+}) {
+  if (!PROVIDER_CONSOLE_ORG_ROLES.includes(input.role)) {
+    throw new Error("INVALID_PROVIDER_ORG_ROLE");
+  }
+  return prisma.organisationMember.upsert({
+    where: {
+      userId_organisationId: {
+        userId: input.userId,
+        organisationId: input.organisationId,
+      },
+    },
+    create: {
+      userId: input.userId,
+      organisationId: input.organisationId,
+      role: input.role,
+    },
+    update: { role: input.role },
+  });
+}
+
+/** @deprecated Legacy model — do not create new rows outside seed/migration scripts. */
+export function assertProviderUserRoleWriteAllowed(context: "seed" | "migration") {
+  if (context !== "seed" && context !== "migration") {
+    throw new Error(
+      "ProviderUserRole is read-only; assign OrganisationMember via assignOrganisationProviderAccess"
+    );
+  }
+}
+
 export function mapOrganisationRoleToProviderRole(
   role: MapAbleUserRole
 ): ProviderRole {
@@ -28,61 +64,61 @@ export function mapOrganisationRoleToProviderRole(
 export async function userHasProviderConsoleAccess(
   userId: string
 ): Promise<boolean> {
-  const [legacy, orgMember] = await Promise.all([
-    prisma.providerUserRole.findFirst({
-      where: { userId },
-      select: { id: true },
-    }),
-    prisma.organisationMember.findFirst({
-      where: {
-        userId,
-        role: { in: PROVIDER_CONSOLE_ORG_ROLES },
-      },
-      select: { id: true },
-    }),
-  ]);
-  return Boolean(legacy ?? orgMember);
+  const orgMember = await prisma.organisationMember.findFirst({
+    where: {
+      userId,
+      role: { in: PROVIDER_CONSOLE_ORG_ROLES },
+    },
+    select: { id: true },
+  });
+  if (orgMember) return true;
+
+  const legacy = await prisma.providerUserRole.findFirst({
+    where: { userId },
+    select: { id: true },
+  });
+  return Boolean(legacy);
 }
 
 /**
- * Legacy ProviderUserRole first; otherwise OrganisationMember on the provider's org.
+ * OrganisationMember on the provider's org is authoritative; legacy ProviderUserRole is read-only fallback.
  */
 export async function getProviderMembership(
   userId: string,
   providerId: string
 ) {
-  const legacy = await prisma.providerUserRole.findUnique({
-    where: { userId_providerId: { userId, providerId } },
-    include: { provider: { select: { id: true, name: true } } },
-  });
-  if (legacy) return legacy;
-
   const provider = await prisma.provider.findUnique({
     where: { id: providerId },
     select: { id: true, name: true, organisationId: true },
   });
-  if (!provider?.organisationId) return null;
+  if (!provider) return null;
 
-  const orgMember = await prisma.organisationMember.findUnique({
-    where: {
-      userId_organisationId: {
-        userId,
-        organisationId: provider.organisationId,
+  if (provider.organisationId) {
+    const orgMember = await prisma.organisationMember.findUnique({
+      where: {
+        userId_organisationId: {
+          userId,
+          organisationId: provider.organisationId,
+        },
       },
-    },
-  });
-  if (!orgMember || !PROVIDER_CONSOLE_ORG_ROLES.includes(orgMember.role)) {
-    return null;
+    });
+    if (orgMember && PROVIDER_CONSOLE_ORG_ROLES.includes(orgMember.role)) {
+      return {
+        id: `org-member:${orgMember.id}`,
+        userId,
+        providerId: provider.id,
+        role: mapOrganisationRoleToProviderRole(orgMember.role),
+        assignedAt: orgMember.createdAt,
+        provider: { id: provider.id, name: provider.name },
+      };
+    }
   }
 
-  return {
-    id: `org-member:${orgMember.id}`,
-    userId,
-    providerId: provider.id,
-    role: mapOrganisationRoleToProviderRole(orgMember.role),
-    assignedAt: orgMember.createdAt,
-    provider: { id: provider.id, name: provider.name },
-  };
+  const legacy = await prisma.providerUserRole.findUnique({
+    where: { userId_providerId: { userId, providerId } },
+    include: { provider: { select: { id: true, name: true } } },
+  });
+  return legacy;
 }
 
 export type ProviderMembershipSummary = {

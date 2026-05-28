@@ -1,7 +1,15 @@
+export { CoreCapabilityStrip } from "./CoreCapabilityStrip";
+export { CoreEcosystemCard } from "./CoreEcosystemCard";
 export { CoreFooter } from "./CoreFooter";
 export { CoreHeader } from "./CoreHeader";
 export { CoreHubCard } from "./CoreHubCard";
+export type { CoreHubCardStatus } from "./CoreHubCard";
 export { CorePageHeader } from "./CorePageHeader";
+export { CorePillarCard } from "./CorePillarCard";
+export { CoreQuickActions } from "./CoreQuickActions";
+export { CoreRoadmapBadge } from "./CoreRoadmapBadge";
+export type { CoreRoadmapBadgeVariant } from "./CoreRoadmapBadge";
+export { CoreSection } from "./CoreSection";
 export { CoreShell } from "./CoreShell";
 export { PortalNav } from "./PortalNav";
 export { SkipToContent } from "./SkipToContent";

@@ -8,10 +8,18 @@ import { prisma } from "@/lib/prisma";
 export default async function ProviderCarePage() {
   const user = await requireAuth();
   const orgIds = await getUserOrganisationIds(user.id);
-  const requests = await prisma.careRequest.findMany({
-    where: { assignedOrganisationId: { in: orgIds } },
-    orderBy: { createdAt: "desc" },
-  });
+  const [requests, allocationReviewCount] = await Promise.all([
+    prisma.careRequest.findMany({
+      where: { assignedOrganisationId: { in: orgIds } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.careAllocationProposal.count({
+      where: {
+        status: "review_required",
+        allocationRun: { organisationId: { in: orgIds } },
+      },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -25,6 +33,12 @@ export default async function ProviderCarePage() {
         </Link>
         <Link href="/provider/care/service-logs" className="underline">
           Service logs
+        </Link>
+        <Link href="/provider/care/allocations" className="underline">
+          Allocation review
+          {allocationReviewCount > 0
+            ? ` (${allocationReviewCount})`
+            : ""}
         </Link>
       </nav>
       <h2 className="text-lg font-semibold">Assigned care requests</h2>

@@ -32,6 +32,8 @@ const LINKS = [
   { href: "/admin/fairness", label: "Fairness" },
   { href: "/admin/reporting", label: "Reporting" },
   { href: "/admin/integrations", label: "Integrations" },
+  { href: "/admin/platform-gaps", label: "Platform gaps" },
+  { href: "/admin/readiness", label: "Readiness" },
   { href: "/admin/ndia-readiness", label: "NDIA readiness" },
   { href: "/admin/compliance", label: "Compliance" },
   { href: "/admin/security-readiness", label: "Security" },

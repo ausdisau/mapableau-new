@@ -10,10 +10,15 @@ import { getProviderCloudIntegrations } from "@/lib/providers/provider-cloud-int
 import type { ProviderCloudIntegration } from "@/lib/providers/provider-cloud-integrations";
 import { prisma } from "@/lib/prisma";
 
-export type ProviderBillingTenancy = "user_billing_account";
+export type ProviderBillingTenancy =
+  | "user_billing_account"
+  | "organisation_billing_account";
 
-export const PROVIDER_BILLING_TENANCY_NOTE =
-  "Provider Pro is billed to your signed-in MapAble account, not to the organisation row. All organisations you belong to share this plan until org-scoped billing exists.";
+export const PROVIDER_BILLING_TENANCY_NOTE_USER =
+  "Provider Pro is on your personal MapAble billing account. Subscribe from billing, or link an organisation subscription when checking out with an organisationId.";
+
+export const PROVIDER_BILLING_TENANCY_NOTE_ORG =
+  "Provider Pro for this organisation uses the organisation billing account. New org checkouts link billing to the organisation row.";
 
 export type ProviderCloudOrganisation = {
   id: string;
@@ -192,8 +197,37 @@ export async function getProviderOrgMetrics(
 }
 
 export async function getProviderSubscriptionForUser(
-  userId: string
+  userId: string,
+  organisationId?: string | null
 ): Promise<ProviderCloudSubscription> {
+  if (organisationId) {
+    const org = await prisma.organisation.findUnique({
+      where: { id: organisationId },
+      include: {
+        billingAccount: {
+          include: {
+            subscriptions: { orderBy: { updatedAt: "desc" }, take: 1 },
+          },
+        },
+      },
+    });
+    const orgLatest = org?.billingAccount?.subscriptions[0];
+    if (org?.billingAccount && orgLatest) {
+      const planCode = orgLatest.planCode ?? null;
+      const status = orgLatest.status ?? null;
+      return {
+        planCode,
+        status,
+        label: buildSubscriptionSummaryLabel(planCode, status),
+        connectOnboardingComplete:
+          org.billingAccount.connectOnboardingComplete ?? false,
+        hasStripeCustomer: Boolean(org.billingAccount.stripeCustomerId),
+        tenancy: "organisation_billing_account",
+        tenancyNote: PROVIDER_BILLING_TENANCY_NOTE_ORG,
+      };
+    }
+  }
+
   const account = await prisma.billingAccount.findUnique({
     where: { userId_role: { userId, role: "provider" } },
     include: {
@@ -215,7 +249,7 @@ export async function getProviderSubscriptionForUser(
     connectOnboardingComplete: account?.connectOnboardingComplete ?? false,
     hasStripeCustomer: Boolean(account?.stripeCustomerId),
     tenancy: "user_billing_account",
-    tenancyNote: PROVIDER_BILLING_TENANCY_NOTE,
+    tenancyNote: PROVIDER_BILLING_TENANCY_NOTE_USER,
   };
 }
 
@@ -241,7 +275,7 @@ export async function getProviderCloudContext(
     : null;
 
   const [subscription, integrations] = await Promise.all([
-    getProviderSubscriptionForUser(userId),
+    getProviderSubscriptionForUser(userId, primaryOrganisationId),
     getProviderCloudIntegrations(),
   ]);
 

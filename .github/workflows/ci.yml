@@ -1,0 +1,71 @@
+# MapAble quality gates — complements Vercel deploys (no deploy step here).
+# Repo: https://github.com/ausdisau/mapableau-new
+#
+# Secrets: none required for this workflow. Prisma only needs placeholder DB URLs
+# (see env below). Production secrets belong in GitHub/Vercel project settings, not
+# in this file — see docs/ci.md and README_NEON.md.
+#
+# Vercel: push/PR previews and production builds are handled by the linked Vercel
+# project (mapableau-new). Enable "Require status checks" on main once CI is green.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, type-check, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Skip git hooks during install (prepare still runs prisma generate).
+      HUSKY: "0"
+      # Prisma schema validation / client generation only — no live DB in CI.
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci?schema=public
+      DIRECT_URL: postgresql://ci:ci@127.0.0.1:5432/ci?schema=public
+      # Common app env placeholders so modules that read env at import time do not crash.
+      NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production
+      NEXTAUTH_URL: http://localhost:3000
+      NDIS_ENCRYPTION_KEY: ci-ndis-encryption-key-not-for-production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Prisma schema
+        run: pnpm exec prisma validate
+
+      - name: ESLint
+        run: pnpm lint
+
+      - name: TypeScript
+        run: pnpm type-check
+
+      - name: Vitest
+        run: pnpm test

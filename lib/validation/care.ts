@@ -55,6 +55,24 @@ export const assignCareWorkerSchema = z.object({
   endAt: z.string().datetime().optional(),
 });
 
+export const runCareAllocationSchema = z.object({
+  careBookingId: z.string(),
+  trigger: z.enum(["booking_accepted", "manual", "scheduled"]).optional(),
+});
+
+export const approveAllocationProposalSchema = z.object({
+  notes: z.string().max(2000).optional(),
+});
+
+export const rejectAllocationProposalSchema = z.object({
+  notes: z.string().max(2000).optional(),
+});
+
+export const assignAlternateAllocationSchema = z.object({
+  workerProfileId: z.string(),
+  notes: z.string().max(2000).optional(),
+});
+
 export const createCareServiceLogSchema = z.object({
   careShiftId: z.string(),
   supportsDelivered: z.array(z.record(z.string(), z.unknown())).optional(),
