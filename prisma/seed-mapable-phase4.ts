@@ -36,6 +36,25 @@ const CONTRACTS = [
     ],
   },
   {
+    code: "SERVICE_AGREEMENT_ACTIVATION_V1",
+    name: "Service agreement activation checks",
+    type: "service_agreement_gate" as const,
+    rulesJson: [
+      {
+        field: "hasParticipantSignature",
+        operator: "eq",
+        value: true,
+        message: "Participant signature is required",
+      },
+      {
+        field: "hasProviderSignature",
+        operator: "eq",
+        value: true,
+        message: "Provider signature is required",
+      },
+    ],
+  },
+  {
     code: "INCIDENT_ESCALATE_CRITICAL_V1",
     name: "Critical incident escalation",
     type: "incident_escalation_gate" as const,

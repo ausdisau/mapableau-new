@@ -85,6 +85,7 @@ model User {
   incidentsOwned            IncidentReport[]   @relation("IncidentAdminOwner")
   serviceAgreementsParticipant ServiceAgreement[] @relation("ServiceAgreementParticipant")
   serviceAgreementsCreated  ServiceAgreement[] @relation("ServiceAgreementCreatedBy")
+  serviceAgreementRevisionsAuthored ServiceAgreementRevision[] @relation("ServiceAgreementRevisionAuthor")
   attestationsAsActor       Attestation[]      @relation("AttestationActor")
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
 
@@ -2358,8 +2359,24 @@ model ServiceAgreement {
   createdAt                 DateTime               @default(now())
   updatedAt                 DateTime               @updatedAt
 
+  revisions                 ServiceAgreementRevision[]
+
   @@index([participantId, status])
   @@index([organisationId])
+}
+
+model ServiceAgreementRevision {
+  id            String            @id @default(cuid())
+  agreementId   String
+  agreement     ServiceAgreement  @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  authorUserId  String
+  author        User              @relation("ServiceAgreementRevisionAuthor", fields: [authorUserId], references: [id], onDelete: Cascade)
+  summary       String
+  changeSetJson Json?
+  createdAt     DateTime          @default(now())
+
+  @@index([agreementId, createdAt])
+  @@index([authorUserId])
 }
 
 model NdisSupportCategory {

@@ -53,6 +53,14 @@ export default async function ProviderCareBookingPage({
     where: { organisationId: booking.organisationId, active: true },
     select: { id: true, displayName: true },
   });
+  const lifecycleAgreement = await prisma.serviceAgreement.findFirst({
+    where: {
+      participantId: booking.participantId,
+      organisationId: booking.organisationId,
+      status: { notIn: ["cancelled", "expired"] },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
 
   return (
     <div className="space-y-6">
@@ -72,6 +80,24 @@ export default async function ProviderCareBookingPage({
         <AssignWorkerForm careBookingId={booking.id} workers={workers} />
       </section>
       <InvoicePlaceholderCard careBookingId={booking.id} />
+      <section className="rounded-xl border border-border bg-card p-4">
+        <h2 className="font-semibold">Service agreement lifecycle</h2>
+        {lifecycleAgreement ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Current agreement status: {lifecycleAgreement.status}.{" "}
+            <a
+              href={`/provider/service-agreements/${lifecycleAgreement.id}`}
+              className="font-medium text-primary hover:underline"
+            >
+              Open agreement
+            </a>
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-muted-foreground">
+            No active lifecycle agreement found for this participant yet.
+          </p>
+        )}
+      </section>
       <section>
         <h2 className="font-semibold">Service logs</h2>
         <ul className="mt-2 text-sm">
