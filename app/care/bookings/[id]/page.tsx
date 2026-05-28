@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { AccessNeedsSummary } from "@/components/care/AccessNeedsSummary";
+import { ModuleCheckoutButton } from "@/components/billing/ModuleCheckoutButton";
 import { ServiceAgreementPlaceholder } from "@/components/care/ServiceAgreementPlaceholder";
 import { ServiceLogConfirmDispute } from "@/components/care/ServiceLogConfirmDispute";
 import { SupportTasksSummary } from "@/components/care/SupportTasksSummary";
@@ -51,6 +52,15 @@ export default async function CareBookingDetailPage({
         title={booking.serviceAgreement?.placeholderTitle}
         summary={booking.serviceAgreement?.placeholderSummary}
       />
+      <section className="rounded-xl border border-border bg-card p-4">
+        <h2 className="font-semibold">Billing</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Pay this care booking securely in Stripe Checkout.
+        </p>
+        <div className="mt-3">
+          <ModuleCheckoutButton endpoint={`/api/care/bookings/${booking.id}/checkout`} />
+        </div>
+      </section>
       {log ? (
         <ServiceLogConfirmDispute logId={log.id} status={log.status} />
       ) : (

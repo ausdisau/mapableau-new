@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ModuleCheckoutButton } from "@/components/billing/ModuleCheckoutButton";
 import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
 import { TransportTripActions } from "@/components/transport/TransportTripActions";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
@@ -108,6 +109,16 @@ export default async function TransportTripDetailPage({
         ) : null}
 
         {routeEstimate ? <TransportRouteAdvisory routeEstimate={routeEstimate} /> : null}
+
+        <section className="rounded-xl border border-border bg-card p-4">
+          <h2 className="font-semibold">Billing</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pay this transport trip securely in Stripe Checkout.
+          </p>
+          <div className="mt-3">
+            <ModuleCheckoutButton endpoint={`/api/transport/trips/${trip.id}/checkout`} />
+          </div>
+        </section>
 
         <TransportTripActions tripId={trip.id} actions={nextActions} />
       </div>
