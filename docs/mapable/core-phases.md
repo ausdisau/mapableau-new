@@ -168,7 +168,7 @@ No AI matching, live GPS, route optimisation, full NDIS claims, or external iCal
 
 Matching foundation, marketplace search, live tracking, worker timesheets, incident reporting, NDIS line intelligence.
 
-See also: [care](../care.md), [transport](../transport.md), [jobs](../jobs.md), [calendar](../calendar.md), [cross-module orchestration](../cross-module-orchestration.md), [provider capacity](../provider-capacity.md), [Phase 3 QA](../qa/phase-3.md).
+See also: [care](modules/care.md), [transport](modules/transport.md), [jobs](modules/jobs.md), [calendar](modules/calendar.md), [cross-module orchestration](modules/cross-module-orchestration.md), [provider capacity](modules/provider-capacity.md), [Phase 3 QA](../qa/phase-3.md).
 
 ---
 
@@ -207,7 +207,7 @@ No AI matching, no NDIS Commission auto-reporting, no live GPS by default, no na
 
 AI-assisted matching, NDIA API readiness, native mobile scaffold, advanced route optimisation.
 
-See [incidents](../incidents.md) and [Phase 4](#phase-4) module list above.
+See [incidents](modules/incidents.md) and [Phase 4](#phase-4) module list above.
 
 ---
 

@@ -37,7 +37,7 @@ Shared logic lives in `lib/av-framework/` (also used by `lib/transport/transport
 
 - **No** autonomous dispatch or driver/vehicle assignment via MCP.
 - Routing estimates are **advisory** only.
-- Aligns with [transport-scheduling.md](modules/transport-scheduling.md) and phase non-goals for autonomous dispatch.
+- Aligns with [transport scheduling](modules/transport-scheduling.md) and phase non-goals for autonomous dispatch.
 
 ## Environment
 

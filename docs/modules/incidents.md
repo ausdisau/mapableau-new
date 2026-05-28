@@ -7,8 +7,8 @@ Participant incident reporting lives in the **Safety & incident management centr
 - Report a concern: `/dashboard/safety/incidents/new`
 - Your reports: `/dashboard/safety/incidents`
 - Support tickets: `/dashboard/safety/support`
-- Full route map: [docs/safety.md](docs/safety.md)
-- Phase 4 overview: [docs/mapable/core-phases.md#phase-4](docs/mapable/core-phases.md#phase-4)
+- Full route map: [safety.md](../safety.md)
+- Phase 4 overview: [core phases — Phase 4](../mapable/core-phases.md#phase-4)
 
 ## Behaviour
 

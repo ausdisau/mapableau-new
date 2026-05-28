@@ -43,12 +43,15 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply changes w
 ## Project layout
 
 ```
-app/           Next.js routes (dashboard, provider, admin, care, …)
-components/    Shared UI
-lib/           Domain logic, auth, integrations
-prisma/        Schema, migrations, seeds
-docs/          Detailed module and platform documentation
-core/          Core hub code (`app/core/`, `components/core/`, `lib/core-ui/`)
+app/              Next.js routes (dashboard, provider, admin, care, …)
+components/       Shared UI (incl. `components/core/` hub shell)
+lib/              Domain logic, auth, integrations (incl. `lib/core-ui/`)
+prisma/           Schema, migrations, seeds
+docs/             Platform docs (`docs/mapable/`, `docs/modules/`, …)
+apps/             Workspace packages (e.g. `apps/realtime-server`)
+mcp/              MCP servers
+mobile-contracts/ Mobile API contracts
+tests/            Vitest suites
 ```
 
 ## Documentation
@@ -68,20 +71,20 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 
 | Doc | Description |
 | --- | --- |
-| [docs/bookings.md](docs/bookings.md) | Bookings foundation |
-| [docs/care.md](docs/care.md) | Care MVP |
-| [docs/case-management.md](docs/case-management.md) | Case management (AI-assisted) |
-| [docs/calendar.md](docs/calendar.md) | Unified calendar |
-| [docs/consent.md](docs/consent.md) | Consent model |
-| [docs/cross-module-orchestration.md](docs/cross-module-orchestration.md) | Cross-module flows |
-| [docs/incidents.md](docs/incidents.md) | Incident reporting |
-| [docs/jobs.md](docs/jobs.md) | Inclusive jobs |
-| [docs/privacy-and-audit.md](docs/privacy-and-audit.md) | Privacy and audit |
-| [docs/provider-capacity.md](docs/provider-capacity.md) | Provider capacity |
-| [docs/transport.md](docs/transport.md) | Transport module |
-| [docs/transport-scheduling.md](docs/transport-scheduling.md) | Transport scheduling |
-| [docs/accessibility.md](docs/accessibility.md) | Accessibility profiles |
-| [docs/admin-dashboard.md](docs/admin-dashboard.md) | Admin dashboard |
+| [docs/modules/bookings.md](docs/modules/bookings.md) | Bookings foundation |
+| [docs/modules/care.md](docs/modules/care.md) | Care MVP |
+| [docs/modules/case-management.md](docs/modules/case-management.md) | Case management (AI-assisted) |
+| [docs/modules/calendar.md](docs/modules/calendar.md) | Unified calendar |
+| [docs/modules/consent.md](docs/modules/consent.md) | Consent model |
+| [docs/modules/cross-module-orchestration.md](docs/modules/cross-module-orchestration.md) | Cross-module flows |
+| [docs/modules/incidents.md](docs/modules/incidents.md) | Incident reporting |
+| [docs/modules/jobs.md](docs/modules/jobs.md) | Inclusive jobs |
+| [docs/modules/privacy-and-audit.md](docs/modules/privacy-and-audit.md) | Privacy and audit |
+| [docs/modules/provider-capacity.md](docs/modules/provider-capacity.md) | Provider capacity |
+| [docs/modules/transport.md](docs/modules/transport.md) | Transport module |
+| [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md) | Transport scheduling |
+| [docs/modules/accessibility.md](docs/modules/accessibility.md) | Accessibility profiles |
+| [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md) | Admin dashboard |
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).
 
