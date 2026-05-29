@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { hasPermission } from "@/lib/auth/permissions";
 import { nextActions } from "@/lib/cases/ai/next-actions";
+import { searchCasesWithModuleRag } from "@/lib/cases/ai/module-rag-search-boost";
 import { searchCases } from "@/lib/cases/ai/nl-search";
+import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
 import { classifyRisk } from "@/lib/cases/ai/risk-classifier";
 import { summarise } from "@/lib/cases/ai/summary-generator";
 import type { CaseSnapshot } from "@/lib/cases/ai/types";
@@ -255,5 +257,40 @@ describe("natural-language case search", () => {
     ];
     const hits = searchCases("funding review", candidates);
     expect(hits[0]?.caseId).toBe("urgent");
+  });
+
+  it("boosts ranking with interdependent module RAG for a participant", async () => {
+    const candidates: CaseSnapshot[] = [
+      baseSnapshot({
+        id: "transport-case",
+        title: "Wheelchair transport to physiotherapy",
+        description: "Linked care and transport scheduling issue.",
+        category: "transport",
+      }),
+      baseSnapshot({
+        id: "other-case",
+        title: "Office supplies",
+        description: "Unrelated admin task.",
+      }),
+    ];
+
+    const hits = await searchCasesWithModuleRag(
+      "wheelchair transport physiotherapy",
+      candidates,
+      {
+        participantId: MOCK_PARTICIPANT_ID,
+        grantedScopes: [
+          "profile_sharing",
+          "transport_sharing",
+          "billing_plan_manager",
+        ],
+      }
+    );
+
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0]?.caseId).toBe("transport-case");
+    expect(hits[0]?.matchedTerms.some((t) => t.startsWith("module:"))).toBe(
+      true
+    );
   });
 });

@@ -14,6 +14,8 @@ import { caseManagementConfig } from "@/lib/config/case-management";
 import { prisma } from "@/lib/prisma";
 
 import { getCaseAIEngine } from "./ai/engine";
+import { searchCasesWithModuleRag } from "./ai/module-rag-search-boost";
+import type { ConsentScope } from "@/lib/prms/types";
 import type { CaseSnapshot, PersistedInsight } from "./ai/types";
 
 export class CaseManagementDisabledError extends Error {
@@ -450,8 +452,23 @@ export async function searchCasesForUser(
     orderBy: { createdAt: "desc" },
   });
   const snapshots = rows.map(toSnapshot);
+  const participantId =
+    rows.find((r) => r.participantId)?.participantId ?? undefined;
+
+  if (participantId) {
+    return searchCasesWithModuleRag(query, snapshots, {
+      participantId,
+      grantedScopes: staffCaseRagScopes(),
+    });
+  }
+
   const engine = getCaseAIEngine();
   return engine.search(query, snapshots);
+}
+
+/** Scopes used to pull cross-module context when ranking case search. */
+function staffCaseRagScopes(): ConsentScope[] {
+  return ["profile_sharing", "transport_sharing", "billing_plan_manager"];
 }
 
 export { toSnapshot as caseRowToSnapshot };
