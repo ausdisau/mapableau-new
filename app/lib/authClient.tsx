@@ -41,11 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = authData?.user ?? null;
 
   const login = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
   };
 
   const logout = () => {
-    window.location.href = "/api/logout";
+    window.location.href = "/api/auth/logout";
   };
 
   return (

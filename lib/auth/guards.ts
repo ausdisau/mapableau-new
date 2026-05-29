@@ -8,6 +8,16 @@ import {
 import type { Permission } from "@/lib/auth/permissions";
 import { hasPermission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
+import {
+  isWorkerProfileComplete,
+  workerOnboardingPath,
+  workerProfilePath,
+} from "@/lib/workers/profile-completion";
+import { getPrimaryWorkerProfileForUser } from "@/lib/workers/worker-profile-service";
+import {
+  canUseOperationalWorkerPermissions,
+  isOperationalWorkerPermission,
+} from "@/lib/workers/worker-org-access";
 import type { UserRole } from "@/types/mapable";
 
 export async function requireAuth(redirectTo = "/login"): Promise<CurrentUser> {
@@ -30,6 +40,24 @@ export async function requirePermission(
     redirect("/dashboard");
   }
   return user;
+}
+
+export async function requireVerifiedWorkerOperations(
+  permission: "care:shift:work" | "timesheet:manage:org"
+): Promise<CurrentUser> {
+  if (!isOperationalWorkerPermission(permission)) {
+    return requirePermission(permission);
+  }
+  const user = await requirePermission(permission);
+  if (await canUseOperationalWorkerPermissions(user.id, user.primaryRole)) {
+    return user;
+  }
+
+  const profile = await getPrimaryWorkerProfileForUser(user.id);
+  if (!profile || !isWorkerProfileComplete(profile)) {
+    redirect(workerOnboardingPath());
+  }
+  redirect(workerProfilePath());
 }
 
 export async function requireParticipantOrAdmin(

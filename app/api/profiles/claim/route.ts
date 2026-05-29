@@ -7,8 +7,8 @@ import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await auth();
+  if (!user?.id) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     data: {
       slug,
       outletKey,
-      userId: session.user.id,
+      userId: user.id,
       name: provider.name,
       phone: provider.phone ?? null,
       email: provider.email ?? null,

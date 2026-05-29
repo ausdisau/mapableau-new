@@ -2,8 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
+
+import { signOutApp, useAuth } from "@/components/auth/AuthProvider";
 
 import { cn } from "@/app/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,8 +43,17 @@ export function ProviderAdminDashboard({
   adminPayload: GetAdminResponse;
   adminCatalog: GetCatalogResponse;
 }) {
-  const { status, data: sessionData } = useSession();
-  const sessionUserId = sessionData?.user?.id;
+  const { status } = useAuth();
+  const meQuery = useQuery<{ id: string }, Error>({
+    queryKey: ["auth-me"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) throw new Error("Not authenticated");
+      return res.json();
+    },
+    enabled: status === "authenticated",
+  });
+  const sessionUserId = meQuery.data?.id;
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"org" | "team">("org");
   const [orgMessage, setOrgMessage] = useState<{
@@ -192,7 +202,7 @@ export function ProviderAdminDashboard({
               variant="outline"
               size="sm"
               type="button"
-              onClick={() => void signOut({ callbackUrl: "/" })}
+              onClick={() => void signOutApp("/")}
             >
               Sign out
             </Button>

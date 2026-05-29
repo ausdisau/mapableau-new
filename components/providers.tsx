@@ -1,16 +1,15 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
-
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { BrandProvider } from "@/app/contexts/BrandContext";
 import { QueryProvider } from "@/lib/query-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <AuthProvider>
       <QueryProvider>
         <BrandProvider>{children}</BrandProvider>
       </QueryProvider>
-    </SessionProvider>
+    </AuthProvider>
   );
 }

@@ -24,7 +24,8 @@ model User {
   preferredContactMethod PreferredContactMethod @default(email)
   primaryRole            MapAbleUserRole    @default(participant)
   worker                 Worker?
-  passwordHash           String
+  authSupabaseId         String?            @unique
+  passwordHash           String?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
@@ -126,6 +127,7 @@ model User {
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
 }
 
+/// @deprecated Use WorkerProfile per organisation. Read-only after profile consolidation migration.
 model Worker {
   id             String   @id @default(uuid())
   userId         String   @unique
@@ -149,6 +151,7 @@ model Language {
   workers        Worker[]
 }
 
+/// @deprecated Use AvailabilityWindow on WorkerProfile.
 model WorkerAvailability {
   id             String   @id @default(uuid())
   workerId       String
@@ -307,8 +310,13 @@ model Provider {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  organisationId String?
+  organisation   Organisation? @relation("ProviderOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+
   workers WorkerProvider[]
   userRoles ProviderUserRole[]
+
+  @@index([organisationId])
 }
 
 model ProviderUserRole {
@@ -354,6 +362,7 @@ model BusinessHour {
   providerId String
 }
 
+/// @deprecated Use WorkerProfile linked via Provider.organisationId.
 model WorkerProvider {
   id         String   @id @default(uuid())
   workerId   String
@@ -419,6 +428,7 @@ enum OrganisationType {
   support_coordination
   employer
   community_partner
+  independent_support_worker
   mapable_internal
 }
 
@@ -591,6 +601,7 @@ model Organisation {
   transportTrips         TransportTrip[]        @relation("TransportTripProvider")
   transportDrivers       TransportDriver[]      @relation("TransportDrivers")
   transportVehicles      TransportVehicle[]     @relation("TransportVehicles")
+  linkedProviders        Provider[]             @relation("ProviderOrganisation")
 }
 
 model OrganisationMember {
@@ -1676,10 +1687,12 @@ model WorkerProfile {
   user                    User?                  @relation("WorkerProfileUser", fields: [userId], references: [id], onDelete: SetNull)
   organisationId          String
   organisation            Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  legacyWorkerId          String?                @unique
   displayName             String
   profileSummary          String?
   serviceTypes            String[]               @default([])
   serviceRegions          String[]               @default([])
+  specialisations         String[]               @default([])
   languages               String[]               @default([])
   communicationCapabilities Json                 @default("[]")
   qualificationsSummary   String?
@@ -1701,6 +1714,7 @@ model WorkerProfile {
   careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
 
+  @@unique([userId, organisationId])
   @@index([organisationId, active])
 }
 

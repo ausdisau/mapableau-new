@@ -1,5 +1,6 @@
 import type { ProviderRole } from "@prisma/client";
 
+import { ensureProviderOrganisation } from "@/lib/providers/ensure-provider-organisation";
 import { prisma } from "@/lib/prisma";
 import {
   GetAdminResponse,
@@ -24,8 +25,8 @@ export function canEditWorkerProfile(params: {
 }
 
 export async function getSessionUserId() {
-  const session = await auth();
-  return session?.user?.id ?? null;
+  const user = await auth();
+  return user?.id ?? null;
 }
 
 export async function getProviderMembership(
@@ -46,28 +47,34 @@ export function isValidProviderId(id: string) {
 }
 
 export async function getProviderWithWorkers(providerId: string) {
-  return prisma.provider.findUnique({
+  const organisationId = await ensureProviderOrganisation(providerId);
+  if (!organisationId) return null;
+
+  const provider = await prisma.provider.findUnique({
     where: { id: providerId },
-    include: {
-      workers: {
-        include: {
-          worker: {
-            include: {
-              user: { select: { id: true, name: true, email: true } },
-              languages: { select: { id: true, name: true } },
-              specialisations: { select: { id: true, name: true } },
-            },
-          },
-        },
-      },
-    },
   });
+  if (!provider) return null;
+
+  const workerProfiles = await prisma.workerProfile.findMany({
+    where: { organisationId, active: true },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+    orderBy: { displayName: "asc" },
+  });
+
+  return {
+    provider,
+    organisationId,
+    workerProfiles,
+  };
 }
 
 export const getAdminResponse = (
   membership: NonNullable<Awaited<ReturnType<typeof getProviderMembership>>>,
-  provider: NonNullable<Awaited<ReturnType<typeof getProviderWithWorkers>>>,
+  data: NonNullable<Awaited<ReturnType<typeof getProviderWithWorkers>>>,
 ): GetAdminResponse => {
+  const { provider, workerProfiles } = data;
   return {
     role: membership.role,
     canEditOrganization: canEditOrganization(membership.role),
@@ -86,15 +93,18 @@ export const getAdminResponse = (
       serviceAreas: provider.serviceAreas,
       specialisations: provider.specialisations,
     },
-    workers: provider.workers.map((wp) => ({
-      id: wp.worker.id,
-      userId: wp.worker.userId,
-      name: wp.worker.user.name,
-      email: wp.worker.user.email,
-      bio: wp.worker.bio,
-      qualifications: wp.worker.qualifications,
-      languages: wp.worker.languages,
-      specialisations: wp.worker.specialisations,
+    workers: workerProfiles.map((wp) => ({
+      id: wp.id,
+      userId: wp.userId ?? "",
+      name: wp.user?.name ?? wp.displayName,
+      email: wp.user?.email ?? null,
+      bio: wp.profileSummary,
+      qualifications: wp.qualificationsSummary,
+      languages: wp.languages.map((name) => ({ id: name, name })),
+      specialisations: wp.specialisations.map((name) => ({
+        id: name,
+        name,
+      })),
     })),
   };
 };

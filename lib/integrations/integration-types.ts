@@ -50,6 +50,7 @@ export const INITIAL_INTEGRATION_KEYS = [
   "xero",
   "ndia",
   "keycloak",
+  "wix",
   "maplibre",
   "supabase",
   "supabase_realtime",

@@ -5,8 +5,9 @@ import { AccessNeedsSummary } from "@/components/care/AccessNeedsSummary";
 import { ShiftStatusStepper } from "@/components/care/ShiftStatusStepper";
 import { SupportTasksSummary } from "@/components/care/SupportTasksSummary";
 import { WorkerShiftActions } from "@/components/care/WorkerShiftActions";
-import { requirePermission } from "@/lib/auth/guards";
+import { requireVerifiedWorkerOperations } from "@/lib/auth/guards";
 import { assertWorkerAssignedToShift } from "@/lib/care/access-control";
+import { ensureWorkerProfileComplete } from "@/lib/workers/profile-completion";
 import { filterParticipantInfoForWorker } from "@/lib/care/care-participant-info";
 import { prisma } from "@/lib/prisma";
 
@@ -15,7 +16,8 @@ export default async function WorkerShiftPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requirePermission("care:shift:work");
+  const user = await requireVerifiedWorkerOperations("care:shift:work");
+  await ensureWorkerProfileComplete(user.id);
   const { id } = await params;
 
   const shift = await prisma.careShift.findUnique({

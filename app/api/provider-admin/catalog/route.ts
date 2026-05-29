@@ -11,13 +11,13 @@ import { GetCatalogResponse } from "@/schemas/provider-admin.types";
 export async function GET(): Promise<
   NextResponse<GetCatalogResponse | { error: string }>
 > {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await auth();
+  if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const hasMembership = await prisma.providerUserRole.findFirst({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
   });
   if (!hasMembership) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

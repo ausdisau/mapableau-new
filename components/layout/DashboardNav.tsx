@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+
+import { signOutApp } from "@/components/auth/AuthProvider";
 
 import { cn } from "@/app/lib/utils";
 import { RoleBadge } from "@/components/ui/role-badge";
@@ -84,7 +85,7 @@ export function DashboardNav({
         </ul>
         <button
           type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => void signOutApp("/login")}
           className="min-h-10 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Sign out

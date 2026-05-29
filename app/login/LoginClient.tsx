@@ -1,18 +1,58 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
+
+import { createClient } from "@/lib/supabase/client";
+import { getAuthCallbackPath, getClientAppOrigin } from "@/lib/app-url";
+import { buildRegisterRedirect } from "@/lib/auth/register-redirect";
+import { isSafeRedirect } from "@/lib/auth/safe-redirect";
+
+async function fetchSessionStatus(): Promise<
+  | { status: "anonymous" }
+  | { status: "unregistered"; email: string }
+  | { status: "registered" }
+> {
+  const res = await fetch("/api/auth/session-status");
+  if (!res.ok) return { status: "anonymous" };
+  return res.json();
+}
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const rawCallback = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = isSafeRedirect(rawCallback) ? rawCallback : "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  async function resolveDestination(): Promise<string> {
+    const sessionStatus = await fetchSessionStatus();
+    if (sessionStatus.status === "unregistered") {
+      return buildRegisterRedirect(sessionStatus.email, callbackUrl);
+    }
+
+    let destination = callbackUrl;
+    if (callbackUrl === "/dashboard" || !searchParams.get("callbackUrl")) {
+      try {
+        const redirectRes = await fetch("/api/auth/post-login-redirect");
+        const redirectData = await redirectRes.json();
+        if (
+          redirectRes.ok &&
+          redirectData.redirectTo &&
+          isSafeRedirect(redirectData.redirectTo)
+        ) {
+          destination = redirectData.redirectTo;
+        }
+      } catch {
+        // fall back to callbackUrl
+      }
+    }
+    return destination;
+  }
 
   return (
     <form
@@ -22,28 +62,45 @@ export default function LoginClient() {
         setIsLoading(true);
 
         try {
-          const result = await signIn("credentials", {
-            email,
-            password,
-            redirect: false,
-            callbackUrl,
+          const signInRes = await fetch("/api/auth/sign-in", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
           });
+          const signInData = (await signInRes.json()) as {
+            ok?: boolean;
+            unregistered?: boolean;
+            email?: string;
+            error?: string;
+          };
 
-          if (result?.error) {
-            setError("Invalid email or password");
+          if (signInData.unregistered && signInData.email) {
+            router.push(buildRegisterRedirect(signInData.email, callbackUrl));
+            return;
+          }
+
+          if (!signInRes.ok || !signInData.ok) {
+            if (signInRes.status === 401) {
+              const checkRes = await fetch(
+                `/api/auth/check-registration?email=${encodeURIComponent(email)}`
+              );
+              const checkData = (await checkRes.json()) as {
+                registered?: boolean;
+              };
+              if (checkRes.ok && checkData.registered === false) {
+                router.push(buildRegisterRedirect(email, callbackUrl));
+                return;
+              }
+            }
+
+            setError(signInData.error ?? "Invalid email or password");
             setIsLoading(false);
             return;
           }
 
-          if (result?.ok === true) {
-            setIsLoading(false);
-            router.push(callbackUrl);
-            router.refresh();
-            return;
-          }
-
-          setError("An unexpected error occurred. Please try again.");
-          setIsLoading(false);
+          const destination = await resolveDestination();
+          router.push(destination);
+          router.refresh();
         } catch {
           setError("An error occurred. Please try again.");
           setIsLoading(false);
@@ -70,7 +127,43 @@ export default function LoginClient() {
       <button type="submit" disabled={isLoading}>
         {isLoading ? "Signing in..." : "Sign in"}
       </button>
+      <button
+        type="button"
+        disabled={isLoading}
+        onClick={async () => {
+          setError("");
+          setIsLoading(true);
+          try {
+            const supabase = createClient();
+            const redirectTo = `${getClientAppOrigin()}${getAuthCallbackPath(callbackUrl)}`;
+            const { error: oauthError } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: { redirectTo },
+            });
+            if (oauthError) {
+              setError(oauthError.message);
+              setIsLoading(false);
+            }
+          } catch {
+            setError("Unable to start OAuth sign-in.");
+            setIsLoading(false);
+          }
+        }}
+      >
+        Continue with Google
+      </button>
+      {process.env.NEXT_PUBLIC_WIX_ENABLED === "true" ? (
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => {
+            const params = new URLSearchParams({ returnTo: callbackUrl });
+            window.location.href = `/api/auth/wix/login?${params.toString()}`;
+          }}
+        >
+          Continue with Wix
+        </button>
+      ) : null}
     </form>
   );
 }
-

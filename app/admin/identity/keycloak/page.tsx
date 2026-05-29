@@ -6,6 +6,11 @@ export default async function AdminKeycloakPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">Keycloak identity</h1>
+      <p className="text-sm text-muted-foreground">
+        <a href="/admin/identity/wix" className="underline">
+          Wix Headless bridge
+        </a>
+      </p>
       <KeycloakConnectionPanel />
     </div>
   );

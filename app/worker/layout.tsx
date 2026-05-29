@@ -1,13 +1,18 @@
 import Link from "next/link";
 
-import { requirePermission } from "@/lib/auth/guards";
+import { requireAuth } from "@/lib/auth/guards";
+import { isAdminRole } from "@/lib/auth/roles";
+import { redirect } from "next/navigation";
 
 export default async function WorkerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requirePermission("care:shift:work");
+  const user = await requireAuth();
+  if (user.primaryRole !== "support_worker" && !isAdminRole(user.primaryRole)) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,6 +30,12 @@ export default async function WorkerLayout({
           </Link>
           <Link href="/worker/report-issue" className="text-sm underline">
             Report issue
+          </Link>
+          <Link href="/worker/profile" className="text-sm underline">
+            Profile
+          </Link>
+          <Link href="/worker/onboarding" className="text-sm underline">
+            Onboarding
           </Link>
           <Link href="/dashboard" className="ml-auto text-sm text-muted-foreground">
             Dashboard

@@ -1,6 +1,9 @@
 import { ZodError } from "zod";
 
-import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
+import {
+  requireApiSession,
+  requireApiVerifiedWorkerOperations,
+} from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import {
   createCareServiceLogDraft,
@@ -17,7 +20,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const user = await requireApiPermission("care:shift:work");
+  const user = await requireApiVerifiedWorkerOperations("care:shift:work");
   if (user instanceof Response) return user;
   try {
     const parsed = createCareServiceLogSchema.parse(await req.json());

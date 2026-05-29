@@ -1,8 +1,6 @@
 import type { MapAbleUserRole } from "@prisma/client";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { prisma } from "@/lib/prisma";
+import { getAuthSessionStatus } from "@/lib/auth/auth-session-status";
 import type { UserRole } from "@/types/mapable";
 
 export interface CurrentUser {
@@ -17,32 +15,9 @@ export interface CurrentUser {
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return null;
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { roleAssignments: true },
-  });
-
-  if (!user) return null;
-
-  const roles: UserRole[] = [
-    user.primaryRole as UserRole,
-    ...user.roleAssignments.map((r) => r.role as UserRole),
-  ];
-  const uniqueRoles = [...new Set(roles)];
-
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    phone: user.phone,
-    timezone: user.timezone,
-    locale: user.locale,
-    primaryRole: user.primaryRole as UserRole,
-    roles: uniqueRoles,
-  };
+  const status = await getAuthSessionStatus();
+  if (status.status !== "registered") return null;
+  return status.user;
 }
 
 export async function requireCurrentUser(): Promise<CurrentUser> {
@@ -57,3 +32,5 @@ export function userHasRole(
 ): boolean {
   return user.roles.includes(role as UserRole);
 }
+
+export { toCurrentUser } from "@/lib/auth/auth-session-status";
