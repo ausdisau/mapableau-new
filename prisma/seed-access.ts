@@ -19,9 +19,14 @@ async function main() {
   await upsertAccessAccreditationCriteria();
 
   if (process.env.SEED_ACCESS_KML === "1") {
+    const concurrency = process.env.SEED_ACCESS_CONCURRENCY
+      ? Number(process.env.SEED_ACCESS_CONCURRENCY)
+      : undefined;
     const result = await bulkSeedAccessPlaces({
       publish: process.env.SEED_ACCESS_PUBLISH === "1",
       force: process.env.SEED_ACCESS_FORCE === "1",
+      concurrency:
+        concurrency != null && Number.isFinite(concurrency) ? concurrency : undefined,
     });
 
     if (result.skipped) {

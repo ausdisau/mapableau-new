@@ -13,7 +13,9 @@ import {
   chunkArray,
   MAX_IMPORT_BYTES,
   MAX_IMPORT_ITEMS,
+  runWithConcurrency,
   SEED_BATCH_SIZE,
+  SEED_CONCURRENCY,
   SEED_MAX_IMPORT_BYTES,
   SEED_MAX_IMPORT_ITEMS,
 } from "@/lib/access-import/import-limits";
@@ -215,5 +217,25 @@ describe("bulk seed import limits", () => {
     expect(chunks[0]).toHaveLength(SEED_BATCH_SIZE);
     expect(chunks[1]).toHaveLength(SEED_BATCH_SIZE);
     expect(chunks[2]).toHaveLength(200);
+  });
+
+  it("defaults seed concurrency for ~400/min target", () => {
+    expect(SEED_CONCURRENCY).toBeGreaterThanOrEqual(20);
+  });
+
+  it("runWithConcurrency limits parallel workers", async () => {
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const items = Array.from({ length: 20 }, (_, i) => i);
+
+    await runWithConcurrency(items, 4, async () => {
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((r) => setTimeout(r, 5));
+      inFlight--;
+    });
+
+    expect(maxInFlight).toBeLessThanOrEqual(4);
+    expect(maxInFlight).toBeGreaterThan(1);
   });
 });

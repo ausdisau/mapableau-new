@@ -47,6 +47,7 @@ npx tsx prisma/seed-access.ts
 SEED_ACCESS_KML=1 npx tsx prisma/seed-access.ts
 SEED_ACCESS_KML=1 SEED_ACCESS_PUBLISH=1 npx tsx prisma/seed-access.ts
 npx tsx scripts/seed-access-mapable-kml.ts --publish
+npx tsx scripts/seed-access-mapable-kml.ts --publish --concurrency 40
 ```
 
 Copy a local KML into `data/imports/` or pass `--file path/to.kml`. Requires `admin@mapable.test` from `npx prisma db seed`.
