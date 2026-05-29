@@ -53,5 +53,6 @@ export function defaultDashboardPath(role: UserRole | MapAbleUserRole): string {
   if (role === "provider_admin" || role === "transport_operator") {
     return "/provider/onboarding";
   }
+  if (role === "support_worker") return "/worker/today";
   return "/dashboard";
 }

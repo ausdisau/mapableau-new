@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import {
   canEditOrganization,
+  getAdminResponse,
   getProviderMembership,
   getProviderWithWorkers,
   getSessionUserId,
@@ -36,41 +37,13 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const provider = await getProviderWithWorkers(providerId);
+  const providerData = await getProviderWithWorkers(providerId);
 
-  if (!provider) {
+  if (!providerData) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({
-    role: membership.role,
-    canEditOrganization: canEditOrganization(membership.role),
-    provider: {
-      id: provider.id,
-      name: provider.name,
-      logoUrl: provider.logoUrl,
-      description: provider.description,
-      website: provider.website,
-      email: provider.email,
-      phone: provider.phone,
-      abn: provider.abn,
-      businessType: provider.businessType,
-      ndisRegistered: provider.ndisRegistered,
-      ndisNumber: provider.ndisNumber,
-      serviceAreas: provider.serviceAreas,
-      specialisations: provider.specialisations,
-    },
-    workers: provider.workers.map((wp) => ({
-      id: wp.worker.id,
-      userId: wp.worker.userId,
-      name: wp.worker.user.name,
-      email: wp.worker.user.email,
-      bio: wp.worker.bio,
-      qualifications: wp.worker.qualifications,
-      languages: wp.worker.languages,
-      specialisations: wp.worker.specialisations,
-    })),
-  } satisfies GetAdminResponse);
+  return NextResponse.json(getAdminResponse(membership, providerData));
 }
 
 export async function PATCH(

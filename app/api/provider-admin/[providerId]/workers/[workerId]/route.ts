@@ -7,19 +7,13 @@ import {
   getSessionUserId,
   isValidProviderId,
 } from "@/app/utils/provider-admin";
+import { ensureProviderOrganisation } from "@/lib/providers/ensure-provider-organisation";
 import { prisma } from "@/lib/prisma";
 import {
   PatchWorkerPayload,
   patchWorkerPayloadSchema,
   PatchWorkerResponse,
 } from "@/schemas/provider-admin.types";
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function isValidWorkerId(id: string) {
-  return UUID_RE.test(id);
-}
 
 export async function PATCH(
   request: Request,
@@ -31,7 +25,7 @@ export async function PATCH(
   }
 
   const { providerId, workerId } = await params;
-  if (!isValidProviderId(providerId) || !isValidWorkerId(workerId)) {
+  if (!isValidProviderId(providerId)) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
@@ -40,21 +34,25 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const link = await prisma.workerProvider.findUnique({
+  const organisationId = await ensureProviderOrganisation(providerId);
+  if (!organisationId) {
+    return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+  }
+
+  const profile = await prisma.workerProfile.findFirst({
     where: {
-      workerId_providerId: { workerId, providerId },
+      id: workerId,
+      organisationId,
     },
     include: {
-      worker: { include: { user: { select: { id: true } } } },
+      user: { select: { id: true, name: true, email: true } },
     },
   });
 
-  if (!link) {
+  if (!profile) {
     return NextResponse.json(
       { error: "Worker not found for this provider" },
-      {
-        status: 404,
-      },
+      { status: 404 },
     );
   }
 
@@ -62,7 +60,7 @@ export async function PATCH(
     !canEditWorkerProfile({
       role: membership.role,
       sessionUserId: userId,
-      workerUserId: link.worker.userId,
+      workerUserId: profile.userId ?? "",
     })
   ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -71,7 +69,6 @@ export async function PATCH(
   let body: PatchWorkerPayload;
   try {
     const json = await request.json();
-    // parse
     const parsed = patchWorkerPayloadSchema.parse(json);
     body = parsed;
   } catch {
@@ -89,16 +86,13 @@ export async function PATCH(
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
   }
 
-  if (body.languageIds !== undefined) {
-    if (!Array.isArray(body.languageIds)) {
-      return NextResponse.json(
-        { error: "languageIds must be an array" },
-        { status: 400 },
-      );
-    }
+  let languageNames: string[] | undefined;
+  let specNames: string[] | undefined;
+
+  if (body.languageIds !== undefined && body.languageIds !== null) {
     const langs = await prisma.language.findMany({
       where: { id: { in: body.languageIds } },
-      select: { id: true },
+      select: { name: true },
     });
     if (langs.length !== body.languageIds.length) {
       return NextResponse.json(
@@ -106,18 +100,13 @@ export async function PATCH(
         { status: 400 },
       );
     }
+    languageNames = langs.map((l) => l.name);
   }
 
-  if (body.specialisationIds !== undefined) {
-    if (!Array.isArray(body.specialisationIds)) {
-      return NextResponse.json(
-        { error: "specialisationIds must be an array" },
-        { status: 400 },
-      );
-    }
+  if (body.specialisationIds !== undefined && body.specialisationIds !== null) {
     const specs = await prisma.specialisation.findMany({
       where: { id: { in: body.specialisationIds } },
-      select: { id: true },
+      select: { name: true },
     });
     if (specs.length !== body.specialisationIds.length) {
       return NextResponse.json(
@@ -125,66 +114,60 @@ export async function PATCH(
         { status: 400 },
       );
     }
+    specNames = specs.map((s) => s.name);
   }
 
   await prisma.$transaction(async (tx) => {
-    if (body.name !== undefined && body.name !== null) {
+    if (body.name !== undefined && body.name !== null && profile.userId) {
       await tx.user.update({
-        where: { id: link.worker.userId },
+        where: { id: profile.userId },
         data: { name: body.name.trim() },
       });
     }
 
-    await tx.worker.update({
-      where: { id: workerId },
+    await tx.workerProfile.update({
+      where: { id: profile.id },
       data: {
+        ...(body.name !== undefined &&
+          body.name !== null && { displayName: body.name.trim() }),
         ...(body.bio !== undefined && {
-          bio: body.bio?.trim() || null,
+          profileSummary: body.bio?.trim() || null,
         }),
         ...(body.qualifications !== undefined && {
-          qualifications: body.qualifications?.trim() || null,
+          qualificationsSummary: body.qualifications?.trim() || null,
         }),
-        ...(body.languageIds !== undefined &&
-          body.languageIds !== null && {
-            languages: {
-              set: body.languageIds.map((id) => ({ id })),
-            },
-          }),
-        ...(body.specialisationIds !== undefined &&
-          body.specialisationIds !== null && {
-            specialisations: {
-              set: body.specialisationIds.map((id) => ({ id })),
-            },
-          }),
+        ...(languageNames !== undefined && { languages: languageNames }),
+        ...(specNames !== undefined && { specialisations: specNames }),
       },
     });
   });
 
-  revalidatePath(`/provider/${providerId}`);
+  revalidatePath(`/provider-admin/${providerId}`);
 
-  const worker = await prisma.worker.findUnique({
-    where: { id: workerId },
+  const updated = await prisma.workerProfile.findUnique({
+    where: { id: profile.id },
     include: {
       user: { select: { id: true, name: true, email: true } },
-      languages: { select: { id: true, name: true } },
-      specialisations: { select: { id: true, name: true } },
     },
   });
 
-  if (!worker) {
+  if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   return NextResponse.json({
     worker: {
-      id: worker.id,
-      userId: worker.userId,
-      name: worker.user.name,
-      email: worker.user.email,
-      bio: worker.bio,
-      qualifications: worker.qualifications,
-      languages: worker.languages,
-      specialisations: worker.specialisations,
+      id: updated.id,
+      userId: updated.userId ?? "",
+      name: updated.user?.name ?? updated.displayName,
+      email: updated.user?.email ?? null,
+      bio: updated.profileSummary,
+      qualifications: updated.qualificationsSummary,
+      languages: updated.languages.map((name) => ({ id: name, name })),
+      specialisations: updated.specialisations.map((name) => ({
+        id: name,
+        name,
+      })),
     },
   });
 }

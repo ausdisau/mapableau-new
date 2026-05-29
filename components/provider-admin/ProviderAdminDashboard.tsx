@@ -422,6 +422,12 @@ export function ProviderAdminDashboard({
               Update worker profiles linked to this organisation. Admins and
               managers can edit anyone; staff can only edit their own profile.
             </p>
+            {(adminQuery.data.role === "ADMIN" ||
+              adminQuery.data.role === "MANAGER") && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/provider/workers/new">Affiliate worker</Link>
+              </Button>
+            )}
             {adminQuery.data.workers.map((w) => (
               <WorkerCard
                 key={w.id}
@@ -442,6 +448,55 @@ export function ProviderAdminDashboard({
         )}
       </div>
     </div>
+  );
+}
+
+function EndAffiliationButton({
+  providerId,
+  workerId,
+}: {
+  providerId: string;
+  workerId: string;
+}) {
+  const queryClient = useQueryClient();
+  const [pending, setPending] = useState(false);
+
+  return (
+    <Button
+      variant="destructive"
+      size="sm"
+      type="button"
+      loading={pending}
+      onClick={async () => {
+        if (
+          !window.confirm(
+            "End this worker's affiliation? They will no longer appear in your active team."
+          )
+        ) {
+          return;
+        }
+        setPending(true);
+        const res = await fetch(
+          `/api/providers/${providerId}/workers/${workerId}/end`,
+          { method: "POST" }
+        );
+        setPending(false);
+        if (res.ok) {
+          void queryClient.invalidateQueries({
+            queryKey: ["provider-admin", providerId],
+          });
+        } else {
+          const data = await res.json().catch(() => ({}));
+          window.alert(
+            typeof data.error === "string"
+              ? data.error
+              : "Could not end affiliation"
+          );
+        }
+      }}
+    >
+      End affiliation
+    </Button>
   );
 }
 
@@ -549,18 +604,31 @@ function WorkerCard({
           <CardTitle className="text-lg">
             {worker.name || "Unnamed worker"}
           </CardTitle>
-          <CardDescription>{worker.email}</CardDescription>
+          <CardDescription>
+            {worker.email}
+            {worker.affiliationStatus && (
+              <span className="ml-2 text-xs uppercase">
+                · {worker.affiliationStatus}
+              </span>
+            )}
+          </CardDescription>
         </div>
-        {canEdit && (
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? "Close" : "Edit"}
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+            >
+              {open ? "Close" : "Edit"}
+            </Button>
+          )}
+          {(role === "ADMIN" || role === "MANAGER") &&
+            worker.affiliationStatus !== "ended" && (
+              <EndAffiliationButton providerId={providerId} workerId={worker.id} />
+            )}
+        </div>
       </CardHeader>
       {!canEdit && (
         <CardContent>

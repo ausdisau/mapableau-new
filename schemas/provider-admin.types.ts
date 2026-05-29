@@ -28,6 +28,8 @@ export const adminResponseSchema = z.object({
       qualifications: z.string().nullable(),
       languages: z.array(z.object({ id: z.string(), name: z.string() })),
       specialisations: z.array(z.object({ id: z.string(), name: z.string() })),
+      affiliationStatus: z.string().optional(),
+      active: z.boolean().optional(),
     }),
   ),
 });
@@ -85,6 +87,7 @@ export const membershipResponseSchema = z.object({
       providerId: z.string(),
       providerName: z.string(),
       role: z.string(),
+      organisationId: z.string().nullable().optional(),
     }),
   ),
 });

@@ -26,6 +26,15 @@ export default async function WorkerLayout({
           <Link href="/worker/report-issue" className="text-sm underline">
             Report issue
           </Link>
+          <Link href="/worker/profile" className="text-sm underline">
+            Profile
+          </Link>
+          <Link href="/worker/affiliations" className="text-sm underline">
+            Affiliations
+          </Link>
+          <Link href="/worker/onboarding" className="text-sm underline">
+            Onboarding
+          </Link>
           <Link href="/dashboard" className="ml-auto text-sm text-muted-foreground">
             Dashboard
           </Link>

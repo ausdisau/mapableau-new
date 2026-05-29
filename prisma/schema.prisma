@@ -73,6 +73,8 @@ model User {
   careRiskFlags             CareRiskFlag[]
   careLivingAloneSafeguards CareLivingAloneSafeguard[]
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
+  workerProfilesInvited     WorkerProfile[]    @relation("WorkerProfileInvitedBy")
+  workerInvitationsSent     WorkerProviderInvitation[] @relation("WorkerInvitationInvitedBy")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
   jobsCreated               Job[]              @relation("JobCreatedBy")
@@ -126,6 +128,7 @@ model User {
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
 }
 
+/// @deprecated Use WorkerProfile per organisation. Read-only after profile consolidation migration.
 model Worker {
   id             String   @id @default(uuid())
   userId         String   @unique
@@ -149,6 +152,7 @@ model Language {
   workers        Worker[]
 }
 
+/// @deprecated Use AvailabilityWindow on WorkerProfile.
 model WorkerAvailability {
   id             String   @id @default(uuid())
   workerId       String
@@ -307,8 +311,14 @@ model Provider {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  organisationId String?
+  organisation   Organisation? @relation("ProviderOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+
   workers WorkerProvider[]
   userRoles ProviderUserRole[]
+  workerInvitations WorkerProviderInvitation[]
+
+  @@index([organisationId])
 }
 
 model ProviderUserRole {
@@ -354,6 +364,7 @@ model BusinessHour {
   providerId String
 }
 
+/// @deprecated Use WorkerProfile linked via Provider.organisationId.
 model WorkerProvider {
   id         String   @id @default(uuid())
   workerId   String
@@ -419,6 +430,7 @@ enum OrganisationType {
   support_coordination
   employer
   community_partner
+  independent_support_worker
   mapable_internal
 }
 
@@ -591,6 +603,8 @@ model Organisation {
   transportTrips         TransportTrip[]        @relation("TransportTripProvider")
   transportDrivers       TransportDriver[]      @relation("TransportDrivers")
   transportVehicles      TransportVehicle[]     @relation("TransportVehicles")
+  linkedProviders        Provider[]             @relation("ProviderOrganisation")
+  workerInvitations      WorkerProviderInvitation[]
 }
 
 model OrganisationMember {
@@ -1248,6 +1262,20 @@ enum WorkerCredentialStatus {
   rejected
 }
 
+enum WorkerAffiliationStatus {
+  pending
+  active
+  suspended
+  ended
+}
+
+enum WorkerInvitationStatus {
+  pending
+  accepted
+  declined
+  expired
+}
+
 enum TransportBookingType {
   one_way
   return_trip
@@ -1676,10 +1704,12 @@ model WorkerProfile {
   user                    User?                  @relation("WorkerProfileUser", fields: [userId], references: [id], onDelete: SetNull)
   organisationId          String
   organisation            Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  legacyWorkerId          String?                @unique
   displayName             String
   profileSummary          String?
   serviceTypes            String[]               @default([])
   serviceRegions          String[]               @default([])
+  specialisations         String[]               @default([])
   languages               String[]               @default([])
   communicationCapabilities Json                 @default("[]")
   qualificationsSummary   String?
@@ -1690,6 +1720,12 @@ model WorkerProfile {
   verificationStatus              WorkerCredentialStatus @default(pending_review)
   highIntensityCompetencyVerified Boolean                @default(false)
   active                          Boolean                @default(true)
+  affiliationStatus               WorkerAffiliationStatus @default(active)
+  affiliatedAt                    DateTime?
+  endedAt                         DateTime?
+  invitedByUserId                 String?
+  invitedByUser                   User?                  @relation("WorkerProfileInvitedBy", fields: [invitedByUserId], references: [id], onDelete: SetNull)
+  acceptedAt                      DateTime?
   createdAt                       DateTime               @default(now())
   updatedAt                       DateTime               @updatedAt
 
@@ -1700,8 +1736,34 @@ model WorkerProfile {
   careServiceLogs         CareServiceLog[]
   careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
+  invitations             WorkerProviderInvitation[]
 
+  @@unique([userId, organisationId])
   @@index([organisationId, active])
+  @@index([organisationId, affiliationStatus])
+}
+
+model WorkerProviderInvitation {
+  id              String                 @id @default(cuid())
+  providerId      String
+  provider        Provider               @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  organisationId  String
+  organisation    Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  email           String
+  invitedByUserId String
+  invitedBy       User                   @relation("WorkerInvitationInvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  tokenHash       String                 @unique
+  status          WorkerInvitationStatus @default(pending)
+  expiresAt       DateTime
+  workerProfileId String?
+  workerProfile   WorkerProfile?         @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  acceptedAt      DateTime?
+  declinedAt      DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([providerId, status])
+  @@index([email, status])
 }
 
 model AvailabilityWindow {
