@@ -1,22 +1,39 @@
+import {
+  CoreCivicNav,
+  CoreEmptyState,
+  CorePageContainer,
+  CorePageHeader,
+  CoreRecordCard,
+} from "@/components/core";
 import { listActiveSafeguards } from "@/lib/constitutional-safeguards/safeguards-service";
 
 export default async function SafeguardsPage() {
   const articles = await listActiveSafeguards();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 className="font-heading text-2xl font-bold">Platform constitutional safeguards</h1>
-      <p className="text-muted-foreground">
-        Operating principles — not a substitute for legal compliance or statute.
-      </p>
-      <ol className="list-decimal space-y-4 pl-5">
-        {articles.map((a) => (
-          <li key={a.id}>
-            <strong>{a.title}</strong>
-            <p className="text-sm">{a.body}</p>
-          </li>
-        ))}
-      </ol>
-    </div>
+    <CorePageContainer variant="narrow">
+      <CoreCivicNav />
+      <CorePageHeader
+        eyebrow="Public accountability"
+        title="Platform constitutional safeguards"
+        description="Operating principles — not a substitute for legal compliance or statute."
+      />
+      {articles.length === 0 ? (
+        <CoreEmptyState
+          title="No safeguards published"
+          description="Active constitutional safeguard articles will appear here."
+        />
+      ) : (
+        <ol className="list-decimal space-y-4 pl-5 marker:font-semibold">
+          {articles.map((a) => (
+            <li key={a.id}>
+              <CoreRecordCard title={a.title}>
+                <p>{a.body}</p>
+              </CoreRecordCard>
+            </li>
+          ))}
+        </ol>
+      )}
+    </CorePageContainer>
   );
 }

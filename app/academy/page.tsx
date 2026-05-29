@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+import {
+  CoreEmptyState,
+  CorePageContainer,
+  CorePageHeader,
+  CoreRecordCard,
+} from "@/components/core";
 import { requirePermission } from "@/lib/auth/guards";
 import { getAcademyCatalog, listUserEnrollments } from "@/lib/provider-academy/academy-service";
 
@@ -11,32 +17,56 @@ export default async function AcademyPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 className="font-heading text-2xl font-bold">Provider academy</h1>
-      <Link href="/dashboard" className="text-sm text-primary underline">
-        Back to dashboard
-      </Link>
-      <section>
-        <h2 className="font-medium">Your enrollments</h2>
-        <ul className="mt-2 space-y-1 text-sm">
-          {enrollments.map((e) => (
-            <li key={e.id}>
-              {e.course.title} — {e.status}
-            </li>
-          ))}
-        </ul>
+    <CorePageContainer variant="narrow">
+      <CorePageHeader
+        eyebrow="Provider"
+        title="Provider academy"
+        description="Training courses and your enrollments."
+      >
+        <Link
+          href="/dashboard"
+          className="inline-flex text-sm font-medium text-primary hover:underline"
+        >
+          Back to control panel
+        </Link>
+      </CorePageHeader>
+      <section aria-labelledby="academy-enrollments-heading" className="space-y-4">
+        <h2 id="academy-enrollments-heading" className="font-heading text-lg font-semibold">
+          Your enrollments
+        </h2>
+        {enrollments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">You are not enrolled in any courses yet.</p>
+        ) : (
+          <ul className="space-y-4">
+            {enrollments.map((e) => (
+              <li key={e.id}>
+                <CoreRecordCard title={e.course.title} meta={e.status} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
-      <section>
-        <h2 className="font-medium">Catalog</h2>
-        <ul className="mt-2 space-y-2">
-          {catalog.map((c) => (
-            <li key={c.id} className="rounded border p-3">
-              <strong>{c.title}</strong>
-              <p className="text-sm text-muted-foreground">{c.description}</p>
-            </li>
-          ))}
-        </ul>
+      <section aria-labelledby="academy-catalog-heading" className="space-y-4">
+        <h2 id="academy-catalog-heading" className="font-heading text-lg font-semibold">
+          Catalog
+        </h2>
+        {catalog.length === 0 ? (
+          <CoreEmptyState
+            title="No courses available"
+            description="The academy catalog is empty in this environment."
+          />
+        ) : (
+          <ul className="space-y-4">
+            {catalog.map((c) => (
+              <li key={c.id}>
+                <CoreRecordCard title={c.title}>
+                  <p className="text-muted-foreground">{c.description}</p>
+                </CoreRecordCard>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
-    </main>
+    </CorePageContainer>
   );
 }

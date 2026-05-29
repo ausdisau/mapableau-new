@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+import {
+  CoreEmptyState,
+  CorePageContainer,
+  CorePageHeader,
+  CoreRecordCard,
+} from "@/components/core";
 import { requirePermission } from "@/lib/auth/guards";
 import { phase9Config } from "@/lib/config/phase9";
 import { listVaultRequestsForUser } from "@/lib/personal-data-vault/vault-service";
@@ -9,29 +15,47 @@ export default async function DataVaultPage() {
   const requests = await listVaultRequestsForUser(user.id).catch(() => []);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
-      <h1 className="font-heading text-2xl font-bold">Personal data vault</h1>
+    <CorePageContainer variant="narrow">
+      <CorePageHeader
+        eyebrow="Your services"
+        title="Personal data vault"
+        description={
+          phase9Config.personalDataVaultEnabled
+            ? "Request export or portability of your data. Deletion requests require human review — POST /api/data-vault to queue a request."
+            : "Data vault is disabled in this environment."
+        }
+      >
+        <Link
+          href="/dashboard"
+          className="inline-flex text-sm font-medium text-primary hover:underline"
+        >
+          Back to control panel
+        </Link>
+      </CorePageHeader>
       {!phase9Config.personalDataVaultEnabled ? (
-        <p>Data vault is disabled in this environment.</p>
+        <CoreEmptyState
+          title="Data vault unavailable"
+          description="This feature is not enabled in the current environment."
+          actionHref="/dashboard"
+          actionLabel="Return to control panel"
+        />
+      ) : requests.length === 0 ? (
+        <CoreEmptyState
+          title="No vault requests yet"
+          description="Export or portability requests you submit will appear here with their status."
+        />
       ) : (
-        <p className="text-muted-foreground">
-          Request export or portability of your data. Deletion requests require
-          human review — POST /api/data-vault to queue a request.
-        </p>
+        <ul className="space-y-4">
+          {requests.map((r) => (
+            <li key={r.id}>
+              <CoreRecordCard
+                title={`${r.requestType} — ${r.status}`}
+                meta={r.createdAt.toLocaleDateString("en-AU")}
+              />
+            </li>
+          ))}
+        </ul>
       )}
-      <Link href="/dashboard" className="text-sm text-primary underline">
-        Back to dashboard
-      </Link>
-      <ul className="space-y-2">
-        {requests.map((r) => (
-          <li key={r.id} className="rounded border p-3 text-sm">
-            {r.requestType} — {r.status}
-            <span className="ml-2 text-xs text-muted-foreground">
-              {r.createdAt.toLocaleDateString("en-AU")}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    </CorePageContainer>
   );
 }

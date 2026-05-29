@@ -1,22 +1,36 @@
+import {
+  CoreCivicNav,
+  CoreEmptyState,
+  CorePageContainer,
+  CorePageHeader,
+  CoreProseBlock,
+  CoreRecordCard,
+} from "@/components/core";
 import { getActiveCharter } from "@/lib/governance-charter/charter-service";
 
 export default async function GovernanceCharterPage() {
   const charter = await getActiveCharter();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 className="font-heading text-2xl font-bold">Governance charter</h1>
+    <CorePageContainer variant="narrow">
+      <CoreCivicNav />
+      <CorePageHeader
+        eyebrow="Public accountability"
+        title="Governance charter"
+        description="Ratified platform governance charter for public review."
+      />
       {charter ? (
-        <article className="prose prose-sm max-w-none">
-          <h2>{charter.title}</h2>
-          <p className="text-xs text-muted-foreground">Version {charter.version}</p>
-          <p className="whitespace-pre-wrap">{charter.body}</p>
-        </article>
+        <CoreRecordCard title={charter.title} meta={`Version ${charter.version}`}>
+          <CoreProseBlock>
+            <p className="whitespace-pre-wrap">{charter.body}</p>
+          </CoreProseBlock>
+        </CoreRecordCard>
       ) : (
-        <p className="text-muted-foreground">
-          No ratified charter published yet. Draft versions are managed in admin.
-        </p>
+        <CoreEmptyState
+          title="No ratified charter published"
+          description="Draft versions are managed in admin. Check back when a charter is ratified for publication."
+        />
       )}
-    </div>
+    </CorePageContainer>
   );
 }
