@@ -29,9 +29,10 @@ See `package.json` scripts. Key ones:
 | Type-check | `pnpm type-check` |
 | Tests | `pnpm test` |
 | Format | `pnpm format:check` |
-| DB schema push | `npx prisma db push` |
+| DB schema push | `npx prisma db push` (run after pulling `main` if dashboard errors on transport tables) |
 | DB seed | `npx prisma db seed` |
 | Prisma generate | `npx prisma generate` |
+| Register API tests | `pnpm test tests/register-route` |
 
 ### Seeded test accounts
 
@@ -49,5 +50,5 @@ After running `npx prisma db seed`, these local-only accounts are available. The
 - `pnpm install` runs `husky install && prisma generate` as a `prepare` script, so Prisma Client is always regenerated on install.
 - The app entry point is `http://localhost:3000/core` (the hub page). The root `/` also works but `/core` is the main landing.
 - ESLint has ~250 pre-existing import-order errors in the codebase. These are not blockers for development.
-- One test (`mapable-core-hub.test.ts`) has a pre-existing failure related to `/provider-finder` path. This is a known issue in the repo.
 - PostgreSQL must be started manually in Cloud Agent VMs: `sudo pg_ctlcluster 16 main start`.
+- Registration flow: `POST /api/register` then NextAuth `signIn` with `callbackUrl: /dashboard`. If the control panel returns 500 after signup, run `npx prisma db push` so transport and related tables exist.
