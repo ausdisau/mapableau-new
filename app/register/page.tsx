@@ -1,117 +1,17 @@
-"use client";
+import { Suspense } from "react";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-
-import { createClient } from "@/lib/supabase/client";
-
-type AccountType = "participant" | "support_worker";
+import RegisterClient from "./RegisterClient";
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [accountType, setAccountType] = useState<AccountType>("participant");
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, accountType }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
-      }
-
-      const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        setError(signInError.message);
-        return;
-      }
-
-      router.push(data.redirectTo ?? "/dashboard");
-      router.refresh();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong");
-      }
-    }
-  };
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto mt-10 flex flex-col gap-4"
+    <Suspense
+      fallback={
+        <p className="mx-auto mt-10 max-w-md text-sm text-muted-foreground">
+          Loading registration form…
+        </p>
+      }
     >
-      <h1 className="text-xl font-semibold">Create your account</h1>
-
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium">I am registering as</legend>
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="accountType"
-            value="participant"
-            checked={accountType === "participant"}
-            onChange={() => setAccountType("participant")}
-          />
-          Participant (NDIS participant or person receiving support)
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="accountType"
-            value="support_worker"
-            checked={accountType === "support_worker"}
-            onChange={() => setAccountType("support_worker")}
-          />
-          Support worker
-        </label>
-      </fieldset>
-
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password (min 8 characters)"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        minLength={8}
-        required
-      />
-      {error && <p className="text-red-500">{error}</p>}
-      <button type="submit" className="bg-blue-600 text-white py-2 rounded">
-        Register
-      </button>
-    </form>
+      <RegisterClient />
+    </Suspense>
   );
 }

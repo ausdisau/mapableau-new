@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import {
+  buildRegisterRedirect,
+  getAuthSessionStatus,
+} from "@/lib/auth/auth-session-status";
 import { createClient } from "@/lib/supabase/server";
 import { isSafeRedirect } from "@/lib/auth/safe-redirect";
 
@@ -13,6 +17,14 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const sessionStatus = await getAuthSessionStatus();
+      if (sessionStatus.status === "unregistered") {
+        const callbackUrl = isSafeRedirect(next) ? next : undefined;
+        return NextResponse.redirect(
+          `${origin}${buildRegisterRedirect(sessionStatus.email, callbackUrl)}`
+        );
+      }
+
       const destination = isSafeRedirect(next) ? next : "/dashboard";
       return NextResponse.redirect(`${origin}${destination}`);
     }

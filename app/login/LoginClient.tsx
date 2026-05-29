@@ -5,7 +5,18 @@ import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackPath, getClientAppOrigin } from "@/lib/app-url";
+import { buildRegisterRedirect } from "@/lib/auth/auth-session-status";
 import { isSafeRedirect } from "@/lib/auth/safe-redirect";
+
+async function fetchSessionStatus(): Promise<
+  | { status: "anonymous" }
+  | { status: "unregistered"; email: string }
+  | { status: "registered" }
+> {
+  const res = await fetch("/api/auth/session-status");
+  if (!res.ok) return { status: "anonymous" };
+  return res.json();
+}
 
 export default function LoginClient() {
   const router = useRouter();
@@ -19,6 +30,11 @@ export default function LoginClient() {
   const [isLoading, setIsLoading] = useState(false);
 
   async function resolveDestination(): Promise<string> {
+    const sessionStatus = await fetchSessionStatus();
+    if (sessionStatus.status === "unregistered") {
+      return buildRegisterRedirect(sessionStatus.email, callbackUrl);
+    }
+
     let destination = callbackUrl;
     if (callbackUrl === "/dashboard" || !searchParams.get("callbackUrl")) {
       try {
@@ -53,6 +69,15 @@ export default function LoginClient() {
           });
 
           if (signInError) {
+            const checkRes = await fetch(
+              `/api/auth/check-registration?email=${encodeURIComponent(email)}`
+            );
+            const checkData = (await checkRes.json()) as { registered?: boolean };
+            if (checkRes.ok && checkData.registered === false) {
+              router.push(buildRegisterRedirect(email, callbackUrl));
+              return;
+            }
+
             setError("Invalid email or password");
             setIsLoading(false);
             return;
