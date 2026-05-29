@@ -14,6 +14,7 @@
 | Intent router | `lib/copilot/intentRouter.ts` (deterministic, no LLM) |
 | Mock PRMS | `lib/prms/mockPrmsData.ts` |
 | Context | `lib/copilot/contextBuilder.ts` |
+| Module RAG | `lib/rag/interdependent-rag-service.ts` (cross-module retrieval on `/api/mapable/ask`) |
 | Action planner | `lib/copilot/actionPlanner.ts` |
 | Guardrails | `lib/copilot/guardrails.ts` |
 | Ask API | `POST /api/mapable/ask` |

@@ -181,3 +181,7 @@ summarisation, next-action generation, and natural-language search.
 - The natural-language search is single-language (English) and
   term-frequency based. A vector backend can be slotted in via the
   `CaseAIEngine.search` method without changing any callers.
+- When a case list includes a `participantId`, `searchCasesForUser` also
+  calls `searchCasesWithModuleRag` (`lib/cases/ai/module-rag-search-boost.ts`)
+  to re-rank hits using [interdependent module RAG](knowledge-retrieval.md)
+  (care, transport, billing, etc.).

@@ -66,6 +66,11 @@ export const CORE_HUB_SECTIONS: {
         label: "Control panel",
         description: "Bookings, care, scheduled transport trips and profile",
       },
+      {
+        href: "/provider-finder",
+        label: "Find providers",
+        description: "Search NDIS and disability service providers",
+      },
       { href: "/dashboard/bookings", label: "Bookings" },
       { href: "/dashboard/care", label: "Care" },
       { href: "/dashboard/billing", label: "Billing centre" },

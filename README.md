@@ -44,24 +44,16 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply changes w
 
 ```
 .
-├── app/                      # Next.js App Router
-│   ├── api/                  # Route handlers (REST, webhooks, transport, care, …)
-│   ├── admin/                # Admin console (bookings, care, transport, governance, …)
-│   ├── dashboard/            # Participant dashboard (bookings, care, cases, safety, …)
-│   ├── provider/             # Provider portal
-│   ├── care/                 # Care module pages
-│   ├── core/                 # Platform hub (/core)
-│   ├── access/               # Accessible places
-│   ├── driver/, worker/      # Field worker UIs
-│   └── …                     # employer, plan-manager, assessor, billing, …
-├── components/               # React UI (admin, care, transport, core shell, …)
-├── lib/                      # Domain logic (~165 packages: auth, billing, care, cases, …)
-│   ├── auth/                 # Sessions, permissions, roles
-│   ├── integrations/       # Keycloak, Temporal, n8n, Directus, …
-│   ├── transport/              # Trips, dispatch, eligibility
-│   ├── transport-routing/        # OSRM / routing adapters
-│   ├── cases/                  # Case management + AI engine
-│   └── …
+├── apps/
+│   ├── web/                  # @mapable/web — Next.js App Router app
+│   │   ├── app/              # Routes (api, admin, dashboard, provider, …)
+│   │   ├── components/       # React UI
+│   │   ├── lib/              # Domain logic (auth, billing, care, transport, …)
+│   │   ├── data/             # App-local types (e.g. provider outlets)
+│   │   ├── schemas/          # Zod / API types (e.g. provider admin)
+│   │   ├── public/           # Static assets
+│   │   └── package.json      # Next.js dependencies and scripts
+│   └── realtime-server/      # Socket.IO server (pnpm workspace)
 ├── prisma/
 │   ├── schema.prisma         # Unified PostgreSQL schema
 │   ├── migrations/           # SQL migrations
@@ -72,21 +64,18 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply changes w
 │   ├── operations/           # Neon, ops notes
 │   ├── integrations/         # Env var reference
 │   └── qa/                   # QA checklists
-├── apps/
-│   └── realtime-server/      # Socket.IO server (pnpm workspace)
 ├── mcp/
 │   └── av/                   # Autonomous-vehicle MCP server
 ├── mobile-contracts/         # Mobile API / screen contracts
-├── tests/                    # Vitest (`*.test.ts`)
-├── types/                    # Shared TypeScript types
+├── tests/                    # Vitest (`@/` → `apps/web`)
 ├── scripts/                  # CLI helpers (Neon env, integrations check, …)
-├── data/
-│   └── imports/              # Access KML/GeoJSON imports (often gitignored)
-├── public/                   # Static assets
-└── schemas/                  # JSON validation schemas
+└── data/
+    └── imports/              # Access KML/GeoJSON imports (often gitignored)
 ```
 
-Config at repo root: `package.json`, `tsconfig.json`, `next.config.ts`, `middleware.ts`, `vercel.json`, `vitest.config.ts`.
+Config: root `package.json` (workspace, Prisma, Vitest), `pnpm-workspace.yaml`, `vitest.config.ts`; app config under `apps/web/` (`next.config.ts`, `middleware.ts`, `vercel.json`).
+
+**Vercel:** set the project root directory to `apps/web`.
 
 ## Documentation
 

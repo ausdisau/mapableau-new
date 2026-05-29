@@ -1,4 +1,5 @@
 import type { ConsentScope, DraftPrmsRecord } from "@/lib/prms/types";
+import type { InterdependentRagResult } from "@/lib/rag/types";
 
 export type CopilotIntentType =
   | "support"
@@ -94,6 +95,8 @@ export type CopilotContext = {
   upcomingEvents: { id: string; title: string; scheduledAt: string }[];
   openRisks: { id: string; level: string; label: string }[];
   missingEvidence: string[];
+  /** Cross-module retrieval packs (origin module + consented dependencies). */
+  moduleRetrieval?: InterdependentRagResult;
 };
 
 export type CopilotPlanningInput = {

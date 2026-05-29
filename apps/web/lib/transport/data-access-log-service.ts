@@ -13,7 +13,16 @@ export async function logDataAccess(params: {
   organisationId?: string;
   metadata?: Record<string, unknown>;
 }) {
-  const h = await headers();
+  let ipAddress: string | undefined;
+  let userAgent: string | undefined;
+  try {
+    const h = await headers();
+    ipAddress = h.get("x-forwarded-for") ?? h.get("x-real-ip") ?? undefined;
+    userAgent = h.get("user-agent") ?? undefined;
+  } catch {
+    // No Next.js request context (unit tests, background jobs).
+  }
+
   await prisma.dataAccessLog.create({
     data: {
       actorUserId: params.actor.id,
@@ -24,8 +33,8 @@ export async function logDataAccess(params: {
       participantId: params.participantId,
       organisationId: params.organisationId,
       metadata: (params.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
-      ipAddress: h.get("x-forwarded-for") ?? h.get("x-real-ip") ?? undefined,
-      userAgent: h.get("user-agent") ?? undefined,
+      ipAddress,
+      userAgent,
     },
   });
 }
