@@ -50,7 +50,9 @@ Wix still links identities in `IdentityProviderLink`. After a successful link, `
 
 `User.authSupabaseId` is a unique optional link to `auth.users.id`. `passwordHash` is optional for users who only authenticate through Supabase/OAuth.
 
-## Local development
+## Client helpers
+
+Supabase dashboard helpers live under `utils/supabase/` (`client.ts`, `server.ts`, `middleware.ts`). App code may import those directly or use the wrappers in `lib/supabase/`.
 
 1. Create a Supabase project.
 2. Copy URL, anon key, and service role key into `.env`.
