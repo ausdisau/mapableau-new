@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+import { getAuthCallbackPath, getClientAppOrigin } from "@/lib/app-url";
 import { isSafeRedirect } from "@/lib/auth/safe-redirect";
 
 export default function LoginClient() {
@@ -94,7 +95,7 @@ export default function LoginClient() {
           setIsLoading(true);
           try {
             const supabase = createClient();
-            const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`;
+            const redirectTo = `${getClientAppOrigin()}${getAuthCallbackPath(callbackUrl)}`;
             const { error: oauthError } = await supabase.auth.signInWithOAuth({
               provider: "google",
               options: { redirectTo },

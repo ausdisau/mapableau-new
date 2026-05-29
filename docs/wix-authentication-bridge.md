@@ -12,8 +12,9 @@ MapAble can authenticate **existing** users through [Wix Headless](https://dev.w
 
 1. Open **Headless settings** for your project and copy the **Client ID**.
 2. Under **Allowed authorization redirect URIs**, add your callback URL exactly:
+   - Production: `https://mapable.com.au/login/wix/callback`
+   - Also add `https://www.mapable.com.au/login/wix/callback` if that host serves the app
    - Local: `http://localhost:3000/login/wix/callback`
-   - Production: `https://<your-domain>/login/wix/callback`
 3. Publish the connected Wix site from the project dashboard.
 
 ## Environment variables
@@ -22,8 +23,10 @@ MapAble can authenticate **existing** users through [Wix Headless](https://dev.w
 WIX_ENABLED=true
 NEXT_PUBLIC_WIX_ENABLED=true
 WIX_CLIENT_ID=your-headless-client-id
-WIX_REDIRECT_URI=http://localhost:3000/login/wix/callback
-WIX_LOGIN_ORIGIN_URI=http://localhost:3000/login
+NEXT_PUBLIC_APP_URL=https://mapable.com.au
+# Optional overrides (defaults derive from NEXT_PUBLIC_APP_URL):
+# WIX_REDIRECT_URI=https://mapable.com.au/login/wix/callback
+# WIX_LOGIN_ORIGIN_URI=https://mapable.com.au/login
 APP_SECRET=... # required for bridge token signing (legacy NEXTAUTH_SECRET also works)
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...

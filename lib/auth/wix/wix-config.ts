@@ -1,3 +1,5 @@
+import { getWixLoginOriginUri, getWixRedirectUri } from "@/lib/app-url";
+
 export function isWixEnabled(): boolean {
   return process.env.WIX_ENABLED === "true";
 }
@@ -9,8 +11,8 @@ export function isWixPublicEnabled(): boolean {
 export function getWixConfig() {
   return {
     clientId: process.env.WIX_CLIENT_ID ?? "",
-    redirectUri: process.env.WIX_REDIRECT_URI ?? "",
-    loginOriginUri: process.env.WIX_LOGIN_ORIGIN_URI ?? "",
+    redirectUri: getWixRedirectUri(),
+    loginOriginUri: getWixLoginOriginUri(),
   };
 }
 

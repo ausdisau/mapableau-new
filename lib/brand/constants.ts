@@ -1,6 +1,9 @@
 /** Public marketing site — https://mapable.com.au */
 export const MAPABLE_MARKETING_URL = "https://mapable.com.au";
 
+/** Primary MapAble app host (core product, auth, dashboard). */
+export const MAPABLE_APP_URL = MAPABLE_MARKETING_URL;
+
 /** MapAble PEERS community — https://peer.mapable.com.au */
 export const MAPABLE_PEER_PEERS_URL = "https://peer.mapable.com.au";
 

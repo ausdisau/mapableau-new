@@ -1,3 +1,5 @@
+import { getAppBaseUrl } from "@/lib/app-url";
+
 /**
  * Unified Stripe configuration for MapAble Core.
  * Set STRIPE_SECRET_KEY (and STRIPE_WEBHOOK_SECRET for webhooks).
@@ -9,7 +11,7 @@ export const stripeConfig = {
   connectClientId: process.env.STRIPE_CONNECT_CLIENT_ID,
   providerProPriceId: process.env.STRIPE_PROVIDER_PRO_PRICE_ID,
   employerProPriceId: process.env.STRIPE_EMPLOYER_PRO_PRICE_ID,
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  appUrl: getAppBaseUrl(),
   defaultCurrency: (process.env.STRIPE_DEFAULT_CURRENCY ?? "AUD").toLowerCase(),
 };
 
