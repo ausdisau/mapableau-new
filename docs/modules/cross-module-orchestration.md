@@ -13,5 +13,9 @@
 ## Idempotency
 `OrchestrationEvent.idempotencyKey` prevents duplicate side effects.
 
+## Retrieval (RAG)
+
+Cross-module **orchestration** is transactional; **interdependent module RAG** is contextual (ranked text packs across the dependency graph). See [knowledge-retrieval.md](knowledge-retrieval.md).
+
 ## Phase 4
 Workflow engine, smart contracts, attestation.

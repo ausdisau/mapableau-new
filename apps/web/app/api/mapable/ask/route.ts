@@ -5,6 +5,10 @@ import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { classifyIntent } from "@/lib/copilot/intentRouter";
 import type { CopilotAskResponse } from "@/lib/copilot/types";
+import {
+  copilotIntentToModule,
+  retrieveInterdependentModuleRag,
+} from "@/lib/rag";
 
 const MAX_QUERY_LENGTH = 2000;
 
@@ -44,9 +48,22 @@ export async function POST(request: Request) {
     }
 
     const intent = classifyIntent(query, mode);
-    const context = participantId
+    const baseContext = participantId
       ? await buildCopilotContext(participantId)
       : null;
+
+    const context =
+      baseContext && participantId
+        ? {
+            ...baseContext,
+            moduleRetrieval: await retrieveInterdependentModuleRag({
+              participantId,
+              query,
+              originModule: copilotIntentToModule(intent.type),
+              grantedScopes: baseContext.consentSummary.grantedScopes,
+            }),
+          }
+        : baseContext;
 
     const planned = await planCopilotActions({
       query,

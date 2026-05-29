@@ -1,4 +1,8 @@
-import type { CopilotActionPlan, CopilotPlanningInput } from "@/lib/copilot/types";
+import type {
+  CopilotActionPlan,
+  CopilotContext,
+  CopilotPlanningInput,
+} from "@/lib/copilot/types";
 import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
 import type { DraftPrmsRecord } from "@/lib/prms/types";
 
@@ -16,6 +20,25 @@ function draft(
   };
 }
 
+function attachModuleRag(
+  plan: CopilotActionPlan,
+  context: CopilotContext | null
+): CopilotActionPlan {
+  const retrieval = context?.moduleRetrieval;
+  if (!retrieval?.chunks.length) return plan;
+
+  const modules = retrieval.modulesQueried.join(", ");
+  const bullets = retrieval.chunks
+    .slice(0, 3)
+    .map((c) => `• (${c.moduleId}) ${c.text}`)
+    .join("\n");
+
+  return {
+    ...plan,
+    plainLanguageAnswer: `${plan.plainLanguageAnswer}\n\nContext pulled across modules (${modules}):\n${bullets}`,
+  };
+}
+
 export async function planCopilotActions(
   input: CopilotPlanningInput
 ): Promise<CopilotActionPlan> {
@@ -23,9 +46,10 @@ export async function planCopilotActions(
   const pid = participantId ?? context?.participantId ?? MOCK_PARTICIPANT_ID;
   const filters = { ...intent.filters };
 
+  let plan: CopilotActionPlan;
   switch (intent.type) {
     case "combined":
-      return {
+      plan = {
         summary: "Combined care and accessible transport request",
         plainLanguageAnswer:
           "I can help draft a care and transport plan using your access needs. Nothing is booked until you review and confirm.",
@@ -81,9 +105,10 @@ export async function planCopilotActions(
             ]
           : [],
       };
+      break;
 
     case "billing":
-      return {
+      plan = {
         summary: "Invoice and evidence review",
         plainLanguageAnswer:
           "I can help explain an invoice and prepare an evidence checklist. Payments are not released without your approval and complete records.",
@@ -119,9 +144,10 @@ export async function planCopilotActions(
           message: m,
         })),
       };
+      break;
 
     case "incident":
-      return {
+      plan = {
         summary: "Safety and incident support",
         plainLanguageAnswer:
           "Your safety comes first. I can help you start an incident record. A trained person will review this — incidents are never closed automatically.",
@@ -161,9 +187,10 @@ export async function planCopilotActions(
           },
         ],
       };
+      break;
 
     case "ndis":
-      return {
+      plan = {
         summary: "NDIS plan and budget guidance",
         plainLanguageAnswer:
           "I can summarise your plan status and budget bands in plain language. Exact amounts are shown only when you are signed in.",
@@ -191,9 +218,10 @@ export async function planCopilotActions(
         requiredConfirmations: [],
         warnings: [],
       };
+      break;
 
     case "jobs":
-      return {
+      plan = {
         summary: "Employment support",
         plainLanguageAnswer:
           "I can draft employment support records and suggest transport for interviews if needed.",
@@ -220,10 +248,11 @@ export async function planCopilotActions(
         ],
         warnings: [],
       };
+      break;
 
     case "transport":
     case "support":
-      return {
+      plan = {
         summary:
           intent.type === "transport"
             ? "Accessible transport request"
@@ -253,9 +282,10 @@ export async function planCopilotActions(
         ],
         warnings: [],
       };
+      break;
 
     default:
-      return {
+      plan = {
         summary: "Guidance request",
         plainLanguageAnswer:
           "I can explain options and suggest next steps. Sign in to save drafts to your participant record.",
@@ -272,4 +302,6 @@ export async function planCopilotActions(
         warnings: [],
       };
   }
+
+  return attachModuleRag(plan, context);
 }
