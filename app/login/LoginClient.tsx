@@ -62,23 +62,38 @@ export default function LoginClient() {
         setIsLoading(true);
 
         try {
-          const supabase = createClient();
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
+          const signInRes = await fetch("/api/auth/sign-in", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
           });
+          const signInData = (await signInRes.json()) as {
+            ok?: boolean;
+            unregistered?: boolean;
+            email?: string;
+            error?: string;
+          };
 
-          if (signInError) {
-            const checkRes = await fetch(
-              `/api/auth/check-registration?email=${encodeURIComponent(email)}`
-            );
-            const checkData = (await checkRes.json()) as { registered?: boolean };
-            if (checkRes.ok && checkData.registered === false) {
-              router.push(buildRegisterRedirect(email, callbackUrl));
-              return;
+          if (signInData.unregistered && signInData.email) {
+            router.push(buildRegisterRedirect(signInData.email, callbackUrl));
+            return;
+          }
+
+          if (!signInRes.ok || !signInData.ok) {
+            if (signInRes.status === 401) {
+              const checkRes = await fetch(
+                `/api/auth/check-registration?email=${encodeURIComponent(email)}`
+              );
+              const checkData = (await checkRes.json()) as {
+                registered?: boolean;
+              };
+              if (checkRes.ok && checkData.registered === false) {
+                router.push(buildRegisterRedirect(email, callbackUrl));
+                return;
+              }
             }
 
-            setError("Invalid email or password");
+            setError(signInData.error ?? "Invalid email or password");
             setIsLoading(false);
             return;
           }
