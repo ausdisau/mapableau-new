@@ -1,27 +1,48 @@
+import {
+  CoreCivicNav,
+  CoreEmptyState,
+  CoreMetricsGrid,
+  CorePageContainer,
+  CorePageHeader,
+  CoreRecordCard,
+} from "@/components/core";
 import { listPublishedInvestmentModels } from "@/lib/transport-investment-modelling/investment-model-service";
 
 export default async function InvestmentModelsPage() {
   const models = await listPublishedInvestmentModels();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 className="font-heading text-2xl font-bold">Transport investment modelling</h1>
-      <p className="text-muted-foreground">
-        Scenario outputs for planning discussion — not investment advice.
-      </p>
-      <ul className="space-y-4">
-        {models.map((m) => (
-          <li key={m.id} className="rounded-lg border p-4">
-            <h2 className="font-medium">{m.title}</h2>
-            <p className="text-sm">{m.scenarioKey}</p>
-            {m.suppressed ? (
-              <p className="text-xs text-amber-800">Outputs suppressed (small cohort)</p>
-            ) : (
-              <pre className="mt-2 text-xs">{JSON.stringify(m.outputsJson, null, 2)}</pre>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <CorePageContainer variant="narrow">
+      <CoreCivicNav />
+      <CorePageHeader
+        eyebrow="Public accountability"
+        title="Transport investment modelling"
+        description="Scenario outputs for planning discussion — not investment advice."
+      />
+      {models.length === 0 ? (
+        <CoreEmptyState
+          title="No scenarios published"
+          description="Published transport investment scenarios will appear here."
+        />
+      ) : (
+        <ul className="space-y-4">
+          {models.map((m) => (
+            <li key={m.id}>
+              <CoreRecordCard title={m.title} meta={m.scenarioKey}>
+                <CoreMetricsGrid
+                  metrics={
+                    m.outputsJson && typeof m.outputsJson === "object" && !Array.isArray(m.outputsJson)
+                      ? (m.outputsJson as Record<string, unknown>)
+                      : {}
+                  }
+                  suppressed={m.suppressed}
+                  suppressionMessage="Outputs suppressed (small cohort)"
+                />
+              </CoreRecordCard>
+            </li>
+          ))}
+        </ul>
+      )}
+    </CorePageContainer>
   );
 }

@@ -12,9 +12,27 @@ export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
     label: "Control panel",
     description: "Your profile, bookings, care and scheduled transport trips",
   },
-  { href: "/login", label: "Sign in" },
+  { href: "/care", label: "Care", description: "Care portal" },
+  {
+    href: "/dashboard/billing",
+    label: "Billing centre",
+    description: "Invoices and payment management",
+  },
+  { href: "/dashboard/safety", label: "Safety centre" },
+  {
+    href: "/provider-finder",
+    label: "Provider finder",
+    description: "Search registered providers",
+  },
+  { href: "/access", label: "Access map", description: "Accessibility map and reviews" },
+  { href: "/worker", label: "Worker portal", description: "Support worker tools" },
+  { href: "/driver", label: "Driver portal", description: "Trips and tracking" },
+  { href: "/employer", label: "Employer portal", description: "Jobs and applications" },
+  { href: "/plan-manager", label: "Plan manager" },
+  { href: "/support-coordinator", label: "Support coordinator" },
   { href: "/provider/bookings", label: "Provider console" },
   { href: "/admin", label: "Admin" },
+  { href: "/login", label: "Sign in" },
 ];
 
 export const CORE_CIVIC_LINKS: CoreNavLink[] = [
@@ -51,6 +69,7 @@ export const CORE_HUB_SECTIONS: {
         label: "MapAble Access",
         description: "Accessibility map and community place reviews",
       },
+      { href: "/messages", label: "Messages", description: "Communication centre" },
     ],
   },
   {
@@ -71,7 +90,32 @@ export const CORE_HUB_SECTIONS: {
       { href: "/dashboard/billing", label: "Billing centre" },
       { href: "/dashboard/safety", label: "Safety centre" },
       { href: "/dashboard/transport", label: "Transport trips" },
+      { href: "/care", label: "Care portal", description: "Standalone care module" },
       { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
+      {
+        href: "/provider-finder",
+        label: "Provider finder",
+        description: "Search registered providers",
+      },
+    ],
+  },
+  {
+    title: "Role portals",
+    links: [
+      { href: "/worker", label: "Support worker", description: "Today's tasks and service logs" },
+      { href: "/driver", label: "Driver", description: "Trips and schedule" },
+      { href: "/employer", label: "Employer", description: "Jobs and applications" },
+      { href: "/plan-manager", label: "Plan manager", description: "Plan management portal" },
+      {
+        href: "/support-coordinator",
+        label: "Support coordinator",
+        description: "Coordination tools",
+      },
+      {
+        href: "/practitioner/scheduling",
+        label: "Practitioner",
+        description: "Practitioner scheduling",
+      },
     ],
   },
   {
@@ -91,12 +135,31 @@ export const CORE_HUB_SECTIONS: {
     ),
   },
   {
+    title: "Civic participation",
+    links: CORE_CIVIC_LINKS.filter((l) =>
+      ["/membership", "/investment-models"].includes(l.href)
+    ),
+  },
+  {
     title: "For providers & partners",
     links: [
+      {
+        href: "/provider/bookings",
+        label: "Provider console",
+        description: "Manage bookings and care",
+      },
       { href: "/enterprise-provider", label: "Enterprise console" },
+      { href: "/provider-admin", label: "Provider admin", description: "Multi-tenant management" },
       { href: "/academy", label: "Provider academy" },
       { href: "/assessor", label: "Assessor tools" },
       { href: "/accreditation", label: "Accreditation" },
+      { href: "/government-partner", label: "Government partner portal" },
+    ],
+  },
+  {
+    title: "Platform admin",
+    links: [
+      { href: "/admin", label: "Admin console", description: "Platform administration" },
     ],
   },
 ];

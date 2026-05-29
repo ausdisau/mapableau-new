@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 
-import { CorePageHeader } from "@/components/core/CorePageHeader";
+import { CorePageContainer, CorePageHeader } from "@/components/core";
 
 import LoginClient from "./LoginClient";
 
 export default function LoginPage() {
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
+    <CorePageContainer variant="narrow" className="max-w-md">
       <CorePageHeader
         title="Sign in"
         description="Access your MapAble Core dashboard, bookings and messages."
@@ -18,6 +18,6 @@ export default function LoginPage() {
       >
         <LoginClient />
       </Suspense>
-    </div>
+    </CorePageContainer>
   );
 }

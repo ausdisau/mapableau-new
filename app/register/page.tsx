@@ -3,15 +3,26 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import {
+  AccessibleFormField,
+  formInputClass,
+} from "@/components/forms/AccessibleFormField";
+import { CoreAuthForm } from "@/components/core/CoreAuthForm";
+import { CoreAuthLinks } from "@/components/core/CoreAuthLinks";
+import { CorePageContainer } from "@/components/core/CorePageContainer";
+import { CorePageHeader } from "@/components/core/CorePageHeader";
+
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     try {
       const res = await fetch("/api/register", {
@@ -24,16 +35,17 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         setError(data.error || "Registration failed");
+        setIsLoading(false);
         return;
       }
 
-      // Automatically sign in after registration
       await signIn("credentials", {
         email,
         password,
         callbackUrl: "/dashboard",
       });
     } catch (err: unknown) {
+      setIsLoading(false);
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -43,35 +55,60 @@ export default function RegisterPage() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto mt-10 flex flex-col gap-4"
-    >
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
+    <CorePageContainer variant="narrow">
+      <CorePageHeader
+        title="Create account"
+        description="Join MapAble Core to manage care, transport and your profile."
       />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      {error && <p className="text-red-500">{error}</p>}
-      <button type="submit" className="bg-blue-600 text-white py-2 rounded">
-        Register
-      </button>
-    </form>
+      <CoreAuthForm
+        onSubmit={handleSubmit}
+        error={error}
+        isLoading={isLoading}
+        submitLabel="Register"
+        footer={<CoreAuthLinks mode="register" />}
+      >
+        <AccessibleFormField id="register-name" label="Name" required>
+          <input
+            id="register-name"
+            type="text"
+            autoComplete="name"
+            className={formInputClass}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </AccessibleFormField>
+        <AccessibleFormField id="register-email" label="Email" required>
+          <input
+            id="register-email"
+            type="email"
+            autoComplete="email"
+            className={formInputClass}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </AccessibleFormField>
+        <AccessibleFormField
+          id="register-password"
+          label="Password"
+          required
+          hint="Use a strong password you do not reuse elsewhere."
+        >
+          <input
+            id="register-password"
+            type="password"
+            autoComplete="new-password"
+            className={formInputClass}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </AccessibleFormField>
+      </CoreAuthForm>
+    </CorePageContainer>
   );
 }

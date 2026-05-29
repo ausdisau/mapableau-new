@@ -4,6 +4,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import {
+  AccessibleFormField,
+  formInputClass,
+} from "@/components/forms/AccessibleFormField";
+import { CoreAuthForm } from "@/components/core/CoreAuthForm";
+import { CoreAuthLinks } from "@/components/core/CoreAuthLinks";
+
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -15,7 +22,7 @@ export default function LoginClient() {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <form
+    <CoreAuthForm
       onSubmit={async (e) => {
         e.preventDefault();
         setError("");
@@ -49,28 +56,35 @@ export default function LoginClient() {
           setIsLoading(false);
         }
       }}
+      error={error}
+      isLoading={isLoading}
+      submitLabel="Sign in"
+      footer={<CoreAuthLinks mode="login" />}
     >
-      <input
-        placeholder="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        disabled={isLoading}
-      />
-      <input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        disabled={isLoading}
-      />
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? "Signing in..." : "Sign in"}
-      </button>
-    </form>
+      <AccessibleFormField id="login-email" label="Email" required>
+        <input
+          id="login-email"
+          type="email"
+          autoComplete="email"
+          className={formInputClass}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={isLoading}
+        />
+      </AccessibleFormField>
+      <AccessibleFormField id="login-password" label="Password" required>
+        <input
+          id="login-password"
+          type="password"
+          autoComplete="current-password"
+          className={formInputClass}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={isLoading}
+        />
+      </AccessibleFormField>
+    </CoreAuthForm>
   );
 }
-

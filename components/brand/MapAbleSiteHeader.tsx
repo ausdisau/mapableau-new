@@ -18,9 +18,13 @@ export type MapAbleNavItem = { href: string; label: string };
 
 const DEFAULT_NAV: MapAbleNavItem[] = [
   { href: "/core", label: "Home" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/billing", label: "Billing" },
-  { href: "/provider-finder", label: "Provider finder" },
+  { href: "/dashboard", label: "Control panel" },
+  { href: "/ask", label: "Ask MapAble" },
+  { href: "/care", label: "Care" },
+  { href: "/dashboard/billing", label: "Billing" },
+  { href: "/provider-finder", label: "Find providers" },
+  { href: "/access", label: "Access map" },
+  { href: "/peers", label: "PEERS" },
 ];
 
 export function MapAbleSiteHeader({
