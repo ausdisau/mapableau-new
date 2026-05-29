@@ -1,8 +1,8 @@
 import type { MapAbleUserRole } from "@prisma/client";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
+import { resolveAppUserFromSupabase } from "@/lib/auth/supabase-app-user";
 import type { UserRole } from "@/types/mapable";
 
 export interface CurrentUser {
@@ -17,14 +17,14 @@ export interface CurrentUser {
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return null;
+  const supabase = await createClient();
+  const {
+    data: { user: supabaseUser },
+  } = await supabase.auth.getUser();
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { roleAssignments: true },
-  });
+  if (!supabaseUser) return null;
 
+  const user = await resolveAppUserFromSupabase(supabaseUser);
   if (!user) return null;
 
   const roles: UserRole[] = [

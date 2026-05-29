@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import React, { useEffect, useState } from "react";
 
 import { mapOutletsToProviders } from "@/app/provider-finder/outletToProvider";
@@ -288,7 +288,7 @@ function ProviderProfile({
 export default function ProviderProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const { status } = useSession();
+  const { status } = useAuth();
   const slug = params.slug as string | undefined;
   const { data: outlets, isLoading, isError, error } = useProviderOutlets();
   const providers = outlets ? mapOutletsToProviders(outlets) : [];

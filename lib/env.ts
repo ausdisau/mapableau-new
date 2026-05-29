@@ -8,6 +8,10 @@ const coreSchema = z.object({
   DIRECT_URL: z.string().optional(),
   NEXTAUTH_SECRET: z.string().min(1).optional(),
   NEXTAUTH_URL: z.string().url().optional(),
+  APP_SECRET: z.string().min(1).optional(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 });
 
 type IntegrationEnvRule = {
@@ -115,7 +119,11 @@ const integrationRules: IntegrationEnvRule[] = [
   {
     key: "supabase",
     enabledWhen: () => envTrue("SUPABASE_ENABLED"),
-    requiredVars: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+    requiredVars: [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+    ],
   },
   {
     key: "socketio",
@@ -141,10 +149,31 @@ export function validateCoreEnv(): EnvValidationIssue[] {
         message: "Required in production",
       });
     }
-    if (!process.env.NEXTAUTH_SECRET) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       issues.push({
-        variable: "NEXTAUTH_SECRET",
-        message: "Required in production",
+        variable: "NEXT_PUBLIC_SUPABASE_URL",
+        message: "Required in production for Supabase Auth",
+      });
+    }
+    if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      issues.push({
+        variable: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        message: "Required in production for Supabase Auth",
+      });
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      issues.push({
+        variable: "SUPABASE_SERVICE_ROLE_KEY",
+        message: "Required in production for Supabase Auth server operations",
+      });
+    }
+    if (
+      !process.env.APP_SECRET?.trim() &&
+      !process.env.NEXTAUTH_SECRET?.trim()
+    ) {
+      issues.push({
+        variable: "APP_SECRET",
+        message: "Required in production for bridge tokens and signing",
       });
     }
   }

@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { createClient } from "@/lib/supabase/client";
 import { isSafeRedirect } from "@/lib/auth/safe-redirect";
 
 export default function LoginClient() {
@@ -17,6 +17,26 @@ export default function LoginClient() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  async function resolveDestination(): Promise<string> {
+    let destination = callbackUrl;
+    if (callbackUrl === "/dashboard" || !searchParams.get("callbackUrl")) {
+      try {
+        const redirectRes = await fetch("/api/auth/post-login-redirect");
+        const redirectData = await redirectRes.json();
+        if (
+          redirectRes.ok &&
+          redirectData.redirectTo &&
+          isSafeRedirect(redirectData.redirectTo)
+        ) {
+          destination = redirectData.redirectTo;
+        }
+      } catch {
+        // fall back to callbackUrl
+      }
+    }
+    return destination;
+  }
+
   return (
     <form
       onSubmit={async (e) => {
@@ -25,44 +45,21 @@ export default function LoginClient() {
         setIsLoading(true);
 
         try {
-          const result = await signIn("credentials", {
+          const supabase = createClient();
+          const { error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password,
-            redirect: false,
-            callbackUrl,
           });
 
-          if (result?.error) {
+          if (signInError) {
             setError("Invalid email or password");
             setIsLoading(false);
             return;
           }
 
-          if (result?.ok === true) {
-            setIsLoading(false);
-            let destination = callbackUrl;
-            if (callbackUrl === "/dashboard" || !searchParams.get("callbackUrl")) {
-              try {
-                const redirectRes = await fetch("/api/auth/post-login-redirect");
-                const redirectData = await redirectRes.json();
-                if (
-                  redirectRes.ok &&
-                  redirectData.redirectTo &&
-                  isSafeRedirect(redirectData.redirectTo)
-                ) {
-                  destination = redirectData.redirectTo;
-                }
-              } catch {
-                // fall back to callbackUrl
-              }
-            }
-            router.push(destination);
-            router.refresh();
-            return;
-          }
-
-          setError("An unexpected error occurred. Please try again.");
-          setIsLoading(false);
+          const destination = await resolveDestination();
+          router.push(destination);
+          router.refresh();
         } catch {
           setError("An error occurred. Please try again.");
           setIsLoading(false);
@@ -92,13 +89,27 @@ export default function LoginClient() {
       <button
         type="button"
         disabled={isLoading}
-        onClick={() =>
-          signIn("auth0", {
-            callbackUrl,
-          })
-        }
+        onClick={async () => {
+          setError("");
+          setIsLoading(true);
+          try {
+            const supabase = createClient();
+            const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`;
+            const { error: oauthError } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: { redirectTo },
+            });
+            if (oauthError) {
+              setError(oauthError.message);
+              setIsLoading(false);
+            }
+          } catch {
+            setError("Unable to start OAuth sign-in.");
+            setIsLoading(false);
+          }
+        }}
       >
-        Continue with Auth0
+        Continue with Google
       </button>
       {process.env.NEXT_PUBLIC_WIX_ENABLED === "true" ? (
         <button
@@ -115,4 +126,3 @@ export default function LoginClient() {
     </form>
   );
 }
-

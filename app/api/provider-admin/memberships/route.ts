@@ -7,13 +7,13 @@ import { MembershipResponse } from "@/schemas/provider-admin.types";
 export async function GET(): Promise<
   NextResponse<MembershipResponse | { error: string }>
 > {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await auth();
+  if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const memberships = await prisma.providerUserRole.findMany({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     include: {
       provider: { select: { id: true, name: true, organisationId: true } },
     },

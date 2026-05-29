@@ -1,6 +1,6 @@
 # Wix authentication bridge
 
-MapAble can authenticate **existing** users through [Wix Headless](https://dev.wix.com/docs/go-headless) site members OAuth. Wix proves member identity; MapAble links that member to a `User` row by email and issues a normal NextAuth session.
+MapAble can authenticate **existing** users through [Wix Headless](https://dev.wix.com/docs/go-headless) site members OAuth. Wix proves member identity; MapAble links that member to a `User` row by email and issues a Supabase JWT session.
 
 ## Prerequisites
 
@@ -24,8 +24,10 @@ NEXT_PUBLIC_WIX_ENABLED=true
 WIX_CLIENT_ID=your-headless-client-id
 WIX_REDIRECT_URI=http://localhost:3000/login/wix/callback
 WIX_LOGIN_ORIGIN_URI=http://localhost:3000/login
-NEXTAUTH_SECRET=... # required for bridge session minting
-NEXTAUTH_URL=http://localhost:3000
+APP_SECRET=... # required for bridge token signing (legacy NEXTAUTH_SECRET also works)
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=... # required for session minting after link
 ```
 
 Run `pnpm run check:integrations-env` after enabling Wix.

@@ -1,4 +1,3 @@
-import { withAuth, type NextRequestWithAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 
@@ -7,12 +6,9 @@ import {
   redirectLegacySquarePath,
   shouldRunAuthMiddleware,
 } from "@/lib/mapable-peers/peer-middleware";
+import { updateSession } from "@/lib/supabase/middleware";
 
-const authMiddleware = withAuth({
-  pages: { signIn: "/login" },
-});
-
-export default function middleware(request: NextRequest, event: NextFetchEvent) {
+export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const legacySquare = redirectLegacySquarePath(request);
   if (legacySquare) return legacySquare;
 
@@ -20,10 +16,10 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
   if (peerResponse) return peerResponse;
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {
-    return authMiddleware(request as NextRequestWithAuth, event);
+    return updateSession(request, { requireAuth: true });
   }
 
-  return NextResponse.next();
+  return updateSession(request);
 }
 
 export const config = {

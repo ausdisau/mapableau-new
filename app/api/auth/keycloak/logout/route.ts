@@ -14,6 +14,6 @@ export async function POST() {
     action: "logout",
   });
 
-  const logoutUrl = `${c.baseUrl}/realms/${c.realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent(process.env.NEXTAUTH_URL ?? "/")}`;
+  const logoutUrl = `${c.baseUrl}/realms/${c.realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXTAUTH_URL ?? "/")}`;
   return NextResponse.json({ logoutUrl });
 }

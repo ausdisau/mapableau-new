@@ -2,6 +2,7 @@ import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { bootstrapUserAfterRegister } from "@/lib/auth/register-bootstrap";
+import { ensureSupabaseUserForAppUser } from "@/lib/auth/supabase-app-user";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validation/register";
 
@@ -33,28 +34,38 @@ export async function POST(req: Request) {
 
   const passwordHash = await hash(password, 10);
 
-  const { user, bootstrap } = await prisma.$transaction(async (tx) => {
-    const created = await tx.user.create({
-      data: {
+  try {
+    const { user, bootstrap } = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+        },
+      });
+
+      const boot = await bootstrapUserAfterRegister(
+        created.id,
         name,
-        email,
-        passwordHash,
-      },
+        accountType,
+        tx
+      );
+
+      return { user: created, bootstrap: boot };
     });
 
-    const boot = await bootstrapUserAfterRegister(
-      created.id,
-      name,
-      accountType,
-      tx
-    );
+    await ensureSupabaseUserForAppUser({
+      userId: user.id,
+      email: user.email,
+      password,
+    });
 
-    return { user: created, bootstrap: boot };
-  });
-
-  return NextResponse.json({
-    id: user.id,
-    accountType: bootstrap.accountType,
-    redirectTo: bootstrap.redirectTo,
-  });
+    return NextResponse.json({
+      id: user.id,
+      accountType: bootstrap.accountType,
+      redirectTo: bootstrap.redirectTo,
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to register" }, { status: 500 });
+  }
 }

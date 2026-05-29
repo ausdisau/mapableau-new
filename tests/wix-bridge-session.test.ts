@@ -6,14 +6,14 @@ import {
 } from "@/lib/auth/wix/wix-bridge-session";
 
 describe("wix-bridge-session", () => {
-  const prev = process.env.NEXTAUTH_SECRET;
+  const prev = process.env.APP_SECRET;
 
   afterEach(() => {
-    process.env.NEXTAUTH_SECRET = prev;
+    process.env.APP_SECRET = prev;
   });
 
   it("creates and verifies a one-time bridge token", async () => {
-    process.env.NEXTAUTH_SECRET = "test-secret-for-wix-bridge";
+    process.env.APP_SECRET = "test-secret-for-wix-bridge";
 
     const token = await createWixBridgeToken({
       userId: "user_1",
@@ -28,7 +28,7 @@ describe("wix-bridge-session", () => {
   });
 
   it("rejects tampered tokens", async () => {
-    process.env.NEXTAUTH_SECRET = "test-secret-for-wix-bridge";
+    process.env.APP_SECRET = "test-secret-for-wix-bridge";
     const token = await createWixBridgeToken({
       userId: "user_1",
       returnTo: "/dashboard",

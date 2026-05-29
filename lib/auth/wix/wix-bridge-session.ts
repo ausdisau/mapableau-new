@@ -1,14 +1,12 @@
 import { SignJWT, jwtVerify } from "jose";
 
+import { getAppSecretBytes } from "@/lib/auth/app-secret";
+
 const BRIDGE_PURPOSE = "wix_auth_bridge";
 const TTL_SECONDS = 60;
 
 function bridgeSecret(): Uint8Array {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is required for Wix bridge sessions");
-  }
-  return new TextEncoder().encode(secret);
+  return getAppSecretBytes();
 }
 
 export async function createWixBridgeToken(input: {
