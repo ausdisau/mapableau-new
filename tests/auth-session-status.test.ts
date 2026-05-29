@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildRegisterRedirect } from "@/lib/auth/auth-session-status";
+import { buildRegisterRedirect } from "@/lib/auth/register-redirect";
 
 describe("buildRegisterRedirect", () => {
   it("includes email query param", () => {

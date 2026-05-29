@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  buildRegisterRedirect,
-  getAuthSessionStatus,
-  isEmailRegistered,
-} from "@/lib/auth/auth-session-status";
+import { isEmailRegistered } from "@/lib/auth/auth-session-status";
 import { jsonOk } from "@/lib/api/response";
 
 export async function GET(request: Request) {

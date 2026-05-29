@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
-import {
-  buildRegisterRedirect,
-  getAuthSessionStatus,
-} from "@/lib/auth/auth-session-status";
+import { buildRegisterRedirect } from "@/lib/auth/register-redirect";
+import { getAuthSessionStatus } from "@/lib/auth/auth-session-status";
 import { createClient } from "@/lib/supabase/server";
 import { isSafeRedirect } from "@/lib/auth/safe-redirect";
 

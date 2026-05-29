@@ -1,6 +1,5 @@
 import type { MapAbleUserRole, User } from "@prisma/client";
 
-import { isSafeRedirect } from "@/lib/auth/safe-redirect";
 import { resolveAppUserFromSupabase } from "@/lib/auth/supabase-app-user";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
@@ -33,17 +32,6 @@ export function toCurrentUser(user: AppUserWithRoles): CurrentUser {
     primaryRole: user.primaryRole as UserRole,
     roles: [...new Set(roles)],
   };
-}
-
-export function buildRegisterRedirect(
-  email: string,
-  callbackUrl?: string
-): string {
-  const params = new URLSearchParams({ email });
-  if (callbackUrl && isSafeRedirect(callbackUrl)) {
-    params.set("callbackUrl", callbackUrl);
-  }
-  return `/register?${params.toString()}`;
 }
 
 export async function isEmailRegistered(email: string): Promise<boolean> {

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackPath, getClientAppOrigin } from "@/lib/app-url";
-import { buildRegisterRedirect } from "@/lib/auth/auth-session-status";
+import { buildRegisterRedirect } from "@/lib/auth/register-redirect";
 import { isSafeRedirect } from "@/lib/auth/safe-redirect";
 
 async function fetchSessionStatus(): Promise<
