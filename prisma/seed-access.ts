@@ -1,26 +1,37 @@
+/**
+ * Standalone MapAble Access seed — accreditation criteria and optional demo/bulk KML.
+ *
+ * Usage:
+ *   npx tsx prisma/seed-access.ts
+ *   SEED_ACCESS_KML=1 npx tsx prisma/seed-access.ts
+ *   SEED_ACCESS_KML=1 SEED_ACCESS_PUBLISH=1 npx tsx prisma/seed-access.ts
+ */
 import { PrismaClient } from "@prisma/client";
 
-import { ACCREDITATION_CRITERIA } from "../lib/access-accreditation/accreditation-criteria-service";
+import {
+  bulkSeedAccessPlaces,
+  upsertAccessAccreditationCriteria,
+} from "../lib/access-import/bulk-access-seed-service";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  for (const c of ACCREDITATION_CRITERIA) {
-    await prisma.accessAccreditationCriterion.upsert({
-      where: { code: c.code },
-      create: {
-        code: c.code,
-        domain: c.domain,
-        title: c.title,
-        weight: c.weight,
-        sortOrder: ACCREDITATION_CRITERIA.indexOf(c),
-      },
-      update: {
-        domain: c.domain,
-        title: c.title,
-        weight: c.weight,
-      },
+  await upsertAccessAccreditationCriteria();
+
+  if (process.env.SEED_ACCESS_KML === "1") {
+    const result = await bulkSeedAccessPlaces({
+      publish: process.env.SEED_ACCESS_PUBLISH === "1",
+      force: process.env.SEED_ACCESS_FORCE === "1",
     });
+
+    if (result.skipped) {
+      console.log(`Bulk KML seed skipped: ${result.reason}`);
+    } else {
+      console.log(
+        `Bulk KML seed: ${result.created} created, ${result.conflicts} conflicts, ${result.parsed} parsed`
+      );
+    }
+    return;
   }
 
   const existing = await prisma.accessPlace.count();
