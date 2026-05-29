@@ -4,13 +4,13 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseAuthConfigured } from "@/lib/supabase/env";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -27,9 +27,14 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
-  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    if (!isSupabaseAuthConfigured()) {
+      setStatus("unauthenticated");
+      return;
+    }
+
+    const supabase = createClient();
     let active = true;
 
     supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
@@ -50,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       active = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, status }}>
