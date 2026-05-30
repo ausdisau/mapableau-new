@@ -1,6 +1,14 @@
-import Link from "next/link";
-
+import { ModuleNav } from "@/components/layout/ModuleNav";
+import { ModuleShell } from "@/components/layout/ModuleShell";
 import { requirePermission } from "@/lib/auth/guards";
+
+const NAV_LINKS = [
+  { href: "/care/request", label: "Request care" },
+  { href: "/care/bookings", label: "Bookings" },
+  { href: "/care/service-logs", label: "Service logs" },
+  { href: "/care/shifts", label: "Shifts" },
+  { href: "/care/find", label: "Find providers" },
+];
 
 export default async function CareLayout({
   children,
@@ -10,38 +18,14 @@ export default async function CareLayout({
   await requirePermission("care:read:self");
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <nav
-          className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-4"
-          aria-label="Care navigation"
-        >
-          <Link href="/care" className="font-heading font-bold">
-            MapAble Care
-          </Link>
-          <Link href="/care/request" className="text-sm underline">
-            Request care
-          </Link>
-          <Link href="/care/bookings" className="text-sm underline">
-            Bookings
-          </Link>
-          <Link href="/care/service-logs" className="text-sm underline">
-            Service logs
-          </Link>
-          <Link href="/care/shifts" className="text-sm underline">
-            Shifts
-          </Link>
-          <Link href="/care/find" className="text-sm underline">
-            Find providers
-          </Link>
-          <Link href="/dashboard" className="ml-auto text-sm text-muted-foreground">
-            Dashboard
-          </Link>
-        </nav>
-      </header>
-      <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
-        {children}
-      </main>
-    </div>
+    <ModuleShell
+      homeHref="/care"
+      homeLabel="MapAble Care"
+      navAriaLabel="Care navigation"
+      backLink={{ href: "/dashboard", label: "Dashboard" }}
+      nav={<ModuleNav links={NAV_LINKS} />}
+    >
+      {children}
+    </ModuleShell>
   );
 }
