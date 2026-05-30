@@ -29,7 +29,7 @@ export async function seedMapAblePhase2() {
       email: "provider@mapable.test",
       name: "Demo Provider Admin",
       passwordHash:
-        "$2b$10$iLyIbD98gF/4Wnghy5CnY.m4JK0/bL8CLbc/pUtnQ/nXr4Wuep.8O",
+        "$2b$10$3M5Pn.9r2FhZq.zxdgVhJuX56pWpG7PUViH0931hNLOkDcOM3g/TO",
       primaryRole: "provider_admin",
     },
     update: {},

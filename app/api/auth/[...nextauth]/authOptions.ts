@@ -32,6 +32,7 @@ export const authOptions: AuthOptions = {
           id: user.id,
           email: user.email ?? null,
           name: user.name ?? null,
+          role: user.primaryRole,
         };
       },
     }),

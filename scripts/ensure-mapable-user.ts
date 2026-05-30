@@ -8,10 +8,15 @@
  * Requires DATABASE_URL or DIRECT_URL in the environment.
  */
 
+import { hash } from "bcryptjs";
 import { PrismaClient, type MapAbleUserRole } from "@prisma/client";
 
-const PASSWORD_HASH =
-  "$2b$10$iLyIbD98gF/4Wnghy5CnY.m4JK0/bL8CLbc/pUtnQ/nXr4Wuep.8O";
+/** Default dev/test password when creating or resetting users via this script. */
+const DEFAULT_PASSWORD = "Password123!";
+
+async function passwordHashForReset(): Promise<string> {
+  return hash(DEFAULT_PASSWORD, 10);
+}
 
 function parseArgs(argv: string[]) {
   const get = (flag: string) => {
@@ -37,19 +42,24 @@ async function main() {
   const { email, name, role, resetPassword } = parseArgs(process.argv.slice(2));
   const prisma = new PrismaClient();
 
+  const passwordHash =
+    resetPassword || !(await prisma.user.findUnique({ where: { email } }))
+      ? await passwordHashForReset()
+      : undefined;
+
   const user = await prisma.user.upsert({
     where: { email },
     create: {
       name,
       email,
-      passwordHash: PASSWORD_HASH,
+      passwordHash: passwordHash ?? (await passwordHashForReset()),
       primaryRole: role,
       phone: null,
     },
     update: {
       name,
       primaryRole: role,
-      ...(resetPassword ? { passwordHash: PASSWORD_HASH } : {}),
+      ...(passwordHash ? { passwordHash } : {}),
     },
   });
 
