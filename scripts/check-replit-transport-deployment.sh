@@ -8,7 +8,7 @@ echo "Checking ${URL} ..."
 body=$(curl -sL -A "Mozilla/5.0" "${URL}/" || true)
 code=$(curl -sL -o /dev/null -w "%{http_code}" -A "Mozilla/5.0" "${URL}/" || echo "000")
 
-if echo "${body}" | grep -qiE "isn.t live yet|not live yet"; then
+if echo "${body}" | grep -qi "live yet"; then
   echo "Status: NOT LIVE (Replit placeholder — deploy the Repl first)"
   echo "HTTP: ${code}"
   echo "Repl editor: https://replit.com/@ausdisau1/MapAble-Transport"
