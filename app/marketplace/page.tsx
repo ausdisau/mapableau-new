@@ -1,7 +1,12 @@
 import Link from "next/link";
 
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceClient";
+import { CoreHubCard } from "@/components/core/CoreHubCard";
+import { CorePageHeader } from "@/components/core/CorePageHeader";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Button } from "@/components/ui/button";
 import { requireAuth } from "@/lib/auth/guards";
+import { mapableHubPageStackClass, mapableSectionHeadingClass } from "@/lib/brand/styles";
 import { listMarketplaceProducts } from "@/lib/marketplace/catalog";
 import { MARKETPLACE_CATEGORIES } from "@/lib/marketplace/types";
 import { prisma } from "@/lib/prisma";
@@ -21,49 +26,38 @@ export default async function MarketplaceHubPage() {
   });
 
   return (
-    <div className="space-y-10">
-      <header className="space-y-3">
-        <h1 className="font-heading text-3xl font-bold">MapAble Marketplace</h1>
-        <p className="max-w-2xl text-muted-foreground">
-          Browse mobility aids, daily living equipment, sensory products, and assistive
-          technology. Orders flow through the MapAble billing centre with GST and NDIS support
-          item metadata where applicable.
-        </p>
-      </header>
-
-      <div className="flex flex-wrap gap-3">
-        <Link
-          href="/marketplace/browse"
-          className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Browse all products
-        </Link>
-        <Link
-          href="/marketplace/cart"
-          className="inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          View cart
-        </Link>
-      </div>
+    <div className={mapableHubPageStackClass}>
+      <CorePageHeader
+        eyebrow="Shop"
+        title="MapAble Marketplace"
+        description="Browse mobility aids, daily living equipment, sensory products, and assistive technology. Orders flow through the MapAble billing centre with GST and NDIS support item metadata where applicable."
+      >
+        <div className="flex flex-wrap gap-3 pt-2">
+          <Button asChild variant="default" size="default">
+            <Link href="/marketplace/browse">Browse all products</Link>
+          </Button>
+          <Button asChild variant="outline" size="default">
+            <Link href="/marketplace/cart">View cart</Link>
+          </Button>
+        </div>
+      </CorePageHeader>
 
       <section>
-        <h2 className="text-lg font-semibold">Shop by category</h2>
+        <h2 className={mapableSectionHeadingClass}>Shop by category</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {MARKETPLACE_CATEGORIES.map((category) => (
-            <Link
+            <CoreHubCard
               key={category.slug}
               href={`/marketplace/browse?category=${category.slug}`}
-              className="rounded-xl border p-4 hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <p className="font-medium">{category.label}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{category.description}</p>
-            </Link>
+              title={category.label}
+              description={category.description}
+            />
           ))}
         </div>
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold">Featured products</h2>
+        <h2 className={mapableSectionHeadingClass}>Featured products</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((product) => (
             <MarketplaceProductCard key={product.id} product={product} />
@@ -72,7 +66,7 @@ export default async function MarketplaceHubPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold">Recent orders</h2>
+        <h2 className={mapableSectionHeadingClass}>Recent orders</h2>
         {recentOrders.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">No marketplace orders yet.</p>
         ) : (
@@ -81,13 +75,16 @@ export default async function MarketplaceHubPage() {
               <li key={order.id}>
                 <Link
                   href={`/dashboard/billing/invoices/${order.id}`}
-                  className="block rounded-lg border p-3 hover:border-primary/40"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  Order {order.id.slice(0, 8)} — {order.status} —{" "}
-                  {new Intl.NumberFormat("en-AU", {
-                    style: "currency",
-                    currency: "AUD",
-                  }).format(order.totalCents / 100)}
+                  <span className="font-medium">Order {order.id.slice(0, 8)}</span>
+                  <StatusBadge status={order.status} />
+                  <span className="text-sm text-muted-foreground">
+                    {new Intl.NumberFormat("en-AU", {
+                      style: "currency",
+                      currency: "AUD",
+                    }).format(order.totalCents / 100)}
+                  </span>
                 </Link>
               </li>
             ))}

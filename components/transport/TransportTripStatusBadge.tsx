@@ -1,5 +1,6 @@
 import type { TransportTripStatus } from "@prisma/client";
 
+import { StatusBadge } from "@/components/ui/status-badge";
 import { transportTripStatusLabel } from "@/lib/transport/transport-status-labels";
 
 export function TransportTripStatusBadge({
@@ -7,11 +8,12 @@ export function TransportTripStatusBadge({
 }: {
   status: TransportTripStatus | string;
 }) {
-  const label = transportTripStatusLabel(status);
+  const key = String(status);
   return (
-    <span className="inline-flex min-h-8 items-center rounded-md border border-border bg-muted px-2 text-sm font-medium">
-      <span className="sr-only">Status: </span>
-      {label}
-    </span>
+    <StatusBadge
+      status={key}
+      label={transportTripStatusLabel(status)}
+      className="normal-case"
+    />
   );
 }

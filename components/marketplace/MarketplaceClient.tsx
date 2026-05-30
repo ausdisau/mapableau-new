@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { formatMarketplacePrice } from "@/lib/marketplace/format";
 import type { MarketplaceCartItem, MarketplaceProduct } from "@/lib/marketplace/types";
 
@@ -68,9 +77,13 @@ export function useMarketplaceCartCount() {
 
 export function MarketplaceAddToCartButton({
   product,
+  variant = "default",
+  size = "default",
   className,
 }: {
   product: MarketplaceProduct;
+  variant?: "default" | "outline";
+  size?: "default" | "sm";
   className?: string;
 }) {
   const [added, setAdded] = useState(false);
@@ -84,12 +97,11 @@ export function MarketplaceAddToCartButton({
   }
 
   return (
-    <button
+    <Button
       type="button"
-      className={
-        className ??
-        "inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
-      }
+      variant={variant}
+      size={size}
+      className={className}
       onClick={() => {
         addToMarketplaceCart(product.id);
         setAdded(true);
@@ -97,37 +109,38 @@ export function MarketplaceAddToCartButton({
       }}
     >
       {added ? "Added to cart" : "Add to cart"}
-    </button>
+    </Button>
   );
 }
 
 export function MarketplaceProductCard({ product }: { product: MarketplaceProduct }) {
   return (
-    <article className="flex h-full flex-col rounded-xl border border-border bg-card p-4">
-      <div
-        className="mb-3 flex h-28 items-center justify-center rounded-lg bg-muted text-sm font-medium text-muted-foreground"
-        aria-hidden
-      >
-        {product.category.replace("-", " ")}
-      </div>
-      <h3 className="font-semibold">
-        <Link
-          href={`/marketplace/products/${product.slug}`}
-          className="hover:text-primary focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    <Card variant="interactive" className="flex h-full flex-col">
+      <CardHeader className="pb-3">
+        <div
+          className="mb-3 flex h-28 items-center justify-center rounded-lg bg-muted text-sm font-medium text-muted-foreground"
+          aria-hidden
         >
-          {product.name}
-        </Link>
-      </h3>
-      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
-      <p className="mt-3 text-sm text-muted-foreground">Sold by {product.sellerName}</p>
-      <div className="mt-auto flex items-center justify-between gap-2 pt-4">
+          {product.category.replace("-", " ")}
+        </div>
+        <CardTitle className="text-base">
+          <Link
+            href={`/marketplace/products/${product.slug}`}
+            className="hover:text-primary focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {product.name}
+          </Link>
+        </CardTitle>
+        <CardDescription className="line-clamp-2">{product.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 pt-0">
+        <p className="text-sm text-muted-foreground">Sold by {product.sellerName}</p>
+      </CardContent>
+      <CardFooter className="flex items-center justify-between gap-2 pt-0">
         <span className="font-semibold">{formatMarketplacePrice(product.priceCents)}</span>
-        <MarketplaceAddToCartButton
-          product={product}
-          className="inline-flex min-h-9 items-center rounded-lg border px-3 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-        />
-      </div>
-    </article>
+        <MarketplaceAddToCartButton product={product} variant="outline" size="sm" />
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -198,18 +211,21 @@ export function MarketplaceCartClient({
 
   if (lines.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed p-8 text-center">
-        <p className="text-muted-foreground">Your cart is empty.</p>
-        <Link href="/marketplace/browse" className="mt-3 inline-block text-primary underline">
-          Browse products
-        </Link>
-      </div>
+      <Card className="border-dashed">
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">Your cart is empty.</p>
+          <Button asChild variant="outline" size="default" className="mt-3">
+            <Link href="/marketplace/browse">Browse products</Link>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <ul className="divide-y rounded-xl border">
+      <Card>
+        <ul className="divide-y divide-border">
         {lines.map(({ item, product }) => (
           <li key={product.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
             <div>
@@ -239,17 +255,20 @@ export function MarketplaceCartClient({
             </div>
           </li>
         ))}
-      </ul>
+        </ul>
+      </Card>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="text-lg font-semibold">Total {formatMarketplacePrice(totalCents)}</p>
-        <button
+        <Button
           type="button"
+          variant="default"
+          size="default"
           disabled={busy}
+          loading={busy}
           onClick={checkout}
-          className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
         >
           {busy ? "Creating order…" : "Create order & pay"}
-        </button>
+        </Button>
       </div>
       {message ? (
         <p className="text-sm text-destructive" role="alert">

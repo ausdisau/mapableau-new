@@ -1,3 +1,5 @@
+import { StatusBadge } from "@/components/ui/status-badge";
+
 const LABELS: Record<string, string> = {
   draft: "Draft",
   submitted: "Submitted",
@@ -11,11 +13,11 @@ const LABELS: Record<string, string> = {
 };
 
 export function StatusTextBadge({ status }: { status: string }) {
-  const label = LABELS[status] ?? status.replace(/_/g, " ");
   return (
-    <span className="inline-flex min-h-8 items-center rounded-md border border-border bg-muted px-2 text-sm font-medium capitalize">
-      <span className="sr-only">Status: </span>
-      {label}
-    </span>
+    <StatusBadge
+      status={status}
+      label={LABELS[status] ?? status.replace(/_/g, " ")}
+      className="normal-case"
+    />
   );
 }
