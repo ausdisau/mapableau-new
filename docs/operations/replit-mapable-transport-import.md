@@ -2,6 +2,14 @@
 
 Source Repl: [MapAble-Transport](https://replit.com/@ausdisau1/MapAble-Transport) (`@ausdisau1`).
 
+**Deployment URL:** [https://mapabletransport.replit.app](https://mapabletransport.replit.app) — as of the last check this hostname returns Replit’s **“This app isn’t live yet”** page (HTTP 404). The Repl must be **Run → Deploy** (or Reserved VM) before the URL serves app code. You cannot import from the live URL until it is running; use git or a zip export instead.
+
+Check status anytime:
+
+```bash
+./scripts/check-replit-transport-deployment.sh
+```
+
 This repository (`ausdisau/mapableau-new`) already implements MapAble Transport as part of the monolith. Use this guide when you need to pull changes from the Replit-hosted Repl or reconcile a standalone transport app with production code.
 
 ## Quick import (git)
