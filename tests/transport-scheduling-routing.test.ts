@@ -114,11 +114,14 @@ vi.mock("@/lib/prisma", () => ({
     transportRouteOptimisationResult: { createMany: vi.fn() },
     transportLiveLocation: { create: vi.fn() },
     transportTripEvidence: { create: vi.fn() },
+    transportSafetyCheck: { findMany: vi.fn().mockResolvedValue([]) },
+    transportHandoverRecord: { findMany: vi.fn().mockResolvedValue([]) },
     transportSafetyEvent: { create: vi.fn() },
     transportIncidentLink: { create: vi.fn() },
     dataAccessLog: { create: vi.fn() },
     consentRecord: { findFirst: vi.fn() },
     organisationMember: { findMany: vi.fn() },
+    booking: { findFirst: vi.fn().mockResolvedValue(null) },
   },
 }));
 

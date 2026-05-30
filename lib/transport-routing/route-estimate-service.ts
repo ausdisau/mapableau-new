@@ -7,8 +7,10 @@ import {
   getCachedEstimate,
   rememberEstimate,
 } from "@/lib/transport-routing/route-cache-service";
+import { buildTrafficAdvisoryForRoute } from "@/lib/tfnsw/traffic-advisory-service";
 import type { RouteEstimateInput } from "@/types/transport-routing";
 import { ROUTE_ADVISORY_DISCLAIMER } from "@/types/transport-routing";
+import type { TrafficAdvisory } from "@/types/tfnsw";
 
 export async function createRouteEstimate(params: {
   input: RouteEstimateInput;
@@ -24,10 +26,12 @@ export async function createRouteEstimate(params: {
 
   const cached = await getCachedEstimate(cacheKey);
   if (cached) {
+    const trafficAdvisory = await maybeTrafficAdvisory(params.input);
     return {
       estimate: cached,
       advisoryDisclaimer: ROUTE_ADVISORY_DISCLAIMER,
       fromCache: true,
+      ...(trafficAdvisory ? { trafficAdvisory } : {}),
     };
   }
 
@@ -62,9 +66,23 @@ export async function createRouteEstimate(params: {
 
   rememberEstimate(cacheKey, estimate.id);
 
+  const trafficAdvisory = await maybeTrafficAdvisory(params.input);
+
   return {
     estimate,
     advisoryDisclaimer: ROUTE_ADVISORY_DISCLAIMER,
     fromCache: false,
+    ...(trafficAdvisory ? { trafficAdvisory } : {}),
   };
+}
+
+async function maybeTrafficAdvisory(
+  input: RouteEstimateInput
+): Promise<TrafficAdvisory | undefined> {
+  const advisory = await buildTrafficAdvisoryForRoute({
+    origin: input.origin,
+    destination: input.destination,
+    waypoints: input.waypoints,
+  });
+  return advisory ?? undefined;
 }

@@ -10,6 +10,8 @@ Parallel scheduling domain alongside legacy `TransportBooking` (Phase 3). New tr
 | Provider dispatch | `/api/provider/transport/*` |
 | Driver | `/api/driver/transport/trips` |
 | Routing (provider) | `/api/transport/routing/*` |
+| Live Traffic NSW (provider) | `/api/transport/traffic/*` |
+| Trip Planner proxy (provider) | `/api/transport/tp/*` |
 
 Responses include `permissions`, `nextActions`, optional `routeEstimate`, and role-shaped addresses (exact pickup/dropoff only for participant, consented nominee summary, provider org, assigned driver).
 
@@ -34,7 +36,15 @@ TRANSPORT_ROUTING_PROVIDER=mock   # mock | osrm | graphhopper | openrouteservice
 OSRM_BASE_URL=http://router.project-osrm.org
 GRAPHHOPPER_API_KEY=
 OPENROUTESERVICE_API_KEY=
+
+# TfNSW Open Data (server-side key only)
+TFNSW_API_KEY=
+TFNSW_LIVE_TRAFFIC_ENABLED=true
+TFNSW_TRIP_PLANNER_ENABLED=true
+TFNSW_ENRICH_ROUTE_ESTIMATES=false
 ```
+
+See [docs/tfnsw-traffic.md](docs/tfnsw-traffic.md) for hazard feeds, cameras, departures, and stop search.
 
 ## Consent
 
@@ -45,6 +55,7 @@ Nominee / family access requires active `transport.trip_access` consent from the
 - Estimates are **advisory** (not guaranteed).
 - Optimisation returns **suggestions** with `requiresHumanReview`; it does not auto-dispatch.
 - Mock provider is default for local dev and tests.
+- Optional `trafficAdvisory` on route estimates when `TFNSW_ENRICH_ROUTE_ESTIMATES=true` (open incidents near corridor; indicative only).
 
 ## Governance
 
@@ -54,6 +65,15 @@ Nominee / family access requires active `transport.trip_access` consent from the
 ## NDIS
 
 This module does not perform or imply NDIS payment approval.
+
+## Accessible ride-sharing
+
+Managed accessible transport and optional pooling: [docs/accessible-ride-share.md](docs/accessible-ride-share.md), [STRATEGY.md](STRATEGY.md).
+
+```env
+TRANSPORT_BOOKING_BRIDGE_ENABLED=false
+TRANSPORT_RIDE_POOLING_ENABLED=false
+```
 
 ## AV MCP (Cursor)
 
@@ -67,5 +87,6 @@ npm run mcp:av
 
 ```bash
 npm test -- tests/transport-scheduling-routing.test.ts
+npm test -- tests/tfnsw-traffic.test.ts
 npm test -- tests/av-framework.test.ts
 ```
