@@ -1,17 +1,22 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     try {
       const res = await fetch("/api/register", {
@@ -20,32 +25,41 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, password, name }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as { error?: string; code?: string };
 
       if (!res.ok) {
         setError(data.error || "Registration failed");
+        setIsLoading(false);
         return;
       }
 
-      // Automatically sign in after registration
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         email,
         password,
+        redirect: false,
         callbackUrl: "/dashboard",
       });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong");
+
+      if (result?.error) {
+        setError(
+          "Account created, but sign-in failed. Try signing in on the login page."
+        );
+        setIsLoading(false);
+        return;
       }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setIsLoading(false);
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-md mx-auto mt-10 flex flex-col gap-4"
+      className="mx-auto mt-10 flex max-w-md flex-col gap-4"
     >
       <input
         type="text"
@@ -53,6 +67,7 @@ export default function RegisterPage() {
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
+        disabled={isLoading}
       />
       <input
         type="email"
@@ -60,18 +75,31 @@ export default function RegisterPage() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        disabled={isLoading}
       />
       <input
         type="password"
-        placeholder="Password"
+        placeholder="Password (min 8 characters)"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        minLength={8}
         required
+        disabled={isLoading}
       />
       {error && <p className="text-red-500">{error}</p>}
-      <button type="submit" className="bg-blue-600 text-white py-2 rounded">
-        Register
+      <button
+        type="submit"
+        className="rounded bg-blue-600 py-2 text-white disabled:opacity-60"
+        disabled={isLoading}
+      >
+        {isLoading ? "Creating account…" : "Register"}
       </button>
+      <p className="text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <Link href="/login" className="underline">
+          Sign in
+        </Link>
+      </p>
     </form>
   );
 }

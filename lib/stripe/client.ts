@@ -4,7 +4,9 @@ import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
 import { StripeNotConfiguredError } from "@/lib/stripe/errors";
 
 /** Pinned Stripe API version for MapAble Core billing. */
-export const STRIPE_API_VERSION = "2026-04-22.dahlia" as const;
+export const STRIPE_API_VERSION = "2026-05-27.dahlia" as const;
+
+type StripeClientOptions = NonNullable<ConstructorParameters<typeof Stripe>[1]>;
 
 let stripeClient: Stripe | null = null;
 
@@ -14,7 +16,7 @@ export function getStripeClient(): Stripe {
   }
   if (!stripeClient) {
     stripeClient = new Stripe(stripeConfig.secretKey!, {
-      apiVersion: STRIPE_API_VERSION,
+      apiVersion: STRIPE_API_VERSION as StripeClientOptions["apiVersion"],
       typescript: true,
       appInfo: {
         name: "MapAble Core",
