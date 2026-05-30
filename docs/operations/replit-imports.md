@@ -37,3 +37,17 @@ Cloud agents and CI cannot pass Replit’s Cloudflare challenge. Clones fail wit
 ## After clone
 
 Each ops doc lists merge targets and verification commands. Prefer extending existing `app/`, `lib/`, and `prisma/schema.prisma` paths over adding parallel stacks.
+
+## Integrated in this repo (without Replit clone)
+
+The monorepo already wires the Unified shell and Care module:
+
+| Repl concept | Monorepo location |
+| --- | --- |
+| MapAble-Unified hub | `/core`, `lib/core-ui/navigation.ts`, `components/core/` |
+| MapAble-for-Care | `/care`, `lib/care/`, `app/api/care/` |
+| MapAble-Transport | `/transport`, `lib/transport/` (see transport import doc) |
+
+Module registry links in `app/lib/modules.ts` resolve to live routes (`/care`, `/transport`, `/dashboard/jobs`, plus coming-soon stubs for Foods/Moves/Marketplace/Kids).
+
+Verify: `pnpm test tests/mapable-core-ui.test.ts tests/module-routes.test.ts tests/care-mvp.test.ts`

@@ -14,7 +14,7 @@ const LINKS = [
   { href: "/dashboard/accessibility", label: "Accessibility" },
   { href: "/dashboard/consent", label: "Consent" },
   { href: "/dashboard/bookings", label: "Bookings" },
-  { href: "/dashboard/care", label: "Care" },
+  { href: "/care", label: "Care" },
   { href: "/dashboard/transport", label: "Transport trips" },
   { href: "/dashboard/jobs", label: "Jobs" },
   { href: "/dashboard/calendar", label: "Calendar" },
@@ -55,22 +55,30 @@ export function DashboardNav({
           <RoleBadge role={role} className="mt-1" />
         </div>
         <ul className="flex flex-wrap gap-2">
-          {LINKS.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                aria-current={pathname === link.href ? "page" : undefined}
-                className={cn(
-                  "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  pathname === link.href
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted",
-                )}
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
+          {LINKS.map((link) => {
+            const isActive =
+              pathname === link.href ||
+              (link.href === "/care" && pathname.startsWith("/care")) ||
+              (link.href === "/dashboard/transport" &&
+                pathname.startsWith("/dashboard/transport"));
+
+            return (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            );
+          })}
           {role === "mapable_admin" ? (
             <li>
               <Link

@@ -39,6 +39,36 @@ export const CORE_HUB_SECTIONS: {
   links: CoreNavLink[];
 }[] = [
   {
+    title: "MapAble services",
+    links: [
+      {
+        href: "/care",
+        label: "MapAble Care",
+        description: "Find support workers, request care, and confirm service delivery",
+      },
+      {
+        href: "/transport",
+        label: "MapAble Transport",
+        description: "Book accessible transport and manage scheduled trips",
+      },
+      {
+        href: "/dashboard/jobs",
+        label: "MapAble Jobs",
+        description: "Inclusive employment opportunities",
+      },
+      {
+        href: "/access",
+        label: "MapAble Access",
+        description: "Accessibility map and place reviews",
+      },
+      {
+        href: "/provider-finder",
+        label: "Provider finder",
+        description: "Search NDIS providers and support services",
+      },
+    ],
+  },
+  {
     title: "Community",
     links: [
       {
@@ -67,10 +97,18 @@ export const CORE_HUB_SECTIONS: {
         description: "Bookings, care, scheduled transport trips and profile",
       },
       { href: "/dashboard/bookings", label: "Bookings" },
-      { href: "/dashboard/care", label: "Care" },
+      {
+        href: "/care",
+        label: "MapAble Care",
+        description: "Support workers, bookings and service logs",
+      },
       { href: "/dashboard/billing", label: "Billing centre" },
       { href: "/dashboard/safety", label: "Safety centre" },
-      { href: "/dashboard/transport", label: "Transport trips" },
+      {
+        href: "/transport",
+        label: "MapAble Transport",
+        description: "Accessible trips and operator search",
+      },
       { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
     ],
   },

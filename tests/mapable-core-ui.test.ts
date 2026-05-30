@@ -20,8 +20,16 @@ describe("Core UI navigation", () => {
 
   it("hub sections cover services and civic", () => {
     const titles = CORE_HUB_SECTIONS.map((s) => s.title);
+    expect(titles).toContain("MapAble services");
     expect(titles).toContain("Your services");
     expect(titles).toContain("Public accountability");
+  });
+
+  it("uses module entry routes for care and transport", () => {
+    const hrefs = CORE_HUB_SECTIONS.flatMap((s) => s.links.map((l) => l.href));
+    expect(hrefs).toContain("/care");
+    expect(hrefs).toContain("/transport");
+    expect(hrefs).not.toContain("/dashboard/care");
   });
 
   it("provider nav includes care and transport", () => {
