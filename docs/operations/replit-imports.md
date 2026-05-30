@@ -1,0 +1,39 @@
+# Replit imports (MapAble)
+
+Guides for pulling code from `@ausdisau1` Repls into `ausdisau/mapableau-new`.
+
+| Repl | Script | Ops doc |
+| --- | --- | --- |
+| [MapAble-for-Care](https://replit.com/@ausdisau1/MapAble-for-Care) | `scripts/import-replit-care.sh` | [replit-mapable-for-care-import.md](./replit-mapable-for-care-import.md) |
+| [MapAble-Unified](https://replit.com/@ausdisau1/MapAble-Unified) | `scripts/import-replit-unified.sh` | [replit-mapable-unified-import.md](./replit-mapable-unified-import.md) |
+| [MapAble-Transport](https://replit.com/@ausdisau1/MapAble-Transport) | `scripts/import-replit-transport.sh` | [replit-mapable-transport-import.md](./replit-mapable-transport-import.md) |
+
+## Import both Care and Unified
+
+```bash
+chmod +x scripts/import-replit-*.sh scripts/import-replit-mapable.sh
+./scripts/import-replit-mapable.sh both
+```
+
+With per-Repl git remotes (when Replit auth is required):
+
+```bash
+REPLIT_CARE_GIT_URL='https://...' \
+REPLIT_UNIFIED_GIT_URL='https://...' \
+./scripts/import-replit-mapable.sh both
+```
+
+## Getting a git remote from Replit
+
+1. Open the Repl in the browser.
+2. **Tools → Version control**.
+3. Copy the HTTPS git URL (or connect GitHub and push, then clone from GitHub).
+4. Re-run the import script with `REPLIT_GIT_URL` or the per-Repl override.
+
+## Automated import limits
+
+Cloud agents and CI cannot pass Replit’s Cloudflare challenge. Clones fail with HTTP 403 until you provide an authenticated git URL or a zip export.
+
+## After clone
+
+Each ops doc lists merge targets and verification commands. Prefer extending existing `app/`, `lib/`, and `prisma/schema.prisma` paths over adding parallel stacks.
