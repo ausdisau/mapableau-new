@@ -29,6 +29,7 @@ describe("Core UI navigation", () => {
     const hrefs = CORE_HUB_SECTIONS.flatMap((s) => s.links.map((l) => l.href));
     expect(hrefs).toContain("/care");
     expect(hrefs).toContain("/transport");
+    expect(hrefs).toContain("/marketplace");
     expect(hrefs).not.toContain("/dashboard/care");
   });
 
