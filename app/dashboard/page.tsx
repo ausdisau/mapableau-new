@@ -14,6 +14,7 @@ export default async function DashboardPage() {
   const [
     profile,
     bookingsCount,
+    careBookingsCount,
     transportTripsCount,
     unreadNotifications,
     incidentCount,
@@ -22,6 +23,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     prisma.participantProfile.findUnique({ where: { userId: user.id } }),
     prisma.booking.count({ where: { participantId: user.id } }),
+    prisma.careBooking.count({ where: { participantId: user.id } }),
     prisma.transportTrip.count({ where: { participantId: user.id } }),
     prisma.notification.count({
       where: { userId: user.id, readAt: null },
@@ -75,6 +77,15 @@ export default async function DashboardPage() {
               : "Incident reports and support tickets"
           }
           href="/dashboard/safety"
+        />
+        <DashboardCard
+          title="MapAble Care"
+          description={
+            careBookingsCount
+              ? `${careBookingsCount} care booking(s)`
+              : "Request disability supports and track service delivery"
+          }
+          href="/care"
         />
         <DashboardCard
           title="Transport trips"

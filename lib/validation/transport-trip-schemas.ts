@@ -1,6 +1,7 @@
 import type { TransportTripStatus } from "@prisma/client";
 import { z } from "zod";
 
+import { mobilityRequirementsSchema } from "@/lib/transport/mobility-schema";
 import { TRANSPORT_TRIP_STATUSES } from "@/types/transport";
 
 const statusEnum = z.enum(
@@ -22,15 +23,16 @@ export const createTransportTripSchema = z.object({
   scheduledStart: z.string().datetime(),
   scheduledEnd: z.string().datetime().optional(),
   accessNotes: z.string().max(2000).optional(),
-  mobilityRequirements: z.record(z.string(), z.unknown()).optional(),
+  mobilityRequirements: mobilityRequirementsSchema.optional(),
   providerOrganisationId: z.string().optional(),
+  prefillFromProfile: z.boolean().optional(),
 });
 
 export const patchTransportTripSchema = z.object({
   scheduledStart: z.string().datetime().optional(),
   scheduledEnd: z.string().datetime().optional(),
   accessNotes: z.string().max(2000).optional(),
-  mobilityRequirements: z.record(z.string(), z.unknown()).optional(),
+  mobilityRequirements: mobilityRequirementsSchema.optional(),
 });
 
 export const cancelTransportTripSchema = z.object({

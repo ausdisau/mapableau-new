@@ -14,6 +14,8 @@ import type {
   TransportTripDetail,
   TransportTripPermissions,
 } from "@/types/transport";
+import { enrichTripResponseExtras } from "@/lib/transport/trip-enrichment-service";
+import { prisma } from "@/lib/prisma";
 import { ROUTE_ADVISORY_DISCLAIMER } from "@/types/transport-routing";
 
 function shapeAddress(
@@ -158,6 +160,13 @@ export async function buildTripResponse(params: {
     updatedAt: params.trip.updatedAt.toISOString(),
   };
 
+  const extras = await enrichTripResponseExtras(params.trip, params.user);
+
+  const booking = await prisma.booking.findFirst({
+    where: { transportTripId: params.trip.id },
+    select: { id: true },
+  });
+
   return {
     trip,
     permissions,
@@ -170,5 +179,14 @@ export async function buildTripResponse(params: {
           provider: params.routeEstimate.provider,
         }
       : undefined,
+    suitabilityWarnings: extras.suitabilityWarnings,
+    handoverStatus: {
+      preStartComplete: extras.handoverStatus.preStartComplete,
+      pickupHandoverComplete: extras.handoverStatus.pickupHandoverComplete,
+      dropoffHandoverComplete: extras.handoverStatus.dropoffHandoverComplete,
+    },
+    trafficAdvisory: extras.trafficAdvisory,
+    assignedVehicle: extras.assignedVehicle,
+    linkedBookingId: booking?.id,
   };
 }

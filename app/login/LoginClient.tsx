@@ -1,13 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+
+import { clientAgentLog } from "@/lib/debug/client-agent-log";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const resetSuccess = searchParams.get("reset") === "success";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +20,7 @@ export default function LoginClient() {
 
   return (
     <form
+      className="flex flex-col gap-4"
       onSubmit={async (e) => {
         e.preventDefault();
         setError("");
@@ -23,11 +28,25 @@ export default function LoginClient() {
 
         try {
           const result = await signIn("credentials", {
-            email,
-            password,
+            email: email.trim().toLowerCase(),
+            password: password.trim(),
             redirect: false,
             callbackUrl,
           });
+
+          // #region agent log
+          clientAgentLog(
+            "C",
+            "LoginClient.tsx:signInResult",
+            "signIn returned",
+            {
+              ok: result?.ok ?? null,
+              error: result?.error ?? null,
+              status: result?.status ?? null,
+              callbackUrl,
+            }
+          );
+          // #endregion
 
           if (result?.error) {
             setError("Invalid email or password");
@@ -66,10 +85,20 @@ export default function LoginClient() {
         required
         disabled={isLoading}
       />
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {resetSuccess ? (
+        <p className="text-sm text-green-700">
+          Your password was updated. Sign in with your new password.
+        </p>
+      ) : null}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={isLoading}>
         {isLoading ? "Signing in..." : "Sign in"}
       </button>
+      <p className="text-sm text-muted-foreground">
+        <Link href="/forgot-password" className="underline">
+          Forgot password?
+        </Link>
+      </p>
     </form>
   );
 }

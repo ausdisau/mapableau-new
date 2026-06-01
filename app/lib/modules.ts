@@ -91,7 +91,7 @@ export const modules: MapAbleModule[] = [
     icons: moduleIcons.jobs,
     color: "#2196F3",
     gradient: "from-blue-500 to-indigo-600",
-    href: "/employment",
+    href: "/dashboard/jobs",
     features: [
       "Job Matching",
       "Employer Network",

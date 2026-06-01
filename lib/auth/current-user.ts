@@ -2,6 +2,7 @@ import type { MapAbleUserRole } from "@prisma/client";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { agentLog } from "@/lib/debug/agent-log";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/mapable";
 
@@ -18,6 +19,12 @@ export interface CurrentUser {
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const session = await getServerSession(authOptions);
+  // #region agent log
+  agentLog("E", "current-user.ts:getCurrentUser:session", "session read", {
+    hasSession: Boolean(session),
+    sessionUserId: session?.user?.id ?? null,
+  });
+  // #endregion
   if (!session?.user?.id) return null;
 
   const user = await prisma.user.findUnique({
@@ -25,6 +32,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     include: { roleAssignments: true },
   });
 
+  // #region agent log
+  agentLog("E", "current-user.ts:getCurrentUser:db", "db user lookup", {
+    found: Boolean(user),
+    primaryRole: user?.primaryRole ?? null,
+  });
+  // #endregion
   if (!user) return null;
 
   const roles: UserRole[] = [

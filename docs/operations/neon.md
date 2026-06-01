@@ -77,16 +77,48 @@ npx prisma migrate status
 
 ## Vercel (`mapableau-new`)
 
-The Vercel project is linked to GitHub `ausdisau/mapableau-new`. Add these **Environment Variables** in [Vercel → mapableau-new → Settings → Environment Variables](https://vercel.com/mapableau/mapableau-new/settings/environment-variables) for **Production**, **Preview**, and **Development**:
+The Vercel project is linked to GitHub `ausdisau/mapableau-new`. Add these **Environment Variables** in [Vercel → mapableau-new → Settings → Environment Variables](https://vercel.com/map-able/mapableau-new/settings/environment-variables) for **Production**, **Preview**, and **Development**:
+
+### Required (database + auth)
 
 | Name | Value |
 |------|--------|
 | `DATABASE_URL` | Neon **pooled** URL (`-pooler` in hostname) |
 | `DIRECT_URL` | Neon **direct** URL (no `-pooler`) |
+| `NEXTAUTH_SECRET` | Random secret (same as local `.env`) |
+| `NEXTAUTH_URL` | Production: `https://www.mapable.com.au` (or your canonical host); Preview: leave unset or use the preview URL |
 
-Copy the same values from your local `.env` (do not commit `.env`). Alternatively, install the [Neon Vercel integration](https://vercel.com/marketplace/neon) on the project — it can provision `DATABASE_URL` automatically.
+Copy database values from your local `.env` (do not commit `.env`). Alternatively, install the [Neon Vercel integration](https://vercel.com/marketplace/neon) on the project — it can provision `DATABASE_URL` automatically.
 
-Redeploy after saving env vars so serverless functions pick up the database connection.
+### Transport + TfNSW (optional — server-side only)
+
+| Name | Recommended (prod) | Notes |
+|------|-------------------|--------|
+| `TRANSPORT_ROUTING_ENABLED` | `true` | Route planning |
+| `TRANSPORT_ROUTING_PROVIDER` | `mock` or `osrm` | Use `mock` unless OSRM/GraphHopper is configured |
+| `TFNSW_API_KEY` | Your TfNSW Open Data key | Required for live traffic / trip planner APIs |
+| `TFNSW_LIVE_TRAFFIC_ENABLED` | `true` | Incidents, cameras, roadwork |
+| `TFNSW_TRIP_PLANNER_ENABLED` | `true` | Public transport trip planning |
+| `TFNSW_ENRICH_ROUTE_ESTIMATES` | `false` | Set `true` only when `TFNSW_API_KEY` is set |
+| `TRANSPORT_BOOKING_BRIDGE_ENABLED` | `false` | Phase 1: keep off until NDIS bridge is validated |
+| `TRANSPORT_RIDE_POOLING_ENABLED` | `false` | Phase 2 ride runs — enable after migration + QA |
+
+See `.env.example`, `docs/tfnsw-traffic.md`, and `docs/accessible-ride-share.md` for the full list.
+
+### Deploy checklist
+
+1. **Push** a branch or merge to `main` — Vercel Git integration builds with **pnpm** (from `packageManager` in `package.json`).
+2. **Apply migrations** on the production Neon branch after deploy (Vercel does not run migrations automatically):
+
+   ```bash
+   DIRECT_URL="postgresql://..." npx prisma migrate deploy
+   ```
+
+   Latest transport migration: `prisma/migrations/20260527210000_accessible_ride_share/`.
+
+3. **Redeploy** after saving env vars so serverless functions pick up new values.
+
+Preview deployments are created automatically for pull requests against `main`.
 
 ## Cursor + Neon MCP (optional)
 

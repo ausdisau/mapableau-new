@@ -37,6 +37,9 @@ export default async function TransportLayout({
           <Link href="/dashboard" className="ml-auto text-sm text-muted-foreground">
             Dashboard
           </Link>
+          <Link href="/core" className="text-sm text-muted-foreground">
+            MapAble Core
+          </Link>
         </nav>
       </header>
       <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
