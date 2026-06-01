@@ -21,7 +21,10 @@ export default function RegisterClient({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const hasOAuth = oauthProviders.google || oauthProviders.microsoft;
+  const hasOAuth =
+    oauthProviders.google ||
+    oauthProviders.microsoft ||
+    oauthProviders.facebook;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

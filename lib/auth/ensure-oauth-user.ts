@@ -19,7 +19,7 @@ export type EnsureOAuthUserInput = {
 
 /**
  * Find an existing user by email or create a participant with role/profile rows.
- * Used on Google / Microsoft sign-in so JWT sessions use the Prisma user id.
+ * Used on Google / Microsoft / Facebook sign-in so JWT sessions use the Prisma user id.
  */
 export async function ensureOAuthUser(
   input: EnsureOAuthUserInput

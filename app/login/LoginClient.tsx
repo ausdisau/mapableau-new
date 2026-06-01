@@ -42,7 +42,10 @@ export default function LoginClient({
   const resetSuccess = searchParams.get("reset") === "success";
   const oauthError = oauthErrorMessage(searchParams.get("error"));
 
-  const hasOAuth = oauthProviders.google || oauthProviders.microsoft;
+  const hasOAuth =
+    oauthProviders.google ||
+    oauthProviders.microsoft ||
+    oauthProviders.facebook;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

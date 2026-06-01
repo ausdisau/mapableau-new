@@ -16,14 +16,22 @@ export function OAuthSignInButtons({
   callbackUrl,
   disabled = false,
 }: Props) {
-  const [pending, setPending] = useState<"google" | "microsoft" | null>(null);
+  const [pending, setPending] = useState<
+    "google" | "microsoft" | "facebook" | null
+  >(null);
 
-  if (!providers.google && !providers.microsoft) {
+  if (!providers.google && !providers.microsoft && !providers.facebook) {
     return null;
   }
 
-  const startOAuth = (provider: "google" | "azure-ad") => {
-    setPending(provider === "google" ? "google" : "microsoft");
+  const startOAuth = (provider: "google" | "azure-ad" | "facebook") => {
+    setPending(
+      provider === "google"
+        ? "google"
+        : provider === "facebook"
+          ? "facebook"
+          : "microsoft"
+    );
     void signIn(provider, { callbackUrl });
   };
 
@@ -49,6 +57,18 @@ export function OAuthSignInButtons({
           {pending === "microsoft"
             ? "Redirecting…"
             : "Continue with Microsoft"}
+        </button>
+      ) : null}
+      {providers.facebook ? (
+        <button
+          type="button"
+          disabled={disabled || pending !== null}
+          onClick={() => startOAuth("facebook")}
+          className="rounded border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
+        >
+          {pending === "facebook"
+            ? "Redirecting…"
+            : "Continue with Facebook"}
         </button>
       ) : null}
     </div>
