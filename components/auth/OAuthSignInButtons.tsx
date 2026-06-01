@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 
 type Props = {
@@ -35,41 +36,52 @@ export function OAuthSignInButtons({
     void signIn(provider, { callbackUrl });
   };
 
+  const oauthButtonClass = "w-full justify-center";
+
   return (
     <div className="flex flex-col gap-2">
       {providers.google ? (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="default"
+          className={oauthButtonClass}
           disabled={disabled || pending !== null}
+          loading={pending === "google"}
           onClick={() => startOAuth("google")}
-          className="rounded border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
         >
           {pending === "google" ? "Redirecting…" : "Continue with Google"}
-        </button>
+        </Button>
       ) : null}
       {providers.microsoft ? (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="default"
+          className={oauthButtonClass}
           disabled={disabled || pending !== null}
+          loading={pending === "microsoft"}
           onClick={() => startOAuth("azure-ad")}
-          className="rounded border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
         >
           {pending === "microsoft"
             ? "Redirecting…"
             : "Continue with Microsoft"}
-        </button>
+        </Button>
       ) : null}
       {providers.facebook ? (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="default"
+          className={oauthButtonClass}
           disabled={disabled || pending !== null}
+          loading={pending === "facebook"}
           onClick={() => startOAuth("facebook")}
-          className="rounded border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
         >
           {pending === "facebook"
             ? "Redirecting…"
             : "Continue with Facebook"}
-        </button>
+        </Button>
       ) : null}
     </div>
   );
