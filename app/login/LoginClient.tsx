@@ -5,12 +5,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import {
+  normalizeAuthEmail,
+  safeAuthCallbackPath,
+} from "@/lib/auth/auth-flow";
 import { clientAgentLog } from "@/lib/debug/client-agent-log";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = safeAuthCallbackPath(
+    searchParams.get("callbackUrl"),
+    "/dashboard"
+  );
   const resetSuccess = searchParams.get("reset") === "success";
 
   const [email, setEmail] = useState("");
@@ -28,7 +35,7 @@ export default function LoginClient() {
 
         try {
           const result = await signIn("credentials", {
-            email: email.trim().toLowerCase(),
+            email: normalizeAuthEmail(email),
             password: password.trim(),
             redirect: false,
             callbackUrl,

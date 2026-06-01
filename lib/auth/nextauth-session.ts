@@ -23,11 +23,12 @@ export function mergeJwtTokenIntoSession(
   session: { user?: Record<string, unknown> },
   token: Record<string, unknown>
 ): typeof session {
-  if (session.user) {
-    if (typeof token.id === "string") session.user.id = token.id;
-    if (typeof token.role === "string") session.user.role = token.role;
-    if (typeof token.email === "string") session.user.email = token.email;
-    if (typeof token.name === "string") session.user.name = token.name;
+  if (!session.user) {
+    session.user = {};
   }
+  if (typeof token.id === "string") session.user.id = token.id;
+  if (typeof token.role === "string") session.user.role = token.role;
+  if (typeof token.email === "string") session.user.email = token.email;
+  if (typeof token.name === "string") session.user.name = token.name;
   return session;
 }

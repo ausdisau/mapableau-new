@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -18,11 +20,17 @@ export default function RegisterPage() {
     setError("");
     setIsLoading(true);
 
+    const normalizedEmail = normalizeAuthEmail(email);
+
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({
+          email: normalizedEmail,
+          password: password.trim(),
+          name,
+        }),
       });
 
       const data = (await res.json()) as { error?: string; code?: string };
@@ -34,8 +42,8 @@ export default function RegisterPage() {
       }
 
       const result = await signIn("credentials", {
-        email,
-        password,
+        email: normalizedEmail,
+        password: password.trim(),
         redirect: false,
         callbackUrl: "/dashboard",
       });

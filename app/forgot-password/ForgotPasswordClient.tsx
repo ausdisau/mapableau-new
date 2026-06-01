@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+
 export default function ForgotPasswordClient() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -22,7 +24,7 @@ export default function ForgotPasswordClient() {
           const res = await fetch("/api/auth/forgot-password", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ email: normalizeAuthEmail(email) }),
           });
           const data = (await res.json()) as { message?: string; error?: string };
 

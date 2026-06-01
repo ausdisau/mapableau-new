@@ -3,6 +3,7 @@ import type { AuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 
+import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { agentLog } from "@/lib/debug/agent-log";
 import {
   AUTH_SESSION_MAX_AGE_SECONDS,
@@ -16,6 +17,7 @@ ensureNextAuthEnv();
 
 export const authOptions: AuthOptions = {
   secret: resolveNextAuthSecret(),
+  trustHost: true,
   session: {
     strategy: "jwt",
     maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
@@ -47,7 +49,7 @@ export const authOptions: AuthOptions = {
 
         if (!credentials?.email || !credentials?.password) return null;
 
-        const email = credentials.email.trim().toLowerCase();
+        const email = normalizeAuthEmail(credentials.email);
         const password = credentials.password.trim();
 
         try {
@@ -66,6 +68,16 @@ export const authOptions: AuthOptions = {
               }
             );
             // #endregion
+            return null;
+          }
+
+          if (!user.passwordHash?.trim()) {
+            agentLog(
+              "A",
+              "authOptions.ts:authorize:noPasswordHash",
+              "user has no password hash",
+              { userId: user.id }
+            );
             return null;
           }
 

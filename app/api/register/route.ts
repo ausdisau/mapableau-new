@@ -1,11 +1,8 @@
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
+import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { prisma } from "@/lib/prisma";
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
 
 export async function POST(req: Request) {
   try {
@@ -15,7 +12,7 @@ export async function POST(req: Request) {
       name?: string;
     };
 
-    const email = body.email ? normalizeEmail(body.email) : "";
+    const email = body.email ? normalizeAuthEmail(body.email) : "";
     const password = body.password?.trim() ?? "";
     const name = body.name?.trim() || email.split("@")[0] || "MapAble user";
 
