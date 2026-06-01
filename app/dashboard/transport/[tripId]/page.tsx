@@ -1,8 +1,10 @@
 import Link from "next/link";
 
+import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
 import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
 import { TransportTripActions } from "@/components/transport/TransportTripActions";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
+import { MOBILITY_FIELD_LABELS } from "@/lib/transport/mobility-schema";
 import { requireAuth } from "@/lib/auth/guards";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { getTransportTripForUser } from "@/lib/transport/transport-trip-service";
@@ -36,7 +38,15 @@ export default async function TransportTripDetailPage({
 
   try {
     const response = await getTransportTripForUser(user, tripId);
-    const { trip, nextActions, routeEstimate } = response;
+    const {
+      trip,
+      nextActions,
+      routeEstimate,
+      suitabilityWarnings,
+      handoverStatus,
+      assignedVehicle,
+      linkedBookingId,
+    } = response;
     const when = new Date(trip.scheduledStart).toLocaleString("en-AU", {
       dateStyle: "full",
       timeStyle: "short",
@@ -87,19 +97,67 @@ export default async function TransportTripDetailPage({
           ) : null}
         </section>
 
+        {assignedVehicle ? (
+          <section className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-semibold">Assigned vehicle</h2>
+            <p className="text-sm">{assignedVehicle.displayName}</p>
+          </section>
+        ) : null}
+
+        {suitabilityWarnings && suitabilityWarnings.length > 0 ? (
+          <VehicleSuitabilityWarning warnings={suitabilityWarnings} />
+        ) : null}
+
         {Object.keys(trip.mobilityRequirements).length > 0 ? (
           <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="font-semibold">Mobility requirements</h2>
             <ul className="mt-2 list-inside list-disc text-sm">
-              {Object.entries(trip.mobilityRequirements).map(([key, value]) => (
+              {Object.entries(trip.mobilityRequirements)
+                .filter(([, v]) => v === true || (typeof v === "number" && v > 0) || (typeof v === "string" && v))
+                .map(([key, value]) => (
                 <li key={key}>
-                  {key.replace(/([A-Z])/g, " $1").replace(/_/g, " ")}:{" "}
+                  {MOBILITY_FIELD_LABELS[key as keyof typeof MOBILITY_FIELD_LABELS] ?? key}:{" "}
                   {String(value)}
                 </li>
               ))}
             </ul>
           </section>
         ) : null}
+
+        {handoverStatus ? (
+          <section className="rounded-xl border border-border bg-card p-4 text-sm">
+            <h2 className="font-semibold">Handover progress</h2>
+            <ul className="mt-2 space-y-1">
+              <li>
+                Pre-start check:{" "}
+                {handoverStatus.preStartComplete ? "Complete" : "Pending"}
+              </li>
+              <li>
+                Pickup handover:{" "}
+                {handoverStatus.pickupHandoverComplete ? "Complete" : "Pending"}
+              </li>
+              <li>
+                Drop-off handover:{" "}
+                {handoverStatus.dropoffHandoverComplete ? "Complete" : "Pending"}
+              </li>
+            </ul>
+          </section>
+        ) : null}
+
+        {linkedBookingId ? (
+          <p className="text-sm text-muted-foreground">
+            Linked booking record: {linkedBookingId} (for provider billing review).
+          </p>
+        ) : null}
+
+        <p className="text-sm">
+          <Link
+            href={`/dashboard/safety/support/new?category=transport_issue&tripId=${trip.id}`}
+            className="font-medium text-primary hover:underline"
+          >
+            Report a safety concern about this trip
+          </Link>
+        </p>
 
         {trip.disputeReason ? (
           <p role="status" className="rounded-lg border border-border bg-muted p-3 text-sm">
