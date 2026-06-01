@@ -28,7 +28,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Local env files
-.env
 .env*.local
 .env.development.local
 .env.test.local
@@ -77,3 +76,11 @@ yarn.lock
 # Logs
 logs
 *.log
+
+.projects/cache
+.projects/vault
+.projects/state.test.json
+.projects/state.local.test.json
+.env
+.env.local
+.env.test

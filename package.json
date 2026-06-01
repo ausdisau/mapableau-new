@@ -20,7 +20,8 @@
     "test:watch": "vitest",
     "mcp:av": "tsx mcp/av/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",
-    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
+    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts",
+    "stripe:verify": "npx tsx scripts/verify-stripe-connection.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
