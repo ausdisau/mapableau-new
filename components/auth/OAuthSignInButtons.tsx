@@ -10,12 +10,23 @@ type Props = {
   providers: OAuthProviderFlags;
   callbackUrl: string;
   disabled?: boolean;
+  labelMode?: OAuthButtonLabelMode;
 };
+
+export type OAuthButtonLabelMode = "continue" | "login";
+
+export function getOAuthButtonLabel(
+  providerName: string,
+  labelMode: OAuthButtonLabelMode = "continue",
+) {
+  return `${labelMode === "login" ? "Login" : "Continue"} with ${providerName}`;
+}
 
 export function OAuthSignInButtons({
   providers,
   callbackUrl,
   disabled = false,
+  labelMode = "continue",
 }: Props) {
   const [pending, setPending] = useState<
     "google" | "microsoft" | "facebook" | null
@@ -31,7 +42,7 @@ export function OAuthSignInButtons({
         ? "google"
         : provider === "facebook"
           ? "facebook"
-          : "microsoft"
+          : "microsoft",
     );
     void signIn(provider, { callbackUrl });
   };
@@ -50,7 +61,9 @@ export function OAuthSignInButtons({
           loading={pending === "google"}
           onClick={() => startOAuth("google")}
         >
-          {pending === "google" ? "Redirecting…" : "Continue with Google"}
+          {pending === "google"
+            ? "Redirecting…"
+            : getOAuthButtonLabel("Google", labelMode)}
         </Button>
       ) : null}
       {providers.microsoft ? (
@@ -65,7 +78,7 @@ export function OAuthSignInButtons({
         >
           {pending === "microsoft"
             ? "Redirecting…"
-            : "Continue with Microsoft"}
+            : getOAuthButtonLabel("Microsoft", labelMode)}
         </Button>
       ) : null}
       {providers.facebook ? (
@@ -80,7 +93,7 @@ export function OAuthSignInButtons({
         >
           {pending === "facebook"
             ? "Redirecting…"
-            : "Continue with Facebook"}
+            : getOAuthButtonLabel("Facebook", labelMode)}
         </Button>
       ) : null}
     </div>
