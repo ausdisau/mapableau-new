@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { authOptions } from "@/lib/auth/auth-options";
 
 export const auth = () => getServerSession(authOptions);

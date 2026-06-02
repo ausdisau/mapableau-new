@@ -10,6 +10,9 @@ import path from "node:path";
 const KEYS = [
   "DATABASE_URL",
   "DIRECT_URL",
+  "NEON_AUTH_BASE_URL",
+  "NEON_AUTH_COOKIE_SECRET",
+  "AUTH_PROVIDER",
   "NEXTAUTH_SECRET",
   "NEXTAUTH_URL",
   "NEXT_PUBLIC_APP_URL",

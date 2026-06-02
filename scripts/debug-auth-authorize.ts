@@ -4,7 +4,7 @@
  */
 import Credentials from "next-auth/providers/credentials";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { authOptions } from "@/lib/auth/auth-options";
 import { agentLog } from "@/lib/debug/agent-log";
 
 async function main() {

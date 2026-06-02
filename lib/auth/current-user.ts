@@ -1,7 +1,10 @@
 import type { MapAbleUserRole } from "@prisma/client";
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { authOptions } from "@/lib/auth/auth-options";
+import { isNeonAuthEnabled } from "@/lib/auth/auth-provider";
+import { ensureAppUserFromNeonSession } from "@/lib/auth/neon-app-user";
+import { getNeonAuth } from "@/lib/auth/neon-auth-server";
 import { agentLog } from "@/lib/debug/agent-log";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/mapable";
@@ -17,27 +20,12 @@ export interface CurrentUser {
   roles: UserRole[];
 }
 
-export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const session = await getServerSession(authOptions);
-  // #region agent log
-  agentLog("E", "current-user.ts:getCurrentUser:session", "session read", {
-    hasSession: Boolean(session),
-    sessionUserId: session?.user?.id ?? null,
-  });
-  // #endregion
-  if (!session?.user?.id) return null;
-
+async function currentUserFromPrisma(userId: string): Promise<CurrentUser | null> {
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
     include: { roleAssignments: true },
   });
 
-  // #region agent log
-  agentLog("E", "current-user.ts:getCurrentUser:db", "db user lookup", {
-    found: Boolean(user),
-    primaryRole: user?.primaryRole ?? null,
-  });
-  // #endregion
   if (!user) return null;
 
   const roles: UserRole[] = [
@@ -56,6 +44,36 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     primaryRole: user.primaryRole as UserRole,
     roles: uniqueRoles,
   };
+}
+
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  if (isNeonAuthEnabled()) {
+    const { data: session } = await getNeonAuth().getSession();
+    if (!session?.user?.email) return null;
+
+    const appUser = await ensureAppUserFromNeonSession({
+      email: session.user.email,
+      name: session.user.name ?? null,
+    });
+    return currentUserFromPrisma(appUser.id);
+  }
+
+  const session = await getServerSession(authOptions);
+  // #region agent log
+  agentLog("E", "current-user.ts:getCurrentUser:session", "session read", {
+    hasSession: Boolean(session),
+    sessionUserId: session?.user?.id ?? null,
+  });
+  // #endregion
+  if (!session?.user?.id) return null;
+
+  // #region agent log
+  agentLog("E", "current-user.ts:getCurrentUser:db", "db user lookup", {
+    sessionUserId: session.user.id,
+  });
+  // #endregion
+
+  return currentUserFromPrisma(session.user.id);
 }
 
 export async function requireCurrentUser(): Promise<CurrentUser> {

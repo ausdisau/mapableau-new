@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { getNeonAuthClient } from "@/lib/auth/neon-auth-client";
+
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthFormCard, AuthOAuthDivider } from "@/components/auth/AuthFormCard";
 import { OAuthSignInButtons } from "@/components/auth/OAuthSignInButtons";
@@ -37,8 +39,10 @@ function oauthErrorMessage(code: string | null): string | null {
 
 export default function LoginClient({
   oauthProviders,
+  neonAuthEnabled = false,
 }: {
   oauthProviders: OAuthProviderFlags;
+  neonAuthEnabled?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,6 +54,7 @@ export default function LoginClient({
   const oauthError = oauthErrorMessage(searchParams.get("error"));
 
   const hasOAuth =
+    neonAuthEnabled ||
     oauthProviders.google ||
     oauthProviders.microsoft ||
     oauthProviders.facebook;
@@ -81,6 +86,7 @@ export default function LoginClient({
             providers={oauthProviders}
             callbackUrl={callbackUrl}
             disabled={isLoading}
+            neonAuthEnabled={neonAuthEnabled}
           />
           <AuthOAuthDivider label="or sign in with email" />
         </div>
@@ -96,9 +102,29 @@ export default function LoginClient({
           setIsLoading(true);
 
           try {
+            const normalizedEmail = normalizeAuthEmail(email);
+            const trimmedPassword = password.trim();
+
+            if (neonAuthEnabled) {
+              const { error } = await getNeonAuthClient().signIn.email({
+                email: normalizedEmail,
+                password: trimmedPassword,
+                callbackURL: callbackUrl,
+              });
+              if (error) {
+                setError(error.message || "Invalid email or password");
+                setIsLoading(false);
+                return;
+              }
+              setIsLoading(false);
+              router.push(callbackUrl);
+              router.refresh();
+              return;
+            }
+
             const result = await signIn("credentials", {
-              email: normalizeAuthEmail(email),
-              password: password.trim(),
+              email: normalizedEmail,
+              password: trimmedPassword,
               redirect: false,
               callbackUrl,
             });

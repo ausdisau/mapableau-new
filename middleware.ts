@@ -2,6 +2,8 @@ import { withAuth, type NextRequestWithAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 
+import { isNeonAuthEnabled } from "@/lib/auth/auth-provider";
+import { getNeonAuthMiddleware } from "@/lib/auth/neon-auth-server";
 import {
   handlePeerPeersHost,
   redirectLegacySquarePath,
@@ -12,6 +14,11 @@ const authMiddleware = withAuth({
   pages: { signIn: "/login" },
 });
 
+function resolveNeonAuthMiddleware() {
+  if (!isNeonAuthEnabled()) return null;
+  return getNeonAuthMiddleware("/login");
+}
+
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
   const legacySquare = redirectLegacySquarePath(request);
   if (legacySquare) return legacySquare;
@@ -20,6 +27,10 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
   if (peerResponse) return peerResponse;
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {
+    const neonAuthMiddleware = resolveNeonAuthMiddleware();
+    if (neonAuthMiddleware) {
+      return neonAuthMiddleware(request);
+    }
     return authMiddleware(request as NextRequestWithAuth, event);
   }
 
