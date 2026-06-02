@@ -41,6 +41,7 @@ export function publicOAuthProviderFlags(
   return {
     ...providers,
     google: true,
+    microsoft: true,
   };
 }
 

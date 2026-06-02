@@ -22,6 +22,9 @@ describe("LoginClient OAuth buttons", () => {
   it("uses login-specific social sign-in button labels", () => {
     expect(getOAuthButtonLabel("Auth0", "login")).toBe("Login with Auth0");
     expect(getOAuthButtonLabel("Google", "login")).toBe("Login with Google");
+    expect(getOAuthButtonLabel("Microsoft", "login")).toBe(
+      "Login with Microsoft",
+    );
     expect(getOAuthButtonLabel("Facebook", "login")).toBe(
       "Login with Facebook",
     );
@@ -45,7 +48,7 @@ describe("LoginClient OAuth buttons", () => {
     });
   });
 
-  it("keeps Google login public-facing even when runtime providers omit it", () => {
+  it("keeps Google and Microsoft login public-facing when runtime providers omit them", () => {
     expect(
       publicOAuthProviderFlags({
         auth0: false,
@@ -56,7 +59,7 @@ describe("LoginClient OAuth buttons", () => {
     ).toEqual({
       auth0: false,
       google: true,
-      microsoft: false,
+      microsoft: true,
       facebook: false,
     });
   });

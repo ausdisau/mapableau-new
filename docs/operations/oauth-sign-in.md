@@ -4,7 +4,7 @@ MapAble uses [NextAuth.js](https://next-auth.js.org/) with optional OAuth provid
 
 ## Enable providers
 
-Set env vars (see `.env.example`). Buttons on `/login` and `/register` only render when **both** client id and secret are set for a provider.
+Set env vars (see `.env.example`). Facebook and Auth0 buttons render when their provider is configured. Google and Microsoft are public-facing entry points on `/login` and `/register`; successful sign-in still requires the matching server-side client id and secret to be configured.
 
 | Provider  | Env vars                                                                                                                    | Callback URL                                |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
