@@ -32,6 +32,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`}>
+      <head>
+        <meta
+          name="purpleads-verification"
+          content="832ea0b13123578b63ae2fe9"
+        />
+      </head>
       <body className={plusJakarta.className}>
         <Providers>{children}</Providers>
         <SpeedInsights />
