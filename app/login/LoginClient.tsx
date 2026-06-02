@@ -81,6 +81,7 @@ export default function LoginClient({
             providers={oauthProviders}
             callbackUrl={callbackUrl}
             disabled={isLoading}
+            labelMode="login"
           />
           <AuthOAuthDivider label="or sign in with email" />
         </div>

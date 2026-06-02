@@ -10,12 +10,14 @@ type Props = {
   providers: OAuthProviderFlags;
   callbackUrl: string;
   disabled?: boolean;
+  labelMode?: "continue" | "login";
 };
 
 export function OAuthSignInButtons({
   providers,
   callbackUrl,
   disabled = false,
+  labelMode = "continue",
 }: Props) {
   const [pending, setPending] = useState<
     "google" | "microsoft" | "facebook" | null
@@ -37,6 +39,8 @@ export function OAuthSignInButtons({
   };
 
   const oauthButtonClass = "w-full justify-center";
+  const buttonLabel = (providerName: string) =>
+    `${labelMode === "login" ? "Login" : "Continue"} with ${providerName}`;
 
   return (
     <div className="flex flex-col gap-2">
@@ -50,7 +54,7 @@ export function OAuthSignInButtons({
           loading={pending === "google"}
           onClick={() => startOAuth("google")}
         >
-          {pending === "google" ? "Redirecting…" : "Continue with Google"}
+          {pending === "google" ? "Redirecting…" : buttonLabel("Google")}
         </Button>
       ) : null}
       {providers.microsoft ? (
@@ -65,7 +69,7 @@ export function OAuthSignInButtons({
         >
           {pending === "microsoft"
             ? "Redirecting…"
-            : "Continue with Microsoft"}
+            : buttonLabel("Microsoft")}
         </Button>
       ) : null}
       {providers.facebook ? (
@@ -80,7 +84,7 @@ export function OAuthSignInButtons({
         >
           {pending === "facebook"
             ? "Redirecting…"
-            : "Continue with Facebook"}
+            : buttonLabel("Facebook")}
         </Button>
       ) : null}
     </div>
