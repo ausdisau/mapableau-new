@@ -28,12 +28,6 @@ export default function RegisterClient({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const hasOAuth =
-    oauthProviders.auth0 ||
-    oauthProviders.google ||
-    oauthProviders.microsoft ||
-    oauthProviders.facebook;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -99,16 +93,14 @@ export default function RegisterClient({
         </>
       }
     >
-      {hasOAuth ? (
-        <div className="flex flex-col gap-4">
-          <OAuthSignInButtons
-            providers={oauthProviders}
-            callbackUrl="/dashboard"
-            disabled={isLoading}
-          />
-          <AuthOAuthDivider label="or register with email" />
-        </div>
-      ) : null}
+      <div className="flex flex-col gap-4">
+        <OAuthSignInButtons
+          providers={oauthProviders}
+          callbackUrl="/dashboard"
+          disabled={isLoading}
+        />
+        <AuthOAuthDivider label="or register with email" />
+      </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AccessibleFormField id="register-name" label="Name" required>

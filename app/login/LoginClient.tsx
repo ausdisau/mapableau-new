@@ -46,12 +46,6 @@ export default function LoginClient({
   const resetSuccess = searchParams.get("reset") === "success";
   const oauthError = oauthErrorMessage(searchParams.get("error"));
 
-  const hasOAuth =
-    oauthProviders.auth0 ||
-    oauthProviders.google ||
-    oauthProviders.microsoft ||
-    oauthProviders.facebook;
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -73,17 +67,15 @@ export default function LoginClient({
         </>
       }
     >
-      {hasOAuth ? (
-        <div className="flex flex-col gap-4">
-          <OAuthSignInButtons
-            providers={oauthProviders}
-            callbackUrl={callbackUrl}
-            disabled={isLoading}
-            labelMode="login"
-          />
-          <AuthOAuthDivider label="or sign in with email" />
-        </div>
-      ) : null}
+      <div className="flex flex-col gap-4">
+        <OAuthSignInButtons
+          providers={oauthProviders}
+          callbackUrl={callbackUrl}
+          disabled={isLoading}
+          labelMode="login"
+        />
+        <AuthOAuthDivider label="or sign in with email" />
+      </div>
 
       {oauthError ? <AuthAlert variant="error">{oauthError}</AuthAlert> : null}
 
