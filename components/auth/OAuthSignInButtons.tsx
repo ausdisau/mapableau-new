@@ -4,24 +4,31 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { getNeonAuthClient } from "@/lib/auth/neon-auth-client";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 
 type Props = {
   providers: OAuthProviderFlags;
   callbackUrl: string;
   disabled?: boolean;
+  neonAuthEnabled?: boolean;
 };
 
 export function OAuthSignInButtons({
   providers,
   callbackUrl,
   disabled = false,
+  neonAuthEnabled = false,
 }: Props) {
   const [pending, setPending] = useState<
     "google" | "microsoft" | "facebook" | null
   >(null);
 
-  if (!providers.google && !providers.microsoft && !providers.facebook) {
+  const showGoogle = neonAuthEnabled || providers.google;
+  const showMicrosoft = !neonAuthEnabled && providers.microsoft;
+  const showFacebook = !neonAuthEnabled && providers.facebook;
+
+  if (!showGoogle && !showMicrosoft && !showFacebook) {
     return null;
   }
 
@@ -33,6 +40,13 @@ export function OAuthSignInButtons({
           ? "facebook"
           : "microsoft"
     );
+    if (neonAuthEnabled && provider === "google") {
+      void getNeonAuthClient().signIn.social({
+        provider: "google",
+        callbackURL: callbackUrl,
+      });
+      return;
+    }
     void signIn(provider, { callbackUrl });
   };
 
@@ -40,7 +54,7 @@ export function OAuthSignInButtons({
 
   return (
     <div className="flex flex-col gap-2">
-      {providers.google ? (
+      {showGoogle ? (
         <Button
           type="button"
           variant="outline"
@@ -53,7 +67,7 @@ export function OAuthSignInButtons({
           {pending === "google" ? "Redirecting…" : "Continue with Google"}
         </Button>
       ) : null}
-      {providers.microsoft ? (
+      {showMicrosoft ? (
         <Button
           type="button"
           variant="outline"
@@ -68,7 +82,7 @@ export function OAuthSignInButtons({
             : "Continue with Microsoft"}
         </Button>
       ) : null}
-      {providers.facebook ? (
+      {showFacebook ? (
         <Button
           type="button"
           variant="outline"

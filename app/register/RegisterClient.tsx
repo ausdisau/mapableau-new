@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { getNeonAuthClient } from "@/lib/auth/neon-auth-client";
+
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthFormCard, AuthOAuthDivider } from "@/components/auth/AuthFormCard";
 import { OAuthSignInButtons } from "@/components/auth/OAuthSignInButtons";
@@ -18,8 +20,10 @@ import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 
 export default function RegisterClient({
   oauthProviders,
+  neonAuthEnabled = false,
 }: {
   oauthProviders: OAuthProviderFlags;
+  neonAuthEnabled?: boolean;
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -29,6 +33,7 @@ export default function RegisterClient({
   const [isLoading, setIsLoading] = useState(false);
 
   const hasOAuth =
+    neonAuthEnabled ||
     oauthProviders.google ||
     oauthProviders.microsoft ||
     oauthProviders.facebook;
@@ -41,12 +46,31 @@ export default function RegisterClient({
     const normalizedEmail = normalizeAuthEmail(email);
 
     try {
+      const trimmedPassword = password.trim();
+
+      if (neonAuthEnabled) {
+        const { error: signUpError } = await getNeonAuthClient().signUp.email({
+          email: normalizedEmail,
+          password: trimmedPassword,
+          name: name.trim(),
+          callbackURL: "/dashboard",
+        });
+        if (signUpError) {
+          setError(signUpError.message || "Registration failed");
+          setIsLoading(false);
+          return;
+        }
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: normalizedEmail,
-          password: password.trim(),
+          password: trimmedPassword,
           name,
         }),
       });
@@ -61,7 +85,7 @@ export default function RegisterClient({
 
       const result = await signIn("credentials", {
         email: normalizedEmail,
-        password: password.trim(),
+        password: trimmedPassword,
         redirect: false,
         callbackUrl: "/dashboard",
       });
@@ -104,6 +128,7 @@ export default function RegisterClient({
             providers={oauthProviders}
             callbackUrl="/dashboard"
             disabled={isLoading}
+            neonAuthEnabled={neonAuthEnabled}
           />
           <AuthOAuthDivider label="or register with email" />
         </div>

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { CorePageHeader } from "@/components/core/CorePageHeader";
+import { isNeonAuthEnabled } from "@/lib/auth/auth-provider";
 import { getConfiguredOAuthProviders } from "@/lib/auth/oauth-providers";
 
 import LoginClient from "./LoginClient";
@@ -24,7 +25,10 @@ export default function LoginPage() {
           </p>
         }
       >
-        <LoginClient oauthProviders={oauthProviders} />
+        <LoginClient
+          oauthProviders={oauthProviders}
+          neonAuthEnabled={isNeonAuthEnabled()}
+        />
       </Suspense>
     </div>
   );

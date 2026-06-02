@@ -1,6 +1,8 @@
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
+import { isNeonAuthEnabled } from "@/lib/auth/auth-provider";
+import { getNeonAuth } from "@/lib/auth/neon-auth-server";
 import { verifyPasswordResetToken } from "@/lib/auth/password-reset-token";
 import { prisma } from "@/lib/prisma";
 
@@ -22,6 +24,20 @@ export async function POST(req: Request) {
         { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
+    }
+
+    if (isNeonAuthEnabled()) {
+      const { error } = await getNeonAuth().resetPassword({
+        newPassword: password,
+        token,
+      });
+      if (error) {
+        return NextResponse.json(
+          { error: error.message || "This reset link is invalid or has expired." },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({ message: "Password updated. You can sign in now." });
     }
 
     const payload = verifyPasswordResetToken(token);

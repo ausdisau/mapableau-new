@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { isNeonAuthEnabled } from "@/lib/auth/auth-provider";
+import { getNeonAuth } from "@/lib/auth/neon-auth-server";
 import {
   buildPasswordResetUrl,
   isPasswordResetEmailConfigured,
   sendPasswordResetEmail,
 } from "@/lib/auth/password-reset-email";
 import { signPasswordResetToken } from "@/lib/auth/password-reset-token";
-import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { prisma } from "@/lib/prisma";
 
 const GENERIC_MESSAGE =
@@ -19,6 +21,21 @@ export async function POST(req: Request) {
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (isNeonAuthEnabled()) {
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+        process.env.NEXTAUTH_URL?.trim() ||
+        "http://localhost:3000";
+      const { error } = await getNeonAuth().requestPasswordReset({
+        email,
+        redirectTo: `${appUrl.replace(/\/$/, "")}/reset-password`,
+      });
+      if (error) {
+        console.error("[forgot-password] neon requestPasswordReset failed", error);
+      }
+      return NextResponse.json({ message: GENERIC_MESSAGE });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
