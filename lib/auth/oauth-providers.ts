@@ -29,9 +29,13 @@ function envPresent(...keys: string[]): boolean {
   return keys.every((key) => Boolean(process.env[key]?.trim()));
 }
 
+export function isGoogleOAuthConfigured(): boolean {
+  return envPresent("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
+}
+
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   return {
-    google: envPresent("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
+    google: isGoogleOAuthConfigured(),
     microsoft: envPresent("AZURE_AD_CLIENT_ID", "AZURE_AD_CLIENT_SECRET"),
     facebook: Boolean(facebookClientId() && facebookClientSecret()),
   };

@@ -49,8 +49,9 @@ export default function LoginClient({
   const resetSuccess = searchParams.get("reset") === "success";
   const oauthError = oauthErrorMessage(searchParams.get("error"));
 
+  const showGoogleButton = true;
   const hasOAuth =
-    oauthProviders.google ||
+    showGoogleButton ||
     oauthProviders.microsoft ||
     oauthProviders.facebook;
 
@@ -81,6 +82,12 @@ export default function LoginClient({
             providers={oauthProviders}
             callbackUrl={callbackUrl}
             disabled={isLoading}
+            showGoogleButton={showGoogleButton}
+            onGoogleUnavailable={() =>
+              setError(
+                "Google sign-in is not available yet. Use email and password, or contact support."
+              )
+            }
           />
           <AuthOAuthDivider label="or sign in with email" />
         </div>

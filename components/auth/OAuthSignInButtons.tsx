@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { Button } from "@/components/ui/button";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 
@@ -10,18 +11,26 @@ type Props = {
   providers: OAuthProviderFlags;
   callbackUrl: string;
   disabled?: boolean;
+  /** Show Google on login even before env is configured (button disabled until ready). */
+  showGoogleButton?: boolean;
+  onGoogleUnavailable?: () => void;
 };
 
 export function OAuthSignInButtons({
   providers,
   callbackUrl,
   disabled = false,
+  showGoogleButton = false,
+  onGoogleUnavailable,
 }: Props) {
   const [pending, setPending] = useState<
     "google" | "microsoft" | "facebook" | null
   >(null);
 
-  if (!providers.google && !providers.microsoft && !providers.facebook) {
+  const showGoogle = showGoogleButton || providers.google;
+  const googleReady = providers.google;
+
+  if (!showGoogle && !providers.microsoft && !providers.facebook) {
     return null;
   }
 
@@ -36,20 +45,30 @@ export function OAuthSignInButtons({
     void signIn(provider, { callbackUrl });
   };
 
-  const oauthButtonClass = "w-full justify-center";
+  const startGoogle = () => {
+    if (!googleReady) {
+      onGoogleUnavailable?.();
+      return;
+    }
+    startOAuth("google");
+  };
+
+  const oauthButtonClass = "w-full justify-center gap-2";
 
   return (
     <div className="flex flex-col gap-2">
-      {providers.google ? (
+      {showGoogle ? (
         <Button
           type="button"
           variant="outline"
           size="default"
           className={oauthButtonClass}
-          disabled={disabled || pending !== null}
+          disabled={disabled || pending !== null || !googleReady}
           loading={pending === "google"}
-          onClick={() => startOAuth("google")}
+          onClick={startGoogle}
+          aria-label="Sign in with Google"
         >
+          <GoogleIcon className="shrink-0" />
           {pending === "google" ? "Redirecting…" : "Continue with Google"}
         </Button>
       ) : null}
