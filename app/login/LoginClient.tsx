@@ -13,12 +13,9 @@ import {
   formInputClass,
 } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
-import {
-  normalizeAuthEmail,
-  safeAuthCallbackPath,
-} from "@/lib/auth/auth-flow";
-import { clientAgentLog } from "@/lib/debug/client-agent-log";
+import { normalizeAuthEmail, safeAuthCallbackPath } from "@/lib/auth/auth-flow";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
+import { clientAgentLog } from "@/lib/debug/client-agent-log";
 
 function oauthErrorMessage(code: string | null): string | null {
   if (!code) return null;
@@ -44,7 +41,7 @@ export default function LoginClient({
   const searchParams = useSearchParams();
   const callbackUrl = safeAuthCallbackPath(
     searchParams.get("callbackUrl"),
-    "/dashboard"
+    "/dashboard",
   );
   const resetSuccess = searchParams.get("reset") === "success";
   const oauthError = oauthErrorMessage(searchParams.get("error"));
@@ -113,7 +110,7 @@ export default function LoginClient({
                 error: result?.error ?? null,
                 status: result?.status ?? null,
                 callbackUrl,
-              }
+              },
             );
 
             if (result?.error) {
