@@ -10,10 +10,13 @@ export const metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
+    <div className="mx-auto max-w-md px-4 py-10 sm:py-14">
       <CorePageHeader
+        eyebrow="MapAble Core"
         title="Forgot password"
         description="Enter your email and we will send a link to reset your password."
+        centered
+        className="mb-8 border-0 pb-0"
       />
       <Suspense
         fallback={

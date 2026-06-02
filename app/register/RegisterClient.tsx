@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { AuthAlert } from "@/components/auth/AuthAlert";
+import { AuthFormCard, AuthOAuthDivider } from "@/components/auth/AuthFormCard";
 import { OAuthSignInButtons } from "@/components/auth/OAuthSignInButtons";
+import {
+  AccessibleFormField,
+  formInputClass,
+} from "@/components/forms/AccessibleFormField";
+import { Button } from "@/components/ui/button";
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 
@@ -76,7 +83,21 @@ export default function RegisterClient({
   };
 
   return (
-    <div className="mx-auto mt-10 flex max-w-md flex-col gap-6">
+    <AuthFormCard
+      title="Create your account"
+      description="Join MapAble to request care, manage bookings, and connect with providers."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Sign in
+          </Link>
+        </>
+      }
+    >
       {hasOAuth ? (
         <div className="flex flex-col gap-4">
           <OAuthSignInButtons
@@ -84,58 +105,69 @@ export default function RegisterClient({
             callbackUrl="/dashboard"
             disabled={isLoading}
           />
-          <div className="relative text-center text-xs text-muted-foreground">
-            <span className="relative z-10 bg-background px-2">
-              or register with email
-            </span>
-            <span
-              className="absolute left-0 right-0 top-1/2 border-t border-border"
-              aria-hidden
-            />
-          </div>
+          <AuthOAuthDivider label="or register with email" />
         </div>
       ) : null}
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+        <AccessibleFormField id="register-name" label="Name" required>
+          <input
+            id="register-name"
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            disabled={isLoading}
+            className={formInputClass}
+          />
+        </AccessibleFormField>
+
+        <AccessibleFormField id="register-email" label="Email" required>
+          <input
+            id="register-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+            className={formInputClass}
+          />
+        </AccessibleFormField>
+
+        <AccessibleFormField
+          id="register-password"
+          label="Password"
           required
-          disabled={isLoading}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-        <input
-          type="password"
-          placeholder="Password (min 8 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={8}
-          required
-          disabled={isLoading}
-        />
-        {error && <p className="text-red-500">{error}</p>}
-        <button
-          type="submit"
-          className="rounded bg-blue-600 py-2 text-white disabled:opacity-60"
-          disabled={isLoading}
+          hint="At least 8 characters."
         >
-          {isLoading ? "Creating account…" : "Register"}
-        </button>
-        <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/login" className="underline">
-            Sign in
-          </Link>
-        </p>
+          <input
+            id="register-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
+            required
+            disabled={isLoading}
+            className={formInputClass}
+          />
+        </AccessibleFormField>
+
+        {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
+
+        <Button
+          type="submit"
+          variant="default"
+          size="lg"
+          className="w-full"
+          disabled={isLoading}
+          loading={isLoading}
+        >
+          {isLoading ? "Creating account…" : "Create account"}
+        </Button>
       </form>
-    </div>
+    </AuthFormCard>
   );
 }
