@@ -6,11 +6,11 @@ MapAble uses [NextAuth.js](https://next-auth.js.org/) with optional OAuth provid
 
 Set env vars (see `.env.example`). Buttons on `/login` and `/register` only render when **both** client id and secret are set for a provider.
 
-| Provider  | Env vars                                                                                          | Callback URL                                |
-| --------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Google    | `GOOGLE_CLIENT_ID` or `GOOGLE_ID`, plus `GOOGLE_CLIENT_SECRET` or `GOOGLE_SECRET`                 | `{NEXTAUTH_URL}/api/auth/callback/google`   |
-| Facebook  | `FACEBOOK_CLIENT_ID` or `FACEBOOK_APP_ID`, plus `FACEBOOK_CLIENT_SECRET` or `FACEBOOK_APP_SECRET` | `{NEXTAUTH_URL}/api/auth/callback/facebook` |
-| Microsoft | `AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`, optional `AZURE_AD_TENANT_ID`                     | `{NEXTAUTH_URL}/api/auth/callback/azure-ad` |
+| Provider  | Env vars                                                                                                                    | Callback URL                                |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Google    | `GOOGLE_CLIENT_ID`, `GOOGLE_ID`, or `AUTH_GOOGLE_ID`, plus `GOOGLE_CLIENT_SECRET`, `GOOGLE_SECRET`, or `AUTH_GOOGLE_SECRET` | `{NEXTAUTH_URL}/api/auth/callback/google`   |
+| Facebook  | `FACEBOOK_CLIENT_ID` or `FACEBOOK_APP_ID`, plus `FACEBOOK_CLIENT_SECRET` or `FACEBOOK_APP_SECRET`                           | `{NEXTAUTH_URL}/api/auth/callback/facebook` |
+| Microsoft | `AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`, optional `AZURE_AD_TENANT_ID`                                               | `{NEXTAUTH_URL}/api/auth/callback/azure-ad` |
 
 Use the same `NEXTAUTH_URL` as production (e.g. `https://your-app.vercel.app`).
 

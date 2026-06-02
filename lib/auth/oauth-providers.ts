@@ -13,6 +13,7 @@ function googleClientId(): string | undefined {
   return (
     process.env.GOOGLE_CLIENT_ID?.trim() ||
     process.env.GOOGLE_ID?.trim() ||
+    process.env.AUTH_GOOGLE_ID?.trim() ||
     undefined
   );
 }
@@ -21,6 +22,7 @@ function googleClientSecret(): string | undefined {
   return (
     process.env.GOOGLE_CLIENT_SECRET?.trim() ||
     process.env.GOOGLE_SECRET?.trim() ||
+    process.env.AUTH_GOOGLE_SECRET?.trim() ||
     undefined
   );
 }

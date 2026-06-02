@@ -60,6 +60,26 @@ describe("getConfiguredOAuthProviders", () => {
     expect(buildOAuthProviders().some((p) => p.id === "google")).toBe(true);
   });
 
+  it("detects Google when Auth.js credentials are present", async () => {
+    process.env = {
+      ...env,
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+      GOOGLE_ID: "",
+      GOOGLE_SECRET: "",
+      AUTH_GOOGLE_ID: "google-id",
+      AUTH_GOOGLE_SECRET: "google-secret",
+      AZURE_AD_CLIENT_ID: "",
+      AZURE_AD_CLIENT_SECRET: "",
+      FACEBOOK_APP_ID: "",
+      FACEBOOK_APP_SECRET: "",
+    };
+    const { getConfiguredOAuthProviders, buildOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
+    expect(getConfiguredOAuthProviders().google).toBe(true);
+    expect(buildOAuthProviders().some((p) => p.id === "google")).toBe(true);
+  });
+
   it("detects Facebook when app id and secret are present", async () => {
     process.env = {
       ...env,
