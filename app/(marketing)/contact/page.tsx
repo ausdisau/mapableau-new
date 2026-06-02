@@ -1,5 +1,5 @@
-import { MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
+import { MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
 
 export const metadata = {
   title: "Contact | MapAble",

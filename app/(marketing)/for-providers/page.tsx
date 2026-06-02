@@ -5,7 +5,7 @@ import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 export const metadata = {
   title: "For providers | MapAble",
   description:
-    "Register provider interest for MapAble's controlled pilot and verification pathway.",
+    "Register provider interest for the MapAble controlled pilot and verification pathway.",
 };
 
 export default function ForProvidersPage() {
@@ -25,9 +25,7 @@ export default function ForProvidersPage() {
               <li>
                 Explore the public provider finder and public module pages.
               </li>
-              <li>
-                Review MapAble's planned verification and safety approach.
-              </li>
+              <li>Review the planned verification and safety approach.</li>
             </ul>
           ),
         },
