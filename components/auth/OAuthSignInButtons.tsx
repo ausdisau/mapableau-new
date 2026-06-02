@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
@@ -22,21 +22,64 @@ export function getOAuthButtonLabel(
   return `${labelMode === "login" ? "Login" : "Continue"} with ${providerName}`;
 }
 
+export function oauthProviderFlagsFromNextAuthProviders(
+  providerIds: Iterable<string>,
+): OAuthProviderFlags {
+  const ids = new Set(providerIds);
+
+  return {
+    auth0: ids.has("auth0"),
+    google: ids.has("google"),
+    microsoft: ids.has("azure-ad"),
+    facebook: ids.has("facebook"),
+  };
+}
+
 export function OAuthSignInButtons({
   providers,
   callbackUrl,
   disabled = false,
   labelMode = "continue",
 }: Props) {
+  const [runtimeProviders, setRuntimeProviders] =
+    useState<OAuthProviderFlags>(providers);
   const [pending, setPending] = useState<
     "auth0" | "google" | "microsoft" | "facebook" | null
   >(null);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRuntimeProviders() {
+      try {
+        const response = await fetch("/api/auth/providers", {
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+
+        const data = (await response.json()) as Record<string, unknown>;
+        if (cancelled) return;
+
+        setRuntimeProviders(
+          oauthProviderFlagsFromNextAuthProviders(Object.keys(data)),
+        );
+      } catch {
+        // Keep the server-provided flags when the runtime provider probe fails.
+      }
+    }
+
+    void loadRuntimeProviders();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (
-    !providers.auth0 &&
-    !providers.google &&
-    !providers.microsoft &&
-    !providers.facebook
+    !runtimeProviders.auth0 &&
+    !runtimeProviders.google &&
+    !runtimeProviders.microsoft &&
+    !runtimeProviders.facebook
   ) {
     return null;
   }
@@ -60,7 +103,7 @@ export function OAuthSignInButtons({
 
   return (
     <div className="flex flex-col gap-2">
-      {providers.auth0 ? (
+      {runtimeProviders.auth0 ? (
         <Button
           type="button"
           variant="outline"
@@ -75,7 +118,7 @@ export function OAuthSignInButtons({
             : getOAuthButtonLabel("Auth0", labelMode)}
         </Button>
       ) : null}
-      {providers.google ? (
+      {runtimeProviders.google ? (
         <Button
           type="button"
           variant="outline"
@@ -90,7 +133,7 @@ export function OAuthSignInButtons({
             : getOAuthButtonLabel("Google", labelMode)}
         </Button>
       ) : null}
-      {providers.microsoft ? (
+      {runtimeProviders.microsoft ? (
         <Button
           type="button"
           variant="outline"
@@ -105,7 +148,7 @@ export function OAuthSignInButtons({
             : getOAuthButtonLabel("Microsoft", labelMode)}
         </Button>
       ) : null}
-      {providers.facebook ? (
+      {runtimeProviders.facebook ? (
         <Button
           type="button"
           variant="outline"

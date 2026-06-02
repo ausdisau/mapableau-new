@@ -3,7 +3,10 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { getOAuthButtonLabel } from "@/components/auth/OAuthSignInButtons";
+import {
+  getOAuthButtonLabel,
+  oauthProviderFlagsFromNextAuthProviders,
+} from "@/components/auth/OAuthSignInButtons";
 
 const loginClientSource = readFileSync(
   join(process.cwd(), "app/login/LoginClient.tsx"),
@@ -18,5 +21,22 @@ describe("LoginClient OAuth buttons", () => {
       "Login with Facebook",
     );
     expect(loginClientSource).toContain('labelMode="login"');
+  });
+
+  it("maps NextAuth runtime providers to social sign-in flags", () => {
+    expect(
+      oauthProviderFlagsFromNextAuthProviders([
+        "auth0",
+        "google",
+        "azure-ad",
+        "facebook",
+        "credentials",
+      ]),
+    ).toEqual({
+      auth0: true,
+      google: true,
+      microsoft: true,
+      facebook: true,
+    });
   });
 });
