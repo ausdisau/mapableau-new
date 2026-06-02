@@ -82,7 +82,8 @@ export default function ExtensionShowcasePage() {
           <div>
             <h2 className="text-2xl font-bold">Book Services</h2>
             <p className="text-muted-foreground">
-              Browse and book services directly with integrated NDIS billing.
+              Browse services and prepare evidence-backed records for human
+              billing review.
             </p>
           </div>
           {groups.map((group) => (

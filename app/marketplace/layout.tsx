@@ -1,7 +1,7 @@
 import { MapAbleMarketingFooter } from "@/components/brand/MapAbleMarketingFooter";
 import { MapAbleMarketingHeader } from "@/components/brand/MapAbleMarketingHeader";
 
-export default function TransportLayout({
+export default function MarketplaceLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -145,7 +145,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/support-centre">
+                <Link href="/help">
                   <span className="text-sm text-muted-foreground hover:text-primary cursor-pointer">
                     Help Centre
                   </span>
@@ -178,12 +178,12 @@ export default function Footer() {
             © 2025 Australian Disability Ltd. All rights reserved.
           </p>
           <div className="flex gap-6 text-xs text-muted-foreground">
-            <span className="hover:text-primary cursor-pointer">
+            <Link href="/privacy" className="hover:text-primary">
               Privacy Policy
-            </span>
-            <span className="hover:text-primary cursor-pointer">
+            </Link>
+            <Link href="/terms" className="hover:text-primary">
               Terms of Service
-            </span>
+            </Link>
           </div>
         </div>
       </div>

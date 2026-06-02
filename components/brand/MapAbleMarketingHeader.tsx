@@ -9,7 +9,7 @@ import { MAPABLE_MARKETING_NAV } from "@/lib/brand/marketing-nav";
 export function MapAbleMarketingHeader() {
   return (
     <MapAbleSiteHeader
-      logoHref="/provider-finder"
+      logoHref="/"
       logoVariant="full"
       navItems={MAPABLE_MARKETING_NAV}
       actions={

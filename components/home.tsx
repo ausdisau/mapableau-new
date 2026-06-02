@@ -22,7 +22,8 @@ const howItWorks = [
   {
     step: 1,
     title: "Create Profile",
-    description: "Sign up and share your needs and NDIS plan details.",
+    description:
+      "Create a profile and choose what information to share. NDIS plan documents are optional and shared only with consent.",
     icon: Users,
   },
   {
@@ -35,7 +36,8 @@ const howItWorks = [
   {
     step: 3,
     title: "Book & Connect",
-    description: "Book services directly with integrated NDIS billing.",
+    description:
+      "Request services with human review and evidence-backed records.",
     icon: CheckCircle,
   },
   {
@@ -47,9 +49,9 @@ const howItWorks = [
 ];
 
 const trustBadges: { icon: LucideIcon; label: string }[] = [
-  { icon: ShieldCheck, label: "NDIS Registered" },
-  { icon: Lock, label: "Australian Data Sovereignty" },
-  { icon: Award, label: "WCAG 2.1 AA Compliant" },
+  { icon: ShieldCheck, label: "Built for the NDIS ecosystem" },
+  { icon: Lock, label: "Data hosting and privacy controls under review" },
+  { icon: Award, label: "Designed toward WCAG 2.2 AA accessibility" },
 ];
 
 export default function Home() {
@@ -67,7 +69,7 @@ export default function Home() {
               className="mb-4 px-3 py-1.5 border-primary/20 bg-primary/5 text-primary"
               data-testid="badge-tagline"
             >
-              NDIS Service Platform
+              Disability support platform
             </Badge>
 
             <h1
@@ -82,8 +84,8 @@ export default function Home() {
               className="text-base md:text-lg text-muted-foreground mb-6 max-w-xl mx-auto"
               data-testid="text-hero-description"
             >
-              Connect with verified care providers, accessible transport,
-              employment opportunities, and essential NDIS services.
+              Connect with provider discovery, accessible transport, employment
+              pathways, and consent-aware support services.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
@@ -125,32 +127,26 @@ export default function Home() {
               )}
             </div>
 
-            {/* Real Stats from Database */}
-            {/* {platformStats && ( */}
             <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
               <div className="text-center" data-testid="stat-users">
                 <div className="text-xl md:text-2xl font-bold text-foreground">
-                  {/* {platformStats.userCount || 0} */}
-                  100
+                  Pilot
                 </div>
                 <div className="text-xs text-muted-foreground">Users</div>
               </div>
               <div className="text-center" data-testid="stat-providers">
                 <div className="text-xl md:text-2xl font-bold text-foreground">
-                  {/* {platformStats.providerCount || 0} */}
-                  100
+                  Opening
                 </div>
                 <div className="text-xs text-muted-foreground">Providers</div>
               </div>
               <div className="text-center" data-testid="stat-bookings">
                 <div className="text-xl md:text-2xl font-bold text-foreground">
-                  {/* {platformStats.bookingCount || 0} */}
-                  100
+                  Planned
                 </div>
                 <div className="text-xs text-muted-foreground">Bookings</div>
               </div>
             </div>
-            {/* )} */}
           </div>
         </div>
       </section>
@@ -238,8 +234,8 @@ export default function Home() {
               Ready to Get Started?
             </h2>
             <p className="text-white/80 mb-6">
-              Join MapAble to connect with services and manage your NDIS
-              journey.
+              Join MapAble to connect with services and manage support
+              information on your terms.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {user ? (
@@ -262,7 +258,7 @@ export default function Home() {
                   className="bg-white text-primary hover:bg-white/90 px-6 h-12 rounded-lg"
                   data-testid="button-cta-signup"
                 >
-                  Create Free Account
+                  Join pilot
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
@@ -287,17 +283,17 @@ export default function Home() {
                   className="text-xl md:text-2xl font-heading font-bold mb-3"
                   data-testid="text-provider-cta"
                 >
-                  Grow Your NDIS Business
+                  Prepare your provider organisation
                 </h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Join as a verified provider. Get matched with participants and
-                  streamline your billing.
+                  Register provider interest and prepare for consent-aware
+                  matching, service evidence and billing review workflows.
                 </p>
                 <ul className="space-y-2 mb-5 text-sm">
                   {[
-                    "NDIS billing integration",
-                    "Smart participant matching",
-                    "Verified provider badge",
+                    "Evidence-backed billing workflows",
+                    "Consent-aware participant matching",
+                    "Verification pathway in progress",
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-secondary flex-shrink-0" />
@@ -305,7 +301,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/provider-centre">
+                <Link href="/for-providers">
                   <Button
                     variant="default"
                     size="lg"

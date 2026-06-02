@@ -19,44 +19,67 @@ export function MapAbleMarketingFooter() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
             <div className="mb-4">
-              <MapAbleLogo href="/provider-finder" variant="full" className="hover:opacity-100" />
+              <MapAbleLogo
+                href="/"
+                variant="full"
+                className="hover:opacity-100"
+              />
             </div>
             <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
               {MAPABLE_TAGLINE}
             </p>
-            <div className="flex gap-4" role="list" aria-label="Social media links">
+            <div
+              className="flex gap-4"
+              role="list"
+              aria-label="Social media links"
+            >
               {[
                 { Icon: Facebook, label: "Facebook" },
                 { Icon: Twitter, label: "Twitter" },
                 { Icon: Instagram, label: "Instagram" },
                 { Icon: Linkedin, label: "LinkedIn" },
               ].map(({ Icon, label }) => (
-                <span
-                  key={label}
-                  className="text-muted-foreground"
-                  aria-hidden
-                >
+                <span key={label} className="text-muted-foreground" aria-hidden>
                   <Icon className="h-5 w-5" />
                 </span>
               ))}
             </div>
           </div>
           <div>
-            <h4 className="mb-4 font-heading font-semibold text-foreground">Platform</h4>
+            <h4 className="mb-4 font-heading font-semibold text-foreground">
+              Platform
+            </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/core" className="text-muted-foreground transition hover:text-primary">
-                  MapAble Core
+                <Link
+                  href="/care"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Care
                 </Link>
               </li>
               <li>
-                <Link href="/billing" className="text-muted-foreground transition hover:text-primary">
-                  Billing
+                <Link
+                  href="/transport"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Transport
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="text-muted-foreground transition hover:text-primary">
-                  Dashboard
+                <Link
+                  href="/employment"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Employment
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/providers"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Providers
                 </Link>
               </li>
               <li>
@@ -72,25 +95,54 @@ export function MapAbleMarketingFooter() {
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 font-heading font-semibold text-foreground">Resources</h4>
+            <h4 className="mb-4 font-heading font-semibold text-foreground">
+              Resources
+            </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/core#civic" className="text-muted-foreground transition hover:text-primary">
-                  Public accountability
+                <Link
+                  href="/resources"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Resources
                 </Link>
               </li>
               <li>
-                <Link href="/status" className="text-muted-foreground transition hover:text-primary">
-                  System status
+                <Link
+                  href="/help"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Help Centre
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/accessibility-statement"
+                  className="text-muted-foreground transition hover:text-primary"
+                >
+                  Accessibility
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 font-heading font-semibold text-foreground">Contact</h4>
+            <h4 className="mb-4 font-heading font-semibold text-foreground">
+              Contact
+            </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <a href={`mailto:${MAPABLE_SUPPORT_EMAIL}`} className="hover:text-primary">
+                <a
+                  href={`mailto:${MAPABLE_SUPPORT_EMAIL}`}
+                  className="hover:text-primary"
+                >
                   {MAPABLE_SUPPORT_EMAIL}
                 </a>
               </li>
@@ -100,12 +152,26 @@ export function MapAbleMarketingFooter() {
           </div>
         </div>
         <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-slate-200 pt-8 text-xs text-muted-foreground md:flex-row">
-          <p>© {new Date().getFullYear()} Australian Disability Ltd. All rights reserved.</p>
           <p>
-            <Link href={MAPABLE_MARKETING_URL} className="hover:text-primary" target="_blank" rel="noopener noreferrer">
+            © {new Date().getFullYear()} Australian Disability Ltd. All rights
+            reserved.
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/terms" className="hover:text-primary">
+              Terms
+            </Link>
+            <Link href="/data-deletion" className="hover:text-primary">
+              Data deletion
+            </Link>
+            <Link
+              href={MAPABLE_MARKETING_URL}
+              className="hover:text-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Visit mapable.com.au
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </footer>
