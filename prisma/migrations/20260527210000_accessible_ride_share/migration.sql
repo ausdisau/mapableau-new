@@ -2,10 +2,10 @@
 CREATE TYPE "RideRunStatus" AS ENUM ('planning', 'open', 'locked', 'in_progress', 'completed', 'cancelled');
 
 -- AlterTable
-ALTER TABLE "bookings" ADD COLUMN "transportTripId" TEXT;
+ALTER TABLE "Booking" ADD COLUMN "transportTripId" TEXT;
 
 -- CreateIndex
-CREATE UNIQUE INDEX "bookings_transportTripId_key" ON "bookings"("transportTripId");
+CREATE UNIQUE INDEX "Booking_transportTripId_key" ON "Booking"("transportTripId");
 
 -- AlterTable
 ALTER TABLE "transport_trips" ADD COLUMN "rideRunId" TEXT;
@@ -36,13 +36,13 @@ CREATE INDEX "ride_runs_providerOrganisationId_status_idx" ON "ride_runs"("provi
 CREATE INDEX "ride_runs_scheduledStart_idx" ON "ride_runs"("scheduledStart");
 
 -- AddForeignKey
-ALTER TABLE "bookings" ADD CONSTRAINT "bookings_transportTripId_fkey" FOREIGN KEY ("transportTripId") REFERENCES "transport_trips"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Booking" ADD CONSTRAINT "Booking_transportTripId_fkey" FOREIGN KEY ("transportTripId") REFERENCES "transport_trips"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "transport_trips" ADD CONSTRAINT "transport_trips_rideRunId_fkey" FOREIGN KEY ("rideRunId") REFERENCES "ride_runs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ride_runs" ADD CONSTRAINT "ride_runs_providerOrganisationId_fkey" FOREIGN KEY ("providerOrganisationId") REFERENCES "organisations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ride_runs" ADD CONSTRAINT "ride_runs_providerOrganisationId_fkey" FOREIGN KEY ("providerOrganisationId") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ride_runs" ADD CONSTRAINT "ride_runs_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "transport_vehicles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
