@@ -19,6 +19,7 @@ describe("getConfiguredOAuthProviders", () => {
     const { getConfiguredOAuthProviders } =
       await import("@/lib/auth/oauth-providers");
     expect(getConfiguredOAuthProviders()).toEqual({
+      auth0: false,
       google: false,
       microsoft: false,
       facebook: false,
@@ -38,8 +39,47 @@ describe("getConfiguredOAuthProviders", () => {
     const { getConfiguredOAuthProviders } =
       await import("@/lib/auth/oauth-providers");
     expect(getConfiguredOAuthProviders().google).toBe(true);
+    expect(getConfiguredOAuthProviders().auth0).toBe(false);
     expect(getConfiguredOAuthProviders().microsoft).toBe(false);
     expect(getConfiguredOAuthProviders().facebook).toBe(false);
+  });
+
+  it("detects Auth0 when credentials and issuer are present", async () => {
+    process.env = {
+      ...env,
+      AUTH0_CLIENT_ID: "auth0-id",
+      AUTH0_CLIENT_SECRET: "auth0-secret",
+      AUTH0_ISSUER_BASE_URL: "https://example.us.auth0.com",
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+      AZURE_AD_CLIENT_ID: "",
+      AZURE_AD_CLIENT_SECRET: "",
+      FACEBOOK_APP_ID: "",
+      FACEBOOK_APP_SECRET: "",
+    };
+    const { getConfiguredOAuthProviders, buildOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
+    expect(getConfiguredOAuthProviders().auth0).toBe(true);
+    expect(buildOAuthProviders().some((p) => p.id === "auth0")).toBe(true);
+  });
+
+  it("detects Auth0 when legacy issuer env is present", async () => {
+    process.env = {
+      ...env,
+      AUTH0_CLIENT_ID: "auth0-id",
+      AUTH0_CLIENT_SECRET: "auth0-secret",
+      AUTH0_ISSUER: "https://example.us.auth0.com/",
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+      AZURE_AD_CLIENT_ID: "",
+      AZURE_AD_CLIENT_SECRET: "",
+      FACEBOOK_APP_ID: "",
+      FACEBOOK_APP_SECRET: "",
+    };
+    const { getConfiguredOAuthProviders, buildOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
+    expect(getConfiguredOAuthProviders().auth0).toBe(true);
+    expect(buildOAuthProviders().some((p) => p.id === "auth0")).toBe(true);
   });
 
   it("detects Google when alias credentials are present", async () => {

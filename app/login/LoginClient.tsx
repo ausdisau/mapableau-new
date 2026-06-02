@@ -47,6 +47,7 @@ export default function LoginClient({
   const oauthError = oauthErrorMessage(searchParams.get("error"));
 
   const hasOAuth =
+    oauthProviders.auth0 ||
     oauthProviders.google ||
     oauthProviders.microsoft ||
     oauthProviders.facebook;

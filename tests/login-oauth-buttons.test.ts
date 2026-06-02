@@ -11,7 +11,8 @@ const loginClientSource = readFileSync(
 );
 
 describe("LoginClient OAuth buttons", () => {
-  it("uses login-specific Google and Facebook button labels", () => {
+  it("uses login-specific social sign-in button labels", () => {
+    expect(getOAuthButtonLabel("Auth0", "login")).toBe("Login with Auth0");
     expect(getOAuthButtonLabel("Google", "login")).toBe("Login with Google");
     expect(getOAuthButtonLabel("Facebook", "login")).toBe(
       "Login with Facebook",

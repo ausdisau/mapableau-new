@@ -1,13 +1,31 @@
+import Auth0Provider from "next-auth/providers/auth0";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
 import type { Provider } from "next-auth/providers/index";
 
 export type OAuthProviderFlags = {
+  auth0: boolean;
   google: boolean;
   microsoft: boolean;
   facebook: boolean;
 };
+
+function auth0ClientId(): string | undefined {
+  return process.env.AUTH0_CLIENT_ID?.trim() || undefined;
+}
+
+function auth0ClientSecret(): string | undefined {
+  return process.env.AUTH0_CLIENT_SECRET?.trim() || undefined;
+}
+
+function auth0Issuer(): string | undefined {
+  return (
+    process.env.AUTH0_ISSUER_BASE_URL?.trim() ||
+    process.env.AUTH0_ISSUER?.trim() ||
+    undefined
+  );
+}
 
 function googleClientId(): string | undefined {
   return (
@@ -49,6 +67,7 @@ function envPresent(...keys: string[]): boolean {
 
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   return {
+    auth0: Boolean(auth0ClientId() && auth0ClientSecret() && auth0Issuer()),
     google: Boolean(googleClientId() && googleClientSecret()),
     microsoft: envPresent("AZURE_AD_CLIENT_ID", "AZURE_AD_CLIENT_SECRET"),
     facebook: Boolean(facebookClientId() && facebookClientSecret()),
@@ -59,6 +78,16 @@ export function getConfiguredOAuthProviders(): OAuthProviderFlags {
 export function buildOAuthProviders(): Provider[] {
   const providers: Provider[] = [];
   const flags = getConfiguredOAuthProviders();
+
+  if (flags.auth0) {
+    providers.push(
+      Auth0Provider({
+        clientId: auth0ClientId()!,
+        clientSecret: auth0ClientSecret()!,
+        issuer: auth0Issuer()!.replace(/\/$/, ""),
+      }),
+    );
+  }
 
   if (flags.google) {
     providers.push(

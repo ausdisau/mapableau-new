@@ -29,6 +29,7 @@ export default function RegisterClient({
   const [isLoading, setIsLoading] = useState(false);
 
   const hasOAuth =
+    oauthProviders.auth0 ||
     oauthProviders.google ||
     oauthProviders.microsoft ||
     oauthProviders.facebook;
@@ -68,7 +69,7 @@ export default function RegisterClient({
 
       if (result?.error) {
         setError(
-          "Account created, but sign-in failed. Try signing in on the login page."
+          "Account created, but sign-in failed. Try signing in on the login page.",
         );
         setIsLoading(false);
         return;

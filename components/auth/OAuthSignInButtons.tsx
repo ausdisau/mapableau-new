@@ -29,20 +29,29 @@ export function OAuthSignInButtons({
   labelMode = "continue",
 }: Props) {
   const [pending, setPending] = useState<
-    "google" | "microsoft" | "facebook" | null
+    "auth0" | "google" | "microsoft" | "facebook" | null
   >(null);
 
-  if (!providers.google && !providers.microsoft && !providers.facebook) {
+  if (
+    !providers.auth0 &&
+    !providers.google &&
+    !providers.microsoft &&
+    !providers.facebook
+  ) {
     return null;
   }
 
-  const startOAuth = (provider: "google" | "azure-ad" | "facebook") => {
+  const startOAuth = (
+    provider: "auth0" | "google" | "azure-ad" | "facebook",
+  ) => {
     setPending(
-      provider === "google"
-        ? "google"
-        : provider === "facebook"
-          ? "facebook"
-          : "microsoft",
+      provider === "auth0"
+        ? "auth0"
+        : provider === "google"
+          ? "google"
+          : provider === "facebook"
+            ? "facebook"
+            : "microsoft",
     );
     void signIn(provider, { callbackUrl });
   };
@@ -51,6 +60,21 @@ export function OAuthSignInButtons({
 
   return (
     <div className="flex flex-col gap-2">
+      {providers.auth0 ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="default"
+          className={oauthButtonClass}
+          disabled={disabled || pending !== null}
+          loading={pending === "auth0"}
+          onClick={() => startOAuth("auth0")}
+        >
+          {pending === "auth0"
+            ? "Redirecting…"
+            : getOAuthButtonLabel("Auth0", labelMode)}
+        </Button>
+      ) : null}
       {providers.google ? (
         <Button
           type="button"

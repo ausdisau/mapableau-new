@@ -1,4 +1,4 @@
-# Google and Microsoft sign-in
+# OAuth sign-in
 
 MapAble uses [NextAuth.js](https://next-auth.js.org/) with optional OAuth providers. Email/password (`credentials`) always remains available.
 
@@ -8,11 +8,19 @@ Set env vars (see `.env.example`). Buttons on `/login` and `/register` only rend
 
 | Provider  | Env vars                                                                                                                    | Callback URL                                |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Auth0     | `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_ISSUER_BASE_URL` or `AUTH0_ISSUER`                                         | `{NEXTAUTH_URL}/api/auth/callback/auth0`    |
 | Google    | `GOOGLE_CLIENT_ID`, `GOOGLE_ID`, or `AUTH_GOOGLE_ID`, plus `GOOGLE_CLIENT_SECRET`, `GOOGLE_SECRET`, or `AUTH_GOOGLE_SECRET` | `{NEXTAUTH_URL}/api/auth/callback/google`   |
 | Facebook  | `FACEBOOK_CLIENT_ID` or `FACEBOOK_APP_ID`, plus `FACEBOOK_CLIENT_SECRET` or `FACEBOOK_APP_SECRET`                           | `{NEXTAUTH_URL}/api/auth/callback/facebook` |
 | Microsoft | `AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`, optional `AZURE_AD_TENANT_ID`                                               | `{NEXTAUTH_URL}/api/auth/callback/azure-ad` |
 
 Use the same `NEXTAUTH_URL` as production (e.g. `https://your-app.vercel.app`).
+
+### Auth0
+
+- In Auth0, create a **Regular Web Application** and add `{NEXTAUTH_URL}/api/auth/callback/auth0` to **Allowed Callback URLs**.
+- Add `{NEXTAUTH_URL}` to **Allowed Logout URLs** and **Allowed Web Origins** if you use Auth0-hosted logout or embedded flows later.
+- Enable Google and/or Facebook under Auth0 **Authentication → Social**, then enable those connections for the MapAble application.
+- Set `AUTH0_ISSUER_BASE_URL` to the tenant origin, for example `https://your-tenant.au.auth0.com` (no path).
 
 ### Microsoft tenant
 
