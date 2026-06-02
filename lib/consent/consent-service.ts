@@ -5,6 +5,11 @@ import { consentScopeFromPrisma, consentScopeToPrisma } from "@/lib/consent/scop
 import { prisma } from "@/lib/prisma";
 import type { ConsentScope, ConsentStatus } from "@/types/mapable";
 
+import type {
+  ConsentRecipientType,
+  ConsentShareMode,
+} from "@prisma/client";
+
 export interface GrantConsentInput {
   subjectUserId: string;
   grantedToUserId?: string;
@@ -13,6 +18,10 @@ export interface GrantConsentInput {
   purpose: string;
   expiryDate?: Date;
   createdById: string;
+  shareMode?: ConsentShareMode;
+  recipientType?: ConsentRecipientType;
+  dataScope?: string[];
+  sourceAction?: string;
 }
 
 export async function grantConsent(input: GrantConsentInput) {
@@ -26,6 +35,10 @@ export async function grantConsent(input: GrantConsentInput) {
       status: "active",
       expiryDate: input.expiryDate,
       createdById: input.createdById,
+      shareMode: input.shareMode,
+      recipientType: input.recipientType,
+      dataScope: input.dataScope ?? undefined,
+      sourceAction: input.sourceAction,
     },
   });
 

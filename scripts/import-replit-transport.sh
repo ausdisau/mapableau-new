@@ -18,6 +18,18 @@ IMPORT_DIR="${IMPORT_DIR:-/tmp/mapable-transport-replit}"
 DEFAULT_GIT_URL="https://replit.com/@${REPLIT_OWNER}/${REPLIT_SLUG}.git"
 GIT_URL="${REPLIT_GIT_URL:-$DEFAULT_GIT_URL}"
 
+# Normalize browser URLs (no .git) to the default git remote pattern.
+if [[ "${GIT_URL}" =~ ^https://replit\.com/@[^/]+/[^/]+$ ]]; then
+  echo "Note: REPLIT_GIT_URL looks like a Replit page URL, not a git remote."
+  echo "      Using ${DEFAULT_GIT_URL} instead."
+  echo "      For private Repls, copy the HTTPS URL from Tools → Version control."
+  echo ""
+  GIT_URL="${DEFAULT_GIT_URL}"
+fi
+if [[ "${GIT_URL}" != *.git ]]; then
+  GIT_URL="${GIT_URL%/}.git"
+fi
+
 echo "MapAble Transport — Replit import"
 echo "  Source: https://replit.com/@${REPLIT_OWNER}/${REPLIT_SLUG}"
 echo "  Target: ${IMPORT_DIR}"
@@ -31,11 +43,18 @@ else
   echo "Cloning from ${GIT_URL} ..."
   if ! git clone "${GIT_URL}" "${IMPORT_DIR}" 2>/dev/null; then
     echo ""
-    echo "Clone failed. Replit git often requires authentication or a URL from the Repl UI."
+    echo "Clone failed (HTTP 403 is common without Replit git credentials)."
+    echo ""
+    echo "The Repl page URL is NOT the git remote:"
+    echo "  ✗ https://replit.com/@${REPLIT_OWNER}/${REPLIT_SLUG}"
+    echo ""
     echo "Steps:"
     echo "  1. Open https://replit.com/@${REPLIT_OWNER}/${REPLIT_SLUG}"
-    echo "  2. Tools → Version control → copy the HTTPS git remote"
-    echo "  3. Re-run: REPLIT_GIT_URL='<your-remote>' ./scripts/import-replit-transport.sh"
+    echo "  2. Tools → Version control → enable Git, copy the HTTPS clone URL"
+    echo "     (often includes a token or repl-specific host — not the @user/slug page)"
+    echo "  3. Re-run: REPLIT_GIT_URL='<version-control-https-url>' ./scripts/import-replit-transport.sh"
+    echo ""
+    echo "Or export a zip from Replit and extract to IMPORT_DIR=${IMPORT_DIR}"
     echo ""
     echo "After clone, compare with this monorepo:"
     echo "  diff -ru ${IMPORT_DIR}/app /workspace/app/dashboard/transport 2>/dev/null | head"

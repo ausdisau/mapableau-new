@@ -5,11 +5,22 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/app/lib/utils";
 
-const LINKS = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/participants", label: "Participants" },
+const OPS_LINKS = [
+  { href: "/admin", label: "Command centre" },
+  { href: "/admin/ops/participants", label: "Participants" },
+  { href: "/admin/ops/workers", label: "Workers" },
+  { href: "/admin/ops/bookings", label: "Bookings" },
+  { href: "/admin/ops/safeguarding", label: "Safeguarding" },
+  { href: "/admin/ops/trust-safety", label: "Trust & safety" },
+  { href: "/admin/ops/billing", label: "Billing" },
+  { href: "/admin/ops/compliance", label: "Compliance" },
+  { href: "/admin/ops/agent-runs", label: "Agent runs" },
+];
+
+const LEGACY_LINKS = [
+  { href: "/admin/participants", label: "Participants (legacy)" },
   { href: "/admin/organisations", label: "Organisations" },
-  { href: "/admin/bookings", label: "Bookings" },
+  { href: "/admin/bookings", label: "Bookings (legacy)" },
   { href: "/admin/consents", label: "Consents" },
   { href: "/admin/notifications", label: "Notifications" },
   { href: "/admin/audit-events", label: "Audit events" },
@@ -18,7 +29,7 @@ const LINKS = [
   { href: "/admin/care", label: "Care" },
   { href: "/admin/transport", label: "Transport" },
   { href: "/admin/jobs", label: "Jobs" },
-  { href: "/admin/workers", label: "Workers" },
+  { href: "/admin/workers", label: "Workers (legacy)" },
   { href: "/admin/vehicles", label: "Vehicles" },
   { href: "/admin/drivers", label: "Drivers" },
   { href: "/admin/calendar", label: "Calendar" },
@@ -33,7 +44,7 @@ const LINKS = [
   { href: "/admin/reporting", label: "Reporting" },
   { href: "/admin/integrations", label: "Integrations" },
   { href: "/admin/ndia-readiness", label: "NDIA readiness" },
-  { href: "/admin/compliance", label: "Compliance" },
+  { href: "/admin/compliance", label: "Compliance (legacy)" },
   { href: "/admin/security-readiness", label: "Security" },
   { href: "/admin/launch-readiness", label: "Launch" },
   { href: "/admin/dispatch", label: "Dispatch" },
@@ -104,6 +115,33 @@ const LINKS = [
   { href: "/admin/invoices", label: "Invoices" },
 ];
 
+function NavLink({
+  href,
+  label,
+  pathname,
+}: {
+  href: string;
+  label: string;
+  pathname: string;
+}) {
+  const active =
+    pathname === href ||
+    (href !== "/admin" && pathname.startsWith(href));
+
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+      )}
+    >
+      {label}
+    </Link>
+  );
+}
+
 export function AdminNav() {
   const pathname = usePathname();
 
@@ -129,27 +167,28 @@ export function AdminNav() {
             </Link>
           </div>
         </div>
-        <ul className="flex flex-wrap gap-2">
-          {LINKS.map((link) => (
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Operations
+        </p>
+        <ul className="mb-4 flex flex-wrap gap-2">
+          {OPS_LINKS.map((link) => (
             <li key={link.href}>
-              <Link
-                href={link.href}
-                aria-current={
-                  pathname === link.href ? "page" : undefined
-                }
-                className={cn(
-                  "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  pathname === link.href ||
-                    (link.href !== "/admin" && pathname.startsWith(link.href))
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
-                )}
-              >
-                {link.label}
-              </Link>
+              <NavLink {...link} pathname={pathname} />
             </li>
           ))}
         </ul>
+        <details className="group">
+          <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            More admin
+          </summary>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {LEGACY_LINKS.map((link) => (
+              <li key={link.href}>
+                <NavLink {...link} pathname={pathname} />
+              </li>
+            ))}
+          </ul>
+        </details>
       </div>
     </nav>
   );

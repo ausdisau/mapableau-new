@@ -21,6 +21,19 @@ describe("nextauth-session JWT helpers", () => {
     });
   });
 
+  it("creates session.user when missing", () => {
+    const session = mergeJwtTokenIntoSession(
+      {},
+      { id: "u2", role: "participant", email: "p@test.com", name: "Pat" }
+    );
+    expect(session.user).toMatchObject({
+      id: "u2",
+      role: "participant",
+      email: "p@test.com",
+      name: "Pat",
+    });
+  });
+
   it("merges JWT token into session user", () => {
     const session = mergeJwtTokenIntoSession(
       { user: { email: "old@test.com" } },

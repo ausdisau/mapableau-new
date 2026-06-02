@@ -7,7 +7,16 @@ import {
   PEER_PEERS_REQUEST_HEADER,
 } from "@/lib/mapable-peers/peer-host";
 
-const AUTH_PREFIXES = ["/care", "/transport", "/provider/care", "/worker"] as const;
+const AUTH_PREFIXES = [
+  "/care",
+  "/transport",
+  "/dashboard",
+  "/provider",
+  "/worker",
+  "/driver",
+  "/messages",
+  "/practitioner",
+] as const;
 
 export function shouldRunAuthMiddleware(pathname: string): boolean {
   return AUTH_PREFIXES.some(

@@ -6,11 +6,8 @@ import {
   sendPasswordResetEmail,
 } from "@/lib/auth/password-reset-email";
 import { signPasswordResetToken } from "@/lib/auth/password-reset-token";
+import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { prisma } from "@/lib/prisma";
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
 
 const GENERIC_MESSAGE =
   "If an account exists for that email, we sent password reset instructions.";
@@ -18,7 +15,7 @@ const GENERIC_MESSAGE =
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as { email?: string };
-    const email = body.email ? normalizeEmail(body.email) : "";
+    const email = body.email ? normalizeAuthEmail(body.email) : "";
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });

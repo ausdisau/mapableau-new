@@ -59,6 +59,7 @@ const baseTrip = {
   participantId: "participant-1",
   providerOrganisationId: "org-1",
   legacyTransportBookingId: null,
+  rideRunId: null,
   status: "driver_vehicle_assigned" as const,
   pickupAddress: "123 Secret St",
   pickupSuburb: "Sydney",

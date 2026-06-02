@@ -74,6 +74,24 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
     setBusy(false);
   }
 
+  async function disputeInvoice() {
+    const reason = window.prompt(
+      "Tell us why you are disputing this invoice (at least 10 characters):"
+    );
+    if (!reason || reason.length < 10) return;
+    setBusy(true);
+    const res = await fetch(`/api/billing/invoices/${invoice.id}/dispute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    });
+    const data = await res.json();
+    setMessage(
+      res.ok ? "Dispute recorded. Our team will review." : data.error ?? "Dispute failed"
+    );
+    setBusy(false);
+  }
+
   async function downloadCsv() {
     setBusy(true);
     const res = await fetch("/api/billing/invoices/export", {
@@ -140,6 +158,15 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
             size="lg"
           >
             Download CSV
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void disputeInvoice()}
+            disabled={busy}
+            size="lg"
+          >
+            Dispute invoice
           </Button>
         </div>
       </header>

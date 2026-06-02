@@ -2,6 +2,26 @@ import { cn } from "@/app/lib/utils";
 
 const VARIANTS: Record<string, { className: string; label: string }> = {
   draft: { className: "bg-muted text-muted-foreground", label: "Draft" },
+  submitted: {
+    className: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-100",
+    label: "Submitted",
+  },
+  awaiting_admin_review: {
+    className: "bg-amber-100 text-amber-900",
+    label: "Under review",
+  },
+  awaiting_provider_response: {
+    className: "bg-amber-100 text-amber-900",
+    label: "Awaiting provider",
+  },
+  matched: {
+    className: "bg-indigo-100 text-indigo-900",
+    label: "Matched",
+  },
+  accepted: {
+    className: "bg-green-100 text-green-900",
+    label: "Accepted",
+  },
   requested: {
     className: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-100",
     label: "Requested",

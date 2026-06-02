@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
 import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
@@ -35,6 +36,10 @@ export default async function TransportTripDetailPage({
 }) {
   const user = await requireAuth();
   const { tripId } = await params;
+
+  if (tripId === "new") {
+    redirect("/dashboard/transport/new");
+  }
 
   try {
     const response = await getTransportTripForUser(user, tripId);

@@ -2,7 +2,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const PASSWORD_HASH = "$2b$10$iLyIbD98gF/4Wnghy5CnY.m4JK0/bL8CLbc/pUtnQ/nXr4Wuep.8O";
+/** bcrypt hash for dev password `Password123!` */
+const PASSWORD_HASH = "$2b$10$3M5Pn.9r2FhZq.zxdgVhJuX56pWpG7PUViH0931hNLOkDcOM3g/TO";
 
 const dummyUsers = [
   { name: "Alice Smith", email: "alice@example.com" },

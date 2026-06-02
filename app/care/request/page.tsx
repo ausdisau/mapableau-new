@@ -1,10 +1,24 @@
-import { CareRequestForm } from "@/components/care/CareRequestForm";
+import { CareRequestWizard } from "@/components/care/CareRequestWizard";
+import { CorePageHeader } from "@/components/core/CorePageHeader";
+import { Card, CardContent } from "@/components/ui/card";
+import { requirePermission } from "@/lib/auth/guards";
 
-export default function CareRequestPage() {
+export default async function CareRequestPage() {
+  const user = await requirePermission("care:manage:self");
+
   return (
-    <div>
-      <h1 className="mb-6 font-heading text-2xl font-bold">Request care</h1>
-      <CareRequestForm />
+    <div className="space-y-8">
+      <CorePageHeader
+        eyebrow="Request support"
+        title="Describe what you need"
+        description="Step 1: tell us in plain language. Step 2: review your draft care plan before anything is booked."
+        className="border-0 pb-0"
+      />
+      <Card variant="gradient" className="shadow-md">
+        <CardContent className="p-5 sm:p-8">
+          <CareRequestWizard participantId={user.id} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

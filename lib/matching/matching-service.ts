@@ -3,7 +3,18 @@ import type { MatchFactorType, MatchType } from "@prisma/client";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase4Config } from "@/lib/config/phase4";
+import { platformPatternsConfig } from "@/lib/config/platform-patterns";
+import {
+  assertAgentRunAllowsAction,
+  createAgentRun,
+} from "@/lib/agent-ops/agent-run-service";
+import {
+  assertReadyToMatchForParticipant,
+  assertReadyToMatchForWorker,
+} from "@/lib/onboarding/onboarding-service";
+import { getLatestReliabilityAdvisory } from "@/lib/reliability/reliability-service";
 import { prisma } from "@/lib/prisma";
+import type { GuardrailDecision } from "@/server/agents/care/types";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 
 function isOrgEligible(verificationStatus: string, status: string) {
@@ -28,6 +39,10 @@ export async function runCareWorkerMatch(
   });
   if (!request) throw new Error("NOT_FOUND");
 
+  if (platformPatternsConfig.onboardingGateEnabled) {
+    await assertReadyToMatchForParticipant(request.participantId);
+  }
+
   const run = await prisma.matchRun.create({
     data: {
       matchType: "care_worker",
@@ -45,8 +60,26 @@ export async function runCareWorkerMatch(
     take: 50,
   });
 
+  const rankedMatches: {
+    workerId: string;
+    score: number;
+    explanation: string;
+    risks: string[];
+    missingChecks: string[];
+    guardrailDecision: GuardrailDecision;
+    reliabilityAdvisory?: string;
+  }[] = [];
+
   const candidates = [];
   for (const w of workers) {
+    if (platformPatternsConfig.onboardingGateEnabled) {
+      try {
+        await assertReadyToMatchForWorker(w.id);
+      } catch {
+        continue;
+      }
+    }
+
     const factors: {
       factorType: MatchFactorType;
       score: number;
@@ -110,6 +143,42 @@ export async function runCareWorkerMatch(
         ? factors.reduce((s, f) => s + f.score * f.weight, 0) / totalWeight
         : 0;
     const explanation = factors.map((f) => f.explanation).join(" ");
+    const risks: string[] = [];
+    const missingChecks: string[] = [];
+    if (w.verificationStatus !== "verified") {
+      risks.push("Worker verification is not complete");
+      missingChecks.push("worker_verification");
+    }
+    if (!orgOk) {
+      risks.push("Provider organisation is not verified");
+      missingChecks.push("provider_verification");
+    }
+
+    let reliabilityAdvisory: string | undefined;
+    if (platformPatternsConfig.reliabilityAdvisoryEnabled) {
+      const advisory = await getLatestReliabilityAdvisory(w.id);
+      reliabilityAdvisory = advisory.advisorySummary;
+    }
+
+    const guardrailDecision: GuardrailDecision = {
+      allowed: score >= 0.5 && orgOk,
+      autoAssignWorkers: false,
+      autoFinalizeBooking: false,
+      humanReviewRequired: score < 0.7 || risks.length > 0,
+      personalCareConfirmationRequired: false,
+      blockedReasons: score < 0.5 ? ["Score below threshold"] : [],
+      appliedRules: ["matching_mvp_v1"],
+    };
+
+    rankedMatches.push({
+      workerId: w.id,
+      score,
+      explanation,
+      risks,
+      missingChecks,
+      guardrailDecision,
+      reliabilityAdvisory,
+    });
 
     const candidate = await prisma.matchCandidate.create({
       data: {
@@ -138,7 +207,21 @@ export async function runCareWorkerMatch(
     data: { status: "completed", completedAt: new Date() },
   });
 
-  return { run, candidates };
+  await createAgentRun({
+    agentType: "matching",
+    participantId: request.participantId,
+    matchRunId: run.id,
+    inputSummary: { careRequestId },
+    outputSummary: {
+      candidateCount: candidates.length,
+      topScore: rankedMatches[0]?.score ?? 0,
+    },
+    humanReviewRequired: rankedMatches.some((m) => m.guardrailDecision.humanReviewRequired),
+    participantConfirmationRequired: true,
+    actorUserId: requestedById,
+  });
+
+  return { run, candidates, rankedMatches };
 }
 
 export async function runTransportVehicleMatch(
@@ -232,8 +315,23 @@ export async function runTransportVehicleMatch(
 export async function selectMatchCandidate(
   candidateId: string,
   decidedById: string,
-  notes?: string
+  notes?: string,
+  options?: { participantConfirmed?: boolean; adminOverride?: boolean }
 ) {
+  const existing = await prisma.matchCandidate.findUnique({
+    where: { id: candidateId },
+    include: { matchRun: true },
+  });
+  if (!existing) throw new Error("NOT_FOUND");
+
+  if (platformPatternsConfig.matchParticipantConfirmRequired) {
+    if (!options?.participantConfirmed && !options?.adminOverride) {
+      throw new Error("PARTICIPANT_CONFIRMATION_REQUIRED");
+    }
+  }
+
+  await assertAgentRunAllowsAction({ matchRunId: existing.matchRunId });
+
   const candidate = await prisma.matchCandidate.update({
     where: { id: candidateId },
     data: { status: "selected" },
@@ -247,6 +345,10 @@ export async function selectMatchCandidate(
       decidedById,
       decision: "selected",
       notes,
+      participantConfirmed: options?.participantConfirmed ?? false,
+      participantConfirmedAt: options?.participantConfirmed
+        ? new Date()
+        : undefined,
     },
   });
 

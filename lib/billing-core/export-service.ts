@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
+import { assertInvoiceApprovedForExport } from "@/lib/billing-core/transparent-billing";
 import { prisma } from "@/lib/prisma";
 
 export async function exportInvoice(
@@ -13,6 +14,15 @@ export async function exportInvoice(
     include: { lineItems: true, fundingSource: true },
   });
   if (!invoice) return { ok: false as const, error: "Invoice not found" };
+
+  try {
+    assertInvoiceApprovedForExport(invoice);
+  } catch {
+    return {
+      ok: false as const,
+      error: "Invoice must be approved before export",
+    };
+  }
 
   if (formatType === "xero") {
     return {

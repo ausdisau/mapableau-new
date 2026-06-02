@@ -147,6 +147,10 @@ Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, St
 
 ESLint, Prettier, Husky, and lint-staged run on commit. See `package.json` scripts.
 
+## Import MapAble-Transport (Replit)
+
+To pull the standalone Repl [@ausdisau1/MapAble-Transport](https://replit.com/@ausdisau1/MapAble-Transport) for comparison or merge, see [docs/operations/replit-mapable-transport-import.md](docs/operations/replit-mapable-transport-import.md) and run `./scripts/import-replit-transport.sh`. The module entry in this app is `/transport`.
+
 ## Data imports (Access)
 
 Legacy place data for admin import lives under `data/imports/` (often gitignored when large). Copy `MapAble.kml` or `accessible_locations_merged.geojson` from operations storage, or use **Admin → Access → Import**. GeoJSON expects a FeatureCollection with Point features and properties such as `name`, `category`, or `address`.

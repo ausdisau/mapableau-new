@@ -34,7 +34,10 @@ export default async function TransportLayout({
           <Link href="/driver/trips" className="text-sm underline">
             Driver view
           </Link>
-          <Link href="/core" className="ml-auto text-sm text-muted-foreground">
+          <Link href="/dashboard" className="ml-auto text-sm text-muted-foreground">
+            Dashboard
+          </Link>
+          <Link href="/core" className="text-sm text-muted-foreground">
             MapAble Core
           </Link>
         </nav>

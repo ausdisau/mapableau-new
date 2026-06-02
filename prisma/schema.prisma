@@ -73,6 +73,9 @@ model User {
   careRiskFlags             CareRiskFlag[]
   careLivingAloneSafeguards CareLivingAloneSafeguard[]
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
+  onboardingProfiles        OnboardingProfile[] @relation("OnboardingProfileUser")
+  supportJourneySessions    SupportJourneySession[] @relation("SupportJourneyParticipant")
+  complaintsReported        Complaint[]        @relation("ComplaintReportedBy")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
   jobsCreated               Job[]              @relation("JobCreatedBy")
@@ -587,6 +590,7 @@ model Organisation {
   serviceAgreements      ServiceAgreement[]
   incidentReports        IncidentReport[]
   verificationCases      ProviderVerificationCase[]
+  onboardingProfiles     OnboardingProfile[]
   transportTripRequests  TransportTripRequest[] @relation("TransportTripRequestProvider")
   transportTrips         TransportTrip[]        @relation("TransportTripProvider")
   transportDrivers       TransportDriver[]      @relation("TransportDrivers")
@@ -623,6 +627,10 @@ model ConsentRecord {
   revokedById             String?
   revokedBy               User?         @relation("ConsentRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
   revokedAt               DateTime?
+  shareMode               ConsentShareMode?
+  recipientType           ConsentRecipientType?
+  dataScope               Json?
+  sourceAction            String?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 
@@ -1369,6 +1377,7 @@ model CareRequest {
   assignedWorkerProfile   WorkerProfile?    @relation(fields: [assignedWorkerProfileId], references: [id], onDelete: SetNull)
   bookingId               String?           @unique
   booking                 Booking?          @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  intakeMetadata          Json?
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
 
@@ -1703,6 +1712,7 @@ model WorkerProfile {
   careServiceLogs         CareServiceLog[]
   careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
+  onboardingProfile       OnboardingProfile?
 
   @@index([organisationId, active])
 }
@@ -1776,6 +1786,7 @@ model TransportBooking {
   vehicleId             String?
   vehicle               Vehicle?               @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   careRequestId         String?
+  careShiftId           String?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -1783,6 +1794,7 @@ model TransportBooking {
 
   @@index([participantId, status])
   @@index([operatorOrganisationId])
+  @@index([careShiftId])
 }
 
 model Vehicle {
@@ -2170,14 +2182,16 @@ model MatchFactor {
 }
 
 model MatchDecision {
-  id               String   @id @default(cuid())
-  matchRunId       String
-  matchRun         MatchRun @relation(fields: [matchRunId], references: [id], onDelete: Cascade)
-  matchCandidateId String?
-  decidedById      String
-  decision         String
-  notes            String?
-  createdAt        DateTime @default(now())
+  id                      String    @id @default(cuid())
+  matchRunId              String
+  matchRun                MatchRun  @relation(fields: [matchRunId], references: [id], onDelete: Cascade)
+  matchCandidateId        String?
+  decidedById             String
+  decision                String
+  notes                   String?
+  participantConfirmed    Boolean   @default(false)
+  participantConfirmedAt  DateTime?
+  createdAt               DateTime  @default(now())
 }
 
 model SavedProviderSearch {
@@ -4935,6 +4949,10 @@ model BillingInvoice {
   planManagerExportStatus  String?
   dueAt                    DateTime?
   paidAt                   DateTime?
+  adminApprovalStatus      BillingAdminApprovalStatus @default(draft)
+  disputedAt               DateTime?
+  disputeReason            String?
+  anomalyFlags             Json?
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
 
@@ -4945,6 +4963,7 @@ model BillingInvoice {
   @@index([providerId])
   @@index([bookingId])
   @@index([stripeCheckoutSessionId])
+  @@index([adminApprovalStatus])
 }
 
 model BillingInvoiceLineItem {
@@ -4959,6 +4978,8 @@ model BillingInvoiceLineItem {
   gstApplicable   Boolean        @default(false)
   metadata        Json?
   createdAt       DateTime       @default(now())
+
+  evidence InvoiceLineEvidence[]
 
   @@index([invoiceId])
 }
@@ -7215,4 +7236,262 @@ model CaseAIInsight {
   @@index([caseId])
   @@index([kind])
   @@map("case_ai_insights")
+}
+
+// --- Platform provider patterns (MVP) ---
+
+enum OnboardingRole {
+  participant
+  worker
+  provider
+}
+
+enum ConsentShareMode {
+  once
+  always_for_service
+  deny
+}
+
+enum ConsentRecipientType {
+  organisation
+  worker
+  plan_manager
+  support_coordinator
+  platform
+}
+
+enum BillingAdminApprovalStatus {
+  draft
+  pending_approval
+  approved
+  disputed
+}
+
+enum BookingGraphEntityType {
+  care_shift
+  transport_booking
+  booking_segment
+  calendar_event
+}
+
+enum BookingGraphDependencyType {
+  must_finish_before
+  requires_buffer
+  same_worker_exclusive
+}
+
+enum TrustSafetyQueueSource {
+  incident
+  complaint
+  disputed_service_log
+  repeated_cancellation
+  worker_boundary
+}
+
+enum TrustSafetyQueueStatus {
+  open
+  acknowledged
+  investigating
+  escalated
+  resolved
+  closed
+}
+
+enum AgentRunType {
+  intake
+  care_plan
+  transport
+  matching
+  billing
+  guardrail
+  safeguarding_triage
+  feedback
+  category_classifier
+}
+
+enum AgentRunStatus {
+  started
+  completed
+  failed
+  reviewed
+  blocked
+}
+
+enum AgentRiskTier {
+  low
+  medium
+  high
+  critical
+}
+
+model OnboardingProfile {
+  id                       String         @id @default(cuid())
+  role                     OnboardingRole
+  userId                   String?
+  user                     User?          @relation("OnboardingProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  organisationId           String?
+  organisation             Organisation?  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerProfileId          String?        @unique
+  workerProfile            WorkerProfile? @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  profileCompletenessScore Int            @default(0)
+  readyToMatch             Boolean        @default(false)
+  checklistJson            Json           @default("[]")
+  lastEvaluatedAt          DateTime?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  @@unique([userId, role])
+  @@unique([organisationId, role])
+  @@index([organisationId, role])
+  @@map("onboarding_profiles")
+}
+
+model SupportJourneySession {
+  id                      String   @id @default(cuid())
+  participantId           String
+  participant             User     @relation("SupportJourneyParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  sessionId               String
+  version                 Int      @default(1)
+  graphJson               Json     @default("{}")
+  pendingConfirmationGate String?
+  careRequestId           String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([participantId, sessionId])
+  @@index([participantId])
+  @@map("support_journey_sessions")
+}
+
+model BookingGraphNode {
+  id         String                 @id @default(cuid())
+  entityType BookingGraphEntityType
+  entityId   String
+  label      String?
+  metadata   Json?
+  createdAt  DateTime               @default(now())
+
+  edgesFrom BookingGraphEdge[] @relation("GraphEdgeFrom")
+  edgesTo   BookingGraphEdge[] @relation("GraphEdgeTo")
+
+  @@unique([entityType, entityId])
+  @@map("booking_graph_nodes")
+}
+
+model BookingGraphEdge {
+  id               String                     @id @default(cuid())
+  fromNodeId       String
+  fromNode         BookingGraphNode           @relation("GraphEdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNodeId         String
+  toNode           BookingGraphNode           @relation("GraphEdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  dependencyType   BookingGraphDependencyType
+  bufferMinutes    Int?
+  notes            String?
+  createdAt        DateTime                   @default(now())
+
+  @@index([fromNodeId])
+  @@index([toNodeId])
+  @@map("booking_graph_edges")
+}
+
+model TrustSafetyQueueItem {
+  id               String                 @id @default(cuid())
+  source           TrustSafetyQueueSource
+  status           TrustSafetyQueueStatus @default(open)
+  escalationLevel  Int                    @default(0)
+  title            String
+  summary          String?
+  participantId    String?
+  organisationId   String?
+  incidentId       String?
+  complaintId      String?
+  entityType       String?
+  entityId         String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  acknowledgedAt   DateTime?
+  resolvedAt       DateTime?
+
+  @@index([status, source])
+  @@index([participantId])
+  @@map("trust_safety_queue_items")
+}
+
+model Complaint {
+  id              String                 @id @default(cuid())
+  participantId   String?
+  organisationId  String?
+  reportedById    String
+  reportedBy      User                   @relation("ComplaintReportedBy", fields: [reportedById], references: [id])
+  title           String
+  description     String
+  status          TrustSafetyQueueStatus @default(open)
+  escalationLevel Int                    @default(0)
+  source          String                 @default("participant")
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([status])
+  @@map("complaints")
+}
+
+model AgentRun {
+  id                            String         @id @default(cuid())
+  agentType                     AgentRunType
+  status                        AgentRunStatus @default(started)
+  riskTier                      AgentRiskTier  @default(low)
+  humanReviewRequired           Boolean        @default(false)
+  participantConfirmationRequired Boolean      @default(false)
+  inputSummary                  Json?
+  outputSummary                 Json?
+  toolsCalled                   Json           @default("[]")
+  guardrailsTriggered           Json           @default("[]")
+  participantId                 String?
+  careRequestId                 String?
+  matchRunId                    String?
+  aiMatchRunId                  String?
+  billingInvoiceId              String?
+  auditEventId                  String?
+  reviewedById                  String?
+  reviewedAt                    DateTime?
+  createdAt                     DateTime       @default(now())
+  updatedAt                     DateTime       @updatedAt
+
+  @@index([agentType, status])
+  @@index([participantId])
+  @@map("agent_runs")
+}
+
+model ReliabilitySnapshot {
+  id                 String   @id @default(cuid())
+  workerProfileId    String?
+  organisationId     String?
+  periodStart        DateTime
+  periodEnd          DateTime
+  completionRate     Float    @default(0)
+  lateRate           Float    @default(0)
+  cancellationRate   Float    @default(0)
+  incidentCount      Int      @default(0)
+  complaintCount     Int      @default(0)
+  responseTimeP50Ms  Int?
+  advisorySummary    String?
+  metadata           Json?
+  createdAt          DateTime @default(now())
+
+  @@index([workerProfileId, periodEnd])
+  @@index([organisationId, periodEnd])
+  @@map("reliability_snapshots")
+}
+
+model InvoiceLineEvidence {
+  id              String         @id @default(cuid())
+  lineItemId      String
+  lineItem        BillingInvoiceLineItem @relation(fields: [lineItemId], references: [id], onDelete: Cascade)
+  careServiceLogId String?
+  careShiftId     String?
+  participantSafeDescription String
+  createdAt       DateTime       @default(now())
+
+  @@index([lineItemId])
+  @@map("invoice_line_evidence")
 }

@@ -3,6 +3,9 @@ import type { AuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 
+import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { ensureOAuthUser } from "@/lib/auth/ensure-oauth-user";
+import { buildOAuthProviders } from "@/lib/auth/oauth-providers";
 import { agentLog } from "@/lib/debug/agent-log";
 import {
   AUTH_SESSION_MAX_AGE_SECONDS,
@@ -14,8 +17,9 @@ import { prisma } from "@/lib/prisma";
 
 ensureNextAuthEnv();
 
-export const authOptions: AuthOptions = {
+export const authOptions = {
   secret: resolveNextAuthSecret(),
+  trustHost: true,
   session: {
     strategy: "jwt",
     maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
@@ -25,6 +29,7 @@ export const authOptions: AuthOptions = {
     maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
   },
   providers: [
+    ...buildOAuthProviders(),
     Credentials({
       id: "credentials",
       name: "credentials",
@@ -47,7 +52,7 @@ export const authOptions: AuthOptions = {
 
         if (!credentials?.email || !credentials?.password) return null;
 
-        const email = credentials.email.trim().toLowerCase();
+        const email = normalizeAuthEmail(credentials.email);
         const password = credentials.password.trim();
 
         try {
@@ -66,6 +71,16 @@ export const authOptions: AuthOptions = {
               }
             );
             // #endregion
+            return null;
+          }
+
+          if (!user.passwordHash?.trim()) {
+            agentLog(
+              "A",
+              "authOptions.ts:authorize:noPasswordHash",
+              "user has no password hash",
+              { userId: user.id }
+            );
             return null;
           }
 
@@ -108,6 +123,29 @@ export const authOptions: AuthOptions = {
     signIn: "/login",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      if (!account || account.provider === "credentials") {
+        return true;
+      }
+
+      const email = user.email?.trim();
+      if (!email) {
+        return false;
+      }
+
+      try {
+        const dbUser = await ensureOAuthUser({
+          email,
+          name: user.name,
+        });
+        user.id = dbUser.id;
+        (user as { role?: string }).role = dbUser.primaryRole;
+        return true;
+      } catch (error) {
+        console.error("[auth] OAuth sign-in provisioning failed", error);
+        return false;
+      }
+    },
     jwt({ token, user }) {
       if (user?.id) {
         mergeUserIntoJwtToken(token as Record<string, unknown>, {
@@ -134,4 +172,4 @@ export const authOptions: AuthOptions = {
       ) as typeof session;
     },
   },
-};
+} as AuthOptions;
