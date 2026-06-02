@@ -1,13 +1,29 @@
-import type { Provider } from "next-auth/providers/index";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
+import type { Provider } from "next-auth/providers/index";
 
 export type OAuthProviderFlags = {
   google: boolean;
   microsoft: boolean;
   facebook: boolean;
 };
+
+function googleClientId(): string | undefined {
+  return (
+    process.env.GOOGLE_CLIENT_ID?.trim() ||
+    process.env.GOOGLE_ID?.trim() ||
+    undefined
+  );
+}
+
+function googleClientSecret(): string | undefined {
+  return (
+    process.env.GOOGLE_CLIENT_SECRET?.trim() ||
+    process.env.GOOGLE_SECRET?.trim() ||
+    undefined
+  );
+}
 
 function facebookClientId(): string | undefined {
   return (
@@ -31,7 +47,7 @@ function envPresent(...keys: string[]): boolean {
 
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   return {
-    google: envPresent("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
+    google: Boolean(googleClientId() && googleClientSecret()),
     microsoft: envPresent("AZURE_AD_CLIENT_ID", "AZURE_AD_CLIENT_SECRET"),
     facebook: Boolean(facebookClientId() && facebookClientSecret()),
   };
@@ -45,8 +61,8 @@ export function buildOAuthProviders(): Provider[] {
   if (flags.google) {
     providers.push(
       GoogleProvider({
-        clientId: process.env.GOOGLE_CLIENT_ID!.trim(),
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!.trim(),
+        clientId: googleClientId()!,
+        clientSecret: googleClientSecret()!,
         authorization: {
           params: {
             prompt: "consent",
@@ -54,20 +70,19 @@ export function buildOAuthProviders(): Provider[] {
             response_type: "code",
           },
         },
-      })
+      }),
     );
   }
 
   if (flags.microsoft) {
-    const tenantId =
-      process.env.AZURE_AD_TENANT_ID?.trim() || "common";
+    const tenantId = process.env.AZURE_AD_TENANT_ID?.trim() || "common";
 
     providers.push(
       AzureADProvider({
         clientId: process.env.AZURE_AD_CLIENT_ID!.trim(),
         clientSecret: process.env.AZURE_AD_CLIENT_SECRET!.trim(),
         tenantId,
-      })
+      }),
     );
   }
 
@@ -76,7 +91,7 @@ export function buildOAuthProviders(): Provider[] {
       FacebookProvider({
         clientId: facebookClientId()!,
         clientSecret: facebookClientSecret()!,
-      })
+      }),
     );
   }
 

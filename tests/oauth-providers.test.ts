@@ -16,9 +16,8 @@ describe("getConfiguredOAuthProviders", () => {
       AZURE_AD_CLIENT_ID: "",
       AZURE_AD_CLIENT_SECRET: "",
     };
-    const { getConfiguredOAuthProviders } = await import(
-      "@/lib/auth/oauth-providers"
-    );
+    const { getConfiguredOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
     expect(getConfiguredOAuthProviders()).toEqual({
       google: false,
       microsoft: false,
@@ -36,12 +35,29 @@ describe("getConfiguredOAuthProviders", () => {
       FACEBOOK_APP_ID: "",
       FACEBOOK_APP_SECRET: "",
     };
-    const { getConfiguredOAuthProviders } = await import(
-      "@/lib/auth/oauth-providers"
-    );
+    const { getConfiguredOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
     expect(getConfiguredOAuthProviders().google).toBe(true);
     expect(getConfiguredOAuthProviders().microsoft).toBe(false);
     expect(getConfiguredOAuthProviders().facebook).toBe(false);
+  });
+
+  it("detects Google when alias credentials are present", async () => {
+    process.env = {
+      ...env,
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+      GOOGLE_ID: "google-id",
+      GOOGLE_SECRET: "google-secret",
+      AZURE_AD_CLIENT_ID: "",
+      AZURE_AD_CLIENT_SECRET: "",
+      FACEBOOK_APP_ID: "",
+      FACEBOOK_APP_SECRET: "",
+    };
+    const { getConfiguredOAuthProviders, buildOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
+    expect(getConfiguredOAuthProviders().google).toBe(true);
+    expect(buildOAuthProviders().some((p) => p.id === "google")).toBe(true);
   });
 
   it("detects Facebook when app id and secret are present", async () => {
@@ -52,9 +68,8 @@ describe("getConfiguredOAuthProviders", () => {
       FACEBOOK_APP_ID: "1798843646962949",
       FACEBOOK_APP_SECRET: "fb-secret",
     };
-    const { getConfiguredOAuthProviders, buildOAuthProviders } = await import(
-      "@/lib/auth/oauth-providers"
-    );
+    const { getConfiguredOAuthProviders, buildOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
     expect(getConfiguredOAuthProviders().facebook).toBe(true);
     expect(buildOAuthProviders().some((p) => p.id === "facebook")).toBe(true);
   });
