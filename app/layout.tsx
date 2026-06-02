@@ -2,6 +2,7 @@ import "@/app/index.css";
 import "leaflet/dist/leaflet.css";
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 
 import { Providers } from "@/components/providers";
@@ -17,6 +18,12 @@ const outfit = Outfit({
   variable: "--font-heading",
   display: "swap",
 });
+
+export const metadata: Metadata = {
+  other: {
+    "purpleads-verification": "832ea0b13123578b63ae2fe9",
+  },
+};
 
 export default function RootLayout({
   children,
