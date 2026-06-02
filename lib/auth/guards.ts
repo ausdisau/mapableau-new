@@ -6,7 +6,10 @@ import {
   type CurrentUser,
 } from "@/lib/auth/current-user";
 import type { Permission } from "@/lib/auth/permissions";
-import { hasPermission } from "@/lib/auth/permissions";
+import {
+  hasAnyAdminScopePermission,
+  hasPermission,
+} from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
 import type { UserRole } from "@/types/mapable";
 
@@ -19,6 +22,28 @@ export async function requireAuth(redirectTo = "/login"): Promise<CurrentUser> {
 export async function requireAdmin(): Promise<CurrentUser> {
   const user = await requireAuth();
   if (!isAdminRole(user.primaryRole)) redirect("/dashboard");
+  return user;
+}
+
+/** Platform admin or any back-of-house ops permission (for /admin/ops pages). */
+export async function requireAdminOpsAccess(): Promise<CurrentUser> {
+  const user = await requireAuth();
+  if (
+    !isAdminRole(user.primaryRole) &&
+    !hasAnyAdminScopePermission(user.primaryRole)
+  ) {
+    redirect("/dashboard");
+  }
+  return user;
+}
+
+export async function requireAdminScope(
+  permission: Permission
+): Promise<CurrentUser> {
+  const user = await requireAuth();
+  if (!hasPermission(user.primaryRole, permission)) {
+    redirect("/dashboard");
+  }
   return user;
 }
 

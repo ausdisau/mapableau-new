@@ -22,6 +22,15 @@ export type Permission =
   | "notification:read:self"
   | "audit:read"
   | "admin:dashboard"
+  | "admin:command-centre:read"
+  | "admin:participants:read"
+  | "admin:workers:read"
+  | "admin:bookings:read"
+  | "admin:safeguarding:read"
+  | "admin:billing:read"
+  | "admin:compliance:read"
+  | "admin:agent-runs:read"
+  | "admin:actions:write"
 
   | "message:read"
   | "message:send"
@@ -233,6 +242,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:any",
     "case:manage:self",
     "case:ai:run",
+    "admin:command-centre:read",
+    "admin:participants:read",
+    "admin:bookings:read",
   ],
   support_worker: [
     "booking:read:any",
@@ -306,6 +318,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:any",
     "case:manage:self",
     "case:ai:run",
+    "admin:command-centre:read",
+    "admin:billing:read",
+    "admin:bookings:read",
   ],
   mapable_admin: [
     "profile:read:any",
@@ -427,8 +442,39 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:any",
     "case:manage:any",
     "case:ai:run",
+    "admin:command-centre:read",
+    "admin:participants:read",
+    "admin:workers:read",
+    "admin:bookings:read",
+    "admin:safeguarding:read",
+    "admin:billing:read",
+    "admin:compliance:read",
+    "admin:agent-runs:read",
+    "admin:actions:write",
   ],
 };
+
+/** Back-of-house admin API/page permissions */
+export const ADMIN_SCOPE_PERMISSIONS: Permission[] = [
+  "admin:command-centre:read",
+  "admin:participants:read",
+  "admin:workers:read",
+  "admin:bookings:read",
+  "admin:safeguarding:read",
+  "admin:billing:read",
+  "admin:compliance:read",
+  "admin:agent-runs:read",
+  "admin:actions:write",
+];
+
+export function hasAnyAdminScopePermission(
+  role: UserRole | MapAbleUserRole
+): boolean {
+  if (isAdminRole(role)) return true;
+  return ADMIN_SCOPE_PERMISSIONS.some((p) =>
+    getPermissionsForRole(role).includes(p)
+  );
+}
 
 export function getPermissionsForRole(
   role: UserRole | MapAbleUserRole

@@ -31,3 +31,13 @@ export async function requireApiAdmin(): Promise<CurrentUser | Response> {
   if (!isAdminRole(user.primaryRole)) return apiForbidden();
   return user;
 }
+
+/** Requires platform admin or a specific back-of-house admin permission. */
+export async function requireApiAdminScope(
+  permission: Permission
+): Promise<CurrentUser | Response> {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+  if (!hasPermission(user.primaryRole, permission)) return apiForbidden();
+  return user;
+}
