@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
+
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { supportTypeLabel } from "@/components/care/SupportTypeChips";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ParticipantConfirmationCard } from "@/components/care/ParticipantConfirmationCard";
+import { classifySupportCategories } from "@/lib/care/support-category-classifier";
 import type { CareSupportTransformOutput } from "@/server/agents/care/types";
 
 export function CarePlanDraftReview({
@@ -19,7 +23,13 @@ export function CarePlanDraftReview({
   confirming: boolean;
   error: string | null;
 }) {
+  const [categoriesConfirmed, setCategoriesConfirmed] = useState(false);
   const { carePlanDraft, guardrailDecision } = output;
+  const categorySuggestions = classifySupportCategories({
+    message: carePlanDraft.description,
+    requestType: carePlanDraft.requestType,
+    taskNames: carePlanDraft.tasks.map((t) => t.name),
+  });
 
   return (
     <div className="space-y-6">
@@ -107,6 +117,15 @@ export function CarePlanDraftReview({
         </div>
       ) : null}
 
+      <ParticipantConfirmationCard
+        categorySuggestions={categorySuggestions}
+        onConfirm={() => setCategoriesConfirmed(true)}
+        confirming={false}
+      />
+      {categoriesConfirmed ? (
+        <AuthAlert variant="info">Support categories confirmed (draft).</AuthAlert>
+      ) : null}
+
       {guardrailDecision.humanReviewRequired ? (
         <AuthAlert variant="warning">
           A team member may review this request because it involves safety-related
@@ -132,7 +151,7 @@ export function CarePlanDraftReview({
           size="lg"
           className="min-w-[12rem]"
           onClick={onConfirm}
-          disabled={confirming}
+          disabled={confirming || !categoriesConfirmed}
           loading={confirming}
         >
           {confirming ? "Saving draft…" : "Confirm and save request"}

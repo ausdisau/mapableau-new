@@ -75,6 +75,11 @@ export function AdminDashboard() {
               href="/admin/ops/billing"
             />
             <AdminMetricCard
+              title="Unresolved complaints"
+              value={m.unresolvedComplaints}
+              href="/admin/ops/trust-safety"
+            />
+            <AdminMetricCard
               title="Safeguarding alerts"
               value={m.safeguardingAlerts}
               href="/admin/ops/safeguarding"

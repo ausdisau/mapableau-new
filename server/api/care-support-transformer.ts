@@ -1,4 +1,7 @@
+import { createAgentRun } from "@/lib/agent-ops/agent-run-service";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { classifySupportCategories } from "@/lib/care/support-category-classifier";
+import { applySupportJourneyPatch } from "@/lib/journey/journey-service";
 import { isAdminRole } from "@/lib/auth/roles";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { transformCareSupport } from "@/server/agents/careSupportTransformer";
@@ -49,7 +52,33 @@ export async function transformCareSupportRequest(
         inputHash: output.audit.inputHash,
         guardrailTriggers: output.audit.guardrailTriggers,
         humanReviewRequired: output.guardrailDecision.humanReviewRequired,
+        categorySuggestions: classifySupportCategories({
+          message: input.message,
+          requestType: output.carePlanDraft.requestType,
+          taskNames: output.carePlanDraft.tasks.map((t) => t.name),
+        }),
       },
+    });
+
+    await applySupportJourneyPatch({
+      participantId: input.participantId,
+      patch: output.supportJourneyPatch,
+      actorUserId: context.actorUserId,
+    });
+
+    await createAgentRun({
+      agentType: "care_plan",
+      participantId: input.participantId,
+      inputSummary: { sessionId: input.sessionId, messageLength: input.message.length },
+      outputSummary: {
+        humanReviewRequired: output.guardrailDecision.humanReviewRequired,
+        checkpointCount: output.checkpoints.length,
+      },
+      guardrailsTriggered: output.audit.guardrailTriggers,
+      riskTier: output.guardrailDecision.humanReviewRequired ? "high" : "low",
+      humanReviewRequired: output.guardrailDecision.humanReviewRequired,
+      participantConfirmationRequired: true,
+      actorUserId: context.actorUserId,
     });
   }
 

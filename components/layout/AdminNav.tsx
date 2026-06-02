@@ -11,6 +11,7 @@ const OPS_LINKS = [
   { href: "/admin/ops/workers", label: "Workers" },
   { href: "/admin/ops/bookings", label: "Bookings" },
   { href: "/admin/ops/safeguarding", label: "Safeguarding" },
+  { href: "/admin/ops/trust-safety", label: "Trust & safety" },
   { href: "/admin/ops/billing", label: "Billing" },
   { href: "/admin/ops/compliance", label: "Compliance" },
   { href: "/admin/ops/agent-runs", label: "Agent runs" },

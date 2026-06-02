@@ -36,6 +36,7 @@ export const commandCentreMetricsSchema = z.object({
   workerCredentialExpiries: z.number(),
   billingExceptions: z.number(),
   safeguardingAlerts: z.number(),
+  unresolvedComplaints: z.number(),
   guardrailBlocks: z.number(),
   agentRunsNeedingReview: z.number(),
 });

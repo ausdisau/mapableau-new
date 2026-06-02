@@ -57,6 +57,7 @@ describe("commandCentreResponseSchema", () => {
         workerCredentialExpiries: 0,
         billingExceptions: 3,
         safeguardingAlerts: 4,
+        unresolvedComplaints: 1,
         guardrailBlocks: 1,
         agentRunsNeedingReview: 2,
       },

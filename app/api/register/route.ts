@@ -64,6 +64,21 @@ export async function POST(req: Request) {
       update: { isPrimary: true },
     });
 
+    if (user.primaryRole === "participant") {
+      await prisma.participantProfile.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          displayName: name,
+        },
+        update: { displayName: name },
+      });
+      const { refreshParticipantOnboarding } = await import(
+        "@/lib/onboarding/onboarding-service"
+      );
+      await refreshParticipantOnboarding(user.id, user.id);
+    }
+
     return NextResponse.json({ id: user.id });
   } catch (error) {
     console.error("[register] failed", error);

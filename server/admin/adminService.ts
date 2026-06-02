@@ -13,6 +13,7 @@ import { isAdminRole } from "@/lib/auth/roles";
 import { getAtRiskItems } from "@/lib/admin/service-ops";
 import { logAdminSensitiveAccess } from "@/lib/audit/audit-event-service";
 import { adminSearchInvoices } from "@/lib/billing-core/invoice-service";
+import { countOpenComplaints } from "@/lib/trust-safety/queue-service";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/mapable";
 
@@ -55,6 +56,8 @@ export async function getCommandCentre(
     fairnessReview,
     aiMatchReview,
     pendingMatchRuns,
+    unresolvedComplaints,
+    persistedAgentRunsBlocked,
   ] = await Promise.all([
     prisma.careRequest.count({
       where: { status: { in: ["draft", "submitted"] } },
@@ -98,6 +101,13 @@ export async function getCommandCentre(
       },
     }),
     prisma.matchRun.count({ where: { status: "pending" } }),
+    countOpenComplaints(),
+    prisma.agentRun.count({
+      where: {
+        humanReviewRequired: true,
+        status: { in: ["started", "completed", "blocked"] },
+      },
+    }),
   ]);
 
   let transformReviewAudits = 0;
@@ -130,7 +140,7 @@ export async function getCommandCentre(
     careDraftOrSubmitted + shiftsAwaitingApproval + transformReviewAudits;
   const bookingsAtRisk = atRiskItems.length + unassignedBookings;
   const agentRunsNeedingReview =
-    fairnessReview + aiMatchReview + pendingMatchRuns;
+    fairnessReview + aiMatchReview + pendingMatchRuns + persistedAgentRunsBlocked;
 
   const highRiskItems: HighRiskItem[] = [];
 
@@ -207,6 +217,17 @@ export async function getCommandCentre(
     });
   }
 
+  if (unresolvedComplaints > 0 && scope !== "billing") {
+    highRiskItems.push({
+      id: "unresolved-complaints",
+      domain: "safeguarding",
+      severity: "medium",
+      title: "Unresolved complaints",
+      summary: `${unresolvedComplaints} complaint(s) in the trust & safety queue.`,
+      href: "/admin/ops/trust-safety",
+    });
+  }
+
   return {
     metrics: {
       pendingParticipantConfirmations,
@@ -214,6 +235,7 @@ export async function getCommandCentre(
       workerCredentialExpiries: workerCredentialCount,
       billingExceptions: flaggedBilling.length,
       safeguardingAlerts: openSafeguardingIncidents + activeRiskFlags,
+      unresolvedComplaints,
       guardrailBlocks: guardrailAudits,
       agentRunsNeedingReview,
     },
@@ -540,7 +562,8 @@ export async function listComplianceTasks(
 export async function listAgentRuns(actor: CurrentUser, query: AdminListQuery) {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [transformAudits, aiRuns, fairnessChecks, matchRuns] = await Promise.all([
+  const [transformAudits, aiRuns, fairnessChecks, matchRuns, persistedRuns] =
+    await Promise.all([
     prisma.auditEvent.findMany({
       where: {
         action: "care_support_transform.completed",
@@ -569,6 +592,16 @@ export async function listAgentRuns(actor: CurrentUser, query: AdminListQuery) {
     }),
     prisma.matchRun.findMany({
       where: { status: "pending" },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+    }),
+    prisma.agentRun.findMany({
+      where: query.atRiskOnly
+        ? {
+            humanReviewRequired: true,
+            status: { in: ["started", "completed", "blocked"] },
+          }
+        : {},
       orderBy: { createdAt: "desc" },
       take: 15,
     }),
@@ -655,6 +688,22 @@ export async function listAgentRuns(actor: CurrentUser, query: AdminListQuery) {
       plainLanguageReason: "Pending match decision.",
       aiGenerated: false,
       href: "/admin/matching",
+    });
+  }
+
+  for (const ar of persistedRuns) {
+    items.push({
+      id: ar.id,
+      kind: "care_transform",
+      title: `Agent run (${ar.agentType})`,
+      status: ar.status,
+      needsReview: ar.humanReviewRequired,
+      plainLanguageReason: ar.humanReviewRequired
+        ? "Human review required before downstream actions."
+        : undefined,
+      technicalDetail: `Risk tier: ${ar.riskTier}`,
+      aiGenerated: true,
+      href: "/admin/ops/agent-runs",
     });
   }
 
