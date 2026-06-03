@@ -2,9 +2,14 @@ import Link from "next/link";
 
 import { requirePermission } from "@/lib/auth/guards";
 import {
+  computeParticipantContinuityScore,
+  isContinuityIntelligenceEnabled,
+} from "@/lib/continuity/continuity-intelligence-service";
+import {
   getCoordinatorParticipantTimeline,
   getCoordinatorParticipantSummary,
 } from "@/lib/support-coordinator/relationship-service";
+import { listParticipationGoalsForCoordinator } from "@/lib/participation/participation-planner-service";
 
 export default async function CoordinatorParticipantDetailPage({
   params,
@@ -14,9 +19,16 @@ export default async function CoordinatorParticipantDetailPage({
   const user = await requirePermission("coordinator:portal");
   const { id: participantId } = await params;
 
-  const [summary, timeline] = await Promise.all([
+  const [summary, timeline, continuity, participation] = await Promise.all([
     getCoordinatorParticipantSummary(user.id, participantId),
     getCoordinatorParticipantTimeline(user.id, participantId),
+    isContinuityIntelligenceEnabled()
+      ? computeParticipantContinuityScore(participantId)
+      : Promise.resolve(null),
+    listParticipationGoalsForCoordinator({
+      coordinatorId: user.id,
+      participantId,
+    }),
   ]);
 
   return (
@@ -26,6 +38,30 @@ export default async function CoordinatorParticipantDetailPage({
       </Link>
       <h1 className="font-heading text-2xl font-bold">Participant overview</h1>
       <p className="text-sm text-muted-foreground">{summary.note}</p>
+
+      {continuity?.enabled ? (
+        <section className="rounded-lg border p-4">
+          <h2 className="font-medium">Continuity band</h2>
+          <p className="mt-1 text-sm">
+            {continuity.band} — score {continuity.score}
+            {continuity.lastBackupOutcome
+              ? ` · last backup: ${continuity.lastBackupOutcome}`
+              : ""}
+          </p>
+        </section>
+      ) : null}
+
+      {participation.goals.length > 0 ? (
+        <section className="rounded-lg border p-4">
+          <h2 className="font-medium">Participation goals</h2>
+          <p className="text-xs text-muted-foreground">{participation.note}</p>
+          <ul className="mt-2 text-sm">
+            {participation.goals.map((g) => (
+              <li key={g.id}>{g.title} — {g.status}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="rounded-lg border p-4">
         <h2 className="font-medium">Unified timeline</h2>

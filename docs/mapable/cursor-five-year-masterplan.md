@@ -571,6 +571,21 @@ Feature flags live in `lib/config/y1-wedge.ts`. Integration tests: `tests/mapabl
 
 Y2 flags live in `lib/config/y2-orchestration.ts`. `BACKUP_RECOVERY_PILOT_ENABLED` supersedes `BACKUP_SHIFT_RECOVERY_ENABLED` when enabled. Integration tests: `tests/mapable-y2-orchestration.test.ts`.
 
+### Y3 national trust modules (Cursor implementation)
+
+| Theme | Config flag | Primary modules |
+|-------|-------------|-----------------|
+| Trust passport pilot | `TRUST_PASSPORT_PILOT_ENABLED` | `lib/trust-passport/`, `app/dashboard/worker/trust-passport/`, `app/admin/workers/trust-passport/` |
+| Continuity intelligence | `CONTINUITY_INTELLIGENCE_ENABLED` | `lib/continuity/continuity-intelligence-service.ts`, `app/admin/continuity-intelligence/` |
+| Budget guidance (non-advisory) | `BUDGET_GUIDANCE_ENABLED` | `lib/budget/budget-guidance-service.ts`, `app/dashboard/budget/` |
+| Public API v2 partners | `PUBLIC_API_V2_PARTNER_ENABLED` | `lib/api-versioning/version-middleware.ts`, `app/api/v2/` |
+| National insights v2 | `NATIONAL_INSIGHTS_V2_ENABLED` | `lib/national-insights/insights-service.ts`, `/insights/national` |
+| Assessor network pilot | `ASSESSOR_NETWORK_PILOT_ENABLED` | `lib/assessor-network/assessor-network-pilot-service.ts`, `/assessor`, `/admin/assessor-network` |
+| Worker assist copilot | `WORKER_ASSIST_COPILOT_ENABLED` | `lib/copilot/worker-assist-service.ts`, `app/dashboard/worker/shifts/[shiftId]/assist/` |
+| Participation planner | `PARTICIPATION_PLANNER_ENABLED` | `lib/participation/participation-planner-service.ts`, `app/dashboard/participation/` |
+
+Y3 flags live in `lib/config/y3-national-trust.ts`. Integration tests: `tests/mapable-y3-national-trust.test.ts`.
+
 Implementation guardrails from existing docs remain in force: `NDIA_REAL_SUBMISSION_ENABLED=false`, no autonomous dispatch, no false certification claims.
 
 ---

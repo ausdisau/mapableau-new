@@ -1720,8 +1720,69 @@ model WorkerProfile {
   careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
   onboardingProfile       OnboardingProfile?
+  trustCredentials        WorkerTrustCredential[]
 
   @@index([organisationId, active])
+}
+
+enum WorkerTrustCredentialStatus {
+  pending
+  verified
+  expired
+  revoked
+}
+
+model WorkerTrustCredential {
+  id                 String                      @id @default(cuid())
+  workerProfileId    String
+  workerProfile      WorkerProfile               @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  credentialType     String
+  issuerDid          String
+  status             WorkerTrustCredentialStatus @default(pending)
+  presentedAt        DateTime?
+  expiresAt          DateTime?
+  claimsJson         Json                        @default("{}")
+  verificationMethod String                      @default("mock")
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+
+  @@index([workerProfileId, status])
+  @@map("worker_trust_credentials")
+}
+
+model ContinuityMetricSnapshot {
+  id             String   @id @default(cuid())
+  organisationId String?
+  periodLabel    String
+  metricsJson    Json
+  suppressed     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([organisationId, periodLabel])
+  @@map("continuity_metric_snapshots")
+}
+
+enum ParticipationGoalStatus {
+  active
+  completed
+  cancelled
+}
+
+model ParticipationGoal {
+  id             String                  @id @default(cuid())
+  participantId  String
+  organisationId String?
+  title          String
+  status         ParticipationGoalStatus @default(active)
+  targetDate     DateTime?
+  notes          String?
+  loggedAt       DateTime                @default(now())
+  completedAt    DateTime?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@index([participantId, status])
+  @@map("participation_goals")
 }
 
 model AvailabilityWindow {
@@ -4560,12 +4621,16 @@ model PartnerApiProgramEnrollment {
 }
 
 model AssessorNetworkMember {
-  id         String   @id @default(cuid())
-  userId     String   @unique
-  credential String?
-  regions    String[] @default([])
-  status     String   @default("active")
-  joinedAt   DateTime @default(now())
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  credential           String?
+  regions              String[]  @default([])
+  region               String?
+  capacity             Int       @default(10)
+  credentialVerifiedAt DateTime?
+  status               String    @default("pending")
+  joinedAt             DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 }
 
 model PublicDecisionRecord {

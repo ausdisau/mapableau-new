@@ -92,3 +92,24 @@ export async function createPlanManagerExportV1(params: {
 
   return { export: exportRecord, format: "json" as const, rows };
 }
+
+export async function createPlanManagerExportV2(params: {
+  planManagerId: string;
+  format: "json" | "csv";
+  pseudonymiseParticipants?: boolean;
+}) {
+  const v1 = await createPlanManagerExportV1(params);
+  return {
+    ...v1,
+    apiVersion: "v2" as const,
+    meta: {
+      exportedAt: new Date().toISOString(),
+      rowCount: v1.rows.length,
+      includesLineItems: true,
+    },
+    rows: v1.rows.map((r) => ({
+      ...r,
+      schemaVersion: 2,
+    })),
+  };
+}
