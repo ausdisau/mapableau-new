@@ -2,23 +2,8 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import {
   createLinkedTransportFromCareRequest,
-  getUnifiedCareTransportState,
   requestOrchestrationReschedule,
 } from "@/lib/orchestration/care-transport-orchestrator";
-
-export async function GET(
-  _req: Request,
-  ctx: { params: Promise<{ careRequestId: string }> }
-) {
-  const user = await requireApiSession();
-  if (user instanceof Response) return user;
-
-  const { careRequestId } = await ctx.params;
-  const state = await getUnifiedCareTransportState(careRequestId);
-  if (!state) return jsonError("Not found", 404);
-
-  return jsonOk(state);
-}
 
 export async function POST(req: Request) {
   const user = await requireApiSession();

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PasskeyRegistrationPanel } from "@/components/auth/PasskeyRegistrationPanel";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
@@ -8,6 +9,9 @@ export const metadata = { title: "Profile | MapAble Core" };
 export default async function ProfilePage() {
   const user = await requireAuth();
   const profile = await prisma.participantProfile.findUnique({
+    where: { userId: user.id },
+  });
+  const passkeyCount = await prisma.passkeyCredential.count({
     where: { userId: user.id },
   });
 
@@ -64,6 +68,8 @@ export default async function ProfilePage() {
       ) : (
         <p>No profile yet. Use edit to create one.</p>
       )}
+
+      <PasskeyRegistrationPanel passkeyCount={passkeyCount} />
     </div>
   );
 }

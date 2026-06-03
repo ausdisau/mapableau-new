@@ -1,4 +1,7 @@
-import { listPublicMembershipDirectory } from "@/lib/community-governance-membership/membership-service";
+import {
+  getMembershipDisclaimer,
+  listPublicMembershipDirectory,
+} from "@/lib/community-governance-membership/membership-service";
 
 export default async function MembershipDirectoryPage() {
   const members = await listPublicMembershipDirectory();
@@ -9,11 +12,17 @@ export default async function MembershipDirectoryPage() {
       <p className="text-muted-foreground">
         Public directory labels only — no personal contact details.
       </p>
+      <p className="text-xs text-muted-foreground">{getMembershipDisclaimer()}</p>
       <ul className="space-y-2">
         {members.map((m) => (
           <li key={m.id} className="rounded border p-3 text-sm">
             {m.memberLabel} — {m.membershipType}
             {m.region ? ` (${m.region})` : ""}
+            {m.termEndsAt ? (
+              <p className="text-xs text-muted-foreground">
+                Term ends: {m.termEndsAt.toLocaleDateString()}
+              </p>
+            ) : null}
           </li>
         ))}
       </ul>

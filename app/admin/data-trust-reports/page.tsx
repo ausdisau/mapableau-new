@@ -1,5 +1,5 @@
+import { listPublishedAnnualReports } from "@/lib/institutional-permanence/permanence-service";
 import { requireAdmin } from "@/lib/auth/guards";
-import { listPublishedAnnualReports } from "@/lib/data-trust-annual-report/annual-report-service";
 import { prisma } from "@/lib/prisma";
 
 export default async function DataTrustReportsPage() {
@@ -11,6 +11,9 @@ export default async function DataTrustReportsPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">Data trust annual reports</h1>
+      <p className="text-sm text-muted-foreground">
+        Use Institutional Permanence admin to publish reports.
+      </p>
       <p className="text-sm">{published.length} published of {all.length} total</p>
       <ul className="space-y-2">
         {all.map((r) => (

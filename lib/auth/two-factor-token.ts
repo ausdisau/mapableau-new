@@ -4,9 +4,15 @@ import { resolveNextAuthSecret } from "@/lib/auth/nextauth-env";
 
 const TWO_FACTOR_TOKEN_VERSION = "v1";
 
-export type TwoFactorTokenPurpose = "twilio-2fa-challenge" | "credentials-2fa";
+export type TwoFactorTokenPurpose =
+  | "credentials-2fa"
+  | "credentials-passkey"
+  | "passkey-authentication"
+  | "passkey-registration"
+  | "twilio-2fa-challenge";
 
 type TwoFactorTokenPayload = {
+  challenge?: string;
   exp: number;
   nonce: string;
   purpose: TwoFactorTokenPurpose;
@@ -36,15 +42,18 @@ function signPayload(encodedPayload: string): string {
 }
 
 export function createTwoFactorToken({
+  challenge,
   purpose,
   userId,
   ttlSeconds = 10 * 60,
 }: {
+  challenge?: string;
   purpose: TwoFactorTokenPurpose;
   userId: string;
   ttlSeconds?: number;
 }): string {
   const payload: TwoFactorTokenPayload = {
+    challenge,
     exp: Math.floor(Date.now() / 1000) + ttlSeconds,
     nonce: randomBytes(16).toString("base64url"),
     purpose,
@@ -57,7 +66,7 @@ export function createTwoFactorToken({
 export function verifyTwoFactorToken(
   token: string,
   purpose: TwoFactorTokenPurpose,
-): { userId: string } | null {
+): { challenge?: string; userId: string } | null {
   const [version, encodedPayload, signature] = token.split(".");
   if (version !== TWO_FACTOR_TOKEN_VERSION || !encodedPayload || !signature) {
     return null;
@@ -86,7 +95,11 @@ export function verifyTwoFactorToken(
       return null;
     }
 
-    return { userId: payload.userId };
+    return {
+      challenge:
+        typeof payload.challenge === "string" ? payload.challenge : undefined,
+      userId: payload.userId,
+    };
   } catch {
     return null;
   }

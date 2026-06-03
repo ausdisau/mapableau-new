@@ -1,5 +1,5 @@
+import { listPublishedCivicAudits } from "@/lib/institutional-permanence/permanence-service";
 import { requireAdmin } from "@/lib/auth/guards";
-import { listPublishedCivicAudits } from "@/lib/civic-audit-index/audit-index-service";
 
 export default async function CivicAuditIndexPage() {
   await requireAdmin();
@@ -7,6 +7,9 @@ export default async function CivicAuditIndexPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">Civic audit index</h1>
+      <p className="text-sm text-muted-foreground">
+        Use Institutional Permanence admin for publish workflow.
+      </p>
       <ul className="space-y-2">
         {audits.map((a) => (
           <li key={a.id} className="rounded border p-3">

@@ -29,6 +29,7 @@ model User {
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
   claimedProviders       ClaimedProvider[]
+  passkeyCredentials     PasskeyCredential[]
 
   memberships            ProviderUserRole[]
   roleAssignments        UserRoleAssignment[]
@@ -128,6 +129,22 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+}
+
+model PasskeyCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      BigInt    @default(0)
+  transports   String[]  @default([])
+  deviceType   String?
+  backedUp     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
 }
 
 model Worker {
@@ -4737,13 +4754,17 @@ enum AlgorithmRegisterStatus {
 }
 
 model ApiCertificationApplication {
-  id             String               @id @default(cuid())
-  organisationId String
-  appName        String
-  status         ApiCertificationStatus @default(draft)
-  reviewNotes    String?
-  certifiedAt    DateTime?
-  createdAt      DateTime             @default(now())
+  id                String                 @id @default(cuid())
+  organisationId    String
+  appName           String
+  status            ApiCertificationStatus @default(draft)
+  certificationTier String?
+  reviewNotes       String?
+  rejectionReason   String?
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  certifiedAt       DateTime?
+  createdAt         DateTime               @default(now())
 }
 
 model RegisteredAlgorithm {
@@ -4796,13 +4817,17 @@ model PrivacyPreservingAnalyticsRun {
 }
 
 model FederatedResearchAgreement {
-  id           String   @id @default(cuid())
-  partnerName  String
-  scope        String
-  status       String   @default("draft")
-  approvedAt   DateTime?
-  syntheticOnly Boolean @default(true)
-  createdAt    DateTime @default(now())
+  id                      String    @id @default(cuid())
+  partnerName             String
+  scope                   String
+  status                  String    @default("draft")
+  linkedSafeRoomProjectId String?
+  ethicsReviewNotes       String?
+  approvedBy              String?
+  approvedAt              DateTime?
+  archivedAt              DateTime?
+  syntheticOnly           Boolean   @default(true)
+  createdAt               DateTime  @default(now())
 }
 
 model ProviderAcademyCourse {
@@ -4860,14 +4885,19 @@ model SustainabilityMilestone {
 }
 
 model LongTermOutcomeSnapshot {
-  id          String   @id @default(cuid())
-  periodLabel String
-  outcomeKey  String
-  value       Float?
-  suppressed  Boolean  @default(false)
-  narrative   String?
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
+  id                    String    @id @default(cuid())
+  periodLabel           String
+  waveLabel             String?
+  outcomeKey            String
+  value                 Float?
+  cohortSize            Int?
+  suppressed            Boolean   @default(false)
+  narrative             String?
+  measurementPeriodStart DateTime?
+  measurementPeriodEnd   DateTime?
+  continuityMetricKey   String?
+  publishedAt           DateTime?
+  createdAt             DateTime  @default(now())
 }
 
 // --- MapAble Core Phase 12 ---
@@ -4876,15 +4906,16 @@ model LongTermOutcomeSnapshot {
 // Implements deferred Phase 11 preview themes plus institutional permanence.
 
 model NationalAccountabilityPublication {
-  id          String   @id @default(cuid())
-  periodLabel String
-  title       String
-  summary     String
-  category    String
-  status      String   @default("draft")
-  metricsJson Json?
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
+  id                 String   @id @default(cuid())
+  periodLabel        String
+  title              String
+  summary            String
+  category           String
+  status             String   @default("draft")
+  metricsJson        Json?
+  federatedPartnerId String?
+  publishedAt        DateTime?
+  createdAt          DateTime @default(now())
 }
 
 model ConstitutionalSafeguard {
@@ -4899,13 +4930,15 @@ model ConstitutionalSafeguard {
 }
 
 model CommunityGovernanceMembership {
-  id           String   @id @default(cuid())
-  memberLabel  String
-  membershipType String @default("community")
-  region       String?
-  status       String   @default("active")
-  joinedAt     DateTime @default(now())
-  disclaimer   String   @default("Directory entry only — no personal contact details published.")
+  id             String    @id @default(cuid())
+  memberLabel    String
+  membershipType String    @default("community")
+  region         String?
+  status         String    @default("pending")
+  termEndsAt     DateTime?
+  approvedBy     String?
+  joinedAt       DateTime  @default(now())
+  disclaimer     String    @default("Directory entry only — no personal contact details published.")
 }
 
 model TransportInvestmentModelRun {
@@ -4922,23 +4955,29 @@ model TransportInvestmentModelRun {
 }
 
 model CertifiedApiEcosystemEntry {
-  id             String   @id @default(cuid())
-  organisationId String
-  appName        String
-  certificationTier String @default("standard")
-  status         String   @default("listed")
-  listedAt       DateTime @default(now())
-  expiresAt      DateTime?
+  id                  String    @id @default(cuid())
+  organisationId      String
+  appName             String
+  certificationTier   String    @default("standard")
+  status              String    @default("listed")
+  linkedApplicationId String?
+  revokedAt           DateTime?
+  revokedReason       String?
+  listedAt            DateTime  @default(now())
+  expiresAt           DateTime?
 }
 
 model ResearchFederationNode {
-  id          String   @id @default(cuid())
-  nodeName    String
-  institution String?
-  status      String   @default("pending")
-  syntheticOnly Boolean @default(true)
-  approvedAt  DateTime?
-  createdAt   DateTime @default(now())
+  id                String    @id @default(cuid())
+  nodeName          String
+  institution       String?
+  scope             String?
+  status            String    @default("pending")
+  linkedAgreementId String?
+  syntheticOnly     Boolean   @default(true)
+  approvedAt        DateTime?
+  suspendedAt       DateTime?
+  createdAt         DateTime  @default(now())
 }
 
 model InstitutionalContinuityPlan {
@@ -4952,13 +4991,16 @@ model InstitutionalContinuityPlan {
 }
 
 model InstitutionalContinuityCheckpoint {
-  id        String   @id @default(cuid())
-  planId    String
-  plan      InstitutionalContinuityPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  title     String
-  category  String
-  dueAt     DateTime?
-  completed Boolean  @default(false)
+  id          String    @id @default(cuid())
+  planId      String
+  plan        InstitutionalContinuityPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title       String
+  category    String
+  dueAt       DateTime?
+  completed   Boolean   @default(false)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNotes String?
 }
 
 model CivicAuditIndexEntry {
@@ -4973,12 +5015,14 @@ model CivicAuditIndexEntry {
 }
 
 model FederatedAccountabilityPartner {
-  id          String   @id @default(cuid())
-  partnerName String
-  jurisdiction String?
-  scope       String
-  status      String   @default("active")
-  linkedAt    DateTime @default(now())
+  id                  String   @id @default(cuid())
+  partnerName         String
+  jurisdiction        String?
+  jurisdictionLabel   String?
+  scope               String
+  status              String   @default("active")
+  linkedPublicationId String?
+  linkedAt            DateTime @default(now())
 }
 // MapAble Core Billing Service — Stripe-powered billing
 

@@ -601,6 +601,21 @@ Y3 flags live in `lib/config/y3-national-trust.ts`. Integration tests: `tests/ma
 
 Y4 flags live in `lib/config/y4-civic-platform.ts`. Integration tests: `tests/mapable-y4-civic-platform.test.ts`.
 
+### Y5 rights infrastructure modules (Cursor implementation)
+
+| Theme | Config flag | Primary modules |
+|-------|-------------|-----------------|
+| API certification v2 | `API_CERTIFICATION_V2_ENABLED` | `lib/api-certification/`, `/partners/certified`, `/admin/api-certification` |
+| Certified API ecosystem v2 | `CERTIFIED_API_ECOSYSTEM_V2_ENABLED` | `lib/certified-api-ecosystem/`, `/ecosystem`, `/admin/certified-api-ecosystem` |
+| Federated research v2 | `FEDERATED_RESEARCH_V2_ENABLED` | `lib/federated-research/`, `/admin/federated-research` |
+| Research federation at scale v2 | `RESEARCH_FEDERATION_AT_SCALE_V2_ENABLED` | `lib/research-federation-at-scale/`, `/research-federation`, `/admin/research-federation-nodes` |
+| Community governance membership v2 | `COMMUNITY_GOVERNANCE_MEMBERSHIP_V2_ENABLED` | `lib/community-governance-membership/`, `/membership`, `/admin/community-membership` |
+| Long-term outcomes programme v2 | `LONG_TERM_OUTCOMES_V2_ENABLED` | `lib/long-term-outcomes/`, `/outcomes`, `/admin/long-term-outcomes` |
+| Federated accountability v2 | `FEDERATED_ACCOUNTABILITY_V2_ENABLED` | `lib/federated-accountability/`, `/accountability`, `/investment-models`, `/admin/federated-accountability` |
+| Institutional permanence v2 | `INSTITUTIONAL_PERMANENCE_V2_ENABLED` | `lib/institutional-permanence/`, `/audit-index`, `/reports/data-trust`, `/admin/institutional-permanence` |
+
+Y5 flags live in `lib/config/y5-rights-infrastructure.ts`. Integration tests: `tests/mapable-y5-rights-infrastructure.test.ts`.
+
 Implementation guardrails from existing docs remain in force: `NDIA_REAL_SUBMISSION_ENABLED=false`, no autonomous dispatch, no false certification claims.
 
 ---
