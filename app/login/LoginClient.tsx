@@ -65,7 +65,7 @@ export default function LoginClient({
     setIsLoading(true);
 
     try {
-      const optionsResponse = await fetch("/api/auth/passkeys/login/options", {
+      const optionsResponse = await fetch("/api/passkeys/login/options", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: normalizeAuthEmail(passkeyEmail) }),
@@ -87,7 +87,7 @@ export default function LoginClient({
       }
 
       const credential = await startAuthentication(optionsData.options);
-      const verifyResponse = await fetch("/api/auth/passkeys/login/verify", {
+      const verifyResponse = await fetch("/api/passkeys/login/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

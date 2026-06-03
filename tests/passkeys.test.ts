@@ -35,8 +35,8 @@ describe("passkey support", () => {
 
   it("adds a passkey login mode to the login client", () => {
     expect(loginClientSource).toContain("Login with passkey");
-    expect(loginClientSource).toContain("/api/auth/passkeys/login/options");
-    expect(loginClientSource).toContain("/api/auth/passkeys/login/verify");
+    expect(loginClientSource).toContain("/api/passkeys/login/options");
+    expect(loginClientSource).toContain("/api/passkeys/login/verify");
   });
 
   it("round-trips passkey auth challenge tokens", () => {

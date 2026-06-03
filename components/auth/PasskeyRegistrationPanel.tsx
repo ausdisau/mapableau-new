@@ -22,13 +22,10 @@ export function PasskeyRegistrationPanel({
     setIsLoading(true);
 
     try {
-      const optionsResponse = await fetch(
-        "/api/auth/passkeys/register/options",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      const optionsResponse = await fetch("/api/passkeys/register/options", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
       const optionsData = (await optionsResponse.json()) as {
         challengeToken?: string;
         error?: string;
@@ -46,7 +43,7 @@ export function PasskeyRegistrationPanel({
       }
 
       const credential = await startRegistration(optionsData.options);
-      const verifyResponse = await fetch("/api/auth/passkeys/register/verify", {
+      const verifyResponse = await fetch("/api/passkeys/register/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
