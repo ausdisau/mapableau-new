@@ -29,6 +29,7 @@ model User {
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
   claimedProviders       ClaimedProvider[]
+  passkeyCredentials     PasskeyCredential[]
 
   memberships            ProviderUserRole[]
   roleAssignments        UserRoleAssignment[]
@@ -128,6 +129,22 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+}
+
+model PasskeyCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      BigInt    @default(0)
+  transports   String[]  @default([])
+  deviceType   String?
+  backedUp     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
 }
 
 model Worker {
