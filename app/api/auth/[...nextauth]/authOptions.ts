@@ -40,6 +40,7 @@ export const authOptions = {
       name: "credentials",
       credentials: {
         email: { type: "email" },
+        passkeyToken: { type: "text" },
         password: { type: "password" },
         twoFactorToken: { type: "text" },
       },
@@ -50,6 +51,26 @@ export const authOptions = {
           hasPassword: Boolean(credentials?.password),
         });
         // #endregion
+
+        if (credentials?.passkeyToken) {
+          const token = verifyTwoFactorToken(
+            credentials.passkeyToken,
+            "credentials-passkey",
+          );
+          if (!token) return null;
+
+          const user = await prisma.user.findUnique({
+            where: { id: token.userId },
+          });
+          if (!user) return null;
+
+          return {
+            id: user.id,
+            email: user.email ?? null,
+            name: user.name ?? null,
+            role: user.primaryRole,
+          };
+        }
 
         if (credentials?.twoFactorToken) {
           const token = verifyTwoFactorToken(
