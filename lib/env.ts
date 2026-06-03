@@ -32,6 +32,15 @@ const integrationRules: IntegrationEnvRule[] = [
     requiredVars: ["STRIPE_SECRET_KEY"],
   },
   {
+    key: "twilio_verify",
+    enabledWhen: () => envTrue("TWILIO_2FA_ENABLED"),
+    requiredVars: [
+      "TWILIO_ACCOUNT_SID",
+      "TWILIO_AUTH_TOKEN",
+      "TWILIO_VERIFY_SERVICE_SID",
+    ],
+  },
+  {
     key: "xero",
     enabledWhen: () => envTrue("XERO_ENABLED"),
     requiredVars: ["XERO_CLIENT_ID", "XERO_CLIENT_SECRET"],
@@ -56,7 +65,11 @@ const integrationRules: IntegrationEnvRule[] = [
   {
     key: "temporal",
     enabledWhen: () => envTrue("TEMPORAL_ENABLED"),
-    requiredVars: ["TEMPORAL_ADDRESS", "TEMPORAL_NAMESPACE", "TEMPORAL_TASK_QUEUE"],
+    requiredVars: [
+      "TEMPORAL_ADDRESS",
+      "TEMPORAL_NAMESPACE",
+      "TEMPORAL_TASK_QUEUE",
+    ],
   },
   {
     key: "n8n",
@@ -76,7 +89,11 @@ const integrationRules: IntegrationEnvRule[] = [
   {
     key: "medplum",
     enabledWhen: () => process.env.FHIR_PROVIDER === "medplum",
-    requiredVars: ["MEDPLUM_BASE_URL", "MEDPLUM_CLIENT_ID", "MEDPLUM_CLIENT_SECRET"],
+    requiredVars: [
+      "MEDPLUM_BASE_URL",
+      "MEDPLUM_CLIENT_ID",
+      "MEDPLUM_CLIENT_SECRET",
+    ],
   },
   {
     key: "hapi_fhir",

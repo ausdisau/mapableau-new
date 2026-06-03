@@ -15,6 +15,7 @@ import {
   mergeUserIntoJwtToken,
 } from "@/lib/auth/nextauth-session";
 import { buildOAuthProviders } from "@/lib/auth/oauth-providers";
+import { isTwilio2FAEnabled } from "@/lib/auth/twilio-verify";
 import { verifyTwoFactorToken } from "@/lib/auth/two-factor-token";
 import { agentLog } from "@/lib/debug/agent-log";
 import { prisma } from "@/lib/prisma";
@@ -68,6 +69,18 @@ export const authOptions = {
             name: user.name ?? null,
             role: user.primaryRole,
           };
+        }
+
+        if (isTwilio2FAEnabled()) {
+          agentLog(
+            "A",
+            "authOptions.ts:authorize:2faRequired",
+            "password-only credentials blocked by Twilio 2FA",
+            {
+              hasEmail: Boolean(credentials?.email),
+            },
+          );
+          return null;
         }
 
         if (!credentials?.email || !credentials?.password) return null;
