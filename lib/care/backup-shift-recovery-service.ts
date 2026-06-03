@@ -1,5 +1,5 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { y1WedgeConfig } from "@/lib/config/y1-wedge";
+import { isBackupRecoveryEnabled } from "@/lib/config/y2-orchestration";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { isAdminRole } from "@/lib/auth/roles";
 import { requireMicroConsent } from "@/lib/consent/micro-consent-service";
@@ -12,7 +12,7 @@ import { notifyUser } from "@/lib/notifications/notification-service";
 import { upsertDispatchQueueItem } from "@/lib/dispatch-console/dispatch-service";
 
 function assertRecoveryEnabled() {
-  if (!y1WedgeConfig.backupShiftRecoveryEnabled) {
+  if (!isBackupRecoveryEnabled()) {
     throw new Error("BACKUP_SHIFT_RECOVERY_DISABLED");
   }
 }
@@ -146,7 +146,7 @@ export async function participantApproveBackupCandidate(params: {
     where: { id: params.recoveryId },
     data: {
       selectedCandidateId: params.candidateId,
-      status: "awaiting_participant",
+      status: "awaiting_dispatch",
     },
   });
 
@@ -269,7 +269,17 @@ export async function getBackupRecoveryForShift(careShiftId: string) {
 
 export async function listOpenBackupRecoveries() {
   return prisma.backupShiftRecovery.findMany({
-    where: { status: { in: ["detected", "proposing", "awaiting_participant", "escalated"] } },
+    where: {
+      status: {
+        in: [
+          "detected",
+          "proposing",
+          "awaiting_participant",
+          "awaiting_dispatch",
+          "escalated",
+        ],
+      },
+    },
     orderBy: { createdAt: "asc" },
     take: 50,
   });

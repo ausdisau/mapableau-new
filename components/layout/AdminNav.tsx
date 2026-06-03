@@ -53,6 +53,7 @@ const LEGACY_LINKS = [
   { href: "/admin/security-readiness", label: "Security" },
   { href: "/admin/launch-readiness", label: "Launch" },
   { href: "/admin/dispatch", label: "Dispatch" },
+  { href: "/admin/backup-recovery", label: "Backup recovery" },
   { href: "/admin/provider-quality", label: "Quality" },
   { href: "/admin/ai-governance", label: "AI gov" },
   { href: "/admin/partner-sandbox", label: "Sandbox" },

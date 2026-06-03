@@ -557,6 +557,20 @@ This masterplan maps to the repository’s phased delivery:
 
 Feature flags live in `lib/config/y1-wedge.ts`. Integration tests: `tests/mapable-y1-wedge.test.ts`.
 
+### Y2 orchestration modules (Cursor implementation)
+
+| Theme | Config flag | Primary modules |
+|-------|-------------|-----------------|
+| Backup recovery pilot | `BACKUP_RECOVERY_PILOT_ENABLED` | `lib/care/backup-shift-recovery-service.ts`, `lib/care/backup-recovery-pilot.ts`, `app/admin/backup-recovery/` |
+| Care+transport v2 | `CARE_TRANSPORT_ORCHESTRATION_V2_ENABLED` | `lib/orchestration/care-transport-orchestrator.ts`, `app/api/orchestration/care-transport/` |
+| Micro-consent v2 | `MICRO_CONSENT_V2_ENABLED` | `lib/consent/micro-consent-service.ts`, `app/dashboard/consent/`, `app/api/consent/micro/` |
+| Plan manager integration | `PLAN_MANAGER_INTEGRATION_ENABLED` | `lib/plan-manager/`, `app/plan-manager/`, `app/api/v1/plan-manager/` |
+| Coordinator portal | `SUPPORT_COORDINATOR_PORTAL_ENABLED` | `lib/support-coordinator/`, `app/support-coordinator/`, `app/api/support-coordinator/` |
+| Payment reconciliation v2 | `PAYMENT_RECONCILIATION_V2_ENABLED` | `lib/payment-reconciliation/reconciliation-service.ts` |
+| Multi-tenant workspaces | `MULTI_TENANT_WORKSPACE_V2_ENABLED` | `lib/multi-tenant-admin/tenant-context.ts`, `lib/enterprise-provider/` |
+
+Y2 flags live in `lib/config/y2-orchestration.ts`. `BACKUP_RECOVERY_PILOT_ENABLED` supersedes `BACKUP_SHIFT_RECOVERY_ENABLED` when enabled. Integration tests: `tests/mapable-y2-orchestration.test.ts`.
+
 Implementation guardrails from existing docs remain in force: `NDIA_REAL_SUBMISSION_ENABLED=false`, no autonomous dispatch, no false certification claims.
 
 ---

@@ -1339,6 +1339,7 @@ enum CalendarVisibility {
 
 enum OrchestrationEventType {
   care_transport_link_created
+  care_transport_cancel_propagated
   interview_transport_draft_created
   invoice_from_care_shift
   care_request_submitted
@@ -3191,25 +3192,38 @@ enum BackupShiftRecoveryStatus {
   detected
   proposing
   awaiting_participant
+  awaiting_dispatch
   assigned
   failed
   escalated
+  closed
+}
+
+enum BackupShiftRecoveryMisfitSeverity {
+  none
+  minor
+  serious
 }
 
 model BackupShiftRecovery {
-  id                  String                    @id @default(cuid())
-  careShiftId         String                    @unique
-  careShift           CareShift                 @relation(fields: [careShiftId], references: [id], onDelete: Cascade)
+  id                  String                          @id @default(cuid())
+  careShiftId         String                          @unique
+  careShift           CareShift                       @relation(fields: [careShiftId], references: [id], onDelete: Cascade)
   participantId       String
-  status              BackupShiftRecoveryStatus @default(detected)
+  status              BackupShiftRecoveryStatus       @default(detected)
   matchRunId          String?
   selectedCandidateId String?
   excludedWorkerId    String?
   notes               String?
-  createdAt           DateTime                  @default(now())
-  updatedAt           DateTime                  @updatedAt
+  misfitSeverity      BackupShiftRecoveryMisfitSeverity @default(none)
+  misfitNotes         String?
+  misfitReportedAt    DateTime?
+  autoDetected        Boolean                         @default(false)
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
 
   @@index([participantId, status])
+  @@index([status, createdAt])
   @@map("backup_shift_recoveries")
 }
 
@@ -4017,6 +4031,13 @@ enum ReconciliationMatchStatus {
   exception
 }
 
+enum ReconciliationExceptionWorkflowState {
+  open
+  investigating
+  resolved
+  written_off
+}
+
 enum PublicBetaFeedbackCategory {
   accessibility
   usability
@@ -4140,26 +4161,50 @@ model ProviderOnboardingTask {
 }
 
 model PaymentReconciliationBatch {
-  id          String   @id @default(cuid())
-  status      String   @default("pending")
-  periodStart DateTime
-  periodEnd   DateTime
-  createdById String?
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  status         String   @default("pending")
+  periodStart    DateTime
+  periodEnd      DateTime
+  createdById    String?
+  organisationId String?
+  summaryJson    Json?
+  createdAt      DateTime @default(now())
 
   exceptions PaymentReconciliationException[]
+
+  @@index([organisationId])
 }
 
 model PaymentReconciliationException {
-  id              String                  @id @default(cuid())
+  id              String                             @id @default(cuid())
   batchId         String
-  batch           PaymentReconciliationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batch           PaymentReconciliationBatch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
   invoiceId       String?
   stripePaymentId String?
   xeroInvoiceId   String?
-  matchStatus     ReconciliationMatchStatus @default(unmatched)
+  matchStatus     ReconciliationMatchStatus          @default(unmatched)
+  workflowState   ReconciliationExceptionWorkflowState @default(open)
+  assigneeId      String?
+  reasonCode      String?
+  organisationId  String?
   amountCents     Int?
   notes           String?
+  updatedAt       DateTime                           @default(now()) @updatedAt
+}
+
+model OrchestrationRescheduleRequest {
+  id                 String   @id @default(cuid())
+  careRequestId      String?
+  careShiftId        String?
+  transportBookingId String?
+  requestedById      String
+  status             String   @default("pending")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([requestedById, status])
+  @@map("orchestration_reschedule_requests")
 }
 
 model PlanManagerPilotPartner {
