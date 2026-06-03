@@ -10,7 +10,8 @@ export type IntegrationType =
   | "clinical_fhir"
   | "telehealth"
   | "scheduling"
-  | "finance";
+  | "finance"
+  | "rideshare";
 
 export type IntegrationConnectionStatus =
   | "disabled"
@@ -64,6 +65,7 @@ export const INITIAL_INTEGRATION_KEYS = [
   "livekit",
   "calcom",
   "erpnext",
+  "uber",
 ] as const;
 
 export type IntegrationKey = (typeof INITIAL_INTEGRATION_KEYS)[number];

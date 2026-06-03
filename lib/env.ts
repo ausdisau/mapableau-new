@@ -113,6 +113,15 @@ const integrationRules: IntegrationEnvRule[] = [
     enabledWhen: () => envTrue("SOCKETIO_ENABLED"),
     requiredVars: ["SOCKETIO_SERVER_URL"],
   },
+  {
+    key: "uber",
+    enabledWhen: () => envTrue("UBER_ENABLED"),
+    requiredVars: [
+      "UBER_CLIENT_ID",
+      "UBER_CLIENT_SECRET",
+      "UBER_ORGANIZATION_UUID",
+    ],
+  },
 ];
 
 export type EnvValidationIssue = {
