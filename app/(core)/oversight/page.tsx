@@ -15,7 +15,17 @@ export default async function OversightPage() {
             <ul className="mt-2 space-y-2">
               {data.meetings.map((m) => (
                 <li key={m.id} className="rounded border p-3 text-sm">
-                  {m.title} — {m.status}
+                  <p className="font-medium">{m.title}</p>
+                  <p className="text-muted-foreground">{m.summary}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {m.status}
+                    {m.meetingAt
+                      ? ` — ${m.meetingAt.toLocaleDateString("en-AU")}`
+                      : ""}
+                  </p>
+                  {m.minutesSummary ? (
+                    <p className="mt-2 text-sm">{m.minutesSummary}</p>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -27,6 +37,11 @@ export default async function OversightPage() {
                 <li key={d.id} className="rounded border p-3 text-sm">
                   {d.title}
                   <p className="text-muted-foreground">{d.summary}</p>
+                  {d.disputeContact ? (
+                    <p className="text-xs text-muted-foreground">
+                      Disputes: {d.disputeContact}
+                    </p>
+                  ) : null}
                 </li>
               ))}
             </ul>

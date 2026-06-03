@@ -1,10 +1,22 @@
 import { phase9Config } from "@/lib/config/phase9";
+import { isResearchSafeRoomPilotEnabled } from "@/lib/config/y4-civic-platform";
+import {
+  activateResearchProject,
+  archiveResearchProject,
+  attachSyntheticDataset as attachPilotDataset,
+  createResearchProject as createPilotProject,
+  listResearchProjects as listPilotProjects,
+  submitForEthicsReview,
+} from "@/lib/research-safe-room/safe-room-pilot-service";
 import { prisma } from "@/lib/prisma";
 
 export async function createResearchProject(params: {
   title: string;
   ethicsApprovalId?: string;
 }) {
+  if (isResearchSafeRoomPilotEnabled()) {
+    return createPilotProject(params);
+  }
   if (!phase9Config.researchSafeRoomEnabled) {
     throw new Error("RESEARCH_SAFE_ROOM_DISABLED");
   }
@@ -19,6 +31,9 @@ export async function createResearchProject(params: {
 }
 
 export async function listResearchProjects() {
+  if (isResearchSafeRoomPilotEnabled()) {
+    return listPilotProjects();
+  }
   if (!phase9Config.researchSafeRoomEnabled) {
     return { disabled: true, projects: [] };
   }
@@ -31,8 +46,11 @@ export async function listResearchProjects() {
 
 export async function attachSyntheticDataset(
   projectId: string,
-  _schema: Record<string, unknown>
+  schema: Record<string, unknown>
 ) {
+  if (isResearchSafeRoomPilotEnabled()) {
+    return attachPilotDataset(projectId, schema, "system");
+  }
   return prisma.researchSafeRoomProject.update({
     where: { id: projectId },
     data: {
@@ -41,3 +59,9 @@ export async function attachSyntheticDataset(
     },
   });
 }
+
+export {
+  activateResearchProject,
+  archiveResearchProject,
+  submitForEthicsReview,
+};

@@ -9,7 +9,12 @@ export default async function GovernanceCharterPage() {
       {charter ? (
         <article className="prose prose-sm max-w-none">
           <h2>{charter.title}</h2>
-          <p className="text-xs text-muted-foreground">Version {charter.version}</p>
+          <p className="text-xs text-muted-foreground">
+            Version {charter.version}
+            {charter.ratifiedAt
+              ? ` — ratified ${charter.ratifiedAt.toLocaleDateString("en-AU")}`
+              : ""}
+          </p>
           <p className="whitespace-pre-wrap">{charter.body}</p>
         </article>
       ) : (

@@ -4573,6 +4573,7 @@ enum DataVaultRequestType {
 
 enum DataVaultRequestStatus {
   pending
+  approved
   processing
   completed
   rejected
@@ -4634,34 +4635,44 @@ model AssessorNetworkMember {
 }
 
 model PublicDecisionRecord {
-  id           String   @id @default(cuid())
-  title        String
-  summary      String
-  decisionType String
-  rationale    String?
-  status       String   @default("published")
-  publishedAt  DateTime?
-  createdAt    DateTime @default(now())
+  id               String   @id @default(cuid())
+  title            String
+  summary          String
+  decisionType     String
+  rationale        String?
+  impactedSystems  String[] @default([])
+  charterVersion   String?
+  disputeContact   String?
+  status           String   @default("published")
+  publishedAt      DateTime?
+  createdAt        DateTime @default(now())
 }
 
 model PersonalDataVaultRequest {
-  id          String               @id @default(cuid())
-  userId      String
-  requestType DataVaultRequestType
-  status      DataVaultRequestStatus @default(pending)
-  notes       String?
-  completedAt DateTime?
-  createdAt   DateTime             @default(now())
+  id              String                 @id @default(cuid())
+  userId          String
+  requestType     DataVaultRequestType
+  status          DataVaultRequestStatus @default(pending)
+  notes           String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  bundleJson      Json?
+  completedAt     DateTime?
+  createdAt       DateTime               @default(now())
 }
 
 model ResearchSafeRoomProject {
-  id                 String   @id @default(cuid())
-  title              String
-  status             String   @default("draft")
-  ethicsApprovalId   String?
-  accessPolicy       String   @default("restricted")
-  syntheticDataOnly  Boolean  @default(true)
-  createdAt          DateTime @default(now())
+  id                  String   @id @default(cuid())
+  title               String
+  status              String   @default("draft")
+  ethicsApprovalId    String?
+  accessPolicy        String   @default("restricted")
+  syntheticDataOnly   Boolean  @default(true)
+  datasetMetadataJson Json?
+  approvedBy          String?
+  approvedAt          DateTime?
+  createdAt           DateTime @default(now())
 }
 
 model ProviderBenchmarkSnapshot {
@@ -4720,6 +4731,7 @@ enum ApiCertificationStatus {
 
 enum AlgorithmRegisterStatus {
   draft
+  review
   published
   deprecated
 }
@@ -4735,37 +4747,42 @@ model ApiCertificationApplication {
 }
 
 model RegisteredAlgorithm {
-  id          String                 @id @default(cuid())
-  name        String
-  purpose     String
-  version     String
-  owner       String?
-  status      AlgorithmRegisterStatus @default(draft)
-  fairnessNotes String?
-  publishedAt DateTime?
-  createdAt   DateTime               @default(now())
+  id              String                  @id @default(cuid())
+  name            String
+  purpose         String
+  version         String
+  owner           String?
+  status          AlgorithmRegisterStatus @default(draft)
+  fairnessNotes   String?
+  reviewDueAt     DateTime?
+  linkedPolicyKey String?
+  disputeContact  String?
+  publishedAt     DateTime?
+  createdAt       DateTime                @default(now())
 }
 
 model OversightBoardMeeting {
-  id        String   @id @default(cuid())
-  title     String
-  summary   String
-  status    String   @default("scheduled")
-  meetingAt DateTime?
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  title           String
+  summary         String
+  status          String   @default("scheduled")
+  meetingAt       DateTime?
+  minutesSummary  String?
+  createdAt       DateTime @default(now())
 
   decisions OversightBoardDecision[]
 }
 
 model OversightBoardDecision {
-  id        String   @id @default(cuid())
-  meetingId String?
-  meeting   OversightBoardMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
-  title     String
-  summary   String
-  status    String   @default("recorded")
-  publishedAt DateTime?
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  meetingId      String?
+  meeting        OversightBoardMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  title          String
+  summary        String
+  status         String   @default("recorded")
+  disputeContact String?
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
 }
 
 model PrivacyPreservingAnalyticsRun {

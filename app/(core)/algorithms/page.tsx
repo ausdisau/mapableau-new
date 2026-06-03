@@ -1,3 +1,6 @@
+import {
+  ALGORITHM_TRANSPARENCY_DISCLAIMER,
+} from "@/lib/config/y4-civic-platform";
 import { listPublishedAlgorithms } from "@/lib/algorithm-register/register-service";
 
 export default async function AlgorithmsPage() {
@@ -7,7 +10,7 @@ export default async function AlgorithmsPage() {
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <h1 className="font-heading text-2xl font-bold">Public algorithm register</h1>
       <p className="text-muted-foreground">
-        Algorithms used in MapAble — transparency, not legal certification of fairness.{" "}
+        {ALGORITHM_TRANSPARENCY_DISCLAIMER}{" "}
         <a href="/peers" className="font-medium text-primary hover:underline">
           MapAble PEERS
         </a>{" "}
@@ -20,8 +23,23 @@ export default async function AlgorithmsPage() {
               {a.name} <span className="text-sm font-normal">v{a.version}</span>
             </h2>
             <p className="text-sm">{a.purpose}</p>
+            {a.linkedPolicyKey ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Linked policy: {a.linkedPolicyKey}
+              </p>
+            ) : null}
             {a.fairnessNotes ? (
               <p className="mt-2 text-xs text-muted-foreground">{a.fairnessNotes}</p>
+            ) : null}
+            {a.reviewDueAt ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Next review due: {a.reviewDueAt.toLocaleDateString("en-AU")}
+              </p>
+            ) : null}
+            {a.disputeContact ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Disputes: {a.disputeContact}
+              </p>
             ) : null}
           </li>
         ))}
