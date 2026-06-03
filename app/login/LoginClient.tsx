@@ -48,8 +48,12 @@ export default function LoginClient({
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [twoFactorPhoneHint, setTwoFactorPhoneHint] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const isTwoFactorStep = Boolean(twoFactorToken);
 
   return (
     <AuthFormCard
@@ -87,6 +91,88 @@ export default function LoginClient({
           setIsLoading(true);
 
           try {
+            if (isTwoFactorStep) {
+              const verifyResponse = await fetch(
+                "/api/auth/twilio-2fa/verify",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    challengeToken: twoFactorToken,
+                    code: twoFactorCode,
+                  }),
+                },
+              );
+
+              const verifyData = (await verifyResponse.json()) as {
+                error?: string;
+                twoFactorToken?: string;
+              };
+
+              if (!verifyResponse.ok || !verifyData.twoFactorToken) {
+                setError(verifyData.error || "Invalid verification code");
+                setIsLoading(false);
+                return;
+              }
+
+              const result = await signIn("credentials", {
+                twoFactorToken: verifyData.twoFactorToken,
+                redirect: false,
+                callbackUrl,
+              });
+
+              if (result?.error) {
+                setError("Could not complete sign-in. Please try again.");
+                setIsLoading(false);
+                return;
+              }
+
+              router.push(callbackUrl);
+              router.refresh();
+              return;
+            }
+
+            const twoFactorResponse = await fetch(
+              "/api/auth/twilio-2fa/start",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: normalizeAuthEmail(email),
+                  password: password.trim(),
+                }),
+              },
+            );
+
+            const twoFactorData = (await twoFactorResponse.json()) as {
+              challengeToken?: string;
+              error?: string;
+              phoneHint?: string;
+              required?: boolean;
+            };
+
+            if (!twoFactorResponse.ok) {
+              setError(
+                twoFactorData.error ||
+                  "Could not start two-factor authentication.",
+              );
+              setIsLoading(false);
+              return;
+            }
+
+            if (twoFactorData.required) {
+              if (!twoFactorData.challengeToken) {
+                setError("Could not start two-factor authentication.");
+                setIsLoading(false);
+                return;
+              }
+              setTwoFactorToken(twoFactorData.challengeToken);
+              setTwoFactorPhoneHint(twoFactorData.phoneHint ?? "your phone");
+              setTwoFactorCode("");
+              setIsLoading(false);
+              return;
+            }
+
             const result = await signIn("credentials", {
               email: normalizeAuthEmail(email),
               password: password.trim(),
@@ -127,33 +213,57 @@ export default function LoginClient({
           }
         }}
       >
-        <AccessibleFormField id="login-email" label="Email" required>
-          <input
-            id="login-email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+        {isTwoFactorStep ? (
+          <AccessibleFormField
+            id="login-two-factor-code"
+            label="Verification code"
+            hint={`Enter the code sent to ${twoFactorPhoneHint}.`}
             required
-            disabled={isLoading}
-            className={formInputClass}
-          />
-        </AccessibleFormField>
+          >
+            <input
+              id="login-two-factor-code"
+              name="twoFactorCode"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={twoFactorCode}
+              onChange={(e) => setTwoFactorCode(e.target.value)}
+              required
+              disabled={isLoading}
+              className={formInputClass}
+            />
+          </AccessibleFormField>
+        ) : (
+          <>
+            <AccessibleFormField id="login-email" label="Email" required>
+              <input
+                id="login-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+                className={formInputClass}
+              />
+            </AccessibleFormField>
 
-        <AccessibleFormField id="login-password" label="Password" required>
-          <input
-            id="login-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-            className={formInputClass}
-          />
-        </AccessibleFormField>
+            <AccessibleFormField id="login-password" label="Password" required>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                className={formInputClass}
+              />
+            </AccessibleFormField>
+          </>
+        )}
 
         {resetSuccess ? (
           <AuthAlert variant="success">
@@ -172,8 +282,27 @@ export default function LoginClient({
             disabled={isLoading}
             loading={isLoading}
           >
-            {isLoading ? "Signing in…" : "Sign in"}
+            {isLoading
+              ? "Signing in…"
+              : isTwoFactorStep
+                ? "Verify and sign in"
+                : "Sign in"}
           </Button>
+          {isTwoFactorStep ? (
+            <button
+              type="button"
+              className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+              disabled={isLoading}
+              onClick={() => {
+                setTwoFactorToken("");
+                setTwoFactorCode("");
+                setTwoFactorPhoneHint("");
+                setError("");
+              }}
+            >
+              Use a different email
+            </button>
+          ) : null}
           <p className="text-center text-sm text-muted-foreground">
             <Link
               href="/forgot-password"
