@@ -162,11 +162,16 @@ export async function planCopilotActions(
         ],
       };
 
-    case "ndis":
+    case "ndis": {
+      const { formatBudgetCopilotAnswer, isBudgetGuidanceEnabled, NON_ADVISORY_DISCLAIMER } =
+        await import("@/lib/budget/budget-guidance-service");
+      const budgetAnswer =
+        pid && isBudgetGuidanceEnabled()
+          ? formatBudgetCopilotAnswer(pid)
+          : "I can summarise your plan status and budget bands in plain language. Exact amounts are shown only when you are signed in.";
       return {
         summary: "NDIS plan and budget guidance",
-        plainLanguageAnswer:
-          "I can summarise your plan status and budget bands in plain language. Exact amounts are shown only when you are signed in.",
+        plainLanguageAnswer: budgetAnswer,
         filters,
         actions: [
           {
@@ -189,8 +194,16 @@ export async function planCopilotActions(
             ]
           : [],
         requiredConfirmations: [],
-        warnings: [],
+        warnings: isBudgetGuidanceEnabled()
+          ? [
+              {
+                level: "info" as const,
+                message: NON_ADVISORY_DISCLAIMER,
+              },
+            ]
+          : [],
       };
+    }
 
     case "jobs":
       return {

@@ -99,3 +99,16 @@ export function getMockParticipantIds(): string[] {
 export function isMockParticipant(participantId: string): boolean {
   return participantId === MOCK_PARTICIPANT_ID;
 }
+
+export function getMockNdisPlanSummary(participantId: string): NdisPlanSummary | null {
+  if (!isMockParticipant(participantId)) {
+    return {
+      planId: "plan-unknown",
+      status: "unknown",
+      fundingManagement: "unknown",
+      categoryCount: 0,
+      overallBudgetBand: "watch",
+    };
+  }
+  return MOCK_PLAN;
+}

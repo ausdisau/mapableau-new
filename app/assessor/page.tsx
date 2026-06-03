@@ -1,11 +1,15 @@
 import Link from "next/link";
 
-import { listAssessorCasesForUser } from "@/lib/assessor-tools/assessor-service";
 import { requirePermission } from "@/lib/auth/guards";
+import { listAssessorCasesForUser } from "@/lib/assessor-tools/assessor-service";
+import { getAssessorPilotProfile } from "@/lib/assessor-network/assessor-network-pilot-service";
 
 export default async function AssessorPortalPage() {
   const user = await requirePermission("assessor:portal");
-  const cases = await listAssessorCasesForUser(user.id, user.primaryRole);
+  const [cases, profile] = await Promise.all([
+    listAssessorCasesForUser(user.id, user.primaryRole),
+    getAssessorPilotProfile(user.id),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-6">
@@ -14,6 +18,20 @@ export default async function AssessorPortalPage() {
         Case workflow for accessibility and quality assessments — not legal
         certification.
       </p>
+
+      {profile.member ? (
+        <div className="rounded-lg border p-3 text-sm">
+          <p>
+            Status: {profile.member.status}
+            {profile.member.region ? ` · ${profile.member.region}` : ""}
+          </p>
+          <p className="text-muted-foreground">
+            Capacity: {profile.member.capacity} · Active assessors:{" "}
+            {profile.activeAssessors}
+          </p>
+        </div>
+      ) : null}
+
       <Link href="/dashboard" className="text-sm text-primary underline">
         Back to dashboard
       </Link>
