@@ -117,6 +117,7 @@ const LEGACY_LINKS = [
   { href: "/admin/institutional-continuity", label: "Continuity" },
   { href: "/admin/civic-audit-index", label: "Civic audit" },
   { href: "/admin/federated-accountability", label: "Fed partners" },
+  { href: "/admin/institutional-permanence", label: "Permanence" },
   { href: "/admin/messages", label: "Messages" },
   { href: "/admin/support", label: "Support" },
   { href: "/admin/documents", label: "Documents" },
