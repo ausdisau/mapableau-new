@@ -24,6 +24,12 @@ export default async function ProfilePage() {
         >
           Edit profile →
         </Link>
+        <Link
+          href="/dashboard/support-profile"
+          className="mt-2 ml-4 inline-block text-sm font-medium text-primary hover:underline"
+        >
+          Support profile →
+        </Link>
       </header>
 
       {profile ? (

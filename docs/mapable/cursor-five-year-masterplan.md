@@ -545,6 +545,18 @@ This masterplan maps to the repository’s phased delivery:
 | Y4 | Phase 9 (civic platform, data vault) |
 | Y5 | Phases 10–12 (public-interest OS, accountability, certified API) |
 
+### Y1 wedge modules (Cursor implementation)
+
+| Wedge | Config flag | Primary modules |
+|-------|-------------|-----------------|
+| Support profile | `SUPPORT_PROFILE_ENABLED` | `lib/support-profile/`, `app/dashboard/support-profile/`, `app/api/support-profile/` |
+| Explainable matching | `PARTICIPANT_MATCH_REVIEW_ENABLED` | `lib/matching/matching-service.ts`, `app/dashboard/care/matches/` |
+| Incident intake v2 | `INCIDENT_INTAKE_V2_ENABLED` | `lib/incidents/incident-service.ts`, stepped wizard under `app/dashboard/safety/incidents/new/` |
+| Micro-consent | `MICRO_CONSENT_ENABLED` | `lib/consent/micro-consent-service.ts`, `components/consent/ConsentSharingPanel.tsx` |
+| Backup shift recovery | `BACKUP_SHIFT_RECOVERY_ENABLED` | `lib/care/backup-shift-recovery-service.ts`, `app/dashboard/care/recovery/` |
+
+Feature flags live in `lib/config/y1-wedge.ts`. Integration tests: `tests/mapable-y1-wedge.test.ts`.
+
 Implementation guardrails from existing docs remain in force: `NDIA_REAL_SUBMISSION_ENABLED=false`, no autonomous dispatch, no false certification claims.
 
 ---

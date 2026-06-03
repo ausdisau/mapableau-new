@@ -58,7 +58,8 @@ export type ConsentScope =
   | "plan_manager.invoice_access"
   | "transport.accessibility_share"
   | "transport.trip_access"
-  | "care.accessibility_share";
+  | "care.accessibility_share"
+  | "support_profile.read";
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 

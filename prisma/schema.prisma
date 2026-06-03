@@ -72,6 +72,7 @@ model User {
   careAccessNeeds           CareAccessNeed[]
   careRiskFlags             CareRiskFlag[]
   careLivingAloneSafeguards CareLivingAloneSafeguard[]
+  supportProfile            SupportProfile?
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
   onboardingProfiles        OnboardingProfile[] @relation("OnboardingProfileUser")
   supportJourneySessions    SupportJourneySession[] @relation("SupportJourneyParticipant")
@@ -451,6 +452,7 @@ enum ConsentScope {
   transport_accessibility_share
   transport_trip_access
   care_accessibility_share
+  support_profile_read
 }
 
 enum ConsentStatus {
@@ -1427,6 +1429,7 @@ model CareShift {
   timesheet               Timesheet?
   careServiceLog          CareServiceLog?
   shiftCancellations      CareShiftCancellation[]
+  backupRecovery          BackupShiftRecovery?
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -1658,10 +1661,13 @@ model CareServiceRecoveryLink {
   id            String      @id @default(cuid())
   careBookingId String
   careBooking   CareBooking @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  careShiftId   String?
   linkType      String
   notes         String?
   createdAt     DateTime    @default(now())
 
+  @@index([careBookingId])
+  @@index([careShiftId])
   @@map("care_service_recovery_links")
 }
 
@@ -2046,6 +2052,12 @@ enum IncidentSeverity {
   critical
 }
 
+enum IncidentIntakePath {
+  concern
+  incident
+  safeguarding
+}
+
 enum IncidentStatus {
   draft
   submitted
@@ -2301,6 +2313,9 @@ model IncidentReport {
   resolutionSummary       String?
   externalReportRef       String?
   escalatedToQscAt        DateTime?
+  intakePath              IncidentIntakePath?
+  intakeMetadataJson      Json?
+  participantIntent       String?
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
   closedAt                DateTime?
@@ -3154,6 +3169,48 @@ model ParticipantSupportPlanSummary {
   participantId String @unique
   summaryJson   Json   @default("{}")
   updatedAt     DateTime @updatedAt
+}
+
+model SupportProfile {
+  id              String    @id @default(cuid())
+  participantId   String    @unique
+  participant     User      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  version         Int       @default(1)
+  routinesJson    Json      @default("[]")
+  preferencesJson Json      @default("[]")
+  boundariesJson  Json      @default("[]")
+  escalationJson  Json      @default("{}")
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("support_profiles")
+}
+
+enum BackupShiftRecoveryStatus {
+  detected
+  proposing
+  awaiting_participant
+  assigned
+  failed
+  escalated
+}
+
+model BackupShiftRecovery {
+  id                  String                    @id @default(cuid())
+  careShiftId         String                    @unique
+  careShift           CareShift                 @relation(fields: [careShiftId], references: [id], onDelete: Cascade)
+  participantId       String
+  status              BackupShiftRecoveryStatus @default(detected)
+  matchRunId          String?
+  selectedCandidateId String?
+  excludedWorkerId    String?
+  notes               String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+
+  @@index([participantId, status])
+  @@map("backup_shift_recoveries")
 }
 
 model CoordinatorAccessRequest {

@@ -13,6 +13,8 @@ import {
   assertReadyToMatchForWorker,
 } from "@/lib/onboarding/onboarding-service";
 import { getLatestReliabilityAdvisory } from "@/lib/reliability/reliability-service";
+import { getPublishedSupportProfileSections } from "@/lib/support-profile/support-profile-service";
+import type { SupportProfileSections } from "@/lib/support-profile/types";
 import { prisma } from "@/lib/prisma";
 import type { GuardrailDecision } from "@/server/agents/care/types";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
@@ -25,9 +27,71 @@ function isOrgEligible(verificationStatus: string, status: string) {
   return true;
 }
 
+function buildSupportProfileMatchFactors(
+  sections: SupportProfileSections | null,
+  requestType: string | null
+) {
+  const factors: {
+    factorType: MatchFactorType;
+    score: number;
+    explanation: string;
+    weight: number;
+  }[] = [];
+
+  if (!sections) return factors;
+
+  const continuityPref = sections.preferencesJson.find((p) =>
+    /continuity|same worker|familiar/i.test(`${p.label} ${p.detail}`)
+  );
+  if (continuityPref) {
+    factors.push({
+      factorType: "participant_preference",
+      score: 0.9,
+      explanation:
+        "Your support profile notes a preference for continuity with familiar support.",
+      weight: 1.2,
+    });
+  }
+
+  const routineFit = sections.routinesJson.find((r) =>
+    requestType ? r.detail.toLowerCase().includes(requestType.toLowerCase()) : true
+  );
+  if (routineFit) {
+    factors.push({
+      factorType: "participant_preference",
+      score: 1,
+      explanation: `Routine fit: ${routineFit.label}.`,
+      weight: 1,
+    });
+  } else if (sections.routinesJson.length > 0) {
+    factors.push({
+      factorType: "participant_preference",
+      score: 0.6,
+      explanation:
+        "Worker may need to adapt to your published routines — review before confirming.",
+      weight: 0.8,
+    });
+  }
+
+  const hardBoundary = sections.boundariesJson.find((b) =>
+    /do not|never|avoid|boundary/i.test(`${b.label} ${b.detail}`)
+  );
+  if (hardBoundary) {
+    factors.push({
+      factorType: "communication_preference",
+      score: 0.5,
+      explanation: `Check boundary: ${hardBoundary.label}. Confirm this worker can respect it.`,
+      weight: 1.5,
+    });
+  }
+
+  return factors;
+}
+
 export async function runCareWorkerMatch(
   careRequestId: string,
-  requestedById: string
+  requestedById: string,
+  options?: { excludeWorkerProfileIds?: string[] }
 ) {
   if (!phase4Config.matchingEngineEnabled) {
     return { skipped: true };
@@ -54,6 +118,11 @@ export async function runCareWorkerMatch(
     },
   });
 
+  const supportSections = await getPublishedSupportProfileSections(
+    request.participantId
+  );
+
+  const excludeIds = new Set(options?.excludeWorkerProfileIds ?? []);
   const workers = await prisma.workerProfile.findMany({
     where: { active: true },
     include: { organisation: true },
@@ -72,6 +141,8 @@ export async function runCareWorkerMatch(
 
   const candidates = [];
   for (const w of workers) {
+    if (excludeIds.has(w.id)) continue;
+
     if (platformPatternsConfig.onboardingGateEnabled) {
       try {
         await assertReadyToMatchForWorker(w.id);
@@ -136,6 +207,13 @@ export async function runCareWorkerMatch(
         weight: 1,
       });
     }
+
+    factors.push(
+      ...buildSupportProfileMatchFactors(
+        supportSections,
+        request.requestType
+      )
+    );
 
     const totalWeight = factors.reduce((s, f) => s + f.weight, 0);
     const score =
@@ -387,13 +465,51 @@ export function participantSafeCandidateSummary(candidate: {
   scoreExplanation: string;
   candidateType: MatchType;
   status: string;
+  factors?: { factorType: string; explanation: string }[];
 }) {
+  const topFactors = (candidate.factors ?? [])
+    .slice(0, 3)
+    .map((f) => f.explanation);
+
   return {
     matchQuality:
       candidate.score >= 0.7
         ? "Good fit based on available information"
         : "May need review",
     summary: candidate.scoreExplanation.slice(0, 200),
+    topFactors,
     status: candidate.status,
   };
+}
+
+export async function getLatestMatchRunForCareRequest(careRequestId: string) {
+  return prisma.matchRun.findFirst({
+    where: { careRequestId, status: "completed" },
+    orderBy: { createdAt: "desc" },
+    include: {
+      candidates: {
+        include: { factors: true },
+        orderBy: { score: "desc" },
+      },
+      decisions: { orderBy: { createdAt: "desc" }, take: 1 },
+    },
+  });
+}
+
+export async function awaitParticipantConfirmationState(matchRunId: string) {
+  const run = await prisma.matchRun.findUnique({
+    where: { id: matchRunId },
+    include: {
+      candidates: { where: { status: "selected" } },
+      decisions: { where: { participantConfirmed: true } },
+    },
+  });
+  if (!run) return { state: "unknown" as const };
+  if (run.decisions.some((d) => d.participantConfirmed)) {
+    return { state: "confirmed" as const };
+  }
+  if (run.candidates.some((c) => c.status === "selected")) {
+    return { state: "selected_pending_confirm" as const };
+  }
+  return { state: "awaiting_participant_confirmation" as const };
 }

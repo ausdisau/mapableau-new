@@ -2,6 +2,7 @@ import type { CareRequest, CareShift } from "@prisma/client";
 
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { isAdminRole } from "@/lib/auth/roles";
+import { getWorkerBriefSliceForShift } from "@/lib/support-profile/support-profile-service";
 
 export type WorkerParticipantView = {
   displayLabel: string;
@@ -9,6 +10,7 @@ export type WorkerParticipantView = {
   tasks: unknown[];
   accessSummary?: string;
   communicationNotes?: string;
+  supportProfileBrief?: Awaited<ReturnType<typeof getWorkerBriefSliceForShift>>;
 };
 
 export function filterParticipantInfoForWorker(
@@ -24,7 +26,7 @@ export function filterParticipantInfoForWorker(
     | "communicationNotes"
     | "shareAccessibility"
   >,
-  shift?: Pick<CareShift, "location" | "tasks" | "accessRequirementsSnapshot">
+  shift?: Pick<CareShift, "location" | "tasks" | "accessRequirementsSnapshot" | "id">
 ): WorkerParticipantView {
   const location =
     shift?.location ??
@@ -45,6 +47,17 @@ export function filterParticipantInfoForWorker(
       : undefined,
     communicationNotes: request.communicationNotes ?? undefined,
   };
+}
+
+export async function buildWorkerParticipantView(
+  user: CurrentUser,
+  request: Parameters<typeof filterParticipantInfoForWorker>[1],
+  shift?: Parameters<typeof filterParticipantInfoForWorker>[2]
+): Promise<WorkerParticipantView> {
+  const base = filterParticipantInfoForWorker(user, request, shift);
+  if (!shift?.id) return base;
+  const supportProfileBrief = await getWorkerBriefSliceForShift(shift.id);
+  return { ...base, supportProfileBrief: supportProfileBrief ?? undefined };
 }
 
 export function filterParticipantInfoForProvider(

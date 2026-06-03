@@ -30,6 +30,10 @@ export async function POST(req: Request) {
       purpose: parsed.purpose,
       expiryDate: parsed.expiryDate ? new Date(parsed.expiryDate) : undefined,
       createdById: user.id,
+      shareMode: parsed.shareMode,
+      recipientType: parsed.recipientType,
+      dataScope: parsed.dataScope,
+      sourceAction: parsed.sourceAction,
     });
     return jsonOk({ consent: record }, 201);
   } catch (e) {

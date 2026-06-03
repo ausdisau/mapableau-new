@@ -15,6 +15,11 @@ const OPS_LINKS = [
   { href: "/admin/ops/billing", label: "Billing" },
   { href: "/admin/ops/compliance", label: "Compliance" },
   { href: "/admin/ops/agent-runs", label: "Agent runs" },
+  { href: "/admin/open-data", label: "Open data" },
+  { href: "/admin/disaster-recovery", label: "Disaster recovery" },
+  { href: "/admin/accessibility-accreditation", label: "Accreditation" },
+  { href: "/admin/evidence-automation", label: "Evidence" },
+  { href: "/admin/government-reporting", label: "Gov reporting" },
 ];
 
 const LEGACY_LINKS = [
