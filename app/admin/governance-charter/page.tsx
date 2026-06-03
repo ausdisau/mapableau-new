@@ -1,3 +1,4 @@
+import { GovernanceCharterActions } from "@/app/admin/governance-charter/GovernanceCharterActions";
 import { requireAdmin } from "@/lib/auth/guards";
 import { listCharters } from "@/lib/governance-charter/charter-service";
 
@@ -11,6 +12,9 @@ export default async function GovernanceCharterAdminPage() {
         {charters.map((c) => (
           <li key={c.id} className="rounded border p-3">
             {c.title} v{c.version} — {c.status}
+            {c.status === "draft" ? (
+              <GovernanceCharterActions version={c.version} />
+            ) : null}
           </li>
         ))}
       </ul>

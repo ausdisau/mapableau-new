@@ -586,6 +586,21 @@ Y2 flags live in `lib/config/y2-orchestration.ts`. `BACKUP_RECOVERY_PILOT_ENABLE
 
 Y3 flags live in `lib/config/y3-national-trust.ts`. Integration tests: `tests/mapable-y3-national-trust.test.ts`.
 
+### Y4 civic platform modules (Cursor implementation)
+
+| Theme | Config flag | Primary modules |
+|-------|-------------|-----------------|
+| Data vault v2 | `DATA_VAULT_V2_ENABLED` | `lib/personal-data-vault/`, `app/data-vault/`, `app/admin/personal-data-vault/` |
+| Decision register v2 | `PUBLIC_DECISION_REGISTER_V2_ENABLED` | `lib/public-decision-register/`, `/decisions`, `/admin/public-decisions` |
+| Research safe room pilot | `RESEARCH_SAFE_ROOM_PILOT_ENABLED` | `lib/research-safe-room/safe-room-pilot-service.ts`, `/admin/research-safe-room` |
+| Provider benchmarking v2 | `PROVIDER_BENCHMARKING_V2_ENABLED` | `lib/provider-benchmarking/`, `app/provider/benchmarks/` |
+| Algorithm register v2 | `ALGORITHM_REGISTER_V2_ENABLED` | `lib/algorithm-register/`, `/algorithms`, `/admin/algorithm-register` |
+| Oversight board v2 | `OVERSIGHT_BOARD_V2_ENABLED` | `lib/oversight-board/`, `/oversight`, `/admin/oversight-board` |
+| Governance charter gate | `GOVERNANCE_CHARTER_GATE_ENABLED` | `lib/governance-charter/charter-gate-service.ts`, `/governance` |
+| Privacy analytics pilot | `PRIVACY_PRESERVING_ANALYTICS_PILOT_ENABLED` | `lib/privacy-preserving-analytics/analytics-pilot-service.ts`, `/admin/privacy-analytics` |
+
+Y4 flags live in `lib/config/y4-civic-platform.ts`. Integration tests: `tests/mapable-y4-civic-platform.test.ts`.
+
 Implementation guardrails from existing docs remain in force: `NDIA_REAL_SUBMISSION_ENABLED=false`, no autonomous dispatch, no false certification claims.
 
 ---
