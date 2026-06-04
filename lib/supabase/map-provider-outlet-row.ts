@@ -1,6 +1,5 @@
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
-
-import { mapOutletToProvider } from "@/app/provider-finder/outletToProvider";
+import { mapProviderOutletToPrisma } from "@/lib/ndis/map-provider-outlet-prisma";
 
 /** Row shape for `public.provider_outlets` (Supabase / Postgres). */
 export type ProviderOutletDbRow = {
@@ -31,30 +30,28 @@ export function mapProviderOutletToDbRow(
   outlet: ProviderOutlet,
   index: number,
 ): ProviderOutletDbRow {
-  const mapped = mapOutletToProvider(outlet, index);
-  const name = (outlet.Prov_N?.trim() || outlet.Outletname?.trim() || "Unknown").trim();
-
+  const row = mapProviderOutletToPrisma(outlet, index);
   return {
-    id: mapped.id,
-    abn: outlet.ABN?.trim() || "",
-    name,
-    slug: mapped.slug || null,
-    outlet_key: mapped.outletKey ?? null,
-    outlet_name: outlet.Outletname?.trim() || null,
-    flag: outlet.Flag ?? null,
-    active: outlet.Active === 1,
-    phone: outlet.Phone?.trim() || null,
-    website: outlet.Website?.trim() || null,
-    email: outlet.Email?.trim() || null,
-    address: outlet.Address?.trim() || null,
-    head_office: outlet.Head_Office?.trim() || null,
-    state: mapped.state || outlet.State_cd,
-    postcode: mapped.postcode || String(outlet.Post_cd) || null,
-    latitude: outlet.Latitude !== 0 ? outlet.Latitude : null,
-    longitude: outlet.Longitude !== 0 ? outlet.Longitude : null,
-    reg_group: Array.isArray(outlet.RegGroup) ? outlet.RegGroup : [],
-    opening_hours: outlet.opnhrs?.trim() || null,
-    professions: outlet.prfsn?.trim() || null,
-    raw: outlet as unknown as Record<string, unknown>,
+    id: row.id,
+    abn: row.abn,
+    name: row.name,
+    slug: row.slug,
+    outlet_key: row.outletKey,
+    outlet_name: row.outletName,
+    flag: row.flag,
+    active: row.active,
+    phone: row.phone,
+    website: row.website,
+    email: row.email,
+    address: row.address,
+    head_office: row.headOffice,
+    state: row.state,
+    postcode: row.postcode,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    reg_group: row.regGroup,
+    opening_hours: row.openingHours,
+    professions: row.professions,
+    raw: row.raw as Record<string, unknown>,
   };
 }

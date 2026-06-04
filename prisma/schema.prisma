@@ -228,6 +228,40 @@ model ProviderProfile {
   @@map("provider_profiles")
 }
 
+/// NDIS provider finder export (list-providers.json / provider-outlets.json).
+model ProviderOutletRegistry {
+  id           String   @id
+  abn          String
+  name         String
+  slug         String?
+  outletKey    String?  @unique @map("outlet_key")
+  outletName   String?  @map("outlet_name")
+  flag         String?
+  active       Boolean  @default(false)
+  phone        String?
+  website      String?
+  email        String?
+  address      String?
+  headOffice   String?  @map("head_office")
+  state        String
+  postcode     String?
+  latitude     Float?
+  longitude    Float?
+  regGroup     Int[]    @default([]) @map("reg_group")
+  openingHours String?  @map("opening_hours")
+  professions  String?
+  raw          Json
+  sourceDate   String?  @map("source_date")
+  importedAt   DateTime @default(now()) @map("imported_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([active])
+  @@index([state])
+  @@index([abn])
+  @@index([name])
+  @@map("provider_outlets")
+}
+
 model ProviderProfileService {
   id                String          @id @default(cuid())
   providerProfileId String
