@@ -8,6 +8,7 @@ import {
   mergeProviderContextIntoQuery,
   runProviderFinderAskTurn,
 } from "@/lib/provider-finder/ask-bridge";
+import { mergeAppliedFields } from "@/lib/provider-finder/merge-applied";
 
 vi.mock("@/lib/api/optional-session", () => ({
   getOptionalApiUser: vi.fn(),
@@ -15,6 +16,14 @@ vi.mock("@/lib/api/optional-session", () => ({
 
 vi.mock("@/lib/api/auth-handler", () => ({
   requireApiSession: vi.fn(),
+}));
+
+vi.mock("@/lib/ingestion/ndis-providers-search", () => ({
+  searchNdisProviders: vi.fn(async () => ({ providers: [], count: 0 })),
+}));
+
+vi.mock("@/lib/agent-ops/agent-run-service", () => ({
+  createAgentRun: vi.fn(async () => ({ id: "run-1", skipped: false })),
 }));
 
 describe("POST /api/mapable/ask provider_finder", () => {
@@ -94,5 +103,31 @@ describe("provider finder ask integration", () => {
     expect(turn.searchParams.toString().length).toBeGreaterThan(0);
     expect(turn.replyText.length).toBeGreaterThan(0);
     expect(turn.interpretation.sourceQuery).toContain("Parramatta");
+    expect(turn.agent?.sessionId).toBeDefined();
+  });
+
+  it("mergeAppliedFields accumulates location across turns", () => {
+    const merged = mergeAppliedFields(
+      {
+        query: "",
+        location: "Parramatta NSW",
+        providerName: "",
+        serviceQuery: "OT",
+        accessQuery: "",
+        supportType: null,
+        accessNeedIds: [],
+      },
+      {
+        query: "support worker",
+        location: "",
+        providerName: "",
+        serviceQuery: "",
+        accessQuery: "",
+        supportType: null,
+        accessNeedIds: [],
+      },
+    );
+    expect(merged.location).toBe("Parramatta NSW");
+    expect(merged.query).toBe("support worker");
   });
 });

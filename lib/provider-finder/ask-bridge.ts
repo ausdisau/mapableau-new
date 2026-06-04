@@ -1,3 +1,5 @@
+import { searchAgentConfig } from "@/lib/config/search-agent";
+import type { CopilotAgentMeta, CopilotProviderResult } from "@/lib/copilot/types";
 import {
   applyInterpretationToFields,
   buildFinderSearchParams,
@@ -5,7 +7,13 @@ import {
 } from "@/lib/search/apply-interpretation";
 import type { SearchInterpretation } from "@/types/search";
 
+import {
+  buildClarificationQuestion,
+  needsProviderFinderClarification,
+} from "./clarification";
 import { runProviderFinderConversationTurn } from "./conversation/run-turn";
+import { mergeAppliedFields } from "./merge-applied";
+import { searchProvidersForAppliedTurn } from "./ndis-search-from-applied";
 
 export type ProviderFinderSessionFields = {
   query: string;
@@ -20,6 +28,16 @@ export type ProviderFinderAskTurn = {
   applied: AppliedSearchFields;
   replyText: string;
   searchParams: URLSearchParams;
+  providerResults: CopilotProviderResult[];
+  agent?: CopilotAgentMeta;
+};
+
+export type ProviderFinderAskOptions = {
+  providerName?: string;
+  providerSlug?: string;
+  priorApplied?: AppliedSearchFields;
+  agentSessionId?: string;
+  agentTurnIndex?: number;
 };
 
 export function mergeProviderContextIntoQuery(
@@ -39,12 +57,12 @@ export function mergeProviderContextIntoQuery(
 }
 
 /**
- * Single source of truth: NL query → interpretation → finder field snapshot → URL params.
+ * Single source of truth: NL query → interpretation → finder field snapshot → URL params → NDIS search.
  */
 export async function runProviderFinderAskTurn(
   userText: string,
   currentFields?: Partial<ProviderFinderSessionFields>,
-  options?: { providerName?: string; providerSlug?: string },
+  options?: ProviderFinderAskOptions,
 ): Promise<ProviderFinderAskTurn> {
   const session: ProviderFinderSessionFields = {
     query: currentFields?.query ?? "",
@@ -60,17 +78,56 @@ export async function runProviderFinderAskTurn(
   const effectiveQuery = mergeProviderContextIntoQuery(userText, options);
   const turn = await runProviderFinderConversationTurn(effectiveQuery, session);
 
-  if (options?.providerName && !turn.applied.providerName) {
-    turn.applied.providerName = options.providerName;
+  let applied = mergeAppliedFields(options?.priorApplied, turn.applied);
+
+  if (options?.providerName && !applied.providerName) {
+    applied.providerName = options.providerName;
   }
 
-  const searchParams = buildFinderSearchParams(turn.applied);
+  const sessionId =
+    options?.agentSessionId?.trim() || `finder-${Date.now()}`;
+  const turnIndex = (options?.agentTurnIndex ?? 0) + 1;
+
+  const clarification = needsProviderFinderClarification(turn.interpretation);
+  if (clarification) {
+    const question = buildClarificationQuestion(turn.interpretation);
+    return {
+      interpretation: turn.interpretation,
+      applied,
+      replyText: question,
+      searchParams: buildFinderSearchParams(applied),
+      providerResults: [],
+      agent: {
+        sessionId,
+        turnIndex,
+        status: "needs_clarification",
+        clarificationQuestion: question,
+      },
+    };
+  }
+
+  const providerResults = await searchProvidersForAppliedTurn(
+    applied,
+    turn.interpretation,
+    { limit: searchAgentConfig.providerFinderResultsLimit },
+  );
+
+  let replyText = turn.replyText;
+  if (providerResults.length > 0) {
+    replyText = `${turn.replyText} I found ${providerResults.length} listing${providerResults.length === 1 ? "" : "s"} in the NDIS directory export — use Show matching providers to filter the page, or review the matches below.`;
+  }
 
   return {
     interpretation: turn.interpretation,
-    applied: turn.applied,
-    replyText: turn.replyText,
-    searchParams,
+    applied,
+    replyText,
+    searchParams: buildFinderSearchParams(applied),
+    providerResults,
+    agent: {
+      sessionId,
+      turnIndex,
+      status: "complete",
+    },
   };
 }
 
@@ -81,5 +138,7 @@ export function serialiseFinderPayload(turn: ProviderFinderAskTurn) {
     applied: turn.applied,
     searchParams: Object.fromEntries(turn.searchParams.entries()),
     replyText: turn.replyText,
+    providerResults: turn.providerResults,
+    agent: turn.agent,
   };
 }

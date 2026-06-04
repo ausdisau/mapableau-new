@@ -469,7 +469,10 @@ export default function ProviderFinderClient() {
       {!searchSubmitted ? <MapAbleCareCombinedSections /> : null}
 
       {searchSubmitted ? (
-        <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div
+          id="provider-finder-results"
+          className="container mx-auto max-w-7xl px-4 py-8"
+        >
           <div className="flex flex-col gap-8 lg:flex-row">
             <div className="lg:w-56 xl:w-64">
               <ProviderFinderSidebar

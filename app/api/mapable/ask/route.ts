@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
+import { runProviderFinderTurnWithAgentFlag } from "@/lib/agent/run-agent-turn";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { getOptionalApiUser } from "@/lib/api/optional-session";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { createAgentRun } from "@/lib/agent-ops/agent-run-service";
 import { apiForbidden } from "@/lib/auth/guards";
 import { planCopilotActions } from "@/lib/copilot/actionPlanner";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
@@ -13,9 +15,9 @@ import type {
   CopilotAskContext,
   CopilotAskResponse,
   CopilotFinderPayload,
+  CopilotProviderResult,
 } from "@/lib/copilot/types";
 import {
-  runProviderFinderAskTurn,
   serialiseFinderPayload,
   type ProviderFinderSessionFields,
 } from "@/lib/provider-finder/ask-bridge";
@@ -42,6 +44,21 @@ function parseSessionFields(
   };
 }
 
+function parseMessages(
+  raw: unknown,
+): { role: "user" | "assistant"; content: string }[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: { role: "user" | "assistant"; content: string }[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const m = item as Record<string, unknown>;
+    const role = m.role === "assistant" ? "assistant" : "user";
+    const content = typeof m.content === "string" ? m.content.trim() : "";
+    if (content) out.push({ role, content });
+  }
+  return out.length > 0 ? out : undefined;
+}
+
 function finderFromSerialised(
   payload: ReturnType<typeof serialiseFinderPayload>,
 ): CopilotFinderPayload {
@@ -53,15 +70,15 @@ function finderFromSerialised(
   };
 }
 
-async function buildGuestProviderFinderResponse(
-  query: string,
-  session?: Partial<ProviderFinderSessionFields>,
-  options?: { providerSlug?: string; providerName?: string },
-): Promise<CopilotAskResponse> {
-  const planned = await planProviderFinderCopilotActions(query, session, options);
-  const finder = finderFromSerialised(
-    planned.filters.finder as ReturnType<typeof serialiseFinderPayload>,
-  );
+function responseFromProviderFinderPlan(
+  planned: Awaited<ReturnType<typeof planProviderFinderCopilotActions>>,
+): CopilotAskResponse {
+  const finderPayload = planned.filters.finder as ReturnType<
+    typeof serialiseFinderPayload
+  >;
+  const finder = finderFromSerialised(finderPayload);
+  const results: CopilotProviderResult[] =
+    planned.providerResults ?? finderPayload.providerResults ?? [];
 
   return {
     source: "mapable-copilot",
@@ -76,7 +93,8 @@ async function buildGuestProviderFinderResponse(
     warnings: planned.warnings,
     blockedActions: [],
     finder,
-    results: [],
+    results,
+    agent: planned.agent ?? finderPayload.agent,
     suggestedPrompts: [
       "OT assessment in Parramatta",
       "Wheelchair accessible transport near me",
@@ -85,23 +103,78 @@ async function buildGuestProviderFinderResponse(
   };
 }
 
+async function logProviderFinderAgentRun(
+  input: {
+    query: string;
+    toolsCalled: string[];
+    resultCount: number;
+    status: string;
+    participantId?: string;
+  },
+) {
+  await createAgentRun({
+    agentType: "matching",
+    participantId: input.participantId,
+    inputSummary: { query: input.query.slice(0, 500) },
+    outputSummary: {
+      resultCount: input.resultCount,
+      status: input.status,
+    },
+    toolsCalled: input.toolsCalled,
+    riskTier: "low",
+    humanReviewRequired: false,
+  });
+}
+
+async function buildGuestProviderFinderResponse(
+  query: string,
+  session?: Partial<ProviderFinderSessionFields>,
+  options?: {
+    providerSlug?: string;
+    providerName?: string;
+    agentSessionId?: string;
+    messages?: { role: "user" | "assistant"; content: string }[];
+  },
+): Promise<CopilotAskResponse> {
+  const planned = await planProviderFinderCopilotActions(query, session, options);
+  const response = responseFromProviderFinderPlan(planned);
+
+  void logProviderFinderAgentRun({
+    query,
+    toolsCalled: planned.toolsCalled ?? [
+      "interpretFinderQuery",
+      "searchNdisProviders",
+    ],
+    resultCount: response.results?.length ?? 0,
+    status: response.agent?.status ?? "complete",
+  });
+
+  return response;
+}
+
 async function maybeAttachFinder(
   response: CopilotAskResponse,
   query: string,
   session?: Partial<ProviderFinderSessionFields>,
-  options?: { providerSlug?: string; providerName?: string },
+  options?: {
+    providerSlug?: string;
+    providerName?: string;
+    agentSessionId?: string;
+  },
 ): Promise<CopilotAskResponse> {
   if (response.intent === "incident" || response.intent === "billing") {
     return response;
   }
 
-  const turn = await runProviderFinderAskTurn(query, session, options);
-  const finder = finderFromSerialised(serialiseFinderPayload(turn));
+  const turn = await runProviderFinderTurnWithAgentFlag(query, session, options);
+  const serialised = serialiseFinderPayload(turn);
 
   return {
     ...response,
-    finder,
-    filters: { ...response.filters, finder: serialiseFinderPayload(turn) },
+    finder: finderFromSerialised(serialised),
+    results: turn.providerResults,
+    agent: turn.agent,
+    filters: { ...response.filters, finder: serialised },
   };
 }
 
@@ -132,10 +205,18 @@ export async function POST(request: Request) {
         ? body.sessionId
         : `session-${Date.now()}`;
     const session = parseSessionFields(body.session);
+    const messages = parseMessages(body.messages);
     const providerSlug =
       typeof body.providerSlug === "string" ? body.providerSlug : undefined;
     const providerName =
       typeof body.providerName === "string" ? body.providerName : undefined;
+
+    const finderOptions = {
+      providerSlug,
+      providerName,
+      agentSessionId: sessionId,
+      messages,
+    };
 
     if (!query) {
       return NextResponse.json(
@@ -162,7 +243,7 @@ export async function POST(request: Request) {
       const response = await buildGuestProviderFinderResponse(
         query,
         session,
-        { providerSlug, providerName },
+        finderOptions,
       );
       return NextResponse.json(response);
     }
@@ -200,7 +281,13 @@ export async function POST(request: Request) {
         sessionId,
         participantId: effectiveParticipantId,
       },
-      { session, providerSlug, providerName },
+      {
+        session,
+        providerSlug,
+        providerName,
+        agentSessionId: sessionId,
+        messages,
+      },
     );
 
     const guarded = await applyGuardrails({
@@ -221,18 +308,33 @@ export async function POST(request: Request) {
       requiredConfirmations: guarded.requiredConfirmations,
       warnings: guarded.warnings,
       blockedActions: guarded.blockedActions,
-      results: [],
+      results: guarded.providerResults ?? [],
       suggestedPrompts: buildSuggestedPrompts(intent.type),
+      agent: guarded.agent,
     };
 
     if (intent.type === "provider_finder" && guarded.filters.finder) {
-      response.finder = finderFromSerialised(
-        guarded.filters.finder as ReturnType<typeof serialiseFinderPayload>,
-      );
+      const payload = guarded.filters.finder as ReturnType<
+        typeof serialiseFinderPayload
+      >;
+      response.finder = finderFromSerialised(payload);
+      response.results =
+        guarded.providerResults ?? payload.providerResults ?? [];
+      response.agent = guarded.agent ?? payload.agent;
     } else if (context === "provider_finder") {
-      response = await maybeAttachFinder(response, query, session, {
-        providerSlug,
-        providerName,
+      response = await maybeAttachFinder(response, query, session, finderOptions);
+    }
+
+    if (context === "provider_finder" || intent.type === "provider_finder") {
+      void logProviderFinderAgentRun({
+        query,
+        toolsCalled: guarded.toolsCalled ?? [
+          "interpretFinderQuery",
+          "searchNdisProviders",
+        ],
+        resultCount: response.results?.length ?? 0,
+        status: response.agent?.status ?? "complete",
+        participantId: effectiveParticipantId,
       });
     }
 

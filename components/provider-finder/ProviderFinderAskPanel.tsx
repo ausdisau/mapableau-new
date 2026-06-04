@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { ConfirmationGatePanel } from "@/components/copilot/ConfirmationGate";
 import { CopilotActionCards } from "@/components/copilot/CopilotActionCards";
@@ -13,8 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/app/lib/utils";
 import { intentLabel } from "@/lib/copilot/intentRouter";
-import type { CopilotAskResponse } from "@/lib/copilot/types";
+import type { CopilotActionType, CopilotAskResponse } from "@/lib/copilot/types";
+import { searchAgentConfig } from "@/lib/config/search-agent";
 import type { FinderInterpretationData } from "@/types/provider-finder-chat";
+
+import { AskProviderResultSnippets } from "./AskProviderResultSnippets";
 
 type SessionFields = {
   query: string;
@@ -23,6 +26,8 @@ type SessionFields = {
   serviceQuery: string;
   accessQuery: string;
 };
+
+type ChatMessage = { role: "user" | "assistant"; content: string };
 
 type Props = {
   id?: string;
@@ -38,6 +43,18 @@ const STARTER_PROMPTS = [
   "Wheelchair accessible transport tomorrow",
   "OT assessment with NDIS registration in Parramatta",
 ];
+
+const SESSION_STORAGE_KEY = "mapable-finder-ask-session-id";
+
+function getOrCreateFinderSessionId(): string {
+  if (typeof window === "undefined") return `finder-${Date.now()}`;
+  let id = sessionStorage.getItem(SESSION_STORAGE_KEY);
+  if (!id) {
+    id = `finder-${crypto.randomUUID?.() ?? Date.now()}`;
+    sessionStorage.setItem(SESSION_STORAGE_KEY, id);
+  }
+  return id;
+}
 
 export function ProviderFinderAskPanel({
   id = "ask-panel",
@@ -55,9 +72,15 @@ export function ProviderFinderAskPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<CopilotAskResponse | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [agentSessionId, setAgentSessionId] = useState("");
   const sessionRef = useRef(session);
 
   sessionRef.current = session;
+
+  useEffect(() => {
+    setAgentSessionId(getOrCreateFinderSessionId());
+  }, []);
 
   const applyFinderFromResponse = useCallback(
     (data: CopilotAskResponse) => {
@@ -70,11 +93,50 @@ export function ProviderFinderAskPanel({
     [onInterpretation],
   );
 
+  const showResults = useCallback(() => {
+    if (response) applyFinderFromResponse(response);
+    onShowResults?.();
+    document.getElementById("provider-finder-results")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [response, applyFinderFromResponse, onShowResults]);
+
+  const maybeAutoShowResults = useCallback(
+    (data: CopilotAskResponse) => {
+      if (!searchAgentConfig.providerFinderAutoShowResults || !onShowResults) {
+        return;
+      }
+      if (data.agent?.status === "needs_clarification") return;
+      const confidence = data.finder?.interpretation.confidence ?? 0;
+      if (confidence < searchAgentConfig.providerFinderAutoShowMinConfidence) {
+        return;
+      }
+      applyFinderFromResponse(data);
+      onShowResults();
+    },
+    [applyFinderFromResponse, onShowResults],
+  );
+
+  const handleAction = useCallback(
+    (type: CopilotActionType) => {
+      if (type === "OPEN_PROVIDER_SEARCH") {
+        showResults();
+      }
+    },
+    [showResults],
+  );
+
   const ask = useCallback(async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
     setLoading(true);
     setError(null);
+
+    const nextMessages: ChatMessage[] = [
+      ...messages,
+      { role: "user", content: trimmed },
+    ];
 
     try {
       const res = await fetch("/api/mapable/ask", {
@@ -86,7 +148,8 @@ export function ProviderFinderAskPanel({
           mode: isSignedIn ? "NDIS" : "All",
           context: "provider_finder",
           session: sessionRef.current,
-          sessionId: `finder-${Date.now()}`,
+          sessionId: agentSessionId || getOrCreateFinderSessionId(),
+          messages: nextMessages,
           providerName: initialProviderName || sessionRef.current.providerName,
         }),
       });
@@ -96,22 +159,40 @@ export function ProviderFinderAskPanel({
         setResponse(null);
         return;
       }
+
+      const assistantText =
+        data.agent?.status === "needs_clarification"
+          ? (data.agent.clarificationQuestion ?? data.answer)
+          : data.answer;
+
+      setMessages([
+        ...nextMessages,
+        { role: "assistant", content: assistantText },
+      ]);
       setResponse(data);
       applyFinderFromResponse(data);
+      maybeAutoShowResults(data);
+      setInput("");
     } catch {
       setError("Could not reach MapAble. Check your connection and try again.");
       setResponse(null);
     } finally {
       setLoading(false);
     }
-  }, [input, loading, isSignedIn, initialProviderName, applyFinderFromResponse]);
-
-  const showResults = () => {
-    if (response) applyFinderFromResponse(response);
-    onShowResults?.();
-  };
+  }, [
+    input,
+    loading,
+    isSignedIn,
+    initialProviderName,
+    applyFinderFromResponse,
+    maybeAutoShowResults,
+    messages,
+    agentSessionId,
+  ]);
 
   const hasFinder = Boolean(response?.finder);
+  const needsClarification =
+    response?.agent?.status === "needs_clarification";
 
   return (
     <Card
@@ -141,6 +222,29 @@ export function ProviderFinderAskPanel({
           </p>
         ) : null}
       </div>
+
+      {messages.length > 0 ? (
+        <div
+          className="max-h-48 space-y-2 overflow-y-auto border-b border-border/60 px-4 py-3"
+          role="log"
+          aria-live="polite"
+        >
+          {messages.map((m, i) => (
+            <p
+              key={`${m.role}-${i}`}
+              className={cn(
+                "text-sm",
+                m.role === "user"
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              {m.role === "user" ? "You: " : "MapAble: "}
+              {m.content}
+            </p>
+          ))}
+        </div>
+      ) : null}
 
       <div className="space-y-3 px-4 py-3">
         <label className="sr-only" htmlFor={queryId}>
@@ -187,7 +291,7 @@ export function ProviderFinderAskPanel({
           >
             Ask
           </Button>
-          {hasFinder && onShowResults ? (
+          {hasFinder && onShowResults && !needsClarification ? (
             <Button
               type="button"
               variant="outline"
@@ -221,9 +325,13 @@ export function ProviderFinderAskPanel({
             intentLabel={intentLabel(response.intent)}
           />
           <CopilotWarnings warnings={response.warnings} />
+          {response.results && response.results.length > 0 ? (
+            <AskProviderResultSnippets results={response.results} />
+          ) : null}
           <CopilotActionCards
             actions={response.actions}
             blockedActions={response.blockedActions}
+            onAction={handleAction}
           />
           {isSignedIn && response.draftRecords.length > 0 ? (
             <>

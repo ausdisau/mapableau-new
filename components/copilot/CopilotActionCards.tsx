@@ -1,13 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { CopilotAction } from "@/lib/copilot/types";
-
+import type { CopilotAction, CopilotActionType } from "@/lib/copilot/types";
 
 type Props = {
   actions: CopilotAction[];
   blockedActions?: CopilotAction[];
+  onAction?: (type: CopilotActionType) => void;
 };
 
-export function CopilotActionCards({ actions, blockedActions = [] }: Props) {
+export function CopilotActionCards({
+  actions,
+  blockedActions = [],
+  onAction,
+}: Props) {
   if (actions.length === 0 && blockedActions.length === 0) return null;
 
   return (
@@ -18,14 +22,36 @@ export function CopilotActionCards({ actions, blockedActions = [] }: Props) {
       <ul className="grid gap-3 sm:grid-cols-2">
         {actions.map((action) => (
           <li key={action.type}>
-            <Card variant="interactive" className="h-full">
+            <Card
+              variant="interactive"
+              className="h-full"
+              role={onAction ? "button" : undefined}
+              tabIndex={onAction ? 0 : undefined}
+              onClick={
+                onAction
+                  ? () => onAction(action.type)
+                  : undefined
+              }
+              onKeyDown={
+                onAction
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onAction(action.type);
+                      }
+                    }
+                  : undefined
+              }
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">{action.label}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
                 {action.requiresConfirmation
                   ? "Requires your confirmation"
-                  : "Information only"}
+                  : onAction
+                    ? "Tap to continue"
+                    : "Information only"}
               </CardContent>
             </Card>
           </li>

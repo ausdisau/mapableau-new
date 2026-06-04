@@ -55,7 +55,15 @@ On `/provider-finder`, the **Ask MapAble** panel calls `POST /api/mapable/ask` w
 
 Shared logic lives in `lib/provider-finder/ask-bridge.ts` (also used by hero search and `/api/search/interpret`).
 
-Use **Show results** to apply filters and open the result list.
+**Agentic behaviour (optional):**
+
+- After interpretation, the server may query live `ndis_providers` via `searchNdisProviders` and return up to `PROVIDER_FINDER_RESULTS_LIMIT` rows in `results[]` (directory export — not MapAble-verified).
+- Multi-turn: send a stable `sessionId` (stored in `sessionStorage` on the panel) and `messages[]`; server session store merges filters across turns (`lib/agent-sessions/provider-finder-session.ts`).
+- Low confidence (`< 0.55`) can return `agent.status: needs_clarification` without running search until the user replies.
+- `SEARCH_AGENT_ENABLED=true` uses `lib/agent/run-agent-turn.ts` (bounded tool steps, `toolsCalled` logged to `AgentRun` when persistence is on).
+- `PROVIDER_FINDER_AUTO_SHOW_RESULTS=true` auto-opens the result list when confidence ≥ `PROVIDER_FINDER_AUTO_SHOW_MIN_CONFIDENCE`.
+
+Use **Show results** or the **Show matching providers** action card to apply filters and open the result list.
 
 ## Streaming chat (Slack / legacy)
 

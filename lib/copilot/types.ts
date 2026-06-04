@@ -54,6 +54,31 @@ export type CopilotFinderPayload = {
   replyText: string;
 };
 
+/** NDIS directory row surfaced in Ask / agent responses (not MapAble-verified). */
+export type CopilotProviderResult = {
+  id: string;
+  slug: string;
+  name: string;
+  suburb: string | null;
+  state: string | null;
+  postcode: string | null;
+  locationLabel: string | null;
+  registered: boolean;
+  registrationGroups: string[];
+  services: string[];
+  phone: string | null;
+  website: string | null;
+};
+
+export type CopilotAgentStatus = "complete" | "needs_clarification";
+
+export type CopilotAgentMeta = {
+  sessionId: string;
+  turnIndex: number;
+  status: CopilotAgentStatus;
+  clarificationQuestion?: string;
+};
+
 export type CopilotAction = {
   type: CopilotActionType;
   label: string;
@@ -126,6 +151,10 @@ export type CopilotActionPlan = {
   draftRecords: DraftPrmsRecord[];
   requiredConfirmations: ConfirmationGate[];
   warnings: CopilotWarning[];
+  /** Top NDIS directory matches from live search (when available). */
+  providerResults?: CopilotProviderResult[];
+  agent?: CopilotAgentMeta;
+  toolsCalled?: string[];
 };
 
 export type GuardrailInput = {
@@ -148,7 +177,8 @@ export type CopilotAskResponse = {
   blockedActions: CopilotAction[];
   /** Provider Finder NL search payload when applicable */
   finder?: CopilotFinderPayload;
-  /** Legacy-compatible fields for existing UI consumers */
-  results?: unknown[];
+  /** NDIS directory matches (serialisable). */
+  results?: CopilotProviderResult[];
   suggestedPrompts?: string[];
+  agent?: CopilotAgentMeta;
 };

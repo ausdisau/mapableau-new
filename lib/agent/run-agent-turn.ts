@@ -1,0 +1,140 @@
+import { searchAgentConfig } from "@/lib/config/search-agent";
+import {
+  getProviderFinderSession,
+  priorAppliedFromSession,
+} from "@/lib/agent-sessions/provider-finder-session";
+import {
+  runProviderFinderAskTurn,
+  type ProviderFinderAskTurn,
+  type ProviderFinderSessionFields,
+} from "@/lib/provider-finder/ask-bridge";
+import type { PlanProviderFinderOptions } from "@/lib/copilot/plan-provider-finder";
+import {
+  needsProviderFinderClarification,
+  buildClarificationQuestion,
+} from "@/lib/provider-finder/clarification";
+import { mergeAppliedFields } from "@/lib/provider-finder/merge-applied";
+import { runProviderFinderConversationTurn } from "@/lib/provider-finder/conversation/run-turn";
+import { mergeProviderContextIntoQuery } from "@/lib/provider-finder/ask-bridge";
+import { buildFinderSearchParams } from "@/lib/search/apply-interpretation";
+import { searchProvidersForAppliedTurn } from "@/lib/provider-finder/ndis-search-from-applied";
+
+import {
+  TOOL_INTERPRET_FINDER_QUERY,
+  TOOL_SEARCH_NDIS_PROVIDERS,
+} from "./tools/index";
+
+const MAX_AGENT_STEPS = 3;
+
+export type AgentTurnResult = ProviderFinderAskTurn & {
+  toolsCalled: string[];
+};
+
+/**
+ * Bounded agent turn: interpret → (optional clarify) → search → reply.
+ * Falls back to the same outcome as runProviderFinderAskTurn when steps exhaust.
+ */
+export async function runProviderFinderAgentTurn(
+  query: string,
+  session?: Partial<ProviderFinderSessionFields>,
+  options?: PlanProviderFinderOptions,
+): Promise<AgentTurnResult> {
+  const toolsCalled: string[] = [];
+  const priorApplied = priorAppliedFromSession(
+    options?.agentSessionId,
+    session,
+  );
+  const existing = options?.agentSessionId
+    ? getProviderFinderSession(options.agentSessionId)
+    : null;
+  const sessionId =
+    options?.agentSessionId?.trim() || `finder-${Date.now()}`;
+  const turnIndex = (existing?.turnIndex ?? 0) + 1;
+
+  if (toolsCalled.length < MAX_AGENT_STEPS) {
+    toolsCalled.push(TOOL_INTERPRET_FINDER_QUERY);
+  }
+
+  const effectiveQuery = mergeProviderContextIntoQuery(query, options);
+  const convo = await runProviderFinderConversationTurn(
+    effectiveQuery,
+    session as ProviderFinderSessionFields,
+  );
+  let applied = mergeAppliedFields(priorApplied, convo.applied);
+  if (options?.providerName && !applied.providerName) {
+    applied.providerName = options.providerName;
+  }
+
+  if (needsProviderFinderClarification(convo.interpretation)) {
+    const question = buildClarificationQuestion(convo.interpretation);
+    return {
+      interpretation: convo.interpretation,
+      applied,
+      replyText: question,
+      searchParams: buildFinderSearchParams(applied),
+      providerResults: [],
+      agent: {
+        sessionId,
+        turnIndex,
+        status: "needs_clarification",
+        clarificationQuestion: question,
+      },
+      toolsCalled,
+    };
+  }
+
+  if (toolsCalled.length < MAX_AGENT_STEPS) {
+    toolsCalled.push(TOOL_SEARCH_NDIS_PROVIDERS);
+  }
+
+  const providerResults = await searchProvidersForAppliedTurn(
+    applied,
+    convo.interpretation,
+    { limit: searchAgentConfig.providerFinderResultsLimit },
+  );
+
+  let replyText = convo.replyText;
+  if (providerResults.length > 0) {
+    replyText = `${convo.replyText} I found ${providerResults.length} listing${providerResults.length === 1 ? "" : "s"} in the NDIS directory export.`;
+  }
+
+  return {
+    interpretation: convo.interpretation,
+    applied,
+    replyText,
+    searchParams: buildFinderSearchParams(applied),
+    providerResults,
+    agent: {
+      sessionId,
+      turnIndex,
+      status: "complete",
+    },
+    toolsCalled,
+  };
+}
+
+/** When agent flag is off, delegate to standard bridge. */
+export async function runProviderFinderTurnWithAgentFlag(
+  query: string,
+  session?: Partial<ProviderFinderSessionFields>,
+  options?: PlanProviderFinderOptions,
+): Promise<ProviderFinderAskTurn & { toolsCalled?: string[] }> {
+  if (searchAgentConfig.searchAgentEnabled) {
+    return runProviderFinderAgentTurn(query, session, options);
+  }
+  const priorApplied = priorAppliedFromSession(
+    options?.agentSessionId,
+    session,
+  );
+  const existing = options?.agentSessionId
+    ? getProviderFinderSession(options.agentSessionId)
+    : null;
+  const turn = await runProviderFinderAskTurn(query, session, {
+    providerSlug: options?.providerSlug,
+    providerName: options?.providerName,
+    priorApplied,
+    agentSessionId: options?.agentSessionId,
+    agentTurnIndex: existing?.turnIndex ?? 0,
+  });
+  return { ...turn, toolsCalled: [] };
+}

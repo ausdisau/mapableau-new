@@ -22,6 +22,8 @@ export type CopilotPlanningExtras = {
   session?: Partial<ProviderFinderSessionFields>;
   providerSlug?: string;
   providerName?: string;
+  agentSessionId?: string;
+  messages?: { role: "user" | "assistant"; content: string }[];
 };
 
 export async function planCopilotActions(
@@ -37,6 +39,8 @@ export async function planCopilotActions(
       return planProviderFinderCopilotActions(query, extras?.session, {
         providerSlug: extras?.providerSlug,
         providerName: extras?.providerName,
+        agentSessionId: extras?.agentSessionId,
+        messages: extras?.messages,
       });
 
     case "combined":
