@@ -16,6 +16,7 @@ const OPS_LINKS = [
   { href: "/admin/ops/compliance", label: "Compliance" },
   { href: "/admin/ops/agent-runs", label: "Agent runs" },
   { href: "/admin/open-data", label: "Open data" },
+  { href: "/admin/ndis-provider-ingestion", label: "NDIS ingestion" },
   { href: "/admin/disaster-recovery", label: "Disaster recovery" },
   { href: "/admin/accessibility-accreditation", label: "Accreditation" },
   { href: "/admin/evidence-automation", label: "Evidence" },

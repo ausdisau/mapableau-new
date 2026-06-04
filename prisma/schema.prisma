@@ -263,6 +263,51 @@ model ProviderOutletRegistry {
   @@map("provider_outlets")
 }
 
+/// NDIS provider finder directory ingest (list-providers.json); not MapAble-verified registration.
+model NdisProviderIngestionRun {
+  id            String    @id @default(uuid()) @db.Uuid
+  sourceUrl     String    @map("source_url")
+  sourceHash    String    @map("source_hash")
+  providerCount Int       @map("provider_count")
+  status        String
+  errorMessage  String?   @map("error_message")
+  startedAt     DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt    DateTime? @map("finished_at") @db.Timestamptz(6)
+
+  @@index([startedAt])
+  @@index([status])
+  @@map("ndis_provider_ingestion_runs")
+}
+
+model NdisProvider {
+  sourceId           String    @id @map("source_id")
+  providerName       String    @map("provider_name")
+  legalName          String?   @map("legal_name")
+  abn                String?
+  registrationNumber String?   @map("registration_number")
+  phone              String?
+  email              String?
+  website            String?
+  address            String?
+  suburb             String?
+  state              String?
+  postcode           String?
+  latitude           Float?
+  longitude          Float?
+  services           String[]  @default([])
+  registrationGroups String[]  @default([]) @map("registration_groups")
+  raw                Json
+  rawHash            String    @map("raw_hash")
+  sourceUrl          String    @map("source_url")
+  sourceUpdatedAt    DateTime? @map("source_updated_at") @db.Timestamptz(6)
+  ingestedAt         DateTime  @default(now()) @map("ingested_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([state])
+  @@index([postcode])
+  @@map("ndis_providers")
+}
+
 model ProviderProfileService {
   id                String          @id @default(cuid())
   providerProfileId String

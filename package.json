@@ -24,6 +24,8 @@
     "import:provider-outlets-supabase": "tsx scripts/import-provider-outlets-supabase.ts",
     "fetch:ndis-list-providers": "tsx scripts/fetch-ndis-list-providers.ts",
     "seed:ndis-provider-outlets": "tsx prisma/seed-ndis-provider-outlets.ts",
+    "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
+    "ingest:ndis-providers:dry": "DRY_RUN=true tsx scripts/ingest-ndis-providers.ts",
     "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
   },
   "lint-staged": {
@@ -105,6 +107,7 @@
     "prisma": "6.19.2",
     "tsx": "^4.22.3",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "dotenv": "^16.4.7"
   }
 }
