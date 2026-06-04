@@ -1,3 +1,7 @@
+import {
+  auspostPacJsonError,
+  type AusPostPacOperationId,
+} from "@/lib/auspost-pac/api-contract";
 import type { AusPostPacErrorCode } from "@/types/auspost-pac";
 
 const STATUS_BY_CODE: Record<AusPostPacErrorCode, number> = {
@@ -45,13 +49,14 @@ export function auspostPacValidationError(message: string, details?: unknown) {
   return new AusPostPacApiError("AUSPOST_PAC_VALIDATION_ERROR", message, details);
 }
 
-export function auspostPacErrorResponse(error: AusPostPacApiError) {
-  return Response.json(
-    {
-      error: error.message,
-      code: error.code,
-      details: error.details,
-    },
-    { status: error.httpStatus },
-  );
+export function auspostPacErrorResponse(
+  error: AusPostPacApiError,
+  operationId: AusPostPacOperationId,
+) {
+  return auspostPacJsonError(operationId, error.httpStatus, {
+    error: error.message,
+    code: error.code,
+    details: error.details,
+    retryable: error.httpStatus >= 500,
+  });
 }

@@ -1,0 +1,243 @@
+openapi: 3.1.0
+info:
+  title: MapAble Australia Post PAC API
+  version: 1.0.0
+  description: |
+    Server-side proxy for Australia Post Postage Assessment Calculator and Postcode Search.
+    All operations return `X-Operation-Id` for agent tracing. Errors include `operationId`, `code`, and `retryable`.
+servers:
+  - url: https://mapable.com.au
+    description: Production
+paths:
+  /api/auspost/postcode/search:
+    get:
+      operationId: auspostPostcodeSearch
+      summary: Search Australian suburbs and postcodes
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          description: Suburb or postcode fragment
+        - name: state
+          in: query
+          schema:
+            type: string
+            enum: [ACT, NSW, NT, QLD, SA, TAS, VIC, WA]
+        - name: excludePostBox
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Matching localities
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+                const: auspostPostcodeSearch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostcodeSearchSuccess"
+        "400":
+          $ref: "#/components/responses/InvalidQuery"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/NotConfigured"
+  /api/auspost/postage/domestic/service:
+    get:
+      operationId: auspostDomesticParcelServices
+      summary: List domestic parcel services for dimensions
+      parameters:
+        - $ref: "#/components/parameters/fromPostcode"
+        - $ref: "#/components/parameters/toPostcode"
+        - $ref: "#/components/parameters/length"
+        - $ref: "#/components/parameters/width"
+        - $ref: "#/components/parameters/height"
+        - $ref: "#/components/parameters/weight"
+      responses:
+        "200":
+          description: Available services
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+                const: auspostDomesticParcelServices
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [services, configured]
+                properties:
+                  services:
+                    type: array
+                    items:
+                      type: object
+                  configured:
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/InvalidQuery"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/NotConfigured"
+  /api/auspost/postage/domestic/calculate:
+    get:
+      operationId: auspostDomesticParcelCalculate
+      summary: Calculate domestic parcel postage
+      parameters:
+        - $ref: "#/components/parameters/fromPostcode"
+        - $ref: "#/components/parameters/toPostcode"
+        - $ref: "#/components/parameters/length"
+        - $ref: "#/components/parameters/width"
+        - $ref: "#/components/parameters/height"
+        - $ref: "#/components/parameters/weight"
+        - name: serviceCode
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: optionCode
+          in: query
+          schema:
+            type: string
+        - name: suboptionCode
+          in: query
+          schema:
+            type: string
+        - name: extraCover
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Postage quote
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+                const: auspostDomesticParcelCalculate
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [quote, configured]
+                properties:
+                  quote:
+                    type: object
+                  configured:
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/InvalidQuery"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/NotConfigured"
+components:
+  parameters:
+    fromPostcode:
+      name: fromPostcode
+      in: query
+      required: true
+      schema:
+        type: string
+    toPostcode:
+      name: toPostcode
+      in: query
+      required: true
+      schema:
+        type: string
+    length:
+      name: length
+      in: query
+      required: true
+      schema:
+        type: number
+    width:
+      name: width
+      in: query
+      required: true
+      schema:
+        type: number
+    height:
+      name: height
+      in: query
+      required: true
+      schema:
+        type: number
+    weight:
+      name: weight
+      in: query
+      required: true
+      schema:
+        type: number
+  schemas:
+    PostcodeSearchSuccess:
+      type: object
+      required: [localities, configured]
+      properties:
+        localities:
+          type: array
+          items:
+            type: object
+            properties:
+              location:
+                type: string
+              state:
+                type: string
+              postcode:
+                type: string
+        configured:
+          type: boolean
+    AusPostPacError:
+      type: object
+      required: [error, code, operationId]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+            - AUSPOST_PAC_NOT_CONFIGURED
+            - AUSPOST_PAC_UPSTREAM_ERROR
+            - AUSPOST_PAC_VALIDATION_ERROR
+            - RATE_LIMITED
+            - INVALID_QUERY
+        operationId:
+          type: string
+        details:
+          type: object
+        retryable:
+          type: boolean
+  responses:
+    InvalidQuery:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AusPostPacError"
+    RateLimited:
+      description: Per-IP rate limit exceeded (postcode search only)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AusPostPacError"
+    UpstreamError:
+      description: Australia Post API error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AusPostPacError"
+    NotConfigured:
+      description: AUSPOST_PAC_API_KEY not set
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AusPostPacError"

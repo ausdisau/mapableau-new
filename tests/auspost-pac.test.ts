@@ -1,11 +1,50 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  AUSPOST_PAC_OPERATIONS,
+  auspostPacJsonError,
+} from "@/lib/auspost-pac/api-contract";
 import { clearAuspostPacClientCache } from "@/lib/auspost-pac/client";
+import {
+  AusPostPacApiError,
+  auspostPacErrorResponse,
+} from "@/lib/auspost-pac/auspost-pac-api-error";
 import {
   normalizeDomesticCalculateResponse,
   normalizePostcodeSearchResponse,
 } from "@/lib/auspost-pac/normalize";
 import { searchPostcodes } from "@/lib/auspost-pac/postcode-search-service";
+
+describe("AusPost PAC API contract", () => {
+  it("returns structured error with operationId header", async () => {
+    const res = auspostPacJsonError(AUSPOST_PAC_OPERATIONS.postcodeSearch, 429, {
+      error: "Too many requests",
+      code: "RATE_LIMITED",
+      retryable: true,
+    });
+    expect(res.status).toBe(429);
+    expect(res.headers.get("X-Operation-Id")).toBe("auspostPostcodeSearch");
+    const body = (await res.json()) as {
+      operationId: string;
+      code: string;
+      retryable: boolean;
+    };
+    expect(body.operationId).toBe("auspostPostcodeSearch");
+    expect(body.code).toBe("RATE_LIMITED");
+    expect(body.retryable).toBe(true);
+  });
+
+  it("maps AusPostPacApiError to contract body", async () => {
+    const res = auspostPacErrorResponse(
+      new AusPostPacApiError("AUSPOST_PAC_NOT_CONFIGURED"),
+      AUSPOST_PAC_OPERATIONS.domesticParcelCalculate,
+    );
+    expect(res.status).toBe(503);
+    const body = (await res.json()) as { operationId: string; code: string };
+    expect(body.operationId).toBe("auspostDomesticParcelCalculate");
+    expect(body.code).toBe("AUSPOST_PAC_NOT_CONFIGURED");
+  });
+});
 
 describe("AusPost PAC normalize", () => {
   it("normalizes single locality object", () => {

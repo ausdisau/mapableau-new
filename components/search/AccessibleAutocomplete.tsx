@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/app/lib/utils";
 import { mapableSearchInputClass } from "@/lib/brand/styles";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
+import { trackProductEvent } from "@/lib/analytics/product-analytics";
 import {
   buildLiveRegionMessage,
   flattenSuggestions,
@@ -19,9 +20,21 @@ import type {
   AutocompleteGroupedResult,
   AutocompleteSuggestion,
   SuggestionMode,
+  LocationProviderTag,
   SuggestionResultMeta,
   SuggestionSignals,
 } from "@/types/search";
+
+function locationProviderForSuggestion(
+  suggestion: AutocompleteSuggestion,
+  meta: SuggestionResultMeta | null,
+): LocationProviderTag {
+  if (suggestion.type === "location" && suggestion.metadata?.locationSource) {
+    return suggestion.metadata.locationSource;
+  }
+  if (meta?.degradedReason?.includes("static_fallback")) return "static_fallback";
+  return meta?.locationProvider ?? "unknown";
+}
 
 export type AccessibleAutocompleteProps = {
   id?: string;
@@ -158,6 +171,16 @@ export function AccessibleAutocomplete({
         setGroups(groups);
         setMeta(meta);
         setActiveIndex(-1);
+        const flat = flattenSuggestions(groups);
+        trackProductEvent("search_autocomplete_results_shown", {
+          context,
+          field,
+          mode,
+          result_count: flat.length,
+          degraded: meta?.degraded ?? false,
+          degraded_reason: meta?.degradedReason,
+          location_provider: meta?.locationProvider ?? "unknown",
+        });
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         if (!controller.signal.aborted) {
@@ -179,6 +202,13 @@ export function AccessibleAutocomplete({
   }, [fetchSuggestions, debouncedQuery]);
 
   function selectSuggestion(suggestion: AutocompleteSuggestion) {
+    trackProductEvent("search_autocomplete_suggestion_selected", {
+      context,
+      field,
+      suggestion_type: suggestion.type,
+      location_provider: locationProviderForSuggestion(suggestion, meta),
+      has_postcode: Boolean(suggestion.metadata?.postcode),
+    });
     onChange(suggestion.value);
     onSelect?.(suggestion);
     setOpen(false);

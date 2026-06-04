@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
-
 import { isAuspostPacConfigured } from "@/lib/config/auspost-pac";
+import {
+  AUSPOST_PAC_OPERATIONS,
+  auspostPacJsonError,
+  auspostPacJsonOk,
+} from "@/lib/auspost-pac/api-contract";
 import { handleAuspostPacRouteError } from "@/lib/auspost-pac/route-handler";
 import { searchPostcodes } from "@/lib/auspost-pac/postcode-search-service";
 import { postcodeSearchQuerySchema } from "@/lib/validation/auspost-pac-schemas";
+
+const OPERATION = AUSPOST_PAC_OPERATIONS.postcodeSearch;
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -28,21 +33,20 @@ export async function GET(request: Request) {
     "anonymous";
 
   if (!checkRateLimit(ip)) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait a moment." },
-      { status: 429 },
-    );
+    return auspostPacJsonError(OPERATION, 429, {
+      error: "Too many requests. Please wait a moment.",
+      code: "RATE_LIMITED",
+      retryable: true,
+    });
   }
 
   if (!isAuspostPacConfigured()) {
-    return NextResponse.json(
-      {
-        error: "Australia Post lookup is not configured.",
-        code: "AUSPOST_PAC_NOT_CONFIGURED",
-        configured: false,
-      },
-      { status: 503 },
-    );
+    return auspostPacJsonError(OPERATION, 503, {
+      error: "Australia Post lookup is not configured.",
+      code: "AUSPOST_PAC_NOT_CONFIGURED",
+      details: { configured: false },
+      retryable: false,
+    });
   }
 
   const { searchParams } = new URL(request.url);
@@ -53,10 +57,12 @@ export async function GET(request: Request) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid query", details: parsed.error.flatten() },
-      { status: 400 },
-    );
+    return auspostPacJsonError(OPERATION, 400, {
+      error: "Invalid query",
+      code: "INVALID_QUERY",
+      details: parsed.error.flatten(),
+      retryable: false,
+    });
   }
 
   try {
@@ -65,7 +71,8 @@ export async function GET(request: Request) {
       state: parsed.data.state,
       excludePostBox: parsed.data.excludePostBox ?? true,
     });
-    return NextResponse.json(
+    return auspostPacJsonOk(
+      OPERATION,
       { ...result, configured: true },
       {
         headers: {
@@ -74,6 +81,6 @@ export async function GET(request: Request) {
       },
     );
   } catch (e) {
-    return handleAuspostPacRouteError(e);
+    return handleAuspostPacRouteError(e, OPERATION);
   }
 }

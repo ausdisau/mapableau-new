@@ -72,6 +72,28 @@ curl -sS 'https://mapable.com.au/api/auspost/postage/domestic/calculate?fromPost
 | `lib/search/auspost-location-adapter.ts` | Autocomplete adapter |
 | `app/api/auspost/**` | Next.js route handlers |
 
+## Agent-ready API contract
+
+MapAble AusPost routes are designed for AI agents and OpenAPI tooling:
+
+| Concern | Implementation |
+|---------|----------------|
+| Stable operation IDs | `auspostPostcodeSearch`, `auspostDomesticParcelServices`, `auspostDomesticParcelCalculate` |
+| Response header | `X-Operation-Id` on every success and error |
+| Error body | `{ error, code, operationId, details?, retryable? }` |
+| OpenAPI | `docs/api/openapi-auspost-pac.yaml` |
+| Helpers | `lib/auspost-pac/api-contract.ts` |
+
+Agents should read `operationId` and `retryable` on failures; do not call Australia Post directly (keys are server-only).
+
+## Location provider strategy
+
+For when to use AusPost vs AWS Location vs local DB, see [location-providers-auspost-vs-aws.md](./location-providers-auspost-vs-aws.md). Runtime selection is in `lib/config/location-search.ts`.
+
+## Analytics
+
+Client search autocomplete events are documented in [tracking-plan-auspost-location.md](../analytics/tracking-plan-auspost-location.md). Enable with `NEXT_PUBLIC_PRODUCT_ANALYTICS_ENABLED=true`.
+
 ## Security
 
 - API keys must only exist in server environment variables.

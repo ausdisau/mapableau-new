@@ -37,6 +37,7 @@ export const auspostLocationAdapter: LocationAutocompleteAdapter = {
           suburb,
           state,
           postcode: loc.postcode,
+          locationSource: "auspost_pac",
         },
       } satisfies AutocompleteSuggestion;
     });
@@ -67,6 +68,7 @@ export async function searchPostcodesWithState(
         suburb,
         state: loc.state,
         postcode: loc.postcode,
+        locationSource: "auspost_pac",
       },
     };
   });
