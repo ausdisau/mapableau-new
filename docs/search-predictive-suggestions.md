@@ -33,7 +33,20 @@ npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/ensure-sea
 npx tsx prisma/seed-search-autocomplete.ts
 ```
 
-If the database tables are empty, the API serves a **built-in static catalog** (`lib/search/suggestion-fallback-catalog.ts`) and sets `meta.degraded` with `static_fallback`. Run the seed on production Neon so results include live provider profiles and curated DB weights.
+If the database tables are empty, the API serves a **built-in static catalog** (`lib/search/suggestion-fallback-catalog.ts`) and sets `meta.degraded` with `static_fallback`. `searchAutocompleteWithMeta` applies the same fallback if the engine still returns empty groups.
+
+### Production checklist when suggestions are empty
+
+1. Confirm the latest `main` deployment is **Ready** on Vercel (`mapableau-new`).
+2. Hit proactive API: `GET /api/search/autocomplete?mode=proactive&context=homepage` — expect non-empty `groups` or `meta.degraded: true` with `static_fallback`.
+3. Seed production Neon (one-time):
+
+   ```bash
+   npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/ensure-search-autocomplete.sql
+   DIRECT_URL="postgresql://..." npx tsx prisma/seed-search-autocomplete.ts
+   ```
+
+Run the seed on production Neon so results include live provider profiles and curated DB weights.
 
 ## Governance
 
