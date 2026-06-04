@@ -3,10 +3,11 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { MapAbleLogo, type MapAbleLogoVariant } from "@/components/brand/MapAbleLogo";
+import { MapAbleNavMenuPanel } from "@/components/brand/MapAbleNavMenuPanel";
 import {
   mapableHeaderClass,
   mapableNavLinkActiveClass,
@@ -14,7 +15,12 @@ import {
   mapablePageContainerClass,
 } from "@/lib/brand/styles";
 
-export type MapAbleNavItem = { href: string; label: string };
+export type MapAbleNavItem = { href: string; label: string; description?: string };
+
+export type MapAbleNavGroup = {
+  title: string;
+  items: MapAbleNavItem[];
+};
 
 const DEFAULT_NAV: MapAbleNavItem[] = [
   { href: "/core", label: "Home" },
@@ -23,11 +29,19 @@ const DEFAULT_NAV: MapAbleNavItem[] = [
   { href: "/provider-finder", label: "Provider finder" },
 ];
 
+const MENU_BREAKPOINT_CLASSES = {
+  md: { desktop: "hidden md:flex", menu: "md:hidden" },
+  lg: { desktop: "hidden xl:flex", menu: "xl:hidden" },
+  xl: { desktop: "hidden xl:flex", menu: "xl:hidden" },
+} as const;
+
 export function MapAbleSiteHeader({
   logoHref = "/core",
   logoTitle = "MapAble",
   logoSubtitle = "Core",
   navItems = DEFAULT_NAV,
+  navGroups,
+  menuBreakpoint = "lg",
   externalCta,
   actions,
   logoVariant = "text",
@@ -36,6 +50,9 @@ export function MapAbleSiteHeader({
   logoTitle?: string;
   logoSubtitle?: string;
   navItems?: MapAbleNavItem[];
+  /** Grouped nav for the hamburger panel; when set, uses overlay menu below xl (lg breakpoint). */
+  navGroups?: MapAbleNavGroup[];
+  menuBreakpoint?: keyof typeof MENU_BREAKPOINT_CLASSES;
   externalCta?: { href: string; label: string };
   /** Replaces default sign-in CTA on desktop (e.g. Log in + Get started). */
   actions?: ReactNode;
@@ -44,11 +61,30 @@ export function MapAbleSiteHeader({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const useGroupedMenu = navGroups != null && navGroups.length > 0;
+  const breakpointClasses = useGroupedMenu
+    ? MENU_BREAKPOINT_CLASSES[menuBreakpoint]
+    : MENU_BREAKPOINT_CLASSES.md;
 
   function isActive(href: string) {
-    if (href === "/core") return pathname === "/core";
-    return pathname === href || pathname.startsWith(`${href}/`);
+    const [path] = href.split("#");
+    if (path === "/core") return pathname === "/core";
+    return pathname === path || pathname.startsWith(`${path}/`);
   }
+
+  function closeMenu() {
+    setOpen(false);
+    menuButtonRef.current?.focus();
+  }
+
+  function toggleMenu() {
+    setOpen((current) => !current);
+  }
+
+  const menuPanelActions = actions ? (
+    <div className="flex flex-col gap-2 [&_a]:w-full [&_a]:justify-center">{actions}</div>
+  ) : null;
 
   return (
     <header className={mapableHeaderClass}>
@@ -62,7 +98,7 @@ export function MapAbleSiteHeader({
             ariaLabel="MapAble home"
           />
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className={cn("items-center gap-2", breakpointClasses.desktop)}>
             <nav
               className="mr-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1"
               aria-label="Primary"
@@ -79,7 +115,7 @@ export function MapAbleSiteHeader({
               ))}
             </nav>
             {actions ? (
-              actions
+              <div className="flex items-center gap-2">{actions}</div>
             ) : externalCta ? (
               <Link
                 href={externalCta.href}
@@ -97,11 +133,15 @@ export function MapAbleSiteHeader({
           </div>
 
           <button
+            ref={menuButtonRef}
             type="button"
-            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground md:hidden"
+            className={cn(
+              "inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              breakpointClasses.menu,
+            )}
             aria-expanded={open}
-            aria-controls="mapable-mobile-nav"
-            onClick={() => setOpen(!open)}
+            aria-controls={useGroupedMenu ? "mapable-nav-menu" : "mapable-mobile-nav"}
+            onClick={toggleMenu}
           >
             <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
             {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
@@ -109,10 +149,21 @@ export function MapAbleSiteHeader({
         </div>
       </div>
 
-      {open ? (
+      {useGroupedMenu && open ? (
+        <MapAbleNavMenuPanel
+          open={open}
+          onClose={closeMenu}
+          navGroups={navGroups}
+          logoHref={logoHref}
+          actions={menuPanelActions}
+          isActive={isActive}
+        />
+      ) : null}
+
+      {!useGroupedMenu && open ? (
         <nav
           id="mapable-mobile-nav"
-          className="border-t border-border/60 px-4 py-4 md:hidden"
+          className={cn("border-t border-border/60 px-4 py-4", breakpointClasses.menu)}
           aria-label="Mobile"
         >
           <ul className="space-y-1">
@@ -124,7 +175,7 @@ export function MapAbleSiteHeader({
                     "block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium",
                     isActive(item.href)
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-accent"
+                      : "text-muted-foreground hover:bg-accent",
                   )}
                   onClick={() => setOpen(false)}
                   aria-current={isActive(item.href) ? "page" : undefined}
@@ -134,22 +185,7 @@ export function MapAbleSiteHeader({
               </li>
             ))}
             {actions ? (
-              <li className="flex flex-col gap-2 px-3 pt-2">
-                <Link
-                  href="/login"
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-input px-4 text-sm font-semibold"
-                  onClick={() => setOpen(false)}
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/register"
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
-                  onClick={() => setOpen(false)}
-                >
-                  Get started
-                </Link>
-              </li>
+              <li className="flex flex-col gap-2 px-3 pt-2">{actions}</li>
             ) : (
               <li>
                 <Link
