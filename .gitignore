@@ -27,6 +27,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# NDIS registry snapshot (fetch via pnpm fetch:ndis-list-providers)
+/data/ndis/*.json
+
 # Local env files
 .env
 .env*.local

@@ -20,6 +20,14 @@ const PLACES =
   /\b(place|venue|accessible|map|location|find\s*near)\b/i;
 const HEALTH =
   /\b(health|medication|allied\s*health|therapy|physio|hospital|gp)\b/i;
+const PROVIDER_FINDER =
+  /\b(find\s+(a\s+)?provider|provider\s*finder|registered\s*provider|ndis\s*registered|service\s*provider|care\s*provider|occupational\s*therap|\bot\b|speech\s*path|support\s*worker|allied\s*health|therapy\s*provider)\b/i;
+const PROVIDER_FINDER_LOCATION =
+  /\b(near\s+me|near\s+\w|in\s+[a-z]{3,}|around\s+\w|close\s+to)\b/i;
+
+export type ClassifyIntentOptions = {
+  context?: "provider_finder" | "default";
+};
 
 function normalizeQuery(query: string): string {
   return query.trim().toLowerCase();
@@ -30,7 +38,8 @@ function normalizeQuery(query: string): string {
  */
 export function classifyIntent(
   query: string,
-  mode?: string
+  mode?: string,
+  options?: ClassifyIntentOptions,
 ): CopilotIntent {
   const q = normalizeQuery(query);
   const filters: Record<string, unknown> = { mode: mode ?? "All" };
@@ -101,6 +110,34 @@ export function classifyIntent(
     };
   }
 
+  const looksLikeProviderSearch =
+    PROVIDER_FINDER.test(q) ||
+    (PROVIDER_FINDER_LOCATION.test(q) &&
+      /\b(provider|therapy|therap|worker|physio|ndis)\b/i.test(q));
+
+  if (
+    looksLikeProviderSearch &&
+    !hasCare &&
+    !hasTransport &&
+    options?.context === "provider_finder"
+  ) {
+    return {
+      type: "provider_finder",
+      confidence: 0.9,
+      filters: { ...filters, providerSearch: true },
+      reason: "Matched provider directory search on Provider Finder",
+    };
+  }
+
+  if (looksLikeProviderSearch && !hasCare && !hasTransport) {
+    return {
+      type: "provider_finder",
+      confidence: 0.82,
+      filters: { ...filters, providerSearch: true },
+      reason: "Matched provider or therapy search keywords",
+    };
+  }
+
   if (NDIS.test(q) || mode === "NDIS") {
     return {
       type: "ndis",
@@ -161,6 +198,7 @@ export function intentLabel(type: CopilotIntentType): string {
     combined: "Care + transport",
     jobs: "Jobs",
     places: "Places",
+    provider_finder: "Find providers",
     ndis: "NDIS plan",
     billing: "Billing",
     incident: "Safety",

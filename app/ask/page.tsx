@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { CopilotPanel } from "@/components/copilot/CopilotPanel";
+import { AskPageClient } from "./AskPageClient";
 import Footer from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 
@@ -47,7 +48,13 @@ export default function AskPage() {
           and evidence underneath.
         </p>
         <div className="mt-8">
-          <CopilotPanel />
+          <Suspense
+            fallback={
+              <p className="text-muted-foreground">Loading Ask MapAble…</p>
+            }
+          >
+            <AskPageClient />
+          </Suspense>
         </div>
       </main>
       <Footer />

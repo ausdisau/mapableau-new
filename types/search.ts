@@ -74,3 +74,36 @@ export type PredictiveSuggestionResult = {
   groups: AutocompleteGroupedResult;
   meta: SuggestionResultMeta;
 };
+
+/** Structured filters extracted from a natural-language provider search query. */
+export type NaturalLanguageSearchFilters = {
+  q: string;
+  location: string;
+  access: string;
+  service: string;
+  provider: string;
+};
+
+/** Resolved Provider Finder ACCESS_NEEDS chip ids from NL text. */
+export type AccessNeedResolution = {
+  ids: string[];
+  confidence: number;
+  source: "llm_ids" | "keyword" | "llm_step" | "none";
+  unmatchedText?: string;
+};
+
+/** Server-side interpreter result for provider / homepage search. */
+export type SearchInterpretation = {
+  sourceQuery: string;
+  parsed: boolean;
+  configured: boolean;
+  filters: NaturalLanguageSearchFilters;
+  serviceCategorySlug: string | null;
+  serviceCategoryId: string | null;
+  accessNeedIds: string[];
+  accessNeeds: AccessNeedResolution;
+  confidence: number;
+  engineId: string;
+};
+
+export type SearchInterpretResponse = SearchInterpretation;

@@ -8,8 +8,14 @@ import { MapAbleProviderSearchForm } from "@/components/search/MapAbleProviderSe
 import { SuggestedSearchChips } from "@/components/search/SuggestedSearchChips";
 import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
+import { trackProductEvent } from "@/lib/analytics/product-analytics";
 import { useProactiveChipSuggestions } from "@/lib/hooks/use-proactive-chip-suggestions";
 import { ACCESS_NEEDS } from "@/lib/provider-finder/filters";
+import {
+  applyInterpretationToFields,
+  buildFinderSearchParams,
+} from "@/lib/search/apply-interpretation";
+import { interpretSearchQueryClient } from "@/lib/search/interpreter-client";
 
 export function HomeSearch() {
   const router = useRouter();
@@ -21,7 +27,45 @@ export function HomeSearch() {
   const [providerName, setProviderName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function navigateToFinder() {
+  async function navigateToFinder() {
+    setIsSubmitting(true);
+    try {
+      const combined =
+        query.trim() ||
+        [serviceQuery, accessQuery, location, providerName]
+          .filter(Boolean)
+          .join(" ");
+
+      if (combined.trim().length >= 3) {
+        const interpretation = await interpretSearchQueryClient(
+          combined,
+          "homepage",
+        );
+        const applied = applyInterpretationToFields(interpretation, {
+          query,
+          location,
+          providerName,
+          serviceQuery,
+          accessQuery,
+        });
+
+        trackProductEvent("search_query_interpreted", {
+          context: "homepage",
+          parsed: interpretation.parsed,
+          confidence: interpretation.confidence,
+          service_category_slug: interpretation.serviceCategorySlug ?? "",
+          engine_id: interpretation.engineId,
+        });
+
+        const params = buildFinderSearchParams(applied);
+        const qs = params.toString();
+        router.push(qs ? `/provider-finder?${qs}` : "/provider-finder");
+        return;
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
     if (location.trim()) params.set("location", location.trim());
@@ -82,8 +126,7 @@ export function HomeSearch() {
             onServiceQueryChange={setServiceQuery}
             onProviderNameChange={setProviderName}
             onSubmit={() => {
-              setIsSubmitting(true);
-              navigateToFinder();
+              void navigateToFinder();
             }}
             onAccessSuggestionSelect={handleAccessSuggestion}
             isSubmitting={isSubmitting}

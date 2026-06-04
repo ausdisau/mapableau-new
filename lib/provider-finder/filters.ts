@@ -45,9 +45,21 @@ export type AccessNeed = {
 
 export const ACCESS_NEEDS: AccessNeed[] = [
   { id: "wheelchair", label: "Wheelchair access", keywords: ["wheelchair", "access"] },
-  { id: "auslan", label: "Auslan", keywords: ["auslan", "interpreter"] },
-  { id: "low-sensory", label: "Low sensory", keywords: ["sensory", "quiet"] },
-  { id: "hoist", label: "Hoist trained", keywords: ["hoist", "transfer"] },
+  {
+    id: "auslan",
+    label: "Auslan",
+    keywords: ["auslan", "interpreter", "sign language", "deaf"],
+  },
+  {
+    id: "low-sensory",
+    label: "Low sensory",
+    keywords: ["sensory", "quiet", "sensory-friendly", "low stimulus"],
+  },
+  {
+    id: "hoist",
+    label: "Hoist trained",
+    keywords: ["hoist", "transfer", "ceiling hoist", "lifting"],
+  },
   {
     id: "complex",
     label: "Complex support",

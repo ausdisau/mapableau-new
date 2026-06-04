@@ -169,7 +169,9 @@ export function ProviderFinderResultCard({
           {isCompared ? "Compared" : "Compare"}
         </Button>
         <Button type="button" variant="outline" size="default" asChild>
-          <Link href={`/ask?provider=${encodeURIComponent(provider.slug)}`}>
+          <Link
+            href={`/provider-finder?provider=${encodeURIComponent(provider.slug)}#ask-panel`}
+          >
             <MessageCircle className="h-4 w-4" aria-hidden />
             Ask MapAble
           </Link>

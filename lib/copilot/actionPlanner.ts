@@ -1,4 +1,6 @@
+import { planProviderFinderCopilotActions } from "@/lib/copilot/plan-provider-finder";
 import type { CopilotActionPlan, CopilotPlanningInput } from "@/lib/copilot/types";
+import type { ProviderFinderSessionFields } from "@/lib/provider-finder/ask-bridge";
 import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
 import type { DraftPrmsRecord } from "@/lib/prms/types";
 
@@ -16,14 +18,31 @@ function draft(
   };
 }
 
+export type CopilotPlanningExtras = {
+  session?: Partial<ProviderFinderSessionFields>;
+  providerSlug?: string;
+  providerName?: string;
+  agentSessionId?: string;
+  messages?: { role: "user" | "assistant"; content: string }[];
+};
+
 export async function planCopilotActions(
-  input: CopilotPlanningInput
+  input: CopilotPlanningInput,
+  extras?: CopilotPlanningExtras,
 ): Promise<CopilotActionPlan> {
   const { intent, query, context, participantId } = input;
   const pid = participantId ?? context?.participantId ?? MOCK_PARTICIPANT_ID;
   const filters = { ...intent.filters };
 
   switch (intent.type) {
+    case "provider_finder":
+      return planProviderFinderCopilotActions(query, extras?.session, {
+        providerSlug: extras?.providerSlug,
+        providerName: extras?.providerName,
+        agentSessionId: extras?.agentSessionId,
+        messages: extras?.messages,
+      });
+
     case "combined":
       return {
         summary: "Combined care and accessible transport request",

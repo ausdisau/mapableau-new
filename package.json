@@ -21,6 +21,11 @@
     "mcp:av": "tsx mcp/av/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",
     "seed:ndis-service-delivery": "tsx prisma/seed-ndis-service-delivery.ts",
+    "import:provider-outlets-supabase": "tsx scripts/import-provider-outlets-supabase.ts",
+    "fetch:ndis-list-providers": "tsx scripts/fetch-ndis-list-providers.ts",
+    "seed:ndis-provider-outlets": "tsx prisma/seed-ndis-provider-outlets.ts",
+    "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
+    "ingest:ndis-providers:dry": "DRY_RUN=true tsx scripts/ingest-ndis-providers.ts",
     "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
   },
   "lint-staged": {
@@ -37,15 +42,22 @@
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
   "dependencies": {
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/react": "^3.0.198",
+    "@chat-adapter/slack": "^4.30.0",
+    "@chat-adapter/state-memory": "^4.30.0",
     "@prisma/client": "6.19.2",
     "@pusher/push-notifications-web": "^1.1.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@sendgrid/mail": "^8.1.6",
     "@simplewebauthn/browser": "^13.3.0",
     "@simplewebauthn/server": "^13.3.1",
+    "@supabase/supabase-js": "^2.107.0",
     "@tanstack/react-query": "^5.90.16",
     "@vercel/speed-insights": "^2.0.0",
+    "ai": "^6.0.196",
     "bcryptjs": "^3.0.3",
+    "chat": "^4.30.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.2.1",
@@ -95,6 +107,7 @@
     "prisma": "6.19.2",
     "tsx": "^4.22.3",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "dotenv": "^16.4.7"
   }
 }
