@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
+import { ProviderFinderConversation } from "@/components/provider-finder/ProviderFinderConversation";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
@@ -281,6 +282,36 @@ export default function ProviderFinderClient() {
     if (page !== currentPage) setPage(currentPage);
   }, [currentPage, page]);
 
+  const applyInterpretationFields = (
+    applied: ReturnType<typeof applyInterpretationToFields>,
+    interpretation: { parsed: boolean; confidence: number },
+  ) => {
+    setQuery(applied.query);
+    setLocation(applied.location);
+    setProviderName(applied.providerName);
+    setServiceQuery(applied.serviceQuery);
+    setAccessQuery(applied.accessQuery);
+    if (applied.supportType) setSupportType(applied.supportType);
+    if (applied.accessNeedIds.length > 0) {
+      setAccessNeeds(applied.accessNeedIds);
+    }
+    if (interpretation.parsed && interpretation.confidence < 0.6) {
+      setInterpretNote(
+        "AI-suggested filters — adjust any field if something looks off.",
+      );
+    } else {
+      setInterpretNote(null);
+    }
+    const params = buildFinderSearchParams(applied);
+    if (typeof window !== "undefined" && params.toString()) {
+      window.history.replaceState(
+        null,
+        "",
+        `/provider-finder?${params.toString()}`,
+      );
+    }
+  };
+
   const handleSearch = async () => {
     setSearchInterpreting(true);
     setInterpretNote(null);
@@ -309,15 +340,7 @@ export default function ProviderFinderClient() {
           accessQuery,
         });
 
-        setQuery(applied.query);
-        setLocation(applied.location);
-        setProviderName(applied.providerName);
-        setServiceQuery(applied.serviceQuery);
-        setAccessQuery(applied.accessQuery);
-        if (applied.supportType) setSupportType(applied.supportType);
-        if (applied.accessNeedIds.length > 0) {
-          setAccessNeeds(applied.accessNeedIds);
-        }
+        applyInterpretationFields(applied, interpretation);
 
         trackProductEvent("search_query_interpreted", {
           context: "provider_finder",
@@ -326,21 +349,6 @@ export default function ProviderFinderClient() {
           service_category_slug: interpretation.serviceCategorySlug ?? "",
           engine_id: interpretation.engineId,
         });
-
-        if (interpretation.parsed && interpretation.confidence < 0.6) {
-          setInterpretNote(
-            "AI-suggested filters — adjust any field if something looks off.",
-          );
-        }
-
-        const params = buildFinderSearchParams(applied);
-        if (typeof window !== "undefined" && params.toString()) {
-          window.history.replaceState(
-            null,
-            "",
-            `/provider-finder?${params.toString()}`,
-          );
-        }
       }
     } finally {
       setSearchInterpreting(false);
@@ -413,6 +421,45 @@ export default function ProviderFinderClient() {
           <p className="text-xs text-muted-foreground" role="status">
             {interpretNote}
           </p>
+        </div>
+      ) : null}
+
+      {!searchSubmitted ? (
+        <div className="container mx-auto max-w-7xl px-4 pb-8">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ProviderFinderConversation
+              className="min-h-[22rem]"
+              session={{
+                query,
+                location,
+                providerName,
+                serviceQuery,
+                accessQuery,
+              }}
+              onInterpretation={({ interpretation, applied }) => {
+                applyInterpretationFields(applied, interpretation);
+                trackProductEvent("search_query_interpreted", {
+                  context: "provider_finder_chat",
+                  parsed: interpretation.parsed,
+                  confidence: interpretation.confidence,
+                  service_category_slug:
+                    interpretation.serviceCategorySlug ?? "",
+                  engine_id: interpretation.engineId,
+                });
+              }}
+              onSearchFromChat={() => {
+                setSearchSubmitted(true);
+                setPage(1);
+              }}
+            />
+            <div className="hidden lg:block">
+              <p className="text-sm text-muted-foreground">
+                Prefer the form above? Use the hero search fields, or chat here
+                to describe support, transport, therapy, or access needs in one
+                message.
+              </p>
+            </div>
+          </div>
         </div>
       ) : null}
 

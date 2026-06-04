@@ -46,9 +46,20 @@ curl -sS -X POST "$BASE_URL/api/search/interpret" \
   -d '{"query":"OT assessment in Parramatta","context":"provider_finder"}'
 ```
 
+## Conversational Provider Finder (Chat SDK + AI SDK UI)
+
+On `/provider-finder`, the **Chat to find providers** panel uses `@ai-sdk/react` `useChat` with `DefaultChatTransport` against `POST /api/provider-finder/chat`. Each turn:
+
+1. Runs the same `interpretSearchQuery` pipeline as `/api/search/interpret`.
+2. Streams a short assistant reply (AI SDK `streamText` when configured, otherwise a template).
+3. Emits a `data-finderInterpretation` part so the UI can apply filters and show results.
+
+Optional **Slack** bot (Chat SDK): `lib/provider-finder/chat-sdk/find-bot.ts` + `POST /api/chat/slack` when `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET` are set. Slash commands: `/finder`, `/providers`.
+
 ## UI behaviour
 
 - **Provider Finder** — On search submit, calls the interpret API, fills `query`, `location`, `serviceQuery`, `accessQuery`, `providerName`, and maps slug → `supportType` when known.
+- **Chat panel** — Same filter application on each assistant turn; **Show results** submits the search view.
 - **Low confidence** — When `parsed && confidence < 0.6`, shows: *AI-suggested filters — adjust if needed.*
 - **Homepage** — Debounced interpret before redirect to `/provider-finder?...` when the combined query is at least 3 characters.
 
