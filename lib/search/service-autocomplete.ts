@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getStaticProactiveCatalog } from "@/lib/search/suggestion-fallback-catalog";
 import { keywordsMatchQuery, textMatchesQuery } from "@/lib/search/matches-query";
 import type { AutocompleteSuggestion } from "@/types/search";
 
@@ -187,6 +188,7 @@ export type ProactiveCatalogResult = {
   suggestions: AutocompleteSuggestion[];
   popularWeights: [string, number][];
   failed: boolean;
+  usedFallback: boolean;
 };
 
 /** Curated suggestions shown before the user types (chips + proactive dropdown). */
@@ -248,14 +250,35 @@ export async function listProactiveCatalog(
       row.weight,
     ]);
 
+    const combined = [...popular, ...services, ...locations];
+    if (combined.length > 0) {
+      return {
+        suggestions: combined,
+        popularWeights,
+        failed: false,
+        usedFallback: false,
+      };
+    }
+
+    const fallback = getStaticProactiveCatalog(limit);
+    console.warn(
+      "[predictive-suggestions] DB catalog empty — using static fallback (run prisma/seed-search-autocomplete.ts)",
+    );
     return {
-      suggestions: [...popular, ...services, ...locations],
-      popularWeights,
+      suggestions: fallback.suggestions,
+      popularWeights: fallback.popularWeights,
       failed: false,
+      usedFallback: true,
     };
   } catch (err) {
     console.error("[predictive-suggestions] proactive catalog failed", err);
-    return { suggestions: [], popularWeights: [], failed: true };
+    const fallback = getStaticProactiveCatalog(limit);
+    return {
+      suggestions: fallback.suggestions,
+      popularWeights: fallback.popularWeights,
+      failed: true,
+      usedFallback: true,
+    };
   }
 }
 
