@@ -1,5 +1,10 @@
 import { keywordsMatchQuery, textMatchesQuery } from "@/lib/search/matches-query";
-import type { AutocompleteSuggestion } from "@/types/search";
+import type {
+  AutocompleteField,
+  AutocompleteGroupedResult,
+  AutocompleteSuggestion,
+} from "@/types/search";
+import { AUTOCOMPLETE_MAX_SUGGESTIONS } from "@/types/search";
 
 /** In-memory catalog when DB search tables are empty (e.g. production before seed). */
 
@@ -264,4 +269,46 @@ export function getStaticReactiveSuggestions(
   }
 
   return out.slice(0, limit * 3);
+}
+
+export function groupStaticSuggestions(
+  suggestions: AutocompleteSuggestion[],
+): AutocompleteGroupedResult {
+  const take = (type: AutocompleteSuggestion["type"]) =>
+    suggestions.filter((s) => s.type === type);
+
+  return {
+    providers: take("provider"),
+    services: take("service"),
+    locations: take("location"),
+    accessibilityFeatures: take("accessibility_feature"),
+    languages: take("language"),
+    popularSearches: take("popular_search"),
+  };
+}
+
+export function isSuggestionGroupsEmpty(groups: AutocompleteGroupedResult): boolean {
+  return (
+    groups.providers.length === 0 &&
+    groups.services.length === 0 &&
+    groups.locations.length === 0 &&
+    groups.accessibilityFeatures.length === 0 &&
+    groups.languages.length === 0 &&
+    groups.popularSearches.length === 0
+  );
+}
+
+/** Last-resort grouped suggestions when DB and engine return nothing. */
+export function getStaticFallbackGroups(
+  mode: "proactive" | "reactive",
+  query: string,
+  field: AutocompleteField = "all",
+  limit = AUTOCOMPLETE_MAX_SUGGESTIONS,
+): AutocompleteGroupedResult {
+  if (mode === "proactive") {
+    return groupStaticSuggestions(getStaticProactiveCatalog(limit).suggestions);
+  }
+  return groupStaticSuggestions(
+    getStaticReactiveSuggestions(query, limit, field),
+  );
 }

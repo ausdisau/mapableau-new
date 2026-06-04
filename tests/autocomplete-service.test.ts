@@ -36,6 +36,34 @@ describe("searchAutocomplete", () => {
 });
 
 describe("searchAutocompleteWithMeta", () => {
+  it("applies static fallback when engine returns empty proactive groups", async () => {
+    mockSearchPredictive.mockResolvedValueOnce({
+      groups: {
+        providers: [],
+        services: [],
+        locations: [],
+        accessibilityFeatures: [],
+        languages: [],
+        popularSearches: [],
+      },
+      meta: { mode: "proactive", degraded: false },
+    });
+
+    const result = await searchAutocompleteWithMeta({
+      mode: "proactive",
+      query: "",
+      context: "homepage",
+    });
+
+    expect(result.meta.degraded).toBe(true);
+    expect(result.meta.degradedReason).toContain("static_fallback");
+    expect(
+      result.groups.popularSearches.length +
+        result.groups.services.length +
+        result.groups.locations.length,
+    ).toBeGreaterThan(0);
+  });
+
   it("returns meta for proactive mode", async () => {
     mockSearchPredictive.mockResolvedValueOnce({
       groups: {

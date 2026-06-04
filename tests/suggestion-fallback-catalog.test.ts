@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   getStaticProactiveCatalog,
   getStaticReactiveSuggestions,
+  getStaticFallbackGroups,
+  isSuggestionGroupsEmpty,
 } from "@/lib/search/suggestion-fallback-catalog";
 
 describe("suggestion-fallback-catalog", () => {
@@ -17,5 +19,10 @@ describe("suggestion-fallback-catalog", () => {
     expect(suggestions.some((s) => s.label.toLowerCase().includes("physio"))).toBe(
       true,
     );
+  });
+
+  it("builds grouped proactive fallback", () => {
+    const groups = getStaticFallbackGroups("proactive", "", "all");
+    expect(isSuggestionGroupsEmpty(groups)).toBe(false);
   });
 });

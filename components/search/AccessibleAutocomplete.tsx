@@ -9,6 +9,10 @@ import {
   buildLiveRegionMessage,
   flattenSuggestions,
 } from "@/lib/search/autocomplete-utils";
+import {
+  getStaticFallbackGroups,
+  isSuggestionGroupsEmpty,
+} from "@/lib/search/suggestion-fallback-catalog";
 import type {
   AutocompleteContext,
   AutocompleteField,
@@ -133,8 +137,26 @@ export function AccessibleAutocomplete({
           meta?: SuggestionResultMeta;
         };
         if (controller.signal.aborted) return;
-        setGroups(data.groups);
-        setMeta(data.meta ?? null);
+        let groups = data.groups;
+        let meta = data.meta ?? null;
+        if (isSuggestionGroupsEmpty(groups)) {
+          groups = getStaticFallbackGroups(mode, q, field);
+          meta = {
+            mode,
+            degraded: true,
+            degradedReason: "static_fallback_client",
+            sourceCounts: {
+              providers: groups.providers.length,
+              services: groups.services.length,
+              locations: groups.locations.length,
+              accessibilityFeatures: groups.accessibilityFeatures.length,
+              languages: groups.languages.length,
+              popularSearches: groups.popularSearches.length,
+            },
+          };
+        }
+        setGroups(groups);
+        setMeta(meta);
         setActiveIndex(-1);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
