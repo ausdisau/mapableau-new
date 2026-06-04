@@ -2,6 +2,7 @@ import type { NdisDeliveryAuthorizationStatus } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { isNdisServiceDeliveryMechanismEnabled } from "@/lib/config/ndis-service-delivery";
+import { assertProviderMayServeParticipant } from "@/lib/ndis/participant-provider-relationship-service";
 import { defaultAuthorizationTypeForRoute } from "@/lib/ndis/service-delivery/mechanism-catalog";
 import type { CreateDeliveryAuthorizationInput } from "@/lib/ndis/service-delivery/types";
 import { prisma } from "@/lib/prisma";
@@ -13,6 +14,26 @@ export async function createDeliveryAuthorization(
 ) {
   if (!isNdisServiceDeliveryMechanismEnabled()) {
     throw new Error("NDIS_SERVICE_DELIVERY_DISABLED");
+  }
+
+  await assertProviderMayServeParticipant(
+    input.participantId,
+    input.providerOrgId,
+    input.paymentRoute
+  );
+
+  if (input.careBookingId) {
+    const careBooking = await prisma.careBooking.findUnique({
+      where: { id: input.careBookingId },
+      select: { participantId: true, organisationId: true },
+    });
+    if (!careBooking) throw new Error("CARE_BOOKING_NOT_FOUND");
+    if (careBooking.participantId !== input.participantId) {
+      throw new Error("CARE_BOOKING_PARTICIPANT_MISMATCH");
+    }
+    if (careBooking.organisationId !== input.providerOrgId) {
+      throw new Error("CARE_BOOKING_ORG_MISMATCH");
+    }
   }
 
   const authorizationType =

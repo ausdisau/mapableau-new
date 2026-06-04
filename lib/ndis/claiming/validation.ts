@@ -251,7 +251,8 @@ export function mergeValidationJson(
 
 export async function validateClaimLinesForBatch(
   lineIds: string[],
-  expectedRoute: NdisPaymentRoute
+  expectedRoute: NdisPaymentRoute,
+  providerOrgId: string
 ): Promise<ClaimValidationResult> {
   const issues: ClaimValidationIssue[] = [];
   const lines = await prisma.ndisClaimLine.findMany({
@@ -267,6 +268,13 @@ export async function validateClaimLinesForBatch(
   }
 
   for (const line of lines) {
+    if (line.providerOrgId !== providerOrgId) {
+      issues.push({
+        code: "provider_org_mismatch",
+        message: `Claim line ${line.id.slice(0, 8)}… belongs to a different provider organisation than the batch.`,
+        severity: "error",
+      });
+    }
     if (line.status !== "validated") {
       issues.push({
         code: "line_not_validated",

@@ -1,4 +1,5 @@
 import { isNdisServiceDeliveryMechanismEnabled } from "@/lib/config/ndis-service-delivery";
+import { assertProviderMayServeParticipant } from "@/lib/ndis/participant-provider-relationship-service";
 import { findActiveDeliveryAuthorization } from "@/lib/ndis/service-delivery/authorization-service";
 import type {
   DeliveryValidationIssue,
@@ -9,6 +10,59 @@ import { prisma } from "@/lib/prisma";
 export async function recordDeliveryEvent(input: RecordDeliveryEventInput) {
   if (!isNdisServiceDeliveryMechanismEnabled()) {
     throw new Error("NDIS_SERVICE_DELIVERY_DISABLED");
+  }
+
+  await assertProviderMayServeParticipant(
+    input.participantId,
+    input.providerOrgId,
+    input.paymentRoute
+  );
+
+  if (input.authorizationId) {
+    const auth = await prisma.ndisServiceDeliveryAuthorization.findUnique({
+      where: { id: input.authorizationId },
+      select: {
+        participantId: true,
+        providerOrgId: true,
+        paymentRoute: true,
+        deliveryMechanism: true,
+      },
+    });
+    if (!auth) throw new Error("AUTHORIZATION_NOT_FOUND");
+    if (
+      auth.participantId !== input.participantId ||
+      auth.providerOrgId !== input.providerOrgId
+    ) {
+      throw new Error("AUTHORIZATION_SCOPE_MISMATCH");
+    }
+  }
+
+  if (input.careShiftId) {
+    const shift = await prisma.careShift.findUnique({
+      where: { id: input.careShiftId },
+      select: { participantId: true, organisationId: true },
+    });
+    if (!shift) throw new Error("CARE_SHIFT_NOT_FOUND");
+    if (
+      shift.participantId !== input.participantId ||
+      shift.organisationId !== input.providerOrgId
+    ) {
+      throw new Error("CARE_SHIFT_SCOPE_MISMATCH");
+    }
+  }
+
+  if (input.claimLineId) {
+    const line = await prisma.ndisClaimLine.findUnique({
+      where: { id: input.claimLineId },
+      select: { participantId: true, providerOrgId: true },
+    });
+    if (!line) throw new Error("CLAIM_LINE_NOT_FOUND");
+    if (
+      line.participantId !== input.participantId ||
+      line.providerOrgId !== input.providerOrgId
+    ) {
+      throw new Error("CLAIM_LINE_SCOPE_MISMATCH");
+    }
   }
 
   const event = await prisma.ndisServiceDeliveryEvent.create({

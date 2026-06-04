@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import * as ndisServiceDeliveryConfig from "@/lib/config/ndis-service-delivery";
 import {
   defaultAuthorizationTypeForRoute,
   getDeliveryMechanism,
@@ -33,6 +34,11 @@ describe("NDIS service delivery mechanism catalog", () => {
 
 describe("delivery authorization validation", () => {
   it("returns no issues when mechanism tracking is disabled", async () => {
+    vi.spyOn(
+      ndisServiceDeliveryConfig,
+      "isNdisServiceDeliveryMechanismEnabled"
+    ).mockReturnValue(false);
+
     const issues = await validateDeliveryAuthorizationForClaim({
       participantId: "p1",
       providerOrgId: "org1",
