@@ -18,7 +18,8 @@ export type CreateBatchInput = {
 export async function createClaimBatch(input: CreateBatchInput) {
   const validation = await validateClaimLinesForBatch(
     input.claimLineIds,
-    input.paymentRoute
+    input.paymentRoute,
+    input.providerOrgId
   );
   if (!validation.valid) {
     return { ok: false as const, validation };
@@ -90,7 +91,8 @@ export async function validateClaimBatch(batchId: string) {
 
   const validation = await validateClaimLinesForBatch(
     batch.lines.map((l) => l.id),
-    batch.paymentRoute
+    batch.paymentRoute,
+    batch.providerOrgId
   );
 
   const nextStatus = validation.valid ? "validated" : "draft";

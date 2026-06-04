@@ -1,5 +1,7 @@
 import type { NdisClaimLineStatus, NdisPaymentRoute } from "@prisma/client";
 
+import { ndisServiceDeliveryConfig } from "@/lib/config/ndis-service-delivery";
+import { validateDeliveryAuthorizationForClaim } from "@/lib/ndis/service-delivery/delivery-event-service";
 import { paymentRouteRequiresMyProviderCheck } from "@/lib/ndis/claiming/paymentRoute";
 import type {
   ClaimLineInput,
@@ -200,6 +202,29 @@ export async function validateClaimLineInput(
     }
   }
 
+  if (
+    ndisServiceDeliveryConfig.requireAuthorizationForClaims &&
+    input.paymentRoute &&
+    input.serviceStartDate
+  ) {
+    const deliveryIssues = await validateDeliveryAuthorizationForClaim({
+      participantId: input.participantId,
+      providerOrgId: input.providerOrgId,
+      paymentRoute: input.paymentRoute,
+      deliveryMechanism: input.deliveryMechanism,
+      supportItemCode: input.supportItemCode,
+      serviceDate: new Date(input.serviceStartDate),
+    });
+    for (const issue of deliveryIssues) {
+      issues.push({
+        code: issue.code,
+        field: issue.field,
+        message: issue.message,
+        severity: issue.severity,
+      });
+    }
+  }
+
   const hasErrors = issues.some((i) => i.severity === "error");
   return {
     valid: !hasErrors,
@@ -226,7 +251,8 @@ export function mergeValidationJson(
 
 export async function validateClaimLinesForBatch(
   lineIds: string[],
-  expectedRoute: NdisPaymentRoute
+  expectedRoute: NdisPaymentRoute,
+  providerOrgId: string
 ): Promise<ClaimValidationResult> {
   const issues: ClaimValidationIssue[] = [];
   const lines = await prisma.ndisClaimLine.findMany({
@@ -242,6 +268,13 @@ export async function validateClaimLinesForBatch(
   }
 
   for (const line of lines) {
+    if (line.providerOrgId !== providerOrgId) {
+      issues.push({
+        code: "provider_org_mismatch",
+        message: `Claim line ${line.id.slice(0, 8)}… belongs to a different provider organisation than the batch.`,
+        severity: "error",
+      });
+    }
     if (line.status !== "validated") {
       issues.push({
         code: "line_not_validated",
