@@ -31,7 +31,7 @@ export async function assertCanAccessParticipantData(
   if (user.primaryRole === "family_member") {
     const allowed = await checkConsent({
       subjectUserId: participantId,
-      scope: "family_nominee_access",
+      scope: "profile.read",
       grantedToUserId: user.id,
     });
     if (allowed) return;
