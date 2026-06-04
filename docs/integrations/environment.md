@@ -93,6 +93,11 @@ LiveKit: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`
 - `ERPNEXT_API_KEY`
 - `ERPNEXT_API_SECRET`
 
+### Australia Post PAC (`AUSPOST_PAC_API_KEY`)
+
+- `AUSPOST_PAC_API_KEY` — Postcode search and domestic parcel postage (see `docs/integrations/auspost-pac.md`)
+- `AUSPOST_PAC_ENRICH_LOCATION_SEARCH=true` — Use PAC for search location autocomplete (with local DB fallback)
+
 ### Realtime
 
 - Supabase Realtime: `SUPABASE_REALTIME_ENABLED=true` + Supabase URL/keys
