@@ -34,6 +34,7 @@ export const localLocationAdapter: LocationAutocompleteAdapter = {
           suburb: row.suburb ?? undefined,
           state: row.state ?? undefined,
           postcode: row.postcode ?? undefined,
+          locationSource: "local_db",
         },
       }));
     } catch (err) {
@@ -61,6 +62,7 @@ export async function listProactiveLocations(
       suburb: row.suburb ?? undefined,
       state: row.state ?? undefined,
       postcode: row.postcode ?? undefined,
+      locationSource: "local_db",
     },
   }));
 }

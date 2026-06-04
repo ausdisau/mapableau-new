@@ -23,6 +23,8 @@ export type AutocompleteSuggestion = {
     state?: string;
     postcode?: string;
     providerId?: string;
+    /** Where a location suggestion was resolved (analytics + agents). */
+    locationSource?: "auspost_pac" | "local_db";
   };
 };
 
@@ -63,11 +65,19 @@ export type SuggestionSourceCounts = {
   popularSearches: number;
 };
 
+export type LocationProviderTag =
+  | "auspost_pac"
+  | "local_db"
+  | "static_fallback"
+  | "unknown";
+
 export type SuggestionResultMeta = {
   mode: SuggestionMode;
   degraded: boolean;
   degradedReason?: string;
   sourceCounts?: SuggestionSourceCounts;
+  /** Primary AU location backend for this response (when locations included). */
+  locationProvider?: LocationProviderTag;
 };
 
 export type PredictiveSuggestionResult = {

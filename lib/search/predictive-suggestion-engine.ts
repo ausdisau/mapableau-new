@@ -1,3 +1,4 @@
+import { locationSearchConfig } from "@/lib/config/location-search";
 import { searchLocations } from "@/lib/search/location-autocomplete-adapter";
 import { listProactiveLocations } from "@/lib/search/local-location-adapter";
 import {
@@ -34,8 +35,17 @@ import type {
   PredictiveSuggestionResult,
   SuggestionMode,
   SuggestionSignals,
+  LocationProviderTag,
   SuggestionSourceCounts,
 } from "@/types/search";
+
+function locationProviderForMeta(
+  degradedReason?: string,
+): LocationProviderTag | undefined {
+  if (degradedReason?.includes("static_fallback")) return "static_fallback";
+  const primary = locationSearchConfig.primaryAuProvider;
+  return primary === "auspost_pac" ? "auspost_pac" : "local_db";
+}
 
 export type PredictiveSuggestionInput = {
   mode: SuggestionMode;
@@ -271,13 +281,15 @@ export async function searchPredictiveSuggestions(
       mode,
     );
 
+    const degradedReason = degradedReasons.join(",") || undefined;
     return {
       groups,
       meta: {
         mode,
         degraded,
-        degradedReason: degradedReasons.join(",") || undefined,
+        degradedReason,
         sourceCounts: countSources(groups),
+        locationProvider: locationProviderForMeta(degradedReason),
       },
     };
   }
@@ -358,13 +370,15 @@ export async function searchPredictiveSuggestions(
     mode,
   );
 
+  const degradedReason = degradedReasons.join(",") || undefined;
   return {
     groups,
     meta: {
       mode,
       degraded,
-      degradedReason: degradedReasons.join(",") || undefined,
+      degradedReason,
       sourceCounts: countSources(groups),
+      locationProvider: locationProviderForMeta(degradedReason),
     },
   };
 }

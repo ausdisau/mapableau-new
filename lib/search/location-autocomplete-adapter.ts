@@ -1,3 +1,5 @@
+import { isAuspostPacLocationSearchAvailable } from "@/lib/config/auspost-pac";
+import { auspostLocationAdapter } from "@/lib/search/auspost-location-adapter";
 import { localLocationAdapter } from "@/lib/search/local-location-adapter";
 import type { AutocompleteSuggestion } from "@/types/search";
 
@@ -23,5 +25,13 @@ export async function searchLocations(
   query: string,
   limit: number,
 ): Promise<AutocompleteSuggestion[]> {
+  if (isAuspostPacLocationSearchAvailable()) {
+    try {
+      const auspost = await auspostLocationAdapter.search(query, limit);
+      if (auspost.length > 0) return auspost;
+    } catch (err) {
+      console.error("[predictive-suggestions] AusPost location search failed", err);
+    }
+  }
   return activeAdapter.search(query, limit);
 }
