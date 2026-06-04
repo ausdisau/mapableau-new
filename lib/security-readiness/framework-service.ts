@@ -6,19 +6,22 @@ import { prisma } from "@/lib/prisma";
 export async function ensureSecurityFrameworks() {
   if (!phase5Config.securityReadinessEnabled) return [];
 
-  const types: SecurityFrameworkType[] = ["soc2", "iso27001"];
+  const frameworks: { type: SecurityFrameworkType; name: string }[] = [
+    { type: "soc2", name: "SOC 2 Type II readiness" },
+    { type: "internal", name: "IRAP / ISM readiness" },
+    { type: "iso27001", name: "ISO 27001 readiness" },
+    { type: "privacy_act", name: "Privacy Act / APP readiness" },
+    { type: "ndis_quality_safeguards", name: "NDIS Quality & Safeguards readiness" },
+  ];
   const results = [];
-  for (const type of types) {
+  for (const fwDef of frameworks) {
     const existing = await prisma.securityFramework.findFirst({
-      where: { type },
+      where: { type: fwDef.type, name: fwDef.name },
     });
     const fw =
       existing ??
       (await prisma.securityFramework.create({
-        data: {
-          type,
-          name: type === "soc2" ? "SOC 2 readiness" : "ISO 27001 readiness",
-        },
+        data: { type: fwDef.type, name: fwDef.name, active: true },
       }));
     results.push(fw);
   }

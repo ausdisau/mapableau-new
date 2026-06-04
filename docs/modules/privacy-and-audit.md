@@ -18,3 +18,8 @@ Immutable `AuditEvent` records via `lib/audit/audit-event-service.ts`. Actions i
 ## Phase 2
 
 Export for NDIS Quality and Safeguards evidence packs, retention policies, and participant data export/erasure workflows.
+
+## SOC 2 and IRAP readiness
+
+Dual-track control register: [docs/compliance/README.md](../compliance/README.md)  
+Machine-readable catalog: `lib/compliance-evidence/audit-control-catalog.ts`
