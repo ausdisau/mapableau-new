@@ -1,19 +1,22 @@
 import { NextResponse } from "next/server";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { apiForbidden } from "@/lib/auth/guards";
 import { createLedgerEvent } from "@/lib/ledger/createLedgerEvent";
 import { confirmDraft, getDraft } from "@/lib/prms/draftStore";
-import type { ActorType } from "@/lib/prms/types";
+import {
+  assertCanAccessParticipantData,
+  ParticipantAccessError,
+} from "@/lib/prms/participant-access";
 
 export async function POST(request: Request) {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
   try {
     const body = await request.json();
     const draftId = typeof body.draftId === "string" ? body.draftId : "";
-    const confirmedBy =
-      (typeof body.confirmedBy === "string"
-        ? body.confirmedBy
-        : "participant") as ActorType;
 
-    // TODO: authenticate; never trust client-supplied role without session check
     if (!draftId) {
       return NextResponse.json(
         { error: "Draft id is required to confirm." },
@@ -28,6 +31,17 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
+
+    try {
+      await assertCanAccessParticipantData(user, existing.participantId);
+    } catch (e) {
+      if (e instanceof ParticipantAccessError) {
+        return apiForbidden(e.message);
+      }
+      throw e;
+    }
+
+    const confirmedBy = user.id === existing.participantId ? "participant" : "system";
 
     const official = confirmDraft(draftId, confirmedBy);
     if (!official) {

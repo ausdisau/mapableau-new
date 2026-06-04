@@ -37,7 +37,22 @@ export async function PATCH(
   if (user instanceof Response) return user;
   const { incidentId } = await params;
   const body = await req.json();
+
+  const existing = await prisma.incidentReport.findUnique({
+    where: { id: incidentId },
+  });
+  if (!existing) return jsonError("Not found", 404);
+
   if (body.action === "submit") {
+    if (
+      !canUserAccessIncident(
+        existing,
+        user.id,
+        isAdminRole(user.primaryRole)
+      )
+    ) {
+      return jsonError("Forbidden", 403);
+    }
     const incident = await submitIncident(incidentId, user.id);
     return jsonOk({ incident });
   }
@@ -69,6 +84,17 @@ export async function PATCH(
     );
     return jsonOk({ incident });
   }
+
+  if (
+    !canUserAccessIncident(
+      existing,
+      user.id,
+      isAdminRole(user.primaryRole)
+    )
+  ) {
+    return jsonError("Forbidden", 403);
+  }
+
   const incident = await prisma.incidentReport.update({
     where: { id: incidentId },
     data: { status: body.status, title: body.title },

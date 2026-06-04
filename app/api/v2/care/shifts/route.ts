@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { isPublicApiV2Enabled } from "@/lib/api-versioning/version-middleware";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { y3NationalTrustConfig } from "@/lib/config/y3-national-trust";
+import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
@@ -18,8 +18,19 @@ export async function GET(req: Request) {
   if (user instanceof Response) return user;
 
   const orgId = req.headers.get("x-organisation-id");
+  if (!orgId) {
+    return jsonError("x-organisation-id header is required", 400);
+  }
+
+  if (!isAdminRole(user.primaryRole)) {
+    const orgIds = await getUserOrganisationIds(user.id);
+    if (!orgIds.includes(orgId)) {
+      return jsonError("Forbidden", 403);
+    }
+  }
+
   const shifts = await prisma.careShift.findMany({
-    where: orgId ? { organisationId: orgId } : {},
+    where: { organisationId: orgId },
     orderBy: { startAt: "desc" },
     take: 50,
     select: {
@@ -39,7 +50,7 @@ export async function GET(req: Request) {
     shifts: shifts.map((s) => ({
       ...s,
       apiVersion: "v2",
-      meta: { tenantScoped: Boolean(orgId) },
+      meta: { tenantScoped: true },
     })),
   });
 

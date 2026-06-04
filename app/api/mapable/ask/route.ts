@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { apiForbidden } from "@/lib/auth/guards";
 import { planCopilotActions } from "@/lib/copilot/actionPlanner";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { classifyIntent } from "@/lib/copilot/intentRouter";
 import type { CopilotAskResponse } from "@/lib/copilot/types";
+import {
+  assertCanAccessParticipantData,
+  ParticipantAccessError,
+} from "@/lib/prms/participant-access";
 
 const MAX_QUERY_LENGTH = 2000;
 
 export async function POST(request: Request) {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
   try {
     const body = await request.json();
     const query =
@@ -43,10 +52,19 @@ export async function POST(request: Request) {
       );
     }
 
+    const effectiveParticipantId = participantId ?? user.id;
+
+    try {
+      await assertCanAccessParticipantData(user, effectiveParticipantId);
+    } catch (e) {
+      if (e instanceof ParticipantAccessError) {
+        return apiForbidden(e.message);
+      }
+      throw e;
+    }
+
     const intent = classifyIntent(query, mode);
-    const context = participantId
-      ? await buildCopilotContext(participantId)
-      : null;
+    const context = await buildCopilotContext(effectiveParticipantId);
 
     const planned = await planCopilotActions({
       query,
@@ -54,13 +72,13 @@ export async function POST(request: Request) {
       intent,
       context,
       sessionId,
-      participantId,
+      participantId: effectiveParticipantId,
     });
 
     const guarded = await applyGuardrails({
       planned,
       context,
-      participantId,
+      participantId: effectiveParticipantId,
     });
 
     const response: CopilotAskResponse = {
