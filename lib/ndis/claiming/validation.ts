@@ -1,5 +1,7 @@
 import type { NdisClaimLineStatus, NdisPaymentRoute } from "@prisma/client";
 
+import { ndisServiceDeliveryConfig } from "@/lib/config/ndis-service-delivery";
+import { validateDeliveryAuthorizationForClaim } from "@/lib/ndis/service-delivery/delivery-event-service";
 import { paymentRouteRequiresMyProviderCheck } from "@/lib/ndis/claiming/paymentRoute";
 import type {
   ClaimLineInput,
@@ -196,6 +198,29 @@ export async function validateClaimLineInput(
         message:
           "A claim line already exists for this participant, provider, support item, date, and booking.",
         severity: "error",
+      });
+    }
+  }
+
+  if (
+    ndisServiceDeliveryConfig.requireAuthorizationForClaims &&
+    input.paymentRoute &&
+    input.serviceStartDate
+  ) {
+    const deliveryIssues = await validateDeliveryAuthorizationForClaim({
+      participantId: input.participantId,
+      providerOrgId: input.providerOrgId,
+      paymentRoute: input.paymentRoute,
+      deliveryMechanism: input.deliveryMechanism,
+      supportItemCode: input.supportItemCode,
+      serviceDate: new Date(input.serviceStartDate),
+    });
+    for (const issue of deliveryIssues) {
+      issues.push({
+        code: issue.code,
+        field: issue.field,
+        message: issue.message,
+        severity: issue.severity,
       });
     }
   }

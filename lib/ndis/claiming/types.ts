@@ -3,6 +3,7 @@ import type {
   NdisClaimLineStatus,
   NdisClaimType,
   NdisPaymentRoute,
+  NdisServiceDeliveryMechanism,
 } from "@prisma/client";
 
 export type { NdisPaymentRoute, NdisClaimLineStatus, NdisClaimBatchStatus };
@@ -45,6 +46,7 @@ export type ClaimLineInput = {
   totalAmountCents: number;
   paymentRoute: NdisPaymentRoute;
   claimType?: NdisClaimType;
+  deliveryMechanism?: NdisServiceDeliveryMechanism | null;
   cancellationReason?: string | null;
   evidenceJson?: Record<string, unknown> | null;
   participantConfirmationException?: string | null;

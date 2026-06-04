@@ -100,6 +100,8 @@ model User {
   ndisClaimLinesParticipant NdisClaimLine[]        @relation("NdisClaimLinesParticipant")
   ndisInvoicesParticipant   NdisInvoice[]          @relation("NdisInvoicesParticipant")
   participantProviderRelationships ParticipantProviderRelationship[] @relation("ParticipantProviderRelationships")
+  ndisDeliveryAuthorizationsParticipant NdisServiceDeliveryAuthorization[] @relation("NdisDeliveryAuthParticipant")
+  ndisDeliveryEventsParticipant NdisServiceDeliveryEvent[] @relation("NdisDeliveryEventParticipant")
 
   accessPlacesCreated       AccessPlace[]          @relation("AccessPlaceCreatedBy")
   accessPlaceClaims         AccessPlaceClaim[]     @relation("AccessPlaceClaimUser")
@@ -591,6 +593,8 @@ model Organisation {
   ndisClaimLines         NdisClaimLine[]
   ndisInvoices           NdisInvoice[]
   participantProviderRelationships ParticipantProviderRelationship[]
+  ndisDeliveryAuthorizations NdisServiceDeliveryAuthorization[]
+  ndisDeliveryEvents         NdisServiceDeliveryEvent[]
 
   careRequests           CareRequest[]
   careBookings           CareBooking[]
@@ -1482,6 +1486,7 @@ model CareBooking {
   livingAloneSafeguards CareLivingAloneSafeguard[]
   recoveryLinks     CareServiceRecoveryLink[]
   invoiceLinks      CareInvoiceLink[]
+  ndisDeliveryAuthorizations NdisServiceDeliveryAuthorization[]
 
   @@index([participantId, status])
   @@index([organisationId, status])
@@ -1566,13 +1571,18 @@ model CareServiceLog {
   confirmedAt       DateTime?
   disputeReason     String?
   disputedAt        DateTime?
+  deliveryMechanism NdisServiceDeliveryMechanism?
+  deliveryAuthorizationId String?
+  deliveryAuthorization   NdisServiceDeliveryAuthorization? @relation(fields: [deliveryAuthorizationId], references: [id], onDelete: SetNull)
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
 
   progressNotes     CareProgressNote[]
+  ndisDeliveryEvents NdisServiceDeliveryEvent[]
 
   @@index([careBookingId, status])
   @@index([participantId])
+  @@index([deliveryAuthorizationId])
   @@map("care_service_logs")
 }
 
@@ -2467,6 +2477,8 @@ model ServiceAgreement {
   documentId                String?
   createdAt                 DateTime               @default(now())
   updatedAt                 DateTime               @updatedAt
+
+  ndisDeliveryAuthorizations NdisServiceDeliveryAuthorization[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -5497,17 +5509,22 @@ model NdisClaimLine {
   rejectionMessage      String?
   evidenceJson          Json?
   validationJson        Json?
+  deliveryMechanism     NdisServiceDeliveryMechanism?
+  deliveryAuthorizationId String?
+  deliveryAuthorization   NdisServiceDeliveryAuthorization? @relation(fields: [deliveryAuthorizationId], references: [id], onDelete: SetNull)
   correctedFromLineId   String?
   createdById           String
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
 
   auditEvents ClaimAuditEvent[]
+  ndisDeliveryEvents    NdisServiceDeliveryEvent[]
 
   @@index([providerOrgId, status])
   @@index([participantId, providerOrgId, supportItemCode, serviceStartDate])
   @@index([bookingId])
   @@index([batchId])
+  @@index([deliveryAuthorizationId])
 }
 
 model NdisInvoice {
@@ -5568,6 +5585,99 @@ model ClaimAuditEvent {
   @@index([claimLineId, createdAt])
   @@index([batchId, createdAt])
   @@index([entityType, entityId])
+}
+
+// --- NDIS service delivery mechanism ---
+
+enum NdisServiceDeliveryMechanism {
+  face_to_face
+  non_face_to_face
+  telehealth
+  phone
+  group
+  centre_based
+  remote_monitoring
+  transport
+}
+
+enum NdisDeliveryAuthorizationType {
+  service_agreement
+  ndia_service_booking
+  plan_manager_approval
+  participant_self_managed
+}
+
+enum NdisDeliveryAuthorizationStatus {
+  draft
+  active
+  suspended
+  expired
+  revoked
+}
+
+model NdisServiceDeliveryAuthorization {
+  id                    String                          @id @default(cuid())
+  participantId         String
+  participant           User                            @relation("NdisDeliveryAuthParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId         String
+  providerOrg           Organisation                    @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  paymentRoute          NdisPaymentRoute
+  deliveryMechanism     NdisServiceDeliveryMechanism
+  authorizationType     NdisDeliveryAuthorizationType
+  status                NdisDeliveryAuthorizationStatus @default(draft)
+  supportItemCode       String?
+  supportCategoryCode   String?
+  serviceAgreementId    String?
+  serviceAgreement      ServiceAgreement?               @relation(fields: [serviceAgreementId], references: [id], onDelete: SetNull)
+  careBookingId         String?
+  careBooking           CareBooking?                    @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
+  ndiaBookingReference  String?
+  validFrom             DateTime
+  validTo               DateTime?
+  notes                 String?
+  metadataJson          Json?
+  createdById           String
+  createdAt             DateTime                        @default(now())
+  updatedAt             DateTime                        @updatedAt
+
+  careServiceLogs CareServiceLog[]
+  claimLines      NdisClaimLine[]
+  deliveryEvents  NdisServiceDeliveryEvent[]
+
+  @@index([participantId, providerOrgId, status])
+  @@index([providerOrgId, status])
+  @@index([careBookingId])
+  @@index([serviceAgreementId])
+}
+
+model NdisServiceDeliveryEvent {
+  id                  String                           @id @default(cuid())
+  authorizationId     String?
+  authorization       NdisServiceDeliveryAuthorization? @relation(fields: [authorizationId], references: [id], onDelete: SetNull)
+  participantId       String
+  participant         User                             @relation("NdisDeliveryEventParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId       String
+  providerOrg         Organisation                     @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  deliveryMechanism   NdisServiceDeliveryMechanism
+  paymentRoute        NdisPaymentRoute
+  careShiftId         String?
+  careServiceLogId    String?
+  careServiceLog      CareServiceLog?                  @relation(fields: [careServiceLogId], references: [id], onDelete: SetNull)
+  claimLineId         String?
+  claimLine           NdisClaimLine?                   @relation(fields: [claimLineId], references: [id], onDelete: SetNull)
+  serviceDate         DateTime
+  quantityMinutes     Int?
+  status              String                           @default("recorded")
+  evidenceJson        Json?
+  createdById         String
+  createdAt           DateTime                         @default(now())
+
+  @@index([participantId, serviceDate])
+  @@index([providerOrgId, serviceDate])
+  @@index([careShiftId])
+  @@index([authorizationId])
+  @@index([careServiceLogId])
+  @@index([claimLineId])
 }
 
 // --- MapAble Open-Source Integration Pack ---
