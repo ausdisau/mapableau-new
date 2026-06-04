@@ -81,7 +81,7 @@ const DEMO_PROVIDERS = [
 ] as const;
 
 function filterRows<T>(
-  rows: T[],
+  rows: readonly T[],
   query: string,
   getText: (row: T) => string,
   getKeywords: (row: T) => string[],

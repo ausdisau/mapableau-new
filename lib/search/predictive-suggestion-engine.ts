@@ -13,7 +13,10 @@ import {
   searchPopularSearches,
   searchServiceCategories,
 } from "@/lib/search/service-autocomplete";
-import { getStaticReactiveSuggestions } from "@/lib/search/suggestion-fallback-catalog";
+import {
+  getStaticProactiveCatalog,
+  getStaticReactiveSuggestions,
+} from "@/lib/search/suggestion-fallback-catalog";
 import {
   rankSuggestions,
   stripRanking,
