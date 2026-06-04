@@ -13,6 +13,7 @@ import {
   searchPopularSearches,
   searchServiceCategories,
 } from "@/lib/search/service-autocomplete";
+import { getStaticReactiveSuggestions } from "@/lib/search/suggestion-fallback-catalog";
 import {
   rankSuggestions,
   stripRanking,
@@ -223,8 +224,20 @@ export async function searchPredictiveSuggestions(
         degraded = true;
         degradedReasons.push("catalog_unavailable");
       }
+      if (catalog.usedFallback) {
+        degraded = true;
+        degradedReasons.push("static_fallback");
+      }
       proactivePool = catalog.suggestions;
       popularWeights = catalog.popularWeights;
+    }
+
+    if (proactivePool.length === 0) {
+      const fallback = getStaticProactiveCatalog(AUTOCOMPLETE_MAX_SUGGESTIONS);
+      proactivePool = fallback.suggestions;
+      popularWeights = fallback.popularWeights;
+      degraded = true;
+      degradedReasons.push("static_fallback");
     }
 
     const filteredCatalog = proactivePool.filter((s) => {
@@ -312,7 +325,7 @@ export async function searchPredictiveSuggestions(
     popularOut.suggestions.map((s) => [s.value.toLowerCase(), 10]),
   );
 
-  const pool: AutocompleteSuggestion[] = [
+  let pool: AutocompleteSuggestion[] = [
     ...providersOut.suggestions,
     ...servicesOut.suggestions,
     ...locationsOut.suggestions,
@@ -320,6 +333,12 @@ export async function searchPredictiveSuggestions(
     ...languagesOut.suggestions,
     ...popularOut.suggestions,
   ];
+
+  if (pool.length === 0) {
+    pool = getStaticReactiveSuggestions(q, limit, field);
+    degraded = true;
+    degradedReasons.push("static_fallback");
+  }
 
   const ranked = rankSuggestions({
     suggestions: pool,

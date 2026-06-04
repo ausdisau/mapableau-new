@@ -33,6 +33,8 @@ npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/ensure-sea
 npx tsx prisma/seed-search-autocomplete.ts
 ```
 
+If the database tables are empty, the API serves a **built-in static catalog** (`lib/search/suggestion-fallback-catalog.ts`) and sets `meta.degraded` with `static_fallback`. Run the seed on production Neon so results include live provider profiles and curated DB weights.
+
 ## Governance
 
 Suggestions are explainable and advisory. This is not the masterplan ML “no-show / continuity risk” predictive layer.

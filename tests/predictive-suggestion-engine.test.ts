@@ -15,6 +15,7 @@ vi.mock("@/lib/search/service-autocomplete", () => ({
     ],
     popularWeights: [["personal care", 10]],
     failed: false,
+    usedFallback: false,
   })),
   listProactiveAccessibility: vi.fn(),
   listProactiveLanguages: vi.fn(),
