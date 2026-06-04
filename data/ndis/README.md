@@ -10,11 +10,17 @@ https://ndis.gov.au/sites/default/files/react_extract/provider_finder/build/data
 pnpm fetch:ndis-list-providers
 ```
 
-If the download returns 403, use the bundled snapshot:
+Tries HTTP first, then **rsync** from `NDIS_LIST_PROVIDERS_RSYNC_SOURCE` if set, then rsyncs the bundled snapshot:
 
 ```bash
-mkdir -p data/ndis
-cp public/data/provider-outlets.json data/ndis/list-providers.json
+rsync -a public/data/provider-outlets.json data/ndis/list-providers.json
+```
+
+Remote example:
+
+```bash
+export NDIS_LIST_PROVIDERS_RSYNC_SOURCE=user@devbox:/data/list-providers.json
+pnpm fetch:ndis-list-providers
 ```
 
 ## Prisma seed

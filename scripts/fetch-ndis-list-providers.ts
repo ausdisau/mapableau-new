@@ -1,18 +1,23 @@
 #!/usr/bin/env npx tsx
 /**
- * Download NDIS provider finder list-providers.json for local Prisma seeding.
+ * Obtain NDIS provider finder list-providers.json for local Prisma seeding.
  *
- * The NDIA endpoint often returns 403 for non-browser clients. On failure, copy
- * public/data/provider-outlets.json manually or seed from that path directly.
+ * Order: HTTP download → rsync remote (NDIS_LIST_PROVIDERS_RSYNC_SOURCE) →
+ * rsync bundled public/data/provider-outlets.json into data/ndis/.
  */
-import { mkdir, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { promisify } from "node:util";
 
 import {
   NDIS_LIST_PROVIDERS_LOCAL_PATH,
   NDIS_LIST_PROVIDERS_URL,
   NDIS_LIST_PROVIDERS_URL_WWW,
+  PROVIDER_OUTLETS_PUBLIC_PATH,
 } from "@/lib/ndis/list-providers-source";
+
+const execFileAsync = promisify(execFile);
 
 const USER_AGENT =
   "Mozilla/5.0 (compatible; MapAble/1.0; +https://github.com/ausdisau/mapableau-new)";
@@ -25,6 +30,16 @@ async function tryFetch(url: string): Promise<Response> {
       Referer: "https://www.ndis.gov.au/participants/working-providers/finding-providers/provider-finder",
     },
     redirect: "follow",
+  });
+}
+
+async function rsyncFrom(
+  source: string,
+  dest: string,
+): Promise<void> {
+  await mkdir(dirname(dest), { recursive: true });
+  await execFileAsync("rsync", ["-a", "--info=stats2", source, dest], {
+    maxBuffer: 10 * 1024 * 1024,
   });
 }
 
@@ -43,19 +58,46 @@ async function main(): Promise<void> {
     console.warn(`GET ${url} → ${res.status} ${res.statusText}`);
   }
 
-  if (!body || !usedUrl) {
-    console.error(
-      "Could not download list-providers.json (likely 403). Use the bundled export instead:\n" +
-        "  cp public/data/provider-outlets.json data/ndis/list-providers.json\n" +
-        "Then run: pnpm seed:ndis-provider-outlets",
-    );
-    process.exit(1);
+  if (body && usedUrl) {
+    JSON.parse(body);
+    await mkdir(dirname(NDIS_LIST_PROVIDERS_LOCAL_PATH), { recursive: true });
+    await writeFile(NDIS_LIST_PROVIDERS_LOCAL_PATH, body, "utf8");
+    console.log(`Saved ${NDIS_LIST_PROVIDERS_LOCAL_PATH} from ${usedUrl}`);
+    return;
   }
 
-  JSON.parse(body);
-  await mkdir(dirname(NDIS_LIST_PROVIDERS_LOCAL_PATH), { recursive: true });
-  await writeFile(NDIS_LIST_PROVIDERS_LOCAL_PATH, body, "utf8");
-  console.log(`Saved ${NDIS_LIST_PROVIDERS_LOCAL_PATH} from ${usedUrl}`);
+  const remote = process.env.NDIS_LIST_PROVIDERS_RSYNC_SOURCE?.trim();
+  if (remote) {
+    try {
+      await rsyncFrom(remote, NDIS_LIST_PROVIDERS_LOCAL_PATH);
+      JSON.parse(await readFile(NDIS_LIST_PROVIDERS_LOCAL_PATH, "utf8"));
+      console.log(`Rsynced ${NDIS_LIST_PROVIDERS_LOCAL_PATH} from ${remote}`);
+      return;
+    } catch (e) {
+      console.warn("Remote rsync failed:", e instanceof Error ? e.message : e);
+    }
+  }
+
+  try {
+    await rsyncFrom(
+      PROVIDER_OUTLETS_PUBLIC_PATH,
+      NDIS_LIST_PROVIDERS_LOCAL_PATH,
+    );
+    JSON.parse(await readFile(NDIS_LIST_PROVIDERS_LOCAL_PATH, "utf8"));
+    console.log(
+      `Rsynced bundled export → ${NDIS_LIST_PROVIDERS_LOCAL_PATH} (same format as list-providers.json)`,
+    );
+    return;
+  } catch (e) {
+    console.error("Bundled rsync failed:", e instanceof Error ? e.message : e);
+  }
+
+  console.error(
+    "Could not obtain list-providers.json.\n" +
+      "  Set NDIS_LIST_PROVIDERS_RSYNC_SOURCE=user@host:/path/list-providers.json\n" +
+      "  Or ensure public/data/provider-outlets.json exists, then re-run.",
+  );
+  process.exit(1);
 }
 
 main().catch((e) => {

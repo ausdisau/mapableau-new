@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS public.provider_outlets (
   CONSTRAINT provider_outlets_pkey PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS provider_outlets_outlet_key_key
+CREATE INDEX IF NOT EXISTS provider_outlets_outlet_key_idx
   ON public.provider_outlets (outlet_key)
   WHERE outlet_key IS NOT NULL;
 

@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS "provider_outlets" (
     CONSTRAINT "provider_outlets_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS "provider_outlets_outlet_key_key"
+CREATE INDEX IF NOT EXISTS "provider_outlets_outlet_key_idx"
     ON "provider_outlets"("outlet_key");
 
 CREATE INDEX IF NOT EXISTS "provider_outlets_active_idx" ON "provider_outlets"("active");

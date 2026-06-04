@@ -18,11 +18,11 @@ Store the NDIS **provider finder** static export in Postgres via Prisma model `P
    pnpm fetch:ndis-list-providers
    ```
 
-   Or copy the repo snapshot:
+   On HTTP 403, the script rsyncs `public/data/provider-outlets.json` into `data/ndis/list-providers.json`. For a copy on another host:
 
    ```bash
-   mkdir -p data/ndis
-   cp public/data/provider-outlets.json data/ndis/list-providers.json
+   export NDIS_LIST_PROVIDERS_RSYNC_SOURCE=user@host:/path/list-providers.json
+   pnpm fetch:ndis-list-providers
    ```
 
 3. **Seed** (~77k rows; use `--limit` for a quick dev pass)

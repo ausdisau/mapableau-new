@@ -234,7 +234,7 @@ model ProviderOutletRegistry {
   abn          String
   name         String
   slug         String?
-  outletKey    String?  @unique @map("outlet_key")
+  outletKey    String?  @map("outlet_key")
   outletName   String?  @map("outlet_name")
   flag         String?
   active       Boolean  @default(false)
@@ -259,6 +259,7 @@ model ProviderOutletRegistry {
   @@index([state])
   @@index([abn])
   @@index([name])
+  @@index([outletKey])
   @@map("provider_outlets")
 }
 
