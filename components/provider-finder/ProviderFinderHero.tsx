@@ -7,7 +7,7 @@ import { MapAbleProviderSearchForm } from "@/components/search/MapAbleProviderSe
 import { SuggestedSearchChips } from "@/components/search/SuggestedSearchChips";
 import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
-import { HERO_SUGGESTED_SEARCHES } from "@/lib/provider-finder/filters";
+import { useProactiveChipSuggestions } from "@/lib/hooks/use-proactive-chip-suggestions";
 
 type ProviderFinderHeroProps = {
   query: string;
@@ -44,6 +44,9 @@ export function ProviderFinderHero({
   isSubmitting = false,
   compact = false,
 }: ProviderFinderHeroProps) {
+  const { suggestions: chipSuggestions } =
+    useProactiveChipSuggestions("provider_finder");
+
   return (
     <section
       className={cn(
@@ -96,7 +99,7 @@ export function ProviderFinderHero({
         {!compact ? (
           <SuggestedSearchChips
             className="mt-6"
-            suggestions={HERO_SUGGESTED_SEARCHES}
+            suggestions={chipSuggestions}
             onSelect={onSuggestionClick}
           />
         ) : null}

@@ -45,3 +45,32 @@ export type AutocompleteGroupedResult = {
 
 export const AUTOCOMPLETE_MAX_SUGGESTIONS = 10;
 export const AUTOCOMPLETE_MIN_QUERY_LENGTH = 2;
+
+export type SuggestionMode = "proactive" | "reactive";
+
+/** Optional client hints for rules-based ranking (no ML). */
+export type SuggestionSignals = {
+  recentQueries?: string[];
+  preferredState?: string;
+};
+
+export type SuggestionSourceCounts = {
+  providers: number;
+  services: number;
+  locations: number;
+  accessibilityFeatures: number;
+  languages: number;
+  popularSearches: number;
+};
+
+export type SuggestionResultMeta = {
+  mode: SuggestionMode;
+  degraded: boolean;
+  degradedReason?: string;
+  sourceCounts?: SuggestionSourceCounts;
+};
+
+export type PredictiveSuggestionResult = {
+  groups: AutocompleteGroupedResult;
+  meta: SuggestionResultMeta;
+};

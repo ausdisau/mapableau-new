@@ -57,9 +57,42 @@ export async function searchServiceCategories(
       label: row.name,
       value: row.name,
     }));
-  } catch {
-    return [];
+  } catch (err) {
+    console.error("[predictive-suggestions] service search failed", err);
+    throw err;
   }
+}
+
+export async function listProactiveAccessibility(
+  limit: number,
+): Promise<AutocompleteSuggestion[]> {
+  const rows = await prisma.searchAccessibilityFeature.findMany({
+    take: limit,
+    orderBy: { label: "asc" },
+  });
+  return rows.map((row) => ({
+    id: `access-${row.id}`,
+    type: "accessibility_feature",
+    typeLabel: "Access",
+    label: row.label,
+    value: row.label,
+  }));
+}
+
+export async function listProactiveLanguages(
+  limit: number,
+): Promise<AutocompleteSuggestion[]> {
+  const rows = await prisma.searchLanguage.findMany({
+    take: limit,
+    orderBy: { label: "asc" },
+  });
+  return rows.map((row) => ({
+    id: `language-${row.id}`,
+    type: "language",
+    typeLabel: "Language",
+    label: row.label,
+    value: row.label,
+  }));
 }
 
 export async function searchAccessibilityFeatures(
@@ -100,8 +133,9 @@ export async function searchAccessibilityFeatures(
       label: row.label,
       value: row.label,
     }));
-  } catch {
-    return [];
+  } catch (err) {
+    console.error("[predictive-suggestions] accessibility search failed", err);
+    throw err;
   }
 }
 
@@ -143,8 +177,85 @@ export async function searchLanguages(
       label: row.label,
       value: row.label,
     }));
-  } catch {
-    return [];
+  } catch (err) {
+    console.error("[predictive-suggestions] language search failed", err);
+    throw err;
+  }
+}
+
+export type ProactiveCatalogResult = {
+  suggestions: AutocompleteSuggestion[];
+  popularWeights: [string, number][];
+  failed: boolean;
+};
+
+/** Curated suggestions shown before the user types (chips + proactive dropdown). */
+export async function listProactiveCatalog(
+  context: "homepage" | "provider_finder",
+  limit: number,
+): Promise<ProactiveCatalogResult> {
+  try {
+    const popularRows = await prisma.popularSearch.findMany({
+      where: {
+        OR: [{ context: "all" }, { context }],
+      },
+      orderBy: [{ weight: "desc" }, { query: "asc" }],
+      take: Math.min(limit, 8),
+    });
+
+    const serviceRows = await prisma.serviceCategory.findMany({
+      orderBy: { name: "asc" },
+      take: 4,
+    });
+
+    const locationRows = await prisma.searchableLocation.findMany({
+      orderBy: { displayName: "asc" },
+      take: 3,
+    });
+
+    const popular: AutocompleteSuggestion[] = popularRows.map((row) => ({
+      id: `popular-${row.id}`,
+      type: "popular_search",
+      typeLabel: "Popular",
+      label: row.query,
+      value: row.query,
+    }));
+
+    const services: AutocompleteSuggestion[] = serviceRows.map((row) => ({
+      id: `service-${row.id}`,
+      type: "service",
+      typeLabel: "Service",
+      label: row.name,
+      value: row.name,
+    }));
+
+    const locations: AutocompleteSuggestion[] = locationRows.map((row) => ({
+      id: `location-${row.id}`,
+      type: "location",
+      typeLabel: "Location",
+      label: row.displayName,
+      description: [row.suburb, row.state, row.postcode].filter(Boolean).join(", "),
+      value: row.displayName,
+      metadata: {
+        suburb: row.suburb ?? undefined,
+        state: row.state ?? undefined,
+        postcode: row.postcode ?? undefined,
+      },
+    }));
+
+    const popularWeights: [string, number][] = popularRows.map((row) => [
+      row.query.toLowerCase(),
+      row.weight,
+    ]);
+
+    return {
+      suggestions: [...popular, ...services, ...locations],
+      popularWeights,
+      failed: false,
+    };
+  } catch (err) {
+    console.error("[predictive-suggestions] proactive catalog failed", err);
+    return { suggestions: [], popularWeights: [], failed: true };
   }
 }
 
@@ -173,7 +284,8 @@ export async function searchPopularSearches(
       label: row.query,
       value: row.query,
     }));
-  } catch {
-    return [];
+  } catch (err) {
+    console.error("[predictive-suggestions] popular search failed", err);
+    throw err;
   }
 }

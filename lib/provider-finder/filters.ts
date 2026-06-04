@@ -61,10 +61,14 @@ export const FUNDING_OPTIONS = [
   { id: "private", label: "Private / self-funded" },
 ] as const;
 
-export const HERO_SUGGESTED_SEARCHES = [
+/** Static fallback when proactive API / DB catalog is unavailable. */
+export const HERO_SUGGESTED_SEARCHES_FALLBACK = [
   "Support worker near St Ives",
   "Wheelchair accessible transport tomorrow",
   "OT assessment with NDIS registration",
   "Low sensory community access support",
   "Employment support with transport",
 ] as const;
+
+/** @deprecated Use proactive API via `fetchProactiveChipLabels`; kept for imports. */
+export const HERO_SUGGESTED_SEARCHES = HERO_SUGGESTED_SEARCHES_FALLBACK;

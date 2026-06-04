@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { searchAutocomplete } from "@/lib/search/autocomplete-service";
+import { searchAutocompleteWithMeta } from "@/lib/search/autocomplete-service";
 import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -33,10 +33,28 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
+  const signalsRaw = searchParams.get("signals");
+  let signals: { recentQueries?: string[]; preferredState?: string } | undefined;
+  if (signalsRaw) {
+    try {
+      signals = JSON.parse(signalsRaw) as {
+        recentQueries?: string[];
+        preferredState?: string;
+      };
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid signals JSON" },
+        { status: 400 },
+      );
+    }
+  }
+
   const parsed = autocompleteQuerySchema.safeParse({
     q: searchParams.get("q") ?? "",
     context: searchParams.get("context") ?? "",
     field: searchParams.get("field") ?? "all",
+    mode: searchParams.get("mode") ?? "reactive",
+    signals,
   });
 
   if (!parsed.success) {
@@ -46,17 +64,22 @@ export async function GET(request: Request) {
     );
   }
 
-  const groups = await searchAutocomplete({
+  const { groups, meta } = await searchAutocompleteWithMeta({
     query: parsed.data.q,
     context: parsed.data.context,
     field: parsed.data.field,
+    mode: parsed.data.mode,
+    signals: parsed.data.signals,
   });
 
   return NextResponse.json(
-    { groups },
+    { groups, meta },
     {
       headers: {
-        "Cache-Control": "private, max-age=30",
+        "Cache-Control":
+          parsed.data.mode === "proactive"
+            ? "private, max-age=120"
+            : "private, max-age=30",
       },
     },
   );
