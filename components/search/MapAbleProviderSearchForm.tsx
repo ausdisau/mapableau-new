@@ -11,7 +11,13 @@ import { mapableSearchFieldSecondaryClass } from "@/lib/brand/styles";
 import type {
   AutocompleteContext,
   AutocompleteSuggestion,
+  SuggestionSignals,
 } from "@/types/search";
+
+function preferredStateFromLocation(location: string): string | undefined {
+  const match = location.match(/\b(NSW|VIC|QLD|SA|WA|TAS|NT|ACT)\b/i);
+  return match?.[1]?.toUpperCase();
+}
 
 export type MapAbleProviderSearchFormValues = {
   query: string;
@@ -55,6 +61,10 @@ export function MapAbleProviderSearchForm({
   const [statusMessage, setStatusMessage] = useState("");
 
   const idPrefix = context === "homepage" ? "home" : "pf";
+
+  const rankingSignals: SuggestionSignals | undefined = values.location.trim()
+    ? { preferredState: preferredStateFromLocation(values.location) }
+    : undefined;
 
   function mergeQueryFromSuggestion(suggestion: AutocompleteSuggestion) {
     if (suggestion.type === "provider") {
@@ -100,6 +110,7 @@ export function MapAbleProviderSearchForm({
           value={values.query}
           onChange={onQueryChange}
           onSelect={mergeQueryFromSuggestion}
+          signals={rankingSignals}
           disabled={isSubmitting}
           icon={<Search className="h-4 w-4" aria-hidden />}
         />

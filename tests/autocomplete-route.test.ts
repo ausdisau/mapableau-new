@@ -3,14 +3,30 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { GET } from "@/app/api/search/autocomplete/route";
 
 vi.mock("@/lib/search/autocomplete-service", () => ({
-  searchAutocomplete: vi.fn(async () => ({
-    providers: [{ id: "p1", type: "provider", typeLabel: "Provider", label: "Demo", value: "Demo" }],
-    services: [],
-    locations: [],
-    accessibilityFeatures: [],
-    languages: [],
-    popularSearches: [],
-  })),
+  searchAutocompleteWithMeta: vi.fn(
+    async (input: { mode?: string }) => ({
+      groups: {
+        providers: [
+          {
+            id: "p1",
+            type: "provider",
+            typeLabel: "Provider",
+            label: "Demo",
+            value: "Demo",
+          },
+        ],
+        services: [],
+        locations: [],
+        accessibilityFeatures: [],
+        languages: [],
+        popularSearches: [],
+      },
+      meta: {
+        mode: input.mode ?? "reactive",
+        degraded: false,
+      },
+    }),
+  ),
 }));
 
 describe("GET /api/search/autocomplete", () => {
@@ -43,5 +59,17 @@ describe("GET /api/search/autocomplete", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.groups.providers).toHaveLength(1);
+    expect(body.meta.mode).toBe("reactive");
+  });
+
+  it("accepts proactive mode without query", async () => {
+    const res = await GET(
+      new Request(
+        "http://localhost/api/search/autocomplete?context=homepage&mode=proactive",
+      ),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.meta.mode).toBe("proactive");
   });
 });

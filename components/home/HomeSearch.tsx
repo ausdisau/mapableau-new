@@ -8,13 +8,12 @@ import { MapAbleProviderSearchForm } from "@/components/search/MapAbleProviderSe
 import { SuggestedSearchChips } from "@/components/search/SuggestedSearchChips";
 import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
-import {
-  ACCESS_NEEDS,
-  HERO_SUGGESTED_SEARCHES,
-} from "@/lib/provider-finder/filters";
+import { useProactiveChipSuggestions } from "@/lib/hooks/use-proactive-chip-suggestions";
+import { ACCESS_NEEDS } from "@/lib/provider-finder/filters";
 
 export function HomeSearch() {
   const router = useRouter();
+  const { suggestions: chipSuggestions } = useProactiveChipSuggestions("homepage");
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
   const [accessQuery, setAccessQuery] = useState("");
@@ -94,7 +93,7 @@ export function HomeSearch() {
 
         <SuggestedSearchChips
           className="mx-auto mt-6 max-w-3xl lg:mx-0 lg:max-w-none"
-          suggestions={HERO_SUGGESTED_SEARCHES}
+          suggestions={chipSuggestions}
           onSelect={applyChip}
         />
       </div>

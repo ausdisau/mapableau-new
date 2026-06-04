@@ -41,6 +41,7 @@ describe("AccessibleAutocomplete", () => {
             languages: [],
             popularSearches: [],
           },
+          meta: { mode: "reactive", degraded: false },
         }),
       })) as unknown as typeof fetch,
     );
@@ -59,7 +60,7 @@ describe("AccessibleAutocomplete", () => {
     expect(screen.getByLabelText("Search services")).toBeTruthy();
   });
 
-  it("announces minimum length in live region", () => {
+  it("announces proactive or reactive state in live region", async () => {
     render(
       <AccessibleAutocomplete
         label="Search"
@@ -72,9 +73,10 @@ describe("AccessibleAutocomplete", () => {
     const input = screen.getByLabelText("Search");
     const describedBy = input.getAttribute("aria-describedby") ?? "";
     const liveId = describedBy.split(" ").find((id) => id.endsWith("-live"));
-    expect(document.getElementById(liveId ?? "")?.textContent).toMatch(
-      /at least 2 characters/i,
-    );
+    await waitFor(() => {
+      const text = document.getElementById(liveId ?? "")?.textContent ?? "";
+      expect(text).toMatch(/suggested search|suggestion|at least 2 characters/i);
+    });
   });
 
   it("exposes combobox ARIA semantics on the input", () => {
@@ -184,12 +186,63 @@ describe("AccessibleAutocomplete", () => {
       expect(screen.getByText(/no matches/i)).toBeTruthy();
     });
   });
+
+  it("fetches proactive suggestions on focus with short query", async () => {
+    const fetchMock = vi.fn(async (url: string) => ({
+      ok: true,
+      json: async () => ({
+        groups: {
+          providers: [],
+          services: [],
+          locations: [],
+          accessibilityFeatures: [],
+          languages: [],
+          popularSearches: [
+            {
+              id: "pop-1",
+              type: "popular_search",
+              typeLabel: "Popular",
+              label: "Personal care",
+              value: "Personal care",
+            },
+          ],
+        },
+        meta: { mode: "proactive", degraded: false },
+      }),
+    }));
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    render(
+      <AccessibleAutocomplete
+        label="Proactive test"
+        context="homepage"
+        value=""
+        onChange={() => {}}
+        debounceMs={0}
+      />,
+    );
+    fireEvent.focus(screen.getByLabelText("Proactive test"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+      const url = String(fetchMock.mock.calls[0]?.[0]);
+      expect(url).toContain("mode=proactive");
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeTruthy();
+    });
+  });
 });
 
 describe("buildLiveRegionMessage integration", () => {
   it("matches component messaging", () => {
     expect(buildLiveRegionMessage(false, 2, "wheel")).toBe(
       "2 suggestions available.",
+    );
+  });
+
+  it("describes proactive suggestions", () => {
+    expect(buildLiveRegionMessage(false, 3, "", "proactive")).toBe(
+      "3 suggested searches available.",
     );
   });
 });
