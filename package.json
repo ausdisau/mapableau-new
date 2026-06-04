@@ -20,6 +20,7 @@
     "test:watch": "vitest",
     "mcp:av": "tsx mcp/av/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",
+    "seed:ndis-service-delivery": "tsx prisma/seed-ndis-service-delivery.ts",
     "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
   },
   "lint-staged": {

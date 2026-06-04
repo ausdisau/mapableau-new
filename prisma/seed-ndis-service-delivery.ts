@@ -2,9 +2,45 @@
  * Seed active NDIS service delivery authorizations.
  * Bootstraps a demo care org when missing (production-safe idempotent upsert).
  *
- * Run: pnpm exec tsx prisma/seed-ndis-service-delivery.ts
+ * Run: pnpm seed:ndis-service-delivery
+ * Or:  pnpm exec tsx prisma/seed-ndis-service-delivery.ts (loads ../.env automatically)
  */
+import fs from "node:fs";
+import path from "node:path";
+
 import { PrismaClient } from "@prisma/client";
+
+function loadEnvFile() {
+  const envPath = path.join(__dirname, "..", ".env");
+  if (!fs.existsSync(envPath)) return;
+  for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    if (process.env[key] !== undefined) continue;
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    process.env[key] = value;
+  }
+}
+
+loadEnvFile();
+
+if (!process.env.DATABASE_URL?.trim()) {
+  console.error(
+    "DATABASE_URL is not set. Copy .env.example to .env and configure Neon:\n" +
+      "  cp .env.example .env\n" +
+      "  python3 scripts/configure-neon-env.py '<neon-pooled-connection-string>'"
+  );
+  process.exit(1);
+}
 
 const prisma = new PrismaClient();
 
