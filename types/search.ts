@@ -74,3 +74,27 @@ export type PredictiveSuggestionResult = {
   groups: AutocompleteGroupedResult;
   meta: SuggestionResultMeta;
 };
+
+/** Structured filters extracted from a natural-language provider search query. */
+export type NaturalLanguageSearchFilters = {
+  q: string;
+  location: string;
+  access: string;
+  service: string;
+  provider: string;
+};
+
+/** Server-side interpreter result for provider / homepage search. */
+export type SearchInterpretation = {
+  sourceQuery: string;
+  parsed: boolean;
+  configured: boolean;
+  filters: NaturalLanguageSearchFilters;
+  serviceCategorySlug: string | null;
+  serviceCategoryId: string | null;
+  accessNeedIds: string[];
+  confidence: number;
+  engineId: string;
+};
+
+export type SearchInterpretResponse = SearchInterpretation;

@@ -52,7 +52,14 @@ Run the seed on production Neon so results include live provider profiles and cu
 
 Suggestions are explainable and advisory. This is not the masterplan ML “no-show / continuity risk” predictive layer.
 
+## Natural-language interpreter
+
+For full-sentence queries (for example *"Wheelchair accessible transport near Parramatta"*), use **`POST /api/search/interpret`** instead of autocomplete alone. That endpoint uses the Vercel AI SDK plus Prisma catalog resolution to populate Provider Finder filters and canonical `service_categories` slugs.
+
+See [nl-interpreter.md](./search/nl-interpreter.md) for environment variables, agent contract (`searchInterpretQuery`), and UI wiring.
+
 ## Limits
 
 - Autocomplete rate limit remains per-process in-memory (120 req/min/IP); use a shared store for multi-instance production.
+- Interpret endpoint rate limit is 30 req/min/IP (in-memory per instance).
 - Location data is local `searchable_locations` until a commercial geocoder adapter is configured.

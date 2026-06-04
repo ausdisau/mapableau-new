@@ -37,6 +37,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
   "dependencies": {
+    "@ai-sdk/google": "^3.0.80",
     "@prisma/client": "6.19.2",
     "@pusher/push-notifications-web": "^1.1.0",
     "@radix-ui/react-slot": "^1.2.4",
@@ -45,6 +46,7 @@
     "@simplewebauthn/server": "^13.3.1",
     "@tanstack/react-query": "^5.90.16",
     "@vercel/speed-insights": "^2.0.0",
+    "ai": "^6.0.196",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

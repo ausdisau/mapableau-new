@@ -17,11 +17,17 @@ import {
   getLocationAndPostcode,
   type UserPosition,
 } from "@/lib/geo";
+import { trackProductEvent } from "@/lib/analytics/product-analytics";
 import {
   ACCESS_NEEDS,
   SUPPORT_TYPES,
   type SupportTypeId,
 } from "@/lib/provider-finder/filters";
+import {
+  applyInterpretationToFields,
+  buildFinderSearchParams,
+} from "@/lib/search/apply-interpretation";
+import { interpretSearchQueryClient } from "@/lib/search/interpreter-client";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
 import { mapOutletsToProviders } from "./outletToProvider";
@@ -103,6 +109,8 @@ export default function ProviderFinderClient() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [interpretNote, setInterpretNote] = useState<string | null>(null);
+  const [searchInterpreting, setSearchInterpreting] = useState(false);
 
   const pageSize = 12;
 
@@ -112,6 +120,8 @@ export default function ProviderFinderClient() {
     const access = searchParams.get("access");
     const service = searchParams.get("service");
     const provider = searchParams.get("provider");
+    const support = searchParams.get("supportType");
+    const accessNeedsParam = searchParams.get("accessNeeds");
 
     if (q) {
       setQuery(q);
@@ -131,6 +141,14 @@ export default function ProviderFinderClient() {
     }
     if (provider) {
       setProviderName(provider);
+      setSearchSubmitted(true);
+    }
+    if (support) {
+      setSupportType(support as SupportTypeId);
+      setSearchSubmitted(true);
+    }
+    if (accessNeedsParam) {
+      setAccessNeeds(accessNeedsParam.split(",").filter(Boolean));
       setSearchSubmitted(true);
     }
   }, [searchParams]);
@@ -263,7 +281,71 @@ export default function ProviderFinderClient() {
     if (page !== currentPage) setPage(currentPage);
   }, [currentPage, page]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
+    setSearchInterpreting(true);
+    setInterpretNote(null);
+    try {
+      const combined =
+        query.trim() ||
+        [
+          serviceQuery,
+          accessQuery,
+          location,
+          providerName,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+      if (combined.trim().length >= 3) {
+        const interpretation = await interpretSearchQueryClient(
+          combined,
+          "provider_finder",
+        );
+        const applied = applyInterpretationToFields(interpretation, {
+          query,
+          location,
+          providerName,
+          serviceQuery,
+          accessQuery,
+        });
+
+        setQuery(applied.query);
+        setLocation(applied.location);
+        setProviderName(applied.providerName);
+        setServiceQuery(applied.serviceQuery);
+        setAccessQuery(applied.accessQuery);
+        if (applied.supportType) setSupportType(applied.supportType);
+        if (applied.accessNeedIds.length > 0) {
+          setAccessNeeds(applied.accessNeedIds);
+        }
+
+        trackProductEvent("search_query_interpreted", {
+          context: "provider_finder",
+          parsed: interpretation.parsed,
+          confidence: interpretation.confidence,
+          service_category_slug: interpretation.serviceCategorySlug ?? "",
+          engine_id: interpretation.engineId,
+        });
+
+        if (interpretation.parsed && interpretation.confidence < 0.6) {
+          setInterpretNote(
+            "AI-suggested filters — adjust any field if something looks off.",
+          );
+        }
+
+        const params = buildFinderSearchParams(applied);
+        if (typeof window !== "undefined" && params.toString()) {
+          window.history.replaceState(
+            null,
+            "",
+            `/provider-finder?${params.toString()}`,
+          );
+        }
+      }
+    } finally {
+      setSearchInterpreting(false);
+    }
+
     setSearchSubmitted(true);
     setPage(1);
   };
@@ -320,11 +402,19 @@ export default function ProviderFinderClient() {
         onProviderNameChange={setProviderName}
         onServiceQueryChange={setServiceQuery}
         onAccessQueryChange={setAccessQuery}
-        onSearch={handleSearch}
+        onSearch={() => void handleSearch()}
         onSuggestionClick={handleSuggestion}
         onAccessSuggestionSelect={handleAccessSuggestionSelect}
+        isSubmitting={searchInterpreting}
         compact={searchSubmitted}
       />
+      {interpretNote ? (
+        <div className="container mx-auto max-w-5xl px-4 -mt-4 pb-2">
+          <p className="text-xs text-muted-foreground" role="status">
+            {interpretNote}
+          </p>
+        </div>
+      ) : null}
 
       {!searchSubmitted ? <MapAbleCareCombinedSections /> : null}
 
