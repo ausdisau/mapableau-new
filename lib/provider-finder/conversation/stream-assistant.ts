@@ -4,10 +4,13 @@ import { isSearchInterpreterConfigured } from "@/lib/config/search-interpreter";
 import { getInterpreterModel } from "@/lib/search/interpreter/get-model";
 
 import { PROVIDER_FINDER_CHAT_SYSTEM } from "./prompt";
+import type { ProviderFinderAskTurn } from "../ask-bridge";
 import type { ProviderFinderConversationTurn } from "./run-turn";
 
+type FinderStreamTurn = ProviderFinderConversationTurn | ProviderFinderAskTurn;
+
 export function streamFinderAssistantText(
-  turn: ProviderFinderConversationTurn,
+  turn: FinderStreamTurn,
 ): AsyncIterable<string> {
   if (!isSearchInterpreterConfigured()) {
     return textIterable(turn.replyText);
@@ -33,7 +36,7 @@ async function* textIterable(text: string): AsyncGenerator<string> {
 }
 
 export function createFinderChatResponseStream(options: {
-  turn: ProviderFinderConversationTurn;
+  turn: FinderStreamTurn;
   useLlmStream: boolean;
 }) {
   const { turn, useLlmStream } = options;

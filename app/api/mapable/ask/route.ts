@@ -1,22 +1,119 @@
 import { NextResponse } from "next/server";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
+import { getOptionalApiUser } from "@/lib/api/optional-session";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { apiForbidden } from "@/lib/auth/guards";
 import { planCopilotActions } from "@/lib/copilot/actionPlanner";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { classifyIntent } from "@/lib/copilot/intentRouter";
-import type { CopilotAskResponse } from "@/lib/copilot/types";
+import { planProviderFinderCopilotActions } from "@/lib/copilot/plan-provider-finder";
+import type {
+  CopilotAskContext,
+  CopilotAskResponse,
+  CopilotFinderPayload,
+} from "@/lib/copilot/types";
+import {
+  runProviderFinderAskTurn,
+  serialiseFinderPayload,
+  type ProviderFinderSessionFields,
+} from "@/lib/provider-finder/ask-bridge";
 import {
   assertCanAccessParticipantData,
   ParticipantAccessError,
 } from "@/lib/prms/participant-access";
 
 const MAX_QUERY_LENGTH = 2000;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 30;
+
+function parseSessionFields(
+  raw: unknown,
+): Partial<ProviderFinderSessionFields> | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const s = raw as Record<string, unknown>;
+  return {
+    query: typeof s.query === "string" ? s.query : "",
+    location: typeof s.location === "string" ? s.location : "",
+    providerName: typeof s.providerName === "string" ? s.providerName : "",
+    serviceQuery: typeof s.serviceQuery === "string" ? s.serviceQuery : "",
+    accessQuery: typeof s.accessQuery === "string" ? s.accessQuery : "",
+  };
+}
+
+function finderFromSerialised(
+  payload: ReturnType<typeof serialiseFinderPayload>,
+): CopilotFinderPayload {
+  return {
+    interpretation: payload.interpretation,
+    applied: payload.applied,
+    searchParams: payload.searchParams,
+    replyText: payload.replyText,
+  };
+}
+
+async function buildGuestProviderFinderResponse(
+  query: string,
+  session?: Partial<ProviderFinderSessionFields>,
+  options?: { providerSlug?: string; providerName?: string },
+): Promise<CopilotAskResponse> {
+  const planned = await planProviderFinderCopilotActions(query, session, options);
+  const finder = finderFromSerialised(
+    planned.filters.finder as ReturnType<typeof serialiseFinderPayload>,
+  );
+
+  return {
+    source: "mapable-copilot",
+    intent: "provider_finder",
+    confidence: 0.9,
+    summary: planned.summary,
+    answer: planned.plainLanguageAnswer,
+    filters: planned.filters,
+    actions: planned.actions,
+    draftRecords: [],
+    requiredConfirmations: [],
+    warnings: planned.warnings,
+    blockedActions: [],
+    finder,
+    results: [],
+    suggestedPrompts: [
+      "OT assessment in Parramatta",
+      "Wheelchair accessible transport near me",
+      "NDIS registered support worker",
+    ],
+  };
+}
+
+async function maybeAttachFinder(
+  response: CopilotAskResponse,
+  query: string,
+  session?: Partial<ProviderFinderSessionFields>,
+  options?: { providerSlug?: string; providerName?: string },
+): Promise<CopilotAskResponse> {
+  if (response.intent === "incident" || response.intent === "billing") {
+    return response;
+  }
+
+  const turn = await runProviderFinderAskTurn(query, session, options);
+  const finder = finderFromSerialised(serialiseFinderPayload(turn));
+
+  return {
+    ...response,
+    finder,
+    filters: { ...response.filters, finder: serialiseFinderPayload(turn) },
+  };
+}
 
 export async function POST(request: Request) {
-  const user = await requireApiSession();
-  if (user instanceof Response) return user;
+  const ip = getClientIp(request);
+
+  if (!checkIpRateLimit(ip, { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX })) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a moment." },
+      { status: 429 },
+    );
+  }
 
   try {
     const body = await request.json();
@@ -24,6 +121,8 @@ export async function POST(request: Request) {
       typeof body.query === "string" ? body.query.trim() : "";
     const mode =
       typeof body.mode === "string" ? body.mode : "All";
+    const context: CopilotAskContext =
+      body.context === "provider_finder" ? "provider_finder" : "default";
     const participantId =
       typeof body.participantId === "string"
         ? body.participantId
@@ -32,13 +131,18 @@ export async function POST(request: Request) {
       typeof body.sessionId === "string"
         ? body.sessionId
         : `session-${Date.now()}`;
+    const session = parseSessionFields(body.session);
+    const providerSlug =
+      typeof body.providerSlug === "string" ? body.providerSlug : undefined;
+    const providerName =
+      typeof body.providerName === "string" ? body.providerName : undefined;
 
     if (!query) {
       return NextResponse.json(
         {
           error: "Please enter a question or request so MapAble can help.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -48,7 +152,26 @@ export async function POST(request: Request) {
           error:
             "Your message is too long. Please shorten it and try again.",
         },
-        { status: 400 }
+        { status: 400 },
+      );
+    }
+
+    const user = await getOptionalApiUser();
+
+    if (context === "provider_finder" && !user) {
+      const response = await buildGuestProviderFinderResponse(
+        query,
+        session,
+        { providerSlug, providerName },
+      );
+      return NextResponse.json(response);
+    }
+
+    if (!user) {
+      const authRequired = await requireApiSession();
+      return authRequired instanceof Response ? authRequired : NextResponse.json(
+        { error: "Sign in required." },
+        { status: 401 },
       );
     }
 
@@ -63,25 +186,30 @@ export async function POST(request: Request) {
       throw e;
     }
 
-    const intent = classifyIntent(query, mode);
-    const context = await buildCopilotContext(effectiveParticipantId);
-
-    const planned = await planCopilotActions({
-      query,
-      mode,
-      intent,
-      context,
-      sessionId,
-      participantId: effectiveParticipantId,
+    const intent = classifyIntent(query, mode, {
+      context: context === "provider_finder" ? "provider_finder" : "default",
     });
+    const copilotContext = await buildCopilotContext(effectiveParticipantId);
+
+    const planned = await planCopilotActions(
+      {
+        query,
+        mode,
+        intent,
+        context: copilotContext,
+        sessionId,
+        participantId: effectiveParticipantId,
+      },
+      { session, providerSlug, providerName },
+    );
 
     const guarded = await applyGuardrails({
       planned,
-      context,
+      context: copilotContext,
       participantId: effectiveParticipantId,
     });
 
-    const response: CopilotAskResponse = {
+    let response: CopilotAskResponse = {
       source: "mapable-copilot",
       intent: intent.type,
       confidence: intent.confidence,
@@ -97,6 +225,17 @@ export async function POST(request: Request) {
       suggestedPrompts: buildSuggestedPrompts(intent.type),
     };
 
+    if (intent.type === "provider_finder" && guarded.filters.finder) {
+      response.finder = finderFromSerialised(
+        guarded.filters.finder as ReturnType<typeof serialiseFinderPayload>,
+      );
+    } else if (context === "provider_finder") {
+      response = await maybeAttachFinder(response, query, session, {
+        providerSlug,
+        providerName,
+      });
+    }
+
     return NextResponse.json(response);
   } catch {
     return NextResponse.json(
@@ -104,15 +243,21 @@ export async function POST(request: Request) {
         error:
           "Something went wrong. Please try again in a moment.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 function buildSuggestedPrompts(
-  intent: CopilotAskResponse["intent"]
+  intent: CopilotAskResponse["intent"],
 ): string[] {
   switch (intent) {
+    case "provider_finder":
+      return [
+        "OT near Parramatta",
+        "Support worker with Auslan",
+        "Registered provider in Newcastle",
+      ];
     case "combined":
       return [
         "Add Tuesday 9am physio time",

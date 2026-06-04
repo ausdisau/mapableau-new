@@ -19,12 +19,15 @@ const MODES = ["All", "Support", "Transport", "NDIS", "Jobs", "Help"] as const;
 type Props = {
   /** Demo participant — replace with session participant when auth is wired. */
   demoParticipantId?: string;
+  /** Prefill from URL e.g. /ask?provider=slug */
+  initialQuery?: string;
 };
 
 export function CopilotPanel({
   demoParticipantId = MOCK_PARTICIPANT_ID,
+  initialQuery,
 }: Props) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery ?? "");
   const [mode, setMode] = useState<string>("All");
   const [useParticipant, setUseParticipant] = useState(true);
   const [loading, setLoading] = useState(false);

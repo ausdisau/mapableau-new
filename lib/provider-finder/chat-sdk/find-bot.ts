@@ -2,8 +2,8 @@ import { Chat } from "chat";
 import { createSlackAdapter } from "@chat-adapter/slack";
 import { createMemoryState } from "@chat-adapter/state-memory";
 
+import { runProviderFinderAskTurn } from "@/lib/provider-finder/ask-bridge";
 import { streamFinderAssistantText } from "@/lib/provider-finder/conversation/stream-assistant";
-import { runProviderFinderConversationTurn } from "@/lib/provider-finder/conversation/run-turn";
 
 function hasSlackCredentials(): boolean {
   return Boolean(
@@ -31,7 +31,7 @@ function createFinderBot() {
     post: (content: AsyncIterable<string>) => Promise<unknown>,
     userText: string,
   ) {
-    const turn = await runProviderFinderConversationTurn(userText);
+    const turn = await runProviderFinderAskTurn(userText);
     await post(streamFinderAssistantText(turn));
   }
 

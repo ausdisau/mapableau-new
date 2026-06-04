@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
-import { ProviderFinderConversation } from "@/components/provider-finder/ProviderFinderConversation";
+import { ProviderFinderAskPanel } from "@/components/provider-finder/ProviderFinderAskPanel";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
@@ -141,8 +141,10 @@ export default function ProviderFinderClient() {
       setSearchSubmitted(true);
     }
     if (provider) {
-      setProviderName(provider);
-      setSearchSubmitted(true);
+      setProviderName(provider.replace(/-/g, " "));
+      if (q || loc || access || service || support || accessNeedsParam) {
+        setSearchSubmitted(true);
+      }
     }
     if (support) {
       setSupportType(support as SupportTypeId);
@@ -427,8 +429,9 @@ export default function ProviderFinderClient() {
       {!searchSubmitted ? (
         <div className="container mx-auto max-w-7xl px-4 pb-8">
           <div className="grid gap-6 lg:grid-cols-2">
-            <ProviderFinderConversation
+            <ProviderFinderAskPanel
               className="min-h-[22rem]"
+              initialProviderName={providerName || undefined}
               session={{
                 query,
                 location,
@@ -439,7 +442,7 @@ export default function ProviderFinderClient() {
               onInterpretation={({ interpretation, applied }) => {
                 applyInterpretationFields(applied, interpretation);
                 trackProductEvent("search_query_interpreted", {
-                  context: "provider_finder_chat",
+                  context: "provider_finder_ask",
                   parsed: interpretation.parsed,
                   confidence: interpretation.confidence,
                   service_category_slug:
@@ -447,16 +450,16 @@ export default function ProviderFinderClient() {
                   engine_id: interpretation.engineId,
                 });
               }}
-              onSearchFromChat={() => {
+              onShowResults={() => {
                 setSearchSubmitted(true);
                 setPage(1);
               }}
             />
             <div className="hidden lg:block">
               <p className="text-sm text-muted-foreground">
-                Prefer the form above? Use the hero search fields, or chat here
-                to describe support, transport, therapy, or access needs in one
-                message.
+                Prefer the form above? Use the hero search fields, or Ask
+                MapAble here to describe support, transport, therapy, or access
+                needs in one message.
               </p>
             </div>
           </div>

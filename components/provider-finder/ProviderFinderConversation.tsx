@@ -1,3 +1,7 @@
+/**
+ * @deprecated Provider Finder UI uses ProviderFinderAskPanel and POST /api/mapable/ask.
+ * Kept for Slack streaming via POST /api/provider-finder/chat.
+ */
 "use client";
 
 import { useChat } from "@ai-sdk/react";

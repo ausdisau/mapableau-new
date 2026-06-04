@@ -21,6 +21,13 @@
 | Ledger API | `/api/ledger/events` |
 | UI | `/ask`, `components/copilot/*` |
 
+## Provider Finder context
+
+On `/provider-finder`, `POST /api/mapable/ask` accepts `context: "provider_finder"`:
+
+- Anonymous visitors get provider-directory guidance only (no drafts).
+- Signed-in users get full Co-Pilot when their question matches care, transport, billing, etc., plus a `finder` payload for search filters.
+
 ## Demo participant
 
 `participant-demo-001` — enable “Use demo participant context” on `/ask`.

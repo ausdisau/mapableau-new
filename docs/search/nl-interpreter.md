@@ -46,20 +46,27 @@ curl -sS -X POST "$BASE_URL/api/search/interpret" \
   -d '{"query":"OT assessment in Parramatta","context":"provider_finder"}'
 ```
 
-## Conversational Provider Finder (Chat SDK + AI SDK UI)
+## MapAble Ask on Provider Finder
 
-On `/provider-finder`, the **Chat to find providers** panel uses `@ai-sdk/react` `useChat` with `DefaultChatTransport` against `POST /api/provider-finder/chat`. Each turn:
+On `/provider-finder`, the **Ask MapAble** panel calls `POST /api/mapable/ask` with `context: "provider_finder"`.
 
-1. Runs the same `interpretSearchQuery` pipeline as `/api/search/interpret`.
-2. Streams a short assistant reply (AI SDK `streamText` when configured, otherwise a template).
-3. Emits a `data-finderInterpretation` part so the UI can apply filters and show results.
+- **Guests** — No sign-in required. Response includes NL interpretation, suggested filters (`finder` payload), and directory disclaimer. No PRMS drafts.
+- **Signed-in users** — Same finder payload plus Co-Pilot intents (care, transport, NDIS plan, etc.) when the question matches.
 
-Optional **Slack** bot (Chat SDK): `lib/provider-finder/chat-sdk/find-bot.ts` + `POST /api/chat/slack` when `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET` are set. Slash commands: `/finder`, `/providers`.
+Shared logic lives in `lib/provider-finder/ask-bridge.ts` (also used by hero search and `/api/search/interpret`).
+
+Use **Show results** to apply filters and open the result list.
+
+## Streaming chat (Slack / legacy)
+
+`POST /api/provider-finder/chat` remains for Slack and other streaming clients. It uses the same ask bridge and emits `data-finderInterpretation` for AI SDK UI consumers.
+
+Optional **Slack** bot: `lib/provider-finder/chat-sdk/find-bot.ts` + `POST /api/chat/slack` when `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET` are set. Slash commands: `/finder`, `/providers`.
 
 ## UI behaviour
 
 - **Provider Finder** — On search submit, calls the interpret API, fills `query`, `location`, `serviceQuery`, `accessQuery`, `providerName`, and maps slug → `supportType` when known.
-- **Chat panel** — Same filter application on each assistant turn; **Show results** submits the search view.
+- **Ask MapAble panel** — Applies filters from each response’s `finder` payload; **Show results** submits the search view.
 - **Low confidence** — When `parsed && confidence < 0.6`, shows: *AI-suggested filters — adjust if needed.*
 - **Homepage** — Debounced interpret before redirect to `/provider-finder?...` when the combined query is at least 3 characters.
 

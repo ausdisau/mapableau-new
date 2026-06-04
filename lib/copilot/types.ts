@@ -1,4 +1,6 @@
+import type { AppliedSearchFields } from "@/lib/search/apply-interpretation";
 import type { ConsentScope, DraftPrmsRecord } from "@/lib/prms/types";
+import type { SearchInterpretation } from "@/types/search";
 
 export type CopilotIntentType =
   | "support"
@@ -6,11 +8,14 @@ export type CopilotIntentType =
   | "combined"
   | "jobs"
   | "places"
+  | "provider_finder"
   | "ndis"
   | "billing"
   | "incident"
   | "health"
   | "unknown";
+
+export type CopilotAskContext = "default" | "provider_finder";
 
 export type CopilotMode =
   | "All"
@@ -39,7 +44,15 @@ export type CopilotActionType =
   | "INCIDENT_REPORT"
   | "SAFETY_ESCALATION"
   | "EMPLOYMENT_SUPPORT"
+  | "OPEN_PROVIDER_SEARCH"
   | "GUIDANCE_ONLY";
+
+export type CopilotFinderPayload = {
+  interpretation: SearchInterpretation;
+  applied: AppliedSearchFields;
+  searchParams: Record<string, string>;
+  replyText: string;
+};
 
 export type CopilotAction = {
   type: CopilotActionType;
@@ -133,6 +146,8 @@ export type CopilotAskResponse = {
   requiredConfirmations: ConfirmationGate[];
   warnings: CopilotWarning[];
   blockedActions: CopilotAction[];
+  /** Provider Finder NL search payload when applicable */
+  finder?: CopilotFinderPayload;
   /** Legacy-compatible fields for existing UI consumers */
   results?: unknown[];
   suggestedPrompts?: string[];
