@@ -25,6 +25,7 @@ export async function interpretSearchQueryClient(
       serviceCategorySlug: null,
       serviceCategoryId: null,
       accessNeedIds: [],
+      accessNeeds: { ids: [], confidence: 0, source: "none" },
       confidence: 0,
       engineId: "client/fallback",
     };

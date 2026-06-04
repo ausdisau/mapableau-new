@@ -15,6 +15,9 @@ export const searchInterpreterConfig = {
   elasticsearchApiKey: process.env.ES_API_KEY ?? "",
   elasticsearchCategoryAlias:
     process.env.ES_SERVICE_CATEGORY_ALIAS ?? "mapable_service_categories_current",
+  /** Dedicated LLM step when keyword needs resolution returns empty but access text is set. */
+  needsInterpreterLlm:
+    process.env.SEARCH_NEEDS_INTERPRETER_LLM !== "false",
 };
 
 export function isSearchInterpreterConfigured(): boolean {
@@ -29,5 +32,11 @@ export function isElasticsearchCategorySearchConfigured(): boolean {
   return (
     searchInterpreterConfig.elasticsearchUrl.length > 0 &&
     searchInterpreterConfig.elasticsearchApiKey.length > 0
+  );
+}
+
+export function isNeedsInterpreterLlmEnabled(): boolean {
+  return (
+    isSearchInterpreterConfigured() && searchInterpreterConfig.needsInterpreterLlm
   );
 }

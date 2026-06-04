@@ -134,6 +134,31 @@ components:
           type: array
           items:
             type: string
+        accessNeeds:
+          type: object
+          required:
+            - ids
+            - confidence
+            - source
+          properties:
+            ids:
+              type: array
+              items:
+                type: string
+            confidence:
+              type: number
+              minimum: 0
+              maximum: 1
+            source:
+              type: string
+              enum:
+                - llm_ids
+                - keyword
+                - llm_step
+                - none
+            unmatchedText:
+              type: string
+              description: Original access phrase when no chip id matched
         confidence:
           type: number
           minimum: 0

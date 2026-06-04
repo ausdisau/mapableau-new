@@ -46,6 +46,7 @@ vi.mock("@/lib/provider-finder/conversation/run-turn", () => ({
       serviceCategorySlug: "occupational-therapy",
       serviceCategoryId: null,
       accessNeedIds: [],
+      accessNeeds: { ids: [], confidence: 0, source: "none" },
       engineId: "test",
       configured: true,
     },
@@ -124,6 +125,11 @@ describe("agent tools and session", () => {
       serviceCategorySlug: null,
       serviceCategoryId: null,
       accessNeedIds: [],
+      accessNeeds: {
+        ids: [],
+        confidence: 0,
+        source: "none" as const,
+      },
       engineId: "test",
       configured: true,
     };

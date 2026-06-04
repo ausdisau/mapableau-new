@@ -41,6 +41,7 @@ describe("provider finder conversation", () => {
       serviceCategorySlug: "accessible-transport",
       serviceCategoryId: "1",
       accessNeedIds: ["wheelchair"],
+      accessNeeds: { ids: ["wheelchair"], confidence: 0.8, source: "keyword" },
       confidence: 0.8,
       engineId: "test",
     });

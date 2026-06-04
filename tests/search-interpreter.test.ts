@@ -10,7 +10,12 @@ vi.mock("@/lib/search/interpreter/load-categories", async (importOriginal) => {
   };
 });
 
-import { resolveAccessNeedIds } from "@/lib/search/interpreter/resolve-access-needs";
+import {
+  filterValidAccessNeedIds,
+  resolveAccessNeedIds,
+  resolveAccessNeedIdsFromKeywords,
+  resolveAccessNeeds,
+} from "@/lib/search/interpreter/resolve-access-needs";
 import { resolveServiceCategory } from "@/lib/search/interpreter/resolve-service-category";
 import { supportTypeFromCategorySlug } from "@/lib/search/interpreter/support-type-map";
 import {
@@ -72,6 +77,50 @@ describe("resolveAccessNeedIds", () => {
     expect(ids).toContain("auslan");
     expect(ACCESS_NEEDS.some((n) => n.id === "auslan")).toBe(true);
   });
+
+  it("maps sign language to auslan", () => {
+    const ids = resolveAccessNeedIdsFromKeywords("sign language support");
+    expect(ids).toContain("auslan");
+  });
+
+  it("maps sensory-friendly to low-sensory", () => {
+    const ids = resolveAccessNeedIdsFromKeywords("quiet sensory-friendly venue");
+    expect(ids).toContain("low-sensory");
+  });
+
+  it("maps ceiling hoist to hoist", () => {
+    const ids = resolveAccessNeedIdsFromKeywords("ceiling hoist for transfers");
+    expect(ids).toContain("hoist");
+  });
+});
+
+describe("resolveAccessNeeds", () => {
+  it("strips invalid LLM suggested ids", async () => {
+    const result = await resolveAccessNeeds({
+      accessText: "Auslan",
+      suggestedIds: ["auslan", "not-a-real-id"],
+    });
+    expect(result.ids).toEqual(["auslan"]);
+    expect(result.source).toBe("llm_ids");
+  });
+
+  it("returns unmatchedText when access text does not resolve", async () => {
+    const result = await resolveAccessNeeds({
+      accessText: "custom bespoke accommodation",
+      qText: "",
+    });
+    expect(result.ids).toEqual([]);
+    expect(result.unmatchedText).toBe("custom bespoke accommodation");
+    expect(result.confidence).toBeLessThan(0.4);
+  });
+});
+
+describe("filterValidAccessNeedIds", () => {
+  it("dedupes and filters unknown ids", () => {
+    expect(filterValidAccessNeedIds(["wheelchair", "bogus", "wheelchair"])).toEqual(
+      ["wheelchair"],
+    );
+  });
 });
 
 describe("supportTypeFromCategorySlug", () => {
@@ -97,6 +146,7 @@ describe("applyInterpretationToFields", () => {
         serviceCategorySlug: "occupational-therapy",
         serviceCategoryId: "cat-1",
         accessNeedIds: [],
+        accessNeeds: { ids: [], confidence: 0, source: "none" },
         confidence: 0.8,
         engineId: "test",
       },

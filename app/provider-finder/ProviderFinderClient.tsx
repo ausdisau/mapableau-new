@@ -286,7 +286,12 @@ export default function ProviderFinderClient() {
 
   const applyInterpretationFields = (
     applied: ReturnType<typeof applyInterpretationToFields>,
-    interpretation: { parsed: boolean; confidence: number },
+    interpretation: {
+      parsed: boolean;
+      confidence: number;
+      filters: { access: string };
+      accessNeeds?: { unmatchedText?: string };
+    },
   ) => {
     setQuery(applied.query);
     setLocation(applied.location);
@@ -297,7 +302,14 @@ export default function ProviderFinderClient() {
     if (applied.accessNeedIds.length > 0) {
       setAccessNeeds(applied.accessNeedIds);
     }
-    if (interpretation.parsed && interpretation.confidence < 0.6) {
+    const accessUnresolved =
+      Boolean(interpretation.filters.access?.trim()) &&
+      applied.accessNeedIds.length === 0;
+    if (accessUnresolved) {
+      setInterpretNote(
+        "AI suggested access filters — adjust access needs if something looks off.",
+      );
+    } else if (interpretation.parsed && interpretation.confidence < 0.6) {
       setInterpretNote(
         "AI-suggested filters — adjust any field if something looks off.",
       );

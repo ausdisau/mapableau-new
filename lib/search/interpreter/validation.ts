@@ -9,6 +9,7 @@ export const naturalLanguageFiltersSchema = z.object({
   service: z.string(),
   provider: z.string(),
   serviceCategorySlug: z.string().optional(),
+  accessNeedIds: z.array(z.string()).max(5).optional(),
 });
 
 export type ParsedNlFilters = z.infer<typeof naturalLanguageFiltersSchema>;
@@ -21,6 +22,10 @@ export const searchInterpretRequestSchema = z.object({
 export type SearchInterpretRequest = z.infer<typeof searchInterpretRequestSchema>;
 
 export function normalizeNlFilters(raw: ParsedNlFilters) {
+  const accessNeedIds = (raw.accessNeedIds ?? [])
+    .map((id) => id.trim())
+    .filter(Boolean)
+    .slice(0, 5);
   return {
     q: raw.q.trim(),
     location: raw.location.trim(),
@@ -28,6 +33,7 @@ export function normalizeNlFilters(raw: ParsedNlFilters) {
     service: raw.service.trim(),
     provider: raw.provider.trim(),
     serviceCategorySlug: raw.serviceCategorySlug?.trim() || undefined,
+    accessNeedIds: accessNeedIds.length > 0 ? accessNeedIds : undefined,
   };
 }
 
@@ -40,6 +46,7 @@ export function passthroughFilters(query: string) {
     service: "",
     provider: "",
     serviceCategorySlug: undefined as string | undefined,
+    accessNeedIds: undefined as string[] | undefined,
   };
 }
 

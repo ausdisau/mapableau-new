@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 
 import { isSearchInterpreterConfigured, searchInterpreterConfig } from "@/lib/config/search-interpreter";
+import { ACCESS_NEEDS } from "@/lib/provider-finder/filters";
 import type { NaturalLanguageSearchFilters } from "@/types/search";
 
 import { getInterpreterEngineId, getInterpreterModel } from "./get-model";
@@ -24,6 +25,7 @@ Extract structured search filters from the user's query. Return JSON only with t
 - service: specific service type if distinct from q (e.g. physiotherapy, occupational therapy)
 - provider: specific provider or organisation name if mentioned
 - serviceCategorySlug: optional canonical slug from the catalog below when confident; otherwise omit or empty string
+- accessNeedIds: optional array of canonical access need ids from the access catalog below when confident; otherwise omit
 
 Use empty strings for fields not mentioned. Prefer Australian English and NDIS terminology.`;
 
@@ -36,13 +38,20 @@ export type ParseQueryResult = {
 export async function buildInterpreterSystemPrompt(): Promise<string> {
   const categories = await listServiceCategories();
   const slugList = categories.map((c) => `${c.slug} (${c.name})`).join(", ");
+  const needList = ACCESS_NEEDS.map(
+    (n) => `${n.id} (${n.label}; e.g. ${n.keywords.slice(0, 3).join(", ")})`,
+  ).join(", ");
   return `${SYSTEM_PROMPT_BASE}
 
 Canonical service category slugs: ${slugList || "personal-care, accessible-transport, occupational-therapy, physiotherapy, support-coordination"}
 
+Canonical access need ids: ${needList}
+
 Examples:
 - "Support worker near St Ives" → q=support worker, location=St Ives
-- "Wheelchair accessible transport tomorrow" → q=transport, access=wheelchair access, service=transport, serviceCategorySlug=accessible-transport
+- "Wheelchair accessible transport tomorrow" → q=transport, access=wheelchair access, service=transport, serviceCategorySlug=accessible-transport, accessNeedIds=["wheelchair"]
+- "Support worker in Newcastle who knows Auslan" → q=support worker, location=Newcastle, access=Auslan interpreter, accessNeedIds=["auslan"]
+- "Quiet sensory-friendly activities" → q=community access, access=low sensory quiet environment, accessNeedIds=["low-sensory"]
 - "OT assessment with NDIS registration in Parramatta" → q=OT assessment, location=Parramatta, service=occupational therapy, serviceCategorySlug=occupational-therapy`;
 }
 

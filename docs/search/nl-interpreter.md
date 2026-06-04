@@ -8,7 +8,7 @@ Prisma remains the **source of truth** for categories. Optional Elasticsearch (p
 
 1. **Parse** — Vercel AI SDK `generateObject` with an NDIS-aware system prompt (`lib/search/interpreter/parse-query.ts`).
 2. **Resolve category** — Validate LLM slug, then ES `multi_match`, then keyword scoring against Prisma (`lib/search/interpreter/resolve-service-category.ts`).
-3. **Resolve access** — Map `access` text to `ACCESS_NEEDS` ids (`lib/search/interpreter/resolve-access-needs.ts`).
+3. **Resolve access** — Map `access` text to `ACCESS_NEEDS` ids via validated LLM ids, keyword scoring, and optional dedicated needs LLM step ([`nl-needs-interpreter.md`](./nl-needs-interpreter.md), `lib/search/interpreter/resolve-access-needs.ts`).
 4. **Client** — Provider Finder and homepage apply fields and optional `supportType` chip (`lib/search/apply-interpretation.ts`).
 
 Trivial queries skip the LLM via `looksLikeNaturalLanguage` to save latency and cost.
@@ -59,7 +59,7 @@ Shared logic lives in `lib/provider-finder/ask-bridge.ts` (also used by hero sea
 
 - After interpretation, the server may query live `ndis_providers` via `searchNdisProviders` and return up to `PROVIDER_FINDER_RESULTS_LIMIT` rows in `results[]` (directory export — not MapAble-verified).
 - Multi-turn: send a stable `sessionId` (stored in `sessionStorage` on the panel) and `messages[]`; server session store merges filters across turns (`lib/agent-sessions/provider-finder-session.ts`).
-- Low confidence (`< 0.55`) can return `agent.status: needs_clarification` without running search until the user replies.
+- Low confidence (`< 0.55`) or **unresolved access needs** (access mentioned but no chip id) can return `agent.status: needs_clarification` without running search until the user replies. See [nl-needs-interpreter.md](./nl-needs-interpreter.md).
 - `SEARCH_AGENT_ENABLED=true` uses `lib/agent/run-agent-turn.ts` (bounded tool steps, `toolsCalled` logged to `AgentRun` when persistence is on).
 - `PROVIDER_FINDER_AUTO_SHOW_RESULTS=true` auto-opens the result list when confidence ≥ `PROVIDER_FINDER_AUTO_SHOW_MIN_CONFIDENCE`.
 
@@ -106,3 +106,4 @@ Resolver tests mock Prisma via `listServiceCategories` fallback catalog; no netw
 - [Predictive search suggestions](../search-predictive-suggestions.md) — autocomplete (rules-based)
 - [Elasticsearch service categories](./elasticsearch-service-categories.md) — phase 2 replica
 - [HF category classifier](./hf-category-classifier.md) — phase 3 optional accelerator
+- [NL access needs interpreter](./nl-needs-interpreter.md) — ACCESS_NEEDS chip resolution and clarification
