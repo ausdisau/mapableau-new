@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import ExtensionShowcasePage from "@/components/extension-showcase/ExtensionShowcasePage";
 import { HomeSearch } from "@/components/home/HomeSearch";
+import { MarketingCta } from "@/components/marketing/MarketingCta";
 
 export default function Page() {
   return (
@@ -23,7 +23,7 @@ export default function Page() {
         </span>
       </div>
       <HomeSearch />
-      <ExtensionShowcasePage />
+      <MarketingCta />
     </>
   );
 }
