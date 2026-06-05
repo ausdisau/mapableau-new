@@ -15,7 +15,7 @@ export default async function ProviderLayout({
   return (
     <div className="min-h-screen bg-background">
       <PortalNav
-        title="Provider console"
+        title="Provider control panel"
         links={PROVIDER_NAV_LINKS}
         backHref="/dashboard"
         backLabel="Dashboard"

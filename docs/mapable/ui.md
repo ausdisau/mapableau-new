@@ -10,7 +10,8 @@ Shared shell, navigation and hub for the MapAble Core platform.
 | `/login` | `CoreShell` | Sign-in |
 | Public civic pages | `(core)` route group + `CoreShell` | Transparency, accountability, algorithms, etc. |
 | `/data-vault`, `/academy`, `/assessor` | `CoreShell` | Authenticated portals with public chrome |
-| `/provider/*` | `PortalNav` | Provider console |
+| `/provider` | `PortalNav` | Provider control panel — org metrics, onboarding status, quick links |
+| `/provider/*` | `PortalNav` | Provider console sections (care, workers, billing, etc.) |
 | `/dashboard`, `/admin` | `DashboardNav` + skip link | Participant control panel (billing centre, safety centre) and admin |
 
 ## Components (`components/core/`)
@@ -24,7 +25,9 @@ Shared shell, navigation and hub for the MapAble Core platform.
 ## Configuration
 
 `lib/core-ui/navigation.ts` — civic links, hub sections  
-`lib/core-ui/provider-nav.ts` — provider console links
+`lib/core-ui/provider-nav.ts` — provider console links (control panel first)
+
+Provider admins and transport operators land on `/provider` after sign-in (`defaultDashboardPath` in `lib/auth/roles.ts`). The control panel aggregates worker roster counts, pending invites, care inbox volume, roster gaps, and onboarding blockers via `lib/provider/provider-control-panel-service.ts`.
 
 ## Accessibility
 

@@ -47,6 +47,8 @@ Invite links use `NEXT_PUBLIC_APP_URL` or `NEXTAUTH_URL` as the base URL.
 
 | Route | Purpose |
 |-------|---------|
+| `/provider` | Provider control panel — surfaces active worker count and pending invites |
+| `/provider/workers` | Roster management and invite form |
 | `/worker/onboarding` | Worker onboarding checklist |
 | `/worker/profile` | Self-service profile edit |
 | `/invite/worker/[token]` | Accept provider invite |
