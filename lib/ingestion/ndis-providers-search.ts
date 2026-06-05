@@ -8,6 +8,8 @@ export type NdisProviderSearchParams = {
   postcode?: string;
   service?: string;
   limit?: number;
+  /** When true, only rows with non-null, non-zero latitude/longitude (map pins). */
+  withCoordinatesOnly?: boolean;
 };
 
 export type NdisProviderSearchRow = {
@@ -16,6 +18,8 @@ export type NdisProviderSearchRow = {
   suburb: string | null;
   state: string | null;
   postcode: string | null;
+  latitude: number | null;
+  longitude: number | null;
   phone: string | null;
   email: string | null;
   website: string | null;
@@ -34,6 +38,15 @@ export async function searchNdisProviders(
   const service = params.service?.trim() || null;
 
   const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
+
+  if (params.withCoordinatesOnly) {
+    conditions.push(
+      Prisma.sql`latitude IS NOT NULL`,
+      Prisma.sql`longitude IS NOT NULL`,
+      Prisma.sql`latitude <> 0`,
+      Prisma.sql`longitude <> 0`,
+    );
+  }
 
   if (q) {
     conditions.push(
@@ -59,6 +72,8 @@ export async function searchNdisProviders(
       suburb,
       state,
       postcode,
+      latitude,
+      longitude,
       phone,
       email,
       website,
