@@ -12,7 +12,12 @@ import {
   mapablePageContainerClass,
 } from "@/lib/brand/styles";
 
-export type PortalNavLink = { href: string; label: string };
+export type PortalNavLink = {
+  href: string;
+  label: string;
+  /** exact = hub route only; prefix (default) = href and children */
+  match?: "exact" | "prefix";
+};
 
 export function PortalNav({
   title,
@@ -27,8 +32,11 @@ export function PortalNav({
 }) {
   const pathname = usePathname();
 
-  function isActive(href: string) {
-    return pathname === href || pathname.startsWith(`${href}/`);
+  function isActive(link: PortalNavLink) {
+    if (link.match === "exact") {
+      return pathname === link.href;
+    }
+    return pathname === link.href || pathname.startsWith(`${link.href}/`);
   }
 
   return (
@@ -41,9 +49,9 @@ export function PortalNav({
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  aria-current={isActive(link.href) ? "page" : undefined}
+                  aria-current={isActive(link) ? "page" : undefined}
                   className={
-                    isActive(link.href) ? mapableNavLinkActiveClass : mapableNavLinkClass
+                    isActive(link) ? mapableNavLinkActiveClass : mapableNavLinkClass
                   }
                 >
                   {link.label}

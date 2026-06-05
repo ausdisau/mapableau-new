@@ -305,7 +305,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/provider-centre">
+                <Link href="/provider">
                   <Button
                     variant="default"
                     size="lg"

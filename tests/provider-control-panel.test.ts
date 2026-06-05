@@ -47,11 +47,25 @@ describe("provider control panel", () => {
     expect(defaultDashboardPath("transport_operator")).toBe("/provider");
   });
 
-  it("provider nav no longer links to folded enterprise-provider route", () => {
+  it("provider nav uses consolidated section hubs", () => {
     expect(
       PROVIDER_NAV_LINKS.some((l) => l.href === "/enterprise-provider")
     ).toBe(false);
     expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider")).toBe(true);
+    expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/claiming")).toBe(
+      true
+    );
+    expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/insights")).toBe(
+      true
+    );
+    expect(
+      PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/messages")
+    ).toBe(false);
+    expect(
+      PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/care/requests")
+    ).toBe(false);
+    const controlPanel = PROVIDER_NAV_LINKS.find((l) => l.href === "/provider");
+    expect(controlPanel?.match).toBe("exact");
   });
 
   it("returns empty summary when user has no organisation memberships", async () => {
