@@ -19,5 +19,4 @@ export const PROVIDER_NAV_LINKS: PortalNavLink[] = [
   { href: "/provider/ndia-claims", label: "NDIA claims" },
   { href: "/provider/ndis-claims/ready", label: "NDIS claiming" },
   { href: "/provider/support", label: "Support" },
-  { href: "/enterprise-provider", label: "Enterprise" },
 ];

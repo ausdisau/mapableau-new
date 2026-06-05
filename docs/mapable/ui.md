@@ -29,6 +29,8 @@ Shared shell, navigation and hub for the MapAble Core platform.
 
 Provider admins and transport operators land on `/provider` after sign-in (`defaultDashboardPath` in `lib/auth/roles.ts`). The control panel aggregates worker roster counts, pending invites, care inbox volume, roster gaps, and onboarding blockers via `lib/provider/provider-control-panel-service.ts`.
 
+Users with `enterprise:console` see an **Enterprise workspace** section on the control panel (`#enterprise-workspace`). `/enterprise-provider` redirects there — the standalone enterprise home is folded into `/provider`.
+
 ## Accessibility
 
 - Skip to main content on dashboard, admin and public shell

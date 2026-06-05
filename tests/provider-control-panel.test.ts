@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { defaultDashboardPath } from "@/lib/auth/roles";
+import { PROVIDER_NAV_LINKS } from "@/lib/core-ui/provider-nav";
 import { getProviderControlPanelSummary } from "@/lib/provider/provider-control-panel-service";
 
 vi.mock("@/lib/onboarding/onboarding-evaluator", () => ({
@@ -44,6 +45,13 @@ describe("provider control panel", () => {
   it("defaultDashboardPath for provider_admin returns /provider", () => {
     expect(defaultDashboardPath("provider_admin")).toBe("/provider");
     expect(defaultDashboardPath("transport_operator")).toBe("/provider");
+  });
+
+  it("provider nav no longer links to folded enterprise-provider route", () => {
+    expect(
+      PROVIDER_NAV_LINKS.some((l) => l.href === "/enterprise-provider")
+    ).toBe(false);
+    expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider")).toBe(true);
   });
 
   it("returns empty summary when user has no organisation memberships", async () => {

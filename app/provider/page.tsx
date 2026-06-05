@@ -128,16 +128,12 @@ export default async function ProviderControlPanelPage() {
       ) : null}
 
       {enterprise && "openRecoveries" in enterprise ? (
-        <section aria-label="Enterprise metrics">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold">Enterprise workspace</h2>
-            <Link
-              href="/enterprise-provider"
-              className="text-sm font-medium text-primary underline"
-            >
-              Open enterprise console →
-            </Link>
-          </div>
+        <section
+          id="enterprise-workspace"
+          aria-label="Enterprise metrics"
+          className="scroll-mt-8"
+        >
+          <h2 className="mb-4 text-lg font-semibold">Enterprise workspace</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MetricTile
               label="Care shifts"
@@ -156,6 +152,26 @@ export default async function ProviderControlPanelPage() {
               value={enterprise.rosterGaps ?? 0}
             />
           </div>
+          <nav
+            aria-label="Enterprise operations"
+            className="mt-4 flex flex-wrap gap-4 text-sm"
+          >
+            <Link href="/provider/care" className="font-medium text-primary underline">
+              Care operations
+            </Link>
+            <Link
+              href="/provider/transport"
+              className="font-medium text-primary underline"
+            >
+              Transport operations
+            </Link>
+            <Link
+              href="/provider/ndis-claims/reconciliation"
+              className="font-medium text-primary underline"
+            >
+              Reconciliation
+            </Link>
+          </nav>
         </section>
       ) : null}
 

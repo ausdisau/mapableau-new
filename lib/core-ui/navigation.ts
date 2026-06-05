@@ -141,7 +141,11 @@ export const CORE_HUB_SECTIONS: {
   {
     title: "For providers & partners",
     links: [
-      { href: "/enterprise-provider", label: "Enterprise console" },
+      {
+        href: "/provider",
+        label: "Provider control panel",
+        description: "Enterprise workspace metrics and provider operations",
+      },
       { href: "/academy", label: "Provider academy" },
       { href: "/assessor", label: "Assessor tools" },
       { href: "/accreditation", label: "Accreditation" },
