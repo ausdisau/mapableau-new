@@ -1,14 +1,16 @@
 "use client";
 
-import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useId, useRef, useState } from "react";
+
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { MapAccessibleResultsList } from "@/components/map/MapAccessibleResultsList";
 import { MapFullscreenToggle } from "@/components/map/MapFullscreenToggle";
 import { useMapConfig } from "@/components/map/MapProvider";
-import { MAP_LAYER_IDS } from "@/lib/map/map-layer-ids";
+import { useGeoJsonSource } from "@/lib/map/hooks/useGeoJsonSource";
+import { useMapInstance } from "@/lib/map/hooks/useMapInstance";
 import { providersToGeoJSON } from "@/lib/map/map-feature-query";
+import { MAP_LAYER_IDS, MAP_SOURCE_IDS } from "@/lib/map/map-layer-ids";
 
 export type MapLibreProvider = {
   id: string;
@@ -35,63 +37,37 @@ export function MapLibreMap({
 }: MapLibreMapProps) {
   const mapId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
   const { styleUrl, attribution, defaultCenter } = useMapConfig();
   const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+  const map = useMapInstance(containerRef, {
+    styleUrl,
+    center: defaultCenter,
+  });
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: styleUrl,
-      center: [defaultCenter.lng, defaultCenter.lat],
-      zoom: defaultCenter.zoom,
-      attributionControl: {},
-    });
+  const geoJson = useMemo(
+    () =>
+      providersToGeoJSON(
+        providers.map((p) => ({
+          id: p.id,
+          name: p.name,
+          lat: p.lat,
+          lng: p.lng,
+          suburb: p.suburb,
+          state: p.state,
+        })),
+      ),
+    [providers],
+  );
 
-    map.addControl(new maplibregl.NavigationControl(), "top-left");
-    mapRef.current = map;
-
-    map.on("load", () => {
-      const geo = providersToGeoJSON(providers);
-      map.addSource("providers", {
-        type: "geojson",
-        data: geo,
-      });
-      map.addLayer({
-        id: MAP_LAYER_IDS.providers,
-        type: "circle",
-        source: "providers",
-        paint: {
-          "circle-radius": 8,
-          "circle-color": "#2563eb",
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ffffff",
-        },
-      });
-    });
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, [styleUrl, defaultCenter.lat, defaultCenter.lng, defaultCenter.zoom]);
+  useGeoJsonSource(map, MAP_SOURCE_IDS.providers, geoJson, {
+    layerId: MAP_LAYER_IDS.providers,
+  });
 
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map?.isStyleLoaded()) return;
-    const source = map.getSource("providers") as maplibregl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData(providersToGeoJSON(providers));
-    }
-  }, [providers]);
-
-  useEffect(() => {
-    const map = mapRef.current;
     if (!map || !userPosition) return;
     map.flyTo({ center: [userPosition.lng, userPosition.lat], zoom: 12 });
-  }, [userPosition]);
+  }, [map, userPosition]);
 
   const listResults = providers.slice(0, 50).map((p) => ({
     id: p.id,

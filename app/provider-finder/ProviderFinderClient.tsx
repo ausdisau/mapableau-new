@@ -29,10 +29,14 @@ import {
   buildFinderSearchParams,
 } from "@/lib/search/apply-interpretation";
 import { interpretSearchQueryClient } from "@/lib/search/interpreter-client";
+import { getProviderFinderMapSourceClient } from "@/lib/config/provider-finder-map";
+import { fetchProviderMapPins } from "@/lib/provider-finder/fetch-map-pins";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
+
+import type { MapLibreProvider } from "@/components/map/MapLibreMap";
 
 const MapLibreMap = dynamic(
   () =>
@@ -112,7 +116,12 @@ export default function ProviderFinderClient() {
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [interpretNote, setInterpretNote] = useState<string | null>(null);
   const [searchInterpreting, setSearchInterpreting] = useState(false);
+  const [ndisMapPins, setNdisMapPins] = useState<MapLibreProvider[] | null>(
+    null,
+  );
+  const [mapPinsLoading, setMapPinsLoading] = useState(false);
 
+  const mapSource = getProviderFinderMapSourceClient();
   const pageSize = 12;
 
   useEffect(() => {
@@ -263,7 +272,7 @@ export default function ProviderFinderClient() {
     return filteredSorted.slice(start, start + pageSize);
   }, [currentPage, filteredSorted]);
 
-  const mapProviders = useMemo(() => {
+  const outletMapPins = useMemo((): MapLibreProvider[] => {
     let list = filteredSorted;
     if (userLocation) {
       list = list.filter((p) => {
@@ -277,8 +286,94 @@ export default function ProviderFinderClient() {
         return d <= RADIUS_KM;
       });
     }
-    return list.slice(0, MAP_PIN_LIMIT);
+    return list
+      .filter((p) => p.latitude != null && p.longitude != null)
+      .slice(0, MAP_PIN_LIMIT)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        suburb: p.suburb,
+        state: p.state,
+        lat: p.latitude!,
+        lng: p.longitude!,
+        distanceKm: p.distanceKm,
+      }));
   }, [filteredSorted, userLocation]);
+
+  useEffect(() => {
+    if (
+      !searchSubmitted ||
+      mapSource === "outlets" ||
+      (!query.trim() &&
+        !location.trim() &&
+        !serviceQuery.trim() &&
+        !providerName.trim())
+    ) {
+      setNdisMapPins(null);
+      return;
+    }
+
+    let cancelled = false;
+    setMapPinsLoading(true);
+    fetchProviderMapPins({
+      q: query,
+      location,
+      service: serviceQuery,
+      provider: providerName,
+    })
+      .then((res) => {
+        if (!cancelled) setNdisMapPins(res.providers);
+      })
+      .catch(() => {
+        if (!cancelled) setNdisMapPins(null);
+      })
+      .finally(() => {
+        if (!cancelled) setMapPinsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    searchSubmitted,
+    mapSource,
+    query,
+    location,
+    serviceQuery,
+    providerName,
+  ]);
+
+  const mapPinProviders = useMemo((): MapLibreProvider[] => {
+    const useNdisPins =
+      searchSubmitted &&
+      (mapSource === "ndis" || mapSource === "hybrid") &&
+      ndisMapPins &&
+      ndisMapPins.length > 0;
+
+    let list = useNdisPins ? ndisMapPins : outletMapPins;
+
+    if (userLocation) {
+      list = list
+        .map((p) => ({
+          ...p,
+          distanceKm: distanceKm(
+            userLocation.lat,
+            userLocation.lng,
+            p.lat,
+            p.lng,
+          ),
+        }))
+        .filter((p) => (p.distanceKm ?? 0) <= RADIUS_KM);
+    }
+
+    return list.slice(0, MAP_PIN_LIMIT);
+  }, [
+    searchSubmitted,
+    mapSource,
+    ndisMapPins,
+    outletMapPins,
+    userLocation,
+  ]);
 
   useEffect(() => {
     if (page !== currentPage) setPage(currentPage);
@@ -572,23 +667,18 @@ export default function ProviderFinderClient() {
                   </Card>
                 ) : null}
                 <div className="overflow-hidden rounded-xl border border-border/60 shadow-sm">
+                  {mapPinsLoading ? (
+                    <p className="p-4 text-sm text-muted-foreground">
+                      Loading map pins…
+                    </p>
+                  ) : null}
                   <MapLibreMap
-                    providers={mapProviders
-                      .filter((p) => p.latitude != null && p.longitude != null)
-                      .map((p) => ({
-                        id: p.id,
-                        name: p.name,
-                        suburb: p.suburb,
-                        state: p.state,
-                        lat: p.latitude!,
-                        lng: p.longitude!,
-                        distanceKm: p.distanceKm,
-                      }))}
+                    providers={mapPinProviders}
                     userPosition={userLocation}
                     selectedProviderId={selectedProvider?.id ?? null}
                     onProviderSelect={(id) => {
-                      const p = mapProviders.find((x) => x.id === id);
-                      if (p) setSelectedProvider(p);
+                      const fromList = filteredSorted.find((x) => x.id === id);
+                      if (fromList) setSelectedProvider(fromList);
                     }}
                   />
                 </div>
