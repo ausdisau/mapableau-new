@@ -75,6 +75,7 @@ model User {
   careLivingAloneSafeguards CareLivingAloneSafeguard[]
   supportProfile            SupportProfile?
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
+  workerOrganisationInvitesSent WorkerOrganisationInvite[] @relation("WorkerInviteInvitedBy")
   onboardingProfiles        OnboardingProfile[] @relation("OnboardingProfileUser")
   supportJourneySessions    SupportJourneySession[] @relation("SupportJourneyParticipant")
   complaintsReported        Complaint[]        @relation("ComplaintReportedBy")
@@ -682,6 +683,7 @@ model Organisation {
   careRosterAssignments  CareRosterAssignment[]
   careInvoiceLinks       CareInvoiceLink[]
   workerProfiles         WorkerProfile[]
+  workerOrganisationInvites WorkerOrganisationInvite[]
   capacityBlocks         CapacityBlock[]
   vehicles               Vehicle[]
   driverProfiles         DriverProfile[]
@@ -1816,6 +1818,8 @@ model WorkerProfile {
   verificationStatus              WorkerCredentialStatus @default(pending_review)
   highIntensityCompetencyVerified Boolean                @default(false)
   active                          Boolean                @default(true)
+  invitedAt                       DateTime?
+  joinedAt                        DateTime?
   createdAt                       DateTime               @default(now())
   updatedAt                       DateTime               @updatedAt
 
@@ -1828,8 +1832,37 @@ model WorkerProfile {
   availabilityWindows     AvailabilityWindow[]
   onboardingProfile       OnboardingProfile?
   trustCredentials        WorkerTrustCredential[]
+  organisationInvites     WorkerOrganisationInvite[]
 
+  @@unique([userId, organisationId])
   @@index([organisationId, active])
+}
+
+enum WorkerOrganisationInviteStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+model WorkerOrganisationInvite {
+  id              String                         @id @default(cuid())
+  organisationId  String
+  organisation    Organisation                   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  email           String
+  invitedByUserId String
+  invitedBy       User                           @relation("WorkerInviteInvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  token           String                         @unique
+  status          WorkerOrganisationInviteStatus @default(pending)
+  displayName     String?
+  workerProfileId String?
+  workerProfile   WorkerProfile?                 @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime                       @default(now())
+
+  @@index([organisationId, status])
+  @@index([email, status])
 }
 
 enum WorkerTrustCredentialStatus {

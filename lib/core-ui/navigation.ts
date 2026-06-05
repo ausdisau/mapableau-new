@@ -13,7 +13,11 @@ export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
     description: "Your profile, bookings, care and scheduled transport trips",
   },
   { href: "/login", label: "Sign in" },
-  { href: "/provider/bookings", label: "Provider console" },
+  {
+    href: "/provider",
+    label: "Provider control panel",
+    description: "Workers, care inbox, roster, billing and NDIS claiming",
+  },
   { href: "/admin", label: "Admin" },
 ];
 
@@ -137,7 +141,11 @@ export const CORE_HUB_SECTIONS: {
   {
     title: "For providers & partners",
     links: [
-      { href: "/enterprise-provider", label: "Enterprise console" },
+      {
+        href: "/provider",
+        label: "Provider control panel",
+        description: "Enterprise workspace metrics and provider operations",
+      },
       { href: "/academy", label: "Provider academy" },
       { href: "/assessor", label: "Assessor tools" },
       { href: "/accreditation", label: "Accreditation" },

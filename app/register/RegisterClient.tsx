@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -22,6 +22,8 @@ export default function RegisterClient({
   oauthProviders: OAuthProviderFlags;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("inviteToken")?.trim() ?? "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -43,6 +45,7 @@ export default function RegisterClient({
           email: normalizedEmail,
           password: password.trim(),
           name,
+          ...(inviteToken ? { inviteToken } : {}),
         }),
       });
 
@@ -69,7 +72,7 @@ export default function RegisterClient({
         return;
       }
 
-      router.push("/dashboard");
+      router.push(inviteToken ? "/worker/onboarding" : "/dashboard");
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -79,8 +82,12 @@ export default function RegisterClient({
 
   return (
     <AuthFormCard
-      title="Create your account"
-      description="Join MapAble to request care, manage bookings, and connect with providers."
+      title={inviteToken ? "Create worker account" : "Create your account"}
+      description={
+        inviteToken
+          ? "Complete registration to accept your provider invite and join their roster."
+          : "Join MapAble to request care, manage bookings, and connect with providers."
+      }
       footer={
         <>
           Already have an account?{" "}
