@@ -22,6 +22,24 @@ export async function startProviderOnboarding(organisationId: string) {
   });
 }
 
+export async function syncWorkersOnboardingTask(organisationId: string) {
+  const activeCount = await prisma.workerProfile.count({
+    where: { organisationId, active: true, userId: { not: null } },
+  });
+  if (activeCount === 0) return null;
+
+  const workflow = await prisma.providerOnboardingWorkflow.findFirst({
+    where: { organisationId, status: "in_progress" },
+    include: { tasks: true },
+  });
+  if (!workflow) return null;
+
+  const workersTask = workflow.tasks.find((t) => t.taskKey === "workers");
+  if (!workersTask || workersTask.status === "completed") return workersTask;
+
+  return completeOnboardingTask(workersTask.id);
+}
+
 export async function completeOnboardingTask(taskId: string) {
   const task = await prisma.providerOnboardingTask.update({
     where: { id: taskId },

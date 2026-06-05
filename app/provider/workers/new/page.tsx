@@ -1,49 +1,50 @@
-"use client";
+import Link from "next/link";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { ProviderWorkerInviteForm } from "@/components/provider/ProviderWorkerInviteForm";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import { requireAuth } from "@/lib/auth/guards";
+import { hasPermission } from "@/lib/auth/permissions";
+import { prisma } from "@/lib/prisma";
 
-import { formInputClass } from "@/components/forms/AccessibleFormField";
-import { Button } from "@/components/ui/button";
+export default async function NewWorkerPage() {
+  const user = await requireAuth();
+  if (!hasPermission(user.primaryRole, "worker:manage:org")) {
+    return <p className="p-8">You do not have permission to invite workers.</p>;
+  }
 
-export default function NewWorkerPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const orgIds = await getUserOrganisationIds(user.id);
+  const organisations = await prisma.organisation.findMany({
+    where: { id: { in: orgIds } },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+
+  if (organisations.length === 0) {
+    return (
+      <div className="space-y-4 p-4">
+        <h1 className="font-heading text-2xl font-bold">Invite worker</h1>
+        <p className="text-muted-foreground">
+          You need an organisation membership before you can invite workers.
+        </p>
+        <Link href="/provider/workers" className="text-primary underline">
+          Back to workers
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <form
-      className="max-w-xl space-y-4"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        const fd = new FormData(e.currentTarget);
-        const res = await fetch("/api/workers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            organisationId: fd.get("organisationId"),
-            userId: fd.get("userId"),
-            displayName: fd.get("displayName"),
-            profileSummary: fd.get("profileSummary"),
-          }),
-        });
-        setLoading(false);
-        if (res.ok) {
-          const d = await res.json();
-          router.push(`/provider/workers/${d.profile.id}`);
-        }
-      }}
-    >
-      <h1 className="font-heading text-2xl font-bold">Add worker profile</h1>
-      <label htmlFor="organisationId" className="text-sm font-medium">Organisation ID</label>
-      <input id="organisationId" name="organisationId" className={formInputClass} required />
-      <label htmlFor="userId" className="text-sm font-medium">User ID</label>
-      <input id="userId" name="userId" className={formInputClass} required />
-      <label htmlFor="displayName" className="text-sm font-medium">Display name</label>
-      <input id="displayName" name="displayName" className={formInputClass} required />
-      <label htmlFor="profileSummary" className="text-sm font-medium">Summary</label>
-      <textarea id="profileSummary" name="profileSummary" className={formInputClass} rows={3} />
-      <Button type="submit" variant="default" size="default" loading={loading}>Create</Button>
-    </form>
+    <div className="space-y-6 px-4 py-8">
+      <div>
+        <Link href="/provider/workers" className="text-sm text-primary underline">
+          ← Workers
+        </Link>
+        <h1 className="mt-2 font-heading text-2xl font-bold">Invite worker</h1>
+        <p className="text-muted-foreground">
+          Send an email invite so a support worker can join your organisation roster.
+        </p>
+      </div>
+      <ProviderWorkerInviteForm organisations={organisations} />
+    </div>
   );
 }
