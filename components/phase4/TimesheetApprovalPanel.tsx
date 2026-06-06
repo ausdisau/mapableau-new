@@ -1,9 +1,22 @@
 "use client";
 
-export function TimesheetApprovalPanel({ timesheetId }: { timesheetId: string }) {
+import { useState } from "react";
+
+import { PostServiceCsatPrompt } from "@/components/engagement/PostServiceCsatPrompt";
+
+export function TimesheetApprovalPanel({
+  timesheetId,
+  organisationId,
+}: {
+  timesheetId: string;
+  organisationId?: string;
+}) {
+  const [showCsat, setShowCsat] = useState(false);
+
   async function approve() {
-    await fetch(`/api/timesheets/${timesheetId}/approve`, { method: "POST" });
-    window.location.reload();
+    const res = await fetch(`/api/timesheets/${timesheetId}/approve`, { method: "POST" });
+    if (res.ok) setShowCsat(true);
+    else window.location.reload();
   }
 
   async function dispute() {
@@ -14,6 +27,18 @@ export function TimesheetApprovalPanel({ timesheetId }: { timesheetId: string })
       body: JSON.stringify({ reason: reason ?? "Needs review" }),
     });
     window.location.reload();
+  }
+
+  if (showCsat) {
+    return (
+      <PostServiceCsatPrompt
+        contextType="timesheet"
+        contextId={timesheetId}
+        organisationId={organisationId}
+        label="How was the support covered by this timesheet?"
+        onSubmitted={() => window.location.reload()}
+      />
+    );
   }
 
   return (

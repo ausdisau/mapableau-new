@@ -33,6 +33,15 @@ describe("consent scope mapping", () => {
     const prismaScope = consentScopeToPrisma(scope);
     expect(consentScopeFromPrisma(prismaScope)).toBe(scope);
   });
+
+  it("maps engagement delegate scopes", () => {
+    expect(consentScopeToPrisma("engagement.read_delegate")).toBe(
+      "engagement_read_delegate"
+    );
+    expect(consentScopeFromPrisma("engagement_submit_delegate")).toBe(
+      "engagement.submit_delegate"
+    );
+  });
 });
 
 describe("booking creation validation", () => {

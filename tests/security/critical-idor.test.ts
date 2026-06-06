@@ -13,6 +13,10 @@ import {
 import { assertCanAccessTransportBooking } from "@/lib/transport/transport-booking-access";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { canUserAccessIncident } from "@/lib/safety/incident-access";
+import {
+  canUserAccessSubmission,
+  canUserSubmitForParticipant,
+} from "@/lib/engagement/engagement-access";
 
 vi.mock("@/lib/api/phase3-scope", () => ({
   getUserOrganisationIds: vi.fn().mockResolvedValue(["org-allowed"]),
@@ -30,8 +34,10 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+const checkConsentMock = vi.fn().mockResolvedValue(false);
+
 vi.mock("@/lib/consent/consent-service", () => ({
-  checkConsent: vi.fn().mockResolvedValue(false),
+  checkConsent: (...args: unknown[]) => checkConsentMock(...args),
 }));
 
 const participant: CurrentUser = {
@@ -145,6 +151,59 @@ describe("participant data access control", () => {
     await expect(
       assertCanAccessParticipantData(otherParticipant, "participant-1")
     ).rejects.toThrow(ParticipantAccessError);
+  });
+});
+
+describe("engagement delegate boundaries", () => {
+  const submission = {
+    participantId: "participant-1",
+    submittedById: "participant-1",
+  };
+
+  it("allows participant to access own submission", async () => {
+    expect(
+      await canUserAccessSubmission(submission, "participant-1", "participant")
+    ).toBe(true);
+  });
+
+  it("denies unrelated participant", async () => {
+    expect(
+      await canUserAccessSubmission(submission, "participant-2", "participant")
+    ).toBe(false);
+  });
+
+  it("denies family member without delegate consent", async () => {
+    checkConsentMock.mockResolvedValueOnce(false);
+    expect(
+      await canUserAccessSubmission(
+        submission,
+        "family-1",
+        "family_member",
+        "participant-1"
+      )
+    ).toBe(false);
+  });
+
+  it("allows family member with read delegate consent", async () => {
+    checkConsentMock.mockResolvedValueOnce(true);
+    expect(
+      await canUserAccessSubmission(
+        submission,
+        "family-1",
+        "family_member",
+        "participant-1"
+      )
+    ).toBe(true);
+  });
+
+  it("denies submit without delegate submit consent", async () => {
+    checkConsentMock.mockResolvedValue(false);
+    const result = await canUserSubmitForParticipant(
+      "participant-1",
+      "family-1",
+      "family_member"
+    );
+    expect(result.allowed).toBe(false);
   });
 });
 

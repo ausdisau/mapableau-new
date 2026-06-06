@@ -2,21 +2,47 @@
 
 import { useState } from "react";
 
+import { PostServiceCsatPrompt } from "@/components/engagement/PostServiceCsatPrompt";
 import { formInputClass } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
 
 export function ServiceLogConfirmDispute({
   logId,
   status,
+  organisationId,
 }: {
   logId: string;
   status: string;
+  organisationId?: string;
 }) {
   const [reason, setReason] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [showCsat, setShowCsat] = useState(false);
 
   if (status === "confirmed") {
-    return <p className="text-sm text-green-700">You confirmed this service log.</p>;
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-green-700">You confirmed this service log.</p>
+        <PostServiceCsatPrompt
+          contextType="care_shift"
+          contextId={logId}
+          organisationId={organisationId}
+          label="How was this care session?"
+        />
+      </div>
+    );
+  }
+
+  if (showCsat) {
+    return (
+      <PostServiceCsatPrompt
+        contextType="care_shift"
+        contextId={logId}
+        organisationId={organisationId}
+        label="How was this care session?"
+        onSubmitted={() => window.location.reload()}
+      />
+    );
   }
   if (status === "disputed") {
     return <p className="text-sm text-amber-700">This service log is disputed.</p>;
@@ -37,7 +63,7 @@ export function ServiceLogConfirmDispute({
             const res = await fetch(`/api/care/service-logs/${logId}/confirm`, {
               method: "POST",
             });
-            if (res.ok) window.location.reload();
+            if (res.ok) setShowCsat(true);
             else setMsg("Could not confirm");
           }}
         >
