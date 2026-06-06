@@ -14,6 +14,8 @@ const SEED_DEFINITIONS: Array<{
   { key: "ndia", type: "finance", displayName: "NDIA Provider Claiming" },
   { key: "keycloak", type: "identity", displayName: "Keycloak" },
   { key: "maplibre", type: "maps", displayName: "MapLibre" },
+  { key: "openstreetmap", type: "maps", displayName: "OpenStreetMap" },
+  { key: "opensearch", type: "search", displayName: "OpenSearch" },
   { key: "supabase", type: "database", displayName: "Supabase (optional)" },
   { key: "supabase_realtime", type: "realtime", displayName: "Supabase Realtime" },
   { key: "socketio", type: "realtime", displayName: "Socket.IO Gateway" },

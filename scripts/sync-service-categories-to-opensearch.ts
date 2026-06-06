@@ -1,7 +1,8 @@
 #!/usr/bin/env npx tsx
 /**
- * Bulk-sync service_categories from Prisma into Elasticsearch.
- * Requires ES_URL and ES_API_KEY. See docs/search/elasticsearch-service-categories.md
+ * Bulk-sync service_categories from Prisma into OpenSearch.
+ * Requires OPENSEARCH_ENABLED=true, OPENSEARCH_URL, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD.
+ * See docs/search/opensearch-service-categories.md
  */
 import { PrismaClient } from "@prisma/client";
 
@@ -9,33 +10,22 @@ import {
   SERVICE_CATEGORY_INDEX_BODY,
   SERVICE_CATEGORY_INDEX_V1,
 } from "@/lib/search/service-category-index";
+import { openSearchFetch } from "@/lib/search/opensearch-client";
 
-const INDEX = SERVICE_CATEGORY_INDEX_V1;
+const INDEX =
+  process.env.OPENSEARCH_SERVICE_CATEGORY_INDEX ?? SERVICE_CATEGORY_INDEX_V1;
 const ALIAS =
-  process.env.ES_SERVICE_CATEGORY_ALIAS ?? "mapable_service_categories_current";
-
-const ES_URL = (process.env.ES_URL ?? "").replace(/\/$/, "");
-const ES_API_KEY = process.env.ES_API_KEY ?? "";
-
-async function esFetch(path: string, init?: RequestInit): Promise<Response> {
-  return fetch(`${ES_URL}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `ApiKey ${ES_API_KEY}`,
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-  });
-}
+  process.env.OPENSEARCH_SERVICE_CATEGORY_ALIAS ??
+  "mapable_service_categories_current";
 
 async function ensureIndex(): Promise<void> {
-  const head = await esFetch(`/${INDEX}`, { method: "HEAD" });
+  const head = await openSearchFetch(`/${INDEX}`, { method: "HEAD" });
   if (head.status === 200) {
     console.log(`Index ${INDEX} already exists.`);
     return;
   }
 
-  const create = await esFetch(`/${INDEX}`, {
+  const create = await openSearchFetch(`/${INDEX}`, {
     method: "PUT",
     body: JSON.stringify(SERVICE_CATEGORY_INDEX_BODY),
   });
@@ -67,7 +57,7 @@ async function bulkIndex(
     );
   }
 
-  const bulk = await esFetch("/_bulk", {
+  const bulk = await openSearchFetch("/_bulk", {
     method: "POST",
     headers: { "Content-Type": "application/x-ndjson" },
     body: `${lines.join("\n")}\n`,
@@ -94,7 +84,7 @@ async function ensureAlias(): Promise<void> {
     ],
   };
 
-  const res = await esFetch("/_aliases", {
+  const res = await openSearchFetch("/_aliases", {
     method: "POST",
     body: JSON.stringify(actions),
   });
@@ -108,8 +98,8 @@ async function ensureAlias(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  if (!ES_URL || !ES_API_KEY) {
-    console.error("Set ES_URL and ES_API_KEY before running this script.");
+  if (process.env.OPENSEARCH_ENABLED !== "true") {
+    console.error("Set OPENSEARCH_ENABLED=true before running this script.");
     process.exit(1);
   }
 
