@@ -19,7 +19,11 @@ import { mergeProviderContextIntoQuery } from "@/lib/provider-finder/ask-bridge"
 import { buildFinderSearchParams } from "@/lib/search/apply-interpretation";
 import { searchProvidersForAppliedTurn } from "@/lib/provider-finder/ndis-search-from-applied";
 
+import { explainProvider } from "./tools/explain-provider";
+import { geocodeLocation } from "./tools/geocode-location";
 import {
+  TOOL_EXPLAIN_PROVIDER,
+  TOOL_GEOCODE_LOCATION,
   TOOL_INTERPRET_FINDER_QUERY,
   TOOL_SEARCH_NDIS_PROVIDERS,
 } from "./tools/index";
@@ -87,11 +91,25 @@ export async function runProviderFinderAgentTurn(
     toolsCalled.push(TOOL_SEARCH_NDIS_PROVIDERS);
   }
 
+  if (applied.location && toolsCalled.length < MAX_AGENT_STEPS) {
+    toolsCalled.push(TOOL_GEOCODE_LOCATION);
+    await geocodeLocation(applied.location);
+  }
+
   const providerResults = await searchProvidersForAppliedTurn(
     applied,
     convo.interpretation,
     { limit: searchAgentConfig.providerFinderResultsLimit },
   );
+
+  if (
+    applied.providerName &&
+    toolsCalled.length < MAX_AGENT_STEPS &&
+    !toolsCalled.includes(TOOL_EXPLAIN_PROVIDER)
+  ) {
+    toolsCalled.push(TOOL_EXPLAIN_PROVIDER);
+    await explainProvider({ providerName: applied.providerName });
+  }
 
   let replyText = convo.replyText;
   if (providerResults.length > 0) {
