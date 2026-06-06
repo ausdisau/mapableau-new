@@ -1,4 +1,4 @@
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { SupportCoordinatorNav } from "@/components/layout/SupportCoordinatorNav";
 import { requireAuth } from "@/lib/auth/guards";
 
@@ -9,14 +9,15 @@ export default async function SupportCoordinatorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
 
   return (
-    <MapAbleRoleAppShell
+    <AuthenticatedRoleAppShell
+      user={user}
       headerTitle="Support coordinator"
       secondaryNav={<SupportCoordinatorNav />}
     >
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

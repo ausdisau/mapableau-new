@@ -1,5 +1,5 @@
 import { EmployerNav } from "@/components/layout/EmployerNav";
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requireAuth } from "@/lib/auth/guards";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +9,11 @@ export default async function EmployerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
 
   return (
-    <MapAbleRoleAppShell headerTitle="Employer" secondaryNav={<EmployerNav />}>
+    <AuthenticatedRoleAppShell user={user} headerTitle="Employer" secondaryNav={<EmployerNav />}>
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

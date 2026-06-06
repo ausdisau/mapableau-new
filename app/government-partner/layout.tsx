@@ -1,5 +1,5 @@
 import { GovernmentPartnerNav } from "@/components/layout/GovernmentPartnerNav";
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requireAuth } from "@/lib/auth/guards";
 
 export const dynamic = "force-dynamic";
@@ -9,14 +9,15 @@ export default async function GovernmentPartnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
 
   return (
-    <MapAbleRoleAppShell
+    <AuthenticatedRoleAppShell
+      user={user}
       headerTitle="Government partner"
       secondaryNav={<GovernmentPartnerNav />}
     >
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

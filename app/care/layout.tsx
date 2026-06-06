@@ -1,5 +1,5 @@
 import { CareNav } from "@/components/care/CareNav";
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requirePermission } from "@/lib/auth/guards";
 
 export default async function CareLayout({
@@ -7,11 +7,11 @@ export default async function CareLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requirePermission("care:read:self");
+  const user = await requirePermission("care:read:self");
 
   return (
-    <MapAbleRoleAppShell headerTitle="Care" secondaryNav={<CareNav />}>
+    <AuthenticatedRoleAppShell user={user} headerTitle="Care" secondaryNav={<CareNav />}>
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

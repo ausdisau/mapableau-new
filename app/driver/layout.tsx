@@ -1,5 +1,5 @@
 import { DriverNav } from "@/components/layout/DriverNav";
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requireAuth } from "@/lib/auth/guards";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +9,11 @@ export default async function DriverLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
 
   return (
-    <MapAbleRoleAppShell headerTitle="Driver" secondaryNav={<DriverNav />}>
+    <AuthenticatedRoleAppShell user={user} headerTitle="Driver" secondaryNav={<DriverNav />}>
       <div className="pb-20">{children}</div>
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

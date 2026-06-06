@@ -9,17 +9,20 @@ export function MapAbleRoleAppShell({
   headerTitle,
   secondaryNav,
   headerActions,
+  logoHref,
 }: {
   children: ReactNode;
   headerTitle: string;
   secondaryNav: ReactNode;
   headerActions?: ReactNode;
+  logoHref?: string;
 }) {
   return (
     <MapAbleAppShell
       variant="app"
       headerTitle={headerTitle}
       headerActions={headerActions}
+      logoHref={logoHref}
       secondaryNav={secondaryNav}
     >
       {children}

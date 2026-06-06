@@ -20,6 +20,7 @@ export function DashboardAppShell({
     <MapAbleAppShell
       variant="app"
       headerTitle="Dashboard"
+      logoHref="/dashboard"
       headerActions={<MapAbleUserBar userName={userName} role={role} />}
       secondaryNav={<DashboardNav userName={userName} role={role} />}
     >

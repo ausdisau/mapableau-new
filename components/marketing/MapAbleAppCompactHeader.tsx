@@ -8,15 +8,17 @@ import { LogoMark } from "@/components/marketing/mapable-care-shared";
 export function MapAbleAppCompactHeader({
   title,
   actions,
+  logoHref = "/dashboard",
 }: {
   title?: string;
   actions?: ReactNode;
+  logoHref?: string;
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
         <Link
-          href="/"
+          href={logoHref}
           className="flex items-center gap-3 rounded-xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
         >
           <LogoMark compact />

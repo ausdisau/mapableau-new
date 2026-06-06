@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState, type ReactNode } from "react";
+import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { ArrowIcon, ChevronDown, SearchIcon } from "@/components/marketing/mapable-care-icons";
 import {
@@ -16,6 +16,57 @@ import {
   type SupportArea,
 } from "@/lib/marketing/mapable-care-combined-data";
 import { buildGuidedSearchUrl } from "@/lib/marketing/mapable-care-routes";
+
+function useDismissOnOutsideAndEscape(
+  open: boolean,
+  onClose: () => void,
+  containerRef: React.RefObject<HTMLElement | null>,
+) {
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (containerRef.current?.contains(target)) return;
+      onClose();
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [containerRef, onClose, open]);
+}
+
+function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
+  const className = compact
+    ? "flex flex-col gap-2"
+    : "flex items-center gap-3";
+  const loginClassName = compact
+    ? "rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+    : "rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+  const registerClassName = compact
+    ? "rounded-xl bg-[#005B7F] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+    : "rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+
+  return (
+    <div className={className}>
+      <Link href="/login" className={loginClassName}>
+        Log in
+      </Link>
+      <Link href="/register" className={registerClassName}>
+        Get started
+      </Link>
+    </div>
+  );
+}
 
 function SparkIcon() {
   return (
@@ -61,8 +112,11 @@ export function LogoMark({ compact = false }: { compact?: boolean }) {
 
 export function LogoMenu() {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useDismissOnOutsideAndEscape(open, () => setOpen(false), menuRef);
+
   return (
-    <div className="relative flex min-w-fit items-center gap-1">
+    <div ref={menuRef} className="relative flex min-w-fit items-center gap-1">
       <Link
         href="/"
         className="rounded-2xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
@@ -104,6 +158,9 @@ export function LogoMenu() {
               </Link>
             ))}
           </div>
+          <div className="border-t border-slate-100 p-3 md:hidden">
+            <MarketingAuthLinks compact />
+          </div>
         </div>
       )}
     </div>
@@ -118,8 +175,11 @@ function SupportAreaCombo({
   setSelectedArea: (value: SupportArea) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const comboRef = useRef<HTMLDivElement>(null);
+  useDismissOnOutsideAndEscape(open, () => setOpen(false), comboRef);
+
   return (
-    <div className="relative hidden sm:block">
+    <div ref={comboRef} className="relative hidden sm:block">
       <button
         type="button"
         aria-haspopup="listbox"
@@ -221,12 +281,15 @@ export function SponsoredCard({
   );
 }
 
-export function GuidedSearch() {
+export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
   const router = useRouter();
+  const searchId = `mapable-care-search-${idSuffix}`;
   const [query, setQuery] = useState("");
   const [selectedArea, setSelectedArea] = useState<SupportArea>("All");
   const [open, setOpen] = useState(false);
   const [submittedQuery, setSubmittedQuery] = useState("");
+  const searchRef = useRef<HTMLDivElement>(null);
+  useDismissOnOutsideAndEscape(open, () => setOpen(false), searchRef);
   const suggestions = useMemo(() => getPredictiveSuggestions(query), [query]);
   const results = useMemo(
     () => getFilteredResults(submittedQuery || query, selectedArea),
@@ -244,15 +307,16 @@ export function GuidedSearch() {
   }
 
   return (
-    <div className="relative w-full max-w-2xl">
+    <div ref={searchRef} className="relative w-full max-w-2xl">
       <form
         onSubmit={(event) => {
           event.preventDefault();
           runSearch(query);
           navigateToFinder(query);
+          setOpen(false);
         }}
       >
-        <label htmlFor="mapable-care-search" className="sr-only">
+        <label htmlFor={searchId} className="sr-only">
           Search MapAble
         </label>
         <div className="flex min-h-12 items-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-3 shadow-sm transition focus-within:border-[#005B7F] focus-within:ring-4 focus-within:ring-[#F8C51C]/30">
@@ -260,7 +324,7 @@ export function GuidedSearch() {
             <SearchIcon />
           </span>
           <input
-            id="mapable-care-search"
+            id={searchId}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -314,6 +378,7 @@ export function GuidedSearch() {
                   onClick={() => {
                     setQuery(prompt);
                     runSearch(prompt);
+                    setOpen(false);
                     router.push(buildGuidedSearchUrl(prompt, selectedArea));
                   }}
                   className="rounded-xl px-3 py-3 text-left text-sm font-bold text-[#0C1833] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
@@ -352,25 +417,17 @@ export function MapAbleCareMarketingHeader() {
       <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4 lg:px-8">
         <LogoMenu />
         <div className="hidden justify-center lg:flex">
-          <GuidedSearch />
+          <GuidedSearch idSuffix="header" />
         </div>
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/login"
-            className="rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-          >
-            Get started
-          </Link>
+          <MarketingAuthLinks />
         </div>
       </div>
       <div className="border-t border-slate-100 px-5 pb-4 lg:hidden">
-        <GuidedSearch />
+        <GuidedSearch idSuffix="header-mobile" />
+        <div className="mt-3 md:hidden">
+          <MarketingAuthLinks compact />
+        </div>
       </div>
     </header>
   );

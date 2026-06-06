@@ -4,6 +4,7 @@ import {
   buildGuidedSearchUrl,
   getSearchResultHref,
   supportAreaLandingRoutes,
+  supportAreaToSupportTypeId,
 } from "@/lib/marketing/mapable-care-routes";
 
 describe("mapable-care-routes", () => {
@@ -31,5 +32,13 @@ describe("mapable-care-routes", () => {
     expect(getSearchResultHref("Places")).toBe("/access");
     expect(getSearchResultHref("NDIS Help")).toBe("/ask");
     expect(getSearchResultHref("Care")).toBe("/provider-finder?area=Care");
+  });
+
+  it("maps marketing area query params to provider finder support types", () => {
+    expect(supportAreaToSupportTypeId("Care")).toBe("personal-care");
+    expect(supportAreaToSupportTypeId("Transport")).toBe("transport");
+    expect(supportAreaToSupportTypeId("Jobs")).toBe("employment");
+    expect(supportAreaToSupportTypeId("All")).toBeNull();
+    expect(supportAreaToSupportTypeId(null)).toBeNull();
   });
 });

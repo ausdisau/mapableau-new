@@ -1,4 +1,4 @@
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { PlanManagerNav } from "@/components/layout/PlanManagerNav";
 import { requireAuth } from "@/lib/auth/guards";
 
@@ -9,11 +9,11 @@ export default async function PlanManagerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
 
   return (
-    <MapAbleRoleAppShell headerTitle="Plan manager" secondaryNav={<PlanManagerNav />}>
+    <AuthenticatedRoleAppShell user={user} headerTitle="Plan manager" secondaryNav={<PlanManagerNav />}>
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

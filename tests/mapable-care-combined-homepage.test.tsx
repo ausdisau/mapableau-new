@@ -140,8 +140,9 @@ describe("MapAbleCareCombinedHomepage", () => {
 
   it("renders combined care headline and blank search field", () => {
     expect(screen.getByLabelText("Care and support, connected.")).toBeTruthy();
-    const search = screen.getByLabelText("Search MapAble") as HTMLInputElement;
-    expect(search.value).toBe("");
+    const searchInputs = screen.getAllByLabelText("Search MapAble") as HTMLInputElement[];
+    expect(searchInputs.length).toBeGreaterThan(0);
+    expect(searchInputs.every((input) => input.value === "")).toBe(true);
   });
 
   it("renders support area selector labels", () => {

@@ -1,4 +1,4 @@
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { WorkerNav } from "@/components/layout/WorkerNav";
 import { requirePermission } from "@/lib/auth/guards";
 
@@ -7,11 +7,11 @@ export default async function WorkerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requirePermission("care:shift:work");
+  const user = await requirePermission("care:shift:work");
 
   return (
-    <MapAbleRoleAppShell headerTitle="Worker" secondaryNav={<WorkerNav />}>
+    <AuthenticatedRoleAppShell user={user} headerTitle="Worker" secondaryNav={<WorkerNav />}>
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

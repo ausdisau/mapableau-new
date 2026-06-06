@@ -41,7 +41,7 @@ describe("MapAbleAppShell", () => {
     expect(screen.getByRole("link", { name: /skip to main content/i })).toBeTruthy();
     expect(screen.getByRole("main").getAttribute("id")).toBe("main-content");
     expect(screen.getByText("Marketing body")).toBeTruthy();
-    expect(screen.getByRole("link", { name: /log in/i })).toBeTruthy();
+    expect(screen.getAllByRole("link", { name: /log in/i }).length).toBeGreaterThan(0);
   });
 
   it("renders app variant with compact header and slim footer", () => {

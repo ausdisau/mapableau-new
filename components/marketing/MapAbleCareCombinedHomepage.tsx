@@ -20,7 +20,9 @@ import {
   marketplaceCards,
   sampleResults,
   trustMetrics,
+  type SupportArea,
 } from "@/lib/marketing/mapable-care-combined-data";
+import { supportAreaLandingRoutes } from "@/lib/marketing/mapable-care-routes";
 
 export { mapAbleCareCombinedDesignTests } from "@/lib/marketing/mapable-care-combined-data";
 export { MapAbleCareMarketingTypography } from "@/components/marketing/MapAbleCareTypography";
@@ -60,11 +62,22 @@ function ShieldIcon() {
   );
 }
 
-function Pill({ children }: { children: ReactNode }) {
+const heroAreaPills: { label: string; area: SupportArea }[] = [
+  { label: "Care", area: "Care" },
+  { label: "Transport", area: "Transport" },
+  { label: "NDIS Help", area: "NDIS Help" },
+  { label: "Jobs", area: "Jobs" },
+  { label: "Access", area: "Places" },
+];
+
+function AreaPill({ label, area }: { label: string; area: SupportArea }) {
   return (
-    <span className="rounded-full bg-white/80 px-4 py-2 text-sm font-black text-[#005B7F] shadow-sm ring-1 ring-slate-200">
-      {children}
-    </span>
+    <Link
+      href={supportAreaLandingRoutes[area]}
+      className="rounded-full bg-white/80 px-4 py-2 text-sm font-black text-[#005B7F] shadow-sm ring-1 ring-slate-200 transition hover:bg-white hover:ring-[#005B7F]/30 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+    >
+      {label}
+    </Link>
   );
 }
 
@@ -87,7 +100,13 @@ function TrustMetrics() {
 
 function ProfilePreviewCard() {
   return (
-    <article className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-200/80">
+    <article
+      aria-label="Example pathway preview — not live data"
+      className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-200/80"
+    >
+      <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+        Example pathway
+      </p>
       <div className="rounded-[1.5rem] bg-[#005B7F] p-5 text-white">
         <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">Guided care search</p>
         <h2 className="mt-2 text-2xl font-black leading-[1.08] tracking-[-0.025em]">
@@ -141,11 +160,9 @@ function Hero() {
       <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[1fr_0.92fr] lg:px-8 lg:py-20">
         <div>
           <div className="mb-6 flex flex-wrap gap-2">
-            <Pill>Care</Pill>
-            <Pill>Transport</Pill>
-            <Pill>NDIS Help</Pill>
-            <Pill>Jobs</Pill>
-            <Pill>Access</Pill>
+            {heroAreaPills.map((pill) => (
+              <AreaPill key={pill.area} label={pill.label} area={pill.area} />
+            ))}
           </div>
           <h1 className="max-w-4xl text-5xl font-black leading-[0.96] tracking-[-0.045em] text-[#0C1833] md:text-7xl">
             <WavyText text="Care and support, connected." />
@@ -155,7 +172,7 @@ function Hero() {
             transport, inclusive opportunities and practical support in one friendly place.
           </p>
           <div className="mt-7 rounded-[1.7rem] border border-slate-200 bg-white p-3 shadow-xl shadow-slate-200/70 lg:max-w-2xl">
-            <GuidedSearch />
+            <GuidedSearch idSuffix="hero" />
           </div>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -196,6 +213,12 @@ function JourneyBuilder() {
             Competitors help you find support workers. MapAble makes the surrounding journey easier
             too: transport, access notes, NDIS help and human support.
           </p>
+          <Link
+            href="/provider-finder"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F8C51C] px-6 py-4 text-base font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b318] focus:outline-none focus:ring-4 focus:ring-white/30"
+          >
+            Start searching <ArrowIcon />
+          </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {journeySteps.map((step) => (

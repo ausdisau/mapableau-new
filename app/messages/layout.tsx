@@ -1,4 +1,4 @@
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { MessagesNav } from "@/components/layout/MessagesNav";
 import { requireAuth } from "@/lib/auth/guards";
 
@@ -9,11 +9,11 @@ export default async function MessagesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
 
   return (
-    <MapAbleRoleAppShell headerTitle="Messages" secondaryNav={<MessagesNav />}>
+    <AuthenticatedRoleAppShell user={user} headerTitle="Messages" secondaryNav={<MessagesNav />}>
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

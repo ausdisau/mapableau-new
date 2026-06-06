@@ -1,8 +1,11 @@
 import { CoreFooter } from "@/components/core/CoreFooter";
 import { CoreHubNav } from "@/components/core/CoreHubNav";
+import { MapAbleUserBar } from "@/components/layout/MapAbleUserBar";
 import { PeersSiteHeader } from "@/components/mapable-peers/PeersSiteHeader";
 import { MapAbleAppShell } from "@/components/marketing/MapAbleAppShell";
+import { requireAuth } from "@/lib/auth/guards";
 import { isPeerPeersRequest } from "@/lib/mapable-peers/peers-request";
+import type { UserRole } from "@/types/mapable";
 
 export async function CoreShell({ children }: { children: React.ReactNode }) {
   const peerPeers = await isPeerPeersRequest();
@@ -19,8 +22,18 @@ export async function CoreShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const user = await requireAuth();
+
   return (
-    <MapAbleAppShell variant="app" headerTitle="Core hub" secondaryNav={<CoreHubNav />}>
+    <MapAbleAppShell
+      variant="app"
+      headerTitle="Core hub"
+      logoHref="/dashboard"
+      headerActions={
+        <MapAbleUserBar userName={user.name} role={user.primaryRole as UserRole} />
+      }
+      secondaryNav={<CoreHubNav />}
+    >
       {children}
     </MapAbleAppShell>
   );

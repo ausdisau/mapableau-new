@@ -1,5 +1,5 @@
 import { PortalNav } from "@/components/core/PortalNav";
-import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requireAuth, requirePermission } from "@/lib/auth/guards";
 import { PROVIDER_NAV_LINKS } from "@/lib/core-ui/provider-nav";
 
@@ -10,11 +10,12 @@ export default async function ProviderConsoleLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
   await requirePermission("care:read:org");
 
   return (
-    <MapAbleRoleAppShell
+    <AuthenticatedRoleAppShell
+      user={user}
       headerTitle="Provider"
       secondaryNav={
         <PortalNav
@@ -26,6 +27,6 @@ export default async function ProviderConsoleLayout({
       }
     >
       {children}
-    </MapAbleRoleAppShell>
+    </AuthenticatedRoleAppShell>
   );
 }

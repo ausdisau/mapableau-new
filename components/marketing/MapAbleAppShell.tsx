@@ -22,12 +22,14 @@ export function MapAbleAppShell({
   secondaryNav,
   headerTitle,
   headerActions,
+  logoHref,
 }: {
   variant?: MapAbleAppShellVariant;
   children: ReactNode;
   secondaryNav?: ReactNode;
   headerTitle?: string;
   headerActions?: ReactNode;
+  logoHref?: string;
 }) {
   if (variant === "marketing") {
     return (
@@ -65,7 +67,11 @@ export function MapAbleAppShell({
   return (
     <div className="mapable-soft flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]">
       <SkipToContent />
-      <MapAbleAppCompactHeader title={headerTitle} actions={headerActions} />
+      <MapAbleAppCompactHeader
+        title={headerTitle}
+        actions={headerActions}
+        logoHref={logoHref ?? "/dashboard"}
+      />
       {secondaryNav}
       <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         {children}

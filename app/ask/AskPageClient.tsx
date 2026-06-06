@@ -1,13 +1,16 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 
 import { CopilotPanel } from "@/components/copilot/CopilotPanel";
 
 export function AskPageClient() {
   const searchParams = useSearchParams();
   const initialQuery = useMemo(() => {
+    const q = searchParams.get("q")?.trim();
+    if (q) return q;
+
     const provider = searchParams.get("provider")?.trim();
     if (!provider) return undefined;
     const name = provider.replace(/-/g, " ");

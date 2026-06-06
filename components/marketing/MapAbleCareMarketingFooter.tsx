@@ -24,10 +24,19 @@ function FooterTextLink({ href, children }: { href: string; children: ReactNode 
   );
 }
 
+const socialLinks = [
+  { href: "https://facebook.com", label: "Facebook", icon: "f" },
+  { href: "https://twitter.com", label: "X", icon: "𝕏" },
+  { href: "https://instagram.com", label: "Instagram", icon: "◎" },
+  { href: "https://linkedin.com", label: "LinkedIn", icon: "in" },
+] as const;
+
 function SocialLink({ href, label, icon }: { href: string; label: string; icon: string }) {
   return (
     <a
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       aria-label={label}
       className="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black text-slate-600 transition hover:bg-white hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
     >
@@ -125,10 +134,9 @@ export function MapAbleCareMarketingFooter() {
               transport, opportunity and everyday access.
             </p>
             <div className="mt-5 flex items-center gap-2">
-              <SocialLink href="#facebook" label="Facebook" icon="f" />
-              <SocialLink href="#x" label="X" icon="𝕏" />
-              <SocialLink href="#instagram" label="Instagram" icon="◎" />
-              <SocialLink href="#linkedin" label="LinkedIn" icon="in" />
+              {socialLinks.map((link) => (
+                <SocialLink key={link.label} href={link.href} label={link.label} icon={link.icon} />
+              ))}
             </div>
             <AustralianDisabilityMark />
             <RegistrationDetails />

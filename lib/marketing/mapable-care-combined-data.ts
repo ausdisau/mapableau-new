@@ -287,7 +287,7 @@ export const sponsoredPlacements: SponsoredPlacement[] = [
     description:
       "Explore mobility, communication and daily-living products from accessibility-focused providers.",
     cta: "Explore partner",
-    href: "/marketplace",
+    href: "/provider-finder",
     contextAreas: ["All", "Care", "Places"],
     placement: "footer",
   },
