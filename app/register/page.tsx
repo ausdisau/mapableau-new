@@ -11,9 +11,9 @@ export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:py-14">
       <CorePageHeader
-        eyebrow="MapAble Core"
+        eyebrow="MapAble"
         title="Create account"
-        description="Set up access to care requests, transport, and your dashboard."
+        description="Set up access to find support, request care, book transport, and manage your dashboard."
         centered
         className="mb-8 border-0 pb-0"
       />

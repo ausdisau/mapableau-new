@@ -23,7 +23,7 @@ export function MapAbleMarketingHeader() {
 
   return (
     <MapAbleSiteHeader
-      logoHref="/provider-finder"
+      logoHref="/"
       logoVariant="full"
       navItems={MAPABLE_MARKETING_NAV}
       navGroups={MAPABLE_MARKETING_NAV_GROUPS}

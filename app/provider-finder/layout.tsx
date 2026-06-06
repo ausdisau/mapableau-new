@@ -1,5 +1,4 @@
-import { MapAbleMarketingFooter } from "@/components/brand/MapAbleMarketingFooter";
-import { MapAbleMarketingHeader } from "@/components/brand/MapAbleMarketingHeader";
+import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
 
 export const metadata = {
   title: "Provider Finder | MapAble",
@@ -12,11 +11,5 @@ export default function ProviderFinderLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <MapAbleMarketingHeader />
-      <div className="flex-1">{children}</div>
-      <MapAbleMarketingFooter />
-    </div>
-  );
+  return <MapAbleCareMarketingShell>{children}</MapAbleCareMarketingShell>;
 }

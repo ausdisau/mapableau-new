@@ -1,6 +1,6 @@
 import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
 
-export default function LoginLayout({
+export default function AskLayout({
   children,
 }: {
   children: React.ReactNode;

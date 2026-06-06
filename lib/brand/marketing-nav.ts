@@ -1,11 +1,10 @@
 import type { MapAbleNavGroup, MapAbleNavItem } from "@/components/brand/MapAbleSiteHeader";
 
 export const MAPABLE_MARKETING_NAV: MapAbleNavItem[] = [
-  { href: "/provider-finder", label: "Providers" },
-  { href: "/access", label: "Access" },
-  { href: "/care", label: "Care" },
-  { href: "/transport", label: "Transport" },
-  { href: "/employment", label: "Employment" },
+  { href: "/", label: "Home" },
+  { href: "/provider-finder", label: "Find support" },
+  { href: "/access", label: "Places" },
+  { href: "/ask", label: "NDIS help" },
   { href: "/provider-finder#how-it-works", label: "How it works" },
   { href: "/register", label: "List your service" },
 ];
@@ -14,35 +13,33 @@ export const MAPABLE_MARKETING_NAV_GROUPS: MapAbleNavGroup[] = [
   {
     title: "Find support",
     items: [
-      { href: "/provider-finder", label: "Providers" },
-      { href: "/access", label: "Access" },
+      { href: "/provider-finder", label: "Provider finder" },
+      { href: "/provider-finder?area=Care", label: "Care" },
+      { href: "/provider-finder?area=Transport", label: "Transport" },
+      { href: "/access", label: "Accessible places" },
     ],
   },
   {
-    title: "Services",
+    title: "Guidance",
     items: [
       {
-        href: "/care",
-        label: "Care",
-        description: "Find support workers, request care, and confirm service delivery",
+        href: "/ask",
+        label: "Ask MapAble",
+        description: "Plain-language NDIS and support guidance",
       },
       {
-        href: "/transport",
-        label: "Transport",
-        description: "Book accessible transport and manage scheduled trips",
-      },
-      {
-        href: "/employment",
-        label: "Employment",
-        description: "Inclusive employment opportunities",
+        href: "/provider-finder#how-it-works",
+        label: "How it works",
+        description: "Compare options and take the next step with confidence",
       },
     ],
   },
   {
     title: "Get involved",
     items: [
-      { href: "/provider-finder#how-it-works", label: "How it works" },
       { href: "/register", label: "List your service" },
+      { href: "/provider", label: "Provider console" },
+      { href: "/dashboard", label: "Dashboard" },
     ],
   },
 ];

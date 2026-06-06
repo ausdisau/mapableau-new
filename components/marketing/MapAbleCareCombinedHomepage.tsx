@@ -24,6 +24,7 @@ import {
   type SponsoredPlacement,
   type SupportArea,
 } from "@/lib/marketing/mapable-care-combined-data";
+import { buildGuidedSearchUrl } from "@/lib/marketing/mapable-care-routes";
 import { MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
 
 export { mapAbleCareCombinedDesignTests } from "@/lib/marketing/mapable-care-combined-data";
@@ -183,21 +184,24 @@ function LogoMark() {
 function LogoMenu() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative min-w-fit">
+    <div className="relative flex min-w-fit items-center gap-1">
+      <Link
+        href="/"
+        className="rounded-2xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        onClick={() => setOpen(false)}
+      >
+        <span className="sr-only">MapAble home</span>
+        <LogoMark />
+      </Link>
       <button
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="rounded-2xl p-1 text-left transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="rounded-full bg-slate-100 p-2 text-[#005B7F] transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
       >
         <span className="sr-only">Open MapAble menu</span>
-        <div className="flex items-center gap-2">
-          <LogoMark />
-          <span className="hidden rounded-full bg-slate-100 p-2 text-[#005B7F] transition hover:bg-slate-200 sm:inline-flex">
-            <ChevronDown />
-          </span>
-        </div>
+        <ChevronDown />
       </button>
       {open && (
         <div
@@ -294,12 +298,12 @@ function ResultRow({ result }: { result: SearchResult }) {
         </span>
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-600">{result.description}</p>
-      <button
-        type="button"
+      <Link
+        href={result.href}
         className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-[#005B7F] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
       >
         {result.action} <ArrowIcon />
-      </button>
+      </Link>
     </article>
   );
 }
@@ -358,12 +362,7 @@ function GuidedSearch() {
   }
 
   function navigateToFinder(nextQuery = query) {
-    if (!nextQuery.trim()) return;
-    const params = new URLSearchParams({ q: nextQuery.trim() });
-    if (selectedArea !== "All") {
-      params.set("area", selectedArea);
-    }
-    router.push(`/provider-finder?${params.toString()}`);
+    router.push(buildGuidedSearchUrl(nextQuery, selectedArea));
   }
 
   return (
@@ -437,6 +436,7 @@ function GuidedSearch() {
                   onClick={() => {
                     setQuery(prompt);
                     runSearch(prompt);
+                    router.push(buildGuidedSearchUrl(prompt, selectedArea));
                   }}
                   className="rounded-xl px-3 py-3 text-left text-sm font-bold text-[#0C1833] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
                 >
@@ -969,8 +969,8 @@ function Footer() {
         <div className="mt-10 flex flex-col gap-4 border-t border-slate-200 pt-7 text-xs text-slate-600 md:flex-row md:items-center md:justify-between">
           <p>© 2025 Australian Disability Ltd. All rights reserved.</p>
           <nav className="flex gap-6" aria-label="Legal links">
-            <FooterTextLink href="#privacy">Privacy Policy</FooterTextLink>
-            <FooterTextLink href="#terms">Terms of Service</FooterTextLink>
+            <FooterTextLink href="/privacy">Privacy Policy</FooterTextLink>
+            <FooterTextLink href="/terms">Terms of Service</FooterTextLink>
           </nav>
         </div>
       </div>
@@ -978,11 +978,9 @@ function Footer() {
   );
 }
 
-export default function MapAbleCareCombinedHomepage() {
+export function MapAbleCareCombinedHomepageSections() {
   return (
-    <main id="main-content" className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
-      <TypographyStyles />
-      <Header />
+    <>
       <Hero />
       <TrustMetrics />
       <JourneyBuilder />
@@ -990,6 +988,28 @@ export default function MapAbleCareCombinedHomepage() {
       <MapAbleDifference />
       <PartnerStrip />
       <TrustAndSafetyBand />
+    </>
+  );
+}
+
+export function MapAbleCareMarketingTypography() {
+  return <TypographyStyles />;
+}
+
+export function MapAbleCareMarketingHeader() {
+  return <Header />;
+}
+
+export function MapAbleCareMarketingFooter() {
+  return <Footer />;
+}
+
+export default function MapAbleCareCombinedHomepage() {
+  return (
+    <main id="main-content" className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
+      <TypographyStyles />
+      <Header />
+      <MapAbleCareCombinedHomepageSections />
       <Footer />
     </main>
   );

@@ -109,6 +109,9 @@ export function MapAbleCareCombinedSections() {
               <Link href="/ask">Ask MapAble</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
+              <Link href="/provider-finder">Find support</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
               <Link href="/register">List your service</Link>
             </Button>
           </div>

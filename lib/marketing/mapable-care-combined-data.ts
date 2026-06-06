@@ -6,6 +6,7 @@ export type SearchResult = {
   category: ResultCategory;
   description: string;
   action: string;
+  href: string;
 };
 
 export type MenuItem = {
@@ -71,14 +72,19 @@ export const logoMenuItems: MenuItem[] = [
     description: "Care, transport, jobs, places and guidance in one search.",
   },
   {
+    label: "Accessible places",
+    href: "/access",
+    description: "Explore venues with access notes, quiet spaces and community guidance.",
+  },
+  {
     label: "List your service",
     href: "/register",
     description: "Join MapAble as a support worker, provider or transport partner.",
   },
   {
-    label: "For coordinators",
-    href: "/support-coordinator",
-    description: "Help participants compare options and connect with services.",
+    label: "Provider console",
+    href: "/provider",
+    description: "Manage care, transport, workers and engagement for your organisation.",
   },
   {
     label: "Help Centre",
@@ -103,6 +109,7 @@ export const sampleResults: SearchResult[] = [
     description:
       "Combine appointment support, accessible pickup, buffer time and return travel into one guided next step.",
     action: "Start guided plan",
+    href: "/provider-finder?area=Care",
   },
   {
     title: "Find trusted support workers",
@@ -110,6 +117,7 @@ export const sampleResults: SearchResult[] = [
     description:
       "Compare support workers and providers by skills, availability, communication style and access experience.",
     action: "Compare support",
+    href: "/provider-finder?area=Care",
   },
   {
     title: "Accessible transport options",
@@ -117,6 +125,7 @@ export const sampleResults: SearchResult[] = [
     description:
       "Find wheelchair accessible transport, community transport and providers that understand access needs.",
     action: "Search rides",
+    href: "/provider-finder?area=Transport",
   },
   {
     title: "NDIS transport funding guide",
@@ -124,6 +133,7 @@ export const sampleResults: SearchResult[] = [
     description:
       "Plain-language guidance on using transport funding, service agreements, invoices and plan-manager notes.",
     action: "Read guide",
+    href: "/ask?q=NDIS+transport+funding",
   },
   {
     title: "Inclusive jobs and work support",
@@ -131,6 +141,7 @@ export const sampleResults: SearchResult[] = [
     description:
       "Explore remote roles, flexible work and interview supports that match your strengths and access needs.",
     action: "Explore jobs",
+    href: "/provider-finder?area=Jobs",
   },
   {
     title: "Accessible places nearby",
@@ -138,6 +149,7 @@ export const sampleResults: SearchResult[] = [
     description:
       "Discover cafes, venues and everyday places with access notes, quiet spaces and wheelchair-friendly details.",
     action: "Open places",
+    href: "/access",
   },
 ];
 
@@ -189,14 +201,14 @@ export const marketplaceCards: MarketplaceCard[] = [
     eyebrow: "Find support workers",
     body: "Compare experience, preferences, service type and availability in one friendly flow.",
     icon: "🤝",
-    href: "/care",
+    href: "/provider-finder?area=Care",
   },
   {
     title: "Transport",
     eyebrow: "Accessible rides",
     body: "Coordinate pickup notes, wheelchair access, timing buffers and appointment travel.",
     icon: "🚐",
-    href: "/transport",
+    href: "/provider-finder?area=Transport",
   },
   {
     title: "NDIS Help",
@@ -210,7 +222,7 @@ export const marketplaceCards: MarketplaceCard[] = [
     eyebrow: "Inclusive opportunity",
     body: "Find flexible work, interview support, transport links and workplace adjustment guidance.",
     icon: "💼",
-    href: "/employment",
+    href: "/provider-finder?area=Jobs",
   },
   {
     title: "Places",
@@ -222,17 +234,20 @@ export const marketplaceCards: MarketplaceCard[] = [
 ];
 
 export const footerPlatformLinks: FooterLink[] = [
-  { label: "Find care", href: "/care" },
-  { label: "Accessible transport", href: "/transport" },
-  { label: "Inclusive jobs", href: "/employment" },
+  { label: "Find care", href: "/provider-finder?area=Care" },
+  { label: "Accessible transport", href: "/provider-finder?area=Transport" },
+  { label: "Inclusive jobs", href: "/provider-finder?area=Jobs" },
   { label: "Accessible places", href: "/access" },
+  { label: "Provider finder", href: "/provider-finder" },
 ];
 
 export const footerResourceLinks: FooterLink[] = [
   { label: "NDIS help", href: "/ask" },
   { label: "Support Centre", href: "/dashboard/engagement" },
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Provider console", href: "/provider" },
   { label: "List your service", href: "/register" },
-  { label: "Privacy", href: "#privacy" },
+  { label: "Privacy", href: "/privacy" },
 ];
 
 export const companyRegistrationDetails = {
@@ -250,7 +265,7 @@ export const sponsoredPlacements: SponsoredPlacement[] = [
     description:
       "Connect with a MapAble-aligned support coordination partner who can help you understand services, funding and next steps.",
     cta: "View partner",
-    href: "/support-coordinator",
+    href: "/ask?q=support+coordination",
     contextAreas: ["All", "Care", "NDIS Help"],
     placement: "primary",
   },
@@ -261,7 +276,7 @@ export const sponsoredPlacements: SponsoredPlacement[] = [
     description:
       "A featured transport partner for wheelchair-accessible rides, appointment pickups and driver assistance.",
     cta: "Check availability",
-    href: "/transport",
+    href: "/provider-finder?area=Transport",
     contextAreas: ["All", "Transport"],
     placement: "search",
   },

@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { CoreShell } from "@/components/core/CoreShell";
-import { CorePageHeader } from "@/components/core/CorePageHeader";
+import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
 
 export const metadata = {
   title: "Coming soon | MapAble",
@@ -15,24 +14,32 @@ export function ModuleComingSoonPage({
   description: string;
 }) {
   return (
-    <CoreShell>
-      <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
-        <CorePageHeader
-          eyebrow="MapAble"
-          title={moduleName}
-          description={description}
-        />
-        <p className="text-muted-foreground">
-          This module is not available in the web app yet. You can still use MapAble
-          Care, Transport, and Jobs from the platform hub.
+    <MapAbleCareMarketingShell>
+      <div className="mx-auto max-w-2xl space-y-6 px-5 py-12 lg:px-8">
+        <p className="text-sm font-black uppercase tracking-[0.16em] text-[#005B7F]">MapAble</p>
+        <h1 className="mapable-display text-3xl font-black tracking-[-0.04em] text-[#0C1833]">
+          {moduleName}
+        </h1>
+        <p className="text-base leading-8 text-slate-600">{description}</p>
+        <p className="text-sm leading-7 text-slate-600">
+          This module is not available in the web app yet. You can still find care, transport, jobs
+          and accessible places from the homepage.
         </p>
-        <Link
-          href="/core"
-          className="inline-flex min-h-10 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Back to MapAble Core
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center rounded-2xl bg-[#005B7F] px-5 text-sm font-black text-white hover:bg-[#004766]"
+          >
+            Back to homepage
+          </Link>
+          <Link
+            href="/provider-finder"
+            className="inline-flex min-h-11 items-center rounded-2xl border-2 border-[#0C1833] px-5 text-sm font-black text-[#0C1833] hover:bg-slate-50"
+          >
+            Find support
+          </Link>
+        </div>
       </div>
-    </CoreShell>
+    </MapAbleCareMarketingShell>
   );
 }

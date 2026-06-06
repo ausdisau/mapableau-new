@@ -11,9 +11,9 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:py-14">
       <CorePageHeader
-        eyebrow="MapAble Core"
+        eyebrow="MapAble"
         title="Sign in"
-        description="Secure access to your dashboard, transport bookings, and care tools."
+        description="Access your dashboard, care bookings, transport trips, and support tools."
         centered
         className="mb-8 border-0 pb-0"
       />
