@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
-import { MAPABLE_LOGO_MARK_SRC, MAPABLE_LOGO_SRC } from "@/lib/brand/constants";
+import {
+  MAPABLE_LOGO_ALT,
+  MAPABLE_LOGO_MARK_SRC,
+  MAPABLE_LOGO_SRC,
+} from "@/lib/brand/constants";
 
 export type MapAbleLogoVariant = "full" | "mark" | "text";
 
@@ -34,13 +38,11 @@ export function MapAbleLogo({
       <Link href={href} className={linkClass} aria-label={ariaLabel}>
         <Image
           src={MAPABLE_LOGO_SRC}
-          alt=""
-          width={280}
-          height={140}
-          className="h-[4.25rem] w-auto max-w-[min(280px,58vw)] bg-transparent object-contain object-left sm:h-[4.75rem]"
+          alt={MAPABLE_LOGO_ALT}
+          width={380}
+          height={88}
+          className="h-10 w-auto max-w-[min(320px,72vw)] bg-transparent object-contain object-left sm:h-11"
           priority
-          unoptimized
-          aria-hidden
         />
       </Link>
     );
