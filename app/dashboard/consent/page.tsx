@@ -1,4 +1,6 @@
+import { DelegateConsentInfo } from "@/components/engagement/DelegateConsentInfo";
 import { requireAuth } from "@/lib/auth/guards";
+import { isEngagementPlatformEnabled } from "@/lib/config/engagement";
 import { listMicroConsentsForParticipant } from "@/lib/consent/micro-consent-service";
 
 import { RevokeConsentButton } from "./RevokeConsentButton";
@@ -16,6 +18,8 @@ export default async function ConsentCenterPage() {
           at any time.
         </p>
       </div>
+
+      {isEngagementPlatformEnabled() ? <DelegateConsentInfo /> : null}
 
       {consents.length === 0 ? (
         <p className="text-sm text-muted-foreground">

@@ -59,7 +59,9 @@ export type ConsentScope =
   | "transport.accessibility_share"
   | "transport.trip_access"
   | "care.accessibility_share"
-  | "support_profile.read";
+  | "support_profile.read"
+  | "engagement.read_delegate"
+  | "engagement.submit_delegate";
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 

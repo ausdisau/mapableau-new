@@ -79,6 +79,14 @@ export function TrustSafetyAdmin() {
                     View safeguarding
                   </Link>
                 ) : null}
+                {item.complaintId ? (
+                  <Link
+                    href="/admin/engagement"
+                    className="text-primary hover:underline"
+                  >
+                    Engagement hub
+                  </Link>
+                ) : null}
                 <Link
                   href="/admin/audit-events"
                   className="text-primary hover:underline"

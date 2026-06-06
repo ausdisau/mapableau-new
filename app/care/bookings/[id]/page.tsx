@@ -52,7 +52,11 @@ export default async function CareBookingDetailPage({
         summary={booking.serviceAgreement?.placeholderSummary}
       />
       {log ? (
-        <ServiceLogConfirmDispute logId={log.id} status={log.status} />
+        <ServiceLogConfirmDispute
+          logId={log.careShiftId ?? log.id}
+          status={log.status}
+          organisationId={booking.organisationId}
+        />
       ) : (
         <p className="text-sm text-muted-foreground">
           Service log will appear after your worker completes the shift.

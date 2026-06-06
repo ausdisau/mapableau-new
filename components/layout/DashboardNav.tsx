@@ -22,6 +22,7 @@ const LINKS = [
   { href: "/dashboard/find-transport", label: "Find transport" },
   { href: "/dashboard/timesheets", label: "Timesheets" },
   { href: "/dashboard/safety", label: "Safety centre" },
+  { href: "/dashboard/engagement", label: "Your voice" },
   { href: "/dashboard/cases", label: "Cases (AI)" },
   { href: "/dashboard/notifications", label: "Notifications" },
   { href: "/dashboard/messages", label: "Messages" },

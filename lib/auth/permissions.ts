@@ -184,7 +184,11 @@ export type Permission =
   | "case:read:any"
   | "case:manage:self"
   | "case:manage:any"
-  | "case:ai:run";
+  | "case:ai:run"
+  | "engagement:read:self"
+  | "engagement:submit:self"
+  | "engagement:manage:any"
+  | "engagement:provider:read";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -225,12 +229,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "membership:read",
     "transport_investment:read",
     "case:read:self",
+    "engagement:read:self",
+    "engagement:submit:self",
   ],
   family_member: [
     "profile:read:self",
     "booking:read:self",
     "transport:read:self",
     "notification:read:self",
+    "engagement:read:self",
+    "engagement:submit:self",
   ],
   support_coordinator: [
     "profile:read:any",
@@ -278,6 +286,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider_academy:enroll",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "engagement:provider:read",
   ],
   transport_operator: [
     "booking:read:any",
@@ -374,6 +383,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "security:readiness",
     "ndia:readiness",
     "admin:analytics",
+    "engagement:manage:any",
     "launch:readiness",
     "dispatch:manage",
     "provider_quality:read",

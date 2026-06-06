@@ -33,7 +33,10 @@ export default async function TimesheetDetailPage({
         </div>
       </dl>
       {ts.status === "submitted" && (
-        <TimesheetApprovalPanel timesheetId={ts.id} />
+        <TimesheetApprovalPanel
+          timesheetId={ts.id}
+          organisationId={ts.organisationId}
+        />
       )}
     </div>
   );

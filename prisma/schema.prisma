@@ -79,6 +79,13 @@ model User {
   onboardingProfiles        OnboardingProfile[] @relation("OnboardingProfileUser")
   supportJourneySessions    SupportJourneySession[] @relation("SupportJourneyParticipant")
   complaintsReported        Complaint[]        @relation("ComplaintReportedBy")
+  engagementSubmissionsAsParticipant EngagementSubmission[] @relation("EngagementParticipant")
+  engagementSubmissionsSubmitted EngagementSubmission[] @relation("EngagementSubmittedBy")
+  engagementImprovementActionsResponsible EngagementImprovementAction[] @relation("EngagementImprovementResponsible")
+  engagementSubmissionEvents EngagementSubmissionEvent[] @relation("EngagementEventActor")
+  engagementNpsResponses    EngagementNpsResponse[] @relation("EngagementNpsParticipant")
+  engagementSurveyResponses EngagementSurveyResponse[] @relation("EngagementSurveyRespondent")
+  workerTrainingCompletions WorkerTrainingCompletion[] @relation("WorkerTrainingUser")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
   jobsCreated               Job[]              @relation("JobCreatedBy")
@@ -553,6 +560,8 @@ enum ConsentScope {
   transport_trip_access
   care_accessibility_share
   support_profile_read
+  engagement_read_delegate
+  engagement_submit_delegate
 }
 
 enum ConsentStatus {
@@ -701,6 +710,10 @@ model Organisation {
   transportDrivers       TransportDriver[]      @relation("TransportDrivers")
   transportVehicles      TransportVehicle[]     @relation("TransportVehicles")
   rideRuns               RideRun[]              @relation("RideRuns")
+  engagementSubmissions  EngagementSubmission[]
+  engagementImprovementActions EngagementImprovementAction[]
+  engagementNpsResponses EngagementNpsResponse[]
+  workerTrainingModules  WorkerTrainingModule[]
 }
 
 model OrganisationMember {
@@ -7945,4 +7958,196 @@ model InvoiceLineEvidence {
 
   @@index([lineItemId])
   @@map("invoice_line_evidence")
+}
+
+enum EngagementSubmissionType {
+  service_feedback
+  general_feedback
+  complaint
+  survey_response
+  co_design
+}
+
+enum EngagementSubmissionStatus {
+  received
+  acknowledged
+  in_review
+  action_planned
+  improved
+  closed
+  escalated
+}
+
+enum EngagementImprovementActionStatus {
+  planned
+  in_progress
+  completed
+}
+
+enum EngagementSurveyStatus {
+  draft
+  active
+  closed
+}
+
+model EngagementSubmission {
+  id                    String                     @id @default(cuid())
+  participantId         String
+  participant           User                       @relation("EngagementParticipant", fields: [participantId], references: [id])
+  submittedById         String
+  submittedBy           User                       @relation("EngagementSubmittedBy", fields: [submittedById], references: [id])
+  delegateScope         String?
+  type                  EngagementSubmissionType
+  status                EngagementSubmissionStatus @default(received)
+  title                 String?
+  body                  String
+  rating                Int?
+  contextType           String?
+  contextId             String?
+  organisationId        String?
+  organisation          Organisation?              @relation(fields: [organisationId], references: [id])
+  complaintId           String?
+  involvesSafety        Boolean                    @default(false)
+  acknowledgedAt        DateTime?
+  acknowledgementDueAt  DateTime?
+  resolvedAt            DateTime?
+  escalatedExternal     Boolean                    @default(false)
+  advocateInvolved      Boolean                    @default(false)
+  commissionReferenceId String?
+  commissionLodgedAt    DateTime?
+  proceduralFairnessNotes String?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  events                EngagementSubmissionEvent[]
+  improvementActions    EngagementImprovementAction[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@index([type, createdAt])
+  @@map("engagement_submissions")
+}
+
+model EngagementSubmissionEvent {
+  id           String               @id @default(cuid())
+  submissionId String
+  submission   EngagementSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  eventType    String
+  actorId      String?
+  actor        User?                @relation("EngagementEventActor", fields: [actorId], references: [id])
+  note         String?
+  createdAt    DateTime             @default(now())
+
+  @@index([submissionId, createdAt])
+  @@map("engagement_submission_events")
+}
+
+model EngagementImprovementAction {
+  id                   String                          @id @default(cuid())
+  submissionId         String?
+  submission           EngagementSubmission?           @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  participantId        String?
+  organisationId       String?
+  organisation         Organisation?                   @relation(fields: [organisationId], references: [id])
+  title                String
+  summary              String
+  status               EngagementImprovementActionStatus @default(planned)
+  ciReferenceCode      String?
+  sourceComplaintId    String?
+  responsibleUserId    String?
+  responsibleUser      User?                           @relation("EngagementImprovementResponsible", fields: [responsibleUserId], references: [id])
+  targetDate           DateTime?
+  effectivenessReview  String?
+  completedAt          DateTime?
+  visibleToParticipant Boolean                         @default(true)
+  createdAt            DateTime                        @default(now())
+  updatedAt            DateTime                        @updatedAt
+
+  @@index([organisationId, status])
+  @@index([submissionId])
+  @@index([sourceComplaintId])
+  @@map("engagement_improvement_actions")
+}
+
+model EngagementNpsResponse {
+  id              String         @id @default(cuid())
+  participantId   String
+  participant     User           @relation("EngagementNpsParticipant", fields: [participantId], references: [id])
+  score           Int
+  comment         String?
+  contextType     String?
+  contextId       String?
+  organisationId  String?
+  organisation    Organisation?  @relation(fields: [organisationId], references: [id])
+  submissionId    String?
+  createdAt       DateTime       @default(now())
+
+  @@index([organisationId, createdAt])
+  @@index([participantId])
+  @@map("engagement_nps_responses")
+}
+
+model EngagementSurvey {
+  id          String               @id @default(cuid())
+  title       String
+  description String?
+  status      EngagementSurveyStatus @default(draft)
+  surveyType  String               @default("general")
+  questions   Json                 @default("[]")
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  responses   EngagementSurveyResponse[]
+
+  @@map("engagement_surveys")
+}
+
+model EngagementSurveyResponse {
+  id           String           @id @default(cuid())
+  surveyId     String
+  survey       EngagementSurvey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  respondentId String
+  respondent   User             @relation("EngagementSurveyRespondent", fields: [respondentId], references: [id])
+  answers      Json             @default("{}")
+  createdAt    DateTime         @default(now())
+
+  @@index([surveyId])
+  @@index([respondentId])
+  @@map("engagement_survey_responses")
+}
+
+model WorkerTrainingModule {
+  id              String   @id @default(cuid())
+  organisationId  String?
+  organisation    Organisation? @relation(fields: [organisationId], references: [id])
+  title           String
+  description     String?
+  content         String
+  policyUrl       String?
+  quizQuestions   Json     @default("[]")
+  passingScore    Int      @default(80)
+  expiryMonths    Int      @default(12)
+  isPlatformDefault Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  completions     WorkerTrainingCompletion[]
+
+  @@index([organisationId])
+  @@map("worker_training_modules")
+}
+
+model WorkerTrainingCompletion {
+  id          String               @id @default(cuid())
+  moduleId    String
+  module      WorkerTrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User                 @relation("WorkerTrainingUser", fields: [userId], references: [id])
+  score       Int?
+  completedAt DateTime             @default(now())
+  expiresAt   DateTime?
+
+  @@unique([moduleId, userId])
+  @@index([userId])
+  @@map("worker_training_completions")
 }

@@ -8,9 +8,11 @@ import type { TransportNextAction } from "@/types/transport";
 export function TransportTripActions({
   tripId,
   actions,
+  organisationId,
 }: {
   tripId: string;
   actions: TransportNextAction[];
+  organisationId?: string;
 }) {
   const router = useRouter();
 
@@ -18,6 +20,7 @@ export function TransportTripActions({
     <TransportTripActionDialogs
       tripId={tripId}
       actions={actions}
+      organisationId={organisationId}
       onComplete={() => router.refresh()}
     />
   );
