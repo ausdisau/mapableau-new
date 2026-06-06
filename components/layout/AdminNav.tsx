@@ -144,8 +144,8 @@ function NavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        active ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+        "inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40",
+        active ? "bg-[#005B7F]/10 font-black text-[#005B7F]" : "text-slate-600 hover:bg-[#F6FBFC] hover:text-[#005B7F]"
       )}
     >
       {label}
@@ -157,31 +157,20 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Admin" className="border-b border-border bg-card">
-      <div className="mx-auto max-w-6xl px-4 py-4">
-        <div className="mb-3 flex items-center justify-between gap-4">
-          <Link href="/admin" className="font-heading text-lg font-bold">
-            MapAble Admin
-          </Link>
-          <div className="flex gap-3 text-sm">
-            <Link
-              href="/core"
-              className="text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Core hub
-            </Link>
-            <Link
-              href="/dashboard"
-              className="text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-            >
+    <nav aria-label="Admin" className="border-b border-slate-200 bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="mapable-display text-sm font-black text-[#005B7F]">Admin console</p>
+          <div className="flex gap-3 text-sm font-black text-[#005B7F]">
+            <Link href="/dashboard" className="hover:underline">
               Dashboard
             </Link>
           </div>
         </div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
           Operations
         </p>
-        <ul className="mb-4 flex flex-wrap gap-2">
+        <ul className="mb-3 flex flex-wrap gap-1">
           {OPS_LINKS.map((link) => (
             <li key={link.href}>
               <NavLink {...link} pathname={pathname} />
@@ -189,10 +178,10 @@ export function AdminNav() {
           ))}
         </ul>
         <details className="group">
-          <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <summary className="cursor-pointer text-xs font-black uppercase tracking-[0.14em] text-slate-500">
             More admin
           </summary>
-          <ul className="mt-2 flex flex-wrap gap-2">
+          <ul className="mt-2 flex flex-wrap gap-1">
             {LEGACY_LINKS.map((link) => (
               <li key={link.href}>
                 <NavLink {...link} pathname={pathname} />

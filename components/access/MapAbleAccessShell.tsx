@@ -85,8 +85,10 @@ export function MapAbleAccessShell({
     <MobileAccessMapShell view={view} onViewChange={setView}>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight">MapAble Access</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
+          <h1 className="mapable-display text-3xl font-black tracking-[-0.04em] text-[#0C1833]">
+            MapAble Access
+          </h1>
+          <p className="mt-2 max-w-3xl text-slate-600">
             Public accessibility map with community reviews and optional MapAble
             Accreditation. This venue has user-reported accessibility information
             where shown.
@@ -101,7 +103,7 @@ export function MapAbleAccessShell({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`min-h-11 rounded-lg px-4 ${view === "list" ? "bg-primary text-primary-foreground" : "border border-border"}`}
+                className={`min-h-11 rounded-xl px-4 font-black ${view === "list" ? "bg-[#005B7F] text-white" : "border border-slate-200 bg-white text-[#0C1833]"}`}
                 onClick={() => setView("list")}
                 aria-pressed={view === "list"}
               >
@@ -109,7 +111,7 @@ export function MapAbleAccessShell({
               </button>
               <button
                 type="button"
-                className={`min-h-11 rounded-lg px-4 ${view === "map" ? "bg-primary text-primary-foreground" : "border border-border"}`}
+                className={`min-h-11 rounded-xl px-4 font-black ${view === "map" ? "bg-[#005B7F] text-white" : "border border-slate-200 bg-white text-[#0C1833]"}`}
                 onClick={() => setView("map")}
                 aria-pressed={view === "map"}
               >

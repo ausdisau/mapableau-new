@@ -1,10 +1,10 @@
-import { EmployerNav } from "@/components/layout/EmployerNav";
 import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
+import { PlanManagerNav } from "@/components/layout/PlanManagerNav";
 import { requireAuth } from "@/lib/auth/guards";
 
 export const dynamic = "force-dynamic";
 
-export default async function EmployerLayout({
+export default async function PlanManagerLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -12,7 +12,7 @@ export default async function EmployerLayout({
   await requireAuth();
 
   return (
-    <MapAbleRoleAppShell headerTitle="Employer" secondaryNav={<EmployerNav />}>
+    <MapAbleRoleAppShell headerTitle="Plan manager" secondaryNav={<PlanManagerNav />}>
       {children}
     </MapAbleRoleAppShell>
   );

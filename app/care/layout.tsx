@@ -1,7 +1,6 @@
 import { CareNav } from "@/components/care/CareNav";
+import { MapAbleRoleAppShell } from "@/components/layout/MapAbleRoleAppShell";
 import { requirePermission } from "@/lib/auth/guards";
-import { mapablePageContainerClass } from "@/lib/brand/styles";
-import { cn } from "@/app/lib/utils";
 
 export default async function CareLayout({
   children,
@@ -11,14 +10,8 @@ export default async function CareLayout({
   await requirePermission("care:read:self");
 
   return (
-    <div className="min-h-screen bg-background">
-      <CareNav />
-      <main
-        id="main-content"
-        className={cn(mapablePageContainerClass, "mx-auto max-w-6xl py-8")}
-      >
-        {children}
-      </main>
-    </div>
+    <MapAbleRoleAppShell headerTitle="Care" secondaryNav={<CareNav />}>
+      {children}
+    </MapAbleRoleAppShell>
   );
 }

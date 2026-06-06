@@ -1,43 +1,41 @@
+@import "../styles/mapable-care.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --radius: 0.75rem;
-  --badge-outline: hsl(215 20% 88%);
+  --badge-outline: hsl(197 30% 85%);
 
-  /* Brand Colors: Blue & Green from Logo — https://mapable.com.au */
-  /* Primary Blue: Trust, Professionalism */
-  --primary: 215 100% 35%; /* #003F88 roughly */
+  /* Combined-care homepage palette — canonical brand tokens */
+  --primary: 197 100% 25%; /* #005B7F */
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary Green: Growth, Action */
-  --secondary: 145 65% 45%; /* #28BD6B roughly */
+  --secondary: 160 100% 33%; /* #00A979 */
   --secondary-foreground: 0 0% 100%;
 
-  /* Backgrounds */
-  --background: 210 30% 98%; /* Very light cool gray */
-  --foreground: 215 40% 15%; /* Dark blue-gray text */
+  --background: 192 50% 97%; /* #F6FBFC surface */
+  --foreground: 222 62% 12%; /* #0C1833 navy */
 
-  /* Components */
   --card: 0 0% 100%;
-  --card-foreground: 215 40% 15%;
+  --card-foreground: 222 62% 12%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 215 40% 15%;
+  --popover-foreground: 222 62% 12%;
 
-  --muted: 210 20% 90%;
-  --muted-foreground: 215 25% 35%;
+  --muted: 192 40% 94%;
+  --muted-foreground: 215 20% 40%;
 
-  --accent: 210 30% 94%;
-  --accent-foreground: 215 100% 35%;
+  --accent: 46 94% 54%; /* #F8C51C */
+  --accent-foreground: 222 62% 12%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 215 20% 90%;
-  --input: 215 20% 90%;
-  --ring: 215 100% 35%;
+  --border: 214 20% 88%;
+  --input: 214 20% 88%;
+  --ring: 46 94% 54%;
 }
 
 .dark {

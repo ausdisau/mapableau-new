@@ -1,12 +1,9 @@
 import type { ReactNode } from "react";
 
-// ReactNode used for title with brand colour spans
-
 import { cn } from "@/app/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { mapableEyebrowBadgeClass } from "@/lib/brand/styles";
+import { mapableCareEyebrowClass } from "@/lib/marketing/mapable-care-tokens";
 
-export function CorePageHeader({
+export function MapAbleAppPageHeader({
   title,
   description,
   eyebrow,
@@ -25,20 +22,23 @@ export function CorePageHeader({
     <header
       className={cn(
         "space-y-4",
-        centered ? "mx-auto max-w-3xl text-center" : "border-b border-border/60 pb-8",
-        className
+        centered ? "mx-auto max-w-3xl text-center" : "border-b border-slate-200/80 pb-8",
+        className,
       )}
     >
       {eyebrow ? (
-        <Badge variant="outline" className={cn("w-fit", mapableEyebrowBadgeClass, centered && "mx-auto")}>
-          {eyebrow}
-        </Badge>
+        <span className={cn(mapableCareEyebrowClass, centered && "mx-auto")}>{eyebrow}</span>
       ) : null}
       <h1 className="mapable-display text-3xl font-black leading-tight tracking-[-0.04em] text-[#0C1833] sm:text-4xl">
         {title}
       </h1>
       {description ? (
-        <p className={cn("text-base leading-7 text-slate-600 sm:text-lg", centered && "mx-auto")}>
+        <p
+          className={cn(
+            "text-base leading-7 text-slate-600 sm:text-lg",
+            centered && "mx-auto",
+          )}
+        >
           {description}
         </p>
       ) : null}

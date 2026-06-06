@@ -2,20 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 
-import { cn } from "@/app/lib/utils";
-import { RoleBadge } from "@/components/ui/role-badge";
+import { MapAbleRoleNav } from "@/components/layout/MapAbleRoleNav";
 import type { UserRole } from "@/types/mapable";
 
 const LINKS = [
-  { href: "/dashboard", label: "Control panel" },
+  { href: "/dashboard", label: "Control panel", exact: true },
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
   { href: "/dashboard/consent", label: "Consent" },
   { href: "/dashboard/bookings", label: "Bookings" },
-  { href: "/care", label: "Care" },
-  { href: "/dashboard/transport", label: "Transport trips" },
+  { href: "/care", label: "Care", matchPrefix: "/care" },
+  { href: "/dashboard/transport", label: "Transport trips", matchPrefix: "/dashboard/transport" },
   { href: "/dashboard/jobs", label: "Jobs" },
   { href: "/dashboard/calendar", label: "Calendar" },
   { href: "/dashboard/find-support", label: "Find support" },
@@ -31,74 +29,33 @@ const LINKS = [
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
 ];
 
-export function DashboardNav({
-  userName,
-  role,
-}: {
-  userName: string;
-  role: UserRole;
-}) {
+export function DashboardNav({ role }: { userName: string; role: UserRole }) {
   const pathname = usePathname();
+  const links = [
+    ...LINKS,
+    ...(role === "mapable_admin" ? [{ href: "/admin", label: "Admin" }] : []),
+  ];
 
   return (
-    <nav aria-label="Dashboard" className="border-b border-border bg-card">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
-        <div>
+    <MapAbleRoleNav
+      label="Dashboard"
+      title="Your control panel"
+      links={links.map((link) => ({
+        href: link.href,
+        label: link.label,
+        exact: "exact" in link ? link.exact : undefined,
+        matchPrefix: "matchPrefix" in link ? link.matchPrefix : link.href,
+      }))}
+      trailing={
+        pathname.startsWith("/provider-finder") ? null : (
           <Link
-            href="/core"
-            className="font-heading text-lg font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href="/provider-finder"
+            className="text-sm font-black text-[#005B7F] hover:underline"
           >
-            MapAble Core
+            Find support
           </Link>
-          <p className="text-sm text-muted-foreground">
-            Signed in as {userName}
-          </p>
-          <RoleBadge role={role} className="mt-1" />
-        </div>
-        <ul className="flex flex-wrap gap-2">
-          {LINKS.map((link) => {
-            const isActive =
-              pathname === link.href ||
-              (link.href === "/care" && pathname.startsWith("/care")) ||
-              (link.href === "/dashboard/transport" &&
-                pathname.startsWith("/dashboard/transport"));
-
-            return (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  aria-current={isActive ? "page" : undefined}
-                  className={cn(
-                    "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted",
-                  )}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            );
-          })}
-          {role === "mapable_admin" ? (
-            <li>
-              <Link
-                href="/admin"
-                className="inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Admin
-              </Link>
-            </li>
-          ) : null}
-        </ul>
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="min-h-10 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Sign out
-        </button>
-      </div>
-    </nav>
+        )
+      }
+    />
   );
 }
