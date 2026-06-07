@@ -12,6 +12,7 @@ import {
   assertReadyToMatchForParticipant,
   assertReadyToMatchForWorker,
 } from "@/lib/onboarding/onboarding-service";
+import { isProviderReadyToServe } from "@/lib/onboarding/provider-service-ready";
 import { getLatestReliabilityAdvisory } from "@/lib/reliability/reliability-service";
 import { getPublishedSupportProfileSections } from "@/lib/support-profile/support-profile-service";
 import type { SupportProfileSections } from "@/lib/support-profile/types";
@@ -25,6 +26,11 @@ function isOrgEligible(verificationStatus: string, status: string) {
     return false;
   }
   return true;
+}
+
+async function isWorkerOrgServiceReady(organisationId: string | null | undefined) {
+  if (!organisationId) return false;
+  return isProviderReadyToServe(organisationId);
 }
 
 function buildSupportProfileMatchFactors(
@@ -161,13 +167,17 @@ export async function runCareWorkerMatch(
     const orgOk = w.organisation
       ? isOrgEligible(w.organisation.verificationStatus, w.organisation.status)
       : false;
+    const orgServiceReady = w.organisation
+      ? await isWorkerOrgServiceReady(w.organisation.id)
+      : false;
 
-    if (!orgOk) {
+    if (!orgOk || !orgServiceReady) {
       factors.push({
         factorType: "provider_verification",
         score: 0,
-        explanation:
-          "Provider is not verified or is inactive — excluded unless admin overrides.",
+        explanation: orgServiceReady
+          ? "Provider is not verified or is inactive — excluded unless admin overrides."
+          : "Provider is not service-ready (verification, approval, or workers) — excluded unless admin overrides.",
         weight: 2,
       });
       if (!phase4Config.matchingAllowAdminOverride) continue;

@@ -18,6 +18,6 @@ export async function POST(
     return jsonError("Not found", 404);
   }
 
-  const request = await submitCareRequest(careRequestId, user.id);
-  return jsonOk({ request });
+  const result = await submitCareRequest(careRequestId, user.id);
+  return jsonOk(result);
 }
