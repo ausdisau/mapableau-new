@@ -96,6 +96,11 @@ export async function assignBookingToOrganisation(
   organisationId: string,
   actorUserId: string
 ) {
+  const { assertProviderReadyToServe } = await import(
+    "@/lib/onboarding/provider-service-ready"
+  );
+  await assertProviderReadyToServe(organisationId);
+
   const booking = await prisma.booking.update({
     where: { id: bookingId },
     data: {

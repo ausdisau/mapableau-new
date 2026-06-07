@@ -34,9 +34,13 @@ function emptyTask(): CareIntakeTaskRow {
 export function CareRequestWizard({
   redirectBase = "/care",
   participantId,
+  preferredOrganisationId,
+  preferredProviderName,
 }: {
   redirectBase?: string;
   participantId?: string;
+  preferredOrganisationId?: string;
+  preferredProviderName?: string;
 }) {
   const router = useRouter();
   const sessionId = useMemo(() => newSessionId(), []);
@@ -173,10 +177,20 @@ export function CareRequestWizard({
       }
 
       const id = data.request?.id as string | undefined;
+      let redirectTo = `${redirectBase}/bookings`;
       if (id) {
-        await fetch(`/api/care/requests/${id}/submit`, { method: "POST" });
+        const submitRes = await fetch(`/api/care/requests/${id}/submit`, {
+          method: "POST",
+        });
+        const submitData = (await submitRes.json()) as {
+          redirectTo?: string;
+          matchingSkipped?: boolean;
+        };
+        if (submitRes.ok && submitData.redirectTo) {
+          redirectTo = submitData.redirectTo;
+        }
       }
-      router.push(`${redirectBase}/bookings`);
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setError("Could not save your request. Please try again.");
@@ -201,6 +215,16 @@ export function CareRequestWizard({
 
   return (
     <form className="space-y-6" onSubmit={(e) => void handleContinueToReview(e)}>
+      {preferredProviderName ? (
+        <AuthAlert variant="info">
+          You are requesting care with a preference for{" "}
+          <strong>{preferredProviderName}</strong>. MapAble will use this when
+          matching and assigning your request
+          {preferredOrganisationId ? " to a verified provider on the platform" : ""}
+          .
+        </AuthAlert>
+      ) : null}
+
       <AuthAlert variant="info">
         Describe what you need in everyday language. You will review a draft
         plan before anything is shared with providers. Pricing and worker

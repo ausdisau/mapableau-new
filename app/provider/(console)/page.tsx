@@ -45,6 +45,8 @@ export default async function ProviderControlPanelPage() {
   const showOnboardingAlert =
     primary && !primary.onboardingReady && primary.onboardingBlockerCount > 0;
 
+  const showServiceReadyBadge = primary != null;
+
   return (
     <div className="space-y-8">
       <header>
@@ -63,6 +65,37 @@ export default async function ProviderControlPanelPage() {
           )}
         </p>
       </header>
+
+      {showServiceReadyBadge && primary ? (
+        <div
+          className={
+            primary.serviceReady
+              ? "rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3"
+              : "rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3"
+          }
+          role="status"
+        >
+          <p className="font-medium">
+            {primary.serviceReady
+              ? "Service-ready — you can receive care assignments"
+              : `Not service-ready — ${primary.serviceReadyBlockerCount} blocker${
+                  primary.serviceReadyBlockerCount === 1 ? "" : "s"
+                } remaining`}
+          </p>
+          {!primary.serviceReady ? (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Complete verification, onboarding, and verify at least one active
+              worker before MapAble assigns care requests to your organisation.
+            </p>
+          ) : null}
+          <Link
+            href="/provider/onboarding"
+            className="mt-2 inline-block text-sm font-semibold text-primary underline"
+          >
+            {primary.serviceReady ? "Review readiness" : "Fix blockers"} →
+          </Link>
+        </div>
+      ) : null}
 
       {showOnboardingAlert ? (
         <div

@@ -4,6 +4,9 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareRequest } from "@/lib/calendar/calendar-service";
 import { checkConsent } from "@/lib/consent/consent-service";
+import { phase4Config } from "@/lib/config/phase4";
+import { platformPatternsConfig } from "@/lib/config/platform-patterns";
+import { assertProviderReadyToServe } from "@/lib/onboarding/provider-service-ready";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
 
@@ -75,10 +78,17 @@ export async function createCareRequest(params: {
   return request;
 }
 
+export type CareRequestSubmitResult = {
+  request: Awaited<ReturnType<typeof prisma.careRequest.update>>;
+  matchingSkipped?: boolean;
+  matchingError?: string;
+  redirectTo?: string;
+};
+
 export async function submitCareRequest(
   careRequestId: string,
   actorUserId: string
-) {
+): Promise<CareRequestSubmitResult> {
   const request = await prisma.careRequest.update({
     where: { id: careRequestId },
     data: { status: "submitted" },
@@ -101,7 +111,40 @@ export async function submitCareRequest(
     await notifyUser(a.id, "booking", "Care request submitted", request.title);
   }
 
-  return request;
+  let matchingSkipped = false;
+  let matchingError: string | undefined;
+  let redirectTo = "/care/bookings";
+
+  if (phase4Config.matchingEngineEnabled) {
+    try {
+      const { runCareWorkerMatch } = await import("@/lib/matching/matching-service");
+      const result = await runCareWorkerMatch(careRequestId, actorUserId);
+      if (result && "skipped" in result && result.skipped) {
+        matchingSkipped = true;
+      } else {
+        redirectTo = `/dashboard/care/matches/${careRequestId}`;
+      }
+    } catch (e) {
+      if (
+        platformPatternsConfig.onboardingGateEnabled &&
+        e instanceof Error &&
+        e.message === "ONBOARDING_NOT_READY"
+      ) {
+        matchingSkipped = true;
+        matchingError = "ONBOARDING_NOT_READY";
+      } else {
+        matchingSkipped = true;
+        matchingError = e instanceof Error ? e.message : "MATCHING_FAILED";
+      }
+    }
+  }
+
+  return {
+    request,
+    matchingSkipped,
+    matchingError,
+    redirectTo,
+  };
 }
 
 export async function assignCareRequestProvider(
@@ -109,6 +152,8 @@ export async function assignCareRequestProvider(
   organisationId: string,
   adminUserId: string
 ) {
+  await assertProviderReadyToServe(organisationId);
+
   const request = await prisma.careRequest.update({
     where: { id: careRequestId },
     data: {
