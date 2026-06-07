@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { CorePageHeader } from "@/components/core/CorePageHeader";
 import { getConfiguredOAuthProviders } from "@/lib/auth/oauth-providers";
+import { isTwilio2FAEnabled } from "@/lib/auth/twilio-verify";
 
 import RegisterClient from "./RegisterClient";
 
@@ -24,7 +25,10 @@ export default function RegisterPage() {
           </p>
         }
       >
-        <RegisterClient oauthProviders={oauthProviders} />
+        <RegisterClient
+          oauthProviders={oauthProviders}
+          twilio2FAEnabled={isTwilio2FAEnabled()}
+        />
       </Suspense>
     </div>
   );

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
@@ -14,6 +13,10 @@ import {
 } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
 import { normalizeAuthEmail, safeAuthCallbackPath } from "@/lib/auth/auth-flow";
+import {
+  completeCredentialTwoFactor,
+  startCredentialTwoFactor,
+} from "@/lib/auth/credential-two-factor-client";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 import { clientAgentLog } from "@/lib/debug/client-agent-log";
 
@@ -52,6 +55,7 @@ export default function LoginClient({
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [twoFactorPhoneHint, setTwoFactorPhoneHint] = useState("");
   const [error, setError] = useState("");
+  const [missingPhone, setMissingPhone] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const isTwoFactorStep = Boolean(twoFactorToken);
 
@@ -88,41 +92,18 @@ export default function LoginClient({
         onSubmit={async (e) => {
           e.preventDefault();
           setError("");
+          setMissingPhone(false);
           setIsLoading(true);
 
           try {
             if (isTwoFactorStep) {
-              const verifyResponse = await fetch(
-                "/api/auth/twilio-2fa/verify",
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    challengeToken: twoFactorToken,
-                    code: twoFactorCode,
-                  }),
-                },
-              );
-
-              const verifyData = (await verifyResponse.json()) as {
-                error?: string;
-                twoFactorToken?: string;
-              };
-
-              if (!verifyResponse.ok || !verifyData.twoFactorToken) {
-                setError(verifyData.error || "Invalid verification code");
-                setIsLoading(false);
-                return;
-              }
-
-              const result = await signIn("credentials", {
-                twoFactorToken: verifyData.twoFactorToken,
-                redirect: false,
-                callbackUrl,
+              const result = await completeCredentialTwoFactor({
+                challengeToken: twoFactorToken,
+                code: twoFactorCode,
               });
 
-              if (result?.error) {
-                setError("Could not complete sign-in. Please try again.");
+              if (!result.ok) {
+                setError(result.error);
                 setIsLoading(false);
                 return;
               }
@@ -132,81 +113,41 @@ export default function LoginClient({
               return;
             }
 
-            const twoFactorResponse = await fetch(
-              "/api/auth/twilio-2fa/start",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  email: normalizeAuthEmail(email),
-                  password: password.trim(),
-                }),
-              },
-            );
+            const startResult = await startCredentialTwoFactor({
+              email,
+              password,
+            });
 
-            const twoFactorData = (await twoFactorResponse.json()) as {
-              challengeToken?: string;
-              error?: string;
-              phoneHint?: string;
-              required?: boolean;
-            };
-
-            if (!twoFactorResponse.ok) {
-              setError(
-                twoFactorData.error ||
-                  "Could not start two-factor authentication.",
-              );
-              setIsLoading(false);
-              return;
-            }
-
-            if (twoFactorData.required) {
-              if (!twoFactorData.challengeToken) {
-                setError("Could not start two-factor authentication.");
-                setIsLoading(false);
-                return;
-              }
-              setTwoFactorToken(twoFactorData.challengeToken);
-              setTwoFactorPhoneHint(twoFactorData.phoneHint ?? "your phone");
+            if (startResult.kind === "two-factor-required") {
+              setTwoFactorToken(startResult.challengeToken);
+              setTwoFactorPhoneHint(startResult.phoneHint);
               setTwoFactorCode("");
               setIsLoading(false);
               return;
             }
 
-            const result = await signIn("credentials", {
-              email: normalizeAuthEmail(email),
-              password: password.trim(),
-              redirect: false,
-              callbackUrl,
-            });
+            if (startResult.kind === "missing-phone") {
+              setMissingPhone(true);
+              setError(startResult.error);
+              setIsLoading(false);
+              return;
+            }
+
+            if (startResult.kind === "error") {
+              setError(startResult.error);
+              setIsLoading(false);
+              return;
+            }
 
             clientAgentLog(
               "C",
               "LoginClient.tsx:signInResult",
               "signIn returned",
-              {
-                ok: result?.ok ?? null,
-                error: result?.error ?? null,
-                status: result?.status ?? null,
-                callbackUrl,
-              },
+              { callbackUrl },
             );
 
-            if (result?.error) {
-              setError("Invalid email or password");
-              setIsLoading(false);
-              return;
-            }
-
-            if (result?.ok === true) {
-              setIsLoading(false);
-              router.push(callbackUrl);
-              router.refresh();
-              return;
-            }
-
-            setError("An unexpected error occurred. Please try again.");
-            setIsLoading(false);
+            router.push(callbackUrl);
+            router.refresh();
           } catch {
             setError("An error occurred. Please try again.");
             setIsLoading(false);
@@ -272,6 +213,20 @@ export default function LoginClient({
         ) : null}
 
         {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
+
+        {missingPhone ? (
+          <p className="text-sm text-muted-foreground">
+            Add a mobile number in{" "}
+            <Link
+              href="/dashboard/settings/security"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              security settings
+            </Link>{" "}
+            (sign in with Google or another provider if you use one), or contact
+            support.
+          </p>
+        ) : null}
 
         <div className="flex flex-col gap-3 pt-1">
           <Button

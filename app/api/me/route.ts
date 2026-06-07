@@ -2,6 +2,7 @@ import { ZodError , z } from "zod";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { normalizePhoneForTwilio } from "@/lib/auth/phone-normalize";
 import { prisma } from "@/lib/prisma";
 
 const patchMeSchema = z.object({
@@ -40,9 +41,24 @@ export async function PATCH(req: Request) {
 
   try {
     const body = patchMeSchema.parse(await req.json());
+    const data = { ...body };
+    if ("phone" in body) {
+      if (body.phone === null || body.phone === "") {
+        data.phone = null;
+      } else {
+        const normalized = normalizePhoneForTwilio(body.phone);
+        if (!normalized) {
+          return jsonError(
+            "Enter a valid phone number (e.g. 0412 345 678).",
+            400,
+          );
+        }
+        data.phone = normalized;
+      }
+    }
     const updated = await prisma.user.update({
       where: { id: user.id },
-      data: body,
+      data,
       select: {
         id: true,
         name: true,

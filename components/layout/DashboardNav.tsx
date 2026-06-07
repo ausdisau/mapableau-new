@@ -28,6 +28,7 @@ const LINKS = [
   { href: "/dashboard/documents", label: "Documents" },
   { href: "/dashboard/billing", label: "Billing centre" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
+  { href: "/dashboard/settings/security", label: "Security settings" },
 ];
 
 export function DashboardNav({

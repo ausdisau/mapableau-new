@@ -2,6 +2,7 @@ import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { normalizePhoneForTwilio } from "@/lib/auth/phone-normalize";
 import {
   hasTwilioVerifyConfig,
   isTwilio2FAEnabled,
@@ -63,18 +64,21 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!user.phone?.trim()) {
+  const normalizedPhone = user.phone
+    ? normalizePhoneForTwilio(user.phone)
+    : null;
+  if (!normalizedPhone) {
     return NextResponse.json(
       {
         code: "MISSING_PHONE",
         error:
-          "Two-factor authentication is enabled, but this account does not have a phone number.",
+          "Two-factor authentication is enabled, but this account does not have a valid phone number.",
       },
       { status: 400 },
     );
   }
 
-  await startTwilioSmsVerification(user.phone);
+  await startTwilioSmsVerification(normalizedPhone);
 
   return NextResponse.json({
     required: true,
@@ -82,6 +86,6 @@ export async function POST(request: Request) {
       purpose: "twilio-2fa-challenge",
       userId: user.id,
     }),
-    phoneHint: maskPhoneNumber(user.phone),
+    phoneHint: maskPhoneNumber(normalizedPhone),
   });
 }

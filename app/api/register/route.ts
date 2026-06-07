@@ -2,6 +2,8 @@ import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { normalizePhoneForTwilio } from "@/lib/auth/phone-normalize";
+import { isTwilio2FAEnabled } from "@/lib/auth/twilio-verify";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -10,14 +12,39 @@ export async function POST(req: Request) {
       email?: string;
       password?: string;
       name?: string;
+      phone?: string;
     };
 
     const email = body.email ? normalizeAuthEmail(body.email) : "";
     const password = body.password?.trim() ?? "";
     const name = body.name?.trim() || email.split("@")[0] || "MapAble user";
+    const phoneRaw = body.phone?.trim() ?? "";
+    const normalizedPhone = phoneRaw
+      ? normalizePhoneForTwilio(phoneRaw)
+      : null;
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    }
+
+    if (isTwilio2FAEnabled()) {
+      if (!phoneRaw) {
+        return NextResponse.json(
+          { error: "Mobile number is required for two-factor authentication." },
+          { status: 400 },
+        );
+      }
+      if (!normalizedPhone) {
+        return NextResponse.json(
+          { error: "Enter a valid Australian mobile number (e.g. 0412 345 678)." },
+          { status: 400 },
+        );
+      }
+    } else if (phoneRaw && !normalizedPhone) {
+      return NextResponse.json(
+        { error: "Enter a valid phone number or leave the field blank." },
+        { status: 400 },
+      );
     }
 
     if (password.length < 8) {
@@ -49,6 +76,7 @@ export async function POST(req: Request) {
         name,
         email,
         passwordHash,
+        ...(normalizedPhone ? { phone: normalizedPhone } : {}),
       },
     });
 

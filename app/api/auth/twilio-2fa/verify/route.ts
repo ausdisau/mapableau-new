@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { normalizePhoneForTwilio } from "@/lib/auth/phone-normalize";
 import { checkTwilioSmsVerification } from "@/lib/auth/twilio-verify";
 import {
   createTwoFactorToken,
@@ -42,16 +43,19 @@ export async function POST(request: Request) {
     where: { id: challenge.userId },
     select: { id: true, phone: true },
   });
-  if (!user?.phone?.trim()) {
+  const normalizedPhone = user?.phone
+    ? normalizePhoneForTwilio(user.phone)
+    : null;
+  if (!normalizedPhone) {
     return NextResponse.json(
-      { error: "Two-factor phone number is missing." },
+      { error: "Two-factor phone number is missing or invalid." },
       { status: 400 },
     );
   }
 
   const approved = await checkTwilioSmsVerification({
     code: body.code.trim(),
-    phone: user.phone,
+    phone: normalizedPhone,
   });
   if (!approved) {
     return NextResponse.json(
