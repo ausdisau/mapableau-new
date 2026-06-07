@@ -35,10 +35,29 @@ NDIA_PROVIDER_TOKEN_URL=https://<ndia-token-host>/oauth/token
 NDIA_PROVIDER_API_CLIENT_ID=
 NDIA_PROVIDER_API_CLIENT_SECRET=
 NDIA_PROVIDER_CLAIM_SUBMIT_PATH=/v1/provider/claims
+NDIA_PROVIDER_CLAIM_STATUS_PATH=/v1/provider/claims/{claimId}
+NDIA_CLAIM_STATUS_POLL_ENABLED=true
 NDIA_PROVIDER_REQUIRE_HUMAN_APPROVAL=true
+
+# Request/response mapping (adjust when NDIA OpenAPI is issued)
+NDIA_PAYLOAD_FORMAT=pace_v1
+NDIA_RESPONSE_CLAIM_ID_FIELDS=claimId,id,externalId
+NDIA_RESPONSE_STATUS_FIELDS=status,claimStatus,state
+
+# Participant verification (scaffold — mock until NDIA plan API available)
+NDIA_PARTICIPANT_API_ENABLED=false
 ```
 
 Keep `NDIA_REAL_SUBMISSION_ENABLED=false` in development.
+
+## Credential onboarding checklist
+
+1. Complete NDIA provider digital integration onboarding.
+2. Obtain OAuth client id/secret and API base URL from NDIA.
+3. Set `NDIA_PROVIDER_ADAPTER_MODE=http` and `NDIA_REAL_SUBMISSION_ENABLED=true` in production only.
+4. Run a dry run from `/provider/ndia-claims`, then submit one test claim in sandbox.
+5. Confirm integration health in admin integrations (`ndia` adapter token probe).
+6. Map OpenAPI field names via `NDIA_RESPONSE_*` env vars if NDIA response shape differs.
 
 ## API flow (provider)
 
@@ -49,6 +68,7 @@ Keep `NDIA_REAL_SUBMISSION_ENABLED=false` in development.
 | Validate | POST | `/api/provider/ndia-claims/{id}/validate` |
 | Dry run | POST | `/api/provider/ndia-claims/{id}/dry-run` |
 | Submit | POST | `/api/provider/ndia-claims/{id}/submit` |
+| Refresh status | GET | `/api/provider/ndia-claims/{id}/status` |
 
 Permission: `provider:ndia:claim` (provider admin, MapAble admin).
 
@@ -63,6 +83,26 @@ Permission: `provider:ndia:claim` (provider admin, MapAble admin).
 
 Or `billingInvoiceId` for Core `BillingInvoice` records.
 
+## Booking batch NDIA API path
+
+When live submit is enabled, agency-managed claim batches exported via `/api/ndis/claim-batches/{id}/export` use the shared NDIA HTTP client (`adapter: ndia_api`). When live submit is disabled, batches continue to export portal CSV (`adapter: portal_export`).
+
+Shared client: `lib/ndia/shared/ndia-http-client.ts`
+
+## Error handling
+
+NDIA HTTP failures are classified for the provider UI:
+
+| Category | Typical HTTP | User message |
+|----------|--------------|--------------|
+| `auth` | 401, 403 | Check OAuth credentials |
+| `validation` | 4xx | NDIA rejected the claim payload |
+| `duplicate` | 409 | Claim may already exist |
+| `rate_limit` | 429 | Retry shortly |
+| `server` | 5xx | NDIA service error |
+
+Full raw responses are stored on `NdiaProviderClaimAudit` for reconciliation.
+
 ## UI
 
 Provider console: `/provider/ndia-claims`
@@ -76,6 +116,7 @@ draft → validated → dry_run_passed → submitted → accepted / rejected / p
 - **Validate** — registration, participant NDIS number, support item codes, price caps, funding type.
 - **Dry run** — passes validation; does not call NDIA.
 - **Submit** — mock or HTTP adapter; writes `externalClaimId` and audit trail.
+- **Refresh status** — polls NDIA when `NDIA_CLAIM_STATUS_POLL_ENABLED=true`.
 
 ## Data model
 
@@ -91,10 +132,16 @@ draft → validated → dry_run_passed → submitted → accepted / rejected / p
 
 ## Extending the NDIA adapter
 
-Update `lib/ndia-provider-claiming/ndia-api-client.ts` when NDIA supplies your Payments/Claims OpenAPI path and response schema. MapAble stores the full `claimPayloadJson` for reconciliation.
+Update mapping in:
+
+- `lib/ndia/shared/ndia-payload-mapper.ts` — request/response field mapping
+- `lib/ndia/shared/ndia-http-client.ts` — OAuth, submit, status polling
+
+Set `NDIA_PAYLOAD_FORMAT=internal` to send the MapAble payload unchanged when NDIA accepts the internal schema.
 
 ## Related modules
 
 - `lib/ndis-pricing` — catalogue and price caps
 - `lib/ndia-readiness` — evidence bundles (legacy invoice path)
+- `lib/ndia/participant-api-client.ts` — participant/plan verification scaffold
 - `lib/billing-core` — participant billing (not provider NDIA submit)

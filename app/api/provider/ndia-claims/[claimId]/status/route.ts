@@ -1,9 +1,9 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { submitProviderClaim } from "@/lib/ndia-provider-claiming/claim-service";
+import { refreshProviderClaimStatus } from "@/lib/ndia-provider-claiming/claim-service";
 import { NdiaApiError } from "@/lib/ndia/shared/ndia-errors";
 
-export async function POST(
+export async function GET(
   _req: Request,
   { params }: { params: Promise<{ claimId: string }> }
 ) {
@@ -12,20 +12,17 @@ export async function POST(
   const { claimId } = await params;
 
   try {
-    const result = await submitProviderClaim(claimId, user);
+    const result = await refreshProviderClaimStatus(claimId, user);
     return jsonOk(result);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed";
     if (msg === "NOT_FOUND") return jsonError("Claim not found", 404);
     if (msg === "FORBIDDEN") return jsonError("Forbidden", 403);
-    if (msg === "CLAIM_VALIDATION_FAILED") {
-      return jsonError("Claim failed validation", 400);
+    if (msg === "STATUS_POLL_DISABLED") {
+      return jsonError("NDIA status polling disabled", 503);
     }
-    if (msg === "GOVERNANCE_APPROVAL_REQUIRED") {
-      return jsonError("Governance approval required for submission", 403);
-    }
-    if (msg === "NDIA_PROVIDER_CLAIMING_DISABLED") {
-      return jsonError("NDIA provider claiming disabled", 503);
+    if (msg === "EXTERNAL_CLAIM_ID_MISSING") {
+      return jsonError("Claim has not been submitted to NDIA yet", 400);
     }
     if (e instanceof NdiaApiError) {
       return jsonError(e.toUserMessage(), e.httpStatus ?? 502);

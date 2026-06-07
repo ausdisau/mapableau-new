@@ -2,6 +2,7 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { y2OrchestrationConfig } from "@/lib/config/y2-orchestration";
 import { prisma } from "@/lib/prisma";
 import { listAuthorisedInvoices } from "@/lib/plan-manager/invoice-review-service";
+import { pushPlanManagerExport } from "@/lib/plan-manager/outbound-push";
 
 export type PlanManagerExportRow = {
   invoiceId: string;
@@ -87,10 +88,36 @@ export async function createPlanManagerExportV1(params: {
             `${r.invoiceId},${r.participantRef},${r.status},${r.subtotalCents},${r.taxCents},${r.totalCents}`
         )
         .join("\n");
-    return { export: exportRecord, format: "csv" as const, content: csv, rows };
+
+    const pushResult = await pushPlanManagerExport({
+      exportId: exportRecord.id,
+      format: "csv",
+      content: csv,
+      partnerId: partner.id,
+    });
+
+    return {
+      export: exportRecord,
+      format: "csv" as const,
+      content: csv,
+      rows,
+      outbound: pushResult,
+    };
   }
 
-  return { export: exportRecord, format: "json" as const, rows };
+  const pushResult = await pushPlanManagerExport({
+    exportId: exportRecord.id,
+    format: "json",
+    content: rows,
+    partnerId: partner.id,
+  });
+
+  return {
+    export: exportRecord,
+    format: "json" as const,
+    rows,
+    outbound: pushResult,
+  };
 }
 
 export async function createPlanManagerExportV2(params: {

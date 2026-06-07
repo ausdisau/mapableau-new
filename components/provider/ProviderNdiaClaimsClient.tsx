@@ -14,6 +14,7 @@ type ClaimRow = {
   legacyInvoiceId: string | null;
   billingInvoiceId: string | null;
   externalClaimId: string | null;
+  externalStatus: string | null;
   createdAt: string;
 };
 
@@ -59,13 +60,27 @@ export function ProviderNdiaClaimsClient({
     setBusy(false);
   }
 
-  async function runAction(claimId: string, action: "validate" | "dry-run" | "submit") {
+  async function runAction(
+    claimId: string,
+    action: "validate" | "dry-run" | "submit" | "status"
+  ) {
     setBusy(true);
-    const res = await fetch(`/api/provider/ndia-claims/${claimId}/${action}`, {
-      method: "POST",
-    });
+    const path =
+      action === "status"
+        ? `/api/provider/ndia-claims/${claimId}/status`
+        : `/api/provider/ndia-claims/${claimId}/${action}`;
+    const res = await fetch(path, { method: action === "status" ? "GET" : "POST" });
     const data = await res.json();
-    setMessage(data.message ?? data.disclaimer ?? data.error ?? `${action} complete`);
+    if (!res.ok) {
+      setMessage(data.error ?? data.message ?? `${action} failed`);
+    } else {
+      setMessage(
+        data.message ??
+          data.disclaimer ??
+          data.statusResult?.status ??
+          `${action} complete`
+      );
+    }
     void load();
     setBusy(false);
   }
@@ -136,6 +151,12 @@ export function ProviderNdiaClaimsClient({
                   {c.status.replace(/_/g, " ")}
                 </Badge>
               </div>
+              {c.externalClaimId && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  NDIA ref: {c.externalClaimId.slice(0, 16)}…
+                  {c.externalStatus ? ` (${c.externalStatus})` : ""}
+                </p>
+              )}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
                   type="button"
@@ -164,6 +185,17 @@ export function ProviderNdiaClaimsClient({
                 >
                   Submit
                 </Button>
+                {c.externalClaimId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={busy}
+                    onClick={() => void runAction(c.id, "status")}
+                  >
+                    Refresh status
+                  </Button>
+                )}
               </div>
             </li>
           ))}
