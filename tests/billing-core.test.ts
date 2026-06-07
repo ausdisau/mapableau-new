@@ -19,6 +19,11 @@ import {
 } from "@/lib/billing-core/funding-logic";
 import { createInvoiceSchema } from "@/lib/billing-core/schemas";
 import {
+  assertInvoiceApprovedForExport,
+  requiresAdminApproval,
+} from "@/lib/billing-core/transparent-billing";
+import { platformPatternsConfig } from "@/lib/config/platform-patterns";
+import {
   markWebhookProcessed,
   storeWebhookEventIdempotent,
 } from "@/lib/billing-core/webhook-handler";
@@ -122,6 +127,41 @@ describe("webhook idempotency", () => {
 describe("subscription and connect status helpers", () => {
   it("provider pro fixture plan code is valid enum", () => {
     expect({ planCode: "provider_pro" as const }.planCode).toBe("provider_pro");
+  });
+});
+
+describe("transparent billing approval gate", () => {
+  it("skips approval when transparent billing is disabled", () => {
+    const previous = platformPatternsConfig.transparentBillingEnabled;
+    platformPatternsConfig.transparentBillingEnabled = false;
+    try {
+      expect(() =>
+        assertInvoiceApprovedForExport({ adminApprovalStatus: "draft" }),
+      ).not.toThrow();
+      expect(
+        requiresAdminApproval({ adminApprovalStatus: "pending_approval" }),
+      ).toBe(false);
+    } finally {
+      platformPatternsConfig.transparentBillingEnabled = previous;
+    }
+  });
+
+  it("requires approved status when transparent billing is enabled", () => {
+    const previous = platformPatternsConfig.transparentBillingEnabled;
+    platformPatternsConfig.transparentBillingEnabled = true;
+    try {
+      expect(() =>
+        assertInvoiceApprovedForExport({ adminApprovalStatus: "draft" }),
+      ).toThrow("INVOICE_NOT_APPROVED");
+      expect(
+        requiresAdminApproval({ adminApprovalStatus: "pending_approval" }),
+      ).toBe(true);
+      expect(() =>
+        assertInvoiceApprovedForExport({ adminApprovalStatus: "approved" }),
+      ).not.toThrow();
+    } finally {
+      platformPatternsConfig.transparentBillingEnabled = previous;
+    }
   });
 });
 

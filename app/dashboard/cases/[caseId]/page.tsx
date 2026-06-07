@@ -28,6 +28,7 @@ export default async function CaseDetailPage({
     include: {
       notes: { orderBy: { createdAt: "desc" } },
       tasks: { orderBy: { createdAt: "desc" } },
+      links: { orderBy: { createdAt: "desc" } },
       insights: { orderBy: { createdAt: "desc" } },
       participant: { select: { id: true, name: true } },
       assignedTo: { select: { id: true, name: true } },
@@ -68,6 +69,15 @@ export default async function CaseDetailPage({
     engine: i.engine,
     detailJson: i.detailJson,
   }));
+  const links = row.links.map((l) => ({
+    id: l.id,
+    linkType: l.linkType,
+    label: l.label,
+    targetId: l.targetId,
+    url: l.url,
+    notes: l.notes,
+    createdAt: l.createdAt.toISOString(),
+  }));
 
   return (
     <div className="space-y-6">
@@ -94,6 +104,15 @@ export default async function CaseDetailPage({
 
       <CaseDetailClient
         caseId={row.id}
+        caseMeta={{
+          status: row.status,
+          priority: row.priority,
+          riskLevel: row.riskLevel,
+          assignedToId: row.assignedToId,
+          dueAt: row.dueAt ? row.dueAt.toISOString() : null,
+          aiOptOut: row.aiOptOut,
+        }}
+        links={links}
         notes={notes}
         tasks={tasks}
         insights={insights}

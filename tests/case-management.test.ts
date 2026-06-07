@@ -28,6 +28,8 @@ function baseSnapshot(overrides: Partial<CaseSnapshot> = {}): CaseSnapshot {
     participantId: "p1",
     assignedToId: null,
     tags: [],
+    goals: [],
+    links: [],
     notes: [],
     tasks: [],
     ...overrides,
@@ -200,6 +202,17 @@ describe("next actions", () => {
     expect(actions.length).toBeLessThanOrEqual(5);
     const titles = actions.map((a) => a.title.toLowerCase());
     expect(new Set(titles).size).toBe(titles.length);
+  });
+
+  it("uses case goals in suggestions", () => {
+    const actions = nextActions(
+      baseSnapshot({
+        goals: ["Find stable housing within 30 days"],
+      }),
+    );
+    expect(actions.some((a) => a.title.toLowerCase().includes("goal"))).toBe(
+      true,
+    );
   });
 });
 

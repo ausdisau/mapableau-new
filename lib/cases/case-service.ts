@@ -126,9 +126,11 @@ export interface UpdateCaseInput {
   riskLevel?: CaseRiskLevel;
   participantId?: string | null;
   assignedToId?: string | null;
+  organisationId?: string | null;
   tags?: string[];
   goals?: string[];
   dueAt?: Date | null;
+  aiOptOut?: boolean;
 }
 
 export async function updateCase(
@@ -155,6 +157,10 @@ export async function updateCase(
       ? { connect: { id: input.assignedToId } }
       : { disconnect: true };
   }
+  if (input.organisationId !== undefined) {
+    data.organisationId = input.organisationId;
+  }
+  if (input.aiOptOut !== undefined) data.aiOptOut = input.aiOptOut;
   if (input.tags !== undefined)
     data.tagsJson = input.tags as unknown as Prisma.InputJsonValue;
   if (input.goals !== undefined)
@@ -298,6 +304,9 @@ function toSnapshot(row: CaseWithRelations): CaseSnapshot {
   const tags = Array.isArray(row.tagsJson)
     ? (row.tagsJson as unknown as string[]).filter((t) => typeof t === "string")
     : [];
+  const goals = Array.isArray(row.goalsJson)
+    ? (row.goalsJson as unknown as string[]).filter((g) => typeof g === "string")
+    : [];
   return {
     id: row.id,
     reference: row.reference,
@@ -313,6 +322,13 @@ function toSnapshot(row: CaseWithRelations): CaseSnapshot {
     participantId: row.participantId,
     assignedToId: row.assignedToId,
     tags,
+    goals,
+    links: row.links.map((l) => ({
+      linkType: l.linkType,
+      label: l.label,
+      targetId: l.targetId,
+      url: l.url,
+    })),
     notes: row.notes.map((n) => ({
       id: n.id,
       body: n.body,
@@ -425,7 +441,13 @@ export async function acknowledgeInsight(
   actorUserId: string,
 ) {
   ensureEnabled();
-  return prisma.caseAIInsight.update({
+  const existing = await prisma.caseAIInsight.findUnique({
+    where: { id: insightId },
+    include: { case: { select: { id: true, participantId: true } } },
+  });
+  if (!existing) throw new Error("INSIGHT_NOT_FOUND");
+
+  const insight = await prisma.caseAIInsight.update({
     where: { id: insightId },
     data: {
       acknowledgedAt: new Date(),
@@ -433,6 +455,21 @@ export async function acknowledgeInsight(
       requiresReview: false,
     },
   });
+
+  await createAuditEvent({
+    actorUserId,
+    action: "case.ai.acknowledged",
+    entityType: "CaseAIInsight",
+    entityId: insightId,
+    participantId: existing.case.participantId ?? undefined,
+    metadata: {
+      caseId: existing.caseId,
+      kind: existing.kind,
+      engine: existing.engine,
+    },
+  });
+
+  return insight;
 }
 
 export async function searchCasesForUser(

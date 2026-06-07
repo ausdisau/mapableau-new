@@ -17,6 +17,11 @@ export async function createExpressConnectAccount(params: {
   });
 }
 
+export async function retrieveConnectAccount(stripeAccountId: string) {
+  const stripe = getStripeClient();
+  return stripe.accounts.retrieve(stripeAccountId);
+}
+
 export async function createConnectOnboardingLink(stripeAccountId: string) {
   const stripe = getStripeClient();
   return stripe.accountLinks.create({

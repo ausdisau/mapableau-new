@@ -36,6 +36,8 @@ Server-only Stripe Node SDK (pinned API version in `lib/stripe/client.ts`):
 3. `POST /api/billing/checkout` returns instructions (no Checkout URL).
 4. `POST /api/billing/invoices/export` with `format: csv` or `plan_manager`.
 
+When **transparent billing** is enabled (`TRANSPARENT_BILLING_ENABLED=true`), care-shift invoices start in `pending_approval` and must be approved by an admin before export. Manual participant invoices created while transparent billing is **disabled** are auto-approved on creation (`adminApprovalStatus: approved`, `status: issued`).
+
 ### Self-managed / private card
 
 1. Funding source `ndis_self_managed` or `private_card`.
@@ -62,11 +64,16 @@ When the provider has `stripeConnectedAccountId`, Checkout uses a destination ch
 | POST | `/api/billing/checkout` | Stripe Checkout or plan-managed instruction |
 | POST | `/api/billing/connect/create-account` | Express Connect account + onboarding link |
 | POST | `/api/billing/connect/onboarding-link` | Refresh onboarding |
+| GET | `/api/billing/connect/status` | Provider Connect charges/payouts status |
 | POST | `/api/billing/subscriptions/checkout` | Provider Pro / Employer Pro subscription Checkout |
 | POST | `/api/billing/customer-portal` | Stripe Billing Portal URL |
-| POST | `/api/billing/invoices/export` | CSV / plan-manager JSON / Xero scaffold |
+| POST | `/api/billing/invoices/export` | CSV / plan-manager JSON (Xero deferred) |
 | POST | `/api/webhooks/stripe` | Signed webhook (raw body) |
 | GET | `/api/admin/billing/invoices` | Admin search + flagged list |
+| GET | `/api/admin/billing/invoices/[invoiceId]` | Admin invoice detail |
+| POST | `/api/admin/billing/invoices/[invoiceId]/approve` | Approve transparent-billing invoice |
+| POST | `/api/admin/billing/invoices/[invoiceId]/dispute` | Admin dispute invoice |
+| POST | `/api/admin/billing/invoices/from-care-shift` | Draft invoice from care shift evidence |
 
 ## Environment variables
 
@@ -105,8 +112,9 @@ stripe trigger checkout.session.completed
 - `/dashboard/billing/funding` — billing-core funding sources
 - `/dashboard/billing/legacy` — Phase 2 `Invoice` drafts
 - `/billing` — redirects to `/dashboard/billing`
-- `/provider/billing` — Connect onboarding + subscription
+- `/provider/billing` — Connect onboarding, live charges/payouts status, subscription
 - `/admin/billing` — search and flagged payments
+- `/admin/billing/invoices/[invoiceId]` — approval, dispute, anomaly review
 
 ## Production checklist
 
