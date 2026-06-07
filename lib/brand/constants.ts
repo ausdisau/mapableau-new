@@ -11,9 +11,9 @@ export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
 /**
  * Official MapAble horizontal wordmark (icon + MapAble + tagline).
- * Legacy vertical PNG: public/brand/accessible-australia-logo.png
+ * Source: public/brand/mapable-logo.png
  */
-export const MAPABLE_LOGO_SRC = "/brand/mapable-logo-horizontal.svg";
+export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 
 /** Pin + Australia mark for compact headers with separate text. */
 export const MAPABLE_LOGO_MARK_SRC = "/brand/mapable-logo-mark.svg";
