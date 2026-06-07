@@ -10,8 +10,8 @@ export const MAPABLE_TAGLINE =
 export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
 /**
- * Official MapAble horizontal wordmark (icon + MapAble + tagline).
- * Replace via GitHub: commit your PNG to public/brand/mapable-logo.png on main.
+ * Official MapAble horizontal wordmark — use the exact PNG committed to the repo.
+ * Do not regenerate, resize, or run process-brand-logo.py on this file unless asked.
  */
 export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 
