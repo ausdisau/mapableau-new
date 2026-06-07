@@ -118,13 +118,20 @@ stripe trigger checkout.session.completed
 
 ## Production checklist
 
+## Production checklist (Tier 2)
+
+See [go-live.md](../operations/go-live.md) for full tier sequencing.
+
 - [ ] Live Stripe keys in secrets manager
+- [ ] **Canonical webhook:** `POST /api/webhooks/stripe` (legacy `/api/stripe/webhooks` uses the same processor)
 - [ ] Webhook endpoint on production URL with signature verification
 - [ ] Connect platform settings and OAuth client ID
 - [ ] Price IDs for Provider Pro / Employer Pro
-- [ ] Database migration applied (`prisma db push` or migrate)
+- [ ] Database migration applied (`prisma migrate deploy`)
 - [ ] Monitor `BillingStripeWebhookEvent` for unprocessed rows
+- [ ] Payment reconciliation includes billing-core invoices (see `lib/payment-reconciliation/billing-bridge.ts`)
 - [ ] Reconciliation job for `BillingPaymentSplit` transfers (future)
+- [ ] Xero export deferred — do not use for finance close until implemented
 
 ## Security
 

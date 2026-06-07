@@ -195,14 +195,16 @@ export async function submitProviderClaim(claimId: string, user: CurrentUser) {
   if (!claim) throw new Error("NOT_FOUND");
   await assertOrgAccess(user, claim.organisationId);
 
-  if (getNdiaHttpConfig().requireHumanApproval) {
-    const approval = await prisma.ndiaPilotApprovalRecord.findFirst({
-      where: { approved: true },
-      orderBy: { approvedAt: "desc" },
-    });
-    if (!isNdiaProviderLiveSubmitAllowed() && !approval) {
-      throw new Error("GOVERNANCE_APPROVAL_REQUIRED");
+  const { assertNdiaSubmitGovernance, NdiaGovernanceError } = await import(
+    "@/lib/ndia/shared/governance"
+  );
+  try {
+    await assertNdiaSubmitGovernance();
+  } catch (e) {
+    if (e instanceof NdiaGovernanceError) {
+      throw new Error(e.code);
     }
+    throw e;
   }
 
   const { canSubmit } = await validateProviderClaim(claimId, user);

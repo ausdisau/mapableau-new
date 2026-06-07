@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { OrganisationNdisRegistrationPanel } from "@/components/admin/OrganisationNdisRegistrationPanel";
 import { OrganisationVerificationPanel } from "@/components/admin/OrganisationVerificationPanel";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { prisma } from "@/lib/prisma";
@@ -36,7 +37,16 @@ export default async function AdminOrganisationDetailPage({
           <dt className="font-medium">NDIS registered (claimed)</dt>
           <dd>{org.ndisRegistrationClaimed ? "Yes" : "No"}</dd>
         </div>
+        <div>
+          <dt className="font-medium">NDIS registration number</dt>
+          <dd>{org.ndisRegistrationNumber ?? "—"}</dd>
+        </div>
       </dl>
+      <OrganisationNdisRegistrationPanel
+        organisationId={org.id}
+        ndisRegistrationClaimed={org.ndisRegistrationClaimed}
+        ndisRegistrationNumber={org.ndisRegistrationNumber}
+      />
       <OrganisationVerificationPanel
         organisationId={org.id}
         currentStatus={org.verificationStatus}

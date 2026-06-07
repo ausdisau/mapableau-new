@@ -22,6 +22,18 @@ export class NdiaApiAdapter implements NdisClaimingAdapter {
       throw new NdiaApiError(built.error, "validation");
     }
 
+    const { assertNdiaSubmitGovernance, NdiaGovernanceError } = await import(
+      "@/lib/ndia/shared/governance"
+    );
+    try {
+      await assertNdiaSubmitGovernance();
+    } catch (e) {
+      if (e instanceof NdiaGovernanceError) {
+        throw new NdiaApiError(e.message, "validation");
+      }
+      throw e;
+    }
+
     const result = await submitNdiaClaimBody(built.requestBody);
 
     await prisma.ndisClaimBatch.update({

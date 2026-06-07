@@ -679,6 +679,7 @@ model Organisation {
   invoices    Invoice[]
   billingInvoices BillingInvoice[] @relation("BillingInvoiceProvider")
   ndiaProviderClaims NdiaProviderClaim[]
+  ndiaRemittanceImports NdiaRemittanceImport[] @relation("NdiaRemittanceImports")
   ndisClaimBatches       NdisClaimBatch[]
   ndisClaimLines         NdisClaimLine[]
   ndisInvoices           NdisInvoice[]
@@ -4396,6 +4397,7 @@ model PaymentReconciliationException {
   batchId         String
   batch           PaymentReconciliationBatch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
   invoiceId       String?
+  billingInvoiceId String?
   stripePaymentId String?
   xeroInvoiceId   String?
   matchStatus     ReconciliationMatchStatus          @default(unmatched)
@@ -5489,6 +5491,38 @@ model NdiaProviderClaimAudit {
   createdAt DateTime        @default(now())
 
   @@index([claimId, createdAt])
+}
+
+model NdiaRemittanceImport {
+  id             String   @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation("NdiaRemittanceImports", fields: [organisationId], references: [id], onDelete: Cascade)
+  fileName       String
+  importedById   String
+  status         String   @default("completed")
+  summaryJson    Json?
+  createdAt      DateTime @default(now())
+  lines          NdiaRemittanceLine[]
+
+  @@index([organisationId, createdAt])
+}
+
+model NdiaRemittanceLine {
+  id              String               @id @default(cuid())
+  importId        String
+  import          NdiaRemittanceImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+  externalClaimId String?
+  claimId         String?
+  participantRef  String?
+  amountCents     Int
+  paymentDate     DateTime?
+  matchStatus     String               @default("unmatched")
+  rawRowJson      Json?
+  createdAt       DateTime             @default(now())
+
+  @@index([importId])
+  @@index([externalClaimId])
+  @@index([claimId])
 }
 
 // --- NDIS portal-assisted direct claiming ---

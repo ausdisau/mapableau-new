@@ -92,28 +92,10 @@ export async function exportInvoice(
     return { ok: true as const, format: "csv", content: rows, mimeType: "text/csv" };
   }
 
-  const planManagerPayload = {
-    invoiceId: invoice.id,
-    participantUserId: invoice.userId,
-    planManager: {
-      name: invoice.fundingSource?.planManagerName,
-      email: invoice.fundingSource?.planManagerEmail,
-    },
-    ndisParticipantNumber: invoice.fundingSource?.ndisParticipantNumber,
-    currency: invoice.currency,
-    totalCents: invoice.totalCents,
-    dueAt: invoice.dueAt?.toISOString() ?? null,
-    lineItems: invoice.lineItems.map((li) => ({
-      description: li.description,
-      quantity: Number(li.quantity),
-      unitAmountCents: li.unitAmountCents,
-      totalCents: li.totalCents,
-      ndisLineItem: li.ndisLineItem,
-    })),
-    emailSubject: `NDIS invoice ${invoice.id.slice(0, 8)} — ${invoice.totalCents / 100} ${invoice.currency}`,
-    emailBody:
-      "Please find the attached plan-managed invoice details for payment processing.",
-  };
+  const { buildBillingPlanManagerPayload } = await import(
+    "@/lib/plan-manager/billing-export-bridge"
+  );
+  const planManagerPayload = buildBillingPlanManagerPayload(invoice);
 
   await prisma.billingInvoice.update({
     where: { id: invoiceId },
