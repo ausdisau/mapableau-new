@@ -131,6 +131,7 @@ export function AdminCareAssignProvider({
       ) : null}
       <Button
         type="button"
+        variant="default"
         size="default"
         disabled={busy || !organisationId || !selected?.serviceReady}
         onClick={() => void handleAssign()}
