@@ -36,14 +36,13 @@ export function MapAbleLogo({
   if (variant === "full") {
     return (
       <Link href={href} className={linkClass} aria-label={ariaLabel}>
-        <Image
+        {/* Native img so replacing public/brand/mapable-logo.png via GitHub does not require code changes. */}
+        <img
           src={MAPABLE_LOGO_SRC}
           alt={MAPABLE_LOGO_ALT}
-          width={1421}
-          height={532}
           className="h-10 w-auto max-w-[min(320px,72vw)] bg-transparent object-contain object-left sm:h-11"
-          priority
-          unoptimized
+          decoding="async"
+          fetchPriority="high"
         />
       </Link>
     );

@@ -11,7 +11,7 @@ export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
 /**
  * Official MapAble horizontal wordmark (icon + MapAble + tagline).
- * Source: public/brand/mapable-logo.png
+ * Replace via GitHub: commit your PNG to public/brand/mapable-logo.png on main.
  */
 export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 
