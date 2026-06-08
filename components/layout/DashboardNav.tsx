@@ -60,6 +60,8 @@ export function DashboardNav({
             const isActive =
               pathname === link.href ||
               (link.href === "/care" && pathname.startsWith("/care")) ||
+              (link.href === "/dashboard/bookings" &&
+                pathname.startsWith("/dashboard/bookings")) ||
               (link.href === "/dashboard/transport" &&
                 pathname.startsWith("/dashboard/transport"));
 

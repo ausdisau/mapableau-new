@@ -5,6 +5,8 @@ import type { BillingFundingSource } from "@prisma/client";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { StatusMessage } from "@/components/ui/StatusMessage";
+import { fetchJson } from "@/lib/client/fetch-json";
 
 const TYPE_LABELS: Record<string, string> = {
   ndis_plan_managed: "NDIS plan-managed",
@@ -18,13 +20,21 @@ const TYPE_LABELS: Record<string, string> = {
 export function BillingFundingListClient() {
   const [sources, setSources] = useState<BillingFundingSource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/billing/funding-sources");
-    const data = await res.json();
-    setSources(data.fundingSources ?? []);
+    setLoadError(null);
+    const result = await fetchJson<{ fundingSources?: BillingFundingSource[] }>(
+      "/api/billing/funding-sources",
+    );
     setLoading(false);
+    if (!result.ok) {
+      setLoadError(result.error);
+      setSources([]);
+      return;
+    }
+    setSources(result.data.fundingSources ?? []);
   }, []);
 
   useEffect(() => {
@@ -48,6 +58,8 @@ export function BillingFundingListClient() {
           Add funding source
         </Link>
       </header>
+
+      {loadError ? <StatusMessage variant="error" message={loadError} /> : null}
 
       {loading ? (
         <p aria-busy="true" className="text-muted-foreground">

@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
+import { AccessibleConfirmDialog } from "@/components/ui/AccessibleConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { StatusMessage } from "@/components/ui/StatusMessage";
+import { fetchJson } from "@/lib/client/fetch-json";
 
 type InvoiceDetail = {
   id: string;
@@ -27,6 +30,11 @@ type InvoiceDetail = {
   payments: { status: string; amountCents: number; createdAt: string }[];
 };
 
+type StatusPayload = {
+  variant: "info" | "success" | "error";
+  message: string;
+};
+
 function formatAud(cents: number, currency: string) {
   return new Intl.NumberFormat("en-AU", {
     style: "currency",
@@ -35,81 +43,136 @@ function formatAud(cents: number, currency: string) {
 }
 
 export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail }) {
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [payBusy, setPayBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [disputeBusy, setDisputeBusy] = useState(false);
+  const [disputeError, setDisputeError] = useState<string | null>(null);
+  const [message, setMessage] = useState<StatusPayload | null>(null);
 
   const planManaged = invoice.fundingSource?.type === "ndis_plan_managed";
   const canPay =
     !planManaged &&
     ["draft", "issued", "pending_payment", "failed"].includes(invoice.status);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get("checkout");
+    if (checkout === "success") {
+      setMessage({
+        variant: "success",
+        message:
+          "Payment submitted. Your invoice will show as paid once Stripe confirms the payment.",
+      });
+    } else if (checkout === "cancelled") {
+      setMessage({
+        variant: "info",
+        message: "Checkout was cancelled. You can try again when ready.",
+      });
+    }
+    if (checkout) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }, []);
+
   async function payNow() {
-    setBusy(true);
+    setPayBusy(true);
     setMessage(null);
-    const res = await fetch("/api/billing/checkout", {
+    const result = await fetchJson<{
+      checkoutUrl?: string;
+      checkout?: { instruction?: string };
+    }>("/api/billing/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ invoiceId: invoice.id }),
     });
-    const data = await res.json();
-    if (data.checkoutUrl) {
-      window.location.href = data.checkoutUrl;
+    if (result.ok && result.data.checkoutUrl) {
+      window.location.href = result.data.checkoutUrl;
       return;
     }
-    setMessage(data.checkout?.instruction ?? data.error ?? "Checkout unavailable.");
-    setBusy(false);
+    setMessage({
+      variant: result.ok ? "info" : "error",
+      message:
+        result.ok
+          ? (result.data.checkout?.instruction ?? "Checkout unavailable.")
+          : result.error,
+    });
+    setPayBusy(false);
   }
 
   async function planManagerExport() {
-    setBusy(true);
-    const res = await fetch("/api/billing/invoices/export", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ invoiceId: invoice.id, format: "plan_manager" }),
+    setExportBusy(true);
+    const result = await fetchJson<{ payload?: unknown }>(
+      "/api/billing/invoices/export",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId: invoice.id, format: "plan_manager" }),
+      },
+    );
+    setMessage({
+      variant: result.ok && result.data.payload ? "success" : "error",
+      message:
+        result.ok && result.data.payload
+          ? "Export prepared for your plan manager."
+          : result.ok
+            ? "Export could not be prepared."
+            : result.error,
     });
-    const data = await res.json();
-    if (data.payload) {
-      setMessage("Export prepared for your plan manager.");
-    }
-    setBusy(false);
+    setExportBusy(false);
   }
 
-  async function disputeInvoice() {
-    const reason = window.prompt(
-      "Tell us why you are disputing this invoice (at least 10 characters):"
+  async function submitDispute(reason: string) {
+    setDisputeBusy(true);
+    setDisputeError(null);
+    const result = await fetchJson(
+      `/api/billing/invoices/${invoice.id}/dispute`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      },
     );
-    if (!reason || reason.length < 10) return;
-    setBusy(true);
-    const res = await fetch(`/api/billing/invoices/${invoice.id}/dispute`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason }),
+    setDisputeBusy(false);
+    if (!result.ok) {
+      setDisputeError(result.error);
+      return;
+    }
+    setDisputeOpen(false);
+    setMessage({
+      variant: "success",
+      message: "Dispute recorded. Our team will review.",
     });
-    const data = await res.json();
-    setMessage(
-      res.ok ? "Dispute recorded. Our team will review." : data.error ?? "Dispute failed"
-    );
-    setBusy(false);
   }
 
   async function downloadCsv() {
-    setBusy(true);
-    const res = await fetch("/api/billing/invoices/export", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ invoiceId: invoice.id, format: "csv" }),
-    });
-    const data = await res.json();
-    if (data.content) {
-      const blob = new Blob([data.content], { type: "text/csv" });
+    setExportBusy(true);
+    const result = await fetchJson<{ content?: string }>(
+      "/api/billing/invoices/export",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId: invoice.id, format: "csv" }),
+      },
+    );
+    if (result.ok && result.data.content) {
+      const blob = new Blob([result.data.content], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `invoice-${invoice.id}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      setMessage({ variant: "success", message: "CSV downloaded." });
+    } else {
+      setMessage({
+        variant: "error",
+        message: result.ok ? "CSV export is unavailable." : result.error,
+      });
     }
-    setBusy(false);
+    setExportBusy(false);
   }
 
   return (
@@ -117,7 +180,7 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
       <p>
         <Link
           href="/dashboard/billing/invoices"
-          className="text-sm font-medium text-primary hover:underline"
+          className="text-sm font-medium text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
         >
           ← Back to invoices
         </Link>
@@ -133,9 +196,16 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
             {formatAud(invoice.totalCents, invoice.currency)}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Invoice actions">
           {canPay ? (
-            <Button type="button" variant="default" onClick={() => void payNow()} disabled={busy} size="lg">
+            <Button
+              type="button"
+              variant="default"
+              onClick={() => void payNow()}
+              loading={payBusy}
+              disabled={exportBusy}
+              size="lg"
+            >
               Pay now
             </Button>
           ) : null}
@@ -144,7 +214,8 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
               type="button"
               variant="outline"
               onClick={() => void planManagerExport()}
-              disabled={busy}
+              loading={exportBusy}
+              disabled={payBusy}
               size="lg"
             >
               Send to plan manager
@@ -154,7 +225,8 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
             type="button"
             variant="outline"
             onClick={() => void downloadCsv()}
-            disabled={busy}
+            loading={exportBusy}
+            disabled={payBusy}
             size="lg"
           >
             Download CSV
@@ -162,8 +234,11 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
           <Button
             type="button"
             variant="outline"
-            onClick={() => void disputeInvoice()}
-            disabled={busy}
+            onClick={() => {
+              setDisputeError(null);
+              setDisputeOpen(true);
+            }}
+            disabled={payBusy || exportBusy || disputeBusy}
             size="lg"
           >
             Dispute invoice
@@ -172,9 +247,11 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
       </header>
 
       {message ? (
-        <p role="status" className="text-sm text-muted-foreground">
-          {message}
-        </p>
+        <StatusMessage
+          variant={message.variant}
+          message={message.message}
+          onDismiss={() => setMessage(null)}
+        />
       ) : null}
 
       <Card>
@@ -201,8 +278,10 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
         </CardContent>
       </Card>
 
-      <section>
-        <h2 className="font-semibold">Line items</h2>
+      <section aria-labelledby="line-items-heading">
+        <h2 id="line-items-heading" className="font-semibold">
+          Line items
+        </h2>
         <ul className="mt-3 space-y-2">
           {invoice.lineItems.map((line) => (
             <li key={line.id} className="rounded-lg border border-border p-3 text-sm">
@@ -217,11 +296,13 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
       </section>
 
       {invoice.payments.length > 0 ? (
-        <section>
-          <h2 className="font-semibold">Payment attempts</h2>
+        <section aria-labelledby="payments-heading">
+          <h2 id="payments-heading" className="font-semibold">
+            Payment attempts
+          </h2>
           <ul className="mt-3 space-y-2">
-            {invoice.payments.map((p, i) => (
-              <li key={i} className="rounded-lg border border-border p-3 text-sm">
+            {invoice.payments.map((p) => (
+              <li key={`${p.createdAt}-${p.status}`} className="rounded-lg border border-border p-3 text-sm">
                 {p.status.replace(/_/g, " ")} — {formatAud(p.amountCents, invoice.currency)}{" "}
                 <span className="text-muted-foreground">
                   ({format(new Date(p.createdAt), "d MMM yyyy HH:mm")})
@@ -231,6 +312,21 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
           </ul>
         </section>
       ) : null}
+
+      <AccessibleConfirmDialog
+        open={disputeOpen}
+        onOpenChange={setDisputeOpen}
+        title="Dispute this invoice"
+        description="Tell us why you are disputing this invoice. Our team will review your request."
+        confirmLabel="Submit dispute"
+        loading={disputeBusy}
+        error={disputeError}
+        inputLabel="Reason for dispute"
+        inputRequired
+        inputMinLength={10}
+        inputHint="Please provide at least 10 characters so we can investigate."
+        onConfirm={submitDispute}
+      />
     </div>
   );
 }
