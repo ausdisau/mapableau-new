@@ -20,6 +20,7 @@ describe("integration registry", () => {
     expect(keys).toContain("postgres");
     expect(keys).toContain("stripe");
     expect(keys).toContain("xero");
+    expect(keys).toContain("uber");
     expect(getIntegrationAdapter("postgres").key).toBe("postgres");
   });
 

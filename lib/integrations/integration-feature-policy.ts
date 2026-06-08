@@ -69,6 +69,7 @@ export function isIntegrationEnvEnabled(key: string): boolean {
     livekit: process.env.TELEHEALTH_VIDEO_PROVIDER,
     calcom: process.env.SCHEDULING_PROVIDER,
     erpnext: process.env.ERPNEXT_ENABLED,
+    uber: process.env.UBER_ENABLED,
   };
 
   const val = envMap[key];

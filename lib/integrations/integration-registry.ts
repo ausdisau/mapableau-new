@@ -3,6 +3,7 @@ import { ndiaAdapter } from "@/lib/integrations/adapters/ndia-adapter";
 import { postgresAdapter } from "@/lib/integrations/adapters/postgres-adapter";
 import { stripeAdapter } from "@/lib/integrations/adapters/stripe-adapter";
 import { createStubAdapter } from "@/lib/integrations/adapters/stub-adapter";
+import { uberAdapter } from "@/lib/integrations/adapters/uber-adapter";
 import { xeroAdapter } from "@/lib/integrations/adapters/xero-adapter";
 import {
   IntegrationDisabledError,
@@ -34,6 +35,7 @@ register(stripeAdapter);
 register(xeroAdapter);
 register(ndiaAdapter);
 register(maplibreAdapter);
+register(uberAdapter);
 
 const stubKeys: Array<[string, IntegrationAdapter["type"], string]> = [
   ["keycloak", "identity", "Keycloak"],
