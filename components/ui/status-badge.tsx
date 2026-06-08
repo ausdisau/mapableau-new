@@ -55,16 +55,23 @@ const VARIANTS: Record<string, { className: string; label: string }> = {
   expired: { className: "bg-muted text-muted-foreground", label: "Expired" },
   pending: { className: "bg-amber-100 text-amber-900", label: "Pending" },
   verified: { className: "bg-green-100 text-green-900", label: "Verified" },
-  not_started: {
-    className: "bg-muted text-muted-foreground",
-    label: "Not started",
+  pending_payment: {
+    className: "bg-amber-100 text-amber-900",
+    label: "Pending payment",
   },
   pending_review: {
     className: "bg-amber-100 text-amber-900",
     label: "Pending review",
   },
+  approved: { className: "bg-green-100 text-green-900", label: "Approved" },
   rejected: { className: "bg-red-100 text-red-900", label: "Rejected" },
+  paused: { className: "bg-muted text-muted-foreground", label: "Paused" },
+  ended: { className: "bg-muted text-muted-foreground", label: "Ended" },
   suspended: { className: "bg-red-100 text-red-900", label: "Suspended" },
+  not_started: {
+    className: "bg-muted text-muted-foreground",
+    label: "Not started",
+  },
 };
 
 export function StatusBadge({
