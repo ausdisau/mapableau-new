@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MapAble</string>
+    <string name="title_activity_main">MapAble</string>
+    <string name="package_name">au.com.mapable.app</string>
+    <string name="custom_url_scheme">au.com.mapable.app</string>
+</resources>
