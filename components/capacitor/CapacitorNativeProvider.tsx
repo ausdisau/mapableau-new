@@ -2,9 +2,16 @@
 
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 
+import { isEligibleAdRoute } from "@/lib/ads/ad-page-eligibility";
+import {
+  initializeAdMob,
+  refreshAdMobBanner,
+} from "@/lib/capacitor/admob-bridge";
+import { isAdMobEnabled } from "@/lib/capacitor/admob-config";
 import {
   isCapacitorNative,
   registerNativePush,
@@ -34,6 +41,7 @@ export function CapacitorNativeProvider({
 }) {
   const { status } = useSession();
   const pushTokenRef = useRef<string | null>(null);
+  const pathname = usePathname() ?? "/";
 
   useEffect(() => {
     if (!isCapacitorNative()) return;
@@ -48,6 +56,17 @@ export function CapacitorNativeProvider({
       void appUrlListener.then((handle) => handle.remove());
     };
   }, []);
+
+  useEffect(() => {
+    if (!isCapacitorNative() || !isAdMobEnabled()) return;
+
+    const showAds = isEligibleAdRoute(pathname);
+    void refreshAdMobBanner(showAds);
+
+    return () => {
+      void refreshAdMobBanner(false);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!isCapacitorNative()) return;
@@ -76,6 +95,11 @@ export function CapacitorNativeProvider({
       cancelled = true;
     };
   }, [status]);
+
+  useEffect(() => {
+    if (!isCapacitorNative() || !isAdMobEnabled()) return;
+    void initializeAdMob();
+  }, []);
 
   return children;
 }
