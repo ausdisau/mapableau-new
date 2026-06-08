@@ -8,6 +8,12 @@
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android",
+    "cap:run": "cap run android",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android",
+    "android:run": "cap run android",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
@@ -44,6 +50,8 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
     "@ai-sdk/react": "^3.0.198",
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
     "@chat-adapter/slack": "^4.30.0",
     "@chat-adapter/state-memory": "^4.30.0",
     "@prisma/client": "6.19.2",
@@ -80,6 +88,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
@@ -91,6 +100,7 @@
     "@typescript-eslint/eslint-plugin": "8.46.0",
     "@typescript-eslint/parser": "8.46.0",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.5.7",
     "eslint-config-prettier": "^10.1.8",
@@ -107,7 +117,6 @@
     "prisma": "6.19.2",
     "tsx": "^4.22.3",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4",
-    "dotenv": "^16.4.7"
+    "vitest": "^3.2.4"
   }
 }

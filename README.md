@@ -144,6 +144,56 @@ Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, St
 | [mobile-contracts/MOBILE_APP_ARCHITECTURE.md](mobile-contracts/MOBILE_APP_ARCHITECTURE.md) | Mobile architecture |
 | [mobile-contracts/MOBILE_SCREEN_MAP.md](mobile-contracts/MOBILE_SCREEN_MAP.md) | Mobile screen map |
 
+## Android app (Capacitor)
+
+The Android shell wraps the **live Vercel deployment** at [https://www.mapable.com.au](https://www.mapable.com.au). Static export is not used: the web app relies on 400+ API routes, NextAuth, and server-side Prisma.
+
+### Prerequisites
+
+- Android Studio (latest stable)
+- JDK 17+
+- Android SDK (API 34+ recommended)
+
+### Build and run
+
+```bash
+pnpm install
+pnpm build
+npx cap sync android
+npx cap open android
+npx cap run android
+```
+
+Or use the package scripts:
+
+```bash
+pnpm build
+pnpm android:sync
+pnpm android:open
+pnpm android:run
+```
+
+### Local development against the emulator
+
+Point the WebView at your local Next.js server (emulator host loopback):
+
+```bash
+CAPACITOR_SERVER_URL=http://10.0.2.2:3000 pnpm android:sync
+pnpm dev   # in another terminal
+pnpm android:run
+```
+
+### Configuration
+
+| File | Purpose |
+| --- | --- |
+| `capacitor.config.ts` | App ID `au.com.mapable.app`, production URL, cleartext disabled |
+| `capacitor-www/` | Minimal offline fallback (remote URL is primary) |
+| `android/` | Native Android project (Gradle) |
+| [docs/mobile/android-permissions.md](docs/mobile/android-permissions.md) | Location, camera, notification permission plan |
+
+The Vercel deployment is unchanged: `pnpm build` still produces a standard Next.js server build for Vercel.
+
 ## Code quality
 
 ESLint, Prettier, Husky, and lint-staged run on commit. See `package.json` scripts.
