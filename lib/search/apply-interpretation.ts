@@ -23,7 +23,7 @@ export function applyInterpretationToFields(
     accessQuery: string;
   },
 ): AppliedSearchFields {
-  const { filters } = interpretation;
+  const filters = interpretation.filters ?? {};
 
   const query =
     filters.q ||
@@ -50,7 +50,7 @@ export function applyInterpretationToFields(
     serviceQuery,
     accessQuery,
     supportType,
-    accessNeedIds: interpretation.accessNeedIds,
+    accessNeedIds: interpretation.accessNeedIds ?? [],
   };
 }
 
@@ -64,8 +64,8 @@ export function buildFinderSearchParams(fields: AppliedSearchFields): URLSearchP
   if (fields.supportType && fields.supportType !== "all") {
     params.set("supportType", fields.supportType);
   }
-  if (fields.accessNeedIds.length > 0) {
-    params.set("accessNeeds", fields.accessNeedIds.join(","));
+  if ((fields.accessNeedIds ?? []).length > 0) {
+    params.set("accessNeeds", (fields.accessNeedIds ?? []).join(","));
   }
   return params;
 }

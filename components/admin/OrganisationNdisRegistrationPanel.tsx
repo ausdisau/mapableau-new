@@ -70,6 +70,8 @@ export function OrganisationNdisRegistrationPanel({
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
+            variant="default"
+            size="lg"
             disabled={saving}
             onClick={() => void verify(true)}
           >
@@ -78,6 +80,7 @@ export function OrganisationNdisRegistrationPanel({
           <Button
             type="button"
             variant="outline"
+            size="lg"
             disabled={saving}
             onClick={() => void verify(false)}
           >

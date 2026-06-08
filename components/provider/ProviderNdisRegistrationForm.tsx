@@ -142,7 +142,7 @@ export function ProviderNdisRegistrationForm({
         ) : null}
         {message ? <p className="text-sm text-green-700">{message}</p> : null}
 
-        <Button type="button" onClick={() => void save()} disabled={saving}>
+        <Button type="button" variant="default" size="lg" onClick={() => void save()} disabled={saving}>
           {saving ? "Saving…" : "Save registration"}
         </Button>
       </div>

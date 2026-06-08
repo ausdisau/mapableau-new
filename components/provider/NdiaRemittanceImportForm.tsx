@@ -71,7 +71,7 @@ export function NdiaRemittanceImportForm({
           onChange={(e) => setCsvContent(e.target.value)}
           placeholder="Or paste CSV content (headers: externalClaimId, amount, paymentDate)"
         />
-        <Button type="button" disabled={loading || !csvContent} onClick={() => void importCsv()}>
+        <Button type="button" variant="default" size="lg" disabled={loading || !csvContent} onClick={() => void importCsv()}>
           {loading ? "Importing…" : "Import remittance"}
         </Button>
         {error ? (

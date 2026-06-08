@@ -133,6 +133,7 @@ export function AdminInvoiceDetailClient({
             <Button
               type="button"
               variant="default"
+              size="lg"
               onClick={() => void approve()}
               disabled={busy}
             >
@@ -143,6 +144,7 @@ export function AdminInvoiceDetailClient({
             <Button
               type="button"
               variant="outline"
+              size="lg"
               onClick={() => setShowDisputeForm((v) => !v)}
               disabled={busy}
             >
@@ -179,6 +181,7 @@ export function AdminInvoiceDetailClient({
             <Button
               type="button"
               variant="destructive"
+              size="lg"
               onClick={() => void dispute()}
               disabled={busy}
             >

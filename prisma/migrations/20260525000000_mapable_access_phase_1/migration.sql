@@ -54,6 +54,8 @@ CREATE TYPE "AccessModerationStatus" AS ENUM ('pending', 'approved', 'rejected',
 -- CreateEnum
 CREATE TYPE "AccessContentReportReason" AS ENUM ('inaccurate_access_information', 'abusive_or_harassing', 'private_information', 'defamatory_or_unverified_claim', 'unsafe_advice', 'spam', 'duplicate_place', 'closed_or_moved_place', 'other');
 
+CREATE TYPE "BillingPreflightStatus" AS ENUM ('passed', 'failed');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,

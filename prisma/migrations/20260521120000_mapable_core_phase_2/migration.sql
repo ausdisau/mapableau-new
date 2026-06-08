@@ -4,6 +4,8 @@
 -- Enums and tables created by Prisma migrate; this file documents Phase 2 deployment.
 -- For fresh installs, `prisma db push` or `migrate dev` from schema is authoritative.
 
+CREATE TYPE "ProviderResponseStatus" AS ENUM ('not_sent', 'sent', 'accepted', 'declined', 'expired');
+
 ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "providerResponseStatus" "ProviderResponseStatus" NOT NULL DEFAULT 'not_sent';
 ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "providerResponseNote" TEXT;
 ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "providerRespondedAt" TIMESTAMP(3);

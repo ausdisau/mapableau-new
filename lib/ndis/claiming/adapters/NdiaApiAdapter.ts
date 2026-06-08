@@ -39,7 +39,7 @@ export class NdiaApiAdapter implements NdisClaimingAdapter {
     await prisma.ndisClaimBatch.update({
       where: { id: batchId },
       data: {
-        status: "submitted",
+        status: "submitted_in_portal",
         submittedAt: new Date(),
         exportFileName: `ndia-api-${built.batchReference}`,
         exportChecksum: result.externalClaimId,

@@ -209,7 +209,7 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder="Explain why you are disputing this invoice…"
             />
-            <Button type="button" variant="destructive" onClick={() => void submitDispute()} disabled={busy}>
+            <Button type="button" variant="destructive" size="lg" onClick={() => void submitDispute()} disabled={busy}>
               Submit dispute
             </Button>
           </CardContent>
