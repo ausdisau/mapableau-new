@@ -20,6 +20,17 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  title: {
+    default: "MapAble",
+    template: "%s | MapAble",
+  },
+  description:
+    "Disability support platform — care, transport, bookings, and participant services.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  },
   other: {
     "purpleads-verification": "832ea0b13123578b63ae2fe9",
   },
