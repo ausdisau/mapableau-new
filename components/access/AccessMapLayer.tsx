@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 
+import { useMapConfig } from "@/components/map/MapProvider";
+
 export function AccessMapLayer({
   places,
   selectedId,
@@ -12,23 +14,30 @@ export function AccessMapLayer({
   selectedId?: string;
   onSelect?: (id: string) => void;
 }) {
+  const { styleUrl, attribution, defaultCenter } = useMapConfig();
+
   const center = useMemo(() => {
-    if (!places.length) return { latitude: -33.8688, longitude: 151.2093 };
+    if (!places.length) {
+      return {
+        latitude: defaultCenter.lat,
+        longitude: defaultCenter.lng,
+      };
+    }
     const lat =
       places.reduce((s, p) => s + p.latitude, 0) / places.length;
     const lng =
       places.reduce((s, p) => s + p.longitude, 0) / places.length;
     return { latitude: lat, longitude: lng };
-  }, [places]);
+  }, [places, defaultCenter.lat, defaultCenter.lng]);
 
   return (
     <Map
       initialViewState={{
         latitude: center.latitude,
         longitude: center.longitude,
-        zoom: places.length === 1 ? 14 : 10,
+        zoom: places.length === 1 ? 14 : defaultCenter.zoom,
       }}
-      mapStyle="https://tiles.openfreemap.org/styles/liberty"
+      mapStyle={styleUrl}
       style={{ width: "100%", height: "100%" }}
       attributionControl={{}}
     >
@@ -57,6 +66,7 @@ export function AccessMapLayer({
           </button>
         </Marker>
       ))}
+      <p className="sr-only">{attribution}</p>
     </Map>
   );
 }

@@ -1,4 +1,6 @@
+import type { AppliedSearchFields } from "@/lib/search/apply-interpretation";
 import type { ConsentScope, DraftPrmsRecord } from "@/lib/prms/types";
+import type { SearchInterpretation } from "@/types/search";
 
 export type CopilotIntentType =
   | "support"
@@ -6,11 +8,14 @@ export type CopilotIntentType =
   | "combined"
   | "jobs"
   | "places"
+  | "provider_finder"
   | "ndis"
   | "billing"
   | "incident"
   | "health"
   | "unknown";
+
+export type CopilotAskContext = "default" | "provider_finder";
 
 export type CopilotMode =
   | "All"
@@ -39,7 +44,40 @@ export type CopilotActionType =
   | "INCIDENT_REPORT"
   | "SAFETY_ESCALATION"
   | "EMPLOYMENT_SUPPORT"
+  | "OPEN_PROVIDER_SEARCH"
   | "GUIDANCE_ONLY";
+
+export type CopilotFinderPayload = {
+  interpretation: SearchInterpretation;
+  applied: AppliedSearchFields;
+  searchParams: Record<string, string>;
+  replyText: string;
+};
+
+/** NDIS directory row surfaced in Ask / agent responses (not MapAble-verified). */
+export type CopilotProviderResult = {
+  id: string;
+  slug: string;
+  name: string;
+  suburb: string | null;
+  state: string | null;
+  postcode: string | null;
+  locationLabel: string | null;
+  registered: boolean;
+  registrationGroups: string[];
+  services: string[];
+  phone: string | null;
+  website: string | null;
+};
+
+export type CopilotAgentStatus = "complete" | "needs_clarification";
+
+export type CopilotAgentMeta = {
+  sessionId: string;
+  turnIndex: number;
+  status: CopilotAgentStatus;
+  clarificationQuestion?: string;
+};
 
 export type CopilotAction = {
   type: CopilotActionType;
@@ -113,6 +151,10 @@ export type CopilotActionPlan = {
   draftRecords: DraftPrmsRecord[];
   requiredConfirmations: ConfirmationGate[];
   warnings: CopilotWarning[];
+  /** Top NDIS directory matches from live search (when available). */
+  providerResults?: CopilotProviderResult[];
+  agent?: CopilotAgentMeta;
+  toolsCalled?: string[];
 };
 
 export type GuardrailInput = {
@@ -133,7 +175,10 @@ export type CopilotAskResponse = {
   requiredConfirmations: ConfirmationGate[];
   warnings: CopilotWarning[];
   blockedActions: CopilotAction[];
-  /** Legacy-compatible fields for existing UI consumers */
-  results?: unknown[];
+  /** Provider Finder NL search payload when applicable */
+  finder?: CopilotFinderPayload;
+  /** NDIS directory matches (serialisable). */
+  results?: CopilotProviderResult[];
   suggestedPrompts?: string[];
+  agent?: CopilotAgentMeta;
 };

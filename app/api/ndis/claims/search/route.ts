@@ -4,7 +4,7 @@ import { requireApiPermission } from "@/lib/api/auth-handler";
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
-import { searchClaimLines } from "@/lib/ndis/claiming/claim-service";
+import { assertOrgAccess, searchClaimLines } from "@/lib/ndis/claiming/claim-service";
 
 export async function GET(req: Request) {
   const user = await requireApiPermission("provider:ndis:claim");
@@ -18,6 +18,14 @@ export async function GET(req: Request) {
   }
   if (!providerOrgId) {
     return jsonError("providerOrgId is required", 400);
+  }
+
+  try {
+    await assertOrgAccess(user, providerOrgId);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed";
+    if (msg === "FORBIDDEN") return jsonError("Forbidden", 403);
+    return jsonError(msg, 400);
   }
 
   const status = url.searchParams.get("status") as NdisClaimLineStatus | null;

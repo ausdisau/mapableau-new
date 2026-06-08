@@ -7,6 +7,7 @@ import { cn } from "@/app/lib/utils";
 import type { Provider } from "@/app/provider-finder/providers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
 
 function formatLocation(provider: Provider) {
   if (provider.suburb === "Remote") return "Telehealth (Australia-wide)";
@@ -49,6 +50,7 @@ export function ProviderFinderResultCard({
   onSelect,
   onToggleCompare,
 }: ProviderFinderResultCardProps) {
+  const { careRequestHref } = usePlatformCareLink(provider);
   const rating = Math.max(0, Math.min(5, provider.rating));
   const showDistance =
     provider.distanceKm > 0 && provider.suburb !== "Remote";
@@ -152,7 +154,17 @@ export function ProviderFinderResultCard({
       </dl>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <Button variant="default" size="default" asChild className="gap-1.5">
+        {careRequestHref ? (
+          <Button variant="default" size="default" asChild className="gap-1.5">
+            <Link href={careRequestHref}>Request care</Link>
+          </Button>
+        ) : null}
+        <Button
+          variant={careRequestHref ? "outline" : "default"}
+          size="default"
+          asChild
+          className="gap-1.5"
+        >
           <Link href={`/jonathan/profile/${encodeURIComponent(provider.slug)}`}>
             View profile
             <ArrowRight className="h-4 w-4" aria-hidden />
@@ -169,7 +181,9 @@ export function ProviderFinderResultCard({
           {isCompared ? "Compared" : "Compare"}
         </Button>
         <Button type="button" variant="outline" size="default" asChild>
-          <Link href={`/ask?provider=${encodeURIComponent(provider.slug)}`}>
+          <Link
+            href={`/provider-finder?provider=${encodeURIComponent(provider.slug)}#ask-panel`}
+          >
             <MessageCircle className="h-4 w-4" aria-hidden />
             Ask MapAble
           </Link>

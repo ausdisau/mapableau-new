@@ -4,6 +4,8 @@ import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
 import { caseListWhereForUser } from "@/lib/cases/case-access";
 import { caseManagementConfig } from "@/lib/config/case-management";
+import { isEngagementPlatformEnabled } from "@/lib/config/engagement";
+import { countOpenSubmissions } from "@/lib/engagement/engagement-submission-service";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Control panel | MapAble Core" };
@@ -20,6 +22,7 @@ export default async function DashboardPage() {
     incidentCount,
     openSupportCount,
     openCaseCount,
+    openEngagementCount,
   ] = await Promise.all([
     prisma.participantProfile.findUnique({ where: { userId: user.id } }),
     prisma.booking.count({ where: { participantId: user.id } }),
@@ -48,6 +51,9 @@ export default async function DashboardPage() {
             ],
           },
         })
+      : Promise.resolve(0),
+    isEngagementPlatformEnabled()
+      ? countOpenSubmissions(user.id)
       : Promise.resolve(0),
   ]);
 
@@ -78,6 +84,17 @@ export default async function DashboardPage() {
           }
           href="/dashboard/safety"
         />
+        {isEngagementPlatformEnabled() ? (
+          <DashboardCard
+            title="Your voice"
+            description={
+              openEngagementCount
+                ? `${openEngagementCount} open feedback or complaint item(s)`
+                : "Feedback, complaints, and improvement updates"
+            }
+            href="/dashboard/engagement"
+          />
+        ) : null}
         <DashboardCard
           title="MapAble Care"
           description={

@@ -91,6 +91,19 @@ async function upsertQueue(params: {
   return prisma.dispatchQueue.create({ data: { ...params, status: "open" } });
 }
 
+export async function upsertDispatchQueueItem(params: {
+  queueType: DispatchQueueType;
+  title: string;
+  entityType: string;
+  entityId: string;
+  organisationId?: string;
+  priority: DispatchQueuePriority;
+  plainLanguageSummary: string;
+}) {
+  if (!phase6Config.dispatchConsoleEnabled) return null;
+  return upsertQueue(params);
+}
+
 export async function recordDispatchAction(
   queueId: string,
   actorUserId: string,

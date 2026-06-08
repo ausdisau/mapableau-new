@@ -45,3 +45,65 @@ export type AutocompleteGroupedResult = {
 
 export const AUTOCOMPLETE_MAX_SUGGESTIONS = 10;
 export const AUTOCOMPLETE_MIN_QUERY_LENGTH = 2;
+
+export type SuggestionMode = "proactive" | "reactive";
+
+/** Optional client hints for rules-based ranking (no ML). */
+export type SuggestionSignals = {
+  recentQueries?: string[];
+  preferredState?: string;
+};
+
+export type SuggestionSourceCounts = {
+  providers: number;
+  services: number;
+  locations: number;
+  accessibilityFeatures: number;
+  languages: number;
+  popularSearches: number;
+};
+
+export type SuggestionResultMeta = {
+  mode: SuggestionMode;
+  degraded: boolean;
+  degradedReason?: string;
+  sourceCounts?: SuggestionSourceCounts;
+};
+
+export type PredictiveSuggestionResult = {
+  groups: AutocompleteGroupedResult;
+  meta: SuggestionResultMeta;
+};
+
+/** Structured filters extracted from a natural-language provider search query. */
+export type NaturalLanguageSearchFilters = {
+  q: string;
+  location: string;
+  access: string;
+  service: string;
+  provider: string;
+};
+
+/** Resolved Provider Finder ACCESS_NEEDS chip ids from NL text. */
+export type AccessNeedResolution = {
+  ids: string[];
+  confidence: number;
+  source: "llm_ids" | "keyword" | "llm_step" | "none";
+  unmatchedText?: string;
+};
+
+/** Server-side interpreter result for provider / homepage search. */
+export type SearchInterpretation = {
+  sourceQuery: string;
+  parsed: boolean;
+  configured: boolean;
+  filters: NaturalLanguageSearchFilters;
+  serviceCategorySlug: string | null;
+  serviceCategoryId: string | null;
+  accessNeedIds: string[];
+  accessNeeds: AccessNeedResolution;
+  confidence: number;
+  engineId: string;
+};
+
+export type SearchInterpretResponse = SearchInterpretation;

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { apiForbidden } from "@/lib/auth/guards";
 import type { EvidencePackType } from "@/lib/prms/types";
 
 const CHECKLIST_ITEMS = [
@@ -13,6 +15,9 @@ const CHECKLIST_ITEMS = [
 ] as const;
 
 export async function POST(request: Request) {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
   try {
     const body = await request.json();
     const packType = (body.packType ?? "invoice_review") as EvidencePackType;
@@ -20,8 +25,13 @@ export async function POST(request: Request) {
       typeof body.serviceEventId === "string" ? body.serviceEventId : null;
     const invoiceId =
       typeof body.invoiceId === "string" ? body.invoiceId : null;
+    const participantId =
+      typeof body.participantId === "string" ? body.participantId : user.id;
 
-    // TODO: load real evidence from PRMS database
+    if (participantId !== user.id && user.primaryRole !== "mapable_admin") {
+      return apiForbidden("Evidence packs are scoped to the signed-in participant.");
+    }
+
     const checklist = CHECKLIST_ITEMS.map((item) => {
       const present =
         item === "service_event" && serviceEventId
@@ -39,6 +49,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       packType,
+      participantId,
       status: complete ? "complete" : "incomplete",
       checklist,
       missing,

@@ -29,6 +29,7 @@ model User {
   updatedAt              DateTime           @updatedAt
   sessions               Session[]
   claimedProviders       ClaimedProvider[]
+  passkeyCredentials     PasskeyCredential[]
 
   memberships            ProviderUserRole[]
   roleAssignments        UserRoleAssignment[]
@@ -72,10 +73,19 @@ model User {
   careAccessNeeds           CareAccessNeed[]
   careRiskFlags             CareRiskFlag[]
   careLivingAloneSafeguards CareLivingAloneSafeguard[]
+  supportProfile            SupportProfile?
   workerProfiles            WorkerProfile[]    @relation("WorkerProfileUser")
+  workerOrganisationInvitesSent WorkerOrganisationInvite[] @relation("WorkerInviteInvitedBy")
   onboardingProfiles        OnboardingProfile[] @relation("OnboardingProfileUser")
   supportJourneySessions    SupportJourneySession[] @relation("SupportJourneyParticipant")
   complaintsReported        Complaint[]        @relation("ComplaintReportedBy")
+  engagementSubmissionsAsParticipant EngagementSubmission[] @relation("EngagementParticipant")
+  engagementSubmissionsSubmitted EngagementSubmission[] @relation("EngagementSubmittedBy")
+  engagementImprovementActionsResponsible EngagementImprovementAction[] @relation("EngagementImprovementResponsible")
+  engagementSubmissionEvents EngagementSubmissionEvent[] @relation("EngagementEventActor")
+  engagementNpsResponses    EngagementNpsResponse[] @relation("EngagementNpsParticipant")
+  engagementSurveyResponses EngagementSurveyResponse[] @relation("EngagementSurveyRespondent")
+  workerTrainingCompletions WorkerTrainingCompletion[] @relation("WorkerTrainingUser")
   driverProfiles            DriverProfile[]    @relation("DriverProfileUser")
   transportBookings         TransportBooking[] @relation("TransportBookingParticipant")
   jobsCreated               Job[]              @relation("JobCreatedBy")
@@ -98,6 +108,8 @@ model User {
   ndisClaimLinesParticipant NdisClaimLine[]        @relation("NdisClaimLinesParticipant")
   ndisInvoicesParticipant   NdisInvoice[]          @relation("NdisInvoicesParticipant")
   participantProviderRelationships ParticipantProviderRelationship[] @relation("ParticipantProviderRelationships")
+  ndisDeliveryAuthorizationsParticipant NdisServiceDeliveryAuthorization[] @relation("NdisDeliveryAuthParticipant")
+  ndisDeliveryEventsParticipant NdisServiceDeliveryEvent[] @relation("NdisDeliveryEventParticipant")
 
   accessPlacesCreated       AccessPlace[]          @relation("AccessPlaceCreatedBy")
   accessPlaceClaims         AccessPlaceClaim[]     @relation("AccessPlaceClaimUser")
@@ -127,6 +139,22 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+}
+
+model PasskeyCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      BigInt    @default(0)
+  transports   String[]  @default([])
+  deviceType   String?
+  backedUp     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
 }
 
 model Worker {
@@ -206,6 +234,86 @@ model ProviderProfile {
   @@index([name])
   @@index([isSearchVisible, isVerified])
   @@map("provider_profiles")
+}
+
+/// NDIS provider finder export (list-providers.json / provider-outlets.json).
+model ProviderOutletRegistry {
+  id           String   @id
+  abn          String
+  name         String
+  slug         String?
+  outletKey    String?  @map("outlet_key")
+  outletName   String?  @map("outlet_name")
+  flag         String?
+  active       Boolean  @default(false)
+  phone        String?
+  website      String?
+  email        String?
+  address      String?
+  headOffice   String?  @map("head_office")
+  state        String
+  postcode     String?
+  latitude     Float?
+  longitude    Float?
+  regGroup     Int[]    @default([]) @map("reg_group")
+  openingHours String?  @map("opening_hours")
+  professions  String?
+  raw          Json
+  sourceDate   String?  @map("source_date")
+  importedAt   DateTime @default(now()) @map("imported_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([active])
+  @@index([state])
+  @@index([abn])
+  @@index([name])
+  @@index([outletKey])
+  @@map("provider_outlets")
+}
+
+/// NDIS provider finder directory ingest (list-providers.json); not MapAble-verified registration.
+model NdisProviderIngestionRun {
+  id            String    @id @default(uuid()) @db.Uuid
+  sourceUrl     String    @map("source_url")
+  sourceHash    String    @map("source_hash")
+  providerCount Int       @map("provider_count")
+  status        String
+  errorMessage  String?   @map("error_message")
+  startedAt     DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt    DateTime? @map("finished_at") @db.Timestamptz(6)
+
+  @@index([startedAt])
+  @@index([status])
+  @@map("ndis_provider_ingestion_runs")
+}
+
+model NdisProvider {
+  sourceId           String    @id @map("source_id")
+  providerName       String    @map("provider_name")
+  legalName          String?   @map("legal_name")
+  abn                String?
+  registrationNumber String?   @map("registration_number")
+  phone              String?
+  email              String?
+  website            String?
+  address            String?
+  suburb             String?
+  state              String?
+  postcode           String?
+  latitude           Float?
+  longitude          Float?
+  services           String[]  @default([])
+  registrationGroups String[]  @default([]) @map("registration_groups")
+  raw                Json
+  rawHash            String    @map("raw_hash")
+  sourceUrl          String    @map("source_url")
+  sourceUpdatedAt    DateTime? @map("source_updated_at") @db.Timestamptz(6)
+  ingestedAt         DateTime  @default(now()) @map("ingested_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([state])
+  @@index([postcode])
+  @@map("ndis_providers")
 }
 
 model ProviderProfileService {
@@ -451,6 +559,9 @@ enum ConsentScope {
   transport_accessibility_share
   transport_trip_access
   care_accessibility_share
+  support_profile_read
+  engagement_read_delegate
+  engagement_submit_delegate
 }
 
 enum ConsentStatus {
@@ -572,6 +683,8 @@ model Organisation {
   ndisClaimLines         NdisClaimLine[]
   ndisInvoices           NdisInvoice[]
   participantProviderRelationships ParticipantProviderRelationship[]
+  ndisDeliveryAuthorizations NdisServiceDeliveryAuthorization[]
+  ndisDeliveryEvents         NdisServiceDeliveryEvent[]
 
   careRequests           CareRequest[]
   careBookings           CareBooking[]
@@ -579,6 +692,7 @@ model Organisation {
   careRosterAssignments  CareRosterAssignment[]
   careInvoiceLinks       CareInvoiceLink[]
   workerProfiles         WorkerProfile[]
+  workerOrganisationInvites WorkerOrganisationInvite[]
   capacityBlocks         CapacityBlock[]
   vehicles               Vehicle[]
   driverProfiles         DriverProfile[]
@@ -596,6 +710,10 @@ model Organisation {
   transportDrivers       TransportDriver[]      @relation("TransportDrivers")
   transportVehicles      TransportVehicle[]     @relation("TransportVehicles")
   rideRuns               RideRun[]              @relation("RideRuns")
+  engagementSubmissions  EngagementSubmission[]
+  engagementImprovementActions EngagementImprovementAction[]
+  engagementNpsResponses EngagementNpsResponse[]
+  workerTrainingModules  WorkerTrainingModule[]
 }
 
 model OrganisationMember {
@@ -1337,6 +1455,7 @@ enum CalendarVisibility {
 
 enum OrchestrationEventType {
   care_transport_link_created
+  care_transport_cancel_propagated
   interview_transport_draft_created
   invoice_from_care_shift
   care_request_submitted
@@ -1427,6 +1546,7 @@ model CareShift {
   timesheet               Timesheet?
   careServiceLog          CareServiceLog?
   shiftCancellations      CareShiftCancellation[]
+  backupRecovery          BackupShiftRecovery?
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -1461,6 +1581,7 @@ model CareBooking {
   livingAloneSafeguards CareLivingAloneSafeguard[]
   recoveryLinks     CareServiceRecoveryLink[]
   invoiceLinks      CareInvoiceLink[]
+  ndisDeliveryAuthorizations NdisServiceDeliveryAuthorization[]
 
   @@index([participantId, status])
   @@index([organisationId, status])
@@ -1545,13 +1666,18 @@ model CareServiceLog {
   confirmedAt       DateTime?
   disputeReason     String?
   disputedAt        DateTime?
+  deliveryMechanism NdisServiceDeliveryMechanism?
+  deliveryAuthorizationId String?
+  deliveryAuthorization   NdisServiceDeliveryAuthorization? @relation(fields: [deliveryAuthorizationId], references: [id], onDelete: SetNull)
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
 
   progressNotes     CareProgressNote[]
+  ndisDeliveryEvents NdisServiceDeliveryEvent[]
 
   @@index([careBookingId, status])
   @@index([participantId])
+  @@index([deliveryAuthorizationId])
   @@map("care_service_logs")
 }
 
@@ -1658,10 +1784,13 @@ model CareServiceRecoveryLink {
   id            String      @id @default(cuid())
   careBookingId String
   careBooking   CareBooking @relation(fields: [careBookingId], references: [id], onDelete: Cascade)
+  careShiftId   String?
   linkType      String
   notes         String?
   createdAt     DateTime    @default(now())
 
+  @@index([careBookingId])
+  @@index([careShiftId])
   @@map("care_service_recovery_links")
 }
 
@@ -1702,6 +1831,8 @@ model WorkerProfile {
   verificationStatus              WorkerCredentialStatus @default(pending_review)
   highIntensityCompetencyVerified Boolean                @default(false)
   active                          Boolean                @default(true)
+  invitedAt                       DateTime?
+  joinedAt                        DateTime?
   createdAt                       DateTime               @default(now())
   updatedAt                       DateTime               @updatedAt
 
@@ -1713,8 +1844,98 @@ model WorkerProfile {
   careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
   onboardingProfile       OnboardingProfile?
+  trustCredentials        WorkerTrustCredential[]
+  organisationInvites     WorkerOrganisationInvite[]
 
+  @@unique([userId, organisationId])
   @@index([organisationId, active])
+}
+
+enum WorkerOrganisationInviteStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+model WorkerOrganisationInvite {
+  id              String                         @id @default(cuid())
+  organisationId  String
+  organisation    Organisation                   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  email           String
+  invitedByUserId String
+  invitedBy       User                           @relation("WorkerInviteInvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  token           String                         @unique
+  status          WorkerOrganisationInviteStatus @default(pending)
+  displayName     String?
+  workerProfileId String?
+  workerProfile   WorkerProfile?                 @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime                       @default(now())
+
+  @@index([organisationId, status])
+  @@index([email, status])
+}
+
+enum WorkerTrustCredentialStatus {
+  pending
+  verified
+  expired
+  revoked
+}
+
+model WorkerTrustCredential {
+  id                 String                      @id @default(cuid())
+  workerProfileId    String
+  workerProfile      WorkerProfile               @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  credentialType     String
+  issuerDid          String
+  status             WorkerTrustCredentialStatus @default(pending)
+  presentedAt        DateTime?
+  expiresAt          DateTime?
+  claimsJson         Json                        @default("{}")
+  verificationMethod String                      @default("mock")
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+
+  @@index([workerProfileId, status])
+  @@map("worker_trust_credentials")
+}
+
+model ContinuityMetricSnapshot {
+  id             String   @id @default(cuid())
+  organisationId String?
+  periodLabel    String
+  metricsJson    Json
+  suppressed     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([organisationId, periodLabel])
+  @@map("continuity_metric_snapshots")
+}
+
+enum ParticipationGoalStatus {
+  active
+  completed
+  cancelled
+}
+
+model ParticipationGoal {
+  id             String                  @id @default(cuid())
+  participantId  String
+  organisationId String?
+  title          String
+  status         ParticipationGoalStatus @default(active)
+  targetDate     DateTime?
+  notes          String?
+  loggedAt       DateTime                @default(now())
+  completedAt    DateTime?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@index([participantId, status])
+  @@map("participation_goals")
 }
 
 model AvailabilityWindow {
@@ -2046,6 +2267,12 @@ enum IncidentSeverity {
   critical
 }
 
+enum IncidentIntakePath {
+  concern
+  incident
+  safeguarding
+}
+
 enum IncidentStatus {
   draft
   submitted
@@ -2301,6 +2528,9 @@ model IncidentReport {
   resolutionSummary       String?
   externalReportRef       String?
   escalatedToQscAt        DateTime?
+  intakePath              IncidentIntakePath?
+  intakeMetadataJson      Json?
+  participantIntent       String?
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
   closedAt                DateTime?
@@ -2373,6 +2603,8 @@ model ServiceAgreement {
   documentId                String?
   createdAt                 DateTime               @default(now())
   updatedAt                 DateTime               @updatedAt
+
+  ndisDeliveryAuthorizations NdisServiceDeliveryAuthorization[]
 
   @@index([participantId, status])
   @@index([organisationId])
@@ -3154,6 +3386,61 @@ model ParticipantSupportPlanSummary {
   participantId String @unique
   summaryJson   Json   @default("{}")
   updatedAt     DateTime @updatedAt
+}
+
+model SupportProfile {
+  id              String    @id @default(cuid())
+  participantId   String    @unique
+  participant     User      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  version         Int       @default(1)
+  routinesJson    Json      @default("[]")
+  preferencesJson Json      @default("[]")
+  boundariesJson  Json      @default("[]")
+  escalationJson  Json      @default("{}")
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("support_profiles")
+}
+
+enum BackupShiftRecoveryStatus {
+  detected
+  proposing
+  awaiting_participant
+  awaiting_dispatch
+  assigned
+  failed
+  escalated
+  closed
+}
+
+enum BackupShiftRecoveryMisfitSeverity {
+  none
+  minor
+  serious
+}
+
+model BackupShiftRecovery {
+  id                  String                          @id @default(cuid())
+  careShiftId         String                          @unique
+  careShift           CareShift                       @relation(fields: [careShiftId], references: [id], onDelete: Cascade)
+  participantId       String
+  status              BackupShiftRecoveryStatus       @default(detected)
+  matchRunId          String?
+  selectedCandidateId String?
+  excludedWorkerId    String?
+  notes               String?
+  misfitSeverity      BackupShiftRecoveryMisfitSeverity @default(none)
+  misfitNotes         String?
+  misfitReportedAt    DateTime?
+  autoDetected        Boolean                         @default(false)
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
+
+  @@index([participantId, status])
+  @@index([status, createdAt])
+  @@map("backup_shift_recoveries")
 }
 
 model CoordinatorAccessRequest {
@@ -3960,6 +4247,13 @@ enum ReconciliationMatchStatus {
   exception
 }
 
+enum ReconciliationExceptionWorkflowState {
+  open
+  investigating
+  resolved
+  written_off
+}
+
 enum PublicBetaFeedbackCategory {
   accessibility
   usability
@@ -4083,26 +4377,50 @@ model ProviderOnboardingTask {
 }
 
 model PaymentReconciliationBatch {
-  id          String   @id @default(cuid())
-  status      String   @default("pending")
-  periodStart DateTime
-  periodEnd   DateTime
-  createdById String?
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  status         String   @default("pending")
+  periodStart    DateTime
+  periodEnd      DateTime
+  createdById    String?
+  organisationId String?
+  summaryJson    Json?
+  createdAt      DateTime @default(now())
 
   exceptions PaymentReconciliationException[]
+
+  @@index([organisationId])
 }
 
 model PaymentReconciliationException {
-  id              String                  @id @default(cuid())
+  id              String                             @id @default(cuid())
   batchId         String
-  batch           PaymentReconciliationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batch           PaymentReconciliationBatch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
   invoiceId       String?
   stripePaymentId String?
   xeroInvoiceId   String?
-  matchStatus     ReconciliationMatchStatus @default(unmatched)
+  matchStatus     ReconciliationMatchStatus          @default(unmatched)
+  workflowState   ReconciliationExceptionWorkflowState @default(open)
+  assigneeId      String?
+  reasonCode      String?
+  organisationId  String?
   amountCents     Int?
   notes           String?
+  updatedAt       DateTime                           @default(now()) @updatedAt
+}
+
+model OrchestrationRescheduleRequest {
+  id                 String   @id @default(cuid())
+  careRequestId      String?
+  careShiftId        String?
+  transportBookingId String?
+  requestedById      String
+  status             String   @default("pending")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([requestedById, status])
+  @@map("orchestration_reschedule_requests")
 }
 
 model PlanManagerPilotPartner {
@@ -4410,6 +4728,7 @@ enum DataVaultRequestType {
 
 enum DataVaultRequestStatus {
   pending
+  approved
   processing
   completed
   rejected
@@ -4458,43 +4777,57 @@ model PartnerApiProgramEnrollment {
 }
 
 model AssessorNetworkMember {
-  id         String   @id @default(cuid())
-  userId     String   @unique
-  credential String?
-  regions    String[] @default([])
-  status     String   @default("active")
-  joinedAt   DateTime @default(now())
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  credential           String?
+  regions              String[]  @default([])
+  region               String?
+  capacity             Int       @default(10)
+  credentialVerifiedAt DateTime?
+  status               String    @default("pending")
+  joinedAt             DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 }
 
 model PublicDecisionRecord {
-  id           String   @id @default(cuid())
-  title        String
-  summary      String
-  decisionType String
-  rationale    String?
-  status       String   @default("published")
-  publishedAt  DateTime?
-  createdAt    DateTime @default(now())
+  id               String   @id @default(cuid())
+  title            String
+  summary          String
+  decisionType     String
+  rationale        String?
+  impactedSystems  String[] @default([])
+  charterVersion   String?
+  disputeContact   String?
+  status           String   @default("published")
+  publishedAt      DateTime?
+  createdAt        DateTime @default(now())
 }
 
 model PersonalDataVaultRequest {
-  id          String               @id @default(cuid())
-  userId      String
-  requestType DataVaultRequestType
-  status      DataVaultRequestStatus @default(pending)
-  notes       String?
-  completedAt DateTime?
-  createdAt   DateTime             @default(now())
+  id              String                 @id @default(cuid())
+  userId          String
+  requestType     DataVaultRequestType
+  status          DataVaultRequestStatus @default(pending)
+  notes           String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  bundleJson      Json?
+  completedAt     DateTime?
+  createdAt       DateTime               @default(now())
 }
 
 model ResearchSafeRoomProject {
-  id                 String   @id @default(cuid())
-  title              String
-  status             String   @default("draft")
-  ethicsApprovalId   String?
-  accessPolicy       String   @default("restricted")
-  syntheticDataOnly  Boolean  @default(true)
-  createdAt          DateTime @default(now())
+  id                  String   @id @default(cuid())
+  title               String
+  status              String   @default("draft")
+  ethicsApprovalId    String?
+  accessPolicy        String   @default("restricted")
+  syntheticDataOnly   Boolean  @default(true)
+  datasetMetadataJson Json?
+  approvedBy          String?
+  approvedAt          DateTime?
+  createdAt           DateTime @default(now())
 }
 
 model ProviderBenchmarkSnapshot {
@@ -4553,52 +4886,62 @@ enum ApiCertificationStatus {
 
 enum AlgorithmRegisterStatus {
   draft
+  review
   published
   deprecated
 }
 
 model ApiCertificationApplication {
-  id             String               @id @default(cuid())
-  organisationId String
-  appName        String
-  status         ApiCertificationStatus @default(draft)
-  reviewNotes    String?
-  certifiedAt    DateTime?
-  createdAt      DateTime             @default(now())
+  id                String                 @id @default(cuid())
+  organisationId    String
+  appName           String
+  status            ApiCertificationStatus @default(draft)
+  certificationTier String?
+  reviewNotes       String?
+  rejectionReason   String?
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  certifiedAt       DateTime?
+  createdAt         DateTime               @default(now())
 }
 
 model RegisteredAlgorithm {
-  id          String                 @id @default(cuid())
-  name        String
-  purpose     String
-  version     String
-  owner       String?
-  status      AlgorithmRegisterStatus @default(draft)
-  fairnessNotes String?
-  publishedAt DateTime?
-  createdAt   DateTime               @default(now())
+  id              String                  @id @default(cuid())
+  name            String
+  purpose         String
+  version         String
+  owner           String?
+  status          AlgorithmRegisterStatus @default(draft)
+  fairnessNotes   String?
+  reviewDueAt     DateTime?
+  linkedPolicyKey String?
+  disputeContact  String?
+  publishedAt     DateTime?
+  createdAt       DateTime                @default(now())
 }
 
 model OversightBoardMeeting {
-  id        String   @id @default(cuid())
-  title     String
-  summary   String
-  status    String   @default("scheduled")
-  meetingAt DateTime?
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  title           String
+  summary         String
+  status          String   @default("scheduled")
+  meetingAt       DateTime?
+  minutesSummary  String?
+  createdAt       DateTime @default(now())
 
   decisions OversightBoardDecision[]
 }
 
 model OversightBoardDecision {
-  id        String   @id @default(cuid())
-  meetingId String?
-  meeting   OversightBoardMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
-  title     String
-  summary   String
-  status    String   @default("recorded")
-  publishedAt DateTime?
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  meetingId      String?
+  meeting        OversightBoardMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  title          String
+  summary        String
+  status         String   @default("recorded")
+  disputeContact String?
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
 }
 
 model PrivacyPreservingAnalyticsRun {
@@ -4612,13 +4955,17 @@ model PrivacyPreservingAnalyticsRun {
 }
 
 model FederatedResearchAgreement {
-  id           String   @id @default(cuid())
-  partnerName  String
-  scope        String
-  status       String   @default("draft")
-  approvedAt   DateTime?
-  syntheticOnly Boolean @default(true)
-  createdAt    DateTime @default(now())
+  id                      String    @id @default(cuid())
+  partnerName             String
+  scope                   String
+  status                  String    @default("draft")
+  linkedSafeRoomProjectId String?
+  ethicsReviewNotes       String?
+  approvedBy              String?
+  approvedAt              DateTime?
+  archivedAt              DateTime?
+  syntheticOnly           Boolean   @default(true)
+  createdAt               DateTime  @default(now())
 }
 
 model ProviderAcademyCourse {
@@ -4676,14 +5023,19 @@ model SustainabilityMilestone {
 }
 
 model LongTermOutcomeSnapshot {
-  id          String   @id @default(cuid())
-  periodLabel String
-  outcomeKey  String
-  value       Float?
-  suppressed  Boolean  @default(false)
-  narrative   String?
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
+  id                    String    @id @default(cuid())
+  periodLabel           String
+  waveLabel             String?
+  outcomeKey            String
+  value                 Float?
+  cohortSize            Int?
+  suppressed            Boolean   @default(false)
+  narrative             String?
+  measurementPeriodStart DateTime?
+  measurementPeriodEnd   DateTime?
+  continuityMetricKey   String?
+  publishedAt           DateTime?
+  createdAt             DateTime  @default(now())
 }
 
 // --- MapAble Core Phase 12 ---
@@ -4692,15 +5044,16 @@ model LongTermOutcomeSnapshot {
 // Implements deferred Phase 11 preview themes plus institutional permanence.
 
 model NationalAccountabilityPublication {
-  id          String   @id @default(cuid())
-  periodLabel String
-  title       String
-  summary     String
-  category    String
-  status      String   @default("draft")
-  metricsJson Json?
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
+  id                 String   @id @default(cuid())
+  periodLabel        String
+  title              String
+  summary            String
+  category           String
+  status             String   @default("draft")
+  metricsJson        Json?
+  federatedPartnerId String?
+  publishedAt        DateTime?
+  createdAt          DateTime @default(now())
 }
 
 model ConstitutionalSafeguard {
@@ -4715,13 +5068,15 @@ model ConstitutionalSafeguard {
 }
 
 model CommunityGovernanceMembership {
-  id           String   @id @default(cuid())
-  memberLabel  String
-  membershipType String @default("community")
-  region       String?
-  status       String   @default("active")
-  joinedAt     DateTime @default(now())
-  disclaimer   String   @default("Directory entry only — no personal contact details published.")
+  id             String    @id @default(cuid())
+  memberLabel    String
+  membershipType String    @default("community")
+  region         String?
+  status         String    @default("pending")
+  termEndsAt     DateTime?
+  approvedBy     String?
+  joinedAt       DateTime  @default(now())
+  disclaimer     String    @default("Directory entry only — no personal contact details published.")
 }
 
 model TransportInvestmentModelRun {
@@ -4738,23 +5093,29 @@ model TransportInvestmentModelRun {
 }
 
 model CertifiedApiEcosystemEntry {
-  id             String   @id @default(cuid())
-  organisationId String
-  appName        String
-  certificationTier String @default("standard")
-  status         String   @default("listed")
-  listedAt       DateTime @default(now())
-  expiresAt      DateTime?
+  id                  String    @id @default(cuid())
+  organisationId      String
+  appName             String
+  certificationTier   String    @default("standard")
+  status              String    @default("listed")
+  linkedApplicationId String?
+  revokedAt           DateTime?
+  revokedReason       String?
+  listedAt            DateTime  @default(now())
+  expiresAt           DateTime?
 }
 
 model ResearchFederationNode {
-  id          String   @id @default(cuid())
-  nodeName    String
-  institution String?
-  status      String   @default("pending")
-  syntheticOnly Boolean @default(true)
-  approvedAt  DateTime?
-  createdAt   DateTime @default(now())
+  id                String    @id @default(cuid())
+  nodeName          String
+  institution       String?
+  scope             String?
+  status            String    @default("pending")
+  linkedAgreementId String?
+  syntheticOnly     Boolean   @default(true)
+  approvedAt        DateTime?
+  suspendedAt       DateTime?
+  createdAt         DateTime  @default(now())
 }
 
 model InstitutionalContinuityPlan {
@@ -4768,13 +5129,16 @@ model InstitutionalContinuityPlan {
 }
 
 model InstitutionalContinuityCheckpoint {
-  id        String   @id @default(cuid())
-  planId    String
-  plan      InstitutionalContinuityPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  title     String
-  category  String
-  dueAt     DateTime?
-  completed Boolean  @default(false)
+  id          String    @id @default(cuid())
+  planId      String
+  plan        InstitutionalContinuityPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title       String
+  category    String
+  dueAt       DateTime?
+  completed   Boolean   @default(false)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNotes String?
 }
 
 model CivicAuditIndexEntry {
@@ -4789,12 +5153,14 @@ model CivicAuditIndexEntry {
 }
 
 model FederatedAccountabilityPartner {
-  id          String   @id @default(cuid())
-  partnerName String
-  jurisdiction String?
-  scope       String
-  status      String   @default("active")
-  linkedAt    DateTime @default(now())
+  id                  String   @id @default(cuid())
+  partnerName         String
+  jurisdiction        String?
+  jurisdictionLabel   String?
+  scope               String
+  status              String   @default("active")
+  linkedPublicationId String?
+  linkedAt            DateTime @default(now())
 }
 // MapAble Core Billing Service — Stripe-powered billing
 
@@ -5269,17 +5635,22 @@ model NdisClaimLine {
   rejectionMessage      String?
   evidenceJson          Json?
   validationJson        Json?
+  deliveryMechanism     NdisServiceDeliveryMechanism?
+  deliveryAuthorizationId String?
+  deliveryAuthorization   NdisServiceDeliveryAuthorization? @relation(fields: [deliveryAuthorizationId], references: [id], onDelete: SetNull)
   correctedFromLineId   String?
   createdById           String
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
 
   auditEvents ClaimAuditEvent[]
+  ndisDeliveryEvents    NdisServiceDeliveryEvent[]
 
   @@index([providerOrgId, status])
   @@index([participantId, providerOrgId, supportItemCode, serviceStartDate])
   @@index([bookingId])
   @@index([batchId])
+  @@index([deliveryAuthorizationId])
 }
 
 model NdisInvoice {
@@ -5340,6 +5711,99 @@ model ClaimAuditEvent {
   @@index([claimLineId, createdAt])
   @@index([batchId, createdAt])
   @@index([entityType, entityId])
+}
+
+// --- NDIS service delivery mechanism ---
+
+enum NdisServiceDeliveryMechanism {
+  face_to_face
+  non_face_to_face
+  telehealth
+  phone
+  group
+  centre_based
+  remote_monitoring
+  transport
+}
+
+enum NdisDeliveryAuthorizationType {
+  service_agreement
+  ndia_service_booking
+  plan_manager_approval
+  participant_self_managed
+}
+
+enum NdisDeliveryAuthorizationStatus {
+  draft
+  active
+  suspended
+  expired
+  revoked
+}
+
+model NdisServiceDeliveryAuthorization {
+  id                    String                          @id @default(cuid())
+  participantId         String
+  participant           User                            @relation("NdisDeliveryAuthParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId         String
+  providerOrg           Organisation                    @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  paymentRoute          NdisPaymentRoute
+  deliveryMechanism     NdisServiceDeliveryMechanism
+  authorizationType     NdisDeliveryAuthorizationType
+  status                NdisDeliveryAuthorizationStatus @default(draft)
+  supportItemCode       String?
+  supportCategoryCode   String?
+  serviceAgreementId    String?
+  serviceAgreement      ServiceAgreement?               @relation(fields: [serviceAgreementId], references: [id], onDelete: SetNull)
+  careBookingId         String?
+  careBooking           CareBooking?                    @relation(fields: [careBookingId], references: [id], onDelete: SetNull)
+  ndiaBookingReference  String?
+  validFrom             DateTime
+  validTo               DateTime?
+  notes                 String?
+  metadataJson          Json?
+  createdById           String
+  createdAt             DateTime                        @default(now())
+  updatedAt             DateTime                        @updatedAt
+
+  careServiceLogs CareServiceLog[]
+  claimLines      NdisClaimLine[]
+  deliveryEvents  NdisServiceDeliveryEvent[]
+
+  @@index([participantId, providerOrgId, status])
+  @@index([providerOrgId, status])
+  @@index([careBookingId])
+  @@index([serviceAgreementId])
+}
+
+model NdisServiceDeliveryEvent {
+  id                  String                           @id @default(cuid())
+  authorizationId     String?
+  authorization       NdisServiceDeliveryAuthorization? @relation(fields: [authorizationId], references: [id], onDelete: SetNull)
+  participantId       String
+  participant         User                             @relation("NdisDeliveryEventParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerOrgId       String
+  providerOrg         Organisation                     @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  deliveryMechanism   NdisServiceDeliveryMechanism
+  paymentRoute        NdisPaymentRoute
+  careShiftId         String?
+  careServiceLogId    String?
+  careServiceLog      CareServiceLog?                  @relation(fields: [careServiceLogId], references: [id], onDelete: SetNull)
+  claimLineId         String?
+  claimLine           NdisClaimLine?                   @relation(fields: [claimLineId], references: [id], onDelete: SetNull)
+  serviceDate         DateTime
+  quantityMinutes     Int?
+  status              String                           @default("recorded")
+  evidenceJson        Json?
+  createdById         String
+  createdAt           DateTime                         @default(now())
+
+  @@index([participantId, serviceDate])
+  @@index([providerOrgId, serviceDate])
+  @@index([careShiftId])
+  @@index([authorizationId])
+  @@index([careServiceLogId])
+  @@index([claimLineId])
 }
 
 // --- MapAble Open-Source Integration Pack ---
@@ -7494,4 +7958,196 @@ model InvoiceLineEvidence {
 
   @@index([lineItemId])
   @@map("invoice_line_evidence")
+}
+
+enum EngagementSubmissionType {
+  service_feedback
+  general_feedback
+  complaint
+  survey_response
+  co_design
+}
+
+enum EngagementSubmissionStatus {
+  received
+  acknowledged
+  in_review
+  action_planned
+  improved
+  closed
+  escalated
+}
+
+enum EngagementImprovementActionStatus {
+  planned
+  in_progress
+  completed
+}
+
+enum EngagementSurveyStatus {
+  draft
+  active
+  closed
+}
+
+model EngagementSubmission {
+  id                    String                     @id @default(cuid())
+  participantId         String
+  participant           User                       @relation("EngagementParticipant", fields: [participantId], references: [id])
+  submittedById         String
+  submittedBy           User                       @relation("EngagementSubmittedBy", fields: [submittedById], references: [id])
+  delegateScope         String?
+  type                  EngagementSubmissionType
+  status                EngagementSubmissionStatus @default(received)
+  title                 String?
+  body                  String
+  rating                Int?
+  contextType           String?
+  contextId             String?
+  organisationId        String?
+  organisation          Organisation?              @relation(fields: [organisationId], references: [id])
+  complaintId           String?
+  involvesSafety        Boolean                    @default(false)
+  acknowledgedAt        DateTime?
+  acknowledgementDueAt  DateTime?
+  resolvedAt            DateTime?
+  escalatedExternal     Boolean                    @default(false)
+  advocateInvolved      Boolean                    @default(false)
+  commissionReferenceId String?
+  commissionLodgedAt    DateTime?
+  proceduralFairnessNotes String?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  events                EngagementSubmissionEvent[]
+  improvementActions    EngagementImprovementAction[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@index([type, createdAt])
+  @@map("engagement_submissions")
+}
+
+model EngagementSubmissionEvent {
+  id           String               @id @default(cuid())
+  submissionId String
+  submission   EngagementSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  eventType    String
+  actorId      String?
+  actor        User?                @relation("EngagementEventActor", fields: [actorId], references: [id])
+  note         String?
+  createdAt    DateTime             @default(now())
+
+  @@index([submissionId, createdAt])
+  @@map("engagement_submission_events")
+}
+
+model EngagementImprovementAction {
+  id                   String                          @id @default(cuid())
+  submissionId         String?
+  submission           EngagementSubmission?           @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  participantId        String?
+  organisationId       String?
+  organisation         Organisation?                   @relation(fields: [organisationId], references: [id])
+  title                String
+  summary              String
+  status               EngagementImprovementActionStatus @default(planned)
+  ciReferenceCode      String?
+  sourceComplaintId    String?
+  responsibleUserId    String?
+  responsibleUser      User?                           @relation("EngagementImprovementResponsible", fields: [responsibleUserId], references: [id])
+  targetDate           DateTime?
+  effectivenessReview  String?
+  completedAt          DateTime?
+  visibleToParticipant Boolean                         @default(true)
+  createdAt            DateTime                        @default(now())
+  updatedAt            DateTime                        @updatedAt
+
+  @@index([organisationId, status])
+  @@index([submissionId])
+  @@index([sourceComplaintId])
+  @@map("engagement_improvement_actions")
+}
+
+model EngagementNpsResponse {
+  id              String         @id @default(cuid())
+  participantId   String
+  participant     User           @relation("EngagementNpsParticipant", fields: [participantId], references: [id])
+  score           Int
+  comment         String?
+  contextType     String?
+  contextId       String?
+  organisationId  String?
+  organisation    Organisation?  @relation(fields: [organisationId], references: [id])
+  submissionId    String?
+  createdAt       DateTime       @default(now())
+
+  @@index([organisationId, createdAt])
+  @@index([participantId])
+  @@map("engagement_nps_responses")
+}
+
+model EngagementSurvey {
+  id          String               @id @default(cuid())
+  title       String
+  description String?
+  status      EngagementSurveyStatus @default(draft)
+  surveyType  String               @default("general")
+  questions   Json                 @default("[]")
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  responses   EngagementSurveyResponse[]
+
+  @@map("engagement_surveys")
+}
+
+model EngagementSurveyResponse {
+  id           String           @id @default(cuid())
+  surveyId     String
+  survey       EngagementSurvey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  respondentId String
+  respondent   User             @relation("EngagementSurveyRespondent", fields: [respondentId], references: [id])
+  answers      Json             @default("{}")
+  createdAt    DateTime         @default(now())
+
+  @@index([surveyId])
+  @@index([respondentId])
+  @@map("engagement_survey_responses")
+}
+
+model WorkerTrainingModule {
+  id              String   @id @default(cuid())
+  organisationId  String?
+  organisation    Organisation? @relation(fields: [organisationId], references: [id])
+  title           String
+  description     String?
+  content         String
+  policyUrl       String?
+  quizQuestions   Json     @default("[]")
+  passingScore    Int      @default(80)
+  expiryMonths    Int      @default(12)
+  isPlatformDefault Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  completions     WorkerTrainingCompletion[]
+
+  @@index([organisationId])
+  @@map("worker_training_modules")
+}
+
+model WorkerTrainingCompletion {
+  id          String               @id @default(cuid())
+  moduleId    String
+  module      WorkerTrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User                 @relation("WorkerTrainingUser", fields: [userId], references: [id])
+  score       Int?
+  completedAt DateTime             @default(now())
+  expiresAt   DateTime?
+
+  @@unique([moduleId, userId])
+  @@index([userId])
+  @@map("worker_training_completions")
 }

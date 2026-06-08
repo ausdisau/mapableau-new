@@ -1,13 +1,30 @@
 import { NextResponse } from "next/server";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { apiForbidden } from "@/lib/auth/guards";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
+import {
+  assertCanAccessParticipantData,
+  ParticipantAccessError,
+} from "@/lib/prms/participant-access";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: RouteParams) {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
   const { id } = await params;
 
-  // TODO: authenticate user and verify participant access
+  try {
+    await assertCanAccessParticipantData(user, id);
+  } catch (e) {
+    if (e instanceof ParticipantAccessError) {
+      return apiForbidden(e.message);
+    }
+    throw e;
+  }
+
   const context = await buildCopilotContext(id);
 
   if (!context) {

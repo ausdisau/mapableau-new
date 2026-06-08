@@ -100,5 +100,75 @@ export async function getAtRiskItems() {
     }
   }
 
+  const atRiskShifts = await prisma.careShift.findMany({
+    where: {
+      status: { in: ["cancelled", "disputed"] },
+      workerProfileId: null,
+    },
+    take: 20,
+    orderBy: { updatedAt: "desc" },
+  });
+
+  for (const shift of atRiskShifts) {
+    const recovery = await prisma.backupShiftRecovery.findUnique({
+      where: { careShiftId: shift.id },
+    });
+    if (!recovery) {
+      items.push({
+        type: "care_shift",
+        id: shift.id,
+        reason: `Shift ${shift.status} — backup recovery may be required.`,
+      });
+    }
+  }
+
+  const unassignedShifts = await prisma.careShift.findMany({
+    where: {
+      status: "scheduled",
+      workerProfileId: null,
+      startAt: { lte: new Date(Date.now() + 48 * 3600000) },
+    },
+    take: 10,
+  });
+
+  for (const shift of unassignedShifts) {
+    const recovery = await prisma.backupShiftRecovery.findUnique({
+      where: { careShiftId: shift.id },
+    });
+    if (!recovery) {
+      items.push({
+        type: "care_shift",
+        id: shift.id,
+        reason: "Scheduled shift has no worker assigned within 48h.",
+      });
+    }
+  }
+
   return items;
+}
+
+export async function processAtRiskShiftForBackupRecovery(params: {
+  careShiftId: string;
+  actorUserId: string;
+}) {
+  const { maybeAutoDetectBackupRecovery } = await import(
+    "@/lib/care/backup-recovery-pilot"
+  );
+
+  const shift = await prisma.careShift.findUnique({
+    where: { id: params.careShiftId },
+  });
+  if (!shift) return { skipped: true, reason: "not_found" as const };
+
+  const status =
+    shift.status === "scheduled" && !shift.workerProfileId
+      ? "worker_unassigned"
+      : shift.status;
+
+  return maybeAutoDetectBackupRecovery({
+    careShiftId: shift.id,
+    shiftStatus: status,
+    actorUserId: params.actorUserId,
+    reason: `At-risk signal from service ops`,
+  });
 }

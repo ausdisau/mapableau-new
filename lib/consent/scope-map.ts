@@ -14,6 +14,9 @@ const TO_PRISMA: Record<ConsentScope, PrismaConsentScope> = {
   "transport.accessibility_share": "transport_accessibility_share",
   "transport.trip_access": "transport_trip_access",
   "care.accessibility_share": "care_accessibility_share",
+  "support_profile.read": "support_profile_read",
+  "engagement.read_delegate": "engagement_read_delegate",
+  "engagement.submit_delegate": "engagement_submit_delegate",
 };
 
 const FROM_PRISMA: Record<PrismaConsentScope, ConsentScope> = Object.fromEntries(

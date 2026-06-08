@@ -32,7 +32,7 @@ describe("Core UI navigation", () => {
     expect(hrefs).not.toContain("/dashboard/care");
   });
 
-  it("provider nav includes care and transport", () => {
+  it("provider nav includes consolidated section hubs", () => {
     expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/care")).toBe(
       true
     );
@@ -42,5 +42,9 @@ describe("Core UI navigation", () => {
     expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/billing")).toBe(
       true
     );
+    expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/claiming")).toBe(
+      true
+    );
+    expect(PROVIDER_NAV_LINKS.length).toBeLessThanOrEqual(10);
   });
 });

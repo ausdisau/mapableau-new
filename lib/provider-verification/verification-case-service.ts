@@ -109,6 +109,11 @@ export async function decideVerificationCase(params: {
     organisationId: updated.organisationId,
   });
 
+  const { refreshProviderOnboarding } = await import(
+    "@/lib/onboarding/onboarding-service"
+  );
+  await refreshProviderOnboarding(updated.organisationId, params.adminUserId);
+
   return updated;
 }
 

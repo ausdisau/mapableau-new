@@ -5,14 +5,19 @@ import Credentials from "next-auth/providers/credentials";
 
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { ensureOAuthUser } from "@/lib/auth/ensure-oauth-user";
-import { buildOAuthProviders } from "@/lib/auth/oauth-providers";
-import { agentLog } from "@/lib/debug/agent-log";
+import {
+  ensureNextAuthEnv,
+  resolveNextAuthSecret,
+} from "@/lib/auth/nextauth-env";
 import {
   AUTH_SESSION_MAX_AGE_SECONDS,
   mergeJwtTokenIntoSession,
   mergeUserIntoJwtToken,
 } from "@/lib/auth/nextauth-session";
-import { ensureNextAuthEnv, resolveNextAuthSecret } from "@/lib/auth/nextauth-env";
+import { buildOAuthProviders } from "@/lib/auth/oauth-providers";
+import { isTwilio2FAEnabled } from "@/lib/auth/twilio-verify";
+import { verifyTwoFactorToken } from "@/lib/auth/two-factor-token";
+import { agentLog } from "@/lib/debug/agent-log";
 import { prisma } from "@/lib/prisma";
 
 ensureNextAuthEnv();
@@ -35,20 +40,69 @@ export const authOptions = {
       name: "credentials",
       credentials: {
         email: { type: "email" },
+        passkeyToken: { type: "text" },
         password: { type: "password" },
+        twoFactorToken: { type: "text" },
       },
       async authorize(credentials) {
         // #region agent log
-        agentLog(
-          "A",
-          "authOptions.ts:authorize:entry",
-          "authorize called",
-          {
-            hasEmail: Boolean(credentials?.email),
-            hasPassword: Boolean(credentials?.password),
-          }
-        );
+        agentLog("A", "authOptions.ts:authorize:entry", "authorize called", {
+          hasEmail: Boolean(credentials?.email),
+          hasPassword: Boolean(credentials?.password),
+        });
         // #endregion
+
+        if (credentials?.passkeyToken) {
+          const token = verifyTwoFactorToken(
+            credentials.passkeyToken,
+            "credentials-passkey",
+          );
+          if (!token) return null;
+
+          const user = await prisma.user.findUnique({
+            where: { id: token.userId },
+          });
+          if (!user) return null;
+
+          return {
+            id: user.id,
+            email: user.email ?? null,
+            name: user.name ?? null,
+            role: user.primaryRole,
+          };
+        }
+
+        if (credentials?.twoFactorToken) {
+          const token = verifyTwoFactorToken(
+            credentials.twoFactorToken,
+            "credentials-2fa",
+          );
+          if (!token) return null;
+
+          const user = await prisma.user.findUnique({
+            where: { id: token.userId },
+          });
+          if (!user) return null;
+
+          return {
+            id: user.id,
+            email: user.email ?? null,
+            name: user.name ?? null,
+            role: user.primaryRole,
+          };
+        }
+
+        if (isTwilio2FAEnabled()) {
+          agentLog(
+            "A",
+            "authOptions.ts:authorize:2faRequired",
+            "password-only credentials blocked by Twilio 2FA",
+            {
+              hasEmail: Boolean(credentials?.email),
+            },
+          );
+          return null;
+        }
 
         if (!credentials?.email || !credentials?.password) return null;
 
@@ -62,14 +116,9 @@ export const authOptions = {
 
           if (!user) {
             // #region agent log
-            agentLog(
-              "A",
-              "authOptions.ts:authorize:noUser",
-              "user not found",
-              {
-                emailDomain: email.split("@")[1] ?? null,
-              }
-            );
+            agentLog("A", "authOptions.ts:authorize:noUser", "user not found", {
+              emailDomain: email.split("@")[1] ?? null,
+            });
             // #endregion
             return null;
           }
@@ -79,7 +128,7 @@ export const authOptions = {
               "A",
               "authOptions.ts:authorize:noPasswordHash",
               "user has no password hash",
-              { userId: user.id }
+              { userId: user.id },
             );
             return null;
           }
@@ -91,7 +140,7 @@ export const authOptions = {
               "A",
               "authOptions.ts:authorize:badPassword",
               "password mismatch",
-              { userId: user.id }
+              { userId: user.id },
             );
             // #endregion
             return null;
@@ -102,7 +151,7 @@ export const authOptions = {
             "A",
             "authOptions.ts:authorize:success",
             "authorize success",
-            { userId: user.id, primaryRole: user.primaryRole }
+            { userId: user.id, primaryRole: user.primaryRole },
           );
           // #endregion
 
@@ -168,7 +217,7 @@ export const authOptions = {
     session({ session, token }) {
       return mergeJwtTokenIntoSession(
         session as { user?: Record<string, unknown> },
-        token as Record<string, unknown>
+        token as Record<string, unknown>,
       ) as typeof session;
     },
   },

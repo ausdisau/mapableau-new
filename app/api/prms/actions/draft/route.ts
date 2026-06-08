@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { apiForbidden } from "@/lib/auth/guards";
 import { createLedgerEvent } from "@/lib/ledger/createLedgerEvent";
 import { createDraft } from "@/lib/prms/draftStore";
+import {
+  assertCanAccessParticipantData,
+  ParticipantAccessError,
+} from "@/lib/prms/participant-access";
 import type { DraftPrmsRecord, PrmsRecordType } from "@/lib/prms/types";
 
 const VALID_TYPES: PrmsRecordType[] = [
@@ -15,10 +21,12 @@ const VALID_TYPES: PrmsRecordType[] = [
 ];
 
 export async function POST(request: Request) {
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
   try {
     const body = await request.json();
 
-    // TODO: require authenticated session; verify participant permission server-side
     const participantId =
       typeof body.participantId === "string" ? body.participantId : "";
     const type = body.type as PrmsRecordType;
@@ -32,6 +40,15 @@ export async function POST(request: Request) {
         { error: "Sign in to create a participant record." },
         { status: 401 }
       );
+    }
+
+    try {
+      await assertCanAccessParticipantData(user, participantId);
+    } catch (e) {
+      if (e instanceof ParticipantAccessError) {
+        return apiForbidden(e.message);
+      }
+      throw e;
     }
 
     if (!VALID_TYPES.includes(type)) {

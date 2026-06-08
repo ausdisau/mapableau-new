@@ -172,7 +172,11 @@ export default async function TransportTripDetailPage({
 
         {routeEstimate ? <TransportRouteAdvisory routeEstimate={routeEstimate} /> : null}
 
-        <TransportTripActions tripId={trip.id} actions={nextActions} />
+        <TransportTripActions
+          tripId={trip.id}
+          actions={nextActions}
+          organisationId={trip.providerOrganisationId ?? undefined}
+        />
       </div>
     );
   } catch (e) {

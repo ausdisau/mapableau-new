@@ -45,9 +45,21 @@ export type AccessNeed = {
 
 export const ACCESS_NEEDS: AccessNeed[] = [
   { id: "wheelchair", label: "Wheelchair access", keywords: ["wheelchair", "access"] },
-  { id: "auslan", label: "Auslan", keywords: ["auslan", "interpreter"] },
-  { id: "low-sensory", label: "Low sensory", keywords: ["sensory", "quiet"] },
-  { id: "hoist", label: "Hoist trained", keywords: ["hoist", "transfer"] },
+  {
+    id: "auslan",
+    label: "Auslan",
+    keywords: ["auslan", "interpreter", "sign language", "deaf"],
+  },
+  {
+    id: "low-sensory",
+    label: "Low sensory",
+    keywords: ["sensory", "quiet", "sensory-friendly", "low stimulus"],
+  },
+  {
+    id: "hoist",
+    label: "Hoist trained",
+    keywords: ["hoist", "transfer", "ceiling hoist", "lifting"],
+  },
   {
     id: "complex",
     label: "Complex support",
@@ -61,10 +73,14 @@ export const FUNDING_OPTIONS = [
   { id: "private", label: "Private / self-funded" },
 ] as const;
 
-export const HERO_SUGGESTED_SEARCHES = [
+/** Static fallback when proactive API / DB catalog is unavailable. */
+export const HERO_SUGGESTED_SEARCHES_FALLBACK = [
   "Support worker near St Ives",
   "Wheelchair accessible transport tomorrow",
   "OT assessment with NDIS registration",
   "Low sensory community access support",
   "Employment support with transport",
 ] as const;
+
+/** @deprecated Use proactive API via `fetchProactiveChipLabels`; kept for imports. */
+export const HERO_SUGGESTED_SEARCHES = HERO_SUGGESTED_SEARCHES_FALLBACK;

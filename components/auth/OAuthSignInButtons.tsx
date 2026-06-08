@@ -35,6 +35,16 @@ export function oauthProviderFlagsFromNextAuthProviders(
   };
 }
 
+export function publicOAuthProviderFlags(
+  providers: OAuthProviderFlags,
+): OAuthProviderFlags {
+  return {
+    ...providers,
+    google: true,
+    microsoft: true,
+  };
+}
+
 export function OAuthSignInButtons({
   providers,
   callbackUrl,
@@ -46,6 +56,7 @@ export function OAuthSignInButtons({
   const [pending, setPending] = useState<
     "auth0" | "google" | "microsoft" | "facebook" | null
   >(null);
+  const visibleProviders = publicOAuthProviderFlags(runtimeProviders);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,10 +87,10 @@ export function OAuthSignInButtons({
   }, []);
 
   if (
-    !runtimeProviders.auth0 &&
-    !runtimeProviders.google &&
-    !runtimeProviders.microsoft &&
-    !runtimeProviders.facebook
+    !visibleProviders.auth0 &&
+    !visibleProviders.google &&
+    !visibleProviders.microsoft &&
+    !visibleProviders.facebook
   ) {
     return null;
   }
@@ -103,7 +114,7 @@ export function OAuthSignInButtons({
 
   return (
     <div className="flex flex-col gap-2">
-      {runtimeProviders.auth0 ? (
+      {visibleProviders.auth0 ? (
         <Button
           type="button"
           variant="outline"
@@ -118,7 +129,7 @@ export function OAuthSignInButtons({
             : getOAuthButtonLabel("Auth0", labelMode)}
         </Button>
       ) : null}
-      {runtimeProviders.google ? (
+      {visibleProviders.google ? (
         <Button
           type="button"
           variant="outline"
@@ -133,7 +144,7 @@ export function OAuthSignInButtons({
             : getOAuthButtonLabel("Google", labelMode)}
         </Button>
       ) : null}
-      {runtimeProviders.microsoft ? (
+      {visibleProviders.microsoft ? (
         <Button
           type="button"
           variant="outline"
@@ -148,7 +159,7 @@ export function OAuthSignInButtons({
             : getOAuthButtonLabel("Microsoft", labelMode)}
         </Button>
       ) : null}
-      {runtimeProviders.facebook ? (
+      {visibleProviders.facebook ? (
         <Button
           type="button"
           variant="outline"

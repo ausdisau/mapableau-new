@@ -1,7 +1,11 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonOk } from "@/lib/api/response";
+import { jsonError, jsonOk } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { isAdminRole } from "@/lib/auth/roles";
+import {
+  assertCanAccessParticipantData,
+  ParticipantAccessError,
+} from "@/lib/prms/participant-access";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
@@ -27,9 +31,20 @@ export async function POST(req: Request) {
   if (user instanceof Response) return user;
   const body = await req.json();
 
+  const participantId = body.participantId ?? user.id;
+
+  try {
+    await assertCanAccessParticipantData(user, participantId);
+  } catch (e) {
+    if (e instanceof ParticipantAccessError) {
+      return jsonError(e.message, 403);
+    }
+    throw e;
+  }
+
   const source = await prisma.participantFundingSource.create({
     data: {
-      participantId: body.participantId ?? user.id,
+      participantId,
       type: body.type,
       displayName: body.displayName,
       status: "pending_review",

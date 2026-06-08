@@ -10,11 +10,10 @@ export const MAPABLE_TAGLINE =
 export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
 /**
- * Official MapAble wordmark (Accessible Australia Logo Design).
- * Source file: G:\Operations\MapAble\UI\Accessible Australia Logo Design.png
- * To update: copy that PNG over public/brand/accessible-australia-logo.png
+ * Official MapAble horizontal wordmark — use the exact PNG committed to the repo.
+ * Do not regenerate, resize, or run process-brand-logo.py on this file unless asked.
  */
-export const MAPABLE_LOGO_SRC = "/brand/accessible-australia-logo.png";
+export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 
 /** Pin + Australia mark for compact headers with separate text. */
 export const MAPABLE_LOGO_MARK_SRC = "/brand/mapable-logo-mark.svg";

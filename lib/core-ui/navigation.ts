@@ -13,7 +13,11 @@ export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
     description: "Your profile, bookings, care and scheduled transport trips",
   },
   { href: "/login", label: "Sign in" },
-  { href: "/provider/bookings", label: "Provider console" },
+  {
+    href: "/provider",
+    label: "Provider control panel",
+    description: "Workers, care inbox, roster, billing and NDIS claiming",
+  },
   { href: "/admin", label: "Admin" },
 ];
 
@@ -31,6 +35,12 @@ export const CORE_CIVIC_LINKS: CoreNavLink[] = [
   { href: "/insights/national", label: "National insights" },
   { href: "/membership", label: "Membership" },
   { href: "/investment-models", label: "Investment models" },
+  { href: "/ecosystem", label: "API ecosystem" },
+  { href: "/partners/certified", label: "Certified partners" },
+  { href: "/research-federation", label: "Research federation" },
+  { href: "/audit-index", label: "Civic audit" },
+  { href: "/reports/data-trust", label: "Data trust reports" },
+  { href: "/sustainability", label: "Sustainability" },
   { href: "/accreditation", label: "Accreditation" },
 ];
 
@@ -131,7 +141,11 @@ export const CORE_HUB_SECTIONS: {
   {
     title: "For providers & partners",
     links: [
-      { href: "/enterprise-provider", label: "Enterprise console" },
+      {
+        href: "/provider",
+        label: "Provider control panel",
+        description: "Enterprise workspace metrics and provider operations",
+      },
       { href: "/academy", label: "Provider academy" },
       { href: "/assessor", label: "Assessor tools" },
       { href: "/accreditation", label: "Accreditation" },

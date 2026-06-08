@@ -1,5 +1,11 @@
 import { Prisma } from "@prisma/client";
 
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { requireRatifiedCharter } from "@/lib/governance-charter/charter-gate-service";
+import {
+  isFederatedAccountabilityV2Enabled,
+  ACCOUNTABILITY_TRANSPARENCY_DISCLAIMER,
+} from "@/lib/config/y5-rights-infrastructure";
 import { phase12Config } from "@/lib/config/phase12";
 import { prisma } from "@/lib/prisma";
 
@@ -9,10 +15,15 @@ export async function publishAccountabilityReport(params: {
   summary: string;
   category: string;
   metrics?: Record<string, unknown>;
+  federatedPartnerId?: string;
 }) {
   if (!phase12Config.nationalAccountabilityPortalEnabled) {
     throw new Error("ACCOUNTABILITY_PORTAL_DISABLED");
   }
+  if (isFederatedAccountabilityV2Enabled()) {
+    await requireRatifiedCharter();
+  }
+
   return prisma.nationalAccountabilityPublication.create({
     data: {
       ...params,
@@ -38,7 +49,12 @@ export async function listPublicAccountabilityReports() {
       summary: true,
       category: true,
       metricsJson: true,
+      federatedPartnerId: true,
       publishedAt: true,
     },
   });
+}
+
+export function getAccountabilityDisclaimer() {
+  return ACCOUNTABILITY_TRANSPARENCY_DISCLAIMER;
 }

@@ -1,20 +1,201 @@
 import { NextResponse } from "next/server";
 
+import { runProviderFinderTurnWithAgentFlag } from "@/lib/agent/run-agent-turn";
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { getOptionalApiUser } from "@/lib/api/optional-session";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { createAgentRun } from "@/lib/agent-ops/agent-run-service";
+import { apiForbidden } from "@/lib/auth/guards";
 import { planCopilotActions } from "@/lib/copilot/actionPlanner";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { applyGuardrails } from "@/lib/copilot/guardrails";
 import { classifyIntent } from "@/lib/copilot/intentRouter";
-import type { CopilotAskResponse } from "@/lib/copilot/types";
+import { planProviderFinderCopilotActions } from "@/lib/copilot/plan-provider-finder";
+import type {
+  CopilotAskContext,
+  CopilotAskResponse,
+  CopilotFinderPayload,
+  CopilotProviderResult,
+} from "@/lib/copilot/types";
+import {
+  serialiseFinderPayload,
+  type ProviderFinderSessionFields,
+} from "@/lib/provider-finder/ask-bridge";
+import {
+  assertCanAccessParticipantData,
+  ParticipantAccessError,
+} from "@/lib/prms/participant-access";
 
 const MAX_QUERY_LENGTH = 2000;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 30;
+
+function parseSessionFields(
+  raw: unknown,
+): Partial<ProviderFinderSessionFields> | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const s = raw as Record<string, unknown>;
+  return {
+    query: typeof s.query === "string" ? s.query : "",
+    location: typeof s.location === "string" ? s.location : "",
+    providerName: typeof s.providerName === "string" ? s.providerName : "",
+    serviceQuery: typeof s.serviceQuery === "string" ? s.serviceQuery : "",
+    accessQuery: typeof s.accessQuery === "string" ? s.accessQuery : "",
+  };
+}
+
+function parseMessages(
+  raw: unknown,
+): { role: "user" | "assistant"; content: string }[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: { role: "user" | "assistant"; content: string }[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const m = item as Record<string, unknown>;
+    const role = m.role === "assistant" ? "assistant" : "user";
+    const content = typeof m.content === "string" ? m.content.trim() : "";
+    if (content) out.push({ role, content });
+  }
+  return out.length > 0 ? out : undefined;
+}
+
+function finderFromSerialised(
+  payload: ReturnType<typeof serialiseFinderPayload>,
+): CopilotFinderPayload {
+  return {
+    interpretation: payload.interpretation,
+    applied: payload.applied,
+    searchParams: payload.searchParams,
+    replyText: payload.replyText,
+  };
+}
+
+function responseFromProviderFinderPlan(
+  planned: Awaited<ReturnType<typeof planProviderFinderCopilotActions>>,
+): CopilotAskResponse {
+  const finderPayload = planned.filters.finder as ReturnType<
+    typeof serialiseFinderPayload
+  >;
+  const finder = finderFromSerialised(finderPayload);
+  const results: CopilotProviderResult[] =
+    planned.providerResults ?? finderPayload.providerResults ?? [];
+
+  return {
+    source: "mapable-copilot",
+    intent: "provider_finder",
+    confidence: 0.9,
+    summary: planned.summary,
+    answer: planned.plainLanguageAnswer,
+    filters: planned.filters,
+    actions: planned.actions,
+    draftRecords: [],
+    requiredConfirmations: [],
+    warnings: planned.warnings,
+    blockedActions: [],
+    finder,
+    results,
+    agent: planned.agent ?? finderPayload.agent,
+    suggestedPrompts: [
+      "OT assessment in Parramatta",
+      "Wheelchair accessible transport near me",
+      "NDIS registered support worker",
+    ],
+  };
+}
+
+async function logProviderFinderAgentRun(
+  input: {
+    query: string;
+    toolsCalled: string[];
+    resultCount: number;
+    status: string;
+    participantId?: string;
+  },
+) {
+  await createAgentRun({
+    agentType: "matching",
+    participantId: input.participantId,
+    inputSummary: { query: input.query.slice(0, 500) },
+    outputSummary: {
+      resultCount: input.resultCount,
+      status: input.status,
+    },
+    toolsCalled: input.toolsCalled,
+    riskTier: "low",
+    humanReviewRequired: false,
+  });
+}
+
+async function buildGuestProviderFinderResponse(
+  query: string,
+  session?: Partial<ProviderFinderSessionFields>,
+  options?: {
+    providerSlug?: string;
+    providerName?: string;
+    agentSessionId?: string;
+    messages?: { role: "user" | "assistant"; content: string }[];
+  },
+): Promise<CopilotAskResponse> {
+  const planned = await planProviderFinderCopilotActions(query, session, options);
+  const response = responseFromProviderFinderPlan(planned);
+
+  void logProviderFinderAgentRun({
+    query,
+    toolsCalled: planned.toolsCalled ?? [
+      "interpretFinderQuery",
+      "searchNdisProviders",
+    ],
+    resultCount: response.results?.length ?? 0,
+    status: response.agent?.status ?? "complete",
+  });
+
+  return response;
+}
+
+async function maybeAttachFinder(
+  response: CopilotAskResponse,
+  query: string,
+  session?: Partial<ProviderFinderSessionFields>,
+  options?: {
+    providerSlug?: string;
+    providerName?: string;
+    agentSessionId?: string;
+  },
+): Promise<CopilotAskResponse> {
+  if (response.intent === "incident" || response.intent === "billing") {
+    return response;
+  }
+
+  const turn = await runProviderFinderTurnWithAgentFlag(query, session, options);
+  const serialised = serialiseFinderPayload(turn);
+
+  return {
+    ...response,
+    finder: finderFromSerialised(serialised),
+    results: turn.providerResults,
+    agent: turn.agent,
+    filters: { ...response.filters, finder: serialised },
+  };
+}
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+
+  if (!checkIpRateLimit(ip, { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX })) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a moment." },
+      { status: 429 },
+    );
+  }
+
   try {
     const body = await request.json();
     const query =
       typeof body.query === "string" ? body.query.trim() : "";
     const mode =
       typeof body.mode === "string" ? body.mode : "All";
+    const context: CopilotAskContext =
+      body.context === "provider_finder" ? "provider_finder" : "default";
     const participantId =
       typeof body.participantId === "string"
         ? body.participantId
@@ -23,13 +204,26 @@ export async function POST(request: Request) {
       typeof body.sessionId === "string"
         ? body.sessionId
         : `session-${Date.now()}`;
+    const session = parseSessionFields(body.session);
+    const messages = parseMessages(body.messages);
+    const providerSlug =
+      typeof body.providerSlug === "string" ? body.providerSlug : undefined;
+    const providerName =
+      typeof body.providerName === "string" ? body.providerName : undefined;
+
+    const finderOptions = {
+      providerSlug,
+      providerName,
+      agentSessionId: sessionId,
+      messages,
+    };
 
     if (!query) {
       return NextResponse.json(
         {
           error: "Please enter a question or request so MapAble can help.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -39,31 +233,70 @@ export async function POST(request: Request) {
           error:
             "Your message is too long. Please shorten it and try again.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const intent = classifyIntent(query, mode);
-    const context = participantId
-      ? await buildCopilotContext(participantId)
-      : null;
+    const user = await getOptionalApiUser();
 
-    const planned = await planCopilotActions({
-      query,
-      mode,
-      intent,
-      context,
-      sessionId,
-      participantId,
+    if (context === "provider_finder" && !user) {
+      const response = await buildGuestProviderFinderResponse(
+        query,
+        session,
+        finderOptions,
+      );
+      return NextResponse.json(response);
+    }
+
+    if (!user) {
+      const authRequired = await requireApiSession();
+      return authRequired instanceof Response ? authRequired : NextResponse.json(
+        { error: "Sign in required." },
+        { status: 401 },
+      );
+    }
+
+    const effectiveParticipantId = participantId ?? user.id;
+
+    try {
+      await assertCanAccessParticipantData(user, effectiveParticipantId);
+    } catch (e) {
+      if (e instanceof ParticipantAccessError) {
+        return apiForbidden(e.message);
+      }
+      throw e;
+    }
+
+    const intent = classifyIntent(query, mode, {
+      context: context === "provider_finder" ? "provider_finder" : "default",
     });
+    const copilotContext = await buildCopilotContext(effectiveParticipantId);
+
+    const planned = await planCopilotActions(
+      {
+        query,
+        mode,
+        intent,
+        context: copilotContext,
+        sessionId,
+        participantId: effectiveParticipantId,
+      },
+      {
+        session,
+        providerSlug,
+        providerName,
+        agentSessionId: sessionId,
+        messages,
+      },
+    );
 
     const guarded = await applyGuardrails({
       planned,
-      context,
-      participantId,
+      context: copilotContext,
+      participantId: effectiveParticipantId,
     });
 
-    const response: CopilotAskResponse = {
+    let response: CopilotAskResponse = {
       source: "mapable-copilot",
       intent: intent.type,
       confidence: intent.confidence,
@@ -75,9 +308,35 @@ export async function POST(request: Request) {
       requiredConfirmations: guarded.requiredConfirmations,
       warnings: guarded.warnings,
       blockedActions: guarded.blockedActions,
-      results: [],
+      results: guarded.providerResults ?? [],
       suggestedPrompts: buildSuggestedPrompts(intent.type),
+      agent: guarded.agent,
     };
+
+    if (intent.type === "provider_finder" && guarded.filters.finder) {
+      const payload = guarded.filters.finder as ReturnType<
+        typeof serialiseFinderPayload
+      >;
+      response.finder = finderFromSerialised(payload);
+      response.results =
+        guarded.providerResults ?? payload.providerResults ?? [];
+      response.agent = guarded.agent ?? payload.agent;
+    } else if (context === "provider_finder") {
+      response = await maybeAttachFinder(response, query, session, finderOptions);
+    }
+
+    if (context === "provider_finder" || intent.type === "provider_finder") {
+      void logProviderFinderAgentRun({
+        query,
+        toolsCalled: guarded.toolsCalled ?? [
+          "interpretFinderQuery",
+          "searchNdisProviders",
+        ],
+        resultCount: response.results?.length ?? 0,
+        status: response.agent?.status ?? "complete",
+        participantId: effectiveParticipantId,
+      });
+    }
 
     return NextResponse.json(response);
   } catch {
@@ -86,15 +345,21 @@ export async function POST(request: Request) {
         error:
           "Something went wrong. Please try again in a moment.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 function buildSuggestedPrompts(
-  intent: CopilotAskResponse["intent"]
+  intent: CopilotAskResponse["intent"],
 ): string[] {
   switch (intent) {
+    case "provider_finder":
+      return [
+        "OT near Parramatta",
+        "Support worker with Auslan",
+        "Registered provider in Newcastle",
+      ];
     case "combined":
       return [
         "Add Tuesday 9am physio time",

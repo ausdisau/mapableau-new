@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { prisma } from "@/lib/prisma";
+import {
+  acceptWorkerInvite,
+  getWorkerInviteByToken,
+} from "@/lib/workers/worker-invite-service";
 
 export async function POST(req: Request) {
   try {
@@ -10,11 +14,13 @@ export async function POST(req: Request) {
       email?: string;
       password?: string;
       name?: string;
+      inviteToken?: string;
     };
 
     const email = body.email ? normalizeAuthEmail(body.email) : "";
     const password = body.password?.trim() ?? "";
     const name = body.name?.trim() || email.split("@")[0] || "MapAble user";
+    const inviteToken = body.inviteToken?.trim();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -25,6 +31,19 @@ export async function POST(req: Request) {
         { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
+    }
+
+    if (inviteToken) {
+      const invite = await getWorkerInviteByToken(inviteToken);
+      if (!invite || invite.status !== "pending") {
+        return NextResponse.json({ error: "Invalid or expired invite" }, { status: 400 });
+      }
+      if (email !== invite.email) {
+        return NextResponse.json(
+          { error: "Email must match the invited address" },
+          { status: 400 }
+        );
+      }
     }
 
     const existing = await prisma.user.findUnique({
@@ -43,28 +62,30 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await hash(password, 10);
+    const primaryRole = inviteToken ? "support_worker" : "participant";
 
     const user = await prisma.user.create({
       data: {
         name,
         email,
         passwordHash,
+        primaryRole,
       },
     });
 
     await prisma.userRoleAssignment.upsert({
       where: {
-        userId_role: { userId: user.id, role: user.primaryRole },
+        userId_role: { userId: user.id, role: primaryRole },
       },
       create: {
         userId: user.id,
-        role: user.primaryRole,
+        role: primaryRole,
         isPrimary: true,
       },
       update: { isPrimary: true },
     });
 
-    if (user.primaryRole === "participant") {
+    if (primaryRole === "participant") {
       await prisma.participantProfile.upsert({
         where: { userId: user.id },
         create: {
@@ -79,7 +100,15 @@ export async function POST(req: Request) {
       await refreshParticipantOnboarding(user.id, user.id);
     }
 
-    return NextResponse.json({ id: user.id });
+    if (inviteToken) {
+      await acceptWorkerInvite({
+        token: inviteToken,
+        userId: user.id,
+        userEmail: email,
+      });
+    }
+
+    return NextResponse.json({ id: user.id, primaryRole });
   } catch (error) {
     console.error("[register] failed", error);
     return NextResponse.json(

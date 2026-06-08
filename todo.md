@@ -19,4 +19,4 @@ types:
 
 - error handling? - see agent output
 
-- Add autocomplete to provider search
+- ~~Add autocomplete to provider search~~ (predictive proactive + reactive suggestions — see docs/search-predictive-suggestions.md)

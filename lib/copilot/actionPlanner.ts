@@ -1,4 +1,6 @@
+import { planProviderFinderCopilotActions } from "@/lib/copilot/plan-provider-finder";
 import type { CopilotActionPlan, CopilotPlanningInput } from "@/lib/copilot/types";
+import type { ProviderFinderSessionFields } from "@/lib/provider-finder/ask-bridge";
 import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
 import type { DraftPrmsRecord } from "@/lib/prms/types";
 
@@ -16,14 +18,31 @@ function draft(
   };
 }
 
+export type CopilotPlanningExtras = {
+  session?: Partial<ProviderFinderSessionFields>;
+  providerSlug?: string;
+  providerName?: string;
+  agentSessionId?: string;
+  messages?: { role: "user" | "assistant"; content: string }[];
+};
+
 export async function planCopilotActions(
-  input: CopilotPlanningInput
+  input: CopilotPlanningInput,
+  extras?: CopilotPlanningExtras,
 ): Promise<CopilotActionPlan> {
   const { intent, query, context, participantId } = input;
   const pid = participantId ?? context?.participantId ?? MOCK_PARTICIPANT_ID;
   const filters = { ...intent.filters };
 
   switch (intent.type) {
+    case "provider_finder":
+      return planProviderFinderCopilotActions(query, extras?.session, {
+        providerSlug: extras?.providerSlug,
+        providerName: extras?.providerName,
+        agentSessionId: extras?.agentSessionId,
+        messages: extras?.messages,
+      });
+
     case "combined":
       return {
         summary: "Combined care and accessible transport request",
@@ -162,11 +181,16 @@ export async function planCopilotActions(
         ],
       };
 
-    case "ndis":
+    case "ndis": {
+      const { formatBudgetCopilotAnswer, isBudgetGuidanceEnabled, NON_ADVISORY_DISCLAIMER } =
+        await import("@/lib/budget/budget-guidance-service");
+      const budgetAnswer =
+        pid && isBudgetGuidanceEnabled()
+          ? formatBudgetCopilotAnswer(pid)
+          : "I can summarise your plan status and budget bands in plain language. Exact amounts are shown only when you are signed in.";
       return {
         summary: "NDIS plan and budget guidance",
-        plainLanguageAnswer:
-          "I can summarise your plan status and budget bands in plain language. Exact amounts are shown only when you are signed in.",
+        plainLanguageAnswer: budgetAnswer,
         filters,
         actions: [
           {
@@ -189,8 +213,16 @@ export async function planCopilotActions(
             ]
           : [],
         requiredConfirmations: [],
-        warnings: [],
+        warnings: isBudgetGuidanceEnabled()
+          ? [
+              {
+                level: "info" as const,
+                message: NON_ADVISORY_DISCLAIMER,
+              },
+            ]
+          : [],
       };
+    }
 
     case "jobs":
       return {

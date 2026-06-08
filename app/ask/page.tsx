@@ -1,7 +1,6 @@
-import Link from "next/link";
+import { Suspense } from "react";
 
-import { CopilotPanel } from "@/components/copilot/CopilotPanel";
-import Footer from "@/components/footer";
+import { AskPageClient } from "./AskPageClient";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata = {
@@ -12,45 +11,25 @@ export const metadata = {
 
 export default function AskPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60 bg-card/80 px-4 py-4">
-        <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
-          <Link
-            href="/"
-            className="text-lg font-bold text-primary focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            MapAble
-          </Link>
-          <nav aria-label="Main" className="flex flex-wrap gap-4 text-sm">
-            <Link href="/core" className="hover:underline focus-visible:ring-2">
-              Core hub
-            </Link>
-            <Link href="/login" className="hover:underline focus-visible:ring-2">
-              Sign in
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main id="main-content" className="container mx-auto max-w-3xl px-4 py-10">
-        <Badge
-          variant="outline"
-          className="mb-4 border-primary/20 bg-primary/5 text-primary"
-        >
-          Co-Pilot + PRMS
-        </Badge>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Ask MapAble
-        </h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Friendly guidance on the surface. Participant records, consent checks,
-          and evidence underneath.
-        </p>
-        <div className="mt-8">
-          <CopilotPanel />
-        </div>
-      </main>
-      <Footer />
+    <div className="mx-auto max-w-3xl px-5 py-10 lg:px-8">
+      <Badge
+        variant="outline"
+        className="mb-4 border-[#005B7F]/20 bg-[#005B7F]/5 text-[#005B7F]"
+      >
+        Co-Pilot + PRMS
+      </Badge>
+      <h1 className="mapable-display text-3xl font-black tracking-[-0.04em] text-[#0C1833] sm:text-4xl">
+        Ask MapAble
+      </h1>
+      <p className="mt-3 text-lg leading-8 text-slate-600">
+        Friendly guidance on the surface. Participant records, consent checks, and evidence
+        underneath.
+      </p>
+      <div className="mt-8">
+        <Suspense fallback={<p className="text-slate-600">Loading Ask MapAble…</p>}>
+          <AskPageClient />
+        </Suspense>
+      </div>
     </div>
   );
 }

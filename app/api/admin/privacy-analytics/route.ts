@@ -1,9 +1,11 @@
 import { requireApiAdmin } from "@/lib/api/auth-handler";
-import { jsonOk } from "@/lib/api/response";
+import { jsonError, jsonOk } from "@/lib/api/response";
+import { runPrivacyPreservingAnalytics } from "@/lib/privacy-preserving-analytics/analytics-service";
 import {
   listAnalyticsRuns,
-  runPrivacyPreservingAnalytics,
-} from "@/lib/privacy-preserving-analytics/analytics-service";
+  runPrivacyAnalyticsPilot,
+} from "@/lib/privacy-preserving-analytics/analytics-pilot-service";
+import { y4CivicPlatformConfig } from "@/lib/config/y4-civic-platform";
 
 export async function GET() {
   const user = await requireApiAdmin();
@@ -15,8 +17,17 @@ export async function POST(req: Request) {
   const user = await requireApiAdmin();
   if (user instanceof Response) return user;
   const body = await req.json();
-  const run = await runPrivacyPreservingAnalytics(
-    body.runLabel ?? `run-${Date.now()}`
-  );
-  return jsonOk({ run }, 201);
+  const runLabel = body.runLabel ?? `run-${Date.now()}`;
+
+  try {
+    const run = y4CivicPlatformConfig.privacyPreservingAnalyticsPilotEnabled
+      ? await runPrivacyAnalyticsPilot(runLabel)
+      : await runPrivacyPreservingAnalytics(runLabel);
+    return jsonOk({ run }, 201);
+  } catch (e) {
+    return jsonError(
+      e instanceof Error ? e.message : "PRIVACY_ANALYTICS_FAILED",
+      400
+    );
+  }
 }

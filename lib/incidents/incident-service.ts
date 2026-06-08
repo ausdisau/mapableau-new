@@ -1,9 +1,92 @@
-import type { IncidentCategory, IncidentSeverity } from "@prisma/client";
+import type {
+  IncidentCategory,
+  IncidentIntakePath,
+  IncidentSeverity,
+  Prisma,
+} from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { phase4Config } from "@/lib/config/phase4";
+import { y1WedgeConfig } from "@/lib/config/y1-wedge";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
+
+export type IncidentIntakeWizardSteps = {
+  intakePath: IncidentIntakePath;
+  participantIntent?: "report_only" | "want_help_resolving";
+  careShiftId?: string;
+  careBookingId?: string;
+  category: IncidentCategory;
+  severity: IncidentSeverity;
+  title: string;
+  description: string;
+  immediateRiskPresent?: boolean;
+  possibleReportableIncident?: boolean;
+  safeguardingConcern?: boolean;
+  stepAnswers?: Record<string, unknown>;
+};
+
+export function validateIncidentIntakePath(steps: IncidentIntakeWizardSteps) {
+  if (steps.intakePath === "safeguarding" && !steps.safeguardingConcern) {
+    return "Safeguarding path requires safeguarding concern to be acknowledged.";
+  }
+  if (steps.intakePath === "concern" && steps.severity === "critical") {
+    return "Critical severity should use the incident or safeguarding path.";
+  }
+  return null;
+}
+
+export async function createFromIntakeWizard(
+  steps: IncidentIntakeWizardSteps & { reportedById: string; participantId?: string }
+) {
+  if (!phase4Config.incidentReportingEnabled) {
+    throw new Error("INCIDENTS_DISABLED");
+  }
+
+  const validationError = validateIncidentIntakePath(steps);
+  if (validationError) throw new Error(validationError);
+
+  const category =
+    steps.intakePath === "safeguarding"
+      ? "safeguarding_concern"
+      : steps.category;
+
+  const incident = await prisma.incidentReport.create({
+    data: {
+      category,
+      severity: steps.severity,
+      title: steps.title,
+      description: steps.description,
+      reportedById: steps.reportedById,
+      participantId: steps.participantId,
+      careShiftId: steps.careShiftId,
+      bookingId: steps.careBookingId,
+      immediateRiskPresent: steps.immediateRiskPresent ?? false,
+      possibleReportableIncident: steps.possibleReportableIncident ?? false,
+      safeguardingConcern:
+        steps.safeguardingConcern ?? steps.intakePath === "safeguarding",
+      intakePath: y1WedgeConfig.incidentIntakeV2Enabled
+        ? steps.intakePath
+        : undefined,
+      intakeMetadataJson: y1WedgeConfig.incidentIntakeV2Enabled
+        ? ((steps.stepAnswers ?? {}) as Prisma.InputJsonValue)
+        : undefined,
+      participantIntent: steps.participantIntent,
+      status: "draft",
+    },
+  });
+
+  await createAuditEvent({
+    actorUserId: steps.reportedById,
+    action: "incident.intake_wizard_created",
+    entityType: "IncidentReport",
+    entityId: incident.id,
+    participantId: steps.participantId,
+    metadata: { intakePath: steps.intakePath },
+  });
+
+  return incident;
+}
 
 export async function createIncident(params: {
   category: IncidentCategory;

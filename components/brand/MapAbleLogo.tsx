@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
-import { MAPABLE_LOGO_MARK_SRC, MAPABLE_LOGO_SRC } from "@/lib/brand/constants";
+import {
+  MAPABLE_LOGO_ALT,
+  MAPABLE_LOGO_MARK_SRC,
+  MAPABLE_LOGO_SRC,
+} from "@/lib/brand/constants";
 
 export type MapAbleLogoVariant = "full" | "mark" | "text";
 
@@ -32,15 +36,13 @@ export function MapAbleLogo({
   if (variant === "full") {
     return (
       <Link href={href} className={linkClass} aria-label={ariaLabel}>
-        <Image
+        {/* Native img so replacing public/brand/mapable-logo.png via GitHub does not require code changes. */}
+        <img
           src={MAPABLE_LOGO_SRC}
-          alt=""
-          width={280}
-          height={140}
-          className="h-[4.25rem] w-auto max-w-[min(280px,58vw)] bg-transparent object-contain object-left sm:h-[4.75rem]"
-          priority
-          unoptimized
-          aria-hidden
+          alt={MAPABLE_LOGO_ALT}
+          className="h-10 w-auto max-w-[min(320px,72vw)] bg-transparent object-contain object-left sm:h-11"
+          decoding="async"
+          fetchPriority="high"
         />
       </Link>
     );

@@ -9,11 +9,18 @@ import {
   buildLiveRegionMessage,
   flattenSuggestions,
 } from "@/lib/search/autocomplete-utils";
+import {
+  getStaticFallbackGroups,
+  isSuggestionGroupsEmpty,
+} from "@/lib/search/suggestion-fallback-catalog";
 import type {
   AutocompleteContext,
   AutocompleteField,
   AutocompleteGroupedResult,
   AutocompleteSuggestion,
+  SuggestionMode,
+  SuggestionResultMeta,
+  SuggestionSignals,
 } from "@/types/search";
 
 export type AccessibleAutocompleteProps = {
@@ -33,6 +40,8 @@ export type AccessibleAutocompleteProps = {
   icon?: React.ReactNode;
   /** @default 300 — use 0 in tests */
   debounceMs?: number;
+  /** Rules-based ranking hints (recent searches, preferred state). */
+  signals?: SuggestionSignals;
 };
 
 export function AccessibleAutocomplete({
@@ -51,6 +60,7 @@ export function AccessibleAutocomplete({
   inputClassName,
   icon,
   debounceMs = 300,
+  signals,
 }: AccessibleAutocompleteProps) {
   const autoId = useId();
   const inputId = idProp ?? `ac-${autoId}`;
@@ -61,6 +71,8 @@ export function AccessibleAutocomplete({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<AutocompleteGroupedResult | null>(null);
+  const [meta, setMeta] = useState<SuggestionResultMeta | null>(null);
+  const [fetchMode, setFetchMode] = useState<SuggestionMode>("reactive");
   const [activeIndex, setActiveIndex] = useState(-1);
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,52 +85,98 @@ export function AccessibleAutocomplete({
     loading,
     suggestions.length,
     queryForList,
+    fetchMode,
   );
 
-  const fetchSuggestions = useCallback(async () => {
-    const q = debouncedQuery.trim();
-    if (q.length < 2) {
-      fetchAbortRef.current?.abort();
-      setGroups(null);
-      setActiveIndex(-1);
-      setLoading(false);
-      return;
-    }
+  const fetchSuggestions = useCallback(
+    async (mode: SuggestionMode) => {
+      const q = debouncedQuery.trim();
+      const useProactive = mode === "proactive";
 
-    fetchAbortRef.current?.abort();
-    const controller = new AbortController();
-    fetchAbortRef.current = controller;
-
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        q,
-        context,
-        field,
-      });
-      const res = await fetch(`/api/search/autocomplete?${params.toString()}`, {
-        signal: controller.signal,
-      });
-      if (!res.ok) {
-        if (!controller.signal.aborted) setGroups(null);
+      if (!useProactive && q.length < 2) {
+        fetchAbortRef.current?.abort();
+        setGroups(null);
+        setMeta(null);
+        setActiveIndex(-1);
+        setLoading(false);
         return;
       }
-      const data = (await res.json()) as { groups: AutocompleteGroupedResult };
-      if (controller.signal.aborted) return;
-      setGroups(data.groups);
-      setActiveIndex(-1);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      if (!controller.signal.aborted) setGroups(null);
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
-    }
-  }, [context, debouncedQuery, field]);
+
+      fetchAbortRef.current?.abort();
+      const controller = new AbortController();
+      fetchAbortRef.current = controller;
+
+      setLoading(true);
+      setFetchMode(mode);
+      try {
+        const params = new URLSearchParams({
+          context,
+          field,
+          mode,
+        });
+        if (useProactive) {
+          params.set("q", q);
+        } else {
+          params.set("q", q);
+        }
+        if (signals) {
+          params.set("signals", JSON.stringify(signals));
+        }
+        const res = await fetch(`/api/search/autocomplete?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          if (!controller.signal.aborted) {
+            setGroups(null);
+            setMeta(null);
+          }
+          return;
+        }
+        const data = (await res.json()) as {
+          groups: AutocompleteGroupedResult;
+          meta?: SuggestionResultMeta;
+        };
+        if (controller.signal.aborted) return;
+        let groups = data.groups;
+        let meta = data.meta ?? null;
+        if (isSuggestionGroupsEmpty(groups)) {
+          groups = getStaticFallbackGroups(mode, q, field);
+          meta = {
+            mode,
+            degraded: true,
+            degradedReason: "static_fallback_client",
+            sourceCounts: {
+              providers: groups.providers.length,
+              services: groups.services.length,
+              locations: groups.locations.length,
+              accessibilityFeatures: groups.accessibilityFeatures.length,
+              languages: groups.languages.length,
+              popularSearches: groups.popularSearches.length,
+            },
+          };
+        }
+        setGroups(groups);
+        setMeta(meta);
+        setActiveIndex(-1);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        if (!controller.signal.aborted) {
+          setGroups(null);
+          setMeta(null);
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    },
+    [context, debouncedQuery, field, signals],
+  );
 
   useEffect(() => {
-    void fetchSuggestions();
+    const q = debouncedQuery.trim();
+    const mode: SuggestionMode = q.length >= 2 ? "reactive" : "proactive";
+    void fetchSuggestions(mode);
     return () => fetchAbortRef.current?.abort();
-  }, [fetchSuggestions]);
+  }, [fetchSuggestions, debouncedQuery]);
 
   function selectSuggestion(suggestion: AutocompleteSuggestion) {
     onChange(suggestion.value);
@@ -151,7 +209,12 @@ export function AccessibleAutocomplete({
   }
 
   const showList =
-    open && !disabled && (value.trim().length >= 2 || debouncedQuery.trim().length >= 2);
+    open &&
+    !disabled &&
+    (suggestions.length > 0 ||
+      loading ||
+      value.trim().length >= 2 ||
+      debouncedQuery.trim().length >= 2);
 
   return (
     <div className={cn("relative", className)}>
@@ -197,6 +260,9 @@ export function AccessibleAutocomplete({
           onFocus={() => {
             if (blurTimeout.current) clearTimeout(blurTimeout.current);
             setOpen(true);
+            if (value.trim().length < 2) {
+              void fetchSuggestions("proactive");
+            }
           }}
           onBlur={() => {
             blurTimeout.current = setTimeout(() => setOpen(false), 150);
@@ -213,6 +279,11 @@ export function AccessibleAutocomplete({
       {helperText ? (
         <p id={helperId} className="mt-1.5 text-xs text-muted-foreground">
           {helperText}
+        </p>
+      ) : null}
+      {meta?.degraded ? (
+        <p className="mt-1 text-xs text-muted-foreground" role="status">
+          Some suggestion sources are temporarily limited. Results may be incomplete.
         </p>
       ) : null}
 

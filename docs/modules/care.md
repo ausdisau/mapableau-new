@@ -40,6 +40,15 @@ Prisma models mapped with `@@map` to: `care_requests`, `care_bookings`, `care_bo
 
 Accessibility details require consent (`care.accessibility_share`), including organisation-scoped checks for providers.
 
+## Discovery → care request
+
+NDIS Provider Finder outlets can link to a platform `Organisation` when:
+
+1. **ABN match** — outlet ABN matches an active organisation ABN
+2. **Registry slug / outlet key** — `providerOutletRegistry` row resolves to an ABN that matches an active organisation
+
+When linked, profile and finder cards show **Request care** → `/care/request?organisationId=…&providerName=…` with wizard prefill banner.
+
 ## Limitations
 
 - No AI matching, GPS check-in, or recurring bookings

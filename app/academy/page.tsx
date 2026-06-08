@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AcademyEnrollButton } from "@/app/academy/AcademyEnrollButton";
 import { requirePermission } from "@/lib/auth/guards";
 import { getAcademyCatalog, listUserEnrollments } from "@/lib/provider-academy/academy-service";
 
@@ -9,6 +10,8 @@ export default async function AcademyPage() {
     getAcademyCatalog(),
     listUserEnrollments(user.id),
   ]);
+
+  const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId));
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-6">
@@ -33,6 +36,11 @@ export default async function AcademyPage() {
             <li key={c.id} className="rounded border p-3">
               <strong>{c.title}</strong>
               <p className="text-sm text-muted-foreground">{c.description}</p>
+              {!enrolledCourseIds.has(c.id) ? (
+                <AcademyEnrollButton courseId={c.id} courseTitle={c.title} />
+              ) : (
+                <p className="mt-2 text-xs text-muted-foreground">Already enrolled</p>
+              )}
             </li>
           ))}
         </ul>

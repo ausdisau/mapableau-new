@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { PostServiceCsatPrompt } from "@/components/engagement/PostServiceCsatPrompt";
 import { formInputClass } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
 import type { TransportNextAction } from "@/types/transport";
@@ -11,13 +12,16 @@ type DialogKind = "cancel" | "dispute" | null;
 export function TransportTripActionDialogs({
   tripId,
   actions,
+  organisationId,
   onComplete,
 }: {
   tripId: string;
   actions: TransportNextAction[];
+  organisationId?: string;
   onComplete: () => void;
 }) {
   const [dialog, setDialog] = useState<DialogKind>(null);
+  const [showCsat, setShowCsat] = useState(false);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +51,10 @@ export function TransportTripActionDialogs({
       }
       setDialog(null);
       setReason("");
+      if (action.action === "confirm") {
+        setShowCsat(true);
+        return;
+      }
       onComplete();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -56,6 +64,18 @@ export function TransportTripActionDialogs({
   }
 
   if (participantActions.length === 0) return null;
+
+  if (showCsat) {
+    return (
+      <PostServiceCsatPrompt
+        contextType="transport_trip"
+        contextId={tripId}
+        organisationId={organisationId}
+        label="How was your transport trip?"
+        onSubmitted={onComplete}
+      />
+    );
+  }
 
   return (
     <section className="space-y-3" aria-labelledby={`trip-actions-${tripId}`}>

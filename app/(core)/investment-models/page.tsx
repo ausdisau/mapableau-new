@@ -1,4 +1,5 @@
 import { listPublishedInvestmentModels } from "@/lib/transport-investment-modelling/investment-model-service";
+import { ACCOUNTABILITY_TRANSPARENCY_DISCLAIMER } from "@/lib/config/y5-rights-infrastructure";
 
 export default async function InvestmentModelsPage() {
   const models = await listPublishedInvestmentModels();
@@ -9,6 +10,7 @@ export default async function InvestmentModelsPage() {
       <p className="text-muted-foreground">
         Scenario outputs for planning discussion — not investment advice.
       </p>
+      <p className="text-xs text-muted-foreground">{ACCOUNTABILITY_TRANSPARENCY_DISCLAIMER}</p>
       <ul className="space-y-4">
         {models.map((m) => (
           <li key={m.id} className="rounded-lg border p-4">

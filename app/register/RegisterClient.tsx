@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -22,17 +22,13 @@ export default function RegisterClient({
   oauthProviders: OAuthProviderFlags;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("inviteToken")?.trim() ?? "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  const hasOAuth =
-    oauthProviders.auth0 ||
-    oauthProviders.google ||
-    oauthProviders.microsoft ||
-    oauthProviders.facebook;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +45,7 @@ export default function RegisterClient({
           email: normalizedEmail,
           password: password.trim(),
           name,
+          ...(inviteToken ? { inviteToken } : {}),
         }),
       });
 
@@ -75,7 +72,7 @@ export default function RegisterClient({
         return;
       }
 
-      router.push("/dashboard");
+      router.push(inviteToken ? "/worker/onboarding" : "/dashboard");
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -85,8 +82,12 @@ export default function RegisterClient({
 
   return (
     <AuthFormCard
-      title="Create your account"
-      description="Join MapAble to request care, manage bookings, and connect with providers."
+      title={inviteToken ? "Create worker account" : "Create your account"}
+      description={
+        inviteToken
+          ? "Complete registration to accept your provider invite and join their roster."
+          : "Join MapAble to request care, manage bookings, and connect with providers."
+      }
       footer={
         <>
           Already have an account?{" "}
@@ -99,16 +100,14 @@ export default function RegisterClient({
         </>
       }
     >
-      {hasOAuth ? (
-        <div className="flex flex-col gap-4">
-          <OAuthSignInButtons
-            providers={oauthProviders}
-            callbackUrl="/dashboard"
-            disabled={isLoading}
-          />
-          <AuthOAuthDivider label="or register with email" />
-        </div>
-      ) : null}
+      <div className="flex flex-col gap-4">
+        <OAuthSignInButtons
+          providers={oauthProviders}
+          callbackUrl="/dashboard"
+          disabled={isLoading}
+        />
+        <AuthOAuthDivider label="or register with email" />
+      </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AccessibleFormField id="register-name" label="Name" required>

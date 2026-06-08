@@ -74,3 +74,43 @@ export async function workerProfileForUser(userId: string) {
     where: { userId, active: true },
   });
 }
+
+export async function assertCanViewCareShift(
+  user: CurrentUser,
+  shift: Pick<CareShift, "participantId" | "organisationId" | "workerProfileId">
+): Promise<void> {
+  if (isAdminRole(user.primaryRole)) return;
+
+  if (shift.participantId === user.id) return;
+
+  if (user.primaryRole === "support_worker") {
+    await assertWorkerAssignedToShift(user, shift);
+    return;
+  }
+
+  if (user.primaryRole === "provider_admin") {
+    await assertProviderOrgAccess(user, shift.organisationId);
+    return;
+  }
+
+  throw new CareAccessError("Care shift access denied");
+}
+
+export async function assertCanMutateCareShift(
+  user: CurrentUser,
+  shift: Pick<CareShift, "participantId" | "organisationId" | "workerProfileId">
+): Promise<void> {
+  if (isAdminRole(user.primaryRole)) return;
+
+  if (user.primaryRole === "provider_admin") {
+    await assertProviderOrgAccess(user, shift.organisationId);
+    return;
+  }
+
+  if (user.primaryRole === "support_worker") {
+    await assertWorkerAssignedToShift(user, shift);
+    return;
+  }
+
+  throw new CareAccessError("Care shift update denied");
+}

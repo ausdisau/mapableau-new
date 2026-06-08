@@ -150,7 +150,7 @@ export function ProviderAdminDashboard({
           </CardHeader>
           <CardContent>
             <Button variant="outline" size="default" asChild>
-              <Link href="/provider-admin">Back</Link>
+              <Link href="/provider">Back to control panel</Link>
             </Button>
           </CardContent>
         </Card>
@@ -186,7 +186,7 @@ export function ProviderAdminDashboard({
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/provider-admin">All providers</Link>
+              <Link href="/provider">Control panel</Link>
             </Button>
             <Button
               variant="outline"

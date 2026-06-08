@@ -25,17 +25,20 @@ export function IncidentConcernForm({
         setLoading(true);
         setError(null);
         const fd = new FormData(e.currentTarget);
-        const res = await fetch("/api/care/incidents", {
+        const res = await fetch("/api/incidents/intake", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            intakePath: "incident",
             category: fd.get("category"),
             severity: fd.get("severity"),
             title: fd.get("title"),
             description: fd.get("description"),
-            careShiftId: careShiftId || fd.get("careShiftId") || undefined,
+            careShiftId: careShiftId || undefined,
+            participantIntent: "report_only",
             immediateRiskPresent: fd.get("immediateRisk") === "on",
             safeguardingConcern: fd.get("safeguarding") === "on",
+            autoSubmit: true,
           }),
         });
         setLoading(false);
@@ -43,12 +46,6 @@ export function IncidentConcernForm({
           const d = await res.json();
           setError(d.error ?? "Could not submit");
           return;
-        }
-        const d = await res.json();
-        if (fd.get("escalateQsc") === "on" && d.incident?.id) {
-          await fetch(`/api/care/incidents/${d.incident.id}/escalate-qsc`, {
-            method: "POST",
-          });
         }
         router.push(redirectTo);
       }}

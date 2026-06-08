@@ -27,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
 function formatLocation(provider: Provider) {
@@ -43,10 +44,12 @@ function ProviderProfile({
   provider,
   onClaim,
   isLoggedIn,
+  careRequestHref,
 }: {
   provider: Provider;
   onClaim: () => void;
   isLoggedIn: boolean;
+  careRequestHref: string | null;
 }) {
   const rating = clampRating(provider.rating);
   const showDistance =
@@ -236,6 +239,11 @@ function ProviderProfile({
           </CardContent>
 
           <CardFooter className="flex flex-wrap gap-3 border-t border-border/70 pt-6">
+            {careRequestHref ? (
+              <Button asChild variant="default" size="default" className="w-full sm:w-auto">
+                <Link href={careRequestHref}>Request care on MapAble</Link>
+              </Button>
+            ) : null}
             {isLoggedIn && provider.outletKey && (
               <Button
                 variant="secondary"
@@ -301,6 +309,8 @@ export default function ProviderProfilePage() {
           p.id === slug
       )
     : null;
+
+  const { careRequestHref } = usePlatformCareLink(provider);
 
   useEffect(() => {
     if (!provider?.outletKey) {
@@ -389,6 +399,7 @@ export default function ProviderProfilePage() {
       provider={provider}
       onClaim={handleClaim}
       isLoggedIn={status === "authenticated"}
+      careRequestHref={careRequestHref}
     />
   );
 }
