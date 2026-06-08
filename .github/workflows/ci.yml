@@ -21,6 +21,7 @@ jobs:
       NEXTAUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       NDIS_ENCRYPTION_KEY: ci-test-ndis-encryption-key-32b
+      NODE_OPTIONS: --max-old-space-size=6144
     services:
       postgres:
         image: postgres:16
