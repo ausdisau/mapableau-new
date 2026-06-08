@@ -6,6 +6,32 @@ Run validation locally:
 pnpm check:integrations-env
 ```
 
+## Pull Development env from Vercel (local dev)
+
+Link the repo to the Vercel project once (creates gitignored `.vercel/project.json`):
+
+```bash
+pnpm exec vercel link --project mapableau-new --scope mapableau --yes
+```
+
+Authenticate the CLI (one-time), then pull **Development** variables into `.env.local`:
+
+```bash
+vercel login
+# or: export VERCEL_TOKEN=<token from https://vercel.com/account/tokens>
+
+pnpm env:pull:dev
+```
+
+Load them in your shell before other commands:
+
+```bash
+set -a && source .env.local && set +a
+pnpm check:integrations-env
+```
+
+`.env.local` overrides values from `.env`; both are gitignored.
+
 Secrets are never printed by the check script.
 
 ## Core (required in production)

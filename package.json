@@ -26,7 +26,8 @@
     "seed:ndis-provider-outlets": "tsx prisma/seed-ndis-provider-outlets.ts",
     "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
     "ingest:ndis-providers:dry": "DRY_RUN=true tsx scripts/ingest-ndis-providers.ts",
-    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
+    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts",
+    "env:pull:dev": "vercel env pull .env.local --environment=development --yes"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -91,6 +92,7 @@
     "@typescript-eslint/eslint-plugin": "8.46.0",
     "@typescript-eslint/parser": "8.46.0",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.5.7",
     "eslint-config-prettier": "^10.1.8",
@@ -107,7 +109,7 @@
     "prisma": "6.19.2",
     "tsx": "^4.22.3",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4",
-    "dotenv": "^16.4.7"
+    "vercel": "^54.9.1",
+    "vitest": "^3.2.4"
   }
 }
