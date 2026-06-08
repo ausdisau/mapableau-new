@@ -1,4 +1,4 @@
-const DEV_FALLBACK_SECRET = "mapable-dev-nextauth-secret-not-for-production";
+const FALLBACK_SECRET = "mapable-fallback-nextauth-secret-configure-production";
 
 /** Ensure NextAuth env is usable on Vercel before the route handler loads. */
 export function ensureNextAuthEnv(): void {
@@ -18,9 +18,11 @@ export function ensureNextAuthEnv(): void {
 
 /**
  * Resolves the NextAuth JWT signing secret without crashing module load.
- * Production must set NEXTAUTH_SECRET (min 16 chars) in Vercel env.
+ * Production must set NEXTAUTH_SECRET (min 16 chars) in Vercel env; the
+ * fallback exists only to keep public auth endpoints from returning 500 while
+ * configuration is repaired.
  */
-export function resolveNextAuthSecret(): string | undefined {
+export function resolveNextAuthSecret(): string {
   ensureNextAuthEnv();
 
   const secret =
@@ -34,20 +36,20 @@ export function resolveNextAuthSecret(): string | undefined {
 
   if (process.env.NODE_ENV === "production") {
     console.error(
-      "[auth] NEXTAUTH_SECRET is missing or shorter than 16 characters — sign-in will fail until it is set in Vercel"
+      "[auth] CRITICAL: NEXTAUTH_SECRET is missing or shorter than 16 characters — using fallback signing secret so auth endpoints stay available. Configure NEXTAUTH_SECRET in Vercel immediately.",
     );
-    return undefined;
+    return FALLBACK_SECRET;
   }
 
   if (secret) {
     console.warn(
-      "[auth] NEXTAUTH_SECRET is shorter than 16 characters; using dev fallback for JWT signing"
+      "[auth] NEXTAUTH_SECRET is shorter than 16 characters; using fallback for JWT signing",
     );
   } else {
     console.warn(
-      "[auth] NEXTAUTH_SECRET is not set; using dev-only JWT signing fallback"
+      "[auth] NEXTAUTH_SECRET is not set; using fallback for JWT signing",
     );
   }
 
-  return DEV_FALLBACK_SECRET;
+  return FALLBACK_SECRET;
 }

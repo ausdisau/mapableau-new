@@ -14,9 +14,8 @@ describe("resolveNextAuthSecret", () => {
       NODE_ENV: "development",
       NEXTAUTH_SECRET: "a".repeat(32),
     };
-    const { resolveNextAuthSecret } = await import(
-      "@/lib/auth/resolve-nextauth-secret"
-    );
+    const { resolveNextAuthSecret } =
+      await import("@/lib/auth/resolve-nextauth-secret");
     expect(resolveNextAuthSecret()).toBe("a".repeat(32));
   });
 
@@ -27,13 +26,12 @@ describe("resolveNextAuthSecret", () => {
       NEXTAUTH_SECRET: "",
       SESSION_SECRET: "b".repeat(32),
     };
-    const { resolveNextAuthSecret } = await import(
-      "@/lib/auth/resolve-nextauth-secret"
-    );
+    const { resolveNextAuthSecret } =
+      await import("@/lib/auth/resolve-nextauth-secret");
     expect(resolveNextAuthSecret()).toBe("b".repeat(32));
   });
 
-  it("returns undefined in production when unset", async () => {
+  it("returns fallback in production when unset so auth endpoints do not crash", async () => {
     process.env = {
       ...env,
       NODE_ENV: "production",
@@ -41,9 +39,10 @@ describe("resolveNextAuthSecret", () => {
       SESSION_SECRET: "",
       AUTH_SECRET: "",
     };
-    const { resolveNextAuthSecret } = await import(
-      "@/lib/auth/resolve-nextauth-secret"
+    const { resolveNextAuthSecret } =
+      await import("@/lib/auth/resolve-nextauth-secret");
+    expect(resolveNextAuthSecret()).toMatch(
+      /^mapable-fallback-nextauth-secret/,
     );
-    expect(resolveNextAuthSecret()).toBeUndefined();
   });
 });

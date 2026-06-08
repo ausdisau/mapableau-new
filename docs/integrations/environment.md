@@ -10,12 +10,17 @@ Secrets are never printed by the check script.
 
 ## Core (required in production)
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | PostgreSQL connection (Prisma) |
-| `DIRECT_URL` | Direct connection for migrations (Neon) |
-| `NEXTAUTH_SECRET` | Session signing |
-| `NEXTAUTH_URL` | App base URL for auth callbacks |
+| Variable          | Purpose                                 |
+| ----------------- | --------------------------------------- |
+| `DATABASE_URL`    | PostgreSQL connection (Prisma)          |
+| `DIRECT_URL`      | Direct connection for migrations (Neon) |
+| `NEXTAUTH_SECRET` | Session signing                         |
+| `NEXTAUTH_URL`    | App base URL for auth callbacks         |
+
+`NEXTAUTH_SECRET` must be a stable, private value of at least 16 characters in
+production. The app has an emergency fallback so `/api/auth/session` and
+`/api/auth/providers` do not crash during misconfiguration, but that fallback is
+not an acceptable production secret and will emit a critical server log.
 
 ## Optional integrations
 
