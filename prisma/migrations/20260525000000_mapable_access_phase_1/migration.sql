@@ -4341,6 +4341,9 @@ CREATE TABLE "access_trust_events" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "access_trust_events_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
 CREATE INDEX "access_places_status_idx" ON "access_places"("status");
 
 -- CreateIndex
