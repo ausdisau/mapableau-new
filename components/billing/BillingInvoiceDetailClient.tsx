@@ -37,6 +37,9 @@ function formatAud(cents: number, currency: string) {
 export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showDisputeForm, setShowDisputeForm] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
 
   const planManaged = invoice.fundingSource?.type === "ndis_plan_managed";
   const canPay =
@@ -46,6 +49,7 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
   async function payNow() {
     setBusy(true);
     setMessage(null);
+    setError(null);
     const res = await fetch("/api/billing/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -56,51 +60,33 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
       window.location.href = data.checkoutUrl;
       return;
     }
-    setMessage(data.checkout?.instruction ?? data.error ?? "Checkout unavailable.");
+    setError(data.checkout?.instruction ?? data.error ?? "Checkout unavailable.");
     setBusy(false);
   }
 
-  async function planManagerExport() {
+  async function exportInvoice(formatType: "plan_manager" | "csv") {
     setBusy(true);
+    setMessage(null);
+    setError(null);
     const res = await fetch("/api/billing/invoices/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ invoiceId: invoice.id, format: "plan_manager" }),
+      body: JSON.stringify({ invoiceId: invoice.id, format: formatType }),
     });
     const data = await res.json();
-    if (data.payload) {
+    if (!res.ok) {
+      setError(
+        data.code === "INVOICE_NOT_APPROVED" || data.error?.includes("approved")
+          ? "This invoice is waiting for administrator approval before it can be exported."
+          : data.error ?? "Export failed",
+      );
+      setBusy(false);
+      return;
+    }
+    if (formatType === "plan_manager" && data.payload) {
       setMessage("Export prepared for your plan manager.");
     }
-    setBusy(false);
-  }
-
-  async function disputeInvoice() {
-    const reason = window.prompt(
-      "Tell us why you are disputing this invoice (at least 10 characters):"
-    );
-    if (!reason || reason.length < 10) return;
-    setBusy(true);
-    const res = await fetch(`/api/billing/invoices/${invoice.id}/dispute`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason }),
-    });
-    const data = await res.json();
-    setMessage(
-      res.ok ? "Dispute recorded. Our team will review." : data.error ?? "Dispute failed"
-    );
-    setBusy(false);
-  }
-
-  async function downloadCsv() {
-    setBusy(true);
-    const res = await fetch("/api/billing/invoices/export", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ invoiceId: invoice.id, format: "csv" }),
-    });
-    const data = await res.json();
-    if (data.content) {
+    if (formatType === "csv" && data.content) {
       const blob = new Blob([data.content], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -108,6 +94,30 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
       a.download = `invoice-${invoice.id}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      setMessage("CSV downloaded.");
+    }
+    setBusy(false);
+  }
+
+  async function submitDispute() {
+    if (disputeReason.trim().length < 10) {
+      setError("Please enter at least 10 characters explaining your dispute.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const res = await fetch(`/api/billing/invoices/${invoice.id}/dispute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: disputeReason.trim() }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setMessage("Dispute recorded. Our team will review.");
+      setShowDisputeForm(false);
+      setDisputeReason("");
+    } else {
+      setError(data.error ?? "Dispute failed");
     }
     setBusy(false);
   }
@@ -143,7 +153,7 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
             <Button
               type="button"
               variant="outline"
-              onClick={() => void planManagerExport()}
+              onClick={() => void exportInvoice("plan_manager")}
               disabled={busy}
               size="lg"
             >
@@ -153,7 +163,7 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
           <Button
             type="button"
             variant="outline"
-            onClick={() => void downloadCsv()}
+            onClick={() => void exportInvoice("csv")}
             disabled={busy}
             size="lg"
           >
@@ -162,7 +172,7 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
           <Button
             type="button"
             variant="outline"
-            onClick={() => void disputeInvoice()}
+            onClick={() => setShowDisputeForm((v) => !v)}
             disabled={busy}
             size="lg"
           >
@@ -175,6 +185,35 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
         <p role="status" className="text-sm text-muted-foreground">
           {message}
         </p>
+      ) : null}
+      {error ? (
+        <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
+
+      {showDisputeForm ? (
+        <Card>
+          <CardHeader>
+            <h2 className="font-semibold">Dispute this invoice</h2>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <label htmlFor="participant-dispute-reason" className="block text-sm font-medium">
+              Reason (minimum 10 characters)
+            </label>
+            <textarea
+              id="participant-dispute-reason"
+              value={disputeReason}
+              onChange={(e) => setDisputeReason(e.target.value)}
+              rows={4}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="Explain why you are disputing this invoice…"
+            />
+            <Button type="button" variant="destructive" size="lg" onClick={() => void submitDispute()} disabled={busy}>
+              Submit dispute
+            </Button>
+          </CardContent>
+        </Card>
       ) : null}
 
       <Card>

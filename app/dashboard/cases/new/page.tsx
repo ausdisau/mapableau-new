@@ -24,6 +24,14 @@ const CATEGORIES: CaseCategory[] = [
 
 const PRIORITIES: CasePriority[] = ["low", "medium", "high", "urgent"];
 
+function parseTags(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+    .slice(0, 20);
+}
+
 async function handleCreate(formData: FormData) {
   "use server";
   if (!caseManagementConfig.enabled) {
@@ -34,16 +42,32 @@ async function handleCreate(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const category = String(formData.get("category") ?? "other") as CaseCategory;
   const priority = String(formData.get("priority") ?? "medium") as CasePriority;
+  const participantIdRaw = String(formData.get("participantId") ?? "").trim();
+  const assignedToIdRaw = String(formData.get("assignedToId") ?? "").trim();
+  const organisationIdRaw = String(formData.get("organisationId") ?? "").trim();
+  const tagsRaw = String(formData.get("tags") ?? "").trim();
+  const dueAtRaw = String(formData.get("dueAt") ?? "").trim();
+
   if (title.length < 3) {
     redirect("/dashboard/cases/new?error=title");
   }
+
+  const participantId =
+    user.primaryRole === "participant"
+      ? user.id
+      : participantIdRaw || undefined;
+
   const created = await createCase(
     {
       title,
       description,
       category,
       priority,
-      participantId: user.primaryRole === "participant" ? user.id : undefined,
+      participantId,
+      assignedToId: assignedToIdRaw || undefined,
+      organisationId: organisationIdRaw || undefined,
+      tags: tagsRaw ? parseTags(tagsRaw) : undefined,
+      dueAt: dueAtRaw ? new Date(dueAtRaw) : undefined,
     },
     user.id,
   );
@@ -140,6 +164,66 @@ export default async function NewCasePage({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="participantId" className="block text-sm font-medium">
+              Participant user ID
+            </label>
+            <input
+              id="participantId"
+              name="participantId"
+              placeholder="Leave blank if you are the participant"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="assignedToId" className="block text-sm font-medium">
+              Assignee user ID
+            </label>
+            <input
+              id="assignedToId"
+              name="assignedToId"
+              placeholder="Coordinator or plan manager ID"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="organisationId" className="block text-sm font-medium">
+              Organisation ID
+            </label>
+            <input
+              id="organisationId"
+              name="organisationId"
+              placeholder="Optional provider organisation"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="dueAt" className="block text-sm font-medium">
+              Review due date
+            </label>
+            <input
+              id="dueAt"
+              name="dueAt"
+              type="date"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="tags" className="block text-sm font-medium">
+              Tags
+            </label>
+            <input
+              id="tags"
+              name="tags"
+              placeholder="Comma-separated tags, e.g. housing, urgent review"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
           </div>
         </div>
 

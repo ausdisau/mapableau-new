@@ -104,7 +104,7 @@ export type NdisInvoiceDraft = {
 export type ClaimBatchExportResult = {
   batchId: string;
   paymentRoute: NdisPaymentRoute;
-  adapter: "portal_export" | "self_managed_invoice" | "plan_manager_invoice";
+  adapter: "portal_export" | "ndia_api" | "self_managed_invoice" | "plan_manager_invoice";
   fileName: string;
   checksum: string;
   contentType: string;

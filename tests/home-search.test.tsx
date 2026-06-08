@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import React from "react";
@@ -29,19 +30,39 @@ describe("HomeSearch", () => {
   beforeEach(() => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => ({
-        ok: true,
-        json: async () => ({
-          groups: {
-            providers: [],
-            services: [],
-            locations: [],
-            accessibilityFeatures: [],
-            languages: [],
-            popularSearches: [],
-          },
-        }),
-      })) as unknown as typeof fetch,
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = typeof input === "string" ? input : input.toString();
+        if (url.includes("/api/search/interpret")) {
+          return {
+            ok: true,
+            json: async () => ({
+              sourceQuery: "",
+              parsed: false,
+              configured: false,
+              filters: { q: "", location: "", access: "", service: "", provider: "" },
+              serviceCategorySlug: null,
+              serviceCategoryId: null,
+              accessNeedIds: [],
+              accessNeeds: { ids: [], confidence: 0, source: "none" },
+              confidence: 0,
+              engineId: "test/mock",
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            groups: {
+              providers: [],
+              services: [],
+              locations: [],
+              accessibilityFeatures: [],
+              languages: [],
+              popularSearches: [],
+            },
+          }),
+        };
+      }) as unknown as typeof fetch,
     );
   });
 
@@ -66,7 +87,7 @@ describe("HomeSearch", () => {
     expect(primary.value).toContain("Support worker near St Ives");
   });
 
-  it("submits expected query parameters to provider finder", () => {
+  it("submits expected query parameters to provider finder", async () => {
     render(<HomeSearch />);
     fireEvent.change(screen.getByLabelText("Search for support"), {
       target: { value: "occupational therapy" },
@@ -77,9 +98,11 @@ describe("HomeSearch", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /find matching providers/i }),
     );
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/provider-finder?"),
-    );
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringContaining("/provider-finder?"),
+      );
+    });
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toMatch(/q=occupational/);
     expect(url).toMatch(/location=Parramatta/);

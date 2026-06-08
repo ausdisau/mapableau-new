@@ -149,6 +149,33 @@ export async function approveBillingInvoice(
   return invoice;
 }
 
+export async function adminDisputeBillingInvoice(
+  invoiceId: string,
+  adminUserId: string,
+  reason: string,
+) {
+  const invoice = await prisma.billingInvoice.update({
+    where: { id: invoiceId },
+    data: {
+      adminApprovalStatus: "disputed",
+      disputedAt: new Date(),
+      disputeReason: reason,
+      status: "draft",
+    },
+  });
+
+  await createAuditEvent({
+    actorUserId: adminUserId,
+    action: "billing.invoice_disputed_admin",
+    entityType: "BillingInvoice",
+    entityId: invoiceId,
+    participantId: invoice.userId,
+    metadata: { reason },
+  });
+
+  return invoice;
+}
+
 export async function disputeBillingInvoice(
   invoiceId: string,
   participantUserId: string,
@@ -178,7 +205,19 @@ export async function disputeBillingInvoice(
 export function assertInvoiceApprovedForExport(invoice: {
   adminApprovalStatus: BillingAdminApprovalStatus;
 }) {
+  if (!platformPatternsConfig.transparentBillingEnabled) {
+    return;
+  }
   if (invoice.adminApprovalStatus !== "approved") {
     throw new Error("INVOICE_NOT_APPROVED");
   }
+}
+
+export function requiresAdminApproval(invoice: {
+  adminApprovalStatus: BillingAdminApprovalStatus;
+}) {
+  return (
+    platformPatternsConfig.transparentBillingEnabled &&
+    invoice.adminApprovalStatus === "pending_approval"
+  );
 }

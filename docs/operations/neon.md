@@ -114,11 +114,15 @@ See `.env.example`, `docs/tfnsw-traffic.md`, and `docs/accessible-ride-share.md`
    DIRECT_URL="postgresql://..." npx prisma migrate deploy
    ```
 
-   Latest transport migration: `prisma/migrations/20260527210000_accessible_ride_share/`.
+   Latest migrations include go-live remittance tables: `prisma/migrations/20260603180000_go_live_roadmap/`.
 
-3. **Redeploy** after saving env vars so serverless functions pick up new values.
+3. **Validate env** — `pnpm check:integrations-env` with production-like flags (see [go-live.md](./go-live.md)).
 
-Preview deployments are created automatically for pull requests against `main`.
+4. **Redeploy** after saving env vars so serverless functions pick up new values.
+
+5. **Preview deployments** are created automatically for pull requests against `main`.
+
+Full go-live tiers: [go-live.md](./go-live.md).
 
 ## Cursor + Neon MCP (optional)
 

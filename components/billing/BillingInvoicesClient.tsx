@@ -64,15 +64,25 @@ export function BillingInvoicesClient() {
 
   async function planManagerExport(invoiceId: string) {
     setBusy(true);
+    setMessage(null);
     const res = await fetch("/api/billing/invoices/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ invoiceId, format: "plan_manager" }),
     });
     const data = await res.json();
+    if (!res.ok) {
+      setMessage(
+        data.code === "INVOICE_NOT_APPROVED" || data.error?.includes("approved")
+          ? "This invoice is waiting for administrator approval before export."
+          : data.error ?? "Export failed",
+      );
+      setBusy(false);
+      return;
+    }
     if (data.payload) {
       setMessage(
-        `Ready for plan manager (${data.payload.planManager?.email ?? "add email in funding source"}).`
+        `Ready for plan manager (${data.payload.planManager?.email ?? "add email in funding source"}).`,
       );
     }
     setBusy(false);
@@ -81,12 +91,22 @@ export function BillingInvoicesClient() {
 
   async function downloadCsv(invoiceId: string) {
     setBusy(true);
+    setMessage(null);
     const res = await fetch("/api/billing/invoices/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ invoiceId, format: "csv" }),
     });
     const data = await res.json();
+    if (!res.ok) {
+      setMessage(
+        data.code === "INVOICE_NOT_APPROVED" || data.error?.includes("approved")
+          ? "This invoice is waiting for administrator approval before export."
+          : data.error ?? "Export failed",
+      );
+      setBusy(false);
+      return;
+    }
     if (data.content) {
       const blob = new Blob([data.content], { type: "text/csv" });
       const url = URL.createObjectURL(blob);

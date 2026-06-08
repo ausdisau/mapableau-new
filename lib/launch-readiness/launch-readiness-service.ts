@@ -47,6 +47,13 @@ export async function seedDefaultLaunchItems() {
     { code: "DISPATCH_RUNBOOK", category: "operations", title: "Dispatch runbook documented" },
     { code: "INCIDENT_ESCALATION", category: "safeguards", title: "Incident escalation tested" },
     { code: "DR_EXERCISE", category: "resilience", title: "Disaster recovery exercise completed" },
+    { code: "CI_BUILD_TEST", category: "engineering", title: "CI build and test gate passing on main" },
+    { code: "PROD_ENV_VARS", category: "engineering", title: "Production env vars validated (check:integrations-env)" },
+    { code: "MIGRATE_DEPLOY", category: "engineering", title: "Prisma migrate deploy run on production Neon" },
+    { code: "ADMIN_CRON_SECRET", category: "engineering", title: "ADMIN_CRON_SECRET set for Vercel cron ingest" },
+    { code: "DOCUMENT_STORAGE", category: "engineering", title: "Document storage backend configured for production" },
+    { code: "NDIA_GOVERNANCE", category: "compliance", title: "NDIA pilot approval and governance gates documented" },
+    { code: "STRIPE_WEBHOOK", category: "billing", title: "Stripe webhook endpoint verified (/api/webhooks/stripe)" },
   ];
   for (let i = 0; i < defaults.length; i++) {
     await prisma.launchReadinessItem.upsert({

@@ -201,6 +201,25 @@ export async function evaluateProviderOnboarding(
       complete: caseApproved,
       blocker: true,
     },
+    {
+      id: "ndis_registration",
+      label: "NDIS provider registration on file",
+      complete: Boolean(org.ndisRegistrationClaimed && org.ndisRegistrationNumber),
+      blocker: false,
+      detail:
+        org.ndisRegistrationClaimed && org.ndisRegistrationNumber
+          ? undefined
+          : "Add your 9-digit NDIS registration number in provider onboarding",
+    },
+    {
+      id: "ndis_registration_verified",
+      label: "NDIS registration verified (for claiming)",
+      complete:
+        org.ndisRegistrationClaimed &&
+        Boolean(org.ndisRegistrationNumber) &&
+        org.verificationStatus === "verified",
+      blocker: false,
+    },
   ];
 
   const blockers = checklist.filter((i) => i.blocker && !i.complete);

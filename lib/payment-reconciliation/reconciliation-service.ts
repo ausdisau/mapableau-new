@@ -141,9 +141,26 @@ export async function createReconciliationBatch(
     v2: useV2,
   };
 
+  const billingBridge = await import(
+    "@/lib/payment-reconciliation/billing-bridge"
+  );
+  const billingResult = await billingBridge.reconcileBillingInvoicesInBatch({
+    batchId: batch.id,
+    periodStart,
+    periodEnd,
+    organisationId,
+  });
+
+  const mergedSummary = {
+    ...summaryJson,
+    billingMatched: billingResult.matched,
+    billingUnmatched: billingResult.unmatched,
+    billingInvoiceCount: billingResult.billingInvoiceCount,
+  };
+
   await prisma.paymentReconciliationBatch.update({
     where: { id: batch.id },
-    data: { summaryJson, status: "completed" },
+    data: { summaryJson: mergedSummary, status: "completed" },
   });
 
   await createAuditEvent({
@@ -151,10 +168,10 @@ export async function createReconciliationBatch(
     action: "reconciliation.batch_created",
     entityType: "PaymentReconciliationBatch",
     entityId: batch.id,
-    metadata: summaryJson,
+    metadata: mergedSummary,
   });
 
-  if (useV2 && summaryJson.killCriteriaBreached) {
+  if (useV2 && mergedSummary.killCriteriaBreached) {
     await createAuditEvent({
       actorUserId: createdById,
       action: "reconciliation.kill_criteria_warning",

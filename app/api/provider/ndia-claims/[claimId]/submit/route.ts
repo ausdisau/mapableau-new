@@ -1,6 +1,7 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { submitProviderClaim } from "@/lib/ndia-provider-claiming/claim-service";
+import { NdiaApiError } from "@/lib/ndia/shared/ndia-errors";
 
 export async function POST(
   _req: Request,
@@ -25,6 +26,9 @@ export async function POST(
     }
     if (msg === "NDIA_PROVIDER_CLAIMING_DISABLED") {
       return jsonError("NDIA provider claiming disabled", 503);
+    }
+    if (e instanceof NdiaApiError) {
+      return jsonError(e.toUserMessage(), e.httpStatus ?? 502);
     }
     throw e;
   }

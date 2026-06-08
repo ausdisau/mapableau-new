@@ -15,6 +15,14 @@ export async function POST(req: Request) {
     parsed.data.invoiceId,
     parsed.data.format
   );
-  if (!result.ok) return jsonError(result.error ?? "Export failed", 404);
+  if (!result.ok) {
+    if ("code" in result && result.code === "INVOICE_NOT_APPROVED") {
+      return Response.json(
+        { error: result.error, code: result.code },
+        { status: 403 },
+      );
+    }
+    return jsonError(result.error ?? "Export failed", 404);
+  }
   return jsonOk(result);
 }
