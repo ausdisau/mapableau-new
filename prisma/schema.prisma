@@ -42,6 +42,7 @@ model User {
   consentsRevoked        ConsentRecord[]    @relation("ConsentRevokedBy")
   notificationPreferences NotificationPreference[]
   notifications          Notification[]
+  pushDeviceTokens       PushDeviceToken[]
   auditEvents            AuditEvent[]       @relation("AuditActor")
   bookingsCreated        Booking[]          @relation("BookingCreatedBy")
   bookingsAsParticipant  Booking[]          @relation("BookingParticipant")
@@ -780,6 +781,20 @@ model Notification {
   createdAt DateTime             @default(now())
 
   @@index([userId, readAt])
+}
+
+model PushDeviceToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform   String
+  token      String
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, token])
+  @@index([userId])
 }
 
 model AuditEvent {
