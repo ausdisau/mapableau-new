@@ -9,6 +9,7 @@ export const stripeConfig = {
   connectClientId: process.env.STRIPE_CONNECT_CLIENT_ID,
   providerProPriceId: process.env.STRIPE_PROVIDER_PRO_PRICE_ID,
   employerProPriceId: process.env.STRIPE_EMPLOYER_PRO_PRICE_ID,
+  marketplaceFeaturedPriceId: process.env.STRIPE_MARKETPLACE_FEATURED_PRICE_ID,
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   defaultCurrency: (process.env.STRIPE_DEFAULT_CURRENCY ?? "AUD").toLowerCase(),
 };
@@ -42,6 +43,8 @@ export function priceIdForSubscriptionPlan(
       return stripeConfig.providerProPriceId ?? null;
     case "employer_pro":
       return stripeConfig.employerProPriceId ?? null;
+    case "marketplace_featured":
+      return stripeConfig.marketplaceFeaturedPriceId ?? null;
     default:
       return null;
   }

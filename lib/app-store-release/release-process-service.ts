@@ -6,6 +6,10 @@ const DEFAULT_CHECKLIST = [
   { itemKey: "a11y_audit", title: "Accessibility audit signed off" },
   { itemKey: "crash_free", title: "Crash-free sessions threshold met" },
   { itemKey: "review_notes", title: "Reviewer notes prepared" },
+  { itemKey: "android_auth_qa", title: "Android auth QA signed off (physical device)" },
+  { itemKey: "android_assetlinks", title: "App Links assetlinks.json verified" },
+  { itemKey: "android_fcm", title: "FCM push delivery verified on Android" },
+  { itemKey: "android_data_safety", title: "Play Console data safety form complete" },
 ];
 
 export async function createAppStoreSubmission(platform: string, version: string) {

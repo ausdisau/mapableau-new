@@ -1,4 +1,5 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { createBillingDraftFromBooking } from "@/lib/billing-core/booking-bridge";
 import { runBillingPreflight } from "@/lib/billing/preflight";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { phase2Config } from "@/lib/config/phase2";
@@ -54,6 +55,12 @@ export async function createInvoiceDraftFromBooking(
     actorUserId: createdById,
     isAdminOnly: true,
   });
+
+  try {
+    await createBillingDraftFromBooking(bookingId, createdById);
+  } catch {
+    // Legacy invoice path remains available when billing-core bridge fails.
+  }
 
   return invoice;
 }

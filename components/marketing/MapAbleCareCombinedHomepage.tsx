@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
+import { DynamicSponsoredCard } from "@/components/ads/DynamicSponsoredCard";
 import {
   companyRegistrationDetails,
   differenceCards,
@@ -453,7 +454,7 @@ function GuidedSearch() {
               <ResultRow key={result.title} result={result} />
             ))}
             {sponsoredSearchPlacement && (
-              <SponsoredCard placement={sponsoredSearchPlacement} compact />
+              <DynamicSponsoredCard area={selectedArea} placement="search" />
             )}
           </div>
         </div>
@@ -774,8 +775,6 @@ function TrustAndSafetyBand() {
 }
 
 function PartnerStrip() {
-  const placement = getSponsoredPlacement("All", "primary");
-  if (!placement) return null;
   return (
     <section aria-label="Sponsored partner" className="border-y border-slate-200 bg-[#F6FBFC]">
       <div className="mx-auto grid max-w-7xl gap-5 px-5 py-8 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
@@ -789,7 +788,7 @@ function PartnerStrip() {
             search results.
           </p>
         </div>
-        <SponsoredCard placement={placement} />
+        <DynamicSponsoredCard area="All" placement="primary" />
       </div>
     </section>
   );

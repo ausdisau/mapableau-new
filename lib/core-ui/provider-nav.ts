@@ -10,6 +10,7 @@ export const PROVIDER_NAV_LINKS: PortalNavLink[] = [
   { href: "/provider/bookings", label: "Bookings" },
   { href: "/provider/claiming", label: "Claiming" },
   { href: "/provider/billing", label: "Billing" },
+  { href: "/provider/ads", label: "Ads" },
   { href: "/provider/insights", label: "Insights" },
   { href: "/provider/engagement", label: "Engagement" },
 ];
