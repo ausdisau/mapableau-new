@@ -149,6 +149,37 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   });
 
   await handleAdInvoicePaid(invoiceId);
+  await fulfillEnrollmentInvoice(invoiceId, userId);
+}
+
+async function fulfillEnrollmentInvoice(
+  invoiceId: string,
+  userId: string | undefined,
+) {
+  if (!userId) return;
+
+  const invoice = await prisma.billingInvoice.findUnique({
+    where: { id: invoiceId },
+    include: { lineItems: true },
+  });
+  if (!invoice) return;
+
+  for (const line of invoice.lineItems) {
+    const metadata = line.metadata as Record<string, unknown> | null;
+    const product = metadata?.enrollmentProduct;
+    if (typeof product !== "string") continue;
+
+    const { markEnrollmentPaid } = await import(
+      "@/lib/monetization/enrollment-checkout-service"
+    );
+    await markEnrollmentPaid({
+      userId,
+      product: product as "provider_academy" | "partner_api_program" | "access_accreditation",
+      referenceId:
+        typeof metadata.referenceId === "string" ? metadata.referenceId : undefined,
+      organisationId: invoice.providerId ?? undefined,
+    });
+  }
 }
 
 async function handleCheckoutFailed(session: Stripe.Checkout.Session) {
