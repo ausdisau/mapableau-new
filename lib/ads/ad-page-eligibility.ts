@@ -1,5 +1,5 @@
 /**
- * Routes where AdSense skyscrapers must never render (sensitive workflows).
+ * Routes where ads must never render (sensitive workflows).
  */
 const SENSITIVE_PREFIXES = [
   "/login",
@@ -49,9 +49,7 @@ export function isSensitiveRoute(pathname: string): boolean {
 }
 
 export function isEligibleAdRoute(pathname: string): boolean {
-  const path = normalisePath(pathname);
-  if (isSensitiveRoute(path)) return false;
-  return true;
+  return !isSensitiveRoute(pathname);
 }
 
 export function pageContextFromPath(pathname: string): string {
