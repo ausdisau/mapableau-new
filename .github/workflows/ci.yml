@@ -54,8 +54,10 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Apply migrations
-        run: npx prisma migrate deploy
+      - name: Apply schema
+        # Fresh CI DBs cannot replay the full migration history (see docs/operations/neon-prisma-migrations.md).
+        # Production uses `prisma migrate deploy` on a baselined Neon database instead.
+        run: npx prisma db push --accept-data-loss
 
       - name: Type check
         run: pnpm type-check
