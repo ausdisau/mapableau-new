@@ -408,6 +408,12 @@ async function main() {
   const { seedAdsDemo } = await import("./seed-ads-demo");
   await seedAdsDemo(prisma);
 
+  if (process.env.Y1_WEDGE_PILOT_ENABLED === "true") {
+    const { seedMapableY1Wedge } = await import("./seed-mapable-y1-wedge");
+    await seedMapableY1Wedge();
+    console.log("  Y1 wedge pilot seed applied");
+  }
+
   console.log("Seed complete.");
 }
 

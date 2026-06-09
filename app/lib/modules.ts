@@ -8,6 +8,8 @@ export interface ModuleIcons {
   "3d": string;
 }
 
+export type ModuleAvailability = "core" | "roadmap";
+
 export interface MapAbleModule {
   key: string;
   name: string;
@@ -20,6 +22,9 @@ export interface MapAbleModule {
   gradient: string;
   href: string;
   features: string[];
+  availability: ModuleAvailability;
+  /** Reduced marketing claims for roadmap modules */
+  roadmapFeatures?: string[];
 }
 
 // Placeholder - replace with your actual module icons
@@ -60,6 +65,7 @@ export const modules: MapAbleModule[] = [
     color: "#E91E63",
     gradient: "from-pink-500 to-rose-600",
     href: "/care",
+    availability: "core",
     features: ["Support Workers", "Care Plans", "Case Notes", "NDIS Funding"],
   },
   {
@@ -73,6 +79,7 @@ export const modules: MapAbleModule[] = [
     color: "#4CAF50",
     gradient: "from-green-500 to-emerald-600",
     href: "/transport",
+    availability: "core",
     features: [
       "Wheelchair Access",
       "Door-to-Door",
@@ -92,6 +99,7 @@ export const modules: MapAbleModule[] = [
     color: "#2196F3",
     gradient: "from-blue-500 to-indigo-600",
     href: "/dashboard/jobs",
+    availability: "core",
     features: [
       "Job Matching",
       "Employer Network",
@@ -111,12 +119,14 @@ export const modules: MapAbleModule[] = [
     color: "#FF9800",
     gradient: "from-orange-500 to-amber-600",
     href: "/foods",
+    availability: "roadmap",
     features: [
       "Meal Delivery",
       "Dietary Plans",
       "Nutrition Support",
       "Special Diets",
     ],
+    roadmapFeatures: ["Coming soon — meal delivery pilot planned"],
   },
   {
     key: "moves",
@@ -130,12 +140,14 @@ export const modules: MapAbleModule[] = [
     color: "#9C27B0",
     gradient: "from-purple-500 to-violet-600",
     href: "/moves",
+    availability: "roadmap",
     features: [
       "Physical Therapy",
       "Rehabilitation",
       "Exercise Programs",
       "Mobility Training",
     ],
+    roadmapFeatures: ["Coming soon — rehabilitation services"],
   },
   {
     key: "marketplace",
@@ -149,12 +161,14 @@ export const modules: MapAbleModule[] = [
     color: "#00BCD4",
     gradient: "from-cyan-500 to-teal-600",
     href: "/marketplace",
+    availability: "roadmap",
     features: [
       "Mobility Aids",
       "Daily Living",
       "Sensory Products",
       "NDIS Approved",
     ],
+    roadmapFeatures: ["Assistive-tech catalog — checkout pilot on marketplace"],
   },
   {
     key: "kids",
@@ -168,14 +182,22 @@ export const modules: MapAbleModule[] = [
     color: "#FFEB3B",
     gradient: "from-yellow-400 to-orange-500",
     href: "/kids",
+    availability: "roadmap",
     features: [
       "Early Intervention",
       "Therapy Services",
       "School Support",
       "Family Programs",
     ],
+    roadmapFeatures: ["Coming soon — early intervention services"],
   },
 ];
+
+/** Modules with full product experience today */
+export const coreModules = modules.filter((m) => m.availability === "core");
+
+/** Coming-soon modules — honest hub taxonomy, reduced marketing claims */
+export const roadmapModules = modules.filter((m) => m.availability === "roadmap");
 
 export const mainModule = {
   key: "main",
