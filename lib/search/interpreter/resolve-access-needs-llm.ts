@@ -1,12 +1,19 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 
-import { isNeedsInterpreterLlmEnabled } from "@/lib/config/search-interpreter";
+import {
+  captureLlmGeneration,
+  getLlmAnalyticsProvider,
+} from "@/lib/analytics/llm-analytics";
+import {
+  isNeedsInterpreterLlmEnabled,
+  searchInterpreterConfig,
+} from "@/lib/config/search-interpreter";
 import { ACCESS_NEEDS } from "@/lib/provider-finder/filters";
 import type { AccessNeedResolution } from "@/types/search";
 
+import { getInterpreterEngineId, getInterpreterModel } from "./get-model";
 import { filterValidAccessNeedIds } from "./resolve-access-needs";
-import { getInterpreterModel } from "./get-model";
 
 const needIds = ACCESS_NEEDS.map((n) => n.id) as [string, ...string[]];
 
@@ -32,13 +39,30 @@ export async function resolveAccessNeedIdsWithLlm(
     return { ids: [], confidence: 0, source: "none" };
   }
 
+  const engineId = getInterpreterEngineId();
+  const startedAt = Date.now();
+
   try {
-    const { object } = await generateObject({
+    const { object, usage } = await generateObject({
       model: getInterpreterModel(),
       schema: needsSchema,
       system: NEEDS_SYSTEM,
       prompt: `Access-related phrase from user search: ${text}`,
       temperature: 0.1,
+    });
+    captureLlmGeneration({
+      traceName: "provider_search_access_needs",
+      model: searchInterpreterConfig.modelId,
+      provider: getLlmAnalyticsProvider(engineId),
+      latencyMs: Date.now() - startedAt,
+      success: true,
+      inputTokens: usage?.inputTokens,
+      outputTokens: usage?.outputTokens,
+      totalTokens: usage?.totalTokens,
+      metadata: {
+        text_length: text.length,
+        engine_id: engineId,
+      },
     });
 
     const ids = filterValidAccessNeedIds(object.accessNeedIds);
@@ -52,6 +76,18 @@ export async function resolveAccessNeedIdsWithLlm(
       source: "llm_step",
     };
   } catch (err) {
+    captureLlmGeneration({
+      traceName: "provider_search_access_needs",
+      model: searchInterpreterConfig.modelId,
+      provider: getLlmAnalyticsProvider(engineId),
+      latencyMs: Date.now() - startedAt,
+      success: false,
+      errorName: err instanceof Error ? err.name : "UnknownError",
+      metadata: {
+        text_length: text.length,
+        engine_id: engineId,
+      },
+    });
     console.error("[search-interpreter] needs LLM step failed", err);
     return {
       ids: [],

@@ -104,6 +104,17 @@ LiveKit: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`
 - Socket.IO: `SOCKETIO_ENABLED=true`, `SOCKETIO_SERVER_URL`
 - Feature flag: `REALTIME_PROVIDER=supabase|socketio|polling`
 
+### Product and LLM analytics
+
+- `NEXT_PUBLIC_PRODUCT_ANALYTICS_ENABLED=false` by default.
+- `POSTHOG_API_KEY` enables server-side LLM generation capture.
+- `POSTHOG_HOST` defaults to `https://us.i.posthog.com`; use the EU host only
+  for an EU PostHog project.
+
+LLM analytics capture model, provider, latency, token counts where available and
+non-sensitive length/outcome metadata. Do not capture raw prompts or participant
+support details unless a privacy review explicitly approves it.
+
 ## Local development example
 
 ```env

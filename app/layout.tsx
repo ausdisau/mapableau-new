@@ -20,6 +20,33 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au",
+  ),
+  title: {
+    default: "MapAble | Disability support platform",
+    template: "%s | MapAble",
+  },
+  description:
+    "MapAble helps people explore disability support, provider discovery, accessible transport, employment pathways and consent-aware service tools.",
+  applicationName: "MapAble",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "MapAble",
+    url: "/",
+    title: "MapAble | Disability support platform",
+    description:
+      "Explore disability support, provider discovery, accessible transport and consent-aware service tools.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MapAble | Disability support platform",
+    description:
+      "Explore disability support, provider discovery, accessible transport and consent-aware service tools.",
+  },
   other: {
     "purpleads-verification": "832ea0b13123578b63ae2fe9",
   },
@@ -39,6 +66,47 @@ export default function RootLayout({
         />
       </head>
       <body className={plusJakarta.className}>
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "MapAble",
+              url:
+                process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au",
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer support",
+                email: "support@mapable.com.au",
+                areaServed: "AU",
+              },
+              sameAs: ["https://www.mapable.com.au"],
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "MapAble",
+              url:
+                process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au",
+              potentialAction: {
+                "@type": "SearchAction",
+                target:
+                  (process.env.NEXT_PUBLIC_APP_URL ||
+                    "https://www.mapable.com.au") +
+                  "/provider-finder?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
         <Providers>{children}</Providers>
         <SpeedInsights />
       </body>

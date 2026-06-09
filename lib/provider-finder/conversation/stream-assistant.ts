@@ -1,10 +1,21 @@
 import { createUIMessageStream, streamText } from "ai";
 
-import { isSearchInterpreterConfigured } from "@/lib/config/search-interpreter";
-import { getInterpreterModel } from "@/lib/search/interpreter/get-model";
+import {
+  captureLlmGeneration,
+  getLlmAnalyticsProvider,
+} from "@/lib/analytics/llm-analytics";
+import {
+  isSearchInterpreterConfigured,
+  searchInterpreterConfig,
+} from "@/lib/config/search-interpreter";
+import {
+  getInterpreterEngineId,
+  getInterpreterModel,
+} from "@/lib/search/interpreter/get-model";
+
+import type { ProviderFinderAskTurn } from "../ask-bridge";
 
 import { PROVIDER_FINDER_CHAT_SYSTEM } from "./prompt";
-import type { ProviderFinderAskTurn } from "../ask-bridge";
 import type { ProviderFinderConversationTurn } from "./run-turn";
 
 type FinderStreamTurn = ProviderFinderConversationTurn | ProviderFinderAskTurn;
@@ -28,11 +39,62 @@ export function streamFinderAssistantText(
     temperature: 0.35,
   });
 
-  return result.textStream;
+  return tracedTextStream(result.textStream, {
+    traceName: "provider_finder_chat_reply",
+    model: searchInterpreterConfig.modelId,
+    provider: getLlmAnalyticsProvider(getInterpreterEngineId()),
+    queryLength: turn.interpretation.sourceQuery.length,
+  });
 }
 
 async function* textIterable(text: string): AsyncGenerator<string> {
   yield text;
+}
+
+async function* tracedTextStream(
+  stream: AsyncIterable<string>,
+  options: {
+    traceName: string;
+    model: string;
+    provider: string;
+    queryLength: number;
+  },
+): AsyncGenerator<string> {
+  const startedAt = Date.now();
+  let outputLength = 0;
+
+  try {
+    for await (const delta of stream) {
+      outputLength += delta.length;
+      yield delta;
+    }
+
+    captureLlmGeneration({
+      traceName: options.traceName,
+      model: options.model,
+      provider: options.provider,
+      latencyMs: Date.now() - startedAt,
+      success: true,
+      metadata: {
+        query_length: options.queryLength,
+        output_length: outputLength,
+      },
+    });
+  } catch (error) {
+    captureLlmGeneration({
+      traceName: options.traceName,
+      model: options.model,
+      provider: options.provider,
+      latencyMs: Date.now() - startedAt,
+      success: false,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      metadata: {
+        query_length: options.queryLength,
+        output_length: outputLength,
+      },
+    });
+    throw error;
+  }
 }
 
 export function createFinderChatResponseStream(options: {
