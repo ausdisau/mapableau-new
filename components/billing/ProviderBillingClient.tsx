@@ -25,12 +25,12 @@ export function ProviderBillingClient() {
     setBusy(false);
   }
 
-  async function startSubscription() {
+  async function startSubscription(planCode: "provider_pro" | "marketplace_featured") {
     setBusy(true);
     const res = await fetch("/api/billing/subscriptions/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planCode: "provider_pro" }),
+      body: JSON.stringify({ planCode }),
     });
     const data = await res.json();
     if (data.checkoutUrl) window.location.href = data.checkoutUrl;
@@ -73,11 +73,31 @@ export function ProviderBillingClient() {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => void startSubscription()}
+            onClick={() => void startSubscription("provider_pro")}
             disabled={busy}
             size="lg"
           >
             Subscribe to Provider Pro
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card variant="gradient">
+        <CardHeader>
+          <CardTitle className="font-heading text-xl">Marketplace Featured</CardTitle>
+          <CardDescription>
+            Boost partner marketplace listings with featured placement sorting.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void startSubscription("marketplace_featured")}
+            disabled={busy}
+            size="lg"
+          >
+            Subscribe to featured listings
           </Button>
         </CardContent>
       </Card>

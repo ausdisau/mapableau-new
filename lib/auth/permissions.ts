@@ -101,6 +101,9 @@ export type Permission =
   | "ndis:pricing:manage"
   | "provider:ndia:claim"
   | "provider:ndis:claim"
+  | "ads:manage:org"
+  | "ads:moderate:any"
+  | "ads:report:org"
   | "xero:manage"
   | "stripe:manage"
   | "route:manage"
@@ -287,6 +290,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:ndia:claim",
     "provider:ndis:claim",
     "engagement:provider:read",
+    "ads:manage:org",
+    "ads:report:org",
   ],
   transport_operator: [
     "booking:read:any",
@@ -318,6 +323,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "employer:ats",
     "calendar:read:org",
     "message:read",
+    "ads:manage:org",
+    "ads:report:org",
   ],
   plan_manager: [
     "plan_manager:portal",
@@ -416,6 +423,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "platform_status:read",
     "data_trust:manage",
     "partner_marketplace:manage",
+    "ads:moderate:any",
     "national_rollout:manage",
     "partner_billing:manage",
     "partner_api:manage",

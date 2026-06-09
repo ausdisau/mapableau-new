@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { useBrandSafe } from "@/app/contexts/BrandContext";
-import { modules, type MapAbleModule } from "@/app/lib/modules";
+import { coreModules, type MapAbleModule } from "@/app/lib/modules";
 import { cn } from "@/app/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,10 @@ function ServiceSlide({ module }: ServiceSlideProps) {
             </p>
 
             <div className="flex flex-wrap gap-1.5 mb-4">
-              {module.features.map((feature) => (
+              {(module.availability === "roadmap"
+                ? module.roadmapFeatures ?? ["Coming soon"]
+                : module.features
+              ).map((feature) => (
                 <Badge
                   key={feature}
                   variant="secondary"
@@ -247,7 +250,7 @@ export function ServicesCarousel() {
     >
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex gap-4" role="group" aria-label="Slides">
-          {modules.map((module) => (
+          {coreModules.map((module) => (
             <div
               key={module.key}
               className="flex-none w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]"

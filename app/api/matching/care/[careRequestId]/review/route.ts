@@ -1,5 +1,6 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { isParticipantMatchReviewEnabled } from "@/lib/config/y1-wedge";
 import { getLatestMatchRunForCareRequest } from "@/lib/matching/matching-service";
 import { prisma } from "@/lib/prisma";
 
@@ -9,6 +10,11 @@ export async function GET(
 ) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
+
+  if (!isParticipantMatchReviewEnabled()) {
+    return jsonError("Participant match review is not enabled", 404);
+  }
+
   const { careRequestId } = await params;
 
   const request = await prisma.careRequest.findUnique({

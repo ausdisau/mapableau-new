@@ -5,6 +5,7 @@ import type { ApiScope } from "@prisma/client";
 import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { scopesAllow } from "@/lib/developer-api/api-key-service";
+import { recordApiUsage } from "@/lib/developer-api/usage-metering-service";
 import { prisma } from "@/lib/prisma";
 
 
@@ -34,5 +35,13 @@ export async function GET(req: Request) {
     confidence: p.confidence,
     features: p.features.map((f) => f.type),
   }));
+
+  await recordApiUsage({
+    appId: record.appId,
+    path: "/api/v1/places",
+    method: "GET",
+    status: 200,
+  });
+
   return jsonOk({ places: safe });
 }

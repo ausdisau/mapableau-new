@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 
 import { Providers } from "@/components/providers";
+import { AdSenseScript } from "@/components/ads/AdSenseScript";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -20,6 +21,17 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  title: {
+    default: "MapAble",
+    template: "%s | MapAble",
+  },
+  description:
+    "Disability support platform — care, transport, bookings, and participant services.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  },
   other: {
     "purpleads-verification": "832ea0b13123578b63ae2fe9",
   },
@@ -39,6 +51,7 @@ export default function RootLayout({
         />
       </head>
       <body className={plusJakarta.className}>
+        <AdSenseScript />
         <Providers>{children}</Providers>
         <SpeedInsights />
       </body>

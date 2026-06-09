@@ -1,5 +1,6 @@
 import { phase3Config } from "@/lib/config/phase3";
 import { createInvoiceDraftFromBooking } from "@/lib/invoices/invoice-service";
+import { resolveInvoiceLinePricing } from "@/lib/ndis-pricing/price-lookup-service";
 import { prisma } from "@/lib/prisma";
 
 export async function createInvoiceLinesFromApprovedCareShift(
@@ -24,6 +25,13 @@ export async function createInvoiceLinesFromApprovedCareShift(
     throw new Error("SHIFT_NOT_APPROVED");
   }
 
+  const pricing = await resolveInvoiceLinePricing({
+    supportItemCode: shift.careRequest?.supportItemCode,
+    description: shift.careRequest?.supportItemCode
+      ? `Approved care shift — ${shift.careRequest.supportItemCode}`
+      : "Approved care shift support",
+  });
+
   let invoice = shift.bookingId
     ? await prisma.invoice.findFirst({ where: { bookingId: shift.bookingId } })
     : null;
@@ -44,11 +52,13 @@ export async function createInvoiceLinesFromApprovedCareShift(
           lines: {
             create: [
               {
-                description: "Approved care shift support",
+                description: pricing.description,
                 serviceDate: shift.startAt,
                 quantity: 1,
-                unitAmountCents: 0,
-                totalAmountCents: 0,
+                unitAmountCents: pricing.unitAmountCents,
+                totalAmountCents: pricing.totalAmountCents,
+                supportItemCode: pricing.supportItemCode,
+                claimableByNdis: pricing.claimableByNdis,
               },
             ],
           },
@@ -59,13 +69,13 @@ export async function createInvoiceLinesFromApprovedCareShift(
     await prisma.invoiceLine.create({
       data: {
         invoiceId: invoice.id,
-        description: "Approved care shift — requires review",
+        description: pricing.description,
         serviceDate: shift.startAt,
         quantity: 1,
-        unitAmountCents: 0,
-        totalAmountCents: 0,
-        supportItemCode: shift.careRequest?.supportItemCode ?? undefined,
-        claimableByNdis: Boolean(shift.careRequest?.supportItemCode),
+        unitAmountCents: pricing.unitAmountCents,
+        totalAmountCents: pricing.totalAmountCents,
+        supportItemCode: pricing.supportItemCode,
+        claimableByNdis: pricing.claimableByNdis,
       },
     });
   }
@@ -76,9 +86,13 @@ export async function createInvoiceLinesFromApprovedCareShift(
       careShiftId: shiftId,
       idempotencyKey: key,
       createdById: adminUserId,
-      metadata: { invoiceId: invoice.id },
+      metadata: {
+        invoiceId: invoice.id,
+        pricingSource: pricing.pricingSource,
+        unitAmountCents: pricing.unitAmountCents,
+      },
     },
   });
 
-  return { invoice };
+  return { invoice, pricing };
 }

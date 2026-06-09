@@ -1,0 +1,141 @@
+// MapAble Ads Manager — self-serve contextual advertising
+
+enum AdAdvertiserCategory {
+  ndis_provider
+  allied_health
+  support_coordinator
+  plan_manager
+  accessible_transport
+  assistive_technology
+  inclusive_employer
+  accessible_tourism
+  disability_education
+  council_public_interest
+}
+
+enum AdAdvertiserOnboardingStatus {
+  draft
+  pending_verification
+  active
+  suspended
+}
+
+enum AdCampaignStatus {
+  draft
+  pending_payment
+  pending_review
+  approved
+  active
+  paused
+  ended
+  rejected
+}
+
+enum AdPlacement {
+  skyscraper_left
+  skyscraper_right
+  sponsored_provider_card
+  banner_inline
+}
+
+enum AdCreativeFormat {
+  image_text
+  text_only
+}
+
+enum AdModerationDecision {
+  approved
+  rejected
+}
+
+model AdAdvertiser {
+  id               String                     @id @default(cuid())
+  organisationId   String                     @unique
+  organisation     Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  category         AdAdvertiserCategory
+  onboardingStatus AdAdvertiserOnboardingStatus @default(draft)
+  termsAcceptedAt  DateTime?
+  contactName      String?
+  contactEmail     String?
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+
+  campaigns AdCampaign[]
+
+  @@index([onboardingStatus])
+}
+
+model AdCampaign {
+  id               String           @id @default(cuid())
+  advertiserId     String
+  advertiser       AdAdvertiser     @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  name             String
+  status           AdCampaignStatus @default(draft)
+  budgetCents      Int              @default(0)
+  spentCents       Int              @default(0)
+  targeting        Json             @default("{}")
+  billingInvoiceId String?          @unique
+  billingInvoice   BillingInvoice?  @relation("AdCampaignInvoice", fields: [billingInvoiceId], references: [id], onDelete: SetNull)
+  startAt          DateTime?
+  endAt            DateTime?
+  submittedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  creatives   AdCreative[]
+  reviews     AdModerationReview[]
+  metricsDaily AdMetricsDaily[]
+
+  @@index([advertiserId, status])
+  @@index([status])
+}
+
+model AdCreative {
+  id                   String           @id @default(cuid())
+  campaignId           String
+  campaign             AdCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  format               AdCreativeFormat @default(image_text)
+  placements           AdPlacement[]
+  imageFileKey         String?
+  imageMimeType        String?
+  headline             String
+  body                 String?
+  ctaLabel             String
+  altText              String
+  landingUrl           String
+  targetOrganisationId String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([campaignId])
+}
+
+model AdModerationReview {
+  id           String                @id @default(cuid())
+  campaignId   String
+  campaign     AdCampaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  decision     AdModerationDecision?
+  notes        String?
+  reviewerId   String?
+  reviewer     User?                 @relation("AdModerationReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  policyFlags  Json?
+  reviewedAt   DateTime?
+  createdAt    DateTime              @default(now())
+
+  @@index([campaignId, createdAt])
+}
+
+model AdMetricsDaily {
+  id          String      @id @default(cuid())
+  campaignId  String
+  campaign    AdCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  date        DateTime    @db.Date
+  placement   AdPlacement
+  regionCode  String      @default("AU")
+  deviceType  String      @default("unknown")
+  impressions Int         @default(0)
+  clicks      Int         @default(0)
+
+  @@unique([campaignId, date, placement, regionCode, deviceType])
+  @@index([campaignId, date])
+}

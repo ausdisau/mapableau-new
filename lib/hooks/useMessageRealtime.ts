@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import { createPollingSubscription } from "@/lib/realtime/polling-realtime-adapter";
+import { createMessageSubscription } from "@/lib/realtime/realtime-subscription-factory";
+import { getRealtimeProvider } from "@/lib/realtime/supabase-realtime-adapter";
 import type { RealtimeEvent } from "@/lib/realtime/supabase-realtime-adapter";
 
 export function useMessageRealtime(
@@ -11,18 +12,19 @@ export function useMessageRealtime(
   onRefresh: () => void
 ) {
   const [connected, setConnected] = useState(false);
+  const provider = getRealtimeProvider();
 
   useEffect(() => {
-    const unsub = createPollingSubscription(
+    const unsub = createMessageSubscription({
       conversationId,
-      async () => {
+      fetchLatest: async () => {
         const id = await fetchLatestMessageId();
         return id ? { messageId: id } : null;
       },
-      (event: RealtimeEvent) => {
+      onEvent: (event: RealtimeEvent) => {
         if (event.type === "message:new") onRefresh();
-      }
-    );
+      },
+    });
     setConnected(true);
     return () => {
       unsub();
@@ -30,5 +32,5 @@ export function useMessageRealtime(
     };
   }, [conversationId, fetchLatestMessageId, onRefresh]);
 
-  return { connected, provider: "polling" as const };
+  return { connected, provider };
 }

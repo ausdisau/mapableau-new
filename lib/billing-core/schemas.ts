@@ -35,6 +35,7 @@ export const createInvoiceSchema = z.object({
     "jobs",
     "marketplace",
     "subscription",
+    "advertising",
     "other",
   ]),
   fundingSourceId: z.string().cuid().optional(),
