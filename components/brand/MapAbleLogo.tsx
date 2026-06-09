@@ -40,7 +40,7 @@ export function MapAbleLogo({
         <img
           src={MAPABLE_LOGO_SRC}
           alt={MAPABLE_LOGO_ALT}
-          className="h-10 w-auto max-w-[min(320px,72vw)] bg-transparent object-contain object-left sm:h-11"
+          className="h-8 w-auto max-w-[min(240px,64vw)] bg-transparent object-contain object-left sm:h-9"
           decoding="async"
           fetchPriority="high"
         />
