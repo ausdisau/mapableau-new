@@ -50,7 +50,7 @@ export function ProviderFinderHero({
   return (
     <section
       className={cn(
-        "relative overflow-hidden border-b border-border/50 bg-gradient-to-b from-background via-background to-primary/[0.04]",
+        "relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]",
         compact ? "py-8" : "py-12 sm:py-16 lg:py-20",
       )}
     >
@@ -64,7 +64,7 @@ export function ProviderFinderHero({
         </Badge>
         <h1
           className={cn(
-            "font-heading font-bold tracking-tight text-foreground",
+            "mapable-display font-black tracking-[-0.04em] text-[#0C1833]",
             compact ? "text-2xl sm:text-3xl" : "text-3xl sm:text-4xl lg:text-5xl",
           )}
         >
@@ -72,7 +72,7 @@ export function ProviderFinderHero({
         </h1>
         <p
           className={cn(
-            "mt-3 max-w-2xl text-muted-foreground",
+            "mt-3 max-w-2xl text-slate-600",
             compact ? "text-sm" : "text-base sm:text-lg",
           )}
         >

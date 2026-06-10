@@ -2,7 +2,7 @@
 
 import { Bookmark, Loader2, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
@@ -30,6 +30,10 @@ import {
 } from "@/lib/search/apply-interpretation";
 import { interpretSearchQueryClient } from "@/lib/search/interpreter-client";
 import { getProviderFinderMapSourceClient } from "@/lib/config/provider-finder-map";
+import {
+  supportAreaLandingRoutes,
+  supportAreaToSupportTypeId,
+} from "@/lib/marketing/mapable-care-routes";
 import { fetchProviderMapPins } from "@/lib/provider-finder/fetch-map-pins";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
 
@@ -91,6 +95,7 @@ function providerHaystack(provider: Provider) {
 }
 
 export default function ProviderFinderClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { data: outlets, isLoading, isError, error } = useProviderOutlets();
   const providers = useMemo(
@@ -125,6 +130,17 @@ export default function ProviderFinderClient() {
   const pageSize = 12;
 
   useEffect(() => {
+    const area = searchParams.get("area");
+    if (area === "Places") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("area");
+      const qs = params.toString();
+      router.replace(
+        qs ? `${supportAreaLandingRoutes.Places}?${qs}` : supportAreaLandingRoutes.Places,
+      );
+      return;
+    }
+
     const q = searchParams.get("q");
     const loc = searchParams.get("location");
     const access = searchParams.get("access");
@@ -132,6 +148,12 @@ export default function ProviderFinderClient() {
     const provider = searchParams.get("provider");
     const support = searchParams.get("supportType");
     const accessNeedsParam = searchParams.get("accessNeeds");
+
+    const areaSupportType = supportAreaToSupportTypeId(area);
+    if (areaSupportType && !support) {
+      setSupportType(areaSupportType);
+      setSearchSubmitted(true);
+    }
 
     if (q) {
       setQuery(q);
@@ -163,7 +185,7 @@ export default function ProviderFinderClient() {
       setAccessNeeds(accessNeedsParam.split(",").filter(Boolean));
       setSearchSubmitted(true);
     }
-  }, [searchParams]);
+  }, [router, searchParams]);
 
   const useMyLocation = async () => {
     setLocationLoading(true);

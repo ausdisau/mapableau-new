@@ -3,6 +3,7 @@ export type IntegrationType =
   | "database"
   | "realtime"
   | "maps"
+  | "search"
   | "workflow"
   | "automation"
   | "cms"
@@ -51,6 +52,8 @@ export const INITIAL_INTEGRATION_KEYS = [
   "ndia",
   "keycloak",
   "maplibre",
+  "openstreetmap",
+  "opensearch",
   "supabase",
   "supabase_realtime",
   "socketio",

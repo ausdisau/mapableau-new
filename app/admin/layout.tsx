@@ -1,5 +1,5 @@
-import { SkipToContent } from "@/components/core/SkipToContent";
 import { AdminNav } from "@/components/layout/AdminNav";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requireAdminOpsAccess } from "@/lib/auth/guards";
 
 export const dynamic = "force-dynamic";
@@ -9,15 +9,11 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAdminOpsAccess();
+  const user = await requireAdminOpsAccess();
 
   return (
-    <div className="min-h-screen bg-background">
-      <SkipToContent />
-      <AdminNav />
-      <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
-        {children}
-      </main>
-    </div>
+    <AuthenticatedRoleAppShell user={user} headerTitle="Admin" secondaryNav={<AdminNav />}>
+      {children}
+    </AuthenticatedRoleAppShell>
   );
 }

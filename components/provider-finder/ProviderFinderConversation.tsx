@@ -1,5 +1,5 @@
 /**
- * @deprecated Provider Finder UI uses ProviderFinderAskPanel and POST /api/mapable/ask.
+ * @deprecated Use GuidedSearchDialogue via ProviderFinderAskPanel or header GuidedSearch.
  * Kept for Slack streaming via POST /api/provider-finder/chat.
  */
 "use client";

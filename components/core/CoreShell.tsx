@@ -1,20 +1,40 @@
 import { CoreFooter } from "@/components/core/CoreFooter";
-import { CoreHeader } from "@/components/core/CoreHeader";
-import { SkipToContent } from "@/components/core/SkipToContent";
+import { CoreHubNav } from "@/components/core/CoreHubNav";
+import { MapAbleUserBar } from "@/components/layout/MapAbleUserBar";
 import { PeersSiteHeader } from "@/components/mapable-peers/PeersSiteHeader";
+import { MapAbleAppShell } from "@/components/marketing/MapAbleAppShell";
+import { requireAuth } from "@/lib/auth/guards";
 import { isPeerPeersRequest } from "@/lib/mapable-peers/peers-request";
+import type { UserRole } from "@/types/mapable";
 
 export async function CoreShell({ children }: { children: React.ReactNode }) {
   const peerPeers = await isPeerPeersRequest();
 
+  if (peerPeers) {
+    return (
+      <div className="mapable-soft flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]">
+        <PeersSiteHeader />
+        <main id="main-content" className="flex-1">
+          {children}
+        </main>
+        <CoreFooter />
+      </div>
+    );
+  }
+
+  const user = await requireAuth();
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SkipToContent />
-      {peerPeers ? <PeersSiteHeader /> : <CoreHeader />}
-      <main id="main-content" className="flex-1">
-        {children}
-      </main>
-      <CoreFooter />
-    </div>
+    <MapAbleAppShell
+      variant="app"
+      headerTitle="Core hub"
+      logoHref="/dashboard"
+      headerActions={
+        <MapAbleUserBar userName={user.name} role={user.primaryRole as UserRole} />
+      }
+      secondaryNav={<CoreHubNav />}
+    >
+      {children}
+    </MapAbleAppShell>
   );
 }

@@ -32,6 +32,7 @@ export function oauthProviderFlagsFromNextAuthProviders(
     google: ids.has("google"),
     microsoft: ids.has("azure-ad"),
     facebook: ids.has("facebook"),
+    apple: ids.has("apple"),
   };
 }
 
@@ -54,7 +55,7 @@ export function OAuthSignInButtons({
   const [runtimeProviders, setRuntimeProviders] =
     useState<OAuthProviderFlags>(providers);
   const [pending, setPending] = useState<
-    "auth0" | "google" | "microsoft" | "facebook" | null
+    "auth0" | "google" | "microsoft" | "facebook" | "apple" | null
   >(null);
   const visibleProviders = publicOAuthProviderFlags(runtimeProviders);
 
@@ -90,13 +91,14 @@ export function OAuthSignInButtons({
     !visibleProviders.auth0 &&
     !visibleProviders.google &&
     !visibleProviders.microsoft &&
-    !visibleProviders.facebook
+    !visibleProviders.facebook &&
+    !visibleProviders.apple
   ) {
     return null;
   }
 
   const startOAuth = (
-    provider: "auth0" | "google" | "azure-ad" | "facebook",
+    provider: "auth0" | "google" | "azure-ad" | "facebook" | "apple",
   ) => {
     setPending(
       provider === "auth0"
@@ -105,7 +107,9 @@ export function OAuthSignInButtons({
           ? "google"
           : provider === "facebook"
             ? "facebook"
-            : "microsoft",
+            : provider === "apple"
+              ? "apple"
+              : "microsoft",
     );
     void signIn(provider, { callbackUrl });
   };
@@ -172,6 +176,21 @@ export function OAuthSignInButtons({
           {pending === "facebook"
             ? "Redirecting…"
             : getOAuthButtonLabel("Facebook", labelMode)}
+        </Button>
+      ) : null}
+      {visibleProviders.apple ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="default"
+          className={oauthButtonClass}
+          disabled={disabled || pending !== null}
+          loading={pending === "apple"}
+          onClick={() => startOAuth("apple")}
+        >
+          {pending === "apple"
+            ? "Redirecting…"
+            : getOAuthButtonLabel("Apple", labelMode)}
         </Button>
       ) : null}
     </div>

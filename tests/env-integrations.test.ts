@@ -25,6 +25,35 @@ describe("integration env validation", () => {
     expect(issues.length).toBe(0);
   });
 
+  it("enabled opensearch requires cluster credentials", () => {
+    const origEnabled = process.env.OPENSEARCH_ENABLED;
+    const origUrl = process.env.OPENSEARCH_URL;
+    const origUser = process.env.OPENSEARCH_USERNAME;
+    const origPass = process.env.OPENSEARCH_PASSWORD;
+
+    process.env.OPENSEARCH_ENABLED = "true";
+    delete process.env.OPENSEARCH_URL;
+    delete process.env.OPENSEARCH_USERNAME;
+    delete process.env.OPENSEARCH_PASSWORD;
+
+    const issues = validateIntegrationEnv().filter(
+      (i) => i.integrationKey === "opensearch",
+    );
+
+    restoreEnv("OPENSEARCH_ENABLED", origEnabled);
+    restoreEnv("OPENSEARCH_URL", origUrl);
+    restoreEnv("OPENSEARCH_USERNAME", origUser);
+    restoreEnv("OPENSEARCH_PASSWORD", origPass);
+
+    expect(issues.map((i) => i.variable)).toEqual(
+      expect.arrayContaining([
+        "OPENSEARCH_URL",
+        "OPENSEARCH_USERNAME",
+        "OPENSEARCH_PASSWORD",
+      ]),
+    );
+  });
+
   it("enabled stripe requires STRIPE_SECRET_KEY", () => {
     const origEnabled = process.env.STRIPE_ENABLED;
     const origKey = process.env.STRIPE_SECRET_KEY;

@@ -1,3 +1,5 @@
+import { getAppleClientSecret } from "@/lib/auth/apple-client-secret";
+import AppleProvider from "next-auth/providers/apple";
 import Auth0Provider from "next-auth/providers/auth0";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import FacebookProvider from "next-auth/providers/facebook";
@@ -9,6 +11,7 @@ export type OAuthProviderFlags = {
   google: boolean;
   microsoft: boolean;
   facebook: boolean;
+  apple: boolean;
 };
 
 function auth0ClientId(): string | undefined {
@@ -65,12 +68,32 @@ function envPresent(...keys: string[]): boolean {
   return keys.every((key) => Boolean(process.env[key]?.trim()));
 }
 
+function appleClientId(): string | undefined {
+  return (
+    process.env.APPLE_ID?.trim() ||
+    process.env.APPLE_CLIENT_ID?.trim() ||
+    undefined
+  );
+}
+
+function appleCredentialsPresent(): boolean {
+  const id = appleClientId();
+  if (!id) return false;
+  if (process.env.APPLE_SECRET?.trim()) return true;
+  return Boolean(
+    process.env.APPLE_TEAM_ID?.trim() &&
+      process.env.APPLE_KEY_ID?.trim() &&
+      process.env.APPLE_PRIVATE_KEY?.trim(),
+  );
+}
+
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   return {
     auth0: Boolean(auth0ClientId() && auth0ClientSecret() && auth0Issuer()),
     google: Boolean(googleClientId() && googleClientSecret()),
     microsoft: envPresent("AZURE_AD_CLIENT_ID", "AZURE_AD_CLIENT_SECRET"),
     facebook: Boolean(facebookClientId() && facebookClientSecret()),
+    apple: appleCredentialsPresent(),
   };
 }
 
@@ -124,6 +147,19 @@ export function buildOAuthProviders(): Provider[] {
         clientSecret: facebookClientSecret()!,
       }),
     );
+  }
+
+  if (flags.apple) {
+    const clientId = appleClientId()!;
+    const clientSecret = getAppleClientSecret(clientId);
+    if (clientSecret) {
+      providers.push(
+        AppleProvider({
+          clientId,
+          clientSecret,
+        }),
+      );
+    }
   }
 
   return providers;

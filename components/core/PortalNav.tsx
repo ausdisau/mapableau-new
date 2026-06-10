@@ -6,12 +6,11 @@ import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
-import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
 import {
-  mapableHeaderClass,
   mapableNavLinkActiveClass,
   mapableNavLinkClass,
   mapablePageContainerClass,
+  mapableRoleNavBarClass,
 } from "@/lib/brand/styles";
 
 export type PortalNavLink = {
@@ -54,13 +53,13 @@ export function PortalNav({
   ];
 
   return (
-    <header className={mapableHeaderClass}>
+    <nav aria-label={title} className={mapableRoleNavBarClass}>
       <div className={mapablePageContainerClass}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 py-3 sm:gap-4">
-          <MapAbleLogo href="/core" title="MapAble" subtitle={title} />
+          <p className="mapable-display hidden text-sm font-black text-[#005B7F] sm:block">{title}</p>
 
           <nav
-            className="hidden items-center gap-1 xl:flex"
+            className="hidden flex-1 items-center gap-1 xl:flex"
             aria-label={title}
           >
             <ul className="flex flex-wrap items-center justify-end gap-1">
@@ -136,6 +135,6 @@ export function PortalNav({
           </ul>
         </nav>
       ) : null}
-    </header>
+    </nav>
   );
 }

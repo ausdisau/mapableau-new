@@ -56,6 +56,8 @@ export function isIntegrationEnvEnabled(key: string): boolean {
     ndia: process.env.NDIA_READINESS_ENABLED,
     keycloak: process.env.KEYCLOAK_ENABLED,
     maplibre: process.env.MAP_INTEGRATION_ENABLED,
+    openstreetmap: process.env.OPENSTREETMAP_ENABLED,
+    opensearch: process.env.OPENSEARCH_ENABLED,
     supabase: process.env.SUPABASE_ENABLED,
     supabase_realtime: process.env.SUPABASE_REALTIME_ENABLED,
     socketio: process.env.SOCKETIO_ENABLED,
@@ -79,5 +81,6 @@ export function isIntegrationEnvEnabled(key: string): boolean {
   if (key === "livekit") return val === "livekit";
   if (key === "calcom") return val === "calcom";
   if (key === "maplibre") return val !== "false" && val !== undefined;
+  if (key === "openstreetmap") return val !== "false";
   return val === "true";
 }

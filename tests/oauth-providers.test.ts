@@ -23,6 +23,7 @@ describe("getConfiguredOAuthProviders", () => {
       google: false,
       microsoft: false,
       facebook: false,
+      apple: false,
     });
   });
 
@@ -42,6 +43,21 @@ describe("getConfiguredOAuthProviders", () => {
     expect(getConfiguredOAuthProviders().auth0).toBe(false);
     expect(getConfiguredOAuthProviders().microsoft).toBe(false);
     expect(getConfiguredOAuthProviders().facebook).toBe(false);
+    expect(getConfiguredOAuthProviders().apple).toBe(false);
+  });
+
+  it("detects Apple when Services ID and client secret JWT are present", async () => {
+    process.env = {
+      ...env,
+      APPLE_ID: "com.mapable.signin",
+      APPLE_SECRET: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.test",
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+    };
+    const { getConfiguredOAuthProviders, buildOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
+    expect(getConfiguredOAuthProviders().apple).toBe(true);
+    expect(buildOAuthProviders().some((p) => p.id === "apple")).toBe(true);
   });
 
   it("detects Auth0 when credentials and issuer are present", async () => {

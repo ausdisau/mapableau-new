@@ -10,8 +10,9 @@ import {
 } from "@/lib/provider-finder/ask-bridge";
 import type { PlanProviderFinderOptions } from "@/lib/copilot/plan-provider-finder";
 import {
-  needsProviderFinderClarification,
   buildClarificationQuestion,
+  enrichCopilotAgentMeta,
+  needsProviderFinderClarification,
 } from "@/lib/provider-finder/clarification";
 import { mergeAppliedFields } from "@/lib/provider-finder/merge-applied";
 import { runProviderFinderConversationTurn } from "@/lib/provider-finder/conversation/run-turn";
@@ -19,7 +20,11 @@ import { mergeProviderContextIntoQuery } from "@/lib/provider-finder/ask-bridge"
 import { buildFinderSearchParams } from "@/lib/search/apply-interpretation";
 import { searchProvidersForAppliedTurn } from "@/lib/provider-finder/ndis-search-from-applied";
 
+import { explainProvider } from "./tools/explain-provider";
+import { geocodeLocation } from "./tools/geocode-location";
 import {
+  TOOL_EXPLAIN_PROVIDER,
+  TOOL_GEOCODE_LOCATION,
   TOOL_INTERPRET_FINDER_QUERY,
   TOOL_SEARCH_NDIS_PROVIDERS,
 } from "./tools/index";
@@ -67,18 +72,22 @@ export async function runProviderFinderAgentTurn(
 
   if (needsProviderFinderClarification(convo.interpretation)) {
     const question = buildClarificationQuestion(convo.interpretation);
+    const agent = enrichCopilotAgentMeta(
+      {
+        sessionId,
+        turnIndex,
+        status: "needs_clarification",
+        clarificationQuestion: question,
+      },
+      convo.interpretation,
+    );
     return {
       interpretation: convo.interpretation,
       applied,
       replyText: question,
       searchParams: buildFinderSearchParams(applied),
       providerResults: [],
-      agent: {
-        sessionId,
-        turnIndex,
-        status: "needs_clarification",
-        clarificationQuestion: question,
-      },
+      agent,
       toolsCalled,
     };
   }
@@ -87,16 +96,40 @@ export async function runProviderFinderAgentTurn(
     toolsCalled.push(TOOL_SEARCH_NDIS_PROVIDERS);
   }
 
+  if (applied.location && toolsCalled.length < MAX_AGENT_STEPS) {
+    toolsCalled.push(TOOL_GEOCODE_LOCATION);
+    await geocodeLocation(applied.location);
+  }
+
   const providerResults = await searchProvidersForAppliedTurn(
     applied,
     convo.interpretation,
     { limit: searchAgentConfig.providerFinderResultsLimit },
   );
 
+  if (
+    applied.providerName &&
+    toolsCalled.length < MAX_AGENT_STEPS &&
+    !toolsCalled.includes(TOOL_EXPLAIN_PROVIDER)
+  ) {
+    toolsCalled.push(TOOL_EXPLAIN_PROVIDER);
+    await explainProvider({ providerName: applied.providerName });
+  }
+
   let replyText = convo.replyText;
   if (providerResults.length > 0) {
     replyText = `${convo.replyText} I found ${providerResults.length} listing${providerResults.length === 1 ? "" : "s"} in the NDIS directory export.`;
   }
+
+  const agent = enrichCopilotAgentMeta(
+    {
+      sessionId,
+      turnIndex,
+      status: "complete",
+    },
+    convo.interpretation,
+    providerResults,
+  );
 
   return {
     interpretation: convo.interpretation,
@@ -104,11 +137,7 @@ export async function runProviderFinderAgentTurn(
     replyText,
     searchParams: buildFinderSearchParams(applied),
     providerResults,
-    agent: {
-      sessionId,
-      turnIndex,
-      status: "complete",
-    },
+    agent,
     toolsCalled,
   };
 }

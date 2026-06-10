@@ -18,6 +18,8 @@ MapAble maps share types, GeoJSON builders, entity mappers, and MapLibre configu
 | `NEXT_PUBLIC_MAP_STYLE_URL` | MapLibre demo tiles | Shared map style |
 | `NEXT_PUBLIC_MAP_DEFAULT_LAT` / `LNG` / `ZOOM` | Sydney area | Default viewport |
 | `MAP_INTEGRATION_ENABLED` | enabled | MapLibre integration health |
+| `OPENSTREETMAP_ENABLED` | enabled | OpenStreetMap tiles + Nominatim integration |
+| `OSM_NOMINATIM_BASE_URL` | public Nominatim | Geocode API base (respect usage policy) |
 | `PROVIDER_FINDER_MAP_SOURCE` | `outlets` | `outlets` \| `ndis` \| `hybrid` map pins |
 | `PROVIDER_FINDER_MAP_PIN_LIMIT` | `500` | Max pins per map response |
 | `MAP_GEOCODING_NOMINATIM_ENABLED` | `false` | Server forward geocode fallback |

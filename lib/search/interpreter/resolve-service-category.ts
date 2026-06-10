@@ -1,3 +1,4 @@
+import { isOpenSearchConfigured } from "@/lib/config/opensearch";
 import { isElasticsearchCategorySearchConfigured } from "@/lib/config/search-interpreter";
 
 import {
@@ -5,13 +6,14 @@ import {
   type ServiceCategoryRow,
 } from "./load-categories";
 import { resolveServiceCategoryFromElasticsearch } from "./resolve-service-category-es";
+import { resolveServiceCategoryFromOpenSearch } from "./resolve-service-category-opensearch";
 import { scoreTextAgainstQuery } from "./score-text";
 
 export type ServiceCategoryResolution = {
   slug: string | null;
   id: string | null;
   confidence: number;
-  source: "llm_slug" | "elasticsearch" | "keyword" | "none";
+  source: "llm_slug" | "elasticsearch" | "opensearch" | "keyword" | "none";
 };
 
 const MIN_CONFIDENCE = 0.35;
@@ -36,17 +38,34 @@ export async function resolveServiceCategory(input: {
     }
   }
 
-  if (isElasticsearchCategorySearchConfigured() && combined.length >= 2) {
-    const esHit = await resolveServiceCategoryFromElasticsearch(combined);
-    if (esHit) {
-      const row = categories.find((c) => c.slug === esHit.slug);
-      if (row) {
-        return {
-          slug: row.slug,
-          id: row.id,
-          confidence: esHit.confidence,
-          source: "elasticsearch",
-        };
+  if (combined.length >= 2) {
+    if (isElasticsearchCategorySearchConfigured()) {
+      const esHit = await resolveServiceCategoryFromElasticsearch(combined);
+      if (esHit) {
+        const row = categories.find((c) => c.slug === esHit.slug);
+        if (row) {
+          return {
+            slug: row.slug,
+            id: row.id,
+            confidence: esHit.confidence,
+            source: "elasticsearch",
+          };
+        }
+      }
+    }
+
+    if (isOpenSearchConfigured()) {
+      const osHit = await resolveServiceCategoryFromOpenSearch(combined);
+      if (osHit) {
+        const row = categories.find((c) => c.slug === osHit.slug);
+        if (row) {
+          return {
+            slug: row.slug,
+            id: row.id,
+            confidence: osHit.confidence,
+            source: "opensearch",
+          };
+        }
       }
     }
   }
