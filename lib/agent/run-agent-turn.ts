@@ -10,8 +10,9 @@ import {
 } from "@/lib/provider-finder/ask-bridge";
 import type { PlanProviderFinderOptions } from "@/lib/copilot/plan-provider-finder";
 import {
-  needsProviderFinderClarification,
   buildClarificationQuestion,
+  enrichCopilotAgentMeta,
+  needsProviderFinderClarification,
 } from "@/lib/provider-finder/clarification";
 import { mergeAppliedFields } from "@/lib/provider-finder/merge-applied";
 import { runProviderFinderConversationTurn } from "@/lib/provider-finder/conversation/run-turn";
@@ -71,18 +72,22 @@ export async function runProviderFinderAgentTurn(
 
   if (needsProviderFinderClarification(convo.interpretation)) {
     const question = buildClarificationQuestion(convo.interpretation);
+    const agent = enrichCopilotAgentMeta(
+      {
+        sessionId,
+        turnIndex,
+        status: "needs_clarification",
+        clarificationQuestion: question,
+      },
+      convo.interpretation,
+    );
     return {
       interpretation: convo.interpretation,
       applied,
       replyText: question,
       searchParams: buildFinderSearchParams(applied),
       providerResults: [],
-      agent: {
-        sessionId,
-        turnIndex,
-        status: "needs_clarification",
-        clarificationQuestion: question,
-      },
+      agent,
       toolsCalled,
     };
   }
@@ -116,17 +121,23 @@ export async function runProviderFinderAgentTurn(
     replyText = `${convo.replyText} I found ${providerResults.length} listing${providerResults.length === 1 ? "" : "s"} in the NDIS directory export.`;
   }
 
+  const agent = enrichCopilotAgentMeta(
+    {
+      sessionId,
+      turnIndex,
+      status: "complete",
+    },
+    convo.interpretation,
+    providerResults,
+  );
+
   return {
     interpretation: convo.interpretation,
     applied,
     replyText,
     searchParams: buildFinderSearchParams(applied),
     providerResults,
-    agent: {
-      sessionId,
-      turnIndex,
-      status: "complete",
-    },
+    agent,
     toolsCalled,
   };
 }

@@ -15,7 +15,13 @@ import {
   type SponsoredPlacement,
   type SupportArea,
 } from "@/lib/marketing/mapable-care-combined-data";
-import { buildGuidedSearchUrl } from "@/lib/marketing/mapable-care-routes";
+import { GuidedSearchDialogue } from "@/components/guided-search/GuidedSearchDialogue";
+import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
+import { SUPPORT_TYPES } from "@/lib/provider-finder/filters";
+import {
+  buildGuidedSearchUrl,
+  supportAreaToSupportTypeId,
+} from "@/lib/marketing/mapable-care-routes";
 
 function useDismissOnOutsideAndEscape(
   open: boolean,
@@ -281,13 +287,28 @@ export function SponsoredCard({
   );
 }
 
+function serviceHintForArea(area: SupportArea): string {
+  const typeId = supportAreaToSupportTypeId(area === "All" ? null : area);
+  if (!typeId) return "";
+  return SUPPORT_TYPES.find((type) => type.id === typeId)?.label ?? "";
+}
+
 export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
   const router = useRouter();
   const searchId = `mapable-care-search-${idSuffix}`;
   const [query, setQuery] = useState("");
   const [selectedArea, setSelectedArea] = useState<SupportArea>("All");
   const [open, setOpen] = useState(false);
+  const [chatMode, setChatMode] = useState(false);
+  const [chatInitialMessage, setChatInitialMessage] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
+  const [dialogueSession, setDialogueSession] = useState<GuidedSearchSessionFields>({
+    query: "",
+    location: "",
+    providerName: "",
+    serviceQuery: "",
+    accessQuery: "",
+  });
   const searchRef = useRef<HTMLDivElement>(null);
   useDismissOnOutsideAndEscape(open, () => setOpen(false), searchRef);
   const suggestions = useMemo(() => getPredictiveSuggestions(query), [query]);
@@ -306,12 +327,35 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
     router.push(buildGuidedSearchUrl(nextQuery, selectedArea));
   }
 
+  function launchChat(nextQuery: string) {
+    const trimmed = nextQuery.trim();
+    if (trimmed.length < 3) {
+      runSearch(trimmed);
+      return;
+    }
+    const serviceHint = serviceHintForArea(selectedArea);
+    setDialogueSession({
+      query: trimmed,
+      location: "",
+      providerName: "",
+      serviceQuery: serviceHint,
+      accessQuery: "",
+    });
+    setChatInitialMessage(trimmed);
+    setChatMode(true);
+    setOpen(true);
+  }
+
   return (
     <div ref={searchRef} className="relative w-full max-w-2xl">
       <form
         onSubmit={(event) => {
           event.preventDefault();
           runSearch(query);
+          if (query.trim().length >= 3) {
+            launchChat(query);
+            return;
+          }
           navigateToFinder(query);
           setOpen(false);
         }}
@@ -330,7 +374,10 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
               setQuery(event.target.value);
               setOpen(true);
             }}
-            onFocus={() => setOpen(true)}
+            onFocus={() => {
+              setOpen(true);
+              if (!query.trim()) setChatMode(false);
+            }}
             placeholder="What support do you need today?"
             className="h-11 min-w-0 flex-1 bg-transparent text-sm font-bold text-[#0C1833] outline-none placeholder:text-slate-400"
           />
@@ -345,6 +392,36 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
       </form>
       {open && (
         <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-50 max-h-[80vh] overflow-auto rounded-[1.4rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/50">
+          {chatMode ? (
+            <div className="p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#005B7F]">
+                  Guided search
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatMode(false);
+                    setChatInitialMessage("");
+                  }}
+                  className="rounded-lg px-2 py-1 text-xs font-bold text-slate-500 transition hover:bg-slate-100"
+                >
+                  Back
+                </button>
+              </div>
+              <GuidedSearchDialogue
+                key={chatInitialMessage || "guided-search-chat"}
+                variant="compact"
+                showHeader={false}
+                session={dialogueSession}
+                onSessionChange={setDialogueSession}
+                initialMessage={chatInitialMessage}
+                onInterpretation={() => {}}
+                starterPrompts={suggestions.slice(0, 3)}
+              />
+            </div>
+          ) : (
+            <>
           <div className="border-b border-slate-100 p-3 sm:hidden">
             <div className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
               Support area
@@ -377,9 +454,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
                   type="button"
                   onClick={() => {
                     setQuery(prompt);
-                    runSearch(prompt);
-                    setOpen(false);
-                    router.push(buildGuidedSearchUrl(prompt, selectedArea));
+                    launchChat(prompt);
                   }}
                   className="rounded-xl px-3 py-3 text-left text-sm font-bold text-[#0C1833] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
                 >
@@ -405,6 +480,8 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
               <SponsoredCard placement={sponsoredSearchPlacement} compact />
             )}
           </div>
+            </>
+          )}
         </div>
       )}
     </div>

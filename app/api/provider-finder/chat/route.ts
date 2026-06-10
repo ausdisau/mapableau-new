@@ -1,6 +1,12 @@
 import { createUIMessageStreamResponse } from "ai";
 import type { UIMessage } from "ai";
 
+import {
+  appendProviderFinderTurn,
+  getProviderFinderSession,
+  priorAppliedFromSession,
+  touchProviderFinderSession,
+} from "@/lib/agent-sessions/provider-finder-session";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { isSearchInterpreterConfigured } from "@/lib/config/search-interpreter";
 import { runProviderFinderAskTurn } from "@/lib/provider-finder/ask-bridge";
@@ -8,7 +14,7 @@ import { extractLastUserText } from "@/lib/provider-finder/conversation/extract-
 import { createFinderChatResponseStream } from "@/lib/provider-finder/conversation/stream-assistant";
 import type { ProviderFinderChatUIMessage } from "@/types/provider-finder-chat";
 
-/** Streaming chat for Slack / legacy clients. Provider Finder UI uses `/api/mapable/ask`. */
+/** Streaming chat for guided search and Provider Finder dialogue. */
 export const maxDuration = 30;
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -26,6 +32,7 @@ export async function POST(request: Request) {
 
   let body: {
     messages?: ProviderFinderChatUIMessage[];
+    sessionId?: string;
     session?: {
       query?: string;
       location?: string;
@@ -48,14 +55,36 @@ export async function POST(request: Request) {
     return Response.json({ error: "Message is required" }, { status: 400 });
   }
 
+  const sessionId =
+    body.sessionId?.trim() || `finder-${Date.now()}`;
+  const formSession = {
+    query: body.session?.query ?? "",
+    location: body.session?.location ?? "",
+    providerName: body.session?.providerName ?? "",
+    serviceQuery: body.session?.serviceQuery ?? "",
+    accessQuery: body.session?.accessQuery ?? "",
+  };
+
   try {
-    const turn = await runProviderFinderAskTurn(userText, {
-      query: body.session?.query ?? "",
-      location: body.session?.location ?? "",
-      providerName: body.session?.providerName ?? "",
-      serviceQuery: body.session?.serviceQuery ?? "",
-      accessQuery: body.session?.accessQuery ?? "",
+    touchProviderFinderSession(sessionId);
+    const existing = getProviderFinderSession(sessionId);
+    const priorApplied = priorAppliedFromSession(sessionId, formSession);
+
+    const turn = await runProviderFinderAskTurn(userText, formSession, {
+      priorApplied,
+      agentSessionId: sessionId,
+      agentTurnIndex: existing?.turnIndex ?? 0,
     });
+
+    if (turn.agent) {
+      appendProviderFinderTurn(sessionId, {
+        userText,
+        assistantText: turn.replyText,
+        applied: turn.applied,
+        interpretation: turn.interpretation,
+        agent: turn.agent,
+      });
+    }
 
     const stream = createFinderChatResponseStream({
       turn,
