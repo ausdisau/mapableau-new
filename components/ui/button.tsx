@@ -67,6 +67,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...props}
       >
         {loading ? (
@@ -74,8 +75,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             <Loader2
               className="size-4 animate-spin"
               data-testid="button-loading-spinner"
+              aria-hidden="true"
             />
-            <span className="opacity-80">{children}</span>
+            <span className="sr-only">Loading</span>
+            <span className="opacity-80" aria-hidden="true">
+              {children}
+            </span>
           </>
         ) : (
           children

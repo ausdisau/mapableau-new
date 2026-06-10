@@ -6,6 +6,8 @@ import { cn } from "@/app/lib/utils";
 import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatusMessage } from "@/components/ui/StatusMessage";
+import { fetchJson } from "@/lib/client/fetch-json";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
 
 type AdminInvoice = {
@@ -24,16 +26,28 @@ export function AdminBillingClient() {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [flagged, setFlagged] = useState<AdminInvoice[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const search = useCallback(async () => {
     setLoading(true);
+    setSearchError(null);
     const params = new URLSearchParams();
     if (status) params.set("status", status);
-    const res = await fetch(`/api/admin/billing/invoices?${params}`);
-    const data = await res.json();
-    setInvoices(data.invoices ?? []);
-    setFlagged(data.flagged ?? []);
+    const result = await fetchJson<{
+      invoices?: AdminInvoice[];
+      flagged?: AdminInvoice[];
+    }>(`/api/admin/billing/invoices?${params}`);
     setLoading(false);
+    setHasSearched(true);
+    if (!result.ok) {
+      setSearchError(result.error);
+      setInvoices([]);
+      setFlagged([]);
+      return;
+    }
+    setInvoices(result.data.invoices ?? []);
+    setFlagged(result.data.flagged ?? []);
   }, [status]);
 
   return (
@@ -57,11 +71,19 @@ export function AdminBillingClient() {
               <option value="exported">Exported</option>
             </select>
           </div>
-          <Button type="button" variant="default" onClick={() => void search()} disabled={loading} size="lg">
+          <Button
+            type="button"
+            variant="default"
+            onClick={() => void search()}
+            loading={loading}
+            size="lg"
+          >
             Search invoices
           </Button>
         </CardContent>
       </Card>
+
+      {searchError ? <StatusMessage variant="error" message={searchError} /> : null}
 
       {flagged.length > 0 && (
         <section aria-labelledby="flagged-heading">
@@ -91,10 +113,15 @@ export function AdminBillingClient() {
         </section>
       )}
 
-      <section aria-labelledby="results-heading">
+      <section aria-labelledby="results-heading" aria-busy={loading || undefined}>
         <h2 id="results-heading" className="font-heading text-lg font-semibold">
           Results {loading ? "(loading…)" : `(${invoices.length})`}
         </h2>
+        {!hasSearched ? (
+          <p role="status" className="mt-4 text-sm text-muted-foreground">
+            Choose a status filter and search to load billing invoices.
+          </p>
+        ) : null}
         <div className={cn(mapableSectionCardClass, "mt-4 overflow-x-auto")}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <caption className="sr-only">Billing invoices</caption>

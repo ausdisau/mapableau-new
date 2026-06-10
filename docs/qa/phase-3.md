@@ -3,6 +3,8 @@
 ## Automated tests
 `pnpm test` — `tests/mapable-phase3.test.ts` covers permissions, vehicle warnings, adjustment privacy.
 
+Booking and billing UI conventions: `tests/booking-billing-ui-patterns.test.tsx` — see [booking-billing.md](./booking-billing.md).
+
 ## Manual checks
 1. Login as `participant@mapable.test` — create care request from `/care/request` or via Provider Finder **Request care** CTA (when outlet maps to a platform org), submit, confirm redirect to `/care/bookings` or `/dashboard/care/matches/[id]` when matching runs
 2. On `/care/bookings`, verify **Requests in progress** shows submitted requests awaiting assignment (not an empty page)

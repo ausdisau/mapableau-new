@@ -153,6 +153,7 @@ Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, St
 | Doc | Description |
 | --- | --- |
 | [docs/qa/phase-3.md](docs/qa/phase-3.md) | Phase 3 QA checklist |
+| [docs/qa/booking-billing.md](docs/qa/booking-billing.md) | Booking & billing accessibility QA |
 | [mobile-contracts/MOBILE_APP_ARCHITECTURE.md](mobile-contracts/MOBILE_APP_ARCHITECTURE.md) | Mobile architecture |
 | [mobile-contracts/MOBILE_SCREEN_MAP.md](mobile-contracts/MOBILE_SCREEN_MAP.md) | Mobile screen map |
 

@@ -6,24 +6,40 @@ import { useCallback, useEffect, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { BillingInvoiceCard } from "@/components/billing/BillingInvoiceCard";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { StatusMessage } from "@/components/ui/StatusMessage";
+import { fetchJson } from "@/lib/client/fetch-json";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
 
 type InvoiceRow = BillingInvoice & { fundingSource: BillingFundingSource | null };
 
+type StatusPayload = {
+  variant: "info" | "success" | "error";
+  message: string;
+};
+
 export function BillingInvoicesClient() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [busyInvoiceId, setBusyInvoiceId] = useState<string | null>(null);
+  const [portalBusy, setPortalBusy] = useState(false);
+  const [message, setMessage] = useState<StatusPayload | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/billing/invoices");
-    const data = await res.json();
-    setInvoices(data.invoices ?? []);
+    setLoadError(null);
+    const result = await fetchJson<{ invoices?: InvoiceRow[] }>(
+      "/api/billing/invoices",
+    );
     setLoading(false);
+    if (!result.ok) {
+      setLoadError(result.error);
+      setInvoices([]);
+      return;
+    }
+    setInvoices(result.data.invoices ?? []);
   }, []);
 
   useEffect(() => {
@@ -32,90 +48,130 @@ export function BillingInvoicesClient() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("checkout") === "success") {
-      setMessage(
-        "Payment submitted. Your invoice will show as paid once Stripe confirms the payment."
-      );
-    } else if (params.get("checkout") === "cancelled") {
-      setMessage("Checkout was cancelled. You can try again when ready.");
+    const checkout = params.get("checkout");
+    if (checkout === "success") {
+      setMessage({
+        variant: "success",
+        message:
+          "Payment submitted. Your invoice will show as paid once Stripe confirms the payment.",
+      });
+    } else if (checkout === "cancelled") {
+      setMessage({
+        variant: "info",
+        message: "Checkout was cancelled. You can try again when ready.",
+      });
+    }
+    if (checkout) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.pathname + url.search);
     }
   }, []);
 
   async function payNow(invoiceId: string) {
-    setBusy(true);
+    setBusyInvoiceId(invoiceId);
     setMessage(null);
-    const res = await fetch("/api/billing/checkout", {
+    const result = await fetchJson<{
+      checkoutUrl?: string;
+      checkout?: { instruction?: string };
+    }>("/api/billing/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ invoiceId }),
     });
-    const data = await res.json();
-    if (data.checkoutUrl) {
-      window.location.href = data.checkoutUrl;
+    if (result.ok && result.data.checkoutUrl) {
+      window.location.href = result.data.checkoutUrl;
       return;
     }
-    if (data.checkout?.instruction) {
-      setMessage(data.checkout.instruction);
-    } else if (data.error) {
-      setMessage(data.error);
+    if (result.ok && result.data.checkout?.instruction) {
+      setMessage({ variant: "info", message: result.data.checkout.instruction });
+    } else {
+      setMessage({
+        variant: "error",
+        message: result.ok ? "Checkout unavailable." : result.error,
+      });
     }
-    setBusy(false);
+    setBusyInvoiceId(null);
   }
 
   async function planManagerExport(invoiceId: string) {
-    setBusy(true);
-    const res = await fetch("/api/billing/invoices/export", {
+    setBusyInvoiceId(invoiceId);
+    const result = await fetchJson<{
+      payload?: { planManager?: { email?: string } };
+    }>("/api/billing/invoices/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ invoiceId, format: "plan_manager" }),
     });
-    const data = await res.json();
-    if (data.payload) {
-      setMessage(
-        `Ready for plan manager (${data.payload.planManager?.email ?? "add email in funding source"}).`
-      );
+    if (result.ok && result.data.payload) {
+      setMessage({
+        variant: "success",
+        message: `Ready for plan manager (${result.data.payload.planManager?.email ?? "add email in funding source"}).`,
+      });
+    } else {
+      setMessage({
+        variant: "error",
+        message: result.ok ? "Export could not be prepared." : result.error,
+      });
     }
-    setBusy(false);
+    setBusyInvoiceId(null);
     void load();
   }
 
   async function downloadCsv(invoiceId: string) {
-    setBusy(true);
-    const res = await fetch("/api/billing/invoices/export", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ invoiceId, format: "csv" }),
-    });
-    const data = await res.json();
-    if (data.content) {
-      const blob = new Blob([data.content], { type: "text/csv" });
+    setBusyInvoiceId(invoiceId);
+    const result = await fetchJson<{ content?: string }>(
+      "/api/billing/invoices/export",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId, format: "csv" }),
+      },
+    );
+    if (result.ok && result.data.content) {
+      const blob = new Blob([result.data.content], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `invoice-${invoiceId}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      setMessage({ variant: "success", message: "CSV downloaded." });
+    } else {
+      setMessage({
+        variant: "error",
+        message: result.ok ? "CSV export is unavailable." : result.error,
+      });
     }
-    setBusy(false);
+    setBusyInvoiceId(null);
     void load();
   }
 
   function viewStatus(invoice: InvoiceRow) {
-    setMessage(
-      `Payment status: ${invoice.status.replace(/_/g, " ")}. Paid only when confirmed by Stripe webhook.`
-    );
+    setMessage({
+      variant: "info",
+      message: `Payment status: ${invoice.status.replace(/_/g, " ")}. Paid only when confirmed by Stripe webhook.`,
+    });
   }
 
   async function openCustomerPortal() {
-    setBusy(true);
-    const res = await fetch("/api/billing/customer-portal", { method: "POST" });
-    const data = await res.json();
-    if (data.portalUrl) {
-      window.location.href = data.portalUrl;
+    setPortalBusy(true);
+    setMessage(null);
+    const result = await fetchJson<{ portalUrl?: string }>(
+      "/api/billing/customer-portal",
+      { method: "POST" },
+    );
+    if (result.ok && result.data.portalUrl) {
+      window.location.href = result.data.portalUrl;
       return;
     }
-    setMessage(data.error ?? "Billing portal is not available for your account.");
-    setBusy(false);
+    setMessage({
+      variant: "error",
+      message: result.ok
+        ? "Billing portal is not available for your account."
+        : result.error,
+    });
+    setPortalBusy(false);
   }
 
   return (
@@ -132,7 +188,7 @@ export function BillingInvoicesClient() {
           type="button"
           variant="outline"
           size="default"
-          disabled={busy}
+          loading={portalBusy}
           onClick={() => void openCustomerPortal()}
         >
           Manage payment methods
@@ -152,12 +208,16 @@ export function BillingInvoicesClient() {
         </p>
       </div>
 
+      {loadError ? (
+        <StatusMessage variant="error" message={loadError} />
+      ) : null}
+
       {message ? (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4 text-sm" role="status" aria-live="polite">
-            {message}
-          </CardContent>
-        </Card>
+        <StatusMessage
+          variant={message.variant}
+          message={message.message}
+          onDismiss={() => setMessage(null)}
+        />
       ) : null}
 
       {loading ? (
@@ -166,7 +226,7 @@ export function BillingInvoicesClient() {
         </p>
       ) : invoices.length === 0 ? (
         <Card variant="gradient">
-          <CardContent className="p-8 text-center text-muted-foreground">
+          <CardContent className="p-8 text-center text-muted-foreground" role="status">
             No invoices yet. Book a service or ask your provider to issue an
             invoice.
           </CardContent>
@@ -177,7 +237,7 @@ export function BillingInvoicesClient() {
             <li key={inv.id} className="space-y-2">
               <BillingInvoiceCard
                 invoice={inv}
-                busy={busy}
+                busy={busyInvoiceId === inv.id}
                 onPay={() => void payNow(inv.id)}
                 onPlanManager={() => void planManagerExport(inv.id)}
                 onDownload={() => void downloadCsv(inv.id)}
