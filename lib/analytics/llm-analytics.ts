@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { PostHog } from "posthog-node";
 
 let client: PostHog | null | undefined;
@@ -53,6 +54,23 @@ export function captureLlmGeneration(event: LlmGenerationCapture): void {
       ...event.metadata,
     },
   });
+
+  flushInBackground(posthog);
+}
+
+/**
+ * Drain queued events without blocking the response. On Vercel `after()` keeps
+ * the function alive until the flush resolves; outside a request scope (tests,
+ * scripts) it falls back to a best-effort fire-and-forget flush.
+ */
+function flushInBackground(posthog: PostHog): void {
+  try {
+    after(async () => {
+      await posthog.flush().catch(() => {});
+    });
+  } catch {
+    void posthog.flush().catch(() => {});
+  }
 }
 
 export function getLlmAnalyticsProvider(engineId: string): string {

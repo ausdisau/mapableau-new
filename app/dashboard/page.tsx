@@ -102,7 +102,7 @@ export default async function DashboardPage() {
               ? `${careBookingsCount} care booking(s)`
               : "Request disability supports and track service delivery"
           }
-          href="/care"
+          href="/care/bookings"
         />
         <DashboardCard
           title="Transport trips"

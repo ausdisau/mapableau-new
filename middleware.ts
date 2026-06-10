@@ -2,6 +2,7 @@ import { withAuth, type NextRequestWithAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 
+import { resolveNextAuthSecret } from "@/lib/auth/nextauth-env";
 import {
   handlePeerPeersHost,
   redirectLegacySquarePath,
@@ -10,6 +11,7 @@ import {
 
 const authMiddleware = withAuth({
   pages: { signIn: "/login" },
+  secret: resolveNextAuthSecret(),
 });
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {

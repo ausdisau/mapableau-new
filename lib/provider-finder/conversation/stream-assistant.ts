@@ -62,6 +62,24 @@ async function* tracedTextStream(
 ): AsyncGenerator<string> {
   const startedAt = Date.now();
   let outputLength = 0;
+  let captured = false;
+
+  const capture = (success: boolean, errorName?: string) => {
+    if (captured) return;
+    captured = true;
+    captureLlmGeneration({
+      traceName: options.traceName,
+      model: options.model,
+      provider: options.provider,
+      latencyMs: Date.now() - startedAt,
+      success,
+      errorName,
+      metadata: {
+        query_length: options.queryLength,
+        output_length: outputLength,
+      },
+    });
+  };
 
   try {
     for await (const delta of stream) {
@@ -69,31 +87,14 @@ async function* tracedTextStream(
       yield delta;
     }
 
-    captureLlmGeneration({
-      traceName: options.traceName,
-      model: options.model,
-      provider: options.provider,
-      latencyMs: Date.now() - startedAt,
-      success: true,
-      metadata: {
-        query_length: options.queryLength,
-        output_length: outputLength,
-      },
-    });
+    capture(true);
   } catch (error) {
-    captureLlmGeneration({
-      traceName: options.traceName,
-      model: options.model,
-      provider: options.provider,
-      latencyMs: Date.now() - startedAt,
-      success: false,
-      errorName: error instanceof Error ? error.name : "UnknownError",
-      metadata: {
-        query_length: options.queryLength,
-        output_length: outputLength,
-      },
-    });
+    capture(false, error instanceof Error ? error.name : "UnknownError");
     throw error;
+  } finally {
+    // Consumer break, client disconnect, or maxDuration cutoff closes the
+    // generator before completion; record the aborted generation once.
+    capture(false, "StreamAborted");
   }
 }
 

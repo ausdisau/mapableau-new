@@ -30,13 +30,9 @@ export const metadata: Metadata = {
   description:
     "MapAble helps people explore disability support, provider discovery, accessible transport, employment pathways and consent-aware service tools.",
   applicationName: "MapAble",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     siteName: "MapAble",
-    url: "/",
     title: "MapAble | Disability support platform",
     description:
       "Explore disability support, provider discovery, accessible transport and consent-aware service tools.",
