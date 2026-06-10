@@ -27,6 +27,7 @@ import {
   searchInterpretJsonError,
 } from "@/lib/search/search-interpret-api-contract";
 import { applyInterpretationToFields } from "@/lib/search/apply-interpretation";
+import type { SearchInterpretation } from "@/types/search";
 
 describe("search interpreter validation", () => {
   it("detects natural language queries", () => {
@@ -130,6 +131,36 @@ describe("supportTypeFromCategorySlug", () => {
 });
 
 describe("applyInterpretationToFields", () => {
+  it("handles missing filters and accessNeedIds without throwing", () => {
+    const applied = applyInterpretationToFields(
+      {
+        sourceQuery: "support near Sydney",
+        parsed: true,
+        configured: true,
+        serviceCategorySlug: null,
+        serviceCategoryId: null,
+        accessNeeds: { ids: [], confidence: 0, source: "none" },
+        confidence: 0.5,
+        engineId: "test",
+      } as unknown as SearchInterpretation,
+      {
+        query: "fallback query",
+        location: "Brisbane",
+        providerName: "Acme Care",
+        serviceQuery: "support worker",
+        accessQuery: "wheelchair",
+      },
+    );
+
+    expect(applied.query).toBe("support near Sydney");
+    expect(applied.location).toBe("Brisbane");
+    expect(applied.providerName).toBe("Acme Care");
+    expect(applied.serviceQuery).toBe("support worker");
+    expect(applied.accessQuery).toBe("wheelchair");
+    expect(applied.accessNeedIds).toEqual([]);
+    expect(applied.supportType).toBeNull();
+  });
+
   it("applies parsed filters and support type", () => {
     const applied = applyInterpretationToFields(
       {

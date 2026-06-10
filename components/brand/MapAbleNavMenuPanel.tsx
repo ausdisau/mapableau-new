@@ -75,11 +75,8 @@ export function MapAbleNavMenuPanel({
         )}
       >
         <div className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
-          <div className="flex min-w-0 items-center gap-2">
-            <MapAbleLogo href={logoHref} variant="mark" ariaLabel="MapAble home" />
-            <span className="truncate font-heading text-lg font-bold tracking-tight text-foreground">
-              MapAble
-            </span>
+          <div className="min-w-0">
+            <MapAbleLogo href={logoHref} variant="full" ariaLabel="MapAble home" />
           </div>
           <button
             ref={closeButtonRef}

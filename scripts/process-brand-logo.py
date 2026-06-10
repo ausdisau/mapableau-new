@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Remove grey/card background from MapAble logo PNG (run after replacing the source file)."""
+"""Remove grey/card background from legacy MapAble logo PNGs.
+
+Do not run on public/brand/mapable-logo.png — that file must stay the exact
+asset committed from GitHub.
+"""
 
 from __future__ import annotations
 

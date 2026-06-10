@@ -1,5 +1,6 @@
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { evaluateProviderOnboarding } from "@/lib/onboarding/onboarding-evaluator";
+import { evaluateProviderServiceReady } from "@/lib/onboarding/provider-service-ready";
 import { prisma } from "@/lib/prisma";
 
 const OPEN_CARE_REQUEST_STATUSES = [
@@ -24,6 +25,8 @@ export type ProviderOrgMetrics = {
   onboardingReady: boolean;
   onboardingBlockerCount: number;
   onboardingCompletenessScore: number;
+  serviceReady: boolean;
+  serviceReadyBlockerCount: number;
   workersTaskStatus: string | null;
 };
 
@@ -49,6 +52,7 @@ async function buildOrgMetrics(
     upcomingShifts7d,
     unassignedShifts72h,
     onboardingEvaluation,
+    serviceReadyEvaluation,
     workersTask,
   ] = await Promise.all([
     prisma.workerProfile.count({
@@ -89,6 +93,7 @@ async function buildOrgMetrics(
       },
     }),
     evaluateProviderOnboarding(organisationId),
+    evaluateProviderServiceReady(organisationId),
     prisma.providerOnboardingTask.findFirst({
       where: {
         taskKey: "workers",
@@ -99,6 +104,9 @@ async function buildOrgMetrics(
   ]);
 
   const onboardingBlockerCount = onboardingEvaluation.checklist.filter(
+    (item) => item.blocker && !item.complete
+  ).length;
+  const serviceReadyBlockerCount = serviceReadyEvaluation.checklist.filter(
     (item) => item.blocker && !item.complete
   ).length;
 
@@ -115,6 +123,8 @@ async function buildOrgMetrics(
     onboardingReady: onboardingEvaluation.readyToMatch,
     onboardingBlockerCount,
     onboardingCompletenessScore: onboardingEvaluation.profileCompletenessScore,
+    serviceReady: serviceReadyEvaluation.serviceReady,
+    serviceReadyBlockerCount,
     workersTaskStatus: workersTask?.status ?? null,
   };
 }

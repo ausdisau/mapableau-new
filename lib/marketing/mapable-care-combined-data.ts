@@ -72,24 +72,34 @@ export const logoMenuItems: MenuItem[] = [
     description: "Care, transport, jobs, places and guidance in one search.",
   },
   {
+    label: "Care",
+    href: "/care",
+    description: "Consent-aware support coordination for participants and providers.",
+  },
+  {
+    label: "Transport",
+    href: "/transport",
+    description: "Accessible trip requests with safety and eligibility checks.",
+  },
+  {
+    label: "Employment",
+    href: "/employment",
+    description: "Inclusive work pathways and workplace adjustment support.",
+  },
+  {
     label: "Accessible places",
     href: "/access",
     description: "Explore venues with access notes, quiet spaces and community guidance.",
   },
   {
     label: "List your service",
-    href: "/register",
+    href: "/for-providers",
     description: "Join MapAble as a support worker, provider or transport partner.",
   },
   {
-    label: "Provider console",
-    href: "/provider",
-    description: "Manage care, transport, workers and engagement for your organisation.",
-  },
-  {
     label: "Help Centre",
-    href: "/ask",
-    description: "Plain-language support for NDIS, bookings and accessibility.",
+    href: "/help",
+    description: "Support for pilot interest, privacy and access requests.",
   },
 ];
 
@@ -234,20 +244,21 @@ export const marketplaceCards: MarketplaceCard[] = [
 ];
 
 export const footerPlatformLinks: FooterLink[] = [
-  { label: "Find care", href: "/provider-finder?area=Care" },
-  { label: "Accessible transport", href: "/provider-finder?area=Transport" },
-  { label: "Inclusive jobs", href: "/provider-finder?area=Jobs" },
+  { label: "Care", href: "/care" },
+  { label: "Transport", href: "/transport" },
+  { label: "Employment", href: "/employment" },
+  { label: "Providers", href: "/providers" },
   { label: "Accessible places", href: "/access" },
   { label: "Provider finder", href: "/provider-finder" },
 ];
 
 export const footerResourceLinks: FooterLink[] = [
-  { label: "NDIS help", href: "/ask" },
-  { label: "Support Centre", href: "/dashboard/engagement" },
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Provider console", href: "/provider" },
-  { label: "List your service", href: "/register" },
+  { label: "Resources", href: "/resources" },
+  { label: "Help Centre", href: "/help" },
+  { label: "Register provider interest", href: "/for-providers" },
+  { label: "Contact", href: "/contact" },
   { label: "Privacy", href: "/privacy" },
+  { label: "Accessibility", href: "/accessibility-statement" },
 ];
 
 export const companyRegistrationDetails = {

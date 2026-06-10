@@ -8,6 +8,10 @@ vi.mock("@/lib/onboarding/onboarding-evaluator", () => ({
   evaluateProviderOnboarding: vi.fn(),
 }));
 
+vi.mock("@/lib/onboarding/provider-service-ready", () => ({
+  evaluateProviderServiceReady: vi.fn(),
+}));
+
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     organisationMember: {
@@ -35,6 +39,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { evaluateProviderOnboarding } from "@/lib/onboarding/onboarding-evaluator";
+import { evaluateProviderServiceReady } from "@/lib/onboarding/provider-service-ready";
 import { prisma } from "@/lib/prisma";
 
 describe("provider control panel", () => {
@@ -103,6 +108,22 @@ describe("provider control panel", () => {
         { id: "b", label: "B", complete: true, blocker: true },
       ],
     });
+    vi.mocked(evaluateProviderServiceReady).mockResolvedValue({
+      role: "provider",
+      profileCompletenessScore: 60,
+      readyToMatch: false,
+      serviceReady: false,
+      checklist: [
+        { id: "a", label: "A", complete: false, blocker: true },
+        { id: "b", label: "B", complete: true, blocker: true },
+        {
+          id: "verified_workers",
+          label: "At least one verified support worker",
+          complete: false,
+          blocker: true,
+        },
+      ],
+    });
     vi.mocked(prisma.providerOnboardingTask.findFirst).mockResolvedValue({
       status: "pending",
     } as never);
@@ -122,6 +143,8 @@ describe("provider control panel", () => {
       onboardingReady: false,
       onboardingBlockerCount: 1,
       onboardingCompletenessScore: 60,
+      serviceReady: false,
+      serviceReadyBlockerCount: 2,
       workersTaskStatus: "pending",
     });
   });

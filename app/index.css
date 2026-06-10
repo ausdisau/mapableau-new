@@ -33,9 +33,16 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 214 20% 88%;
-  --input: 214 20% 88%;
-  --ring: 46 94% 54%;
+  --border: 215 20% 90%;
+  --input: 215 20% 90%;
+  --ring: 215 100% 35%;
+
+  /* MapAble marketing palette (combined homepage + public pages) */
+  --mapable-brand: 196 100% 25%;
+  --mapable-brand-dark: 196 100% 20%;
+  --mapable-navy: 222 56% 12%;
+  --mapable-gold: 45 94% 54%;
+  --mapable-surface: 195 50% 98%;
 }
 
 .dark {

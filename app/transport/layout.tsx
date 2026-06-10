@@ -1,17 +1,9 @@
-import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
-import { TransportNav } from "@/components/layout/TransportNav";
-import { requirePermission } from "@/lib/auth/guards";
+import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
 
-export default async function TransportLayout({
+export default function TransportLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requirePermission("transport:read:self");
-
-  return (
-    <AuthenticatedRoleAppShell user={user} headerTitle="Transport" secondaryNav={<TransportNav />}>
-      {children}
-    </AuthenticatedRoleAppShell>
-  );
+  return <MapAbleCareMarketingShell>{children}</MapAbleCareMarketingShell>;
 }

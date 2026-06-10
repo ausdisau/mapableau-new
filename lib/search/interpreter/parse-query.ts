@@ -1,6 +1,13 @@
 import { generateObject } from "ai";
 
-import { isSearchInterpreterConfigured, searchInterpreterConfig } from "@/lib/config/search-interpreter";
+import {
+  captureLlmGeneration,
+  getLlmAnalyticsProvider,
+} from "@/lib/analytics/llm-analytics";
+import {
+  isSearchInterpreterConfigured,
+  searchInterpreterConfig,
+} from "@/lib/config/search-interpreter";
 import { ACCESS_NEEDS } from "@/lib/provider-finder/filters";
 import type { NaturalLanguageSearchFilters } from "@/types/search";
 
@@ -55,7 +62,9 @@ Examples:
 - "OT assessment with NDIS registration in Parramatta" → q=OT assessment, location=Parramatta, service=occupational therapy, serviceCategorySlug=occupational-therapy`;
 }
 
-export async function parseQueryWithLlm(query: string): Promise<ParseQueryResult> {
+export async function parseQueryWithLlm(
+  query: string,
+): Promise<ParseQueryResult> {
   const trimmed = query.trim();
   const engineId = getInterpreterEngineId();
 
@@ -76,29 +85,63 @@ export async function parseQueryWithLlm(query: string): Promise<ParseQueryResult
   }
 
   const system = await buildInterpreterSystemPrompt();
+  const startedAt = Date.now();
 
-  const { object } = await generateObject({
-    model: getInterpreterModel(),
-    schema: parseResultSchema,
-    system,
-    prompt: `Query: ${trimmed}`,
-    temperature: 0.1,
-  });
+  try {
+    const { object, usage } = await generateObject({
+      model: getInterpreterModel(),
+      schema: parseResultSchema,
+      system,
+      prompt: `Query: ${trimmed}`,
+      temperature: 0.1,
+    });
 
-  const normalized = normalizeNlFilters(object);
+    captureLlmGeneration({
+      traceName: "provider_search_parse",
+      model: searchInterpreterConfig.modelId,
+      provider: getLlmAnalyticsProvider(engineId),
+      latencyMs: Date.now() - startedAt,
+      success: true,
+      inputTokens: usage?.inputTokens,
+      outputTokens: usage?.outputTokens,
+      totalTokens: usage?.totalTokens,
+      metadata: {
+        query_length: trimmed.length,
+        engine_id: engineId,
+      },
+    });
 
-  if (!normalized.q && !normalized.location && !normalized.service) {
-    normalized.q = trimmed;
+    const normalized = normalizeNlFilters(object);
+
+    if (!normalized.q && !normalized.location && !normalized.service) {
+      normalized.q = trimmed;
+    }
+
+    return {
+      filters: normalized,
+      parsed: true,
+      engineId,
+    };
+  } catch (error) {
+    captureLlmGeneration({
+      traceName: "provider_search_parse",
+      model: searchInterpreterConfig.modelId,
+      provider: getLlmAnalyticsProvider(engineId),
+      latencyMs: Date.now() - startedAt,
+      success: false,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      metadata: {
+        query_length: trimmed.length,
+        engine_id: engineId,
+      },
+    });
+    throw error;
   }
-
-  return {
-    filters: normalized,
-    parsed: true,
-    engineId,
-  };
 }
 
-export async function parseQueryWithLlmSafe(query: string): Promise<ParseQueryResult> {
+export async function parseQueryWithLlmSafe(
+  query: string,
+): Promise<ParseQueryResult> {
   try {
     return await parseQueryWithLlm(query);
   } catch (err) {

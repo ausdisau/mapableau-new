@@ -10,12 +10,20 @@ Secrets are never printed by the check script.
 
 ## Core (required in production)
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | PostgreSQL connection (Prisma) |
-| `DIRECT_URL` | Direct connection for migrations (Neon) |
-| `NEXTAUTH_SECRET` | Session signing |
-| `NEXTAUTH_URL` | App base URL for auth callbacks |
+| Variable          | Purpose                                 |
+| ----------------- | --------------------------------------- |
+| `DATABASE_URL`    | PostgreSQL connection (Prisma)          |
+| `DIRECT_URL`      | Direct connection for migrations (Neon) |
+| `NEXTAUTH_SECRET` | Session signing (Production + Preview)        |
+| `MAPABLE_PREVIEW_AUTH_SECRET` | Optional Preview-only signing key (Preview env group) |
+| `NEXTAUTH_URL`    | App base URL for auth callbacks         |
+
+On **Vercel production**, `NEXTAUTH_SECRET` must be a stable private value of at least
+16 characters. There is **no repo fallback** on deployed production or preview builds.
+
+For **Vercel preview** deployments, set `NEXTAUTH_SECRET` or `MAPABLE_PREVIEW_AUTH_SECRET`
+in the Preview environment group. Local development may use the dev-only fallback when
+unset (see `lib/auth/nextauth-env.ts`).
 
 ## Optional integrations
 
@@ -98,6 +106,17 @@ LiveKit: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`
 - Supabase Realtime: `SUPABASE_REALTIME_ENABLED=true` + Supabase URL/keys
 - Socket.IO: `SOCKETIO_ENABLED=true`, `SOCKETIO_SERVER_URL`
 - Feature flag: `REALTIME_PROVIDER=supabase|socketio|polling`
+
+### Product and LLM analytics
+
+- `NEXT_PUBLIC_PRODUCT_ANALYTICS_ENABLED=false` by default.
+- `POSTHOG_API_KEY` enables server-side LLM generation capture.
+- `POSTHOG_HOST` defaults to `https://us.i.posthog.com`; use the EU host only
+  for an EU PostHog project.
+
+LLM analytics capture model, provider, latency, token counts where available and
+non-sensitive length/outcome metadata. Do not capture raw prompts or participant
+support details unless a privacy review explicitly approves it.
 
 ## Local development example
 

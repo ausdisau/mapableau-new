@@ -8,8 +8,6 @@ import {
 } from "@/lib/mapable-peers/peer-host";
 
 const AUTH_PREFIXES = [
-  "/care",
-  "/transport",
   "/dashboard",
   "/provider",
   "/worker",
@@ -18,9 +16,13 @@ const AUTH_PREFIXES = [
   "/practitioner",
 ] as const;
 
+const AUTH_PATHS = ["/care/", "/transport/"] as const;
+
 export function shouldRunAuthMiddleware(pathname: string): boolean {
-  return AUTH_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  return (
+    AUTH_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    ) || AUTH_PATHS.some((path) => pathname.startsWith(path))
   );
 }
 
@@ -42,12 +44,14 @@ export function handlePeerPeersHost(request: NextRequest): NextResponse | null {
   if (skipPeerMiddleware(pathname)) return null;
 
   if (pathname === "/peers" || pathname.startsWith("/peers/")) {
-    const stripped = pathname === "/peers" ? "/" : pathname.slice("/peers".length);
+    const stripped =
+      pathname === "/peers" ? "/" : pathname.slice("/peers".length);
     return NextResponse.redirect(new URL(stripped || "/", request.url));
   }
 
   if (pathname === "/square" || pathname.startsWith("/square/")) {
-    const stripped = pathname === "/square" ? "/" : pathname.slice("/square".length);
+    const stripped =
+      pathname === "/square" ? "/" : pathname.slice("/square".length);
     return NextResponse.redirect(new URL(stripped || "/", request.url));
   }
 
@@ -64,7 +68,9 @@ export function handlePeerPeersHost(request: NextRequest): NextResponse | null {
 }
 
 /** Redirect legacy /square URLs on the main app host. */
-export function redirectLegacySquarePath(request: NextRequest): NextResponse | null {
+export function redirectLegacySquarePath(
+  request: NextRequest,
+): NextResponse | null {
   if (isPeerPeersHostname(request.headers.get("host") ?? "")) return null;
 
   const { pathname } = request.nextUrl;
