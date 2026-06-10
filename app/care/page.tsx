@@ -1,106 +1,35 @@
-import Link from "next/link";
+import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 
-import { CareJourneyStrip } from "@/components/care/CareJourneyStrip";
-import { CareListCard } from "@/components/care/CareListCard";
-import { CorePageHeader } from "@/components/core/CorePageHeader";
-import { Button } from "@/components/ui/button";
-import { requirePermission } from "@/lib/auth/guards";
-import { prisma } from "@/lib/prisma";
+export const metadata = {
+  title: "MapAble Care | Disability support coordination",
+  description:
+    "Learn how MapAble Care will help participants request support, compare providers and keep consent-controlled records.",
+};
 
-export default async function CareHubPage() {
-  const user = await requirePermission("care:read:self");
-
-  const [requests, bookings] = await Promise.all([
-    prisma.careRequest.findMany({
-      where: { participantId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-    prisma.careBooking.findMany({
-      where: { participantId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: { organisation: { select: { name: true } } },
-    }),
-  ]);
-
+export default function CareHubPage() {
   return (
-    <div className="space-y-10">
-      <CorePageHeader
-        eyebrow="MapAble Care"
-        title="Find and manage your supports"
-        description="Describe what you need, review a draft plan, and track bookings — you stay in control before anything goes to providers."
-        className="border-0 pb-0"
-      />
-
-      <div className="flex flex-wrap gap-3">
-        <Button asChild variant="default" size="lg">
-          <Link href="/care/request">Describe what you need</Link>
-        </Button>
-        <Button asChild variant="outline" size="lg">
-          <Link href="/care/find">Find providers</Link>
-        </Button>
-        <Button asChild variant="secondary" size="default">
-          <Link href="/care/bookings">My bookings</Link>
-        </Button>
-      </div>
-
-      <CareJourneyStrip />
-
-      <section className="space-y-4" aria-labelledby="recent-bookings">
-        <div className="flex items-center justify-between gap-2">
-          <h2 id="recent-bookings" className="font-heading text-xl font-semibold">
-            Recent bookings
-          </h2>
-          <Link
-            href="/care/bookings"
-            className="text-sm font-medium text-primary hover:underline"
-          >
-            View all
-          </Link>
-        </div>
-        {bookings.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No bookings yet. Start by describing the support you need.
-          </p>
-        ) : (
-          <ul className="space-y-3">
-            {bookings.map((b) => (
-              <li key={b.id}>
-                <CareListCard
-                  href={`/care/bookings/${b.id}`}
-                  title={b.organisation.name}
-                  subtitle="Care booking"
-                  status={b.status}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="space-y-4" aria-labelledby="recent-requests">
-        <h2 id="recent-requests" className="font-heading text-xl font-semibold">
-          Recent requests
-        </h2>
-        {requests.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No requests yet.
-          </p>
-        ) : (
-          <ul className="space-y-3">
-            {requests.map((r) => (
-              <li key={r.id}>
-                <CareListCard
-                  title={r.title}
-                  subtitle={r.requestType.replace(/_/g, " ")}
-                  status={r.status}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+    <PublicModulePage
+      eyebrow="MapAble Care"
+      title="Find and manage disability support with consent at the centre."
+      description="MapAble Care is the care-support module for participants, nominees, providers and support coordinators. It is being shaped around verified providers, clear consent, service evidence and human-controlled decisions."
+      whoFor={[
+        "NDIS participants and families comparing support options.",
+        "Support coordinators helping participants organise services.",
+        "Providers preparing for safer intake, rostering and service logs.",
+      ]}
+      availableNow={[
+        "Public provider finder and access-needs search entry points.",
+        "Pilot-oriented explanation of the Care module and safety model.",
+        "Participant app links for signed-in users when invited to the pilot.",
+      ]}
+      comingSoon={[
+        "Consent-controlled support requests and provider responses.",
+        "Worker eligibility gates before assignment to high-risk supports.",
+        "Service logs, participant confirmation and dispute workflows.",
+      ]}
+      safetyNote="NDIS plan documents will be optional and shared only with consent. MapAble does not auto-approve supports, funding or invoices; high-risk decisions stay subject to human review."
+      primaryCta={{ label: "Explore provider finder", href: "/providers" }}
+      secondaryCta={{ label: "Join pilot", href: "/contact" }}
+    />
   );
 }

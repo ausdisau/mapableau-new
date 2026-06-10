@@ -49,6 +49,13 @@ module.exports = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        mapable: {
+          brand: "hsl(var(--mapable-brand))",
+          "brand-dark": "hsl(var(--mapable-brand-dark))",
+          navy: "hsl(var(--mapable-navy))",
+          gold: "hsl(var(--mapable-gold))",
+          surface: "hsl(var(--mapable-surface))",
+        },
       },
       fontFamily: {
         sans: ["var(--font-sans)", "Plus Jakarta Sans", "sans-serif"],

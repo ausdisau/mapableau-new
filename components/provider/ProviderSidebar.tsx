@@ -167,7 +167,7 @@ export default function ProviderSidebar({ provider }: ProviderSidebarProps) {
             className="border-primary/20 bg-primary/5 px-3 py-1 text-primary"
           >
             <ShieldCheck className="mr-1.5 h-4 w-4" />
-            NDIS Registered
+            NDIS registration details supplied
           </Badge>
         )}
         {provider.ndisNumber && (

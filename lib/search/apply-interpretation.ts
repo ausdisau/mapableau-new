@@ -23,7 +23,7 @@ export function applyInterpretationToFields(
     accessQuery: string;
   },
 ): AppliedSearchFields {
-  const { filters } = interpretation;
+  const filters = interpretation.filters ?? {};
 
   const query =
     filters.q ||
@@ -50,17 +50,22 @@ export function applyInterpretationToFields(
     serviceQuery,
     accessQuery,
     supportType,
-    accessNeedIds: interpretation.accessNeedIds,
+    accessNeedIds: interpretation.accessNeedIds ?? [],
   };
 }
 
-export function buildFinderSearchParams(fields: AppliedSearchFields): URLSearchParams {
+export function buildFinderSearchParams(
+  fields: AppliedSearchFields,
+): URLSearchParams {
   const params = new URLSearchParams();
   if (fields.query.trim()) params.set("q", fields.query.trim());
   if (fields.location.trim()) params.set("location", fields.location.trim());
-  if (fields.accessQuery.trim()) params.set("access", fields.accessQuery.trim());
-  if (fields.serviceQuery.trim()) params.set("service", fields.serviceQuery.trim());
-  if (fields.providerName.trim()) params.set("provider", fields.providerName.trim());
+  if (fields.accessQuery.trim())
+    params.set("access", fields.accessQuery.trim());
+  if (fields.serviceQuery.trim())
+    params.set("service", fields.serviceQuery.trim());
+  if (fields.providerName.trim())
+    params.set("provider", fields.providerName.trim());
   if (fields.supportType && fields.supportType !== "all") {
     params.set("supportType", fields.supportType);
   }

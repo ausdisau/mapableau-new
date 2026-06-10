@@ -1,7 +1,9 @@
+import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
+
 export default function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <MapAbleCareMarketingShell>{children}</MapAbleCareMarketingShell>;
 }

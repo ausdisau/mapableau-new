@@ -24,6 +24,17 @@ Open [http://localhost:3000](http://localhost:3000). Platform hub: [http://local
 
 Seed users (see [core phases — Phase 1](docs/mapable/core-phases.md#phase-1)): `participant@mapable.test`, `admin@mapable.test`.
 
+### Cursor cloud agent setup
+
+Before running build, type-check, lint or tests in a fresh cloud agent, install
+dependencies from the lockfile and generate Prisma Client:
+
+```bash
+pnpm setup:cloud-agent
+```
+
+This runs `pnpm install --frozen-lockfile` followed by `prisma generate`.
+
 ### Scripts
 
 | Command | Purpose |
@@ -34,6 +45,7 @@ Seed users (see [core phases — Phase 1](docs/mapable/core-phases.md#phase-1)):
 | `pnpm lint` / `pnpm lint:fix` | ESLint |
 | `pnpm type-check` | TypeScript |
 | `pnpm test` | Vitest |
+| `pnpm setup:cloud-agent` | Install locked dependencies and generate Prisma Client for cloud agents |
 | `pnpm check:integrations-env` | Validate optional integration env vars |
 
 ### Database

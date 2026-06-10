@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  isVercelPreviewDeployment,
+  isVercelProductionDeployment,
+} from "@/lib/auth/nextauth-env";
+
 const coreSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
@@ -149,7 +154,32 @@ export function validateCoreEnv(): EnvValidationIssue[] {
         message: "Required in production",
       });
     }
-    if (!process.env.NEXTAUTH_SECRET) {
+
+    const hasPrimarySecret = Boolean(process.env.NEXTAUTH_SECRET?.trim());
+    const hasPreviewSecret = Boolean(
+      process.env.MAPABLE_PREVIEW_AUTH_SECRET?.trim(),
+    );
+
+    if (isVercelProductionDeployment() && !hasPrimarySecret) {
+      issues.push({
+        variable: "NEXTAUTH_SECRET",
+        message: "Required on Vercel production deployments",
+      });
+    } else if (
+      isVercelPreviewDeployment() &&
+      !hasPrimarySecret &&
+      !hasPreviewSecret
+    ) {
+      issues.push({
+        variable: "NEXTAUTH_SECRET",
+        message:
+          "Required on Vercel preview (or set MAPABLE_PREVIEW_AUTH_SECRET in Preview env)",
+      });
+    } else if (
+      isProd &&
+      !isVercelPreviewDeployment() &&
+      !hasPrimarySecret
+    ) {
       issues.push({
         variable: "NEXTAUTH_SECRET",
         message: "Required in production",

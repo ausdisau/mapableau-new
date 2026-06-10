@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import React from "react";
@@ -62,11 +63,13 @@ describe("HomeSearch", () => {
         name: /use suggested search: support worker near st ives/i,
       }),
     );
-    const primary = screen.getByLabelText("Search for support") as HTMLInputElement;
+    const primary = screen.getByLabelText(
+      "Search for support",
+    ) as HTMLInputElement;
     expect(primary.value).toContain("Support worker near St Ives");
   });
 
-  it("submits expected query parameters to provider finder", () => {
+  it("submits expected query parameters to provider finder", async () => {
     render(<HomeSearch />);
     fireEvent.change(screen.getByLabelText("Search for support"), {
       target: { value: "occupational therapy" },
@@ -77,8 +80,10 @@ describe("HomeSearch", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /find matching providers/i }),
     );
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/provider-finder?"),
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringContaining("/provider-finder?"),
+      ),
     );
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toMatch(/q=occupational/);
@@ -89,7 +94,9 @@ describe("HomeSearch", () => {
 describe("SearchTrustRow", () => {
   it("lists trust items with text labels", () => {
     render(<SearchTrustRow />);
-    const list = screen.getByRole("list", { name: /how mapable search works/i });
+    const list = screen.getByRole("list", {
+      name: /how mapable search works/i,
+    });
     expect(within(list).getByText(/accessibility-first search/i)).toBeTruthy();
     expect(within(list).getByText(/ndis-aware filters/i)).toBeTruthy();
   });

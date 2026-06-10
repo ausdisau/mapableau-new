@@ -18,6 +18,7 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
+    "setup:cloud-agent": "bash scripts/setup-cloud-agent.sh",
     "mcp:av": "tsx mcp/av/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",
     "seed:ndis-service-delivery": "tsx prisma/seed-ndis-service-delivery.ts",
@@ -44,6 +45,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
     "@ai-sdk/react": "^3.0.198",
+    "@better-auth/infra": "^0.2.13",
     "@chat-adapter/slack": "^4.30.0",
     "@chat-adapter/state-memory": "^4.30.0",
     "@prisma/client": "6.19.2",
@@ -69,6 +71,7 @@
     "maplibre-gl": "^5.24.0",
     "next": "15.5.7",
     "next-auth": "^4.24.13",
+    "posthog-node": "^5.36.7",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-leaflet": "^5.0.0",
@@ -91,6 +94,7 @@
     "@typescript-eslint/eslint-plugin": "8.46.0",
     "@typescript-eslint/parser": "8.46.0",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.5.7",
     "eslint-config-prettier": "^10.1.8",
@@ -107,7 +111,6 @@
     "prisma": "6.19.2",
     "tsx": "^4.22.3",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4",
-    "dotenv": "^16.4.7"
+    "vitest": "^3.2.4"
   }
 }
