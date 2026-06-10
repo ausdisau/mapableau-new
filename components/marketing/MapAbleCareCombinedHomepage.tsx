@@ -6,23 +6,19 @@ import React, { type ReactNode } from "react";
 import { ArrowIcon, SearchIcon } from "@/components/marketing/mapable-care-icons";
 import { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 import { WavyText } from "@/components/marketing/MapAbleCareTypography";
+import { GuidedSearchPanel } from "@/components/marketing/home/GuidedSearchPanel";
+import { HeroSection } from "@/components/marketing/home/HeroSection";
+import { PersonaEntrySection } from "@/components/marketing/home/PersonaEntrySection";
 import {
-  GuidedSearch,
   MapAbleCareMarketingHeader,
-  ResultRow,
   SponsoredBadge,
   SponsoredCard,
 } from "@/components/marketing/mapable-care-shared";
 import {
   differenceCards,
   getSponsoredPlacement,
-  journeySteps,
   marketplaceCards,
-  sampleResults,
-  trustMetrics,
-  type SupportArea,
 } from "@/lib/marketing/mapable-care-combined-data";
-import { supportAreaLandingRoutes } from "@/lib/marketing/mapable-care-routes";
 
 export { mapAbleCareCombinedDesignTests } from "@/lib/marketing/mapable-care-combined-data";
 export { MapAbleCareMarketingTypography } from "@/components/marketing/MapAbleCareTypography";
@@ -62,186 +58,9 @@ function ShieldIcon() {
   );
 }
 
-const heroAreaPills: { label: string; area: SupportArea }[] = [
-  { label: "Care", area: "Care" },
-  { label: "Transport", area: "Transport" },
-  { label: "NDIS Help", area: "NDIS Help" },
-  { label: "Jobs", area: "Jobs" },
-  { label: "Access", area: "Places" },
-];
-
-function AreaPill({ label, area }: { label: string; area: SupportArea }) {
-  return (
-    <Link
-      href={supportAreaLandingRoutes[area]}
-      className="rounded-full bg-white/80 px-4 py-2 text-sm font-black text-[#005B7F] shadow-sm ring-1 ring-slate-200 transition hover:bg-white hover:ring-[#005B7F]/30 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-    >
-      {label}
-    </Link>
-  );
-}
-
-function TrustMetrics() {
-  return (
-    <section aria-label="MapAble proof points" className="border-y border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-4 px-5 py-5 md:grid-cols-3 lg:px-8">
-        {trustMetrics.map((metric) => (
-          <div key={metric.label} className="rounded-2xl bg-[#F6FBFC] p-5">
-            <p className="mapable-display text-4xl font-black tracking-[-0.06em] text-[#005B7F]">
-              {metric.value}
-            </p>
-            <p className="mt-2 text-sm font-bold leading-6 text-slate-600">{metric.label}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ProfilePreviewCard() {
-  return (
-    <article
-      aria-label="Example pathway preview — not live data"
-      className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-200/80"
-    >
-      <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-        Example pathway
-      </p>
-      <div className="rounded-[1.5rem] bg-[#005B7F] p-5 text-white">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">Guided care search</p>
-        <h2 className="mt-2 text-2xl font-black leading-[1.08] tracking-[-0.025em]">
-          <WavyText text="Tell us what you need." />
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-white/80">
-          We&apos;ll help turn it into a practical next step.
-        </p>
-      </div>
-      <div className="mt-4 grid gap-3">
-        <div className="rounded-2xl border border-slate-200 bg-[#F8C51C]/15 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#005B7F]">
-                Matched pathway
-              </p>
-              <h3 className="mt-1 text-lg font-black text-[#0C1833]">Care visit + accessible ride</h3>
-            </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#005B7F]">
-              Plan
-            </span>
-          </div>
-          <div className="mt-4 grid gap-2 text-sm text-slate-700">
-            <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2">
-              <span>Support worker</span>
-              <strong>shortlist</strong>
-            </div>
-            <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2">
-              <span>Transport buffer</span>
-              <strong>30 min</strong>
-            </div>
-            <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2">
-              <span>NDIS note</span>
-              <strong>ready</strong>
-            </div>
-          </div>
-        </div>
-        {sampleResults.slice(1, 3).map((result) => (
-          <ResultRow key={result.title} result={result} />
-        ))}
-      </div>
-    </article>
-  );
-}
-
-function Hero() {
-  return (
-    <section className="relative overflow-hidden bg-[#F6FBFC]">
-      <div className="absolute right-[-8rem] top-[-8rem] h-80 w-80 rounded-full bg-[#F8C51C]/30 blur-3xl" />
-      <div className="absolute bottom-[-10rem] left-[-8rem] h-96 w-96 rounded-full bg-[#00A979]/15 blur-3xl" />
-      <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[1fr_0.92fr] lg:px-8 lg:py-20">
-        <div>
-          <div className="mb-6 flex flex-wrap gap-2">
-            {heroAreaPills.map((pill) => (
-              <AreaPill key={pill.area} label={pill.label} area={pill.area} />
-            ))}
-          </div>
-          <h1 className="max-w-4xl text-5xl font-black leading-[0.96] tracking-[-0.045em] text-[#0C1833] md:text-7xl">
-            <WavyText text="Care and support, connected." />
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-            MapAble helps people with disability find, compare and connect with care, accessible
-            transport, inclusive opportunities and practical support in one friendly place.
-          </p>
-          <div className="mt-7 rounded-[1.7rem] border border-slate-200 bg-white p-3 shadow-xl shadow-slate-200/70 lg:max-w-2xl">
-            <GuidedSearch idSuffix="hero" />
-          </div>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/provider-finder"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#005B7F] px-6 py-4 text-base font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-            >
-              Find support <ArrowIcon />
-            </Link>
-            <a
-              href="#difference"
-              className="inline-flex items-center justify-center rounded-2xl border-2 border-[#0C1833] px-6 py-4 text-base font-black text-[#0C1833] transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-            >
-              Why MapAble is different
-            </a>
-          </div>
-          <p className="mt-5 text-sm font-semibold text-slate-500">
-            Compare options. Understand next steps. Connect with support that fits your life.
-          </p>
-        </div>
-        <ProfilePreviewCard />
-      </div>
-    </section>
-  );
-}
-
-function JourneyBuilder() {
-  return (
-    <section className="bg-[#0C1833] text-white">
-      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:px-8 lg:py-16">
-        <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#F8C51C]">
-            Guided support journey
-          </p>
-          <h2 className="mapable-display mt-3 text-4xl font-black leading-[1.02] tracking-[-0.055em] md:text-5xl">
-            One journey, not five separate searches.
-          </h2>
-          <p className="mt-4 text-base leading-8 text-white/75">
-            Competitors help you find support workers. MapAble makes the surrounding journey easier
-            too: transport, access notes, NDIS help and human support.
-          </p>
-          <Link
-            href="/provider-finder"
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F8C51C] px-6 py-4 text-base font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b318] focus:outline-none focus:ring-4 focus:ring-white/30"
-          >
-            Start searching <ArrowIcon />
-          </Link>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {journeySteps.map((step) => (
-            <article
-              key={step.number}
-              className="rounded-[1.5rem] border border-white/15 bg-white/10 p-5 backdrop-blur"
-            >
-              <p className="mapable-display text-3xl font-black tracking-[-0.05em] text-[#F8C51C]">
-                {step.number}
-              </p>
-              <h3 className="mt-4 text-lg font-black text-white">{step.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-white/72">{step.body}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function MarketplaceGrid() {
   return (
-    <section id="find-support" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
+    <section id="explore" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
       <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
         <div>
           <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
@@ -260,7 +79,7 @@ function MarketplaceGrid() {
             <Link
               key={card.title}
               href={card.href}
-              className="group rounded-[1.6rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-200/80 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+              className="group rounded-[1.6rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-200/80 motion-reduce:transform-none focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F8C51C]/25 text-xl">
@@ -389,13 +208,13 @@ function PartnerStrip() {
 export function MapAbleCareCombinedHomepageSections() {
   return (
     <>
-      <Hero />
-      <TrustMetrics />
-      <JourneyBuilder />
+      <HeroSection />
+      <GuidedSearchPanel />
+      <PersonaEntrySection />
       <MarketplaceGrid />
       <MapAbleDifference />
-      <PartnerStrip />
       <TrustAndSafetyBand />
+      <PartnerStrip />
     </>
   );
 }

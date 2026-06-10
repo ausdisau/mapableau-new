@@ -103,6 +103,107 @@ export const logoMenuItems: MenuItem[] = [
   },
 ];
 
+export const homepageHeroCopy = {
+  headline: "Care, transport and opportunity, connected.",
+  subheading:
+    "MapAble brings care, accessible transport, NDIS guidance, inclusive jobs and everyday access into one guided ecosystem — so you can compare options, plan next steps and connect with support that fits your life.",
+  primaryCta: "Start guided search",
+  secondaryCta: "Explore MapAble",
+};
+
+export const homepageCategoryChips = [
+  { label: "Care", href: "/provider-finder?area=Care" },
+  { label: "Transport", href: "/provider-finder?area=Transport" },
+  { label: "NDIS Guidance", href: "/ask" },
+  { label: "Jobs", href: "/provider-finder?area=Jobs" },
+  { label: "Access", href: "/access" },
+];
+
+export const homepageTrustStripItems = [
+  "Verified support options",
+  "Accessible-first design",
+  "NDIS-aware workflows",
+  "Built with lived experience",
+];
+
+export const guidedSearchPanelCopy = {
+  eyebrow: "Guided support search",
+  heading: "Build your support pathway",
+  intro:
+    "Describe what you need in plain language. MapAble will help you compare care, transport, funding and practical next steps in one guided conversation.",
+  inputLabel: "What support do you need?",
+  placeholder: "Example: I need transport to therapy",
+  submitLabel: "Search",
+  ctaLabel: "Start guided search",
+  previewHint:
+    "Your guided conversation will appear here once you start searching. Use the prompts above or type your own need.",
+};
+
+export const guidedSearchPromptChips = [
+  {
+    label: "Find a support worker",
+    prefill: "Find a support worker who understands wheelchair access",
+  },
+  {
+    label: "Book accessible transport",
+    prefill: "Accessible transport to an appointment tomorrow",
+  },
+  {
+    label: "Understand NDIS options",
+    prefill: "Help me understand NDIS transport funding",
+  },
+  {
+    label: "Find inclusive jobs",
+    prefill: "Remote jobs with flexible hours",
+  },
+];
+
+export const pathwayPreviewSteps = [
+  "Support worker shortlist",
+  "Accessible transport buffer",
+  "NDIS notes prepared",
+];
+
+export type PersonaEntry = {
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+};
+
+export const personaEntries: PersonaEntry[] = [
+  {
+    title: "I'm looking for support",
+    description: "Compare care, transport and practical help in one guided search.",
+    href: "/provider-finder",
+    cta: "Find support",
+  },
+  {
+    title: "I'm a carer or family member",
+    description: "Explore support workers and providers with clear access notes.",
+    href: "/provider-finder?area=Care",
+    cta: "Explore care options",
+  },
+  {
+    title: "I'm a support coordinator",
+    description: "Coordinate participant pathways with NDIS-aware guidance.",
+    href: "/support-coordinator",
+    cta: "Open coordinator tools",
+  },
+  {
+    title: "I'm a provider",
+    description: "List your service and connect with participants who need your support.",
+    href: "/for-providers",
+    cta: "List your service",
+  },
+  {
+    title: "I'm an employer",
+    description: "Build inclusive hiring pathways and workplace adjustment support.",
+    href: "/employment",
+    cta: "Explore employment",
+  },
+];
+
 export const quickPrompts = [
   "I need help getting to physio next Tuesday morning",
   "Find a support worker who understands wheelchair access",
@@ -311,7 +412,7 @@ export const mapAbleCareCombinedDesignTests = [
   },
   {
     name: "positioning uses combined care language",
-    expectedHeadline: "Care and support, connected.",
+    expectedHeadline: "Care, transport and opportunity, connected.",
   },
   {
     name: "support selector uses user-facing areas instead of agents",
@@ -338,12 +439,23 @@ export const mapAbleCareCombinedDesignTests = [
     expectedSponsoredPlacements: sponsoredPlacements.map((placement) => placement.placement),
   },
   {
-    name: "hero component is declared with valid function syntax",
-    expectedDeclaration: "function Hero()",
+    name: "hero section is extracted to dedicated component",
+    expectedDeclaration: "HeroSection",
   },
   {
-    name: "competitive redesign includes trust metrics and guided journey sections",
-    expectedSections: ["TrustMetrics", "JourneyBuilder", "MapAbleDifference", "MarketplaceGrid"],
+    name: "guided landing includes primary homepage sections",
+    expectedSections: [
+      "HeroSection",
+      "GuidedSearchPanel",
+      "PersonaEntrySection",
+      "MarketplaceGrid",
+      "MapAbleDifference",
+      "TrustAndSafetyBand",
+    ],
+  },
+  {
+    name: "homepage has single guided search panel anchor",
+    expectedGuidedSearchAnchor: "guided-search-panel",
   },
 ];
 

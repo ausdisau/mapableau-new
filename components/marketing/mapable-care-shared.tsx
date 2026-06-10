@@ -16,6 +16,7 @@ import {
   type SupportArea,
 } from "@/lib/marketing/mapable-care-combined-data";
 import { GuidedSearchDialogue } from "@/components/guided-search/GuidedSearchDialogue";
+import { MarketingPrimaryNav } from "@/components/marketing/home/MarketingPrimaryNav";
 import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
 import { SUPPORT_TYPES } from "@/lib/provider-finder/filters";
 import {
@@ -491,20 +492,8 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
 export function MapAbleCareMarketingHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4 lg:px-8">
-        <LogoMenu />
-        <div className="hidden justify-center lg:flex">
-          <GuidedSearch idSuffix="header" />
-        </div>
-        <div className="hidden items-center gap-3 md:flex">
-          <MarketingAuthLinks />
-        </div>
-      </div>
-      <div className="border-t border-slate-100 px-5 pb-4 lg:hidden">
-        <GuidedSearch idSuffix="header-mobile" />
-        <div className="mt-3 md:hidden">
-          <MarketingAuthLinks compact />
-        </div>
+      <div className="relative mx-auto max-w-7xl px-5 py-4 lg:px-8">
+        <MarketingPrimaryNav />
       </div>
     </header>
   );
