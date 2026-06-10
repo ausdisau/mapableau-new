@@ -1,4 +1,6 @@
+import { runBookingServicesAgentTurn } from "@/lib/agent/booking-services-agent";
 import { runProviderFinderTurnWithAgentFlag } from "@/lib/agent/run-agent-turn";
+import { shouldRouteToBookingAgent } from "@/lib/bookings/rag/copilot-route";
 import {
   DISABILITY_AGENT_OPERATIONS,
   disabilityAgentJsonError,
@@ -272,6 +274,67 @@ export async function POST(request: Request) {
         return apiForbidden(e.message);
       }
       throw e;
+    }
+
+    if (shouldRouteToBookingAgent(query)) {
+      try {
+        const bookingTurn = await runBookingServicesAgentTurn({
+          query,
+          sessionId,
+          user,
+        });
+
+        void createAgentRun({
+          agentType: "transport",
+          participantId: effectiveParticipantId,
+          inputSummary: { query: query.slice(0, 500) },
+          outputSummary: {
+            toolsCalled: bookingTurn.toolsCalled,
+            textLength: bookingTurn.text.length,
+          },
+          toolsCalled: bookingTurn.toolsCalled,
+          riskTier: "low",
+          humanReviewRequired: false,
+          actorUserId: user.id,
+        });
+
+        const bookingResponse: CopilotAskResponse = {
+          source: "mapable-copilot",
+          intent: "combined",
+          confidence: 0.92,
+          summary: "Booking lookup",
+          answer: bookingTurn.text,
+          filters: { bookingAgent: true, toolsCalled: bookingTurn.toolsCalled },
+          actions: [],
+          draftRecords: [],
+          requiredConfirmations: [],
+          warnings: [],
+          blockedActions: [],
+          results: [],
+          suggestedPrompts: [
+            "When is my next care visit?",
+            "Status of my transport booking",
+            "Show pending bookings this week",
+          ],
+          agent: {
+            sessionId: bookingTurn.sessionId,
+            turnIndex: 0,
+            status: "complete",
+          },
+        };
+
+        return disabilityAgentJsonOk(OPERATION, {
+          ...bookingResponse,
+          operationId: OPERATION,
+        });
+      } catch (err) {
+        console.error("[mapable-ask-booking-agent]", err);
+        return disabilityAgentJsonError(OPERATION, 502, {
+          error: "Booking agent turn failed.",
+          code: "UPSTREAM_ERROR",
+          retryable: true,
+        });
+      }
     }
 
     const intent = classifyIntent(query, mode, {

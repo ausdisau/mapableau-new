@@ -5,6 +5,8 @@ export const DISABILITY_AGENT_OPERATIONS = {
   mapableAskQuery: "mapableAskQuery",
   ndisProviderSearch: "ndisProviderSearch",
   disabilityServicesAgentTurn: "disabilityServicesAgentTurn",
+  bookingServicesAgentTurn: "bookingServicesAgentTurn",
+  searchBookings: "searchBookings",
 } as const;
 
 export type DisabilityAgentOperationId =
