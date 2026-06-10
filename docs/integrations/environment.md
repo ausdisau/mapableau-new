@@ -14,13 +14,16 @@ Secrets are never printed by the check script.
 | ----------------- | --------------------------------------- |
 | `DATABASE_URL`    | PostgreSQL connection (Prisma)          |
 | `DIRECT_URL`      | Direct connection for migrations (Neon) |
-| `NEXTAUTH_SECRET` | Session signing                         |
+| `NEXTAUTH_SECRET` | Session signing (Production + Preview)        |
+| `MAPABLE_PREVIEW_AUTH_SECRET` | Optional Preview-only signing key (Preview env group) |
 | `NEXTAUTH_URL`    | App base URL for auth callbacks         |
 
-`NEXTAUTH_SECRET` must be a stable, private value of at least 16 characters in
-production. The app has an emergency fallback so `/api/auth/session` and
-`/api/auth/providers` do not crash during misconfiguration, but that fallback is
-not an acceptable production secret and will emit a critical server log.
+On **Vercel production**, `NEXTAUTH_SECRET` must be a stable private value of at least
+16 characters. There is **no repo fallback** on deployed production or preview builds.
+
+For **Vercel preview** deployments, set `NEXTAUTH_SECRET` or `MAPABLE_PREVIEW_AUTH_SECRET`
+in the Preview environment group. Local development may use the dev-only fallback when
+unset (see `lib/auth/nextauth-env.ts`).
 
 ## Optional integrations
 

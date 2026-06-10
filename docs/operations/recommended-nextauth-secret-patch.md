@@ -1,64 +1,37 @@
-# Recommended patch: production NextAuth secret handling (finding #1)
+# NextAuth secret policy (finding #1) — option C implemented
 
-## Problem
+## Policy
 
-`lib/auth/nextauth-env.ts` currently returns a hardcoded `FALLBACK_SECRET` in production when
-`NEXTAUTH_SECRET` is missing. That secret is in the repository, so anyone can forge session JWTs,
-password-reset tokens, and 2FA tokens if production is misconfigured.
+MapAble uses a **hybrid** auth secret policy:
 
-## Recommended policy
+| Environment | Behavior |
+| --- | --- |
+| **Vercel production** (`VERCEL_ENV=production`) | Fail closed. `NEXTAUTH_SECRET` (min 16 chars) is required. No repo fallback. |
+| **Vercel preview** (`VERCEL_ENV=preview`) | Fail closed unless a **platform-injected** preview secret is set: `NEXTAUTH_SECRET` or `MAPABLE_PREVIEW_AUTH_SECRET` in the Vercel **Preview** env group. |
+| **Local development / tests** | Dev-only fallback so `/api/auth/*` stays usable without Vercel env. Not used on deployed builds. |
+| **Other production hosts** | Fail closed unless `NEXTAUTH_SECRET` is configured. |
 
-**Fail closed in production.** Do not sign tokens with a repo-known secret. Keep the dev fallback
-only for local development and tests.
+## Vercel setup
 
-## Proposed code change
+1. **Production** — set `NEXTAUTH_SECRET` (32+ random bytes) in the Production environment.
+2. **Preview** — set either:
+   - `NEXTAUTH_SECRET` scoped to Preview, or
+   - `MAPABLE_PREVIEW_AUTH_SECRET` scoped to Preview (dedicated preview signing key)
 
-Replace the production branch in `resolveNextAuthSecret()` with:
+Never commit preview/production secrets to the repository.
 
-```typescript
-if (process.env.NODE_ENV === "production") {
-  console.error(
-    "[auth] CRITICAL: NEXTAUTH_SECRET is missing or shorter than 16 characters. Auth is disabled until configured.",
-  );
-  return undefined;
-}
-```
+## Runtime behavior when misconfigured
 
-Then update NextAuth configuration and middleware to treat a missing secret as a configuration
-error:
+- `resolveNextAuthSecret()` returns `undefined` on deployed production/preview without a valid secret.
+- Guarded routes return **503** with `AUTH_SECRET_MISSING` (middleware).
+- Password reset signing returns `null`; 2FA token helpers throw if invoked without a secret.
+- NextAuth `authOptions.secret` is `undefined`, so session issuance is blocked.
 
-1. **`pages/api/auth/[...nextauth].ts` (or auth route handler)** — pass `secret: resolveNextAuthSecret()`.
-   NextAuth will refuse to issue sessions when `secret` is undefined.
-2. **`middleware.ts`** — if `resolveNextAuthSecret()` is undefined, skip `withAuth` and return a
-   503 JSON/HTML configuration error for guarded routes instead of accepting forged cookies.
-3. **Remove or gate the production fallback test** in `tests/resolve-nextauth-secret.test.ts` so CI
-   fails if production would boot without a real secret.
-
-## Deployment guard (recommended)
-
-Add a preflight check to `scripts/check-integrations-env.ts` or Vercel build:
+## Verification
 
 ```bash
-if [ "$NODE_ENV" = "production" ] && [ -z "$NEXTAUTH_SECRET" ]; then
-  echo "NEXTAUTH_SECRET must be set in production" >&2
-  exit 1
-fi
+pnpm check:integrations-env   # validates env by deployment tier
+pnpm test tests/resolve-nextauth-secret.test.ts
 ```
 
-## Trade-off
-
-| Approach | Availability | Security |
-| --- | --- | --- |
-| Current fallback secret | Auth endpoints stay up | Forgeable tokens if env missing |
-| Recommended fail-closed | `/api/auth/*` and guarded routes error until fixed | No forgeable production tokens |
-
-## Approval needed
-
-This is a product/ops decision. Choose one:
-
-- **A. Fail closed (recommended)** — apply the patch above and block deploy without `NEXTAUTH_SECRET`.
-- **B. Keep fallback temporarily** — document incident response and set a deadline to remove the fallback.
-- **C. Hybrid** — fail closed on Vercel production, keep fallback only in preview/staging with a
-  non-repo secret injected by the platform.
-
-No code change for option **A** should ship until you confirm which policy you want.
+Implemented in `lib/auth/nextauth-env.ts` and `middleware.ts`.
