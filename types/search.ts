@@ -63,11 +63,18 @@ export type SuggestionSourceCounts = {
   popularSearches: number;
 };
 
+export type LocationSearchDiagnostics = {
+  auspostConfigured: boolean;
+  auspostLocationSearch: boolean;
+};
+
 export type SuggestionResultMeta = {
   mode: SuggestionMode;
   degraded: boolean;
   degradedReason?: string;
   sourceCounts?: SuggestionSourceCounts;
+  /** Present on location-field autocomplete when suburb enrichment may apply. */
+  locationDiagnostics?: LocationSearchDiagnostics;
 };
 
 export type PredictiveSuggestionResult = {

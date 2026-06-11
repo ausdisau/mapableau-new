@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import {
+  isAuspostPacConfigured,
+  isAuspostPacLocationSearchAvailable,
+} from "@/lib/config/auspost-pac";
 import { searchAutocompleteWithMeta } from "@/lib/search/autocomplete-service";
 import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
 
@@ -72,8 +76,19 @@ export async function GET(request: Request) {
     signals: parsed.data.signals,
   });
 
+  const responseMeta =
+    parsed.data.field === "location"
+      ? {
+          ...meta,
+          locationDiagnostics: {
+            auspostConfigured: isAuspostPacConfigured(),
+            auspostLocationSearch: isAuspostPacLocationSearchAvailable(),
+          },
+        }
+      : meta;
+
   return NextResponse.json(
-    { groups, meta },
+    { groups, meta: responseMeta },
     {
       headers: {
         "Cache-Control":
