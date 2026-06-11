@@ -107,6 +107,10 @@ export type Permission =
   | "accessibility_map:read"
   | "accessibility_map:manage"
   | "coordinator:portal"
+  | "coordinate:portal"
+  | "coordinate:participant"
+  | "coordinate:review"
+  | "coordinate:audit:read"
   | "plan_manager:portal"
   | "employer:ats"
   | "reporting:manage"
@@ -231,6 +235,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "coordinate:participant",
   ],
   family_member: [
     "profile:read:self",
@@ -239,12 +244,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "notification:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "coordinate:participant",
   ],
   support_coordinator: [
     "profile:read:any",
     "booking:read:any",
     "notification:read:self",
     "coordinator:portal",
+    "coordinate:portal",
+    "coordinate:review",
+    "coordinate:audit:read",
     "document:read",
     "invoice:read:self",
     "case:read:any",
@@ -327,6 +336,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:any",
     "case:manage:self",
     "case:ai:run",
+    "coordinate:review",
     "admin:command-centre:read",
     "admin:billing:read",
     "admin:bookings:read",
@@ -461,6 +471,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:compliance:read",
     "admin:agent-runs:read",
     "admin:actions:write",
+    "coordinate:portal",
+    "coordinate:review",
+    "coordinate:audit:read",
   ],
 };
 

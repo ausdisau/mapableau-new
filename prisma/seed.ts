@@ -382,6 +382,9 @@ async function main() {
   const { seedMapAbleCore } = await import("./seed-mapable-core");
   await seedMapAbleCore();
 
+  const { seedMapAbleCoordinate } = await import("./seed-mapable-coordinate");
+  await seedMapAbleCoordinate();
+
   const { seedMapAblePhase2 } = await import("./seed-mapable-phase2");
   await seedMapAblePhase2();
 
