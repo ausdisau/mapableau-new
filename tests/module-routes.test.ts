@@ -10,6 +10,7 @@ const ROUTE_FILES: Record<string, string[]> = {
   "/moves": ["app/moves/page.tsx"],
   "/marketplace": ["app/marketplace/page.tsx"],
   "/kids": ["app/kids/page.tsx"],
+  "/abilitypay": ["app/abilitypay/page.tsx"],
 };
 
 describe("MapAble module registry routes", () => {

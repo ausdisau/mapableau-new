@@ -38,6 +38,10 @@ export const moduleIcons: Record<string, ModuleIcons> = {
     "3d": "/icons/marketplace-3d.png",
   },
   kids: { organic: "/icons/kids-organic.png", "3d": "/icons/kids-3d.png" },
+  abilitypay: {
+    organic: "/icons/main-organic.png",
+    "3d": "/icons/main-3d.png",
+  },
 };
 
 export function getModuleIcon(
@@ -154,6 +158,25 @@ export const modules: MapAbleModule[] = [
       "Daily Living",
       "Sensory Products",
       "NDIS Approved",
+    ],
+  },
+  {
+    key: "abilitypay",
+    name: "AbilityPay",
+    shortName: "AbilityPay",
+    tagline: "Plan & invoice control",
+    description:
+      "Accessible NDIS plan management, invoice review, and human-only approvals",
+    logo: moduleIcons.abilitypay.organic,
+    icons: moduleIcons.abilitypay,
+    color: "#0D9488",
+    gradient: "from-teal-500 to-cyan-600",
+    href: "/abilitypay",
+    features: [
+      "Plan wallet",
+      "Invoice inbox",
+      "Price guard",
+      "Human approvals",
     ],
   },
   {

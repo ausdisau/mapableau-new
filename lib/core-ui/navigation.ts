@@ -113,6 +113,11 @@ export const CORE_HUB_SECTIONS: {
         description: "Support workers, bookings and service logs",
       },
       { href: "/dashboard/billing", label: "Billing centre" },
+      {
+        href: "/abilitypay",
+        label: "AbilityPay",
+        description: "NDIS plan budgets, invoice review and approvals",
+      },
       { href: "/dashboard/safety", label: "Safety centre" },
       {
         href: "/transport",
