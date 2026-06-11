@@ -134,7 +134,10 @@ export const guidedSearchPanelCopy = {
   inputLabel: "What support do you need?",
   placeholder: "Example: I need transport to therapy",
   submitLabel: "Search",
-  ctaLabel: "Start guided search",
+  ctaLabel: "Search providers",
+  chatLinkLabel: "Continue in guided chat",
+  finderHandoffHint:
+    "Search opens the provider finder with your words pre-filled. Prefer a conversation? Use guided chat instead.",
   previewHint:
     "Your guided conversation will appear here once you start searching. Use the prompts above or type your own need.",
 };
@@ -351,6 +354,7 @@ export const footerPlatformLinks: FooterLink[] = [
   { label: "Providers", href: "/providers" },
   { label: "Accessible places", href: "/access" },
   { label: "Provider finder", href: "/provider-finder" },
+  { label: "Donate", href: "/donate" },
 ];
 
 export const footerResourceLinks: FooterLink[] = [
