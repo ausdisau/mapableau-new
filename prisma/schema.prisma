@@ -100,6 +100,7 @@ model User {
   attestationsAsActor       Attestation[]      @relation("AttestationActor")
   timesheetsAsParticipant   Timesheet[]        @relation("TimesheetParticipant")
 
+  donations                 Donation[]
   billingAccounts           BillingAccount[]       @relation("BillingAccounts")
   billingFundingSources     BillingFundingSource[] @relation("BillingFundingSources")
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
@@ -3119,7 +3120,36 @@ enum StripePaymentPurpose {
   participant_copay
   provider_subscription
   employer_subscription
+  donation
   other
+}
+
+enum DonationStatus {
+  pending
+  paid
+  failed
+  cancelled
+}
+
+model Donation {
+  id                      String         @id @default(cuid())
+  amountCents             Int
+  currency                String         @default("AUD")
+  status                  DonationStatus @default(pending)
+  donorEmail              String?
+  donorName               String?
+  message                 String?
+  userId                  String?
+  stripeCheckoutSessionId String?        @unique
+  stripePaymentIntentId   String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  paidAt                  DateTime?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([userId])
 }
 
 model StripeCheckoutSessionRecord {

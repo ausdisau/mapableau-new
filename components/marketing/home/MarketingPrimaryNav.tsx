@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 import { LogoMark } from "@/components/marketing/mapable-care-shared";
-import { MAPABLE_DONATION_URL } from "@/lib/brand/constants";
+import { isInternalDonationUrl, MAPABLE_DONATION_URL } from "@/lib/brand/constants";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import { marketingFeatureRoutes } from "@/lib/marketing/mapable-care-routes";
 
@@ -44,6 +44,14 @@ function DonateHeaderLink({ compact = false }: { compact?: boolean }) {
   const className = compact
     ? `inline-flex min-h-11 items-center justify-center rounded-xl bg-[#F8C51C] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] ${mapableCareFocusRing}`
     : `inline-flex min-h-11 items-center rounded-xl bg-[#F8C51C] px-4 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] md:px-5 ${mapableCareFocusRing}`;
+
+  if (isInternalDonationUrl(MAPABLE_DONATION_URL)) {
+    return (
+      <Link href={MAPABLE_DONATION_URL} className={className}>
+        Donate
+      </Link>
+    );
+  }
 
   return (
     <a href={MAPABLE_DONATION_URL} target="_blank" rel="noopener noreferrer" className={className}>

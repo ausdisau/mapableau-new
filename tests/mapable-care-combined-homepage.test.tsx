@@ -166,11 +166,10 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(searchInput.value).toBe("");
   });
 
-  it("renders a header donate link to Australian Disability", () => {
+  it("renders a header donate link to the internal donate page", () => {
     const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://www.ausdis.au/shop");
-    expect(donate.getAttribute("target")).toBe("_blank");
-    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(donate.getAttribute("href")).toBe("/donate");
+    expect(donate.getAttribute("target")).toBeNull();
   });
 
   it("renders category chips and marketplace section", () => {

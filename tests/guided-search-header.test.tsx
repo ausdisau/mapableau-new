@@ -50,12 +50,11 @@ describe("MapAbleCareMarketingHeader", () => {
     );
   });
 
-  it("renders donate link to Australian Disability", () => {
+  it("renders donate link to internal donate page", () => {
     render(<MapAbleCareMarketingHeader />);
 
     const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://www.ausdis.au/shop");
-    expect(donate.getAttribute("target")).toBe("_blank");
-    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(donate.getAttribute("href")).toBe("/donate");
+    expect(donate.getAttribute("target")).toBeNull();
   });
 });

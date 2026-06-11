@@ -12,6 +12,8 @@ import {
   markLegacyWebhookProcessed,
   storeLegacyWebhookEventIdempotent,
 } from "@/lib/stripe/legacy-webhooks";
+import { handleDonationStripeEvent } from "@/lib/donations/webhook-handler";
+import { isDonationStripeMetadata } from "@/lib/donations/metadata";
 import { legacyInvoiceIdFromMetadata } from "@/lib/stripe/metadata";
 
 export function constructStripeWebhookEvent(
@@ -46,8 +48,15 @@ function shouldHandleBillingCore(event: Stripe.Event): boolean {
   return false;
 }
 
+function shouldHandleDonation(event: Stripe.Event): boolean {
+  const obj = event.data.object as { metadata?: Stripe.Metadata | null };
+  if (!isDonationStripeMetadata(obj.metadata ?? undefined)) return false;
+  return event.type.startsWith("checkout.session");
+}
+
 function shouldHandleLegacy(event: Stripe.Event): boolean {
   const obj = event.data.object as { metadata?: Stripe.Metadata | null };
+  if (isDonationStripeMetadata(obj.metadata ?? undefined)) return false;
   const invoiceId = legacyInvoiceIdFromMetadata(obj.metadata);
   if (invoiceId) return true;
   if (event.type.startsWith("checkout.session")) {
@@ -63,10 +72,12 @@ function shouldHandleLegacy(event: Stripe.Event): boolean {
 export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
   billing: { duplicate: boolean; processed: boolean };
   legacy: { duplicate: boolean; processed: boolean };
+  donation: { processed: boolean };
 }> {
   const result = {
     billing: { duplicate: false, processed: false },
     legacy: { duplicate: false, processed: false },
+    donation: { processed: false },
   };
 
   if (shouldHandleBillingCore(event)) {
@@ -84,6 +95,15 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
       }
       await markWebhookProcessed(stored.eventRowId);
       result.billing.processed = true;
+    }
+  }
+
+  if (shouldHandleDonation(event)) {
+    try {
+      await handleDonationStripeEvent(event);
+      result.donation.processed = true;
+    } catch (err) {
+      console.error("Stripe donation webhook handler error", err);
     }
   }
 
@@ -112,7 +132,12 @@ export async function parseAndProcessWebhookRequest(
   rawBody: string,
   signature: string | null
 ): Promise<
-  | { ok: true; billing: { duplicate: boolean }; legacy: { duplicate: boolean } }
+  | {
+      ok: true;
+      billing: { duplicate: boolean };
+      legacy: { duplicate: boolean };
+      donation: { processed: boolean };
+    }
   | { ok: false; status: number; message: string }
 > {
   if (!isStripeSdkAvailable()) {
@@ -120,6 +145,7 @@ export async function parseAndProcessWebhookRequest(
       ok: true,
       billing: { duplicate: false },
       legacy: { duplicate: false },
+      donation: { processed: false },
     };
   }
   if (!signature) {
@@ -138,6 +164,7 @@ export async function parseAndProcessWebhookRequest(
     ok: true,
     billing: { duplicate: dispatched.billing.duplicate },
     legacy: { duplicate: dispatched.legacy.duplicate },
+    donation: { processed: dispatched.donation.processed },
   };
 }
 

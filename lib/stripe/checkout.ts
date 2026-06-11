@@ -9,6 +9,7 @@ export type PaymentCheckoutParams = {
   amountCents: number;
   currency?: string;
   customerId?: string;
+  customerEmail?: string;
   productName: string;
   successUrl: string;
   cancelUrl: string;
@@ -44,10 +45,18 @@ export async function createStripePaymentCheckoutSession(
     sessionParams.customer = params.customerId;
   }
 
+  if (params.customerEmail) {
+    sessionParams.customer_email = params.customerEmail;
+  }
+
   if (params.transferDestination && params.applicationFeeAmount !== undefined) {
     sessionParams.payment_intent_data = {
       application_fee_amount: params.applicationFeeAmount,
       transfer_data: { destination: params.transferDestination },
+      metadata: params.metadata,
+    };
+  } else if (params.metadata) {
+    sessionParams.payment_intent_data = {
       metadata: params.metadata,
     };
   }
