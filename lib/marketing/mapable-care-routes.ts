@@ -74,7 +74,7 @@ export const marketingFeatureRoutes = {
   dashboard: "/dashboard",
   dashboardEngagement: "/dashboard/engagement",
   providerConsole: "/provider",
-  supportCoordinator: "/support-coordinator",
+  supportCoordinator: "/coordinate",
   marketplace: "/marketplace",
   privacy: "/privacy",
   terms: "/terms",

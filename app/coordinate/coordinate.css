@@ -1,0 +1,23 @@
+.coordinate-shell.coordinate-high-contrast {
+  --foreground: 0 0% 0%;
+  --background: 0 0% 100%;
+  --muted-foreground: 0 0% 15%;
+  --border: 0 0% 0%;
+}
+
+.coordinate-shell.coordinate-plain-language {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.coordinate-shell.coordinate-large-text {
+  font-size: 1.125rem;
+}
+
+.coordinate-shell.coordinate-reduced-motion *,
+.coordinate-shell.coordinate-reduced-motion *::before,
+.coordinate-shell.coordinate-reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

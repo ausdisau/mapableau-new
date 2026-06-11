@@ -139,6 +139,15 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  coordinateNdisPlans       CoordinateNdisPlan[]   @relation("CoordinatePlanParticipant")
+  coordinatePlansCreated    CoordinateNdisPlan[]   @relation("CoordinatePlanCreatedBy")
+  coordinateRiskFlags       CoordinateRiskFlag[]     @relation("CoordinateRiskParticipant")
+  coordinateReviewTasks     CoordinateHumanReviewTask[] @relation("CoordinateReviewParticipant")
+  coordinateReviewAssigned  CoordinateHumanReviewTask[] @relation("CoordinateReviewAssignee")
+  coordinateCommDrafts      CoordinateCommunicationDraft[] @relation("CoordinateCommParticipant")
+  coordinateCommAuthored    CoordinateCommunicationDraft[] @relation("CoordinateCommAuthor")
+  coordinateCommApproved    CoordinateCommunicationDraft[] @relation("CoordinateCommApprovedBy")
 }
 
 model PasskeyCredential {
@@ -8151,4 +8160,254 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// --- MapAble Coordinate (human-in-the-loop support coordination) ---
+
+enum CoordinatePlanStatus {
+  draft
+  active
+  archived
+}
+
+enum CoordinateGoalStatus {
+  proposed
+  confirmed
+  archived
+}
+
+enum CoordinateActionStatus {
+  draft
+  proposed
+  approved
+  archived
+}
+
+enum CoordinateShortlistStatus {
+  suggested
+  approved
+  rejected
+}
+
+enum CoordinateReviewTaskType {
+  safeguarding
+  privacy
+  pricing
+  conflict
+  low_confidence
+  general
+}
+
+enum CoordinateReviewTaskStatus {
+  open
+  in_progress
+  approved
+  rejected
+  escalated
+}
+
+enum CoordinateCommunicationChannel {
+  email
+  sms
+  in_app
+}
+
+enum CoordinateCommunicationDraftStatus {
+  draft
+  pending_approval
+  approved
+  sent
+  rejected
+}
+
+enum CoordinateRiskSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+model CoordinateNdisPlan {
+  id               String               @id @default(cuid())
+  participantId    String
+  participant      User                 @relation("CoordinatePlanParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  createdById      String
+  createdBy        User                 @relation("CoordinatePlanCreatedBy", fields: [createdById], references: [id])
+  planStart        DateTime?
+  planEnd          DateTime?
+  status           CoordinatePlanStatus @default(draft)
+  sourceDocumentId String?
+  summaryJson      Json                 @default("{}")
+  aiConfidence     Float?
+  aiReason         String?
+  requiresReview   Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  goals            CoordinatePlanGoal[]
+  budgetCategories CoordinateBudgetCategory[]
+  supportNeeds     CoordinateSupportNeed[]
+  supportActions   CoordinateSupportAction[]
+  shortlistItems   CoordinateProviderShortlistItem[]
+  riskFlags        CoordinateRiskFlag[]
+
+  @@index([participantId, status])
+  @@map("coordinate_ndis_plans")
+}
+
+model CoordinatePlanGoal {
+  id          String               @id @default(cuid())
+  planId      String
+  plan        CoordinateNdisPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  category    String?
+  priority    Int                  @default(0)
+  status      CoordinateGoalStatus @default(proposed)
+  sourceSpan  String?
+  confidence  Float?
+  reason      String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  actions     CoordinateSupportAction[]
+
+  @@index([planId])
+  @@map("coordinate_plan_goals")
+}
+
+model CoordinateBudgetCategory {
+  id              String             @id @default(cuid())
+  planId          String
+  plan            CoordinateNdisPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  supportCategory String
+  allocatedCents  Int                @default(0)
+  spentCents      Int                @default(0)
+  committedCents  Int                @default(0)
+  periodStart     DateTime?
+  periodEnd       DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([planId])
+  @@map("coordinate_budget_categories")
+}
+
+model CoordinateSupportNeed {
+  id           String             @id @default(cuid())
+  planId       String
+  plan         CoordinateNdisPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  needType     String
+  description  String
+  linkedGoalIds Json              @default("[]")
+  urgency      String             @default("medium")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([planId])
+  @@map("coordinate_support_needs")
+}
+
+model CoordinateSupportAction {
+  id        String                 @id @default(cuid())
+  planId    String
+  plan      CoordinateNdisPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  goalId    String?
+  goal      CoordinatePlanGoal?    @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  title     String
+  stepsJson Json                   @default("[]")
+  status    CoordinateActionStatus @default(draft)
+  ownerRole String?
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  @@index([planId])
+  @@map("coordinate_support_actions")
+}
+
+model CoordinateProviderShortlistItem {
+  id               String                    @id @default(cuid())
+  planId           String
+  plan             CoordinateNdisPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  ndisProviderId   String
+  rank             Int                       @default(0)
+  matchScore       Float?
+  matchReason      String?
+  conflictFlagsJson Json                     @default("[]")
+  status           CoordinateShortlistStatus @default(suggested)
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  @@index([planId])
+  @@map("coordinate_provider_shortlist_items")
+}
+
+model CoordinateRiskFlag {
+  id            String                 @id @default(cuid())
+  participantId String
+  participant   User                   @relation("CoordinateRiskParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  planId        String?
+  plan          CoordinateNdisPlan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
+  code          String
+  severity      CoordinateRiskSeverity @default(medium)
+  summary       String
+  reason        String?
+  confidence    Float?
+  active        Boolean                @default(true)
+  resolvedAt    DateTime?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([participantId, active])
+  @@map("coordinate_risk_flags")
+}
+
+model CoordinateHumanReviewTask {
+  id               String                     @id @default(cuid())
+  participantId    String
+  participant      User                       @relation("CoordinateReviewParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  assigneeId       String?
+  assignee         User?                      @relation("CoordinateReviewAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  taskType         CoordinateReviewTaskType
+  status           CoordinateReviewTaskStatus @default(open)
+  priority         Int                        @default(0)
+  summary          String
+  payloadJson      Json                       @default("{}")
+  sourceEntityType String?
+  sourceEntityId   String?
+  confidence       Float?
+  reason           String?
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+
+  communicationDrafts CoordinateCommunicationDraft[]
+
+  @@index([participantId, status])
+  @@index([assigneeId, status])
+  @@map("coordinate_human_review_tasks")
+}
+
+model CoordinateCommunicationDraft {
+  id                 String                           @id @default(cuid())
+  participantId      String
+  participant        User                             @relation("CoordinateCommParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  authorId           String
+  author             User                             @relation("CoordinateCommAuthor", fields: [authorId], references: [id])
+  channel            CoordinateCommunicationChannel
+  subject            String?
+  body               String
+  plainLanguageBody  String?
+  status             CoordinateCommunicationDraftStatus @default(draft)
+  confidence         Float?
+  reason             String?
+  reviewTaskId       String?
+  reviewTask         CoordinateHumanReviewTask?       @relation(fields: [reviewTaskId], references: [id], onDelete: SetNull)
+  approvedById       String?
+  approvedBy           User?                          @relation("CoordinateCommApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt         DateTime?
+  createdAt          DateTime                         @default(now())
+  updatedAt          DateTime                         @updatedAt
+
+  @@index([participantId, status])
+  @@map("coordinate_communication_drafts")
 }

@@ -187,7 +187,7 @@ export const personaEntries: PersonaEntry[] = [
   {
     title: "I'm a support coordinator",
     description: "Coordinate participant pathways with NDIS-aware guidance.",
-    href: "/support-coordinator",
+    href: "/coordinate",
     cta: "Open coordinator tools",
   },
   {
