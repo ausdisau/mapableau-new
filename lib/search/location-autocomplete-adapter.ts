@@ -1,15 +1,14 @@
-import { localLocationAdapter } from "@/lib/search/local-location-adapter";
+import { compositeLocationAdapter } from "@/lib/search/composite-location-adapter";
 import type { AutocompleteSuggestion } from "@/types/search";
 
 /**
- * Location autocomplete: local searchable_locations table.
- * Swap implementation for Mapbox/commercial geocoder later — never Nominatim.
+ * Location autocomplete: local searchable_locations + optional Australia Post suburbs.
  */
 export interface LocationAutocompleteAdapter {
   search(query: string, limit: number): Promise<AutocompleteSuggestion[]>;
 }
 
-let activeAdapter: LocationAutocompleteAdapter = localLocationAdapter;
+let activeAdapter: LocationAutocompleteAdapter = compositeLocationAdapter;
 
 export function setLocationAutocompleteAdapter(adapter: LocationAutocompleteAdapter) {
   activeAdapter = adapter;

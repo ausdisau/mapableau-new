@@ -62,4 +62,4 @@ See [nl-interpreter.md](./search/nl-interpreter.md) for environment variables, a
 
 - Autocomplete rate limit remains per-process in-memory (120 req/min/IP); use a shared store for multi-instance production.
 - Interpret endpoint rate limit is 30 req/min/IP (in-memory per instance).
-- Location data is local `searchable_locations` until a commercial geocoder adapter is configured.
+- Location data uses local `searchable_locations` plus **Australia Post PAC postcode search** when `AUSPOST_PAC_API_KEY` is set (suburb-level suggestions such as "St Ives" or "2150"). Disable with `AUSPOST_PAC_ENRICH_LOCATION_SEARCH=false`.
