@@ -144,6 +144,13 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(search.value).toBe("");
   });
 
+  it("renders a header donate link to Australian Disability", () => {
+    const donate = screen.getByRole("link", { name: "Donate" });
+    expect(donate.getAttribute("href")).toBe("https://www.ausdis.au/shop");
+    expect(donate.getAttribute("target")).toBe("_blank");
+    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
   it("renders support area selector labels", () => {
     expect(screen.getAllByText("Care").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Transport").length).toBeGreaterThan(0);

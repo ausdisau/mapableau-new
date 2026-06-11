@@ -26,6 +26,7 @@ import {
 } from "@/lib/marketing/mapable-care-combined-data";
 import { buildGuidedSearchUrl } from "@/lib/marketing/mapable-care-routes";
 import {
+  MAPABLE_DONATION_URL,
   MAPABLE_LOGO_ALT,
   MAPABLE_LOGO_SRC,
   MAPABLE_SUPPORT_EMAIL,
@@ -462,6 +463,19 @@ function GuidedSearch() {
   );
 }
 
+function DonateHeaderButton({ className = "" }: { className?: string }) {
+  return (
+    <a
+      href={MAPABLE_DONATION_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`rounded-xl bg-[#F8C51C] px-4 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40 md:px-5 ${className}`}
+    >
+      Donate
+    </a>
+  );
+}
+
 function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -470,19 +484,22 @@ function Header() {
         <div className="hidden justify-center lg:flex">
           <GuidedSearch />
         </div>
-        <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/login"
-            className="rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-          >
-            Get started
-          </Link>
+        <div className="flex items-center justify-end gap-2 md:gap-3">
+          <DonateHeaderButton />
+          <div className="hidden items-center gap-3 md:flex">
+            <Link
+              href="/login"
+              className="rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/register"
+              className="rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            >
+              Get started
+            </Link>
+          </div>
         </div>
       </div>
       <div className="border-t border-slate-100 px-5 pb-4 lg:hidden">
