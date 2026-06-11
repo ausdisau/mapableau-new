@@ -54,7 +54,7 @@ describe("MapAbleCareMarketingHeader", () => {
     render(<MapAbleCareMarketingHeader />);
 
     const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://www.ausdis.au/shop");
+    expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
     expect(donate.getAttribute("target")).toBe("_blank");
     expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
   });
