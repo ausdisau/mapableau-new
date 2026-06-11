@@ -66,6 +66,14 @@ export type SuggestionSourceCounts = {
 export type LocationSearchDiagnostics = {
   auspostConfigured: boolean;
   auspostLocationSearch: boolean;
+  /** `AUSPOST_PAC_ENABLED` is not explicitly `false`. */
+  pacEnabled?: boolean;
+  /** Trimmed `AUSPOST_PAC_API_KEY` is non-empty. */
+  pacApiKeyPresent?: boolean;
+  /** Length of trimmed `AUSPOST_PAC_API_KEY` (0 when unset). */
+  pacApiKeyLength?: number;
+  /** Trimmed `AUSPOST_API_KEY` alias is non-empty. */
+  auspostApiKeyAliasPresent?: boolean;
 };
 
 export type SuggestionResultMeta = {
