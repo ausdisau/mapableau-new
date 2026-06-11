@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 import { LogoMark } from "@/components/marketing/mapable-care-shared";
+import { MAPABLE_DONATION_URL } from "@/lib/brand/constants";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import { marketingFeatureRoutes } from "@/lib/marketing/mapable-care-routes";
 
@@ -38,6 +39,18 @@ function useDismissOnOutsideAndEscape(
 
 const navLinkClass =
   `inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-black text-[#0C1833] transition hover:bg-slate-50 ${mapableCareFocusRing}`;
+
+function DonateHeaderLink({ compact = false }: { compact?: boolean }) {
+  const className = compact
+    ? `inline-flex min-h-11 items-center justify-center rounded-xl bg-[#F8C51C] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] ${mapableCareFocusRing}`
+    : `inline-flex min-h-11 items-center rounded-xl bg-[#F8C51C] px-4 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] md:px-5 ${mapableCareFocusRing}`;
+
+  return (
+    <a href={MAPABLE_DONATION_URL} target="_blank" rel="noopener noreferrer" className={className}>
+      Donate
+    </a>
+  );
+}
 
 function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
   const className = compact ? "flex flex-col gap-2" : "flex items-center gap-3";
@@ -95,19 +108,21 @@ export function MarketingPrimaryNav() {
         ))}
       </nav>
 
-      <div className="hidden items-center gap-3 md:flex">
-        <MarketingAuthLinks />
+      <div className="flex items-center gap-2 md:gap-3">
+        <DonateHeaderLink />
+        <div className="hidden md:flex">
+          <MarketingAuthLinks />
+        </div>
+        <button
+          type="button"
+          aria-expanded={mobileOpen}
+          aria-controls="marketing-primary-nav-mobile"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black md:hidden ${mapableCareFocusRing}`}
+        >
+          Menu
+        </button>
       </div>
-
-      <button
-        type="button"
-        aria-expanded={mobileOpen}
-        aria-controls="marketing-primary-nav-mobile"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black md:hidden ${mapableCareFocusRing}`}
-      >
-        Menu
-      </button>
 
       {mobileOpen && (
         <div

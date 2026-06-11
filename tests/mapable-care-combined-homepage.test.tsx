@@ -166,6 +166,13 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(searchInput.value).toBe("");
   });
 
+  it("renders a header donate link to Australian Disability", () => {
+    const donate = screen.getByRole("link", { name: "Donate" });
+    expect(donate.getAttribute("href")).toBe("https://www.ausdis.au/shop");
+    expect(donate.getAttribute("target")).toBe("_blank");
+    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
   it("renders category chips and marketplace section", () => {
     expect(screen.getAllByRole("link", { name: "NDIS Guidance" }).length).toBeGreaterThan(0);
     expect(screen.getByLabelText("More than a care marketplace.")).toBeTruthy();

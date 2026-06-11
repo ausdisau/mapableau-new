@@ -9,6 +9,10 @@ export const MAPABLE_TAGLINE =
 
 export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
+/** Australian Disability Ltd — secure online donations (override in env). */
+export const MAPABLE_DONATION_URL =
+  process.env.NEXT_PUBLIC_DONATION_URL ?? "https://www.ausdis.au/shop";
+
 /**
  * Official MapAble horizontal wordmark — use the exact PNG committed to the repo.
  * Do not regenerate, resize, or run process-brand-logo.py on this file unless asked.
