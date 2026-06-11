@@ -39,6 +39,12 @@ export const compositeLocationAdapter: LocationAutocompleteAdapter = {
     const remaining = limit - local.length;
     try {
       const auspost = await auspostLocationAdapter.search(query, remaining);
+      if (auspost.length === 0) {
+        console.warn(
+          "[predictive-suggestions] AusPost location search returned no results",
+          { query },
+        );
+      }
       return mergeLocationSuggestions(local, auspost, limit);
     } catch (err) {
       console.error("[predictive-suggestions] AusPost location search failed", err);
