@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthFormCard, AuthOAuthDivider } from "@/components/auth/AuthFormCard";
 import { OAuthSignInButtons } from "@/components/auth/OAuthSignInButtons";
 import {
-  AccessibleFormField,
-  formInputClass,
-} from "@/components/forms/AccessibleFormField";
-import { Button } from "@/components/ui/button";
+  RegistrationChatDialogue,
+  type RegistrationInvitePreview,
+} from "@/components/registration/RegistrationChatDialogue";
+import type { RegistrationSessionFields } from "@/components/registration/types";
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { registrationErrorMessage } from "@/lib/registration/validation";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 
 export default function RegisterClient({
@@ -24,61 +25,100 @@ export default function RegisterClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("inviteToken")?.trim() ?? "";
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [invitePreview, setInvitePreview] =
+    useState<RegistrationInvitePreview | null>(null);
+  const [inviteLoadError, setInviteLoadError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  useEffect(() => {
+    if (!inviteToken) return;
 
-    const normalizedEmail = normalizeAuthEmail(email);
+    let cancelled = false;
 
-    try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: normalizedEmail,
-          password: password.trim(),
-          name,
-          ...(inviteToken ? { inviteToken } : {}),
-        }),
-      });
+    async function loadInvite() {
+      try {
+        const res = await fetch(`/api/worker-invites/${encodeURIComponent(inviteToken)}`);
+        const data = (await res.json()) as {
+          invite?: RegistrationInvitePreview;
+          error?: string;
+        };
 
-      const data = (await res.json()) as { error?: string; code?: string };
+        if (cancelled) return;
 
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        setIsLoading(false);
-        return;
+        if (!res.ok || !data.invite) {
+          setInviteLoadError(data.error || "Could not load invite details.");
+          return;
+        }
+
+        setInvitePreview(data.invite);
+      } catch {
+        if (!cancelled) {
+          setInviteLoadError("Could not load invite details.");
+        }
       }
-
-      const result = await signIn("credentials", {
-        email: normalizedEmail,
-        password: password.trim(),
-        redirect: false,
-        callbackUrl: "/dashboard",
-      });
-
-      if (result?.error) {
-        setError(
-          "Account created, but sign-in failed. Try signing in on the login page.",
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      router.push(inviteToken ? "/worker/onboarding" : "/dashboard");
-      router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setIsLoading(false);
     }
-  };
+
+    void loadInvite();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inviteToken]);
+
+  const handleRegister = useCallback(
+    async (session: RegistrationSessionFields) => {
+      setError("");
+      setIsLoading(true);
+
+      const normalizedEmail = normalizeAuthEmail(session.email);
+
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password: session.password.trim(),
+            name: session.name,
+            ...(inviteToken ? { inviteToken } : {}),
+          }),
+        });
+
+        const data = (await res.json()) as { error?: string; code?: string };
+
+        if (!res.ok) {
+          setError(
+            registrationErrorMessage(data.code, data.error || "Registration failed"),
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        const result = await signIn("credentials", {
+          email: normalizedEmail,
+          password: session.password.trim(),
+          redirect: false,
+          callbackUrl: "/dashboard",
+        });
+
+        if (result?.error) {
+          setError(
+            "Account created, but sign-in failed. Try signing in on the login page.",
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        router.push(inviteToken ? "/worker/onboarding" : "/dashboard");
+        router.refresh();
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+        setIsLoading(false);
+      }
+    },
+    [inviteToken, router],
+  );
 
   return (
     <AuthFormCard
@@ -109,65 +149,18 @@ export default function RegisterClient({
         <AuthOAuthDivider label="or register with email" />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <AccessibleFormField id="register-name" label="Name" required>
-          <input
-            id="register-name"
-            type="text"
-            autoComplete="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={isLoading}
-            className={formInputClass}
-          />
-        </AccessibleFormField>
+      {inviteLoadError ? (
+        <AuthAlert variant="error">{inviteLoadError}</AuthAlert>
+      ) : null}
 
-        <AccessibleFormField id="register-email" label="Email" required>
-          <input
-            id="register-email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isLoading}
-            className={formInputClass}
-          />
-        </AccessibleFormField>
+      {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
 
-        <AccessibleFormField
-          id="register-password"
-          label="Password"
-          required
-          hint="At least 8 characters."
-        >
-          <input
-            id="register-password"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
-            required
-            disabled={isLoading}
-            className={formInputClass}
-          />
-        </AccessibleFormField>
-
-        {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
-
-        <Button
-          type="submit"
-          variant="default"
-          size="lg"
-          className="w-full"
-          disabled={isLoading}
-          loading={isLoading}
-        >
-          {isLoading ? "Creating account…" : "Create account"}
-        </Button>
-      </form>
+      <RegistrationChatDialogue
+        inviteToken={inviteToken}
+        invitePreview={invitePreview}
+        onRegister={handleRegister}
+        isRegistering={isLoading}
+      />
     </AuthFormCard>
   );
 }
