@@ -24,8 +24,7 @@ export function isAuspostPacConfigured(): boolean {
   return auspostPacConfig.enabled && Boolean(envApiKey()?.trim());
 }
 
-/** Suburb/postcode autocomplete via PAC postcode search (opt-out with =false). */
+/** Suburb/postcode autocomplete via PAC when a server-side API key is configured. */
 export function isAuspostPacLocationSearchAvailable(): boolean {
-  if (!isAuspostPacConfigured()) return false;
-  return process.env.AUSPOST_PAC_ENRICH_LOCATION_SEARCH !== "false";
+  return isAuspostPacConfigured();
 }
