@@ -28,3 +28,22 @@ export function isAuspostPacConfigured(): boolean {
 export function isAuspostPacLocationSearchAvailable(): boolean {
   return isAuspostPacConfigured();
 }
+
+/** Non-secret env visibility for production troubleshooting (no key values). */
+export function getAuspostPacDiagnostics() {
+  const pacKey = process.env.AUSPOST_PAC_API_KEY;
+  const aliasKey = process.env.AUSPOST_API_KEY;
+  const pacKeyTrimmed = pacKey?.trim() ?? "";
+  const aliasKeyTrimmed = aliasKey?.trim() ?? "";
+  const pacEnabled = process.env.AUSPOST_PAC_ENABLED !== "false";
+
+  return {
+    pacEnabled,
+    pacApiKeyPresent: pacKeyTrimmed.length > 0,
+    pacApiKeyLength: pacKeyTrimmed.length,
+    auspostApiKeyAliasPresent: aliasKeyTrimmed.length > 0,
+    auspostApiKeyAliasLength: aliasKeyTrimmed.length,
+    auspostConfigured: isAuspostPacConfigured(),
+    auspostLocationSearch: isAuspostPacLocationSearchAvailable(),
+  };
+}

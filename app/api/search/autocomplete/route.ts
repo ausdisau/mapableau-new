@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  isAuspostPacConfigured,
-  isAuspostPacLocationSearchAvailable,
-} from "@/lib/config/auspost-pac";
+import { getAuspostPacDiagnostics } from "@/lib/config/auspost-pac";
 import { searchAutocompleteWithMeta } from "@/lib/search/autocomplete-service";
 import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
 
@@ -80,10 +77,7 @@ export async function GET(request: Request) {
     parsed.data.field === "location"
       ? {
           ...meta,
-          locationDiagnostics: {
-            auspostConfigured: isAuspostPacConfigured(),
-            auspostLocationSearch: isAuspostPacLocationSearchAvailable(),
-          },
+          locationDiagnostics: getAuspostPacDiagnostics(),
         }
       : meta;
 
