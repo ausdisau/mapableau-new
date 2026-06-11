@@ -5813,6 +5813,7 @@ enum IntegrationType {
   database
   realtime
   maps
+  search
   workflow
   automation
   cms

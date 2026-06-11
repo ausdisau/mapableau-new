@@ -9,6 +9,7 @@ import type { SearchInterpretation } from "@/types/search";
 
 import {
   buildClarificationQuestion,
+  enrichCopilotAgentMeta,
   needsProviderFinderClarification,
 } from "./clarification";
 import { runProviderFinderConversationTurn } from "./conversation/run-turn";
@@ -91,18 +92,22 @@ export async function runProviderFinderAskTurn(
   const clarification = needsProviderFinderClarification(turn.interpretation);
   if (clarification) {
     const question = buildClarificationQuestion(turn.interpretation);
+    const agent = enrichCopilotAgentMeta(
+      {
+        sessionId,
+        turnIndex,
+        status: "needs_clarification",
+        clarificationQuestion: question,
+      },
+      turn.interpretation,
+    );
     return {
       interpretation: turn.interpretation,
       applied,
       replyText: question,
       searchParams: buildFinderSearchParams(applied),
       providerResults: [],
-      agent: {
-        sessionId,
-        turnIndex,
-        status: "needs_clarification",
-        clarificationQuestion: question,
-      },
+      agent,
     };
   }
 
@@ -117,17 +122,23 @@ export async function runProviderFinderAskTurn(
     replyText = `${turn.replyText} I found ${providerResults.length} listing${providerResults.length === 1 ? "" : "s"} in the NDIS directory export — use Show matching providers to filter the page, or review the matches below.`;
   }
 
+  const agent = enrichCopilotAgentMeta(
+    {
+      sessionId,
+      turnIndex,
+      status: "complete",
+    },
+    turn.interpretation,
+    providerResults,
+  );
+
   return {
     interpretation: turn.interpretation,
     applied,
     replyText,
     searchParams: buildFinderSearchParams(applied),
     providerResults,
-    agent: {
-      sessionId,
-      turnIndex,
-      status: "complete",
-    },
+    agent,
   };
 }
 

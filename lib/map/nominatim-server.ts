@@ -3,22 +3,27 @@
  * Respect usage policy: low volume, descriptive User-Agent, cache at call site if needed.
  */
 
-const USER_AGENT = "MapAbleAU-Geocoding/1.0 (https://mapable.com.au)";
+import {
+  isNominatimGeocodingConfigured,
+  openStreetMapConfig,
+} from "@/lib/config/openstreetmap";
 
 export async function forwardGeocodeAustralia(
   query: string,
 ): Promise<{ lat: number; lng: number } | null> {
+  if (!isNominatimGeocodingConfigured()) return null;
+
   const q = query.trim();
   if (!q) return null;
 
-  const url = new URL("https://nominatim.openstreetmap.org/search");
+  const url = new URL(`${openStreetMapConfig.nominatimBaseUrl}/search`);
   url.searchParams.set("q", `${q}, Australia`);
   url.searchParams.set("format", "json");
   url.searchParams.set("limit", "1");
   url.searchParams.set("countrycodes", "au");
 
   const res = await fetch(url.toString(), {
-    headers: { "User-Agent": USER_AGENT },
+    headers: { "User-Agent": openStreetMapConfig.nominatimUserAgent },
     next: { revalidate: 86400 },
   });
 

@@ -68,6 +68,20 @@ const integrationRules: IntegrationEnvRule[] = [
     requiredVars: ["NEXT_PUBLIC_MAP_STYLE_URL"],
   },
   {
+    key: "openstreetmap",
+    enabledWhen: () => process.env.OPENSTREETMAP_ENABLED !== "false",
+    requiredVars: [],
+  },
+  {
+    key: "opensearch",
+    enabledWhen: () => envTrue("OPENSEARCH_ENABLED"),
+    requiredVars: [
+      "OPENSEARCH_URL",
+      "OPENSEARCH_USERNAME",
+      "OPENSEARCH_PASSWORD",
+    ],
+  },
+  {
     key: "temporal",
     enabledWhen: () => envTrue("TEMPORAL_ENABLED"),
     requiredVars: [

@@ -13,6 +13,7 @@ import MapAbleCareCombinedHomepage, {
 } from "@/components/marketing/MapAbleCareCombinedHomepage";
 import {
   companyRegistrationDetails,
+  homepageHeroCopy,
   supportAreas,
 } from "@/lib/marketing/mapable-care-combined-data";
 
@@ -20,6 +21,7 @@ const mockPush = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
+  usePathname: () => "/",
 }));
 
 vi.mock("next/link", () => ({
@@ -37,6 +39,10 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("@/components/guided-search/GuidedSearchDialogue", () => ({
+  GuidedSearchDialogue: () => <div data-testid="guided-search-dialogue" />,
+}));
+
 afterEach(() => {
   cleanup();
   mockPush.mockClear();
@@ -44,7 +50,7 @@ afterEach(() => {
 
 describe("mapAbleCareCombinedDesignTests", () => {
   it("exports the full design contract", () => {
-    expect(mapAbleCareCombinedDesignTests).toHaveLength(10);
+    expect(mapAbleCareCombinedDesignTests).toHaveLength(11);
   });
 
   it("search field starts blank", () => {
@@ -58,7 +64,7 @@ describe("mapAbleCareCombinedDesignTests", () => {
     const spec = mapAbleCareCombinedDesignTests.find(
       (item) => item.name === "positioning uses combined care language",
     );
-    expect(spec?.expectedHeadline).toBe("Care and support, connected.");
+    expect(spec?.expectedHeadline).toBe(homepageHeroCopy.headline);
   });
 
   it("support selector uses user-facing areas instead of agents", () => {
@@ -106,30 +112,44 @@ describe("mapAbleCareCombinedDesignTests", () => {
     expect(spec?.expectedSponsoredPlacements).toEqual(["primary", "search", "footer"]);
   });
 
-  it("hero component is declared with valid function syntax", () => {
+  it("hero section is extracted to dedicated component", () => {
     const spec = mapAbleCareCombinedDesignTests.find(
-      (item) => item.name === "hero component is declared with valid function syntax",
+      (item) => item.name === "hero section is extracted to dedicated component",
     );
     const source = readFileSync(
       join(process.cwd(), "components/marketing/MapAbleCareCombinedHomepage.tsx"),
       "utf8",
     );
-    expect(spec?.expectedDeclaration).toBe("function Hero()");
-    expect(source).toContain("function Hero()");
+    expect(spec?.expectedDeclaration).toBe("HeroSection");
+    expect(source).toContain("<HeroSection />");
   });
 
-  it("competitive redesign includes trust metrics and guided journey sections", () => {
+  it("guided landing includes primary homepage sections", () => {
     const spec = mapAbleCareCombinedDesignTests.find(
-      (item) =>
-        item.name ===
-        "competitive redesign includes trust metrics and guided journey sections",
+      (item) => item.name === "guided landing includes primary homepage sections",
+    );
+    const source = readFileSync(
+      join(process.cwd(), "components/marketing/MapAbleCareCombinedHomepage.tsx"),
+      "utf8",
     );
     expect(spec?.expectedSections).toEqual([
-      "TrustMetrics",
-      "JourneyBuilder",
-      "MapAbleDifference",
+      "HeroSection",
+      "GuidedSearchPanel",
+      "PersonaEntrySection",
       "MarketplaceGrid",
+      "MapAbleDifference",
+      "TrustAndSafetyBand",
     ]);
+    for (const section of spec?.expectedSections ?? []) {
+      expect(source).toContain(`<${section}`);
+    }
+  });
+
+  it("homepage has single guided search panel anchor", () => {
+    const spec = mapAbleCareCombinedDesignTests.find(
+      (item) => item.name === "homepage has single guided search panel anchor",
+    );
+    expect(spec?.expectedGuidedSearchAnchor).toBe("guided-search-panel");
   });
 });
 
@@ -138,10 +158,12 @@ describe("MapAbleCareCombinedHomepage", () => {
     render(<MapAbleCareCombinedHomepage />);
   });
 
-  it("renders combined care headline and blank search field", () => {
-    expect(screen.getByLabelText("Care and support, connected.")).toBeTruthy();
-    const search = screen.getByLabelText("Search MapAble") as HTMLInputElement;
-    expect(search.value).toBe("");
+  it("renders guided landing headline and blank panel search field", () => {
+    expect(screen.getByLabelText(homepageHeroCopy.headline)).toBeTruthy();
+    const searchInput = screen.getByLabelText(
+      "What support do you need?",
+    ) as HTMLInputElement;
+    expect(searchInput.value).toBe("");
   });
 
   it("renders a header donate link to Australian Disability", () => {
@@ -151,11 +173,10 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
   });
 
-  it("renders support area selector labels", () => {
-    expect(screen.getAllByText("Care").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Transport").length).toBeGreaterThan(0);
-    expect(screen.getByText("One journey, not five separate searches.")).toBeTruthy();
+  it("renders category chips and marketplace section", () => {
+    expect(screen.getAllByRole("link", { name: "NDIS Guidance" }).length).toBeGreaterThan(0);
     expect(screen.getByLabelText("More than a care marketplace.")).toBeTruthy();
+    expect(document.getElementById("explore")).toBeTruthy();
   });
 
   it("renders footer contact and registration details", () => {
@@ -169,11 +190,11 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(screen.getByText("Community partners")).toBeTruthy();
   });
 
-  it("navigates to provider finder on search submit", () => {
-    const searchInputs = screen.getAllByLabelText("Search MapAble") as HTMLInputElement[];
-    fireEvent.change(searchInputs[0], { target: { value: "wheelchair transport" } });
-    const forms = document.querySelectorAll("form");
-    fireEvent.submit(forms[0]);
-    expect(mockPush).toHaveBeenCalledWith("/provider-finder?q=wheelchair+transport");
+  it("opens guided chat on panel search submit", () => {
+    const searchInput = screen.getByLabelText("What support do you need?");
+    fireEvent.change(searchInput, { target: { value: "wheelchair transport" } });
+    fireEvent.submit(searchInput.closest("form")!);
+    expect(screen.getByTestId("guided-search-dialogue")).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

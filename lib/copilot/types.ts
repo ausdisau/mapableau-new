@@ -72,11 +72,19 @@ export type CopilotProviderResult = {
 
 export type CopilotAgentStatus = "complete" | "needs_clarification";
 
+export type ClarificationSlot = "location" | "service" | "access" | "general";
+
+export type ClarificationChoice = { label: string; value: string };
+
 export type CopilotAgentMeta = {
   sessionId: string;
   turnIndex: number;
   status: CopilotAgentStatus;
   clarificationQuestion?: string;
+  clarificationSlot?: ClarificationSlot;
+  suggestedChoices?: ClarificationChoice[];
+  filledSlots?: Partial<Record<ClarificationSlot, boolean>>;
+  providerResults?: CopilotProviderResult[];
 };
 
 export type CopilotAction = {

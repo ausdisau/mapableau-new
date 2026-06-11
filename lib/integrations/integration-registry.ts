@@ -1,4 +1,6 @@
 import { maplibreAdapter } from "@/lib/integrations/adapters/maplibre-adapter";
+import { openSearchAdapter } from "@/lib/integrations/adapters/opensearch-adapter";
+import { openStreetMapAdapter } from "@/lib/integrations/adapters/openstreetmap-adapter";
 import { ndiaAdapter } from "@/lib/integrations/adapters/ndia-adapter";
 import { postgresAdapter } from "@/lib/integrations/adapters/postgres-adapter";
 import { stripeAdapter } from "@/lib/integrations/adapters/stripe-adapter";
@@ -34,6 +36,8 @@ register(stripeAdapter);
 register(xeroAdapter);
 register(ndiaAdapter);
 register(maplibreAdapter);
+register(openStreetMapAdapter);
+register(openSearchAdapter);
 
 const stubKeys: Array<[string, IntegrationAdapter["type"], string]> = [
   ["keycloak", "identity", "Keycloak"],

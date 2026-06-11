@@ -1,7 +1,13 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  DISABILITY_AGENT_OPERATIONS,
+  disabilityAgentJsonError,
+  disabilityAgentJsonOk,
+} from "@/lib/api/disability-agent-api-contract";
 import { searchNdisProviders } from "@/lib/ingestion/ndis-providers-search";
+
+const OPERATION = DISABILITY_AGENT_OPERATIONS.ndisProviderSearch;
 
 const querySchema = z.object({
   q: z.string().optional(),
@@ -22,46 +28,58 @@ export async function GET(request: Request) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid query parameters" },
-      { status: 400 },
-    );
+    return disabilityAgentJsonError(OPERATION, 400, {
+      error: "Invalid query parameters",
+      code: "VALIDATION_ERROR",
+      details: parsed.error.flatten(),
+      retryable: false,
+    });
   }
 
-  const { q, state, postcode, service, limit } = parsed.data;
-  const { providers, count } = await searchNdisProviders({
-    q,
-    state,
-    postcode,
-    service,
-    limit: limit ?? 25,
-  });
+  try {
+    const { q, state, postcode, service, limit } = parsed.data;
+    const { providers, count } = await searchNdisProviders({
+      q,
+      state,
+      postcode,
+      service,
+      limit: limit ?? 25,
+    });
 
-  const filters_applied = {
-    q: q ?? null,
-    state: state ?? null,
-    postcode: postcode ?? null,
-    service: service ?? null,
-    limit: limit ?? 25,
-  };
+    const filters_applied = {
+      q: q ?? null,
+      state: state ?? null,
+      postcode: postcode ?? null,
+      service: service ?? null,
+      limit: limit ?? 25,
+    };
 
-  return NextResponse.json({
-    providers: providers.map((p) => ({
-      source_id: p.source_id,
-      provider_name: p.provider_name,
-      suburb: p.suburb,
-      state: p.state,
-      postcode: p.postcode,
-      phone: p.phone,
-      email: p.email,
-      website: p.website,
-      services: p.services,
-      registration_groups: p.registration_groups,
-      latitude: p.latitude,
-      longitude: p.longitude,
-      updated_at: p.updated_at.toISOString(),
-    })),
-    count,
-    filters_applied,
-  });
+    return disabilityAgentJsonOk(OPERATION, {
+      operationId: OPERATION,
+      providers: providers.map((p) => ({
+        source_id: p.source_id,
+        provider_name: p.provider_name,
+        suburb: p.suburb,
+        state: p.state,
+        postcode: p.postcode,
+        phone: p.phone,
+        email: p.email,
+        website: p.website,
+        services: p.services,
+        registration_groups: p.registration_groups,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        updated_at: p.updated_at.toISOString(),
+      })),
+      count,
+      filters_applied,
+    });
+  } catch (err) {
+    console.error("[ndis-provider-search]", err);
+    return disabilityAgentJsonError(OPERATION, 502, {
+      error: "NDIS provider search failed.",
+      code: "UPSTREAM_ERROR",
+      retryable: true,
+    });
+  }
 }

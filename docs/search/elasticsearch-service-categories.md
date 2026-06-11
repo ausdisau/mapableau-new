@@ -72,6 +72,11 @@ Failures are logged and ignored — interpretation still completes.
 - For local development, optional Elastic MCP in `.cursor/mcp.json` can inspect indices.
 - Do not delete the Prisma catalog when rebuilding ES; rebuild the index and flip the alias instead.
 
+## Alternative: OpenSearch
+
+The same index mapping and alias pattern is available for OpenSearch clusters. See [opensearch-service-categories.md](./opensearch-service-categories.md). When both Elasticsearch and OpenSearch are configured, Elasticsearch is tried first.
+
 ## Related
 
+- [OpenSearch service categories](./opensearch-service-categories.md)
 - [Natural-language interpreter](./nl-interpreter.md)

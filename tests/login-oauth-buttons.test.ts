@@ -28,6 +28,7 @@ describe("LoginClient OAuth buttons", () => {
     expect(getOAuthButtonLabel("Facebook", "login")).toBe(
       "Login with Facebook",
     );
+    expect(getOAuthButtonLabel("Apple", "login")).toBe("Login with Apple");
     expect(loginClientSource).toContain('labelMode="login"');
   });
 
@@ -38,6 +39,7 @@ describe("LoginClient OAuth buttons", () => {
         "google",
         "azure-ad",
         "facebook",
+        "apple",
         "credentials",
       ]),
     ).toEqual({
@@ -45,6 +47,7 @@ describe("LoginClient OAuth buttons", () => {
       google: true,
       microsoft: true,
       facebook: true,
+      apple: true,
     });
   });
 
@@ -55,12 +58,14 @@ describe("LoginClient OAuth buttons", () => {
         google: false,
         microsoft: false,
         facebook: false,
+        apple: false,
       }),
     ).toEqual({
       auth0: false,
       google: true,
       microsoft: true,
       facebook: false,
+      apple: false,
     });
   });
 

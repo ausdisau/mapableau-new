@@ -1,4 +1,5 @@
 import type { ResultCategory, SupportArea } from "@/lib/marketing/mapable-care-combined-data";
+import type { SupportTypeId } from "@/lib/provider-finder/filters";
 
 /** Public discovery entry points aligned with the combined homepage support areas. */
 export const supportAreaLandingRoutes: Record<SupportArea, string> = {
@@ -9,6 +10,20 @@ export const supportAreaLandingRoutes: Record<SupportArea, string> = {
   Jobs: "/provider-finder?area=Jobs",
   Places: "/access",
 };
+
+/** Maps marketing `area` query param to provider finder support type filter. */
+export function supportAreaToSupportTypeId(area: string | null): SupportTypeId | null {
+  switch (area) {
+    case "Care":
+      return "personal-care";
+    case "Transport":
+      return "transport";
+    case "Jobs":
+      return "employment";
+    default:
+      return null;
+  }
+}
 
 export function buildGuidedSearchUrl(query: string, area: SupportArea): string {
   const trimmed = query.trim();

@@ -1,4 +1,5 @@
 import { PortalNav } from "@/components/core/PortalNav";
+import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requireAuth, requirePermission } from "@/lib/auth/guards";
 import { PROVIDER_NAV_LINKS } from "@/lib/core-ui/provider-nav";
 
@@ -9,20 +10,23 @@ export default async function ProviderConsoleLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  const user = await requireAuth();
   await requirePermission("care:read:org");
 
   return (
-    <div className="min-h-screen bg-background">
-      <PortalNav
-        title="Provider control panel"
-        links={PROVIDER_NAV_LINKS}
-        backHref="/dashboard"
-        backLabel="Dashboard"
-      />
-      <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
-        {children}
-      </main>
-    </div>
+    <AuthenticatedRoleAppShell
+      user={user}
+      headerTitle="Provider"
+      secondaryNav={
+        <PortalNav
+          title="Provider control panel"
+          links={PROVIDER_NAV_LINKS}
+          backHref="/dashboard"
+          backLabel="Dashboard"
+        />
+      }
+    >
+      {children}
+    </AuthenticatedRoleAppShell>
   );
 }

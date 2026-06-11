@@ -1,6 +1,11 @@
-import { NextResponse } from "next/server";
-
+import { runBookingServicesAgentTurn } from "@/lib/agent/booking-services-agent";
 import { runProviderFinderTurnWithAgentFlag } from "@/lib/agent/run-agent-turn";
+import { shouldRouteToBookingAgent } from "@/lib/bookings/rag/copilot-route";
+import {
+  DISABILITY_AGENT_OPERATIONS,
+  disabilityAgentJsonError,
+  disabilityAgentJsonOk,
+} from "@/lib/api/disability-agent-api-contract";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { getOptionalApiUser } from "@/lib/api/optional-session";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
@@ -26,6 +31,7 @@ import {
   ParticipantAccessError,
 } from "@/lib/prms/participant-access";
 
+const OPERATION = DISABILITY_AGENT_OPERATIONS.mapableAskQuery;
 const MAX_QUERY_LENGTH = 2000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 30;
@@ -182,10 +188,11 @@ export async function POST(request: Request) {
   const ip = getClientIp(request);
 
   if (!checkIpRateLimit(ip, { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX })) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait a moment." },
-      { status: 429 },
-    );
+    return disabilityAgentJsonError(OPERATION, 429, {
+      error: "Too many requests. Please wait a moment.",
+      code: "RATE_LIMITED",
+      retryable: true,
+    });
   }
 
   try {
@@ -219,22 +226,19 @@ export async function POST(request: Request) {
     };
 
     if (!query) {
-      return NextResponse.json(
-        {
-          error: "Please enter a question or request so MapAble can help.",
-        },
-        { status: 400 },
-      );
+      return disabilityAgentJsonError(OPERATION, 400, {
+        error: "Please enter a question or request so MapAble can help.",
+        code: "VALIDATION_ERROR",
+        retryable: false,
+      });
     }
 
     if (query.length > MAX_QUERY_LENGTH) {
-      return NextResponse.json(
-        {
-          error:
-            "Your message is too long. Please shorten it and try again.",
-        },
-        { status: 400 },
-      );
+      return disabilityAgentJsonError(OPERATION, 400, {
+        error: "Your message is too long. Please shorten it and try again.",
+        code: "VALIDATION_ERROR",
+        retryable: false,
+      });
     }
 
     const user = await getOptionalApiUser();
@@ -245,15 +249,20 @@ export async function POST(request: Request) {
         session,
         finderOptions,
       );
-      return NextResponse.json(response);
+      return disabilityAgentJsonOk(OPERATION, {
+        ...response,
+        operationId: OPERATION,
+      });
     }
 
     if (!user) {
       const authRequired = await requireApiSession();
-      return authRequired instanceof Response ? authRequired : NextResponse.json(
-        { error: "Sign in required." },
-        { status: 401 },
-      );
+      if (authRequired instanceof Response) return authRequired;
+      return disabilityAgentJsonError(OPERATION, 401, {
+        error: "Sign in required.",
+        code: "AUTH_REQUIRED",
+        retryable: false,
+      });
     }
 
     const effectiveParticipantId = participantId ?? user.id;
@@ -265,6 +274,67 @@ export async function POST(request: Request) {
         return apiForbidden(e.message);
       }
       throw e;
+    }
+
+    if (shouldRouteToBookingAgent(query)) {
+      try {
+        const bookingTurn = await runBookingServicesAgentTurn({
+          query,
+          sessionId,
+          user,
+        });
+
+        void createAgentRun({
+          agentType: "transport",
+          participantId: effectiveParticipantId,
+          inputSummary: { query: query.slice(0, 500) },
+          outputSummary: {
+            toolsCalled: bookingTurn.toolsCalled,
+            textLength: bookingTurn.text.length,
+          },
+          toolsCalled: bookingTurn.toolsCalled,
+          riskTier: "low",
+          humanReviewRequired: false,
+          actorUserId: user.id,
+        });
+
+        const bookingResponse: CopilotAskResponse = {
+          source: "mapable-copilot",
+          intent: "combined",
+          confidence: 0.92,
+          summary: "Booking lookup",
+          answer: bookingTurn.text,
+          filters: { bookingAgent: true, toolsCalled: bookingTurn.toolsCalled },
+          actions: [],
+          draftRecords: [],
+          requiredConfirmations: [],
+          warnings: [],
+          blockedActions: [],
+          results: [],
+          suggestedPrompts: [
+            "When is my next care visit?",
+            "Status of my transport booking",
+            "Show pending bookings this week",
+          ],
+          agent: {
+            sessionId: bookingTurn.sessionId,
+            turnIndex: 0,
+            status: "complete",
+          },
+        };
+
+        return disabilityAgentJsonOk(OPERATION, {
+          ...bookingResponse,
+          operationId: OPERATION,
+        });
+      } catch (err) {
+        console.error("[mapable-ask-booking-agent]", err);
+        return disabilityAgentJsonError(OPERATION, 502, {
+          error: "Booking agent turn failed.",
+          code: "UPSTREAM_ERROR",
+          retryable: true,
+        });
+      }
     }
 
     const intent = classifyIntent(query, mode, {
@@ -338,15 +408,16 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json(response);
+    return disabilityAgentJsonOk(OPERATION, {
+      ...response,
+      operationId: OPERATION,
+    });
   } catch {
-    return NextResponse.json(
-      {
-        error:
-          "Something went wrong. Please try again in a moment.",
-      },
-      { status: 500 },
-    );
+    return disabilityAgentJsonError(OPERATION, 500, {
+      error: "Something went wrong. Please try again in a moment.",
+      code: "UPSTREAM_ERROR",
+      retryable: true,
+    });
   }
 }
 

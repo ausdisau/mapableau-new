@@ -34,11 +34,11 @@ export function CorePageHeader({
           {eyebrow}
         </Badge>
       ) : null}
-      <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+      <h1 className="mapable-display text-3xl font-black leading-tight tracking-[-0.04em] text-[#0C1833] sm:text-4xl">
         {title}
       </h1>
       {description ? (
-        <p className={cn("text-base text-muted-foreground sm:text-lg", centered && "mx-auto")}>
+        <p className={cn("text-base leading-7 text-slate-600 sm:text-lg", centered && "mx-auto")}>
           {description}
         </p>
       ) : null}

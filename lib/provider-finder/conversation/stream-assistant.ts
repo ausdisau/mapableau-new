@@ -13,12 +13,56 @@ import {
   getInterpreterModel,
 } from "@/lib/search/interpreter/get-model";
 
+import type { CopilotAgentMeta } from "@/lib/copilot/types";
+import type { FinderAgentData } from "@/types/provider-finder-chat";
+
 import type { ProviderFinderAskTurn } from "../ask-bridge";
+import { enrichCopilotAgentMeta } from "../clarification";
 
 import { PROVIDER_FINDER_CHAT_SYSTEM } from "./prompt";
 import type { ProviderFinderConversationTurn } from "./run-turn";
 
 type FinderStreamTurn = ProviderFinderConversationTurn | ProviderFinderAskTurn;
+
+function isAskTurn(turn: FinderStreamTurn): turn is ProviderFinderAskTurn {
+  return "agent" in turn && turn.agent !== undefined;
+}
+
+export function buildFinderAgentStreamData(
+  turn: FinderStreamTurn,
+): FinderAgentData | null {
+  if (isAskTurn(turn) && turn.agent) {
+    return {
+      sessionId: turn.agent.sessionId,
+      turnIndex: turn.agent.turnIndex,
+      status: turn.agent.status,
+      clarificationQuestion: turn.agent.clarificationQuestion,
+      clarificationSlot: turn.agent.clarificationSlot,
+      suggestedChoices: turn.agent.suggestedChoices,
+      filledSlots: turn.agent.filledSlots,
+      providerResults: turn.providerResults,
+    };
+  }
+
+  const enriched = enrichCopilotAgentMeta(
+    {
+      sessionId: `finder-${Date.now()}`,
+      turnIndex: 1,
+      status: "complete",
+    } satisfies CopilotAgentMeta,
+    turn.interpretation,
+  );
+
+  return {
+    sessionId: enriched.sessionId,
+    turnIndex: enriched.turnIndex,
+    status: enriched.status,
+    clarificationQuestion: enriched.clarificationQuestion,
+    clarificationSlot: enriched.clarificationSlot,
+    suggestedChoices: enriched.suggestedChoices,
+    filledSlots: enriched.filledSlots,
+  };
+}
 
 export function streamFinderAssistantText(
   turn: FinderStreamTurn,
@@ -106,6 +150,15 @@ export function createFinderChatResponseStream(options: {
 
   return createUIMessageStream({
     execute: async ({ writer }) => {
+      const agentData = buildFinderAgentStreamData(turn);
+      if (agentData) {
+        writer.write({
+          type: "data-finderAgent",
+          id: "finder-agent",
+          data: agentData,
+        });
+      }
+
       writer.write({
         type: "data-finderInterpretation",
         id: "finder-interpretation",

@@ -5,37 +5,17 @@
  */
 import { PrismaClient } from "@prisma/client";
 
-const INDEX = "mapable_service_categories_v1";
+import {
+  SERVICE_CATEGORY_INDEX_BODY,
+  SERVICE_CATEGORY_INDEX_V1,
+} from "@/lib/search/service-category-index";
+
+const INDEX = SERVICE_CATEGORY_INDEX_V1;
 const ALIAS =
   process.env.ES_SERVICE_CATEGORY_ALIAS ?? "mapable_service_categories_current";
 
 const ES_URL = (process.env.ES_URL ?? "").replace(/\/$/, "");
 const ES_API_KEY = process.env.ES_API_KEY ?? "";
-
-const INDEX_BODY = {
-  settings: {
-    analysis: {
-      analyzer: {
-        category_text: {
-          type: "custom",
-          tokenizer: "standard",
-          filter: ["lowercase", "asciifolding"],
-        },
-      },
-    },
-  },
-  mappings: {
-    properties: {
-      slug: { type: "keyword" },
-      name: {
-        type: "text",
-        analyzer: "category_text",
-        fields: { keyword: { type: "keyword" } },
-      },
-      keywords: { type: "text", analyzer: "category_text" },
-    },
-  },
-};
 
 async function esFetch(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${ES_URL}${path}`, {
@@ -57,7 +37,7 @@ async function ensureIndex(): Promise<void> {
 
   const create = await esFetch(`/${INDEX}`, {
     method: "PUT",
-    body: JSON.stringify(INDEX_BODY),
+    body: JSON.stringify(SERVICE_CATEGORY_INDEX_BODY),
   });
 
   if (!create.ok) {
