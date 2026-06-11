@@ -68,6 +68,8 @@ export type LocationSearchDiagnostics = {
   auspostLocationSearch: boolean;
   /** `AUSPOST_PAC_ENABLED` is not explicitly `false`. */
   pacEnabled?: boolean;
+  /** `AUSPOST_PAC_API_KEY` key exists in runtime env (value may be empty). */
+  pacApiKeyDefined?: boolean;
   /** Trimmed `AUSPOST_PAC_API_KEY` is non-empty. */
   pacApiKeyPresent?: boolean;
   /** Length of trimmed `AUSPOST_PAC_API_KEY` (0 when unset). */

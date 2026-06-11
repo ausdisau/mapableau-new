@@ -39,8 +39,11 @@ export function getAuspostPacDiagnostics() {
 
   return {
     pacEnabled,
+    /** `AUSPOST_PAC_API_KEY` exists in `process.env` (may still be empty). */
+    pacApiKeyDefined: pacKey !== undefined,
     pacApiKeyPresent: pacKeyTrimmed.length > 0,
     pacApiKeyLength: pacKeyTrimmed.length,
+    auspostApiKeyAliasDefined: aliasKey !== undefined,
     auspostApiKeyAliasPresent: aliasKeyTrimmed.length > 0,
     auspostApiKeyAliasLength: aliasKeyTrimmed.length,
     auspostConfigured: isAuspostPacConfigured(),
