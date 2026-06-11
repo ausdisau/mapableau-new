@@ -38,6 +38,7 @@ export const moduleIcons: Record<string, ModuleIcons> = {
     "3d": "/icons/marketplace-3d.png",
   },
   kids: { organic: "/icons/kids-organic.png", "3d": "/icons/kids-3d.png" },
+  coordinate: { organic: "/icons/care-organic.png", "3d": "/icons/care-3d.png" },
 };
 
 export function getModuleIcon(
@@ -61,6 +62,26 @@ export const modules: MapAbleModule[] = [
     gradient: "from-pink-500 to-rose-600",
     href: "/care",
     features: ["Support Workers", "Care Plans", "Case Notes", "NDIS Funding"],
+  },
+  {
+    key: "coordinate",
+    name: "MapAble Coordinate",
+    shortName: "Coordinate",
+    tagline: "Human-in-the-loop support coordination",
+    description:
+      "Plan summaries, goals, provider shortlists, budget tracking, and review queues with human approval on every sensitive step",
+    logo: moduleIcons.coordinate.organic,
+    icons: moduleIcons.coordinate,
+    color: "#005B7F",
+    gradient: "from-sky-600 to-cyan-700",
+    href: "/coordinate",
+    features: [
+      "Plan summary",
+      "Goal mapping",
+      "Provider shortlist",
+      "Budget tracker",
+      "Human review",
+    ],
   },
   {
     key: "transport",
