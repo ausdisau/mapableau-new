@@ -164,16 +164,37 @@ export const REG_GROUP_OPTIONS = [
   },
 ] as const;
 
-const REG_GROUP_BY_INDEX = new Map<number, string>(
-  REG_GROUP_OPTIONS.map((r) => [r.Index, r.RegGroup]),
+export type RegGroupAssignment = {
+  index: number;
+  regGroup: string;
+  group: string;
+};
+
+const REG_GROUP_BY_INDEX = new Map(
+  REG_GROUP_OPTIONS.map((r) => [r.Index, r] as const),
 );
+
+/** Structured RegGroup rows for an outlet's RegGroup index array. */
+export function regGroupAssignmentsFromIndices(
+  indices: number[],
+): RegGroupAssignment[] {
+  const out: RegGroupAssignment[] = [];
+  const seen = new Set<number>();
+  for (const idx of indices) {
+    if (seen.has(idx)) continue;
+    const option = REG_GROUP_BY_INDEX.get(idx);
+    if (!option) continue;
+    seen.add(idx);
+    out.push({
+      index: option.Index,
+      regGroup: option.RegGroup,
+      group: option.Group,
+    });
+  }
+  return out;
+}
 
 /** Map outlet RegGroup indices (number[]) to NDIS category names (string[]). */
 export function regGroupIndicesToCategories(indices: number[]): string[] {
-  const out: string[] = [];
-  for (const idx of indices) {
-    const name = REG_GROUP_BY_INDEX.get(idx);
-    if (name && !out.includes(name)) out.push(name);
-  }
-  return out;
+  return regGroupAssignmentsFromIndices(indices).map((row) => row.regGroup);
 }
