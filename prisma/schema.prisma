@@ -4756,12 +4756,13 @@ model NationalRolloutStage {
 }
 
 model PartnerBillingAccount {
-  id             String   @id @default(cuid())
-  organisationId String   @unique
-  planCode       String   @default("standard")
-  status         String   @default("active")
-  billingEmail   String?
-  createdAt      DateTime @default(now())
+  id                String   @id @default(cuid())
+  organisationId    String   @unique
+  planCode          String   @default("standard")
+  status            String   @default("active")
+  billingEmail      String?
+  licensedPackTypes String[] @default([])
+  createdAt         DateTime @default(now())
 
   invoices PartnerBillingInvoice[]
 }
@@ -5245,7 +5246,37 @@ enum BillingSubscriptionPlanCode {
   provider_pro
   employer_pro
   marketplace_featured
+  plan_manager_pro
   other
+}
+
+enum UsageEventCategory {
+  api_call
+  export
+  invoice
+  module_completion
+  ai_assist
+  validation
+  licensed_pack
+}
+
+model UsageEvent {
+  id             String             @id @default(cuid())
+  category       UsageEventCategory
+  eventType      String
+  userId         String?
+  organisationId String?
+  developerAppId String?
+  entityType     String?
+  entityId       String?
+  quantity       Int                @default(1)
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+
+  @@index([category, createdAt])
+  @@index([organisationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([developerAppId, createdAt])
 }
 
 enum BillingSubscriptionStatus {
@@ -8411,20 +8442,23 @@ model AbilityPayApprovalEvent {
 }
 
 model AbilityPayClaimPack {
-  id          String            @id @default(cuid())
-  invoiceId   String?
-  invoice     AbilityPayInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  planId      String?
-  createdById String
-  createdBy   User              @relation("AbilityPayClaimPackCreatedBy", fields: [createdById], references: [id])
-  format      String
-  fileName    String?
-  rowCount    Int               @default(0)
-  metadata    Json?
-  createdAt   DateTime          @default(now())
+  id             String            @id @default(cuid())
+  invoiceId      String?
+  invoice        AbilityPayInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  planId         String?
+  organisationId String?
+  createdById    String
+  createdBy      User              @relation("AbilityPayClaimPackCreatedBy", fields: [createdById], references: [id])
+  format         String
+  fileName       String?
+  rowCount       Int               @default(0)
+  billingStatus  String            @default("pending")
+  metadata       Json?
+  createdAt      DateTime          @default(now())
 
   @@index([invoiceId])
   @@index([createdById])
+  @@index([organisationId])
 }
 
 model AbilityPayConsentGrant {

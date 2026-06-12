@@ -25,17 +25,25 @@ export async function POST(req: Request) {
   const parsed = exportClaimPackSchema.safeParse(body ?? {});
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  const { csv, fileName } = await exportClaimPackCsv({
-    userId: user.id,
-    invoiceIds: parsed.data.invoiceIds,
-    planId: parsed.data.planId,
-  });
+  try {
+    const { csv, fileName } = await exportClaimPackCsv({
+      userId: user.id,
+      invoiceIds: parsed.data.invoiceIds,
+      planId: parsed.data.planId,
+    });
 
-  return new Response(csv, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
-    },
-  });
+    return new Response(csv, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      },
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Export failed";
+    if (message.includes("quota") || message.includes("EXPORT_QUOTA")) {
+      return jsonError(message, 402);
+    }
+    return jsonError(message, 400);
+  }
 }

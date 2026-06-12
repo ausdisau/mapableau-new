@@ -1,29 +1,29 @@
 import { Suspense } from "react";
 
-import { ProviderBillingClient } from "@/components/billing/ProviderBillingClient";
+import { EmployerBillingClient } from "@/components/billing/EmployerBillingClient";
 import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass, mapablePageContainerClass } from "@/lib/brand/styles";
 
 export const metadata = {
-  title: "Provider billing | MapAble",
+  title: "Employer billing | MapAble",
 };
 
-export default function ProviderBillingPage() {
+export default function EmployerBillingPage() {
   return (
     <div className={mapablePageContainerClass}>
       <div className="mx-auto max-w-3xl py-8">
         <Badge variant="outline" className={mapableEyebrowBadgeClass}>
-          Provider console
+          Employer console
         </Badge>
         <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight">
-          Billing & <span className="text-primary">payouts</span>
+          Billing & <span className="text-primary">subscriptions</span>
         </h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Connect your Stripe account for payouts, manage subscriptions, and review transfers.
+          Manage your Employer Pro subscription and billing via Stripe.
         </p>
         <div className="mt-10">
           <Suspense fallback={<p className="text-sm text-muted-foreground">Loading billing…</p>}>
-            <ProviderBillingClient />
+            <EmployerBillingClient />
           </Suspense>
         </div>
       </div>

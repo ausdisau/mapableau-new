@@ -62,7 +62,11 @@ When the provider has `stripeConnectedAccountId`, Checkout uses a destination ch
 | POST | `/api/billing/checkout` | Stripe Checkout or plan-managed instruction |
 | POST | `/api/billing/connect/create-account` | Express Connect account + onboarding link |
 | POST | `/api/billing/connect/onboarding-link` | Refresh onboarding |
-| POST | `/api/billing/subscriptions/checkout` | Provider Pro / Employer Pro subscription Checkout |
+| POST | `/api/billing/subscriptions/checkout` | Provider Pro / Employer Pro / Plan Manager Pro / Marketplace Featured |
+| GET | `/api/billing/status` | Connect + subscription + payment summary |
+| GET | `/api/abilitypay/entitlements` | Plan manager export quota and feature gates |
+| POST | `/api/marketplace/purchase` | Marketplace purchase → draft `BillingInvoice` |
+| POST | `/api/licensing/packs` | Generate licensed data pack (admin, org must be entitled) |
 | POST | `/api/billing/customer-portal` | Stripe Billing Portal URL |
 | POST | `/api/billing/invoices/export` | CSV / plan-manager JSON / Xero scaffold |
 | POST | `/api/webhooks/stripe` | Signed webhook (raw body) |
@@ -77,8 +81,11 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 STRIPE_CONNECT_CLIENT_ID=
 STRIPE_PROVIDER_PRO_PRICE_ID=
 STRIPE_EMPLOYER_PRO_PRICE_ID=
+STRIPE_MARKETPLACE_FEATURED_PRICE_ID=
+STRIPE_PLAN_MANAGER_PRO_PRICE_ID=
 BILLING_PLATFORM_FEE_BPS=1000
 BILLING_GST_BPS=1000
+MARKETPLACE_DEFAULT_PRICE_CENTS=9900
 ```
 
 Enable Stripe in development by setting `STRIPE_SECRET_KEY` (and optionally `BILLING_ENABLE_STRIPE=true` for legacy phase-2 guards).
@@ -106,7 +113,33 @@ stripe trigger checkout.session.completed
 - `/dashboard/billing/legacy` — Phase 2 `Invoice` drafts
 - `/billing` — redirects to `/dashboard/billing`
 - `/provider/billing` — Connect onboarding + subscription
+- `/employer/billing` — Employer Pro subscription
+- `/plan-manager/billing` — Plan Manager Pro + export quotas
+- `/(marketing)/pricing` — Pilot SKUs and bundle catalog
 - `/admin/billing` — search and flagged payments
+
+## Entitlements & usage ledger
+
+- `lib/billing-core/entitlements.ts` — `hasActivePlan`, `hasFeature`, subscription summary
+- `lib/usage/usage-ledger.ts` — append-only `UsageEvent` stream (exports, API calls, module completion)
+- `lib/abilitypay/entitlements.ts` — export quotas for AbilityPay claim packs
+- `lib/billing-core/bundles.ts` — bundle catalog mapping plans to features and quotas
+
+### Subscription webhook fixes
+
+- `checkout.session.completed` with `metadata.planCode` routes to billing-core
+- `subscription_data.metadata` copied on Checkout session create
+- Activation matches `planCode` + pending checkout session id
+- Webhook rows marked processed only on handler success
+
+### Plan codes
+
+| `planCode` | Buyer | Features |
+|------------|-------|----------|
+| `provider_pro` | Provider org | Advanced matching, unlimited exports |
+| `employer_pro` | Employer org | Extended job posts |
+| `plan_manager_pro` | Plan manager | AbilityPay workbench, 50 exports/mo |
+| `marketplace_featured` | Provider org | Featured marketplace listing |
 
 ## Production checklist
 

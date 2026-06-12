@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,17 @@ export function MonthlyStatementGenerator({
   const [month, setMonth] = useState(defaultMonth);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [remainingExports, setRemainingExports] = useState<number | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch("/api/abilitypay/entitlements");
+      if (res.ok) {
+        const data = await res.json();
+        setRemainingExports(data.remainingExports ?? null);
+      }
+    })();
+  }, []);
 
   async function downloadStatement() {
     setLoading(true);
@@ -88,6 +99,13 @@ export function MonthlyStatementGenerator({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {remainingExports !== null ? (
+          <p className="text-sm text-muted-foreground">
+            <strong>{remainingExports}</strong> export
+            {remainingExports === 1 ? "" : "s"} remaining this month on your
+            current plan.
+          </p>
+        ) : null}
         <div>
           <label htmlFor="statement-month" className="text-sm font-medium">
             Statement month

@@ -1,15 +1,23 @@
 import { format } from "date-fns";
 
+import { recordUsageEvent } from "@/lib/usage/usage-ledger";
 import { prisma } from "@/lib/prisma";
 
 import { logAbilityPayEvent } from "./audit";
+import { canExportClaimPack } from "./entitlements";
 import { getPlanWalletSummary } from "./plan-service";
 
 export async function exportClaimPackCsv(params: {
   userId: string;
   invoiceIds?: string[];
   planId?: string;
+  organisationId?: string;
 }) {
+  const gate = await canExportClaimPack(params.userId);
+  if (!gate.allowed) {
+    throw new Error(gate.reason ?? "EXPORT_QUOTA_EXCEEDED");
+  }
+
   const where = params.invoiceIds?.length
     ? { id: { in: params.invoiceIds } }
     : params.planId
@@ -76,11 +84,35 @@ export async function exportClaimPackCsv(params: {
     data: {
       createdById: params.userId,
       planId: params.planId,
+      organisationId: params.organisationId,
       format: "csv",
       fileName,
       rowCount: invoices.length,
+      billingStatus: "metered",
       metadata: { invoiceCount: invoices.length },
     },
+  });
+
+  if (params.invoiceIds?.length) {
+    await prisma.abilityPayInvoice.updateMany({
+      where: { id: { in: params.invoiceIds } },
+      data: { status: "exported" },
+    });
+  } else if (params.planId) {
+    await prisma.abilityPayInvoice.updateMany({
+      where: { id: { in: invoices.map((i) => i.id) } },
+      data: { status: "exported" },
+    });
+  }
+
+  await recordUsageEvent({
+    category: "export",
+    eventType: "abilitypay.claim_pack",
+    userId: params.userId,
+    organisationId: params.organisationId,
+    entityType: "AbilityPayClaimPack",
+    entityId: pack.id,
+    metadata: { format: "csv", invoiceCount: invoices.length },
   });
 
   await logAbilityPayEvent({
@@ -91,14 +123,20 @@ export async function exportClaimPackCsv(params: {
     metadata: { rowCount: invoices.length, fileName },
   });
 
-  return { csv, fileName, pack };
+  return { csv, fileName, pack, remainingExports: gate.remaining - 1 };
 }
 
 export async function generateMonthlyStatement(params: {
   userId: string;
   planId: string;
   month: string;
+  organisationId?: string;
 }) {
+  const gate = await canExportClaimPack(params.userId);
+  if (!gate.allowed) {
+    throw new Error(gate.reason ?? "EXPORT_QUOTA_EXCEEDED");
+  }
+
   const [year, monthNum] = params.month.split("-").map(Number);
   const start = new Date(year, monthNum - 1, 1);
   const end = new Date(year, monthNum, 0, 23, 59, 59);
@@ -184,11 +222,30 @@ export async function generateMonthlyStatement(params: {
     data: {
       createdById: params.userId,
       planId: params.planId,
+      organisationId: params.organisationId,
       format: "html_statement",
       fileName,
       rowCount: invoices.length,
+      billingStatus: "metered",
       metadata: { month: params.month },
     },
+  });
+
+  if (invoices.length > 0) {
+    await prisma.abilityPayInvoice.updateMany({
+      where: { id: { in: invoices.map((i) => i.id) } },
+      data: { status: "exported" },
+    });
+  }
+
+  await recordUsageEvent({
+    category: "export",
+    eventType: "abilitypay.claim_pack",
+    userId: params.userId,
+    organisationId: params.organisationId,
+    entityType: "AbilityPayClaimPack",
+    entityId: pack.id,
+    metadata: { format: "html_statement", month: params.month },
   });
 
   await logAbilityPayEvent({
@@ -200,5 +257,11 @@ export async function generateMonthlyStatement(params: {
     metadata: { month: params.month, invoiceCount: invoices.length },
   });
 
-  return { html, fileName, pack, invoiceCount: invoices.length };
+  return {
+    html,
+    fileName,
+    pack,
+    invoiceCount: invoices.length,
+    remainingExports: gate.remaining - 1,
+  };
 }

@@ -1,3 +1,8 @@
+import type {
+  BillingSubscriptionPlanCode,
+  BillingSubscriptionStatus,
+  Prisma,
+} from "@prisma/client";
 import type Stripe from "stripe";
 
 import {
@@ -101,8 +106,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       typeof session.subscription === "string"
         ? session.subscription
         : session.subscription.id;
+    const planCode = session.metadata?.planCode;
+    const pendingSessionId = session.id;
+
+    const incompleteStatus: BillingSubscriptionStatus = "incomplete";
+    const whereClause: Prisma.BillingSubscriptionWhereInput = planCode
+      ? {
+          userId,
+          planCode: planCode as BillingSubscriptionPlanCode,
+          OR: [
+            { status: incompleteStatus },
+            { stripeSubscriptionId: `pending_checkout_${pendingSessionId}` },
+          ],
+        }
+      : {
+          userId,
+          status: incompleteStatus,
+        };
+
     await prisma.billingSubscription.updateMany({
-      where: { userId, status: "incomplete" },
+      where: whereClause,
       data: {
         stripeSubscriptionId: subId,
         status: "active",
@@ -113,6 +136,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       entityType: "BillingSubscription",
       entityId: subId,
       action: "checkout_completed",
+      after: { planCode, sessionId: session.id },
     });
     return;
   }
