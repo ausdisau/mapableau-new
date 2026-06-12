@@ -23,6 +23,8 @@ export type ProviderOutletDbRow = {
   reg_group: number[];
   opening_hours: string | null;
   professions: string | null;
+  support_types: string[];
+  access_need_ids: string[];
   raw: Record<string, unknown>;
 };
 
@@ -52,6 +54,8 @@ export function mapProviderOutletToDbRow(
     reg_group: row.regGroup,
     opening_hours: row.openingHours,
     professions: row.professions,
+    support_types: row.supportTypes,
+    access_need_ids: row.accessNeedIds,
     raw: row.raw as Record<string, unknown>,
   };
 }
