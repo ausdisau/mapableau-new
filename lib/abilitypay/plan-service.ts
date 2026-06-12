@@ -59,6 +59,7 @@ export async function createPlan(
       planStartAt: input.planStartAt ? new Date(input.planStartAt) : undefined,
       planEndAt: input.planEndAt ? new Date(input.planEndAt) : undefined,
       totalBudgetCents: input.totalBudgetCents ?? 0,
+      fundingModel: input.fundingModel,
       notes: input.notes,
       status: "draft",
     },
@@ -101,6 +102,7 @@ export async function updatePlan(
             ? new Date(input.planEndAt)
             : undefined,
       totalBudgetCents: input.totalBudgetCents,
+      fundingModel: input.fundingModel,
       notes: input.notes,
     },
     include: { categories: true, fundingPeriods: true },

@@ -4,7 +4,7 @@ import {
   parseJsonRequestBody,
 } from "@/lib/api/request-body";
 import { jsonError, zodErrorResponse } from "@/lib/api/response";
-import { generateMonthlyStatement } from "@/lib/abilitypay/export-service";
+import { generateMonthlyStatement, AbilityPayConsentError } from "@/lib/abilitypay/export-service";
 import { requireAbilityPayPermission } from "@/lib/abilitypay/api-helpers";
 import { exportStatementSchema } from "@/types/abilitypay";
 
@@ -40,6 +40,9 @@ export async function POST(req: Request) {
       },
     });
   } catch (e) {
+    if (e instanceof AbilityPayConsentError) {
+      return jsonError("Consent is required before exporting statements", 403);
+    }
     const message = e instanceof Error ? e.message : "Export failed";
     return jsonError(message, 400);
   }

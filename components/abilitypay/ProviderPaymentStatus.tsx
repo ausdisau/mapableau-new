@@ -12,7 +12,11 @@ const PAYMENT_LABELS: Record<string, string> = {
   approved: "Approved",
   rejected: "Rejected",
   ready_to_pay: "Ready to pay",
-  paid_mock: "Paid (mock)",
+  processing: "Processing",
+  paid: "Paid",
+  failed: "Payment failed",
+  refunded: "Refunded",
+  paid_mock: "Paid (legacy mock)",
   on_hold: "On hold",
 };
 

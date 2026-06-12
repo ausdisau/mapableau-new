@@ -108,6 +108,10 @@ export type AuditAction =
   | "abilitypay.invoice.validated"
   | "abilitypay.invoice.approved"
   | "abilitypay.invoice.rejected"
+  | "abilitypay.payment.initiated"
+  | "abilitypay.payment.paid"
+  | "abilitypay.payment.failed"
+  | "abilitypay.payment.refunded"
   | "abilitypay.export.csv"
   | "abilitypay.export.statement";
 

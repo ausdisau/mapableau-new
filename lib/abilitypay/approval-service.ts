@@ -3,6 +3,7 @@ import type { MapAbleUserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 import { logAbilityPayEvent } from "./audit";
+import { routeApprovedInvoice } from "./funding-router-service";
 import { recalcBudgetSpent } from "./plan-service";
 
 const HUMAN_APPROVER_ROLES: MapAbleUserRole[] = [
@@ -74,7 +75,13 @@ export async function approveInvoice(params: {
     metadata: { approvalEventId: event.id },
   });
 
-  return { invoice: updated, event };
+  const fundingRoute = await routeApprovedInvoice({
+    invoiceId: params.invoiceId,
+    actorUserId: params.actorUserId,
+    actorRole: params.actorRole,
+  });
+
+  return { invoice: updated, event, fundingRoute };
 }
 
 export async function rejectInvoice(params: {

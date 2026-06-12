@@ -1,24 +1,45 @@
-# AbilityPay module (MapAble Core MVP)
+# AbilityPay module (MapAble Core payment gateway)
 
 ## Purpose
 
-AbilityPay helps NDIS participants and nominees manage plan budgets, review provider invoices, and approve payments in plain language. Plan managers can upload and prepare invoices; participants retain human-only approval before exports.
+AbilityPay is MapAble's payment gateway for disability care and support. Participants and nominees manage plan budgets, review provider invoices, and approve payments in plain language. After human approval, AbilityPay routes invoices to the right execution adapter — plan-managed export, Stripe checkout (self-managed / private pay), or NDIA handoff (agency-managed).
 
 ## MVP scope
 
-- Plan wallet with budget categories and spending forecast
+- Plan wallet with budget categories, funding model, and spending forecast
 - Invoice inbox, validation rules, duplicate detection, and NDIS price-limit checks
 - Human approval flow with consent gate (participant / family member / plan manager)
+- Post-approval funding router (`plan_export`, `stripe_checkout`, `ndia_claim`)
+- Stripe checkout bridge for self-managed and private-pay invoices (via `billing-core`)
+- CSV claim pack and monthly statement export with consent enforcement
+- Payment attempt ledger (`AbilityPayPaymentAttempt`) and webhook-driven status sync
 - Draft-only AI review helper (suggestions, questions, category hints — no auto-approval)
-- CSV claim pack and monthly statement export
-- Audit trail for plan, invoice, approval, and export actions
+- Audit trail for plan, invoice, approval, export, and payment actions
 
 ## Explicit non-goals
 
-- No NDIA portal submission or autonomous claims
+- No NDIA portal submission or autonomous claims (agency path is handoff only)
 - No credential scraping or provider portal automation
-- No auto-pay or AI-driven approval decisions
-- No replacement of `/plan-manager` or `/dashboard/billing` — AbilityPay coexists alongside them
+- No AI-driven approval decisions
+- No silent card charges without explicit checkout (approval authorises payment; participant completes Checkout)
+- No replacement of `/plan-manager` or `/dashboard/billing` — AbilityPay orchestrates; billing-core executes card payments
+
+## Funding models
+
+| Model | Post-approval adapter | Card payment |
+|-------|----------------------|--------------|
+| `plan_managed` | CSV/HTML export | No |
+| `self_managed` | Stripe Checkout | Yes |
+| `private_pay` | Stripe Checkout | Yes |
+| `agency_managed` | NDIA claim handoff | No |
+
+Set on `AbilityPayParticipantPlan.fundingModel` (default `plan_managed`); may be overridden per invoice.
+
+## Payment lifecycle
+
+`pending_review` → `approved` → `ready_to_pay` / `processing` → `paid` | `failed` | `refunded`
+
+Legacy `paid_mock` remains in the enum for backward compatibility but is not used on new flows.
 
 ## Routes
 
@@ -26,7 +47,7 @@ AbilityPay helps NDIS participants and nominees manage plan budgets, review prov
 |----------|--------|
 | Participant / nominee | `/abilitypay`, `/abilitypay/plan`, `/abilitypay/budgets`, `/abilitypay/invoices`, `/abilitypay/invoices/[id]`, `/abilitypay/approvals`, `/abilitypay/reports` |
 | Plan manager | Above + workbench on dashboard; `/abilitypay/providers` |
-| Provider admin | `/abilitypay/providers` (payment status mock) |
+| Provider admin | `/abilitypay/providers` (live payment status) |
 | Admin | `/abilitypay/admin`, `/abilitypay/audit` |
 
 All `/abilitypay` routes require authentication (see `lib/mapable-peers/peer-middleware.ts`).
@@ -35,9 +56,9 @@ All `/abilitypay` routes require authentication (see `lib/mapable-peers/peer-mid
 
 - `GET/POST /api/abilitypay/plans`, `GET/PATCH /api/abilitypay/plans/[id]`, `POST /api/abilitypay/plans/[id]/categories`
 - `GET/POST /api/abilitypay/invoices`, `GET/PATCH /api/abilitypay/invoices/[id]`
-- `POST /api/abilitypay/invoices/[id]/validate`, `/upload`, `/approve`, `/reject`, `/ai-assist`
+- `POST /api/abilitypay/invoices/[id]/validate`, `/upload`, `/approve`, `/reject`, `/pay`, `/ai-assist`
 - `GET /api/abilitypay/providers`, `GET /api/abilitypay/approvals`
-- `GET /api/abilitypay/exports/claim-pack`, `/exports/statement`
+- `POST /api/abilitypay/exports/claim-pack`, `/exports/statement`
 - `GET /api/abilitypay/audit`
 
 ## Invoice status flow
@@ -72,19 +93,32 @@ Recorded via `AuditEvent` (`lib/abilitypay/audit.ts`):
 | `abilitypay.invoice.validated` | Validation rules run |
 | `abilitypay.invoice.approved` | Human approval recorded |
 | `abilitypay.invoice.rejected` | Human rejection recorded |
+| `abilitypay.payment.initiated` | Post-approval routing or checkout started |
+| `abilitypay.payment.paid` | Stripe webhook confirms payment |
+| `abilitypay.payment.failed` | Payment failed |
+| `abilitypay.payment.refunded` | Refund recorded |
 | `abilitypay.export.csv` | CSV claim pack downloaded |
 | `abilitypay.export.statement` | Monthly statement generated |
 
 ## Database models
 
-Prisma models prefixed `AbilityPay*` (e.g. `AbilityPayPlan`, `AbilityPayBudgetCategory`, `AbilityPayInvoice`, `AbilityPayInvoiceLineItem`, `AbilityPayProvider`, `AbilityPayApprovalEvent`, `AbilityPayRiskFlag`, `AbilityPayClaimPack`, `AbilityPayConsentRecord`). Migration: `prisma/migrations/20260611140000_abilitypay_mvp/`.
+Prisma models prefixed `AbilityPay*` including `AbilityPayParticipantPlan` (with `fundingModel`), `AbilityPayInvoice` (with `billingInvoiceId`), `AbilityPayPaymentAttempt`, `AbilityPayClaimPack`, `AbilityPayConsentGrant`. Migrations: `20260611140000_abilitypay_mvp`, `20260611190000_abilitypay_gateway`.
 
-Reuses existing `AuditEvent`, NDIS pricing catalogue (`NdisPricingCatalogueItem`, `NdisSupportItem`), and consent patterns.
+Reuses existing `AuditEvent`, `BillingInvoice` (Stripe execution), NDIS pricing catalogue, and consent patterns.
+
+## Gateway services
+
+| Service | Role |
+|---------|------|
+| `funding-router-service.ts` | Routes approved invoices by funding model |
+| `stripe-adapter-service.ts` | Bridges to `billing-core` Checkout |
+| `payment-sync-service.ts` | Syncs Stripe webhook outcomes to AbilityPay |
+| `consent-service.ts` | Enforces `AbilityPayConsentGrant` before export/pay |
 
 ## Coexistence
 
-- **`/plan-manager`** — legacy plan-manager portal and export patterns; AbilityPay mirrors claim-pack columns but uses its own models and routes.
-- **`/dashboard/billing`** — platform billing (Stripe, care/transport invoices); AbilityPay NDIS invoices are separate (`AbilityPayInvoice` vs legacy `Invoice`).
+- **`/plan-manager`** — legacy plan-manager portal; AbilityPay mirrors claim-pack columns but uses its own models and routes.
+- **`/dashboard/billing`** — platform billing UI; AbilityPay creates linked `BillingInvoice` records for Stripe execution. Participant-facing hub will converge under AbilityPay over time.
 
 ## AI assistant boundaries
 
@@ -92,7 +126,7 @@ Reuses existing `AuditEvent`, NDIS pricing catalogue (`NdisPricingCatalogueItem`
 
 ## Tests
 
-`tests/abilitypay/` — validation checks, approval human-gate, duplicate detection, AI suggestion side effects.
+`tests/abilitypay/` — validation checks, approval human-gate, funding router, consent, duplicate detection, AI suggestion side effects.
 
 `tests/peer-middleware.test.ts` — `/abilitypay` auth prefix.
 

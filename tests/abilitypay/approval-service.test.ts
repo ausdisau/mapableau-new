@@ -24,11 +24,18 @@ vi.mock("@/lib/abilitypay/plan-service", () => ({
   recalcBudgetSpent: vi.fn(),
 }));
 
+vi.mock("@/lib/abilitypay/funding-router-service", () => ({
+  routeApprovedInvoice: vi.fn(),
+}));
+
 vi.mock("@/lib/abilitypay/audit", () => ({
   logAbilityPayEvent: vi.fn(),
 }));
 
 const { recalcBudgetSpent } = await import("@/lib/abilitypay/plan-service");
+const { routeApprovedInvoice } = await import(
+  "@/lib/abilitypay/funding-router-service"
+);
 const { logAbilityPayEvent } = await import("@/lib/abilitypay/audit");
 
 describe("assertHumanApprover", () => {
@@ -77,6 +84,15 @@ describe("approveInvoice", () => {
       invoice as never
     );
     vi.mocked(prisma.$transaction).mockResolvedValue([updated, event] as never);
+    vi.mocked(routeApprovedInvoice).mockResolvedValue({
+      route: {
+        model: "plan_managed",
+        adapter: "plan_export",
+        nextStep: "export",
+      },
+      paymentAttemptId: "attempt1",
+      paymentStatus: "ready_to_pay",
+    });
 
     const result = await approveInvoice({
       invoiceId: "inv1",
@@ -86,6 +102,12 @@ describe("approveInvoice", () => {
     });
 
     expect(result.invoice.status).toBe("approved");
+    expect(result.fundingRoute.route.nextStep).toBe("export");
+    expect(routeApprovedInvoice).toHaveBeenCalledWith({
+      invoiceId: "inv1",
+      actorUserId: "p1",
+      actorRole: "participant",
+    });
     expect(recalcBudgetSpent).toHaveBeenCalledWith("plan1");
     expect(logAbilityPayEvent).toHaveBeenCalledWith(
       expect.objectContaining({

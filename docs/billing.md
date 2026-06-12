@@ -129,6 +129,8 @@ stripe trigger checkout.session.completed
 
 Participant billing UI targets WCAG 2.2 AA: semantic headings, `aria-live` status, visible focus rings, minimum 44px tap targets, screen reader labels on totals and status.
 
-## Future: AbilityPay
+## AbilityPay gateway integration
 
-Models are prefixed `Billing*` and modular under `lib/billing-core/` so plan-management and AbilityPay can extend exports and funding rules without replacing Stripe primitives.
+AbilityPay (`lib/abilitypay/`) is MapAble's NDIS payment gateway. Approved self-managed and private-pay invoices create a linked `BillingInvoice` and use this module's Stripe Checkout flow. Webhooks in `lib/billing-core/webhook-handler.ts` sync payment outcomes back to `AbilityPayInvoice.paymentStatus` via `payment-sync-service.ts`.
+
+Plan-managed invoices use export adapters (CSV claim pack) instead of card checkout. `billing-core` remains the execution plane; AbilityPay is the orchestration and trust layer.

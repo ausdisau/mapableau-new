@@ -8192,13 +8192,39 @@ enum AbilityPayInvoiceStatus {
   exported
 }
 
+enum AbilityPayFundingModel {
+  plan_managed
+  self_managed
+  agency_managed
+  private_pay
+}
+
 enum AbilityPayPaymentStatus {
   pending_review
   approved
   rejected
   ready_to_pay
+  processing
+  paid
+  failed
+  refunded
   paid_mock
   on_hold
+}
+
+enum AbilityPayPaymentAdapter {
+  plan_export
+  stripe_checkout
+  ndia_claim
+  manual
+}
+
+enum AbilityPayPaymentAttemptStatus {
+  pending
+  processing
+  succeeded
+  failed
+  refunded
 }
 
 enum AbilityPayRiskSeverity {
@@ -8248,6 +8274,7 @@ model AbilityPayParticipantPlan {
   planStartAt     DateTime?
   planEndAt       DateTime?
   totalBudgetCents Int                 @default(0)
+  fundingModel    AbilityPayFundingModel @default(plan_managed)
   notes           String?
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
@@ -8339,6 +8366,8 @@ model AbilityPayInvoice {
   createdBy           User                     @relation("AbilityPayInvoiceCreatedBy", fields: [createdById], references: [id])
   status              AbilityPayInvoiceStatus  @default(draft)
   paymentStatus       AbilityPayPaymentStatus  @default(pending_review)
+  fundingModel        AbilityPayFundingModel?
+  billingInvoiceId    String?                  @unique @map("billing_invoice_id")
   issueDate           DateTime?
   dueDate             DateTime?
   subtotalCents       Int                      @default(0)
@@ -8358,11 +8387,33 @@ model AbilityPayInvoice {
   approvalEvents      AbilityPayApprovalEvent[]
   riskFlags           AbilityPayRiskFlag[]
   claimPacks          AbilityPayClaimPack[]
+  paymentAttempts     AbilityPayPaymentAttempt[]
 
   @@index([participantId, status])
   @@index([providerId])
   @@index([planId])
   @@index([invoiceNumber])
+  @@index([billingInvoiceId])
+}
+
+model AbilityPayPaymentAttempt {
+  id                String                         @id @default(cuid())
+  invoiceId         String                         @map("invoice_id")
+  invoice           AbilityPayInvoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  adapter           AbilityPayPaymentAdapter
+  status            AbilityPayPaymentAttemptStatus @default(pending)
+  externalRef       String?                        @map("external_ref")
+  billingInvoiceId  String?                        @map("billing_invoice_id")
+  billingPaymentId  String?                        @map("billing_payment_id")
+  claimPackId       String?                        @map("claim_pack_id")
+  failureReason     String?                        @map("failure_reason")
+  metadata          Json?
+  createdAt         DateTime                       @default(now()) @map("created_at")
+  updatedAt         DateTime                       @updatedAt @map("updated_at")
+
+  @@index([invoiceId])
+  @@index([adapter, status])
+  @@index([billingInvoiceId])
 }
 
 model AbilityPayInvoiceLineItem {

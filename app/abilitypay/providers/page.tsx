@@ -24,7 +24,7 @@ export default async function AbilityPayProvidersPage() {
       <header>
         <h1 className="font-heading text-2xl font-bold">Providers</h1>
         <p className="text-muted-foreground">
-          See your support providers and payment status (mock portal).
+          See your support providers and live payment status from AbilityPay.
         </p>
       </header>
       <ProviderPaymentStatus providers={withInvoices} />

@@ -6,6 +6,9 @@ export const createPlanSchema = z.object({
   planStartAt: z.string().datetime().optional(),
   planEndAt: z.string().datetime().optional(),
   totalBudgetCents: z.number().int().min(0).optional(),
+  fundingModel: z
+    .enum(["plan_managed", "self_managed", "agency_managed", "private_pay"])
+    .optional(),
   notes: z.string().max(2000).optional(),
   participantId: z.string().optional(),
 });
@@ -17,6 +20,9 @@ export const updatePlanSchema = z.object({
   planStartAt: z.string().datetime().optional().nullable(),
   planEndAt: z.string().datetime().optional().nullable(),
   totalBudgetCents: z.number().int().min(0).optional(),
+  fundingModel: z
+    .enum(["plan_managed", "self_managed", "agency_managed", "private_pay"])
+    .optional(),
   notes: z.string().max(2000).optional(),
 });
 

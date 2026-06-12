@@ -84,21 +84,32 @@ export function buildBillingPaymentCheckout(params: {
   productLabel: string;
   platformFeeCents?: number;
   providerConnectedAccountId?: string | null;
+  abilityPayInvoiceId?: string;
+  successUrl?: string;
+  cancelUrl?: string;
 }) {
   const metadata = billingCheckoutMetadata({
     invoiceId: params.invoiceId,
     userId: params.userId,
     serviceType: params.serviceType,
     bookingId: params.bookingId ?? undefined,
+    abilityPayInvoiceId: params.abilityPayInvoiceId,
   });
+
+  const defaultSuccess = params.abilityPayInvoiceId
+    ? `${stripeConfig.appUrl}/abilitypay/invoices/${params.abilityPayInvoiceId}?checkout=success`
+    : `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`;
+  const defaultCancel = params.abilityPayInvoiceId
+    ? `${stripeConfig.appUrl}/abilitypay/invoices/${params.abilityPayInvoiceId}?checkout=cancelled`
+    : `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`;
 
   return createStripePaymentCheckoutSession({
     amountCents: params.totalCents,
     currency: params.currency,
     customerId: params.customerId,
     productName: params.productLabel,
-    successUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`,
-    cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`,
+    successUrl: params.successUrl ?? defaultSuccess,
+    cancelUrl: params.cancelUrl ?? defaultCancel,
     metadata,
     applicationFeeAmount:
       params.providerConnectedAccountId && params.platformFeeCents !== undefined

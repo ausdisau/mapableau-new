@@ -3,12 +3,19 @@ import { format } from "date-fns";
 import { prisma } from "@/lib/prisma";
 
 import { logAbilityPayEvent } from "./audit";
+import {
+  AbilityPayConsentError,
+  assertAbilityPayConsent,
+} from "./consent-service";
 import { getPlanWalletSummary } from "./plan-service";
+
+export { AbilityPayConsentError };
 
 export async function exportClaimPackCsv(params: {
   userId: string;
   invoiceIds?: string[];
   planId?: string;
+  actorRole?: string;
 }) {
   const where = params.invoiceIds?.length
     ? { id: { in: params.invoiceIds } }
@@ -25,6 +32,16 @@ export async function exportClaimPackCsv(params: {
     },
     take: 200,
   });
+
+  if (invoices.length > 0) {
+    const participantId = invoices[0].participantId;
+    await assertAbilityPayConsent({
+      subjectUserId: participantId,
+      actorUserId: params.userId,
+      planId: params.planId ?? invoices[0].planId,
+      scope: "abilitypay_export",
+    });
+  }
 
   const header = [
     "invoice_id",
@@ -83,6 +100,22 @@ export async function exportClaimPackCsv(params: {
     },
   });
 
+  if (invoices.length > 0) {
+    await prisma.$transaction([
+      prisma.abilityPayInvoice.updateMany({
+        where: { id: { in: invoices.map((inv) => inv.id) } },
+        data: { status: "exported", paymentStatus: "processing" },
+      }),
+      prisma.abilityPayPaymentAttempt.updateMany({
+        where: {
+          invoiceId: { in: invoices.map((inv) => inv.id) },
+          adapter: "plan_export",
+        },
+        data: { status: "processing", claimPackId: pack.id },
+      }),
+    ]);
+  }
+
   await logAbilityPayEvent({
     action: "abilitypay.export.csv",
     entityType: "AbilityPayClaimPack",
@@ -99,12 +132,19 @@ export async function generateMonthlyStatement(params: {
   planId: string;
   month: string;
 }) {
+  const summary = await getPlanWalletSummary(params.planId);
+  if (!summary) throw new Error("PLAN_NOT_FOUND");
+
+  await assertAbilityPayConsent({
+    subjectUserId: summary.plan.participantId,
+    actorUserId: params.userId,
+    planId: params.planId,
+    scope: "abilitypay_export",
+  });
+
   const [year, monthNum] = params.month.split("-").map(Number);
   const start = new Date(year, monthNum - 1, 1);
   const end = new Date(year, monthNum, 0, 23, 59, 59);
-
-  const summary = await getPlanWalletSummary(params.planId);
-  if (!summary) throw new Error("PLAN_NOT_FOUND");
 
   const invoices = await prisma.abilityPayInvoice.findMany({
     where: {
