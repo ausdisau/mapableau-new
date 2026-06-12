@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 
 import { Providers } from "@/components/providers";
+import { MAPABLE_LOGO_MARK_SRC } from "@/lib/brand/constants";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -30,6 +31,11 @@ export const metadata: Metadata = {
   description:
     "MapAble helps people explore disability support, provider discovery, accessible transport, employment pathways and consent-aware service tools.",
   applicationName: "MapAble",
+  icons: {
+    icon: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/svg+xml" }],
+    shortcut: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/svg+xml" }],
+    apple: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/svg+xml" }],
+  },
   openGraph: {
     type: "website",
     siteName: "MapAble",
