@@ -170,8 +170,10 @@ export type RegGroupAssignment = {
   group: string;
 };
 
-const REG_GROUP_BY_INDEX = new Map(
-  REG_GROUP_OPTIONS.map((r) => [r.Index, r] as const),
+type RegGroupOption = (typeof REG_GROUP_OPTIONS)[number];
+
+const REG_GROUP_BY_INDEX = new Map<number, RegGroupOption>(
+  REG_GROUP_OPTIONS.map((r) => [r.Index, r]),
 );
 
 /** Structured RegGroup rows for an outlet's RegGroup index array. */
