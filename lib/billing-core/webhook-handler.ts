@@ -6,6 +6,7 @@ import {
 } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { updateInvoiceStatus } from "@/lib/billing-core/invoice-service";
+import { syncAbilityPayFromBillingInvoice, syncAbilityPayFromBillingMetadata } from "@/lib/abilitypay/payment-sync-service";
 import { prisma } from "@/lib/prisma";
 
 export async function storeWebhookEventIdempotent(
@@ -146,6 +147,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     action: "paid_via_checkout",
     after: { sessionId: session.id, paymentIntentId },
   });
+
+  await syncAbilityPayFromBillingMetadata({
+    billingInvoiceId: invoiceId,
+    abilityPayInvoiceId: session.metadata?.abilityPayInvoiceId,
+    status: "paid",
+    sessionId: session.id,
+    paymentIntentId: paymentIntentId ?? undefined,
+  });
 }
 
 async function handleCheckoutFailed(session: Stripe.Checkout.Session) {
@@ -156,6 +165,13 @@ async function handleCheckoutFailed(session: Stripe.Checkout.Session) {
     data: { status: "failed", failureReason: "async_payment_failed" },
   });
   await updateInvoiceStatus(invoiceId, "failed");
+  await syncAbilityPayFromBillingMetadata({
+    billingInvoiceId: invoiceId,
+    abilityPayInvoiceId: session.metadata?.abilityPayInvoiceId,
+    status: "failed",
+    sessionId: session.id,
+    failureReason: "async_payment_failed",
+  });
 }
 
 async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
@@ -179,6 +195,12 @@ async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
     paidAt: new Date(),
     stripePaymentIntentId: pi.id,
   });
+  await syncAbilityPayFromBillingMetadata({
+    billingInvoiceId: invoiceId,
+    abilityPayInvoiceId: pi.metadata?.abilityPayInvoiceId,
+    status: "paid",
+    paymentIntentId: pi.id,
+  });
 }
 
 async function handlePaymentIntentFailed(pi: Stripe.PaymentIntent) {
@@ -186,6 +208,13 @@ async function handlePaymentIntentFailed(pi: Stripe.PaymentIntent) {
   const reason = pi.last_payment_error?.message ?? "payment_failed";
   if (invoiceId) {
     await updateInvoiceStatus(invoiceId, "failed");
+    await syncAbilityPayFromBillingMetadata({
+      billingInvoiceId: invoiceId,
+      abilityPayInvoiceId: pi.metadata?.abilityPayInvoiceId,
+      status: "failed",
+      paymentIntentId: pi.id,
+      failureReason: reason,
+    });
   }
   await prisma.billingPayment.updateMany({
     where: { stripePaymentIntentId: pi.id },
@@ -208,6 +237,9 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   });
   if (payment) {
     await updateInvoiceStatus(payment.invoiceId, "refunded");
+    await syncAbilityPayFromBillingInvoice(payment.invoiceId, "refunded", {
+      paymentIntentId: piId,
+    });
   }
 }
 

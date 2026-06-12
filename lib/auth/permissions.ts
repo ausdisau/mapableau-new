@@ -188,7 +188,15 @@ export type Permission =
   | "engagement:read:self"
   | "engagement:submit:self"
   | "engagement:manage:any"
-  | "engagement:provider:read";
+  | "engagement:provider:read"
+  | "abilitypay:read"
+  | "abilitypay:plan:manage"
+  | "abilitypay:invoice:upload"
+  | "abilitypay:invoice:review"
+  | "abilitypay:invoice:approve"
+  | "abilitypay:export"
+  | "abilitypay:audit:read"
+  | "abilitypay:admin";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -231,6 +239,10 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "abilitypay:read",
+    "abilitypay:invoice:upload",
+    "abilitypay:invoice:approve",
+    "abilitypay:export",
   ],
   family_member: [
     "profile:read:self",
@@ -239,6 +251,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "notification:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "abilitypay:read",
+    "abilitypay:invoice:approve",
+    "abilitypay:export",
   ],
   support_coordinator: [
     "profile:read:any",
@@ -253,6 +268,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:command-centre:read",
     "admin:participants:read",
     "admin:bookings:read",
+    "abilitypay:read",
+    "abilitypay:invoice:review",
   ],
   support_worker: [
     "booking:read:any",
@@ -287,6 +304,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:ndia:claim",
     "provider:ndis:claim",
     "engagement:provider:read",
+    "abilitypay:read",
+    "abilitypay:invoice:upload",
   ],
   transport_operator: [
     "booking:read:any",
@@ -330,6 +349,13 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:command-centre:read",
     "admin:billing:read",
     "admin:bookings:read",
+    "abilitypay:read",
+    "abilitypay:plan:manage",
+    "abilitypay:invoice:upload",
+    "abilitypay:invoice:review",
+    "abilitypay:invoice:approve",
+    "abilitypay:export",
+    "abilitypay:audit:read",
   ],
   mapable_admin: [
     "profile:read:any",
@@ -461,6 +487,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:compliance:read",
     "admin:agent-runs:read",
     "admin:actions:write",
+    "abilitypay:read",
+    "abilitypay:plan:manage",
+    "abilitypay:invoice:upload",
+    "abilitypay:invoice:review",
+    "abilitypay:invoice:approve",
+    "abilitypay:export",
+    "abilitypay:audit:read",
+    "abilitypay:admin",
   ],
 };
 

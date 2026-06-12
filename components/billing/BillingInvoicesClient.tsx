@@ -108,7 +108,13 @@ export function BillingInvoicesClient() {
 
   async function openCustomerPortal() {
     setBusy(true);
-    const res = await fetch("/api/billing/customer-portal", { method: "POST" });
+    const res = await fetch("/api/billing/customer-portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        returnUrl: `${window.location.origin}/dashboard/billing/invoices`,
+      }),
+    });
     const data = await res.json();
     if (data.portalUrl) {
       window.location.href = data.portalUrl;

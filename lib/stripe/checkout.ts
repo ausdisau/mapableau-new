@@ -42,13 +42,20 @@ export async function createStripePaymentCheckoutSession(
 
   if (params.customerId) {
     sessionParams.customer = params.customerId;
+    sessionParams.payment_intent_data = {
+      ...(sessionParams.payment_intent_data ?? {}),
+      setup_future_usage: "off_session",
+      metadata: params.metadata,
+    };
   }
 
   if (params.transferDestination && params.applicationFeeAmount !== undefined) {
     sessionParams.payment_intent_data = {
+      ...(sessionParams.payment_intent_data ?? {}),
       application_fee_amount: params.applicationFeeAmount,
       transfer_data: { destination: params.transferDestination },
       metadata: params.metadata,
+      setup_future_usage: "off_session",
     };
   }
 
@@ -84,21 +91,32 @@ export function buildBillingPaymentCheckout(params: {
   productLabel: string;
   platformFeeCents?: number;
   providerConnectedAccountId?: string | null;
+  abilityPayInvoiceId?: string;
+  successUrl?: string;
+  cancelUrl?: string;
 }) {
   const metadata = billingCheckoutMetadata({
     invoiceId: params.invoiceId,
     userId: params.userId,
     serviceType: params.serviceType,
     bookingId: params.bookingId ?? undefined,
+    abilityPayInvoiceId: params.abilityPayInvoiceId,
   });
+
+  const defaultSuccess = params.abilityPayInvoiceId
+    ? `${stripeConfig.appUrl}/abilitypay/invoices/${params.abilityPayInvoiceId}?checkout=success`
+    : `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`;
+  const defaultCancel = params.abilityPayInvoiceId
+    ? `${stripeConfig.appUrl}/abilitypay/invoices/${params.abilityPayInvoiceId}?checkout=cancelled`
+    : `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`;
 
   return createStripePaymentCheckoutSession({
     amountCents: params.totalCents,
     currency: params.currency,
     customerId: params.customerId,
     productName: params.productLabel,
-    successUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`,
-    cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`,
+    successUrl: params.successUrl ?? defaultSuccess,
+    cancelUrl: params.cancelUrl ?? defaultCancel,
     metadata,
     applicationFeeAmount:
       params.providerConnectedAccountId && params.platformFeeCents !== undefined

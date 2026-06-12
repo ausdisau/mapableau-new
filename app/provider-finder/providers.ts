@@ -1,3 +1,5 @@
+import type { SupportTypeId } from "@/lib/provider-finder/filters";
+
 export type ProviderSupportMode = "In-person" | "Telehealth";
 
 export type Provider = {
@@ -24,6 +26,10 @@ export type Provider = {
   openingHours?: string;
   /** Stable key for claim matching: ABN-slugify(Outletname)-slugify(Address) */
   outletKey?: string;
+  /** Classified support types from outlet RegGroup (when available) */
+  supportTypes?: SupportTypeId[];
+  /** Classified access need ids from outlet metadata (when available) */
+  accessNeedIds?: string[];
 };
 
 export const PROVIDER_CATEGORIES = [

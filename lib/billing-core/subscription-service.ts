@@ -10,7 +10,8 @@ import {
 import { prisma } from "@/lib/prisma";
 import { createStripeSubscriptionCheckoutSession } from "@/lib/stripe/checkout";
 import { getStripeClient } from "@/lib/stripe/client";
-import { createBillingPortalSession } from "@/lib/stripe/portal";
+
+export { createCustomerPortalSession } from "./portal-service";
 
 function roleForPlan(planCode: BillingSubscriptionPlanCode): BillingAccountRole {
   if (planCode === "employer_pro") return "employer";
@@ -77,21 +78,4 @@ export async function createSubscriptionCheckout(
   });
 
   return { ok: true as const, checkoutUrl: session.url, sessionId: session.id };
-}
-
-export async function createCustomerPortalSession(userId: string) {
-  if (!isBillingStripeConfigured()) {
-    return { ok: false as const, error: "Stripe is not configured" };
-  }
-
-  const account = await prisma.billingAccount.findFirst({
-    where: { userId, stripeCustomerId: { not: null } },
-  });
-  if (!account?.stripeCustomerId) {
-    return { ok: false as const, error: "No billing customer on file" };
-  }
-
-  const session = await createBillingPortalSession(account.stripeCustomerId);
-
-  return { ok: true as const, portalUrl: session.url };
 }

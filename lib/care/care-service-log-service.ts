@@ -1,4 +1,5 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { createDraftInvoiceFromCareServiceLog } from "@/lib/abilitypay/care-intake-service";
 import {
   assertParticipantOwnsBooking,
   assertProviderOrgAccess,
@@ -147,6 +148,16 @@ export async function confirmCareServiceLog(
     entityId: logId,
     participantId: log.participantId,
   });
+
+  try {
+    await createDraftInvoiceFromCareServiceLog({
+      careServiceLogId: logId,
+      actorUserId: actorUser.id,
+      actorRole: actorUser.primaryRole,
+    });
+  } catch {
+    // Intake is best-effort; confirmation still succeeds without an invoice draft.
+  }
 
   return updated;
 }

@@ -100,7 +100,20 @@ export type AuditAction =
   | "organisation.verification_changed"
   | "booking.created"
   | "booking.updated"
-  | "admin.accessed_sensitive_record";
+  | "admin.accessed_sensitive_record"
+  | "abilitypay.plan.created"
+  | "abilitypay.plan.updated"
+  | "abilitypay.invoice.created"
+  | "abilitypay.invoice.updated"
+  | "abilitypay.invoice.validated"
+  | "abilitypay.invoice.approved"
+  | "abilitypay.invoice.rejected"
+  | "abilitypay.payment.initiated"
+  | "abilitypay.payment.paid"
+  | "abilitypay.payment.failed"
+  | "abilitypay.payment.refunded"
+  | "abilitypay.export.csv"
+  | "abilitypay.export.statement";
 
 export type PreferredContactMethod = "email" | "phone" | "sms";
 

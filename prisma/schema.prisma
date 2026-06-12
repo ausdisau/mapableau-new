@@ -139,6 +139,15 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  abilityPayPlans           AbilityPayParticipantPlan[] @relation("AbilityPayPlanParticipant")
+  abilityPayPlansCreated    AbilityPayParticipantPlan[] @relation("AbilityPayPlanCreatedBy")
+  abilityPayInvoices        AbilityPayInvoice[]    @relation("AbilityPayInvoiceParticipant")
+  abilityPayInvoicesCreated AbilityPayInvoice[]    @relation("AbilityPayInvoiceCreatedBy")
+  abilityPayApprovalEvents  AbilityPayApprovalEvent[] @relation("AbilityPayApprovalActor")
+  abilityPayConsentGrants   AbilityPayConsentGrant[] @relation("AbilityPayConsentSubject")
+  abilityPayConsentGranted  AbilityPayConsentGrant[] @relation("AbilityPayConsentGrantedTo")
+  abilityPayClaimPacks      AbilityPayClaimPack[]  @relation("AbilityPayClaimPackCreatedBy")
 }
 
 model PasskeyCredential {
@@ -255,19 +264,23 @@ model ProviderOutletRegistry {
   postcode     String?
   latitude     Float?
   longitude    Float?
-  regGroup     Int[]    @default([]) @map("reg_group")
-  openingHours String?  @map("opening_hours")
-  professions  String?
-  raw          Json
-  sourceDate   String?  @map("source_date")
-  importedAt   DateTime @default(now()) @map("imported_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  regGroup      Int[]    @default([]) @map("reg_group")
+  openingHours  String?  @map("opening_hours")
+  professions   String?
+  supportTypes  String[] @default([]) @map("support_types")
+  accessNeedIds String[] @default([]) @map("access_need_ids")
+  raw           Json
+  sourceDate    String?  @map("source_date")
+  importedAt    DateTime @default(now()) @map("imported_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@index([active])
   @@index([state])
   @@index([abn])
   @@index([name])
   @@index([outletKey])
+  @@index([supportTypes])
+  @@index([accessNeedIds])
   @@map("provider_outlets")
 }
 
@@ -714,6 +727,7 @@ model Organisation {
   engagementImprovementActions EngagementImprovementAction[]
   engagementNpsResponses EngagementNpsResponse[]
   workerTrainingModules  WorkerTrainingModule[]
+  abilityPayProviders    AbilityPayProvider[]
 }
 
 model OrganisationMember {
@@ -8151,4 +8165,362 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// --- AbilityPay (NDIS plan management & invoice control) ---
+
+enum AbilityPayPlanStatus {
+  draft
+  active
+  ended
+}
+
+enum AbilityPayPriceLimitStatus {
+  pass
+  warning
+  fail
+  unknown
+}
+
+enum AbilityPayInvoiceStatus {
+  draft
+  submitted
+  in_review
+  awaiting_participant
+  approved
+  rejected
+  exported
+}
+
+enum AbilityPayFundingModel {
+  plan_managed
+  self_managed
+  agency_managed
+  private_pay
+}
+
+enum AbilityPayPaymentStatus {
+  pending_review
+  approved
+  rejected
+  ready_to_pay
+  processing
+  paid
+  failed
+  refunded
+  paid_mock
+  on_hold
+}
+
+enum AbilityPayPaymentAdapter {
+  plan_export
+  stripe_checkout
+  ndia_claim
+  manual
+}
+
+enum AbilityPayPaymentAttemptStatus {
+  pending
+  processing
+  succeeded
+  failed
+  refunded
+}
+
+enum AbilityPayRiskSeverity {
+  info
+  warning
+  error
+}
+
+enum AbilityPayRiskFlagType {
+  duplicate
+  price_over_limit
+  missing_field
+  ai_suggested
+  service_agreement_missing
+}
+
+enum AbilityPayApprovalDecision {
+  approved
+  rejected
+  queried
+}
+
+enum AbilityPayConsentScopeType {
+  abilitypay_plan_view
+  abilitypay_invoice_view
+  abilitypay_invoice_approve
+  abilitypay_budget_manage
+  abilitypay_export
+}
+
+enum AbilityPayInvoiceSourceType {
+  provider_upload
+  care_service_log
+  delivery_event
+  billing_invoice
+}
+
+enum AbilityPayProviderCredentialStatus {
+  pending
+  verified
+  expired
+  rejected
+}
+
+model AbilityPayParticipantPlan {
+  id              String               @id @default(cuid())
+  participantId   String
+  participant     User                 @relation("AbilityPayPlanParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  createdById     String
+  createdBy       User                 @relation("AbilityPayPlanCreatedBy", fields: [createdById], references: [id])
+  title           String
+  ndisNumber      String?
+  status          AbilityPayPlanStatus @default(draft)
+  planStartAt     DateTime?
+  planEndAt       DateTime?
+  totalBudgetCents Int                 @default(0)
+  fundingModel    AbilityPayFundingModel @default(plan_managed)
+  notes           String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  categories      AbilityPayBudgetCategory[]
+  fundingPeriods  AbilityPayFundingPeriod[]
+  invoices        AbilityPayInvoice[]
+  consentGrants   AbilityPayConsentGrant[]
+
+  @@index([participantId, status])
+  @@index([createdAt])
+}
+
+model AbilityPayBudgetCategory {
+  id              String                    @id @default(cuid())
+  planId          String
+  plan            AbilityPayParticipantPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  name            String
+  categoryCode    String?
+  allocatedCents  Int                       @default(0)
+  spentCents      Int                       @default(0)
+  description     String?
+  sortOrder       Int                       @default(0)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  lineItems       AbilityPayInvoiceLineItem[]
+
+  @@index([planId])
+}
+
+model AbilityPayFundingPeriod {
+  id        String                  @id @default(cuid())
+  planId    String
+  plan      AbilityPayParticipantPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  label     String
+  startAt   DateTime
+  endAt     DateTime
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  @@index([planId])
+}
+
+model AbilityPayProvider {
+  id              String        @id @default(cuid())
+  legalName       String
+  abn             String?
+  contactEmail    String?
+  contactPhone    String?
+  organisationId  String?
+  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  credentials     AbilityPayProviderCredential[]
+  invoices        AbilityPayInvoice[]
+
+  @@index([organisationId])
+  @@index([abn])
+}
+
+model AbilityPayProviderCredential {
+  id           String                           @id @default(cuid())
+  providerId   String
+  provider     AbilityPayProvider               @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  credentialType String
+  status       AbilityPayProviderCredentialStatus @default(pending)
+  referenceNumber String?
+  expiresAt    DateTime?
+  notes        String?
+  createdAt    DateTime                         @default(now())
+  updatedAt    DateTime                         @updatedAt
+
+  @@index([providerId])
+}
+
+model AbilityPayInvoice {
+  id                  String                   @id @default(cuid())
+  invoiceNumber       String?
+  participantId       String
+  participant         User                     @relation("AbilityPayInvoiceParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerId          String?
+  provider            AbilityPayProvider?      @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  planId              String?
+  plan                AbilityPayParticipantPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  createdById         String
+  createdBy           User                     @relation("AbilityPayInvoiceCreatedBy", fields: [createdById], references: [id])
+  status              AbilityPayInvoiceStatus  @default(draft)
+  paymentStatus       AbilityPayPaymentStatus  @default(pending_review)
+  fundingModel        AbilityPayFundingModel?
+  billingInvoiceId    String?                  @unique @map("billing_invoice_id")
+  issueDate           DateTime?
+  dueDate             DateTime?
+  subtotalCents       Int                      @default(0)
+  taxCents            Int                      @default(0)
+  totalCents          Int                      @default(0)
+  currency            String                   @default("AUD")
+  serviceAgreementId  String?
+  serviceAgreementLinked Boolean               @default(false)
+  validationJson      Json?
+  aiSuggestionsJson   Json?
+  notes               String?
+  sourceType          AbilityPayInvoiceSourceType? @map("source_type")
+  sourceRefId         String?                  @map("source_ref_id")
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  lineItems           AbilityPayInvoiceLineItem[]
+  attachments         AbilityPayInvoiceAttachment[]
+  approvalEvents      AbilityPayApprovalEvent[]
+  riskFlags           AbilityPayRiskFlag[]
+  claimPacks          AbilityPayClaimPack[]
+  paymentAttempts     AbilityPayPaymentAttempt[]
+
+  @@index([participantId, status])
+  @@index([providerId])
+  @@index([planId])
+  @@index([invoiceNumber])
+  @@index([billingInvoiceId])
+  @@index([sourceType, sourceRefId])
+}
+
+model AbilityPayPaymentAttempt {
+  id                String                         @id @default(cuid())
+  invoiceId         String                         @map("invoice_id")
+  invoice           AbilityPayInvoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  adapter           AbilityPayPaymentAdapter
+  status            AbilityPayPaymentAttemptStatus @default(pending)
+  externalRef       String?                        @map("external_ref")
+  billingInvoiceId  String?                        @map("billing_invoice_id")
+  billingPaymentId  String?                        @map("billing_payment_id")
+  claimPackId       String?                        @map("claim_pack_id")
+  failureReason     String?                        @map("failure_reason")
+  metadata          Json?
+  createdAt         DateTime                       @default(now()) @map("created_at")
+  updatedAt         DateTime                       @updatedAt @map("updated_at")
+
+  @@index([invoiceId])
+  @@index([adapter, status])
+  @@index([billingInvoiceId])
+}
+
+model AbilityPayInvoiceLineItem {
+  id                String                    @id @default(cuid())
+  invoiceId         String
+  invoice           AbilityPayInvoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description       String
+  serviceDate       DateTime
+  quantity          Decimal                   @default(1)
+  unitPriceCents    Int
+  totalCents        Int
+  supportItemCode   String?
+  priceLimitStatus  AbilityPayPriceLimitStatus @default(unknown)
+  budgetCategoryId  String?
+  budgetCategory    AbilityPayBudgetCategory? @relation(fields: [budgetCategoryId], references: [id], onDelete: SetNull)
+  sortOrder         Int                       @default(0)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  @@index([invoiceId])
+  @@index([budgetCategoryId])
+}
+
+model AbilityPayInvoiceAttachment {
+  id         String            @id @default(cuid())
+  invoiceId  String
+  invoice    AbilityPayInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  fileName   String
+  fileKey    String
+  mimeType   String
+  fileSize   Int
+  documentId String?
+  createdAt  DateTime          @default(now())
+
+  @@index([invoiceId])
+}
+
+model AbilityPayApprovalEvent {
+  id          String                     @id @default(cuid())
+  invoiceId   String
+  invoice     AbilityPayInvoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  actorUserId String
+  actor       User                       @relation("AbilityPayApprovalActor", fields: [actorUserId], references: [id])
+  decision    AbilityPayApprovalDecision
+  notes       String?
+  createdAt   DateTime                   @default(now())
+
+  @@index([invoiceId])
+  @@index([actorUserId])
+}
+
+model AbilityPayClaimPack {
+  id          String            @id @default(cuid())
+  invoiceId   String?
+  invoice     AbilityPayInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  planId      String?
+  createdById String
+  createdBy   User              @relation("AbilityPayClaimPackCreatedBy", fields: [createdById], references: [id])
+  format      String
+  fileName    String?
+  rowCount    Int               @default(0)
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+
+  @@index([invoiceId])
+  @@index([createdById])
+}
+
+model AbilityPayConsentGrant {
+  id              String                     @id @default(cuid())
+  subjectUserId   String
+  subject         User                       @relation("AbilityPayConsentSubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  grantedToUserId String
+  grantedTo       User                       @relation("AbilityPayConsentGrantedTo", fields: [grantedToUserId], references: [id], onDelete: Cascade)
+  planId          String?
+  plan            AbilityPayParticipantPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  scope           AbilityPayConsentScopeType
+  isActive        Boolean                    @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+
+  @@index([subjectUserId, grantedToUserId])
+  @@index([planId])
+}
+
+model AbilityPayRiskFlag {
+  id          String                 @id @default(cuid())
+  invoiceId   String
+  invoice     AbilityPayInvoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  flagType    AbilityPayRiskFlagType
+  severity    AbilityPayRiskSeverity @default(warning)
+  message     String
+  fieldKey    String?
+  resolved    Boolean                @default(false)
+  createdAt   DateTime               @default(now())
+
+  @@index([invoiceId])
+  @@index([flagType])
 }
