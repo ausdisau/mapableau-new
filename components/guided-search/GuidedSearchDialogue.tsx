@@ -4,6 +4,7 @@ import React from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useRouter } from "next/navigation";
+import { Loader2, MapPin } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
@@ -12,6 +13,7 @@ import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomple
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CopilotProviderResult } from "@/lib/copilot/types";
+import { useGeolocationSuburb } from "@/lib/hooks/use-geolocation-suburb";
 import { buildFinderSearchParams } from "@/lib/search/apply-interpretation";
 import type {
   FinderAgentData,
@@ -76,6 +78,11 @@ export function GuidedSearchDialogue({
     null,
   );
   const [locationDraft, setLocationDraft] = useState("");
+  const {
+    loading: locationDetecting,
+    error: locationDetectError,
+    detect: detectSuburb,
+  } = useGeolocationSuburb();
 
   const compact = variant === "compact";
 
@@ -300,17 +307,56 @@ export function GuidedSearchDialogue({
             value={locationDraft}
             onChange={setLocationDraft}
             debounceMs={0}
+            disabled={isBusy || locationDetecting}
             inputClassName={compact ? "text-xs" : undefined}
           />
-          <Button
-            type="button"
-            variant="default"
-            size={compact ? "sm" : "default"}
-            disabled={isBusy || !locationDraft.trim()}
-            onClick={handleLocationSubmit}
-          >
-            Use this location
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size={compact ? "sm" : "default"}
+              disabled={isBusy || locationDetecting}
+              aria-busy={locationDetecting}
+              onClick={async () => {
+                const detected = await detectSuburb();
+                if (!detected) return;
+                const nextSession = applyChoiceToSession(
+                  sessionRef.current,
+                  "location",
+                  detected.label,
+                );
+                updateSession(nextSession);
+                setLocationDraft("");
+                void submitText(detected.label);
+              }}
+            >
+              {locationDetecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Detecting…
+                </>
+              ) : (
+                <>
+                  <MapPin className="h-4 w-4" aria-hidden />
+                  Use my location
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size={compact ? "sm" : "default"}
+              disabled={isBusy || !locationDraft.trim()}
+              onClick={handleLocationSubmit}
+            >
+              Use this location
+            </Button>
+          </div>
+          {locationDetectError ? (
+            <p className="text-sm text-destructive" role="alert">
+              {locationDetectError}
+            </p>
+          ) : null}
         </div>
       ) : null}
 

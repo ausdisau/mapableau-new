@@ -8,6 +8,7 @@ import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomple
 import { SearchTrustRow } from "@/components/search/SearchTrustRow";
 import { Button } from "@/components/ui/button";
 import { mapableSearchFieldSecondaryClass } from "@/lib/brand/styles";
+import { useGeolocationSuburb } from "@/lib/hooks/use-geolocation-suburb";
 import type {
   AutocompleteContext,
   AutocompleteSuggestion,
@@ -59,6 +60,11 @@ export function MapAbleProviderSearchForm({
   className,
 }: MapAbleProviderSearchFormProps) {
   const [statusMessage, setStatusMessage] = useState("");
+  const {
+    loading: locationDetecting,
+    error: locationDetectError,
+    detect: detectSuburb,
+  } = useGeolocationSuburb();
 
   const idPrefix = context === "homepage" ? "home" : "pf";
 
@@ -116,19 +122,52 @@ export function MapAbleProviderSearchForm({
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <AccessibleAutocomplete
-            id={`${idPrefix}-location`}
-            label="Location"
-            placeholder="Suburb or postcode"
-            context={context}
-            field="location"
-            value={values.location}
-            onChange={onLocationChange}
-            onSelect={(s) => onLocationChange(s.value)}
-            disabled={isSubmitting}
-            icon={<MapPin className="h-4 w-4" aria-hidden />}
-            helperText="Uses MapAble’s local location list — not a public geocoding API."
-          />
+          <div className="space-y-2">
+            <AccessibleAutocomplete
+              id={`${idPrefix}-location`}
+              label="Location"
+              placeholder="Suburb or postcode"
+              context={context}
+              field="location"
+              value={values.location}
+              onChange={onLocationChange}
+              onSelect={(s) => onLocationChange(s.value)}
+              disabled={isSubmitting || locationDetecting}
+              icon={<MapPin className="h-4 w-4" aria-hidden />}
+              helperText="Uses MapAble’s local location list — not a public geocoding API."
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="min-h-9 w-full sm:w-auto"
+              disabled={isSubmitting || locationDetecting}
+              aria-busy={locationDetecting}
+              onClick={async () => {
+                const detected = await detectSuburb();
+                if (!detected) return;
+                onLocationChange(detected.label);
+                setStatusMessage(`Location set to ${detected.label}.`);
+              }}
+            >
+              {locationDetecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Detecting location…
+                </>
+              ) : (
+                <>
+                  <MapPin className="h-4 w-4" aria-hidden />
+                  Use my location
+                </>
+              )}
+            </Button>
+            {locationDetectError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {locationDetectError}
+              </p>
+            ) : null}
+          </div>
           <AccessibleAutocomplete
             id={`${idPrefix}-access`}
             label="Access needs"
