@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { REG_GROUP_OPTIONS } from "@/app/provider-finder/regGroupOptions";
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import {
   accessNeedIdsFromHaystack,
@@ -33,6 +34,17 @@ const sampleOutlet: ProviderOutlet = {
 };
 
 describe("supportTypesFromRegGroupIndices", () => {
+  it("maps every NDIS RegGroup index to a support type chip", () => {
+    for (const option of REG_GROUP_OPTIONS) {
+      expect(supportTypesFromRegGroupIndices([option.Index])).not.toEqual([]);
+    }
+  });
+
+  it("maps plan management and support coordination", () => {
+    expect(supportTypesFromRegGroupIndices([33])).toEqual(["personal-care"]);
+    expect(supportTypesFromRegGroupIndices([34])).toEqual(["personal-care"]);
+  });
+
   it("maps transport, personal care, and therapy reg groups", () => {
     expect(supportTypesFromRegGroupIndices([4, 5, 29])).toEqual([
       "personal-care",

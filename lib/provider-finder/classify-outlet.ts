@@ -27,28 +27,54 @@ export type ClassifiedProviderOutlet = {
   haystack: string;
 };
 
-/** NDIS RegGroup index → Provider Finder support type chips. */
-const REG_GROUP_INDEX_TO_SUPPORT_TYPE: Partial<Record<number, SupportTypeId>> = {
-  1: "home-help",
-  3: "personal-care",
-  4: "transport",
-  5: "personal-care",
-  7: "personal-care",
-  8: "home-help",
-  17: "therapy",
-  19: "therapy",
-  22: "therapy",
-  23: "therapy",
-  24: "therapy",
-  25: "therapy",
-  26: "therapy",
-  28: "transport",
-  29: "therapy",
-  30: "home-help",
-  31: "home-help",
-  32: "transport",
-  35: "employment",
-  36: "employment",
+/**
+ * NDIS RegGroup index → Provider Finder support type chips.
+ * All 36 NDIS registration groups are mapped so every outlet with RegGroup
+ * data receives at least one chip.
+ */
+const REG_GROUP_INDEX_TO_SUPPORT_TYPE: Record<number, SupportTypeId> = {
+  // Assistive Services
+  1: "home-help", // Accommodation / Tenancy Assistance
+  2: "personal-care", // Assistance Animals
+  3: "personal-care", // Assistance with daily life tasks in group/shared living
+  4: "transport", // Assistance with travel/transport arrangements
+  5: "personal-care", // Daily Personal Activities
+  6: "personal-care", // Group and Centre Based Activities
+  7: "personal-care", // High Intensity Daily Personal Activities
+  8: "home-help", // Household tasks
+  9: "therapy", // Interpreting and translation
+  10: "personal-care", // Participation in community/social and civic activities
+  // Assistive Technology
+  11: "therapy", // Assistive equipment for recreation
+  12: "home-help", // Assistive products for household tasks
+  13: "personal-care", // Assistance products for personal care and safety
+  14: "therapy", // Communication and information equipment
+  15: "therapy", // Customised Prosthetics
+  16: "therapy", // Hearing Equipment
+  17: "therapy", // Hearing Services
+  18: "transport", // Personal Mobility Equipment
+  19: "therapy", // Specialised Hearing Services
+  20: "therapy", // Vision Equipment
+  // Capacity Building Services
+  21: "personal-care", // Assistance in coordinating life stages/transitions
+  22: "therapy", // Behaviour Support
+  23: "therapy", // Community nursing care for high needs
+  24: "therapy", // Development of daily living and life skills
+  25: "therapy", // Early Intervention supports for early childhood
+  26: "therapy", // Exercise Physiology and Physical Wellbeing activities
+  27: "personal-care", // Innovative Community Participation
+  28: "transport", // Specialised Driving Training
+  29: "therapy", // Therapeutic Supports
+  // Capital Services
+  30: "home-help", // Home modification design and construction
+  31: "home-help", // Specialist Disability Accommodation
+  32: "transport", // Vehicle Modifications
+  // Choice and Control Support Services
+  33: "personal-care", // Plan Management (NDIS plan admin / navigation)
+  34: "personal-care", // Support Coordination
+  // Employment and Education Support Services
+  35: "employment", // Assistance to access/maintain employment or education
+  36: "employment", // Specialised Supported Employment
 };
 
 const SUPPORT_TYPE_ORDER: SupportTypeId[] = [
