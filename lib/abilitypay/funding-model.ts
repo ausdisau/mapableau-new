@@ -74,6 +74,12 @@ export function resolveFundingModel(params: {
   );
 }
 
+export function supportsStripeSavedPaymentMethods(
+  model: AbilityPayFundingModel
+): boolean {
+  return fundingRouteForModel(model).adapter === "stripe_checkout";
+}
+
 export function fundingModelLabel(model: AbilityPayFundingModel): string {
   switch (model) {
     case "plan_managed":

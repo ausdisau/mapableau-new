@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/abilitypay/plan", label: "Your plan" },
   { href: "/abilitypay/budgets", label: "Budgets" },
   { href: "/abilitypay/invoices", label: "Invoices" },
+  { href: "/abilitypay/payment-methods", label: "Payment methods" },
   { href: "/abilitypay/approvals", label: "Approvals" },
   { href: "/abilitypay/providers", label: "Providers" },
   { href: "/abilitypay/reports", label: "Reports" },

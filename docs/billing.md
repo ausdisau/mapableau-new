@@ -63,7 +63,7 @@ When the provider has `stripeConnectedAccountId`, Checkout uses a destination ch
 | POST | `/api/billing/connect/create-account` | Express Connect account + onboarding link |
 | POST | `/api/billing/connect/onboarding-link` | Refresh onboarding |
 | POST | `/api/billing/subscriptions/checkout` | Provider Pro / Employer Pro subscription Checkout |
-| POST | `/api/billing/customer-portal` | Stripe Billing Portal URL |
+| POST | `/api/billing/customer-portal` | Stripe Billing Portal URL (`returnUrl` optional; creates Stripe Customer if missing) |
 | POST | `/api/billing/invoices/export` | CSV / plan-manager JSON / Xero scaffold |
 | POST | `/api/webhooks/stripe` | Signed webhook (raw body) |
 | GET | `/api/admin/billing/invoices` | Admin search + flagged list |
@@ -100,7 +100,7 @@ stripe trigger checkout.session.completed
 ## UI
 
 - `/dashboard/billing` — **Invoice & billing centre** (participant control panel): overview, invoices & payments, funding sources, legacy invoice drafts
-- `/dashboard/billing/invoices` — list, pay, export (Stripe Checkout / plan manager)
+- `/dashboard/billing/invoices` — list, pay, export (Stripe Checkout / plan manager); **Manage payment methods** opens Stripe Billing Portal
 - `/dashboard/billing/invoices/[invoiceId]` — invoice detail
 - `/dashboard/billing/funding` — billing-core funding sources
 - `/dashboard/billing/legacy` — Phase 2 `Invoice` drafts
@@ -134,3 +134,7 @@ Participant billing UI targets WCAG 2.2 AA: semantic headings, `aria-live` statu
 AbilityPay (`lib/abilitypay/`) is MapAble's NDIS payment gateway. Approved self-managed and private-pay invoices create a linked `BillingInvoice` and use this module's Stripe Checkout flow. Webhooks in `lib/billing-core/webhook-handler.ts` sync payment outcomes back to `AbilityPayInvoice.paymentStatus` via `payment-sync-service.ts`.
 
 Plan-managed invoices use export adapters (CSV claim pack) instead of card checkout. `billing-core` remains the execution plane; AbilityPay is the orchestration and trust layer.
+
+### Saved payment methods
+
+`lib/billing-core/portal-service.ts` exposes `createCustomerPortalSession` for any billing account role. Participants use `POST /api/billing/customer-portal` from the dashboard; AbilityPay participants use `POST /api/abilitypay/billing-portal` with funding-model gating. Cards are stored only in Stripe.

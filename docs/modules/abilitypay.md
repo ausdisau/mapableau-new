@@ -45,7 +45,7 @@ Legacy `paid_mock` remains in the enum for backward compatibility but is not use
 
 | Audience | Routes |
 |----------|--------|
-| Participant / nominee | `/abilitypay`, `/abilitypay/plan`, `/abilitypay/budgets`, `/abilitypay/invoices`, `/abilitypay/invoices/[id]`, `/abilitypay/approvals`, `/abilitypay/reports`, `/abilitypay/reconciliation` |
+| Participant / nominee | `/abilitypay`, `/abilitypay/plan`, `/abilitypay/budgets`, `/abilitypay/invoices`, `/abilitypay/invoices/[id]`, `/abilitypay/approvals`, `/abilitypay/reports`, `/abilitypay/reconciliation`, `/abilitypay/payment-methods` |
 | Plan manager | Above + workbench on dashboard; `/abilitypay/providers` |
 | Provider admin | `/abilitypay/providers` (live payment status) |
 | Admin | `/abilitypay/admin`, `/abilitypay/audit` |
@@ -61,6 +61,7 @@ All `/abilitypay` routes require authentication (see `lib/mapable-peers/peer-mid
 - `GET /api/abilitypay/reconciliation` — payment attempt ledger for plan managers / admins
 - `GET /api/abilitypay/providers`, `GET /api/abilitypay/approvals`
 - `POST /api/abilitypay/exports/claim-pack`, `/exports/statement`
+- `POST /api/abilitypay/billing-portal` — Stripe Customer Billing Portal for self-managed / private-pay participants (manage saved cards)
 - `GET /api/abilitypay/audit`
 
 ## Invoice status flow
@@ -102,6 +103,7 @@ Recorded via `AuditEvent` (`lib/abilitypay/audit.ts`):
 | `abilitypay.payment.ndia_handoff` | Agency-managed NDIA claim draft or metadata handoff |
 | `abilitypay.export.csv` | CSV claim pack downloaded |
 | `abilitypay.export.statement` | Monthly statement generated |
+| `abilitypay.billing_portal.opened` | Participant opened Stripe Billing Portal to manage saved cards |
 
 ## Database models
 
@@ -121,6 +123,7 @@ Reuses existing `AuditEvent`, `BillingInvoice` (Stripe execution), NDIS pricing 
 | `care-intake-service.ts` | Creates draft invoices from confirmed care service logs |
 | `ndia-adapter-service.ts` | Builds NDIA claim payloads and initiates agency handoff |
 | `reconciliation-service.ts` | Payment attempt listing and summary for reconciliation UI |
+| `billing-portal-service.ts` | Stripe Customer Billing Portal for self-managed / private-pay saved cards |
 
 ## Invoice sources
 
@@ -143,6 +146,17 @@ approve → funding router → ready_to_pay / processing
 ```
 
 Care intake: confirming a `CareServiceLog` best-effort creates a linked draft invoice when an active plan and provider exist.
+
+## Billing Portal (saved cards)
+
+Self-managed and private-pay participants can manage saved payment methods via Stripe's hosted Customer Billing Portal — no card data is stored in MapAble.
+
+- **UI:** `/abilitypay/payment-methods` (AbilityPay nav) and **Manage payment methods** on invoice pay actions and `/dashboard/billing/invoices`
+- **API:** `POST /api/abilitypay/billing-portal` with optional `returnPath`, `participantId` (plan managers)
+- **Core:** `lib/billing-core/portal-service.ts` creates portal sessions; `ensureStripeCustomerForUser` lazily creates a Stripe Customer on first open
+- **Not applicable:** plan-managed and agency-managed funding models (no card checkout)
+
+Checkout sessions set `setup_future_usage: "off_session"` when a Stripe Customer exists so cards can be reused.
 
 ## Coexistence
 

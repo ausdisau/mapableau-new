@@ -5,6 +5,7 @@ import {
   fundingModelLabel,
   fundingRouteForModel,
   resolveFundingModel,
+  supportsStripeSavedPaymentMethods,
 } from "@/lib/abilitypay/funding-model";
 
 describe("fundingRouteForModel", () => {
@@ -64,6 +65,18 @@ describe("billingFundingTypeForModel", () => {
 
   it("returns null for agency_managed", () => {
     expect(billingFundingTypeForModel("agency_managed")).toBeNull();
+  });
+});
+
+describe("supportsStripeSavedPaymentMethods", () => {
+  it("allows self_managed and private_pay", () => {
+    expect(supportsStripeSavedPaymentMethods("self_managed")).toBe(true);
+    expect(supportsStripeSavedPaymentMethods("private_pay")).toBe(true);
+  });
+
+  it("disallows plan_managed and agency_managed", () => {
+    expect(supportsStripeSavedPaymentMethods("plan_managed")).toBe(false);
+    expect(supportsStripeSavedPaymentMethods("agency_managed")).toBe(false);
   });
 });
 

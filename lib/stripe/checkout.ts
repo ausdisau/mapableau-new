@@ -42,13 +42,20 @@ export async function createStripePaymentCheckoutSession(
 
   if (params.customerId) {
     sessionParams.customer = params.customerId;
+    sessionParams.payment_intent_data = {
+      ...(sessionParams.payment_intent_data ?? {}),
+      setup_future_usage: "off_session",
+      metadata: params.metadata,
+    };
   }
 
   if (params.transferDestination && params.applicationFeeAmount !== undefined) {
     sessionParams.payment_intent_data = {
+      ...(sessionParams.payment_intent_data ?? {}),
       application_fee_amount: params.applicationFeeAmount,
       transfer_data: { destination: params.transferDestination },
       metadata: params.metadata,
+      setup_future_usage: "off_session",
     };
   }
 

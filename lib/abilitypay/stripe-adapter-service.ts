@@ -1,6 +1,6 @@
 import type { MapAbleUserRole } from "@prisma/client";
 
-import { getOrCreateBillingAccount } from "@/lib/billing-core/account-service";
+import { ensureStripeCustomerForUser } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { calculateInvoiceTotals } from "@/lib/billing-core/calculations";
 import { isBillingStripeConfigured } from "@/lib/billing-core/config";
@@ -9,7 +9,6 @@ import { createFundingSource } from "@/lib/billing-core/funding-source-service";
 import { updateInvoiceStatus } from "@/lib/billing-core/invoice-service";
 import { prisma } from "@/lib/prisma";
 import { buildBillingPaymentCheckout } from "@/lib/stripe/checkout";
-import { getStripeClient } from "@/lib/stripe/client";
 
 import { logAbilityPayEvent } from "./audit";
 import {
@@ -200,26 +199,17 @@ export async function createCheckoutForAbilityPayInvoice(params: {
     params.abilityPayInvoiceId
   );
 
-  const account = await getOrCreateBillingAccount(
+  const account = await ensureStripeCustomerForUser(
     invoice.participantId,
     "participant"
   );
-
-  let customerId = account.stripeCustomerId;
+  const customerId = account.stripeCustomerId;
   if (!customerId) {
-    const stripe = getStripeClient();
-    const user = await prisma.user.findUnique({
-      where: { id: invoice.participantId },
-    });
-    const customer = await stripe.customers.create({
-      email: user?.email ?? undefined,
-      metadata: { mapableUserId: invoice.participantId },
-    });
-    customerId = customer.id;
-    await prisma.billingAccount.update({
-      where: { id: account.id },
-      data: { stripeCustomerId: customerId },
-    });
+    return {
+      ok: false,
+      error: "Could not create billing customer",
+      code: "STRIPE_NOT_CONFIGURED",
+    };
   }
 
   let providerAccountId: string | null = null;

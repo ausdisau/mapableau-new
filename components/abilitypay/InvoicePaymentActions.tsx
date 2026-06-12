@@ -14,6 +14,7 @@ import { fundingModelLabel } from "@/lib/abilitypay/funding-model";
 import type { AbilityPayFundingModel } from "@prisma/client";
 
 import { formatCents } from "./utils";
+import { ManagePaymentMethodsButton } from "./ManagePaymentMethodsButton";
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
   pending_review: "Pending review",
@@ -57,6 +58,7 @@ export function InvoicePaymentActions({
   const [loading, setLoading] = useState<"pay" | "export" | "confirm" | null>(
     null
   );
+  const [portalError, setPortalError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
@@ -177,21 +179,32 @@ export function InvoicePaymentActions({
         ) : null}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {portalError ? (
+          <p className="text-sm text-destructive">{portalError}</p>
+        ) : null}
 
         {nextStep === "pay" && canPay ? (
-          <Button
-            type="button"
-            variant="default"
-            size="default"
-            onClick={() => void startCheckout()}
-            disabled={
-              loading !== null ||
-              paymentStatus === "paid" ||
-              paymentStatus === "processing"
-            }
-          >
-            {loading === "pay" ? "Starting checkout…" : "Pay with card"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="default"
+              size="default"
+              onClick={() => void startCheckout()}
+              disabled={
+                loading !== null ||
+                paymentStatus === "paid" ||
+                paymentStatus === "processing"
+              }
+            >
+              {loading === "pay" ? "Starting checkout…" : "Pay with card"}
+            </Button>
+            <ManagePaymentMethodsButton
+              returnPath={`/abilitypay/invoices/${invoiceId}`}
+              variant="outline"
+              size="default"
+              onError={setPortalError}
+            />
+          </div>
         ) : null}
 
         {nextStep === "export" && canPay ? (
