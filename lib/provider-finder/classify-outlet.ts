@@ -89,6 +89,32 @@ export function fundingFromActive(active: boolean): ProviderFundingClass {
   return active ? "ndis" : "private";
 }
 
+export type ProviderOutletClassificationFields = {
+  supportTypes: SupportTypeId[];
+  accessNeedIds: string[];
+};
+
+export function classificationFieldsFromOutlet(
+  outlet: ProviderOutlet,
+): ProviderOutletClassificationFields {
+  const classified = classifyProviderOutlet(outlet, 0);
+  return {
+    supportTypes: classified.supportTypes,
+    accessNeedIds: classified.accessNeedIds,
+  };
+}
+
+export function providerOutletFromRaw(
+  raw: unknown,
+  fallback?: Partial<ProviderOutlet>,
+): ProviderOutlet | null {
+  if (raw && typeof raw === "object" && "ABN" in raw && "RegGroup" in raw) {
+    return raw as ProviderOutlet;
+  }
+  if (!fallback?.ABN) return null;
+  return fallback as ProviderOutlet;
+}
+
 export function classifyProviderOutlet(
   outlet: ProviderOutlet,
   index = 0,

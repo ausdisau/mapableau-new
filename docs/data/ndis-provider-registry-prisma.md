@@ -34,6 +34,27 @@ Store the NDIS **provider finder** static export in Postgres via Prisma model `P
 
    Options: `--file <path>`, `--batch <n>` (default 500).
 
+4. **Classify** (dry-run summary from JSON or DB)
+
+   ```bash
+   pnpm classify:provider-outlets
+   pnpm classify:provider-outlets -- --source db
+   ```
+
+5. **Seed classifications** (`support_types`, `access_need_ids` on every row)
+
+   After migration `20260611180000_provider_outlet_classifications`:
+
+   ```bash
+   pnpm seed:provider-outlet-classifications
+   pnpm seed:provider-outlet-classifications -- --limit 1000
+   pnpm seed:provider-outlet-classifications -- --source json
+   ```
+
+   `--source db` (default) backfills existing `provider_outlets` rows from `raw` JSON or column fallbacks. `--source json` upserts classifications from `list-providers.json`. Safe to re-run.
+
+   New imports via `pnpm seed:ndis-provider-outlets` include classifications automatically (`mapProviderOutletToPrisma`).
+
 ## Verify
 
 ```bash
@@ -41,6 +62,9 @@ pnpm prisma db execute --stdin <<'SQL'
 SELECT COUNT(*) AS total FROM provider_outlets;
 SELECT COUNT(*) AS active FROM provider_outlets WHERE active = true;
 SELECT id, name, state, active FROM provider_outlets LIMIT 5;
+SELECT COUNT(*) AS classified
+FROM provider_outlets
+WHERE cardinality(support_types) > 0 OR cardinality(access_need_ids) > 0;
 SQL
 ```
 
@@ -70,5 +94,6 @@ The provider finder UI still reads static JSON by default (`lib/provider-outlets
 | Store | Tool |
 |-------|------|
 | `provider_outlets` (Prisma) | `pnpm seed:ndis-provider-outlets` |
+| Provider Finder classifications | `pnpm seed:provider-outlet-classifications` |
 | `provider_outlets` (Supabase + RLS) | `docs/integrations/supabase-provider-import.md` |
 | `provider_profiles` (search autocomplete) | `pnpm exec tsx prisma/seed-search-autocomplete.ts` |

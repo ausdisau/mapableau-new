@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import {
   accessNeedIdsFromHaystack,
+  classificationFieldsFromOutlet,
   classifyProviderOutlet,
   fundingFromActive,
+  providerOutletFromRaw,
   summarizeClassifications,
   supportTypesFromRegGroupIndices,
 } from "@/lib/provider-finder/classify-outlet";
@@ -68,6 +70,39 @@ describe("classifyProviderOutlet", () => {
     expect(result.supportTypes).toEqual(["personal-care", "transport", "therapy"]);
     expect(result.categories.length).toBeGreaterThan(0);
     expect(result.state).toBe("NSW");
+  });
+});
+
+describe("classificationFieldsFromOutlet", () => {
+  it("returns support types and access need ids for persistence", () => {
+    const fields = classificationFieldsFromOutlet(sampleOutlet);
+    expect(fields.supportTypes).toEqual(["personal-care", "transport", "therapy"]);
+    expect(fields.accessNeedIds).toEqual([]);
+  });
+});
+
+describe("providerOutletFromRaw", () => {
+  it("parses stored raw JSON when present", () => {
+    const parsed = providerOutletFromRaw(sampleOutlet);
+    expect(parsed?.ABN).toBe("12345678901");
+    expect(parsed?.RegGroup).toEqual([4, 5, 29]);
+  });
+
+  it("builds outlet from registry columns when raw is missing", () => {
+    const parsed = providerOutletFromRaw(null, {
+      ABN: sampleOutlet.ABN,
+      Prov_N: sampleOutlet.Prov_N,
+      RegGroup: sampleOutlet.RegGroup,
+      State_cd: sampleOutlet.State_cd,
+      Active: sampleOutlet.Active,
+    });
+    expect(parsed?.ABN).toBe("12345678901");
+    expect(parsed?.RegGroup).toEqual([4, 5, 29]);
+  });
+
+  it("returns null without raw or ABN fallback", () => {
+    expect(providerOutletFromRaw(null)).toBeNull();
+    expect(providerOutletFromRaw({ foo: "bar" })).toBeNull();
   });
 });
 

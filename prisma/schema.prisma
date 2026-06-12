@@ -255,19 +255,23 @@ model ProviderOutletRegistry {
   postcode     String?
   latitude     Float?
   longitude    Float?
-  regGroup     Int[]    @default([]) @map("reg_group")
-  openingHours String?  @map("opening_hours")
-  professions  String?
-  raw          Json
-  sourceDate   String?  @map("source_date")
-  importedAt   DateTime @default(now()) @map("imported_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  regGroup       Int[]    @default([]) @map("reg_group")
+  openingHours   String?  @map("opening_hours")
+  professions    String?
+  supportTypes   String[] @default([]) @map("support_types")
+  accessNeedIds  String[] @default([]) @map("access_need_ids")
+  raw            Json
+  sourceDate     String?  @map("source_date")
+  importedAt     DateTime @default(now()) @map("imported_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@index([active])
   @@index([state])
   @@index([abn])
   @@index([name])
   @@index([outletKey])
+  @@index([supportTypes])
+  @@index([accessNeedIds])
   @@map("provider_outlets")
 }
 
