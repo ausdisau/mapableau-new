@@ -71,6 +71,7 @@ export async function getInvoiceById(invoiceId: string) {
       attachments: true,
       approvalEvents: { orderBy: { createdAt: "desc" }, include: { actor: { select: { name: true } } } },
       riskFlags: { where: { resolved: false }, orderBy: { createdAt: "desc" } },
+      paymentAttempts: { orderBy: { createdAt: "desc" } },
     },
   });
 }

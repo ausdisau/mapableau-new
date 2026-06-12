@@ -1,6 +1,7 @@
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import type { Provider } from "@/app/provider-finder/providers";
 import { regGroupIndicesToCategories } from "@/app/provider-finder/regGroupOptions";
+import { classificationFieldsFromOutlet } from "@/lib/provider-finder/classify-outlet";
 import { entitiesToGeoJSON } from "@/lib/map/geojson";
 import type { MapPointEntity } from "@/lib/map/types";
 import { MAP_LAYER_IDS } from "@/lib/map/map-layer-ids";
@@ -85,6 +86,7 @@ export function mapOutletToProvider(
   const outletAddr = (o.Address || o.Head_Office || "").trim();
   const outletKey =
     `${o.ABN}-${slugify(outletName)}-${slugify(outletAddr)}` || undefined;
+  const classification = classificationFieldsFromOutlet(o);
 
   return {
     id,
@@ -107,6 +109,8 @@ export function mapOutletToProvider(
     website: o.Website?.trim() || undefined,
     abn: o.ABN?.trim() || undefined,
     openingHours: o.opnhrs?.trim() || undefined,
+    supportTypes: classification.supportTypes,
+    accessNeedIds: classification.accessNeedIds,
   };
 }
 

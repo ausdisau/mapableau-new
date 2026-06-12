@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/abilitypay/approvals", label: "Approvals" },
   { href: "/abilitypay/providers", label: "Providers" },
   { href: "/abilitypay/reports", label: "Reports" },
+  { href: "/abilitypay/reconciliation", label: "Reconciliation" },
   { href: "/abilitypay/audit", label: "Audit" },
   { href: "/abilitypay/admin", label: "Admin" },
 ] as const;

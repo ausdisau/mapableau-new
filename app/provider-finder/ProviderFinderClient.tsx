@@ -89,9 +89,40 @@ function providerHaystack(provider: Provider) {
     provider.postcode,
     ...provider.categories,
     ...provider.supports,
+    ...(provider.supportTypes ?? []),
+    ...(provider.accessNeedIds ?? []),
   ]
     .join(" ")
     .toLowerCase();
+}
+
+function providerMatchesSupportType(
+  provider: Provider,
+  support: (typeof SUPPORT_TYPES)[number],
+) {
+  if (support.id === "all") return true;
+  if (
+    provider.supportTypes &&
+    provider.supportTypes.length > 0 &&
+    provider.supportTypes.includes(support.id)
+  ) {
+    return true;
+  }
+  return support.categories.some((c) => provider.categories.includes(c));
+}
+
+function providerMatchesAccessNeeds(provider: Provider, needIds: string[]) {
+  if (needIds.length === 0) return true;
+  const classifiedIds = provider.accessNeedIds ?? [];
+  return needIds.every((needId) => {
+    if (classifiedIds.length > 0 && classifiedIds.includes(needId)) {
+      return true;
+    }
+    const need = ACCESS_NEEDS.find((n) => n.id === needId);
+    if (!need) return true;
+    const haystack = providerHaystack(provider);
+    return need.keywords.some((kw) => haystack.includes(kw));
+  });
 }
 
 export default function ProviderFinderClient() {
@@ -217,21 +248,10 @@ export default function ProviderFinderClient() {
       if (funding === "private" && p.registered) return false;
 
       if (support && support.id !== "all") {
-        const matchesCategory = support.categories.some((c) =>
-          p.categories.includes(c),
-        );
-        if (!matchesCategory) return false;
+        if (!providerMatchesSupportType(p, support)) return false;
       }
 
-      if (accessNeeds.length > 0) {
-        const haystack = providerHaystack(p);
-        const matchesAccess = accessNeeds.every((needId) => {
-          const need = ACCESS_NEEDS.find((n) => n.id === needId);
-          if (!need) return true;
-          return need.keywords.some((kw) => haystack.includes(kw));
-        });
-        if (!matchesAccess) return false;
-      }
+      if (!providerMatchesAccessNeeds(p, accessNeeds)) return false;
 
       if (loc) {
         const locHaystack =

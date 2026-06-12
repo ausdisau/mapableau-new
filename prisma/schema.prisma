@@ -8255,6 +8255,13 @@ enum AbilityPayConsentScopeType {
   abilitypay_export
 }
 
+enum AbilityPayInvoiceSourceType {
+  provider_upload
+  care_service_log
+  delivery_event
+  billing_invoice
+}
+
 enum AbilityPayProviderCredentialStatus {
   pending
   verified
@@ -8379,6 +8386,8 @@ model AbilityPayInvoice {
   validationJson      Json?
   aiSuggestionsJson   Json?
   notes               String?
+  sourceType          AbilityPayInvoiceSourceType? @map("source_type")
+  sourceRefId         String?                  @map("source_ref_id")
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
 
@@ -8394,6 +8403,7 @@ model AbilityPayInvoice {
   @@index([planId])
   @@index([invoiceNumber])
   @@index([billingInvoiceId])
+  @@index([sourceType, sourceRefId])
 }
 
 model AbilityPayPaymentAttempt {

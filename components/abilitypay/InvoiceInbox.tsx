@@ -10,12 +10,19 @@ import {
 } from "@/components/ui/card";
 
 import { DuplicateInvoiceWarning } from "./DuplicateInvoiceWarning";
-import { formatCents, formatInvoiceStatus } from "./utils";
+import {
+  formatCents,
+  formatInvoiceSourceType,
+  formatInvoiceStatus,
+  formatPaymentStatus,
+} from "./utils";
 
 type InvoiceRow = {
   id: string;
   invoiceNumber: string | null;
   status: string;
+  paymentStatus?: string;
+  sourceType?: string | null;
   totalCents: number;
   provider?: { legalName: string } | null;
   riskFlags?: { flagType: string }[];
@@ -51,7 +58,19 @@ export function InvoiceInbox({ invoices }: { invoices: InvoiceRow[] }) {
                     {invoice.invoiceNumber ?? "Draft invoice"}
                   </Link>
                 </CardTitle>
-                <Badge variant="outline">{formatInvoiceStatus(invoice.status)}</Badge>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline">{formatInvoiceStatus(invoice.status)}</Badge>
+                  {invoice.paymentStatus ? (
+                    <Badge variant="secondary">
+                      {formatPaymentStatus(invoice.paymentStatus)}
+                    </Badge>
+                  ) : null}
+                  {invoice.sourceType ? (
+                    <Badge variant="outline">
+                      {formatInvoiceSourceType(invoice.sourceType)}
+                    </Badge>
+                  ) : null}
+                </div>
               </div>
               <CardDescription>
                 {invoice.provider?.legalName ?? "No provider"} ·{" "}

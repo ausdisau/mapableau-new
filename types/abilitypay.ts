@@ -111,6 +111,19 @@ export const exportStatementSchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/),
 });
 
+export const confirmPaymentSchema = z.object({
+  notes: z.string().max(2000).optional(),
+});
+
+export const createInvoiceFromCareSchema = z.object({
+  careServiceLogId: z.string().min(1),
+});
+
+export const reconciliationQuerySchema = z.object({
+  status: z.string().optional(),
+  adapter: z.string().optional(),
+});
+
 export type InvoiceValidationCheck = {
   abnPresent: boolean;
   invoiceNumberPresent: boolean;

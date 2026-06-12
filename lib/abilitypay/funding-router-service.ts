@@ -8,6 +8,7 @@ import {
   resolveFundingModel,
   type AbilityPayFundingRoute,
 } from "./funding-model";
+import { initiateNdiaHandoff } from "./ndia-adapter-service";
 
 export type FundingRouteResult = {
   route: AbilityPayFundingRoute;
@@ -68,6 +69,18 @@ export async function routeApprovedInvoice(params: {
       nextStep: route.nextStep,
     },
   });
+
+  if (route.model === "agency_managed") {
+    try {
+      await initiateNdiaHandoff({
+        invoiceId: params.invoiceId,
+        actorUserId: params.actorUserId,
+        actorRole: params.actorRole,
+      });
+    } catch {
+      // Handoff is best-effort; invoice remains in processing for manual follow-up.
+    }
+  }
 
   return {
     route,

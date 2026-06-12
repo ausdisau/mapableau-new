@@ -45,7 +45,7 @@ Legacy `paid_mock` remains in the enum for backward compatibility but is not use
 
 | Audience | Routes |
 |----------|--------|
-| Participant / nominee | `/abilitypay`, `/abilitypay/plan`, `/abilitypay/budgets`, `/abilitypay/invoices`, `/abilitypay/invoices/[id]`, `/abilitypay/approvals`, `/abilitypay/reports` |
+| Participant / nominee | `/abilitypay`, `/abilitypay/plan`, `/abilitypay/budgets`, `/abilitypay/invoices`, `/abilitypay/invoices/[id]`, `/abilitypay/approvals`, `/abilitypay/reports`, `/abilitypay/reconciliation` |
 | Plan manager | Above + workbench on dashboard; `/abilitypay/providers` |
 | Provider admin | `/abilitypay/providers` (live payment status) |
 | Admin | `/abilitypay/admin`, `/abilitypay/audit` |
@@ -56,7 +56,9 @@ All `/abilitypay` routes require authentication (see `lib/mapable-peers/peer-mid
 
 - `GET/POST /api/abilitypay/plans`, `GET/PATCH /api/abilitypay/plans/[id]`, `POST /api/abilitypay/plans/[id]/categories`
 - `GET/POST /api/abilitypay/invoices`, `GET/PATCH /api/abilitypay/invoices/[id]`
-- `POST /api/abilitypay/invoices/[id]/validate`, `/upload`, `/approve`, `/reject`, `/pay`, `/ai-assist`
+- `POST /api/abilitypay/invoices/[id]/validate`, `/upload`, `/approve`, `/reject`, `/pay`, `/confirm-payment`, `/ai-assist`
+- `POST /api/abilitypay/invoices/from-care` — manual care log → draft invoice intake
+- `GET /api/abilitypay/reconciliation` — payment attempt ledger for plan managers / admins
 - `GET /api/abilitypay/providers`, `GET /api/abilitypay/approvals`
 - `POST /api/abilitypay/exports/claim-pack`, `/exports/statement`
 - `GET /api/abilitypay/audit`
@@ -97,12 +99,13 @@ Recorded via `AuditEvent` (`lib/abilitypay/audit.ts`):
 | `abilitypay.payment.paid` | Stripe webhook confirms payment |
 | `abilitypay.payment.failed` | Payment failed |
 | `abilitypay.payment.refunded` | Refund recorded |
+| `abilitypay.payment.ndia_handoff` | Agency-managed NDIA claim draft or metadata handoff |
 | `abilitypay.export.csv` | CSV claim pack downloaded |
 | `abilitypay.export.statement` | Monthly statement generated |
 
 ## Database models
 
-Prisma models prefixed `AbilityPay*` including `AbilityPayParticipantPlan` (with `fundingModel`), `AbilityPayInvoice` (with `billingInvoiceId`), `AbilityPayPaymentAttempt`, `AbilityPayClaimPack`, `AbilityPayConsentGrant`. Migrations: `20260611140000_abilitypay_mvp`, `20260611190000_abilitypay_gateway`.
+Prisma models prefixed `AbilityPay*` including `AbilityPayParticipantPlan` (with `fundingModel`), `AbilityPayInvoice` (with `billingInvoiceId`, `sourceType`, `sourceRefId`), `AbilityPayPaymentAttempt`, `AbilityPayClaimPack`, `AbilityPayConsentGrant`. Migrations: `20260611140000_abilitypay_mvp`, `20260611190000_abilitypay_gateway`, `20260611200000_abilitypay_phases_3_5`.
 
 Reuses existing `AuditEvent`, `BillingInvoice` (Stripe execution), NDIS pricing catalogue, and consent patterns.
 
@@ -114,6 +117,32 @@ Reuses existing `AuditEvent`, `BillingInvoice` (Stripe execution), NDIS pricing 
 | `stripe-adapter-service.ts` | Bridges to `billing-core` Checkout |
 | `payment-sync-service.ts` | Syncs Stripe webhook outcomes to AbilityPay |
 | `consent-service.ts` | Enforces `AbilityPayConsentGrant` before export/pay |
+| `plan-manager-adapter-service.ts` | Plan manager confirms plan-managed payment (`manual` adapter) |
+| `care-intake-service.ts` | Creates draft invoices from confirmed care service logs |
+| `ndia-adapter-service.ts` | Builds NDIA claim payloads and initiates agency handoff |
+| `reconciliation-service.ts` | Payment attempt listing and summary for reconciliation UI |
+
+## Invoice sources
+
+`AbilityPayInvoice.sourceType` tracks provenance:
+
+| Source | Trigger |
+|--------|---------|
+| `provider_upload` | Default provider invoice upload |
+| `care_service_log` | Auto-draft on care log confirmation or `POST /invoices/from-care` |
+| `delivery_event` | Reserved for delivery-event intake |
+| `billing_invoice` | Reserved for billing-core linkage |
+
+## Post-approval execution
+
+```
+approve → funding router → ready_to_pay / processing
+  ├─ plan_managed  → export claim pack; plan manager POST confirm-payment → paid
+  ├─ self_managed / private_pay → POST /pay → Stripe Checkout → webhook sync
+  └─ agency_managed → NDIA claim draft or metadata handoff (no live submit)
+```
+
+Care intake: confirming a `CareServiceLog` best-effort creates a linked draft invoice when an active plan and provider exist.
 
 ## Coexistence
 

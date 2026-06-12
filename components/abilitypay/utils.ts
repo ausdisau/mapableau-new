@@ -17,3 +17,30 @@ export function formatInvoiceStatus(status: string): string {
   };
   return labels[status] ?? status;
 }
+
+export function formatPaymentStatus(status: string): string {
+  const labels: Record<string, string> = {
+    pending_review: "Pending review",
+    approved: "Approved",
+    rejected: "Rejected",
+    ready_to_pay: "Ready to pay",
+    processing: "Processing",
+    paid: "Paid",
+    failed: "Payment failed",
+    refunded: "Refunded",
+    paid_mock: "Paid (legacy)",
+    on_hold: "On hold",
+  };
+  return labels[status] ?? status;
+}
+
+export function formatInvoiceSourceType(sourceType: string | null | undefined): string {
+  const labels: Record<string, string> = {
+    provider_upload: "Provider upload",
+    care_service_log: "Care booking",
+    delivery_event: "Delivery event",
+    billing_invoice: "Billing invoice",
+  };
+  if (!sourceType) return "Manual";
+  return labels[sourceType] ?? sourceType;
+}

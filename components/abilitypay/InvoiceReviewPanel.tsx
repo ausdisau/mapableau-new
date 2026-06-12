@@ -10,11 +10,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { InvoiceValidationResult } from "@/types/abilitypay";
+import type { AbilityPayFundingModel } from "@prisma/client";
 
 import { AiSuggestionPanel } from "./AiSuggestionPanel";
 import { ConsentGate } from "./ConsentGate";
 import { DuplicateInvoiceWarning } from "./DuplicateInvoiceWarning";
 import { InvoiceLineItemTable } from "./InvoiceLineItemTable";
+import { InvoicePaymentActions } from "./InvoicePaymentActions";
 import { ParticipantApprovalButtons } from "./ParticipantApprovalButtons";
 import { PriceGuardBadge } from "./PriceGuardBadge";
 import { formatCents, formatInvoiceStatus } from "./utils";
@@ -23,20 +25,32 @@ type InvoiceData = {
   id: string;
   invoiceNumber: string | null;
   status: string;
+  paymentStatus: string;
+  fundingModel: AbilityPayFundingModel | null;
   totalCents: number;
   validationJson: unknown;
   provider?: { legalName: string; abn: string | null } | null;
   lineItems: Parameters<typeof InvoiceLineItemTable>[0]["lines"];
   riskFlags?: { flagType: string; message: string }[];
+  paymentAttempts?: {
+    id: string;
+    adapter: string;
+    status: string;
+    externalRef: string | null;
+  }[];
 };
 
 export function InvoiceReviewPanel({
   invoice,
   canApprove,
+  canPay,
+  canConfirmPayment,
   showAiAssist,
 }: {
   invoice: InvoiceData;
   canApprove: boolean;
+  canPay: boolean;
+  canConfirmPayment: boolean;
   showAiAssist: boolean;
 }) {
   const [consentConfirmed, setConsentConfirmed] = useState(false);
@@ -91,6 +105,17 @@ export function InvoiceReviewPanel({
           />
         </>
       ) : null}
+
+      <InvoicePaymentActions
+        invoiceId={invoice.id}
+        invoiceStatus={invoice.status}
+        paymentStatus={invoice.paymentStatus}
+        fundingModel={invoice.fundingModel}
+        totalCents={invoice.totalCents}
+        canPay={canPay}
+        canConfirmPayment={canConfirmPayment}
+        paymentAttempts={invoice.paymentAttempts ?? []}
+      />
 
       {showAiAssist ? <AiSuggestionPanel invoiceId={invoice.id} /> : null}
     </div>

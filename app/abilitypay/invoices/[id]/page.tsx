@@ -24,6 +24,11 @@ export default async function AbilityPayInvoiceDetailPage({
   const invoice = await getInvoiceById(id);
   if (!invoice) notFound();
 
+  const canPay = hasPermission(user.primaryRole, "abilitypay:invoice:approve");
+  const canConfirmPayment =
+    user.primaryRole === "plan_manager" ||
+    user.primaryRole === "mapable_admin";
+
   return (
     <div className="space-y-6 p-4">
       <header>
@@ -34,13 +39,18 @@ export default async function AbilityPayInvoiceDetailPage({
           id: invoice.id,
           invoiceNumber: invoice.invoiceNumber,
           status: invoice.status,
+          paymentStatus: invoice.paymentStatus,
+          fundingModel: invoice.fundingModel,
           totalCents: invoice.totalCents,
           validationJson: invoice.validationJson,
           provider: invoice.provider,
           lineItems: invoice.lineItems,
           riskFlags: invoice.riskFlags,
+          paymentAttempts: invoice.paymentAttempts,
         }}
         canApprove={canApproveInvoice(user)}
+        canPay={canPay}
+        canConfirmPayment={canConfirmPayment}
         showAiAssist={hasPermission(user.primaryRole, "abilitypay:invoice:review")}
       />
     </div>
