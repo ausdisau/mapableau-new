@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import { mapOutletToProvider } from "@/app/provider-finder/outletToProvider";
+import { classificationFieldsFromOutlet } from "@/lib/provider-finder/classify-outlet";
 
 export type ProviderOutletPrismaInput = {
   id: string;
@@ -24,6 +25,8 @@ export type ProviderOutletPrismaInput = {
   regGroup: number[];
   openingHours: string | null;
   professions: string | null;
+  supportTypes: string[];
+  accessNeedIds: string[];
   raw: Prisma.InputJsonValue;
 };
 
@@ -33,6 +36,7 @@ export function mapProviderOutletToPrisma(
 ): ProviderOutletPrismaInput {
   const mapped = mapOutletToProvider(outlet, index);
   const name = (outlet.Prov_N?.trim() || outlet.Outletname?.trim() || "Unknown").trim();
+  const classification = classificationFieldsFromOutlet(outlet);
 
   return {
     id: mapped.id,
@@ -55,6 +59,8 @@ export function mapProviderOutletToPrisma(
     regGroup: Array.isArray(outlet.RegGroup) ? outlet.RegGroup : [],
     openingHours: outlet.opnhrs?.trim() || null,
     professions: outlet.prfsn?.trim() || null,
+    supportTypes: classification.supportTypes,
+    accessNeedIds: classification.accessNeedIds,
     raw: outlet as unknown as Prisma.InputJsonValue,
   };
 }
