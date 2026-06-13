@@ -9,6 +9,15 @@
         "OSRM_BASE_URL": "${env:OSRM_BASE_URL}"
       },
       "envFile": "${workspaceFolder}/.env"
+    },
+    "mapable-stripe": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "${workspaceFolder}/mcp/stripe/server.ts"],
+      "env": {
+        "MAPABLE_BASE_URL": "${env:NEXT_PUBLIC_APP_URL}"
+      },
+      "envFile": "${workspaceFolder}/.env"
     }
   }
 }
