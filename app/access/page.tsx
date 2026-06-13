@@ -1,35 +1,24 @@
-import { PublicModulePage } from "@/components/marketing/PublicModulePage";
+import { MapAbleAccessShell } from "@/components/access/MapAbleAccessShell";
+import { listPublishedPlaces } from "@/lib/access-map/access-place-service";
 
 export const metadata = {
   title: "MapAble Access | Accessibility map",
   description:
-    "Learn how MapAble Access will separate community accessibility reviews from formal accreditation claims.",
+    "Search accessible venues, read community reviews, and explore indoor floor plans where available.",
 };
 
-export default function AccessPage() {
-  return (
-    <PublicModulePage
-      eyebrow="MapAble Access"
-      title="Accessibility information for places, reviewed with care."
-      description="MapAble Access is planned as a public accessibility map with structured community reviews, venue claim flows and separate formal accreditation workflows."
-      whoFor={[
-        "Participants and families planning accessible outings.",
-        "Venue owners improving and explaining access features.",
-        "Community reviewers sharing structured, moderated observations.",
-      ]}
-      availableNow={[
-        "Public explanation of the Access module and review principles.",
-        "Pilot path for venue and community interest.",
-        "Clear separation between community reviews and accreditation.",
-      ]}
-      comingSoon={[
-        "Public accessibility map and place profiles.",
-        "Community reviews with moderation and structured ratings.",
-        "KML importer, venue claim flow and formal accreditation workflow.",
-      ]}
-      safetyNote="Community reviews are not legal, DDA or building compliance determinations. Formal MapAble Accreditation will be separate from community reviews and will not be implied by map feedback."
-      primaryCta={{ label: "Join pilot", href: "/contact" }}
-      secondaryCta={{ label: "Contact MapAble", href: "/contact" }}
-    />
-  );
+export default async function AccessPage() {
+  const places = await listPublishedPlaces(100);
+
+  const initialPlaces = places.map((place) => ({
+    id: place.id,
+    name: place.name,
+    category: place.category,
+    suburb: place.suburb,
+    reviewCount: place._count.reviews,
+    latitude: place.location?.latitude,
+    longitude: place.location?.longitude,
+  }));
+
+  return <MapAbleAccessShell initialPlaces={initialPlaces} />;
 }
