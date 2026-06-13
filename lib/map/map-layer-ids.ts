@@ -7,6 +7,9 @@ export const MAP_SOURCE_IDS = {
   sponsored: "sponsored-services",
   transportTrips: "transport-trips",
   dispatchVehicles: "dispatch-vehicles",
+  indoorFloorPlan: "access-indoor-floor-plan",
+  indoorPois: "access-indoor-pois",
+  indoorRoute: "access-indoor-route",
 } as const;
 
 export const MAP_LAYER_IDS = {
@@ -18,6 +21,9 @@ export const MAP_LAYER_IDS = {
   sponsored: "sponsored-services-layer",
   transportTrips: "transport-trips-layer",
   dispatchVehicles: "dispatch-vehicles-layer",
+  indoorFloorPlan: "access-indoor-floor-plan-layer",
+  indoorPois: "access-indoor-pois-layer",
+  indoorRoute: "access-indoor-route-layer",
 } as const;
 
 export type MapSourceId = (typeof MAP_SOURCE_IDS)[keyof typeof MAP_SOURCE_IDS];

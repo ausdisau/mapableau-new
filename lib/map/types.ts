@@ -28,3 +28,18 @@ export type MapFeatureCollection = GeoJSON.FeatureCollection<
   GeoJSON.Point,
   MapPointFeatureProperties
 >;
+
+export type MapLineFeature = GeoJSON.Feature<
+  GeoJSON.LineString,
+  MapPointFeatureProperties
+>;
+
+export type MapPolygonFeature = GeoJSON.Feature<
+  GeoJSON.Polygon,
+  MapPointFeatureProperties
+>;
+
+export type MapMixedFeatureCollection = GeoJSON.FeatureCollection<
+  GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon,
+  MapPointFeatureProperties
+>;
