@@ -8,6 +8,7 @@ const publicRoutes = [
   "/transport",
   "/employment",
   "/marketplace",
+  "/shopping",
   "/foods",
   "/access",
   "/peer",

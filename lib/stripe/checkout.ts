@@ -84,6 +84,8 @@ export function buildBillingPaymentCheckout(params: {
   productLabel: string;
   platformFeeCents?: number;
   providerConnectedAccountId?: string | null;
+  successUrl?: string;
+  cancelUrl?: string;
 }) {
   const metadata = billingCheckoutMetadata({
     invoiceId: params.invoiceId,
@@ -97,8 +99,12 @@ export function buildBillingPaymentCheckout(params: {
     currency: params.currency,
     customerId: params.customerId,
     productName: params.productLabel,
-    successUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`,
-    cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`,
+    successUrl:
+      params.successUrl ??
+      `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`,
+    cancelUrl:
+      params.cancelUrl ??
+      `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`,
     metadata,
     applicationFeeAmount:
       params.providerConnectedAccountId && params.platformFeeCents !== undefined

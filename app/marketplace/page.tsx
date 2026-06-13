@@ -1,4 +1,5 @@
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
+import { isShoppingEnabled } from "@/lib/config/shopping";
 
 export const metadata = {
   title: "MapAble Marketplace | Assistive products and services",
@@ -7,6 +8,8 @@ export const metadata = {
 };
 
 export default function MarketplaceModulePage() {
+  const shoppingLive = isShoppingEnabled();
+
   return (
     <PublicModulePage
       eyebrow="MapAble Marketplace"
@@ -18,6 +21,9 @@ export default function MarketplaceModulePage() {
         "Families, nominees and coordinators gathering options before purchase.",
       ]}
       availableNow={[
+        ...(shoppingLive
+          ? ["MapAble Shopping pilot storefront with curated assistive products."]
+          : []),
         "Public module information and pilot enquiry pathway.",
         "Provider finder links for service discovery.",
         "Safety-first marketplace principles documented on the site.",
@@ -28,7 +34,11 @@ export default function MarketplaceModulePage() {
         "Invoice evidence links without claiming automatic NDIS funding.",
       ]}
       safetyNote="Paid placement will not override safety, verification or relevance. Marketplace content will not claim NDIS funding approval unless an applicable rule and human review support that statement."
-      primaryCta={{ label: "Join pilot", href: "/contact" }}
+      primaryCta={
+        shoppingLive
+          ? { label: "Shop now", href: "/shopping" }
+          : { label: "Join pilot", href: "/contact" }
+      }
       secondaryCta={{ label: "Explore provider finder", href: "/providers" }}
     />
   );

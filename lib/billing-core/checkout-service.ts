@@ -9,7 +9,16 @@ import { prisma } from "@/lib/prisma";
 import { buildBillingPaymentCheckout } from "@/lib/stripe/checkout";
 import { getStripeClient } from "@/lib/stripe/client";
 
-export async function createCheckoutForInvoice(userId: string, invoiceId: string) {
+type CheckoutRedirectUrls = {
+  successUrl?: string;
+  cancelUrl?: string;
+};
+
+export async function createCheckoutForInvoice(
+  userId: string,
+  invoiceId: string,
+  redirectUrls?: CheckoutRedirectUrls
+) {
   const invoice = await getInvoiceForUser(invoiceId, userId);
   if (!invoice) return { ok: false as const, error: "Invoice not found" };
 
@@ -71,6 +80,8 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     productLabel: `MapAble ${invoice.serviceType} invoice`,
     platformFeeCents: invoice.platformFeeCents,
     providerConnectedAccountId: providerAccountId,
+    successUrl: redirectUrls?.successUrl,
+    cancelUrl: redirectUrls?.cancelUrl,
   });
 
   await prisma.billingPayment.create({

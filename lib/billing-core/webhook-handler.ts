@@ -6,6 +6,7 @@ import {
 } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { updateInvoiceStatus } from "@/lib/billing-core/invoice-service";
+import { fulfillShopOrderForPaidInvoice } from "@/lib/shopping/order-service";
 import { prisma } from "@/lib/prisma";
 
 export async function storeWebhookEventIdempotent(
@@ -146,6 +147,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     action: "paid_via_checkout",
     after: { sessionId: session.id, paymentIntentId },
   });
+
+  await fulfillShopOrderForPaidInvoice(invoiceId);
 }
 
 async function handleCheckoutFailed(session: Stripe.Checkout.Session) {
