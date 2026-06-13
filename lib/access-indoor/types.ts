@@ -24,6 +24,8 @@ export type IndoorFloorView = {
   vectorGeoJson: unknown;
   widthMeters: number | null;
   heightMeters: number | null;
+  floorHeightMeters: number | null;
+  elevationMeters: number | null;
   pois: IndoorPoiView[];
 };
 
@@ -34,6 +36,10 @@ export type IndoorBuildingView = {
   positioningEmbedUrl: string | null;
   externalVendorId: string | null;
   positioningEnabled: boolean;
+  footprintGeoJson: unknown;
+  baseElevationMeters: number;
+  totalHeightMeters: number | null;
+  defaultFloorHeightMeters: number;
   floors: IndoorFloorView[];
 };
 

@@ -32,10 +32,17 @@ export async function POST(req: Request) {
   const building = await importIndoorPilot({
     placeId: parsed.data.placeId,
     buildingName: parsed.data.buildingName,
+    footprintGeoJson: parsed.data.footprintGeoJson,
+    totalHeightMeters: parsed.data.totalHeightMeters,
+    defaultFloorHeightMeters: parsed.data.defaultFloorHeightMeters,
+    verticalEdges: parsed.data.verticalEdges,
     floors: parsed.data.floors.map((floor) => ({
       levelIndex: floor.levelIndex,
       label: floor.label,
       floorPlanImageUrl: floor.floorPlanImageUrl,
+      imageBounds: floor.imageBounds,
+      floorHeightMeters: floor.floorHeightMeters,
+      elevationMeters: floor.elevationMeters,
       pois: floor.pois,
       edges: floor.edges,
     })),

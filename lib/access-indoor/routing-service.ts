@@ -1,4 +1,4 @@
-import type { AccessIndoorEdge, AccessIndoorPoi } from "@prisma/client";
+import type { AccessIndoorEdge, AccessIndoorVerticalEdge } from "@prisma/client";
 
 import type { IndoorRouteStep, IndoorRouteView } from "@/lib/access-indoor/types";
 
@@ -8,40 +8,88 @@ export type IndoorRoutingProfile = {
 };
 
 export type RouteGraphNode = {
-  poi: Pick<AccessIndoorPoi, "id" | "name" | "type" | "xNorm" | "yNorm">;
+  poi: {
+    id: string;
+    name: string;
+    type: string;
+    xNorm: number;
+    yNorm: number;
+  };
   floorId: string;
   floorLabel: string;
+};
+
+type GraphEdge = {
+  id: string;
+  fromPoiId: string;
+  toPoiId: string;
+  weight: number;
+  requiresStairs: boolean;
+  accessibleOnly: boolean;
 };
 
 type WeightedEdge = {
   to: string;
   weight: number;
-  edge: AccessIndoorEdge;
+  edge: GraphEdge;
 };
 
-function edgeAllowed(
-  edge: AccessIndoorEdge,
-  profile: IndoorRoutingProfile
-): boolean {
+function edgeAllowed(edge: GraphEdge, profile: IndoorRoutingProfile): boolean {
   if (profile.avoidStairs && edge.requiresStairs) return false;
   if (profile.wheelchairUser && edge.requiresStairs) return false;
   return true;
 }
 
 function edgeWeight(
-  edge: AccessIndoorEdge,
+  edge: GraphEdge,
   from: RouteGraphNode,
   to: RouteGraphNode
 ): number {
   const dx = from.poi.xNorm - to.poi.xNorm;
   const dy = from.poi.yNorm - to.poi.yNorm;
-  const distance = Math.hypot(dx, dy);
+  const sameFloor = from.floorId === to.floorId;
+  const distance = sameFloor ? Math.hypot(dx, dy) : 0;
   return edge.weight + distance;
+}
+
+function toGraphEdges(
+  horizontal: AccessIndoorEdge[],
+  vertical: AccessIndoorVerticalEdge[]
+): GraphEdge[] {
+  const horizontalEdges = horizontal.map((edge) => ({
+    id: edge.id,
+    fromPoiId: edge.fromPoiId,
+    toPoiId: edge.toPoiId,
+    weight: edge.weight,
+    requiresStairs: edge.requiresStairs,
+    accessibleOnly: edge.accessibleOnly,
+  }));
+
+  const verticalEdges = vertical.flatMap((edge) => [
+    {
+      id: edge.id,
+      fromPoiId: edge.fromPoiId,
+      toPoiId: edge.toPoiId,
+      weight: edge.weight,
+      requiresStairs: edge.requiresStairs,
+      accessibleOnly: edge.accessibleOnly,
+    },
+    {
+      id: `${edge.id}-reverse`,
+      fromPoiId: edge.toPoiId,
+      toPoiId: edge.fromPoiId,
+      weight: edge.weight,
+      requiresStairs: edge.requiresStairs,
+      accessibleOnly: edge.accessibleOnly,
+    },
+  ]);
+
+  return [...horizontalEdges, ...verticalEdges];
 }
 
 function buildAdjacency(
   nodes: Map<string, RouteGraphNode>,
-  edges: AccessIndoorEdge[],
+  edges: GraphEdge[],
   profile: IndoorRoutingProfile
 ): Map<string, WeightedEdge[]> {
   const adj = new Map<string, WeightedEdge[]>();
@@ -57,7 +105,11 @@ function buildAdjacency(
     const reverse: WeightedEdge = {
       to: edge.fromPoiId,
       weight,
-      edge: { ...edge, fromPoiId: edge.toPoiId, toPoiId: edge.fromPoiId },
+      edge: {
+        ...edge,
+        fromPoiId: edge.toPoiId,
+        toPoiId: edge.fromPoiId,
+      },
     };
 
     adj.set(edge.fromPoiId, [...(adj.get(edge.fromPoiId) ?? []), forward]);
@@ -123,7 +175,7 @@ function dijkstra(
 function instructionForStep(
   from: RouteGraphNode,
   to: RouteGraphNode,
-  edge: AccessIndoorEdge
+  edge: GraphEdge
 ): string {
   if (from.floorId !== to.floorId) {
     return `Take the lift to ${to.floorLabel}`;
@@ -143,6 +195,7 @@ function instructionForStep(
 export function computeIndoorRoute(params: {
   nodes: RouteGraphNode[];
   edges: AccessIndoorEdge[];
+  verticalEdges?: AccessIndoorVerticalEdge[];
   fromPoiId: string;
   toPoiId: string;
   profile: IndoorRoutingProfile;
@@ -152,7 +205,8 @@ export function computeIndoorRoute(params: {
     return null;
   }
 
-  const adj = buildAdjacency(nodeMap, params.edges, params.profile);
+  const graphEdges = toGraphEdges(params.edges, params.verticalEdges ?? []);
+  const adj = buildAdjacency(nodeMap, graphEdges, params.profile);
   const result = dijkstra(params.fromPoiId, params.toPoiId, adj);
   if (!result) return null;
 
@@ -187,6 +241,14 @@ export function computeIndoorRoute(params: {
       segments.push(segment);
     }
     segment.path.push({ x: to.poi.xNorm, y: to.poi.yNorm });
+
+    if (from.floorId !== to.floorId) {
+      segments.push({
+        floorId: to.floorId,
+        floorLabel: to.floorLabel,
+        path: [{ x: to.poi.xNorm, y: to.poi.yNorm }],
+      });
+    }
   }
 
   return {

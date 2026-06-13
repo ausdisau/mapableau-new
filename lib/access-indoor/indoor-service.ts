@@ -32,6 +32,10 @@ function mapBuilding(
     positioningEmbedUrl: building.positioningEmbedUrl,
     externalVendorId: building.externalVendorId,
     positioningEnabled: isIndoorPositioningEnabled(positioning),
+    footprintGeoJson: building.footprintGeoJson,
+    baseElevationMeters: building.baseElevationMeters,
+    totalHeightMeters: building.totalHeightMeters,
+    defaultFloorHeightMeters: building.defaultFloorHeightMeters,
     floors: building.floors.map((floor) => ({
       id: floor.id,
       levelIndex: floor.levelIndex,
@@ -42,6 +46,8 @@ function mapBuilding(
       vectorGeoJson: floor.vectorGeoJson,
       widthMeters: floor.widthMeters,
       heightMeters: floor.heightMeters,
+      floorHeightMeters: floor.floorHeightMeters,
+      elevationMeters: floor.elevationMeters,
       pois: floor.pois.map((poi) => ({
         id: poi.id,
         type: poi.type,
@@ -82,6 +88,7 @@ export async function getIndoorBuildingById(buildingId: string) {
         include: { pois: true, edges: true },
         orderBy: [{ sortOrder: "asc" }, { levelIndex: "asc" }],
       },
+      verticalEdges: true,
     },
   });
 }
@@ -94,8 +101,11 @@ export async function upsertIndoorFloor(params: {
   status?: "draft" | "published";
   floorPlanImageUrl?: string | null;
   imageBounds?: Prisma.InputJsonValue;
+  vectorGeoJson?: Prisma.InputJsonValue;
   widthMeters?: number | null;
   heightMeters?: number | null;
+  floorHeightMeters?: number | null;
+  elevationMeters?: number | null;
 }) {
   return prisma.accessVenueFloor.upsert({
     where: {
@@ -112,8 +122,11 @@ export async function upsertIndoorFloor(params: {
       status: params.status ?? "draft",
       floorPlanImageUrl: params.floorPlanImageUrl,
       imageBounds: params.imageBounds,
+      vectorGeoJson: params.vectorGeoJson,
       widthMeters: params.widthMeters,
       heightMeters: params.heightMeters,
+      floorHeightMeters: params.floorHeightMeters,
+      elevationMeters: params.elevationMeters,
     },
     update: {
       label: params.label,
@@ -121,8 +134,11 @@ export async function upsertIndoorFloor(params: {
       status: params.status,
       floorPlanImageUrl: params.floorPlanImageUrl,
       imageBounds: params.imageBounds,
+      vectorGeoJson: params.vectorGeoJson,
       widthMeters: params.widthMeters,
       heightMeters: params.heightMeters,
+      floorHeightMeters: params.floorHeightMeters,
+      elevationMeters: params.elevationMeters,
     },
   });
 }
@@ -168,10 +184,16 @@ export async function replaceFloorPois(params: {
 export async function importIndoorPilot(params: {
   placeId: string;
   buildingName: string;
+  footprintGeoJson?: Prisma.InputJsonValue;
+  totalHeightMeters?: number;
+  defaultFloorHeightMeters?: number;
   floors: Array<{
     levelIndex: number;
     label: string;
     floorPlanImageUrl?: string;
+    imageBounds?: Prisma.InputJsonValue;
+    floorHeightMeters?: number;
+    elevationMeters?: number;
     pois: Array<{
       type: Prisma.AccessIndoorPoiCreateWithoutFloorInput["type"];
       name: string;
@@ -187,6 +209,15 @@ export async function importIndoorPilot(params: {
       accessibleOnly?: boolean;
     }>;
   }>;
+  verticalEdges?: Array<{
+    fromFloorLevel: number;
+    toFloorLevel: number;
+    fromPoiName: string;
+    toPoiName: string;
+    weight?: number;
+    requiresStairs?: boolean;
+    accessibleOnly?: boolean;
+  }>;
 }) {
   return prisma.$transaction(async (tx) => {
     const existing = await tx.accessVenueBuilding.findFirst({
@@ -197,15 +228,26 @@ export async function importIndoorPilot(params: {
     const building = existing
       ? await tx.accessVenueBuilding.update({
           where: { id: existing.id },
-          data: { name: params.buildingName, status: "published" },
+          data: {
+            name: params.buildingName,
+            status: "published",
+            footprintGeoJson: params.footprintGeoJson,
+            totalHeightMeters: params.totalHeightMeters,
+            defaultFloorHeightMeters: params.defaultFloorHeightMeters,
+          },
         })
       : await tx.accessVenueBuilding.create({
           data: {
             placeId: params.placeId,
             name: params.buildingName,
             status: "published",
+            footprintGeoJson: params.footprintGeoJson,
+            totalHeightMeters: params.totalHeightMeters,
+            defaultFloorHeightMeters: params.defaultFloorHeightMeters ?? 3.5,
           },
         });
+
+    const floorByLevel = new Map<number, { id: string; poiByName: Map<string, string> }>();
 
     for (const floorInput of params.floors) {
       const floor = await tx.accessVenueFloor.upsert({
@@ -222,11 +264,17 @@ export async function importIndoorPilot(params: {
           sortOrder: floorInput.levelIndex,
           status: "published",
           floorPlanImageUrl: floorInput.floorPlanImageUrl,
+          imageBounds: floorInput.imageBounds,
+          floorHeightMeters: floorInput.floorHeightMeters,
+          elevationMeters: floorInput.elevationMeters,
         },
         update: {
           label: floorInput.label,
           status: "published",
           floorPlanImageUrl: floorInput.floorPlanImageUrl,
+          imageBounds: floorInput.imageBounds,
+          floorHeightMeters: floorInput.floorHeightMeters,
+          elevationMeters: floorInput.elevationMeters,
         },
       });
 
@@ -249,6 +297,7 @@ export async function importIndoorPilot(params: {
       );
 
       const poiByName = new Map(poiRecords.map((p) => [p.name, p.id]));
+      floorByLevel.set(floorInput.levelIndex, { id: floor.id, poiByName });
 
       for (const edge of floorInput.edges ?? []) {
         const fromPoiId = poiByName.get(edge.fromName);
@@ -268,6 +317,57 @@ export async function importIndoorPilot(params: {
       }
     }
 
+    await tx.accessIndoorVerticalEdge.deleteMany({
+      where: { buildingId: building.id },
+    });
+
+    for (const vertical of params.verticalEdges ?? []) {
+      const fromFloor = floorByLevel.get(vertical.fromFloorLevel);
+      const toFloor = floorByLevel.get(vertical.toFloorLevel);
+      const fromPoiId = fromFloor?.poiByName.get(vertical.fromPoiName);
+      const toPoiId = toFloor?.poiByName.get(vertical.toPoiName);
+      if (!fromFloor || !toFloor || !fromPoiId || !toPoiId) continue;
+
+      await tx.accessIndoorVerticalEdge.create({
+        data: {
+          buildingId: building.id,
+          fromFloorId: fromFloor.id,
+          toFloorId: toFloor.id,
+          fromPoiId,
+          toPoiId,
+          weight: vertical.weight ?? 2,
+          requiresStairs: vertical.requiresStairs ?? false,
+          accessibleOnly: vertical.accessibleOnly ?? false,
+        },
+      });
+    }
+
     return building;
   });
+}
+
+export function createRectFootprintGeoJson(params: {
+  centerLat: number;
+  centerLng: number;
+  widthMeters: number;
+  heightMeters: number;
+}): GeoJSON.Polygon {
+  const latOffset = params.heightMeters / 2 / 111_000;
+  const lngOffset =
+    params.widthMeters /
+    2 /
+    (111_000 * Math.cos((params.centerLat * Math.PI) / 180));
+
+  return {
+    type: "Polygon",
+    coordinates: [
+      [
+        [params.centerLng - lngOffset, params.centerLat + latOffset],
+        [params.centerLng + lngOffset, params.centerLat + latOffset],
+        [params.centerLng + lngOffset, params.centerLat - latOffset],
+        [params.centerLng - lngOffset, params.centerLat - latOffset],
+        [params.centerLng - lngOffset, params.centerLat + latOffset],
+      ],
+    ],
+  };
 }

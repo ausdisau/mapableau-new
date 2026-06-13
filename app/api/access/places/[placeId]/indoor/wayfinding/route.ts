@@ -20,6 +20,7 @@ export async function GET(
   const buildings = await prisma.accessVenueBuilding.findMany({
     where: { placeId, status: "published" },
     include: {
+      verticalEdges: true,
       floors: {
         where: { status: "published" },
         include: {
@@ -44,9 +45,12 @@ export async function GET(
     building.floors.flatMap((floor) => floor.edges)
   );
 
+  const verticalEdges = buildings.flatMap((building) => building.verticalEdges);
+
   const route = computeIndoorRoute({
     nodes,
     edges,
+    verticalEdges,
     fromPoiId: parsed.data.from,
     toPoiId: parsed.data.to,
     profile: parseIndoorRoutingProfile({

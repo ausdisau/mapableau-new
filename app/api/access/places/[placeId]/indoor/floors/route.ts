@@ -78,8 +78,11 @@ export async function POST(
     status: parsed.data.status,
     floorPlanImageUrl: parsed.data.floorPlanImageUrl,
     imageBounds: parsed.data.imageBounds as Prisma.InputJsonValue | undefined,
+    vectorGeoJson: parsed.data.vectorGeoJson as Prisma.InputJsonValue | undefined,
     widthMeters: parsed.data.widthMeters,
     heightMeters: parsed.data.heightMeters,
+    floorHeightMeters: parsed.data.floorHeightMeters,
+    elevationMeters: parsed.data.elevationMeters,
   });
 
   const pois =

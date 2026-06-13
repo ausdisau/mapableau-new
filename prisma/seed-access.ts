@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 import { ACCREDITATION_CRITERIA } from "../lib/access-accreditation/accreditation-criteria-service";
-import { importIndoorPilot } from "../lib/access-indoor/indoor-service";
+import { importIndoorPilot, createRectFootprintGeoJson } from "../lib/access-indoor/indoor-service";
 
 const prisma = new PrismaClient();
 
@@ -49,6 +49,7 @@ async function main() {
 
   const pilot = await prisma.accessPlace.findFirst({
     where: { category: "shopping_centre", suburb: "Parramatta" },
+    include: { location: true },
   });
 
   const pilotPlace =
@@ -77,22 +78,46 @@ async function main() {
           ],
         },
       },
+      include: { location: true },
     }));
 
-  const buildingCount = await prisma.accessVenueBuilding.count({
-    where: { placeId: pilotPlace.id },
+  const pilotLat = pilotPlace.location?.latitude ?? -33.815;
+  const pilotLng = pilotPlace.location?.longitude ?? 151.0031;
+  const footprintGeoJson = createRectFootprintGeoJson({
+    centerLat: pilotLat,
+    centerLng: pilotLng,
+    widthMeters: 120,
+    heightMeters: 90,
   });
+  const nw = footprintGeoJson.coordinates[0][0];
+  const se = footprintGeoJson.coordinates[0][2];
+  const floorImageBounds = {
+    northWest: { lng: nw[0], lat: nw[1] },
+    southEast: { lng: se[0], lat: se[1] },
+  };
 
-  if (buildingCount === 0) {
-    await importIndoorPilot({
+  await importIndoorPilot({
       placeId: pilotPlace.id,
       buildingName: "Main mall",
+      footprintGeoJson,
+      totalHeightMeters: 7,
+      defaultFloorHeightMeters: 3.5,
+      verticalEdges: [
+        {
+          fromFloorLevel: 0,
+          toFloorLevel: 1,
+          fromPoiName: "Central lift",
+          toPoiName: "Central lift — Level 1",
+          weight: 2,
+        },
+      ],
       floors: [
         {
           levelIndex: 0,
           label: "Ground",
           floorPlanImageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Sample_floor_plan.png/640px-Sample_floor_plan.png",
+          imageBounds: floorImageBounds,
           pois: [
             {
               type: "entrance",
@@ -137,6 +162,7 @@ async function main() {
         {
           levelIndex: 1,
           label: "Level 1",
+          imageBounds: floorImageBounds,
           pois: [
             {
               type: "lift",
@@ -170,7 +196,6 @@ async function main() {
         },
       ],
     });
-  }
 
   console.log("Access seed complete");
 }

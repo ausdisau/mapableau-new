@@ -6892,18 +6892,23 @@ model AccessVenueEvidence {
 }
 
 model AccessVenueBuilding {
-  id                  String                        @id @default(cuid())
-  placeId             String                        @map("place_id")
-  place               AccessPlace                   @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  name                String
-  status              AccessPlaceStatus             @default(draft)
-  externalVendorId    String?                       @map("external_vendor_id")
-  positioningVendor   AccessIndoorPositioningVendor @default(none) @map("positioning_vendor")
-  positioningEmbedUrl String?                       @map("positioning_embed_url")
-  createdAt           DateTime                      @default(now()) @map("created_at")
-  updatedAt           DateTime                      @updatedAt @map("updated_at")
+  id                       String                        @id @default(cuid())
+  placeId                  String                        @map("place_id")
+  place                    AccessPlace                   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  name                     String
+  status                   AccessPlaceStatus             @default(draft)
+  externalVendorId         String?                       @map("external_vendor_id")
+  positioningVendor        AccessIndoorPositioningVendor @default(none) @map("positioning_vendor")
+  positioningEmbedUrl      String?                       @map("positioning_embed_url")
+  footprintGeoJson         Json?                         @map("footprint_geojson")
+  baseElevationMeters      Float                         @default(0) @map("base_elevation_meters")
+  totalHeightMeters        Float?                        @map("total_height_meters")
+  defaultFloorHeightMeters Float                         @default(3.5) @map("default_floor_height_meters")
+  createdAt                DateTime                      @default(now()) @map("created_at")
+  updatedAt                DateTime                      @updatedAt @map("updated_at")
 
-  floors AccessVenueFloor[]
+  floors        AccessVenueFloor[]
+  verticalEdges AccessIndoorVerticalEdge[]
 
   @@index([placeId, status])
   @@map("access_venue_buildings")
@@ -6922,11 +6927,15 @@ model AccessVenueFloor {
   vectorGeoJson     Json?             @map("vector_geojson")
   widthMeters       Float?            @map("width_meters")
   heightMeters      Float?            @map("height_meters")
+  floorHeightMeters Float?            @map("floor_height_meters")
+  elevationMeters   Float?            @map("elevation_meters")
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
 
-  pois  AccessIndoorPoi[]
-  edges AccessIndoorEdge[]
+  pois                  AccessIndoorPoi[]
+  edges                 AccessIndoorEdge[]
+  verticalEdgesFrom     AccessIndoorVerticalEdge[] @relation("VerticalEdgeFromFloor")
+  verticalEdgesTo       AccessIndoorVerticalEdge[] @relation("VerticalEdgeToFloor")
 
   @@unique([buildingId, levelIndex])
   @@index([buildingId, status])
@@ -6947,8 +6956,10 @@ model AccessIndoorPoi {
   createdAt           DateTime               @default(now()) @map("created_at")
   updatedAt           DateTime               @updatedAt @map("updated_at")
 
-  outgoingEdges AccessIndoorEdge[] @relation("IndoorEdgeFrom")
-  incomingEdges AccessIndoorEdge[] @relation("IndoorEdgeTo")
+  outgoingEdges       AccessIndoorEdge[] @relation("IndoorEdgeFrom")
+  incomingEdges       AccessIndoorEdge[] @relation("IndoorEdgeTo")
+  verticalEdgesFrom   AccessIndoorVerticalEdge[] @relation("VerticalEdgeFromPoi")
+  verticalEdgesTo     AccessIndoorVerticalEdge[] @relation("VerticalEdgeToPoi")
 
   @@index([floorId, type])
   @@map("access_indoor_pois")
@@ -6973,6 +6984,29 @@ model AccessIndoorEdge {
   @@unique([floorId, fromPoiId, toPoiId])
   @@index([floorId])
   @@map("access_indoor_edges")
+}
+
+model AccessIndoorVerticalEdge {
+  id             String              @id @default(cuid())
+  buildingId     String              @map("building_id")
+  building       AccessVenueBuilding @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  fromFloorId    String              @map("from_floor_id")
+  fromFloor      AccessVenueFloor    @relation("VerticalEdgeFromFloor", fields: [fromFloorId], references: [id], onDelete: Cascade)
+  toFloorId      String              @map("to_floor_id")
+  toFloor        AccessVenueFloor    @relation("VerticalEdgeToFloor", fields: [toFloorId], references: [id], onDelete: Cascade)
+  fromPoiId      String              @map("from_poi_id")
+  fromPoi        AccessIndoorPoi     @relation("VerticalEdgeFromPoi", fields: [fromPoiId], references: [id], onDelete: Cascade)
+  toPoiId        String              @map("to_poi_id")
+  toPoi          AccessIndoorPoi     @relation("VerticalEdgeToPoi", fields: [toPoiId], references: [id], onDelete: Cascade)
+  weight         Float               @default(2)
+  requiresStairs Boolean             @default(false) @map("requires_stairs")
+  accessibleOnly Boolean             @default(false) @map("accessible_only")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  @@unique([buildingId, fromPoiId, toPoiId])
+  @@index([buildingId])
+  @@map("access_indoor_vertical_edges")
 }
 
 model AccessModerationQueue {

@@ -14,6 +14,11 @@ export const accessIndoorPoiTypeSchema = z.enum([
   "other",
 ]);
 
+export const imageBoundsSchema = z.object({
+  northWest: z.object({ lng: z.number(), lat: z.number() }),
+  southEast: z.object({ lng: z.number(), lat: z.number() }),
+});
+
 export const indoorPoiInputSchema = z.object({
   type: accessIndoorPoiTypeSchema,
   name: z.string().min(1).max(120),
@@ -50,15 +55,21 @@ export const upsertIndoorFloorSchema = z.object({
   sortOrder: z.number().int().optional(),
   status: z.enum(["draft", "published"]).optional(),
   floorPlanImageUrl: z.string().url().max(2000).nullable().optional(),
-  imageBounds: z.record(z.string(), z.unknown()).optional(),
+  imageBounds: imageBoundsSchema.optional(),
+  vectorGeoJson: z.record(z.string(), z.unknown()).optional(),
   widthMeters: z.number().positive().optional(),
   heightMeters: z.number().positive().optional(),
+  floorHeightMeters: z.number().positive().optional(),
+  elevationMeters: z.number().optional(),
   pois: z.array(indoorPoiInputSchema).optional(),
 });
 
 export const adminIndoorImportSchema = z.object({
   placeId: z.string().min(1),
   buildingName: z.string().min(1).max(200),
+  footprintGeoJson: z.record(z.string(), z.unknown()).optional(),
+  totalHeightMeters: z.number().positive().optional(),
+  defaultFloorHeightMeters: z.number().positive().optional(),
   externalVendorId: z.string().max(200).optional(),
   positioningVendor: z
     .enum([
@@ -76,6 +87,9 @@ export const adminIndoorImportSchema = z.object({
       levelIndex: z.number().int(),
       label: z.string().min(1).max(80),
       floorPlanImageUrl: z.string().url().max(2000).optional(),
+      imageBounds: imageBoundsSchema.optional(),
+      floorHeightMeters: z.number().positive().optional(),
+      elevationMeters: z.number().optional(),
       pois: z.array(indoorPoiInputSchema),
       edges: z
         .array(
@@ -90,6 +104,19 @@ export const adminIndoorImportSchema = z.object({
         .optional(),
     })
   ),
+  verticalEdges: z
+    .array(
+      z.object({
+        fromFloorLevel: z.number().int(),
+        toFloorLevel: z.number().int(),
+        fromPoiName: z.string().min(1),
+        toPoiName: z.string().min(1),
+        weight: z.number().positive().optional(),
+        requiresStairs: z.boolean().optional(),
+        accessibleOnly: z.boolean().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const indoorRouteQuerySchema = z.object({
