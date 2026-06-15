@@ -16,11 +16,34 @@ type FundingSource = {
   isDefault: boolean;
 };
 
+type ShippingForm = {
+  shippingName: string;
+  shippingEmail: string;
+  line1: string;
+  line2: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country: string;
+};
+
+const emptyShipping: ShippingForm = {
+  shippingName: "",
+  shippingEmail: "",
+  line1: "",
+  line2: "",
+  suburb: "",
+  state: "",
+  postcode: "",
+  country: "Australia",
+};
+
 export function CheckoutClient() {
   const router = useRouter();
   const [cart, setCart] = useState<ShopCartView | null>(null);
   const [fundingSources, setFundingSources] = useState<FundingSource[]>([]);
   const [fundingSourceId, setFundingSourceId] = useState("");
+  const [shipping, setShipping] = useState<ShippingForm>(emptyShipping);
   const [error, setError] = useState<string | null>(null);
   const [planManagedMessage, setPlanManagedMessage] = useState<string | null>(
     null
@@ -64,6 +87,10 @@ export function CheckoutClient() {
     void load();
   }, []);
 
+  function updateShipping(field: keyof ShippingForm, value: string) {
+    setShipping((prev) => ({ ...prev, [field]: value }));
+  }
+
   async function handleCheckout() {
     if (!fundingSourceId) {
       setError("Select a funding source");
@@ -74,11 +101,30 @@ export function CheckoutClient() {
     setError(null);
     setPlanManagedMessage(null);
 
+    const payload: Record<string, unknown> = { fundingSourceId };
+
+    if (shipping.shippingName.trim()) {
+      payload.shippingName = shipping.shippingName.trim();
+    }
+    if (shipping.shippingEmail.trim()) {
+      payload.shippingEmail = shipping.shippingEmail.trim();
+    }
+    if (shipping.line1.trim() && shipping.suburb.trim() && shipping.postcode.trim()) {
+      payload.shippingAddress = {
+        line1: shipping.line1.trim(),
+        ...(shipping.line2.trim() ? { line2: shipping.line2.trim() } : {}),
+        suburb: shipping.suburb.trim(),
+        state: shipping.state.trim() || "NSW",
+        postcode: shipping.postcode.trim(),
+        country: shipping.country.trim() || "Australia",
+      };
+    }
+
     try {
       const res = await fetch("/api/shopping/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fundingSourceId }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
 
@@ -123,6 +169,88 @@ export function CheckoutClient() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
       <div className="space-y-6">
+        <section aria-labelledby="shipping-heading">
+          <h2 id="shipping-heading" className="text-lg font-semibold">
+            Shipping details
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Optional for this pilot — provide an address if you need delivery.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block sm:col-span-2">
+              <span className="text-sm font-medium">Full name</span>
+              <input
+                type="text"
+                value={shipping.shippingName}
+                onChange={(e) => updateShipping("shippingName", e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-input px-3"
+                autoComplete="name"
+              />
+            </label>
+            <label className="block sm:col-span-2">
+              <span className="text-sm font-medium">Email</span>
+              <input
+                type="email"
+                value={shipping.shippingEmail}
+                onChange={(e) => updateShipping("shippingEmail", e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-input px-3"
+                autoComplete="email"
+              />
+            </label>
+            <label className="block sm:col-span-2">
+              <span className="text-sm font-medium">Address line 1</span>
+              <input
+                type="text"
+                value={shipping.line1}
+                onChange={(e) => updateShipping("line1", e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-input px-3"
+                autoComplete="address-line1"
+              />
+            </label>
+            <label className="block sm:col-span-2">
+              <span className="text-sm font-medium">Address line 2</span>
+              <input
+                type="text"
+                value={shipping.line2}
+                onChange={(e) => updateShipping("line2", e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-input px-3"
+                autoComplete="address-line2"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium">Suburb</span>
+              <input
+                type="text"
+                value={shipping.suburb}
+                onChange={(e) => updateShipping("suburb", e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-input px-3"
+                autoComplete="address-level2"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium">State</span>
+              <input
+                type="text"
+                value={shipping.state}
+                onChange={(e) => updateShipping("state", e.target.value)}
+                placeholder="NSW"
+                className="mt-1 min-h-11 w-full rounded-md border border-input px-3"
+                autoComplete="address-level1"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium">Postcode</span>
+              <input
+                type="text"
+                value={shipping.postcode}
+                onChange={(e) => updateShipping("postcode", e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-input px-3"
+                autoComplete="postal-code"
+              />
+            </label>
+          </div>
+        </section>
+
         <section aria-labelledby="funding-heading">
           <h2 id="funding-heading" className="text-lg font-semibold">
             Funding source

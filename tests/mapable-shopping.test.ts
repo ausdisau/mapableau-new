@@ -15,9 +15,15 @@ import {
 } from "@/lib/shopping/cart-service";
 import {
   cartItemMutationSchema,
+  checkoutSchema,
   createShopProductSchema,
   listProductsQuerySchema,
 } from "@/lib/shopping/schemas";
+import { getProductImageUrl } from "@/lib/shopping/images";
+import {
+  getStockLabel,
+  isProductInStock,
+} from "@/lib/shopping/stock";
 import { pilotShopProducts } from "@/prisma/seed-shopping";
 
 describe("shopping cart totals", () => {
@@ -129,6 +135,55 @@ describe("published catalogue filter contract", () => {
   it("product list query excludes invalid categories", () => {
     const result = listProductsQuerySchema.safeParse({ category: "invalid" });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("shopping stock helpers", () => {
+  it("treats null stock as in stock", () => {
+    expect(isProductInStock(null)).toBe(true);
+  });
+
+  it("marks zero stock as out of stock", () => {
+    expect(isProductInStock(0)).toBe(false);
+    expect(getStockLabel(0)).toBe("Out of stock");
+  });
+
+  it("shows low stock warning at five or fewer", () => {
+    expect(getStockLabel(5)).toBe("Only 5 left");
+    expect(getStockLabel(6)).toBe("In stock");
+  });
+
+  it("resolves product image with placeholder fallback", () => {
+    expect(getProductImageUrl([], "Test product")).toContain("placehold.co");
+    expect(getProductImageUrl(["https://cdn.example.com/a.jpg"], "Test")).toBe(
+      "https://cdn.example.com/a.jpg"
+    );
+  });
+});
+
+describe("shopping checkout schema", () => {
+  it("accepts optional shipping address", () => {
+    const parsed = checkoutSchema.safeParse({
+      fundingSourceId: "clxyz123456789012345678901",
+      shippingName: "Alex Example",
+      shippingAddress: {
+        line1: "1 Main St",
+        suburb: "Sydney",
+        state: "NSW",
+        postcode: "2000",
+        country: "Australia",
+      },
+    });
+    expect(parsed.success).toBe(true);
+  });
+});
+
+describe("shopping order cancellation", () => {
+  it("cancelShopOrderForInvoice is exported for webhook use", async () => {
+    const { cancelShopOrderForInvoice } = await import(
+      "@/lib/shopping/order-service"
+    );
+    expect(typeof cancelShopOrderForInvoice).toBe("function");
   });
 });
 

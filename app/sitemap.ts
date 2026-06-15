@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { isShoppingEnabled } from "@/lib/config/shopping";
+
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au";
 
 const publicRoutes = [
@@ -8,7 +10,6 @@ const publicRoutes = [
   "/transport",
   "/employment",
   "/marketplace",
-  "/shopping",
   "/foods",
   "/access",
   "/peer",
@@ -30,7 +31,11 @@ const publicRoutes = [
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  return publicRoutes.map((route) => ({
+  const routes = isShoppingEnabled()
+    ? [...publicRoutes.slice(0, 5), "/shopping", ...publicRoutes.slice(5)]
+    : publicRoutes;
+
+  return routes.map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: now,
     changeFrequency: route === "" ? "weekly" : "monthly",

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 
+import { productPlaceholderImageUrl } from "@/lib/shopping/images";
 import { prisma } from "@/lib/prisma";
 
 type SeedClient = Pick<PrismaClient, "shopProduct">;
@@ -115,13 +116,18 @@ export const pilotShopProducts = [
 export async function seedMapAbleShopping(client: SeedClient = prisma as SeedClient) {
   console.log("Seeding MapAble Shopping pilot catalogue...");
   for (const product of pilotShopProducts) {
+    const imageUrls =
+      product.imageUrls.length > 0
+        ? product.imageUrls
+        : [productPlaceholderImageUrl(product.title)];
+
     await client.shopProduct.upsert({
       where: { slug: product.slug },
       create: {
         ...product,
         status: "published",
         currency: "AUD",
-        imageUrls: product.imageUrls,
+        imageUrls,
       },
       update: {
         title: product.title,
@@ -133,7 +139,7 @@ export async function seedMapAbleShopping(client: SeedClient = prisma as SeedCli
         stockQuantity: product.stockQuantity,
         ndisRelevant: product.ndisRelevant,
         accessibilityNotes: product.accessibilityNotes,
-        imageUrls: product.imageUrls,
+        imageUrls,
       },
     });
   }

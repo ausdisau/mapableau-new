@@ -5,14 +5,21 @@ import { useState } from "react";
 type Props = {
   productId: string;
   productTitle: string;
+  disabled?: boolean;
 };
 
-export function AddToCartButton({ productId, productTitle }: Props) {
+export function AddToCartButton({
+  productId,
+  productTitle,
+  disabled = false,
+}: Props) {
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function addToCart() {
+    if (disabled) return;
+
     setLoading(true);
     setStatus(null);
     try {
@@ -46,16 +53,17 @@ export function AddToCartButton({ productId, productTitle }: Props) {
           min={1}
           max={99}
           value={quantity}
+          disabled={disabled}
           onChange={(e) => setQuantity(Number(e.target.value))}
-          className="w-20 rounded-md border border-input px-2 py-2 text-sm"
+          className="w-20 rounded-md border border-input px-2 py-2 text-sm disabled:opacity-50"
         />
         <button
           type="button"
           onClick={addToCart}
-          disabled={loading}
+          disabled={loading || disabled}
           className="min-h-11 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
-          {loading ? "Adding…" : "Add to cart"}
+          {loading ? "Adding…" : disabled ? "Out of stock" : "Add to cart"}
         </button>
       </div>
       {status ? (

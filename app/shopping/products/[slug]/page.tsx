@@ -4,11 +4,17 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { AddToCartButton } from "@/components/shopping/AddToCartButton";
+import { ProductImage } from "@/components/shopping/ProductImage";
 import { ShoppingNav } from "@/components/shopping/ShoppingNav";
 import { ShoppingSafetyNotice } from "@/components/shopping/ShoppingSafetyNotice";
 import { isShoppingEnabled } from "@/lib/config/shopping";
 import { formatShopMoney } from "@/lib/shopping/format";
 import { getPublishedProductBySlug } from "@/lib/shopping/product-service";
+import {
+  getStockBadgeClass,
+  getStockLabel,
+  isProductInStock,
+} from "@/lib/shopping/stock";
 import { SHOPPING_CATEGORY_LABELS } from "@/types/shopping";
 
 export async function generateMetadata({
@@ -38,12 +44,20 @@ export default async function ShopProductPage({
   if (!product) notFound();
 
   const session = await getServerSession(authOptions);
+  const inStock = isProductInStock(product.stockQuantity);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <ShoppingNav />
 
       <article className="mt-6 space-y-6">
+        <ProductImage
+          title={product.title}
+          imageUrls={product.imageUrls}
+          className="aspect-[3/2] w-full"
+          priority
+        />
+
         <header className="space-y-2">
           <p className="text-sm text-muted-foreground">
             {SHOPPING_CATEGORY_LABELS[product.category]}
@@ -53,6 +67,11 @@ export default async function ShopProductPage({
             {formatShopMoney(product.unitAmountCents, product.currency)}
             {product.gstApplicable ? " incl. GST" : ""}
           </p>
+          <span
+            className={`inline-block rounded-full px-2 py-0.5 text-xs ${getStockBadgeClass(product.stockQuantity)}`}
+          >
+            {getStockLabel(product.stockQuantity)}
+          </span>
           {product.ndisRelevant ? (
             <p className="text-sm text-muted-foreground">
               Marked NDIS-relevant for your records — not an funding approval.
@@ -74,7 +93,13 @@ export default async function ShopProductPage({
         <ShoppingSafetyNotice />
 
         {session?.user ? (
-          <AddToCartButton productId={product.id} productTitle={product.title} />
+          inStock ? (
+            <AddToCartButton productId={product.id} productTitle={product.title} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              This product is out of stock and cannot be added to your cart.
+            </p>
+          )
         ) : (
           <p className="text-sm">
             <Link href="/login" className="underline">

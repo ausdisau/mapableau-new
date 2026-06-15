@@ -12,6 +12,9 @@ export function ShoppingNav() {
       <Link href="/shopping/cart" className="hover:underline">
         Cart
       </Link>
+      <Link href="/shopping/orders" className="hover:underline">
+        Orders
+      </Link>
       <Link href="/marketplace" className="text-muted-foreground hover:underline">
         Marketplace programme
       </Link>

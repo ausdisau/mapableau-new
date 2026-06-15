@@ -6,7 +6,10 @@ import {
 } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { updateInvoiceStatus } from "@/lib/billing-core/invoice-service";
-import { fulfillShopOrderForPaidInvoice } from "@/lib/shopping/order-service";
+import {
+  cancelShopOrderForInvoice,
+  fulfillShopOrderForPaidInvoice,
+} from "@/lib/shopping/order-service";
 import { prisma } from "@/lib/prisma";
 
 export async function storeWebhookEventIdempotent(
@@ -51,6 +54,7 @@ export async function handleStripeBillingEvent(event: Stripe.Event) {
       );
       break;
     case "checkout.session.async_payment_failed":
+    case "checkout.session.expired":
       await handleCheckoutFailed(event.data.object as Stripe.Checkout.Session);
       break;
     case "payment_intent.succeeded":
@@ -154,11 +158,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 async function handleCheckoutFailed(session: Stripe.Checkout.Session) {
   const invoiceId = session.metadata?.invoiceId;
   if (!invoiceId) return;
+  const failureReason =
+    session.status === "expired" ? "checkout_expired" : "async_payment_failed";
   await prisma.billingPayment.updateMany({
     where: { stripeCheckoutSessionId: session.id },
-    data: { status: "failed", failureReason: "async_payment_failed" },
+    data: { status: "failed", failureReason },
   });
   await updateInvoiceStatus(invoiceId, "failed");
+  await cancelShopOrderForInvoice(invoiceId);
 }
 
 async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
@@ -189,6 +196,7 @@ async function handlePaymentIntentFailed(pi: Stripe.PaymentIntent) {
   const reason = pi.last_payment_error?.message ?? "payment_failed";
   if (invoiceId) {
     await updateInvoiceStatus(invoiceId, "failed");
+    await cancelShopOrderForInvoice(invoiceId);
   }
   await prisma.billingPayment.updateMany({
     where: { stripePaymentIntentId: pi.id },

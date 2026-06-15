@@ -22,7 +22,10 @@ export default function MarketplaceModulePage() {
       ]}
       availableNow={[
         ...(shoppingLive
-          ? ["MapAble Shopping pilot storefront with curated assistive products."]
+          ? [
+              "MapAble Shopping pilot storefront with curated assistive products.",
+              "Browse catalogue, cart, and card checkout with invoice evidence.",
+            ]
           : []),
         "Public module information and pilot enquiry pathway.",
         "Provider finder links for service discovery.",
@@ -39,7 +42,11 @@ export default function MarketplaceModulePage() {
           ? { label: "Shop now", href: "/shopping" }
           : { label: "Join pilot", href: "/contact" }
       }
-      secondaryCta={{ label: "Explore provider finder", href: "/providers" }}
+      secondaryCta={
+        shoppingLive
+          ? { label: "Browse catalogue", href: "/shopping" }
+          : { label: "Explore provider finder", href: "/providers" }
+      }
     />
   );
 }

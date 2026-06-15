@@ -19,10 +19,14 @@ export async function generateMetadata({
   };
 }
 
+type SearchParams = Promise<{ checkout?: string }>;
+
 export default async function ShoppingOrderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: SearchParams;
 }) {
   if (!isShoppingEnabled()) notFound();
 
@@ -30,8 +34,11 @@ export default async function ShoppingOrderPage({
   if (!session?.user?.id) redirect("/login");
 
   const { id } = await params;
+  const query = await searchParams;
   const order = await getOrderForUser(id, session.user.id);
   if (!order) notFound();
+
+  const showSuccessBanner = query.checkout === "success";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -42,6 +49,19 @@ export default async function ShoppingOrderPage({
           Order {order.id.slice(0, 8)} · {order.status.replace(/_/g, " ")}
         </p>
       </header>
+
+      {showSuccessBanner ? (
+        <div
+          className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-950"
+          role="status"
+        >
+          <p className="font-medium">Payment received — thank you for your order.</p>
+          <p className="mt-1 text-sm">
+            Your invoice is available below for your records. MapAble does not
+            guarantee NDIS funding approval.
+          </p>
+        </div>
+      ) : null}
 
       <section className="mt-8 space-y-4 rounded-lg border border-border p-4">
         <p className="text-lg font-medium">
@@ -55,6 +75,11 @@ export default async function ShoppingOrderPage({
             </li>
           ))}
         </ul>
+        {order.shippingName ? (
+          <p className="text-sm text-muted-foreground">
+            Ship to: {order.shippingName}
+          </p>
+        ) : null}
         {order.fundingSource ? (
           <p className="text-sm text-muted-foreground">
             Funding: {order.fundingSource.label} ({order.fundingSource.type})
@@ -67,6 +92,12 @@ export default async function ShoppingOrderPage({
           View invoice evidence
         </Link>
       </section>
+
+      <p className="mt-4 text-sm">
+        <Link href="/shopping/orders" className="underline">
+          View all orders
+        </Link>
+      </p>
 
       <div className="mt-6">
         <ShoppingSafetyNotice compact />

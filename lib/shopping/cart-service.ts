@@ -3,6 +3,7 @@ import type { ShopCartLine, ShopCartTotals, ShopCartView } from "@/types/shoppin
 import { prisma } from "@/lib/prisma";
 
 import { getProductsForCartValidation } from "./product-service";
+import { isProductInStock } from "./stock";
 
 async function getOrCreateCart(userId: string) {
   return prisma.shopCart.upsert({
@@ -82,6 +83,10 @@ export async function setCartItemQuantity(
   });
   if (!product) {
     return { ok: false as const, error: "Product not found or unavailable" };
+  }
+
+  if (quantity > 0 && !isProductInStock(product.stockQuantity)) {
+    return { ok: false as const, error: "Out of stock" };
   }
 
   if (product.stockQuantity != null && quantity > product.stockQuantity) {

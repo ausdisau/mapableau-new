@@ -143,6 +143,21 @@ export async function createOrderCheckout(userId: string, input: CheckoutInput) 
   };
 }
 
+export async function cancelShopOrderForInvoice(invoiceId: string) {
+  const order = await prisma.shopOrder.findUnique({
+    where: { billingInvoiceId: invoiceId },
+  });
+
+  if (!order || order.status !== "pending_payment") {
+    return;
+  }
+
+  await prisma.shopOrder.update({
+    where: { id: order.id },
+    data: { status: "cancelled" },
+  });
+}
+
 export async function fulfillShopOrderForPaidInvoice(invoiceId: string) {
   const order = await prisma.shopOrder.findUnique({
     where: { billingInvoiceId: invoiceId },

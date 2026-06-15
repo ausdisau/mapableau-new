@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ShopPagination } from "@/components/shopping/ShopPagination";
 import { ShopProductCard } from "@/components/shopping/ShopProductCard";
 import { ShoppingNav } from "@/components/shopping/ShoppingNav";
 import { ShoppingSafetyNotice } from "@/components/shopping/ShoppingSafetyNotice";
@@ -14,7 +15,7 @@ export const metadata = {
     "Browse curated disability-related products from MapAble's pilot storefront.",
 };
 
-type SearchParams = Promise<{ category?: string; q?: string }>;
+type SearchParams = Promise<{ category?: string; q?: string; page?: string }>;
 
 export default async function ShoppingPage({
   searchParams,
@@ -26,12 +27,14 @@ export default async function ShoppingPage({
   const params = await searchParams;
   const category = params.category as keyof typeof SHOPPING_CATEGORY_LABELS | undefined;
   const q = params.q;
+  const page = Math.max(1, Number(params.page) || 1);
 
   const result = await listPublishedProducts({
     category:
       category && category in SHOPPING_CATEGORY_LABELS ? category : undefined,
     q,
-    pageSize: 24,
+    page,
+    pageSize: 12,
   });
 
   return (
@@ -89,13 +92,24 @@ export default async function ShoppingPage({
         {result.items.length === 0 ? (
           <p>No products match your search.</p>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {result.items.map((product) => (
-              <li key={product.id}>
-                <ShopProductCard product={product} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <p className="mb-4 text-sm text-muted-foreground">
+              {result.total} product{result.total === 1 ? "" : "s"}
+            </p>
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {result.items.map((product) => (
+                <li key={product.id}>
+                  <ShopProductCard product={product} />
+                </li>
+              ))}
+            </ul>
+            <ShopPagination
+              page={result.page}
+              totalPages={result.totalPages}
+              q={q}
+              category={category}
+            />
+          </>
         )}
       </section>
 
