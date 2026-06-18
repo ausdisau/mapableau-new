@@ -1,7 +1,7 @@
-import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { verifySupabasePassword } from "@/lib/auth/supabase-credentials";
 import {
   hasTwilioVerifyConfig,
   isTwilio2FAEnabled,
@@ -54,8 +54,9 @@ export async function POST(request: Request) {
   });
 
   const password = body.password.trim();
-  const validPassword =
-    user?.passwordHash && (await compare(password, user.passwordHash));
+  const validPassword = user
+    ? await verifySupabasePassword(email, password)
+    : false;
   if (!user || !validPassword) {
     return NextResponse.json(
       { error: "Invalid email or password" },

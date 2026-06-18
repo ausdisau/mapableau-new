@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/components/providers/SupabaseAuthProvider";
 import React, { useEffect, useState } from "react";
 
 import { mapOutletsToProviders } from "@/app/provider-finder/outletToProvider";

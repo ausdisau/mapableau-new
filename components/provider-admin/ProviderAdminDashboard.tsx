@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
+import { useAuth, useSession } from "@/components/providers/SupabaseAuthProvider";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
@@ -43,6 +43,7 @@ export function ProviderAdminDashboard({
   adminCatalog: GetCatalogResponse;
 }) {
   const { status, data: sessionData } = useSession();
+  const { signOut } = useAuth();
   const sessionUserId = sessionData?.user?.id;
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"org" | "team">("org");

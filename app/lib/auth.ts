@@ -1,5 +1,3 @@
-import { getServerSession } from "next-auth";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-
-export const auth = () => getServerSession(authOptions);
+export const auth = () => getCurrentUser();

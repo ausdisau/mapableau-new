@@ -16,6 +16,7 @@ datasource db {
 
 model User {
   id                     String             @id @default(cuid())
+  supabaseId             String?            @unique
   name                   String
   email                  String             @unique
   phone                  String?
@@ -24,7 +25,7 @@ model User {
   preferredContactMethod PreferredContactMethod @default(email)
   primaryRole            MapAbleUserRole    @default(participant)
   worker                 Worker?
-  passwordHash           String
+  passwordHash           String?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   sessions               Session[]

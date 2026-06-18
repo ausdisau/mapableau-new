@@ -1,24 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
-
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
-  if (!token) {
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setSessionReady(true);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || session) {
+        setSessionReady(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (!sessionReady) {
     return (
       <div className="space-y-4 text-sm">
-        <p className="text-red-600">This reset link is missing or invalid.</p>
+        <p className="text-red-600">
+          This reset link is missing or invalid. Request a new link from the
+          forgot-password page.
+        </p>
         <Link href="/forgot-password" className="underline">
           Request a new reset link
         </Link>
@@ -42,20 +65,18 @@ export default function ResetPasswordClient() {
         setIsLoading(true);
 
         try {
-          const res = await fetch("/api/auth/reset-password", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token, password }),
+          const supabase = createSupabaseBrowserClient();
+          const { error: updateError } = await supabase.auth.updateUser({
+            password,
           });
-          const data = (await res.json()) as { message?: string; error?: string };
 
-          if (!res.ok) {
-            setError(data.error || "Could not reset password.");
+          if (updateError) {
+            setError(updateError.message || "Could not reset password.");
             setIsLoading(false);
             return;
           }
 
-          setMessage(data.message || "Password updated.");
+          setMessage("Password updated.");
           setIsLoading(false);
           router.push("/login?reset=success");
         } catch {

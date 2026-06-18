@@ -1,8 +1,8 @@
 import type { MapAbleUserRole } from "@prisma/client";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { agentLog } from "@/lib/debug/agent-log";
+import { getSupabaseAuthSession } from "@/lib/auth/supabase-session";
+import { ensurePrismaUserFromSupabase } from "@/lib/auth/supabase-user-sync";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/mapable";
 
@@ -18,17 +18,19 @@ export interface CurrentUser {
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const session = await getServerSession(authOptions);
+  const authSession = await getSupabaseAuthSession();
   // #region agent log
   agentLog("E", "current-user.ts:getCurrentUser:session", "session read", {
-    hasSession: Boolean(session),
-    sessionUserId: session?.user?.id ?? null,
+    hasSession: Boolean(authSession),
+    sessionUserId: authSession?.user?.id ?? null,
   });
   // #endregion
-  if (!session?.user?.id) return null;
+  if (!authSession?.user) return null;
+
+  const linkedUser = await ensurePrismaUserFromSupabase(authSession.user);
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: linkedUser.id },
     include: { roleAssignments: true },
   });
 
@@ -66,7 +68,7 @@ export async function requireCurrentUser(): Promise<CurrentUser> {
 
 export function userHasRole(
   user: CurrentUser,
-  role: UserRole | MapAbleUserRole
+  role: UserRole | MapAbleUserRole,
 ): boolean {
   return user.roles.includes(role as UserRole);
 }

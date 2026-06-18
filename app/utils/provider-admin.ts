@@ -24,8 +24,8 @@ export function canEditWorkerProfile(params: {
 }
 
 export async function getSessionUserId() {
-  const session = await auth();
-  return session?.user?.id ?? null;
+  const user = await auth();
+  return user?.id ?? null;
 }
 
 export async function getProviderMembership(
