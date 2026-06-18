@@ -1,13 +1,15 @@
 import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServerClientOrNull } from "@/lib/supabase/server";
 
 export type SupabaseAuthSession = {
   user: SupabaseAuthUser;
 };
 
 export async function getSupabaseAuthSession(): Promise<SupabaseAuthSession | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await getSupabaseServerClientOrNull();
+  if (!supabase) return null;
+
   const {
     data: { user },
     error,

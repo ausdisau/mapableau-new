@@ -1,6 +1,7 @@
 "use client";
 
 import type { Session, User } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   createContext,
   useCallback,
@@ -10,7 +11,10 @@ import {
   useState,
 } from "react";
 
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  createSupabaseBrowserClient,
+  getSupabaseBrowserClientOrNull,
+} from "@/lib/supabase/client";
 
 type AuthContextValue = {
   session: Session | null;
@@ -26,11 +30,21 @@ export function SupabaseAuthProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<AuthContextValue["status"]>("loading");
 
   useEffect(() => {
+    setSupabase(getSupabaseBrowserClientOrNull());
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) {
+      setSession(null);
+      setStatus("unauthenticated");
+      return;
+    }
+
     let mounted = true;
 
     void supabase.auth.getSession().then(({ data }) => {
@@ -54,7 +68,9 @@ export function SupabaseAuthProvider({
 
   const signOut = useCallback(
     async (options?: { callbackUrl?: string }) => {
-      await supabase.auth.signOut();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
       window.location.href = options?.callbackUrl ?? "/login";
     },
     [supabase],

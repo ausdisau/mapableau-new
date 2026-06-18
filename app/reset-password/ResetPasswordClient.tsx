@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseBrowserClient, getSupabaseBrowserClientOrNull } from "@/lib/supabase/client";
 
 export default function ResetPasswordClient() {
   const router = useRouter();
@@ -16,7 +16,11 @@ export default function ResetPasswordClient() {
   const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
+    const supabase = getSupabaseBrowserClientOrNull();
+    if (!supabase) {
+      setSessionReady(false);
+      return;
+    }
 
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
