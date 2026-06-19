@@ -23,6 +23,7 @@
     "neon:configure": "python3 scripts/configure-neon-env.py",
     "seed:ndis-service-delivery": "tsx prisma/seed-ndis-service-delivery.ts",
     "import:provider-outlets-supabase": "tsx scripts/import-provider-outlets-supabase.ts",
+    "sync:vercel-supabase-env": "tsx scripts/sync-vercel-supabase-env.ts",
     "fetch:ndis-list-providers": "tsx scripts/fetch-ndis-list-providers.ts",
     "seed:ndis-provider-outlets": "tsx prisma/seed-ndis-provider-outlets.ts",
     "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
