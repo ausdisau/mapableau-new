@@ -5,9 +5,11 @@ import type { ApiScope } from "@prisma/client";
 import { listAccessiblePlaces } from "@/lib/accessibility-map/place-service";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { scopesAllow } from "@/lib/developer-api/api-key-service";
+import {
+  enforceApiRateLimit,
+  recordApiCall,
+} from "@/lib/developer-api/api-usage";
 import { prisma } from "@/lib/prisma";
-
-
 
 async function authenticateApiKey(req: Request) {
   const key = req.headers.get("x-api-key");
@@ -27,6 +29,23 @@ export async function GET(req: Request) {
   if (!scopesAllow(record.scopes, "places_read" as ApiScope)) {
     return jsonError("Forbidden scope", 403);
   }
+
+  const rate = await enforceApiRateLimit({
+    appId: record.appId,
+    path: "/api/v1/places",
+    method: "GET",
+    scopes: record.scopes,
+  });
+  if (!rate.allowed) {
+    return Response.json(
+      { error: "Rate limit exceeded" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rate.retryAfterSeconds) },
+      }
+    );
+  }
+
   const places = await listAccessiblePlaces(30);
   const safe = places.map((p) => ({
     id: p.id,
@@ -34,5 +53,14 @@ export async function GET(req: Request) {
     confidence: p.confidence,
     features: p.features.map((f) => f.type),
   }));
+
+  await recordApiCall({
+    appId: record.appId,
+    path: "/api/v1/places",
+    method: "GET",
+    status: 200,
+    organisationId: record.app.developerOrganisationId,
+  });
+
   return jsonOk({ places: safe });
 }

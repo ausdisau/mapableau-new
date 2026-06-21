@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { ProviderBillingClient } from "@/components/billing/ProviderBillingClient";
 import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass, mapablePageContainerClass } from "@/lib/brand/styles";
@@ -20,7 +22,9 @@ export default function ProviderBillingPage() {
           Connect your Stripe account for payouts, manage subscriptions, and review transfers.
         </p>
         <div className="mt-10">
-          <ProviderBillingClient />
+          <Suspense fallback={<p className="text-sm text-muted-foreground">Loading billing…</p>}>
+            <ProviderBillingClient />
+          </Suspense>
         </div>
       </div>
     </div>

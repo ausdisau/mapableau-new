@@ -118,5 +118,21 @@ export async function approveCareShift(shiftId: string, participantId: string) {
     });
   }
 
+  try {
+    const { createDraftFromCareShift } = await import(
+      "@/lib/billing-core/transparent-billing"
+    );
+    await createDraftFromCareShift({
+      careShiftId: shiftId,
+      actorUserId: participantId,
+      providerId: shift.organisationId,
+    });
+  } catch (err) {
+    const code = err instanceof Error ? err.message : "UNKNOWN";
+    if (code !== "TRANSPARENT_BILLING_DISABLED" && code !== "EVIDENCE_REQUIRED") {
+      console.error("Care shift billing draft failed", err);
+    }
+  }
+
   return shift;
 }

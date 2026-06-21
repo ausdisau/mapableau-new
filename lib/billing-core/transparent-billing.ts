@@ -1,7 +1,9 @@
 import type { BillingAdminApprovalStatus } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { calculateInvoiceTotals } from "@/lib/billing-core/calculations";
 import { platformPatternsConfig } from "@/lib/config/platform-patterns";
+import { recordUsageEvent } from "@/lib/usage/usage-ledger";
 import { prisma } from "@/lib/prisma";
 
 export type InvoiceAnomalyFlag = {
@@ -84,6 +86,14 @@ export async function createDraftFromCareShift(params: {
     duplicateDescriptions: dupes,
   });
 
+  const lineItemInputs = logs.map((log) => ({
+    description: log.notes ?? "Care support",
+    quantity: (log.durationMinutes ?? 60) / 60,
+    unitAmountCents: 10000,
+    gstApplicable: false,
+  }));
+  const totals = calculateInvoiceTotals(lineItemInputs);
+
   const invoice = await prisma.billingInvoice.create({
     data: {
       userId: shift.participantId,
@@ -91,15 +101,19 @@ export async function createDraftFromCareShift(params: {
       serviceType: "care",
       status: "draft",
       adminApprovalStatus: "pending_approval",
-      subtotalCents: Math.round(billedMinutes * 100),
-      totalCents: Math.round(billedMinutes * 100),
+      subtotalCents: totals.subtotalCents,
+      gstCents: totals.gstCents,
+      platformFeeCents: totals.platformFeeCents,
+      totalCents: totals.totalCents,
       anomalyFlags,
       lineItems: {
-        create: logs.map((log) => ({
-          description: log.notes ?? "Care support",
-          quantity: (log.durationMinutes ?? 60) / 60,
-          unitAmountCents: 10000,
-          totalCents: Math.round(((log.durationMinutes ?? 60) / 60) * 10000),
+        create: logs.map((log, index) => ({
+          description: lineItemInputs[index].description,
+          quantity: lineItemInputs[index].quantity,
+          unitAmountCents: lineItemInputs[index].unitAmountCents,
+          totalCents: Math.round(
+            lineItemInputs[index].quantity * lineItemInputs[index].unitAmountCents
+          ),
           evidence: {
             create: {
               careServiceLogId: log.id,
@@ -112,6 +126,16 @@ export async function createDraftFromCareShift(params: {
       },
     },
     include: { lineItems: { include: { evidence: true } } },
+  });
+
+  await recordUsageEvent({
+    category: "module_completion",
+    eventType: "care.shift_billed",
+    userId: shift.participantId,
+    organisationId: shift.organisationId,
+    entityType: "BillingInvoice",
+    entityId: invoice.id,
+    metadata: { careShiftId: shift.id },
   });
 
   await createAuditEvent({

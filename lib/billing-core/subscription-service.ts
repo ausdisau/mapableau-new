@@ -14,7 +14,14 @@ import { createBillingPortalSession } from "@/lib/stripe/portal";
 
 function roleForPlan(planCode: BillingSubscriptionPlanCode): BillingAccountRole {
   if (planCode === "employer_pro") return "employer";
+  if (planCode === "plan_manager_pro") return "provider";
   return "provider";
+}
+
+function billingPathForPlan(planCode: BillingSubscriptionPlanCode): string {
+  if (planCode === "employer_pro") return "/employer/billing";
+  if (planCode === "plan_manager_pro") return "/plan-manager/billing";
+  return "/provider/billing";
 }
 
 export async function createSubscriptionCheckout(
@@ -48,11 +55,12 @@ export async function createSubscriptionCheckout(
     });
   }
 
+  const billingPath = billingPathForPlan(planCode);
   const session = await createStripeSubscriptionCheckoutSession({
     customerId,
     priceId,
-    successUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=success`,
-    cancelUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=cancelled`,
+    successUrl: `${billingCoreConfig.appUrl}${billingPath}?subscription=success`,
+    cancelUrl: `${billingCoreConfig.appUrl}${billingPath}?subscription=cancelled`,
     metadata: { mapableUserId: userId, planCode },
   });
 
@@ -79,19 +87,29 @@ export async function createSubscriptionCheckout(
   return { ok: true as const, checkoutUrl: session.url, sessionId: session.id };
 }
 
-export async function createCustomerPortalSession(userId: string) {
+export async function createCustomerPortalSession(
+  userId: string,
+  role: BillingAccountRole = "provider",
+  returnPathOverride?: string
+) {
   if (!isBillingStripeConfigured()) {
     return { ok: false as const, error: "Stripe is not configured" };
   }
 
-  const account = await prisma.billingAccount.findFirst({
-    where: { userId, stripeCustomerId: { not: null } },
+  const account = await prisma.billingAccount.findUnique({
+    where: { userId_role: { userId, role } },
   });
   if (!account?.stripeCustomerId) {
     return { ok: false as const, error: "No billing customer on file" };
   }
 
-  const session = await createBillingPortalSession(account.stripeCustomerId);
+  const returnPath =
+    returnPathOverride ??
+    (role === "employer" ? "/employer/billing" : "/provider/billing");
+  const session = await createBillingPortalSession(
+    account.stripeCustomerId,
+    `${billingCoreConfig.appUrl}${returnPath}`
+  );
 
   return { ok: true as const, portalUrl: session.url };
 }

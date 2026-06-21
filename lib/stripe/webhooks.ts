@@ -42,6 +42,14 @@ function shouldHandleBillingCore(event: Stripe.Event): boolean {
   if (meta.mapableUserId && event.type.startsWith("customer.subscription")) {
     return true;
   }
+  if (
+    meta.mapableUserId &&
+    meta.planCode &&
+    (event.type === "checkout.session.completed" ||
+      event.type === "checkout.session.async_payment_succeeded")
+  ) {
+    return true;
+  }
   if (event.type === "account.updated" && meta.mapableUserId) return true;
   return false;
 }
@@ -79,11 +87,11 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
     if (!stored.duplicate) {
       try {
         await handleStripeBillingEvent(event);
+        await markWebhookProcessed(stored.eventRowId);
+        result.billing.processed = true;
       } catch (err) {
         console.error("Stripe billing webhook handler error", err);
       }
-      await markWebhookProcessed(stored.eventRowId);
-      result.billing.processed = true;
     }
   }
 

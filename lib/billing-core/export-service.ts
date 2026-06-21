@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
-import { assertInvoiceApprovedForExport } from "@/lib/billing-core/transparent-billing";
 import { prisma } from "@/lib/prisma";
 
 export async function exportInvoice(
@@ -15,12 +14,18 @@ export async function exportInvoice(
   });
   if (!invoice) return { ok: false as const, error: "Invoice not found" };
 
-  try {
-    assertInvoiceApprovedForExport(invoice);
-  } catch {
+  const exportAllowed =
+    invoice.adminApprovalStatus === "approved" ||
+    invoice.status === "paid" ||
+    invoice.status === "issued" ||
+    invoice.status === "exported" ||
+    invoice.fundingSource?.type === "ndis_plan_managed" ||
+    invoice.fundingSource?.type === "ndis_self_managed";
+
+  if (!exportAllowed) {
     return {
       ok: false as const,
-      error: "Invoice must be approved before export",
+      error: "Invoice must be approved or paid before export",
     };
   }
 

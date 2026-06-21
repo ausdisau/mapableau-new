@@ -73,10 +73,12 @@ export const subscriptionCheckoutSchema = z.object({
     "provider_pro",
     "employer_pro",
     "marketplace_featured",
+    "plan_manager_pro",
     "other",
   ]),
 });
 
 export const connectOnboardingSchema = z.object({
   role: z.enum(["provider", "employer"]).optional(),
+  returnPath: z.string().startsWith("/").max(200).optional(),
 });

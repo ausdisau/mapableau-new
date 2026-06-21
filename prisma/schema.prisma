@@ -139,6 +139,15 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  abilityPayPlans           AbilityPayParticipantPlan[] @relation("AbilityPayPlanParticipant")
+  abilityPayPlansCreated    AbilityPayParticipantPlan[] @relation("AbilityPayPlanCreatedBy")
+  abilityPayInvoices        AbilityPayInvoice[]    @relation("AbilityPayInvoiceParticipant")
+  abilityPayInvoicesCreated AbilityPayInvoice[]    @relation("AbilityPayInvoiceCreatedBy")
+  abilityPayApprovalEvents  AbilityPayApprovalEvent[] @relation("AbilityPayApprovalActor")
+  abilityPayConsentGrants   AbilityPayConsentGrant[] @relation("AbilityPayConsentSubject")
+  abilityPayConsentGranted  AbilityPayConsentGrant[] @relation("AbilityPayConsentGrantedTo")
+  abilityPayClaimPacks      AbilityPayClaimPack[]  @relation("AbilityPayClaimPackCreatedBy")
 }
 
 model PasskeyCredential {
@@ -714,6 +723,7 @@ model Organisation {
   engagementImprovementActions EngagementImprovementAction[]
   engagementNpsResponses EngagementNpsResponse[]
   workerTrainingModules  WorkerTrainingModule[]
+  abilityPayProviders    AbilityPayProvider[]
 }
 
 model OrganisationMember {
@@ -4746,12 +4756,13 @@ model NationalRolloutStage {
 }
 
 model PartnerBillingAccount {
-  id             String   @id @default(cuid())
-  organisationId String   @unique
-  planCode       String   @default("standard")
-  status         String   @default("active")
-  billingEmail   String?
-  createdAt      DateTime @default(now())
+  id                String   @id @default(cuid())
+  organisationId    String   @unique
+  planCode          String   @default("standard")
+  status            String   @default("active")
+  billingEmail      String?
+  licensedPackTypes String[] @default([])
+  createdAt         DateTime @default(now())
 
   invoices PartnerBillingInvoice[]
 }
@@ -5235,7 +5246,37 @@ enum BillingSubscriptionPlanCode {
   provider_pro
   employer_pro
   marketplace_featured
+  plan_manager_pro
   other
+}
+
+enum UsageEventCategory {
+  api_call
+  export
+  invoice
+  module_completion
+  ai_assist
+  validation
+  licensed_pack
+}
+
+model UsageEvent {
+  id             String             @id @default(cuid())
+  category       UsageEventCategory
+  eventType      String
+  userId         String?
+  organisationId String?
+  developerAppId String?
+  entityType     String?
+  entityId       String?
+  quantity       Int                @default(1)
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+
+  @@index([category, createdAt])
+  @@index([organisationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([developerAppId, createdAt])
 }
 
 enum BillingSubscriptionStatus {
@@ -8151,4 +8192,304 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// --- AbilityPay (NDIS plan management & invoice control) ---
+
+enum AbilityPayPlanStatus {
+  draft
+  active
+  ended
+}
+
+enum AbilityPayPriceLimitStatus {
+  pass
+  warning
+  fail
+  unknown
+}
+
+enum AbilityPayInvoiceStatus {
+  draft
+  submitted
+  in_review
+  awaiting_participant
+  approved
+  rejected
+  exported
+}
+
+enum AbilityPayPaymentStatus {
+  pending_review
+  approved
+  rejected
+  ready_to_pay
+  paid_mock
+  on_hold
+}
+
+enum AbilityPayRiskSeverity {
+  info
+  warning
+  error
+}
+
+enum AbilityPayRiskFlagType {
+  duplicate
+  price_over_limit
+  missing_field
+  ai_suggested
+  service_agreement_missing
+}
+
+enum AbilityPayApprovalDecision {
+  approved
+  rejected
+  queried
+}
+
+enum AbilityPayConsentScopeType {
+  abilitypay_plan_view
+  abilitypay_invoice_view
+  abilitypay_invoice_approve
+  abilitypay_budget_manage
+  abilitypay_export
+}
+
+enum AbilityPayProviderCredentialStatus {
+  pending
+  verified
+  expired
+  rejected
+}
+
+model AbilityPayParticipantPlan {
+  id              String               @id @default(cuid())
+  participantId   String
+  participant     User                 @relation("AbilityPayPlanParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  createdById     String
+  createdBy       User                 @relation("AbilityPayPlanCreatedBy", fields: [createdById], references: [id])
+  title           String
+  ndisNumber      String?
+  status          AbilityPayPlanStatus @default(draft)
+  planStartAt     DateTime?
+  planEndAt       DateTime?
+  totalBudgetCents Int                 @default(0)
+  notes           String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  categories      AbilityPayBudgetCategory[]
+  fundingPeriods  AbilityPayFundingPeriod[]
+  invoices        AbilityPayInvoice[]
+  consentGrants   AbilityPayConsentGrant[]
+
+  @@index([participantId, status])
+  @@index([createdAt])
+}
+
+model AbilityPayBudgetCategory {
+  id              String                    @id @default(cuid())
+  planId          String
+  plan            AbilityPayParticipantPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  name            String
+  categoryCode    String?
+  allocatedCents  Int                       @default(0)
+  spentCents      Int                       @default(0)
+  description     String?
+  sortOrder       Int                       @default(0)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  lineItems       AbilityPayInvoiceLineItem[]
+
+  @@index([planId])
+}
+
+model AbilityPayFundingPeriod {
+  id        String                  @id @default(cuid())
+  planId    String
+  plan      AbilityPayParticipantPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  label     String
+  startAt   DateTime
+  endAt     DateTime
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  @@index([planId])
+}
+
+model AbilityPayProvider {
+  id              String        @id @default(cuid())
+  legalName       String
+  abn             String?
+  contactEmail    String?
+  contactPhone    String?
+  organisationId  String?
+  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  credentials     AbilityPayProviderCredential[]
+  invoices        AbilityPayInvoice[]
+
+  @@index([organisationId])
+  @@index([abn])
+}
+
+model AbilityPayProviderCredential {
+  id           String                           @id @default(cuid())
+  providerId   String
+  provider     AbilityPayProvider               @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  credentialType String
+  status       AbilityPayProviderCredentialStatus @default(pending)
+  referenceNumber String?
+  expiresAt    DateTime?
+  notes        String?
+  createdAt    DateTime                         @default(now())
+  updatedAt    DateTime                         @updatedAt
+
+  @@index([providerId])
+}
+
+model AbilityPayInvoice {
+  id                  String                   @id @default(cuid())
+  invoiceNumber       String?
+  participantId       String
+  participant         User                     @relation("AbilityPayInvoiceParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  providerId          String?
+  provider            AbilityPayProvider?      @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  planId              String?
+  plan                AbilityPayParticipantPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  createdById         String
+  createdBy           User                     @relation("AbilityPayInvoiceCreatedBy", fields: [createdById], references: [id])
+  status              AbilityPayInvoiceStatus  @default(draft)
+  paymentStatus       AbilityPayPaymentStatus  @default(pending_review)
+  issueDate           DateTime?
+  dueDate             DateTime?
+  subtotalCents       Int                      @default(0)
+  taxCents            Int                      @default(0)
+  totalCents          Int                      @default(0)
+  currency            String                   @default("AUD")
+  serviceAgreementId  String?
+  serviceAgreementLinked Boolean               @default(false)
+  validationJson      Json?
+  aiSuggestionsJson   Json?
+  notes               String?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  lineItems           AbilityPayInvoiceLineItem[]
+  attachments         AbilityPayInvoiceAttachment[]
+  approvalEvents      AbilityPayApprovalEvent[]
+  riskFlags           AbilityPayRiskFlag[]
+  claimPacks          AbilityPayClaimPack[]
+
+  @@index([participantId, status])
+  @@index([providerId])
+  @@index([planId])
+  @@index([invoiceNumber])
+}
+
+model AbilityPayInvoiceLineItem {
+  id                String                    @id @default(cuid())
+  invoiceId         String
+  invoice           AbilityPayInvoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description       String
+  serviceDate       DateTime
+  quantity          Decimal                   @default(1)
+  unitPriceCents    Int
+  totalCents        Int
+  supportItemCode   String?
+  priceLimitStatus  AbilityPayPriceLimitStatus @default(unknown)
+  budgetCategoryId  String?
+  budgetCategory    AbilityPayBudgetCategory? @relation(fields: [budgetCategoryId], references: [id], onDelete: SetNull)
+  sortOrder         Int                       @default(0)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  @@index([invoiceId])
+  @@index([budgetCategoryId])
+}
+
+model AbilityPayInvoiceAttachment {
+  id         String            @id @default(cuid())
+  invoiceId  String
+  invoice    AbilityPayInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  fileName   String
+  fileKey    String
+  mimeType   String
+  fileSize   Int
+  documentId String?
+  createdAt  DateTime          @default(now())
+
+  @@index([invoiceId])
+}
+
+model AbilityPayApprovalEvent {
+  id          String                     @id @default(cuid())
+  invoiceId   String
+  invoice     AbilityPayInvoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  actorUserId String
+  actor       User                       @relation("AbilityPayApprovalActor", fields: [actorUserId], references: [id])
+  decision    AbilityPayApprovalDecision
+  notes       String?
+  createdAt   DateTime                   @default(now())
+
+  @@index([invoiceId])
+  @@index([actorUserId])
+}
+
+model AbilityPayClaimPack {
+  id             String            @id @default(cuid())
+  invoiceId      String?
+  invoice        AbilityPayInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  planId         String?
+  organisationId String?
+  createdById    String
+  createdBy      User              @relation("AbilityPayClaimPackCreatedBy", fields: [createdById], references: [id])
+  format         String
+  fileName       String?
+  rowCount       Int               @default(0)
+  billingStatus  String            @default("pending")
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+
+  @@index([invoiceId])
+  @@index([createdById])
+  @@index([organisationId])
+}
+
+model AbilityPayConsentGrant {
+  id              String                     @id @default(cuid())
+  subjectUserId   String
+  subject         User                       @relation("AbilityPayConsentSubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  grantedToUserId String
+  grantedTo       User                       @relation("AbilityPayConsentGrantedTo", fields: [grantedToUserId], references: [id], onDelete: Cascade)
+  planId          String?
+  plan            AbilityPayParticipantPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  scope           AbilityPayConsentScopeType
+  isActive        Boolean                    @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+
+  @@index([subjectUserId, grantedToUserId])
+  @@index([planId])
+}
+
+model AbilityPayRiskFlag {
+  id          String                 @id @default(cuid())
+  invoiceId   String
+  invoice     AbilityPayInvoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  flagType    AbilityPayRiskFlagType
+  severity    AbilityPayRiskSeverity @default(warning)
+  message     String
+  fieldKey    String?
+  resolved    Boolean                @default(false)
+  createdAt   DateTime               @default(now())
+
+  @@index([invoiceId])
+  @@index([flagType])
 }

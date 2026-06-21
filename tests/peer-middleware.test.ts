@@ -12,6 +12,8 @@ describe("shouldRunAuthMiddleware", () => {
     expect(shouldRunAuthMiddleware("/driver/profile")).toBe(true);
     expect(shouldRunAuthMiddleware("/messages/inbox")).toBe(true);
     expect(shouldRunAuthMiddleware("/practitioner")).toBe(true);
+    expect(shouldRunAuthMiddleware("/abilitypay")).toBe(true);
+    expect(shouldRunAuthMiddleware("/abilitypay/invoices")).toBe(true);
   });
 
   it("keeps module landing pages public", () => {

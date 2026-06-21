@@ -264,6 +264,14 @@ async function transitionTrip(
 
   if (toStatus === "trip_completed" || toStatus === "closed") {
     await bridgeTransportTripToBooking(updated);
+    try {
+      const { createBillingInvoiceFromTransportTrip } = await import(
+        "@/lib/billing-core/transport-billing-service"
+      );
+      await createBillingInvoiceFromTransportTrip(tripId);
+    } catch (err) {
+      console.error("Transport trip billing failed", err);
+    }
   }
 
   return buildTripResponse({ trip: updated, user });
