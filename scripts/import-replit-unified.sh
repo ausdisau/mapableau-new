@@ -20,16 +20,38 @@ IMPORT_DIR="${IMPORT_DIR:-/tmp/mapable-unified-replit}"
 DEFAULT_GIT_URL="https://replit.com/@${REPLIT_OWNER}/${REPLIT_SLUG}.git"
 GIT_URL="${REPLIT_GIT_URL:-$DEFAULT_GIT_URL}"
 
-# Normalize browser URLs (no .git) to the default git remote pattern.
+is_replit_page_url() {
+  local url="$1"
+  [[ "${url}" =~ ^https://replit\.com/@[^/]+/[^/]+(/p)?/?$ ]]
+}
+
+normalize_git_url() {
+  local url="$1"
+  if is_replit_page_url "${url}"; then
+    echo "Note: REPLIT_GIT_URL looks like a Replit browser URL, not a git remote." >&2
+    echo "      Example of an invalid value: https://replit.com/@user/Repl/p" >&2
+    echo "      Copy the HTTPS clone URL from Tools → Version control instead." >&2
+    echo "" >&2
+    return 1
+  fi
+  if [[ "${url}" != *.git && "${url}" != *@*:* && "${url}" != git@* ]]; then
+    url="${url%/}.git"
+  fi
+  printf '%s\n' "${url}"
+}
+
+if [[ -n "${REPLIT_GIT_URL:-}" ]] && is_replit_page_url "${REPLIT_GIT_URL}"; then
+  normalize_git_url "${REPLIT_GIT_URL}" >/dev/null || exit 1
+fi
+
 if [[ "${GIT_URL}" =~ ^https://replit\.com/@[^/]+/[^/]+$ ]]; then
   echo "Note: REPLIT_GIT_URL looks like a Replit page URL, not a git remote."
   echo "      Using ${DEFAULT_GIT_URL} instead."
   echo "      For private Repls, copy the HTTPS URL from Tools → Version control."
   echo ""
   GIT_URL="${DEFAULT_GIT_URL}"
-fi
-if [[ "${GIT_URL}" != *.git ]]; then
-  GIT_URL="${GIT_URL%/}.git"
+elif [[ -n "${REPLIT_GIT_URL:-}" ]]; then
+  GIT_URL="$(normalize_git_url "${REPLIT_GIT_URL}")"
 fi
 
 extract_zip() {
