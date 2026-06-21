@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useBrandSafe } from "@/app/contexts/BrandContext";
 import { modules, type MapAbleModule } from "@/app/lib/modules";
 import { cn } from "@/app/lib/utils";
+import { moduleAccentClass } from "@/lib/brand/module-accents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +29,7 @@ interface ServiceSlideProps {
 function ServiceSlide({ module }: ServiceSlideProps) {
   const { iconStyle } = useBrandSafe();
   const currentLogo = module.icons?.[iconStyle] || module.logo;
+  const accent = moduleAccentClass(module.accent);
 
   return (
     <Link href={module.href}>
@@ -37,17 +39,15 @@ function ServiceSlide({ module }: ServiceSlideProps) {
         className="h-full"
       >
         <Card
-          className="h-full overflow-hidden cursor-pointer transition-all border-2 border-transparent hover:border-primary/20 hover:shadow-xl bg-gradient-to-br from-background to-muted/30 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+          className={cn(
+            "h-full cursor-pointer overflow-hidden border-2 border-transparent bg-gradient-to-br from-background to-muted/30 transition-all hover:shadow-xl focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2",
+            accent.cardHoverClass,
+          )}
           data-testid={`carousel-card-${module.key}`}
         >
-          <CardContent className="p-6 h-full flex flex-col">
-            <div className="flex items-center gap-4 mb-4">
-              <div
-                className="p-4 rounded-2xl shadow-sm"
-                style={{
-                  background: `linear-gradient(135deg, ${module.color}30, ${module.color}10)`,
-                }}
-              >
+          <CardContent className="flex h-full flex-col p-6">
+            <div className="mb-4 flex items-center gap-4">
+              <div className={cn("rounded-2xl p-4 shadow-sm", accent.iconWrapClass)}>
                 <img
                   src={currentLogo}
                   alt={module.name}
@@ -68,26 +68,21 @@ function ServiceSlide({ module }: ServiceSlideProps) {
               {module.description}
             </p>
 
-            <div className="flex flex-wrap gap-1.5 mb-4">
+            <div className="mb-4 flex flex-wrap gap-1.5">
               {module.features.map((feature) => (
                 <Badge
                   key={feature}
                   variant="secondary"
-                  className="text-xs px-2 py-0.5"
-                  style={{
-                    backgroundColor: `${module.color}15`,
-                    color: module.color,
-                  }}
+                  className={cn("px-2 py-0.5 text-xs", accent.badgeClass)}
                 >
                   {feature}
                 </Badge>
               ))}
             </div>
 
-            <div className="flex items-center justify-end mt-auto">
+            <div className="mt-auto flex items-center justify-end">
               <motion.div
-                className="flex items-center gap-1 text-sm font-medium"
-                style={{ color: module.color }}
+                className={cn("flex items-center gap-1 text-sm font-medium", accent.linkClass)}
                 whileHover={{ x: 4 }}
               >
                 Explore
@@ -110,13 +105,13 @@ function AccessiViewSlide() {
         className="h-full"
       >
         <Card
-          className="h-full overflow-hidden cursor-pointer transition-all border-2 border-transparent hover:border-indigo-300 hover:shadow-xl bg-gradient-to-br from-background to-indigo-50/30 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2"
+          className="h-full cursor-pointer overflow-hidden border-2 border-transparent bg-gradient-to-br from-background to-muted/30 transition-all hover:border-primary/25 hover:shadow-xl focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
           data-testid="carousel-card-accessiview"
         >
-          <CardContent className="p-6 h-full flex flex-col">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-4 rounded-2xl shadow-sm bg-gradient-to-br from-indigo-100 to-purple-100">
-                <Eye className="h-14 w-14 text-indigo-600" />
+          <CardContent className="flex h-full flex-col p-6">
+            <div className="mb-4 flex items-center gap-4">
+              <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 p-4 shadow-sm">
+                <Eye className="h-14 w-14 text-primary" />
               </div>
               <div>
                 <h3 className="text-xl font-heading font-bold">AccessiView</h3>
@@ -132,7 +127,7 @@ function AccessiViewSlide() {
               confidence.
             </p>
 
-            <div className="flex flex-wrap gap-1.5 mb-4">
+            <div className="mb-4 flex flex-wrap gap-1.5">
               {[
                 "360° Tours",
                 "VR Support",
@@ -142,16 +137,16 @@ function AccessiViewSlide() {
                 <Badge
                   key={feature}
                   variant="secondary"
-                  className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700"
+                  className="border-transparent bg-primary/10 px-2 py-0.5 text-xs text-primary"
                 >
                   {feature}
                 </Badge>
               ))}
             </div>
 
-            <div className="flex items-center justify-end mt-auto">
+            <div className="mt-auto flex items-center justify-end">
               <motion.div
-                className="flex items-center gap-1 text-sm font-medium text-indigo-600"
+                className="flex items-center gap-1 text-sm font-medium text-primary"
                 whileHover={{ x: 4 }}
               >
                 Explore

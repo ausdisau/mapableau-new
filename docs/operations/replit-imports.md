@@ -5,7 +5,7 @@ Guides for pulling code from `@ausdisau1` Repls into `ausdisau/mapableau-new`.
 | Repl | Script | Ops doc |
 | --- | --- | --- |
 | [MapAble-for-Care](https://replit.com/@ausdisau1/MapAble-for-Care) | `scripts/import-replit-care.sh` | [replit-mapable-for-care-import.md](./replit-mapable-for-care-import.md) |
-| [MapAble-Unified](https://replit.com/@ausdisau1/MapAble-Unified) | `scripts/import-replit-unified.sh` | [replit-mapable-unified-import.md](./replit-mapable-unified-import.md) |
+| [MapAble-Unified](https://replit.com/@ausdisau1/MapAble-Unified) | `scripts/sync-replit-unified.sh` | [replit-mapable-unified-import.md](./replit-mapable-unified-import.md) |
 | [MapAble-Transport](https://replit.com/@ausdisau1/MapAble-Transport) | `scripts/import-replit-transport.sh` | [replit-mapable-transport-import.md](./replit-mapable-transport-import.md) |
 
 ## Import both Care and Unified

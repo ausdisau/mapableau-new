@@ -12,15 +12,11 @@ import {
 import "leaflet/dist/leaflet.css";
 
 import { getLocationCoords } from "@/lib/locationCoords";
+import { mapMarkerIcons } from "@/lib/map/leaflet-markers";
 
 import type { ProviderWithRelations } from "./types";
 
-const markerIcon = L.divIcon({
-  className: "provider-location-marker",
-  html: `<div style="width:22px;height:22px;background:#2563eb;border:2px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
-  iconSize: [22, 22],
-  iconAnchor: [11, 11],
-});
+const markerIcon = mapMarkerIcons.provider;
 
 const DEFAULT_CENTER: [number, number] = [-33.8688, 151.2093];
 const DEFAULT_ZOOM = 6;

@@ -1,6 +1,8 @@
 // Note: You'll need to provide your own module icons/images
 // This is a simplified version - replace image imports with your actual assets
 
+import type { ModuleAccent } from "@/lib/brand/module-accents";
+
 export type IconStyle = "organic" | "3d";
 
 export interface ModuleIcons {
@@ -16,8 +18,7 @@ export interface MapAbleModule {
   description: string;
   logo: string;
   icons: ModuleIcons;
-  color: string;
-  gradient: string;
+  accent: ModuleAccent;
   href: string;
   features: string[];
 }
@@ -57,8 +58,7 @@ export const modules: MapAbleModule[] = [
       "Find and book qualified support workers for personalized care services",
     logo: moduleIcons.care.organic,
     icons: moduleIcons.care,
-    color: "#E91E63",
-    gradient: "from-pink-500 to-rose-600",
+    accent: "primary",
     href: "/care",
     features: ["Support Workers", "Care Plans", "Case Notes", "NDIS Funding"],
   },
@@ -70,8 +70,7 @@ export const modules: MapAbleModule[] = [
     description: "Book accessible vehicles and rides for your travel needs",
     logo: moduleIcons.transport.organic,
     icons: moduleIcons.transport,
-    color: "#4CAF50",
-    gradient: "from-green-500 to-emerald-600",
+    accent: "secondary",
     href: "/transport",
     features: [
       "Wheelchair Access",
@@ -89,8 +88,7 @@ export const modules: MapAbleModule[] = [
       "Discover employment opportunities with disability-friendly employers",
     logo: moduleIcons.jobs.organic,
     icons: moduleIcons.jobs,
-    color: "#2196F3",
-    gradient: "from-blue-500 to-indigo-600",
+    accent: "brand",
     href: "/dashboard/jobs",
     features: [
       "Job Matching",
@@ -108,8 +106,7 @@ export const modules: MapAbleModule[] = [
       "Access meal delivery and nutrition services tailored to your needs",
     logo: moduleIcons.foods.organic,
     icons: moduleIcons.foods,
-    color: "#FF9800",
-    gradient: "from-orange-500 to-amber-600",
+    accent: "secondary",
     href: "/foods",
     features: [
       "Meal Delivery",
@@ -127,8 +124,7 @@ export const modules: MapAbleModule[] = [
       "Access physical therapy and rehabilitation services to improve mobility and wellbeing",
     logo: moduleIcons.moves.organic,
     icons: moduleIcons.moves,
-    color: "#9C27B0",
-    gradient: "from-purple-500 to-violet-600",
+    accent: "primary",
     href: "/moves",
     features: [
       "Physical Therapy",
@@ -146,8 +142,7 @@ export const modules: MapAbleModule[] = [
       "Browse and purchase disability aids, equipment, and daily essentials",
     logo: moduleIcons.marketplace.organic,
     icons: moduleIcons.marketplace,
-    color: "#00BCD4",
-    gradient: "from-cyan-500 to-teal-600",
+    accent: "brand",
     href: "/marketplace",
     features: [
       "Mobility Aids",
@@ -165,8 +160,7 @@ export const modules: MapAbleModule[] = [
       "Specialized services and support for children with disabilities",
     logo: moduleIcons.kids.organic,
     icons: moduleIcons.kids,
-    color: "#FFEB3B",
-    gradient: "from-yellow-400 to-orange-500",
+    accent: "secondary",
     href: "/kids",
     features: [
       "Early Intervention",
@@ -185,8 +179,7 @@ export const mainModule = {
   description: "Your complete NDIS disability services ecosystem",
   logo: moduleIcons.main.organic,
   icons: moduleIcons.main,
-  color: "#6366F1",
-  gradient: "from-indigo-500 to-purple-600",
+  accent: "brand" as ModuleAccent,
 };
 
 export function getModuleByKey(key: string): MapAbleModule | undefined {

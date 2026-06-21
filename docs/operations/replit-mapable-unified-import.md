@@ -4,10 +4,18 @@ Source Repl: [MapAble-Unified](https://replit.com/@ausdisau1/MapAble-Unified) (`
 
 `mapableau-new` is the production home of the unified MapAble platform. The Replit **MapAble-Unified** Repl was the earlier integrated shell (auth, module hub, shared schema). Use this guide to pull Repl changes or reconcile drift.
 
-## Quick import (git)
+## Quick sync (recommended)
 
 ```bash
-chmod +x scripts/import-replit-unified.sh
+chmod +x scripts/sync-replit-unified.sh scripts/import-replit-unified.sh
+./scripts/sync-replit-unified.sh
+```
+
+This imports the Repl (when git or zip is available), then writes a drift report under `/tmp/mapable-unified-sync-report/`.
+
+## Quick import (git or zip)
+
+```bash
 ./scripts/import-replit-unified.sh
 ```
 
@@ -17,7 +25,22 @@ If the default remote fails (Replit often requires auth), copy the HTTPS git URL
 REPLIT_GIT_URL='https://<your-replit-git-remote>' ./scripts/import-replit-unified.sh
 ```
 
+Or export a zip from Replit (**⋮ → Download as zip**) and run:
+
+```bash
+REPLIT_ZIP_PATH='/path/to/MapAble-Unified.zip' ./scripts/import-replit-unified.sh
+./scripts/sync-replit-unified.sh report
+```
+
 The script clones into `/tmp/mapable-unified-replit` by default (`IMPORT_DIR` to override).
+
+## Deployment probe
+
+```bash
+./scripts/check-replit-unified-deployment.sh
+```
+
+Checks `https://mapable-unified.replit.app` (override with `REPLIT_DEPLOY_URL`).
 
 Or import both Care and Unified together:
 
