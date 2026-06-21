@@ -16,6 +16,10 @@ next-env.d.ts
 /build
 /dist
 
+# Replit import scratch (zip import extracts here)
+/tmp/mapable-unified-replit/
+/tmp/mapable-unified-sync-report/
+
 # Misc
 .DS_Store
 *.pem
