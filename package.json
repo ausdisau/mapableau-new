@@ -27,7 +27,9 @@
     "seed:ndis-provider-outlets": "tsx prisma/seed-ndis-provider-outlets.ts",
     "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
     "ingest:ndis-providers:dry": "DRY_RUN=true tsx scripts/ingest-ndis-providers.ts",
-    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts"
+    "check:integrations-env": "npx tsx scripts/check-integrations-env.ts",
+    "sync:replit-unified": "bash scripts/sync-replit-unified.sh",
+    "check:replit-unified": "bash scripts/check-replit-unified-deployment.sh"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
