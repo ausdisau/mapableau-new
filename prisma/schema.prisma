@@ -103,6 +103,8 @@ model User {
   billingAccounts           BillingAccount[]       @relation("BillingAccounts")
   billingFundingSources     BillingFundingSource[] @relation("BillingFundingSources")
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
+  shopCart                  ShopCart?              @relation("ShopCart")
+  shopOrders                ShopOrder[]            @relation("ShopOrders")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
   ndisClaimLinesParticipant NdisClaimLine[]        @relation("NdisClaimLinesParticipant")
@@ -714,6 +716,7 @@ model Organisation {
   engagementImprovementActions EngagementImprovementAction[]
   engagementNpsResponses EngagementNpsResponse[]
   workerTrainingModules  WorkerTrainingModule[]
+  shopProducts           ShopProduct[]          @relation("ShopProductVendor")
 }
 
 model OrganisationMember {
@@ -5324,6 +5327,7 @@ model BillingInvoice {
 
   lineItems BillingInvoiceLineItem[]
   payments  BillingPayment[]
+  shopOrder ShopOrder?
 
   @@index([userId, status])
   @@index([providerId])
@@ -8151,4 +8155,92 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+enum ShopProductStatus {
+  draft
+  published
+  archived
+}
+
+enum ShopProductCategory {
+  assistive_technology
+  daily_living
+  mobility
+  communication
+}
+
+enum ShopOrderStatus {
+  pending_payment
+  paid
+  fulfilled
+  cancelled
+}
+
+model ShopProduct {
+  id                   String              @id @default(cuid())
+  slug                 String              @unique
+  title                String
+  description          String
+  category             ShopProductCategory
+  status               ShopProductStatus   @default(draft)
+  unitAmountCents      Int
+  currency             String              @default("AUD")
+  gstApplicable        Boolean             @default(false)
+  stockQuantity        Int?
+  imageUrls            Json                @default("[]")
+  accessibilityNotes   String?
+  ndisRelevant         Boolean             @default(false)
+  vendorOrganisationId String?
+  vendorOrganisation   Organisation?       @relation("ShopProductVendor", fields: [vendorOrganisationId], references: [id], onDelete: SetNull)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  cartItems ShopCartItem[]
+
+  @@index([status, category])
+  @@map("shop_products")
+}
+
+model ShopCart {
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  user      User           @relation("ShopCart", fields: [userId], references: [id], onDelete: Cascade)
+  items     ShopCartItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("shop_carts")
+}
+
+model ShopCartItem {
+  id        String      @id @default(cuid())
+  cartId    String
+  cart      ShopCart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   ShopProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int         @default(1)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@map("shop_cart_items")
+}
+
+model ShopOrder {
+  id               String           @id @default(cuid())
+  userId           String
+  user             User             @relation("ShopOrders", fields: [userId], references: [id], onDelete: Cascade)
+  billingInvoiceId String           @unique
+  billingInvoice   BillingInvoice   @relation(fields: [billingInvoiceId], references: [id], onDelete: Cascade)
+  status           ShopOrderStatus  @default(pending_payment)
+  shippingName     String?
+  shippingEmail    String?
+  shippingAddress  Json?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([userId, status])
+  @@map("shop_orders")
 }

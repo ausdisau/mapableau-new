@@ -405,6 +405,9 @@ async function main() {
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
 
+  const { seedMapAbleShopping } = await import("./seed-shopping");
+  await seedMapAbleShopping();
+
   console.log("Seed complete.");
 }
 

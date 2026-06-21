@@ -84,6 +84,7 @@ const LEGACY_LINKS = [
   { href: "/admin/compliance-renewals", label: "Renewals" },
   { href: "/admin/data-trust-council", label: "Trust" },
   { href: "/admin/partner-marketplace", label: "Marketplace" },
+  { href: "/admin/shopping", label: "Shopping" },
   { href: "/admin/accreditation-public", label: "Accred pub" },
   { href: "/admin/ai-monitoring", label: "AI monitor" },
   { href: "/admin/public-transparency", label: "Transparency" },
