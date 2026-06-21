@@ -142,7 +142,11 @@ const integrationRules: IntegrationEnvRule[] = [
   {
     key: "supabase",
     enabledWhen: () => envTrue("SUPABASE_ENABLED"),
-    requiredVars: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+    requiredVars: [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+    ],
   },
   {
     key: "socketio",
@@ -169,10 +173,22 @@ export function validateCoreEnv(): EnvValidationIssue[] {
       });
     }
 
+    const hasSupabaseAuth = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
+    );
     const hasPrimarySecret = Boolean(process.env.NEXTAUTH_SECRET?.trim());
     const hasPreviewSecret = Boolean(
       process.env.MAPABLE_PREVIEW_AUTH_SECRET?.trim(),
     );
+
+    if (isProd && !hasSupabaseAuth) {
+      issues.push({
+        variable: "NEXT_PUBLIC_SUPABASE_URL",
+        message:
+          "Supabase Auth requires NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in production",
+      });
+    }
 
     if (isVercelProductionDeployment() && !hasPrimarySecret) {
       issues.push({

@@ -90,6 +90,32 @@ The Vercel project is linked to GitHub `ausdisau/mapableau-new`. Add these **Env
 
 Copy database values from your local `.env` (do not commit `.env`). Alternatively, install the [Neon Vercel integration](https://vercel.com/marketplace/neon) on the project — it can provision `DATABASE_URL` automatically.
 
+### Supabase Auth (required for login after PR #202)
+
+Project ref: `louioyirfyzdjshmremy`
+
+| Name | Value | Environments |
+|------|--------|--------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://louioyirfyzdjshmremy.supabase.co` | Production, Preview, Development |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → **anon public** | Production, Preview, Development |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → **service_role** (server only) | Production, Preview |
+| `SUPABASE_URL` | Same as `NEXT_PUBLIC_SUPABASE_URL` | Production, Preview |
+| `SUPABASE_ENABLED` | `true` | Production, Preview |
+
+Get keys: [Supabase API settings](https://supabase.com/dashboard/project/louioyirfyzdjshmremy/settings/api)
+
+Add in Vercel: [mapableau-new → Environment Variables](https://vercel.com/mapableau/mapableau-new/settings/environment-variables)
+
+Or sync from a local `.env` that contains the three keys (requires `VERCEL_TOKEN` or `vercel login`):
+
+```bash
+pnpm sync:vercel-supabase-env
+```
+
+Mark `SUPABASE_SERVICE_ROLE_KEY` as **Sensitive** in Vercel. Never expose the service role key in client code or `NEXT_PUBLIC_*` variables.
+
+After saving env vars, **redeploy** Production and the active Preview deployment.
+
 ### Transport + TfNSW (optional — server-side only)
 
 | Name | Recommended (prod) | Notes |

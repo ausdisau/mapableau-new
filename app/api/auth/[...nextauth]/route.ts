@@ -1,6 +1,15 @@
-import NextAuth from "next-auth";
+import { NextResponse } from "next/server";
 
-import { authOptions } from "./authOptions";
+export async function GET() {
+  return NextResponse.json(
+    {
+      error: "NextAuth has been replaced by Supabase Auth",
+      docs: "https://supabase.com/docs/guides/auth/server-side/nextjs",
+    },
+    { status: 410 },
+  );
+}
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export async function POST() {
+  return GET();
+}

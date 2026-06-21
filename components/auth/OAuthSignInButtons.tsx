@@ -1,10 +1,11 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 
+import { signInWithOAuth } from "@/components/providers/SupabaseAuthProvider";
 import { Button } from "@/components/ui/button";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
+import { toSupabaseOAuthProvider } from "@/lib/auth/supabase-oauth";
 
 type Props = {
   providers: OAuthProviderFlags;
@@ -97,21 +98,21 @@ export function OAuthSignInButtons({
     return null;
   }
 
-  const startOAuth = (
-    provider: "auth0" | "google" | "azure-ad" | "facebook" | "apple",
+  const startOAuth = async (
+    provider: "google" | "microsoft" | "facebook" | "apple",
   ) => {
-    setPending(
-      provider === "auth0"
-        ? "auth0"
-        : provider === "google"
-          ? "google"
-          : provider === "facebook"
-            ? "facebook"
-            : provider === "apple"
-              ? "apple"
-              : "microsoft",
-    );
-    void signIn(provider, { callbackUrl });
+    setPending(provider);
+    try {
+      const { error } = await signInWithOAuth(
+        toSupabaseOAuthProvider(provider),
+        callbackUrl,
+      );
+      if (error) {
+        console.error("[oauth] sign-in failed", error);
+      }
+    } finally {
+      setPending(null);
+    }
   };
 
   const oauthButtonClass = "w-full justify-center";
@@ -125,12 +126,9 @@ export function OAuthSignInButtons({
           size="default"
           className={oauthButtonClass}
           disabled={disabled || pending !== null}
-          loading={pending === "auth0"}
-          onClick={() => startOAuth("auth0")}
+          title="Configure Auth0 as a custom OIDC provider in Supabase to enable this button."
         >
-          {pending === "auth0"
-            ? "Redirecting…"
-            : getOAuthButtonLabel("Auth0", labelMode)}
+          {getOAuthButtonLabel("Auth0", labelMode)}
         </Button>
       ) : null}
       {visibleProviders.google ? (
@@ -141,7 +139,7 @@ export function OAuthSignInButtons({
           className={oauthButtonClass}
           disabled={disabled || pending !== null}
           loading={pending === "google"}
-          onClick={() => startOAuth("google")}
+          onClick={() => void startOAuth("google")}
         >
           {pending === "google"
             ? "Redirecting…"
@@ -156,7 +154,7 @@ export function OAuthSignInButtons({
           className={oauthButtonClass}
           disabled={disabled || pending !== null}
           loading={pending === "microsoft"}
-          onClick={() => startOAuth("azure-ad")}
+          onClick={() => void startOAuth("microsoft")}
         >
           {pending === "microsoft"
             ? "Redirecting…"
@@ -171,7 +169,7 @@ export function OAuthSignInButtons({
           className={oauthButtonClass}
           disabled={disabled || pending !== null}
           loading={pending === "facebook"}
-          onClick={() => startOAuth("facebook")}
+          onClick={() => void startOAuth("facebook")}
         >
           {pending === "facebook"
             ? "Redirecting…"
@@ -186,7 +184,7 @@ export function OAuthSignInButtons({
           className={oauthButtonClass}
           disabled={disabled || pending !== null}
           loading={pending === "apple"}
-          onClick={() => startOAuth("apple")}
+          onClick={() => void startOAuth("apple")}
         >
           {pending === "apple"
             ? "Redirecting…"

@@ -25,6 +25,11 @@ async function main() {
       process.exit(1);
     }
 
+    if (!user.passwordHash) {
+      console.error("User has no local password hash (Supabase Auth user):", email);
+      process.exit(1);
+    }
+
     const valid = await compare(password, user.passwordHash);
     agentLog("A", "debug-auth-probe:compare", "password compare", {
       userId: user.id,

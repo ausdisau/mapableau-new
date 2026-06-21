@@ -1,10 +1,4 @@
 import { getAppleClientSecret } from "@/lib/auth/apple-client-secret";
-import AppleProvider from "next-auth/providers/apple";
-import Auth0Provider from "next-auth/providers/auth0";
-import AzureADProvider from "next-auth/providers/azure-ad";
-import FacebookProvider from "next-auth/providers/facebook";
-import GoogleProvider from "next-auth/providers/google";
-import type { Provider } from "next-auth/providers/index";
 
 export type OAuthProviderFlags = {
   auth0: boolean;
@@ -13,6 +7,12 @@ export type OAuthProviderFlags = {
   facebook: boolean;
   apple: boolean;
 };
+
+export type SupabaseOAuthProviderId =
+  | "google"
+  | "azure"
+  | "facebook"
+  | "apple";
 
 function auth0ClientId(): string | undefined {
   return process.env.AUTH0_CLIENT_ID?.trim() || undefined;
@@ -87,6 +87,10 @@ function appleCredentialsPresent(): boolean {
   );
 }
 
+/**
+ * OAuth buttons are shown when providers are enabled in Supabase Auth.
+ * Env vars remain as feature flags for which buttons to render.
+ */
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   return {
     auth0: Boolean(auth0ClientId() && auth0ClientSecret() && auth0Issuer()),
@@ -97,70 +101,31 @@ export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   };
 }
 
-/** NextAuth OAuth providers — only registered when env credentials are set. */
-export function buildOAuthProviders(): Provider[] {
-  const providers: Provider[] = [];
+/** Maps UI provider keys to Supabase Auth provider ids. */
+export function getSupabaseOAuthProviderIds(): SupabaseOAuthProviderId[] {
   const flags = getConfiguredOAuthProviders();
+  const providers: SupabaseOAuthProviderId[] = [];
 
-  if (flags.auth0) {
-    providers.push(
-      Auth0Provider({
-        clientId: auth0ClientId()!,
-        clientSecret: auth0ClientSecret()!,
-        issuer: auth0Issuer()!.replace(/\/$/, ""),
-      }),
-    );
+  if (flags.google) providers.push("google");
+  if (flags.microsoft) providers.push("azure");
+  if (flags.facebook) providers.push("facebook");
+  if (flags.apple && appleClientId() && getAppleClientSecret(appleClientId()!)) {
+    providers.push("apple");
   }
 
-  if (flags.google) {
-    providers.push(
-      GoogleProvider({
-        clientId: googleClientId()!,
-        clientSecret: googleClientSecret()!,
-        authorization: {
-          params: {
-            prompt: "consent",
-            access_type: "offline",
-            response_type: "code",
-          },
-        },
-      }),
-    );
-  }
+  return providers;
+}
 
-  if (flags.microsoft) {
-    const tenantId = process.env.AZURE_AD_TENANT_ID?.trim() || "common";
+/** @deprecated NextAuth providers removed — OAuth runs through Supabase Auth. */
+export function buildOAuthProviders(): Array<{ id: string }> {
+  const flags = getConfiguredOAuthProviders();
+  const providers: Array<{ id: string }> = [];
 
-    providers.push(
-      AzureADProvider({
-        clientId: process.env.AZURE_AD_CLIENT_ID!.trim(),
-        clientSecret: process.env.AZURE_AD_CLIENT_SECRET!.trim(),
-        tenantId,
-      }),
-    );
-  }
-
-  if (flags.facebook) {
-    providers.push(
-      FacebookProvider({
-        clientId: facebookClientId()!,
-        clientSecret: facebookClientSecret()!,
-      }),
-    );
-  }
-
-  if (flags.apple) {
-    const clientId = appleClientId()!;
-    const clientSecret = getAppleClientSecret(clientId);
-    if (clientSecret) {
-      providers.push(
-        AppleProvider({
-          clientId,
-          clientSecret,
-        }),
-      );
-    }
-  }
+  if (flags.auth0) providers.push({ id: "auth0" });
+  if (flags.google) providers.push({ id: "google" });
+  if (flags.microsoft) providers.push({ id: "azure-ad" });
+  if (flags.facebook) providers.push({ id: "facebook" });
+  if (flags.apple) providers.push({ id: "apple" });
 
   return providers;
 }

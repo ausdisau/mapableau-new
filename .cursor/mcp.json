@@ -9,6 +9,9 @@
         "OSRM_BASE_URL": "${env:OSRM_BASE_URL}"
       },
       "envFile": "${workspaceFolder}/.env"
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=louioyirfyzdjshmremy"
     }
   }
 }

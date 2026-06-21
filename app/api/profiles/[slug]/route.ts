@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const session = await auth();
+  const user = await auth();
   const claimed = await prisma.claimedProvider.findUnique({
     where: { slug },
   });
@@ -16,7 +16,7 @@ export async function GET(
   }
 
   const isOwner =
-    !!session?.user?.id && claimed.userId === session.user.id;
+    !!user?.id && claimed.userId === user.id;
 
   return Response.json({
     id: claimed.id,
@@ -40,8 +40,8 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await auth();
+  if (!user?.id) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -54,7 +54,7 @@ export async function PATCH(
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (claimed.userId !== session.user.id) {
+  if (claimed.userId !== user.id) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -1,7 +1,8 @@
-import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { ensurePrismaUserFromSupabase } from "@/lib/auth/supabase-user-sync";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import {
   acceptWorkerInvite,
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
     if (password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       if (email !== invite.email) {
         return NextResponse.json(
           { error: "Email must match the invited address" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -57,19 +58,47 @@ export async function POST(req: Request) {
             "An account with this email already exists. Sign in instead, or use a different email.",
           code: "EMAIL_ALREADY_REGISTERED",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const passwordHash = await hash(password, 10);
     const primaryRole = inviteToken ? "support_worker" : "participant";
+    const admin = getSupabaseAdmin();
 
-    const user = await prisma.user.create({
+    const { data: authData, error: authError } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        name,
+        primaryRole,
+      },
+    });
+
+    if (authError || !authData.user) {
+      const message =
+        authError?.message?.includes("already been registered") ||
+        authError?.message?.includes("already exists")
+          ? "An account with this email already exists. Sign in instead, or use a different email."
+          : authError?.message || "Registration failed. Please try again.";
+
+      return NextResponse.json(
+        {
+          error: message,
+          code: "EMAIL_ALREADY_REGISTERED",
+        },
+        { status: 400 },
+      );
+    }
+
+    const user = await ensurePrismaUserFromSupabase(authData.user);
+
+    await prisma.user.update({
+      where: { id: user.id },
       data: {
         name,
-        email,
-        passwordHash,
         primaryRole,
+        supabaseId: authData.user.id,
       },
     });
 
@@ -108,12 +137,20 @@ export async function POST(req: Request) {
       });
     }
 
+    await admin.auth.admin.updateUserById(authData.user.id, {
+      user_metadata: {
+        name,
+        primaryRole,
+        prismaUserId: user.id,
+      },
+    });
+
     return NextResponse.json({ id: user.id, primaryRole });
   } catch (error) {
     console.error("[register] failed", error);
     return NextResponse.json(
       { error: "Registration failed. Please try again." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

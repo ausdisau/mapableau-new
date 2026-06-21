@@ -3,7 +3,7 @@
 import { startAuthentication } from "@simplewebauthn/browser";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signInWithPassword } from "@/components/providers/SupabaseAuthProvider";
 import { useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
@@ -106,13 +106,13 @@ export default function LoginClient({
         return;
       }
 
-      const result = await signIn("credentials", {
-        passkeyToken: verifyData.signInToken,
-        redirect: false,
-        callbackUrl,
+      const establishResponse = await fetch("/api/auth/session/establish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passkeyToken: verifyData.signInToken }),
       });
 
-      if (result?.error) {
+      if (!establishResponse.ok) {
         setError("Could not complete passkey sign-in. Please try again.");
         setIsLoading(false);
         return;
@@ -230,13 +230,18 @@ export default function LoginClient({
                   return;
                 }
 
-                const result = await signIn("credentials", {
-                  twoFactorToken: verifyData.twoFactorToken,
-                  redirect: false,
-                  callbackUrl,
-                });
+                const establishResponse = await fetch(
+                  "/api/auth/session/establish",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      twoFactorToken: verifyData.twoFactorToken,
+                    }),
+                  },
+                );
 
-                if (result?.error) {
+                if (!establishResponse.ok) {
                   setError("Could not complete sign-in. Please try again.");
                   setIsLoading(false);
                   return;
@@ -288,40 +293,32 @@ export default function LoginClient({
                 return;
               }
 
-              const result = await signIn("credentials", {
-                email: normalizeAuthEmail(email),
-                password: password.trim(),
-                redirect: false,
-                callbackUrl,
-              });
+              const { error: signInError } = await signInWithPassword(
+                normalizeAuthEmail(email),
+                password.trim(),
+              );
 
               clientAgentLog(
                 "C",
                 "LoginClient.tsx:signInResult",
                 "signIn returned",
                 {
-                  ok: result?.ok ?? null,
-                  error: result?.error ?? null,
-                  status: result?.status ?? null,
+                  ok: !signInError,
+                  error: signInError?.message ?? null,
                   callbackUrl,
                 },
               );
 
-              if (result?.error) {
+              if (signInError) {
                 setError("Invalid email or password");
                 setIsLoading(false);
                 return;
               }
 
-              if (result?.ok === true) {
-                setIsLoading(false);
-                router.push(callbackUrl);
-                router.refresh();
-                return;
-              }
-
-              setError("An unexpected error occurred. Please try again.");
               setIsLoading(false);
+              router.push(callbackUrl);
+              router.refresh();
+              return;
             } catch {
               setError("An error occurred. Please try again.");
               setIsLoading(false);

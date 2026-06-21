@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
@@ -121,9 +120,7 @@ export function WorkerInviteAcceptClient({ token }: { token: string }) {
           variant="outline"
           size="default"
           onClick={() => {
-            void signIn(undefined, {
-              callbackUrl: `/invite/worker/${token}`,
-            });
+            router.push(`/login?callbackUrl=${encodeURIComponent(`/invite/worker/${token}`)}`);
           }}
         >
           Sign in to accept

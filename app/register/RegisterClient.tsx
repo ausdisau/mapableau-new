@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signInWithPassword } from "@/components/providers/SupabaseAuthProvider";
 import { useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
@@ -57,14 +57,12 @@ export default function RegisterClient({
         return;
       }
 
-      const result = await signIn("credentials", {
-        email: normalizedEmail,
-        password: password.trim(),
-        redirect: false,
-        callbackUrl: "/dashboard",
-      });
+      const { error: signInError } = await signInWithPassword(
+        normalizedEmail,
+        password.trim(),
+      );
 
-      if (result?.error) {
+      if (signInError) {
         setError(
           "Account created, but sign-in failed. Try signing in on the login page.",
         );

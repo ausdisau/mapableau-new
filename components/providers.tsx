@@ -1,16 +1,15 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
-
+import { SupabaseAuthProvider } from "@/components/providers/SupabaseAuthProvider";
 import { BrandProvider } from "@/app/contexts/BrandContext";
 import { QueryProvider } from "@/lib/query-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SupabaseAuthProvider>
       <QueryProvider>
         <BrandProvider>{children}</BrandProvider>
       </QueryProvider>
-    </SessionProvider>
+    </SupabaseAuthProvider>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/components/providers/SupabaseAuthProvider";
 import { useCallback, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
