@@ -7,6 +7,7 @@ Guides for pulling code from `@ausdisau1` Repls into `ausdisau/mapableau-new`.
 | [MapAble-for-Care](https://replit.com/@ausdisau1/MapAble-for-Care) | `scripts/import-replit-care.sh` | [replit-mapable-for-care-import.md](./replit-mapable-for-care-import.md) |
 | [MapAble-Unified](https://replit.com/@ausdisau1/MapAble-Unified) | `scripts/sync-replit-unified.sh` | [replit-mapable-unified-import.md](./replit-mapable-unified-import.md) |
 | [MapAble-Transport](https://replit.com/@ausdisau1/MapAble-Transport) | `scripts/import-replit-transport.sh` | [replit-mapable-transport-import.md](./replit-mapable-transport-import.md) |
+| [MapAble-Marketplace](https://replit.com/@ausdisau1/MapAble-Marketplace) | `scripts/import-replit-marketplace.sh` | [replit-mapable-marketplace-import.md](./replit-mapable-marketplace-import.md) |
 
 ## Import both Care and Unified
 
@@ -47,7 +48,8 @@ The monorepo already wires the Unified shell and Care module:
 | MapAble-Unified hub | `/core`, `lib/core-ui/navigation.ts`, `components/core/` |
 | MapAble-for-Care | `/care`, `lib/care/`, `app/api/care/` |
 | MapAble-Transport | `/transport`, `lib/transport/` (see transport import doc) |
+| MapAble-Marketplace | `/marketplace`, `lib/marketplace/`, checkout via billing-core |
 
-Module registry links in `app/lib/modules.ts` resolve to live routes (`/care`, `/transport`, `/dashboard/jobs`, plus coming-soon stubs for Foods/Moves/Marketplace/Kids).
+Module registry links in `app/lib/modules.ts` resolve to live routes (`/care`, `/transport`, `/marketplace`, `/dashboard/jobs`, plus coming-soon stubs for Foods/Moves/Kids).
 
-Verify: `pnpm test tests/mapable-core-ui.test.ts tests/module-routes.test.ts tests/care-mvp.test.ts`
+Verify: `pnpm test tests/mapable-core-ui.test.ts tests/module-routes.test.ts tests/marketplace-catalog.test.ts tests/care-mvp.test.ts`
