@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { CoreHubCard } from "@/components/core/CoreHubCard";
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
 import { caseListWhereForUser } from "@/lib/cases/case-access";
@@ -70,12 +69,12 @@ export default async function DashboardPage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <DashboardCard
+        <CoreHubCard
           title="Billing centre"
           description="Invoices, funding sources and payments"
           href="/dashboard/billing"
         />
-        <DashboardCard
+        <CoreHubCard
           title="Safety centre"
           description={
             openSupportCount || incidentCount
@@ -85,7 +84,7 @@ export default async function DashboardPage() {
           href="/dashboard/safety"
         />
         {isEngagementPlatformEnabled() ? (
-          <DashboardCard
+          <CoreHubCard
             title="Your voice"
             description={
               openEngagementCount
@@ -95,7 +94,7 @@ export default async function DashboardPage() {
             href="/dashboard/engagement"
           />
         ) : null}
-        <DashboardCard
+        <CoreHubCard
           title="MapAble Care"
           description={
             careBookingsCount
@@ -104,7 +103,7 @@ export default async function DashboardPage() {
           }
           href="/care/bookings"
         />
-        <DashboardCard
+        <CoreHubCard
           title="Transport trips"
           description={
             transportTripsCount
@@ -113,7 +112,7 @@ export default async function DashboardPage() {
           }
           href="/dashboard/transport"
         />
-        <DashboardCard
+        <CoreHubCard
           title="Profile"
           description={
             profile
@@ -122,22 +121,22 @@ export default async function DashboardPage() {
           }
           href="/dashboard/profile"
         />
-        <DashboardCard
+        <CoreHubCard
           title="Accessibility"
           description="Your access needs travel with you across MapAble services"
           href="/dashboard/accessibility"
         />
-        <DashboardCard
+        <CoreHubCard
           title="Consent"
           description="Control who can see your information"
           href="/dashboard/consent"
         />
-        <DashboardCard
+        <CoreHubCard
           title="Bookings"
           description={`${bookingsCount} booking request(s)`}
           href="/dashboard/bookings"
         />
-        <DashboardCard
+        <CoreHubCard
           title="Notifications"
           description={
             unreadNotifications
@@ -147,7 +146,7 @@ export default async function DashboardPage() {
           href="/dashboard/notifications"
         />
         {caseManagementConfig.enabled ? (
-          <DashboardCard
+          <CoreHubCard
             title="Cases (AI)"
             description={
               openCaseCount
@@ -159,28 +158,5 @@ export default async function DashboardPage() {
         ) : null}
       </div>
     </div>
-  );
-}
-
-function DashboardCard({
-  title,
-  description,
-  href,
-}: {
-  title: string;
-  description: string;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="block rounded-xl border border-border bg-card p-5 transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <h2 className="font-semibold">{title}</h2>
-      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      <span className="mt-3 inline-block text-sm font-medium text-primary">
-        Open →
-      </span>
-    </Link>
   );
 }

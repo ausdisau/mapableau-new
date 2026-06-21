@@ -3,6 +3,7 @@
 import type maplibregl from "maplibre-gl";
 import { useEffect } from "react";
 
+import { getProviderCirclePaint } from "@/lib/map/map-colors";
 import type { MapFeatureCollection } from "@/lib/map/types";
 
 /**
@@ -33,12 +34,7 @@ export function useGeoJsonSource(
           id: layer.layerId,
           type: "circle",
           source: sourceId,
-          paint: layer.paint ?? {
-            "circle-radius": 8,
-            "circle-color": "#2563eb",
-            "circle-stroke-width": 2,
-            "circle-stroke-color": "#ffffff",
-          },
+          paint: layer.paint ?? getProviderCirclePaint(),
         });
       }
     };
