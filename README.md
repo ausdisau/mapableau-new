@@ -141,7 +141,7 @@ Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, St
 | --- | --- |
 | [docs/design-system.md](docs/design-system.md) | UI tokens, components, module accents, maps |
 | [docs/operations/neon.md](docs/operations/neon.md) | Neon Postgres |
-| [docs/operations/replit-imports.md](docs/operations/replit-imports.md) | Import MapAble Repls (Care, Unified, Transport) |
+| [docs/operations/replit-imports.md](docs/operations/replit-imports.md) | Import MapAble Repls (Care, Unified, Transport, Marketplace) |
 | [docs/billing.md](docs/billing.md) | Billing |
 | [docs/integrations/environment.md](docs/integrations/environment.md) | Integration environment variables |
 | [docs/safety.md](docs/safety.md) | Safety and incident centre |
