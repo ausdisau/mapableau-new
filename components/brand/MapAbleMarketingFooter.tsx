@@ -52,6 +52,7 @@ export function MapAbleMarketingFooter() {
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
+                  prefetch={false}
                   href="/care"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -60,6 +61,7 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  prefetch={false}
                   href="/transport"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -68,6 +70,7 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  prefetch={false}
                   href="/employment"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -76,6 +79,7 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  prefetch={false}
                   href="/providers"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -84,6 +88,7 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  prefetch={false}
                   href={MAPABLE_MARKETING_URL}
                   className="text-muted-foreground transition hover:text-primary"
                   target="_blank"
@@ -101,6 +106,7 @@ export function MapAbleMarketingFooter() {
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
+                  prefetch={false}
                   href="/resources"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -109,6 +115,7 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  prefetch={false}
                   href="/help"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -117,6 +124,7 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  prefetch={false}
                   href="/privacy"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -125,6 +133,7 @@ export function MapAbleMarketingFooter() {
               </li>
               <li>
                 <Link
+                  prefetch={false}
                   href="/accessibility-statement"
                   className="text-muted-foreground transition hover:text-primary"
                 >
@@ -157,13 +166,14 @@ export function MapAbleMarketingFooter() {
             reserved.
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <Link href="/terms" className="hover:text-primary">
+            <Link prefetch={false} href="/terms" className="hover:text-primary">
               Terms
             </Link>
-            <Link href="/data-deletion" className="hover:text-primary">
+            <Link prefetch={false} href="/data-deletion" className="hover:text-primary">
               Data deletion
             </Link>
             <Link
+              prefetch={false}
               href={MAPABLE_MARKETING_URL}
               className="hover:text-primary"
               target="_blank"

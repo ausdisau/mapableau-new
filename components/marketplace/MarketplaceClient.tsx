@@ -112,6 +112,7 @@ export function MarketplaceProductCard({ product }: { product: MarketplaceProduc
       </div>
       <h3 className="font-semibold">
         <Link
+          prefetch={false}
           href={`/marketplace/products/${product.slug}`}
           className="hover:text-primary focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -200,7 +201,7 @@ export function MarketplaceCartClient({
     return (
       <div className="rounded-xl border border-dashed p-8 text-center">
         <p className="text-muted-foreground">Your cart is empty.</p>
-        <Link href="/marketplace/browse" className="mt-3 inline-block text-primary underline">
+        <Link prefetch={false} href="/marketplace/browse" className="mt-3 inline-block text-primary underline">
           Browse products
         </Link>
       </div>
