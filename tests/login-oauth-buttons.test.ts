@@ -51,20 +51,20 @@ describe("LoginClient OAuth buttons", () => {
     });
   });
 
-  it("keeps Google and Microsoft login public-facing when runtime providers omit them", () => {
+  it("only shows OAuth providers that are actually configured", () => {
     expect(
       publicOAuthProviderFlags({
         auth0: false,
         google: false,
         microsoft: false,
-        facebook: false,
+        facebook: true,
         apple: false,
       }),
     ).toEqual({
       auth0: false,
-      google: true,
-      microsoft: true,
-      facebook: false,
+      google: false,
+      microsoft: false,
+      facebook: true,
       apple: false,
     });
   });
