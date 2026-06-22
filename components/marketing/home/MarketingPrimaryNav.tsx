@@ -93,7 +93,7 @@ export function MarketingPrimaryNav() {
     <div ref={navRef} className="relative flex w-full items-center justify-between gap-4">
       <Link
         href={marketingFeatureRoutes.home}
-        className={`rounded-2xl p-1 transition hover:bg-slate-50 ${mapableCareFocusRing}`}
+        className={`shrink-0 overflow-visible rounded-2xl p-1 transition hover:bg-slate-50 ${mapableCareFocusRing}`}
         onClick={() => setMobileOpen(false)}
       >
         <span className="sr-only">MapAble home</span>

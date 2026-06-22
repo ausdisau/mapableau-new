@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Remove grey/card background from legacy MapAble logo PNGs.
+"""Remove solid black backgrounds from MapAble logo PNGs.
 
-Do not run on public/brand/mapable-logo.png — that file must stay the exact
-asset committed from GitHub.
+For public/brand/mapable-logo.png use corner flood-fill (preserves wordmark + tagline).
+rembg subject isolation crops the vertical lockup to the icon only — do not use on
+mapable-logo.png unless only the pin/mark is desired.
 """
 
 from __future__ import annotations
