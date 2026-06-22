@@ -15,8 +15,7 @@ export const MAPABLE_DONATION_URL =
 
 /**
  * Official MapAble horizontal wordmark — use the exact PNG committed to the repo.
- * Do not regenerate, resize, vectorise, or run process-brand-logo.py on this file unless asked.
- * Marketing headers must render this asset with a native <img>, not CSS or SVG approximations.
+ * Render with a native <img> on a transparent background (marketing headers are light).
  */
 export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 

@@ -110,7 +110,7 @@ export function LogoMark({ compact = false }: { compact?: boolean }) {
     <img
       src={MAPABLE_LOGO_SRC}
       alt={MAPABLE_LOGO_ALT}
-      className="h-12 w-auto max-w-[min(240px,64vw)] object-contain object-left"
+      className="h-12 w-auto max-w-[min(240px,64vw)] bg-transparent object-contain object-left"
       decoding="async"
       fetchPriority="high"
     />
