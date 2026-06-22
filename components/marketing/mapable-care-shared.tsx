@@ -6,6 +6,11 @@ import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "rea
 
 import { ArrowIcon, ChevronDown, SearchIcon } from "@/components/marketing/mapable-care-icons";
 import {
+  MAPABLE_LOGO_ALT,
+  MAPABLE_LOGO_MARK_SRC,
+  MAPABLE_LOGO_SRC,
+} from "@/lib/brand/constants";
+import {
   getFilteredResults,
   getPredictiveSuggestions,
   getSponsoredPlacement,
@@ -91,29 +96,24 @@ function SparkIcon() {
 export function LogoMark({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#005B7F] text-white shadow-sm">
-        <div className="h-4 w-4 rounded-b-full rounded-tl-full bg-white" />
-      </div>
+      <img
+        src={MAPABLE_LOGO_MARK_SRC}
+        alt=""
+        aria-hidden
+        className="h-9 w-9 shrink-0 object-contain"
+        decoding="async"
+      />
     );
   }
+
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative h-12 w-12 shrink-0">
-        <div className="absolute left-3 top-0 h-8 w-8 rotate-45 rounded-bl-full rounded-t-full bg-[#005B7F] shadow-sm" />
-        <div className="absolute left-4 top-1.5 text-sm font-black text-white">♿</div>
-        <div className="absolute bottom-1 left-0 h-5 w-8 -rotate-[28deg] rounded-sm bg-[#00A979]" />
-        <div className="absolute bottom-1 left-4 h-5 w-9 rotate-[28deg] rounded-sm bg-[#005B7F]" />
-        <div className="absolute bottom-0 right-0 h-4 w-7 rotate-[12deg] rounded-sm bg-[#F8C51C]" />
-      </div>
-      <div>
-        <div className="mapable-display text-3xl font-black tracking-[-0.07em] text-[#005B7F]">
-          MapAble
-        </div>
-        <div className="mapable-soft -mt-1 rotate-[-1deg] text-xs font-black tracking-wide text-[#F8C51C]">
-          Empowering Independence
-        </div>
-      </div>
-    </div>
+    <img
+      src={MAPABLE_LOGO_SRC}
+      alt={MAPABLE_LOGO_ALT}
+      className="h-12 w-auto max-w-[min(240px,64vw)] bg-transparent object-contain object-left"
+      decoding="async"
+      fetchPriority="high"
+    />
   );
 }
 
