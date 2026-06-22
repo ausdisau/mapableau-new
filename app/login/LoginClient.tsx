@@ -2,7 +2,7 @@
 
 import { startAuthentication } from "@simplewebauthn/browser";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -14,7 +14,7 @@ import {
   formInputClass,
 } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
-import { normalizeAuthEmail, safeAuthCallbackPath } from "@/lib/auth/auth-flow";
+import { normalizeAuthEmail, redirectAfterAuth, safeAuthCallbackPath } from "@/lib/auth/auth-flow";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 import { clientAgentLog } from "@/lib/debug/client-agent-log";
 
@@ -38,7 +38,6 @@ export default function LoginClient({
 }: {
   oauthProviders: OAuthProviderFlags;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = safeAuthCallbackPath(
     searchParams.get("callbackUrl"),
@@ -118,8 +117,7 @@ export default function LoginClient({
         return;
       }
 
-      router.push(callbackUrl);
-      router.refresh();
+      redirectAfterAuth(callbackUrl);
     } catch {
       setError("Passkey sign-in was cancelled or failed.");
       setIsLoading(false);
@@ -242,8 +240,7 @@ export default function LoginClient({
                   return;
                 }
 
-                router.push(callbackUrl);
-                router.refresh();
+                redirectAfterAuth(callbackUrl);
                 return;
               }
 
@@ -315,8 +312,7 @@ export default function LoginClient({
 
               if (result?.ok === true) {
                 setIsLoading(false);
-                router.push(callbackUrl);
-                router.refresh();
+                redirectAfterAuth(callbackUrl);
                 return;
               }
 

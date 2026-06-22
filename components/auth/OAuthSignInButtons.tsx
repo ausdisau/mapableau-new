@@ -36,14 +36,11 @@ export function oauthProviderFlagsFromNextAuthProviders(
   };
 }
 
+/** Only surface OAuth providers that NextAuth has actually registered. */
 export function publicOAuthProviderFlags(
   providers: OAuthProviderFlags,
 ): OAuthProviderFlags {
-  return {
-    ...providers,
-    google: true,
-    microsoft: true,
-  };
+  return { ...providers };
 }
 
 export function OAuthSignInButtons({
