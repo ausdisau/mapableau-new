@@ -18,8 +18,12 @@ describe("shouldRunAuthMiddleware", () => {
     expect(shouldRunAuthMiddleware("/care")).toBe(false);
     expect(shouldRunAuthMiddleware("/transport")).toBe(false);
     expect(shouldRunAuthMiddleware("/employment")).toBe(false);
-    expect(shouldRunAuthMiddleware("/marketplace")).toBe(false);
     expect(shouldRunAuthMiddleware("/foods")).toBe(false);
+  });
+
+  it("guards the marketplace app shell", () => {
+    expect(shouldRunAuthMiddleware("/marketplace")).toBe(true);
+    expect(shouldRunAuthMiddleware("/marketplace/browse")).toBe(true);
   });
 
   it("guards authenticated module subroutes", () => {
