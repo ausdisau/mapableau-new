@@ -18,6 +18,36 @@ function usesSecureSessionCookies(request: NextRequest): boolean {
   return request.nextUrl.protocol === "https:";
 }
 
+async function hasAuthenticatedSession(request: NextRequest): Promise<boolean> {
+  const secret = resolveNextAuthSecret();
+  if (!secret) return false;
+
+  const token = await getToken({
+    req: request,
+    secret,
+    secureCookie: usesSecureSessionCookies(request),
+  });
+  if (token) return true;
+
+  // Edge middleware can fail to decrypt JWE session cookies even when the
+  // Node.js session route succeeds — confirm via the same endpoint the client uses.
+  const cookie = request.headers.get("cookie");
+  if (!cookie) return false;
+
+  try {
+    const sessionUrl = new URL("/api/auth/session", request.url);
+    const response = await fetch(sessionUrl, {
+      headers: { cookie },
+      cache: "no-store",
+    });
+    if (!response.ok) return false;
+    const session = (await response.json()) as { user?: { id?: string } };
+    return Boolean(session.user?.id);
+  } catch {
+    return false;
+  }
+}
+
 function authMisconfiguredResponse(request: NextRequest): NextResponse {
   const acceptsHtml = request.headers.get("accept")?.includes("text/html");
 
@@ -56,18 +86,10 @@ export default async function middleware(request: NextRequest) {
   if (peerResponse) return peerResponse;
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {
-    const secret = resolveNextAuthSecret();
-    if (!secret) {
-      return authMisconfiguredResponse(request);
-    }
-
-    const token = await getToken({
-      req: request,
-      secret,
-      secureCookie: usesSecureSessionCookies(request),
-    });
-
-    if (!token) {
+    if (!(await hasAuthenticatedSession(request))) {
+      if (!resolveNextAuthSecret()) {
+        return authMisconfiguredResponse(request);
+      }
       return redirectToLogin(request);
     }
   }
