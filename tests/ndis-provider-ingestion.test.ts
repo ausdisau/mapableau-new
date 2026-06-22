@@ -6,6 +6,8 @@ import { verifyAdminCronBearer } from "@/lib/admin/cron-auth";
 import {
   buildStableSourceId,
   extractProviderRecords,
+  isTransientDbError,
+  NDIS_PROVIDER_UPSERT_BATCH_SIZE,
   normaliseNdisProviderRecord,
   sha256Hex,
 } from "@/lib/ingestion/ndis-providers";
@@ -47,6 +49,24 @@ describe("NDIS provider ingestion", () => {
       { providerName: "Acme", abn: "12345678901", registrationNumber: null },
     );
     expect(id.startsWith("abn:")).toBe(true);
+  });
+
+  it("uses a conservative default upsert batch size", () => {
+    expect(NDIS_PROVIDER_UPSERT_BATCH_SIZE).toBeLessThanOrEqual(50);
+    expect(NDIS_PROVIDER_UPSERT_BATCH_SIZE).toBeGreaterThan(0);
+  });
+
+  it("detects transient Prisma connection errors for retry", () => {
+    expect(
+      isTransientDbError(
+        Object.assign(new Error("Server has closed the connection."), {
+          code: "P1017",
+        }),
+      ),
+    ).toBe(true);
+    expect(isTransientDbError(new Error("Unique constraint failed"))).toBe(
+      false,
+    );
   });
 
   it("verifyAdminCronBearer rejects missing token", () => {
