@@ -18,6 +18,8 @@ Treat this file as a **directory input**, not a stable public API. Do not poll i
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection for Prisma |
+| `DIRECT_URL` | Recommended for ingest | Neon direct (non-pooler) connection for long batch writes |
+| `NDIS_INGEST_BATCH_SIZE` | No | Upsert batch size (default `25`, max `100`) |
 | `NDIS_PROVIDER_SOURCE_URL` | No | Override source URL (defaults to official list-providers.json) |
 | `ADMIN_CRON_SECRET` | For cron / bearer | Bearer token for `POST /api/admin/ingest/ndis-providers` |
 | `DRY_RUN` | No | Set to `true` to fetch and normalise without writing |
