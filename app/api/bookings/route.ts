@@ -1,56 +1,57 @@
 import { ZodError } from "zod";
+import type { BookingStatus, BookingType } from "@prisma/client";
 
-import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
-import { isAdminRole } from "@/lib/auth/roles";
-import { createBooking } from "@/lib/bookings/booking-service";
-import { prisma } from "@/lib/prisma";
-import { createBookingSchema } from "@/lib/validation/booking";
+import {
+  handleBookingRouteError,
+  requireBookingSession,
+  bookingOk,
+} from "@/lib/api/booking-route-handler";
+import { zodErrorResponse } from "@/lib/api/response";
+import {
+  createBooking,
+  listBookingsForUser,
+} from "@/lib/bookings/booking-service";
+import {
+  createBookingSchema,
+  listBookingsQuerySchema,
+} from "@/lib/validation/booking-schemas";
 
 export async function GET(req: Request) {
-  const user = await requireApiSession();
-  if (user instanceof Response) return user;
+  const { user, error } = await requireBookingSession();
+  if (error) return error;
 
-  const { searchParams } = new URL(req.url);
-  const status = searchParams.get("status");
+  try {
+    const { searchParams } = new URL(req.url);
+    const filters = listBookingsQuerySchema.parse({
+      status: searchParams.get("status") ?? undefined,
+      module: searchParams.get("module") ?? undefined,
+    });
 
-  const where = isAdminRole(user.primaryRole)
-    ? { ...(status ? { status: status as never } : {}) }
-    : { participantId: user.id, ...(status ? { status: status as never } : {}) };
-
-  const bookings = await prisma.booking.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      segments: { orderBy: { sortOrder: "asc" } },
-      assignedOrganisation: { select: { id: true, name: true } },
-    },
-    take: 100,
-  });
-
-  return jsonOk({ bookings });
+    const bookings = await listBookingsForUser(user!, {
+      status: filters.status as BookingStatus | undefined,
+      module: filters.module as BookingType | undefined,
+    });
+    return bookingOk({ bookings });
+  } catch (e) {
+    if (e instanceof ZodError) return zodErrorResponse(e);
+    return handleBookingRouteError(e);
+  }
 }
 
 export async function POST(req: Request) {
-  const user = await requireApiSession();
-  if (user instanceof Response) return user;
+  const { user, error } = await requireBookingSession();
+  if (error) return error;
 
   try {
     const parsed = createBookingSchema.parse(await req.json());
     const booking = await createBooking({
       ...parsed,
-      participantId: user.id,
-      createdById: user.id,
+      participantId: user!.id,
+      createdById: user!.id,
     });
-    return jsonOk({ booking }, 201);
+    return bookingOk({ booking }, 201);
   } catch (e) {
     if (e instanceof ZodError) return zodErrorResponse(e);
-    if (e instanceof Error && e.message === "CONSENT_REQUIRED") {
-      return jsonError(
-        "Consent is required before sharing accessibility details with a provider",
-        403
-      );
-    }
-    return jsonError("Create failed", 500);
+    return handleBookingRouteError(e);
   }
 }

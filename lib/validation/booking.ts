@@ -12,7 +12,16 @@ const bookingSegmentSchema = z.object({
 });
 
 export const createBookingSchema = z.object({
-  bookingType: z.enum(["care", "transport", "care_transport"]),
+  bookingType: z.enum([
+    "care",
+    "transport",
+    "care_transport",
+    "telehealth",
+    "marketplace",
+    "foods",
+    "employment",
+    "support_coordination",
+  ]),
   requestedStart: z.string().min(1),
   requestedEnd: z.string().optional(),
   pickupAddress: z.string().optional(),
