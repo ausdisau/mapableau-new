@@ -83,29 +83,36 @@ describe("integration health", () => {
 
 describe("sync error logging", () => {
   it("retryable sync error type exists", async () => {
-    const { recordSyncError, createSyncJob } = await import(
-      "@/lib/integrations/integration-sync-service"
+    const connectionService = await import(
+      "@/lib/integrations/integration-connection-service"
     );
-    const prisma = await import("@/lib/prisma");
-    vi.spyOn(prisma.prisma.integrationConnection, "findUnique").mockResolvedValue({
+    vi.spyOn(connectionService, "getIntegrationConnection").mockResolvedValue({
       id: "conn-1",
       integrationKey: "stripe",
     } as never);
-    vi.spyOn(prisma.prisma.integrationSyncJob, "findUnique").mockResolvedValue(null);
-    vi.spyOn(prisma.prisma.integrationSyncJob, "create").mockResolvedValue({
+
+    const prismaMod = await import("@/lib/prisma");
+    vi.spyOn(prismaMod.prisma.integrationSyncJob, "findUnique").mockResolvedValue(
+      null
+    );
+    vi.spyOn(prismaMod.prisma.integrationSyncJob, "create").mockResolvedValue({
       id: "job-1",
-      jobKey: "test",
+      jobKey: "invoice_sync",
     } as never);
 
-    try {
-      await createSyncJob({
-        integrationKey: "stripe",
-        jobKey: "invoice_sync",
-        idempotencyKey: "idem-1",
-      });
-    } catch {
-      // DB may be unavailable in CI — shape test only
-      expect(recordSyncError).toBeDefined();
-    }
+    const auditMod = await import("@/lib/integrations/integration-audit-service");
+    vi.spyOn(auditMod, "auditIntegrationAction").mockResolvedValue(undefined);
+
+    const { recordSyncError, createSyncJob } = await import(
+      "@/lib/integrations/integration-sync-service"
+    );
+
+    const job = await createSyncJob({
+      integrationKey: "stripe",
+      jobKey: "invoice_sync",
+      idempotencyKey: "idem-1",
+    });
+    expect(job.id).toBe("job-1");
+    expect(typeof recordSyncError).toBe("function");
   });
 });

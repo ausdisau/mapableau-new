@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { hasPermission } from "@/lib/auth/permissions";
 import { phase12Config } from "@/lib/config/phase12";
@@ -31,14 +31,25 @@ describe("Phase 12 permissions", () => {
 
 describe("constitutional safeguards", () => {
   it("returns articles when enabled", async () => {
+    const prismaMod = await import("@/lib/prisma");
+    vi.spyOn(prismaMod.prisma.constitutionalSafeguard, "upsert").mockResolvedValue(
+      {} as never
+    );
+    vi.spyOn(prismaMod.prisma.constitutionalSafeguard, "findMany").mockResolvedValue([
+      {
+        articleKey: "human_review",
+        title: "Human review for high-impact decisions",
+        status: "active",
+        sortOrder: 1,
+      },
+    ] as never);
+
     const { listActiveSafeguards } = await import(
       "@/lib/constitutional-safeguards/safeguards-service"
     );
-    try {
-      const articles = await listActiveSafeguards();
-      expect(Array.isArray(articles)).toBe(true);
-    } catch {
-      expect(phase12Config.constitutionalSafeguardsEnabled).toBe(true);
-    }
+    const articles = await listActiveSafeguards();
+    expect(Array.isArray(articles)).toBe(true);
+    expect(articles.length).toBeGreaterThan(0);
+    expect(phase12Config.constitutionalSafeguardsEnabled).toBe(true);
   });
 });
