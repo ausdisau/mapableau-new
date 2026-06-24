@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -166,11 +166,10 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(searchInput.value).toBe("");
   });
 
-  it("renders a header donate link to Australian Disability", () => {
-    const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
-    expect(donate.getAttribute("target")).toBe("_blank");
-    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+  it("renders a header donate link to the donate page", () => {
+    const header = screen.getByRole("banner");
+    const donate = within(header).getByRole("link", { name: "Donate" });
+    expect(donate.getAttribute("href")).toBe("/donate");
   });
 
   it("renders category chips and marketplace section", () => {

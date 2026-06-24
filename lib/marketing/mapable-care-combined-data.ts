@@ -358,6 +358,7 @@ export const footerResourceLinks: FooterLink[] = [
   { label: "Help Centre", href: "/help" },
   { label: "Register provider interest", href: "/for-providers" },
   { label: "Contact", href: "/contact" },
+  { label: "Donate", href: "/donate" },
   { label: "Privacy", href: "/privacy" },
   { label: "Accessibility", href: "/accessibility-statement" },
 ];

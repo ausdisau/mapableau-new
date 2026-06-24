@@ -78,4 +78,5 @@ export const marketingFeatureRoutes = {
   marketplace: "/marketplace",
   privacy: "/privacy",
   terms: "/terms",
+  donate: "/donate",
 } as const;
