@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -166,11 +167,27 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(searchInput.value).toBe("");
   });
 
-  it("renders a header donate link to Australian Disability", () => {
-    const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
-    expect(donate.getAttribute("target")).toBe("_blank");
-    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+  it("renders a header donate button for Stripe Connect checkout", async () => {
+    const assignMock = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...window.location, assign: assignMock },
+    });
+    vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        configured: true,
+        checkoutUrl: "https://checkout.stripe.com/test-session",
+      }),
+    } as Response);
+
+    await userEvent.click(screen.getByRole("button", { name: "Donate" }));
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/donate/checkout",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(assignMock).toHaveBeenCalledWith("https://checkout.stripe.com/test-session");
   });
 
   it("renders category chips and marketplace section", () => {
