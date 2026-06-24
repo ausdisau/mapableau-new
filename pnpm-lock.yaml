@@ -107,6 +107,9 @@ importers:
       react-map-gl:
         specifier: ^8.1.1
         version: 8.1.1(maplibre-gl@5.24.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      socket.io:
+        specifier: ^4.8.1
+        version: 4.8.3
       stripe:
         specifier: ^22.1.1
         version: 22.1.1(@types/node@20.19.30)
@@ -210,19 +213,6 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.13)(@types/node@20.19.30)(jiti@1.21.7)(jsdom@29.1.1(@noble/hashes@2.2.0))(tsx@4.22.3)(yaml@2.8.2)
-
-  apps/realtime-server:
-    dependencies:
-      socket.io:
-        specifier: ^4.8.1
-        version: 4.8.3
-    devDependencies:
-      tsx:
-        specifier: ^4.19.0
-        version: 4.22.3
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.3
 
 packages:
 
