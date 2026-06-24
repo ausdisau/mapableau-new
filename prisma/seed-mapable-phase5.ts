@@ -47,5 +47,13 @@ export async function seedMapAblePhase5() {
     update: {},
   });
 
+  const { seedAuditControlCatalog } = await import(
+    "../lib/compliance-evidence/seed-audit-controls"
+  );
+  const auditSeed = await seedAuditControlCatalog();
+  console.log(
+    `  Audit catalog: ${auditSeed.total} controls (${auditSeed.created} new, ${auditSeed.updated} updated)`
+  );
+
   console.log("  Phase 5 seed complete");
 }
