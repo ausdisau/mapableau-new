@@ -36,6 +36,7 @@ const UpdateSchema = z.object({
   tags: z.array(z.string().max(48)).max(20).optional(),
   goals: z.array(z.string().max(200)).max(20).optional(),
   dueAt: z.string().datetime().nullable().optional(),
+  aiOptOut: z.boolean().optional(),
 });
 
 function disabled() {

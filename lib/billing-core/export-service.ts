@@ -17,10 +17,15 @@ export async function exportInvoice(
 
   try {
     assertInvoiceApprovedForExport(invoice);
-  } catch {
+  } catch (e) {
+    const message =
+      e instanceof Error && e.message === "INVOICE_NOT_APPROVED"
+        ? "Invoice must be approved by an administrator before export"
+        : "Invoice must be approved before export";
     return {
       ok: false as const,
-      error: "Invoice must be approved before export",
+      error: message,
+      code: "INVOICE_NOT_APPROVED" as const,
     };
   }
 

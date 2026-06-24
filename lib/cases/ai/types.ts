@@ -29,6 +29,15 @@ export interface CaseSnapshot {
   tasks: CaseTaskSnapshot[];
   /** Tags or goals stored on the case as plain strings. */
   tags: string[];
+  goals: string[];
+  links: CaseLinkSnapshot[];
+}
+
+export interface CaseLinkSnapshot {
+  linkType: string;
+  label: string;
+  targetId: string | null;
+  url: string | null;
 }
 
 export interface CaseNoteSnapshot {

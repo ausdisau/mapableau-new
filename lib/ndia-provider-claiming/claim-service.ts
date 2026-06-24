@@ -11,9 +11,14 @@ import {
 import {
   isNdiaProviderClaimingEnabled,
   isNdiaProviderLiveSubmitAllowed,
-  ndiaProviderClaimingConfig,
 } from "@/lib/ndia-provider-claiming/config";
-import { submitProviderClaimToNdia } from "@/lib/ndia-provider-claiming/ndia-api-client";
+import { getNdiaHttpConfig } from "@/lib/ndia/shared/config";
+import {
+  getProviderClaimStatusFromNdia,
+  submitProviderClaimToNdia,
+} from "@/lib/ndia-provider-claiming/ndia-api-client";
+import { mapExternalStatusToClaimStatus } from "@/lib/ndia-provider-claiming/status-mapper";
+import { NdiaApiError } from "@/lib/ndia/shared/ndia-errors";
 import type { NdiaProviderClaimPayload } from "@/lib/ndia-provider-claiming/types";
 import {
   hasBlockingFindings,
@@ -125,7 +130,7 @@ export async function createProviderClaimDraft(params: {
     payload: built.payload,
     findings,
     liveSubmitAvailable: isNdiaProviderLiveSubmitAllowed(),
-    adapterMode: ndiaProviderClaimingConfig.adapterMode,
+    adapterMode: getNdiaHttpConfig().adapterMode,
   };
 }
 
@@ -190,7 +195,7 @@ export async function submitProviderClaim(claimId: string, user: CurrentUser) {
   if (!claim) throw new Error("NOT_FOUND");
   await assertOrgAccess(user, claim.organisationId);
 
-  if (ndiaProviderClaimingConfig.requireHumanApproval) {
+  if (getNdiaHttpConfig().requireHumanApproval) {
     const approval = await prisma.ndiaPilotApprovalRecord.findFirst({
       where: { approved: true },
       orderBy: { approvedAt: "desc" },
@@ -206,7 +211,23 @@ export async function submitProviderClaim(claimId: string, user: CurrentUser) {
   }
 
   const payload = claim.claimPayloadJson as NdiaProviderClaimPayload;
-  const result = await submitProviderClaimToNdia(payload);
+
+  let result;
+  try {
+    result = await submitProviderClaimToNdia(payload);
+  } catch (e) {
+    if (e instanceof NdiaApiError) {
+      await writeClaimAudit(claimId, "submit_failed", user.id, {
+        category: e.category,
+        message: e.message,
+        httpStatus: e.httpStatus,
+        ndiaCode: e.ndiaCode,
+        responseBody: e.responseBody,
+      });
+      throw e;
+    }
+    throw e;
+  }
 
   const updated = await prisma.ndiaProviderClaim.update({
     where: { id: claimId },
@@ -231,7 +252,10 @@ export async function submitProviderClaim(claimId: string, user: CurrentUser) {
     });
   }
 
-  await writeClaimAudit(claimId, "submitted", user.id, result);
+  await writeClaimAudit(claimId, "submitted", user.id, {
+    ...result,
+    response: result.response,
+  });
   await createAuditEvent({
     actorUserId: user.id,
     action: "ndia.provider_claim.submitted",
@@ -259,4 +283,48 @@ export async function listProviderClaims(
     orderBy: { createdAt: "desc" },
     take: 100,
   });
+}
+
+export async function refreshProviderClaimStatus(
+  claimId: string,
+  user: CurrentUser
+) {
+  if (!getNdiaHttpConfig().claimStatusPollEnabled) {
+    throw new Error("STATUS_POLL_DISABLED");
+  }
+
+  const claim = await prisma.ndiaProviderClaim.findUnique({
+    where: { id: claimId },
+  });
+  if (!claim) throw new Error("NOT_FOUND");
+  await assertOrgAccess(user, claim.organisationId);
+
+  if (!claim.externalClaimId) {
+    throw new Error("EXTERNAL_CLAIM_ID_MISSING");
+  }
+
+  const statusResult = await getProviderClaimStatusFromNdia(
+    claim.externalClaimId
+  );
+  const mappedStatus = mapExternalStatusToClaimStatus(statusResult.status);
+
+  const updated = await prisma.ndiaProviderClaim.update({
+    where: { id: claimId },
+    data: {
+      status: mappedStatus,
+      externalStatus: statusResult.status,
+      paidAt: mappedStatus === "paid" ? new Date() : claim.paidAt,
+    },
+  });
+
+  await writeClaimAudit(claimId, "status_refreshed", user.id, statusResult);
+  await createAuditEvent({
+    actorUserId: user.id,
+    action: "ndia.provider_claim.status_refreshed",
+    entityType: "NdiaProviderClaim",
+    entityId: claimId,
+    participantId: claim.participantId,
+  });
+
+  return { claim: updated, statusResult };
 }

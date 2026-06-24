@@ -5,8 +5,10 @@ import type {
 import { Prisma } from "@prisma/client";
 
 import { portalExportAdapter } from "@/lib/ndis/claiming/adapters/PortalExportAdapter";
+import { ndiaApiAdapter } from "@/lib/ndis/claiming/adapters/NdiaApiAdapter";
 import { persistPlanManagerInvoices } from "@/lib/ndis/claiming/adapters/PlanManagerInvoiceAdapter";
 import { persistSelfManagedInvoices } from "@/lib/ndis/claiming/adapters/SelfManagedInvoiceAdapter";
+import { isNdiaLiveSubmitAllowed } from "@/lib/ndia/shared/config";
 import { createClaimBatch, validateClaimBatch } from "@/lib/ndis/claiming/batchBuilder";
 import {
   buildBulkPaymentRequestExport,
@@ -226,12 +228,29 @@ export async function exportClaimBatch(
   let fileName = `export-${batch.id}.csv`;
 
   if (batch.paymentRoute === "ndia_managed") {
-    await portalExportAdapter.submitClaimBatch(batchId);
-    const exp = await buildBulkPaymentRequestExport(batchId);
-    if (!exp) throw new Error("EXPORT_FAILED");
-    content = exp.csv;
-    fileName = `ndia-bulk-payment-${exp.batchReference}.csv`;
-    checksumExport(content);
+    if (isNdiaLiveSubmitAllowed()) {
+      const apiResult = await ndiaApiAdapter.submitClaimBatch(batchId);
+      content = JSON.stringify(
+        {
+          adapter: "ndia_api",
+          externalReference: apiResult.externalReference,
+          batchReference: batch.batchReference ?? batch.id,
+          lineCount: batch.lines.length,
+        },
+        null,
+        2
+      );
+      contentType = "application/json";
+      adapter = "ndia_api";
+      fileName = `ndia-api-${batch.batchReference ?? batch.id}.json`;
+    } else {
+      await portalExportAdapter.submitClaimBatch(batchId);
+      const exp = await buildBulkPaymentRequestExport(batchId);
+      if (!exp) throw new Error("EXPORT_FAILED");
+      content = exp.csv;
+      fileName = `ndia-bulk-payment-${exp.batchReference}.csv`;
+      checksumExport(content);
+    }
   } else if (batch.paymentRoute === "self_managed") {
     await persistSelfManagedInvoices(batchId, actorUserId);
     const invs = await prisma.ndisInvoice.findMany({

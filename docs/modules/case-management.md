@@ -122,8 +122,8 @@ Never invents facts.
 
 **Next actions** (`next-actions.ts`) — rule set keyed on case state
 (empty notes, overdue tasks, missing owner, elevated risk) and content
-keywords (funding/budget, transport, housing/eviction). Output is
-deduplicated and capped to 5 suggestions.
+keywords (funding/budget, transport, housing/eviction, documented goals,
+linked record labels). Output is deduplicated and capped to 5 suggestions.
 
 **Natural-language search** (`nl-search.ts`) — strips stop-words and a
 short list of intent verbs, scores each candidate by term-frequency
@@ -156,11 +156,17 @@ setCaseAIEngine({
 The engine id is persisted on every `CaseAIInsight` row so audit logs
 remain unambiguous about which model produced which output.
 
+## Dashboard UX
+
+- **Case list** (`/dashboard/cases`) — open cases, priority/risk badges; natural-language `?q=` redirects to `/dashboard/cases/search`.
+- **Create case** (`/dashboard/cases/new`) — title, description, category, priority, participant/assignee/org IDs, tags, due date.
+- **Case detail** (`/dashboard/cases/[caseId]`) — notes, tasks, linked records, edit/close panel, AI insights with signals/suggestions, “Add as task”, acknowledge + apply-risk actions, `aiOptOut` toggle, expandable insight JSON.
+
 ## Audit
 
 `runCaseAI` writes an `AuditEvent` of `case.ai.<kind>` with the engine
-id and confidence in `metadata`. Acknowledgements, updates, and
-closures also produce audit events.
+id and confidence in `metadata`. Acknowledging an insight writes
+`case.ai.acknowledged`. Updates and closures also produce audit events.
 
 ## Testing
 
@@ -168,7 +174,7 @@ closures also produce audit events.
 pnpm test tests/case-management.test.ts
 ```
 
-21 unit tests cover permissions, access scoping, risk classification,
+21+ unit tests cover permissions, access scoping, risk classification,
 summarisation, next-action generation, and natural-language search.
 
 ## Limitations / TODO
@@ -176,8 +182,9 @@ summarisation, next-action generation, and natural-language search.
 - Provider-organisation scoping for `case:read:any` is intentionally
   not modelled yet — coordinator visibility is currently global once
   the role permission is granted.
-- The AI engine does not consult linked entities directly; that would
-  require widening `CaseSnapshot`. Easy to add when needed.
+- The AI engine does not fetch linked entity payloads; `CaseSnapshot`
+  includes link labels/types and goals for lightweight context. Full
+  entity hydration can be added when needed.
 - The natural-language search is single-language (English) and
   term-frequency based. A vector backend can be slotted in via the
   `CaseAIEngine.search` method without changing any callers.

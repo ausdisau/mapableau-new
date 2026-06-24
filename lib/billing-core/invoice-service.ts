@@ -4,6 +4,7 @@ import type { z } from "zod";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { calculateInvoiceTotals } from "@/lib/billing-core/calculations";
 import type { createInvoiceSchema } from "@/lib/billing-core/schemas";
+import { platformPatternsConfig } from "@/lib/config/platform-patterns";
 import { prisma } from "@/lib/prisma";
 
 type CreateInput = z.infer<typeof createInvoiceSchema>;
@@ -16,13 +17,16 @@ export async function createDraftInvoice(userId: string, input: CreateInput) {
   }));
   const totals = calculateInvoiceTotals(calcItems);
 
+  const autoApprove = !platformPatternsConfig.transparentBillingEnabled;
+
   const invoice = await prisma.billingInvoice.create({
     data: {
       userId,
       providerId: input.providerId,
       bookingId: input.bookingId,
       serviceType: input.serviceType,
-      status: "draft",
+      status: autoApprove ? "issued" : "draft",
+      adminApprovalStatus: autoApprove ? "approved" : "draft",
       fundingSourceId: input.fundingSourceId,
       subtotalCents: totals.subtotalCents,
       platformFeeCents: totals.platformFeeCents,
@@ -137,6 +141,19 @@ export async function updateInvoiceStatus(
     after: { status: updated.status, ...extra },
   });
   return updated;
+}
+
+export async function getInvoiceById(invoiceId: string) {
+  return prisma.billingInvoice.findUnique({
+    where: { id: invoiceId },
+    include: {
+      lineItems: { include: { evidence: true } },
+      fundingSource: true,
+      payments: { include: { splits: true }, orderBy: { createdAt: "desc" } },
+      user: { select: { id: true, name: true, email: true } },
+      provider: { select: { id: true, name: true } },
+    },
+  });
 }
 
 export async function adminSearchInvoices(filters: {
