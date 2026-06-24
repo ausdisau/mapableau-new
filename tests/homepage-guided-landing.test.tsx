@@ -94,20 +94,19 @@ describe("homepage guided landing", () => {
   });
 });
 
-describe("GuidedSearchPanel chat launch", () => {
+describe("GuidedSearchPanel provider finder handoff", () => {
   beforeEach(() => {
     mockPush.mockReset();
     render(<GuidedSearchPanel />);
   });
 
-  it("opens chat panel on submit instead of redirecting", () => {
+  it("navigates to provider finder on submit", () => {
     const input = screen.getByLabelText("What support do you need?");
     fireEvent.change(input, { target: { value: "support worker" } });
     fireEvent.submit(input.closest("form")!);
 
-    expect(screen.getByTestId("guided-search-dialogue")).toBeTruthy();
-    expect(screen.getByText("chat:support worker")).toBeTruthy();
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith("/provider-finder?q=support+worker");
+    expect(screen.queryByTestId("guided-search-dialogue")).toBeNull();
   });
 
   it("shows status hint when query is too short", () => {
@@ -116,14 +115,25 @@ describe("GuidedSearchPanel chat launch", () => {
     fireEvent.submit(input.closest("form")!);
 
     expect(screen.getByRole("status").textContent).toMatch(/at least 3 characters/i);
-    expect(screen.queryByTestId("guided-search-dialogue")).toBeNull();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("launches chat from prompt chip", () => {
+  it("navigates to area-specific finder from prompt chip", () => {
     const chip = screen.getByRole("button", { name: "Find a support worker" });
     fireEvent.click(chip);
 
+    expect(mockPush).toHaveBeenCalledWith(
+      "/provider-finder?q=Find+a+support+worker+who+understands+wheelchair+access&area=Care",
+    );
+  });
+
+  it("opens chat panel from guided chat button", () => {
+    const input = screen.getByLabelText("What support do you need?");
+    fireEvent.change(input, { target: { value: "support worker" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continue in guided chat" }));
+
     expect(screen.getByTestId("guided-search-dialogue")).toBeTruthy();
+    expect(screen.getByText("chat:support worker")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
   });
 });

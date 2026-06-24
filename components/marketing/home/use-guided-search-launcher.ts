@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
 import type { SupportArea } from "@/lib/marketing/mapable-care-combined-data";
-import { supportAreaToSupportTypeId } from "@/lib/marketing/mapable-care-routes";
+import { buildGuidedSearchUrl, supportAreaToSupportTypeId } from "@/lib/marketing/mapable-care-routes";
 import { SUPPORT_TYPES } from "@/lib/provider-finder/filters";
 
 const PROMPT_SERVICE_HINTS: Record<string, string> = {
@@ -12,6 +13,13 @@ const PROMPT_SERVICE_HINTS: Record<string, string> = {
   "Book accessible transport": "Transport",
   "Understand NDIS options": "",
   "Find inclusive jobs": "Employment",
+};
+
+const PROMPT_AREA_HINTS: Record<string, SupportArea> = {
+  "Find a support worker": "Care",
+  "Book accessible transport": "Transport",
+  "Understand NDIS options": "NDIS Help",
+  "Find inclusive jobs": "Jobs",
 };
 
 function serviceHintForArea(area: SupportArea): string {
@@ -24,7 +32,15 @@ function serviceHintForPrompt(prompt: string): string {
   return PROMPT_SERVICE_HINTS[prompt] ?? "";
 }
 
+function areaForPrompt(prompt?: string): SupportArea {
+  if (prompt && PROMPT_AREA_HINTS[prompt]) {
+    return PROMPT_AREA_HINTS[prompt];
+  }
+  return "All";
+}
+
 export function useGuidedSearchLauncher(selectedArea: SupportArea = "All") {
+  const router = useRouter();
   const [chatMode, setChatMode] = useState(false);
   const [chatInitialMessage, setChatInitialMessage] = useState("");
   const [dialogueSession, setDialogueSession] = useState<GuidedSearchSessionFields>({
@@ -35,6 +51,22 @@ export function useGuidedSearchLauncher(selectedArea: SupportArea = "All") {
     accessQuery: "",
   });
   const [statusHint, setStatusHint] = useState("");
+
+  const navigateToFinder = useCallback(
+    (nextQuery: string, promptLabel?: string) => {
+      const trimmed = nextQuery.trim();
+      if (trimmed.length < 3) {
+        setStatusHint("Enter at least 3 characters to search providers.");
+        return false;
+      }
+
+      const area = promptLabel ? areaForPrompt(promptLabel) : selectedArea;
+      router.push(buildGuidedSearchUrl(trimmed, area));
+      setStatusHint("");
+      return true;
+    },
+    [router, selectedArea],
+  );
 
   const launchChat = useCallback(
     (nextQuery: string, promptLabel?: string) => {
@@ -78,6 +110,7 @@ export function useGuidedSearchLauncher(selectedArea: SupportArea = "All") {
     statusHint,
     setStatusHint,
     launchChat,
+    navigateToFinder,
     resetChat,
   };
 }

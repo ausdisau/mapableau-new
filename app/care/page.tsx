@@ -3,8 +3,11 @@ import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 export const metadata = {
   title: "MapAble Care | Disability support coordination",
   description:
-    "Learn how MapAble Care will help participants request support, compare providers and keep consent-controlled records.",
+    "Learn how MapAble Care helps participants request support, compare providers and keep consent-controlled records.",
 };
+
+const CARE_REQUEST_LOGIN = "/login?callbackUrl=%2Fcare%2Frequest";
+const CARE_REQUEST_REGISTER = "/register?callbackUrl=%2Fcare%2Frequest";
 
 export default function CareHubPage() {
   return (
@@ -18,18 +21,18 @@ export default function CareHubPage() {
         "Providers preparing for safer intake, rostering and service logs.",
       ]}
       availableNow={[
-        "Public provider finder and access-needs search entry points.",
-        "Pilot-oriented explanation of the Care module and safety model.",
-        "Participant app links for signed-in users when invited to the pilot.",
+        "Public provider finder with care-focused filters.",
+        "Pilot care request intake for signed-in participants (no NDIS plan upload required).",
+        "Explainable worker matching review when suggestions are ready.",
       ]}
       comingSoon={[
-        "Consent-controlled support requests and provider responses.",
-        "Worker eligibility gates before assignment to high-risk supports.",
-        "Service logs, participant confirmation and dispute workflows.",
+        "Full provider response workflows across all service types.",
+        "Automated invoice generation with plan-manager handoff.",
+        "Nationwide provider verification badges.",
       ]}
       safetyNote="NDIS plan documents will be optional and shared only with consent. MapAble does not auto-approve supports, funding or invoices; high-risk decisions stay subject to human review."
-      primaryCta={{ label: "Explore provider finder", href: "/providers" }}
-      secondaryCta={{ label: "Join pilot", href: "/contact" }}
+      primaryCta={{ label: "Request support (pilot)", href: CARE_REQUEST_LOGIN }}
+      secondaryCta={{ label: "Create account for pilot", href: CARE_REQUEST_REGISTER }}
     />
   );
 }

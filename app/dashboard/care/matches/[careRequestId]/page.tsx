@@ -64,6 +64,14 @@ export default function ParticipantMatchReviewPage({
             ? `For: ${data.careRequest.title}`
             : "Review match suggestions before anyone is assigned."}
         </p>
+        <div className="mt-4 max-w-2xl rounded-xl border border-border bg-muted/30 p-4 text-sm leading-6">
+          <p className="font-semibold">Explainable matching</p>
+          <p className="mt-2 text-muted-foreground">
+            Each suggestion includes plain-language reasons — such as skills, availability,
+            or fit with your support profile. Use “Confirm this match” only when you are
+            comfortable; a coordinator completes assignment.
+          </p>
+        </div>
         {confirmed ? (
           <p className="mt-2 rounded-lg border border-green-600/30 bg-green-50 p-3 text-sm dark:bg-green-950/30">
             You have confirmed a match. A coordinator will complete assignment — workers

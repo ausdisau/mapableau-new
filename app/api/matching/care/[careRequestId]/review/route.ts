@@ -1,5 +1,6 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { y1WedgeConfig } from "@/lib/config/y1-wedge";
 import { getLatestMatchRunForCareRequest } from "@/lib/matching/matching-service";
 import { prisma } from "@/lib/prisma";
 
@@ -26,6 +27,13 @@ export async function GET(
 
   if (user.primaryRole === "participant" && request.participantId !== user.id) {
     return jsonError("Forbidden", 403);
+  }
+
+  if (
+    user.primaryRole === "participant" &&
+    !y1WedgeConfig.participantMatchReviewEnabled
+  ) {
+    return jsonError("Participant match review is not enabled for this environment.", 503);
   }
 
   const run = await getLatestMatchRunForCareRequest(careRequestId);

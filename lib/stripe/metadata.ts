@@ -36,3 +36,13 @@ export function legacyInvoiceIdFromMetadata(
   if (!metadata) return undefined;
   return metadata.invoiceId ?? metadata.mapable_invoice_id ?? undefined;
 }
+
+export function donationCheckoutMetadata(params: {
+  amountCents: number;
+}): Record<string, string> {
+  return {
+    payment_purpose: "donation",
+    amount_cents: String(params.amountCents),
+    mapable_donation: "true",
+  };
+}
