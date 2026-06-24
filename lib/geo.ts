@@ -1,5 +1,6 @@
 /**
- * Browser geolocation and reverse geocoding (Nominatim) for postcode/area.
+ * Browser geolocation and reverse geocoding for postcode/area.
+ * Reverse geocode runs via same-origin API (Nominatim blocks browser CORS).
  * Distance helper (haversine) for filtering providers by radius.
  */
 
@@ -27,49 +28,33 @@ export function getCurrentPosition(): Promise<UserPosition> {
   });
 }
 
-/**
- * Reverse geocode lat/lng to postcode/suburb/state via Nominatim (OpenStreetMap).
- * Use sparingly; Nominatim requires 1 req/sec and a descriptive User-Agent.
- */
+/** Reverse geocode lat/lng via MapAble API (server-side Nominatim proxy). */
 export async function reverseGeocode(
   lat: number,
   lng: number,
 ): Promise<ReverseGeocodeResult> {
-  const url = new URL("https://nominatim.openstreetmap.org/reverse");
-  url.searchParams.set("lat", String(lat));
-  url.searchParams.set("lon", String(lng));
-  url.searchParams.set("format", "json");
-  url.searchParams.set("addressdetails", "1");
-
-  const res = await fetch(url.toString(), {
-    headers: {
-      "User-Agent": "MapableAU-ProviderFinder/1.0 (NDIS provider finder)",
-    },
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
   });
-  if (!res.ok) {
-    throw new Error(`Geocoding failed: ${res.status}`);
+
+  let res: Response;
+  try {
+    res = await fetch(`/api/geo/reverse?${params.toString()}`);
+  } catch {
+    throw new Error("Could not look up your area. Check your connection and try again.");
   }
-  const data = (await res.json()) as {
-    address?: {
-      postcode?: string;
-      suburb?: string;
-      village?: string;
-      town?: string;
-      state_district?: string;
-      state?: string;
-    };
-    display_name?: string;
-  };
-  const addr = data.address ?? {};
-  const postcode = addr.postcode ?? "";
-  const suburb =
-    addr.suburb ?? addr.village ?? addr.town ?? addr.state_district ?? "";
-  const state = addr.state ?? "";
+
+  const data = (await res.json()) as ReverseGeocodeResult & { error?: string };
+  if (!res.ok) {
+    throw new Error(data.error ?? `Geocoding failed: ${res.status}`);
+  }
+
   return {
-    postcode,
-    suburb,
-    state,
-    displayName: data.display_name ?? "",
+    postcode: data.postcode ?? "",
+    suburb: data.suburb ?? "",
+    state: data.state ?? "",
+    displayName: data.displayName ?? "",
   };
 }
 

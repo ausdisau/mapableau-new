@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   distanceKm,
-  getLocationAndPostcode,
+  getCurrentPosition,
+  reverseGeocode,
   type UserPosition,
 } from "@/lib/geo";
 import { trackProductEvent } from "@/lib/analytics/product-analytics";
@@ -191,9 +192,20 @@ export default function ProviderFinderClient() {
     setLocationLoading(true);
     setLocationError(null);
     try {
-      const { position, postcode } = await getLocationAndPostcode();
+      const position = await getCurrentPosition();
       setUserLocation(position);
-      setLocation(postcode);
+
+      try {
+        const { postcode, suburb } = await reverseGeocode(position.lat, position.lng);
+        setLocation(postcode || suburb);
+      } catch (reverseError) {
+        setLocationError(
+          reverseError instanceof Error
+            ? `${reverseError.message} Showing nearby providers using your GPS position.`
+            : "Could not look up your postcode. Showing nearby providers using your GPS position.",
+        );
+      }
+
       setPage(1);
       setSearchSubmitted(true);
     } catch (e) {
