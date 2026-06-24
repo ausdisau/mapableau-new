@@ -9,9 +9,13 @@ export const MAPABLE_TAGLINE =
 
 export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
-/** Australian Disability Ltd — PayPal donations (override in env). */
+/** Donate destination — internal `/donate` by default; override for external URL. */
 export const MAPABLE_DONATION_URL =
-  process.env.NEXT_PUBLIC_DONATION_URL ?? "https://paypal.me/ausdisau";
+  process.env.NEXT_PUBLIC_DONATION_URL ?? "/donate";
+
+export function isInternalDonationUrl(url: string): boolean {
+  return url.startsWith("/");
+}
 
 /**
  * Official MapAble horizontal wordmark — use the exact PNG committed to the repo.
