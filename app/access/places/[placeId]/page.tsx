@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
-import { AccessMap } from "@/components/access/AccessMap";
+import { AccessPlaceMapTabs } from "@/components/access/AccessPlaceMapTabs";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
+import { getPublishedIndoorForPlace } from "@/lib/access-indoor/indoor-service";
 import { getAccreditationDisplayForPlace } from "@/lib/access-accreditation/accreditation-assessment-service";
 import { getPlaceById } from "@/lib/access-map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access-reviews/access-review-service";
@@ -27,7 +28,12 @@ export default async function AccessPlacePage({
     );
   }
 
-  const reviewsRaw = await listPublishedReviewsForPlace(placeId);
+  const [reviewsRaw, accreditationDisplay, indoor] = await Promise.all([
+    listPublishedReviewsForPlace(placeId),
+    getAccreditationDisplayForPlace(placeId),
+    getPublishedIndoorForPlace(placeId),
+  ]);
+
   const users = await prisma.user.findMany({
     where: { id: { in: reviewsRaw.map((r) => r.reviewerProfileId) } },
     select: { id: true, name: true },
@@ -44,8 +50,6 @@ export default async function AccessPlacePage({
     label: "Community review — user reported",
     createdAt: r.createdAt.toISOString(),
   }));
-
-  const accreditationDisplay = await getAccreditationDisplayForPlace(placeId);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
@@ -76,27 +80,21 @@ export default async function AccessPlacePage({
       />
 
       {place.location ? (
-        <section aria-label="Location map">
-          <h2 className="text-lg font-semibold">Location</h2>
+        <>
           <p className="text-sm text-muted-foreground">
             Text alternative: {place.addressText ?? place.name},{" "}
             {place.suburb} {place.stateOrRegion}. Coordinates{" "}
             {place.location.latitude.toFixed(5)},{" "}
             {place.location.longitude.toFixed(5)}.
           </p>
-          <div className="mt-2">
-            <AccessMap
-              places={[
-                {
-                  id: place.id,
-                  name: place.name,
-                  latitude: place.location.latitude,
-                  longitude: place.location.longitude,
-                },
-              ]}
-            />
-          </div>
-        </section>
+          <AccessPlaceMapTabs
+            placeId={placeId}
+            placeName={place.name}
+            latitude={place.location.latitude}
+            longitude={place.location.longitude}
+            indoor={indoor}
+          />
+        </>
       ) : null}
 
       <ReportPlaceIssueButton placeId={placeId} />
