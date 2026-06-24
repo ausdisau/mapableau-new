@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
@@ -13,6 +14,7 @@ type AdminInvoice = {
   userId: string;
   providerId: string | null;
   status: string;
+  adminApprovalStatus?: string;
   totalCents: number;
   serviceType: string;
   createdAt: string;
@@ -80,7 +82,12 @@ export function AdminBillingClient() {
                   "flex flex-wrap items-center justify-between gap-2 border-destructive/30 p-4 text-sm"
                 )}
               >
-                <span className="font-mono text-xs">{inv.id.slice(0, 12)}…</span>
+                <Link
+                  href={`/admin/billing/invoices/${inv.id}`}
+                  className="font-mono text-xs text-primary hover:underline"
+                >
+                  {inv.id.slice(0, 12)}…
+                </Link>
                 <BillingStatusBadge status={inv.status} />
                 <span className="font-semibold text-primary">
                   ${(inv.totalCents / 100).toFixed(2)} AUD
@@ -109,6 +116,9 @@ export function AdminBillingClient() {
                 <th scope="col" className="p-3 font-medium">
                   Status
                 </th>
+                <th scope="col" className="p-3 font-medium">
+                  Approval
+                </th>
                 <th scope="col" className="p-3 font-medium text-right">
                   Total
                 </th>
@@ -117,10 +127,20 @@ export function AdminBillingClient() {
             <tbody>
               {invoices.map((inv) => (
                 <tr key={inv.id} className="border-t border-border/40">
-                  <td className="p-3 font-mono text-xs">{inv.id.slice(0, 10)}…</td>
+                  <td className="p-3">
+                    <Link
+                      href={`/admin/billing/invoices/${inv.id}`}
+                      className="font-mono text-xs text-primary hover:underline"
+                    >
+                      {inv.id.slice(0, 10)}…
+                    </Link>
+                  </td>
                   <td className="p-3">{inv.userId.slice(0, 8)}…</td>
                   <td className="p-3">
                     <BillingStatusBadge status={inv.status} />
+                  </td>
+                  <td className="p-3 capitalize text-xs text-muted-foreground">
+                    {(inv.adminApprovalStatus ?? "draft").replace(/_/g, " ")}
                   </td>
                   <td className="p-3 text-right font-medium text-primary">
                     ${(inv.totalCents / 100).toFixed(2)}

@@ -4,6 +4,18 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import type { AINextAction, AIRiskAssessment } from "@/lib/cases/ai/types";
+
+type LinkRow = {
+  id: string;
+  linkType: string;
+  label: string;
+  targetId: string | null;
+  url: string | null;
+  notes: string | null;
+  createdAt: string;
+};
+
 type Insight = {
   id: string;
   kind: string;
@@ -36,6 +48,15 @@ type Note = {
 
 export interface CaseDetailClientProps {
   caseId: string;
+  caseMeta: {
+    status: string;
+    priority: string;
+    riskLevel: string;
+    assignedToId: string | null;
+    dueAt: string | null;
+    aiOptOut: boolean;
+  };
+  links: LinkRow[];
   notes: Note[];
   tasks: Task[];
   insights: Insight[];
@@ -44,10 +65,26 @@ export interface CaseDetailClientProps {
   aiEnabled: boolean;
 }
 
+const STATUSES = ["open", "monitoring", "on_hold", "closed"] as const;
+const PRIORITIES = ["low", "medium", "high", "urgent"] as const;
+const RISK_LEVELS = ["low", "moderate", "elevated", "high", "critical"] as const;
+const LINK_TYPES = [
+  "booking",
+  "incident",
+  "support_ticket",
+  "document",
+  "funding_source",
+  "service_agreement",
+  "external",
+  "note",
+] as const;
+
 export function CaseDetailClient(props: CaseDetailClientProps) {
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [expandedInsightId, setExpandedInsightId] = useState<string | null>(null);
   const router = useRouter();
 
   async function callJson(path: string, body: unknown, method = "POST") {
@@ -96,6 +133,65 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
     if (res) refresh();
   }
 
+  async function onAddLink(form: FormData) {
+    const linkType = String(form.get("linkType") ?? "external");
+    const label = String(form.get("label") ?? "").trim();
+    const targetId = String(form.get("targetId") ?? "").trim();
+    const url = String(form.get("url") ?? "").trim();
+    if (label.length < 2) return;
+    const res = await callJson(`/api/cases/${props.caseId}/links`, {
+      linkType,
+      label,
+      targetId: targetId || null,
+      url: url || null,
+    });
+    if (res) refresh();
+  }
+
+  async function onUpdateCase(form: FormData) {
+    const status = String(form.get("status") ?? props.caseMeta.status);
+    const priority = String(form.get("priority") ?? props.caseMeta.priority);
+    const riskLevel = String(form.get("riskLevel") ?? props.caseMeta.riskLevel);
+    const assignedToId = String(form.get("assignedToId") ?? "").trim();
+    const dueAtRaw = String(form.get("dueAt") ?? "").trim();
+    const res = await callJson(
+      `/api/cases/${props.caseId}`,
+      {
+        status,
+        priority,
+        riskLevel,
+        assignedToId: assignedToId || null,
+        dueAt: dueAtRaw ? new Date(dueAtRaw).toISOString() : null,
+      },
+      "PATCH",
+    );
+    if (res) {
+      setShowEdit(false);
+      refresh();
+    }
+  }
+
+  async function closeCase() {
+    if (!window.confirm("Close this case? You can reopen it later by editing status.")) {
+      return;
+    }
+    const res = await callJson(
+      `/api/cases/${props.caseId}`,
+      { status: "closed" },
+      "PATCH",
+    );
+    if (res) refresh();
+  }
+
+  async function toggleAiOptOut(enabled: boolean) {
+    const res = await callJson(
+      `/api/cases/${props.caseId}`,
+      { aiOptOut: !enabled },
+      "PATCH",
+    );
+    if (res) refresh();
+  }
+
   async function runAI(kind: "summary" | "risk_assessment" | "next_action") {
     const res = await callJson(`/api/cases/${props.caseId}/ai`, { kind });
     if (res) refresh();
@@ -106,6 +202,34 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
       `/api/cases/${props.caseId}/ai/${insightId}`,
       null,
     );
+    if (res) refresh();
+  }
+
+  async function applyRiskFromInsight(insight: Insight) {
+    const detail = insight.detailJson as AIRiskAssessment | null;
+    if (!detail?.level) return;
+    const res = await callJson(
+      `/api/cases/${props.caseId}`,
+      { riskLevel: detail.level },
+      "PATCH",
+    );
+    if (res) {
+      await acknowledgeInsight(insight.id);
+    }
+  }
+
+  async function addTaskFromSuggestion(action: AINextAction) {
+    const dueAt =
+      action.dueInDays != null
+        ? new Date(Date.now() + action.dueInDays * 86400000).toISOString()
+        : undefined;
+    const res = await callJson(`/api/cases/${props.caseId}/tasks`, {
+      title: action.title,
+      details: action.reason,
+      priority: action.priority,
+      dueAt,
+      aiSuggested: true,
+    });
     if (res) refresh();
   }
 
@@ -121,6 +245,193 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-3">
       <section className="space-y-6 lg:col-span-2">
+        {props.canManage ? (
+          <Panel title="Case management">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setShowEdit((v) => !v)}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+              >
+                {showEdit ? "Hide edit" : "Edit case"}
+              </button>
+              {props.caseMeta.status !== "closed" ? (
+                <button
+                  type="button"
+                  onClick={() => void closeCase()}
+                  disabled={busy === `/api/cases/${props.caseId}`}
+                  className="rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-60"
+                >
+                  Close case
+                </button>
+              ) : null}
+            </div>
+            {showEdit ? (
+              <form
+                className="mt-3 grid gap-3 sm:grid-cols-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void onUpdateCase(new FormData(e.currentTarget));
+                }}
+              >
+                <label className="text-sm">
+                  Status
+                  <select
+                    name="status"
+                    defaultValue={props.caseMeta.status}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  >
+                    {STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {s.replaceAll("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  Priority
+                  <select
+                    name="priority"
+                    defaultValue={props.caseMeta.priority}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  Risk level
+                  <select
+                    name="riskLevel"
+                    defaultValue={props.caseMeta.riskLevel}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  >
+                    {RISK_LEVELS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  Assignee user ID
+                  <input
+                    name="assignedToId"
+                    defaultValue={props.caseMeta.assignedToId ?? ""}
+                    placeholder="Coordinator user ID"
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  />
+                </label>
+                <label className="text-sm sm:col-span-2">
+                  Due date
+                  <input
+                    name="dueAt"
+                    type="date"
+                    defaultValue={
+                      props.caseMeta.dueAt
+                        ? props.caseMeta.dueAt.slice(0, 10)
+                        : ""
+                    }
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  disabled={busy === `/api/cases/${props.caseId}`}
+                  className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                >
+                  Save changes
+                </button>
+              </form>
+            ) : null}
+          </Panel>
+        ) : null}
+
+        <Panel title="Linked records">
+          {props.links.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No links yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {props.links.map((link) => (
+                <li
+                  key={link.id}
+                  className="rounded-md border border-border p-3 text-sm"
+                >
+                  <p className="font-medium">{link.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {link.linkType.replaceAll("_", " ")}
+                    {link.targetId ? ` · ID ${link.targetId}` : ""}
+                    {link.url ? (
+                      <>
+                        {" · "}
+                        <a
+                          href={link.url}
+                          className="text-primary hover:underline"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open link
+                        </a>
+                      </>
+                    ) : null}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          {props.canManage ? (
+            <form
+              className="mt-3 space-y-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void onAddLink(new FormData(e.currentTarget));
+                e.currentTarget.reset();
+              }}
+            >
+              <div className="grid gap-2 sm:grid-cols-2">
+                <select
+                  name="linkType"
+                  defaultValue="external"
+                  className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                >
+                  {LINK_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t.replaceAll("_", " ")}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  name="label"
+                  placeholder="Link label"
+                  minLength={2}
+                  className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                />
+                <input
+                  name="targetId"
+                  placeholder="Entity ID (optional)"
+                  className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                />
+                <input
+                  name="url"
+                  type="url"
+                  placeholder="External URL (optional)"
+                  className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={busy?.includes("links")}
+                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+              >
+                Add link
+              </button>
+            </form>
+          ) : null}
+        </Panel>
+
         <Panel title="Notes">
           {props.notes.length === 0 ? (
             <p className="text-sm text-muted-foreground">No notes yet.</p>
@@ -238,7 +549,7 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
                   defaultValue="medium"
                   className="rounded-md border border-input bg-background px-2 py-1 text-sm"
                 >
-                  {["low", "medium", "high", "urgent"].map((p) => (
+                  {PRIORITIES.map((p) => (
                     <option key={p} value={p}>
                       {p}
                     </option>
@@ -258,6 +569,26 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
       </section>
 
       <aside className="space-y-6">
+        <Panel title="AI settings">
+          {props.canManage ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={!props.caseMeta.aiOptOut}
+                onChange={(e) => void toggleAiOptOut(e.target.checked)}
+                disabled={busy === `/api/cases/${props.caseId}`}
+              />
+              Allow AI insights on this case
+            </label>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {props.caseMeta.aiOptOut
+                ? "AI is opted out for this case."
+                : "AI insights are enabled."}
+            </p>
+          )}
+        </Panel>
+
         <Panel
           title={
             <span className="flex items-center gap-2">
@@ -276,7 +607,12 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
               AI features are disabled in this environment.
             </p>
           ) : null}
-          {props.aiEnabled && props.canRunAI ? (
+          {props.caseMeta.aiOptOut ? (
+            <p className="text-sm text-muted-foreground">
+              AI is opted out for this case. Re-enable above to run insights.
+            </p>
+          ) : null}
+          {props.aiEnabled && props.canRunAI && !props.caseMeta.aiOptOut ? (
             <div className="flex flex-wrap gap-2">
               <AIButton
                 disabled={busy === `/api/cases/${props.caseId}/ai`}
@@ -304,32 +640,18 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
             <ul className="mt-3 space-y-3">
               {props.insights.map((i) => (
                 <li key={i.id} className="rounded-md border border-border p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      {i.kind.replaceAll("_", " ")}
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs ${i.requiresReview ? "bg-amber-100 text-amber-900" : "bg-green-100 text-green-900"}`}
-                    >
-                      {i.requiresReview ? "needs review" : "acknowledged"}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm">{i.summary}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    engine: {i.engine} · confidence{" "}
-                    {(i.confidence * 100).toFixed(0)}% ·{" "}
-                    {format(new Date(i.createdAt), "d MMM HH:mm")}
-                  </p>
-                  {i.requiresReview && props.canManage ? (
-                    <button
-                      type="button"
-                      onClick={() => acknowledgeInsight(i.id)}
-                      disabled={busy?.includes(i.id)}
-                      className="mt-2 rounded-md border border-border px-3 py-1 text-xs hover:bg-muted disabled:opacity-60"
-                    >
-                      Acknowledge
-                    </button>
-                  ) : null}
+                  <InsightDetail
+                    insight={i}
+                    expanded={expandedInsightId === i.id}
+                    onToggleExpand={() =>
+                      setExpandedInsightId((id) => (id === i.id ? null : i.id))
+                    }
+                    canManage={props.canManage}
+                    busy={busy}
+                    onAcknowledge={() => acknowledgeInsight(i.id)}
+                    onApplyRisk={() => applyRiskFromInsight(i)}
+                    onAddTask={addTaskFromSuggestion}
+                  />
                 </li>
               ))}
             </ul>
@@ -347,6 +669,126 @@ export function CaseDetailClient(props: CaseDetailClientProps) {
         ) : null}
       </aside>
     </div>
+  );
+}
+
+function InsightDetail({
+  insight,
+  expanded,
+  onToggleExpand,
+  canManage,
+  busy,
+  onAcknowledge,
+  onApplyRisk,
+  onAddTask,
+}: {
+  insight: Insight;
+  expanded: boolean;
+  onToggleExpand: () => void;
+  canManage: boolean;
+  busy: string | null;
+  onAcknowledge: () => void;
+  onApplyRisk: () => void;
+  onAddTask: (action: AINextAction) => void;
+}) {
+  const riskDetail =
+    insight.kind === "risk_assessment"
+      ? (insight.detailJson as AIRiskAssessment | null)
+      : null;
+  const nextActionsDetail =
+    insight.kind === "next_action" && Array.isArray(insight.detailJson)
+      ? (insight.detailJson as AINextAction[])
+      : null;
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {insight.kind.replaceAll("_", " ")}
+        </span>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs ${insight.requiresReview ? "bg-amber-100 text-amber-900" : "bg-green-100 text-green-900"}`}
+        >
+          {insight.requiresReview ? "needs review" : "acknowledged"}
+        </span>
+      </div>
+      <p className="mt-2 text-sm">{insight.summary}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        engine: {insight.engine} · confidence{" "}
+        {(insight.confidence * 100).toFixed(0)}% ·{" "}
+        {format(new Date(insight.createdAt), "d MMM HH:mm")}
+      </p>
+
+      {riskDetail?.signals?.length ? (
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+          {riskDetail.signals.map((signal) => (
+            <li key={signal}>{signal}</li>
+          ))}
+        </ul>
+      ) : null}
+
+      {nextActionsDetail?.length ? (
+        <ul className="mt-2 space-y-2">
+          {nextActionsDetail.map((action) => (
+            <li
+              key={action.title}
+              className="rounded-md border border-dashed border-border p-2 text-xs"
+            >
+              <p className="font-medium">{action.title}</p>
+              <p className="text-muted-foreground">{action.reason}</p>
+              {canManage ? (
+                <button
+                  type="button"
+                  onClick={() => onAddTask(action)}
+                  disabled={Boolean(busy)}
+                  className="mt-2 rounded-md border border-border px-2 py-1 hover:bg-muted disabled:opacity-60"
+                >
+                  Add as task
+                </button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <div className="mt-2 flex flex-wrap gap-2">
+        {insight.requiresReview && canManage ? (
+          <>
+            <button
+              type="button"
+              onClick={onAcknowledge}
+              disabled={busy?.includes(insight.id)}
+              className="rounded-md border border-border px-3 py-1 text-xs hover:bg-muted disabled:opacity-60"
+            >
+              Acknowledge
+            </button>
+            {riskDetail?.level ? (
+              <button
+                type="button"
+                onClick={onApplyRisk}
+                disabled={busy?.includes(insight.id)}
+                className="rounded-md border border-border px-3 py-1 text-xs hover:bg-muted disabled:opacity-60"
+              >
+                Apply risk to case
+              </button>
+            ) : null}
+          </>
+        ) : null}
+        <button
+          type="button"
+          onClick={onToggleExpand}
+          className="rounded-md border border-border px-3 py-1 text-xs hover:bg-muted"
+        >
+          {expanded ? "Hide detail" : "View detail JSON"}
+        </button>
+      </div>
+
+      {expanded ? (
+        <pre className="mt-2 max-h-48 overflow-auto rounded-md bg-muted/40 p-2 text-[10px]">
+          {JSON.stringify(insight.detailJson, null, 2)}
+        </pre>
+      ) : null}
+    </>
   );
 }
 

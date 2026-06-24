@@ -21,9 +21,20 @@ export function nextActions(snapshot: CaseSnapshot): AINextAction[] {
     snapshot.title,
     snapshot.description,
     ...snapshot.notes.map((n) => n.body),
+    ...snapshot.goals,
+    ...snapshot.links.map((l) => l.label),
   ]
     .join(" ")
     .toLowerCase();
+
+  if (snapshot.goals.length > 0) {
+    out.push({
+      title: `Review progress on case goal: ${snapshot.goals[0]}`,
+      reason: "Case has documented goals; confirm the next milestone with the participant.",
+      priority: "medium",
+      dueInDays: 5,
+    });
+  }
 
   if (snapshot.notes.length === 0) {
     out.push({

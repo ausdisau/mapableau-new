@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { StatusBadge } from "@/components/ui/status-badge";
 import { requireAuth } from "@/lib/auth/guards";
@@ -13,7 +14,16 @@ export const metadata = {
 };
 export const dynamic = "force-dynamic";
 
-export default async function CasesIndexPage() {
+export default async function CasesIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  if (q?.trim()) {
+    redirect(`/dashboard/cases/search?q=${encodeURIComponent(q.trim())}`);
+  }
+
   if (!caseManagementConfig.enabled) {
     return (
       <div className="rounded-xl border border-border bg-card p-6">

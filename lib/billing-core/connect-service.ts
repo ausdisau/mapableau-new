@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import {
   createConnectOnboardingLink,
   createExpressConnectAccount,
+  retrieveConnectAccount,
 } from "@/lib/stripe/connect";
 
 
@@ -41,6 +42,59 @@ export async function createConnectAccountAndLink(
   const link = await createConnectOnboardingLink(connectedId);
 
   return { ok: true as const, onboardingUrl: link.url, accountId: connectedId };
+}
+
+export async function getConnectAccountStatus(
+  userId: string,
+  role: BillingAccountRole = "provider",
+) {
+  const account = await prisma.billingAccount.findUnique({
+    where: { userId_role: { userId, role } },
+  });
+
+  if (!account?.stripeConnectedAccountId) {
+    return {
+      ok: true as const,
+      connected: false,
+      onboardingComplete: false,
+      chargesEnabled: false,
+      payoutsEnabled: false,
+    };
+  }
+
+  if (!isBillingStripeConfigured()) {
+    return {
+      ok: true as const,
+      connected: true,
+      onboardingComplete: account.connectOnboardingComplete,
+      chargesEnabled: account.connectOnboardingComplete,
+      payoutsEnabled: account.connectOnboardingComplete,
+      stripeAccountId: account.stripeConnectedAccountId,
+    };
+  }
+
+  const stripeAccount = await retrieveConnectAccount(
+    account.stripeConnectedAccountId,
+  );
+  const chargesEnabled = stripeAccount.charges_enabled === true;
+  const payoutsEnabled = stripeAccount.payouts_enabled === true;
+  const onboardingComplete = chargesEnabled && payoutsEnabled;
+
+  if (onboardingComplete !== account.connectOnboardingComplete) {
+    await prisma.billingAccount.update({
+      where: { id: account.id },
+      data: { connectOnboardingComplete: onboardingComplete },
+    });
+  }
+
+  return {
+    ok: true as const,
+    connected: true,
+    onboardingComplete,
+    chargesEnabled,
+    payoutsEnabled,
+    stripeAccountId: account.stripeConnectedAccountId,
+  };
 }
 
 export async function refreshConnectOnboardingLink(

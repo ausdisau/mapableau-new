@@ -63,6 +63,8 @@ function corpusFromCase(snapshot: CaseSnapshot): string {
     snapshot.description,
     ...snapshot.notes.map((n) => n.body),
     ...snapshot.tasks.map((t) => t.title),
+    ...snapshot.goals,
+    ...snapshot.links.map((l) => `${l.label} ${l.linkType}`),
   ];
   return parts.join(" \n ").toLowerCase();
 }
