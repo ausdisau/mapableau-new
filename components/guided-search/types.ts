@@ -21,6 +21,19 @@ export function getOrCreateGuidedSearchSessionId(): string {
   return id;
 }
 
+/** Prefer URL `sessionId` when arriving from homepage/header guided search. */
+export function initGuidedSearchSessionId(urlSessionId?: string | null): string {
+  const fromUrl = urlSessionId?.trim();
+  if (typeof window === "undefined") {
+    return fromUrl || `finder-${Date.now()}`;
+  }
+  if (fromUrl) {
+    sessionStorage.setItem(GUIDED_SEARCH_SESSION_STORAGE_KEY, fromUrl);
+    return fromUrl;
+  }
+  return getOrCreateGuidedSearchSessionId();
+}
+
 export function applyChoiceToSession(
   session: GuidedSearchSessionFields,
   slot: ClarificationSlot | undefined,

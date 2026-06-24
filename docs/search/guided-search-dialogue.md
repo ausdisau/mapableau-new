@@ -55,6 +55,21 @@ Location clarification uses `AccessibleAutocomplete` (no static chip list).
 
 Provider Finder wraps the same component via `ProviderFinderAskPanel`.
 
+## Provider Finder split layout
+
+`/provider-finder` uses a **chat-first split layout**:
+
+| Column | Role |
+|--------|------|
+| Left (sticky) | `ProviderFinderAskPanel` — always mounted |
+| Right | Empty state, or sidebar + map + result cards |
+
+- `resultsMode="inline"` on `GuidedSearchDialogue` (via the ask panel): **View results** scrolls to `#provider-finder-results` without navigation.
+- Header/homepage chat keeps `resultsMode="navigate"` (default): **Show matching providers** pushes to `/provider-finder?…` with applied params and `sessionId` when available.
+- Session continuity uses `sessionStorage` key `mapable-guided-search-session-id`, or URL `sessionId` from homepage handoff (`initGuidedSearchSessionId`).
+- Chat `onInterpretation` updates finder fields and shallow URL; sidebar filter changes sync back into the ask panel `session` prop for the next chat turn.
+- Result card **Ask MapAble** focuses `#ask-panel` in-page when already on provider-finder.
+
 ## Chat stream vs `/api/mapable/ask`
 
 | Endpoint | Use |
@@ -68,5 +83,5 @@ Both share `runProviderFinderAskTurn` and `getClarificationGuidance()` for consi
 
 ```bash
 pnpm type-check
-pnpm exec vitest run tests/clarification-guidance.test.ts tests/guided-search-stream.test.ts tests/guided-search-dialogue.test.tsx tests/guided-search-header.test.tsx
+pnpm exec vitest run tests/clarification-guidance.test.ts tests/guided-search-stream.test.ts tests/guided-search-dialogue.test.tsx tests/guided-search-header.test.tsx tests/provider-finder-chat-layout.test.tsx
 ```

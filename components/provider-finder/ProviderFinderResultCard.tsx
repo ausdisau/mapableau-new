@@ -41,6 +41,7 @@ type ProviderFinderResultCardProps = {
   isCompared?: boolean;
   onSelect?: (provider: Provider) => void;
   onToggleCompare?: (provider: Provider) => void;
+  onAskAboutProvider?: (provider: Provider) => void;
 };
 
 export function ProviderFinderResultCard({
@@ -49,6 +50,7 @@ export function ProviderFinderResultCard({
   isCompared,
   onSelect,
   onToggleCompare,
+  onAskAboutProvider,
 }: ProviderFinderResultCardProps) {
   const { careRequestHref } = usePlatformCareLink(provider);
   const rating = Math.max(0, Math.min(5, provider.rating));
@@ -180,14 +182,27 @@ export function ProviderFinderResultCard({
           <Bookmark className="h-4 w-4" aria-hidden />
           {isCompared ? "Compared" : "Compare"}
         </Button>
-        <Button type="button" variant="outline" size="default" asChild>
-          <Link
-            href={`/provider-finder?provider=${encodeURIComponent(provider.slug)}#ask-panel`}
+        {onAskAboutProvider ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="default"
+            className="gap-1.5"
+            onClick={() => onAskAboutProvider(provider)}
           >
             <MessageCircle className="h-4 w-4" aria-hidden />
             Ask MapAble
-          </Link>
-        </Button>
+          </Button>
+        ) : (
+          <Button type="button" variant="outline" size="default" asChild>
+            <Link
+              href={`/provider-finder?provider=${encodeURIComponent(provider.slug)}#ask-panel`}
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden />
+              Ask MapAble
+            </Link>
+          </Button>
+        )}
       </div>
     </article>
   );
