@@ -24,6 +24,18 @@ const publicRoutes = [
   "/terms",
   "/data-deletion",
   "/accessibility-statement",
+  "/innovation",
+  "/planops",
+  "/home",
+  "/accessops",
+  "/life",
+  "/transition",
+  "/ageing",
+  "/academy",
+  "/access-pass",
+  "/ready",
+  "/rights-navigator",
+  "/intelligence",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
