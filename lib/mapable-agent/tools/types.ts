@@ -24,6 +24,8 @@ export type ToolDefinition = {
   name: string;
   description: string;
   sensitivity: ToolSensitivity;
+  /** When false, omitted from public tool catalog (internal orchestrator use). */
+  catalogVisible?: boolean;
   requiresConsent?: ConsentScope[];
   requiresHumanApproval?: boolean;
   createsReviewOnLowConfidence?: boolean;

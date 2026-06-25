@@ -1,68 +1,7 @@
-import { mapableAgentConfig } from "@/lib/mapable-agent/config";
-import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
-const CHUNK_SIZE = 800;
-
-export function chunkDocumentText(text: string): string[] {
-  const normalized = text.replace(/\s+/g, " ").trim();
-  if (!normalized) return [];
-  const chunks: string[] = [];
-  for (let i = 0; i < normalized.length; i += CHUNK_SIZE) {
-    chunks.push(normalized.slice(i, i + CHUNK_SIZE));
-  }
-  return chunks;
-}
-
-export async function embedTextViaOllama(text: string): Promise<number[] | null> {
-  try {
-    const res = await fetch(`${mapableAgentConfig.ollamaBaseUrl}/api/embeddings`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: mapableAgentConfig.embeddingModel,
-        prompt: text,
-      }),
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { embedding?: number[] };
-    return json.embedding ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function embedTextViaOpenAICompatible(text: string): Promise<number[] | null> {
-  const baseURL = mapableAgentConfig.vllmBaseUrl.replace(/\/$/, "");
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (mapableAgentConfig.vllmApiKey) {
-    headers.Authorization = `Bearer ${mapableAgentConfig.vllmApiKey}`;
-  }
-
-  try {
-    const res = await fetch(`${baseURL}/embeddings`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        model: mapableAgentConfig.embeddingModel,
-        input: text,
-      }),
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { data?: Array<{ embedding?: number[] }> };
-    return json.data?.[0]?.embedding ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/** Ollama locally; OpenAI-compatible /embeddings on Vercel or when provider is vllm. */
-export async function embedText(text: string): Promise<number[] | null> {
-  if (mapableAgentConfig.modelProvider === "vllm" || mapableAgentConfig.isVercel) {
-    return embedTextViaOpenAICompatible(text);
-  }
-  return embedTextViaOllama(text);
-}
+import { embedText } from "@/lib/mapable-agent/rag/embedder";
+import { prisma } from "@/lib/prisma";
 
 export async function storeChunkEmbedding(
   chunkId: string,
@@ -117,3 +56,6 @@ export async function ragSearch(params: {
   });
   return hits.map((h) => ({ content: h.content, score: h.score }));
 }
+
+export { chunkDocumentText } from "@/lib/mapable-agent/rag/chunker";
+export { embedText, queueChunkEmbedding } from "@/lib/mapable-agent/rag/embedder";

@@ -6,6 +6,7 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { mapableAgentConfig } from "@/lib/mapable-agent/config";
 import type { ToolContext, ToolDefinition, ToolResult } from "@/lib/mapable-agent/tools/types";
 import { hashToolInput } from "@/lib/mapable-agent/utils";
+import { enqueueNotifyReview } from "@/lib/queue/queues";
 import { prisma } from "@/lib/prisma";
 
 export async function wrapToolExecution(
@@ -66,6 +67,11 @@ export async function wrapToolExecution(
         summary: result.error ?? "Tool result needs human review before use.",
         context: { toolName: def.name, inputHash },
       },
+    });
+    await enqueueNotifyReview({
+      reviewTaskId: task.id,
+      title: task.title,
+      category: task.category,
     });
     return {
       ...result,

@@ -14,10 +14,11 @@ import type {
   StructuredParams,
 } from "@/lib/mapable-agent/model/types";
 
-export class OllamaGptOssProvider implements ModelProvider {
-  readonly id = "ollama" as const;
+export class VllmGptOssProvider implements ModelProvider {
+  readonly id = "vllm" as const;
   private client = createOpenAiCompatibleClient(
-    `${mapableAgentConfig.ollamaBaseUrl.replace(/\/$/, "")}/v1`,
+    mapableAgentConfig.vllmBaseUrl,
+    mapableAgentConfig.vllmApiKey || "mapable-agent",
   );
 
   async chat(params: ChatParams): Promise<ChatResult> {

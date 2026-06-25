@@ -32,6 +32,12 @@ export type EmbedDocumentJob = {
   content: string;
 };
 
+export type NotifyReviewJob = {
+  reviewTaskId: string;
+  title: string;
+  category: string;
+};
+
 export async function enqueueEmbedDocument(job: EmbedDocumentJob): Promise<void> {
   if (!isMapableAgentQueueEnabled()) {
     return;
@@ -39,5 +45,15 @@ export async function enqueueEmbedDocument(job: EmbedDocumentJob): Promise<void>
   await getEmbedDocumentQueue().add("embed", job, {
     attempts: 3,
     backoff: { type: "exponential", delay: 2000 },
+  });
+}
+
+export async function enqueueNotifyReview(job: NotifyReviewJob): Promise<void> {
+  if (!isMapableAgentQueueEnabled()) {
+    return;
+  }
+  await getNotifyReviewQueue().add("notify", job, {
+    attempts: 2,
+    backoff: { type: "fixed", delay: 5000 },
   });
 }

@@ -1,4 +1,5 @@
-export { OllamaGptOssProvider, VllmGptOssProvider } from "@/lib/mapable-agent/model/ollama-gpt-oss-provider";
+export { OllamaGptOssProvider } from "@/lib/mapable-agent/model/ollama-gpt-oss-provider";
+export { VllmGptOssProvider } from "@/lib/mapable-agent/model/vllm-gpt-oss-provider";
 export type {
   ChatParams,
   ChatResult,
@@ -10,8 +11,8 @@ export type {
 import { mapableAgentConfig } from "@/lib/mapable-agent/config";
 import {
   OllamaGptOssProvider,
-  VllmGptOssProvider,
 } from "@/lib/mapable-agent/model/ollama-gpt-oss-provider";
+import { VllmGptOssProvider } from "@/lib/mapable-agent/model/vllm-gpt-oss-provider";
 import type { ModelProvider } from "@/lib/mapable-agent/model/types";
 
 let cachedProvider: ModelProvider | null = null;

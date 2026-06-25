@@ -142,7 +142,7 @@ Returns `enabled`, `modelProvider`, `queueEnabled`, and any config `issues`.
 
 ## API
 
-- `POST /api/mapable-agent/chat` — send message
+- `POST /api/mapable-agent/chat` — send message (`stream: true` for UI message stream)
 - `GET/POST /api/mapable-agent/sessions` — list/create sessions
 - `GET /api/mapable-agent/review-queue` — pending reviews (admin)
 - `GET /api/mapable-agent/tools` — tool metadata

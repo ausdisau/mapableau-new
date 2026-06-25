@@ -4,6 +4,7 @@ import { checkConsent } from "@/lib/consent/consent-service";
 import { prisma } from "@/lib/prisma";
 import type { ToolDefinition } from "@/lib/mapable-agent/tools/types";
 import type { ConsentScope } from "@/types/mapable";
+import { ragSearch } from "@/lib/mapable-agent/rag/search";
 
 export function getParticipantProfileTool(): ToolDefinition {
   return {
@@ -324,6 +325,38 @@ export function draftProviderMessageTool(): ToolDefinition {
         data: { draft, status: "draft_only_not_sent" },
         confidence: 0.85,
         reviewCategory: "provider_selection",
+      };
+    },
+  };
+}
+
+/** Internal RAG tool — not listed in public catalog. */
+export function searchDocumentsTool(): ToolDefinition {
+  return {
+    name: "searchDocuments",
+    description: "Search participant documents via vector similarity",
+    sensitivity: "read",
+    catalogVisible: false,
+    requiresConsent: ["profile.read"],
+    inputSchema: z.object({
+      query: z.string().min(1),
+      participantId: z.string().optional(),
+      limit: z.number().optional(),
+    }),
+    execute: async (ctx, input) => {
+      const { query, participantId, limit } = input as {
+        query: string;
+        participantId?: string;
+        limit?: number;
+      };
+      const pid = participantId ?? ctx.participantId ?? undefined;
+      const hits = await ragSearch({ query, participantId: pid ?? undefined });
+      const trimmed = hits.slice(0, limit ?? 5);
+      return {
+        ok: true,
+        data: { results: trimmed },
+        confidence: trimmed.length > 0 ? 0.85 : 0.4,
+        reviewCategory: trimmed.length === 0 ? "low_confidence" : undefined,
       };
     },
   };

@@ -40,6 +40,7 @@ export function toolsForIntent(intent: MapableAgentIntent): string[] {
     case "plan":
       return [
         ...common,
+        "searchDocuments",
         "getParticipantProfile",
         "getConsentStatus",
         "parseNDISPlan",
@@ -49,6 +50,7 @@ export function toolsForIntent(intent: MapableAgentIntent): string[] {
     case "billing":
       return [
         ...common,
+        "searchDocuments",
         "getConsentStatus",
         "classifyInvoiceLineItems",
         "checkDuplicateInvoice",

@@ -1,6 +1,7 @@
 "use client";
 
 import type { AgentMessage } from "@/components/mapable-agent/AgentComposer";
+import { ReasoningSummaryCollapsible } from "@/components/mapable-agent/ReasoningSummaryCollapsible";
 
 type AgentMessageListProps = {
   messages: AgentMessage[];
@@ -31,10 +32,7 @@ export function AgentMessageList({
         >
           <p className="whitespace-pre-wrap leading-relaxed text-slate-800">{msg.content}</p>
           {showReasoning && msg.reasoningSummary ? (
-            <details className="mt-2 text-sm text-slate-600">
-              <summary className="cursor-pointer font-medium">Why this answer</summary>
-              <p className="mt-1">{msg.reasoningSummary}</p>
-            </details>
+            <ReasoningSummaryCollapsible summary={msg.reasoningSummary} />
           ) : null}
         </li>
       ))}

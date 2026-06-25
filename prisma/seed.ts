@@ -405,6 +405,12 @@ async function main() {
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
 
+  const alice = await prisma.user.findUnique({ where: { email: "alice@example.com" } });
+  if (alice) {
+    const { seedMapableAgent } = await import("./seed-mapable-agent");
+    await seedMapableAgent(alice.id);
+  }
+
   console.log("Seed complete.");
 }
 

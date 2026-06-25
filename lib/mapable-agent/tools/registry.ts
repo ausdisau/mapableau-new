@@ -13,6 +13,7 @@ import {
   quoteAccessibleTripTool,
   searchInclusiveJobsTool,
   searchSupportWorkersTool,
+  searchDocumentsTool,
 } from "@/lib/mapable-agent/tools/implementations";
 import {
   createHumanReviewTaskTool,
@@ -36,6 +37,7 @@ const ALL_TOOLS: ToolDefinition[] = [
   draftProviderMessageTool(),
   createHumanReviewTaskTool(),
   createLogAuditEventTool(),
+  searchDocumentsTool(),
 ];
 
 const TOOL_MAP = new Map(ALL_TOOLS.map((t) => [t.name, t]));
@@ -46,7 +48,7 @@ export function getToolCatalog(): Array<{
   sensitivity: string;
   requiresHumanApproval?: boolean;
 }> {
-  return ALL_TOOLS.map((t) => ({
+  return ALL_TOOLS.filter((t) => t.catalogVisible !== false).map((t) => ({
     name: t.name,
     description: t.description,
     sensitivity: t.sensitivity,
