@@ -74,6 +74,17 @@ export function apiForbidden(message = "Forbidden") {
   return Response.json({ error: message }, { status: 403 });
 }
 
+export async function requireAccessModerator(): Promise<CurrentUser> {
+  const user = await requireAuth();
+  const { isAccessModerator } = await import(
+    "@/lib/access-community/access-role-policy"
+  );
+  if (!(await isAccessModerator(user))) {
+    redirect("/dashboard");
+  }
+  return user;
+}
+
 export async function getApiUser(): Promise<CurrentUser | null> {
   try {
     return await requireCurrentUser();

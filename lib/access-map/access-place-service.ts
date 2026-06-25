@@ -15,6 +15,8 @@ const placeInclude = {
   location: true,
   features: true,
   ratingSummaries: true,
+  domainSummaries: true,
+  venueProfile: { select: { id: true, ownerUserId: true } },
   accreditationAssessments: {
     where: { status: "published" as const },
     orderBy: { publishedAt: "desc" as const },

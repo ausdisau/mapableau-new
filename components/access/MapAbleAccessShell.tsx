@@ -17,6 +17,8 @@ export type AccessPlaceView = {
   reviewCount?: number;
   latitude?: number;
   longitude?: number;
+  overallScore?: number | null;
+  activeAlertCount?: number;
 };
 
 export function MapAbleAccessShell({
@@ -47,6 +49,8 @@ export function MapAbleAccessShell({
             reviewCount: number;
             latitude?: number;
             longitude?: number;
+            activeAlertCount?: number;
+            accessSummary?: { overallScore: number | null };
           };
         }) => ({
           id: r.place.id,
@@ -56,6 +60,8 @@ export function MapAbleAccessShell({
           reviewCount: r.place.reviewCount,
           latitude: r.place.latitude,
           longitude: r.place.longitude,
+          overallScore: r.place.accessSummary?.overallScore ?? null,
+          activeAlertCount: r.place.activeAlertCount ?? 0,
         })
       )
     );

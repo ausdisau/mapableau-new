@@ -1,24 +1,33 @@
-import { requireAdmin } from "@/lib/auth/guards";
+import { ModerationActionPanel } from "@/components/admin/access/ModerationActionPanel";
+import { requireAccessModerator } from "@/lib/auth/guards";
 import { listModerationQueue } from "@/lib/access-moderation/review-moderation-service";
 
 export default async function AdminAccessModerationPage() {
-  await requireAdmin();
+  await requireAccessModerator();
   const queue = await listModerationQueue("pending");
 
   return (
     <div className="space-y-4 p-6">
       <h1 className="text-2xl font-bold">Moderation queue</h1>
-      <ul className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Review flagged community content. Describe observed conditions only — not
+        legal determinations.
+      </p>
+      <ul className="space-y-4">
         {queue.map((item) => (
-          <li key={item.id} className="rounded-lg border p-4">
-            <p className="font-medium">{item.entityType}</p>
-            <p className="text-sm text-muted-foreground">{item.flagReason}</p>
-            {item.review ? (
-              <p className="mt-2 text-sm line-clamp-3">{item.review.reviewBody}</p>
-            ) : null}
+          <li key={item.id}>
+            <ModerationActionPanel
+              queueId={item.id}
+              entityType={item.entityType}
+              flagReason={item.flagReason}
+              preview={item.review?.reviewBody}
+            />
           </li>
         ))}
       </ul>
+      {!queue.length ? (
+        <p className="text-sm text-muted-foreground">Queue is empty.</p>
+      ) : null}
     </div>
   );
 }

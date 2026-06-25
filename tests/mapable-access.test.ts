@@ -161,6 +161,13 @@ describe("content safety", () => {
     );
     expect(flags.length).toBeGreaterThan(0);
   });
+
+  it("flags illegal discrimination language", () => {
+    const flags = scanReviewForModerationFlags(
+      "This venue illegally discriminates against wheelchair users"
+    );
+    expect(flags.some((f) => f.includes("Legal"))).toBe(true);
+  });
 });
 
 describe("ranking", () => {

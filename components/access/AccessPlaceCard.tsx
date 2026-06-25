@@ -9,6 +9,8 @@ export type AccessPlaceCardData = {
   suburb?: string | null;
   reviewCount?: number;
   confidence?: string;
+  overallScore?: number | null;
+  activeAlertCount?: number;
 };
 
 export function AccessPlaceCard({ place }: { place: AccessPlaceCardData }) {
@@ -23,11 +25,24 @@ export function AccessPlaceCard({ place }: { place: AccessPlaceCardData }) {
         {place.category.replace(/_/g, " ")}
         {place.suburb ? ` · ${place.suburb}` : ""}
       </p>
-      <p className="mt-2 text-sm">
-        {(place.reviewCount ?? 0) > 0
-          ? ACCESS_LABELS.communityReviewed
-          : ACCESS_LABELS.needsMore}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+        {place.overallScore != null ? (
+          <span aria-label={`Overall access score ${place.overallScore} out of 5`}>
+            Score: {place.overallScore.toFixed(1)}/5
+          </span>
+        ) : (
+          <span>{ACCESS_LABELS.needsMore}</span>
+        )}
+        {(place.reviewCount ?? 0) > 0 ? (
+          <span>{place.reviewCount} report{place.reviewCount === 1 ? "" : "s"}</span>
+        ) : null}
+        {(place.activeAlertCount ?? 0) > 0 ? (
+          <span className="text-destructive" role="status">
+            {place.activeAlertCount} active alert
+            {place.activeAlertCount === 1 ? "" : "s"}
+          </span>
+        ) : null}
+      </div>
     </article>
   );
 }
