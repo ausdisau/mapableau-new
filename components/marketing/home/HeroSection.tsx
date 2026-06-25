@@ -42,13 +42,13 @@ export function HeroSection() {
         </p>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
           <a
-            href="#guided-search-panel"
+            href={homepageHeroCopy.primaryCtaHref}
             className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#005B7F] px-6 py-4 text-base font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`}
           >
             {homepageHeroCopy.primaryCta} <ArrowIcon />
           </a>
           <a
-            href="#explore"
+            href={homepageHeroCopy.secondaryCtaHref}
             className={`inline-flex min-h-12 items-center justify-center rounded-2xl border-2 border-[#0C1833] px-6 py-4 text-base font-black text-[#0C1833] transition hover:bg-white ${mapableCareFocusRing}`}
           >
             {homepageHeroCopy.secondaryCta}

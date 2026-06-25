@@ -18,6 +18,7 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:a11y": "playwright test",
     "setup:cloud-agent": "bash scripts/setup-cloud-agent.sh",
     "mcp:av": "tsx mcp/av/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",
@@ -85,6 +86,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.52.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",

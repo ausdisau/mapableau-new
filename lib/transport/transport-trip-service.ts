@@ -1,5 +1,7 @@
 import type { Prisma, TransportTripStatus } from "@prisma/client";
 
+import { buildAccessibleDestinationProfile } from "@/lib/access-transport/accessible-destination-profile";
+import { computeJourneyConfidence } from "@/lib/access-transport/journey-confidence-service";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
 import {
@@ -50,7 +52,35 @@ export async function createTransportTrip(
     mobilityRequirements = normalizeMobilityRequirements(mobilityRequirements);
   }
 
+  let destinationAccessPlaceId = input.destinationAccessPlaceId;
+  let accessDestinationProfileJson = input.accessDestinationProfileJson;
+  let journeyConfidenceJson = input.journeyConfidenceJson;
+
+  if (destinationAccessPlaceId && !accessDestinationProfileJson) {
+    const profile = await buildAccessibleDestinationProfile({
+      placeId: destinationAccessPlaceId,
+      user,
+    });
+    if (profile) {
+      accessDestinationProfileJson = profile as unknown as Record<
+        string,
+        unknown
+      >;
+      journeyConfidenceJson = computeJourneyConfidence({
+        destinationProfile: profile,
+        hasMobilityPrefill: Boolean(input.prefillFromProfile),
+      }) as unknown as Record<string, unknown>;
+      if (!accessNotes && profile.transportInstructions.driverNotes) {
+        accessNotes = profile.transportInstructions.driverNotes;
+      }
+    }
+  }
+
   const mobilityJson = mobilityRequirements as Prisma.InputJsonValue;
+  const profileJson =
+    accessDestinationProfileJson as Prisma.InputJsonValue | undefined;
+  const confidenceJson =
+    journeyConfidenceJson as Prisma.InputJsonValue | undefined;
 
   const request = await prisma.transportTripRequest.create({
     data: {
@@ -69,6 +99,9 @@ export async function createTransportTrip(
       accessNotes,
       mobilityRequirements: mobilityJson,
       status: "open",
+      destinationAccessPlaceId,
+      accessDestinationProfileJson: profileJson,
+      journeyConfidenceJson: confidenceJson,
     },
   });
 
@@ -90,6 +123,9 @@ export async function createTransportTrip(
       scheduledStart,
       scheduledEnd,
       mobilityRequirements: mobilityJson,
+      destinationAccessPlaceId,
+      accessDestinationProfileJson: profileJson,
+      journeyConfidenceJson: confidenceJson,
     },
   });
 

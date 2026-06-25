@@ -1,0 +1,69 @@
+[
+  {
+    "code": "job_profile_share_consent",
+    "type": "consent_contract",
+    "trigger": "before_profile_share",
+    "requiresAttestation": true,
+    "rules": [
+      {
+        "field": "participantConfirmedShare",
+        "operator": "eq",
+        "value": true,
+        "message": "Participant must confirm job profile sharing."
+      }
+    ]
+  },
+  {
+    "code": "provider_credential_proof",
+    "type": "credential_proof_contract",
+    "trigger": "before_worker_matching",
+    "rules": [
+      {
+        "field": "providerCredentialVerified",
+        "operator": "eq",
+        "value": true,
+        "message": "Provider credential proof is required before matching."
+      }
+    ]
+  },
+  {
+    "code": "service_summary_confirmation",
+    "type": "service_agreement_contract",
+    "trigger": "before_service_start",
+    "requiresAttestation": true,
+    "rules": [
+      {
+        "field": "participantConfirmedSummary",
+        "operator": "eq",
+        "value": true,
+        "message": "Participant must confirm the service summary before booking."
+      }
+    ]
+  },
+  {
+    "code": "completion_acknowledgment",
+    "type": "payment_release_contract",
+    "trigger": "before_payment_release",
+    "rules": [
+      {
+        "field": "participantAcknowledgedCompletion",
+        "operator": "eq",
+        "value": true,
+        "message": "Participant acknowledgment is required before payment release."
+      }
+    ]
+  },
+  {
+    "code": "pricing_compliance_gate",
+    "type": "compliance_gate",
+    "trigger": "before_service_start",
+    "rules": [
+      {
+        "field": "pricingWithinLimit",
+        "operator": "eq",
+        "value": true,
+        "message": "Pricing must be within configured limits or verified."
+      }
+    ]
+  }
+]

@@ -12,6 +12,11 @@ export const ACCESS_LABELS = {
   unknown: "Accessibility information unknown",
   needsMore: "Needs more access information",
   reportInaccurate: "Report inaccurate information",
+  addAccessReport: "Add access report",
+  photoPrivacyWarning:
+    "Do not photograph strangers. Photos are reviewed before appearing publicly.",
+  observedConditionsHint:
+    "Describe observed access conditions in plain language. Avoid legal claims.",
 } as const;
 
 export const MAPABLE_MY_MAPS_KML_URL =

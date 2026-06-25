@@ -4,6 +4,11 @@ import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { AccessMap } from "@/components/access/AccessMap";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access-accreditation/accreditation-assessment-service";
+import { listActiveAlertsForPlace } from "@/lib/access-alerts/access-alert-service";
+import {
+  getPlaceAccessSummary,
+  getPlaceDomainSummaries,
+} from "@/lib/access-map/domain-score-service";
 import { getPlaceById } from "@/lib/access-map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access-reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access-reviews/review-access-policy";
@@ -20,14 +25,22 @@ export default async function AccessPlacePage({
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
         <p>Place not found.</p>
-        <Link href="/access" className="underline">
+        <Link href="/access/map" className="underline">
           Back to map
         </Link>
       </div>
     );
   }
 
-  const reviewsRaw = await listPublishedReviewsForPlace(placeId);
+  const [reviewsRaw, accessSummary, domainRows, alertsRaw, accreditationDisplay] =
+    await Promise.all([
+      listPublishedReviewsForPlace(placeId),
+      getPlaceAccessSummary(placeId),
+      getPlaceDomainSummaries(placeId),
+      listActiveAlertsForPlace(placeId),
+      getAccreditationDisplayForPlace(placeId),
+    ]);
+
   const users = await prisma.user.findMany({
     where: { id: { in: reviewsRaw.map((r) => r.reviewerProfileId) } },
     select: { id: true, name: true },
@@ -41,11 +54,18 @@ export default async function AccessPlacePage({
       userName: userMap.get(r.reviewerProfileId) ?? "Community member",
     }),
     reviewBody: r.reviewBody,
-    label: "Community review — user reported",
+    label: "Community report — user observed conditions",
     createdAt: r.createdAt.toISOString(),
   }));
 
-  const accreditationDisplay = await getAccreditationDisplayForPlace(placeId);
+  const alerts = alertsRaw.map((a) => ({
+    id: a.id,
+    alertType: a.alertType,
+    title: a.title,
+    description: a.description,
+    status: a.status,
+    expiresAt: a.expiresAt?.toISOString() ?? null,
+  }));
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
@@ -73,6 +93,14 @@ export default async function AccessPlacePage({
               }
             : null
         }
+        accessSummary={accessSummary}
+        domains={domainRows.map((d) => ({
+          domain: d.domain,
+          score: d.score,
+          sampleCount: d.sampleCount,
+        }))}
+        alerts={alerts}
+        claimedByVenue={Boolean(place.venueProfile)}
       />
 
       {place.location ? (

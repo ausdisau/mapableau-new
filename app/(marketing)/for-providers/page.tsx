@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { InterestForm } from "@/components/marketing/InterestForm";
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 
 export const metadata = {
@@ -10,13 +11,14 @@ export const metadata = {
 
 export default function ForProvidersPage() {
   return (
-    <PublicInfoPage
-      eyebrow="For providers"
-      title="Prepare your organisation for safer participant-facing operations."
-      description="MapAble is designed for providers that need consent-aware intake, bookings, workforce eligibility, service evidence and participant review."
-      ctaLabel="Register provider interest"
-      ctaHref="/contact"
-      sections={[
+    <div>
+      <PublicInfoPage
+        eyebrow="For providers"
+        title="Prepare your organisation for safer participant-facing operations."
+        description="MapAble is designed for providers that need consent-aware intake, bookings, workforce eligibility, service evidence and participant review."
+        ctaLabel="Register provider interest"
+        ctaHref="#provider-form"
+        sections={[
         {
           title: "What providers can do now",
           content: (
@@ -86,6 +88,10 @@ export default function ForProvidersPage() {
           ),
         },
       ]}
-    />
+      />
+      <section id="provider-form" className="mx-auto max-w-xl px-5 pb-12">
+        <InterestForm formType="provider" />
+      </section>
+    </div>
   );
 }

@@ -1,8 +1,12 @@
 import Link from "next/link";
 
+import { AccessAlertsPanel } from "@/components/access/AccessAlertsPanel";
 import { AccessConfidenceBadge } from "@/components/access/AccessConfidenceBadge";
+import { AccessDomainScorePanel } from "@/components/access/AccessDomainScorePanel";
 import { AccessFeatureBadges } from "@/components/access/AccessFeatureBadges";
+import { AccessVerificationActions } from "@/components/access/AccessVerificationActions";
 import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityDisclaimerPanel";
+import { PlanAccessibleTransportButton } from "@/components/access/PlanAccessibleTransportButton";
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
 import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
@@ -15,6 +19,10 @@ export function AccessPlaceProfile({
   place,
   reviews,
   accreditation,
+  accessSummary,
+  domains,
+  alerts,
+  claimedByVenue,
 }: {
   place: {
     id: string;
@@ -40,6 +48,25 @@ export function AccessPlaceProfile({
     totalScore: number;
     expired?: boolean;
   } | null;
+  accessSummary?: {
+    overallScore: number | null;
+    confidenceScore: number | null;
+    lastUpdated: string | null;
+  };
+  domains?: {
+    domain: string;
+    score: number | null;
+    sampleCount: number;
+  }[];
+  alerts?: {
+    id: string;
+    alertType: string;
+    title: string;
+    description?: string | null;
+    status: string;
+    expiresAt?: string | null;
+  }[];
+  claimedByVenue?: boolean;
 }) {
   return (
     <div className="space-y-8">
@@ -53,7 +80,7 @@ export function AccessPlaceProfile({
             .filter(Boolean)
             .join(", ")}
         </p>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <AccessConfidenceBadge
             level={place.confidence}
             accreditationTier={
@@ -62,8 +89,21 @@ export function AccessPlaceProfile({
                 : null
             }
           />
+          {claimedByVenue ? (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
+              Venue claimed
+            </span>
+          ) : null}
         </div>
       </header>
+
+      {accessSummary && domains ? (
+        <AccessDomainScorePanel summary={accessSummary} domains={domains} />
+      ) : null}
+
+      {alerts ? <AccessAlertsPanel alerts={alerts} /> : null}
+
+      <PlanAccessibleTransportButton placeId={place.id} placeName={place.name} />
 
       <section aria-labelledby="access-features-heading">
         <h2 id="access-features-heading" className="text-lg font-semibold">
@@ -79,9 +119,17 @@ export function AccessPlaceProfile({
           {ACCESS_LABELS.communityReviewed} ({ACCESS_LABELS.userReported})
         </h2>
         <p className="text-sm text-muted-foreground">
-          Community rating summary is user-reported, not legal certification.
+          Community reports describe observed conditions, not legal certification.
         </p>
         <CommunityReviewPreview reviews={reviews} placeId={place.id} />
+        {reviews[0] ? (
+          <div className="mt-4">
+            <AccessVerificationActions
+              targetType="review"
+              targetId={reviews[0].id}
+            />
+          </div>
+        ) : null}
       </section>
 
       {accreditation ? (
@@ -102,14 +150,20 @@ export function AccessPlaceProfile({
 
       <div className="flex flex-wrap gap-3">
         <Link
-          href={`/access/review/${place.id}`}
-          className="min-h-11 inline-flex items-center rounded-lg bg-primary px-4 text-primary-foreground"
+          href={`/access/places/${place.id}/report`}
+          className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-primary-foreground"
         >
-          Add community review
+          Add access report
+        </Link>
+        <Link
+          href={`/access/places/${place.id}/alerts/new`}
+          className="inline-flex min-h-11 items-center rounded-lg border border-border px-4"
+        >
+          Flag access alert
         </Link>
         <Link
           href={`/access/places/${place.id}/claim`}
-          className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
+          className="inline-flex min-h-11 items-center rounded-lg border border-border px-4"
         >
           Claim as venue owner
         </Link>

@@ -60,9 +60,9 @@ describe("mapAbleCareCombinedDesignTests", () => {
     expect(spec?.expectedInitialQuery).toBe("");
   });
 
-  it("positioning uses combined care language", () => {
+  it("positioning uses ecosystem language", () => {
     const spec = mapAbleCareCombinedDesignTests.find(
-      (item) => item.name === "positioning uses combined care language",
+      (item) => item.name === "positioning uses ecosystem language",
     );
     expect(spec?.expectedHeadline).toBe(homepageHeroCopy.headline);
   });
