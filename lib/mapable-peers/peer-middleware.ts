@@ -14,6 +14,7 @@ const AUTH_PREFIXES = [
   "/driver",
   "/messages",
   "/practitioner",
+  "/marketplace",
 ] as const;
 
 const AUTH_PATHS = ["/care/", "/transport/"] as const;

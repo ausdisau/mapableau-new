@@ -346,6 +346,120 @@ function parseSourceUpdatedAt(sourceDate?: string): Date | null {
   return new Date(parsed);
 }
 
+/** Keep batches small — large interactive transactions drop Neon/pooler connections. */
+export const NDIS_PROVIDER_UPSERT_BATCH_SIZE = 25;
+
+function resolveIngestBatchSize(): number {
+  const fromEnv = Number(process.env.NDIS_INGEST_BATCH_SIZE);
+  if (Number.isFinite(fromEnv) && fromEnv > 0) {
+    return Math.min(Math.floor(fromEnv), 100);
+  }
+  return NDIS_PROVIDER_UPSERT_BATCH_SIZE;
+}
+
+export function isTransientDbError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const message =
+    "message" in error && typeof error.message === "string"
+      ? error.message.toLowerCase()
+      : "";
+  const code =
+    "code" in error && typeof error.code === "string" ? error.code : "";
+  return (
+    code === "P1001" ||
+    code === "P1017" ||
+    code === "P2024" ||
+    message.includes("server has closed the connection") ||
+    message.includes("connection terminated") ||
+    message.includes("timeout")
+  );
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withTransientDbRetry<T>(
+  operation: () => Promise<T>,
+  maxAttempts = 4,
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isTransientDbError(error) || attempt === maxAttempts) {
+        throw error;
+      }
+      await sleep(500 * 2 ** (attempt - 1));
+    }
+  }
+  throw lastError;
+}
+
+function ndisProviderUpsertArgs(
+  row: NormalisedNdisProvider,
+  resolvedUrl: string,
+  sourceUpdatedAt: Date | null,
+): {
+  where: { sourceId: string };
+  create: Prisma.NdisProviderCreateInput;
+  update: Prisma.NdisProviderUpdateInput;
+} {
+  const data = {
+    providerName: row.providerName,
+    legalName: row.legalName,
+    abn: row.abn,
+    registrationNumber: row.registrationNumber,
+    phone: row.phone,
+    email: row.email,
+    website: row.website,
+    address: row.address,
+    suburb: row.suburb,
+    state: row.state,
+    postcode: row.postcode,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    services: row.services,
+    registrationGroups: row.registrationGroups,
+    raw: row.raw as Prisma.InputJsonValue,
+    rawHash: row.rawHash,
+    sourceUrl: resolvedUrl,
+    sourceUpdatedAt,
+  };
+
+  return {
+    where: { sourceId: row.sourceId },
+    create: { sourceId: row.sourceId, ...data },
+    update: data,
+  };
+}
+
+async function persistNdisProviders(
+  rows: NormalisedNdisProvider[],
+  resolvedUrl: string,
+  sourceUpdatedAt: Date | null,
+): Promise<void> {
+  const batchSize = resolveIngestBatchSize();
+
+  for (let offset = 0; offset < rows.length; offset += batchSize) {
+    const chunk = rows.slice(offset, offset + batchSize);
+    await withTransientDbRetry(() =>
+      prisma.$transaction(
+        async (tx) => {
+          for (const row of chunk) {
+            await tx.ndisProvider.upsert(
+              ndisProviderUpsertArgs(row, resolvedUrl, sourceUpdatedAt),
+            );
+          }
+        },
+        { maxWait: 10_000, timeout: 120_000 },
+      ),
+    );
+  }
+}
+
 export async function runNdisProviderIngestion(options?: {
   dryRun?: boolean;
   sourceUrl?: string;
@@ -397,60 +511,7 @@ export async function runNdisProviderIngestion(options?: {
     });
 
     try {
-      const batchSize = 200;
-      for (let offset = 0; offset < normalised.length; offset += batchSize) {
-        const chunk = normalised.slice(offset, offset + batchSize);
-        await prisma.$transaction(
-          chunk.map((row) =>
-            prisma.ndisProvider.upsert({
-              where: { sourceId: row.sourceId },
-              create: {
-                sourceId: row.sourceId,
-                providerName: row.providerName,
-                legalName: row.legalName,
-                abn: row.abn,
-                registrationNumber: row.registrationNumber,
-                phone: row.phone,
-                email: row.email,
-                website: row.website,
-                address: row.address,
-                suburb: row.suburb,
-                state: row.state,
-                postcode: row.postcode,
-                latitude: row.latitude,
-                longitude: row.longitude,
-                services: row.services,
-                registrationGroups: row.registrationGroups,
-                raw: row.raw as Prisma.InputJsonValue,
-                rawHash: row.rawHash,
-                sourceUrl: resolvedUrl,
-                sourceUpdatedAt,
-              },
-              update: {
-                providerName: row.providerName,
-                legalName: row.legalName,
-                abn: row.abn,
-                registrationNumber: row.registrationNumber,
-                phone: row.phone,
-                email: row.email,
-                website: row.website,
-                address: row.address,
-                suburb: row.suburb,
-                state: row.state,
-                postcode: row.postcode,
-                latitude: row.latitude,
-                longitude: row.longitude,
-                services: row.services,
-                registrationGroups: row.registrationGroups,
-                raw: row.raw as Prisma.InputJsonValue,
-                rawHash: row.rawHash,
-                sourceUrl: resolvedUrl,
-                sourceUpdatedAt,
-              },
-            }),
-          ),
-        );
-      }
+      await persistNdisProviders(normalised, resolvedUrl, sourceUpdatedAt);
 
       // TODO: mark providers missing from this source_hash as stale after verification workflow exists.
 

@@ -18,6 +18,8 @@ const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
+  // Heading font loads on first h1/logo; avoid unused preload console warnings.
+  preload: false,
 });
 
 export const metadata: Metadata = {

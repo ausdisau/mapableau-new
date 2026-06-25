@@ -28,7 +28,9 @@
     "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
     "ingest:ndis-providers:dry": "DRY_RUN=true tsx scripts/ingest-ndis-providers.ts",
     "check:integrations-env": "npx tsx scripts/check-integrations-env.ts",
-    "mapable-agent:worker": "tsx scripts/mapable-agent-worker.ts"
+    "check:replit-unified": "bash scripts/check-replit-unified-deployment.sh",
+    "mapable-agent:worker": "tsx scripts/mapable-agent-worker.ts",
+    "sync:replit-unified": "bash scripts/sync-replit-unified.sh"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

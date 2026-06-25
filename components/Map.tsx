@@ -1,34 +1,17 @@
 "use client";
 
-import L, { type LatLngExpression, latLngBounds } from "leaflet";
+import { type LatLngExpression, latLngBounds } from "leaflet";
 import { Fragment, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { Provider } from "@/app/provider-finder/providers";
+import { mapMarkerIcons } from "@/lib/map/leaflet-markers";
 import "@/lib/leafletIcons";
 
-// Use divIcons for all markers so we never rely on L.Icon.Default (avoids createIcon undefined in some envs)
-const defaultMarkerIcon = L.divIcon({
-  className: "default-marker-icon",
-  html: `<div style="width:22px;height:22px;background:#2563eb;border:2px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
-  iconSize: [22, 22],
-  iconAnchor: [11, 11],
-});
-
-const redMarkerIcon = L.divIcon({
-  className: "red-marker-icon",
-  html: `<div style="width:24px;height:24px;background:#dc2626;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>`,
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-});
-
-const userPositionIcon = L.divIcon({
-  className: "user-marker-icon",
-  html: `<div style="width:20px;height:20px;background:#16a34a;border:2px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
-});
+const defaultMarkerIcon = mapMarkerIcons.provider;
+const redMarkerIcon = mapMarkerIcons.selected;
+const userPositionIcon = mapMarkerIcons.user;
 
 // Approximate coordinates for Australian locations
 // In production, you'd use a geocoding service

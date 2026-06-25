@@ -16,3 +16,9 @@ export function safeAuthCallbackPath(
   if (!path.startsWith("/") || path.startsWith("//")) return fallback;
   return path;
 }
+
+/** Full navigation after auth so middleware sees the new session cookie. */
+export function redirectAfterAuth(callbackUrl: string): void {
+  if (typeof window === "undefined") return;
+  window.location.assign(callbackUrl);
+}

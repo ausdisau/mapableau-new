@@ -91,3 +91,26 @@
     @apply font-heading font-bold tracking-tight;
   }
 }
+
+@layer components {
+  .map-marker {
+    box-sizing: border-box;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 0.3);
+  }
+
+  .map-marker--primary {
+    background: hsl(var(--primary));
+  }
+
+  .map-marker--secondary {
+    background: hsl(var(--secondary));
+  }
+
+  .map-marker--destructive {
+    background: hsl(var(--destructive));
+    border-width: 3px;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  }
+}

@@ -62,6 +62,11 @@ export const CORE_HUB_SECTIONS: {
         description: "Book accessible transport and manage scheduled trips",
       },
       {
+        href: "/marketplace",
+        label: "MapAble Marketplace",
+        description: "Disability aids, equipment, and daily essentials",
+      },
+      {
         href: "/dashboard/jobs",
         label: "MapAble Jobs",
         description: "Inclusive employment opportunities",
