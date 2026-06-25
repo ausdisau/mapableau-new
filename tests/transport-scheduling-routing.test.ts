@@ -74,6 +74,9 @@ const baseTrip = {
   scheduledEnd: new Date("2026-06-01T10:00:00Z"),
   mobilityRequirements: {},
   disputeReason: null,
+  destinationAccessPlaceId: null,
+  accessDestinationProfileJson: null,
+  journeyConfidenceJson: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

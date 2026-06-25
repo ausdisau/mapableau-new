@@ -26,6 +26,9 @@ export const createTransportTripSchema = z.object({
   mobilityRequirements: mobilityRequirementsSchema.optional(),
   providerOrganisationId: z.string().optional(),
   prefillFromProfile: z.boolean().optional(),
+  destinationAccessPlaceId: z.string().optional(),
+  accessDestinationProfileJson: z.record(z.string(), z.unknown()).optional(),
+  journeyConfidenceJson: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const patchTransportTripSchema = z.object({

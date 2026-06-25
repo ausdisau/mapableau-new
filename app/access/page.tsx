@@ -18,18 +18,18 @@ export default function AccessPage() {
         "Community reviewers sharing structured, moderated observations.",
       ]}
       availableNow={[
-        "Public explanation of the Access module and review principles.",
-        "Pilot path for venue and community interest.",
-        "Clear separation between community reviews and accreditation.",
+        "Public accessibility map with community reports.",
+        "Access alerts and place profiles.",
+        "Plan accessible transport from place pages.",
       ]}
       comingSoon={[
-        "Public accessibility map and place profiles.",
-        "Community reviews with moderation and structured ratings.",
-        "KML importer, venue claim flow and formal accreditation workflow.",
+        "Can I go here? personalised access matching.",
+        "Full journey confidence scoring with route hazards.",
+        "Automated accreditation evidence review.",
       ]}
-      safetyNote="Community reviews are not legal, DDA or building compliance determinations. Formal MapAble Accreditation will be separate from community reviews and will not be implied by map feedback."
-      primaryCta={{ label: "Join pilot", href: "/contact" }}
-      secondaryCta={{ label: "Contact MapAble", href: "/contact" }}
+      safetyNote="Community reports describe observed access conditions, not legal compliance. Formal MapAble Accreditation is separate from community reports."
+      primaryCta={{ label: "Browse access map", href: "/access/map" }}
+      secondaryCta={{ label: "Community feed", href: "/access/feed" }}
     />
   );
 }

@@ -26,6 +26,7 @@ const placeInclude = {
     take: 5,
     include: { ratings: true },
   },
+  venueProfile: true,
   _count: {
     select: {
       reviews: { where: { status: "published" } },
