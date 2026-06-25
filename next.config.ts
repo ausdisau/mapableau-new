@@ -14,6 +14,28 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: "/accessibility-map",
+        destination: "/access",
+        permanent: true,
+      },
+      {
+        source: "/jobs",
+        destination: "/employment",
+        permanent: true,
+      },
     ];
   },
   eslint: {

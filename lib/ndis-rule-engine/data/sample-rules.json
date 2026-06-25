@@ -1,0 +1,38 @@
+[
+  {
+    "id": "consent_sensitive_access_needs",
+    "message": "Sensitive access needs need your consent before they can be shared.",
+    "outcome": "reviewRequired",
+    "flagCode": "consent_required"
+  },
+  {
+    "id": "ndis_line_item_review",
+    "message": "This service may need an NDIS line item review.",
+    "outcome": "reviewRequired",
+    "flagCode": "line_item_review"
+  },
+  {
+    "id": "unverified_ndis_registration",
+    "message": "Provider NDIS registration could not be verified.",
+    "outcome": "reviewRequired",
+    "flagCode": "provider_unverified"
+  },
+  {
+    "id": "price_above_limit",
+    "message": "The quoted price is above the configured review limit.",
+    "outcome": "blocked",
+    "flagCode": "price_limit"
+  },
+  {
+    "id": "wheelchair_vehicle_required",
+    "message": "This trip needs a wheelchair accessible vehicle.",
+    "outcome": "reviewRequired",
+    "flagCode": "wav_required"
+  },
+  {
+    "id": "high_risk_personal_care",
+    "message": "Personal care involving a child needs human review.",
+    "outcome": "reviewRequired",
+    "flagCode": "high_risk_care"
+  }
+]

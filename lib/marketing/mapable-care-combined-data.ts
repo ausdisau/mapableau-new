@@ -104,11 +104,87 @@ export const logoMenuItems: MenuItem[] = [
 ];
 
 export const homepageHeroCopy = {
-  headline: "Care, transport and opportunity, connected.",
+  headline: "Your life, connected.",
   subheading:
-    "MapAble brings care, accessible transport, NDIS guidance, inclusive jobs and everyday access into one guided ecosystem — so you can compare options, plan next steps and connect with support that fits your life.",
-  primaryCta: "Start guided search",
-  secondaryCta: "Explore MapAble",
+    "MapAble helps people with disability and their supporters find accessible places, coordinate care, plan transport, and move toward work with confidence.",
+  primaryCta: "Join the early access list",
+  secondaryCta: "Explore accessibility mapping",
+  primaryCtaHref: "/early-access",
+  secondaryCtaHref: "/access",
+};
+
+export const ecosystemTrustStrip = [
+  "Australian disability-led social enterprise",
+  "Built for accessibility from the first click",
+  "Care + Transport + Jobs roadmap",
+];
+
+export const ecosystemProblemPoints = [
+  {
+    title: "Fragmented support systems",
+    body: "Care, transport, jobs, and venue information often live in separate apps and phone calls.",
+  },
+  {
+    title: "Unreliable accessibility information",
+    body: "Generic icons do not reflect real-world access conditions or recent changes.",
+  },
+  {
+    title: "Transport uncertainty",
+    body: "Appointment timing, pickup buffers, and vehicle access are hard to coordinate.",
+  },
+  {
+    title: "Employment support gaps",
+    body: "Interviews and workplace adjustments need planning across multiple supporters.",
+  },
+];
+
+export const ecosystemSolutions = [
+  { title: "MapAble Core", body: "Shared account, messaging, and profile backbone.", href: "/core" },
+  { title: "MapAble Accessibility Map", body: "Evidence-based community and verified access data.", href: "/access" },
+  { title: "MapAble Care", body: "Consent-aware support requests and coordination.", href: "/care" },
+  { title: "MapAble Transport", body: "Accessible trip planning linked to real appointments.", href: "/transport" },
+  { title: "MapAble Jobs", body: "Inclusive employment with supports around the interview.", href: "/employment" },
+];
+
+export const crossServiceJourneys = [
+  {
+    title: "Care visit with transport",
+    body: "Book support and align accessible pickup windows in one flow.",
+    href: "/demo/care-transport",
+  },
+  {
+    title: "Job interview with support",
+    body: "Plan transport, communication support, and coaching with consent controls.",
+    href: "/employment",
+  },
+  {
+    title: "Accessible outing with verified venue information",
+    body: "Check community and verified access notes before you travel.",
+    href: "/access/map",
+  },
+];
+
+export const communitySectionCopy = {
+  title: "Built with community",
+  items: [
+    "Mapping days with lived-experience reviewers",
+    "Structured feedback loops after trips and visits",
+    "Provider and council partnerships for local accuracy",
+  ],
+};
+
+export const providerSectionCopy = {
+  title: "For providers and venues",
+  body: "Free basic listing, verified accessibility profiles, and a future voluntary accreditation pathway.",
+  cta: "Register provider interest",
+  href: "/for-providers",
+};
+
+export const finalCtaCopy = {
+  title: "Help build Australia's accessibility layer",
+  body: "Join early access, contribute access information, or partner with MapAble.",
+  primaryHref: "/early-access",
+  secondaryHref: "/access/map",
 };
 
 export const homepageCategoryChips = [
@@ -120,10 +196,9 @@ export const homepageCategoryChips = [
 ];
 
 export const homepageTrustStripItems = [
-  "Verified support options",
-  "Accessible-first design",
-  "NDIS-aware workflows",
-  "Built with lived experience",
+  "Australian disability-led social enterprise",
+  "Built for accessibility from the first click",
+  "Care + Transport + Jobs roadmap",
 ];
 
 export const guidedSearchPanelCopy = {
@@ -411,8 +486,8 @@ export const mapAbleCareCombinedDesignTests = [
     expectedInitialQuery: "",
   },
   {
-    name: "positioning uses combined care language",
-    expectedHeadline: "Care, transport and opportunity, connected.",
+    name: "positioning uses ecosystem language",
+    expectedHeadline: "Your life, connected.",
   },
   {
     name: "support selector uses user-facing areas instead of agents",

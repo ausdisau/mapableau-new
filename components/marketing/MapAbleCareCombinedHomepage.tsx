@@ -15,9 +15,15 @@ import {
   SponsoredCard,
 } from "@/components/marketing/mapable-care-shared";
 import {
+  crossServiceJourneys,
+  communitySectionCopy,
   differenceCards,
+  ecosystemProblemPoints,
+  ecosystemSolutions,
+  finalCtaCopy,
   getSponsoredPlacement,
   marketplaceCards,
+  providerSectionCopy,
 } from "@/lib/marketing/mapable-care-combined-data";
 
 export { mapAbleCareCombinedDesignTests } from "@/lib/marketing/mapable-care-combined-data";
@@ -55,6 +61,113 @@ function ShieldIcon() {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+function EcosystemProblemSection() {
+  return (
+    <section id="problem" className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+      <h2 className="text-3xl font-black text-[#0C1833] md:text-4xl">The everyday friction</h2>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {ecosystemProblemPoints.map((point) => (
+          <article key={point.title} className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 className="font-black text-[#0C1833]">{point.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{point.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EcosystemSolutionSection() {
+  return (
+    <section id="solution" className="border-y border-slate-200 bg-[#F6FBFC]">
+      <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+        <h2 className="text-3xl font-black text-[#0C1833] md:text-4xl">The MapAble ecosystem</h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {ecosystemSolutions.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="rounded-2xl border border-slate-200 bg-white p-5 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            >
+              <h3 className="font-black text-[#005B7F]">{item.title}</h3>
+              <p className="mt-2 text-sm text-slate-600">{item.body}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function JourneyCardsSection() {
+  return (
+    <section id="journeys" className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+      <h2 className="text-3xl font-black text-[#0C1833] md:text-4xl">Cross-service journeys</h2>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        {crossServiceJourneys.map((card) => (
+          <Link
+            key={card.title}
+            href={card.href}
+            className="rounded-2xl border border-slate-200 p-5 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+          >
+            <h3 className="font-black">{card.title}</h3>
+            <p className="mt-2 text-sm text-slate-600">{card.body}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CommunitySection() {
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+      <h2 className="text-3xl font-black text-[#0C1833]">{communitySectionCopy.title}</h2>
+      <ul className="mt-4 list-disc space-y-2 pl-5 text-slate-600">
+        {communitySectionCopy.items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ProviderSection() {
+  return (
+    <section className="mx-auto max-w-7xl px-5 pb-12 lg:px-8">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 className="text-2xl font-black">{providerSectionCopy.title}</h2>
+        <p className="mt-2 text-slate-600">{providerSectionCopy.body}</p>
+        <Link
+          href={providerSectionCopy.href}
+          className="mt-4 inline-flex min-h-12 items-center rounded-xl bg-[#005B7F] px-5 font-black text-white"
+        >
+          {providerSectionCopy.cta}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function FinalCtaSection() {
+  return (
+    <section className="border-t border-slate-200 bg-[#0C1833] text-white">
+      <div className="mx-auto max-w-7xl px-5 py-12 text-center lg:px-8">
+        <h2 className="text-3xl font-black">{finalCtaCopy.title}</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-slate-200">{finalCtaCopy.body}</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href={finalCtaCopy.primaryHref} className="min-h-12 rounded-xl bg-[#F8C51C] px-6 py-3 font-black text-[#0C1833]">
+            Join early access
+          </Link>
+          <Link href={finalCtaCopy.secondaryHref} className="min-h-12 rounded-xl border border-white px-6 py-3 font-black">
+            Explore the map
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -209,12 +322,18 @@ export function MapAbleCareCombinedHomepageSections() {
   return (
     <>
       <HeroSection />
+      <EcosystemProblemSection />
+      <EcosystemSolutionSection />
+      <JourneyCardsSection />
       <GuidedSearchPanel />
       <PersonaEntrySection />
       <MarketplaceGrid />
+      <CommunitySection />
+      <ProviderSection />
       <MapAbleDifference />
       <TrustAndSafetyBand />
       <PartnerStrip />
+      <FinalCtaSection />
     </>
   );
 }

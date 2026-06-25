@@ -1,109 +1,60 @@
 import Link from "next/link";
 
+import { resourceArticles } from "@/content/resources/articles";
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 
 export const metadata = {
   title: "Resources | MapAble",
-  description:
-    "MapAble resources for participants, providers and pilot partners.",
+  description: "Guides for accessible places, NDIS navigation, transport, employment, and community mapping.",
 };
+
+const categories = [...new Set(resourceArticles.map((a) => a.category))];
 
 export default function ResourcesPage() {
   return (
-    <PublicInfoPage
-      eyebrow="Resources"
-      title="Practical resources for the MapAble pilot."
-      description="Start with the public modules, provider finder and safety notes while the production operating system is prepared for controlled pilots."
-      ctaLabel="Contact MapAble"
-      ctaHref="/contact"
-      sections={[
-        {
-          title: "Participant resources",
-          content: (
-            <ul className="list-disc space-y-2 pl-5">
-              <li>
-                <Link
-                  href="/care"
-                  className="font-medium text-primary hover:underline"
-                >
-                  MapAble Care
-                </Link>{" "}
-                and consent-first support requests.
-              </li>
-              <li>
-                <Link
-                  href="/transport"
-                  className="font-medium text-primary hover:underline"
-                >
-                  MapAble Transport
-                </Link>{" "}
-                and accessible trip safety principles.
-              </li>
-              <li>
-                <Link
-                  href="/providers"
-                  className="font-medium text-primary hover:underline"
-                >
-                  Provider finder
-                </Link>{" "}
-                for public provider discovery.
-              </li>
-            </ul>
-          ),
-        },
-        {
-          title: "Provider resources",
-          content: (
-            <p>
-              Provider onboarding, verification and workforce controls are being
-              prepared for pilot use.{" "}
-              <Link
-                href="/for-providers"
-                className="font-medium text-primary hover:underline"
-              >
-                Register provider interest
-              </Link>
-              .
-            </p>
-          ),
-        },
-        {
-          title: "Policy resources",
-          content: (
-            <p>
-              Read the{" "}
-              <Link
-                href="/privacy"
-                className="font-medium text-primary hover:underline"
-              >
-                privacy notice
-              </Link>
-              ,{" "}
-              <Link
-                href="/terms"
-                className="font-medium text-primary hover:underline"
-              >
-                terms
-              </Link>
-              ,{" "}
-              <Link
-                href="/data-deletion"
-                className="font-medium text-primary hover:underline"
-              >
-                data deletion process
-              </Link>
-              , and{" "}
-              <Link
-                href="/accessibility-statement"
-                className="font-medium text-primary hover:underline"
-              >
-                accessibility statement
-              </Link>
-              .
-            </p>
-          ),
-        },
-      ]}
-    />
+    <div>
+      <PublicInfoPage
+        eyebrow="Resources"
+        title="Practical guides for access, support, and community trust"
+        description="Australian English, plain language, and review dates on every article. Not medical or legal advice."
+        ctaLabel="Join early access"
+        ctaHref="/early-access"
+        sections={[
+          {
+            title: "Browse by category",
+            content: (
+              <ul className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <li key={category}>
+                    <span className="rounded-full bg-muted px-3 py-1 text-sm font-semibold">{category}</span>
+                  </li>
+                ))}
+              </ul>
+            ),
+          },
+          {
+            title: "Articles",
+            content: (
+              <ul className="space-y-4">
+                {resourceArticles.map((article) => (
+                  <li key={article.slug} className="rounded-xl border border-border p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                      {article.category}
+                    </p>
+                    <h3 className="mt-1 text-lg font-bold">
+                      <Link href={`/resources/${article.slug}`} className="hover:underline">
+                        {article.title}
+                      </Link>
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{article.excerpt}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">Reviewed {article.reviewedAt}</p>
+                  </li>
+                ))}
+              </ul>
+            ),
+          },
+        ]}
+      />
+    </div>
   );
 }
