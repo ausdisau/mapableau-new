@@ -1,5 +1,9 @@
 import { createAgentRun } from "@/lib/agent-ops/agent-run-service";
-import { mapableAgentConfig, isMapableAgentConfigured } from "@/lib/mapable-agent/config";
+import {
+  mapableAgentConfig,
+  isMapableAgentConfigured,
+  assertMapableAgentRuntimeReady,
+} from "@/lib/mapable-agent/config";
 import { checkConsentGate } from "@/lib/mapable-agent/consent-gate";
 import { classifyMapableAgentIntent } from "@/lib/mapable-agent/intent-router";
 import { getMapableAgentModelProvider } from "@/lib/mapable-agent/model";
@@ -19,6 +23,7 @@ export async function runMapableAgentTurn(
   if (!isMapableAgentConfigured()) {
     throw new Error("MapAble Agent is not enabled");
   }
+  assertMapableAgentRuntimeReady();
 
   const session = await prisma.agentSession.findUnique({
     where: { id: input.sessionId },

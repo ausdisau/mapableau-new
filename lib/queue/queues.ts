@@ -1,5 +1,6 @@
 import { Queue } from "bullmq";
 
+import { isMapableAgentQueueEnabled } from "@/lib/mapable-agent/config";
 import { getQueueConnection } from "@/lib/queue/connection";
 
 export const EMBED_DOCUMENT_QUEUE = "mapable-agent-embed-document";
@@ -32,6 +33,9 @@ export type EmbedDocumentJob = {
 };
 
 export async function enqueueEmbedDocument(job: EmbedDocumentJob): Promise<void> {
+  if (!isMapableAgentQueueEnabled()) {
+    return;
+  }
   await getEmbedDocumentQueue().add("embed", job, {
     attempts: 3,
     backoff: { type: "exponential", delay: 2000 },

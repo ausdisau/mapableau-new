@@ -77,11 +77,14 @@ export class OllamaGptOssProvider implements ModelProvider {
 
 export class VllmGptOssProvider implements ModelProvider {
   readonly id = "vllm" as const;
-  private client = createOpenAiCompatibleClient(mapableAgentConfig.vllmBaseUrl);
+  private client = createOpenAiCompatibleClient(
+    mapableAgentConfig.vllmBaseUrl,
+    mapableAgentConfig.vllmApiKey || "mapable-agent",
+  );
 
   async chat(params: ChatParams): Promise<ChatResult> {
     const result = await generateText({
-      model: mapableAgentConfig.modelId,
+      model: this.client(mapableAgentConfig.modelId),
       system: SYSTEM_GUARDRAIL,
       messages: params.messages.filter((m) => m.role !== "system"),
       maxOutputTokens: params.maxTokens ?? 2048,
@@ -91,7 +94,7 @@ export class VllmGptOssProvider implements ModelProvider {
 
   async *chatStream(params: ChatParams): AsyncIterable<ChatStreamChunk> {
     const stream = streamText({
-      model: mapableAgentConfig.modelId,
+      model: this.client(mapableAgentConfig.modelId),
       system: SYSTEM_GUARDRAIL,
       messages: params.messages.filter((m) => m.role !== "system"),
       maxOutputTokens: params.maxTokens ?? 2048,
@@ -107,7 +110,7 @@ export class VllmGptOssProvider implements ModelProvider {
 
   async generateStructured<T>(params: StructuredParams<T>): Promise<T> {
     const result = await generateObject({
-      model: mapableAgentConfig.modelId,
+      model: this.client(mapableAgentConfig.modelId),
       system: SYSTEM_GUARDRAIL,
       messages: params.messages,
       schema: params.schema,

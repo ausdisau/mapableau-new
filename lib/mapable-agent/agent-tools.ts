@@ -2,18 +2,10 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { tool, ToolLoopAgent, stepCountIs } from "ai";
 
 import { mapableAgentConfig } from "@/lib/mapable-agent/config";
+import { getOpenAiCompatibleModel } from "@/lib/mapable-agent/openai-client";
 import type { MapableAgentIntent } from "@/lib/mapable-agent/types";
 import { executeToolByName, getToolsForIntent } from "@/lib/mapable-agent/tools/registry";
 import type { ToolContext } from "@/lib/mapable-agent/tools/types";
-
-function getOpenAiCompatibleModel() {
-  const baseURL =
-    mapableAgentConfig.modelProvider === "vllm"
-      ? mapableAgentConfig.vllmBaseUrl
-      : `${mapableAgentConfig.ollamaBaseUrl.replace(/\/$/, "")}/v1`;
-  const client = createOpenAI({ baseURL, apiKey: "mapable-agent" });
-  return client(mapableAgentConfig.modelId);
-}
 
 export function createMapableAgentTools(
   intent: MapableAgentIntent,

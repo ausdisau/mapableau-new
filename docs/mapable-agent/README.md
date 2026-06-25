@@ -70,10 +70,64 @@ pnpm dev
 
 ## Background worker
 
+**Local:**
+
 ```bash
 docker run -d -p 6379:6379 redis:7
 pnpm mapable-agent:worker
 ```
+
+**Vercel (serverless):** BullMQ workers do not run on Vercel. Instead:
+
+1. Omit `REDIS_URL` or connect [Upstash Redis](https://vercel.com/marketplace/upstash) for optional queue use.
+2. Enable the **Vercel cron** in `vercel.json` — `GET /api/cron/mapable-agent/embed` every 6 hours embeds pending document chunks.
+3. Set `CRON_SECRET` in Vercel project env (Vercel sends it as `Authorization: Bearer …` on cron hits).
+
+## Deploy on Vercel
+
+### 1. Environment variables (Production + Preview)
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `MAPABLE_AGENT_ENABLED` | yes | `true` to expose `/agent` |
+| `MAPABLE_AGENT_MODEL_PROVIDER` | prod | `vllm` (default on Vercel if unset) |
+| `VLLM_BASE_URL` | yes | HTTPS OpenAI-compatible endpoint hosting gpt-oss |
+| `VLLM_API_KEY` | if needed | Bearer for your vLLM gateway |
+| `DATABASE_URL` / `DIRECT_URL` | yes | Neon Postgres with pgvector |
+| `CRON_SECRET` | for embed cron | Vercel cron authentication |
+| `REDIS_URL` | optional | Upstash Redis; skip to use cron-only embeddings |
+
+Sync from local `.env`:
+
+```bash
+pnpm exec tsx scripts/sync-vercel-production-env.ts
+```
+
+### 2. External vLLM
+
+Ollama cannot run inside Vercel functions. Host gpt-oss on Render, Fly.io, a GPU VM, or another provider and point `VLLM_BASE_URL` at its `/v1` OpenAI-compatible URL.
+
+### 3. Migrations
+
+Run on your production database before enabling the agent:
+
+```bash
+pnpm exec prisma migrate deploy
+```
+
+### 4. Health check
+
+After deploy:
+
+```bash
+curl https://your-app.vercel.app/api/mapable-agent/health
+```
+
+Returns `enabled`, `modelProvider`, `queueEnabled`, and any config `issues`.
+
+### 5. Function timeouts
+
+`vercel.json` sets `maxDuration: 60` for chat and `120` for the embed cron. Upgrade Vercel plan if tool loops exceed limits.
 
 ## Routes
 

@@ -1,15 +1,32 @@
 import { NextResponse } from "next/server";
 
 import { getOptionalApiUser } from "@/lib/api/optional-session";
-import { isMapableAgentConfigured } from "@/lib/mapable-agent/config";
+import {
+  getMapableAgentRuntimeIssues,
+  isMapableAgentConfigured,
+} from "@/lib/mapable-agent/config";
 import {
   createAgentSession,
   runMapableAgentTurn,
 } from "@/lib/mapable-agent/orchestrator";
 
+/** gpt-oss tool loops may exceed default 10s on Vercel. */
+export const maxDuration = 60;
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   if (!isMapableAgentConfigured()) {
     return NextResponse.json({ error: "MapAble Agent is not enabled" }, { status: 503 });
+  }
+
+  const runtimeIssues = getMapableAgentRuntimeIssues().filter(
+    (i) => i.code === "ollama_on_vercel" || i.code === "vllm_unreachable",
+  );
+  if (runtimeIssues.length > 0) {
+    return NextResponse.json(
+      { error: runtimeIssues[0]?.message, code: runtimeIssues[0]?.code },
+      { status: 503 },
+    );
   }
 
   const body = (await req.json()) as {

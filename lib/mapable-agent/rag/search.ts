@@ -32,6 +32,38 @@ export async function embedTextViaOllama(text: string): Promise<number[] | null>
   }
 }
 
+async function embedTextViaOpenAICompatible(text: string): Promise<number[] | null> {
+  const baseURL = mapableAgentConfig.vllmBaseUrl.replace(/\/$/, "");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (mapableAgentConfig.vllmApiKey) {
+    headers.Authorization = `Bearer ${mapableAgentConfig.vllmApiKey}`;
+  }
+
+  try {
+    const res = await fetch(`${baseURL}/embeddings`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: mapableAgentConfig.embeddingModel,
+        input: text,
+      }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: Array<{ embedding?: number[] }> };
+    return json.data?.[0]?.embedding ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Ollama locally; OpenAI-compatible /embeddings on Vercel or when provider is vllm. */
+export async function embedText(text: string): Promise<number[] | null> {
+  if (mapableAgentConfig.modelProvider === "vllm" || mapableAgentConfig.isVercel) {
+    return embedTextViaOpenAICompatible(text);
+  }
+  return embedTextViaOllama(text);
+}
+
 export async function storeChunkEmbedding(
   chunkId: string,
   embedding: number[],
@@ -77,7 +109,7 @@ export async function ragSearch(params: {
   query: string;
   participantId?: string;
 }): Promise<Array<{ content: string; score: number }>> {
-  const embedding = await embedTextViaOllama(params.query);
+  const embedding = await embedText(params.query);
   if (!embedding) return [];
   const hits = await searchDocumentChunks({
     queryEmbedding: embedding,
