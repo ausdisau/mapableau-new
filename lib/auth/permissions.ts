@@ -106,6 +106,16 @@ export type Permission =
   | "route:manage"
   | "accessibility_map:read"
   | "accessibility_map:manage"
+  | "access:read"
+  | "access:report:create"
+  | "access:report:draft"
+  | "access:alert:create"
+  | "access:verify:create"
+  | "access:venue:claim"
+  | "access:venue:manage"
+  | "access:moderate"
+  | "access:admin"
+  | "access:council:read"
   | "coordinator:portal"
   | "plan_manager:portal"
   | "employer:ats"
@@ -227,6 +237,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "outcomes:read",
     "safeguards:read",
     "membership:read",
+    "access:read",
+    "access:report:create",
+    "access:report:draft",
+    "access:alert:create",
+    "access:verify:create",
+    "access:venue:claim",
     "transport_investment:read",
     "case:read:self",
     "engagement:read:self",
@@ -377,6 +393,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "stripe:manage",
     "route:manage",
     "accessibility_map:manage",
+    "access:read",
+    "access:report:create",
+    "access:report:draft",
+    "access:alert:create",
+    "access:verify:create",
+    "access:venue:claim",
+    "access:venue:manage",
+    "access:moderate",
+    "access:admin",
+    "access:council:read",
     "reporting:manage",
     "developer:manage",
     "compliance:manage",

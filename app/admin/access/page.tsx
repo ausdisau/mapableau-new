@@ -46,6 +46,9 @@ export default async function AdminAccessDashboardPage() {
         <Link href="/admin/access/accreditation" className="underline">
           Accreditation
         </Link>
+        <Link href="/admin/access/venue-claims" className="underline">
+          Venue claims
+        </Link>
         <Link href="/admin/access/moderation" className="underline">
           Moderation
         </Link>

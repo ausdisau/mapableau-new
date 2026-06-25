@@ -127,3 +127,14 @@ export const updateAccessPlaceSchema = z.object({
 
 export type CreateAccessPlaceInput = z.infer<typeof createAccessPlaceSchema>;
 export type UpdateAccessPlaceInput = z.infer<typeof updateAccessPlaceSchema>;
+
+export type AccessDomainScoreSummary = {
+  overallScore: number | null;
+  confidenceScore: number | null;
+  lastUpdated: string | null;
+  mobilityScore: number | null;
+  sensoryScore: number | null;
+  communicationScore: number | null;
+  cognitiveScore: number | null;
+  serviceScore: number | null;
+};

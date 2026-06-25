@@ -1,5 +1,6 @@
 import type { AccessRatingCategory } from "@prisma/client";
 
+import { recomputePlaceDomainSummaries } from "@/lib/access-reports/access-domain-service";
 import { ratingValueToScore } from "@/lib/access-reviews/access-rating-service";
 import { prisma } from "@/lib/prisma";
 
@@ -48,4 +49,6 @@ export async function recomputePlaceRatingSummaries(placeId: string) {
       },
     });
   }
+
+  await recomputePlaceDomainSummaries(placeId);
 }

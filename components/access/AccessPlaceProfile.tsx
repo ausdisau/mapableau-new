@@ -1,10 +1,15 @@
 import Link from "next/link";
 
 import { AccessConfidenceBadge } from "@/components/access/AccessConfidenceBadge";
+import {
+  AccessDomainScorePanel,
+  type DomainScoreData,
+} from "@/components/access/AccessDomainScorePanel";
 import { AccessFeatureBadges } from "@/components/access/AccessFeatureBadges";
 import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityDisclaimerPanel";
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
-import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
+import { CommunityReportsFeed } from "@/components/access/CommunityReportsFeed";
+import { VenueClaimStatusBanner } from "@/components/access/VenueClaimStatusBanner";
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
 import type {
   AccessAccreditationTier,
@@ -13,8 +18,10 @@ import type {
 
 export function AccessPlaceProfile({
   place,
-  reviews,
+  domainScores,
+  reportsFeed,
   accreditation,
+  claimedByVenue,
 }: {
   place: {
     id: string;
@@ -28,18 +35,26 @@ export function AccessPlaceProfile({
     features: string[];
     sourceType: string;
   };
-  reviews: {
+  domainScores: {
+    overallScore: number | null;
+    confidenceScore: number | null;
+    lastUpdated: string | null;
+    domains: DomainScoreData[];
+  };
+  reportsFeed: {
     id: string;
     displayName: string;
     reviewBody: string;
-    label: string;
+    reportType: string;
     createdAt: string;
+    verifications?: Record<string, number>;
   }[];
   accreditation: {
     tier: string;
     totalScore: number;
     expired?: boolean;
   } | null;
+  claimedByVenue: boolean;
 }) {
   return (
     <div className="space-y-8">
@@ -65,6 +80,18 @@ export function AccessPlaceProfile({
         </div>
       </header>
 
+      <VenueClaimStatusBanner
+        claimedByVenue={claimedByVenue}
+        placeId={place.id}
+      />
+
+      <AccessDomainScorePanel
+        overallScore={domainScores.overallScore}
+        confidenceScore={domainScores.confidenceScore}
+        lastUpdated={domainScores.lastUpdated}
+        domains={domainScores.domains}
+      />
+
       <section aria-labelledby="access-features-heading">
         <h2 id="access-features-heading" className="text-lg font-semibold">
           Key access features
@@ -74,15 +101,7 @@ export function AccessPlaceProfile({
         </div>
       </section>
 
-      <section aria-labelledby="community-reviews-heading">
-        <h2 id="community-reviews-heading" className="text-lg font-semibold">
-          {ACCESS_LABELS.communityReviewed} ({ACCESS_LABELS.userReported})
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Community rating summary is user-reported, not legal certification.
-        </p>
-        <CommunityReviewPreview reviews={reviews} placeId={place.id} />
-      </section>
+      <CommunityReportsFeed placeId={place.id} reports={reportsFeed} />
 
       {accreditation ? (
         <AccreditationSummaryPanel
@@ -102,10 +121,16 @@ export function AccessPlaceProfile({
 
       <div className="flex flex-wrap gap-3">
         <Link
-          href={`/access/review/${place.id}`}
+          href={`/access/places/${place.id}/report/new`}
           className="min-h-11 inline-flex items-center rounded-lg bg-primary px-4 text-primary-foreground"
         >
-          Add community review
+          Add access report
+        </Link>
+        <Link
+          href={`/access/alerts/new?placeId=${place.id}`}
+          className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
+        >
+          Flag access alert
         </Link>
         <Link
           href={`/access/places/${place.id}/claim`}
@@ -115,6 +140,7 @@ export function AccessPlaceProfile({
         </Link>
       </div>
 
+      <p className="text-xs text-muted-foreground">{ACCESS_LABELS.userReported}</p>
       <AccessibilityDisclaimerPanel />
     </div>
   );

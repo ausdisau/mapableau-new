@@ -3,7 +3,7 @@ const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 const MEDICAL_RE =
   /\b(diagnosis|autism|adhd|dementia|schizophrenia|bipolar|medical record)\b/i;
 const LEGAL_CLAIM_RE =
-  /\b(dda certified|fully compliant|ndis approved|guaranteed accessible)\b/i;
+  /\b(dda certified|fully compliant|ndis approved|guaranteed accessible|illegally discriminates|illegal discrimination|ada violation|dda breach|discriminates against)\b/i;
 const ABUSE_RE = /\b(kill|idiot|stupid staff)\b/i;
 
 export function scanReviewForModerationFlags(body: string): string[] {

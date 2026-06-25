@@ -19,9 +19,19 @@ type PlaceRow = {
   confidence: string;
   location: { latitude: number; longitude: number } | null;
   ratingSummaries: { avgScore: number | null; sampleCount: number }[];
+  domainSummaries?: {
+    domain: string;
+    score: number | null;
+    confidenceScore: number | null;
+    sampleCount: number;
+    lastUpdated: Date;
+  }[];
+  venueProfile?: { id: string } | null;
   accreditationAssessments: { tier: string | null }[];
   _count: { reviews: number };
 };
+
+export type { PlaceRow };
 
 function avgCommunityScore(place: PlaceRow): number | null {
   const scores = place.ratingSummaries

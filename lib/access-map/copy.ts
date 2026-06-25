@@ -12,6 +12,10 @@ export const ACCESS_LABELS = {
   unknown: "Accessibility information unknown",
   needsMore: "Needs more access information",
   reportInaccurate: "Report inaccurate information",
+  reportGuidance:
+    "Describe what you observed — for example: 'The entrance had one 80mm step on 20 June 2026.' Avoid legal claims.",
+  photoConsentWarning:
+    "Do not photograph people without their consent. Avoid capturing private information.",
 } as const;
 
 export const MAPABLE_MY_MAPS_KML_URL =
