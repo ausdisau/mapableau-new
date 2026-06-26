@@ -3,8 +3,20 @@
     {
       "path": "/api/admin/ingest/ndis-providers",
       "schedule": "15 17 * * *"
+    },
+    {
+      "path": "/api/cron/mapable-agent/embed",
+      "schedule": "0 */6 * * *"
     }
   ],
+  "functions": {
+    "app/api/mapable-agent/chat/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/mapable-agent/embed/route.ts": {
+      "maxDuration": 120
+    }
+  },
   "headers": [
     {
       "source": "/api/(.*)",

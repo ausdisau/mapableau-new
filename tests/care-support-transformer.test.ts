@@ -1,7 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { transformCareSupport } from "@/server/agents/careSupportTransformer";
+import { transformCareSupport, transformCareSupportAsync } from "@/server/agents/careSupportTransformer";
 import { careSupportTransformInputSchema } from "@/server/agents/care/types";
+
+vi.mock("@/lib/care-agent", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/care-agent")>();
+  return {
+    ...actual,
+    isCareAgentLlmEnabled: vi.fn(() => false),
+  };
+});
 
 const baseInput = {
   sessionId: "test-session-1",
@@ -161,5 +169,55 @@ describe("Care and Support Agentic Transformer", () => {
     });
     expect(output.missingInformation.length).toBeGreaterThan(0);
     expect(output.carePlanDraft.requestType).toBe("other");
+  });
+});
+
+describe("transformCareSupportAsync with LLM enabled", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.doMock("@/lib/care-agent", () => ({
+      isCareAgentLlmEnabled: vi.fn(() => true),
+      runCareIntakeWithLlm: vi.fn().mockImplementation(async (input: typeof baseInput) => {
+        const { runCareIntakeAgent } = await import("@/server/agents/care/careIntakeAgent");
+        return {
+          intake: runCareIntakeAgent(input),
+          meta: { source: "llm", confidence: 0.9, fallbackUsed: false, llmProvider: "vllm" },
+        };
+      }),
+      runCareTaskTransformerWithLlm: vi.fn().mockImplementation(async (input, intake) => {
+        const { runCareTaskTransformer } = await import("@/server/agents/care/careTaskTransformer");
+        return {
+          carePlanDraft: runCareTaskTransformer(input, intake),
+          meta: { source: "llm", confidence: 0.9, fallbackUsed: false, llmProvider: "vllm" },
+        };
+      }),
+      runWorkerCapabilityWithLlm: vi.fn().mockImplementation(async (intake, draft) => {
+        const { runWorkerCapabilityAgent } = await import(
+          "@/server/agents/care/workerCapabilityAgent"
+        );
+        return {
+          requiredCapabilities: runWorkerCapabilityAgent(intake, draft),
+          meta: { source: "llm", confidence: 0.9, fallbackUsed: false, llmProvider: "vllm" },
+        };
+      }),
+      runCarePlanExplainerWithLlm: vi.fn().mockImplementation(async (params) => {
+        const { runCarePlanExplainer } = await import("@/server/agents/care/carePlanExplainer");
+        return {
+          summary: runCarePlanExplainer(params),
+          meta: { source: "llm", confidence: 0.9, fallbackUsed: false, llmProvider: "vllm" },
+        };
+      }),
+    }));
+  });
+
+  it("uses v2 pipeline version and llm audit when enabled", async () => {
+    const { transformCareSupportAsync: transformAsync } = await import(
+      "@/server/agents/careSupportTransformer"
+    );
+    const output = await transformAsync(baseInput);
+    expect(output.audit.pipelineVersion).toBe("care-support-transformer-v2");
+    expect(output.audit.llm?.enabled).toBe(true);
+    expect(output.audit.llm?.provider).toBe("vllm");
+    expect(output.audit.agentDecisions.some((d) => d.source === "llm")).toBe(true);
   });
 });

@@ -28,8 +28,9 @@
     "ingest:ndis-providers": "tsx scripts/ingest-ndis-providers.ts",
     "ingest:ndis-providers:dry": "DRY_RUN=true tsx scripts/ingest-ndis-providers.ts",
     "check:integrations-env": "npx tsx scripts/check-integrations-env.ts",
-    "sync:replit-unified": "bash scripts/sync-replit-unified.sh",
-    "check:replit-unified": "bash scripts/check-replit-unified-deployment.sh"
+    "check:replit-unified": "bash scripts/check-replit-unified-deployment.sh",
+    "mapable-agent:worker": "tsx scripts/mapable-agent-worker.ts",
+    "sync:replit-unified": "bash scripts/sync-replit-unified.sh"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -46,6 +47,7 @@
   "packageManager": "pnpm@10.12.1",
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.73",
     "@ai-sdk/react": "^3.0.198",
     "@better-auth/infra": "^0.2.13",
     "@chat-adapter/slack": "^4.30.0",
@@ -61,6 +63,7 @@
     "@vercel/speed-insights": "^2.0.0",
     "ai": "^6.0.196",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.79.0",
     "chat": "^4.30.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -68,6 +71,7 @@
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.26.1",
+    "ioredis": "^5.11.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
     "maplibre-gl": "^5.24.0",

@@ -8086,6 +8086,10 @@ enum AgentRunType {
   safeguarding_triage
   feedback
   category_classifier
+  mapable_agent
+  plan_parser
+  invoice_classifier
+  job_matcher
 }
 
 enum AgentRunStatus {
@@ -8226,6 +8230,8 @@ model AgentRun {
   toolsCalled                   Json           @default("[]")
   guardrailsTriggered           Json           @default("[]")
   participantId                 String?
+  sessionId                     String?
+  session                       AgentSession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   careRequestId                 String?
   matchRunId                    String?
   aiMatchRunId                  String?
@@ -8235,9 +8241,12 @@ model AgentRun {
   reviewedAt                    DateTime?
   createdAt                     DateTime       @default(now())
   updatedAt                     DateTime       @updatedAt
+  humanReviewTasks              HumanReviewTask[]
+  toolExecutionLogs             ToolExecutionLog[]
 
   @@index([agentType, status])
   @@index([participantId])
+  @@index([sessionId])
   @@map("agent_runs")
 }
 
@@ -8465,4 +8474,154 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// --- MapAble Agent (gpt-oss runtime) ---
+
+enum AgentSessionStatus {
+  active
+  archived
+  closed
+}
+
+enum AgentMessageRole {
+  user
+  assistant
+  system
+  tool
+}
+
+enum HumanReviewCategory {
+  privacy
+  safeguarding
+  payment
+  provider_selection
+  funding
+  low_confidence
+}
+
+enum HumanReviewPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum HumanReviewStatus {
+  pending
+  in_progress
+  approved
+  rejected
+  cancelled
+}
+
+model AgentSession {
+  id            String             @id @default(cuid())
+  participantId String?
+  actorUserId   String?
+  title         String?
+  status        AgentSessionStatus @default(active)
+  modelProvider String             @default("ollama")
+  messages      AgentMessage[]
+  runs          AgentRun[]
+  reviewTasks   HumanReviewTask[]
+  toolLogs      ToolExecutionLog[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([participantId])
+  @@index([actorUserId])
+  @@index([status])
+  @@map("agent_sessions")
+}
+
+model AgentMessage {
+  id               String           @id @default(cuid())
+  sessionId        String
+  session          AgentSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role             AgentMessageRole
+  content          String
+  reasoningSummary String?
+  toolCalls        Json?
+  toolResults      Json?
+  confidence       Float?
+  createdAt        DateTime         @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("agent_messages")
+}
+
+model HumanReviewTask {
+  id            String              @id @default(cuid())
+  sessionId     String?
+  session       AgentSession?       @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  agentRunId    String?
+  agentRun      AgentRun?           @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+  participantId String?
+  category      HumanReviewCategory
+  priority      HumanReviewPriority @default(normal)
+  status        HumanReviewStatus   @default(pending)
+  title         String
+  summary       String
+  context       Json                @default("{}")
+  assignedToId  String?
+  resolvedById  String?
+  resolution    String?
+  createdAt     DateTime            @default(now())
+  resolvedAt    DateTime?
+
+  @@index([status, priority])
+  @@index([participantId])
+  @@index([sessionId])
+  @@map("human_review_tasks")
+}
+
+model DocumentChunk {
+  id             String   @id @default(cuid())
+  documentId     String?
+  participantId  String?
+  organisationId String?
+  sourceType     String
+  content        String
+  embedding      Unsupported("vector(1536)")?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([documentId])
+  @@index([participantId])
+  @@index([sourceType])
+  @@map("document_chunks")
+}
+
+model ToolExecutionLog {
+  id            String      @id @default(cuid())
+  sessionId     String?
+  session       AgentSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  agentRunId    String?
+  agentRun      AgentRun?   @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+  toolName      String
+  inputHash     String
+  outputSummary Json?
+  confidence    Float?
+  sensitive     Boolean     @default(false)
+  auditEventId  String?
+  createdAt     DateTime    @default(now())
+
+  @@index([sessionId])
+  @@index([toolName])
+  @@map("tool_execution_logs")
+}
+
+model AgentUserSettings {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  highContrastMode    Boolean  @default(false)
+  largeTouchTargets   Boolean  @default(false)
+  reducedMotion       Boolean  @default(false)
+  showReasoningSummary Boolean @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("agent_user_settings")
 }
