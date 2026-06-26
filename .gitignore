@@ -80,3 +80,6 @@ yarn.lock
 # Logs
 logs
 *.log
+
+# Local ML model weights (downloaded via hf/huggingface-cli)
+gpt-oss-120b/
