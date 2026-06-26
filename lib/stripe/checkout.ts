@@ -1,6 +1,7 @@
 import type { StripePaymentPurpose } from "@prisma/client";
 import type Stripe from "stripe";
 
+import { payoutPolicyDefaults } from "@/lib/payouts/config";
 import { getStripeClient } from "@/lib/stripe/client";
 import { stripeConfig } from "@/lib/stripe/config";
 import { billingCheckoutMetadata, legacyInvoiceMetadata } from "@/lib/stripe/metadata";
@@ -15,6 +16,7 @@ export type PaymentCheckoutParams = {
   metadata: Record<string, string>;
   applicationFeeAmount?: number;
   transferDestination?: string;
+  paymentIntentData?: Stripe.Checkout.SessionCreateParams["payment_intent_data"];
 };
 
 export async function createStripePaymentCheckoutSession(
@@ -44,7 +46,9 @@ export async function createStripePaymentCheckoutSession(
     sessionParams.customer = params.customerId;
   }
 
-  if (params.transferDestination && params.applicationFeeAmount !== undefined) {
+  if (params.paymentIntentData) {
+    sessionParams.payment_intent_data = params.paymentIntentData;
+  } else if (params.transferDestination && params.applicationFeeAmount !== undefined) {
     sessionParams.payment_intent_data = {
       application_fee_amount: params.applicationFeeAmount,
       transfer_data: { destination: params.transferDestination },
@@ -73,24 +77,55 @@ export async function createStripeSubscriptionCheckoutSession(params: {
   });
 }
 
+
 export function buildBillingPaymentCheckout(params: {
   invoiceId: string;
   userId: string;
   serviceType: string;
   bookingId?: string | null;
+  paymentId?: string;
+  transferGroup?: string;
+  fundingSourceType?: string;
   totalCents: number;
   currency: string;
   customerId: string;
   productLabel: string;
   platformFeeCents?: number;
   providerConnectedAccountId?: string | null;
+  useDestinationCharge?: boolean;
 }) {
   const metadata = billingCheckoutMetadata({
     invoiceId: params.invoiceId,
     userId: params.userId,
     serviceType: params.serviceType,
     bookingId: params.bookingId ?? undefined,
+    paymentId: params.paymentId,
+    transferGroup: params.transferGroup,
+    fundingSourceType: params.fundingSourceType,
   });
+
+  const useSeparate =
+    payoutPolicyDefaults.useSeparateChargesAndTransfers &&
+    params.useDestinationCharge !== true;
+
+  const paymentIntentData: Stripe.Checkout.SessionCreateParams["payment_intent_data"] =
+    {
+      metadata,
+    };
+  if (params.transferGroup) {
+    paymentIntentData.transfer_group = params.transferGroup;
+  }
+
+  if (
+    !useSeparate &&
+    params.providerConnectedAccountId &&
+    params.platformFeeCents !== undefined
+  ) {
+    paymentIntentData.application_fee_amount = params.platformFeeCents;
+    paymentIntentData.transfer_data = {
+      destination: params.providerConnectedAccountId,
+    };
+  }
 
   return createStripePaymentCheckoutSession({
     amountCents: params.totalCents,
@@ -100,11 +135,9 @@ export function buildBillingPaymentCheckout(params: {
     successUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`,
     cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`,
     metadata,
-    applicationFeeAmount:
-      params.providerConnectedAccountId && params.platformFeeCents !== undefined
-        ? params.platformFeeCents
-        : undefined,
-    transferDestination: params.providerConnectedAccountId ?? undefined,
+    paymentIntentData,
+    applicationFeeAmount: undefined,
+    transferDestination: undefined,
   });
 }
 

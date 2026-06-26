@@ -60,20 +60,7 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     providerAccountId = providerAccount?.stripeConnectedAccountId ?? null;
   }
 
-  const session = await buildBillingPaymentCheckout({
-    invoiceId: invoice.id,
-    userId,
-    serviceType: invoice.serviceType,
-    bookingId: invoice.bookingId,
-    totalCents: invoice.totalCents,
-    currency: invoice.currency,
-    customerId,
-    productLabel: `MapAble ${invoice.serviceType} invoice`,
-    platformFeeCents: invoice.platformFeeCents,
-    providerConnectedAccountId: providerAccountId,
-  });
-
-  await prisma.billingPayment.create({
+  const payment = await prisma.billingPayment.create({
     data: {
       invoiceId: invoice.id,
       userId,
@@ -82,8 +69,29 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
       method: "stripe_checkout" as BillingPaymentMethod,
       amountCents: invoice.totalCents,
       currency: invoice.currency,
-      stripeCheckoutSessionId: session.id,
+      transferGroup: invoice.transferGroup ?? undefined,
     },
+  });
+
+  const session = await buildBillingPaymentCheckout({
+    invoiceId: invoice.id,
+    userId,
+    serviceType: invoice.serviceType,
+    bookingId: invoice.bookingId,
+    paymentId: payment.id,
+    transferGroup: invoice.transferGroup ?? undefined,
+    fundingSourceType: invoice.fundingSource?.type,
+    totalCents: invoice.totalCents,
+    currency: invoice.currency,
+    customerId,
+    productLabel: `MapAble ${invoice.serviceType} invoice`,
+    platformFeeCents: invoice.platformFeeCents,
+    providerConnectedAccountId: providerAccountId,
+  });
+
+  await prisma.billingPayment.update({
+    where: { id: payment.id },
+    data: { stripeCheckoutSessionId: session.id },
   });
 
   await updateInvoiceStatus(

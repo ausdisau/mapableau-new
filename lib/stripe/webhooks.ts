@@ -30,13 +30,29 @@ export function constructStripeWebhookEvent(
 }
 
 function shouldHandleBillingCore(event: Stripe.Event): boolean {
+  const alwaysBilling = [
+    "checkout.session.completed",
+    "checkout.session.async_payment_failed",
+    "checkout.session.async_payment_succeeded",
+    "payment_intent.succeeded",
+    "payment_intent.payment_failed",
+    "charge.refunded",
+    "charge.dispute.created",
+    "account.updated",
+    "account.external_account.updated",
+    "transfer.created",
+    "transfer.reversed",
+    "payout.created",
+    "payout.updated",
+    "payout.paid",
+    "payout.failed",
+  ];
+  if (alwaysBilling.includes(event.type)) return true;
+
   const obj = event.data.object as { metadata?: Stripe.Metadata | null };
   const meta = obj.metadata;
   if (!meta) {
-    return (
-      event.type === "account.updated" &&
-      !!(obj as Stripe.Account).metadata?.mapableUserId
-    );
+    return false;
   }
   if (meta.invoiceId) return true;
   if (meta.mapableUserId && event.type.startsWith("customer.subscription")) {

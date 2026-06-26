@@ -1,5 +1,6 @@
 import { getStripeClient } from "@/lib/stripe/client";
 import { stripeConfig } from "@/lib/stripe/config";
+import { connectRefreshUrl, connectReturnUrl } from "@/lib/payouts/config";
 
 export async function createExpressConnectAccount(params: {
   userId: string;
@@ -17,12 +18,42 @@ export async function createExpressConnectAccount(params: {
   });
 }
 
+/** Transfer-only recipient account (Express fallback — Accounts v2 when SDK supports). */
+export async function createRecipientConnectAccount(params: {
+  email: string;
+  displayName: string;
+  country?: string;
+  metadata?: Record<string, string>;
+}) {
+  const stripe = getStripeClient();
+  return stripe.accounts.create({
+    type: "express",
+    country: params.country ?? "AU",
+    email: params.email,
+    business_profile: { name: params.displayName },
+    capabilities: {
+      transfers: { requested: true },
+    },
+    controller: {
+      stripe_dashboard: { type: "express" },
+      fees: { payer: "application" },
+      losses: { payments: "application" },
+    },
+    metadata: params.metadata,
+  });
+}
+
 export async function createConnectOnboardingLink(stripeAccountId: string) {
   const stripe = getStripeClient();
   return stripe.accountLinks.create({
     account: stripeAccountId,
-    refresh_url: `${stripeConfig.appUrl}/provider/billing?onboarding=refresh`,
-    return_url: `${stripeConfig.appUrl}/provider/billing?onboarding=complete`,
+    refresh_url: connectRefreshUrl(),
+    return_url: connectReturnUrl(),
     type: "account_onboarding",
   });
+}
+
+export async function createConnectDashboardLink(stripeAccountId: string) {
+  const stripe = getStripeClient();
+  return stripe.accounts.createLoginLink(stripeAccountId);
 }

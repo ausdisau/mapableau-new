@@ -105,6 +105,7 @@ model User {
   billingInvoices           BillingInvoice[]       @relation("BillingInvoices")
   billingPayments           BillingPayment[]       @relation("BillingPayments")
   billingSubscriptions      BillingSubscription[]  @relation("BillingSubscriptions")
+  payoutRecipients          PayoutRecipient[]      @relation("PayoutRecipients")
   ndisClaimLinesParticipant NdisClaimLine[]        @relation("NdisClaimLinesParticipant")
   ndisInvoicesParticipant   NdisInvoice[]          @relation("NdisInvoicesParticipant")
   participantProviderRelationships ParticipantProviderRelationship[] @relation("ParticipantProviderRelationships")
@@ -678,6 +679,7 @@ model Organisation {
   auditEvents AuditEvent[]
   invoices    Invoice[]
   billingInvoices BillingInvoice[] @relation("BillingInvoiceProvider")
+  payoutRecipients PayoutRecipient[] @relation("OrganisationPayoutRecipients")
   ndiaProviderClaims NdiaProviderClaim[]
   ndisClaimBatches       NdisClaimBatch[]
   ndisClaimLines         NdisClaimLine[]
@@ -1846,6 +1848,7 @@ model WorkerProfile {
   onboardingProfile       OnboardingProfile?
   trustCredentials        WorkerTrustCredential[]
   organisationInvites     WorkerOrganisationInvite[]
+  payoutRecipients        PayoutRecipient[] @relation("WorkerPayoutRecipients")
 
   @@unique([userId, organisationId])
   @@index([organisationId, active])
@@ -5169,6 +5172,8 @@ enum BillingAccountRole {
   provider
   employer
   admin
+  support_worker
+  transport_operator
 }
 
 enum BillingFundingSourceType {
@@ -5200,6 +5205,24 @@ enum BillingInvoiceStatus {
   exported
 }
 
+enum BillingPayoutStatus {
+  none
+  paid_pending_service
+  service_completed
+  payout_pending
+  partially_paid_out
+  paid_out
+}
+
+enum BillingPayerType {
+  participant
+  plan_manager
+  provider_org
+  employer
+  private
+  other
+}
+
 enum BillingPaymentStatus {
   requires_payment
   processing
@@ -5213,6 +5236,7 @@ enum BillingPaymentMethod {
   stripe_checkout
   stripe_connect
   external_plan_manager
+  external_received
   xero_export
   manual
 }
@@ -5226,9 +5250,26 @@ enum BillingPaymentSplitRecipient {
 
 enum BillingPaymentSplitStatus {
   pending
+  pending_service
+  ready
+  blocked
+  transfer_created
   transferred
   failed
   reversed
+  canceled
+}
+
+enum BillingInvoiceLineType {
+  worker_service
+  provider_service
+  transport
+  platform_fee
+  cancellation_fee
+  reimbursement
+  adjustment
+  refund
+  other
 }
 
 enum BillingSubscriptionPlanCode {
@@ -5319,17 +5360,26 @@ model BillingInvoice {
   disputedAt               DateTime?
   disputeReason            String?
   anomalyFlags             Json?
+  transferGroup            String?
+  payerType                BillingPayerType?
+  fundingSourceType        BillingFundingSourceType?
+  invoiceNumber            String?
+  payoutStatus             BillingPayoutStatus        @default(none)
+  xeroInvoiceId            String?
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
 
   lineItems BillingInvoiceLineItem[]
   payments  BillingPayment[]
+  payoutBlocks PayoutBlock[]
 
   @@index([userId, status])
   @@index([providerId])
   @@index([bookingId])
   @@index([stripeCheckoutSessionId])
   @@index([adminApprovalStatus])
+  @@index([transferGroup])
+  @@index([invoiceNumber])
 }
 
 model BillingInvoiceLineItem {
@@ -5342,12 +5392,17 @@ model BillingInvoiceLineItem {
   totalCents      Int
   ndisLineItem    String?
   gstApplicable   Boolean        @default(false)
+  lineType        BillingInvoiceLineType?
+  recipientId     String?
+  serviceCategory String?
   metadata        Json?
   createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
 
   evidence InvoiceLineEvidence[]
 
   @@index([invoiceId])
+  @@index([recipientId])
 }
 
 model BillingPayment {
@@ -5366,30 +5421,53 @@ model BillingPayment {
   stripeChargeId          String?
   failureReason           String?
   paidAt                  DateTime?
+  transferGroup           String?
+  netDistributableCents   Int?
+  externalPaymentMarkedAt DateTime?
+  payoutStatus            BillingPayoutStatus      @default(none)
   createdAt               DateTime             @default(now())
   updatedAt               DateTime             @updatedAt
 
-  splits BillingPaymentSplit[]
+  splits       BillingPaymentSplit[]
+  payoutBlocks PayoutBlock[]
 
   @@index([invoiceId])
   @@index([userId])
+  @@index([transferGroup])
+  @@index([stripePaymentIntentId])
 }
 
 model BillingPaymentSplit {
-  id                      String                      @id @default(cuid())
-  paymentId               String
-  payment                 BillingPayment              @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  recipientType           BillingPaymentSplitRecipient
-  recipientId             String?
+  id                       String                       @id @default(cuid())
+  paymentId                String
+  payment                  BillingPayment               @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  recipientType            BillingPaymentSplitRecipient
+  recipientId              String?
+  payoutRecipientId        String?
+  payoutRecipient          PayoutRecipient?             @relation(fields: [payoutRecipientId], references: [id], onDelete: SetNull)
   stripeConnectedAccountId String?
-  amountCents             Int
-  applicationFeeCents     Int                         @default(0)
-  transferId              String?
-  status                  BillingPaymentSplitStatus   @default(pending)
-  createdAt               DateTime                    @default(now())
-  updatedAt               DateTime                    @updatedAt
+  amountCents              Int
+  applicationFeeCents      Int                          @default(0)
+  grossShareCents          Int?
+  platformFeeCents         Int                          @default(0)
+  adjustmentsCents         Int                          @default(0)
+  reserveCents             Int                          @default(0)
+  netTransferCents         Int?
+  transferId               String?
+  status                   BillingPaymentSplitStatus    @default(pending_service)
+  blockReason              String?
+  idempotencyKey           String?                      @unique
+  createdAt                DateTime                     @default(now())
+  updatedAt                DateTime                     @updatedAt
+
+  payoutTransfers PayoutTransfer[]
+  payoutBlocks    PayoutBlock[]
 
   @@index([paymentId])
+  @@index([recipientId])
+  @@index([payoutRecipientId])
+  @@index([transferId])
+  @@index([status])
 }
 
 model BillingSubscription {
@@ -5438,6 +5516,242 @@ model BillingAuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
 }
+
+// --- MapAble Stripe Connect payout ledger ---
+
+enum PayoutRecipientType {
+  support_worker
+  provider_org
+  transport_operator
+  mapable_platform
+  other
+}
+
+enum StripeAccountApiVersion {
+  accounts_v1
+  accounts_v2
+  unknown
+}
+
+enum StripeDashboardType {
+  express
+  full
+  none
+  unknown
+}
+
+enum StripeOnboardingStatus {
+  not_started
+  pending
+  restricted
+  enabled
+  rejected
+  disabled
+}
+
+enum PayoutSchedule {
+  automatic
+  manual
+  unknown
+}
+
+enum PayoutRecipientVerificationStatus {
+  unverified
+  pending
+  verified
+  action_required
+  rejected
+}
+
+enum PayoutBatchStatus {
+  draft
+  review_required
+  approved
+  processing
+  completed
+  partially_failed
+  failed
+  canceled
+}
+
+enum PayoutTransferStatus {
+  pending
+  created
+  failed
+  reversed
+}
+
+enum PayoutBlockReason {
+  dispute
+  refund
+  complaint
+  safeguarding
+  recipient_restricted
+  insufficient_funds
+  admin_hold
+  other
+}
+
+enum PayoutBlockSeverity {
+  info
+  warning
+  critical
+}
+
+enum PayoutBlockStatus {
+  active
+  resolved
+  canceled
+}
+
+enum AccountingExportStatus {
+  pending
+  exported
+  failed
+  skipped
+}
+
+enum AccountingExternalSystem {
+  xero
+  csv
+  other
+}
+
+/// Connected account recipient for Stripe transfers (not bank payout — Stripe handles external payout).
+model PayoutRecipient {
+  id                    String                            @id @default(cuid())
+  userId                String?
+  user                  User?                             @relation("PayoutRecipients", fields: [userId], references: [id], onDelete: SetNull)
+  providerOrgId         String?
+  providerOrg           Organisation?                     @relation("OrganisationPayoutRecipients", fields: [providerOrgId], references: [id], onDelete: SetNull)
+  workerId              String?
+  worker                WorkerProfile?                    @relation("WorkerPayoutRecipients", fields: [workerId], references: [id], onDelete: SetNull)
+  recipientType         PayoutRecipientType
+  displayName           String
+  email                 String
+  stripeAccountId       String?                           @unique
+  stripeAccountApiVersion StripeAccountApiVersion         @default(unknown)
+  stripeDashboardType   StripeDashboardType               @default(unknown)
+  stripeOnboardingStatus StripeOnboardingStatus           @default(not_started)
+  chargesEnabled        Boolean                           @default(false)
+  payoutsEnabled        Boolean                           @default(false)
+  transfersEnabled      Boolean                           @default(false)
+  requirementsDue       Json                              @default("[]")
+  defaultCurrency       String                            @default("AUD")
+  country               String                            @default("AU")
+  payoutSchedule        PayoutSchedule                    @default(unknown)
+  verificationStatus    PayoutRecipientVerificationStatus @default(unverified)
+  createdAt             DateTime                          @default(now())
+  updatedAt             DateTime                          @updatedAt
+
+  paymentSplits   BillingPaymentSplit[]
+  payoutTransfers PayoutTransfer[]
+
+  @@index([userId])
+  @@index([providerOrgId])
+  @@index([workerId])
+  @@index([stripeAccountId])
+  @@index([recipientType])
+}
+
+/// Batch of approved payout splits processed together.
+model PayoutBatch {
+  id                   String            @id @default(cuid())
+  batchNumber          String            @unique
+  status               PayoutBatchStatus @default(draft)
+  totalGrossCents      Int               @default(0)
+  totalNetTransferCents Int              @default(0)
+  approvedByUserId     String?
+  approvedAt           DateTime?
+  processedAt          DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  transfers PayoutTransfer[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Stripe Transfer record — money moved from platform balance to connected account (not bank deposit).
+model PayoutTransfer {
+  id              String               @id @default(cuid())
+  payoutSplitId   String
+  payoutSplit     BillingPaymentSplit  @relation(fields: [payoutSplitId], references: [id], onDelete: Cascade)
+  payoutBatchId   String?
+  payoutBatch     PayoutBatch?         @relation(fields: [payoutBatchId], references: [id], onDelete: SetNull)
+  recipientId     String
+  recipient       PayoutRecipient      @relation(fields: [recipientId], references: [id], onDelete: Restrict)
+  stripeTransferId String?             @unique
+  amountCents     Int
+  currency        String               @default("AUD")
+  status          PayoutTransferStatus @default(pending)
+  failureCode     String?
+  failureMessage  String?
+  transferGroup   String?
+  idempotencyKey  String               @unique
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([payoutSplitId])
+  @@index([payoutBatchId])
+  @@index([recipientId])
+  @@index([transferGroup])
+  @@index([status])
+}
+
+/// Active hold blocking payout release for a payment or split.
+model PayoutBlock {
+  id            String              @id @default(cuid())
+  paymentId     String
+  payment       BillingPayment        @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoiceId     String?
+  invoice       BillingInvoice?       @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  payoutSplitId String?
+  payoutSplit   BillingPaymentSplit?  @relation(fields: [payoutSplitId], references: [id], onDelete: SetNull)
+  reason        PayoutBlockReason
+  severity      PayoutBlockSeverity @default(warning)
+  status        PayoutBlockStatus   @default(active)
+  createdBy     String?
+  resolvedBy    String?
+  notes         String?
+  createdAt     DateTime            @default(now())
+  resolvedAt    DateTime?
+
+  @@index([paymentId, status])
+  @@index([payoutSplitId])
+  @@index([invoiceId])
+}
+
+/// Accounting export batch for reconciliation (CSV / Xero-ready).
+model AccountingExport {
+  id             String                   @id @default(cuid())
+  externalSystem AccountingExternalSystem
+  externalId     String?
+  status         AccountingExportStatus   @default(pending)
+  entityType     String
+  entityId       String
+  exportedAt     DateTime?
+  failureMessage String?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  lines AccountingExportLine[]
+
+  @@index([entityType, entityId])
+  @@index([status])
+}
+
+model AccountingExportLine {
+  id         String           @id @default(cuid())
+  exportId   String
+  export     AccountingExport @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  lineData   Json
+  createdAt  DateTime         @default(now())
+
+  @@index([exportId])
+}
+
 // Registered provider NDIA claiming (PACE / NDIA partner API adapter)
 
 enum NdiaProviderClaimStatus {

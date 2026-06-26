@@ -6,6 +6,9 @@ import {
 } from "@/lib/billing-core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing-core/audit";
 import { updateInvoiceStatus } from "@/lib/billing-core/invoice-service";
+import { paymentsMode } from "@/lib/payouts/config";
+import { handleDispute, handleRefund } from "@/lib/payouts/block-service";
+import { syncRecipientFromStripeAccount } from "@/lib/payouts/recipient-service";
 import { prisma } from "@/lib/prisma";
 
 export async function storeWebhookEventIdempotent(
@@ -42,6 +45,8 @@ export async function markWebhookProcessed(eventRowId: string) {
 }
 
 export async function handleStripeBillingEvent(event: Stripe.Event) {
+  assertLivemodeMatches(event);
+
   switch (event.type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded":
@@ -83,8 +88,35 @@ export async function handleStripeBillingEvent(event: Stripe.Event) {
     case "account.updated":
       await handleAccountUpdated(event.data.object as Stripe.Account);
       break;
+    case "account.external_account.updated":
+      await handleExternalAccountUpdated(event.data.object as Stripe.ExternalAccount);
+      break;
+    case "transfer.created":
+      await handleTransferCreated(event.data.object as Stripe.Transfer);
+      break;
+    case "transfer.reversed":
+      await handleTransferReversed(event.data.object as Stripe.Transfer);
+      break;
+    case "payout.paid":
+    case "payout.failed":
+    case "payout.created":
+    case "payout.updated":
+      await handleConnectedPayoutEvent(
+        event.data.object as Stripe.Payout,
+        event.type
+      );
+      break;
     default:
       break;
+  }
+}
+
+function assertLivemodeMatches(event: Stripe.Event) {
+  const expectedLive = paymentsMode() === "live";
+  if (event.livemode !== expectedLive) {
+    console.warn(
+      `[stripe-webhook] livemode mismatch: event=${event.livemode} env=${paymentsMode()} id=${event.id}`
+    );
   }
 }
 
@@ -125,7 +157,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       status: "succeeded",
       stripePaymentIntentId: paymentIntentId ?? undefined,
       paidAt: new Date(),
+      payoutStatus: "paid_pending_service",
     },
+  });
+
+  await prisma.billingInvoice.update({
+    where: { id: invoiceId },
+    data: { payoutStatus: "paid_pending_service" },
   });
 
   await updateInvoiceStatus(
@@ -208,6 +246,8 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   });
   if (payment) {
     await updateInvoiceStatus(payment.invoiceId, "refunded");
+    const refundAmount = charge.amount_refunded ?? payment.amountCents;
+    await handleRefund(payment.id, refundAmount);
   }
 }
 
@@ -219,6 +259,12 @@ async function handleDisputeCreated(dispute: Stripe.Dispute) {
     where: { stripeChargeId: chargeId },
     data: { status: "disputed" },
   });
+  const payment = await prisma.billingPayment.findFirst({
+    where: { stripeChargeId: chargeId },
+  });
+  if (payment) {
+    await handleDispute(payment.id);
+  }
 }
 
 async function handleStripeInvoiceEvent(invoice: Stripe.Invoice) {
@@ -294,6 +340,10 @@ async function handleSubscriptionEvent(
 }
 
 async function handleAccountUpdated(account: Stripe.Account) {
+  if (account.id) {
+    await syncRecipientFromStripeAccount(account.id, account);
+  }
+
   const userId = account.metadata?.mapableUserId;
   if (!userId) return;
 
@@ -310,4 +360,73 @@ async function handleAccountUpdated(account: Stripe.Account) {
     { connectOnboardingComplete: complete },
     userId
   );
+}
+
+async function handleExternalAccountUpdated(_account: Stripe.ExternalAccount) {
+  await writeBillingAuditLog({
+    entityType: "PayoutRecipient",
+    entityId: "external_account",
+    action: "external_account_updated",
+  });
+}
+
+async function handleTransferCreated(transfer: Stripe.Transfer) {
+  const splitId = transfer.metadata?.payoutSplitId;
+  if (!splitId) return;
+
+  await prisma.payoutTransfer.updateMany({
+    where: { stripeTransferId: transfer.id },
+    data: { status: "created" },
+  });
+
+  await prisma.billingPaymentSplit.updateMany({
+    where: { id: splitId },
+    data: { status: "transfer_created", transferId: transfer.id },
+  });
+}
+
+async function handleTransferReversed(transfer: Stripe.Transfer) {
+  await prisma.payoutTransfer.updateMany({
+    where: { stripeTransferId: transfer.id },
+    data: { status: "reversed" },
+  });
+
+  const splitId = transfer.metadata?.payoutSplitId;
+  if (splitId) {
+    await prisma.billingPaymentSplit.update({
+      where: { id: splitId },
+      data: { status: "reversed" },
+    });
+  }
+}
+
+async function handleConnectedPayoutEvent(
+  payout: Stripe.Payout,
+  eventType: string
+) {
+  const stripeAccountId =
+    typeof payout.destination === "string"
+      ? payout.destination
+      : undefined;
+
+  if (!stripeAccountId) return;
+
+  const recipient = await prisma.payoutRecipient.findUnique({
+    where: { stripeAccountId },
+  });
+  if (!recipient) return;
+
+  if (eventType === "payout.failed") {
+    await prisma.payoutRecipient.update({
+      where: { id: recipient.id },
+      data: { verificationStatus: "action_required" },
+    });
+  }
+
+  await writeBillingAuditLog({
+    entityType: "PayoutRecipient",
+    entityId: recipient.id,
+    action: eventType,
+    after: { payoutId: payout.id, status: payout.status },
+  });
 }

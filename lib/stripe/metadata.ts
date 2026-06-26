@@ -7,6 +7,9 @@ export function billingCheckoutMetadata(params: {
   userId: string;
   serviceType?: string;
   bookingId?: string;
+  paymentId?: string;
+  transferGroup?: string;
+  fundingSourceType?: string;
 }): Record<string, string> {
   const meta: Record<string, string> = {
     invoiceId: params.invoiceId,
@@ -15,6 +18,9 @@ export function billingCheckoutMetadata(params: {
   };
   if (params.serviceType) meta.serviceType = params.serviceType;
   if (params.bookingId) meta.bookingId = params.bookingId;
+  if (params.paymentId) meta.paymentId = params.paymentId;
+  if (params.transferGroup) meta.transferGroup = params.transferGroup;
+  if (params.fundingSourceType) meta.fundingSourceType = params.fundingSourceType;
   return meta;
 }
 
