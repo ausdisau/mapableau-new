@@ -137,8 +137,11 @@ describe("mapAbleCareCombinedDesignTests", () => {
       "GuidedSearchPanel",
       "PersonaEntrySection",
       "MarketplaceGrid",
-      "MapAbleDifference",
+      "StrategicContrast",
+      "CanvasBlockGrid",
+      "JourneyTimeline",
       "TrustAndSafetyBand",
+      "BoundaryNotice",
     ]);
     for (const section of spec?.expectedSections ?? []) {
       expect(source).toContain(`<${section}`);

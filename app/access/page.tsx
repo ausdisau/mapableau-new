@@ -1,3 +1,7 @@
+import {
+  ModuleCanvasExtras,
+  ModuleCanvasSection,
+} from "@/components/canvas/ModuleCanvasSection";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 
 export const metadata = {
@@ -8,6 +12,7 @@ export const metadata = {
 
 export default function AccessPage() {
   return (
+    <>
     <PublicModulePage
       eyebrow="MapAble Access"
       title="Accessibility information for places, reviewed with care."
@@ -31,5 +36,8 @@ export default function AccessPage() {
       primaryCta={{ label: "Join pilot", href: "/contact" }}
       secondaryCta={{ label: "Contact MapAble", href: "/contact" }}
     />
+    <ModuleCanvasSection module="access" />
+    <ModuleCanvasExtras module="access" showDigitalTwin />
+    </>
   );
 }

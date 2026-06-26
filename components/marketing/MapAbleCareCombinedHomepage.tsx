@@ -14,8 +14,12 @@ import {
   SponsoredBadge,
   SponsoredCard,
 } from "@/components/marketing/mapable-care-shared";
+import { BoundaryNotice } from "@/components/canvas/BoundaryNotice";
+import { CanvasBlockGrid } from "@/components/canvas/CanvasBlockGrid";
+import { JourneyTimeline } from "@/components/canvas/JourneyTimeline";
+import { StrategicContrast } from "@/components/canvas/StrategicContrast";
+import { canvasBlocks, journeySteps } from "@/lib/canvas/canvas-data";
 import {
-  differenceCards,
   getSponsoredPlacement,
   marketplaceCards,
 } from "@/lib/marketing/mapable-care-combined-data";
@@ -104,43 +108,6 @@ function MarketplaceGrid() {
   );
 }
 
-function MapAbleDifference() {
-  return (
-    <section id="difference" className="border-y border-slate-200 bg-white">
-      <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
-        <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
-              The MapAble difference
-            </p>
-            <h2 className="mapable-display mt-3 text-4xl font-black leading-[1.02] tracking-[-0.055em] text-[#0C1833] md:text-5xl">
-              Choice, safety and access should travel together.
-            </h2>
-            <p className="mt-4 text-base leading-8 text-slate-600">
-              Hireup and Mable made support matching feel more modern. MapAble&apos;s edge is
-              combining that familiarity with accessibility-aware coordination.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {differenceCards.map((card) => (
-              <article
-                key={card.title}
-                className="rounded-[1.5rem] border border-slate-200 bg-[#F6FBFC] p-5"
-              >
-                <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-black text-[#005B7F]">
-                  {card.badge}
-                </span>
-                <h3 className="mt-4 text-lg font-black text-[#0C1833]">{card.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{card.body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function TrustAndSafetyBand() {
   return (
     <section className="mx-auto max-w-7xl px-5 pb-12 lg:px-8 lg:pb-16">
@@ -212,9 +179,16 @@ export function MapAbleCareCombinedHomepageSections() {
       <GuidedSearchPanel />
       <PersonaEntrySection />
       <MarketplaceGrid />
-      <MapAbleDifference />
+      <StrategicContrast />
+      <CanvasBlockGrid
+        blocks={canvasBlocks}
+        title="Complete Support ecosystem"
+        description="Twelve connected capabilities across care, transport, access, employment, and governance."
+      />
+      <JourneyTimeline steps={journeySteps} compact title="Support journey" />
       <TrustAndSafetyBand />
       <PartnerStrip />
+      <BoundaryNotice />
     </>
   );
 }

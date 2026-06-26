@@ -1,3 +1,4 @@
+import { ModuleCanvasSection } from "@/components/canvas/ModuleCanvasSection";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 
 export const metadata = {
@@ -8,6 +9,7 @@ export const metadata = {
 
 export default function TransportHubPage() {
   return (
+    <>
     <PublicModulePage
       eyebrow="MapAble Transport"
       title="Accessible trip requests with safety and eligibility checks."
@@ -34,5 +36,7 @@ export default function TransportHubPage() {
       }}
       secondaryCta={{ label: "Register as provider", href: "/for-providers" }}
     />
+    <ModuleCanvasSection module="transport" />
+    </>
   );
 }

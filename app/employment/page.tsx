@@ -1,3 +1,4 @@
+import { ModuleCanvasSection } from "@/components/canvas/ModuleCanvasSection";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 
 export const metadata = {
@@ -8,6 +9,7 @@ export const metadata = {
 
 export default function EmploymentPage() {
   return (
+    <>
     <PublicModulePage
       eyebrow="MapAble Employment"
       title="Inclusive employment pathways where disclosure stays in your control."
@@ -34,5 +36,7 @@ export default function EmploymentPage() {
         href: "/providers?service=employment",
       }}
     />
+    <ModuleCanvasSection module="employment" />
+    </>
   );
 }

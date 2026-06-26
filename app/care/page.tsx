@@ -1,3 +1,4 @@
+import { ModuleCanvasSection } from "@/components/canvas/ModuleCanvasSection";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 
 export const metadata = {
@@ -8,6 +9,7 @@ export const metadata = {
 
 export default function CareHubPage() {
   return (
+    <>
     <PublicModulePage
       eyebrow="MapAble Care"
       title="Find and manage disability support with consent at the centre."
@@ -31,5 +33,7 @@ export default function CareHubPage() {
       primaryCta={{ label: "Explore provider finder", href: "/providers" }}
       secondaryCta={{ label: "Join pilot", href: "/contact" }}
     />
+    <ModuleCanvasSection module="care" />
+    </>
   );
 }

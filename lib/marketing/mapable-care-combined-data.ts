@@ -449,8 +449,11 @@ export const mapAbleCareCombinedDesignTests = [
       "GuidedSearchPanel",
       "PersonaEntrySection",
       "MarketplaceGrid",
-      "MapAbleDifference",
+      "StrategicContrast",
+      "CanvasBlockGrid",
+      "JourneyTimeline",
       "TrustAndSafetyBand",
+      "BoundaryNotice",
     ],
   },
   {
