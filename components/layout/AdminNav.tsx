@@ -21,6 +21,7 @@ const OPS_LINKS = [
   { href: "/admin/disaster-recovery", label: "Disaster recovery" },
   { href: "/admin/accessibility-accreditation", label: "Accreditation" },
   { href: "/admin/evidence-automation", label: "Evidence" },
+  { href: "/admin/digital-twin", label: "Digital Twin" },
   { href: "/admin/government-reporting", label: "Gov reporting" },
 ];
 
