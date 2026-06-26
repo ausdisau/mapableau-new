@@ -17,6 +17,7 @@
     "lint-staged": "lint-staged",
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
+    "test:a11y": "vitest run tests/vertical-pages-a11y.test.tsx tests/verticals-registry.test.ts tests/vertical-grid.test.ts tests/interest-form.test.ts",
     "test:watch": "vitest",
     "setup:cloud-agent": "bash scripts/setup-cloud-agent.sh",
     "mcp:av": "tsx mcp/av/server.ts",
