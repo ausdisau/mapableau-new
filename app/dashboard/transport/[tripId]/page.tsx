@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { TripAccessFeedbackForm } from "@/components/transport/TripAccessFeedbackForm";
 import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
 import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
 import { TransportTripActions } from "@/components/transport/TransportTripActions";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
 import { MOBILITY_FIELD_LABELS } from "@/lib/transport/mobility-schema";
 import { requireAuth } from "@/lib/auth/guards";
+import { prisma } from "@/lib/prisma";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { getTransportTripForUser } from "@/lib/transport/transport-trip-service";
 import type { TransportAddressView } from "@/types/transport";
@@ -43,6 +45,15 @@ export default async function TransportTripDetailPage({
 
   try {
     const response = await getTransportTripForUser(user, tripId);
+    const tripRecord = await prisma.transportTrip.findUnique({
+      where: { id: tripId },
+      select: { destinationAccessPlaceId: true, status: true },
+    });
+    const showFeedback =
+      tripRecord?.destinationAccessPlaceId &&
+      ["trip_completed", "closed", "evidence_submitted", "participant_review"].includes(
+        tripRecord.status
+      );
     const {
       trip,
       nextActions,
@@ -177,6 +188,13 @@ export default async function TransportTripDetailPage({
           actions={nextActions}
           organisationId={trip.providerOrganisationId ?? undefined}
         />
+
+        {showFeedback && tripRecord?.destinationAccessPlaceId ? (
+          <TripAccessFeedbackForm
+            tripId={trip.id}
+            placeId={tripRecord.destinationAccessPlaceId}
+          />
+        ) : null}
       </div>
     );
   } catch (e) {

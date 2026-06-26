@@ -8,17 +8,25 @@ import {
   AccessibleFormField,
   formInputClass,
 } from "@/components/forms/AccessibleFormField";
+import { AccessTripWarningsPanel } from "@/components/transport/AccessTripWarningsPanel";
 import { MobilityRequirementsForm } from "@/components/transport/MobilityRequirementsForm";
 import { Button } from "@/components/ui/button";
 import type { MobilityRequirements } from "@/lib/transport/mobility-schema";
 
-export function NewTransportTripForm() {
+export function NewTransportTripForm({ placeId }: { placeId?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prefillFromProfile, setPrefillFromProfile] = useState(true);
   const [mobility, setMobility] = useState<MobilityRequirements>({});
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [dropoffAddress, setDropoffAddress] = useState("");
+  const [accessNotes, setAccessNotes] = useState("");
+  const [accessWarnings, setAccessWarnings] = useState<string[]>([]);
+  const [journeyConfidence, setJourneyConfidence] = useState<number | null>(
+    null
+  );
+  const [placeName, setPlaceName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!prefillFromProfile) return;
@@ -35,6 +43,26 @@ export function NewTransportTripForm() {
       })
       .catch(() => {});
   }, [prefillFromProfile]);
+
+  useEffect(() => {
+    if (!placeId) return;
+    fetch(`/api/access/places/${placeId}/destination-profile`)
+      .then((r) => r.json())
+      .then((data) => {
+        const profile = data.destinationProfile;
+        if (!profile) return;
+        setPlaceName(profile.destinationName);
+        if (profile.dropoffAddress) setDropoffAddress(profile.dropoffAddress);
+        if (profile.transportInstructions?.driverNotes) {
+          setAccessNotes(profile.transportInstructions.driverNotes);
+        }
+        setAccessWarnings(profile.accessWarnings ?? []);
+        if (profile.accessSummary?.confidenceScore != null) {
+          setJourneyConfidence(profile.accessSummary.confidenceScore);
+        }
+      })
+      .catch(() => {});
+  }, [placeId]);
 
   return (
     <form
@@ -65,6 +93,7 @@ export function NewTransportTripForm() {
             mobilityRequirements:
               Object.keys(mobility).length > 0 ? mobility : undefined,
             prefillFromProfile,
+            destinationAccessPlaceId: placeId,
           }),
         });
         setLoading(false);
@@ -90,6 +119,18 @@ export function NewTransportTripForm() {
           {error}
         </p>
       ) : null}
+
+      {placeName ? (
+        <p className="text-sm">
+          Planning trip to <strong>{placeName}</strong> using community access
+          data.
+        </p>
+      ) : null}
+
+      <AccessTripWarningsPanel
+        warnings={accessWarnings}
+        journeyConfidence={journeyConfidence}
+      />
 
       <label className="flex items-start gap-2 text-sm">
         <input
@@ -122,6 +163,8 @@ export function NewTransportTripForm() {
           name="dropoffAddress"
           className={formInputClass}
           required
+          value={dropoffAddress}
+          onChange={(e) => setDropoffAddress(e.target.value)}
         />
       </AccessibleFormField>
       <AccessibleFormField id="dropoffSuburb" label="Drop-off suburb">
@@ -149,7 +192,14 @@ export function NewTransportTripForm() {
         label="Access notes at pickup"
         hint="e.g. ramp, buzzer, support person meeting you"
       >
-        <textarea id="accessNotes" name="accessNotes" className={formInputClass} rows={3} />
+        <textarea
+          id="accessNotes"
+          name="accessNotes"
+          className={formInputClass}
+          rows={3}
+          value={accessNotes}
+          onChange={(e) => setAccessNotes(e.target.value)}
+        />
       </AccessibleFormField>
 
       <div className="flex gap-2">

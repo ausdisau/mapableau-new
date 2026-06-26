@@ -161,6 +161,63 @@ describe("content safety", () => {
     );
     expect(flags.length).toBeGreaterThan(0);
   });
+
+  it("flags defamatory framing", () => {
+    const flags = scanReviewForModerationFlags(
+      "This venue illegally discriminates against wheelchair users"
+    );
+    expect(flags.some((f) => f.includes("Defamatory"))).toBe(true);
+  });
+});
+
+describe("domain score rollup", () => {
+  it("maps rating categories to domains", async () => {
+    const { domainForCategory } = await import(
+      "@/lib/access-map/domain-score-service"
+    );
+    expect(domainForCategory("main_entrance")).toContain("mobility");
+    expect(domainForCategory("hearing_access")).toContain("communication");
+  });
+});
+
+describe("journey confidence", () => {
+  it("computes overall journey confidence", async () => {
+    const { computeJourneyConfidence } = await import(
+      "@/lib/access-transport/journey-confidence-service"
+    );
+    const score = computeJourneyConfidence({
+      destinationProfile: {
+        placeId: "p1",
+        destinationName: "Clinic",
+        accessSummary: {
+          overallAccessScore: 80,
+          confidenceScore: 65,
+          lastVerifiedAt: new Date().toISOString(),
+          activeAlerts: [],
+        },
+        arrivalRequirements: { stepFreeRequired: true },
+        transportInstructions: {},
+        accessWarnings: [],
+      },
+      hasMobilityPrefill: true,
+    });
+    expect(score.overallJourneyConfidence).toBeGreaterThan(0);
+    expect(score.overallJourneyConfidence).toBeLessThanOrEqual(100);
+  });
+});
+
+describe("access report validation", () => {
+  it("validates create report schema", async () => {
+    const { createAccessReportSchema } = await import(
+      "@/lib/validation/access-report"
+    );
+    const r = createAccessReportSchema.safeParse({
+      reviewBody: "The entrance had one step about 80 mm high on my visit.",
+      ratings: [{ category: "main_entrance", value: "basic" }],
+      publish: false,
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe("ranking", () => {

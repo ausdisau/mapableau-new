@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { NewTransportTripForm } from "@/components/transport/NewTransportTripForm";
+import { NewTransportTripFormWithPlace } from "@/components/transport/NewTransportTripFormWithPlace";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ export default function NewTransportTripPage() {
         </p>
       </header>
       <Suspense fallback={<TripFormFallback />}>
-        <NewTransportTripForm />
+        <NewTransportTripFormWithPlace />
       </Suspense>
     </div>
   );

@@ -37,6 +37,12 @@ export default async function AdminAccessDashboardPage() {
         <Link href="/admin/access/places" className="underline">
           Places
         </Link>
+        <Link href="/admin/access/alerts" className="underline">
+          Alerts
+        </Link>
+        <Link href="/admin/access/reports" className="underline">
+          Reports queue
+        </Link>
         <Link href="/admin/access/reviews" className="underline">
           Reviews / moderation
         </Link>
@@ -52,7 +58,7 @@ export default async function AdminAccessDashboardPage() {
         <Link href="/admin/access/analytics" className="underline">
           Analytics
         </Link>
-        <Link href="/access" className="underline">
+        <Link href="/access/map" className="underline">
           Public map
         </Link>
       </nav>

@@ -48,4 +48,9 @@ export async function recomputePlaceRatingSummaries(placeId: string) {
       },
     });
   }
+
+  const { recomputePlaceDomainSummaries } = await import(
+    "@/lib/access-map/domain-score-service"
+  );
+  await recomputePlaceDomainSummaries(placeId);
 }

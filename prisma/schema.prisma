@@ -124,6 +124,13 @@ model User {
   accessAccreditationRequests AccessAccreditationRequest[] @relation("AccessAccreditationRequestUser")
   accessModerationDecisions AccessModerationDecision[] @relation("AccessModerator")
   accessContentReports      AccessContentReport[]  @relation("AccessContentReporter")
+  accessAlertsReported      AccessAlert[]          @relation("AccessAlertReporter")
+  accessAlertsResolved      AccessAlert[]          @relation("AccessAlertResolver")
+  accessVerifications       AccessVerification[]   @relation("AccessVerificationUser")
+  userAccessBadges          UserAccessBadge[]      @relation("UserAccessBadgeUser")
+  userAccessContributions   UserAccessContribution[] @relation("UserAccessContributionUser")
+  userAccessCommunityRoles  UserAccessCommunityRole[] @relation("UserAccessCommunityRoleUser")
+  accessTripFeedback        AccessTripFeedback[]   @relation("AccessTripFeedbackUser")
   dataAccessLogs            DataAccessLog[]        @relation("DataAccessActor")
   transportTripRequests     TransportTripRequest[] @relation("TransportTripRequestParticipant")
   transportTrips            TransportTrip[]        @relation("TransportTripParticipant")
@@ -650,6 +657,7 @@ model AccessibilityProfile {
   transportRequirements    Json     @default("{}")
   digitalPreferences       Json     @default("{}")
   shareWithProviders       Json     @default("{}")
+  placeMatchingRequirements Json    @default("{}") @map("place_matching_requirements")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -6812,6 +6820,68 @@ enum AccessContentReportReason {
   other
 }
 
+enum AccessReportType {
+  venue
+  route
+  toilet
+  parking
+  entrance
+  transport_stop
+  sensory
+  temporary_alert
+}
+
+enum AccessAlertType {
+  broken_lift
+  blocked_ramp
+  inaccessible_toilet
+  construction_barrier
+  inaccessible_transport_stop
+  temporary_closure
+  crowding_risk
+  sensory_overload
+  urgent_hazard
+  other
+}
+
+enum AccessAlertStatus {
+  active
+  resolved
+  expired
+  disputed
+}
+
+enum AccessDomain {
+  mobility
+  sensory
+  communication
+  cognitive
+  service
+}
+
+enum AccessVerificationTarget {
+  review
+  alert
+  place_feature
+}
+
+enum AccessVerificationAction {
+  confirm
+  outdated
+  dispute
+  resolve
+  suggest_edit
+}
+
+enum AccessCommunityRole {
+  community_mapper
+  verified_mapper
+  access_ambassador
+  venue_owner
+  moderator
+  council_partner
+}
+
 model AccessPlace {
   id               String              @id @default(cuid())
   name             String
@@ -6842,6 +6912,10 @@ model AccessPlace {
   venueClaims      AccessVenueClaim[]
   venueProfile     AccessVenueProfile?
   importItems      AccessImportItem[]
+  domainSummaries  AccessPlaceDomainSummary[]
+  alerts           AccessAlert[]
+  transportTrips   TransportTrip[]          @relation("TransportTripDestinationPlace")
+  transportTripRequests TransportTripRequest[] @relation("TransportTripRequestDestinationPlace")
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -6926,6 +7000,12 @@ model AccessPlaceReview {
   visitDate          DateTime? @map("visit_date")
   reviewBody         String   @map("review_body")
   mobilityContext    String?  @map("mobility_context")
+  reportType         AccessReportType @default(venue) @map("report_type")
+  visitedInPerson    Boolean  @default(true) @map("visited_in_person")
+  measurementsJson   Json?    @map("measurements_json")
+  draftKey           String?  @map("draft_key")
+  submittedAt        DateTime? @map("submitted_at")
+  confidenceScore    Float?   @map("confidence_score")
   status             AccessReviewStatus @default(draft)
   visibility         AccessReviewVisibility @default(public)
   createdAt          DateTime @default(now()) @map("created_at")
@@ -6937,8 +7017,10 @@ model AccessPlaceReview {
   events             AccessPlaceReviewEvent[]
   venueResponses     AccessVenueReviewResponse[]
   moderationItems    AccessModerationQueue[]
+  sourceAlerts       AccessAlert[]             @relation("AccessAlertSourceReview")
 
   @@index([placeId, status])
+  @@index([reviewerProfileId, draftKey])
   @@map("access_reviews")
 }
 
@@ -6996,6 +7078,126 @@ model AccessRatingSummary {
   updatedAt DateTime @updatedAt @map("updated_at")
   @@unique([placeId, category])
   @@map("access_rating_summaries")
+}
+
+model AccessPlaceDomainSummary {
+  id          String       @id @default(cuid())
+  placeId     String       @map("place_id")
+  place       AccessPlace  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  domain      AccessDomain
+  score       Float?
+  sampleCount Int          @default(0) @map("sample_count")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@unique([placeId, domain])
+  @@map("access_place_domain_summaries")
+}
+
+model AccessAlert {
+  id             String                @id @default(cuid())
+  placeId        String?               @map("place_id")
+  place          AccessPlace?          @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  alertType      AccessAlertType       @map("alert_type")
+  title          String
+  description    String?
+  status         AccessAlertStatus     @default(active)
+  latitude       Float?
+  longitude      Float?
+  expiresAt      DateTime?             @map("expires_at")
+  reviewAt       DateTime?             @map("review_at")
+  reportedById   String?               @map("reported_by")
+  reportedBy     User?                 @relation("AccessAlertReporter", fields: [reportedById], references: [id])
+  confidence     AccessConfidenceLevel @default(user_reported)
+  sourceReviewId String?               @map("source_review_id")
+  sourceReview   AccessPlaceReview?    @relation("AccessAlertSourceReview", fields: [sourceReviewId], references: [id], onDelete: SetNull)
+  resolvedById   String?               @map("resolved_by")
+  resolvedBy     User?                 @relation("AccessAlertResolver", fields: [resolvedById], references: [id])
+  resolvedAt     DateTime?             @map("resolved_at")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+
+  @@index([status, expiresAt])
+  @@index([placeId, status])
+  @@map("access_alerts")
+}
+
+model AccessVerification {
+  id           String                   @id @default(cuid())
+  targetType   AccessVerificationTarget @map("target_type")
+  targetId     String                   @map("target_id")
+  action       AccessVerificationAction
+  userId       String                   @map("user_id")
+  user         User                     @relation("AccessVerificationUser", fields: [userId], references: [id])
+  notes        String?
+  evidenceJson Json?                    @map("evidence_json")
+  createdAt    DateTime                 @default(now()) @map("created_at")
+
+  @@unique([targetType, targetId, userId, action])
+  @@index([targetType, targetId])
+  @@map("access_verifications")
+}
+
+model AccessBadgeDefinition {
+  id           String @id
+  name         String
+  description  String
+  criteriaJson Json   @map("criteria_json")
+
+  userBadges UserAccessBadge[]
+
+  @@map("access_badge_definitions")
+}
+
+model UserAccessBadge {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation("UserAccessBadgeUser", fields: [userId], references: [id], onDelete: Cascade)
+  badgeId   String   @map("badge_id")
+  badge     AccessBadgeDefinition @relation(fields: [badgeId], references: [id])
+  awardedAt DateTime @default(now()) @map("awarded_at")
+
+  @@unique([userId, badgeId])
+  @@map("user_access_badges")
+}
+
+model UserAccessContribution {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation("UserAccessContributionUser", fields: [userId], references: [id], onDelete: Cascade)
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("user_access_contributions")
+}
+
+model UserAccessCommunityRole {
+  id        String              @id @default(cuid())
+  userId    String              @map("user_id")
+  user      User                @relation("UserAccessCommunityRoleUser", fields: [userId], references: [id], onDelete: Cascade)
+  role      AccessCommunityRole
+  grantedBy String?             @map("granted_by")
+  grantedAt DateTime            @default(now()) @map("granted_at")
+
+  @@unique([userId, role])
+  @@map("user_access_community_roles")
+}
+
+model AccessTripFeedback {
+  id                String   @id @default(cuid())
+  tripId            String   @unique @map("trip_id")
+  placeId           String?  @map("place_id")
+  dropoffAccessible Boolean? @map("dropoff_accessible")
+  entranceCorrect   Boolean? @map("entrance_correct")
+  barriersNotes     String?  @map("barriers_notes")
+  createAlert       Boolean  @default(false) @map("create_alert")
+  submittedById     String   @map("submitted_by")
+  submittedBy       User     @relation("AccessTripFeedbackUser", fields: [submittedById], references: [id])
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("access_trip_feedback")
 }
 
 model AccessImportJob {
@@ -7353,6 +7555,10 @@ model TransportTripRequest {
   accessNotes           String?
   mobilityRequirements  Json     @default("{}")
   status                String   @default("open")
+  destinationAccessPlaceId String? @map("destination_access_place_id")
+  destinationAccessPlace AccessPlace? @relation("TransportTripRequestDestinationPlace", fields: [destinationAccessPlaceId], references: [id], onDelete: SetNull)
+  accessDestinationProfileJson Json? @map("access_destination_profile_json")
+  journeyConfidenceJson Json?    @map("journey_confidence_json")
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   trip                  TransportTrip?
@@ -7384,6 +7590,10 @@ model TransportTrip {
   scheduledEnd            DateTime?
   mobilityRequirements    Json                @default("{}")
   disputeReason           String?
+  destinationAccessPlaceId String?            @map("destination_access_place_id")
+  destinationAccessPlace  AccessPlace?        @relation("TransportTripDestinationPlace", fields: [destinationAccessPlaceId], references: [id], onDelete: SetNull)
+  accessDestinationProfileJson Json?          @map("access_destination_profile_json")
+  journeyConfidenceJson   Json?               @map("journey_confidence_json")
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @updatedAt
 
