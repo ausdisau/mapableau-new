@@ -140,6 +140,7 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+  supportConciergeRequests  SupportConciergeRequest[]
 }
 
 model PasskeyCredential {
@@ -8466,3 +8467,90 @@ model WorkerTrainingCompletion {
   @@index([userId])
   @@map("worker_training_completions")
 }
+
+// --- MapAble Strategic Wedges ---
+
+model ProviderAvailabilitySnapshot {
+  id                       String   @id @default(cuid())
+  organisationId           String?
+  providerProfileId        String?
+  acceptingNewParticipants Boolean  @default(false)
+  waitlistStatus           String   @default("unknown")
+  earliestStartDate        DateTime?
+  availableDays            String[] @default([])
+  afterHoursAvailable      Boolean  @default(false)
+  weekendAvailable         Boolean  @default(false)
+  telehealthAvailable      Boolean  @default(false)
+  mobileServiceAvailable   Boolean  @default(false)
+  suburbsServed            String[] @default([])
+  fundingTypesAccepted     String[] @default([])
+  urgentCapacity           Boolean  @default(false)
+  lastAvailabilityUpdated  DateTime @default(now())
+  availabilityConfidence   String   @default("unknown")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([organisationId])
+  @@index([providerProfileId])
+  @@index([acceptingNewParticipants])
+  @@index([waitlistStatus])
+  @@map("provider_availability_snapshots")
+}
+
+model ProviderAccessCapabilityRecord {
+  id                     String   @id @default(cuid())
+  organisationId         String?
+  providerProfileId        String?
+  stepFreeEntry          Boolean?
+  doorWidthMm            Int?
+  accessibleToilet       Boolean?
+  accessibleParking      Boolean?
+  dropOffPoint           String?
+  publicTransportNearby  Boolean?
+  lowSensoryOption       Boolean?
+  hearingLoop            Boolean?
+  auslanAvailable        Boolean?
+  aacFriendly            Boolean?
+  plainLanguageMaterials Boolean?
+  telehealthAvailable    Boolean?
+  homeVisitsAvailable    Boolean?
+  assistanceAnimalPolicy String?
+  staffDisabilityTraining Boolean?
+  photosAvailable        Boolean  @default(false)
+  measurementsAvailable  Boolean  @default(false)
+  lastVerifiedAt         DateTime?
+  verificationSource     String   @default("unknown")
+  capabilitiesJson       Json     @default("{}")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([organisationId])
+  @@index([providerProfileId])
+  @@map("provider_access_capability_records")
+}
+
+model SupportConciergeRequest {
+  id               String   @id @default(cuid())
+  requesterRole    String
+  supportCategory  String
+  locationPostcode String
+  locationSuburb   String
+  serviceMode      String
+  urgency          String
+  accessNeeds      String[] @default([])
+  fundingType      String
+  previousIssues   String?
+  consentGiven     Boolean  @default(false)
+  userId           String?
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status           String   @default("submitted")
+  summaryJson      Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([locationPostcode])
+  @@map("support_concierge_requests")
+}
+

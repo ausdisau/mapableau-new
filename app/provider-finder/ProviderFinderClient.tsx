@@ -10,6 +10,8 @@ import { ProviderFinderAccessLayer } from "@/components/provider-finder/Provider
 import { ProviderFinderAskPanel } from "@/components/provider-finder/ProviderFinderAskPanel";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
 import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderFinderResultCard";
+import { AvailabilityFilterPanel } from "@/components/wedges/availability/AvailabilityFilterPanel";
+import { WedgeEnhancedResultCard } from "@/components/wedges/availability/WedgeEnhancedResultCard";
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,9 +38,13 @@ import {
 } from "@/lib/marketing/mapable-care-routes";
 import { fetchProviderMapPins } from "@/lib/provider-finder/fetch-map-pins";
 import { useProviderOutlets } from "@/lib/use-provider-outlets";
+import { wedgesConfig } from "@/lib/config/wedges";
+import { filterProvidersByAvailability } from "@/lib/wedges/availability/filters";
+import { MOCK_WEDGE_PROVIDERS } from "@/lib/wedges/mock-providers";
+import type { AvailabilityFilters } from "@/types/wedges";
 
 import { mapOutletsToProviders } from "./outletToProvider";
-import { type Provider } from "./providers";
+import type { Provider } from "@/app/provider-finder/providers";
 
 import type { MapLibreProvider } from "@/components/map/MapLibreMap";
 
@@ -125,6 +131,32 @@ export default function ProviderFinderClient() {
     null,
   );
   const [mapPinsLoading, setMapPinsLoading] = useState(false);
+  const [availabilityFilters, setAvailabilityFilters] = useState<AvailabilityFilters>(
+    {},
+  );
+
+  const wedgeProvidersForLocation = useMemo(() => {
+    if (!wedgesConfig.mvpEnabled || !wedgesConfig.useMockData) return [];
+    const loc = location.trim().toLowerCase();
+    let list = MOCK_WEDGE_PROVIDERS;
+    if (loc) {
+      list = list.filter(
+        (p) =>
+          p.suburb.toLowerCase().includes(loc) ||
+          p.postcode.includes(loc) ||
+          p.state.toLowerCase().includes(loc),
+      );
+    }
+    return filterProvidersByAvailability(list, availabilityFilters);
+  }, [location, availabilityFilters]);
+
+  const hasAvailabilityFilters = useMemo(
+    () =>
+      Object.values(availabilityFilters).some(
+        (v) => v !== undefined && v !== "" && v !== false,
+      ),
+    [availabilityFilters],
+  );
 
   const mapSource = getProviderFinderMapSourceClient();
   const pageSize = 12;
@@ -621,6 +653,17 @@ export default function ProviderFinderClient() {
                   setPage(1);
                 }}
               />
+              {wedgesConfig.mvpEnabled && wedgesConfig.availabilityFiltersEnabled ? (
+                <div className="mt-4 rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+                  <AvailabilityFilterPanel
+                    filters={availabilityFilters}
+                    onChange={(f) => {
+                      setAvailabilityFilters(f);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className="min-w-0 flex-1 space-y-6">
@@ -706,7 +749,39 @@ export default function ProviderFinderClient() {
                 </div>
               </section>
 
-              {total === 0 ? (
+              {hasAvailabilityFilters && wedgeProvidersForLocation.length > 0 ? (
+                <section aria-labelledby="wedge-demo-heading" className="space-y-4">
+                  <h3 id="wedge-demo-heading" className="font-heading text-lg font-semibold">
+                    Providers with availability data (demo)
+                  </h3>
+                  <ul className="space-y-4">
+                    {wedgeProvidersForLocation.map((wp) => (
+                      <li key={wp.id}>
+                        <WedgeEnhancedResultCard
+                          provider={{
+                            id: wp.id,
+                            name: wp.name,
+                            slug: wp.slug,
+                            suburb: wp.suburb,
+                            state: wp.state as Provider["state"],
+                            postcode: wp.postcode,
+                            categories: wp.categories,
+                            supports: [],
+                            registered: true,
+                            rating: 4.5,
+                            reviewCount: 10,
+                            distanceKm: 0,
+                            latitude: undefined,
+                            longitude: undefined,
+                          }}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              {total === 0 && !hasAvailabilityFilters ? (
                 <Card variant="outlined" className="p-8 text-center">
                   <h3 className="text-lg font-semibold">No providers found</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
@@ -717,13 +792,23 @@ export default function ProviderFinderClient() {
                 <ul className="space-y-4">
                   {visible.map((p) => (
                     <li key={p.id}>
-                      <ProviderFinderResultCard
-                        provider={p}
-                        isSelected={selectedProvider?.id === p.id}
-                        isCompared={compareIds.includes(p.id)}
-                        onSelect={setSelectedProvider}
-                        onToggleCompare={toggleCompare}
-                      />
+                      {wedgesConfig.mvpEnabled && wedgesConfig.accessFitEnabled ? (
+                        <WedgeEnhancedResultCard
+                          provider={p}
+                          isSelected={selectedProvider?.id === p.id}
+                          isCompared={compareIds.includes(p.id)}
+                          onSelect={setSelectedProvider}
+                          onToggleCompare={toggleCompare}
+                        />
+                      ) : (
+                        <ProviderFinderResultCard
+                          provider={p}
+                          isSelected={selectedProvider?.id === p.id}
+                          isCompared={compareIds.includes(p.id)}
+                          onSelect={setSelectedProvider}
+                          onToggleCompare={toggleCompare}
+                        />
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -73,3 +73,19 @@ export type TripPlannerStopFinderParams = {
   query: string;
   maxResults?: number;
 };
+
+export type TripPlannerLocationType = "any" | "stop" | "coord" | "address";
+
+export type TripPlannerPlanParams = {
+  typeOrigin: TripPlannerLocationType;
+  nameOrigin: string;
+  coordOrigin?: string;
+  typeDestination: TripPlannerLocationType;
+  nameDestination: string;
+  coordDestination?: string;
+  depArrMacro?: "dep" | "arr";
+  itdDate?: string;
+  itdTime?: string;
+  maxTrips?: number;
+  wheelchair?: boolean;
+};
