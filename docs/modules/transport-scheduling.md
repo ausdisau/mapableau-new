@@ -12,6 +12,7 @@ Parallel scheduling domain alongside legacy `TransportBooking` (Phase 3). New tr
 | Routing (provider) | `/api/transport/routing/*` |
 | Live Traffic NSW (provider) | `/api/transport/traffic/*` |
 | Trip Planner proxy (provider) | `/api/transport/tp/*` |
+| Public transport (all states) | `/api/transport/pt/*` |
 
 Responses include `permissions`, `nextActions`, optional `routeEstimate`, and role-shaped addresses (exact pickup/dropoff only for participant, consented nominee summary, provider org, assigned driver).
 
@@ -42,9 +43,14 @@ TFNSW_API_KEY=
 TFNSW_LIVE_TRAFFIC_ENABLED=true
 TFNSW_TRIP_PLANNER_ENABLED=true
 TFNSW_ENRICH_ROUTE_ESTIMATES=false
+
+# PTV (VIC) + Translink (QLD) — see docs/public-transport-apis.md
+PTV_DEV_ID=
+PTV_API_KEY=
+TRANSLINK_GTFS_ENABLED=true
 ```
 
-See [docs/tfnsw-traffic.md](docs/tfnsw-traffic.md) for hazard feeds, cameras, departures, and stop search.
+See [docs/public-transport-apis.md](../public-transport-apis.md) for multi-state PT APIs and [docs/tfnsw-traffic.md](../tfnsw-traffic.md) for Live Traffic NSW.
 
 ## Consent
 

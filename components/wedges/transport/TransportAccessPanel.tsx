@@ -88,7 +88,7 @@ export function TransportAccessPanel({
       </p>
 
       <div className="flex flex-wrap gap-2">
-        <a href="/transport/new" className="text-sm text-primary underline">
+        <a href="/dashboard/transport" className="text-sm text-primary underline">
           Plan accessible trip
         </a>
         <a href="/request-support" className="text-sm text-primary underline">
