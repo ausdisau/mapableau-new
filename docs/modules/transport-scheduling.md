@@ -44,7 +44,7 @@ TFNSW_LIVE_TRAFFIC_ENABLED=true
 TFNSW_TRIP_PLANNER_ENABLED=true
 TFNSW_ENRICH_ROUTE_ESTIMATES=false
 
-# PTV (VIC) + Translink (QLD) — see docs/public-transport-apis.md
+# PTV (VIC), Translink (QLD), ACT, SA, WA, TAS, NT — see docs/public-transport-apis.md
 PTV_DEV_ID=
 PTV_API_KEY=
 TRANSLINK_GTFS_ENABLED=true

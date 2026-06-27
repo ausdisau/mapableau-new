@@ -2,10 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   buildGtfsIndex,
+  mergeGtfsIndexes,
   nextDeparturesFromIndex,
   searchStopsInIndex,
   stopsNearCoordInIndex,
-} from "@/lib/translink/gtfs-index";
+} from "@/lib/gtfs/index";
 
 const sampleFiles = {
   stops: `stop_id,stop_name,stop_lat,stop_lon,wheelchair_boarding

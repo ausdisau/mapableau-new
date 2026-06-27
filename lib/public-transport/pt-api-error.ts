@@ -22,6 +22,41 @@ export function translinkNotConfiguredError() {
   );
 }
 
+export function actNotConfiguredError() {
+  return new TransportApiError(
+    "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
+    "Transport Canberra GTFS data is not configured. Set ACT_GTFS_ACCESS_KEY on the server."
+  );
+}
+
+export function saNotConfiguredError() {
+  return new TransportApiError(
+    "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
+    "Adelaide Metro GTFS data is not available."
+  );
+}
+
+export function waNotConfiguredError() {
+  return new TransportApiError(
+    "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
+    "Transperth GTFS data is not available."
+  );
+}
+
+export function tasNotConfiguredError() {
+  return new TransportApiError(
+    "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
+    "Tasmania GTFS data is not available."
+  );
+}
+
+export function ntNotConfiguredError() {
+  return new TransportApiError(
+    "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
+    "NT bus GTFS data is not available."
+  );
+}
+
 export function ptTripPlanningNotSupported(jurisdiction: string, linkOutUrl: string) {
   return new TransportApiError(
     "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",

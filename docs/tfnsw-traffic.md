@@ -49,7 +49,7 @@ All routes require `transport:read:org` (same as routing estimates).
 
 Trip Planner responses are passed through as JSON from TfNSW (`rapidJSON` where applicable). Stop IDs come from stop finder or [transportnsw.info](https://transportnsw.info).
 
-For multi-state public transport (NSW + VIC + QLD), see [docs/public-transport-apis.md](public-transport-apis.md).
+For Australian public transport (all states and territories), see [docs/public-transport-apis.md](public-transport-apis.md).
 
 ## Route estimate enrichment
 

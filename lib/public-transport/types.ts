@@ -1,5 +1,5 @@
 /** Australian public transport jurisdictions supported by MapAble. */
-export type PtJurisdiction = "NSW" | "VIC" | "QLD";
+export type PtJurisdiction = "NSW" | "VIC" | "QLD" | "ACT" | "SA" | "WA" | "TAS" | "NT";
 
 export type LatLng = { lat: number; lng: number };
 
@@ -114,10 +114,25 @@ export const PT_DISCLAIMERS: Record<PtJurisdiction, string> = {
     "Public transport information from Public Transport Victoria is indicative only. Check ptv.vic.gov.au before travelling.",
   QLD:
     "Public transport information from Translink is indicative only. Check translink.com.au before travelling.",
+  ACT:
+    "Public transport information from Transport Canberra is indicative only. Check transport.act.gov.au before travelling.",
+  SA:
+    "Public transport information from Adelaide Metro is indicative only. Check adelaidemetro.com.au before travelling.",
+  WA:
+    "Public transport information from Transperth is indicative only. Check transperth.wa.gov.au before travelling.",
+  TAS:
+    "Public transport information from Transport Tasmania is indicative only. Check transport.tas.gov.au before travelling.",
+  NT:
+    "Public transport information from NT public transport is indicative only. Check transport.nt.gov.au before travelling.",
 };
 
 export const PT_LINK_OUT: Record<PtJurisdiction, string> = {
   NSW: "https://transportnsw.info/trip",
   VIC: "https://www.ptv.vic.gov.au/journey/",
   QLD: "https://translink.com.au/planner",
+  ACT: "https://www.transport.act.gov.au/",
+  SA: "https://www.adelaidemetro.com.au/plan-a-trip",
+  WA: "https://www.transperth.wa.gov.au/",
+  TAS: "https://www.transport.tas.gov.au/public_transport",
+  NT: "https://www.transport.nt.gov.au/public-transport",
 };

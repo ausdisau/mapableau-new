@@ -67,7 +67,9 @@ export const tpTripPlanSchema = z
     { message: "Provide stop IDs or origin/destination coordinates" }
   );
 
-export const ptJurisdictionSchema = z.enum(["NSW", "VIC", "QLD"]).optional();
+export const ptJurisdictionSchema = z
+  .enum(["NSW", "VIC", "QLD", "ACT", "SA", "WA", "TAS", "NT"])
+  .optional();
 
 export const ptCapabilitiesQuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90).optional(),
