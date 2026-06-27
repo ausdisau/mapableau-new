@@ -90,6 +90,55 @@
   h6 {
     @apply font-heading font-bold tracking-tight;
   }
+
+  /* Capacitor / mobile WebView: minimum 44px touch targets (WCAG 2.5.5) */
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"],
+  select,
+  summary,
+  [role="button"] {
+    @apply touch-manipulation;
+  }
+
+  /* Visible focus for keyboard and TalkBack navigation */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Respect OS reduced-motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* High contrast: strengthen borders and focus ring */
+  @media (prefers-contrast: more) {
+    :root {
+      --border: 215 30% 25%;
+      --ring: 215 100% 25%;
+      --muted-foreground: 215 40% 15%;
+    }
+
+    .dark {
+      --border: 210 40% 85%;
+      --ring: 210 40% 98%;
+      --muted-foreground: 210 40% 95%;
+    }
+  }
+}
+
+@layer utilities {
+  .touch-target {
+    @apply min-h-11 min-w-11;
+  }
 }
 
 @layer components {
