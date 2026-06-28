@@ -154,8 +154,84 @@ Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, St
 | Doc | Description |
 | --- | --- |
 | [docs/qa/phase-3.md](docs/qa/phase-3.md) | Phase 3 QA checklist |
+| [docs/mobile/android-permissions.md](docs/mobile/android-permissions.md) | Android permissions and FCM |
+| [docs/mobile/android-auth-qa.md](docs/mobile/android-auth-qa.md) | Android auth QA matrix |
+| [docs/mobile/play-console-checklist.md](docs/mobile/play-console-checklist.md) | Play Console submission |
+| [docs/mobile/rollout-checklist.md](docs/mobile/rollout-checklist.md) | Staged rollout plan |
 | [mobile-contracts/MOBILE_APP_ARCHITECTURE.md](mobile-contracts/MOBILE_APP_ARCHITECTURE.md) | Mobile architecture |
 | [mobile-contracts/MOBILE_SCREEN_MAP.md](mobile-contracts/MOBILE_SCREEN_MAP.md) | Mobile screen map |
+
+## Android app (Capacitor)
+
+The Android shell wraps the **live Vercel deployment** at [https://www.mapable.com.au](https://www.mapable.com.au). Static export is not used: the web app relies on 400+ API routes, NextAuth, and server-side Prisma.
+
+### Prerequisites
+
+- Android Studio (latest stable)
+- JDK 17+
+- Android SDK (API 34+ recommended)
+
+### Build and run
+
+```bash
+pnpm install
+pnpm build
+npx cap sync android
+npx cap open android
+npx cap run android
+```
+
+Or use the package scripts:
+
+```bash
+pnpm build
+pnpm android:sync
+pnpm android:open
+pnpm android:run
+```
+
+### Local development against the emulator
+
+Point the WebView at your local Next.js server (emulator host loopback):
+
+```bash
+CAPACITOR_SERVER_URL=http://10.0.2.2:3000 pnpm android:sync
+pnpm dev   # in another terminal
+pnpm android:run
+```
+
+### Configuration
+
+| File | Purpose |
+| --- | --- |
+| `capacitor.config.ts` | App ID `au.com.mapable.app`, production URL, cleartext disabled |
+| `capacitor-www/` | Minimal offline fallback (remote URL is primary) |
+| `android/` | Native Android project (Gradle) |
+| [docs/mobile/android-permissions.md](docs/mobile/android-permissions.md) | Location, camera, notification permissions and FCM |
+
+The Vercel deployment is unchanged: `pnpm build` still produces a standard Next.js server build for Vercel.
+
+### Brand assets and release build
+
+Regenerate launcher icons and splash screens from the MapAble logo mark:
+
+```bash
+pnpm android:assets
+pnpm android:sync
+```
+
+Release signing (local only — never commit keystore):
+
+```bash
+cp android/keystore.properties.example android/keystore.properties
+# Edit paths/passwords, place keystore file, then:
+pnpm android:bundle
+# Output: android/app/build/outputs/bundle/release/app-release.aab
+```
+
+Place `android/app/google-services.json` from Firebase for push notifications. Set Vercel production env vars: `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `ANDROID_RELEASE_SHA256_FINGERPRINTS`.
+
+See [docs/mobile/play-console-checklist.md](docs/mobile/play-console-checklist.md) and [docs/mobile/rollout-checklist.md](docs/mobile/rollout-checklist.md).
 
 ## Code quality
 
