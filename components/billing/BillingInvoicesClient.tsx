@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { BillingInvoiceCard } from "@/components/billing/BillingInvoiceCard";
+import { StripeCheckoutStatusBanner } from "@/components/billing/StripeCheckoutStatusBanner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
@@ -120,6 +121,7 @@ export function BillingInvoicesClient() {
 
   return (
     <div className="space-y-8">
+      <StripeCheckoutStatusBanner />
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-bold">Invoices & payments</h1>

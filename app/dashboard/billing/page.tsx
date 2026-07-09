@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { StripeCheckoutStatusBanner } from "@/components/billing/StripeCheckoutStatusBanner";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
@@ -24,6 +25,8 @@ export default async function BillingCentrePage() {
           invoices are sent to your plan manager — not charged on card.
         </p>
       </header>
+
+      <StripeCheckoutStatusBanner />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <CentreCard
