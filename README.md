@@ -121,6 +121,7 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/bookings.md](docs/modules/bookings.md) | Bookings foundation |
 | [docs/modules/care.md](docs/modules/care.md) | Care MVP |
 | [docs/modules/case-management.md](docs/modules/case-management.md) | Case management (AI-assisted) |
+| [docs/modules/care-support-intelligence.md](docs/modules/care-support-intelligence.md) | Synthetic Care & Support Intelligence research lab |
 | [docs/modules/calendar.md](docs/modules/calendar.md) | Unified calendar |
 | [docs/modules/consent.md](docs/modules/consent.md) | Consent model |
 | [docs/modules/cross-module-orchestration.md](docs/modules/cross-module-orchestration.md) | Cross-module flows |
@@ -129,6 +130,8 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/privacy-and-audit.md](docs/modules/privacy-and-audit.md) | Privacy and audit |
 | [docs/modules/provider-capacity.md](docs/modules/provider-capacity.md) | Provider capacity |
 | [docs/modules/transport.md](docs/modules/transport.md) | Transport module |
+| [docs/modules/transport-employment-intelligence.md](docs/modules/transport-employment-intelligence.md) | Transport, Employment and Workday Intelligence design |
+| [docs/modules/foods-rehabilitation-intelligence.md](docs/modules/foods-rehabilitation-intelligence.md) | Foods, Rehabilitation and Daily Living Intelligence slices |
 | [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md) | Transport scheduling |
 | [docs/modules/accessibility.md](docs/modules/accessibility.md) | Accessibility profiles |
 | [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md) | Admin dashboard |

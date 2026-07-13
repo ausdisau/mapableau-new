@@ -1,16 +1,27 @@
 # Jobs foundation (Phase 3)
 
 ## Built
+
 Employer draft jobs, admin publish, participant browse/apply, reasonable adjustment handling.
 
 ## Routes
+
 `/dashboard/jobs`, `/employer/jobs`, `/api/jobs`, `/api/job-applications`
 
 ## Privacy
+
 `shareAdjustments` must be confirmed before employers see adjustment text.
 
 ## Limitations
+
 Not a full ATS; no paid employer plans or AI matching.
 
 ## Phase 4
+
 Interview scheduling, employer analytics, matching.
+
+## Intelligence design
+
+Employment matching must remain participant-defined alignment rather than
+candidate ranking. See
+[transport-employment-intelligence.md](transport-employment-intelligence.md).
