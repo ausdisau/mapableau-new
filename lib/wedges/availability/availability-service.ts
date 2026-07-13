@@ -1,20 +1,12 @@
 import { wedgesConfig } from "@/lib/config/wedges";
 import { prisma } from "@/lib/prisma";
-import {
-  filterProvidersByAvailability,
-  isAvailableThisWeek,
-} from "@/lib/wedges/availability/filters";
-import { MOCK_WEDGE_PROVIDERS } from "@/lib/wedges/mock-providers";
+import { isAvailableThisWeek } from "@/lib/wedges/availability/filters";
 import type {
   AvailabilityFilters,
   ProviderAvailability,
 } from "@/types/wedges";
 
 export async function listAvailabilitySnapshots(filters: AvailabilityFilters) {
-  if (wedgesConfig.useMockData) {
-    return filterProvidersByAvailability(MOCK_WEDGE_PROVIDERS, filters);
-  }
-
   const rows = await prisma.providerAvailabilitySnapshot.findMany({
     where: {
       ...(filters.noWaitlist ? { waitlistStatus: "none" } : {}),
