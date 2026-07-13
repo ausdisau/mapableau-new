@@ -1,9 +1,4 @@
-/**
- * Shared types for MapAble strategic wedges.
- * Used by availability graph, access-fit matching, trust, and request tracking.
- */
-
-// ─── Access needs (W2, W3, W10) ───────────────────────────────────────────
+/** Shared types for MapAble strategic wedges. */
 
 export const ACCESS_NEED_IDS = [
   "wheelchairAccess",
@@ -22,11 +17,8 @@ export const ACCESS_NEED_IDS = [
   "genderPreferenceForPersonalCare",
   "transportSupportNeeded",
 ] as const;
-
 export type AccessNeedId = (typeof ACCESS_NEED_IDS)[number];
-
 export type AccessNeedProfile = Partial<Record<AccessNeedId, boolean | string>>;
-
 export const ACCESS_NEED_LABELS: Record<AccessNeedId, string> = {
   wheelchairAccess: "Wheelchair access",
   powerchairAccess: "Powerchair access",
@@ -45,8 +37,6 @@ export const ACCESS_NEED_LABELS: Record<AccessNeedId, string> = {
   transportSupportNeeded: "Transport support needed",
 };
 
-// ─── Availability (W1, W8) ────────────────────────────────────────────────
-
 export const WAITLIST_STATUSES = [
   "none",
   "short",
@@ -55,7 +45,6 @@ export const WAITLIST_STATUSES = [
   "closed",
   "unknown",
 ] as const;
-
 export type WaitlistStatus = (typeof WAITLIST_STATUSES)[number];
 
 export const FUNDING_TYPES = [
@@ -64,7 +53,6 @@ export const FUNDING_TYPES = [
   "self-managed",
   "private",
 ] as const;
-
 export type FundingType = (typeof FUNDING_TYPES)[number];
 
 export const AVAILABILITY_CONFIDENCE_LEVELS = [
@@ -73,8 +61,8 @@ export const AVAILABILITY_CONFIDENCE_LEVELS = [
   "low",
   "unknown",
 ] as const;
-
-export type AvailabilityConfidence = (typeof AVAILABILITY_CONFIDENCE_LEVELS)[number];
+export type AvailabilityConfidence =
+  (typeof AVAILABILITY_CONFIDENCE_LEVELS)[number];
 
 export type ProviderAvailability = {
   providerId: string;
@@ -87,13 +75,12 @@ export type ProviderAvailability = {
   telehealthAvailable: boolean;
   mobileServiceAvailable: boolean;
   suburbsServed: string[];
+  serviceAreaPostcodes?: string[];
   fundingTypesAccepted: FundingType[];
   urgentCapacity: boolean;
   lastAvailabilityUpdated: string;
   availabilityConfidence: AvailabilityConfidence;
 };
-
-// ─── Access capabilities (W5) ─────────────────────────────────────────────
 
 export const VERIFICATION_SOURCES = [
   "provider-declared",
@@ -101,7 +88,6 @@ export const VERIFICATION_SOURCES = [
   "mapable-assessed",
   "unknown",
 ] as const;
-
 export type VerificationSource = (typeof VERIFICATION_SOURCES)[number];
 
 export type ProviderAccessCapability = {
@@ -127,20 +113,16 @@ export type ProviderAccessCapability = {
   verificationSource: VerificationSource;
 };
 
-// ─── Access-fit scoring (W2) ────────────────────────────────────────────────
-
 export type AccessFitLevel =
   | "strong_fit"
   | "possible_fit"
   | "needs_confirmation"
   | "likely_barrier";
-
 export type AccessFitMatchDetail = {
   needId: AccessNeedId;
   status: "match" | "partial" | "barrier" | "unknown";
   explanation: string;
 };
-
 export type AccessFitResult = {
   score: number;
   level: AccessFitLevel;
@@ -150,8 +132,6 @@ export type AccessFitResult = {
   details: AccessFitMatchDetail[];
   recommendedQuestions: string[];
 };
-
-// ─── Wedge provider (unified mock/registry view) ────────────────────────────
 
 export type WedgeProvider = {
   id: string;
@@ -163,11 +143,10 @@ export type WedgeProvider = {
   categories: string[];
   availability: ProviderAvailability;
   accessCapability: ProviderAccessCapability;
-  /** For access-fit: maps AccessNeedId to provider capability value */
-  accessCapabilities: Partial<Record<AccessNeedId, boolean | null>>;
+  accessCapabilities: Partial<
+    Record<AccessNeedId, boolean | string | null>
+  >;
 };
-
-// ─── Availability filters (W1, W8) ────────────────────────────────────────
 
 export type AvailabilityFilters = {
   availableThisWeek?: boolean;
@@ -182,8 +161,6 @@ export type AvailabilityFilters = {
   suburb?: string;
 };
 
-// ─── Request Concierge (W3) ─────────────────────────────────────────────────
-
 export const REQUESTER_ROLES = [
   "participant",
   "family_carer",
@@ -191,7 +168,6 @@ export const REQUESTER_ROLES = [
   "provider_on_behalf",
   "other",
 ] as const;
-
 export type RequesterRole = (typeof REQUESTER_ROLES)[number];
 
 export const SUPPORT_CATEGORIES = [
@@ -204,7 +180,6 @@ export const SUPPORT_CATEGORIES = [
   "community_participation",
   "other",
 ] as const;
-
 export type SupportCategory = (typeof SUPPORT_CATEGORIES)[number];
 
 export const URGENCY_LEVELS = [
@@ -213,7 +188,6 @@ export const URGENCY_LEVELS = [
   "no_rush",
   "unsure",
 ] as const;
-
 export type UrgencyLevel = (typeof URGENCY_LEVELS)[number];
 
 export const SERVICE_MODES = [
@@ -222,7 +196,6 @@ export const SERVICE_MODES = [
   "telehealth",
   "flexible",
 ] as const;
-
 export type ServiceMode = (typeof SERVICE_MODES)[number];
 
 export type SupportConciergeRequest = {
@@ -233,11 +206,11 @@ export type SupportConciergeRequest = {
   serviceMode: ServiceMode;
   urgency: UrgencyLevel;
   accessNeeds: AccessNeedId[];
+  accessNeedValues?: Partial<Record<AccessNeedId, string>>;
   fundingType: FundingType | "unsure";
-  previousIssues: string;
+  previousIssues?: string | null;
   consentGiven: boolean;
 };
-
 export type SupportConciergeSummary = {
   request: SupportConciergeRequest;
   suggestedFilters: AvailabilityFilters;
@@ -246,8 +219,6 @@ export type SupportConciergeSummary = {
   accessReminders: string[];
 };
 
-// ─── Trust (W6, W16) ────────────────────────────────────────────────────────
-
 export const EVIDENCE_LABELS = [
   "verified",
   "declared",
@@ -255,9 +226,7 @@ export const EVIDENCE_LABELS = [
   "unknown",
   "not_applicable",
 ] as const;
-
 export type EvidenceLabel = (typeof EVIDENCE_LABELS)[number];
-
 export type TrustCategory = {
   id: string;
   label: string;
@@ -265,7 +234,6 @@ export type TrustCategory = {
   lastChecked: string | null;
   notes: string | null;
 };
-
 export type ProviderTrustScore = {
   providerId: string;
   overallScore: number;
@@ -281,10 +249,7 @@ export const VERIFICATION_LEVELS = [
   "outcome_verified",
   "gold_partner",
 ] as const;
-
 export type VerificationLevel = (typeof VERIFICATION_LEVELS)[number];
-
-// ─── Response SLA (W19) ─────────────────────────────────────────────────────
 
 export const RESPONSE_SLA_STATUSES = [
   "excellent",
@@ -292,9 +257,7 @@ export const RESPONSE_SLA_STATUSES = [
   "slow",
   "unknown",
 ] as const;
-
 export type ResponseSlaStatus = (typeof RESPONSE_SLA_STATUSES)[number];
-
 export type ProviderResponseSla = {
   providerId: string;
   averageResponseTimeHours: number | null;
@@ -305,8 +268,6 @@ export type ProviderResponseSla = {
   responseSlaStatus: ResponseSlaStatus;
   enquiryExpiryDays: number | null;
 };
-
-// ─── First appointment tracking (W13) ─────────────────────────────────────────
 
 export const REQUEST_PROGRESS_STATUSES = [
   "request_created",
@@ -319,8 +280,8 @@ export const REQUEST_PROGRESS_STATUSES = [
   "follow_up_needed",
   "stalled",
 ] as const;
-
-export type RequestProgressStatus = (typeof REQUEST_PROGRESS_STATUSES)[number];
+export type RequestProgressStatus =
+  (typeof REQUEST_PROGRESS_STATUSES)[number];
 
 export const REQUEST_BLOCKERS = [
   "no_provider_response",
@@ -331,9 +292,7 @@ export const REQUEST_BLOCKERS = [
   "participant_changed_preference",
   "other",
 ] as const;
-
 export type RequestBlocker = (typeof REQUEST_BLOCKERS)[number];
-
 export type RequestProgress = {
   id: string;
   status: RequestProgressStatus;
@@ -351,15 +310,12 @@ export type RequestProgress = {
   blockers: RequestBlocker[];
 };
 
-// ─── Transport access (W14) ─────────────────────────────────────────────────
-
 export type TransportFeasibilityLevel =
   | "strong"
   | "possible"
   | "needs_planning"
   | "likely_barrier"
   | "unknown";
-
 export type ProviderTransportAccess = {
   providerId: string;
   accessibleParking: boolean | null;
@@ -375,16 +331,11 @@ export type ProviderTransportAccess = {
   transportFailureBackupNote: string | null;
 };
 
-// ─── Standard disclaimers ───────────────────────────────────────────────────
-
 export const AVAILABILITY_DISCLAIMER =
   "Availability shown is based on the provider's latest update and should be confirmed before booking.";
-
 export const NDIS_BOUNDARY_NOTICE =
   "This information is for planning only. MapAble does not decide NDIS eligibility, funding, or reasonable and necessary outcomes.";
-
 export const TRANSPORT_DISCLAIMER =
   "Transport options are estimates and must be confirmed with the provider or transport operator.";
-
 export const VERIFICATION_DISCLAIMER =
   "Verification provides information about checks completed by MapAble. It is not a guarantee of service quality or legal compliance.";
