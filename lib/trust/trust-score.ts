@@ -20,7 +20,7 @@ export function calculateProviderTrustScore(
   providerId: string,
   categories: TrustCategory[],
 ): ProviderTrustScore {
-  const applicable = categories.filter((c) => c.evidence !== "not_applicable");
+  const applicable = categories.filter((category) => category.evidence !== "not_applicable");
   if (applicable.length === 0) {
     return {
       providerId,
@@ -30,17 +30,12 @@ export function calculateProviderTrustScore(
     };
   }
 
-  let totalWeight = 0;
   let earned = 0;
-  for (const cat of applicable) {
-    const w = EVIDENCE_WEIGHTS[cat.evidence];
-    totalWeight += 1;
-    earned += w;
-  }
+  for (const category of applicable) earned += EVIDENCE_WEIGHTS[category.evidence];
 
-  const overallScore = Math.round((earned / totalWeight) * 100);
-  const verifiedCount = applicable.filter((c) => c.evidence === "verified").length;
-  const unknownCount = applicable.filter((c) => c.evidence === "unknown").length;
+  const overallScore = Math.round((earned / applicable.length) * 100);
+  const verifiedCount = applicable.filter((category) => category.evidence === "verified").length;
+  const unknownCount = applicable.filter((category) => category.evidence === "unknown").length;
 
   let summary = `Trust score based on ${applicable.length} evidence categories. `;
   summary += `${verifiedCount} verified, ${unknownCount} not yet verified. `;
@@ -56,14 +51,14 @@ export function evidenceLabelText(evidence: EvidenceLabel): string {
     case "declared":
       return "Declared by provider";
     case "expired":
-      return "Expired — needs re-check";
+      return "Expired - needs re-check";
     case "unknown":
       return "Not yet verified";
     case "not_applicable":
       return "Not applicable";
     default: {
-      const _exhaustive: never = evidence;
-      return _exhaustive;
+      const exhaustive: never = evidence;
+      return exhaustive;
     }
   }
 }
@@ -113,8 +108,11 @@ export const VERIFICATION_LEVEL_INFO: Record<
 export function verificationLevelForScore(
   score: number,
   hasAccessVerified: boolean,
+  hasOutcomeEvidence = false,
 ): VerificationLevel {
-  if (score >= 90 && hasAccessVerified) return "outcome_verified";
+  if (score >= 90 && hasAccessVerified && hasOutcomeEvidence) {
+    return "outcome_verified";
+  }
   if (score >= 80 && hasAccessVerified) return "access_verified";
   if (score >= 70) return "verified";
   if (score >= 50) return "checked";
