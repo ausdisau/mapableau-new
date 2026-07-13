@@ -1,5 +1,9 @@
 import type { AvailabilityFilters, ProviderAvailability } from "@/types/wedges";
 
+type AvailabilityWithServiceArea = ProviderAvailability & {
+  serviceAreaPostcodes?: string[];
+};
+
 /**
  * Check if provider has capacity to start within 7 days.
  */
@@ -31,8 +35,8 @@ export function waitlistLabel(status: ProviderAvailability["waitlistStatus"]): s
     case "unknown":
       return "Waitlist unknown";
     default: {
-      const _exhaustive: never = status;
-      return _exhaustive;
+      const exhaustive: never = status;
+      return exhaustive;
     }
   }
 }
@@ -45,42 +49,45 @@ export function formatLastUpdated(isoDate: string): string {
   if (days === 1) return "Updated yesterday";
   if (days < 7) return `Updated ${days} days ago`;
   if (days < 30) return `Updated ${Math.floor(days / 7)} weeks ago`;
-  return `Updated ${date.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}`;
+  return `Updated ${date.toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Australia/Sydney",
+  })}`;
 }
 
 function matchesLocation(
-  availability: ProviderAvailability,
+  availability: AvailabilityWithServiceArea,
   suburb?: string,
   postcode?: string,
 ): boolean {
   if (postcode) {
-    const pc = postcode.trim();
-    const served = availability.suburbsServed.some((s) => s.includes(pc));
-    if (!served && availability.suburbsServed.length > 0) {
-      // Also allow if suburbsServed is empty (unknown coverage)
-      const suburbMatch = suburb
-        ? availability.suburbsServed.some(
-            (s) => s.toLowerCase().includes(suburb.toLowerCase()),
-          )
-        : false;
-      if (!suburbMatch) return availability.suburbsServed.length === 0;
+    const serviceAreaPostcodes = availability.serviceAreaPostcodes ?? [];
+    if (
+      serviceAreaPostcodes.length > 0 &&
+      !serviceAreaPostcodes.includes(postcode.trim())
+    ) {
+      return false;
     }
   }
+
   if (suburb && availability.suburbsServed.length > 0) {
-    return availability.suburbsServed.some((s) =>
-      s.toLowerCase().includes(suburb.toLowerCase()),
+    const normalisedSuburb = suburb.trim().toLowerCase();
+    return availability.suburbsServed.some(
+      (servedSuburb) => servedSuburb.trim().toLowerCase() === normalisedSuburb,
     );
   }
+
   return true;
 }
 
 /**
  * Filter providers by availability criteria (W1, W8).
  */
-export function filterProvidersByAvailability<T extends { availability: ProviderAvailability }>(
-  providers: T[],
-  filters: AvailabilityFilters,
-): T[] {
+export function filterProvidersByAvailability<
+  T extends { availability: AvailabilityWithServiceArea },
+>(providers: T[], filters: AvailabilityFilters): T[] {
   return providers.filter(({ availability }) => {
     if (filters.availableThisWeek && !isAvailableThisWeek(availability)) return false;
     if (filters.noWaitlist && availability.waitlistStatus !== "none") return false;
@@ -101,14 +108,6 @@ export function filterProvidersByAvailability<T extends { availability: Provider
     ) {
       return false;
     }
-    if (
-      !matchesLocation(availability, filters.suburb, filters.postcode)
-    ) {
-      return false;
-    }
-    if (filters.noWaitlist === false && filters.availableThisWeek) {
-      // already handled
-    }
-    return true;
+    return matchesLocation(availability, filters.suburb, filters.postcode);
   });
 }
