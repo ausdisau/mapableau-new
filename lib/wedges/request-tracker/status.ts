@@ -12,8 +12,6 @@ const STATUS_ORDER: RequestProgressStatus[] = [
   "appointment_booked",
   "transport_arranged",
   "completed",
-  "follow_up_needed",
-  "stalled",
 ];
 
 export function requestProgressStatusLabel(status: RequestProgressStatus): string {
@@ -37,8 +35,8 @@ export function requestProgressStatusLabel(status: RequestProgressStatus): strin
     case "stalled":
       return "Stalled";
     default: {
-      const _exhaustive: never = status;
-      return _exhaustive;
+      const exhaustive: never = status;
+      return exhaustive;
     }
   }
 }
@@ -60,8 +58,8 @@ export function requestBlockerLabel(blocker: RequestBlocker): string {
     case "other":
       return "Other";
     default: {
-      const _exhaustive: never = blocker;
-      return _exhaustive;
+      const exhaustive: never = blocker;
+      return exhaustive;
     }
   }
 }
@@ -73,6 +71,16 @@ export type TimelineStep = {
   current: boolean;
   timestamp: string | null;
 };
+
+export function deriveRequestStatus(progress: RequestProgress): RequestProgressStatus {
+  if (progress.followUpNeeded && progress.status !== "completed") {
+    return "follow_up_needed";
+  }
+  if (progress.blockers.length > 0 && !progress.providerRespondedAt) {
+    return "stalled";
+  }
+  return progress.status;
+}
 
 /**
  * Derive timeline steps from request progress record.
@@ -88,25 +96,19 @@ export function buildRequestTimeline(progress: RequestProgress): TimelineStep[] 
     completed: progress.appointmentCompletedAt,
   };
 
-  const currentIdx = STATUS_ORDER.indexOf(progress.status);
+  const effectiveStatus = deriveRequestStatus(progress);
+  const fallbackStatus =
+    effectiveStatus === "follow_up_needed" || effectiveStatus === "stalled"
+      ? progress.status
+      : effectiveStatus;
+  const currentIdx = STATUS_ORDER.indexOf(fallbackStatus);
 
-  return STATUS_ORDER.filter((s) => s !== "follow_up_needed" && s !== "stalled").map(
-    (key, idx) => ({
-      key,
-      label: requestProgressStatusLabel(key),
-      completed: idx < currentIdx || progress.status === "completed",
-      current: key === progress.status,
-      timestamp: timestamps[key] ?? null,
-    }),
-  );
-}
-
-export function deriveRequestStatus(progress: RequestProgress): RequestProgressStatus {
-  if (progress.followUpNeeded && progress.status !== "completed") {
-    return "follow_up_needed";
-  }
-  if (progress.blockers.length > 0 && !progress.providerRespondedAt) {
-    return "stalled";
-  }
-  return progress.status;
+  return STATUS_ORDER.map((key, index) => ({
+    key,
+    label: requestProgressStatusLabel(key),
+    completed:
+      effectiveStatus === "completed" || (currentIdx >= 0 && index < currentIdx),
+    current: key === fallbackStatus,
+    timestamp: timestamps[key] ?? null,
+  }));
 }
