@@ -40,15 +40,19 @@ function questionForNeed(needId: AccessNeedId): string {
 
 /**
  * Calculate access-fit score between participant needs and provider capabilities.
- * Returns 0–100 score with explanations. Does not guarantee suitability.
+ * Returns 0-100 score with explanations. Does not guarantee suitability.
  */
 export function accessFitScore(
   participantNeeds: AccessNeedProfile,
-  providerCapabilities: Partial<Record<AccessNeedId, boolean | null>>,
+  providerCapabilities: Partial<Record<AccessNeedId, boolean | string | null>>,
 ): AccessFitResult {
-  const activeNeeds = (Object.entries(participantNeeds) as [AccessNeedId, boolean | string][])
-    .filter(([, v]) => v === true || (typeof v === "string" && v.length > 0))
-    .map(([k]) => k);
+  const activeNeeds = (
+    Object.entries(participantNeeds) as [AccessNeedId, boolean | string][]
+  )
+    .filter(([, value]) =>
+      value === true || (typeof value === "string" && value.trim().length > 0),
+    )
+    .map(([key]) => key);
 
   if (activeNeeds.length === 0) {
     return {
@@ -70,57 +74,68 @@ export function accessFitScore(
   let earnedScore = 0;
 
   for (const needId of activeNeeds) {
+    const requestedValue = participantNeeds[needId];
     const capKeys = NEED_TO_CAPABILITY[needId] ?? [needId];
     let status: AccessFitMatchDetail["status"] = "unknown";
     let explanation = `${ACCESS_NEED_LABELS[needId]}: not yet confirmed for this provider.`;
+    let sawExplicitFalse = false;
 
     for (const capKey of capKeys) {
-      const cap = providerCapabilities[capKey];
-      if (cap === true) {
+      const capability = providerCapabilities[capKey];
+      if (capability === true) {
         status = "match";
         explanation = `${ACCESS_NEED_LABELS[needId]}: provider indicates this is supported.`;
         break;
       }
-      if (cap === false) {
-        status = "barrier";
-        explanation = `${ACCESS_NEED_LABELS[needId]}: provider indicates this may not be available.`;
-        break;
+      if (typeof requestedValue === "string" && typeof capability === "string") {
+        if (
+          requestedValue.trim().localeCompare(capability.trim(), undefined, {
+            sensitivity: "base",
+          }) === 0
+        ) {
+          status = "match";
+          explanation = `${ACCESS_NEED_LABELS[needId]}: provider information matches the stated preference.`;
+          break;
+        }
+        status = "partial";
+        explanation = `${ACCESS_NEED_LABELS[needId]}: provider information differs and needs participant confirmation.`;
       }
+      if (capability === false) sawExplicitFalse = true;
     }
 
-    if (status === "unknown") {
-      // Check if any related cap is partial (only primary key false but alt true handled above)
-      const primary = providerCapabilities[needId];
-      if (primary === null || primary === undefined) {
-        unknowns.push(needId);
-      }
+    if (status === "unknown" && sawExplicitFalse) {
+      status = "barrier";
+      explanation = `${ACCESS_NEED_LABELS[needId]}: provider indicates this may not be available.`;
     }
 
     details.push({ needId, status, explanation });
-
     totalWeight += 1;
+
     switch (status) {
       case "match":
         earnedScore += 1;
         break;
+      case "partial":
+        partialMatches.push(needId);
+        earnedScore += 0.5;
+        break;
       case "barrier":
         hardBarriers.push(needId);
-        earnedScore += 0;
         break;
       case "unknown":
         unknowns.push(needId);
         earnedScore += 0.25;
         break;
       default: {
-        const _exhaustive: never = status;
-        return _exhaustive;
+        const exhaustive: never = status;
+        return exhaustive;
       }
     }
   }
 
-  const score = totalWeight > 0 ? Math.round((earnedScore / totalWeight) * 100) : 100;
+  const score =
+    totalWeight > 0 ? Math.round((earnedScore / totalWeight) * 100) : 100;
   const level = scoreToLevel(score, hardBarriers.length > 0);
-
   const recommendedQuestions = [
     ...new Set([...unknowns, ...partialMatches].map(questionForNeed)),
   ];
@@ -147,8 +162,8 @@ export function accessFitLevelLabel(level: AccessFitLevel): string {
     case "likely_barrier":
       return "Likely barrier";
     default: {
-      const _exhaustive: never = level;
-      return _exhaustive;
+      const exhaustive: never = level;
+      return exhaustive;
     }
   }
 }
