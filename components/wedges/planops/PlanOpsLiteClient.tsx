@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
-import { AccessibleFormField, formInputClass } from "@/components/forms/AccessibleFormField";
+import {
+  AccessibleFormField,
+  formInputClass,
+} from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { NDIS_BOUNDARY_NOTICE } from "@/types/wedges";
@@ -31,16 +34,20 @@ type InvoiceRow = {
 };
 
 const SUPPORT_CATEGORY_INFO = [
-  { name: "Core", description: "Everyday support to live your life — personal care, transport, consumables." },
-  { name: "Capacity Building", description: "Skills and independence — therapy, support coordination, employment help." },
+  { name: "Core", description: "Everyday support to live your life: personal care, transport, and consumables." },
+  { name: "Capacity Building", description: "Skills and independence: therapy, support coordination, and employment help." },
   { name: "Capital", description: "Equipment, home modifications, and technology." },
   { name: "Transport", description: "Getting to appointments, work, and community activities." },
   { name: "Employment-related supports", description: "Workplace assistance and employment pathways." },
 ];
 
+function newId(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`;
+}
+
 export function PlanOpsLiteClient() {
   const [requests, setRequests] = useState<ServiceRequest[]>([
-    { id: "1", description: "OT with step-free clinic access", status: "requested" },
+    { id: "request-example", description: "OT with step-free clinic access", status: "requested" },
   ]);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [reviewNotes, setReviewNotes] = useState({
@@ -52,12 +59,26 @@ export function PlanOpsLiteClient() {
     goals: "",
   });
 
-  const addRequest = () => {
-    setRequests((r) => [
-      ...r,
-      { id: String(Date.now()), description: "", status: "needed" },
+  function addRequest() {
+    setRequests((current) => [
+      ...current,
+      { id: newId("request"), description: "", status: "needed" },
     ]);
-  };
+  }
+
+  function addInvoice() {
+    setInvoices((current) => [
+      ...current,
+      {
+        id: newId("invoice"),
+        providerName: "",
+        date: "",
+        amount: "",
+        category: "",
+        confirmed: false,
+      },
+    ]);
+  }
 
   return (
     <div className="space-y-8">
@@ -67,14 +88,14 @@ export function PlanOpsLiteClient() {
 
       <section aria-labelledby="categories-heading">
         <h2 id="categories-heading" className="font-heading text-lg font-semibold">
-          Support categories (plain language)
+          Support categories in plain language
         </h2>
         <ul className="mt-4 space-y-3">
-          {SUPPORT_CATEGORY_INFO.map((cat) => (
-            <li key={cat.name}>
+          {SUPPORT_CATEGORY_INFO.map((category) => (
+            <li key={category.name}>
               <Card variant="outlined" className="p-4">
-                <h3 className="font-medium">{cat.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{cat.description}</p>
+                <h3 className="font-medium">{category.name}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{category.description}</p>
               </Card>
             </li>
           ))}
@@ -82,7 +103,7 @@ export function PlanOpsLiteClient() {
       </section>
 
       <section aria-labelledby="requests-heading">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <h2 id="requests-heading" className="font-heading text-lg font-semibold">
             Service request tracker
           </h2>
@@ -91,48 +112,48 @@ export function PlanOpsLiteClient() {
           </Button>
         </div>
         <ul className="mt-4 space-y-3">
-          {requests.map((req) => (
-            <li key={req.id}>
-              <Card variant="outlined" className="p-4">
-                <AccessibleFormField id={`req-${req.id}`} label="Service needed">
+          {requests.map((request) => (
+            <li key={request.id}>
+              <Card variant="outlined" className="space-y-3 p-4">
+                <AccessibleFormField id={`request-description-${request.id}`} label="Service needed">
                   <input
-                    id={`req-${req.id}`}
-                    type="text"
-                    value={req.description}
-                    onChange={(e) =>
-                      setRequests((list) =>
-                        list.map((r) =>
-                          r.id === req.id ? { ...r, description: e.target.value } : r,
+                    id={`request-description-${request.id}`}
+                    value={request.description}
+                    onChange={(event) =>
+                      setRequests((current) =>
+                        current.map((item) =>
+                          item.id === request.id
+                            ? { ...item, description: event.target.value }
+                            : item,
                         ),
                       )
                     }
                     className={formInputClass}
                   />
                 </AccessibleFormField>
-                <label className="mt-2 block text-sm font-medium" htmlFor={`status-${req.id}`}>
-                  Status
-                </label>
-                <select
-                  id={`status-${req.id}`}
-                  value={req.status}
-                  onChange={(e) =>
-                    setRequests((list) =>
-                      list.map((r) =>
-                        r.id === req.id
-                          ? { ...r, status: e.target.value as RequestStatus }
-                          : r,
-                      ),
-                    )
-                  }
-                  className={formInputClass}
-                >
-                  <option value="needed">Needed</option>
-                  <option value="requested">Requested</option>
-                  <option value="provider_contacted">Provider contacted</option>
-                  <option value="booked">Booked</option>
-                  <option value="started">Started</option>
-                  <option value="problem">Problem to resolve</option>
-                </select>
+                <AccessibleFormField id={`request-status-${request.id}`} label="Status">
+                  <select
+                    id={`request-status-${request.id}`}
+                    value={request.status}
+                    onChange={(event) =>
+                      setRequests((current) =>
+                        current.map((item) =>
+                          item.id === request.id
+                            ? { ...item, status: event.target.value as RequestStatus }
+                            : item,
+                        ),
+                      )
+                    }
+                    className={formInputClass}
+                  >
+                    <option value="needed">Needed</option>
+                    <option value="requested">Requested</option>
+                    <option value="provider_contacted">Provider contacted</option>
+                    <option value="booked">Booked</option>
+                    <option value="started">Started</option>
+                    <option value="problem">Problem to resolve</option>
+                  </select>
+                </AccessibleFormField>
               </Card>
             </li>
           ))}
@@ -143,90 +164,89 @@ export function PlanOpsLiteClient() {
         <h2 id="invoices-heading" className="font-heading text-lg font-semibold">
           Invoice checklist
         </h2>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="mt-2"
-          onClick={() =>
-            setInvoices((inv) => [
-              ...inv,
-              {
-                id: String(Date.now()),
-                providerName: "",
-                date: "",
-                amount: "",
-                category: "",
-                confirmed: false,
-              },
-            ])
-          }
-        >
+        <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addInvoice}>
           Add invoice row
         </Button>
+
         {invoices.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">No invoices added yet.</p>
         ) : (
           <ul className="mt-4 space-y-3">
-            {invoices.map((inv) => (
-              <li key={inv.id}>
-                <Card variant="outlined" className="grid gap-2 p-4 sm:grid-cols-2">
-                  <input
-                    placeholder="Provider name"
-                    value={inv.providerName}
-                    onChange={(e) =>
-                      setInvoices((list) =>
-                        list.map((i) =>
-                          i.id === inv.id ? { ...i, providerName: e.target.value } : i,
-                        ),
-                      )
-                    }
-                    className={formInputClass}
-                  />
-                  <input
-                    type="date"
-                    value={inv.date}
-                    onChange={(e) =>
-                      setInvoices((list) =>
-                        list.map((i) =>
-                          i.id === inv.id ? { ...i, date: e.target.value } : i,
-                        ),
-                      )
-                    }
-                    className={formInputClass}
-                  />
-                  <input
-                    placeholder="Amount"
-                    value={inv.amount}
-                    onChange={(e) =>
-                      setInvoices((list) =>
-                        list.map((i) =>
-                          i.id === inv.id ? { ...i, amount: e.target.value } : i,
-                        ),
-                      )
-                    }
-                    className={formInputClass}
-                  />
-                  <input
-                    placeholder="Support category"
-                    value={inv.category}
-                    onChange={(e) =>
-                      setInvoices((list) =>
-                        list.map((i) =>
-                          i.id === inv.id ? { ...i, category: e.target.value } : i,
-                        ),
-                      )
-                    }
-                    className={formInputClass}
-                  />
+            {invoices.map((invoice) => (
+              <li key={invoice.id}>
+                <Card variant="outlined" className="grid gap-3 p-4 sm:grid-cols-2">
+                  <AccessibleFormField id={`invoice-provider-${invoice.id}`} label="Provider name">
+                    <input
+                      id={`invoice-provider-${invoice.id}`}
+                      value={invoice.providerName}
+                      onChange={(event) =>
+                        setInvoices((current) =>
+                          current.map((item) =>
+                            item.id === invoice.id
+                              ? { ...item, providerName: event.target.value }
+                              : item,
+                          ),
+                        )
+                      }
+                      className={formInputClass}
+                    />
+                  </AccessibleFormField>
+                  <AccessibleFormField id={`invoice-date-${invoice.id}`} label="Invoice date">
+                    <input
+                      id={`invoice-date-${invoice.id}`}
+                      type="date"
+                      value={invoice.date}
+                      onChange={(event) =>
+                        setInvoices((current) =>
+                          current.map((item) =>
+                            item.id === invoice.id ? { ...item, date: event.target.value } : item,
+                          ),
+                        )
+                      }
+                      className={formInputClass}
+                    />
+                  </AccessibleFormField>
+                  <AccessibleFormField id={`invoice-amount-${invoice.id}`} label="Invoice amount">
+                    <input
+                      id={`invoice-amount-${invoice.id}`}
+                      inputMode="decimal"
+                      value={invoice.amount}
+                      onChange={(event) =>
+                        setInvoices((current) =>
+                          current.map((item) =>
+                            item.id === invoice.id ? { ...item, amount: event.target.value } : item,
+                          ),
+                        )
+                      }
+                      className={formInputClass}
+                    />
+                  </AccessibleFormField>
+                  <AccessibleFormField id={`invoice-category-${invoice.id}`} label="Support category">
+                    <input
+                      id={`invoice-category-${invoice.id}`}
+                      value={invoice.category}
+                      onChange={(event) =>
+                        setInvoices((current) =>
+                          current.map((item) =>
+                            item.id === invoice.id
+                              ? { ...item, category: event.target.value }
+                              : item,
+                          ),
+                        )
+                      }
+                      className={formInputClass}
+                    />
+                  </AccessibleFormField>
                   <label className="flex items-center gap-2 text-sm sm:col-span-2">
                     <input
                       type="checkbox"
-                      checked={inv.confirmed}
-                      onChange={(e) =>
-                        setInvoices((list) =>
-                          list.map((i) =>
-                            i.id === inv.id ? { ...i, confirmed: e.target.checked } : i,
+                      checked={invoice.confirmed}
+                      onChange={(event) =>
+                        setInvoices((current) =>
+                          current.map((item) =>
+                            item.id === invoice.id
+                              ? { ...item, confirmed: event.target.checked }
+                              : item,
                           ),
                         )
                       }
@@ -242,26 +262,24 @@ export function PlanOpsLiteClient() {
 
       <section aria-labelledby="review-heading">
         <h2 id="review-heading" className="font-heading text-lg font-semibold">
-          Plan review prep
+          Plan review preparation
         </h2>
         <div className="mt-4 space-y-4">
-          {(
-            [
-              ["worked", "What worked"],
-              ["notWorked", "What did not work"],
-              ["unmet", "Unmet needs"],
-              ["transport", "Transport barriers"],
-              ["gaps", "Provider gaps"],
-              ["goals", "Goals for next plan"],
-            ] as const
-          ).map(([key, label]) => (
-            <AccessibleFormField key={key} id={key} label={label}>
+          {([
+            ["worked", "What worked"],
+            ["notWorked", "What did not work"],
+            ["unmet", "Unmet needs"],
+            ["transport", "Transport barriers"],
+            ["gaps", "Provider gaps"],
+            ["goals", "Goals for next plan"],
+          ] as const).map(([key, label]) => (
+            <AccessibleFormField key={key} id={`review-${key}`} label={label}>
               <textarea
-                id={key}
+                id={`review-${key}`}
                 rows={3}
                 value={reviewNotes[key]}
-                onChange={(e) =>
-                  setReviewNotes((n) => ({ ...n, [key]: e.target.value }))
+                onChange={(event) =>
+                  setReviewNotes((current) => ({ ...current, [key]: event.target.value }))
                 }
                 className={formInputClass}
               />
@@ -271,21 +289,12 @@ export function PlanOpsLiteClient() {
       </section>
 
       <section aria-labelledby="export-heading">
-        <h2 id="export-heading" className="font-heading text-lg font-semibold">
-          Export
-        </h2>
-        <Button
-          type="button"
-          variant="outline"
-          size="default"
-          onClick={() => window.print()}
-          className="mt-2"
-        >
+        <h2 id="export-heading" className="font-heading text-lg font-semibold">Export</h2>
+        <Button type="button" variant="outline" onClick={() => window.print()} className="mt-2">
           Print summary
         </Button>
         <p className="mt-2 text-xs text-muted-foreground">
-          CSV export and plan-manager integration coming soon. Data stays in your browser
-          for now.
+          CSV export and plan-manager integration are not active. Data remains in this browser session.
         </p>
       </section>
     </div>
