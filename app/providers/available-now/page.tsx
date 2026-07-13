@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { AccessFitSummary } from "@/components/wedges/access-fit/AccessFitSummary";
@@ -16,12 +17,10 @@ import {
   MOCK_WEDGE_PROVIDERS,
 } from "@/lib/wedges/mock-providers";
 import { AVAILABILITY_DISCLAIMER, type AvailabilityFilters } from "@/types/wedges";
-import Link from "next/link";
 
 export default function AvailableNowPage() {
   const [filters, setFilters] = useState<AvailabilityFilters>({
-    noWaitlist: false,
-    availableThisWeek: false,
+    availableThisWeek: true,
   });
 
   const results = useMemo(
@@ -74,19 +73,14 @@ export default function AvailableNowPage() {
                 <li key={provider.id}>
                   <article className="space-y-4 rounded-xl border border-border p-5">
                     <header>
-                      <h3 className="font-heading text-lg font-semibold">
-                        {provider.name}
-                      </h3>
+                      <h3 className="font-heading text-lg font-semibold">{provider.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         {provider.suburb} {provider.state} · {provider.categories.join(", ")}
                       </p>
                     </header>
                     <ProviderAvailabilityCard availability={provider.availability} />
                     <AccessFitSummary
-                      result={accessFitScore(
-                        DEMO_ACCESS_PROFILE,
-                        provider.accessCapabilities,
-                      )}
+                      result={accessFitScore(DEMO_ACCESS_PROFILE, provider.accessCapabilities)}
                     />
                     {MOCK_RESPONSE_SLA[provider.id] ? (
                       <ResponseTimeBadge sla={MOCK_RESPONSE_SLA[provider.id]} />
