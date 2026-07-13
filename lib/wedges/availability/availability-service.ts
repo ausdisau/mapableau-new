@@ -1,8 +1,14 @@
-import type { AvailabilityFilters } from "@/types/wedges";
 import { wedgesConfig } from "@/lib/config/wedges";
 import { prisma } from "@/lib/prisma";
-import { filterProvidersByAvailability } from "@/lib/wedges/availability/filters";
+import {
+  filterProvidersByAvailability,
+  isAvailableThisWeek,
+} from "@/lib/wedges/availability/filters";
 import { MOCK_WEDGE_PROVIDERS } from "@/lib/wedges/mock-providers";
+import type {
+  AvailabilityFilters,
+  ProviderAvailability,
+} from "@/types/wedges";
 
 export async function listAvailabilitySnapshots(filters: AvailabilityFilters) {
   if (wedgesConfig.useMockData) {
@@ -12,16 +18,84 @@ export async function listAvailabilitySnapshots(filters: AvailabilityFilters) {
   const rows = await prisma.providerAvailabilitySnapshot.findMany({
     where: {
       ...(filters.noWaitlist ? { waitlistStatus: "none" } : {}),
+      ...(filters.shortWaitlist
+        ? { waitlistStatus: { in: ["none", "short"] } }
+        : {}),
       ...(filters.telehealth ? { telehealthAvailable: true } : {}),
       ...(filters.mobileService ? { mobileServiceAvailable: true } : {}),
       ...(filters.weekend ? { weekendAvailable: true } : {}),
       ...(filters.urgentCapacity ? { urgentCapacity: true } : {}),
+      ...(filters.fundingType
+        ? { fundingTypesAccepted: { has: filters.fundingType } }
+        : {}),
+      ...(filters.suburb
+        ? {
+            suburbsServed: {
+              has: filters.suburb,
+            },
+          }
+        : {}),
     },
     take: 100,
     orderBy: { lastAvailabilityUpdated: "desc" },
   });
 
-  return rows;
+  const profileIds = rows
+    .map((row) => row.providerProfileId)
+    .filter((id): id is string => Boolean(id));
+  const profiles = profileIds.length
+    ? await prisma.providerProfile.findMany({
+        where: { id: { in: profileIds } },
+        select: { id: true, postcode: true },
+      })
+    : [];
+  const postcodeByProfile = new Map(
+    profiles.map((profile) => [profile.id, profile.postcode]),
+  );
+
+  const enriched = rows.map((row) => ({
+    ...row,
+    serviceAreaPostcodes: row.providerProfileId
+      ? [postcodeByProfile.get(row.providerProfileId)].filter(
+          (value): value is string => Boolean(value),
+        )
+      : [],
+  }));
+
+  return enriched.filter((row) => {
+    const availability: ProviderAvailability & {
+      serviceAreaPostcodes?: string[];
+    } = {
+      providerId: row.providerProfileId ?? row.organisationId ?? row.id,
+      acceptingNewParticipants: row.acceptingNewParticipants,
+      waitlistStatus: row.waitlistStatus as ProviderAvailability["waitlistStatus"],
+      earliestStartDate: row.earliestStartDate?.toISOString() ?? null,
+      availableDays: row.availableDays,
+      afterHoursAvailable: row.afterHoursAvailable,
+      weekendAvailable: row.weekendAvailable,
+      telehealthAvailable: row.telehealthAvailable,
+      mobileServiceAvailable: row.mobileServiceAvailable,
+      suburbsServed: row.suburbsServed,
+      fundingTypesAccepted:
+        row.fundingTypesAccepted as ProviderAvailability["fundingTypesAccepted"],
+      urgentCapacity: row.urgentCapacity,
+      lastAvailabilityUpdated: row.lastAvailabilityUpdated.toISOString(),
+      availabilityConfidence:
+        row.availabilityConfidence as ProviderAvailability["availabilityConfidence"],
+      serviceAreaPostcodes: row.serviceAreaPostcodes,
+    };
+
+    if (filters.availableThisWeek && !isAvailableThisWeek(availability)) {
+      return false;
+    }
+    if (
+      filters.postcode &&
+      !availability.serviceAreaPostcodes?.includes(filters.postcode.trim())
+    ) {
+      return false;
+    }
+    return true;
+  });
 }
 
 export async function createSupportConciergeRequest(data: {
@@ -39,7 +113,7 @@ export async function createSupportConciergeRequest(data: {
   summaryJson?: unknown;
 }) {
   if (!wedgesConfig.persistRequests) {
-    return { persisted: false, id: `local-${Date.now()}` };
+    return { persisted: false, id: `local-${crypto.randomUUID()}` };
   }
 
   const record = await prisma.supportConciergeRequest.create({
