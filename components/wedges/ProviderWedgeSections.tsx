@@ -1,11 +1,9 @@
 import { ProviderAccessProfile } from "@/components/wedges/access-profile/ProviderAccessProfile";
 import { TransportAccessPanel } from "@/components/wedges/transport/TransportAccessPanel";
 import { TrustBreakdown } from "@/components/wedges/trust/TrustBreakdown";
-import { RequestProgressTimeline } from "@/components/wedges/request-tracker/RequestProgressTimeline";
 import { wedgesConfig } from "@/lib/config/wedges";
 import {
   DEMO_ACCESS_PROFILE,
-  MOCK_REQUEST_PROGRESS,
   MOCK_TRANSPORT_ACCESS,
   MOCK_TRUST_SCORES,
 } from "@/lib/wedges/mock-providers";
@@ -23,7 +21,8 @@ export function ProviderWedgeSections({
   if (!wedgesConfig.mvpEnabled) return null;
 
   const wedge = resolveWedgeProvider(providerId);
-  const trust = MOCK_TRUST_SCORES[providerId] ?? (wedge ? MOCK_TRUST_SCORES[wedge.id] : undefined);
+  const trust =
+    MOCK_TRUST_SCORES[providerId] ?? (wedge ? MOCK_TRUST_SCORES[wedge.id] : undefined);
   const transport =
     MOCK_TRANSPORT_ACCESS[providerId] ??
     (wedge ? MOCK_TRANSPORT_ACCESS[wedge.id] : undefined);
@@ -57,7 +56,6 @@ export function ProviderWedgeSections({
         />
       ) : null}
       {trust ? <TrustBreakdown trust={trust} /> : null}
-      <RequestProgressTimeline progress={MOCK_REQUEST_PROGRESS[0]} />
     </div>
   );
 }
