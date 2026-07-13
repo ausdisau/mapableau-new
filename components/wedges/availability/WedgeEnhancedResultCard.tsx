@@ -31,22 +31,21 @@ export function WedgeEnhancedResultCard(props: WedgeEnhancedResultCardProps) {
     return <ProviderFinderResultCard {...props} />;
   }
 
-  const wedge = resolveWedgeProvider(props.provider.id) ??
-    resolveWedgeProvider(props.provider.slug);
+  const wedge =
+    resolveWedgeProvider(props.provider.id) ?? resolveWedgeProvider(props.provider.slug);
 
   return (
     <div className="space-y-3">
       <ProviderFinderResultCard {...props} />
       {wedge ? (
         <div className="space-y-3 pl-1">
-          <ProviderAvailabilityCard
-            availability={wedge.availability}
-            compact
-          />
-          <AccessFitSummary
-            result={accessFitScore(DEMO_ACCESS_PROFILE, wedge.accessCapabilities)}
-            showDetails={false}
-          />
+          <ProviderAvailabilityCard availability={wedge.availability} compact />
+          {wedgesConfig.accessFitEnabled ? (
+            <AccessFitSummary
+              result={accessFitScore(DEMO_ACCESS_PROFILE, wedge.accessCapabilities)}
+              showDetails={false}
+            />
+          ) : null}
           {MOCK_TRUST_SCORES[wedge.id] ? (
             <div className="flex flex-wrap items-center gap-2">
               <TrustScoreBadge score={MOCK_TRUST_SCORES[wedge.id].overallScore} />
@@ -61,10 +60,7 @@ export function WedgeEnhancedResultCard(props: WedgeEnhancedResultCardProps) {
           {MOCK_RESPONSE_SLA[wedge.id] ? (
             <ResponseTimeBadge sla={MOCK_RESPONSE_SLA[wedge.id]} />
           ) : null}
-          <Link
-            href="/request-support"
-            className="text-sm text-primary underline"
-          >
+          <Link href="/request-support" className="text-sm text-primary underline">
             Request introduction
           </Link>
         </div>
