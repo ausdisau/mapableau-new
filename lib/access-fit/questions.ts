@@ -1,5 +1,9 @@
-import type { AccessNeedId } from "@/types/wedges";
-import { ACCESS_NEED_LABELS } from "@/types/wedges";
+import {
+  ACCESS_NEED_LABELS,
+  FUNDING_TYPES,
+  type AccessNeedId,
+  type FundingType,
+} from "@/types/wedges";
 
 /**
  * Suggested questions to ask a provider based on access needs and gaps.
@@ -26,17 +30,13 @@ export function suggestedQuestionsForNeeds(
   }
 
   if (accessNeeds.includes("genderPreferenceForPersonalCare")) {
-    questions.push(
-      "Can you accommodate gender preferences for personal care support?",
-    );
+    questions.push("Can you accommodate gender preferences for personal care support?");
   }
 
   return [...new Set(questions)];
 }
 
-export function transportRemindersForNeeds(
-  accessNeeds: AccessNeedId[],
-): string[] {
+export function transportRemindersForNeeds(accessNeeds: AccessNeedId[]): string[] {
   const reminders: string[] = [];
   if (
     accessNeeds.includes("wheelchairAccess") ||
@@ -56,6 +56,10 @@ export function transportRemindersForNeeds(
   return reminders;
 }
 
+function isFundingType(value: string): value is FundingType {
+  return (FUNDING_TYPES as readonly string[]).includes(value);
+}
+
 export function buildConciergeSummaryFilters(input: {
   urgency: string;
   serviceMode: string;
@@ -64,17 +68,22 @@ export function buildConciergeSummaryFilters(input: {
   postcode: string;
   suburb: string;
 }) {
+  const fundingType = isFundingType(input.fundingType)
+    ? input.fundingType
+    : undefined;
+
   return {
     availableThisWeek: input.urgency === "this_week",
     noWaitlist: input.urgency === "this_week",
-    mobileService: input.serviceMode === "mobile_home_visit" || input.serviceMode === "flexible",
-    telehealth: input.serviceMode === "telehealth" || input.serviceMode === "flexible",
+    mobileService:
+      input.serviceMode === "mobile_home_visit" || input.serviceMode === "flexible",
+    telehealth:
+      input.serviceMode === "telehealth" || input.serviceMode === "flexible",
     urgentCapacity: input.urgency === "this_week",
-    fundingType:
-      input.fundingType !== "unsure"
-        ? (input.fundingType as "agency-managed" | "plan-managed" | "self-managed" | "private")
-        : undefined,
-    postcode: input.postcode || undefined,
-    suburb: input.suburb || undefined,
+    fundingType,
+    postcode: /^\d{4}$/.test(input.postcode.trim())
+      ? input.postcode.trim()
+      : undefined,
+    suburb: input.suburb.trim() || undefined,
   };
 }
