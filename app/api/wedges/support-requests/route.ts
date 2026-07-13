@@ -15,14 +15,14 @@ import {
 const bodySchema = z.object({
   requesterRole: z.enum(REQUESTER_ROLES),
   supportCategory: z.enum(SUPPORT_CATEGORIES),
-  locationPostcode: z.string().min(4),
-  locationSuburb: z.string().min(1),
+  locationPostcode: z.string().trim().regex(/^\d{4}$/, "Enter a 4-digit postcode"),
+  locationSuburb: z.string().trim().min(1, "Enter a suburb"),
   serviceMode: z.enum(SERVICE_MODES),
   urgency: z.enum(URGENCY_LEVELS),
   accessNeeds: z.array(z.enum(ACCESS_NEED_IDS)),
   fundingType: z.union([z.enum(FUNDING_TYPES), z.literal("unsure")]),
-  previousIssues: z.string().max(2000).optional(),
-  consentGiven: z.boolean().refine((v) => v === true, {
+  previousIssues: z.string().trim().max(2000).optional(),
+  consentGiven: z.boolean().refine((value) => value === true, {
     message: "Consent is required",
   }),
 });
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
   const result = await createSupportConciergeRequest({
     ...parsed.data,
-    previousIssues: parsed.data.previousIssues ?? undefined,
+    previousIssues: parsed.data.previousIssues || undefined,
   });
 
   return jsonOk({
@@ -54,6 +54,6 @@ export async function POST(request: Request) {
     persisted: result.persisted,
     message: result.persisted
       ? "Request saved successfully."
-      : "Request received (demo mode — enable WEDGES_PERSIST_REQUESTS to save to database).",
+      : "Request received in demo mode. Enable WEDGES_PERSIST_REQUESTS to save it to the database.",
   });
 }
