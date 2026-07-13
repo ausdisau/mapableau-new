@@ -1,8 +1,13 @@
-"use client";
+import { notFound } from "next/navigation";
 
 import { PlanOpsLiteClient } from "@/components/wedges/planops/PlanOpsLiteClient";
+import { wedgesConfig } from "@/lib/config/wedges";
 
 export default function PlanOpsLitePage() {
+  if (!wedgesConfig.mvpEnabled || !wedgesConfig.planOpsLiteEnabled) {
+    notFound();
+  }
+
   return (
     <div className="space-y-6">
       <header>
