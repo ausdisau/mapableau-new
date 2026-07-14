@@ -116,6 +116,9 @@ model User {
   accessPlaceClaims         AccessPlaceClaim[]     @relation("AccessPlaceClaimUser")
   accessPlaceReports        AccessPlaceReport[]    @relation("AccessPlaceReportReporter")
   accessPlaceReviews        AccessPlaceReview[]    @relation("AccessPlaceReviewAuthor")
+  accessMarkerRatings       AccessMarkerRating[]   @relation("AccessMarkerRatingAuthor")
+  accessMarkerComments      AccessMarkerComment[]  @relation("AccessMarkerCommentAuthor")
+  accessMarkerVerifications AccessMarkerVerification[] @relation("AccessMarkerVerificationAuthor")
   accessImportsCreated      AccessImportJob[]      @relation("AccessImportCreatedBy")
   accessAccreditationAssessments AccessAccreditationAssessment[] @relation("AccessAccreditationAssessor")
   accessVenueClaims         AccessVenueClaim[]     @relation("AccessVenueClaimUser")
@@ -6842,6 +6845,10 @@ model AccessPlace {
   venueClaims      AccessVenueClaim[]
   venueProfile     AccessVenueProfile?
   importItems      AccessImportItem[]
+  markerRatings    AccessMarkerRating[]
+  markerComments   AccessMarkerComment[]
+  markerAggregate  AccessMarkerAggregateScore?
+  markerVerifications AccessMarkerVerification[]
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -7232,6 +7239,133 @@ model AccessTrustEvent {
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
   @@map("access_trust_events")
+}
+
+/// In-marker feedback (lightweight map card ratings). Separate from AccessPlaceReview.
+enum AccessMarkerContentStatus {
+  published
+  needs_review
+  hidden
+  disputed
+  archived
+}
+
+enum AccessMarkerCommentType {
+  general
+  mobility
+  toilet
+  parking
+  sensory
+  communication
+  staff_service
+  temporary_alert
+  transport_dropoff
+  correction
+}
+
+enum AccessMarkerVerificationAction {
+  confirm_accurate
+  mark_outdated
+  dispute
+  resolve_alert
+  suggest_evidence
+}
+
+enum AccessMobilityAidType {
+  manual_wheelchair
+  powerchair
+  mobility_scooter
+  walker
+  cane
+  other
+}
+
+model AccessMarkerRating {
+  id                      String   @id @default(cuid())
+  placeId                 String   @map("place_id")
+  place                   AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId                  String   @map("user_id")
+  user                    User     @relation("AccessMarkerRatingAuthor", fields: [userId], references: [id])
+  overallRating           Int?     @map("overall_rating")
+  mobilityRating          Int?     @map("mobility_rating")
+  toiletRating            Int?     @map("toilet_rating")
+  parkingDropoffRating    Int?     @map("parking_dropoff_rating")
+  sensoryRating           Int?     @map("sensory_rating")
+  communicationRating     Int?     @map("communication_rating")
+  staffServiceRating      Int?     @map("staff_service_rating")
+  visitedAt               DateTime? @map("visited_at")
+  visitedInPerson         Boolean  @default(true) @map("visited_in_person")
+  usedMobilityAid         Boolean? @map("used_mobility_aid")
+  mobilityAidType         AccessMobilityAidType? @map("mobility_aid_type")
+  status                  AccessMarkerContentStatus @default(published)
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  comments                AccessMarkerComment[]
+
+  @@unique([placeId, userId])
+  @@index([placeId, status])
+  @@map("access_marker_ratings")
+}
+
+model AccessMarkerComment {
+  id                 String   @id @default(cuid())
+  placeId            String   @map("place_id")
+  place              AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId             String   @map("user_id")
+  user               User     @relation("AccessMarkerCommentAuthor", fields: [userId], references: [id])
+  ratingId           String?  @map("rating_id")
+  rating             AccessMarkerRating? @relation(fields: [ratingId], references: [id], onDelete: SetNull)
+  commentType        AccessMarkerCommentType @map("comment_type")
+  body               String
+  evidencePhotoIds   String[] @default([]) @map("evidence_photo_ids")
+  status             AccessMarkerContentStatus @default(published)
+  moderationFlags    Json?    @map("moderation_flags")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([placeId, status, createdAt])
+  @@map("access_marker_comments")
+}
+
+model AccessMarkerAggregateScore {
+  id                    String   @id @default(cuid())
+  placeId               String   @unique @map("place_id")
+  place                 AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  overallScore          Float    @default(0) @map("overall_score")
+  mobilityScore         Float    @default(0) @map("mobility_score")
+  toiletScore           Float    @default(0) @map("toilet_score")
+  parkingDropoffScore   Float    @default(0) @map("parking_dropoff_score")
+  sensoryScore          Float    @default(0) @map("sensory_score")
+  communicationScore    Float    @default(0) @map("communication_score")
+  staffServiceScore     Float    @default(0) @map("staff_service_score")
+  confidenceScore       Float    @default(0) @map("confidence_score")
+  ratingCount           Int      @default(0) @map("rating_count")
+  commentCount          Int      @default(0) @map("comment_count")
+  verifiedCount         Int      @default(0) @map("verified_count")
+  disputedCount         Int      @default(0) @map("disputed_count")
+  lastRatedAt           DateTime? @map("last_rated_at")
+  lastVerifiedAt        DateTime? @map("last_verified_at")
+  lastCheckedAt         DateTime? @map("last_checked_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("access_marker_aggregate_scores")
+}
+
+model AccessMarkerVerification {
+  id            String   @id @default(cuid())
+  placeId       String   @map("place_id")
+  place         AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId        String   @map("user_id")
+  user          User     @relation("AccessMarkerVerificationAuthor", fields: [userId], references: [id])
+  action        AccessMarkerVerificationAction
+  note          String?
+  commentId     String?  @map("comment_id")
+  evidenceNote  String?  @map("evidence_note")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([placeId, action, createdAt])
+  @@map("access_marker_verifications")
 }
 
 enum TransportTripStatus {
