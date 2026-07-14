@@ -22,6 +22,7 @@ const AUTH_PREFIXES = [
   "/academy/settings",
   "/academy/provider",
   "/academy/studio",
+  "/academy/admin",
 ] as const;
 
 const AUTH_PATHS = ["/care/", "/transport/"] as const;

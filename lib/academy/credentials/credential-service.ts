@@ -2,8 +2,11 @@ import type { CurrentUser } from "@/lib/auth/current-user";
 import { recordAcademyAudit } from "@/lib/academy/audit";
 import {
   COMPLETION_CERTIFICATE_LABEL,
+  HIS_PRACTICAL_WARNING,
+  STANDARD_CREDENTIAL_TYPE,
   getAcademyConfig,
 } from "@/lib/academy/config";
+import { AcademyAuthzError } from "@/lib/academy/authz/capabilities";
 import { prisma } from "@/lib/prisma";
 
 export async function issueCompletionCredential(
@@ -14,10 +17,17 @@ export async function issueCompletionCredential(
   const enrolment = await prisma.academyEnrolment.findUniqueOrThrow({
     where: { id: enrolmentId },
     include: {
-      courseVersion: { include: { course: true } },
+      courseVersion: { include: { course: { include: { school: true } } } },
       user: { select: { id: true, name: true } },
     },
   });
+
+  const course = enrolment.courseVersion.course;
+  if (course.practicalAssessmentRequired || course.school?.code === "HIS") {
+    throw new AcademyAuthzError(
+      `${HIS_PRACTICAL_WARNING} Online theory completion cannot issue competency.`,
+    );
+  }
 
   const existing = await prisma.academyCredential.findFirst({
     where: { enrolmentId, status: "issued" },
@@ -41,10 +51,10 @@ export async function issueCompletionCredential(
       enrolmentId,
       courseVersionId: enrolment.courseVersionId,
       issuerName: config.issuerName,
-      achievementTitle: `${COMPLETION_CERTIFICATE_LABEL}: ${enrolment.courseVersion.title}`,
+      achievementTitle: `${STANDARD_CREDENTIAL_TYPE} ${enrolment.courseVersion.title}`,
       status: "issued",
       expiresAt: expiresAt ?? undefined,
-      evidenceSummary: `Completed course version ${enrolment.courseVersion.versionNumber} of ${enrolment.courseVersion.course.code}`,
+      evidenceSummary: `Completed course version ${enrolment.courseVersion.versionNumber} of ${course.code}. ${COMPLETION_CERTIFICATE_LABEL} only — not an AQF outcome.`,
       verificationStatus: "verifiable",
       publicDisplay: Boolean(learner?.publicCredentialsOptIn),
       expiry: expiresAt
@@ -62,6 +72,7 @@ export async function issueCompletionCredential(
     metadata: {
       publicId: credential.publicId,
       courseVersionId: enrolment.courseVersionId,
+      courseCode: course.code,
     },
   });
 

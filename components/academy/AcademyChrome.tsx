@@ -8,11 +8,13 @@ import {
 const NAV = [
   { href: "/academy", label: "Home" },
   { href: "/academy/catalogue", label: "Catalogue" },
+  { href: "/academy/pathways", label: "Pathways" },
   { href: "/academy/about", label: "About" },
   { href: "/academy/accessibility", label: "Accessibility" },
   { href: "/academy/learn", label: "Learn" },
   { href: "/academy/provider", label: "Provider" },
   { href: "/academy/studio/courses", label: "Studio" },
+  { href: "/academy/admin/catalogue", label: "Admin" },
 ] as const;
 
 export function AcademyChrome({

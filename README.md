@@ -45,6 +45,8 @@ This runs `pnpm install --frozen-lockfile` followed by `prisma generate`.
 | `pnpm lint` / `pnpm lint:fix` | ESLint |
 | `pnpm type-check` | TypeScript |
 | `pnpm test` | Vitest |
+| `pnpm test:academy` | Academy unit/integration tests |
+| `pnpm academy:catalogue:import` | Dry-run catalogue import (use `--apply` to write) |
 | `pnpm setup:cloud-agent` | Install locked dependencies and generate Prisma Client for cloud agents |
 | `pnpm check:integrations-env` | Validate optional integration env vars |
 

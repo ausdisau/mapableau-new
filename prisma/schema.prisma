@@ -8500,6 +8500,44 @@ enum AcademyCourseStatus {
   archived
 }
 
+enum AcademyPublicationStatus {
+  PLANNED
+  IN_DESIGN
+  IN_REVIEW
+  PUBLISHED
+  RETIRED
+}
+
+enum AcademyCourseLevel {
+  FOUNDATION
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum AcademyReleaseWave {
+  WAVE_1_LAUNCH
+  WAVE_2_EXPANSION
+  WAVE_3_SPECIALIST
+}
+
+enum AcademySchoolStatus {
+  active
+  retired
+}
+
+enum CurriculumImportResult {
+  dry_run
+  applied
+  failed
+  validate_only
+}
+
+enum CurriculumImportIssueSeverity {
+  error
+  warning
+  info
+}
+
 enum AcademyEnrolmentStatus {
   enrolled
   in_progress
@@ -8597,21 +8635,63 @@ model LearnerProfile {
   @@map("academy_learner_profiles")
 }
 
+model AcademySchool {
+  id              String              @id @default(cuid())
+  code            String              @unique
+  name            String
+  description     String?
+  purpose         String?
+  primaryAudience String?
+  pathwayBadge    String?
+  displayOrder    Int                 @default(0)
+  status          AcademySchoolStatus @default(active)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  courses   Course[]
+  pathways  LearningPath[]
+
+  @@map("academy_schools")
+}
+
 model Course {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  code        String   @unique
-  title       String
-  summary     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                           String                    @id @default(cuid())
+  slug                         String                    @unique
+  code                         String                    @unique
+  title                        String
+  summary                      String?
+  schoolId                     String?
+  school                       AcademySchool?            @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  primaryAudience              String?
+  level                        AcademyCourseLevel?
+  deliveryFormat               String?
+  durationMinutes              Int?
+  assessmentType               String?
+  credentialType               String?
+  suggestedReviewCycle         String?
+  practicalAssessmentRequired  Boolean                   @default(false)
+  clinicalReviewRequired       Boolean                   @default(false)
+  disabilityLedReviewRequired  Boolean                   @default(true)
+  releaseWave                  AcademyReleaseWave?
+  publicationStatus            AcademyPublicationStatus  @default(PLANNED)
+  indicativeLearningOutcome    String?
+  governanceNote               String?
+  pathwayBadge                 String?
+  createdAt                    DateTime                  @default(now())
+  updatedAt                    DateTime                  @updatedAt
 
-  versions    CourseVersion[]
-  pathLinks   LearningPathCourse[]
-  competencies CourseCompetency[]
-  assignments LearningAssignment[]
+  versions                 CourseVersion[]
+  pathLinks                LearningPathCourse[]
+  competencies             CourseCompetency[]
+  assignments              LearningAssignment[]
   practiceStandardMappings PracticeStandardMapping[]
+  sources                  AcademyCourseSource[]
+  frameworkTags            AcademyCourseFrameworkTag[]
+  prerequisiteFor          LearningPathCourse[]          @relation("PathwayPrerequisite")
 
+  @@index([schoolId])
+  @@index([publicationStatus])
+  @@index([releaseWave])
   @@map("academy_courses")
 }
 
@@ -8681,28 +8761,38 @@ model Lesson {
 }
 
 model LearningPath {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  code        String?             @unique
   title       String
   description String?
+  badgeName   String?
+  audience    String?
+  schoolId    String?
+  school      AcademySchool?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   status      AcademyCourseStatus @default(draft)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
   courses     LearningPathCourse[]
 
+  @@index([schoolId])
   @@map("academy_learning_paths")
 }
 
 model LearningPathCourse {
-  id             String       @id @default(cuid())
-  learningPathId String
-  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
-  courseId       String
-  course         Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  sortOrder      Int          @default(0)
+  id                  String       @id @default(cuid())
+  learningPathId      String
+  learningPath        LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  courseId            String
+  course              Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  sortOrder           Int          @default(0)
+  required            Boolean      @default(true)
+  prerequisiteCourseId String?
+  prerequisiteCourse  Course?      @relation("PathwayPrerequisite", fields: [prerequisiteCourseId], references: [id], onDelete: SetNull)
 
   @@unique([learningPathId, courseId])
+  @@index([prerequisiteCourseId])
   @@map("academy_learning_path_courses")
 }
 
@@ -9010,4 +9100,80 @@ model AcademyAuditEvent {
   @@index([action])
   @@index([createdAt])
   @@map("academy_audit_events")
+}
+
+model AcademyCourseSource {
+  id          String    @id @default(cuid())
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  sourceUrl   String
+  sourceTitle String?
+  sourceType  String?
+  retrievedAt DateTime?
+  nextReviewAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([courseId])
+  @@map("academy_course_sources")
+}
+
+model AcademyFrameworkTag {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  label      String
+  framework  String
+  version    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  courses    AcademyCourseFrameworkTag[]
+
+  @@map("academy_framework_tags")
+}
+
+model AcademyCourseFrameworkTag {
+  courseId        String
+  course          Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  frameworkTagId  String
+  frameworkTag    AcademyFrameworkTag @relation(fields: [frameworkTagId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, frameworkTagId])
+  @@map("academy_course_framework_tags")
+}
+
+model CurriculumImportRun {
+  id             String                 @id @default(cuid())
+  sourceFilename String
+  sourceChecksum String
+  dryRun         Boolean                @default(true)
+  initiatedBy    String?
+  createdCount   Int                    @default(0)
+  updatedCount   Int                    @default(0)
+  unchangedCount Int                    @default(0)
+  rejectedCount  Int                    @default(0)
+  result         CurriculumImportResult @default(dry_run)
+  reportJson     Json?
+  createdAt      DateTime               @default(now())
+
+  issues         CurriculumImportIssue[]
+
+  @@index([createdAt])
+  @@map("academy_curriculum_import_runs")
+}
+
+model CurriculumImportIssue {
+  id           String                         @id @default(cuid())
+  importRunId  String
+  importRun    CurriculumImportRun            @relation(fields: [importRunId], references: [id], onDelete: Cascade)
+  sheet        String?
+  rowNumber    Int?
+  courseCode   String?
+  severity     CurriculumImportIssueSeverity  @default(error)
+  field        String?
+  message      String
+  createdAt    DateTime                       @default(now())
+
+  @@index([importRunId])
+  @@map("academy_curriculum_import_issues")
 }

@@ -42,5 +42,13 @@ export const CAPABILITY_LEVEL_DISCLAIMER =
 
 export const COMPLETION_CERTIFICATE_LABEL = "Certificate of Completion";
 
+export const STANDARD_CREDENTIAL_TYPE =
+  "MapAble Academy Certificate of Completion — non-accredited professional development.";
+
 export const COMPLIANCE_SUPPORT_DISCLAIMER =
   "MapAble Academy learning records support workforce capability and may inform provider quality practices. They do not guarantee NDIS compliance.";
+
+export const HIS_THEORY_LABEL = "Theory component";
+
+export const HIS_PRACTICAL_WARNING =
+  "Completion of this online theory component does not make a worker eligible to deliver high-intensity support. Participant-specific training and assessment by an appropriately qualified assessor are required.";
