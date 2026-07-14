@@ -1,0 +1,15 @@
+---
+description: MapAble Academy accessibility requirements (WCAG 2.2 AA)
+globs: app/academy/**/*,components/academy/**/*,lib/academy/**/*
+alwaysApply: false
+---
+
+# Academy accessibility
+
+- Meet WCAG 2.2 AA as a minimum for all Academy UI.
+- Complete keyboard operation; visible focus; screen-reader landmarks and headings.
+- Course player must never trap focus or require drag-and-drop, precise pointer movement, colour recognition, or audio alone.
+- Support captions, transcripts, audio-description fields, Easy Read variants, TTS-friendly content.
+- Honour reduced motion, adjustable text spacing/contrast from AccessibilityProfile digital preferences.
+- No assessment time limits by default; always save and resume; plain-language validation.
+- Prefer low-bandwidth and mobile-first layouts. Accessible charts plus downloadable report equivalents.

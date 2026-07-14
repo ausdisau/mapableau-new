@@ -1,9 +1,9 @@
-import { CoreShell } from "@/components/core/CoreShell";
+import { AcademyChrome } from "@/components/academy/AcademyChrome";
 
 export default function AcademyLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <CoreShell>{children}</CoreShell>;
+  return <AcademyChrome>{children}</AcademyChrome>;
 }

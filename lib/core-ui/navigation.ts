@@ -151,7 +151,7 @@ export const CORE_HUB_SECTIONS: {
         label: "Provider control panel",
         description: "Enterprise workspace metrics and provider operations",
       },
-      { href: "/academy", label: "Provider academy" },
+      { href: "/academy", label: "MapAble Academy", description: "Disability-led learning for support workers" },
       { href: "/assessor", label: "Assessor tools" },
       { href: "/accreditation", label: "Accreditation" },
     ],

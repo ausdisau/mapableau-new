@@ -405,6 +405,10 @@ async function main() {
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
 
+  const { seedAcademy } = await import("../lib/academy/seed");
+  await seedAcademy(prisma);
+  console.log("  Seeded MapAble Academy Worker Foundations demonstration course");
+
   console.log("Seed complete.");
 }
 
