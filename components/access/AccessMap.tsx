@@ -4,6 +4,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import dynamic from "next/dynamic";
 
+import type { AccessMapMarkerPlace } from "@/components/access/AccessMapLayer";
+
 const AccessMapLayer = dynamic(
   () => import("@/components/access/AccessMapLayer").then((m) => m.AccessMapLayer),
   { ssr: false, loading: () => <p className="p-4 text-sm">Loading map…</p> }
@@ -14,7 +16,7 @@ export function AccessMap({
   selectedId,
   onSelect,
 }: {
-  places: { id: string; name: string; latitude: number; longitude: number }[];
+  places: AccessMapMarkerPlace[];
   selectedId?: string;
   onSelect?: (id: string) => void;
 }) {

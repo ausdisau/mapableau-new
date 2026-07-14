@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AccessFilterPanel } from "@/components/access/AccessFilterPanel";
 import { AccessMap } from "@/components/access/AccessMap";
+import { AccessMarkerPopup } from "@/components/access/AccessMarkerPopup";
 import { AccessPlaceList } from "@/components/access/AccessPlaceList";
 import { AccessSearchBar } from "@/components/access/AccessSearchBar";
 import { MobileAccessMapShell } from "@/components/access/MobileAccessMapShell";
@@ -17,6 +18,7 @@ export type AccessPlaceView = {
   reviewCount?: number;
   latitude?: number;
   longitude?: number;
+  ariaLabel?: string;
 };
 
 export function MapAbleAccessShell({
@@ -29,6 +31,7 @@ export function MapAbleAccessShell({
   const [places, setPlaces] = useState(initialPlaces);
   const [view, setView] = useState<"list" | "map">("list");
   const [selectedId, setSelectedId] = useState<string | undefined>();
+
   const search = useCallback(async () => {
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
@@ -68,7 +71,6 @@ export function MapAbleAccessShell({
       return;
     }
     void search();
-    // Re-run when category changes; query updates use the search bar submit handler.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- category filter only
   }, [category]);
 
@@ -79,6 +81,7 @@ export function MapAbleAccessShell({
       name: p.name,
       latitude: p.latitude!,
       longitude: p.longitude!,
+      ariaLabel: p.ariaLabel,
     }));
 
   return (
@@ -89,9 +92,9 @@ export function MapAbleAccessShell({
             MapAble Access
           </h1>
           <p className="mt-2 max-w-3xl text-slate-600">
-            Public accessibility map with community reviews and optional MapAble
-            Accreditation. This venue has user-reported accessibility information
-            where shown.
+            Public accessibility map with community ratings, comments, and
+            optional MapAble Accreditation. Tap or keyboard-select a marker to
+            rate, comment, verify, or plan accessible transport.
           </p>
         </header>
 
@@ -103,7 +106,7 @@ export function MapAbleAccessShell({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`min-h-11 rounded-xl px-4 font-black ${view === "list" ? "bg-[#005B7F] text-white" : "border border-slate-200 bg-white text-[#0C1833]"}`}
+                className={`min-h-12 rounded-xl px-4 font-black ${view === "list" ? "bg-[#005B7F] text-white" : "border border-slate-200 bg-white text-[#0C1833]"}`}
                 onClick={() => setView("list")}
                 aria-pressed={view === "list"}
               >
@@ -111,7 +114,7 @@ export function MapAbleAccessShell({
               </button>
               <button
                 type="button"
-                className={`min-h-11 rounded-xl px-4 font-black ${view === "map" ? "bg-[#005B7F] text-white" : "border border-slate-200 bg-white text-[#0C1833]"}`}
+                className={`min-h-12 rounded-xl px-4 font-black ${view === "map" ? "bg-[#005B7F] text-white" : "border border-slate-200 bg-white text-[#0C1833]"}`}
                 onClick={() => setView("map")}
                 aria-pressed={view === "map"}
               >
@@ -120,11 +123,24 @@ export function MapAbleAccessShell({
             </div>
 
             {view === "map" ? (
-              <AccessMap
-                places={mapPlaces}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-              />
+              <div className="grid gap-4 lg:grid-cols-[1fr_minmax(280px,360px)]">
+                <AccessMap
+                  places={mapPlaces}
+                  selectedId={selectedId}
+                  onSelect={setSelectedId}
+                />
+                {selectedId ? (
+                  <AccessMarkerPopup
+                    placeId={selectedId}
+                    onClose={() => setSelectedId(undefined)}
+                  />
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-600">
+                    Select a map marker to view accessibility scores, comments,
+                    and actions.
+                  </p>
+                )}
+              </div>
             ) : null}
 
             <AccessPlaceList places={places} />
