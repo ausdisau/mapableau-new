@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,16 +23,60 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@server/*": ["server/*"],
-      "@mapable/contracts": ["packages/contracts/src/index.ts"],
-      "@mapable/intelligence-kernel": ["packages/intelligence-kernel/src/index.ts"],
-      "@mapable/domain-transport": ["packages/domain-transport/src/index.ts"],
-      "@mapable/domain-provider": ["packages/domain-provider/src/index.ts"],
-      "@mapable/domain-workforce": ["packages/domain-workforce/src/index.ts"]
+      "@/*": [
+        "./*"
+      ],
+      "@server/*": [
+        "server/*"
+      ],
+      "@mapable/contracts": [
+        "packages/contracts/src/index.ts"
+      ],
+      "@mapable/intelligence-kernel": [
+        "packages/intelligence-kernel/src/index.ts"
+      ],
+      "@mapable/domain-transport": [
+        "packages/domain-transport/src/index.ts"
+      ],
+      "@mapable/domain-provider": [
+        "packages/domain-provider/src/index.ts"
+      ],
+      "@mapable/domain-workforce": [
+        "packages/domain-workforce/src/index.ts"
+      ],
+      "@mapable/careos-contracts": [
+        "packages/careos-contracts/src/index.ts"
+      ],
+      "@mapable/validation": [
+        "packages/mapable-validation/src/index.ts"
+      ],
+      "@mapable/feature-flags": [
+        "packages/mapable-feature-flags/src/index.ts"
+      ],
+      "@mapable/design-tokens": [
+        "packages/mapable-design-tokens/src/index.ts"
+      ],
+      "@mapable/api-client": [
+        "packages/mapable-api-client/src/index.ts"
+      ],
+      "@mapable/auth-client": [
+        "packages/mapable-auth-client/src/index.ts"
+      ],
+      "@mapable/accessibility": [
+        "packages/mapable-accessibility/src/index.ts"
+      ]
     },
     "target": "ES2021"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "apps/realtime-server"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "apps/realtime-server",
+    "apps/mobile"
+  ]
 }
