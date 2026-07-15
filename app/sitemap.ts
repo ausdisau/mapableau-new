@@ -15,6 +15,7 @@ const publicRoutes = [
   "/providers",
   "/provider-finder",
   "/resources",
+  "/resources/sensory-friendly-canberra-half-day-itinerary",
   "/guides",
   "/help",
   "/about",

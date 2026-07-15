@@ -90,9 +90,30 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
             First mapping missions
           </h2>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
-            {guide.mappingMissions.map((mission) => (
-              <li key={mission}>{mission}</li>
-            ))}
+            {guide.mappingMissions.map((mission) => {
+              const isCanberraItinerary =
+                guide.citySlug === "canberra-accessibility-guide" &&
+                mission
+                  .toLowerCase()
+                  .includes("sensory-friendly canberra half-day itinerary");
+              return (
+                <li key={mission}>
+                  {isCanberraItinerary ? (
+                    <>
+                      {mission}{" "}
+                      <Link
+                        href="/resources/sensory-friendly-canberra-half-day-itinerary"
+                        className="font-medium text-primary underline-offset-2 hover:underline focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                      >
+                        Open the published itinerary
+                      </Link>
+                    </>
+                  ) : (
+                    mission
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </article>
 

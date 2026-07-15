@@ -9,6 +9,7 @@ import { ResourceModuleGrid } from "@/components/canvas/ResourceModuleGrid";
 import { TrustLayer } from "@/components/canvas/TrustLayer";
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 import { AccessGuidesSection } from "@/components/resources/AccessGuidesSection";
+import { FeaturedResourceArticles } from "@/components/resources/FeaturedResourceArticles";
 import { canvasBlocks } from "@/lib/canvas/canvas-data";
 import {
   getParticipantJourneySteps,
@@ -23,6 +24,7 @@ import {
   accessGuides,
   getCapitalAccessGuides,
 } from "@/lib/resources/access-guides-data";
+import { getFeaturedResourceArticles } from "@/lib/resources/resource-articles-data";
 
 export const metadata = {
   title: "Resources | MapAble",
@@ -35,16 +37,43 @@ export default function ResourcesPage() {
   const resourceTrustPrinciples = getResourceTrustPrinciples();
   const capitalGuides = getCapitalAccessGuides();
   const regionalCount = accessGuides.length - capitalGuides.length;
+  const featuredArticles = getFeaturedResourceArticles();
 
   return (
     <>
       <PublicInfoPage
         eyebrow="Resource hub"
         title="Practical resources for the MapAble pilot."
-        description="Explore Access Guides for Australian cities, public modules, the Complete Support ecosystem, policy documents, and support pathways while the operating system is prepared for controlled pilots."
-        ctaLabel="Browse Access Guides"
-        ctaHref="#access-guides"
+        description="Explore Access Guides for Australian cities, sensory-friendly itineraries, public modules, the Complete Support ecosystem, policy documents, and support pathways while the operating system is prepared for controlled pilots."
+        ctaLabel="Browse featured resources"
+        ctaHref="#featured-resources"
         sections={[
+          {
+            title: "Featured planning resources",
+            content: (
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  <Link
+                    href="/resources/sensory-friendly-canberra-half-day-itinerary"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Sensory-Friendly Canberra Half-Day Itinerary
+                  </Link>{" "}
+                  — a low-rush museum + arboretum outing with sensory checklist
+                  and transport flags.
+                </li>
+                <li>
+                  <Link
+                    href="#featured-resources"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Featured resource cards
+                  </Link>{" "}
+                  for printable planners and access-aware day plans.
+                </li>
+              </ul>
+            ),
+          },
           {
             title: "Access Guides",
             content: (
@@ -184,6 +213,7 @@ export default function ResourcesPage() {
           },
         ]}
       />
+      <FeaturedResourceArticles articles={featuredArticles} />
       <AccessGuidesSection
         capitalGuides={capitalGuides}
         regionalCount={regionalCount}
