@@ -35,3 +35,9 @@ export type {
   ServerAccessContext,
 } from "./types";
 export { DEMO_SCENARIOS, DEMO_PLACES } from "./demo-data";
+export {
+  LEARNING_SCENARIOS,
+  LEARNING_OBJECTIVES,
+  getLearningRepository,
+  createLearningTools,
+} from "./learning";

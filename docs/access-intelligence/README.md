@@ -31,6 +31,8 @@ User ↔ Access Chat (useChat)
 | `app/api/access-intelligence/` | Chat, passport, verification, barrier report |
 | `tests/access-intelligence/` | Engine and tool contract tests |
 | `docs/access-intelligence/` | This documentation set |
+| `lib/access-intelligence/learning/` | Learning Lab schemas, state machine, rubrics, scenarios |
+| `app/access-intelligence/learn/` | Learning Lab UI (practice, progress, author, facilitate) |
 | `prisma/migrations/20260715120000_access_intelligence/` | DB migration |
 
 ## Setup
@@ -95,6 +97,9 @@ When demo mode is on:
 - [ACCESSIBILITY.md](./ACCESSIBILITY.md)
 - [DATA_MODEL.md](./DATA_MODEL.md)
 - [SAFETY_AND_GOVERNANCE.md](./SAFETY_AND_GOVERNANCE.md)
+- [LEARNING_LAB.md](./LEARNING_LAB.md)
+- [SCENARIO_AUTHORING.md](./SCENARIO_AUTHORING.md)
+- [LEARNING_GOVERNANCE.md](./LEARNING_GOVERNANCE.md)
 
 ## How to add a place
 

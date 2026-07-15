@@ -7,6 +7,7 @@ import {
 } from "./configuration";
 import { AccessIntelligenceError } from "./errors";
 import { ACCESS_INTELLIGENCE_INSTRUCTIONS } from "./instructions";
+import { createLearningTools } from "./learning/tools";
 import { agentAccessPlanSchema } from "./schemas";
 import { createAccessIntelligenceTools } from "./tools";
 import type { ServerAccessContext } from "./types";
@@ -35,7 +36,10 @@ export function createAccessIntelligenceAgent(ctx: ServerAccessContext) {
   return new ToolLoopAgent({
     model: getAccessIntelligenceModel(),
     instructions: ACCESS_INTELLIGENCE_INSTRUCTIONS,
-    tools: createAccessIntelligenceTools(ctx),
+    tools: {
+      ...createAccessIntelligenceTools(ctx),
+      ...createLearningTools(ctx),
+    },
     stopWhen: stepCountIs(accessIntelligenceConfig.maxAgentSteps),
     output: Output.object({
       schema: agentAccessPlanSchema,
