@@ -86,6 +86,7 @@ describe("getLlmAnalyticsProvider", () => {
     expect(getLlmAnalyticsProvider("models/google/gemini-2.0-flash")).toBe(
       "google",
     );
+    expect(getLlmAnalyticsProvider("ai-sdk/openai/gpt-4.1-mini")).toBe("openai");
     expect(getLlmAnalyticsProvider("custom-engine")).toBe("unknown");
   });
 });

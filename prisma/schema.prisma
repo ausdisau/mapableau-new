@@ -124,6 +124,10 @@ model User {
   accessAccreditationRequests AccessAccreditationRequest[] @relation("AccessAccreditationRequestUser")
   accessModerationDecisions AccessModerationDecision[] @relation("AccessModerator")
   accessContentReports      AccessContentReport[]  @relation("AccessContentReporter")
+  accessSavedPlaces         AccessSavedPlace[]     @relation("AccessSavedPlaceUser")
+  accessChatFeedback        AccessChatFeedback[]   @relation("AccessChatFeedbackUser")
+  accessChatProfileConsent  AccessChatProfileConsent? @relation("AccessChatProfileConsentUser")
+  accessPlaceAlertsCreated  AccessPlaceAlert[]     @relation("AccessPlaceAlertCreatedBy")
   dataAccessLogs            DataAccessLog[]        @relation("DataAccessActor")
   transportTripRequests     TransportTripRequest[] @relation("TransportTripRequestParticipant")
   transportTrips            TransportTrip[]        @relation("TransportTripParticipant")
@@ -6842,6 +6846,8 @@ model AccessPlace {
   venueClaims      AccessVenueClaim[]
   venueProfile     AccessVenueProfile?
   importItems      AccessImportItem[]
+  alerts           AccessPlaceAlert[]
+  savedByUsers     AccessSavedPlace[]
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -7232,6 +7238,76 @@ model AccessTrustEvent {
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
   @@map("access_trust_events")
+}
+
+enum AccessAlertSeverity {
+  info
+  caution
+  disruption
+}
+
+enum AccessAlertStatus {
+  active
+  resolved
+}
+
+model AccessPlaceAlert {
+  id          String              @id @default(cuid())
+  placeId     String              @map("place_id")
+  place       AccessPlace         @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  severity    AccessAlertSeverity @default(caution)
+  title       String
+  body        String
+  status      AccessAlertStatus   @default(active)
+  source      String              @default("community")
+  startsAt    DateTime            @default(now()) @map("starts_at")
+  endsAt      DateTime?           @map("ends_at")
+  createdById String?             @map("created_by")
+  createdBy   User?               @relation("AccessPlaceAlertCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  @@index([placeId, status])
+  @@map("access_place_alerts")
+}
+
+model AccessSavedPlace {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation("AccessSavedPlaceUser", fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String   @map("place_id")
+  place     AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, placeId])
+  @@index([userId])
+  @@map("access_saved_places")
+}
+
+model AccessChatFeedback {
+  id             String   @id @default(cuid())
+  userId         String?  @map("user_id")
+  user           User?    @relation("AccessChatFeedbackUser", fields: [userId], references: [id], onDelete: SetNull)
+  sessionId      String   @map("session_id")
+  messageId      String?  @map("message_id")
+  rating         String
+  comment        String?
+  intentSnapshot Json?    @map("intent_snapshot")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@map("access_chat_feedback")
+}
+
+model AccessChatProfileConsent {
+  id          String    @id @default(cuid())
+  userId      String    @unique @map("user_id")
+  user        User      @relation("AccessChatProfileConsentUser", fields: [userId], references: [id], onDelete: Cascade)
+  consentedAt DateTime  @default(now()) @map("consented_at")
+  revokedAt   DateTime? @map("revoked_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("access_chat_profile_consents")
 }
 
 enum TransportTripStatus {
