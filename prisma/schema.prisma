@@ -124,6 +124,15 @@ model User {
   accessAccreditationRequests AccessAccreditationRequest[] @relation("AccessAccreditationRequestUser")
   accessModerationDecisions AccessModerationDecision[] @relation("AccessModerator")
   accessContentReports      AccessContentReport[]  @relation("AccessContentReporter")
+  accessPlaceComments       AccessPlaceComment[]   @relation("AccessPlaceCommentAuthor")
+  accessReactions           AccessReaction[]       @relation("AccessReactionUser")
+  accessPlaceAlerts         AccessPlaceAlert[]     @relation("AccessPlaceAlertAuthor")
+  accessIssueHistory        AccessIssueHistory[]   @relation("AccessIssueHistoryActor")
+  accessContributionLedger  AccessContributionLedger[] @relation("AccessContributionUser")
+  accessUserBadges          AccessUserBadge[]      @relation("AccessUserBadgeUser")
+  accessContributionPrivacy AccessContributionPrivacy? @relation("AccessContributionPrivacyUser")
+  accessMappingChallengesCreated AccessMappingChallenge[] @relation("AccessMappingChallengeCreatedBy")
+  accessChallengeProgress   AccessChallengeProgress[] @relation("AccessChallengeProgressUser")
   dataAccessLogs            DataAccessLog[]        @relation("DataAccessActor")
   transportTripRequests     TransportTripRequest[] @relation("TransportTripRequestParticipant")
   transportTrips            TransportTrip[]        @relation("TransportTripParticipant")
@@ -588,6 +597,7 @@ enum NotificationCategory {
   support
   safeguarding
   system
+  access
 }
 
 enum BookingType {
@@ -6706,9 +6716,14 @@ enum AccessDisplayNameMode {
 enum AccessRatingValue {
   not_applicable
   unknown
+  not_observed
+  very_difficult
+  difficult
+  mixed
   poor
   basic
   good
+  very_good
   excellent
 }
 
@@ -6802,14 +6817,155 @@ enum AccessModerationStatus {
 
 enum AccessContentReportReason {
   inaccurate_access_information
+  outdated_information
+  privacy_concern
   abusive_or_harassing
   private_information
   defamatory_or_unverified_claim
+  suspected_fake_contribution
+  conflict_of_interest
   unsafe_advice
+  inappropriate_media
+  serious_safety_concern
   spam
   duplicate_place
   closed_or_moved_place
   other
+}
+
+enum AccessOverallExperience {
+  completely
+  mostly
+  partly
+  barely
+  not_at_all
+  prefer_not
+}
+
+enum AccessObservationSource {
+  in_person
+  venue_inspection
+  other
+}
+
+enum AccessVisitTimePrecision {
+  none
+  approximate
+  exact
+}
+
+enum AccessTagSentiment {
+  positive
+  barrier
+}
+
+enum AccessCommentType {
+  access_tip
+  barrier_report
+  temporary_issue
+  feature_confirmation
+  question
+  venue_response
+  improvement_update
+}
+
+enum AccessCommentStatus {
+  draft
+  pending
+  published
+  restricted
+  removed
+}
+
+enum AccessFeatureAnchor {
+  whole_place
+  parking
+  drop_off
+  path
+  entrance
+  door
+  interior_path
+  ramp
+  lift
+  counter
+  seating
+  toilet
+  signage
+  hearing_access
+  lighting_acoustics
+  staff_assistance
+  online_information
+}
+
+enum AccessReactionType {
+  helpful
+  confirm
+  changed
+}
+
+enum AccessReactionTargetType {
+  review
+  comment
+}
+
+enum AccessAlertStatus {
+  active
+  expired
+  outdated
+  resolved
+  removed
+}
+
+enum AccessIssueHistoryState {
+  reported
+  confirmed
+  venue_responded
+  being_investigated
+  resolved
+  reopened
+  outdated
+  removed
+}
+
+enum AccessContributionStatus {
+  pending
+  final
+  reversed
+}
+
+enum AccessCommunityConfidence {
+  limited
+  developing
+  well_supported
+  recently_verified
+}
+
+enum AccessMappingChallengeStatus {
+  draft
+  active
+  completed
+  cancelled
+}
+
+enum AccessEvidenceType {
+  photo
+  video
+  audio
+  measurement
+  document
+}
+
+enum AccessEvidenceProvenance {
+  community
+  venue
+  verified_assessor
+}
+
+enum AccessEvidenceVerification {
+  unverified
+  pending
+  verified
+  rejected
 }
 
 model AccessPlace {
@@ -6838,10 +6994,14 @@ model AccessPlace {
   events           AccessPlaceEvent[]
   reviews          AccessPlaceReview[]
   ratingSummaries  AccessRatingSummary[]
+  dimensionSummaries AccessDimensionSummary[]
   accreditationAssessments AccessAccreditationAssessment[]
   venueClaims      AccessVenueClaim[]
   venueProfile     AccessVenueProfile?
   importItems      AccessImportItem[]
+  comments         AccessPlaceComment[]
+  alerts           AccessPlaceAlert[]
+  issueHistory     AccessIssueHistory[]
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -6924,12 +7084,19 @@ model AccessPlaceReview {
   reviewer           User     @relation("AccessPlaceReviewAuthor", fields: [reviewerProfileId], references: [id])
   displayNameMode    AccessDisplayNameMode @default(anonymous_public) @map("display_name_mode")
   visitDate          DateTime? @map("visit_date")
+  visitTimePrecision AccessVisitTimePrecision @default(none) @map("visit_time_precision")
+  observationSource  AccessObservationSource @default(in_person) @map("observation_source")
+  overallExperience  AccessOverallExperience? @map("overall_experience")
+  temporaryIssue     Boolean  @default(false) @map("temporary_issue")
   reviewBody         String   @map("review_body")
   mobilityContext    String?  @map("mobility_context")
+  accessContextJson  Json?    @map("access_context_json")
   status             AccessReviewStatus @default(draft)
   visibility         AccessReviewVisibility @default(public)
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
+  publishedAt        DateTime? @map("published_at")
+  deletedAt          DateTime? @map("deleted_at")
 
   ratings            AccessPlaceReviewRating[]
   photos             AccessPlaceReviewPhoto[]
@@ -6937,8 +7104,12 @@ model AccessPlaceReview {
   events             AccessPlaceReviewEvent[]
   venueResponses     AccessVenueReviewResponse[]
   moderationItems    AccessModerationQueue[]
+  featureTags        AccessReviewFeatureTag[]
+  comments           AccessPlaceComment[]
+  evidenceLinks      AccessEvidenceLink[]
 
   @@index([placeId, status])
+  @@index([reviewerProfileId, createdAt])
   @@map("access_reviews")
 }
 
@@ -6996,6 +7167,27 @@ model AccessRatingSummary {
   updatedAt DateTime @updatedAt @map("updated_at")
   @@unique([placeId, category])
   @@map("access_rating_summaries")
+}
+
+model AccessDimensionSummary {
+  id                    String   @id @default(cuid())
+  placeId               String   @map("place_id")
+  place                 AccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  category              AccessRatingCategory
+  adjustedRating        Float?   @map("adjusted_rating")
+  rawResponseCount      Int      @default(0) @map("raw_response_count")
+  uniqueContributorCount Int     @default(0) @map("unique_contributor_count")
+  recentContributorCount Int     @default(0) @map("recent_contributor_count")
+  lastConfirmedAt       DateTime? @map("last_confirmed_at")
+  evidenceCount         Int      @default(0) @map("evidence_count")
+  conflictCount         Int      @default(0) @map("conflict_count")
+  confidenceState       AccessCommunityConfidence @default(limited) @map("confidence_state")
+  reasonCodes           Json?    @map("reason_codes")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@unique([placeId, category])
+  @@index([placeId])
+  @@map("access_dimension_summaries")
 }
 
 model AccessImportJob {
@@ -7232,6 +7424,221 @@ model AccessTrustEvent {
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
   @@map("access_trust_events")
+}
+
+model AccessReviewFeatureTag {
+  id       String            @id @default(cuid())
+  reviewId String            @map("review_id")
+  review   AccessPlaceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  tagKey   String            @map("tag_key")
+  sentiment AccessTagSentiment
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@unique([reviewId, tagKey])
+  @@index([tagKey])
+  @@map("access_review_feature_tags")
+}
+
+model AccessPlaceComment {
+  id               String              @id @default(cuid())
+  placeId          String              @map("place_id")
+  place            AccessPlace         @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  reviewId         String?             @map("review_id")
+  review           AccessPlaceReview?  @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  parentCommentId  String?             @map("parent_comment_id")
+  parentComment    AccessPlaceComment? @relation("AccessCommentThread", fields: [parentCommentId], references: [id], onDelete: SetNull)
+  replies          AccessPlaceComment[] @relation("AccessCommentThread")
+  authorUserId     String              @map("author_user_id")
+  author           User                @relation("AccessPlaceCommentAuthor", fields: [authorUserId], references: [id])
+  authorRole       String?             @map("author_role")
+  featureKey       AccessFeatureAnchor @default(whole_place) @map("feature_key")
+  commentType      AccessCommentType   @map("comment_type")
+  body             String
+  status           AccessCommentStatus @default(published)
+  moderationStatus AccessModerationStatus @default(pending) @map("moderation_status")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  resolvedAt       DateTime?           @map("resolved_at")
+  resolvedBy       String?             @map("resolved_by")
+  editedAt         DateTime?           @map("edited_at")
+
+  evidenceLinks    AccessEvidenceLink[]
+
+  @@index([placeId, createdAt])
+  @@index([reviewId])
+  @@map("access_place_comments")
+}
+
+model AccessEvidenceLink {
+  id                 String   @id @default(cuid())
+  reviewId           String?  @map("review_id")
+  review             AccessPlaceReview? @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  commentId          String?  @map("comment_id")
+  comment            AccessPlaceComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  photoId            String?  @map("photo_id")
+  documentId         String?  @map("document_id")
+  evidenceType       AccessEvidenceType @map("evidence_type")
+  altText            String?  @map("alt_text")
+  measurementType    String?  @map("measurement_type")
+  measurementValue   Float?   @map("measurement_value")
+  measurementUnit    String?  @map("measurement_unit")
+  observationDate    DateTime? @map("observation_date")
+  provenanceType     AccessEvidenceProvenance @default(community) @map("provenance_type")
+  verificationStatus AccessEvidenceVerification @default(unverified) @map("verification_status")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  @@index([reviewId])
+  @@index([commentId])
+  @@map("access_evidence_links")
+}
+
+model AccessReaction {
+  id           String                  @id @default(cuid())
+  userId       String                  @map("user_id")
+  user         User                    @relation("AccessReactionUser", fields: [userId], references: [id])
+  targetType   AccessReactionTargetType @map("target_type")
+  targetId     String                  @map("target_id")
+  reactionType AccessReactionType      @map("reaction_type")
+  createdAt    DateTime                @default(now()) @map("created_at")
+  clearedAt    DateTime?               @map("cleared_at")
+
+  @@unique([userId, targetType, targetId, reactionType])
+  @@index([targetType, targetId])
+  @@map("access_reactions")
+}
+
+model AccessPlaceAlert {
+  id              String           @id @default(cuid())
+  placeId         String           @map("place_id")
+  place           AccessPlace      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  authorUserId    String?          @map("author_user_id")
+  author          User?            @relation("AccessPlaceAlertAuthor", fields: [authorUserId], references: [id])
+  featureKey      AccessFeatureAnchor @default(whole_place) @map("feature_key")
+  title           String
+  body            String?
+  observationDate DateTime         @map("observation_date")
+  expectedExpiry  DateTime?        @map("expected_expiry")
+  sourceType      String           @default("community") @map("source_type")
+  status          AccessAlertStatus @default(active)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@index([placeId, status])
+  @@map("access_place_alerts")
+}
+
+model AccessIssueHistory {
+  id          String                 @id @default(cuid())
+  placeId     String                 @map("place_id")
+  place       AccessPlace            @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  reviewId    String?                @map("review_id")
+  commentId   String?                @map("comment_id")
+  alertId     String?                @map("alert_id")
+  state       AccessIssueHistoryState
+  actorId     String?                @map("actor_id")
+  actor       User?                  @relation("AccessIssueHistoryActor", fields: [actorId], references: [id])
+  note        String?
+  metadata    Json?
+  createdAt   DateTime               @default(now()) @map("created_at")
+
+  @@index([placeId, createdAt])
+  @@map("access_issue_history")
+}
+
+model AccessContributionLedger {
+  id                  String   @id @default(cuid())
+  userId              String   @map("user_id")
+  user                User     @relation("AccessContributionUser", fields: [userId], references: [id])
+  contributionType    String   @map("contribution_type")
+  sourceEntityType    String   @map("source_entity_type")
+  sourceEntityId      String   @map("source_entity_id")
+  points              Int
+  reasonCode          String   @map("reason_code")
+  status              AccessContributionStatus @default(pending)
+  awardedAt           DateTime @default(now()) @map("awarded_at")
+  reversedAt          DateTime? @map("reversed_at")
+  idempotencyKey      String   @unique @map("idempotency_key")
+  moderationReference String?  @map("moderation_reference")
+
+  @@index([userId, awardedAt])
+  @@index([sourceEntityType, sourceEntityId])
+  @@map("access_contribution_ledger")
+}
+
+model AccessBadgeDefinition {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  title       String
+  description String
+  category    String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  awards      AccessUserBadge[]
+
+  @@map("access_badge_definitions")
+}
+
+model AccessUserBadge {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation("AccessUserBadgeUser", fields: [userId], references: [id])
+  badgeKey   String   @map("badge_key")
+  badge      AccessBadgeDefinition @relation(fields: [badgeKey], references: [key])
+  awardedAt  DateTime @default(now()) @map("awarded_at")
+  metadata   Json?
+
+  @@unique([userId, badgeKey])
+  @@map("access_user_badges")
+}
+
+model AccessContributionPrivacy {
+  id                 String  @id @default(cuid())
+  userId             String  @unique @map("user_id")
+  user               User    @relation("AccessContributionPrivacyUser", fields: [userId], references: [id])
+  hidePointsPublicly Boolean @default(false) @map("hide_points_publicly")
+  hideBadgesPublicly Boolean @default(false) @map("hide_badges_publicly")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("access_contribution_privacy")
+}
+
+model AccessMappingChallenge {
+  id                      String   @id @default(cuid())
+  title                   String
+  plainLanguageDescription String  @map("plain_language_description")
+  geographicScope         String?  @map("geographic_scope")
+  targetFeature           String?  @map("target_feature")
+  startsAt                DateTime @map("starts_at")
+  endsAt                  DateTime @map("ends_at")
+  contributionRules       Json?    @map("contribution_rules")
+  targetCount             Int      @default(0) @map("target_count")
+  visibility              String   @default("public")
+  status                  AccessMappingChallengeStatus @default(draft)
+  createdById             String   @map("created_by")
+  createdBy               User     @relation("AccessMappingChallengeCreatedBy", fields: [createdById], references: [id])
+  moderationRequired      Boolean  @default(true) @map("moderation_required")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  progress                AccessChallengeProgress[]
+
+  @@index([status, startsAt, endsAt])
+  @@map("access_mapping_challenges")
+}
+
+model AccessChallengeProgress {
+  id          String   @id @default(cuid())
+  challengeId String   @map("challenge_id")
+  challenge   AccessMappingChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id")
+  user        User     @relation("AccessChallengeProgressUser", fields: [userId], references: [id])
+  count       Int      @default(0)
+  completedAt DateTime? @map("completed_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([challengeId, userId])
+  @@map("access_challenge_progress")
 }
 
 enum TransportTripStatus {

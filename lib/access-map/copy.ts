@@ -12,6 +12,21 @@ export const ACCESS_LABELS = {
   unknown: "Accessibility information unknown",
   needsMore: "Needs more access information",
   reportInaccurate: "Report inaccurate information",
+  communityInfoAvailable: "Community access information available",
+  temporaryBarrierReported: "Temporary barrier reported",
+  informationMayBeStale: "Information may be stale",
+  professionalAssessmentAvailable: "Professional assessment available",
+  noCommunityInfoYet: "No community information yet",
+  accessibility: "Accessibility",
+  accessibilityReviews: "Accessibility reviews",
+  addAReview: "Add a review",
+  comments: "Comments",
+  accessInformation: "Access information",
+  reportABarrier: "Report a barrier",
+  confirmThisInformation: "Confirm this information",
+  contributionPoints: "Contribution points",
+  badges: "Badges",
+  mappingChallenges: "Mapping challenges",
 } as const;
 
 export const MAPABLE_MY_MAPS_KML_URL =

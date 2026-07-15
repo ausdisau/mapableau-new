@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ContributionProfileSection } from "@/components/access-reviews/ContributionProfileSection";
 import { PasskeyRegistrationPanel } from "@/components/auth/PasskeyRegistrationPanel";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
@@ -68,6 +69,8 @@ export default async function ProfilePage() {
       ) : (
         <p>No profile yet. Use edit to create one.</p>
       )}
+
+      <ContributionProfileSection />
 
       <PasskeyRegistrationPanel passkeyCount={passkeyCount} />
     </div>
