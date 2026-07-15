@@ -10,7 +10,7 @@ import path from "node:path";
 type Feature = {
   type: "Feature";
   properties: Record<string, unknown>;
-  geometry: unknown;
+  geometry: { type?: string; coordinates?: unknown } | null;
 };
 
 type FeatureCollection = {
@@ -83,7 +83,7 @@ const guides = geojson.features.map((feature) => {
   const salCode = getString(properties, ["SAL_CODE21", "SAL_CODE", "code", "id", "CODE"]);
   const state = getString(properties, ["STE_NAME21", "STATE", "state", "STE_CODE21"]);
   const stateAbbr = state.length <= 3 ? state.toUpperCase() : state.slice(0, 3).toUpperCase();
-  const centroid = centroidFromGeometry(feature.geometry);
+  const centroid = centroidFromGeometry(feature.geometry ?? {});
   const slug = slugify(name || salCode);
 
   return {
