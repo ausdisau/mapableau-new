@@ -1,7 +1,7 @@
+import { expireStaleAlerts } from "@/lib/access-reviews/issue-timeline-service";
+import { getAccessibilitySummaryForPlace } from "@/lib/access-reviews/review-summary-service";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { accessibilityReviewsV1Enabled } from "@/lib/config/accessibility-reviews";
-import { getAccessibilitySummaryForPlace } from "@/lib/access-reviews/review-summary-service";
-import { expireStaleAlerts } from "@/lib/access-reviews/issue-timeline-service";
 
 export async function GET(
   _req: Request,

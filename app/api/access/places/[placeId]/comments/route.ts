@@ -1,9 +1,3 @@
-import { requireApiSession } from "@/lib/api/auth-handler";
-import {
-  jsonBodyErrorResponse,
-  parseJsonRequestBody,
-} from "@/lib/api/request-body";
-import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import {
   createAccessComment,
   listPlaceComments,
@@ -12,9 +6,15 @@ import {
   canCreateReview,
   canVenueRespond,
 } from "@/lib/access-reviews/review-access-policy";
+import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  jsonBodyErrorResponse,
+  parseJsonRequestBody,
+} from "@/lib/api/request-body";
+import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { accessibilityReviewsV1Enabled } from "@/lib/config/accessibility-reviews";
 import { createAccessCommentSchema } from "@/lib/validation/access-review";
-import { getCurrentUser } from "@/lib/auth/current-user";
 
 export async function GET(
   req: Request,

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 
+import { AddAccessReviewFormLegacy } from "@/components/access-reviews/AddAccessReviewFormLegacy";
 import {
   DISPLAY_DIMENSIONS,
   FEATURE_TAG_CATALOG,
@@ -11,7 +12,6 @@ import {
   RATING_VALUE_OPTIONS,
 } from "@/lib/access-reviews/review-config";
 import { accessibilityReviewsV1Enabled } from "@/lib/config/accessibility-reviews";
-import { AddAccessReviewFormLegacy } from "@/components/access-reviews/AddAccessReviewFormLegacy";
 
 const STEPS = [
   "Visit context",

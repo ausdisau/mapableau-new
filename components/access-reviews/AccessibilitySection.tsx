@@ -2,8 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 
-import { COMMUNITY_CONFIDENCE_LABELS } from "@/lib/access-reviews/review-config";
-import { DISPLAY_DIMENSIONS } from "@/lib/access-reviews/review-config";
+import { COMMUNITY_CONFIDENCE_LABELS , DISPLAY_DIMENSIONS } from "@/lib/access-reviews/review-config";
 
 type SummaryPayload = {
   dimensions: {

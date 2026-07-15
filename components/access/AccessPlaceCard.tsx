@@ -1,4 +1,5 @@
 import Link from "next/link";
+import React from "react";
 
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
 

@@ -1,15 +1,15 @@
-import { requireApiSession } from "@/lib/api/auth-handler";
-import {
-  jsonBodyErrorResponse,
-  parseJsonRequestBody,
-} from "@/lib/api/request-body";
-import { jsonError, jsonOk } from "@/lib/api/response";
 import { getUserBadges } from "@/lib/access-gamification/badge-service";
 import { listActiveMappingChallenges } from "@/lib/access-gamification/challenge-service";
 import {
   getUserContributionTotals,
   upsertContributionPrivacy,
 } from "@/lib/access-gamification/contribution-ledger-service";
+import { requireApiSession } from "@/lib/api/auth-handler";
+import {
+  jsonBodyErrorResponse,
+  parseJsonRequestBody,
+} from "@/lib/api/request-body";
+import { jsonError, jsonOk } from "@/lib/api/response";
 import { accessibilityReviewsV1Enabled } from "@/lib/config/accessibility-reviews";
 
 export async function GET() {

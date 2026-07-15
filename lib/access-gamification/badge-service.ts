@@ -2,8 +2,8 @@ import {
   BADGE_DEFINITIONS,
   type BadgeKey,
 } from "@/lib/access-gamification/points-config";
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { emitAccessNotification } from "@/lib/access-reviews/access-review-events";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 
 export async function ensureBadgeDefinitions() {
@@ -48,7 +48,7 @@ export async function awardBadgeOnce(params: {
     data: {
       userId: params.userId,
       badgeKey: params.badgeKey,
-      metadata: params.metadata ?? undefined,
+      metadata: (params.metadata ?? undefined) as never,
     },
   });
 

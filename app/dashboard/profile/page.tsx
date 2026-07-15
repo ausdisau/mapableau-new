@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { PasskeyRegistrationPanel } from "@/components/auth/PasskeyRegistrationPanel";
 import { ContributionProfileSection } from "@/components/access-reviews/ContributionProfileSection";
+import { PasskeyRegistrationPanel } from "@/components/auth/PasskeyRegistrationPanel";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 

@@ -1,10 +1,10 @@
+import { setReaction } from "@/lib/access-reviews/reaction-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import {
   jsonBodyErrorResponse,
   parseJsonRequestBody,
 } from "@/lib/api/request-body";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
-import { setReaction } from "@/lib/access-reviews/reaction-service";
 import { accessibilityReviewsV1Enabled } from "@/lib/config/accessibility-reviews";
 import { reactionSchema } from "@/lib/validation/access-review";
 

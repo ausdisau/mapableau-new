@@ -3,10 +3,10 @@ import type {
   AccessFeatureAnchor,
 } from "@prisma/client";
 
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { scanReviewForModerationFlags } from "@/lib/access-moderation/content-safety-rules";
 import { emitAccessNotification } from "@/lib/access-reviews/access-review-events";
 import { recordIssueHistory } from "@/lib/access-reviews/issue-timeline-service";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 
 export async function createAccessComment(params: {

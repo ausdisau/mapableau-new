@@ -1,21 +1,21 @@
+import { awardBadgeOnce } from "@/lib/access-gamification/badge-service";
+import {
+  awardContributionPoints,
+} from "@/lib/access-gamification/contribution-ledger-service";
+import { POINTS_CONFIG } from "@/lib/access-gamification/points-config";
+import { emitAccessNotification } from "@/lib/access-reviews/access-review-events";
+import { recordIssueHistory } from "@/lib/access-reviews/issue-timeline-service";
+import {
+  canVenueRespond,
+  canCreateReview,
+} from "@/lib/access-reviews/review-access-policy";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import {
   jsonBodyErrorResponse,
   parseJsonRequestBody,
 } from "@/lib/api/request-body";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import { awardBadgeOnce } from "@/lib/access-gamification/badge-service";
-import {
-  awardContributionPoints,
-} from "@/lib/access-gamification/contribution-ledger-service";
-import { POINTS_CONFIG } from "@/lib/access-gamification/points-config";
-import {
-  canVenueRespond,
-  canCreateReview,
-} from "@/lib/access-reviews/review-access-policy";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { recordIssueHistory } from "@/lib/access-reviews/issue-timeline-service";
-import { emitAccessNotification } from "@/lib/access-reviews/access-review-events";
 import { accessibilityReviewsV1Enabled } from "@/lib/config/accessibility-reviews";
 
 export async function POST(

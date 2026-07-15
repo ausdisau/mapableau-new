@@ -1,8 +1,22 @@
-import { describe, expect, it } from "vitest";
+/**
+ * @vitest-environment jsdom
+ */
 import { render, screen } from "@testing-library/react";
+import React from "react";
+import { describe, expect, it, vi } from "vitest";
 
 import { AccessPlaceCard } from "@/components/access/AccessPlaceCard";
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
+
+vi.mock("next/link", () => ({
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
+}));
 
 describe("access place list accessibility states", () => {
   it("exposes text labels for secondary states, not colour alone", () => {

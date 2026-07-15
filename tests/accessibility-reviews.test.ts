@@ -1,20 +1,19 @@
 import { describe, expect, it } from "vitest";
 
+import { POINTS_CONFIG , BADGE_DEFINITIONS } from "@/lib/access-gamification/points-config";
+import { publicReportState } from "@/lib/access-moderation/report-handling-service";
+import {
+  canCreateReview,
+  canDeleteReview,
+  canModerateAccessContent,
+} from "@/lib/access-reviews/review-access-policy";
+import { REVIEW_SUMMARY_CONFIG } from "@/lib/access-reviews/review-config";
 import {
   bayesianAdjustedMean,
   computeDimensionSummariesFromRows,
   deriveConfidence,
   ratingValueToNumericScore,
 } from "@/lib/access-reviews/review-summary-service";
-import { POINTS_CONFIG } from "@/lib/access-gamification/points-config";
-import { BADGE_DEFINITIONS } from "@/lib/access-gamification/points-config";
-import {
-  canCreateReview,
-  canDeleteReview,
-  canModerateAccessContent,
-} from "@/lib/access-reviews/review-access-policy";
-import { publicReportState } from "@/lib/access-moderation/report-handling-service";
-import { REVIEW_SUMMARY_CONFIG } from "@/lib/access-reviews/review-config";
 import { rankAccessPlaces } from "@/lib/access-search/access-ranking-service";
 
 describe("accessibility review scoring", () => {
@@ -175,10 +174,9 @@ describe("gamification safeguards", () => {
           _count: { reviews: 2 },
         },
       ],
-      { q: "Cafe" }
+      { q: "Cafe", features: undefined, sort: "relevance", limit: 20 }
     );
-    expect(ranked[0]?.id).toBe("a");
-    // Ranking must not accept a points field — points are intentionally absent.
+    expect(ranked[0]?.place.id).toBe("a");
     expect("points" in (ranked[0] as object)).toBe(false);
   });
 });
