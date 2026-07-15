@@ -6,7 +6,7 @@ import {
   getLlmAnalyticsProvider,
 } from "@/lib/analytics/llm-analytics";
 import {
-  isGeminiCategoryClassifierEnabled,
+  isCategoryClassifierEnabled,
   searchInterpreterConfig,
 } from "@/lib/config/search-interpreter";
 
@@ -17,7 +17,8 @@ export type GeminiCategoryClassification = {
   slug: string | null;
   confidence: number;
   engineId: string;
-  source: "gemini" | "none";
+  /** `"llm"` when a catalog-validated slug is returned; provider is in `engineId`. */
+  source: "llm" | "none";
 };
 
 const classificationSchema = z.object({
@@ -37,8 +38,9 @@ const classificationSchema = z.object({
 const MIN_ACCEPT_CONFIDENCE = 0.45;
 
 /**
- * Dedicated Google Gemini step that maps free-text search to a canonical
- * `service_categories` slug. Never throws — returns null slug on any failure.
+ * Dedicated LLM step that maps free-text search to a canonical
+ * `service_categories` slug (Google Gemini or OpenAI). Never throws —
+ * returns null slug on any failure.
  */
 export async function classifyServiceCategoryWithGemini(
   query: string,
@@ -46,7 +48,7 @@ export async function classifyServiceCategoryWithGemini(
   const trimmed = query.trim();
   const engineId = getInterpreterEngineId();
 
-  if (!trimmed || !isGeminiCategoryClassifierEnabled()) {
+  if (!trimmed || !isCategoryClassifierEnabled()) {
     return { slug: null, confidence: 0, engineId: "rules/disabled", source: "none" };
   }
 
@@ -123,7 +125,7 @@ Rules:
       slug: matched.slug,
       confidence: object.confidence,
       engineId,
-      source: "gemini",
+      source: "llm",
     };
   } catch (err) {
     captureLlmGeneration({

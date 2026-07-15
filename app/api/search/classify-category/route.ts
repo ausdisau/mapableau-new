@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { isGeminiCategoryClassifierEnabled } from "@/lib/config/search-interpreter";
+import { isCategoryClassifierEnabled } from "@/lib/config/search-interpreter";
 import { classifyServiceCategoryWithGemini } from "@/lib/search/interpreter/gemini-category-classifier";
 import {
   SEARCH_CLASSIFY_CATEGORY_OPERATIONS,
@@ -44,10 +44,10 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!isGeminiCategoryClassifierEnabled()) {
+  if (!isCategoryClassifierEnabled()) {
     return searchClassifyCategoryJsonError(OPERATION, 503, {
       error:
-        "Gemini service category classifier is not configured. Set GOOGLE_GENERATIVE_AI_API_KEY or AI_GATEWAY_API_KEY.",
+        "Service category classifier is not configured. Set GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY, or AI_GATEWAY_API_KEY.",
       code: "SEARCH_CLASSIFY_NOT_CONFIGURED",
       retryable: false,
     });

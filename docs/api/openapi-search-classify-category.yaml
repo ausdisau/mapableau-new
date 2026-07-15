@@ -17,7 +17,7 @@ paths:
       operationId: searchClassifyCategory
       summary: Classify a query into a service category slug
       description: |
-        Uses Google Gemini (via Vercel AI SDK / AI Gateway) to pick one
+        Uses Google Gemini or OpenAI (via Vercel AI SDK / AI Gateway) to pick one
         canonical `service_categories` slug from the Prisma catalog.
       requestBody:
         required: true
@@ -115,7 +115,7 @@ components:
           maximum: 1
         source:
           type: string
-          enum: [gemini, none]
+          enum: [llm, none]
         engineId:
           type: string
         configured:

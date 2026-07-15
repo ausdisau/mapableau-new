@@ -21,8 +21,9 @@ Trivial queries skip the LLM via `looksLikeNaturalLanguage` to save latency and 
 | `SEARCH_INTERPRETER_ENABLED` | Set to `false` to force passthrough (default: enabled when keys exist) |
 | `AI_GATEWAY_API_KEY` or `VERCEL_AI_GATEWAY_API_KEY` | Preferred: Vercel AI Gateway |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | Fallback: `@ai-sdk/google` |
-| `SEARCH_INTERPRETER_MODEL` | Gateway-style id, e.g. `google/gemini-3.5-flash` |
-| `SEARCH_INTERPRETER_GEMINI_CLASSIFIER` | Dedicated Gemini category classifier (default on when keys exist) |
+| `OPENAI_API_KEY` | Fallback: `@ai-sdk/openai` |
+| `SEARCH_INTERPRETER_MODEL` | e.g. `google/gemini-3.5-flash` or `openai/gpt-4.1-nano` |
+| `SEARCH_INTERPRETER_GEMINI_CLASSIFIER` | Dedicated category classifier (default on when keys exist) |
 | `ES_URL`, `ES_API_KEY` | Optional Elasticsearch replica (phase 2) |
 | `ES_SERVICE_CATEGORY_ALIAS` | Default `mapable_service_categories_current` |
 | `SEARCH_INTERPRETER_CLASSIFIER_HUB_ID` | Optional HF model repo (phase 3) |

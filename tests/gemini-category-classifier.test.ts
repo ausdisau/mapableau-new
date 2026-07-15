@@ -15,11 +15,13 @@ vi.mock("@/lib/config/search-interpreter", async (importOriginal) => {
   return {
     ...actual,
     isSearchInterpreterConfigured: vi.fn(() => true),
+    isCategoryClassifierEnabled: vi.fn(() => true),
     isGeminiCategoryClassifierEnabled: vi.fn(() => true),
     searchInterpreterConfig: {
       ...actual.searchInterpreterConfig,
       enabled: true,
       googleApiKey: "test-key",
+      openaiApiKey: "",
       aiGatewayApiKey: "",
       modelId: "google/gemini-2.0-flash",
       geminiCategoryClassifier: true,
@@ -91,7 +93,7 @@ describe("classifyServiceCategoryWithGemini", () => {
       "Wheelchair taxi near Parramatta",
     );
 
-    expect(result.source).toBe("gemini");
+    expect(result.source).toBe("llm");
     expect(result.slug).toBe("accessible-transport");
     expect(result.confidence).toBe(0.91);
     expect(result.engineId).toBe("ai-sdk/google/gemini-2.0-flash");
