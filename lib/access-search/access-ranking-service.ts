@@ -3,10 +3,15 @@ import { distanceKm } from "@/lib/geo";
 
 const RATING_VALUE_SCORE: Record<string, number> = {
   excellent: 5,
+  very_good: 5,
   good: 4,
   basic: 3,
+  mixed: 3,
   poor: 2,
+  difficult: 2,
+  very_difficult: 1,
   unknown: 0,
+  not_observed: 0,
   not_applicable: 0,
 };
 

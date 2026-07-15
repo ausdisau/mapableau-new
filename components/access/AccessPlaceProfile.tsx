@@ -4,8 +4,10 @@ import { AccessConfidenceBadge } from "@/components/access/AccessConfidenceBadge
 import { AccessFeatureBadges } from "@/components/access/AccessFeatureBadges";
 import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityDisclaimerPanel";
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
+import { AccessibilitySection } from "@/components/access-reviews/AccessibilitySection";
 import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
 import { ACCESS_LABELS } from "@/lib/access-map/copy";
+import { accessibilityReviewsV1Enabled } from "@/lib/config/accessibility-reviews";
 import type {
   AccessAccreditationTier,
   AccessConfidenceLevel,
@@ -74,15 +76,19 @@ export function AccessPlaceProfile({
         </div>
       </section>
 
-      <section aria-labelledby="community-reviews-heading">
-        <h2 id="community-reviews-heading" className="text-lg font-semibold">
-          {ACCESS_LABELS.communityReviewed} ({ACCESS_LABELS.userReported})
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Community rating summary is user-reported, not legal certification.
-        </p>
-        <CommunityReviewPreview reviews={reviews} placeId={place.id} />
-      </section>
+      {accessibilityReviewsV1Enabled ? (
+        <AccessibilitySection placeId={place.id} />
+      ) : (
+        <section aria-labelledby="community-reviews-heading">
+          <h2 id="community-reviews-heading" className="text-lg font-semibold">
+            {ACCESS_LABELS.communityReviewed} ({ACCESS_LABELS.userReported})
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Community rating summary is user-reported, not legal certification.
+          </p>
+          <CommunityReviewPreview reviews={reviews} placeId={place.id} />
+        </section>
+      )}
 
       {accreditation ? (
         <AccreditationSummaryPanel
@@ -105,7 +111,9 @@ export function AccessPlaceProfile({
           href={`/access/review/${place.id}`}
           className="min-h-11 inline-flex items-center rounded-lg bg-primary px-4 text-primary-foreground"
         >
-          Add community review
+          {accessibilityReviewsV1Enabled
+            ? "Add accessibility review"
+            : "Add community review"}
         </Link>
         <Link
           href={`/access/places/${place.id}/claim`}

@@ -9,9 +9,29 @@ export type AccessPlaceCardData = {
   suburb?: string | null;
   reviewCount?: number;
   confidence?: string;
+  /** Lightweight marker/list secondary states — not colour-only. */
+  hasTemporaryAlert?: boolean;
+  informationMayBeStale?: boolean;
+  hasProfessionalAssessment?: boolean;
 };
 
 export function AccessPlaceCard({ place }: { place: AccessPlaceCardData }) {
+  const states: string[] = [];
+  if ((place.reviewCount ?? 0) > 0) {
+    states.push(ACCESS_LABELS.communityInfoAvailable);
+  } else {
+    states.push(ACCESS_LABELS.noCommunityInfoYet);
+  }
+  if (place.hasTemporaryAlert) {
+    states.push(ACCESS_LABELS.temporaryBarrierReported);
+  }
+  if (place.informationMayBeStale) {
+    states.push(ACCESS_LABELS.informationMayBeStale);
+  }
+  if (place.hasProfessionalAssessment) {
+    states.push(ACCESS_LABELS.professionalAssessmentAvailable);
+  }
+
   return (
     <article className="rounded-lg border border-border p-4">
       <h3 className="text-lg font-semibold">
@@ -23,11 +43,14 @@ export function AccessPlaceCard({ place }: { place: AccessPlaceCardData }) {
         {place.category.replace(/_/g, " ")}
         {place.suburb ? ` · ${place.suburb}` : ""}
       </p>
-      <p className="mt-2 text-sm">
-        {(place.reviewCount ?? 0) > 0
-          ? ACCESS_LABELS.communityReviewed
-          : ACCESS_LABELS.needsMore}
-      </p>
+      <ul className="mt-2 space-y-1 text-sm" aria-label="Access information state">
+        {states.map((label) => (
+          <li key={label}>
+            <span aria-hidden="true">• </span>
+            {label}
+          </li>
+        ))}
+      </ul>
     </article>
   );
 }

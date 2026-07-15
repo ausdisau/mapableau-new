@@ -59,15 +59,23 @@ export async function POST(
   let review;
   try {
     review = await createAccessReview({
-    placeId,
-    reviewerProfileId: user.id,
-    displayNameMode: parsed.data.displayNameMode,
-    reviewBody: parsed.data.reviewBody,
-    mobilityContext: parsed.data.mobilityContext,
-    visitDate: parsed.data.visitDate ? new Date(parsed.data.visitDate) : undefined,
-    visibility: parsed.data.visibility,
-    ratings: parsed.data.ratings,
-    publish: parsed.data.publish,
+      placeId,
+      reviewerProfileId: user.id,
+      displayNameMode: parsed.data.displayNameMode,
+      reviewBody: parsed.data.reviewBody,
+      mobilityContext: parsed.data.mobilityContext,
+      accessContextJson: parsed.data.accessContextJson,
+      visitDate: parsed.data.visitDate
+        ? new Date(parsed.data.visitDate)
+        : undefined,
+      visitTimePrecision: parsed.data.visitTimePrecision,
+      observationSource: parsed.data.observationSource,
+      overallExperience: parsed.data.overallExperience,
+      temporaryIssue: parsed.data.temporaryIssue,
+      visibility: parsed.data.visibility,
+      ratings: parsed.data.ratings,
+      featureTags: parsed.data.featureTags,
+      publish: parsed.data.publish,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "";
