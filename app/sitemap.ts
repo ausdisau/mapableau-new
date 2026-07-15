@@ -19,6 +19,7 @@ const publicRoutes = [
   "/resources/tours/sensory-friendly-canberra-half-day",
   "/resources/sensory-friendly-canberra-half-day-itinerary",
   "/guides",
+  "/guides/suburbs",
   "/help",
   "/about",
   "/pricing",

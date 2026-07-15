@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 import { GuidesMapExplorer } from "@/components/guides/GuidesMapExplorer";
@@ -56,6 +57,17 @@ export default function GuidesIndexPage() {
                   Start with a capital city guide for visitor-facing day planning.
                 </li>
                 <li>
+                  Browse{" "}
+                  <Link
+                    href="/guides/suburbs"
+                    className="font-semibold text-primary underline-offset-2 hover:underline"
+                  >
+                    Suburb Access Guides
+                  </Link>{" "}
+                  for locality-level planning notes organised by ABS Suburbs and
+                  Localities (SAL).
+                </li>
+                <li>
                   Download the full Australia guide pack (PDF or Word) from the
                   downloads beneath the map.
                 </li>
@@ -76,9 +88,25 @@ export default function GuidesIndexPage() {
               <p>
                 {capitalGuides.length} capital starter guides and{" "}
                 {regionalCount} regional guides across all states and
-                territories. Status labels show whether a guide is drafted,
-                partner supplied, community reported or needs local
-                verification.
+                territories, plus a growing national set of suburb and locality
+                guides. Status labels show whether a guide is drafted, partner
+                supplied, community reported or needs local verification.
+              </p>
+            ),
+          },
+          {
+            title: "Suburb and locality guides",
+            content: (
+              <p>
+                Looking for a specific suburb? Open the{" "}
+                <Link
+                  href="/guides/suburbs"
+                  className="font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  national Suburb Access Guides
+                </Link>{" "}
+                index. Draft locality pages stay clearly labelled and are not
+                indexed until they have enough useful content.
               </p>
             ),
           },
