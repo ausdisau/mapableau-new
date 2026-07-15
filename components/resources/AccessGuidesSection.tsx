@@ -1,14 +1,14 @@
 import Link from "next/link";
 import React from "react";
 
-import type { AccessGuide } from "@/lib/resources/access-guides-data";
-import { accessGuideDownloads } from "@/lib/resources/access-guides-data";
 import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
   mapablePublicPageContainerClass,
   mapablePublicPrimaryButtonClass,
 } from "@/lib/marketing/public-page-styles";
+import type { AccessGuide } from "@/lib/resources/access-guides-data";
+import { accessGuideDownloads } from "@/lib/resources/access-guides-data";
 
 type AccessGuidesSectionProps = {
   capitalGuides: AccessGuide[];
@@ -25,6 +25,10 @@ function statusLabel(guide: AccessGuide): string {
       return "Needs local verification";
     case "planned":
       return "Planned";
+    case "partner_supplied":
+      return "Partner supplied";
+    case "community_reported":
+      return "Community reported";
     default: {
       const _exhaustive: never = guide.statusKey;
       return _exhaustive;

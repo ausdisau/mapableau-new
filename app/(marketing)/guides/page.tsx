@@ -1,18 +1,15 @@
-import Link from "next/link";
 import React from "react";
 
-import { AccessGuidesSection } from "@/components/resources/AccessGuidesSection";
+import { GuidesMapExplorer } from "@/components/guides/GuidesMapExplorer";
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 import {
-  accessGuides,
-  getAccessGuidesByTier,
-  getCapitalAccessGuides,
-} from "@/lib/resources/access-guides-data";
-import {
-  mapablePublicCardClass,
   mapablePublicEyebrowClass,
   mapablePublicPageContainerClass,
 } from "@/lib/marketing/public-page-styles";
+import {
+  accessGuides,
+  getCapitalAccessGuides,
+} from "@/lib/resources/access-guides-data";
 
 export const metadata = {
   title: "Access Guides | MapAble",
@@ -20,14 +17,30 @@ export const metadata = {
     "MapAble Access Guides for Australian capital cities and regional locations — practical accessibility planning for visitors and locals.",
 };
 
-const regionalTiers = ["Tier 1", "Tier 2", "Tier 3"] as const;
-
 export default function GuidesIndexPage() {
   const capitalGuides = getCapitalAccessGuides();
   const regionalCount = accessGuides.length - capitalGuides.length;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au";
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "MapAble Access Guides",
+    numberOfItems: accessGuides.length,
+    itemListElement: accessGuides.map((guide, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: guide.title,
+      url: `${baseUrl}${guide.href}`,
+    })),
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <PublicInfoPage
         eyebrow="Access Guides"
         title="Accessibility guides for cities and towns across Australia."
@@ -44,11 +57,15 @@ export default function GuidesIndexPage() {
                 </li>
                 <li>
                   Download the full Australia guide pack (PDF or Word) from the
-                  resources hub.
+                  downloads beneath the map.
                 </li>
                 <li>
                   Regional guides flag mapping missions that still need local
                   verification before they are treated as complete.
+                </li>
+                <li>
+                  Use the map for location-first discovery, or skip straight to
+                  the full guide list below.
                 </li>
               </ul>
             ),
@@ -59,67 +76,38 @@ export default function GuidesIndexPage() {
               <p>
                 {capitalGuides.length} capital starter guides and{" "}
                 {regionalCount} regional guides across all states and
-                territories. Status labels show whether a guide is drafted or
-                still needs local verification.
+                territories. Status labels show whether a guide is drafted,
+                partner supplied, community reported or needs local
+                verification.
               </p>
             ),
           },
         ]}
       />
-      <AccessGuidesSection
-        capitalGuides={capitalGuides}
-        regionalCount={regionalCount}
-        title="Capital Access Guides"
-        id="guides-capital"
-      />
-      {regionalTiers.map((tier) => {
-        const guides = getAccessGuidesByTier(tier);
-        return (
-          <section
-            key={tier}
-            id={`guides-${tier.toLowerCase().replace(/\s+/g, "-")}`}
-            className="border-b border-slate-200 bg-white"
-            aria-labelledby={`guides-${tier}-heading`}
+
+      <section
+        id="guides-map-explorer"
+        className="border-b border-slate-200 bg-[#F6FBFC]"
+        aria-labelledby="guides-map-explorer-heading"
+      >
+        <div className={`${mapablePublicPageContainerClass} py-12 lg:py-16`}>
+          <p className={mapablePublicEyebrowClass}>Interactive map</p>
+          <h2
+            id="guides-map-explorer-heading"
+            className="mt-2 text-2xl font-black tracking-tight text-mapable-navy sm:text-3xl"
           >
-            <div
-              className={`${mapablePublicPageContainerClass} py-12 lg:py-16`}
-            >
-              <p className={mapablePublicEyebrowClass}>{tier}</p>
-              <h2
-                id={`guides-${tier}-heading`}
-                className="mt-2 text-2xl font-black tracking-tight text-mapable-navy sm:text-3xl"
-              >
-                {tier} regional Access Guides
-              </h2>
-              <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-                {guides.length} locations scheduled for local verification.
-              </p>
-              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {guides.map((guide) => (
-                  <Link
-                    key={guide.href}
-                    href={guide.href}
-                    className={`${mapablePublicCardClass} block transition hover:border-[#005B7F]/30 hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40`}
-                  >
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#005B7F]">
-                      {guide.state} · {guide.guideType}
-                    </p>
-                    <h3 className="mt-2 text-lg font-black text-[#0C1833]">
-                      {guide.city}
-                    </h3>
-                    <p className="mt-2 text-xs font-semibold text-slate-500">
-                      {guide.status}
-                    </p>
-                    <p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-700">
-                      {guide.launchAngle}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        );
-      })}
+            Explore Access Guides on the map
+          </h2>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+            Select a city or town marker to open its MapAble Access Guide.
+            Status labels show whether a guide is drafted, partner supplied,
+            community reported or needs local verification.
+          </p>
+          <div className="mt-8">
+            <GuidesMapExplorer guides={accessGuides} />
+          </div>
+        </div>
+      </section>
     </>
   );
 }
