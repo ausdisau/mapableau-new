@@ -1,14 +1,14 @@
-import {
-  ACCESS_LENS_OBSERVATION_TYPE_LABELS,
-  ACCESS_LENS_VERIFICATION_LABELS,
-  type AccessLensObservation,
-} from "@/types/accessLens";
 import { getSortedAccessLensObservations } from "@/lib/access-lens/access-lens-mock";
 import {
   mapablePublicCardClass,
   mapablePublicMutedCardClass,
   mapablePublicSectionTitleClass,
 } from "@/lib/marketing/public-page-styles";
+import {
+  ACCESS_LENS_OBSERVATION_TYPE_LABELS,
+  ACCESS_LENS_VERIFICATION_LABELS,
+  type AccessLensObservation,
+} from "@/types/accessLens";
 
 type AccessLensDemoPanelProps = {
   observations?: AccessLensObservation[];
