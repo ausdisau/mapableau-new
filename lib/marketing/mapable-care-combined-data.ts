@@ -355,6 +355,7 @@ export const footerPlatformLinks: FooterLink[] = [
 
 export const footerResourceLinks: FooterLink[] = [
   { label: "Resources", href: "/resources" },
+  { label: "Accessible Tours", href: "/resources/tours" },
   { label: "Help Centre", href: "/help" },
   { label: "Register provider interest", href: "/for-providers" },
   { label: "Contact", href: "/contact" },

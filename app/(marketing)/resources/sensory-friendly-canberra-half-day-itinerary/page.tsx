@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import React, { type ReactNode } from "react";
 
 import { PrintChecklistButton } from "@/components/resources/PrintChecklistButton";
-import { getResourceArticleBySlug } from "@/lib/resources/resource-articles-data";
 import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
@@ -13,6 +12,7 @@ import {
   mapablePublicPrimaryButtonClass,
   mapablePublicTitleClass,
 } from "@/lib/marketing/public-page-styles";
+import { getResourceArticleBySlug } from "@/lib/resources/resource-articles-data";
 
 const SLUG = "sensory-friendly-canberra-half-day-itinerary";
 
@@ -596,6 +596,14 @@ export default function SensoryFriendlyCanberraItineraryPage() {
             Related MapAble resources
           </h2>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
+            <li>
+              <Link
+                href="/resources/tours/sensory-friendly-canberra-half-day"
+                className="font-medium text-primary underline-offset-2 hover:underline focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+              >
+                Interactive MapAble tour for this itinerary
+              </Link>
+            </li>
             <li>
               <Link
                 href="/guides/act/canberra-accessibility-guide"

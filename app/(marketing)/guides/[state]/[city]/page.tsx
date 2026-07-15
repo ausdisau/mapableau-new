@@ -3,12 +3,6 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import {
-  accessGuideDownloads,
-  accessGuides,
-  getAccessGuideBySlug,
-} from "@/lib/resources/access-guides-data";
-import { getResourceArticleBySlug } from "@/lib/resources/resource-articles-data";
-import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
   mapablePublicLeadClass,
@@ -16,9 +10,17 @@ import {
   mapablePublicPrimaryButtonClass,
   mapablePublicTitleClass,
 } from "@/lib/marketing/public-page-styles";
+import {
+  accessGuideDownloads,
+  accessGuides,
+  getAccessGuideBySlug,
+} from "@/lib/resources/access-guides-data";
+import { getResourceArticleBySlug } from "@/lib/resources/resource-articles-data";
+import { getTourBySlug } from "@/lib/resources/tours-data";
 
 const CANBERRA_ITINERARY_SLUG =
   "sensory-friendly-canberra-half-day-itinerary";
+const CANBERRA_TOUR_SLUG = "sensory-friendly-canberra-half-day";
 
 type GuidePageProps = {
   params: Promise<{ state: string; city: string }>;
@@ -54,6 +56,9 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
   const canberraItinerary = isCanberraGuide
     ? getResourceArticleBySlug(CANBERRA_ITINERARY_SLUG)
     : undefined;
+  const canberraTour = isCanberraGuide
+    ? getTourBySlug(CANBERRA_TOUR_SLUG)
+    : undefined;
 
   return (
     <div className="bg-white text-[#0C1833]">
@@ -70,7 +75,14 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
             Status: {guide.status}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            {canberraItinerary ? (
+            {canberraTour ? (
+              <Link
+                href={`/resources/tours/${canberraTour.slug}`}
+                className={mapablePublicPrimaryButtonClass}
+              >
+                Sensory-friendly half-day tour
+              </Link>
+            ) : canberraItinerary ? (
               <Link
                 href={canberraItinerary.href}
                 className={mapablePublicPrimaryButtonClass}
@@ -86,7 +98,7 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
                 Download Australia guides pack (PDF)
               </a>
             )}
-            {canberraItinerary ? (
+            {canberraTour || canberraItinerary ? (
               <a
                 href={accessGuideDownloads.pdf}
                 download
@@ -112,7 +124,27 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
       </section>
 
       <section className={`${mapablePublicPageContainerClass} py-12 sm:py-16`}>
-        {canberraItinerary ? (
+        {canberraTour ? (
+          <Link
+            href={`/resources/tours/${canberraTour.slug}`}
+            className={`${mapablePublicCardClass} mb-6 block border-[#005B7F]/20 bg-[#F6FBFC] transition hover:border-[#005B7F]/40 hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40`}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#005B7F]">
+              Featured tour
+            </p>
+            <h2 className="mt-2 text-lg font-black text-[#0C1833]">
+              {canberraTour.title}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              {canberraTour.summary}
+            </p>
+            <p className="mt-4 text-sm font-bold text-[#005B7F]">
+              Open interactive tour
+              <span aria-hidden="true"> →</span>
+            </p>
+          </Link>
+        ) : null}
+        {canberraItinerary && !canberraTour ? (
           <Link
             href={canberraItinerary.href}
             className={`${mapablePublicCardClass} mb-6 block border-[#005B7F]/20 bg-[#F6FBFC] transition hover:border-[#005B7F]/40 hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40`}
@@ -146,7 +178,17 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
                   .includes("sensory-friendly canberra half-day itinerary");
               return (
                 <li key={mission}>
-                  {isCanberraItinerary && canberraItinerary ? (
+                  {isCanberraItinerary && canberraTour ? (
+                    <>
+                      {mission}{" "}
+                      <Link
+                        href={`/resources/tours/${canberraTour.slug}`}
+                        className="font-medium text-primary underline-offset-2 hover:underline focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                      >
+                        Open the published tour
+                      </Link>
+                    </>
+                  ) : isCanberraItinerary && canberraItinerary ? (
                     <>
                       {mission}{" "}
                       <Link
@@ -193,6 +235,16 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
           <article className={mapablePublicCardClass}>
             <h2 className="text-lg font-black text-[#0C1833]">Related</h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
+              {canberraTour ? (
+                <li>
+                  <Link
+                    href={`/resources/tours/${canberraTour.slug}`}
+                    className="font-medium text-primary hover:underline focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                  >
+                    {canberraTour.title}
+                  </Link>
+                </li>
+              ) : null}
               {canberraItinerary ? (
                 <li>
                   <Link

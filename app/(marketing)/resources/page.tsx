@@ -44,9 +44,9 @@ export default function ResourcesPage() {
       <PublicInfoPage
         eyebrow="Resource hub"
         title="Practical resources for the MapAble pilot."
-        description="Explore Access Guides for Australian cities, sensory-friendly itineraries, public modules, the Complete Support ecosystem, policy documents, and support pathways while the operating system is prepared for controlled pilots."
-        ctaLabel="Browse featured resources"
-        ctaHref="#featured-resources"
+        description="Explore Access Guides for Australian cities, accessible tours, sensory-friendly itineraries, public modules, the Complete Support ecosystem, policy documents, and support pathways while the operating system is prepared for controlled pilots."
+        ctaLabel="Browse accessible tours"
+        ctaHref="/resources/tours"
         sections={[
           {
             title: "Featured planning resources",
@@ -54,22 +54,33 @@ export default function ResourcesPage() {
               <ul className="list-disc space-y-2 pl-5">
                 <li>
                   <Link
+                    href="/resources/tours"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Accessible Tours
+                  </Link>{" "}
+                  — map-based outings with list-view itineraries, toilets,
+                  quiet spaces and transport notes.
+                </li>
+                <li>
+                  <Link
+                    href="/resources/tours/sensory-friendly-canberra-half-day"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Sensory-Friendly Canberra Half-Day tour
+                  </Link>{" "}
+                  — interactive map + accessible list-view for a low-rush
+                  museum and arboretum outing.
+                </li>
+                <li>
+                  <Link
                     href="/resources/sensory-friendly-canberra-half-day-itinerary"
                     className="font-medium text-primary hover:underline"
                   >
                     Sensory-Friendly Canberra Half-Day Itinerary
                   </Link>{" "}
-                  — a low-rush museum + arboretum outing with sensory checklist
-                  and transport flags.
-                </li>
-                <li>
-                  <Link
-                    href="#featured-resources"
-                    className="font-medium text-primary hover:underline"
-                  >
-                    Featured resource cards
-                  </Link>{" "}
-                  for printable planners and access-aware day plans.
+                  — printable planning article with sensory checklist and
+                  transport flags.
                 </li>
               </ul>
             ),
