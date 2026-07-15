@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { MapAbleAccessShell } from "@/components/access/MapAbleAccessShell";
 import { listPublishedPlaces } from "@/lib/access-map/access-place-service";
 
@@ -9,17 +11,25 @@ export const metadata = {
 
 export default async function AccessPage() {
   const places = await listPublishedPlaces(200);
+  const initialPlaces = places.map((place) => ({
+    id: place.id,
+    name: place.name,
+    category: place.category,
+    suburb: place.suburb,
+    reviewCount: place._count.reviews,
+    latitude: place.location?.latitude,
+    longitude: place.location?.longitude,
+  }));
+
   return (
-    <MapAbleAccessShell
-      initialPlaces={places.map((place) => ({
-        id: place.id,
-        name: place.name,
-        category: place.category,
-        suburb: place.suburb,
-        reviewCount: place._count.reviews,
-        latitude: place.location?.latitude,
-        longitude: place.location?.longitude,
-      }))}
-    />
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-6xl px-4 py-8 text-slate-600">
+          Loading MapAble Access…
+        </div>
+      }
+    >
+      <MapAbleAccessShell initialPlaces={initialPlaces} />
+    </Suspense>
   );
 }

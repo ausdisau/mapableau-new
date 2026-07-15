@@ -76,5 +76,6 @@ function flushInBackground(posthog: PostHog): void {
 export function getLlmAnalyticsProvider(engineId: string): string {
   if (engineId.includes("/gateway/")) return "vercel-ai-gateway";
   if (engineId.includes("/google/")) return "google";
+  if (engineId.includes("/openai/")) return "openai";
   return "unknown";
 }

@@ -52,5 +52,25 @@ export function buildPlaceWhere(filters: AccessSearchFilters) {
     };
   }
 
+  // Optional rough geo candidate box (haversine applied by callers).
+  if (filters.lat != null && filters.lng != null && filters.radiusKm) {
+    const latDelta = filters.radiusKm / 111;
+    const lngDelta =
+      filters.radiusKm /
+      (111 * Math.cos((filters.lat * Math.PI) / 180) || 1);
+    where.location = {
+      is: {
+        latitude: {
+          gte: filters.lat - latDelta,
+          lte: filters.lat + latDelta,
+        },
+        longitude: {
+          gte: filters.lng - lngDelta,
+          lte: filters.lng + lngDelta,
+        },
+      },
+    };
+  }
+
   return where;
 }
