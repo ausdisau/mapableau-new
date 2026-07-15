@@ -1,35 +1,20 @@
-# Access Intelligence — Architecture
+# Architecture — Access Intelligence OS / Living Building
 
-## Layering
+## Detected stack
+Next.js 15 App Router, React 18, Zod, Prisma 6 (demo in-memory default), NextAuth, AI SDK 6 (`ToolLoopAgent`).
 
-```
-UI (Ask / Explore / Passport / Pulse / Venue Studio / Visit Plans)
-  → API routes (auth + Zod validation)
-    → Services (decision-engine, routing, repositories)
-      → Demo adapter | Prisma ai_* tables (future)
-    → Agent (ToolLoopAgent) orchestrates read tools; write tools needApproval
-```
+## Invariants
+Accessibility is relational. Engines are deterministic. AI narrates only. Unknown is valid. No diagnosis inference. No legal compliance declarations. Chat is optional.
 
-## Key boundaries
+## Living Building twin
+`lib/access-intelligence/living/` holds Harbour Civic Centre twin schemas, temporal `getAccessStateAt`, counterfactuals, Access Coverage (≥16 synthetic passports), Decision Mirror, Personal Access Twin, and the Interview L3 flight simulator bridged to `calculatePersonalFit` + `buildAccessibleRoute`.
 
-| Concern | Owner |
-|---------|--------|
-| Suitability status | `decision-engine` (deterministic) |
-| Confidence | `confidence-engine` / decision-engine wrappers |
-| Routing | `routing` / `route-engine` |
-| Ontology labels | `ontology.ts` |
-| LLM prose | Agent only — never invents suitability |
-| Accreditation score | Display-only baseline; never auto-maps to personal fit |
+## Four modes
+| Mode | Route |
+|------|-------|
+| Visit | `/access-intelligence/buildings/[placeId]` + Plan chat |
+| Learn | Learning Lab + flight-sim API |
+| Operate | `/access-intelligence/operate/[placeId]` |
+| Improve | `/access-intelligence/improve/[placeId]` |
 
-## Cross-service reuse
-
-Export from `lib/access-intelligence` for Transport, Care, Jobs, Kids adapters later:
-
-- `evaluateAccessDecision`
-- `buildAccessibleRoute`
-- passport load/ownership
-- live incident adapter interface (demo mock today)
-
-## Geospatial
-
-MVP indoor graphs are TypeScript Dijkstra over JSON coordinates. Prisma tables are ready; PostGIS columns are documented in DATA_MODEL.md for future outdoor segments.
+All four call the same fit/route/temporal engines.

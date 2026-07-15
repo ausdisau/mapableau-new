@@ -123,6 +123,28 @@ function evaluateRequirement(
   }
 
   const candidates = nonDisputed.length > 0 ? nonDisputed : matches;
+
+  // Explicit operational / measurement unknowns must not become blockers or passes
+  const unknownValued = candidates.filter(
+    (m) =>
+      m.value === "unknown" ||
+      m.value === "unknown_operational" ||
+      m.notes?.toLowerCase().includes("operational status unknown"),
+  );
+  if (
+    unknownValued.length > 0 &&
+    !candidates.some((m) => featureMatchesRequirement(m, requirement))
+  ) {
+    return {
+      requirementId: requirement.id,
+      featureType: requirement.featureType,
+      importance: requirement.importance,
+      outcome: "unknown",
+      explanation: `${requirement.featureType.replaceAll("_", " ")} evidence exists but current operating status or measurement is unknown.`,
+      evidenceIds: unknownValued.flatMap((m) => m.evidenceIds),
+    };
+  }
+
   const best = candidates.find((m) => featureMatchesRequirement(m, requirement));
   if (best) {
     return {

@@ -1,35 +1,69 @@
-# Access Intelligence — Implementation Plan (Expanded)
+# Access Intelligence OS — Living Building Implementation Plan
 
-## Repository adaptation
+## Detected architecture (2026-07-15)
 
-| Detected | Choice |
-|----------|--------|
-| No `src/` root | Use `lib/`, `app/`, `components/`, `tests/` |
-| AI SDK 6 | `ToolLoopAgent`, `needsApproval`, `createAgentUIStreamResponse` |
-| NextAuth + Prisma | Reuse; demo repository default |
-| Prior MVP on this branch | Extend — do not replace engines/chat |
+| Layer | Detection |
+|-------|-----------|
+| Framework | Next.js 15.5 App Router (`app/`), React 18 |
+| Language | TypeScript strict; Zod schemas in `lib/access-intelligence/schemas.ts` |
+| Package manager | pnpm 10.12.1 |
+| AI SDK | `ai@^6.0.196`, `@ai-sdk/react@^3`, `@ai-sdk/google@^3` — `ToolLoopAgent`, `Output.object`, `createAgentUIStreamResponse`, `needsApproval` |
+| Auth | NextAuth (`requireApiSession`); demo mode via `ACCESS_INTELLIGENCE_DEMO_MODE` |
+| DB/ORM | Prisma 6 + Neon/Postgres; Access Intelligence defaults to **in-memory demo repository**; Prisma `ai_*` tables exist, mapper stubbed |
+| UI | MapAble Care marketing shell + Tailwind; Leaflet/MapLibre present but Learning/Visit use map-free text routes |
+| Tests | Vitest + Testing Library (jsdom); no Playwright in default scripts |
+| Existing AI module | Fit, confidence, Dijkstra route, decision-engine package, Learning Lab, Venue Studio, Explore, Pulse |
 
-## Gap closure vs expanded product brief
+## Relevant existing modules (reuse, do not fork)
 
-Already present: passports, chat agent, fit/confidence/route engines, demo civic venues, plan card, approvals, Prisma `ai_*` tables.
+- Engines: `fit-engine.ts`, `confidence-engine.ts`, `route-engine.ts`, `decision-engine/`
+- Demo Harbour Civic Centre graph in `demo-data.ts` (`place-harbour-civic`, Room `n-hcc-room`)
+- Agent: `agent.ts` + `tools.ts` + `learning/tools.ts`
+- APIs under `app/api/access-intelligence/*`
+- UI under `components/access-intelligence/*`
 
-Adding in this iteration:
+## Gap this plan closes (flagship vertical slice)
 
-1. **Ontology** (`lib/access-intelligence/ontology.ts`) — accreditation-aligned feature metadata
-2. **Decision engine package** — thin deterministic package wrapping fit/confidence with explainability
-3. **Routing package** — re-export boundary for future PostGIS adapters
-4. **MapAble Community Hub** seed venue + scripted demo scenarios
-5. **APIs** — places search/detail/graph/live-status, decisions, routes, visit-plans, venue dashboard, pulse reports
-6. **Modules** — Explore Places, Access Pulse, Venue Studio, Saved Visit Plans
-7. **Remediation priority** calculator for Venue Studio
-8. **EvidenceBadge / EvidenceDetails / SuitabilityStatus** components
-9. **Docs** — ARCHITECTURE, AI_AGENT, PRIVACY_AND_CONSENT, ACCESSIBILITY
-10. **Tests** — decision-engine, remediation, API contract, venue studio role gate
+1. Personal Access Twin (`JourneyContext` + passport)
+2. Living Access Twin formal schema + Harbour enrichment (western lift, temporal Entrance B, toilet ops unknown, room door 880 mm, disputed + stale + community evidence)
+3. `getAccessStateAt` temporal engine
+4. Counterfactual engine + Venue Mutation Studio (Improve)
+5. Access Coverage (≥16 synthetic passports)
+6. Decision Mirror + Interview L3 flight simulator bridged to **same** fit/route engines
+7. Operate mode (incidents, gaps, verification)
+8. Rights / consent `ActionPolicyDecision`
+9. Building mode landing: Visit / Learn / Operate / Improve
+10. Docs suite expansion + tests for vertical slice
 
-## Architectural direction preserved
+## Persistence approach
 
-- Shared identity via NextAuth user id
-- Consent / approval before external writes
-- Accreditation scoring remains separate from personal fit
-- Typed adapters for unavailable live feeds (demo mock)
-- Cross-service reuse via `lib/access-intelligence` exports
+- Demo: in-memory Living Twin mutations as **preview drafts** (non-destructive)
+- Production path: existing Prisma `ai_*` models; document PostGIS later; no second ORM
+
+## Auth / roles
+
+- Visit + Learn: any authenticated (or demo) user
+- Operate + Improve: `venue_staff` / `admin` role check; **demo role preview** client control must call APIs that still enforce server checks when `ACCESS_INTELLIGENCE_DEMO_MODE=false`
+
+## Migration strategy
+
+No new Prisma migration required for demo vertical slice. Optional later: journey context, mutation drafts, learning traces tables.
+
+## Phases
+
+1. Enrich Harbour Living Twin + Temporal / Twin schemas  
+2. Counterfactual + Coverage + Consent + Decision Mirror  
+3. APIs + Visit/Operate/Improve UI + flight-sim bridge  
+4. Tests, docs, quality gates, PR update  
+
+## Assumptions
+
+- Fictional venue text always labelled synthetic  
+- Chat optional; forms/cards complete Visit without AI keys  
+- Western lift element IDs are additive and do not break existing Harbour tests  
+
+## Risks
+
+- Expanding HCC graph may shift route distances — update route assertions  
+- Toilet operational “unknown” requires fit-engine recognition of `value: "unknown"`  
+- Demo role preview must not weaken production auth  

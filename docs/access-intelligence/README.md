@@ -6,7 +6,16 @@ Access Intelligence helps people with disabilities decide whether they can reach
 
 Accessibility is treated as a relationship between a person, a destination, a route, available evidence, and live conditions — not a universal venue property or a wheelchair icon.
 
-## Architecture
+## Living Building (flagship)
+
+Four modes on one Harbour Civic Centre twin:
+
+- Visit — `/access-intelligence/buildings/place-harbour-civic`
+- Learn — Learning Lab + Interview L3 flight simulator
+- Operate — `/access-intelligence/operate/place-harbour-civic`
+- Improve — `/access-intelligence/improve/place-harbour-civic`
+
+See [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) and [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 - **UI**: Next.js App Router pages under `app/access-intelligence/`
 - **API**: streamed chat + passport + approval-gated actions under `app/api/access-intelligence/`

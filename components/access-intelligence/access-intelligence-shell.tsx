@@ -73,6 +73,12 @@ export function AccessIntelligenceShell({
               Venue Studio
             </a>
             <a
+              href="/access-intelligence/buildings/place-harbour-civic"
+              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
+            >
+              Living Building
+            </a>
+            <a
               href="/access-intelligence/learn"
               className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
             >

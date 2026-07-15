@@ -51,6 +51,22 @@ export function AccessIntelligenceWorkspace() {
         <p role="status">Loading Access Passports…</p>
       )}
 
+      <section aria-labelledby="living-heading" className="mt-10 space-y-3">
+        <h2 id="living-heading" className="text-2xl font-black">
+          The Living Building
+        </h2>
+        <p className="text-sm text-slate-600">
+          Flagship fictional Harbour Civic Centre — Visit, Learn, Operate, Improve on one
+          deterministic twin.
+        </p>
+        <a
+          href="/access-intelligence/buildings/place-harbour-civic"
+          className={`inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-4 text-sm font-black text-white ${mapableCareFocusRing}`}
+        >
+          Open Harbour Civic Centre
+        </a>
+      </section>
+
       <section aria-labelledby="demo-scenarios-heading" className="mt-10 space-y-3">
         <h2 id="demo-scenarios-heading" className="text-2xl font-black">
           Demo scenarios
