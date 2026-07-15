@@ -24,6 +24,18 @@ const publicRouteFiles = [
   "app/(marketing)/pricing/page.tsx",
   "app/(marketing)/about/page.tsx",
   "app/(marketing)/contact/page.tsx",
+  "app/innovation/page.tsx",
+  "app/planops/page.tsx",
+  "app/home/page.tsx",
+  "app/accessops/page.tsx",
+  "app/life/page.tsx",
+  "app/transition/page.tsx",
+  "app/ageing/page.tsx",
+  "app/academy/page.tsx",
+  "app/access-pass/page.tsx",
+  "app/ready/page.tsx",
+  "app/rights-navigator/page.tsx",
+  "app/intelligence/page.tsx",
 ];
 
 const publicModuleLayouts = [
@@ -32,6 +44,10 @@ const publicModuleLayouts = [
   "app/employment/layout.tsx",
   "app/marketplace/layout.tsx",
   "app/foods/layout.tsx",
+  "app/innovation/layout.tsx",
+  "app/planops/layout.tsx",
+  "app/home/layout.tsx",
+  "app/accessops/layout.tsx",
 ];
 
 describe("Phase 0 public route contract", () => {

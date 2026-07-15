@@ -45,6 +45,7 @@ This runs `pnpm install --frozen-lockfile` followed by `prisma generate`.
 | `pnpm lint` / `pnpm lint:fix` | ESLint |
 | `pnpm type-check` | TypeScript |
 | `pnpm test` | Vitest |
+| `pnpm test:a11y` | Vertical page accessibility smoke tests |
 | `pnpm setup:cloud-agent` | Install locked dependencies and generate Prisma Client for cloud agents |
 | `pnpm check:integrations-env` | Validate optional integration env vars |
 
@@ -113,6 +114,8 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/mapable/core-phases.md](docs/mapable/core-phases.md) | Phases 1–12 — routes, models, deploy |
 | [docs/mapable/cursor-prompts-phases-6-10.md](docs/mapable/cursor-prompts-phases-6-10.md) | Cursor prompt packs (phases 6–10) |
 | [docs/mapable/cursor-five-year-masterplan.md](docs/mapable/cursor-five-year-masterplan.md) | Cursor five-year strategic masterplan |
+| [docs/mapable-product-principles.md](docs/mapable-product-principles.md) | Product principles for verticals and safety |
+| [docs/mapable-verticals-backlog.md](docs/mapable-verticals-backlog.md) | Untapped verticals product backlog |
 
 ### Modules
 

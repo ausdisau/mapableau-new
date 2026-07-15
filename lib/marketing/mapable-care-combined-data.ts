@@ -354,6 +354,7 @@ export const footerPlatformLinks: FooterLink[] = [
 ];
 
 export const footerResourceLinks: FooterLink[] = [
+  { label: "Innovation Hub", href: "/innovation" },
   { label: "Resources", href: "/resources" },
   { label: "Help Centre", href: "/help" },
   { label: "Register provider interest", href: "/for-providers" },
