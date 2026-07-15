@@ -69,6 +69,7 @@ export const marketingFeatureRoutes = {
   providerFinder: "/provider-finder",
   ask: "/ask",
   access: "/access",
+  accessLens: "/access-lens",
   register: "/register",
   login: "/login",
   dashboard: "/dashboard",
