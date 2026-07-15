@@ -1,7 +1,7 @@
 import { isSearchInterpreterConfigured } from "@/lib/config/search-interpreter";
 import type { SearchInterpretation } from "@/types/search";
 
-import { classifyCategorySlugFromHub } from "./classifier-hint";
+import { classifyCategorySlugHint } from "./classifier-hint";
 import {
   parseQueryWithLlmSafe,
   toNaturalLanguageFilters,
@@ -21,14 +21,14 @@ export async function interpretSearchQuery(
     return emptyInterpretation(sourceQuery, configured);
   }
 
-  const hubSlug = await classifyCategorySlugFromHub(sourceQuery);
+  const classifierSlug = await classifyCategorySlugHint(sourceQuery);
   const parseResult = await parseQueryWithLlmSafe(sourceQuery);
 
   const filters = toNaturalLanguageFilters(parseResult.filters);
   const category = await resolveServiceCategory({
     serviceText: filters.service,
     qText: filters.q,
-    suggestedSlug: hubSlug ?? parseResult.filters.serviceCategorySlug,
+    suggestedSlug: classifierSlug ?? parseResult.filters.serviceCategorySlug,
   });
 
   const accessNeeds = await resolveAccessNeeds({

@@ -1,5 +1,24 @@
 import { searchInterpreterConfig } from "@/lib/config/search-interpreter";
 
+import { classifyServiceCategoryWithGemini } from "./gemini-category-classifier";
+
+/**
+ * Optional category slug hint for the NL interpreter.
+ * Tries Google Gemini first, then an optional Hugging Face hub model.
+ * Never blocks interpretation — returns null on any failure.
+ */
+export async function classifyCategorySlugHint(
+  query: string,
+): Promise<string | null> {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  const gemini = await classifyServiceCategoryWithGemini(trimmed);
+  if (gemini.slug) return gemini.slug;
+
+  return classifyCategorySlugFromHub(trimmed);
+}
+
 /**
  * Optional Hugging Face hub classifier slug hint (phase 3).
  * Never blocks interpretation — returns null on any failure.
@@ -45,7 +64,7 @@ export async function classifyCategorySlugFromHub(
   }
 }
 
-function parseSlugFromClassifierOutput(text: string): string | null {
+export function parseSlugFromClassifierOutput(text: string): string | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
 

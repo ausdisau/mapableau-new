@@ -7,6 +7,12 @@ export const searchInterpreterConfig = {
   googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? "",
   /** Gateway-style id (e.g. google/gemini-3.5-flash) or bare id for @ai-sdk/google. */
   modelId: process.env.SEARCH_INTERPRETER_MODEL ?? "google/gemini-3.5-flash",
+  /**
+   * Dedicated Gemini service-category slug classifier (hint before full NL parse).
+   * Default on when interpreter keys exist; set to `false` to skip.
+   */
+  geminiCategoryClassifier:
+    process.env.SEARCH_INTERPRETER_GEMINI_CLASSIFIER !== "false",
   /** Optional HF text-classifier repo for slug hints (phase 3). */
   classifierHubId: process.env.SEARCH_INTERPRETER_CLASSIFIER_HUB_ID ?? "",
   huggingFaceToken:
@@ -25,6 +31,13 @@ export function isSearchInterpreterConfigured(): boolean {
     searchInterpreterConfig.enabled &&
     (searchInterpreterConfig.aiGatewayApiKey.length > 0 ||
       searchInterpreterConfig.googleApiKey.length > 0)
+  );
+}
+
+export function isGeminiCategoryClassifierEnabled(): boolean {
+  return (
+    isSearchInterpreterConfigured() &&
+    searchInterpreterConfig.geminiCategoryClassifier
   );
 }
 
