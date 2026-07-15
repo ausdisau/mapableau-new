@@ -7,6 +7,7 @@ import {
   accessGuides,
   getAccessGuideBySlug,
 } from "@/lib/resources/access-guides-data";
+import { getResourceArticleBySlug } from "@/lib/resources/resource-articles-data";
 import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
@@ -15,6 +16,9 @@ import {
   mapablePublicPrimaryButtonClass,
   mapablePublicTitleClass,
 } from "@/lib/marketing/public-page-styles";
+
+const CANBERRA_ITINERARY_SLUG =
+  "sensory-friendly-canberra-half-day-itinerary";
 
 type GuidePageProps = {
   params: Promise<{ state: string; city: string }>;
@@ -46,6 +50,11 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
     notFound();
   }
 
+  const isCanberraGuide = guide.citySlug === "canberra-accessibility-guide";
+  const canberraItinerary = isCanberraGuide
+    ? getResourceArticleBySlug(CANBERRA_ITINERARY_SLUG)
+    : undefined;
+
   return (
     <div className="bg-white text-[#0C1833]">
       <section className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
@@ -61,13 +70,31 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
             Status: {guide.status}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href={accessGuideDownloads.pdf}
-              download
-              className={mapablePublicPrimaryButtonClass}
-            >
-              Download Australia guides pack (PDF)
-            </a>
+            {canberraItinerary ? (
+              <Link
+                href={canberraItinerary.href}
+                className={mapablePublicPrimaryButtonClass}
+              >
+                Sensory-friendly half-day itinerary
+              </Link>
+            ) : (
+              <a
+                href={accessGuideDownloads.pdf}
+                download
+                className={mapablePublicPrimaryButtonClass}
+              >
+                Download Australia guides pack (PDF)
+              </a>
+            )}
+            {canberraItinerary ? (
+              <a
+                href={accessGuideDownloads.pdf}
+                download
+                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+              >
+                Download Australia guides pack (PDF)
+              </a>
+            ) : null}
             <Link
               href="/resources#access-guides"
               className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
@@ -85,6 +112,27 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
       </section>
 
       <section className={`${mapablePublicPageContainerClass} py-12 sm:py-16`}>
+        {canberraItinerary ? (
+          <Link
+            href={canberraItinerary.href}
+            className={`${mapablePublicCardClass} mb-6 block border-[#005B7F]/20 bg-[#F6FBFC] transition hover:border-[#005B7F]/40 hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40`}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#005B7F]">
+              Featured resource
+            </p>
+            <h2 className="mt-2 text-lg font-black text-[#0C1833]">
+              {canberraItinerary.title}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              {canberraItinerary.description}
+            </p>
+            <p className="mt-4 text-sm font-bold text-[#005B7F]">
+              Open itinerary
+              <span aria-hidden="true"> →</span>
+            </p>
+          </Link>
+        ) : null}
+
         <article className={mapablePublicCardClass}>
           <h2 className="text-lg font-black text-[#0C1833]">
             First mapping missions
@@ -92,17 +140,17 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
           <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
             {guide.mappingMissions.map((mission) => {
               const isCanberraItinerary =
-                guide.citySlug === "canberra-accessibility-guide" &&
+                isCanberraGuide &&
                 mission
                   .toLowerCase()
                   .includes("sensory-friendly canberra half-day itinerary");
               return (
                 <li key={mission}>
-                  {isCanberraItinerary ? (
+                  {isCanberraItinerary && canberraItinerary ? (
                     <>
                       {mission}{" "}
                       <Link
-                        href="/resources/sensory-friendly-canberra-half-day-itinerary"
+                        href={canberraItinerary.href}
                         className="font-medium text-primary underline-offset-2 hover:underline focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
                       >
                         Open the published itinerary
@@ -145,6 +193,16 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
           <article className={mapablePublicCardClass}>
             <h2 className="text-lg font-black text-[#0C1833]">Related</h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
+              {canberraItinerary ? (
+                <li>
+                  <Link
+                    href={canberraItinerary.href}
+                    className="font-medium text-primary hover:underline focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                  >
+                    {canberraItinerary.title}
+                  </Link>
+                </li>
+              ) : null}
               <li>
                 <Link
                   href="/access"
