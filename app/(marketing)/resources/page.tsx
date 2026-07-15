@@ -9,6 +9,7 @@ import { ResourceModuleGrid } from "@/components/canvas/ResourceModuleGrid";
 import { TrustLayer } from "@/components/canvas/TrustLayer";
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 import { AccessGuidesSection } from "@/components/resources/AccessGuidesSection";
+import { ResourcesAudienceFilter } from "@/components/resources/ResourcesAudienceFilter";
 import { canvasBlocks } from "@/lib/canvas/canvas-data";
 import {
   getParticipantJourneySteps,
@@ -27,7 +28,7 @@ import {
 export const metadata = {
   title: "Resources | MapAble",
   description:
-    "MapAble resource hub for Access Guides, modules, ecosystem canvas, policy links, and support pathways.",
+    "MapAble resource hub for Access Guides, business access resources, modules, ecosystem canvas, policy links, and support pathways.",
 };
 
 export default function ResourcesPage() {
@@ -41,10 +42,45 @@ export default function ResourcesPage() {
       <PublicInfoPage
         eyebrow="Resource hub"
         title="Practical resources for the MapAble pilot."
-        description="Explore Access Guides for Australian cities, public modules, the Complete Support ecosystem, policy documents, and support pathways while the operating system is prepared for controlled pilots."
-        ctaLabel="Browse Access Guides"
-        ctaHref="#access-guides"
+        description="Explore Access Guides for Australian cities, Business Access Resources for venues and employers, public modules, the Complete Support ecosystem, policy documents, and support pathways while the operating system is prepared for controlled pilots."
+        ctaLabel="Business Access Resources"
+        ctaHref="/resources/business"
         sections={[
+          {
+            title: "Business and venue resources",
+            content: (
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  <Link
+                    href="/resources/business"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Business Access Resources
+                  </Link>{" "}
+                  — practical self-checks, service guides and statement tools
+                  to reduce access barriers.
+                </li>
+                <li>
+                  <Link
+                    href="/resources/business/access-barrier-self-check"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    15-minute access self-check
+                  </Link>{" "}
+                  for entrance, toilet, sensory and digital planning notes.
+                </li>
+                <li>
+                  <Link
+                    href="/resources/business/accessibility-statement-generator"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Access statement generator
+                  </Link>{" "}
+                  for plain-language public access information.
+                </li>
+              </ul>
+            ),
+          },
           {
             title: "Access Guides",
             content: (
@@ -184,6 +220,7 @@ export default function ResourcesPage() {
           },
         ]}
       />
+      <ResourcesAudienceFilter />
       <AccessGuidesSection
         capitalGuides={capitalGuides}
         regionalCount={regionalCount}
