@@ -40,7 +40,13 @@ export function AccessIntelligenceShell({
               href="/access-intelligence"
               className={`inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-4 text-sm font-black text-white ${mapableCareFocusRing}`}
             >
-              Planner
+              Ask Access
+            </a>
+            <a
+              href="/access-intelligence/explore"
+              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
+            >
+              Explore places
             </a>
             <a
               href="/access-intelligence/passport"
@@ -49,10 +55,28 @@ export function AccessIntelligenceShell({
               Access Passports
             </a>
             <a
+              href="/access-intelligence/visit-plans"
+              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
+            >
+              Visit plans
+            </a>
+            <a
+              href="/access-intelligence/pulse"
+              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
+            >
+              Access Pulse
+            </a>
+            <a
+              href="/access-intelligence/venue-studio"
+              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
+            >
+              Venue Studio
+            </a>
+            <a
               href="/access-intelligence/insights"
               className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
             >
-              Partner insights (B2B)
+              Partner insights
             </a>
           </nav>
         </div>

@@ -82,8 +82,25 @@ function evaluateRequirement(
     };
   }
 
-  // Conflict across non-disputed values
-  if (nonDisputed.length >= 2) {
+  // For availability requirements, any confirming element is enough
+  // (e.g. one step-free entrance among several entrances).
+  if (requirement.operator === "available" || requirement.operator === "includes") {
+    const candidates = nonDisputed.length > 0 ? nonDisputed : matches;
+    const best = candidates.find((m) => featureMatchesRequirement(m, requirement));
+    if (best) {
+      return {
+        requirementId: requirement.id,
+        featureType: requirement.featureType,
+        importance: requirement.importance,
+        outcome: "matched",
+        explanation: `Confirmed: ${requirement.featureType.replaceAll("_", " ")} meets ${requirement.operator} ${String(requirement.value)}${requirement.unit ? ` ${requirement.unit}` : ""}.`,
+        evidenceIds: best.evidenceIds,
+      };
+    }
+  }
+
+  // Conflict across non-disputed values (measurement operators)
+  if (nonDisputed.length >= 2 && requirement.operator !== "available") {
     const values = new Set(nonDisputed.map((m) => String(m.value)));
     if (values.size > 1) {
       const anyPass = nonDisputed.some((m) =>

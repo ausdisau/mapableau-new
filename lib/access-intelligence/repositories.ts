@@ -10,8 +10,10 @@ import {
   getDemoGraph,
 } from "./demo-data";
 import { AccessIntelligenceError } from "./errors";
+import { ACCESS_ONTOLOGY } from "./ontology";
 import type {
   AccessAuditEvent,
+  AccessFeature,
   AccessPassport,
   AccessRequirement,
   LiveIncident,
@@ -67,15 +69,26 @@ export interface AccessIntelligenceRepository {
     options?: { preferStepFree?: boolean },
   ): Promise<string>;
   saveVisitPlan(plan: VisitPlan): Promise<VisitPlan>;
+  listVisitPlans(userId: string): Promise<VisitPlan[]>;
+  getVisitPlan(userId: string, planId: string): Promise<VisitPlan>;
   createVerificationRequest(
     request: Omit<VerificationRequest, "id" | "createdAt" | "status">,
   ): Promise<VerificationRequest>;
   createBarrierReport(
     report: Omit<BarrierReport, "id" | "createdAt" | "status">,
   ): Promise<BarrierReport>;
+  listBarrierReports(placeId?: string): Promise<BarrierReport[]>;
   sharePassport(
     share: Omit<PassportShareRecord, "id" | "createdAt">,
   ): Promise<PassportShareRecord>;
+  getVenueDashboard(placeId: string): Promise<{
+    place: Place;
+    unknownFeatureTypes: string[];
+    activeIncidents: LiveIncident[];
+    disputedFeatures: AccessFeature[];
+    evidenceGaps: string[];
+    remediationHints: Array<{ title: string; reason: string }>;
+  }>;
 }
 
 const passportStore = new Map<string, AccessPassport[]>();
@@ -228,6 +241,22 @@ class DemoAccessIntelligenceRepository implements AccessIntelligenceRepository {
     return plan;
   }
 
+  async listVisitPlans(userId: string): Promise<VisitPlan[]> {
+    return visitPlans.filter((p) => p.userId === userId).map((p) => structuredClone(p));
+  }
+
+  async getVisitPlan(userId: string, planId: string): Promise<VisitPlan> {
+    const found = visitPlans.find((p) => p.id === planId && p.userId === userId);
+    if (!found) {
+      throw new AccessIntelligenceError(
+        "PLACE_NOT_FOUND",
+        "Visit plan was not found.",
+        "Return to saved plans and try again.",
+      );
+    }
+    return structuredClone(found);
+  }
+
   async createVerificationRequest(
     request: Omit<VerificationRequest, "id" | "createdAt" | "status">,
   ): Promise<VerificationRequest> {
@@ -272,6 +301,12 @@ class DemoAccessIntelligenceRepository implements AccessIntelligenceRepository {
     return full;
   }
 
+  async listBarrierReports(placeId?: string): Promise<BarrierReport[]> {
+    return barrierReports
+      .filter((r) => (placeId ? r.placeId === placeId : true))
+      .map((r) => structuredClone(r));
+  }
+
   async sharePassport(
     share: Omit<PassportShareRecord, "id" | "createdAt">,
   ): Promise<PassportShareRecord> {
@@ -294,6 +329,40 @@ class DemoAccessIntelligenceRepository implements AccessIntelligenceRepository {
       },
     });
     return full;
+  }
+
+  async getVenueDashboard(placeId: string) {
+    const graph = await this.readAccessGraph(placeId);
+    const activeIncidents = await this.getLiveIncidents(placeId);
+    const presentTypes = new Set(graph.features.map((f) => f.featureType));
+    const unknownFeatureTypes = Object.keys(ACCESS_ONTOLOGY).filter(
+      (k) => ACCESS_ONTOLOGY[k]!.routeRelevant && !presentTypes.has(k as never),
+    );
+    const disputedFeatures = graph.features.filter((f) => f.disputed);
+    const evidenceGaps = graph.features
+      .filter((f) => f.sourceType === "venue_attestation" || f.sourceType === "community_report")
+      .map(
+        (f) =>
+          `${f.featureType} relies on ${f.sourceType.replaceAll("_", " ")} (${new Date(f.observedAt).toLocaleDateString()})`,
+      );
+    const remediationHints = [
+      ...activeIncidents.map((i) => ({
+        title: `Resolve ${i.type.replaceAll("_", " ")}`,
+        reason: i.description,
+      })),
+      ...unknownFeatureTypes.slice(0, 5).map((t) => ({
+        title: `Collect evidence for ${t.replaceAll("_", " ")}`,
+        reason: "Route-relevant feature has no recorded claim.",
+      })),
+    ];
+    return {
+      place: graph.place,
+      unknownFeatureTypes,
+      activeIncidents,
+      disputedFeatures,
+      evidenceGaps,
+      remediationHints,
+    };
   }
 }
 

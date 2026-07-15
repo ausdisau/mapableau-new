@@ -64,14 +64,37 @@ Open [http://localhost:3000/access-intelligence](http://localhost:3000/access-in
 - Typecheck: `pnpm type-check`
 - Lint: `pnpm lint`
 
+## Modules
+
+| Route | Purpose |
+|-------|---------|
+| `/access-intelligence` | Ask Access chat + demo scenarios |
+| `/access-intelligence/explore` | Search without chat |
+| `/access-intelligence/passport` | Access Passport editor |
+| `/access-intelligence/visit-plans` | Saved visit plans |
+| `/access-intelligence/pulse` | Access Pulse barrier reports |
+| `/access-intelligence/venue-studio` | Venue evidence gaps + remediation |
+| `/access-intelligence/places/[id]` | Place evidence detail |
+| `/access-intelligence/insights` | B2B partner preview |
+
 ## Demo mode
 
 When demo mode is on:
 
-- Three synthetic places (Harbour Civic Centre, Riverside Community Hall, Northside Library)
+- Four synthetic places including **MapAble Community Hub**
 - Passports and audit events live in memory
 - Write tools persist demo verification requests and barrier reports only
+- Live status uses a clearly marked demo mock adapter
 - No live venue messaging, TfNSW, or real lift feeds are connected
+
+## Related docs
+
+- [ARCHITECTURE.md](./ARCHITECTURE.md)
+- [AI_AGENT.md](./AI_AGENT.md)
+- [PRIVACY_AND_CONSENT.md](./PRIVACY_AND_CONSENT.md)
+- [ACCESSIBILITY.md](./ACCESSIBILITY.md)
+- [DATA_MODEL.md](./DATA_MODEL.md)
+- [SAFETY_AND_GOVERNANCE.md](./SAFETY_AND_GOVERNANCE.md)
 
 ## How to add a place
 

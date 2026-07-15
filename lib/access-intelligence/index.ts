@@ -9,7 +9,10 @@ export {
 } from "./configuration";
 export { calculateEvidenceConfidence } from "./confidence-engine";
 export { calculatePersonalFit } from "./fit-engine";
+export { evaluateAccessDecision } from "./decision-engine";
 export { buildAccessibleRoute } from "./route-engine";
+export { calculateRemediationPriority } from "./remediation-priority";
+export { ACCESS_ONTOLOGY, ontologyLabel } from "./ontology";
 export {
   getAccessIntelligenceRepository,
   duplicatePassport,
@@ -31,3 +34,4 @@ export type {
   AccessGraph,
   ServerAccessContext,
 } from "./types";
+export { DEMO_SCENARIOS, DEMO_PLACES } from "./demo-data";

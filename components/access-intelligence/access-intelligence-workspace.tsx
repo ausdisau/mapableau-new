@@ -5,7 +5,9 @@ import React, { useEffect, useState } from "react";
 import { AccessChat } from "@/components/access-intelligence/access-chat";
 import { AccessIntelligenceShell } from "@/components/access-intelligence/access-intelligence-shell";
 import { PlaceResultCard } from "@/components/access-intelligence/evidence-list";
+import { DEMO_SCENARIOS } from "@/lib/access-intelligence/demo-data";
 import type { AccessPassport } from "@/lib/access-intelligence/schemas";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export function AccessIntelligenceWorkspace() {
   const [passports, setPassports] = useState<AccessPassport[]>([]);
@@ -49,6 +51,29 @@ export function AccessIntelligenceWorkspace() {
         <p role="status">Loading Access Passports…</p>
       )}
 
+      <section aria-labelledby="demo-scenarios-heading" className="mt-10 space-y-3">
+        <h2 id="demo-scenarios-heading" className="text-2xl font-black">
+          Demo scenarios
+        </h2>
+        <p className="text-sm text-slate-600">
+          Scripted demonstrations using fictional MapAble Community Hub data.
+        </p>
+        <ul className="grid gap-3 md:grid-cols-3">
+          {DEMO_SCENARIOS.map((s) => (
+            <li key={s.id} className="rounded-xl border border-slate-200 p-4 text-sm">
+              <h3 className="font-black text-[#0C1833]">{s.title}</h3>
+              <p className="mt-2 text-slate-700">{s.prompt}</p>
+              <a
+                href="/access-intelligence"
+                className={`mt-3 inline-flex min-h-11 items-center text-sm font-bold text-[#005B7F] underline ${mapableCareFocusRing}`}
+              >
+                Ask with passport {s.passportId.replace("passport-", "")}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section aria-labelledby="demo-places-heading" className="mt-10 space-y-3">
         <h2 id="demo-places-heading" className="text-2xl font-black">
           Demo places
@@ -56,7 +81,13 @@ export function AccessIntelligenceWorkspace() {
         <p className="text-sm text-slate-600">
           Synthetic demo data only — measurements do not represent real venues.
         </p>
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <PlaceResultCard
+            name="MapAble Community Hub"
+            address="1 Access Way, Demo Park NSW 2009"
+            reason="Canonical fictional demo: two entrances, lift, quiet room, mixed evidence"
+            href="/access-intelligence/places/place-mapable-community-hub"
+          />
           <PlaceResultCard
             name="Harbour Civic Centre"
             address="100 Synthetic Quay, Demo Harbour NSW 2000"
