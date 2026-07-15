@@ -92,6 +92,11 @@ export const logoMenuItems: MenuItem[] = [
     description: "Explore venues with access notes, quiet spaces and community guidance.",
   },
   {
+    label: "Access Lens",
+    href: "/access-lens",
+    description: "Camera-assisted and list-based access notes for entrances, toilets and quiet spaces.",
+  },
+  {
     label: "List your service",
     href: "/for-providers",
     description: "Join MapAble as a support worker, provider or transport partner.",
@@ -350,11 +355,13 @@ export const footerPlatformLinks: FooterLink[] = [
   { label: "Employment", href: "/employment" },
   { label: "Providers", href: "/providers" },
   { label: "Accessible places", href: "/access" },
+  { label: "Access Lens", href: "/access-lens" },
   { label: "Provider finder", href: "/provider-finder" },
 ];
 
 export const footerResourceLinks: FooterLink[] = [
   { label: "Resources", href: "/resources" },
+  { label: "Access Lens self-check", href: "/resources/business/access-lens-self-check" },
   { label: "Help Centre", href: "/help" },
   { label: "Register provider interest", href: "/for-providers" },
   { label: "Contact", href: "/contact" },
