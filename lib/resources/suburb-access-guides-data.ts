@@ -1,3 +1,14 @@
+import {
+  filterSuburbGuideList,
+  formatSuburbAccessTheme,
+  formatSuburbGuideStatus,
+  isSuburbGuideIndexable,
+  suburbGuideHref,
+  suburbGuideMapHref,
+  suburbGuideReportHref,
+  suburbGuideStateHref,
+  SUBURB_GUIDE_DISCLAIMER,
+} from "@/lib/guides/suburb-guide-utils";
 import type {
   SuburbAccessGuide,
   SuburbAccessTheme,
@@ -5,63 +16,32 @@ import type {
   SuburbGuideStatus,
   SuburbGuideVenueHighlight,
 } from "@/types/suburb-access-guide";
-import { SUBURB_GUIDE_DISCLAIMER } from "@/types/suburb-access-guide";
 
-export { SUBURB_GUIDE_DISCLAIMER };
+import {
+  suburbAccessGuideSamples,
+  type SuburbGuideSampleSeed,
+} from "../../src/data/suburbAccessGuides.sample";
 
-type SuburbGuideSeed = {
-  salCode: string;
-  name: string;
-  state: string;
-  stateSlug: string;
-  lgaNames: string[];
-  slug: string;
-  latitude: number;
-  longitude: number;
-  guideStatus: SuburbGuideStatus;
-  accessSummary: string;
-  confidenceScore: number;
-  accessThemes: SuburbAccessTheme[];
-  transportNotes: string[];
-  toiletNotes: string[];
-  parkingDropoffNotes: string[];
-  stepFreeRouteNotes: string[];
-  sensoryNotes: string[];
-  venueHighlights: Array<{
-    id: string;
-    name: string;
-    summary: string;
-    theme: SuburbAccessTheme;
-    hrefSection: SuburbGuideMapSection;
-  }>;
-  healthAndSupportAnchors: string[];
-  localRisks: string[];
-  nearby: Array<{
-    salCode: string;
-    name: string;
-    state: string;
-    stateSlug: string;
-    slug: string;
-  }>;
-  parentCityGuideHref: string | null;
-  parentCityGuideLabel: string | null;
-  mappingMissions: Array<{ id: string; title: string; detail: string }>;
-  lastUpdated: string;
-  lastVerified: string | null;
+export {
+  filterSuburbGuideList,
+  formatSuburbAccessTheme,
+  formatSuburbGuideStatus,
+  isSuburbGuideIndexable,
+  suburbGuideHref,
+  suburbGuideMapHref,
+  suburbGuideReportHref,
+  suburbGuideStateHref,
+  SUBURB_GUIDE_DISCLAIMER,
 };
 
-function suburbHrefs(stateSlug: string, slug: string) {
-  const base = `/guides/suburbs/${stateSlug}/${slug}`;
-  return {
-    href: base,
-    mapHref: `${base}/map`,
-    reportHref: `${base}/report-update`,
-  };
-}
+export type { SuburbGuideFilterInput } from "@/lib/guides/suburb-guide-utils";
+
+type SuburbGuideSeed = SuburbGuideSampleSeed;
 
 function buildGuide(seed: SuburbGuideSeed): SuburbAccessGuide {
-  const hrefs = suburbHrefs(seed.stateSlug, seed.slug);
+  const href = suburbGuideHref(seed.stateSlug, seed.slug);
   return {
+    id: `${seed.stateSlug}-${seed.slug}`,
     salCode: seed.salCode,
     name: seed.name,
     state: seed.state,
@@ -90,7 +70,7 @@ function buildGuide(seed: SuburbGuideSeed): SuburbAccessGuide {
       name: n.name,
       state: n.state,
       slug: n.slug,
-      href: suburbHrefs(n.stateSlug, n.slug).href,
+      href: suburbGuideHref(n.stateSlug, n.slug),
     })),
     parentCityGuideHref: seed.parentCityGuideHref,
     parentCityGuideLabel: seed.parentCityGuideLabel,
@@ -98,26 +78,30 @@ function buildGuide(seed: SuburbGuideSeed): SuburbAccessGuide {
       {
         id: "abs-sal",
         label: "ABS Suburbs and Localities (SAL)",
+        sourceType: "official-boundary",
         note: "Canonical suburb/locality geography for MapAble suburb guides.",
       },
       {
         id: "mapable-community",
         label: "MapAble access notes",
+        sourceType: "mapable",
         note: "Community and partner planning notes; always re-check on the day.",
       },
     ],
     mappingMissions: seed.mappingMissions,
     lastUpdated: seed.lastUpdated,
     lastVerified: seed.lastVerified,
-    ...hrefs,
+    href,
+    mapHref: suburbGuideMapHref(seed.stateSlug, seed.slug),
+    reportHref: suburbGuideReportHref(seed.stateSlug, seed.slug),
   };
 }
 
 /**
- * Seed catalogue for the national suburb guide system.
- * Additional SAL localities can be imported into this array without new page templates.
+ * Additional coverage seeds beyond the Cursor Pack starter samples.
+ * Keep pack samples as the primary examples; do not duplicate their slugs.
  */
-const suburbGuideSeeds: SuburbGuideSeed[] = [
+const additionalSuburbGuideSeeds: SuburbGuideSeed[] = [
   {
     salCode: "SAL80026",
     name: "Acton",
@@ -125,7 +109,7 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     stateSlug: "act",
     lgaNames: ["Unincorporated ACT"],
     slug: "acton",
-    latitude: -35.2820,
+    latitude: -35.282,
     longitude: 149.1185,
     guideStatus: "mapable-reviewed",
     accessSummary:
@@ -195,71 +179,6 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     lastVerified: "2026-07-10",
   },
   {
-    salCode: "SAL80145",
-    name: "Braddon",
-    state: "ACT",
-    stateSlug: "act",
-    lgaNames: ["Unincorporated ACT"],
-    slug: "braddon",
-    latitude: -35.2705,
-    longitude: 149.1340,
-    guideStatus: "data-enriched",
-    accessSummary:
-      "Mixed residential and hospitality strip north of the city. Good for short food-and-footpath missions when gradients and crowded evenings are planned for.",
-    confidenceScore: 58,
-    accessThemes: ["step-free", "venues", "parking-dropoff", "sensory"],
-    transportNotes: [
-      "Bus and light-rail connected; confirm kerb ramps at your boarding stop.",
-    ],
-    toiletNotes: [
-      "Public toilets may be limited on retail stretches — check venue toilets and hours.",
-    ],
-    parkingDropoffNotes: [
-      "Street parking fills quickly; accessible bays need local confirmation.",
-    ],
-    stepFreeRouteNotes: [
-      "Footpaths vary; survey the block you need rather than assuming continuous step-free retail frontage.",
-    ],
-    sensoryNotes: [
-      "Evening hospitality noise can rise quickly; choose earlier visits if sound is a concern.",
-    ],
-    venueHighlights: [],
-    healthAndSupportAnchors: [],
-    localRisks: ["Crowded weekend evenings", "Uneven terrace entries at some venues"],
-    nearby: [
-      {
-        salCode: "SAL80026",
-        name: "Acton",
-        state: "ACT",
-        stateSlug: "act",
-        slug: "acton",
-      },
-      {
-        salCode: "SAL80120",
-        name: "City",
-        state: "ACT",
-        stateSlug: "act",
-        slug: "city",
-      },
-    ],
-    parentCityGuideHref: "/guides/act/canberra-accessibility-guide",
-    parentCityGuideLabel: "Canberra Accessibility Guide",
-    mappingMissions: [
-      {
-        id: "braddon-toilets",
-        title: "Map closest accessible toilets",
-        detail: "Verify hours, adult-change needs and step-free entry.",
-      },
-      {
-        id: "braddon-quiet",
-        title: "List quieter daytime outdoor seats",
-        detail: "Note shade and distance from busy laneways.",
-      },
-    ],
-    lastUpdated: "2026-07-12",
-    lastVerified: null,
-  },
-  {
     salCode: "SAL80120",
     name: "City",
     state: "ACT",
@@ -267,7 +186,7 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     lgaNames: ["Unincorporated ACT"],
     slug: "city",
     latitude: -35.2801,
-    longitude: 149.1310,
+    longitude: 149.131,
     guideStatus: "draft",
     accessSummary:
       "Canberra’s civic and retail core. Treat this as a draft suburb sheet — useful for planning prompts, not a complete access audit.",
@@ -323,8 +242,8 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     stateSlug: "nsw",
     lgaNames: ["City of Sydney"],
     slug: "pyrmont",
-    latitude: -33.8690,
-    longitude: 151.1950,
+    latitude: -33.869,
+    longitude: 151.195,
     guideStatus: "partner-supplied",
     accessSummary:
       "Harbour-edge suburb with light rail, steep pockets and event crowds. Partner notes help with ferry and light-rail planning — still confirm steps and lift status on the day.",
@@ -334,7 +253,9 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
       "Light rail and ferry-adjacent links; verify lift outages before relying on a single stop.",
     ],
     toiletNotes: ["Public waterfront toilets need hours confirmation."],
-    parkingDropoffNotes: ["Limited accessible street parking; use venue or car-park access notes."],
+    parkingDropoffNotes: [
+      "Limited accessible street parking; use venue or car-park access notes.",
+    ],
     stepFreeRouteNotes: [
       "Some harbour promenade segments are strong; hillside streets are not.",
     ],
@@ -358,6 +279,13 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
         stateSlug: "nsw",
         slug: "ultimo",
       },
+      {
+        salCode: "SAL13170",
+        name: "Parramatta",
+        state: "NSW",
+        stateSlug: "nsw",
+        slug: "parramatta",
+      },
     ],
     parentCityGuideHref: "/guides/nsw/sydney-accessibility-guide",
     parentCityGuideLabel: "Sydney Accessibility Guide",
@@ -378,8 +306,8 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     stateSlug: "nsw",
     lgaNames: ["City of Sydney"],
     slug: "ultimo",
-    latitude: -33.8790,
-    longitude: 151.2000,
+    latitude: -33.879,
+    longitude: 151.2,
     guideStatus: "community-reported",
     accessSummary:
       "Education and museum-adjacent suburb with mixed footpath quality. Community reports help flag quiet corners and steep blocks — treat as unfinished.",
@@ -422,21 +350,33 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     lgaNames: ["Melbourne", "Yarra"],
     slug: "carlton",
     latitude: -37.8001,
-    longitude: 144.9670,
+    longitude: 144.967,
     guideStatus: "needs-local-verification",
     accessSummary:
       "University and museum precinct suburb. Draft notes exist for tram corridors and parks, but gradients, laneway dining and toilet details still need local verification.",
     confidenceScore: 38,
     accessThemes: ["transport", "venues", "toilets", "sensory"],
-    transportNotes: ["Tram spine along Swanston/Lygon corridors — confirm level-access stops."],
+    transportNotes: [
+      "Tram spine along Swanston/Lygon corridors — confirm level-access stops.",
+    ],
     toiletNotes: ["Museum and park toilets need fresh hours and adult-change checks."],
-    parkingDropoffNotes: ["Permit and ticketed parking mix; verify accessible bays locally."],
+    parkingDropoffNotes: [
+      "Permit and ticketed parking mix; verify accessible bays locally.",
+    ],
     stepFreeRouteNotes: ["Main avenues are stronger than bluestone laneways."],
     sensoryNotes: ["Festival and student peaks change noise suddenly."],
     venueHighlights: [],
     healthAndSupportAnchors: [],
     localRisks: ["Bluestone laneways", "Crowd peaks"],
-    nearby: [],
+    nearby: [
+      {
+        salCode: "SAL20354",
+        name: "Brunswick",
+        state: "VIC",
+        stateSlug: "vic",
+        slug: "brunswick",
+      },
+    ],
     parentCityGuideHref: "/guides/vic/melbourne-accessibility-guide",
     parentCityGuideLabel: "Melbourne Accessibility Guide",
     mappingMissions: [
@@ -455,70 +395,14 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     lastVerified: null,
   },
   {
-    salCode: "SAL31022",
-    name: "South Brisbane",
-    state: "QLD",
-    stateSlug: "qld",
-    lgaNames: ["Brisbane"],
-    slug: "south-brisbane",
-    latitude: -27.4760,
-    longitude: 153.0180,
-    guideStatus: "mapable-verified",
-    accessSummary:
-      "Cultural and riverside suburb around South Bank. MapAble-reviewed notes for shade, toilets and ferry/bus links — still re-check heat, events and lift status before travelling.",
-    confidenceScore: 81,
-    accessThemes: [
-      "transport",
-      "toilets",
-      "step-free",
-      "sensory",
-      "venues",
-      "parking-dropoff",
-    ],
-    transportNotes: [
-      "Train, bus and CityCat-adjacent options — confirm step-free interchange details.",
-    ],
-    toiletNotes: [
-      "South Bank public toilets and venue toilets are usually strong options; confirm Changing Places needs.",
-    ],
-    parkingDropoffNotes: [
-      "Use accessible parking near cultural venues; boardwalk walks can be long in heat.",
-    ],
-    stepFreeRouteNotes: [
-      "Riverside promenades are generally sealed; temporary event fences change routes.",
-    ],
-    sensoryNotes: [
-      "Heat, glare and weekend crowds are the main sensory loads — morning visits help.",
-    ],
-    venueHighlights: [
-      {
-        id: "south-bank-parklands",
-        name: "South Bank Parklands",
-        summary: "Shade, toilets and resting points when event layouts allow.",
-        theme: "venues",
-        hrefSection: "accessible-venues",
-      },
-    ],
-    healthAndSupportAnchors: [
-      "Keep water and shade plans for heat-sensitive travellers.",
-    ],
-    localRisks: ["Heat", "Event fences", "Busy weekend promenades"],
-    nearby: [],
-    parentCityGuideHref: "/guides/qld/brisbane-accessibility-guide",
-    parentCityGuideLabel: "Brisbane Accessibility Guide",
-    mappingMissions: [],
-    lastUpdated: "2026-07-13",
-    lastVerified: "2026-07-13",
-  },
-  {
     salCode: "SAL40010",
     name: "North Adelaide",
     state: "SA",
     stateSlug: "sa",
     lgaNames: ["Adelaide"],
     slug: "north-adelaide",
-    latitude: -34.9070,
-    longitude: 138.5950,
+    latitude: -34.907,
+    longitude: 138.595,
     guideStatus: "data-enriched",
     accessSummary:
       "Parklands-edge suburb with heritage streets and hospital approaches. Data-enriched transport notes exist; heritage entries still need careful checking.",
@@ -526,27 +410,33 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     accessThemes: ["transport", "health-support", "step-free", "parking-dropoff"],
     transportNotes: ["Bus and tram-adjacent links toward the city; confirm stop access."],
     toiletNotes: ["Hospital and park amenities vary — confirm visitor toilet access."],
-    parkingDropoffNotes: ["Hospital precinct drop-off is often clearer than street parking."],
-    stepFreeRouteNotes: ["Heritage frontages may include steps; choose main road corridors first."],
-    sensoryNotes: ["Quiet residential pockets contrast with hospital traffic peaks."],
+    parkingDropoffNotes: [
+      "Hospital precinct drop-off is often clearer than street parking.",
+    ],
+    stepFreeRouteNotes: [
+      "Parklands paths can be strong; heritage streets may have steps or uneven stone.",
+    ],
+    sensoryNotes: ["Open parklands can be windy and bright."],
     venueHighlights: [],
-    healthAndSupportAnchors: ["Major hospital precinct nearby — plan appointment transfer buffer."],
-    localRisks: ["Heritage steps", "Peak hospital traffic"],
+    healthAndSupportAnchors: [
+      "Hospital approaches benefit from separate appointment-day planning.",
+    ],
+    localRisks: ["Heritage steps", "Heat on exposed parkland paths"],
     nearby: [],
     parentCityGuideHref: "/guides/sa/adelaide-accessibility-guide",
     parentCityGuideLabel: "Adelaide Accessibility Guide",
     mappingMissions: [
       {
-        id: "north-adelaide-dropoff",
-        title: "Document hospital visitor drop-off rules",
-        detail: "Include accessible bay notes and walking distances.",
+        id: "na-heritage",
+        title: "Flag heritage entries with steps",
+        detail: "Note venues with step-free alternatives nearby.",
       },
     ],
     lastUpdated: "2026-07-10",
     lastVerified: null,
   },
   {
-    salCode: "SAL50640",
+    salCode: "SAL50455",
     name: "Fremantle",
     state: "WA",
     stateSlug: "wa",
@@ -556,109 +446,123 @@ const suburbGuideSeeds: SuburbGuideSeed[] = [
     longitude: 115.7439,
     guideStatus: "community-reported",
     accessSummary:
-      "Port city locality with heritage paving and waterfront attractions. Community reports flag good promenade segments and difficult heritage thresholds.",
-    confidenceScore: 47,
-    accessThemes: ["venues", "step-free", "toilets", "hazards"],
-    transportNotes: ["Train terminus and bus links; verify station lift status."],
+      "Harbour and heritage tourist suburb. Community notes help with waterfront toilets and crowded weekends — gradients and cobbles still need checking.",
+    confidenceScore: 49,
+    accessThemes: ["toilets", "sensory", "step-free", "transport", "hazards"],
+    transportNotes: ["Train and bus links; confirm station step-free details."],
     toiletNotes: ["Waterfront public toilets need hours confirmation."],
-    parkingDropoffNotes: ["Accessible parking clusters near the waterfront — confirm permits."],
-    stepFreeRouteNotes: ["Promenade is stronger than some heritage shopping streets."],
-    sensoryNotes: ["Weekend markets increase noise and crowd density."],
+    parkingDropoffNotes: ["Use centre car parks for clearer accessible bays on weekends."],
+    stepFreeRouteNotes: [
+      "Some heritage streets have cobbles or steps — prefer main sealed waterfront paths.",
+    ],
+    sensoryNotes: ["Weekend tourist peaks are loud and crowded."],
     venueHighlights: [],
     healthAndSupportAnchors: [],
-    localRisks: ["Heritage thresholds", "Market crowds"],
+    localRisks: ["Cobbles", "Weekend crowds", "Exposed waterfront wind"],
     nearby: [],
     parentCityGuideHref: "/guides/wa/perth-accessibility-guide",
     parentCityGuideLabel: "Perth Accessibility Guide",
     mappingMissions: [
       {
-        id: "freo-heritage",
-        title: "Map step-free retail alternatives",
-        detail: "Avoid cobbled pockets where possible.",
+        id: "freo-surfaces",
+        title: "Map cobble vs sealed routes",
+        detail: "Identify predictable step-free waterfront segments.",
       },
     ],
     lastUpdated: "2026-07-07",
     lastVerified: null,
   },
   {
-    salCode: "SAL60055",
+    salCode: "SAL60088",
     name: "Battery Point",
     state: "TAS",
     stateSlug: "tas",
     lgaNames: ["Hobart"],
     slug: "battery-point",
-    latitude: -42.8910,
-    longitude: 147.3350,
-    guideStatus: "not-started",
+    latitude: -42.8895,
+    longitude: 147.333,
+    guideStatus: "draft",
     accessSummary:
-      "Historic waterfront suburb. Guide shell only — gradients and heritage entries are expected challenges; do not treat this page as a finished access guide.",
-    confidenceScore: 12,
-    accessThemes: ["hazards", "step-free"],
-    transportNotes: [],
-    toiletNotes: [],
-    parkingDropoffNotes: [],
-    stepFreeRouteNotes: [],
-    sensoryNotes: [],
+      "Compact heritage suburb near Salamanca. Draft guide — steep streets and cobbles mean local verification is essential before treating routes as usable.",
+    confidenceScore: 28,
+    accessThemes: ["step-free", "hazards", "transport"],
+    transportNotes: ["Short distance to ferry and bus corridors; hills dominate."],
+    toiletNotes: ["Rely on Salamanca and waterfront amenities until audits are finished."],
+    parkingDropoffNotes: ["Limited accessible street parking; prefer booked drop-off."],
+    stepFreeRouteNotes: [
+      "Many streets are steep; do not assume continuous step-free access.",
+    ],
+    sensoryNotes: ["Quiet mid-week mornings; market days increase load nearby."],
     venueHighlights: [],
     healthAndSupportAnchors: [],
-    localRisks: ["Steep heritage streets", "Narrow footpaths"],
+    localRisks: ["Steep gradients", "Cobbles", "Narrow footpaths"],
     nearby: [],
     parentCityGuideHref: "/guides/tas/hobart-accessibility-guide",
     parentCityGuideLabel: "Hobart Accessibility Guide",
     mappingMissions: [
       {
-        id: "battery-gradients",
-        title: "Record gradient warnings",
-        detail: "Identify streets that are unrealistic for many mobility aids.",
-      },
-      {
-        id: "battery-toilets",
-        title: "Locate nearest accessible toilets",
-        detail: "Toward Salamanca / waterfront options.",
-      },
-    ],
-    lastUpdated: "2026-07-01",
-    lastVerified: null,
-  },
-  {
-    salCode: "SAL70018",
-    name: "Stuart Park",
-    state: "NT",
-    stateSlug: "nt",
-    lgaNames: ["Darwin"],
-    slug: "stuart-park",
-    latitude: -12.4480,
-    longitude: 130.8410,
-    guideStatus: "draft",
-    accessSummary:
-      "Inner Darwin suburb between city and waterfront approaches. Draft sheet for heat-aware planning and bus links — incomplete.",
-    confidenceScore: 28,
-    accessThemes: ["transport", "hazards"],
-    transportNotes: ["Bus links toward CBD and waterfront — confirm stop shade and seating."],
-    toiletNotes: [],
-    parkingDropoffNotes: [],
-    stepFreeRouteNotes: [],
-    sensoryNotes: ["Heat and glare are primary environmental loads."],
-    venueHighlights: [],
-    healthAndSupportAnchors: [],
-    localRisks: ["Heat", "Wet-season path conditions"],
-    nearby: [],
-    parentCityGuideHref: "/guides/nt/darwin-accessibility-guide",
-    parentCityGuideLabel: "Darwin Accessibility Guide",
-    mappingMissions: [
-      {
-        id: "stuart-shade",
-        title: "Map shade and rest points",
-        detail: "Especially along longer footpath segments.",
+        id: "bp-gradients",
+        title: "Record steep street grades",
+        detail: "Flag routes that are impractical for many mobility aids.",
       },
     ],
     lastUpdated: "2026-07-05",
     lastVerified: null,
   },
+  {
+    salCode: "SAL70055",
+    name: "Stuart Park",
+    state: "NT",
+    stateSlug: "nt",
+    lgaNames: ["Darwin"],
+    slug: "stuart-park",
+    latitude: -12.447,
+    longitude: 130.842,
+    guideStatus: "needs-local-verification",
+    accessSummary:
+      "Inner Darwin suburb near foreshore corridors. Transport and heat-risk notes are started; toilets and step-free detail need local verification.",
+    confidenceScore: 36,
+    accessThemes: ["transport", "hazards", "parking-dropoff"],
+    transportNotes: ["Bus links toward the CBD; confirm stop access."],
+    toiletNotes: ["Public toilet information is not yet verified for this locality."],
+    parkingDropoffNotes: ["Shade at drop-off points matters in wet-season heat."],
+    stepFreeRouteNotes: ["Verify kerb ramps on key crossings before relying on them."],
+    sensoryNotes: ["Heat and humidity are primary loads for many travellers."],
+    venueHighlights: [],
+    healthAndSupportAnchors: [],
+    localRisks: ["Heat", "Wet-season storms", "Exposed outdoor links"],
+    nearby: [],
+    parentCityGuideHref: "/guides/nt/darwin-accessibility-guide",
+    parentCityGuideLabel: "Darwin Accessibility Guide",
+    mappingMissions: [
+      {
+        id: "stuart-toilets",
+        title: "Verify accessible toilets",
+        detail: "Hours, shade and step-free entry.",
+      },
+    ],
+    lastUpdated: "2026-07-06",
+    lastVerified: null,
+  },
 ];
 
+const sampleKeys = new Set(
+  suburbAccessGuideSamples.map((s) => `${s.stateSlug}/${s.slug}`),
+);
+
+const mergedSeeds: SuburbGuideSeed[] = [
+  ...suburbAccessGuideSamples,
+  ...additionalSuburbGuideSeeds.filter(
+    (seed) => !sampleKeys.has(`${seed.stateSlug}/${seed.slug}`),
+  ),
+];
+
+/**
+ * Seed catalogue for the national suburb guide system.
+ * Additional SAL localities can be imported without new page templates.
+ */
 export const suburbAccessGuides: SuburbAccessGuide[] =
-  suburbGuideSeeds.map(buildGuide);
+  mergedSeeds.map(buildGuide);
 
 export function getSuburbGuideByStateSlug(
   stateSlug: string,
@@ -679,109 +583,19 @@ export function getSuburbGuideStates(): string[] {
 
 export function getFeaturedSuburbGuides(): SuburbAccessGuide[] {
   return suburbAccessGuides.filter((guide) =>
-    ["mapable-verified", "mapable-reviewed", "partner-supplied", "data-enriched"].includes(
-      guide.guideStatus,
-    ),
+    [
+      "mapable-verified",
+      "mapable-reviewed",
+      "partner-supplied",
+      "data-enriched",
+    ].includes(guide.guideStatus),
   );
 }
 
-export type SuburbGuideFilterInput = {
-  query?: string;
-  stateSlug?: string | null;
-  status?: SuburbGuideStatus | null;
-  theme?: SuburbAccessTheme | null;
-};
-
 export function filterSuburbGuides(
-  input: SuburbGuideFilterInput = {},
+  input: Parameters<typeof filterSuburbGuideList>[1] = {},
 ): SuburbAccessGuide[] {
-  const query = input.query?.trim().toLowerCase() ?? "";
-  return suburbAccessGuides.filter((guide) => {
-    if (input.stateSlug && guide.stateSlug !== input.stateSlug) return false;
-    if (input.status && guide.guideStatus !== input.status) return false;
-    if (input.theme && !guide.accessThemes.includes(input.theme)) return false;
-    if (!query) return true;
-    const haystack = [
-      guide.name,
-      guide.state,
-      guide.salCode,
-      guide.accessSummary,
-      ...guide.lgaNames,
-      ...guide.accessThemes,
-    ]
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(query);
-  });
-}
-
-export function formatSuburbGuideStatus(status: SuburbGuideStatus): string {
-  switch (status) {
-    case "not-started":
-      return "Not started";
-    case "draft":
-      return "Draft";
-    case "data-enriched":
-      return "Data enriched";
-    case "community-reported":
-      return "Community reported";
-    case "partner-supplied":
-      return "Partner supplied";
-    case "mapable-reviewed":
-      return "MapAble reviewed";
-    case "mapable-verified":
-      return "MapAble verified";
-    case "needs-local-verification":
-      return "Needs local verification";
-    default: {
-      const _exhaustive: never = status;
-      return _exhaustive;
-    }
-  }
-}
-
-export function formatSuburbAccessTheme(theme: SuburbAccessTheme): string {
-  switch (theme) {
-    case "transport":
-      return "Transport";
-    case "toilets":
-      return "Toilets";
-    case "parking-dropoff":
-      return "Parking / drop-off";
-    case "step-free":
-      return "Step-free routes";
-    case "sensory":
-      return "Sensory";
-    case "venues":
-      return "Accessible venues";
-    case "health-support":
-      return "Health & support";
-    case "hazards":
-      return "Hazards";
-    default: {
-      const _exhaustive: never = theme;
-      return _exhaustive;
-    }
-  }
-}
-
-/** Thin or unfinished guides should not be indexed by default. */
-export function isSuburbGuideIndexable(guide: SuburbAccessGuide): boolean {
-  if (
-    guide.guideStatus === "not-started" ||
-    guide.guideStatus === "draft" ||
-    guide.guideStatus === "needs-local-verification"
-  ) {
-    return false;
-  }
-  if (guide.confidenceScore < 45) return false;
-  const contentLength =
-    guide.accessSummary.length +
-    guide.transportNotes.join(" ").length +
-    guide.toiletNotes.join(" ").length +
-    guide.stepFreeRouteNotes.join(" ").length +
-    guide.sensoryNotes.join(" ").length;
-  return contentLength >= 180;
+  return filterSuburbGuideList(suburbAccessGuides, input);
 }
 
 export function getIndexableSuburbGuides(): SuburbAccessGuide[] {
@@ -794,3 +608,6 @@ export function suburbGuideSectionHref(
 ): string {
   return `${guide.href}#${section}`;
 }
+
+/** @deprecated Prefer importing status types from @/types/suburb-access-guide */
+export type { SuburbAccessTheme, SuburbGuideStatus };

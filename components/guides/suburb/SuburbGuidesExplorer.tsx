@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useMemo, useState } from "react";
 
 import { SuburbGuideCard } from "@/components/guides/suburb/SuburbGuideCard";
@@ -7,11 +8,17 @@ import {
   SuburbGuideFilters,
   type SuburbGuideFiltersState,
 } from "@/components/guides/suburb/SuburbGuideFilters";
-import { mapablePublicCardClass } from "@/lib/marketing/public-page-styles";
+import { SuburbGuidesIndexMap } from "@/components/guides/suburb/SuburbGuidesIndexMap";
 import {
-  filterSuburbGuides,
-  getSuburbGuideStates,
-} from "@/lib/resources/suburb-access-guides-data";
+  filterSuburbGuideList,
+  stateLabelFromSlug,
+} from "@/lib/guides/suburb-guide-utils";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import {
+  mapablePublicCardClass,
+  mapablePublicPrimaryButtonClass,
+} from "@/lib/marketing/public-page-styles";
+import { getSuburbGuideStates } from "@/lib/resources/suburb-access-guides-data";
 import type {
   SuburbAccessGuide,
   SuburbAccessTheme,
@@ -20,6 +27,9 @@ import type {
 
 type SuburbGuidesExplorerProps = {
   guides: SuburbAccessGuide[];
+  /** Pre-select a state filter (e.g. on /guides/suburbs/[state]). */
+  initialStateSlug?: string | null;
+  showStateLinks?: boolean;
 };
 
 const STATUSES: SuburbGuideStatus[] = [
@@ -44,21 +54,14 @@ const THEMES: SuburbAccessTheme[] = [
   "hazards",
 ];
 
-const STATE_LABELS: Record<string, string> = {
-  act: "ACT",
-  nsw: "NSW",
-  vic: "VIC",
-  qld: "QLD",
-  sa: "SA",
-  wa: "WA",
-  tas: "TAS",
-  nt: "NT",
-};
-
-export function SuburbGuidesExplorer({ guides }: SuburbGuidesExplorerProps) {
+export function SuburbGuidesExplorer({
+  guides,
+  initialStateSlug = null,
+  showStateLinks = true,
+}: SuburbGuidesExplorerProps) {
   const [filters, setFilters] = useState<SuburbGuideFiltersState>({
     query: "",
-    stateSlug: null,
+    stateSlug: initialStateSlug,
     status: null,
     theme: null,
   });
@@ -67,29 +70,61 @@ export function SuburbGuidesExplorer({ guides }: SuburbGuidesExplorerProps) {
     () =>
       getSuburbGuideStates().map((slug) => ({
         slug,
-        label: STATE_LABELS[slug] ?? slug.toUpperCase(),
+        label: stateLabelFromSlug(slug),
       })),
     [],
   );
 
-  const filtered = useMemo(
+  const visible = useMemo(
     () =>
-      filterSuburbGuides({
+      filterSuburbGuideList(guides, {
         query: filters.query,
         stateSlug: filters.stateSlug,
         status: filters.status,
         theme: filters.theme,
       }),
-    [filters],
+    [filters, guides],
   );
 
-  const isFiltered = Boolean(
-    filters.query.trim() || filters.stateSlug || filters.status || filters.theme,
-  );
-  const visible = isFiltered ? filtered : guides;
+  const mapGuides = visible.length > 0 ? visible : guides;
 
   return (
     <div className="space-y-8">
+      <div className="flex flex-wrap gap-3">
+        <a
+          href="#suburb-guide-results-heading"
+          className={`${mapablePublicPrimaryButtonClass} ${mapableCareFocusRing}`}
+        >
+          Skip map and browse guide list
+        </a>
+        <Link
+          href="/guides"
+          className={`inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] ${mapableCareFocusRing}`}
+        >
+          Capital and regional guides
+        </Link>
+      </div>
+
+      <SuburbGuidesIndexMap guides={mapGuides} />
+
+      {showStateLinks ? (
+        <nav aria-label="Browse by state" className={mapablePublicCardClass}>
+          <h2 className="text-lg font-black text-[#0C1833]">Browse by state</h2>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {states.map((state) => (
+              <li key={state.slug}>
+                <Link
+                  href={`/guides/suburbs/${state.slug}`}
+                  className={`inline-flex min-h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-[#005B7F] ${mapableCareFocusRing}`}
+                >
+                  {state.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
+
       <div className={mapablePublicCardClass}>
         <h2 className="text-lg font-black text-[#0C1833] sm:text-xl">
           Search suburb Access Guides
@@ -113,7 +148,7 @@ export function SuburbGuidesExplorer({ guides }: SuburbGuidesExplorerProps) {
       <section aria-labelledby="suburb-guide-results-heading">
         <h2
           id="suburb-guide-results-heading"
-          className="text-lg font-black text-[#0C1833] sm:text-xl"
+          className="scroll-mt-24 text-lg font-black text-[#0C1833] sm:text-xl"
         >
           Suburb guide results
         </h2>
@@ -125,7 +160,7 @@ export function SuburbGuidesExplorer({ guides }: SuburbGuidesExplorerProps) {
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((guide) => (
-              <SuburbGuideCard key={guide.salCode} guide={guide} />
+              <SuburbGuideCard key={guide.id} guide={guide} />
             ))}
           </div>
         )}

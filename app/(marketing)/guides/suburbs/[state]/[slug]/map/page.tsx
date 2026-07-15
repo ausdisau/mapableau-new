@@ -87,7 +87,7 @@ export default async function SuburbGuideMapPage({
               href="#map-section-list"
               className={`${mapablePublicPrimaryButtonClass} ${mapableCareFocusRing}`}
             >
-              Skip map and browse guide content
+              Skip map and browse guide list
             </a>
             <Link
               href={guide.href}

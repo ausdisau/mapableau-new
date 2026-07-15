@@ -3,13 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 
+import { SuburbGuideReportForm } from "@/components/guides/suburb/SuburbGuideReportForm";
 import { SuburbGuideSection } from "@/components/guides/suburb/SuburbGuideSection";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import {
   mapablePublicEyebrowClass,
   mapablePublicLeadClass,
   mapablePublicPageContainerClass,
-  mapablePublicPrimaryButtonClass,
   mapablePublicTitleClass,
 } from "@/lib/marketing/public-page-styles";
 import {
@@ -54,12 +54,8 @@ export default async function SuburbGuideReportPage({
     notFound();
   }
 
-  const contactHref = `/contact?topic=accessibility&subject=${encodeURIComponent(
-    `Suburb guide update: ${guide.name} (${guide.salCode})`,
-  )}`;
-
   return (
-    <div className="bg-white text-[#0C1833]">
+    <main className="bg-white text-[#0C1833]">
       <header className="border-b border-slate-200 bg-[#F6FBFC]">
         <div className={`${mapablePublicPageContainerClass} py-14 sm:py-20`}>
           <p className={mapablePublicEyebrowClass}>
@@ -73,13 +69,7 @@ export default async function SuburbGuideReportPage({
             quiet spaces or hazards in this locality. Reports improve planning
             notes — they do not create a guarantee of access.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href={contactHref}
-              className={`${mapablePublicPrimaryButtonClass} ${mapableCareFocusRing}`}
-            >
-              Open contact form
-            </Link>
+          <div className="mt-8">
             <Link
               href={guide.href}
               className={`inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] ${mapableCareFocusRing}`}
@@ -96,16 +86,20 @@ export default async function SuburbGuideReportPage({
         <SuburbGuideSection id="what-to-include" title="What to include">
           <ul className="list-disc space-y-2 pl-5">
             <li>Suburb / SAL code if you know it ({guide.salCode}).</li>
-            <li>What changed (toilet, transport, parking, quiet space, hazard).</li>
+            <li>
+              What changed (toilet, transport, parking, quiet space, hazard).
+            </li>
             <li>When you observed it.</li>
             <li>Whether the note is still provisional.</li>
           </ul>
         </SuburbGuideSection>
 
+        <SuburbGuideReportForm guide={guide} />
+
         <SuburbGuideSection id="disclaimer" title="Disclaimer" tone="warning">
           <p>{SUBURB_GUIDE_DISCLAIMER}</p>
         </SuburbGuideSection>
       </div>
-    </div>
+    </main>
   );
 }

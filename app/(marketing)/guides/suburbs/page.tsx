@@ -31,7 +31,7 @@ export default function SuburbGuidesIndexPage() {
   const featured = getFeaturedSuburbGuides();
 
   return (
-    <div className="bg-white text-[#0C1833]">
+    <main className="bg-white text-[#0C1833]">
       <header className="border-b border-slate-200 bg-[#F6FBFC]">
         <div
           className={`${mapablePublicPageContainerClass} py-14 sm:py-20`}
@@ -50,7 +50,7 @@ export default function SuburbGuidesIndexPage() {
               href="#suburb-guide-results-heading"
               className={`${mapablePublicPrimaryButtonClass} ${mapableCareFocusRing}`}
             >
-              Browse suburb guides
+              Skip map and browse guide list
             </a>
             <Link
               href="/guides"
@@ -80,7 +80,7 @@ export default function SuburbGuidesIndexPage() {
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((guide) => (
-              <SuburbGuideCard key={guide.salCode} guide={guide} />
+              <SuburbGuideCard key={guide.id} guide={guide} />
             ))}
           </div>
         </section>
@@ -95,6 +95,6 @@ export default function SuburbGuidesIndexPage() {
           </p>
         </aside>
       </div>
-    </div>
+    </main>
   );
 }

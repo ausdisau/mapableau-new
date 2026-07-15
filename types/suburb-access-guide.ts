@@ -1,6 +1,6 @@
 /**
- * Suburb / locality Access Guide model aligned to ABS Suburbs and Localities (SAL).
- * Guides are advisory planning resources — not a guarantee of access.
+ * Canonical suburb Access Guide types (ABS Suburbs and Localities / SAL).
+ * Paths: types/suburb-access-guide.ts and src/types/suburbAccessGuide.ts
  */
 
 export type SuburbGuideStatus =
@@ -28,14 +28,6 @@ export type SuburbGuideCentroid = {
   longitude: number;
 };
 
-export type SuburbGuideVenueHighlight = {
-  id: string;
-  name: string;
-  summary: string;
-  theme: SuburbAccessTheme;
-  hrefSection: SuburbGuideMapSection;
-};
-
 export type SuburbGuideMapSection =
   | "toilets"
   | "transport"
@@ -43,6 +35,14 @@ export type SuburbGuideMapSection =
   | "quiet-spaces"
   | "accessible-venues"
   | "hazards";
+
+export type SuburbGuideVenueHighlight = {
+  id: string;
+  name: string;
+  summary: string;
+  theme: SuburbAccessTheme;
+  hrefSection: SuburbGuideMapSection;
+};
 
 export type SuburbGuideMappingMission = {
   id: string;
@@ -63,9 +63,12 @@ export type SuburbGuideDataSource = {
   label: string;
   url?: string;
   note?: string;
+  sourceType?: string;
 };
 
 export type SuburbAccessGuide = {
+  /** Stable id, usually `{stateSlug}-{slug}` */
+  id: string;
   salCode: string;
   name: string;
   state: string;
@@ -102,3 +105,12 @@ export type SuburbAccessGuide = {
 
 export const SUBURB_GUIDE_DISCLAIMER =
   "MapAble guides provide practical access information to help people plan outings. They are not a guarantee of access and are not legal, medical, transport or NDIS advice. Conditions can change. Check opening hours, bookings, transport availability and venue accessibility before travelling.";
+
+/** Statuses that may be indexed when content is substantial enough. */
+export const SUBURB_GUIDE_INDEXABLE_STATUSES: SuburbGuideStatus[] = [
+  "data-enriched",
+  "community-reported",
+  "partner-supplied",
+  "mapable-reviewed",
+  "mapable-verified",
+];

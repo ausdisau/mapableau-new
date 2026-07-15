@@ -7,6 +7,7 @@ import { SuburbGuideQuickFacts } from "@/components/guides/suburb/SuburbGuideQui
 import { SuburbGuideReportUpdateCTA } from "@/components/guides/suburb/SuburbGuideReportUpdateCTA";
 import { SuburbGuideSection } from "@/components/guides/suburb/SuburbGuideSection";
 import { SuburbGuideStatusBadge } from "@/components/guides/suburb/SuburbGuideStatusBadge";
+import { formatSuburbGuideStatus } from "@/lib/guides/suburb-guide-utils";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import {
   mapablePublicEyebrowClass,
@@ -20,7 +21,7 @@ import type { SuburbAccessGuide } from "@/types/suburb-access-guide";
 
 function NotesList({ items, empty }: { items: string[]; empty: string }) {
   if (items.length === 0) {
-    return <p>{empty}</p>;
+    return empty ? <p>{empty}</p> : null;
   }
   return (
     <ul className="list-disc space-y-2 pl-5">
@@ -45,7 +46,7 @@ export function SuburbGuidePageContent({
     guide.mappingMissions.length > 0;
 
   return (
-    <div className="bg-white text-[#0C1833]">
+    <main className="bg-white text-[#0C1833]">
       <header className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
         <div
           className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}
@@ -65,7 +66,7 @@ export function SuburbGuidePageContent({
               href="#guide-content"
               className={`${mapablePublicPrimaryButtonClass} ${mapableCareFocusRing}`}
             >
-              Skip map and browse guide content
+              Skip map and browse guide list
             </a>
             <Link
               href={guide.mapHref}
@@ -78,6 +79,12 @@ export function SuburbGuidePageContent({
               className={`inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 ${mapableCareFocusRing}`}
             >
               Report an update
+            </Link>
+            <Link
+              href={`/guides/suburbs/${guide.stateSlug}`}
+              className={`inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 ${mapableCareFocusRing}`}
+            >
+              More in {guide.state}
             </Link>
             <Link
               href="/guides/suburbs"
@@ -96,18 +103,21 @@ export function SuburbGuidePageContent({
 
         {showMap ? <SuburbGuideMap guide={guide} /> : null}
 
-        <div id="guide-content" className="space-y-6 scroll-mt-24">
-          <SuburbGuideSection id="transport" title="Transport notes">
+        <article id="guide-content" className="space-y-6 scroll-mt-24">
+          <SuburbGuideSection id="transport" title="Accessible transport">
             <NotesList
               items={guide.transportNotes}
               empty="Transport notes are not drafted yet for this locality."
             />
           </SuburbGuideSection>
 
-          <SuburbGuideSection id="toilets" title="Toilets">
+          <SuburbGuideSection
+            id="toilets"
+            title="Toilets and Changing Places"
+          >
             <NotesList
               items={guide.toiletNotes}
-              empty="Toilet notes are not drafted yet for this locality."
+              empty="Toilet information is not yet verified for this locality. Plan a fallback toilet stop before travelling."
             />
           </SuburbGuideSection>
 
@@ -118,43 +128,66 @@ export function SuburbGuidePageContent({
             />
           </SuburbGuideSection>
 
-          <SuburbGuideSection id="step-free" title="Step-free route notes">
+          <SuburbGuideSection id="step-free" title="Step-free movement">
             <NotesList
               items={guide.stepFreeRouteNotes}
               empty="Step-free route notes are not drafted yet."
             />
           </SuburbGuideSection>
 
-          <SuburbGuideSection id="quiet-spaces" title="Quiet spaces / sensory notes">
+          <SuburbGuideSection
+            id="quiet-spaces"
+            title="Sensory-friendly and quiet places"
+          >
             <NotesList
               items={guide.sensoryNotes}
               empty="Sensory notes are not drafted yet."
             />
           </SuburbGuideSection>
 
-          <SuburbGuideSection id="accessible-venues" title="Accessible venue highlights">
-            {guide.venueHighlights.length === 0 ? (
+          <SuburbGuideSection
+            id="accessible-venues"
+            title="Accessible venues and local anchors"
+          >
+            {guide.venueHighlights.length === 0 &&
+            guide.healthAndSupportAnchors.length === 0 ? (
               <p>No venue highlights drafted yet for this locality.</p>
             ) : (
-              <ul className="space-y-3">
-                {guide.venueHighlights.map((venue) => (
-                  <li key={venue.id}>
-                    <p className="font-black text-[#0C1833]">{venue.name}</p>
-                    <p className="mt-1">{venue.summary}</p>
-                  </li>
-                ))}
-              </ul>
+              <div className="space-y-4">
+                {guide.venueHighlights.length > 0 ? (
+                  <ul className="space-y-3">
+                    {guide.venueHighlights.map((venue) => (
+                      <li key={venue.id}>
+                        <p className="font-black text-[#0C1833]">
+                          {venue.name}
+                        </p>
+                        <p className="mt-1">{venue.summary}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {guide.healthAndSupportAnchors.length > 0 ? (
+                  <div>
+                    <p className="font-black text-[#0C1833]">
+                      Health and support anchors
+                    </p>
+                    <div className="mt-2">
+                      <NotesList
+                        items={guide.healthAndSupportAnchors}
+                        empty=""
+                      />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             )}
           </SuburbGuideSection>
 
-          <SuburbGuideSection id="health-support" title="Health and support anchors">
-            <NotesList
-              items={guide.healthAndSupportAnchors}
-              empty="Health and support anchors are not listed yet."
-            />
-          </SuburbGuideSection>
-
-          <SuburbGuideSection id="hazards" title="Local risks and hazards" tone="warning">
+          <SuburbGuideSection
+            id="hazards"
+            title="Local risks and planning notes"
+            tone="warning"
+          >
             <NotesList
               items={guide.localRisks}
               empty="Local risks have not been listed yet — still check conditions on the day."
@@ -162,18 +195,24 @@ export function SuburbGuidePageContent({
           </SuburbGuideSection>
 
           {incomplete ? (
-            <SuburbGuideSection id="mapping-missions" title="Mapping missions" tone="soft">
+            <SuburbGuideSection
+              id="mapping-missions"
+              title="Mapping mission"
+              tone="soft"
+            >
               <p>
                 This suburb guide is not complete. Mapping missions keep the
                 next verification steps clear without overclaiming.
               </p>
               {guide.mappingMissions.length === 0 ? (
-                <p>No open mapping missions listed yet.</p>
+                <p className="mt-3">No open mapping missions listed yet.</p>
               ) : (
                 <ul className="mt-3 space-y-3">
                   {guide.mappingMissions.map((mission) => (
                     <li key={mission.id}>
-                      <p className="font-black text-[#0C1833]">{mission.title}</p>
+                      <p className="font-black text-[#0C1833]">
+                        {mission.title}
+                      </p>
                       <p className="mt-1">{mission.detail}</p>
                     </li>
                   ))}
@@ -203,13 +242,16 @@ export function SuburbGuidePageContent({
           <SuburbGuideSection id="disclaimer" title="Disclaimer" tone="warning">
             <p>{SUBURB_GUIDE_DISCLAIMER}</p>
             <p>
-              Verification status: {guide.guideStatus}. Last updated{" "}
-              {guide.lastUpdated}
-              {guide.lastVerified ? `. Last verified ${guide.lastVerified}` : ""}.
+              Verification status: {formatSuburbGuideStatus(guide.guideStatus)}.
+              Last updated {guide.lastUpdated}
+              {guide.lastVerified
+                ? `. Last verified ${guide.lastVerified}`
+                : ""}
+              .
             </p>
           </SuburbGuideSection>
-        </div>
+        </article>
       </div>
-    </div>
+    </main>
   );
 }

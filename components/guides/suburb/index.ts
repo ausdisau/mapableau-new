@@ -1,9 +1,11 @@
 export { SuburbGuideCard } from "@/components/guides/suburb/SuburbGuideCard";
 export { SuburbGuideFilters, SuburbGuideSearch } from "@/components/guides/suburb/SuburbGuideFilters";
 export { SuburbGuideMap } from "@/components/guides/suburb/SuburbGuideMap";
+export { SuburbGuidesIndexMap } from "@/components/guides/suburb/SuburbGuidesIndexMap";
 export { SuburbGuideNearbyLinks } from "@/components/guides/suburb/SuburbGuideNearbyLinks";
 export { SuburbGuideQuickFacts } from "@/components/guides/suburb/SuburbGuideQuickFacts";
 export { SuburbGuideReportUpdateCTA } from "@/components/guides/suburb/SuburbGuideReportUpdateCTA";
 export { SuburbGuideSection } from "@/components/guides/suburb/SuburbGuideSection";
 export { SuburbGuideStatusBadge } from "@/components/guides/suburb/SuburbGuideStatusBadge";
 export { SuburbGuidesExplorer } from "@/components/guides/suburb/SuburbGuidesExplorer";
+export { SuburbGuidePageContent } from "@/components/guides/suburb/SuburbGuidePageContent";

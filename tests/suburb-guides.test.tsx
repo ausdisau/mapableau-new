@@ -65,6 +65,8 @@ describe("suburb access guides data", () => {
     expect(formatSuburbGuideStatus("mapable-verified")).toBe(
       "MapAble verified",
     );
+    expect(formatSuburbGuideStatus("draft")).toBe("Draft guide");
+    expect(formatSuburbGuideStatus("data-enriched")).toBe("Data-enriched");
   });
 
   it("keeps thin drafts out of the indexable set", () => {
@@ -83,12 +85,18 @@ describe("suburb access guides data", () => {
     ).toBe(true);
   });
 
-  it("resolves guides by state slug", () => {
-    const guide = suburbAccessGuides[0]!;
-    expect(getSuburbGuideByStateSlug(guide.stateSlug, guide.slug)?.salCode).toBe(
-      guide.salCode,
-    );
-    expect(getSuburbGuideByStateSlug("xx", "missing")).toBeUndefined();
+  it("includes Cursor Pack starter suburbs", () => {
+    const starters = [
+      ["act", "braddon"],
+      ["nsw", "parramatta"],
+      ["vic", "brunswick"],
+      ["qld", "south-brisbane"],
+    ] as const;
+    for (const [state, slug] of starters) {
+      expect(getSuburbGuideByStateSlug(state, slug)?.id).toBe(
+        `${state}-${slug}`,
+      );
+    }
   });
 
   it("exports the required advisory disclaimer", () => {
@@ -137,24 +145,32 @@ describe("suburb guide routes and design contracts", () => {
     const root = process.cwd();
     const required = [
       "app/(marketing)/guides/suburbs/page.tsx",
+      "app/(marketing)/guides/suburbs/[state]/page.tsx",
       "app/(marketing)/guides/suburbs/[state]/[slug]/page.tsx",
       "app/(marketing)/guides/suburbs/[state]/[slug]/map/page.tsx",
       "app/(marketing)/guides/suburbs/[state]/[slug]/report-update/page.tsx",
+      "app/api/guides/suburbs/report-update/route.ts",
       "app/guides/suburbs/sitemap.ts",
       "src/data/suburbAccessGuides.ts",
+      "src/data/suburbAccessGuides.sample.ts",
       "src/types/suburbAccessGuide.ts",
+      "src/lib/guides/index.ts",
+      "src/components/guides/suburbs/index.ts",
       "types/suburb-access-guide.ts",
       "lib/resources/suburb-access-guides-data.ts",
+      "lib/guides/suburb-guide-utils.ts",
       "components/guides/suburb/SuburbGuideCard.tsx",
       "components/guides/suburb/SuburbGuideStatusBadge.tsx",
       "components/guides/suburb/SuburbGuideMap.tsx",
+      "components/guides/suburb/SuburbGuidesIndexMap.tsx",
       "components/guides/suburb/SuburbGuideQuickFacts.tsx",
       "components/guides/suburb/SuburbGuideSection.tsx",
       "components/guides/suburb/SuburbGuideReportUpdateCTA.tsx",
       "components/guides/suburb/SuburbGuideFilters.tsx",
       "components/guides/suburb/SuburbGuideNearbyLinks.tsx",
-    ];
-    for (const relative of required) {
+      "tools/import-abs-sal-geojson.ts",
+      "docs/guides/suburbs/VERIFICATION_MODEL.md",
+    ];    for (const relative of required) {
       expect(existsSync(join(root, relative))).toBe(true);
     }
   });
@@ -162,6 +178,7 @@ describe("suburb guide routes and design contracts", () => {
   it("uses MapLibre style env rather than OSM Foundation tiles alone", () => {
     const envExample = readFileSync(join(process.cwd(), ".env.example"), "utf8");
     expect(envExample).toContain("NEXT_PUBLIC_MAP_STYLE_URL");
+    expect(envExample).toContain("NEXT_PUBLIC_MAP_TILE_URL");
     expect(envExample).toMatch(/production-tiles|self-hosted|commercial/i);
 
     const mapPage = readFileSync(
@@ -171,6 +188,12 @@ describe("suburb guide routes and design contracts", () => {
       ),
       "utf8",
     );
-    expect(mapPage).toContain("Skip map and browse guide content");
+    expect(mapPage).toContain("Skip map and browse guide list");
+
+    const indexPage = readFileSync(
+      join(process.cwd(), "app/(marketing)/guides/suburbs/page.tsx"),
+      "utf8",
+    );
+    expect(indexPage).toContain("Skip map and browse guide list");
   });
 });
