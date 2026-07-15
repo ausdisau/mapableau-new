@@ -1,0 +1,838 @@
+import type {
+  AccessFeature,
+  AccessPassport,
+  BuildingElement,
+  Evidence,
+  LiveIncident,
+  Place,
+  RouteEdge,
+  RouteNode,
+} from "./schemas";
+import type { AccessGraph } from "./types";
+
+const NOW = "2026-07-10T09:00:00.000Z";
+const RECENT = "2026-06-01T00:00:00.000Z";
+const OUTDATED = "2024-01-15T00:00:00.000Z";
+
+export const DEMO_USER_ID = "demo-access-intelligence-user";
+
+function req(
+  id: string,
+  featureType: AccessPassport["requirements"][number]["featureType"],
+  importance: AccessPassport["requirements"][number]["importance"],
+  operator: AccessPassport["requirements"][number]["operator"],
+  value: string | number | boolean,
+  unit?: string,
+) {
+  return {
+    id,
+    featureType,
+    importance,
+    operator,
+    value,
+    unit,
+    shareWithVenue: importance === "required",
+  };
+}
+
+export const DEMO_PASSPORT_TEMPLATES: Array<Omit<AccessPassport, "userId" | "createdAt" | "updatedAt">> = [
+  {
+    id: "passport-power-chair",
+    name: "Power-chair access",
+    isDefault: true,
+    requirements: [
+      req("r-step-free", "step_free", "required", "available", true),
+      req("r-door", "clear_door_width_mm", "required", "minimum", 850, "mm"),
+      req("r-lift-door", "lift_door_width_mm", "required", "minimum", 850, "mm"),
+      req("r-corridor", "corridor_width_mm", "required", "minimum", 900, "mm"),
+      req("r-lift", "lift", "required", "available", true),
+      req("r-toilet", "accessible_toilet", "preferred", "available", true),
+      req("r-staff", "staff_assistance", "helpful", "available", true),
+    ],
+    communicationPreferences: ["plain_language", "written"],
+    mobilityAids: ["power_chair"],
+    sharingDefaults: {
+      shareRequiredWithVenue: true,
+      sharePreferredWithVenue: false,
+      shareHelpfulWithVenue: false,
+      purpose: "Visit planning",
+      durationHours: 24,
+    },
+  },
+  {
+    id: "passport-step-free",
+    name: "Step-free essentials",
+    isDefault: false,
+    requirements: [
+      req("sf-1", "step_free", "required", "available", true),
+      req("sf-2", "accessible_toilet", "preferred", "available", true),
+    ],
+    communicationPreferences: ["plain_language"],
+    mobilityAids: ["manual_wheelchair"],
+    sharingDefaults: {
+      shareRequiredWithVenue: true,
+      sharePreferredWithVenue: false,
+      shareHelpfulWithVenue: false,
+    },
+  },
+  {
+    id: "passport-sensory",
+    name: "Sensory-friendly visit",
+    isDefault: false,
+    requirements: [
+      req("sens-1", "quiet_waiting_area", "preferred", "available", true),
+      req("sens-2", "low_glare_lighting", "helpful", "available", true),
+      req("sens-3", "step_free", "preferred", "available", true),
+    ],
+    communicationPreferences: ["plain_language", "written"],
+    mobilityAids: ["none"],
+    sharingDefaults: {
+      shareRequiredWithVenue: false,
+      sharePreferredWithVenue: true,
+      shareHelpfulWithVenue: false,
+    },
+  },
+  {
+    id: "passport-vision",
+    name: "Blind or low-vision navigation",
+    isDefault: false,
+    requirements: [
+      req("vis-1", "tactile_wayfinding", "preferred", "available", true),
+      req("vis-2", "audio_wayfinding", "preferred", "available", true),
+      req("vis-3", "staff_assistance", "helpful", "available", true),
+    ],
+    communicationPreferences: ["spoken", "plain_language"],
+    mobilityAids: ["cane"],
+    sharingDefaults: {
+      shareRequiredWithVenue: false,
+      sharePreferredWithVenue: true,
+      shareHelpfulWithVenue: false,
+    },
+  },
+  {
+    id: "passport-hearing",
+    name: "Deaf or hard-of-hearing communication",
+    isDefault: false,
+    requirements: [
+      req("hear-1", "hearing_augmentation", "preferred", "available", true),
+      req("hear-2", "captions", "preferred", "available", true),
+      req("hear-3", "preferred_communication_mode", "helpful", "equals", "written"),
+    ],
+    communicationPreferences: ["written", "captions", "auslan"],
+    mobilityAids: ["none"],
+    sharingDefaults: {
+      shareRequiredWithVenue: false,
+      sharePreferredWithVenue: true,
+      shareHelpfulWithVenue: false,
+    },
+  },
+  {
+    id: "passport-fatigue",
+    name: "Fatigue-aware visit",
+    isDefault: false,
+    requirements: [
+      req("fat-1", "seating_interval_m", "preferred", "maximum", 50, "m"),
+      req("fat-2", "lift", "preferred", "available", true),
+      req("fat-3", "staff_assistance", "helpful", "available", true),
+    ],
+    communicationPreferences: ["plain_language"],
+    mobilityAids: ["none"],
+    sharingDefaults: {
+      shareRequiredWithVenue: false,
+      sharePreferredWithVenue: false,
+      shareHelpfulWithVenue: false,
+    },
+  },
+  {
+    id: "passport-animal",
+    name: "Assistance-animal visit",
+    isDefault: false,
+    requirements: [
+      req("aa-1", "assistance_animal_access", "required", "available", true),
+      req("aa-2", "step_free", "preferred", "available", true),
+    ],
+    communicationPreferences: ["plain_language"],
+    mobilityAids: ["assistance_animal"],
+    sharingDefaults: {
+      shareRequiredWithVenue: true,
+      sharePreferredWithVenue: false,
+      shareHelpfulWithVenue: false,
+    },
+  },
+];
+
+export function createDemoPassports(userId: string = DEMO_USER_ID): AccessPassport[] {
+  return DEMO_PASSPORT_TEMPLATES.map((t) => ({
+    ...t,
+    userId,
+    createdAt: NOW,
+    updatedAt: NOW,
+  }));
+}
+
+// —— Harbour Civic Centre ——
+const HCC_PLACE: Place = {
+  id: "place-harbour-civic",
+  name: "Harbour Civic Centre",
+  address: "100 Synthetic Quay, Demo Harbour NSW 2000",
+  category: "civic",
+  coordinates: { lat: -33.86, lng: 151.21 },
+  operator: "Demo Harbour Council",
+  openingHours: "Mon–Fri 8:00–17:00",
+  baselineScore: 72,
+  accreditationTier: "synthetic-demo",
+  lastVerifiedAt: RECENT,
+};
+
+const hccElements: BuildingElement[] = [
+  { id: "hcc-ent-a", placeId: HCC_PLACE.id, type: "entrance", name: "Entrance A", level: "G" },
+  { id: "hcc-ent-b", placeId: HCC_PLACE.id, type: "entrance", name: "Entrance B", level: "G" },
+  { id: "hcc-reception", placeId: HCC_PLACE.id, type: "reception", name: "Reception", level: "G" },
+  { id: "hcc-lift", placeId: HCC_PLACE.id, type: "lift", name: "Main lift", level: "G-3" },
+  { id: "hcc-corr-3", placeId: HCC_PLACE.id, type: "corridor", name: "Level 3 corridor", level: "3" },
+  { id: "hcc-room", placeId: HCC_PLACE.id, type: "room", name: "Interview Room 3.12", level: "3" },
+  { id: "hcc-toilet-2", placeId: HCC_PLACE.id, type: "toilet", name: "Accessible toilet", level: "2" },
+];
+
+const hccEvidence: Evidence[] = [
+  {
+    id: "ev-hcc-ent-a-steps",
+    type: "measurement",
+    title: "Entrance A steps count",
+    capturedAt: RECENT,
+    sourceName: "Synthetic assessor",
+    sourceType: "qualified_assessor",
+    measurement: { value: 4, unit: "steps" },
+    calibrationConfirmed: true,
+    status: "verified",
+  },
+  {
+    id: "ev-hcc-ent-b-level",
+    type: "measurement",
+    title: "Entrance B level access",
+    capturedAt: RECENT,
+    sourceName: "Synthetic assessor",
+    sourceType: "qualified_assessor",
+    measurement: { value: true },
+    calibrationConfirmed: true,
+    status: "verified",
+  },
+  {
+    id: "ev-hcc-ent-b-width",
+    type: "measurement",
+    title: "Entrance B clear width 910 mm",
+    capturedAt: RECENT,
+    sourceName: "Synthetic assessor",
+    sourceType: "qualified_assessor",
+    measurement: { value: 910, unit: "mm" },
+    calibrationConfirmed: true,
+    status: "verified",
+  },
+  {
+    id: "ev-hcc-lift-door",
+    type: "measurement",
+    title: "Lift door width 900 mm",
+    capturedAt: RECENT,
+    sourceName: "Synthetic assessor",
+    sourceType: "qualified_assessor",
+    measurement: { value: 900, unit: "mm" },
+    calibrationConfirmed: true,
+    status: "verified",
+  },
+  {
+    id: "ev-hcc-corridor",
+    type: "measurement",
+    title: "Level 3 corridor width 1350 mm",
+    capturedAt: RECENT,
+    sourceName: "Synthetic assessor",
+    sourceType: "qualified_assessor",
+    measurement: { value: 1350, unit: "mm" },
+    calibrationConfirmed: true,
+    status: "verified",
+  },
+  {
+    id: "ev-hcc-toilet",
+    type: "photograph",
+    title: "Accessible toilet on level 2",
+    capturedAt: RECENT,
+    sourceName: "Trained mapper",
+    sourceType: "trained_mapper",
+    status: "verified",
+  },
+];
+
+const hccFeatures: AccessFeature[] = [
+  {
+    id: "f-hcc-a-steps",
+    placeId: HCC_PLACE.id,
+    elementId: "hcc-ent-a",
+    featureType: "step_free",
+    value: false,
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-hcc-ent-a-steps"],
+    confidence: 1,
+    disputed: false,
+    notes: "Entrance A has steps.",
+  },
+  {
+    id: "f-hcc-b-level",
+    placeId: HCC_PLACE.id,
+    elementId: "hcc-ent-b",
+    featureType: "step_free",
+    value: true,
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-hcc-ent-b-level"],
+    confidence: 1,
+    disputed: false,
+  },
+  {
+    id: "f-hcc-b-width",
+    placeId: HCC_PLACE.id,
+    elementId: "hcc-ent-b",
+    featureType: "clear_door_width_mm",
+    value: 910,
+    unit: "mm",
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-hcc-ent-b-width"],
+    confidence: 1,
+    disputed: false,
+  },
+  {
+    id: "f-hcc-lift",
+    placeId: HCC_PLACE.id,
+    elementId: "hcc-lift",
+    featureType: "lift",
+    value: true,
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-hcc-lift-door"],
+    confidence: 1,
+    disputed: false,
+  },
+  {
+    id: "f-hcc-lift-door",
+    placeId: HCC_PLACE.id,
+    elementId: "hcc-lift",
+    featureType: "lift_door_width_mm",
+    value: 900,
+    unit: "mm",
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-hcc-lift-door"],
+    confidence: 1,
+    disputed: false,
+  },
+  {
+    id: "f-hcc-corridor",
+    placeId: HCC_PLACE.id,
+    elementId: "hcc-corr-3",
+    featureType: "corridor_width_mm",
+    value: 1350,
+    unit: "mm",
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-hcc-corridor"],
+    confidence: 1,
+    disputed: false,
+  },
+  {
+    id: "f-hcc-toilet",
+    placeId: HCC_PLACE.id,
+    elementId: "hcc-toilet-2",
+    featureType: "accessible_toilet",
+    value: true,
+    sourceType: "trained_mapper",
+    observedAt: RECENT,
+    evidenceIds: ["ev-hcc-toilet"],
+    confidence: 0.82,
+    disputed: false,
+    notes: "Accessible toilet on level two — not on level three.",
+  },
+];
+
+const hccNodes: RouteNode[] = [
+  { id: "n-hcc-a", placeId: HCC_PLACE.id, elementId: "hcc-ent-a", label: "Entrance A", level: "G", nodeType: "entrance", coordinates: { x: 0, y: 0 } },
+  { id: "n-hcc-b", placeId: HCC_PLACE.id, elementId: "hcc-ent-b", label: "Entrance B", level: "G", nodeType: "entrance", coordinates: { x: 10, y: 0 } },
+  { id: "n-hcc-rec", placeId: HCC_PLACE.id, elementId: "hcc-reception", label: "Reception", level: "G", nodeType: "reception", coordinates: { x: 10, y: 10 } },
+  { id: "n-hcc-lift-g", placeId: HCC_PLACE.id, elementId: "hcc-lift", label: "Lift (ground)", level: "G", nodeType: "lift", coordinates: { x: 10, y: 20 } },
+  { id: "n-hcc-lift-3", placeId: HCC_PLACE.id, elementId: "hcc-lift", label: "Lift (level 3)", level: "3", nodeType: "lift", coordinates: { x: 10, y: 20 } },
+  { id: "n-hcc-corr", placeId: HCC_PLACE.id, elementId: "hcc-corr-3", label: "Level 3 corridor", level: "3", nodeType: "corridor", coordinates: { x: 30, y: 20 } },
+  { id: "n-hcc-room", placeId: HCC_PLACE.id, elementId: "hcc-room", label: "Interview Room 3.12", level: "3", nodeType: "room", coordinates: { x: 40, y: 20 } },
+];
+
+const hccEdges: RouteEdge[] = [
+  {
+    id: "e-hcc-a-rec",
+    fromNodeId: "n-hcc-a",
+    toNodeId: "n-hcc-rec",
+    distanceMetres: 25,
+    widthMm: 1000,
+    steps: 4,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-hcc-b-rec",
+    fromNodeId: "n-hcc-b",
+    toNodeId: "n-hcc-rec",
+    distanceMetres: 20,
+    widthMm: 910,
+    steps: 0,
+    automaticDoor: true,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-hcc-rec-lift",
+    fromNodeId: "n-hcc-rec",
+    toNodeId: "n-hcc-lift-g",
+    distanceMetres: 15,
+    widthMm: 1200,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.9,
+  },
+  {
+    id: "e-hcc-lift",
+    fromNodeId: "n-hcc-lift-g",
+    toNodeId: "n-hcc-lift-3",
+    distanceMetres: 5,
+    widthMm: 900,
+    steps: 0,
+    liftAvailable: true,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-hcc-lift-corr",
+    fromNodeId: "n-hcc-lift-3",
+    toNodeId: "n-hcc-corr",
+    distanceMetres: 18,
+    widthMm: 1350,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-hcc-corr-room",
+    fromNodeId: "n-hcc-corr",
+    toNodeId: "n-hcc-room",
+    distanceMetres: 12,
+    widthMm: 1000,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.9,
+  },
+];
+
+// —— Riverside Community Hall (unknowns) ——
+const RCH_PLACE: Place = {
+  id: "place-riverside-hall",
+  name: "Riverside Community Hall",
+  address: "12 Synthetic River Rd, Demo Bend NSW 2100",
+  category: "community",
+  operator: "Demo Bend Community Assoc",
+  openingHours: "Daily 9:00–21:00",
+  baselineScore: 58,
+  accreditationTier: "synthetic-demo",
+  lastVerifiedAt: OUTDATED,
+};
+
+const rchElements: BuildingElement[] = [
+  { id: "rch-ent", placeId: RCH_PLACE.id, type: "entrance", name: "Main entrance", level: "G" },
+  { id: "rch-hall", placeId: RCH_PLACE.id, type: "room", name: "Main hall", level: "G" },
+  { id: "rch-toilet", placeId: RCH_PLACE.id, type: "toilet", name: "Accessible toilet", level: "G" },
+];
+
+const rchEvidence: Evidence[] = [
+  {
+    id: "ev-rch-stepfree",
+    type: "measurement",
+    title: "Step-free entrance",
+    capturedAt: RECENT,
+    sourceName: "Trained mapper",
+    sourceType: "trained_mapper",
+    status: "verified",
+  },
+  {
+    id: "ev-rch-toilet-old",
+    type: "photograph",
+    title: "Accessible toilet (outdated)",
+    capturedAt: OUTDATED,
+    sourceName: "Community report",
+    sourceType: "community_report",
+    status: "expired",
+  },
+  {
+    id: "ev-rch-hearing",
+    type: "venue_statement",
+    title: "Hearing loop claimed",
+    capturedAt: RECENT,
+    sourceName: "Venue manager",
+    sourceType: "venue_attestation",
+    status: "provisional",
+  },
+];
+
+const rchFeatures: AccessFeature[] = [
+  {
+    id: "f-rch-step",
+    placeId: RCH_PLACE.id,
+    elementId: "rch-ent",
+    featureType: "step_free",
+    value: true,
+    sourceType: "trained_mapper",
+    observedAt: RECENT,
+    evidenceIds: ["ev-rch-stepfree"],
+    confidence: 0.82,
+    disputed: false,
+  },
+  {
+    id: "f-rch-door",
+    placeId: RCH_PLACE.id,
+    elementId: "rch-ent",
+    featureType: "clear_door_width_mm",
+    value: 900,
+    unit: "mm",
+    sourceType: "trained_mapper",
+    observedAt: RECENT,
+    evidenceIds: ["ev-rch-stepfree"],
+    confidence: 0.82,
+    disputed: false,
+  },
+  {
+    id: "f-rch-toilet",
+    placeId: RCH_PLACE.id,
+    elementId: "rch-toilet",
+    featureType: "accessible_toilet",
+    value: true,
+    sourceType: "community_report",
+    observedAt: OUTDATED,
+    evidenceIds: ["ev-rch-toilet-old"],
+    confidence: 0.4,
+    disputed: false,
+    notes: "Evidence outdated — treat carefully.",
+  },
+  {
+    id: "f-rch-hearing",
+    placeId: RCH_PLACE.id,
+    elementId: "rch-hall",
+    featureType: "hearing_augmentation",
+    value: true,
+    sourceType: "venue_attestation",
+    observedAt: RECENT,
+    evidenceIds: ["ev-rch-hearing"],
+    confidence: 0.75,
+    disputed: false,
+    notes: "Venue-attested only — not independently verified.",
+  },
+];
+
+const rchNodes: RouteNode[] = [
+  { id: "n-rch-ent", placeId: RCH_PLACE.id, elementId: "rch-ent", label: "Main entrance", level: "G", nodeType: "entrance" },
+  { id: "n-rch-hall", placeId: RCH_PLACE.id, elementId: "rch-hall", label: "Main hall", level: "G", nodeType: "room" },
+];
+
+const rchEdges: RouteEdge[] = [
+  {
+    id: "e-rch-ent-hall",
+    fromNodeId: "n-rch-ent",
+    toNodeId: "n-rch-hall",
+    distanceMetres: 30,
+    widthMm: 900,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.7,
+  },
+];
+
+// —— Northside Library (lift outage + alternative) ——
+const NSL_PLACE: Place = {
+  id: "place-northside-library",
+  name: "Northside Library",
+  address: "5 Synthetic Library Lane, Demo North NSW 2060",
+  category: "library",
+  operator: "Demo North Council",
+  openingHours: "Mon–Sat 9:00–18:00",
+  baselineScore: 65,
+  accreditationTier: "synthetic-demo",
+  lastVerifiedAt: RECENT,
+};
+
+const nslElements: BuildingElement[] = [
+  { id: "nsl-ent", placeId: NSL_PLACE.id, type: "entrance", name: "Main entrance", level: "G" },
+  { id: "nsl-lift-main", placeId: NSL_PLACE.id, type: "lift", name: "Main lift", level: "G-2" },
+  { id: "nsl-lift-alt", placeId: NSL_PLACE.id, type: "lift", name: "Service lift (alternative)", level: "G-2" },
+  { id: "nsl-corr-blocked", placeId: NSL_PLACE.id, type: "corridor", name: "Short corridor (blocked)", level: "2" },
+  { id: "nsl-corr-alt", placeId: NSL_PLACE.id, type: "corridor", name: "Long corridor (open)", level: "2" },
+  { id: "nsl-room", placeId: NSL_PLACE.id, type: "room", name: "Study Room 2.04", level: "2" },
+];
+
+const nslEvidence: Evidence[] = [
+  {
+    id: "ev-nsl-step",
+    type: "measurement",
+    title: "Step-free entrance",
+    capturedAt: RECENT,
+    sourceName: "Qualified assessor",
+    sourceType: "qualified_assessor",
+    status: "verified",
+  },
+  {
+    id: "ev-nsl-lifts",
+    type: "system_status",
+    title: "Lift inventory",
+    capturedAt: RECENT,
+    sourceName: "Building BMS (synthetic)",
+    sourceType: "system_feed",
+    status: "verified",
+  },
+];
+
+const nslFeatures: AccessFeature[] = [
+  {
+    id: "f-nsl-step",
+    placeId: NSL_PLACE.id,
+    elementId: "nsl-ent",
+    featureType: "step_free",
+    value: true,
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-nsl-step"],
+    confidence: 1,
+    disputed: false,
+  },
+  {
+    id: "f-nsl-door",
+    placeId: NSL_PLACE.id,
+    elementId: "nsl-ent",
+    featureType: "clear_door_width_mm",
+    value: 920,
+    unit: "mm",
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-nsl-step"],
+    confidence: 1,
+    disputed: false,
+  },
+  {
+    id: "f-nsl-lift",
+    placeId: NSL_PLACE.id,
+    elementId: "nsl-lift-alt",
+    featureType: "lift",
+    value: true,
+    sourceType: "system_feed",
+    observedAt: RECENT,
+    evidenceIds: ["ev-nsl-lifts"],
+    confidence: 0.95,
+    disputed: false,
+  },
+  {
+    id: "f-nsl-lift-door",
+    placeId: NSL_PLACE.id,
+    elementId: "nsl-lift-alt",
+    featureType: "lift_door_width_mm",
+    value: 900,
+    unit: "mm",
+    sourceType: "system_feed",
+    observedAt: RECENT,
+    evidenceIds: ["ev-nsl-lifts"],
+    confidence: 0.95,
+    disputed: false,
+  },
+  {
+    id: "f-nsl-corr",
+    placeId: NSL_PLACE.id,
+    elementId: "nsl-corr-alt",
+    featureType: "corridor_width_mm",
+    value: 1200,
+    unit: "mm",
+    sourceType: "qualified_assessor",
+    observedAt: RECENT,
+    evidenceIds: ["ev-nsl-step"],
+    confidence: 0.9,
+    disputed: false,
+  },
+];
+
+const nslNodes: RouteNode[] = [
+  { id: "n-nsl-ent", placeId: NSL_PLACE.id, elementId: "nsl-ent", label: "Main entrance", level: "G", nodeType: "entrance" },
+  { id: "n-nsl-lift-main-g", placeId: NSL_PLACE.id, elementId: "nsl-lift-main", label: "Main lift (ground)", level: "G", nodeType: "lift" },
+  { id: "n-nsl-lift-main-2", placeId: NSL_PLACE.id, elementId: "nsl-lift-main", label: "Main lift (level 2)", level: "2", nodeType: "lift" },
+  { id: "n-nsl-lift-alt-g", placeId: NSL_PLACE.id, elementId: "nsl-lift-alt", label: "Service lift (ground)", level: "G", nodeType: "lift" },
+  { id: "n-nsl-lift-alt-2", placeId: NSL_PLACE.id, elementId: "nsl-lift-alt", label: "Service lift (level 2)", level: "2", nodeType: "lift" },
+  { id: "n-nsl-short", placeId: NSL_PLACE.id, elementId: "nsl-corr-blocked", label: "Short corridor", level: "2", nodeType: "corridor" },
+  { id: "n-nsl-long", placeId: NSL_PLACE.id, elementId: "nsl-corr-alt", label: "Long corridor", level: "2", nodeType: "corridor" },
+  { id: "n-nsl-room", placeId: NSL_PLACE.id, elementId: "nsl-room", label: "Study Room 2.04", level: "2", nodeType: "room" },
+];
+
+const nslEdges: RouteEdge[] = [
+  {
+    id: "e-nsl-ent-main",
+    fromNodeId: "n-nsl-ent",
+    toNodeId: "n-nsl-lift-main-g",
+    distanceMetres: 10,
+    widthMm: 920,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-nsl-ent-alt",
+    fromNodeId: "n-nsl-ent",
+    toNodeId: "n-nsl-lift-alt-g",
+    distanceMetres: 40,
+    widthMm: 920,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-nsl-main-lift",
+    fromNodeId: "n-nsl-lift-main-g",
+    toNodeId: "n-nsl-lift-main-2",
+    distanceMetres: 5,
+    widthMm: 900,
+    steps: 0,
+    liftAvailable: true,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.5,
+  },
+  {
+    id: "e-nsl-alt-lift",
+    fromNodeId: "n-nsl-lift-alt-g",
+    toNodeId: "n-nsl-lift-alt-2",
+    distanceMetres: 5,
+    widthMm: 900,
+    steps: 0,
+    liftAvailable: true,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-nsl-main-short",
+    fromNodeId: "n-nsl-lift-main-2",
+    toNodeId: "n-nsl-short",
+    distanceMetres: 8,
+    widthMm: 1200,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.4,
+  },
+  {
+    id: "e-nsl-short-room",
+    fromNodeId: "n-nsl-short",
+    toNodeId: "n-nsl-room",
+    distanceMetres: 5,
+    widthMm: 1200,
+    steps: 0,
+    temporaryBarrier: true,
+    evidenceConfidence: 0.4,
+  },
+  {
+    id: "e-nsl-alt-long",
+    fromNodeId: "n-nsl-lift-alt-2",
+    toNodeId: "n-nsl-long",
+    distanceMetres: 25,
+    widthMm: 1200,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+  {
+    id: "e-nsl-long-room",
+    fromNodeId: "n-nsl-long",
+    toNodeId: "n-nsl-room",
+    distanceMetres: 20,
+    widthMm: 1200,
+    steps: 0,
+    temporaryBarrier: false,
+    evidenceConfidence: 0.95,
+  },
+];
+
+export const DEMO_INCIDENTS: LiveIncident[] = [
+  {
+    id: "inc-nsl-lift",
+    placeId: NSL_PLACE.id,
+    elementId: "nsl-lift-main",
+    type: "lift_outage",
+    severity: "high",
+    description: "Main lift out of service until further notice (synthetic demo).",
+    sourceType: "system_feed",
+    reportedAt: NOW,
+    confirmedAt: NOW,
+    status: "active",
+    affectedEdgeIds: ["e-nsl-main-lift", "e-nsl-main-short"],
+  },
+  {
+    id: "inc-nsl-corr",
+    placeId: NSL_PLACE.id,
+    elementId: "nsl-corr-blocked",
+    type: "blocked_route",
+    severity: "moderate",
+    description: "Short corridor temporarily blocked for maintenance (synthetic demo).",
+    sourceType: "venue_attestation",
+    reportedAt: NOW,
+    status: "active",
+    affectedEdgeIds: ["e-nsl-short-room"],
+  },
+];
+
+export const DEMO_GRAPHS: AccessGraph[] = [
+  {
+    place: HCC_PLACE,
+    elements: hccElements,
+    features: hccFeatures,
+    evidence: hccEvidence,
+    nodes: hccNodes,
+    edges: hccEdges,
+  },
+  {
+    place: RCH_PLACE,
+    elements: rchElements,
+    features: rchFeatures,
+    evidence: rchEvidence,
+    nodes: rchNodes,
+    edges: rchEdges,
+  },
+  {
+    place: NSL_PLACE,
+    elements: nslElements,
+    features: nslFeatures,
+    evidence: nslEvidence,
+    nodes: nslNodes,
+    edges: nslEdges,
+  },
+];
+
+export const DEMO_PLACES = DEMO_GRAPHS.map((g) => g.place);
+
+export function getDemoGraph(placeId: string): AccessGraph | undefined {
+  return DEMO_GRAPHS.find((g) => g.place.id === placeId);
+}
+
+export function findDemoDestinationNode(
+  placeId: string,
+  destinationQuery: string,
+): RouteNode | undefined {
+  const graph = getDemoGraph(placeId);
+  if (!graph) return undefined;
+  const q = destinationQuery.toLowerCase();
+  return graph.nodes.find(
+    (n) =>
+      n.label.toLowerCase().includes(q) ||
+      q.includes(n.label.toLowerCase()) ||
+      (q.includes("3.12") && n.label.includes("3.12")) ||
+      (q.includes("2.04") && n.label.includes("2.04")),
+  );
+}
+
+export function findDemoEntranceNodes(placeId: string): RouteNode[] {
+  const graph = getDemoGraph(placeId);
+  if (!graph) return [];
+  return graph.nodes.filter((n) => n.nodeType === "entrance");
+}
