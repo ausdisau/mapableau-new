@@ -65,6 +65,9 @@ export const ROUTES = {
   register: "/register",
   dashboard: "/dashboard",
   map: "/map",
+  requestSupport: "/request-support",
+  availableNow: "/providers/available-now",
+  planOpsLite: "/dashboard/planops-lite",
 } as const;
 
 // ─── API paths ───────────────────────────────────────────────────────────────
