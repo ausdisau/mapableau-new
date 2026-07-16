@@ -1,6 +1,9 @@
 export type EligibilityCheckResult = {
   eligible: boolean;
   reasons: string[];
+  reasonCodes?: string[];
+  checkedAt?: string;
+  dataFreshness?: string;
 };
 
 export type ScheduleConflictResult = {

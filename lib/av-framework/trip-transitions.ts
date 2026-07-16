@@ -4,34 +4,49 @@ import type { TransportTripStatus } from "@prisma/client";
 export const AV_TRIP_TRANSITIONS: Partial<
   Record<TransportTripStatus, TransportTripStatus[]>
 > = {
-  requested: ["provider_review", "accepted", "cancelled"],
+  draft: ["requested", "quoting", "cancelled"],
+  requested: [
+    "quoting",
+    "quote_available",
+    "participant_confirmed",
+    "provider_review",
+    "accepted",
+    "cancelled",
+  ],
+  quoting: ["quote_available", "participant_confirmed", "cancelled"],
+  quote_available: ["participant_confirmed", "quoting", "cancelled"],
+  participant_confirmed: ["provider_review", "accepted", "dispatch_pending", "cancelled"],
   provider_review: ["accepted", "declined", "cancelled"],
   accepted: ["dispatch_pending", "cancelled"],
   dispatch_pending: ["driver_vehicle_assigned", "cancelled"],
   driver_vehicle_assigned: ["driver_accepted", "declined", "cancelled"],
   driver_accepted: ["pre_start_check_required", "driver_no_show", "cancelled"],
   pre_start_check_required: ["en_route_to_pickup", "unsafe_to_continue"],
-  en_route_to_pickup: ["arrived_at_pickup", "unsafe_to_continue"],
+  en_route_to_pickup: ["arrived_at_pickup", "unsafe_to_continue", "incident_hold"],
   arrived_at_pickup: [
     "participant_boarded",
     "participant_no_show",
     "unsafe_to_continue",
+    "incident_hold",
   ],
-  participant_boarded: ["en_route_to_dropoff", "unsafe_to_continue"],
-  en_route_to_dropoff: ["arrived_at_dropoff", "unsafe_to_continue"],
+  participant_boarded: ["en_route_to_dropoff", "unsafe_to_continue", "incident_hold"],
+  en_route_to_dropoff: ["arrived_at_dropoff", "unsafe_to_continue", "incident_hold"],
   arrived_at_dropoff: [
     "handover_completed",
     "handover_failed",
     "unsafe_to_continue",
+    "incident_hold",
   ],
   handover_completed: ["trip_completed"],
   trip_completed: ["evidence_submitted", "participant_review"],
   evidence_submitted: ["participant_review", "closed"],
-  participant_review: ["closed", "disputed"],
-  disputed: ["service_recovery_required", "closed"],
+  participant_review: ["closed", "disputed", "settled"],
+  disputed: ["service_recovery_required", "closed", "incident_hold"],
+  incident_hold: ["service_recovery_required", "disputed", "cancelled"],
+  settled: [],
   service_recovery_required: ["dispatch_pending", "closed", "cancelled"],
   handover_failed: ["service_recovery_required", "disputed"],
-  unsafe_to_continue: ["service_recovery_required", "cancelled"],
+  unsafe_to_continue: ["service_recovery_required", "cancelled", "incident_hold"],
   driver_no_show: ["service_recovery_required", "cancelled"],
   participant_no_show: ["cancelled", "service_recovery_required"],
 };
@@ -67,4 +82,12 @@ export const AV_TERMINAL_TRIP_STATUSES: TransportTripStatus[] = [
   "closed",
   "cancelled",
   "declined",
+  "settled",
+];
+
+/** Statuses that must put billing on hold. */
+export const AV_BILLING_HOLD_STATUSES: TransportTripStatus[] = [
+  "disputed",
+  "incident_hold",
+  "unsafe_to_continue",
 ];

@@ -18,6 +18,8 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:transport": "vitest run tests/transport-production-claims.test.ts tests/transport-mvp-core.test.ts tests/transport-scheduling-routing.test.ts",
+    "seed:transport-pilot": "tsx scripts/seed-transport-pilot.ts",
     "setup:cloud-agent": "bash scripts/setup-cloud-agent.sh",
     "mcp:av": "tsx mcp/av/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",

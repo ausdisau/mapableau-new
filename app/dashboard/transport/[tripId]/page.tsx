@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
+import { TransportQuoteOptions } from "@/components/transport/TransportQuoteOptions";
 import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
 import { TransportTripActions } from "@/components/transport/TransportTripActions";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
@@ -77,6 +78,12 @@ export default async function TransportTripDetailPage({
           <h1 className="font-heading text-2xl font-bold">Transport trip</h1>
           <TransportTripStatusBadge status={trip.status} />
         </header>
+
+        {["requested", "quoting", "quote_available", "draft"].includes(
+          trip.status
+        ) ? (
+          <TransportQuoteOptions tripId={trip.id} />
+        ) : null}
 
         <section className="space-y-2 rounded-xl border border-border bg-card p-4">
           <h2 className="font-semibold">Schedule</h2>

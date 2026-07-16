@@ -212,3 +212,106 @@ export async function listPendingRescheduleRequests(coordinatorId?: string) {
     take: 50,
   });
 }
+
+/**
+ * Preferred Care+Transport path: creates a TransportTrip draft after explicit
+ * participant confirmation. Does not auto-assign operators or cancel care.
+ */
+export async function createLinkedTransportTripFromCareRequest(params: {
+  careRequestId: string;
+  actorUserId: string;
+  /** Must be true — silent auto-booking is forbidden. */
+  explicitParticipantConfirmation: boolean;
+  outbound?: boolean;
+  returnTrip?: boolean;
+}) {
+  if (!params.explicitParticipantConfirmation) {
+    throw new Error("PARTICIPANT_CONFIRMATION_REQUIRED");
+  }
+  if (!phase3Config.orchestrationEnabled) {
+    return { skipped: true, reason: "Orchestration disabled" };
+  }
+
+  const key = `care-transport-trip-${params.careRequestId}`;
+  const existing = await prisma.orchestrationEvent.findUnique({
+    where: { idempotencyKey: key },
+  });
+  if (existing?.metadata && typeof existing.metadata === "object") {
+    const meta = existing.metadata as { transportTripId?: string };
+    if (meta.transportTripId) {
+      return { duplicate: true, transportTripId: meta.transportTripId };
+    }
+  }
+
+  const request = await prisma.careRequest.findUnique({
+    where: { id: params.careRequestId },
+    include: {
+      participant: { include: { participantProfile: true } },
+    },
+  });
+  if (!request) throw new Error("CARE_REQUEST_NOT_FOUND");
+
+  await requireMicroConsent({
+    action: "orchestration.share_transport",
+    subjectUserId: request.participantId,
+    actorUserId: params.actorUserId,
+  });
+
+  const shiftStart = request.preferredDate ?? new Date();
+  const pickupStart = new Date(
+    shiftStart.getTime() - CARE_TRANSPORT_PICKUP_BUFFER_MINUTES * 60 * 1000
+  );
+  const homeAddress =
+    request.participant.participantProfile?.homeSuburb ??
+    request.address ??
+    "Address to be confirmed";
+  const careAddress = request.address ?? homeAddress;
+
+  const tripRequest = await prisma.transportTripRequest.create({
+    data: {
+      participantId: request.participantId,
+      pickupAddress: homeAddress,
+      pickupSuburb: request.participant.participantProfile?.homeSuburb ?? null,
+      dropoffAddress: careAddress,
+      scheduledStart: pickupStart,
+      accessNotes: `Linked to care request ${request.id} (participant-confirmed)`,
+      mobilityRequirements: {},
+      status: "open",
+    },
+  });
+
+  const trip = await prisma.transportTrip.create({
+    data: {
+      tripRequestId: tripRequest.id,
+      participantId: request.participantId,
+      status: "draft",
+      pickupAddress: homeAddress,
+      dropoffAddress: careAddress,
+      scheduledStart: pickupStart,
+      accessNotes: `Linked to care request ${request.id}`,
+      mobilityRequirements: {},
+      fundingContext: {
+        label: "Funding eligibility not verified",
+        linkedCareRequestId: request.id,
+        requiresQuoteAcceptance: true,
+      },
+    },
+  });
+
+  await prisma.orchestrationEvent.create({
+    data: {
+      eventType: "care_transport_trip_link_created",
+      careRequestId: params.careRequestId,
+      idempotencyKey: key,
+      createdById: params.actorUserId,
+      metadata: {
+        transportTripId: trip.id,
+        explicitParticipantConfirmation: true,
+        outbound: params.outbound ?? true,
+        returnTrip: params.returnTrip ?? false,
+      },
+    },
+  });
+
+  return { transportTrip: trip };
+}

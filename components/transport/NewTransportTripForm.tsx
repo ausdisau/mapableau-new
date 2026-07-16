@@ -79,7 +79,7 @@ export function NewTransportTripForm() {
         }
         const tripId = data.trip?.id;
         if (tripId) {
-          router.push(`/dashboard/transport/${tripId}`);
+          router.push(`/dashboard/transport/${tripId}?quotes=1`);
         } else {
           router.push("/dashboard/transport");
         }

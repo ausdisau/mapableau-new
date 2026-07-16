@@ -1,7 +1,11 @@
 import type { TransportTripStatus } from "@prisma/client";
 
 export const TRANSPORT_TRIP_STATUS_LABELS: Record<TransportTripStatus, string> = {
+  draft: "Draft",
   requested: "Requested",
+  quoting: "Getting quotes",
+  quote_available: "Quotes available",
+  participant_confirmed: "Quote accepted",
   provider_review: "Awaiting provider review",
   accepted: "Accepted by provider",
   dispatch_pending: "Awaiting dispatch",
@@ -25,7 +29,9 @@ export const TRANSPORT_TRIP_STATUS_LABELS: Record<TransportTripStatus, string> =
   handover_failed: "Handover failed",
   unsafe_to_continue: "Stopped for safety",
   disputed: "Disputed",
+  incident_hold: "On incident hold",
   service_recovery_required: "Service recovery required",
+  settled: "Settled",
 };
 
 export function transportTripStatusLabel(status: TransportTripStatus | string) {

@@ -5,15 +5,13 @@ import {
   assertProviderOrgTrip,
   getActiveAssignment,
 } from "@/lib/transport/transport-access-policy";
-import {
-  assertDriverEligible,
-  assertVehicleEligible,
-} from "@/lib/transport/transport-eligibility-service";
+import { evaluateAssignmentEligibility } from "@/lib/transport/transport-eligibility-service";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
 import { assertNoScheduleConflict } from "@/lib/transport/transport-schedule-conflict-service";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { buildTripResponse } from "@/lib/transport/transport-response";
+import type { Prisma } from "@prisma/client";
 
 function tripEnd(trip: { scheduledStart: Date; scheduledEnd: Date | null }) {
   return trip.scheduledEnd ?? new Date(trip.scheduledStart.getTime() + 3600000);
@@ -43,8 +41,22 @@ export async function assignDriverAndVehicle(
   }
 
   const mobility = (trip.mobilityRequirements as Record<string, unknown>) ?? {};
-  await assertDriverEligible(driverId, mobility);
-  await assertVehicleEligible(vehicleId, mobility);
+
+  // Fail-closed: eligibility must pass; snapshot is immutable on the assignment
+  const eligibility = await evaluateAssignmentEligibility({
+    driverId,
+    vehicleId,
+    organisationId: orgId,
+    mobilityRequirements: mobility,
+    tripId,
+  });
+  if (!eligibility.eligible) {
+    throw new TransportApiError(
+      "TRANSPORT_DRIVER_NOT_ELIGIBLE",
+      undefined,
+      eligibility
+    );
+  }
 
   const end = tripEnd(trip);
   await assertNoScheduleConflict({
@@ -57,7 +69,7 @@ export async function assignDriverAndVehicle(
 
   await prisma.transportDispatchAssignment.updateMany({
     where: { tripId, active: true },
-    data: { active: false, unassignedAt: new Date() },
+    data: { active: false, unassignedAt: new Date(), revokedAt: new Date() },
   });
 
   await prisma.transportDispatchAssignment.create({
@@ -67,6 +79,7 @@ export async function assignDriverAndVehicle(
       driverId,
       vehicleId,
       assignedByUserId: user.id,
+      eligibilitySnapshot: eligibility as unknown as Prisma.InputJsonValue,
       active: true,
     },
   });
@@ -83,7 +96,12 @@ export async function assignDriverAndVehicle(
     eventType: "assigned",
     fromStatus: trip.status,
     toStatus: "driver_vehicle_assigned",
-    metadata: { driverId, vehicleId },
+    metadata: {
+      driverId,
+      vehicleId,
+      eligibilityCheckedAt: eligibility.checkedAt,
+      reasonCodes: eligibility.reasonCodes,
+    },
     organisationId: orgId,
     participantId: trip.participantId,
   });

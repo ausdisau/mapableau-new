@@ -62,13 +62,14 @@ const STATIC_CLAIMS: ClaimDefinition[] = [
     id: "access_profile",
     title: "Transport Access Profile",
     summary: "Dedicated access profile without diagnosis fields.",
-    state: "planned",
+    state: "pilot",
   },
   {
     id: "quote_flow",
     title: "Provider quotes",
     summary: "Multi-quote request flow with explicit participant acceptance.",
-    state: "planned",
+    state: "sandbox",
+    notes: "Sandbox fixtures labelled; partner quotes remain partner_required until configured.",
   },
   {
     id: "driver_vehicle_eligibility",

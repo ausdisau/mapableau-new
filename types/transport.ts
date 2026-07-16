@@ -3,7 +3,11 @@ import type { TransportTripStatus } from "@prisma/client";
 export type { TransportTripStatus };
 
 export const TRANSPORT_TRIP_STATUSES = [
+  "draft",
   "requested",
+  "quoting",
+  "quote_available",
+  "participant_confirmed",
   "provider_review",
   "accepted",
   "dispatch_pending",
@@ -27,7 +31,9 @@ export const TRANSPORT_TRIP_STATUSES = [
   "handover_failed",
   "unsafe_to_continue",
   "disputed",
+  "incident_hold",
   "service_recovery_required",
+  "settled",
 ] as const satisfies readonly TransportTripStatus[];
 
 export type TransportAddressView = {
@@ -76,6 +82,8 @@ export type TransportTripDetail = TransportTripListItem & {
   participantId: string;
   mobilityRequirements: Record<string, unknown>;
   disputeReason: string | null;
+  billingHold?: boolean;
+  fundingContext?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -115,3 +123,19 @@ export type TransportErrorCode =
   | "TRANSPORT_ROUTE_NOT_FOUND"
   | "TRANSPORT_OPTIMISATION_FAILED"
   | "TRANSPORT_VALIDATION_FAILED";
+
+export type TransportFundingLabel =
+  | "Funding eligibility not verified"
+  | "Potentially claimable"
+  | "Provider validation required"
+  | "Private pay";
+
+export type TransportEligibilitySnapshot = {
+  eligible: boolean;
+  reasons: string[];
+  reasonCodes: string[];
+  checkedAt: string;
+  dataFreshness: string;
+  driverId?: string | null;
+  vehicleId?: string | null;
+};

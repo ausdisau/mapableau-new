@@ -1,0 +1,61 @@
+name: Transport CI
+
+on:
+  push:
+    paths:
+      - "app/transport/**"
+      - "app/dashboard/transport/**"
+      - "app/api/transport/**"
+      - "app/api/provider/transport/**"
+      - "app/api/driver/transport/**"
+      - "components/transport/**"
+      - "lib/transport/**"
+      - "lib/transport-routing/**"
+      - "lib/av-framework/trip-transitions.ts"
+      - "lib/validation/transport*"
+      - "types/transport*"
+      - "tests/transport*"
+      - "prisma/schema.prisma"
+      - "prisma/migrations/**transport**"
+      - ".github/workflows/transport-ci.yml"
+  pull_request:
+    paths:
+      - "app/transport/**"
+      - "app/dashboard/transport/**"
+      - "app/api/transport/**"
+      - "app/api/provider/transport/**"
+      - "app/api/driver/transport/**"
+      - "components/transport/**"
+      - "lib/transport/**"
+      - "lib/transport-routing/**"
+      - "lib/av-framework/trip-transitions.ts"
+      - "lib/validation/transport*"
+      - "types/transport*"
+      - "tests/transport*"
+      - "prisma/schema.prisma"
+      - "prisma/migrations/**transport**"
+      - ".github/workflows/transport-ci.yml"
+
+jobs:
+  transport:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/mapable
+          DIRECT_URL: postgresql://user:pass@localhost:5432/mapable
+        run: pnpm exec prisma generate
+      - name: Type check
+        run: pnpm type-check
+      - name: Transport unit tests
+        run: pnpm exec vitest run tests/transport-production-claims.test.ts tests/transport-mvp-core.test.ts tests/transport-scheduling-routing.test.ts
