@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
+import { PublicTransportPanel } from "@/components/transport/PublicTransportPanel";
 import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
+import { TransportTrafficAdvisory } from "@/components/transport/TransportTrafficAdvisory";
 import { TransportTripActions } from "@/components/transport/TransportTripActions";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
 import { MOBILITY_FIELD_LABELS } from "@/lib/transport/mobility-schema";
@@ -51,6 +53,7 @@ export default async function TransportTripDetailPage({
       handoverStatus,
       assignedVehicle,
       linkedBookingId,
+      trafficAdvisory,
     } = response;
     const when = new Date(trip.scheduledStart).toLocaleString("en-AU", {
       dateStyle: "full",
@@ -171,6 +174,20 @@ export default async function TransportTripDetailPage({
         ) : null}
 
         {routeEstimate ? <TransportRouteAdvisory routeEstimate={routeEstimate} /> : null}
+
+        {trafficAdvisory ? (
+          <TransportTrafficAdvisory advisory={trafficAdvisory} />
+        ) : null}
+
+        <PublicTransportPanel
+          pickupLat={trip.pickup.lat}
+          pickupLng={trip.pickup.lng}
+          dropoffLat={trip.dropoff.lat}
+          dropoffLng={trip.dropoff.lng}
+          wheelchairPreferred={
+            trip.mobilityRequirements.requiresWheelchairAccessible === true
+          }
+        />
 
         <TransportTripActions
           tripId={trip.id}

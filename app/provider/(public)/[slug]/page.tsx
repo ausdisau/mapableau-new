@@ -9,6 +9,7 @@ import ProviderReviews from "@/components/provider/ProviderReviews";
 import ProviderServices from "@/components/provider/ProviderServices";
 import ProviderSidebar from "@/components/provider/ProviderSidebar";
 import ProviderWorkers from "@/components/provider/ProviderWorkers";
+import { ProviderWedgeSections } from "@/components/wedges/ProviderWedgeSections";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +70,7 @@ export default async function ProviderPage({
       <ProviderWorkers provider={provider} />
       <ProviderGallery provider={provider} />
       <ProviderLocationMapClient provider={provider} />
+      <ProviderWedgeSections providerId={provider.id} providerName={provider.name} />
       <ProviderReviews provider={provider} />
     </ProviderLayout>
   );

@@ -47,3 +47,70 @@ export const tpCoordSchema = z.object({
   lng: z.number().min(-180).max(180),
   radiusMetres: z.number().int().min(50).max(5000).optional(),
 });
+
+export const tpTripPlanSchema = z
+  .object({
+    originStopId: z.string().min(1).optional(),
+    destinationStopId: z.string().min(1).optional(),
+    origin: latLngSchema.optional(),
+    destination: latLngSchema.optional(),
+    depArrMacro: z.enum(["dep", "arr"]).optional(),
+    itdDate: z.string().regex(/^\d{8}$/).optional(),
+    itdTime: z.string().regex(/^\d{4}$/).optional(),
+    maxTrips: z.number().int().min(1).max(6).optional(),
+    wheelchair: z.boolean().optional(),
+  })
+  .refine(
+    (v) =>
+      (v.originStopId && v.destinationStopId) ||
+      (v.origin && v.destination),
+    { message: "Provide stop IDs or origin/destination coordinates" }
+  );
+
+export const ptJurisdictionSchema = z
+  .enum(["NSW", "VIC", "QLD", "ACT", "SA", "WA", "TAS", "NT"])
+  .optional();
+
+export const ptCapabilitiesQuerySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  jurisdiction: ptJurisdictionSchema,
+});
+
+export const ptStopSearchSchema = z.object({
+  query: z.string().min(1).max(200),
+  maxResults: z.coerce.number().int().min(1).max(50).optional(),
+  jurisdiction: ptJurisdictionSchema,
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+});
+
+export const ptCoordSchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radiusMetres: z.coerce.number().int().min(50).max(5000).optional(),
+  maxResults: z.coerce.number().int().min(1).max(50).optional(),
+  jurisdiction: ptJurisdictionSchema,
+});
+
+export const ptDeparturesSchema = z.object({
+  stopId: z.string().min(1),
+  routeType: z.coerce.number().int().min(0).max(4).optional(),
+  maxResults: z.coerce.number().int().min(1).max(50).optional(),
+  itdDate: z.string().regex(/^\d{8}$/).optional(),
+  itdTime: z.string().regex(/^\d{4}$/).optional(),
+  platformId: z.string().optional(),
+  jurisdiction: ptJurisdictionSchema,
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+});
+
+export const ptDisruptionsSchema = z.object({
+  jurisdiction: ptJurisdictionSchema,
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+});
+
+export const ptTripPlanQuerySchema = tpTripPlanSchema.extend({
+  jurisdiction: ptJurisdictionSchema,
+});
