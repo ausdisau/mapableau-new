@@ -1,11 +1,11 @@
 "use client";
 
+import React from "react";
 import { Bookmark, Loader2, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
 import { ProviderFinderAskPanel } from "@/components/provider-finder/ProviderFinderAskPanel";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
@@ -19,6 +19,7 @@ import {
   type UserPosition,
 } from "@/lib/geo";
 import { trackProductEvent } from "@/lib/analytics/product-analytics";
+import { useProactiveChipSuggestions } from "@/lib/hooks/use-proactive-chip-suggestions";
 import {
   ACCESS_NEEDS,
   SUPPORT_TYPES,
@@ -28,7 +29,6 @@ import {
   applyInterpretationToFields,
   buildFinderSearchParams,
 } from "@/lib/search/apply-interpretation";
-import { interpretSearchQueryClient } from "@/lib/search/interpreter-client";
 import { getProviderFinderMapSourceClient } from "@/lib/config/provider-finder-map";
 import {
   supportAreaLandingRoutes,
@@ -94,6 +94,26 @@ function providerHaystack(provider: Provider) {
     .toLowerCase();
 }
 
+function hasAppliedSearchCriteria(fields: {
+  query: string;
+  location: string;
+  providerName: string;
+  serviceQuery: string;
+  accessQuery: string;
+  supportType: SupportTypeId;
+  accessNeeds: string[];
+}) {
+  return Boolean(
+    fields.query.trim() ||
+      fields.location.trim() ||
+      fields.providerName.trim() ||
+      fields.serviceQuery.trim() ||
+      fields.accessQuery.trim() ||
+      fields.supportType !== "all" ||
+      fields.accessNeeds.length > 0,
+  );
+}
+
 export default function ProviderFinderClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -102,6 +122,8 @@ export default function ProviderFinderClient() {
     () => (outlets ? mapOutletsToProviders(outlets) : []),
     [outlets],
   );
+  const { suggestions: starterPrompts } =
+    useProactiveChipSuggestions("provider_finder");
 
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
@@ -113,21 +135,42 @@ export default function ProviderFinderClient() {
   const [funding, setFunding] = useState<"all" | "ndis" | "private">("all");
   const [sort, setSort] = useState<SortMode>("relevance");
   const [page, setPage] = useState(1);
-  const [searchSubmitted, setSearchSubmitted] = useState(false);
   const [userLocation, setUserLocation] = useState<UserPosition | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [interpretNote, setInterpretNote] = useState<string | null>(null);
-  const [searchInterpreting, setSearchInterpreting] = useState(false);
   const [ndisMapPins, setNdisMapPins] = useState<MapLibreProvider[] | null>(
     null,
   );
   const [mapPinsLoading, setMapPinsLoading] = useState(false);
+  const [askInitialMessage, setAskInitialMessage] = useState<string | undefined>();
 
+  const guidedSessionId = searchParams.get("sessionId");
   const mapSource = getProviderFinderMapSourceClient();
   const pageSize = 12;
+
+  const hasSearchCriteria = hasAppliedSearchCriteria({
+    query,
+    location,
+    providerName,
+    serviceQuery,
+    accessQuery,
+    supportType,
+    accessNeeds,
+  });
+
+  const dialogueSession = useMemo(
+    () => ({
+      query,
+      location,
+      providerName,
+      serviceQuery,
+      accessQuery,
+    }),
+    [query, location, providerName, serviceQuery, accessQuery],
+  );
 
   useEffect(() => {
     const area = searchParams.get("area");
@@ -152,40 +195,65 @@ export default function ProviderFinderClient() {
     const areaSupportType = supportAreaToSupportTypeId(area);
     if (areaSupportType && !support) {
       setSupportType(areaSupportType);
-      setSearchSubmitted(true);
     }
 
-    if (q) {
-      setQuery(q);
-      setSearchSubmitted(true);
-    }
-    if (loc) {
-      setLocation(loc);
-      setSearchSubmitted(true);
-    }
-    if (access) {
-      setAccessQuery(access);
-      setSearchSubmitted(true);
-    }
-    if (service) {
-      setServiceQuery(service);
-      setSearchSubmitted(true);
-    }
+    if (q) setQuery(q);
+    if (loc) setLocation(loc);
+    if (access) setAccessQuery(access);
+    if (service) setServiceQuery(service);
     if (provider) {
-      setProviderName(provider.replace(/-/g, " "));
-      if (q || loc || access || service || support || accessNeedsParam) {
-        setSearchSubmitted(true);
-      }
+      const name = provider.replace(/-/g, " ");
+      setProviderName(name);
+      setAskInitialMessage(`Tell me about ${name}`);
     }
-    if (support) {
-      setSupportType(support as SupportTypeId);
-      setSearchSubmitted(true);
-    }
+    if (support) setSupportType(support as SupportTypeId);
     if (accessNeedsParam) {
       setAccessNeeds(accessNeedsParam.split(",").filter(Boolean));
-      setSearchSubmitted(true);
     }
   }, [router, searchParams]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#ask-panel") return;
+    requestAnimationFrame(() => {
+      document.getElementById("ask-panel")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [searchParams]);
+
+  const syncUrlFromFields = useCallback(() => {
+    const params = buildFinderSearchParams({
+      query,
+      location,
+      providerName,
+      serviceQuery,
+      accessQuery,
+      supportType: supportType !== "all" ? supportType : null,
+      accessNeedIds: accessNeeds,
+    });
+    if (guidedSessionId) {
+      params.set("sessionId", guidedSessionId);
+    }
+    const qs = params.toString();
+    if (typeof window !== "undefined") {
+      window.history.replaceState(
+        null,
+        "",
+        qs ? `/provider-finder?${qs}` : "/provider-finder",
+      );
+    }
+  }, [
+    accessNeeds,
+    accessQuery,
+    guidedSessionId,
+    location,
+    providerName,
+    query,
+    serviceQuery,
+    supportType,
+  ]);
 
   const useMyLocation = async () => {
     setLocationLoading(true);
@@ -195,7 +263,7 @@ export default function ProviderFinderClient() {
       setUserLocation(position);
       setLocation(postcode);
       setPage(1);
-      setSearchSubmitted(true);
+      syncUrlFromFields();
     } catch (e) {
       setLocationError(
         e instanceof Error ? e.message : "Could not get your location",
@@ -274,17 +342,6 @@ export default function ProviderFinderClient() {
     supportType,
   ]);
 
-  const handleAccessSuggestionSelect = (label: string) => {
-    const match = ACCESS_NEEDS.find(
-      (n) =>
-        n.label.toLowerCase() === label.toLowerCase() ||
-        n.keywords.some((kw) => label.toLowerCase().includes(kw)),
-    );
-    if (match && !accessNeeds.includes(match.id)) {
-      setAccessNeeds((prev) => [...prev, match.id]);
-    }
-  };
-
   const total = filteredSorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -324,7 +381,7 @@ export default function ProviderFinderClient() {
 
   useEffect(() => {
     if (
-      !searchSubmitted ||
+      !hasSearchCriteria ||
       mapSource === "outlets" ||
       (!query.trim() &&
         !location.trim() &&
@@ -357,7 +414,7 @@ export default function ProviderFinderClient() {
       cancelled = true;
     };
   }, [
-    searchSubmitted,
+    hasSearchCriteria,
     mapSource,
     query,
     location,
@@ -367,7 +424,7 @@ export default function ProviderFinderClient() {
 
   const mapPinProviders = useMemo((): MapLibreProvider[] => {
     const useNdisPins =
-      searchSubmitted &&
+      hasSearchCriteria &&
       (mapSource === "ndis" || mapSource === "hybrid") &&
       ndisMapPins &&
       ndisMapPins.length > 0;
@@ -390,7 +447,7 @@ export default function ProviderFinderClient() {
 
     return list.slice(0, MAP_PIN_LIMIT);
   }, [
-    searchSubmitted,
+    hasSearchCriteria,
     mapSource,
     ndisMapPins,
     outletMapPins,
@@ -433,7 +490,11 @@ export default function ProviderFinderClient() {
     } else {
       setInterpretNote(null);
     }
+    setPage(1);
     const params = buildFinderSearchParams(applied);
+    if (guidedSessionId) {
+      params.set("sessionId", guidedSessionId);
+    }
     if (typeof window !== "undefined" && params.toString()) {
       window.history.replaceState(
         null,
@@ -443,57 +504,27 @@ export default function ProviderFinderClient() {
     }
   };
 
-  const handleSearch = async () => {
-    setSearchInterpreting(true);
-    setInterpretNote(null);
-    try {
-      const combined =
-        query.trim() ||
-        [
-          serviceQuery,
-          accessQuery,
-          location,
-          providerName,
-        ]
-          .filter(Boolean)
-          .join(" ");
-
-      if (combined.trim().length >= 3) {
-        const interpretation = await interpretSearchQueryClient(
-          combined,
-          "provider_finder",
-        );
-        const applied = applyInterpretationToFields(interpretation, {
-          query,
-          location,
-          providerName,
-          serviceQuery,
-          accessQuery,
-        });
-
-        applyInterpretationFields(applied, interpretation);
-
-        trackProductEvent("search_query_interpreted", {
-          context: "provider_finder",
-          parsed: interpretation.parsed,
-          confidence: interpretation.confidence,
-          service_category_slug: interpretation.serviceCategorySlug ?? "",
-          engine_id: interpretation.engineId,
-        });
-      }
-    } finally {
-      setSearchInterpreting(false);
-    }
-
-    setSearchSubmitted(true);
+  const handleShowResults = useCallback(() => {
     setPage(1);
-  };
+    requestAnimationFrame(() => {
+      document.getElementById("provider-finder-results")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, []);
 
-  const handleSuggestion = (suggestion: string) => {
-    setQuery(suggestion);
-    setSearchSubmitted(true);
+  const handleAskAboutProvider = useCallback((provider: Provider) => {
+    setProviderName(provider.name);
+    setAskInitialMessage(`Tell me about ${provider.name}`);
     setPage(1);
-  };
+    requestAnimationFrame(() => {
+      document.getElementById("ask-panel")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, []);
 
   const toggleCompare = (provider: Provider) => {
     setCompareIds((prev) =>
@@ -530,244 +561,225 @@ export default function ProviderFinderClient() {
 
   return (
     <>
-      <ProviderFinderHero
-        query={query}
-        location={location}
-        providerName={providerName}
-        serviceQuery={serviceQuery}
-        accessQuery={accessQuery}
-        onQueryChange={setQuery}
-        onLocationChange={setLocation}
-        onProviderNameChange={setProviderName}
-        onServiceQueryChange={setServiceQuery}
-        onAccessQueryChange={setAccessQuery}
-        onSearch={() => void handleSearch()}
-        onSuggestionClick={handleSuggestion}
-        onAccessSuggestionSelect={handleAccessSuggestionSelect}
-        isSubmitting={searchInterpreting}
-        compact={searchSubmitted}
-      />
+      <ProviderFinderHero />
       {interpretNote ? (
-        <div className="container mx-auto max-w-5xl px-4 -mt-4 pb-2">
+        <div className="container mx-auto max-w-7xl px-4 pb-2 pt-2">
           <p className="text-xs text-muted-foreground" role="status">
             {interpretNote}
           </p>
         </div>
       ) : null}
 
-      {!searchSubmitted ? (
-        <div className="container mx-auto max-w-7xl px-4 pb-8">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ProviderFinderAskPanel
-              className="min-h-[22rem]"
-              initialProviderName={providerName || undefined}
-              session={{
-                query,
-                location,
-                providerName,
-                serviceQuery,
-                accessQuery,
-              }}
-              onInterpretation={({ interpretation, applied }) => {
-                applyInterpretationFields(applied, interpretation);
-                trackProductEvent("search_query_interpreted", {
-                  context: "provider_finder_ask",
-                  parsed: interpretation.parsed,
-                  confidence: interpretation.confidence,
-                  service_category_slug:
-                    interpretation.serviceCategorySlug ?? "",
-                  engine_id: interpretation.engineId,
-                });
-              }}
-              onShowResults={() => {
-                setSearchSubmitted(true);
-                setPage(1);
-              }}
-            />
-            <div className="hidden lg:block">
-              <p className="text-sm text-muted-foreground">
-                Prefer the form above? Use the hero search fields, or Ask
-                MapAble here to describe support, transport, therapy, or access
-                needs in one message.
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(320px,2fr)_minmax(0,3fr)] lg:items-start">
+          <ProviderFinderAskPanel
+            className="sticky top-4 min-h-[28rem] lg:max-h-[calc(100vh-6rem)]"
+            session={dialogueSession}
+            guidedSessionId={guidedSessionId}
+            starterPrompts={[...starterPrompts]}
+            initialProviderName={providerName || undefined}
+            initialMessage={askInitialMessage}
+            onInterpretation={({ interpretation, applied }) => {
+              applyInterpretationFields(applied, interpretation);
+              trackProductEvent("search_query_interpreted", {
+                context: "provider_finder_ask",
+                parsed: interpretation.parsed,
+                confidence: interpretation.confidence,
+                service_category_slug:
+                  interpretation.serviceCategorySlug ?? "",
+                engine_id: interpretation.engineId,
+              });
+            }}
+            onShowResults={handleShowResults}
+          />
 
-      {!searchSubmitted ? <MapAbleCareCombinedSections /> : null}
-
-      {searchSubmitted ? (
-        <div
-          id="provider-finder-results"
-          className="container mx-auto max-w-7xl px-4 py-8"
-        >
-          <div className="flex flex-col gap-8 lg:flex-row">
-            <div className="lg:w-56 xl:w-64">
-              <ProviderFinderSidebar
-                supportType={supportType}
-                onSupportTypeChange={(id) => {
-                  setSupportType(id);
-                  setPage(1);
-                }}
-                accessNeeds={accessNeeds}
-                onAccessNeedsChange={(ids) => {
-                  setAccessNeeds(ids);
-                  setPage(1);
-                }}
-                funding={funding}
-                onFundingChange={(id) => {
-                  setFunding(id);
-                  setPage(1);
-                }}
-              />
-            </div>
-
-            <div className="min-w-0 flex-1 space-y-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="font-heading text-2xl font-bold">
-                    {total} matched provider{total === 1 ? "" : "s"}
-                  </h2>
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-                    Showing results near {locationLabel}.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={useMyLocation}
-                    disabled={locationLoading}
-                  >
-                    {locationLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    ) : (
-                      <MapPin className="h-4 w-4" aria-hidden />
-                    )}
-                    Use my location
-                  </Button>
-                  <label className="sr-only" htmlFor="provider-sort">
-                    Sort results
-                  </label>
-                  <select
-                    id="provider-sort"
-                    value={sort}
-                    onChange={(e) => setSort(e.target.value as SortMode)}
-                    className="min-h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="relevance">Relevance</option>
-                    <option value="distance">Distance</option>
-                    <option value="rating">Rating</option>
-                  </select>
-                </div>
-              </div>
-
-              {locationError ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {locationError}
+          <div
+            id="provider-finder-results"
+            className="min-w-0 scroll-mt-24"
+          >
+            {!hasSearchCriteria ? (
+              <Card variant="outlined" className="flex min-h-[20rem] flex-col items-center justify-center p-8 text-center">
+                <h2 className="font-heading text-xl font-semibold">
+                  Your results will appear here
+                </h2>
+                <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                  Describe what you need in chat — support type, location, access
+                  needs, or a specific provider — and matching providers will
+                  show on the map and list.
                 </p>
-              ) : null}
-
-              {compareIds.length > 0 ? (
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Bookmark className="h-4 w-4 text-primary" aria-hidden />
-                  {compareIds.length} provider{compareIds.length === 1 ? "" : "s"}{" "}
-                  selected to compare
-                </p>
-              ) : null}
-
-              <section id="map" className="scroll-mt-24">
-                {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
-                  <Card variant="outlined" className="mb-4 p-4">
-                    <p className="text-sm text-muted-foreground">
-                      Set a location or use &quot;Use my location&quot; to see
-                      providers on the map.
-                    </p>
-                  </Card>
-                ) : null}
-                <div className="overflow-hidden rounded-xl border border-border/60 shadow-sm">
-                  {mapPinsLoading ? (
-                    <p className="p-4 text-sm text-muted-foreground">
-                      Loading map pins…
-                    </p>
-                  ) : null}
-                  <MapLibreMap
-                    providers={mapPinProviders}
-                    userPosition={userLocation}
-                    selectedProviderId={selectedProvider?.id ?? null}
-                    onProviderSelect={(id) => {
-                      const fromList = filteredSorted.find((x) => x.id === id);
-                      if (fromList) setSelectedProvider(fromList);
+              </Card>
+            ) : (
+              <div className="flex flex-col gap-8 lg:flex-row">
+                <div className="lg:w-56 xl:w-64">
+                  <ProviderFinderSidebar
+                    supportType={supportType}
+                    onSupportTypeChange={(id) => {
+                      setSupportType(id);
+                      setPage(1);
+                      syncUrlFromFields();
+                    }}
+                    accessNeeds={accessNeeds}
+                    onAccessNeedsChange={(ids) => {
+                      setAccessNeeds(ids);
+                      setPage(1);
+                      syncUrlFromFields();
+                    }}
+                    funding={funding}
+                    onFundingChange={(id) => {
+                      setFunding(id);
+                      setPage(1);
                     }}
                   />
                 </div>
-              </section>
 
-              {total === 0 ? (
-                <Card variant="outlined" className="p-8 text-center">
-                  <h3 className="text-lg font-semibold">No providers found</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Try broadening your search or removing a filter.
-                  </p>
-                </Card>
-              ) : (
-                <ul className="space-y-4">
-                  {visible.map((p) => (
-                    <li key={p.id}>
-                      <ProviderFinderResultCard
-                        provider={p}
-                        isSelected={selectedProvider?.id === p.id}
-                        isCompared={compareIds.includes(p.id)}
-                        onSelect={setSelectedProvider}
-                        onToggleCompare={toggleCompare}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {totalPages > 1 ? (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage <= 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() =>
-                        setPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      disabled={currentPage >= totalPages}
-                    >
-                      Next
-                    </Button>
+                <div className="min-w-0 flex-1 space-y-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h2 className="font-heading text-2xl font-bold">
+                        {total} matched provider{total === 1 ? "" : "s"}
+                      </h2>
+                      <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                        Showing results near {locationLabel}.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void useMyLocation()}
+                        disabled={locationLoading}
+                      >
+                        {locationLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                        ) : (
+                          <MapPin className="h-4 w-4" aria-hidden />
+                        )}
+                        Use my location
+                      </Button>
+                      <label className="sr-only" htmlFor="provider-sort">
+                        Sort results
+                      </label>
+                      <select
+                        id="provider-sort"
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value as SortMode)}
+                        className="min-h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="relevance">Relevance</option>
+                        <option value="distance">Distance</option>
+                        <option value="rating">Rating</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-              ) : null}
-            </div>
 
-            <ProviderFinderAccessLayer
-              providers={filteredSorted}
-              selectedId={selectedProvider?.id}
-              onSelect={setSelectedProvider}
-            />
+                  {locationError ? (
+                    <p className="text-sm text-destructive" role="alert">
+                      {locationError}
+                    </p>
+                  ) : null}
+
+                  {compareIds.length > 0 ? (
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Bookmark className="h-4 w-4 text-primary" aria-hidden />
+                      {compareIds.length} provider{compareIds.length === 1 ? "" : "s"}{" "}
+                      selected to compare
+                    </p>
+                  ) : null}
+
+                  <section id="map" className="scroll-mt-24">
+                    {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
+                      <Card variant="outlined" className="mb-4 p-4">
+                        <p className="text-sm text-muted-foreground">
+                          Set a location or use &quot;Use my location&quot; to see
+                          providers on the map.
+                        </p>
+                      </Card>
+                    ) : null}
+                    <div className="overflow-hidden rounded-xl border border-border/60 shadow-sm">
+                      {mapPinsLoading ? (
+                        <p className="p-4 text-sm text-muted-foreground">
+                          Loading map pins…
+                        </p>
+                      ) : null}
+                      <MapLibreMap
+                        providers={mapPinProviders}
+                        userPosition={userLocation}
+                        selectedProviderId={selectedProvider?.id ?? null}
+                        onProviderSelect={(id) => {
+                          const fromList = filteredSorted.find((x) => x.id === id);
+                          if (fromList) setSelectedProvider(fromList);
+                        }}
+                      />
+                    </div>
+                  </section>
+
+                  {total === 0 ? (
+                    <Card variant="outlined" className="p-8 text-center">
+                      <h3 className="text-lg font-semibold">No providers found</h3>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Try broadening your search or removing a filter.
+                      </p>
+                    </Card>
+                  ) : (
+                    <ul className="space-y-4">
+                      {visible.map((p) => (
+                        <li key={p.id}>
+                          <ProviderFinderResultCard
+                            provider={p}
+                            isSelected={selectedProvider?.id === p.id}
+                            isCompared={compareIds.includes(p.id)}
+                            onSelect={setSelectedProvider}
+                            onToggleCompare={toggleCompare}
+                            onAskAboutProvider={handleAskAboutProvider}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {totalPages > 1 ? (
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="default"
+                          onClick={() => setPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage <= 1}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="default"
+                          onClick={() =>
+                            setPage((p) => Math.min(totalPages, p + 1))
+                          }
+                          disabled={currentPage >= totalPages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <ProviderFinderAccessLayer
+                  providers={filteredSorted}
+                  selectedId={selectedProvider?.id}
+                  onSelect={setSelectedProvider}
+                />
+              </div>
+            )}
           </div>
         </div>
-      ) : null}
+      </div>
     </>
   );
 }

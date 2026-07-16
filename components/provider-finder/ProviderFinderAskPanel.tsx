@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { GuidedSearchDialogue } from "@/components/guided-search/GuidedSearchDialogue";
@@ -15,6 +15,9 @@ type Props = {
   onInterpretation: (data: FinderInterpretationData) => void;
   onShowResults?: () => void;
   initialProviderName?: string;
+  initialMessage?: string;
+  starterPrompts?: string[];
+  guidedSessionId?: string | null;
   className?: string;
 };
 
@@ -24,11 +27,24 @@ export function ProviderFinderAskPanel({
   onInterpretation,
   onShowResults,
   initialProviderName,
+  initialMessage,
+  starterPrompts,
+  guidedSessionId,
   className,
 }: Props) {
   const { status } = useSession();
   const isSignedIn = status === "authenticated";
   const [dialogueSession, setDialogueSession] = useState(session);
+
+  useEffect(() => {
+    setDialogueSession(session);
+  }, [
+    session.query,
+    session.location,
+    session.providerName,
+    session.serviceQuery,
+    session.accessQuery,
+  ]);
 
   const handleInterpretation = useCallback(
     (data: FinderInterpretationData) => {
@@ -62,6 +78,10 @@ export function ProviderFinderAskPanel({
       ) : null}
       <GuidedSearchDialogue
         variant="full"
+        resultsMode="inline"
+        guidedSessionId={guidedSessionId}
+        starterPrompts={starterPrompts}
+        initialMessage={initialMessage}
         session={{
           ...dialogueSession,
           providerName:

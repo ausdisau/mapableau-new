@@ -25,11 +25,13 @@ import { GuidedSearchMessageList } from "./GuidedSearchMessageList";
 import { GuidedSearchSlotProgress } from "./GuidedSearchSlotProgress";
 import {
   applyChoiceToSession,
-  getOrCreateGuidedSearchSessionId,
+  initGuidedSearchSessionId,
   type GuidedSearchSessionFields,
 } from "./types";
 
 export type GuidedSearchDialogueVariant = "compact" | "full";
+
+type ResultsMode = "navigate" | "inline";
 
 type Props = {
   session: GuidedSearchSessionFields;
@@ -42,6 +44,8 @@ type Props = {
   className?: string;
   showHeader?: boolean;
   starterPrompts?: string[];
+  resultsMode?: ResultsMode;
+  guidedSessionId?: string | null;
 };
 
 const DEFAULT_STARTERS = [
@@ -61,6 +65,8 @@ export function GuidedSearchDialogue({
   className,
   showHeader = true,
   starterPrompts = DEFAULT_STARTERS,
+  resultsMode = "navigate",
+  guidedSessionId,
 }: Props) {
   const router = useRouter();
   const listId = useId();
@@ -84,8 +90,8 @@ export function GuidedSearchDialogue({
   }, [session]);
 
   useEffect(() => {
-    sessionIdRef.current = getOrCreateGuidedSearchSessionId();
-  }, []);
+    sessionIdRef.current = initGuidedSearchSessionId(guidedSessionId);
+  }, [guidedSessionId]);
 
   const updateSession = useCallback(
     (next: GuidedSearchSessionFields) => {
@@ -187,8 +193,20 @@ export function GuidedSearchDialogue({
   }
 
   function navigateToResults() {
+    if (resultsMode === "inline") {
+      onShowResults?.();
+      requestAnimationFrame(() => {
+        document
+          .getElementById("provider-finder-results")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return;
+    }
     if (applied) {
       const params = buildFinderSearchParams(applied);
+      if (sessionIdRef.current) {
+        params.set("sessionId", sessionIdRef.current);
+      }
       const qs = params.toString();
       router.push(qs ? `/provider-finder?${qs}` : "/provider-finder");
     }
@@ -327,7 +345,9 @@ export function GuidedSearchDialogue({
             disabled={isBusy}
             onClick={navigateToResults}
           >
-            Show matching providers
+            {resultsMode === "inline"
+              ? "View results"
+              : "Show matching providers"}
           </Button>
         </div>
       ) : null}
