@@ -4,8 +4,12 @@ import type {
 } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { portalExportAdapter } from "@/lib/ndis/claiming/adapters/PortalExportAdapter";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import type { CurrentUser } from "@/lib/auth/current-user";
+import { isAdminRole } from "@/lib/auth/roles";
+import { decryptNdisNumber, maskNdisNumber } from "@/lib/crypto/ndis";
 import { persistPlanManagerInvoices } from "@/lib/ndis/claiming/adapters/PlanManagerInvoiceAdapter";
+import { portalExportAdapter } from "@/lib/ndis/claiming/adapters/PortalExportAdapter";
 import { persistSelfManagedInvoices } from "@/lib/ndis/claiming/adapters/SelfManagedInvoiceAdapter";
 import { createClaimBatch, validateClaimBatch } from "@/lib/ndis/claiming/batchBuilder";
 import {
@@ -23,11 +27,10 @@ import {
   validateClaimLineInput,
   validationResultToStatus,
 } from "@/lib/ndis/claiming/validation";
-import { decryptNdisNumber, maskNdisNumber } from "@/lib/crypto/ndis";
+import { createClaimSnapshot } from "@/lib/ndis-gateway/security/claim-snapshot-service";
+import { sanitiseAuditJson } from "@/lib/ndis-gateway/security/log-sanitiser";
+import type { ExternalClaimPayload } from "@/lib/ndis-gateway/security/sensitive-payload";
 import { prisma } from "@/lib/prisma";
-import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
-import { isAdminRole } from "@/lib/auth/roles";
-import type { CurrentUser } from "@/lib/auth/current-user";
 
 export async function assertOrgAccess(user: CurrentUser, organisationId: string) {
   if (isAdminRole(user.primaryRole)) return;
@@ -88,23 +91,27 @@ export async function createClaimLineFromBooking(params: {
   const ndisRaw = profile?.ndisParticipantNumberEnc
     ? decryptNdisNumber(profile.ndisParticipantNumberEnc)
     : null;
+  const ndisMasked = ndisRaw ? maskNdisNumber(ndisRaw) : null;
 
-  const evidenceJson: Record<string, unknown> = {
+  const evidenceJson: Record<string, unknown> = sanitiseAuditJson({
     deliveryRecorded: true,
     shiftIds: booking.careShifts.map((s) => s.id),
     bookingId: booking.id,
     bookingStatus: booking.status,
     ...params.evidenceJson,
-  };
-  if (params.participantConfirmationException) {
-    evidenceJson.participantConfirmationException =
-      params.participantConfirmationException;
-  }
+    ...(params.participantConfirmationException
+      ? {
+          participantConfirmationException:
+            params.participantConfirmationException,
+        }
+      : {}),
+  })!;
 
   const input: ClaimLineInput = {
     participantId: booking.participantId,
     providerOrgId: params.providerOrgId,
     bookingId: booking.id,
+    // Validation may use the raw number in-memory only; never persist it.
     ndisParticipantNumber: ndisRaw,
     participantName: booking.participant.name,
     supportItemCode,
@@ -129,7 +136,7 @@ export async function createClaimLineFromBooking(params: {
       participantId: input.participantId,
       providerOrgId: input.providerOrgId,
       bookingId: input.bookingId,
-      ndisParticipantNumber: ndisRaw ? maskNdisNumber(ndisRaw) : null,
+      ndisParticipantNumber: ndisMasked,
       participantName: input.participantName,
       supportItemCode: input.supportItemCode.trim(),
       supportDescription: input.supportDescription,
@@ -146,6 +153,85 @@ export async function createClaimLineFromBooking(params: {
     },
   });
 
+  const org = await prisma.organisation.findUnique({
+    where: { id: params.providerOrgId },
+  });
+  const externalPayload: ExternalClaimPayload = {
+    claimType: "registered_provider",
+    provider: {
+      abn: org?.abn ?? null,
+      ndisRegistrationNumber: org?.ndisRegistrationNumber ?? "",
+      organisationId: params.providerOrgId,
+      name: org?.name ?? "",
+    },
+    participant: {
+      ndisNumber: ndisRaw,
+      ndisNumberMasked: ndisMasked,
+      mapableUserId: booking.participantId,
+    },
+    invoiceReference: {},
+    servicePeriod: {
+      start: serviceStart.toISOString().slice(0, 10),
+      end: serviceEnd.toISOString().slice(0, 10),
+    },
+    lines: [
+      {
+        lineNumber: 1,
+        supportItemCode: input.supportItemCode.trim(),
+        description: input.supportDescription,
+        serviceDate: serviceStart.toISOString().slice(0, 10),
+        quantity,
+        unitPriceCents,
+        totalCents: totalAmountCents,
+        gstIncluded: false,
+      },
+    ],
+    totals: {
+      subtotalCents: totalAmountCents,
+      taxCents: 0,
+      totalCents: totalAmountCents,
+      currency: "AUD",
+    },
+    metadata: {
+      builtAt: new Date().toISOString(),
+      mapableVersion: "1",
+    },
+  };
+
+  let snapshotId: string | null = null;
+  let payloadHash: string | null = null;
+  try {
+    const actor = {
+      id: params.createdById,
+      primaryRole: "provider_admin" as const,
+    } as CurrentUser;
+    const snap = await createClaimSnapshot({
+      user: actor,
+      organisationId: params.providerOrgId,
+      participantId: booking.participantId,
+      sourceType: "ndis_claim_line",
+      sourceId: line.id,
+      fundingRoute: paymentRoute,
+      externalPayload,
+      forDirectSubmission: paymentRoute === "ndia_managed",
+    });
+    snapshotId = snap.snapshot.id;
+    payloadHash = snap.payloadHash;
+    await prisma.ndisClaimLine.update({
+      where: { id: line.id },
+      data: {
+        currentSnapshotId: snap.snapshot.id,
+        payloadHash: snap.payloadHash,
+      },
+    });
+  } catch {
+    // Snapshot optional for blocked funding; line remains with masked NDIS number.
+  }
+
+  const refreshed = await prisma.ndisClaimLine.findUniqueOrThrow({
+    where: { id: line.id },
+  });
+
   await prisma.claimAuditEvent.create({
     data: {
       claimLineId: line.id,
@@ -153,11 +239,16 @@ export async function createClaimLineFromBooking(params: {
       entityId: line.id,
       action: "line.created_from_booking",
       actorUserId: params.createdById,
-      afterJson: { status, bookingId: booking.id },
+      afterJson: sanitiseAuditJson({
+        status,
+        bookingId: booking.id,
+        snapshotId,
+        payloadHash,
+      }) as Prisma.InputJsonValue,
     },
   });
 
-  return { line, validation };
+  return { line: refreshed, validation };
 }
 
 export async function validateClaimLineById(lineId: string, actorUserId: string) {

@@ -46,3 +46,23 @@ export { fundingSourceTypeToFundingRoute } from "@/lib/ndis-gateway/compatibilit
 export { billingFundingTypeToFundingRoute } from "@/lib/ndis-gateway/compatibility/from-billing-funding";
 export { fundingRouteToPaymentRoute } from "@/lib/ndis-gateway/compatibility/to-payment-route";
 export { fundingRouteToFundingSourceType } from "@/lib/ndis-gateway/compatibility/to-funding-source-type";
+
+export {
+  createClaimSnapshot,
+  getClaimSnapshotSafe,
+  loadExternalPayloadForSubmission,
+  supersedeClaimSnapshot,
+} from "@/lib/ndis-gateway/security/claim-snapshot-service";
+export {
+  approveClaimSnapshot,
+  getSubmissionApproval,
+  rejectClaimSnapshot,
+  revokeClaimApproval,
+  pilotApprovalIsNotClaimAuthority,
+} from "@/lib/ndis-gateway/security/claim-approval-service";
+export { sanitiseForLog } from "@/lib/ndis-gateway/security/log-sanitiser";
+export {
+  hashCanonicalClaimIdentity,
+  toMaskedClaimPayload,
+  payloadContainsRawNdisNumber,
+} from "@/lib/ndis-gateway/security/sensitive-payload";

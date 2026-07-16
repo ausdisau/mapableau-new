@@ -101,6 +101,11 @@ export type Permission =
   | "ndis:pricing:manage"
   | "provider:ndia:claim"
   | "provider:ndis:claim"
+  | "provider:ndis:claim:view"
+  | "provider:ndis:claim:create"
+  | "provider:ndis:claim:approve"
+  | "provider:ndis:claim:revoke"
+  | "admin:ndis:claim:break_glass"
   | "xero:manage"
   | "stripe:manage"
   | "route:manage"
@@ -286,6 +291,10 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider_academy:enroll",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "provider:ndis:claim:view",
+    "provider:ndis:claim:create",
+    "provider:ndis:claim:approve",
+    "provider:ndis:claim:revoke",
     "engagement:provider:read",
   ],
   transport_operator: [
@@ -373,6 +382,11 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "ndis:pricing:manage",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "provider:ndis:claim:view",
+    "provider:ndis:claim:create",
+    "provider:ndis:claim:approve",
+    "provider:ndis:claim:revoke",
+    "admin:ndis:claim:break_glass",
     "xero:manage",
     "stripe:manage",
     "route:manage",

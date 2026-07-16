@@ -1,6 +1,7 @@
-import type { MapAbleUserRole } from "@prisma/client";
+import type { MapAbleUserRole, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 
+import { sanitiseForLog } from "@/lib/ndis-gateway/security/log-sanitiser";
 import { prisma } from "@/lib/prisma";
 import type { AuditAction } from "@/types/mapable";
 
@@ -38,17 +39,7 @@ export async function createAuditEvent(
 ): Promise<void> {
   const meta = await requestMeta();
   const safeMetadata = input.metadata
-    ? JSON.parse(
-        JSON.stringify(input.metadata, (_key, value) => {
-          if (
-            typeof value === "string" &&
-            /ndis|password|secret/i.test(_key as string)
-          ) {
-            return "[REDACTED]";
-          }
-          return value;
-        })
-      )
+    ? (sanitiseForLog(input.metadata) as Record<string, unknown>)
     : undefined;
 
   await prisma.auditEvent.create({
@@ -60,7 +51,7 @@ export async function createAuditEvent(
       entityId: input.entityId ?? null,
       participantId: input.participantId ?? null,
       organisationId: input.organisationId ?? null,
-      metadata: safeMetadata,
+      metadata: safeMetadata as Prisma.InputJsonValue | undefined,
       ipAddress: meta.ipAddress,
       userAgent: meta.userAgent,
     },
