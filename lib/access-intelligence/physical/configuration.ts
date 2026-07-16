@@ -1,6 +1,12 @@
 /**
  * Physical Systems operational mode — server-side only.
  * Clients must never override these values; read exclusively from process.env.
+ *
+ * Env (preferred docs names, with short aliases):
+ * - ACCESS_INTELLIGENCE_PHYSICAL_MODE / ACCESS_PHYSICAL_MODE
+ * - ACCESS_INTELLIGENCE_PHYSICAL_LIVE_ENABLED / ACCESS_PHYSICAL_LIVE_ENABLED
+ * - ACCESS_INTELLIGENCE_PHYSICAL_SHADOW_ONLY / ACCESS_PHYSICAL_SHADOW_ONLY
+ * - ACCESS_INTELLIGENCE_PHYSICAL_GLOBAL_KILL_SWITCH / ACCESS_PHYSICAL_GLOBAL_KILL_SWITCH
  */
 
 export type PhysicalOperationalMode = "demo" | "shadow" | "supervised" | "live";
@@ -20,16 +26,31 @@ function assertServerOnly(): void {
   }
 }
 
-function readEnvBool(name: string, defaultValue: boolean): boolean {
-  const raw = process.env[name];
-  if (raw === undefined || raw === "") return defaultValue;
+function envFirst(...names: string[]): string | undefined {
+  for (const name of names) {
+    const raw = process.env[name];
+    if (raw !== undefined && raw !== "") return raw;
+  }
+  return undefined;
+}
+
+function readEnvBool(names: string[], defaultValue: boolean): boolean {
+  const raw = envFirst(...names);
+  if (raw === undefined) return defaultValue;
   if (raw === "1" || raw.toLowerCase() === "true") return true;
   if (raw === "0" || raw.toLowerCase() === "false") return false;
   return defaultValue;
 }
 
 function parseRequestedMode(): PhysicalOperationalMode {
-  const raw = (process.env.ACCESS_PHYSICAL_MODE ?? "demo").toLowerCase().trim();
+  const raw = (
+    envFirst(
+      "ACCESS_INTELLIGENCE_PHYSICAL_MODE",
+      "ACCESS_PHYSICAL_MODE",
+    ) ?? "demo"
+  )
+    .toLowerCase()
+    .trim();
   if (VALID_MODES.has(raw as PhysicalOperationalMode)) {
     return raw as PhysicalOperationalMode;
   }
@@ -38,7 +59,7 @@ function parseRequestedMode(): PhysicalOperationalMode {
 
 /**
  * Effective operational mode after live-enable and kill-switch clamps.
- * LIVE is only reachable when ACCESS_PHYSICAL_LIVE_ENABLED=true and kill switch is off.
+ * LIVE is only reachable when LIVE_ENABLED=true and kill switch is off.
  * If LIVE is requested but live is disabled, clamps to supervised (or shadow when shadow-only).
  */
 export function getPhysicalMode(): PhysicalOperationalMode {
@@ -66,7 +87,13 @@ export function getPhysicalMode(): PhysicalOperationalMode {
 
 export function isLiveEnabled(): boolean {
   assertServerOnly();
-  return readEnvBool("ACCESS_PHYSICAL_LIVE_ENABLED", false);
+  return readEnvBool(
+    [
+      "ACCESS_INTELLIGENCE_PHYSICAL_LIVE_ENABLED",
+      "ACCESS_PHYSICAL_LIVE_ENABLED",
+    ],
+    false,
+  );
 }
 
 /**
@@ -74,9 +101,13 @@ export function isLiveEnabled(): boolean {
  */
 export function isGlobalKillSwitchOn(): boolean {
   assertServerOnly();
-  const requested = parseRequestedMode();
-  const defaultKill = requested !== "demo" ? false : false;
-  return readEnvBool("ACCESS_PHYSICAL_GLOBAL_KILL_SWITCH", defaultKill);
+  return readEnvBool(
+    [
+      "ACCESS_INTELLIGENCE_PHYSICAL_GLOBAL_KILL_SWITCH",
+      "ACCESS_PHYSICAL_GLOBAL_KILL_SWITCH",
+    ],
+    false,
+  );
 }
 
 /**
@@ -87,7 +118,13 @@ export function isShadowOnly(): boolean {
   assertServerOnly();
   const requested = parseRequestedMode();
   const defaultShadow = requested !== "demo";
-  return readEnvBool("ACCESS_PHYSICAL_SHADOW_ONLY", defaultShadow);
+  return readEnvBool(
+    [
+      "ACCESS_INTELLIGENCE_PHYSICAL_SHADOW_ONLY",
+      "ACCESS_PHYSICAL_SHADOW_ONLY",
+    ],
+    defaultShadow,
+  );
 }
 
 /** True when effective mode may perform simulated or live actuation (not pure observation). */
