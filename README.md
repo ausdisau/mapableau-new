@@ -84,8 +84,10 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply changes w
 │   ├── operations/           # Neon, ops notes
 │   ├── integrations/         # Env var reference
 │   └── qa/                   # QA checklists
-├── apps/
-│   └── realtime-server/      # Socket.IO server (pnpm workspace)
+├── server/
+│   ├── realtime/             # Socket.IO server (`pnpm dev:realtime`)
+│   ├── agents/               # Care / support agents
+│   └── admin/                # Admin service helpers
 ├── mcp/
 │   └── av/                   # Autonomous-vehicle MCP server
 ├── mobile-contracts/         # Mobile API / screen contracts

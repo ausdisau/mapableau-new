@@ -1,6 +1,9 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
 
+import { verifySocketToken } from "@/server/realtime/auth/socket-auth";
+import { isAllowedRoom } from "@/server/realtime/rooms/room-policy";
+
 const port = Number(process.env.PORT ?? 4010);
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -9,7 +12,7 @@ const io = new Server(httpServer, {
 
 io.use(async (socket, next) => {
   const token = socket.handshake.auth?.token;
-  if (!token || typeof token !== "string") {
+  if (!token || typeof token !== "string" || !verifySocketToken(token)) {
     return next(new Error("Unauthorized"));
   }
   (socket.data as { userId?: string }).userId = "verified";
@@ -18,7 +21,7 @@ io.use(async (socket, next) => {
 
 io.on("connection", (socket) => {
   socket.on("join", (room: string) => {
-    if (typeof room === "string" && room.startsWith("thread:")) {
+    if (typeof room === "string" && isAllowedRoom(room)) {
       socket.join(room);
     }
   });

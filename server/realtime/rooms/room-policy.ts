@@ -8,5 +8,5 @@ const ALLOWED_PREFIXES = [
 ];
 
 export function isAllowedRoom(room: string): boolean {
-  return ALLOWED_PREFIXES.some((p) => room.startsWith(p));
+  return ALLOWED_PREFIXES.some((prefix) => room.startsWith(prefix));
 }
