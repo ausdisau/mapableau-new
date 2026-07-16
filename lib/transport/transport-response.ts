@@ -64,7 +64,7 @@ export function buildPermissions(
         trip.status
       ),
     canConfirm: isParticipant && trip.status === "participant_review",
-    canDispute: isParticipant && ["closed", "trip_completed"].includes(trip.status),
+    canDispute: isParticipant && trip.status === "participant_review",
     canAccept: isProvider && trip.status === "provider_review",
     canDecline: isProvider && trip.status === "provider_review",
     canAssign:
@@ -126,6 +126,13 @@ export function buildNextActions(
       label: "Update trip status",
       method: "POST",
       href: `/api/driver/transport/trips/${tripId}/status`,
+    });
+  if (permissions.canSubmitEvidence)
+    actions.push({
+      action: "submit_evidence",
+      label: "Submit trip evidence",
+      method: "POST",
+      href: `/api/driver/transport/trips/${tripId}/evidence`,
     });
   return actions;
 }

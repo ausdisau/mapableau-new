@@ -36,7 +36,10 @@ export default async function ProviderTransportDispatchPage() {
       <h1 className="font-heading text-2xl font-bold">Dispatch board</h1>
       <p className="text-sm text-muted-foreground">
         Human dispatch only — match suggestions are advisory. Assign verified
-        drivers and vehicles that meet each participant&apos;s mobility needs.
+        drivers and vehicles that meet each participant&apos;s mobility needs.{" "}
+        <Link href="/provider/transport/fleet" className="text-primary hover:underline">
+          Manage fleet verification
+        </Link>
       </p>
       <ProviderTripDispatchPanel
         organisationId={organisationId}

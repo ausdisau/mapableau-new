@@ -39,7 +39,26 @@ Grant via `/dashboard/consent` (includes `transport.trip_access`).
 | Route | Purpose |
 |-------|---------|
 | `/provider/transport/dispatch` | Dispatch board, suggestions, assign |
+| `/provider/transport/fleet` | Manage dispatch drivers/vehicles and verification |
 | `/provider/transport/runs` | Create/lock ride runs, attach trips |
+
+## Fleet verification APIs
+
+| Method | Path |
+|--------|------|
+| GET/POST | `/api/provider/transport/drivers` |
+| GET/PATCH | `/api/provider/transport/drivers/[driverId]` |
+| PUT | `/api/provider/transport/drivers/[driverId]/verifications` |
+| GET/POST | `/api/provider/transport/vehicles` |
+| GET/PATCH | `/api/provider/transport/vehicles/[vehicleId]` |
+| PUT | `/api/provider/transport/vehicles/[vehicleId]/verifications` |
+| PUT | `/api/provider/transport/vehicles/[vehicleId]/features` |
+
+Driver eligibility (`licence`, `screening`, `training`) and vehicle eligibility (`registration`, `insurance`, `inspection`, plus mobility features) are enforced at assignment.
+
+## Evidence and participant review
+
+When a driver submits trip evidence from `trip_completed`, the trip moves through `evidence_submitted` to `participant_review`. The participant can then confirm (closes the trip) or dispute.
 
 ## APIs (Phase 1)
 

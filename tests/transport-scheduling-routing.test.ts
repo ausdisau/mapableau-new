@@ -5,7 +5,7 @@ import { mockRoutingAdapter } from "@/lib/transport-routing/mock-routing-adapter
 import { OsrmRoutingAdapter } from "@/lib/transport-routing/osrm-routing-adapter";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
-import { buildPermissions } from "@/lib/transport/transport-response";
+import { buildPermissions, buildNextActions } from "@/lib/transport/transport-response";
 import { resolveTripAccess } from "@/lib/transport/transport-access-policy";
 import {
   checkDriverEligibility,
@@ -13,6 +13,10 @@ import {
 } from "@/lib/transport/transport-eligibility-service";
 import { detectScheduleConflicts } from "@/lib/transport/transport-schedule-conflict-service";
 import { createOptimisationJob } from "@/lib/transport-routing/route-optimisation-service";
+import { createRouteEstimate } from "@/lib/transport-routing/route-estimate-service";
+import { submitTripEvidence } from "@/lib/transport/transport-evidence-service";
+import { upsertDriverVerifications } from "@/lib/transport/transport-fleet-service";
+import { ROUTE_ADVISORY_DISCLAIMER } from "@/types/transport-routing";
 
 const participantUser: CurrentUser = {
   id: "participant-1",
@@ -98,11 +102,31 @@ vi.mock("@/lib/prisma", () => ({
     transportDriver: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
     },
-    transportVehicle: { findFirst: vi.fn(), findUnique: vi.fn() },
-    transportDriverVerification: {},
-    transportVehicleVerification: {},
-    transportVehicleFeature: {},
+    transportVehicle: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    transportDriverVerification: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    transportVehicleVerification: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    transportVehicleFeature: {
+      create: vi.fn(),
+      update: vi.fn(),
+    },
     transportDriverAvailability: { findFirst: vi.fn() },
     transportScheduleConflict: { createMany: vi.fn() },
     transportRouteEstimate: { findFirst: vi.fn(), create: vi.fn() },
@@ -541,5 +565,137 @@ describe("participant create trip", () => {
       scheduledStart: "2026-06-01T09:00:00.000Z",
     });
     expect(res.trip.id).toBe("trip-new");
+  });
+});
+
+describe("fleet verification management", () => {
+  beforeEach(() => {
+    vi.mocked(prisma.transportDriver.findFirst).mockResolvedValue({
+      id: "td-1",
+      organisationId: "org-1",
+      displayName: "Alex Driver",
+      active: true,
+      userId: null,
+      driverProfileId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      verifications: [],
+    } as never);
+    vi.mocked(prisma.transportDriverVerification.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.transportDriverVerification.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.transportDriver.findUnique).mockResolvedValue({
+      id: "td-1",
+      active: true,
+      verifications: [
+        { kind: "licence", status: "verified", expiresAt: null, notes: null, updatedAt: new Date() },
+        { kind: "screening", status: "verified", expiresAt: null, notes: null, updatedAt: new Date() },
+        { kind: "training", status: "verified", expiresAt: null, notes: null, updatedAt: new Date() },
+      ],
+    } as never);
+  });
+
+  it("upserts driver verifications and returns eligible driver", async () => {
+    const driver = await upsertDriverVerifications(providerUser, "org-1", "td-1", [
+      { kind: "licence", status: "verified" },
+      { kind: "screening", status: "verified" },
+      { kind: "training", status: "verified" },
+    ]);
+    expect(driver.eligibility?.eligible).toBe(true);
+    expect(prisma.transportDriverVerification.create).toHaveBeenCalled();
+  });
+});
+
+describe("evidence and participant review", () => {
+  beforeEach(() => {
+    vi.mocked(prisma.transportDriver.findFirst).mockResolvedValue({
+      id: "td-1",
+      userId: driverUser.id,
+      active: true,
+    } as never);
+    vi.mocked(prisma.transportDispatchAssignment.findFirst).mockResolvedValue({
+      driverId: "td-1",
+      active: true,
+    } as never);
+    vi.mocked(prisma.transportTrip.findUnique).mockResolvedValue({
+      ...baseTrip,
+      status: "trip_completed",
+    } as never);
+    vi.mocked(prisma.transportTripEvidence.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.transportTrip.update)
+      .mockResolvedValueOnce({
+        ...baseTrip,
+        status: "evidence_submitted",
+      } as never)
+      .mockResolvedValueOnce({
+        ...baseTrip,
+        status: "participant_review",
+      } as never);
+    vi.mocked(prisma.transportTripEvent.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.transportRouteEstimate.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.booking.findFirst).mockResolvedValue(null);
+  });
+
+  it("submitTripEvidence moves trip to participant_review", async () => {
+    const res = await submitTripEvidence(driverUser, "trip-1", {
+      evidenceType: "service_completed",
+      notes: "Trip completed on time",
+    });
+    expect(res.trip.status).toBe("participant_review");
+    expect(prisma.transportTrip.update).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("permissions and next actions", () => {
+  it("allows dispute only during participant_review", () => {
+    const reviewPerms = buildPermissions(
+      participantUser,
+      { ...baseTrip, status: "participant_review" },
+      "exact",
+      false
+    );
+    expect(reviewPerms.canDispute).toBe(true);
+    expect(reviewPerms.canConfirm).toBe(true);
+
+    const closedPerms = buildPermissions(
+      participantUser,
+      { ...baseTrip, status: "closed" },
+      "exact",
+      false
+    );
+    expect(closedPerms.canDispute).toBe(false);
+  });
+
+  it("includes submit_evidence for assigned driver after trip_completed", () => {
+    const perms = buildPermissions(
+      driverUser,
+      { ...baseTrip, status: "trip_completed" },
+      "exact",
+      true
+    );
+    expect(perms.canSubmitEvidence).toBe(true);
+    const actions = buildNextActions(perms, "trip-1");
+    expect(actions.some((a) => a.action === "submit_evidence")).toBe(true);
+  });
+});
+
+describe("advisory route estimates", () => {
+  it("returns advisory disclaimer on estimate", async () => {
+    vi.mocked(prisma.transportRouteEstimate.create).mockResolvedValue({
+      id: "est-1",
+      distanceMetres: 1200,
+      durationSeconds: 300,
+      provider: "mock",
+      advisoryOnly: true,
+    } as never);
+    vi.mocked(prisma.transportRouteSegment.createMany).mockResolvedValue({ count: 1 });
+
+    const result = await createRouteEstimate({
+      input: {
+        origin: { lat: -33.87, lng: 151.21 },
+        destination: { lat: -33.88, lng: 151.22 },
+      },
+    });
+    expect(result.advisoryDisclaimer).toBe(ROUTE_ADVISORY_DISCLAIMER);
+    expect(result.estimate.advisoryOnly).toBe(true);
   });
 });
