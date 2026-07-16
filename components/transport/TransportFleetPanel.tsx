@@ -107,7 +107,13 @@ export function TransportFleetPanel({
             value={driverName}
             onChange={(e) => setDriverName(e.target.value)}
           />
-          <Button type="button" loading={loading} onClick={() => createDriver()}>
+          <Button
+            type="button"
+            variant="default"
+            size="default"
+            loading={loading}
+            onClick={() => createDriver()}
+          >
             Add
           </Button>
         </div>
@@ -150,7 +156,13 @@ export function TransportFleetPanel({
             value={vehicleReg}
             onChange={(e) => setVehicleReg(e.target.value)}
           />
-          <Button type="button" loading={loading} onClick={() => createVehicle()}>
+          <Button
+            type="button"
+            variant="default"
+            size="default"
+            loading={loading}
+            onClick={() => createVehicle()}
+          >
             Add vehicle
           </Button>
         </div>

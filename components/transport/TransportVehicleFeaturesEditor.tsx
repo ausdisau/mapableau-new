@@ -86,7 +86,13 @@ export function TransportVehicleFeaturesEditor({
           </li>
         ))}
       </ul>
-      <Button type="button" loading={loading} onClick={() => save()}>
+      <Button
+        type="button"
+        variant="default"
+        size="default"
+        loading={loading}
+        onClick={() => save()}
+      >
         Save mobility features
       </Button>
     </div>

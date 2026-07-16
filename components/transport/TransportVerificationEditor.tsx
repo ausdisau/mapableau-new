@@ -140,7 +140,13 @@ export function TransportVerificationEditor({
           </li>
         ))}
       </ul>
-      <Button type="button" loading={loading} onClick={() => save()}>
+      <Button
+        type="button"
+        variant="default"
+        size="default"
+        loading={loading}
+        onClick={() => save()}
+      >
         Save verifications
       </Button>
     </div>

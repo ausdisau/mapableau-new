@@ -139,7 +139,13 @@ export function DriverTransportTripActions({
               placeholder="Optional notes about the completed trip"
             />
           </label>
-          <Button type="button" loading={loading} onClick={() => submitEvidence()}>
+          <Button
+            type="button"
+            variant="default"
+            size="default"
+            loading={loading}
+            onClick={() => submitEvidence()}
+          >
             Submit evidence
           </Button>
         </div>
