@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { auraFlags } from "@/lib/aura/feature-flags";
-import { challengeMissionPlan } from "@/lib/aura/mission/service";
+import {
+  assessPlanResilience,
+  getResilience,
+} from "@/lib/aura/mission/service";
+import { requireMission } from "@/lib/aura/mission/store";
 
 export const runtime = "nodejs";
 
-export async function POST(
+export async function GET(
   _req: Request,
   ctx: { params: Promise<{ missionId: string }> },
 ) {
@@ -15,19 +19,20 @@ export async function POST(
       { status: 403 },
     );
   }
-  if (!auraFlags.planChallenge && !auraFlags.counterfactuals) {
+  if (!auraFlags.resilience) {
     return NextResponse.json(
-      { error: "MAPABLE_AURA_PLAN_CHALLENGE_DISABLED" },
+      { error: "MAPABLE_AURA_RESILIENCE_DISABLED" },
       { status: 403 },
     );
   }
   const { missionId } = await ctx.params;
   try {
-    const challenge = challengeMissionPlan(missionId);
-    return NextResponse.json(challenge);
+    const mission = requireMission(missionId);
+    const existing = getResilience(mission);
+    const assessment = existing ?? assessPlanResilience(missionId);
+    return NextResponse.json(assessment);
   } catch (err) {
     const message = err instanceof Error ? err.message : "AURA_ERROR";
-    const status = message === "AURA_MISSION_STOPPED" ? 409 : 400;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

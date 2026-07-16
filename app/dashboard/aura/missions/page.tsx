@@ -9,7 +9,8 @@ export default function AuraMissionsDashboardPage() {
         <Link className="underline" href="/ask?mode=aura">
           Ask MapAble — Accessibility Mission
         </Link>
-        . This dashboard shell lists mission history when persistence is enabled.
+        . This dashboard shell lists mission history when persistence is
+        enabled.
       </p>
       <ul className="mt-4 list-disc pl-5 text-sm">
         <li>

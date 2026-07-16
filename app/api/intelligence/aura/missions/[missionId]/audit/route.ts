@@ -1,26 +1,42 @@
 import { NextResponse } from "next/server";
 
 import { auraFlags } from "@/lib/aura/feature-flags";
-import { getMissionAudit } from "@/lib/aura/mission/service";
+import {
+  getMissionAudit,
+  getMissionAuditReplay,
+  verifyMissionAudit,
+} from "@/lib/aura/mission/service";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ missionId: string }> },
 ) {
   if (!auraFlags.enabled && process.env.MAPABLE_AURA_DEMO !== "true") {
-    return NextResponse.json({ error: "MAPABLE_AURA_DISABLED" }, { status: 403 });
+    return NextResponse.json(
+      { error: "MAPABLE_AURA_DISABLED" },
+      { status: 403 },
+    );
   }
   const { missionId } = await ctx.params;
+  const url = new URL(req.url);
+  const mode = url.searchParams.get("mode");
+
   try {
-    const events = getMissionAudit(missionId);
+    if (mode === "manifest" || auraFlags.auditReplay) {
+      return NextResponse.json(getMissionAuditReplay(missionId));
+    }
     return NextResponse.json({
       missionId,
-      events,
-      note: "Witness replay is redacted; full Passport data is never logged.",
+      events: getMissionAudit(missionId),
+      verification: verifyMissionAudit(missionId),
+      note: "Structured evidence and decisions only. No hidden chain-of-thought.",
     });
   } catch {
-    return NextResponse.json({ error: "AURA_MISSION_NOT_FOUND" }, { status: 404 });
+    return NextResponse.json(
+      { error: "AURA_MISSION_NOT_FOUND" },
+      { status: 404 },
+    );
   }
 }

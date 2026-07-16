@@ -1,4 +1,9 @@
-export { auraFlags, listAuraFlagStates, auraMaxAuthorityLevel } from "./feature-flags";
+export {
+  auraFlags,
+  listAuraFlagStates,
+  auraMaxAuthorityLevel,
+  assertAuraCanStart,
+} from "./feature-flags";
 export {
   AURA_WAVE1_AUTHORITY_CEILING,
   clampAuthority,
@@ -37,12 +42,50 @@ export {
   stopAuraMission,
   challengeMissionPlan,
   getMissionAudit,
+  getMissionAuditReplay,
+  verifyMissionAudit,
+  runCounterfactual,
+  listCounterfactuals,
+  assessPlanResilience,
+  createOfflineVisitPack,
+  listOfflinePacks,
+  getOfflinePack,
+  deleteOfflinePack,
+  renderOfflinePackHtml,
+  getStopReceipt,
+  runBoundedPlanChallenge,
 } from "./mission/service";
-export { verifyProofPlan, applyModelOverrideAttempt, AURA_VERIFIER_VERSION } from "./verifier";
+export {
+  verifyProofPlan,
+  applyModelOverrideAttempt,
+  AURA_VERIFIER_VERSION,
+} from "./verifier";
 export { challengePlan } from "./challenge";
 export { createAuraAgent } from "./agent";
 export { createAuraTools, AURA_TOOLS_NO_PRISMA } from "./tools";
-export { appendWitness, listWitness, resetWitnessStore } from "./witness";
-export { runTaylorHarbourPlan, TAYLOR_SCENARIO_ID } from "./scenarios/taylor-harbour";
-export { AURA_SYSTEM_INSTRUCTIONS, AURA_INSTRUCTION_VERSION } from "./instructions";
+export {
+  appendWitness,
+  listWitness,
+  resetWitnessStore,
+  verifyWitnessChain,
+  buildAuditReplayManifest,
+  tamperWitnessLastHash,
+} from "./witness";
+export {
+  runTaylorHarbourPlan,
+  TAYLOR_SCENARIO_ID,
+} from "./scenarios/taylor-harbour";
+export {
+  AURA_SYSTEM_INSTRUCTIONS,
+  AURA_INSTRUCTION_VERSION,
+} from "./instructions";
+export {
+  executeStopAura,
+  resetStopRegistry,
+  getOrCreateAbortController,
+  discardIfStopped,
+} from "./stop";
+export { resetCounterfactualStore } from "./counterfactual";
+export { resetChallengeStore } from "./challenge";
+export { resetOfflinePackStore } from "./offline";
 export * from "./schemas";

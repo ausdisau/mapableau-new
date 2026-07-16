@@ -1,7 +1,6 @@
 /**
- * MapAble AURA feature flags.
- * Authority and safety flags are server-only — never NEXT_PUBLIC.
- * A client header must not enable AURA.
+ * MapAble AURA feature flags (Wave 1 + Wave 2).
+ * Authority / safety flags are server-only — never NEXT_PUBLIC.
  */
 
 function envTrue(name: string): boolean {
@@ -15,32 +14,19 @@ function envFalse(name: string): boolean {
 }
 
 export const auraFlags = {
-  /** Master switch — default off. */
   enabled: envTrue("MAPABLE_AURA_ENABLED"),
-
-  /** Optional LLM reasoning; deterministic planner always available. */
   modelReasoning: !envFalse("MAPABLE_AURA_MODEL_REASONING_ENABLED"),
-
   counterfactuals: !envFalse("MAPABLE_AURA_COUNTERFACTUALS_ENABLED"),
-
-  /** Wave 3 — non-executable proposals. */
+  resilience: !envFalse("MAPABLE_AURA_RESILIENCE_ENABLED"),
+  planChallenge: !envFalse("MAPABLE_AURA_PLAN_CHALLENGE_ENABLED"),
+  auditReplay: !envFalse("MAPABLE_AURA_AUDIT_REPLAY_ENABLED"),
+  offlinePacks: !envFalse("MAPABLE_AURA_OFFLINE_PACKS_ENABLED"),
   proposals: envTrue("MAPABLE_AURA_PROPOSALS_ENABLED"),
-
-  /** Wave 4 — approved application writes. */
   writeExecution: envTrue("MAPABLE_AURA_WRITE_EXECUTION_ENABLED"),
-
-  /** Wave 5 — durable Memory Cards. */
   memory: envTrue("MAPABLE_AURA_MEMORY_ENABLED"),
-
   outcomeCalibration: !envFalse("MAPABLE_AURA_OUTCOME_CALIBRATION_ENABLED"),
-
-  /** Always false in production until safety review. */
   physicalActions: envTrue("MAPABLE_AURA_PHYSICAL_ACTIONS_ENABLED"),
-
-  /** Persist via Prisma when true; Wave 1 defaults to in-memory. */
   usePrisma: envTrue("MAPABLE_AURA_USE_PRISMA"),
-
-  /** Global AI kill switches (reuse). */
   globalAiEnabled: !envFalse("MAPABLE_AI_ENABLED"),
   globalAiAudit: !envFalse("MAPABLE_AI_AUDIT_ENABLED"),
   globalAiWriteActions: envTrue("MAPABLE_AI_WRITE_ACTIONS"),
@@ -56,16 +42,30 @@ export function listAuraFlagStates(): Record<AuraFlagKey, boolean> {
   return out;
 }
 
-/** Wave 1 production authority must not exceed L2. */
 export function auraMaxAuthorityLevel(): "L2_RECOMMEND" {
   return "L2_RECOMMEND";
 }
 
-export function assertAuraEnabled(): void {
-  if (!auraFlags.enabled) {
+/**
+ * Stop AURA is mandatory whenever AURA is enabled.
+ * If stop infrastructure cannot initialise, fail closed.
+ */
+export function assertAuraCanStart(): void {
+  if (
+    !auraFlags.enabled &&
+    process.env.MAPABLE_AURA_DEMO !== "true" &&
+    process.env.NODE_ENV !== "test"
+  ) {
     throw new Error("MAPABLE_AURA_DISABLED");
   }
-  if (!auraFlags.globalAiEnabled) {
+  if (
+    !auraFlags.globalAiEnabled &&
+    process.env.MAPABLE_AURA_DEMO !== "true" &&
+    process.env.NODE_ENV !== "test"
+  ) {
     throw new Error("MAPABLE_AI_DISABLED");
+  }
+  if (typeof AbortController === "undefined") {
+    throw new Error("AURA_STOP_UNAVAILABLE");
   }
 }

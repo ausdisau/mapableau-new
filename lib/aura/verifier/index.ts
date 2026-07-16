@@ -2,7 +2,10 @@ import {
   assertBlockersPreserved,
   assertUnknownPreserved,
 } from "../authority/invariants";
-import { AURA_WAVE1_AUTHORITY_CEILING, isAuthorityAtMost } from "../authority/ladder";
+import {
+  AURA_WAVE1_AUTHORITY_CEILING,
+  isAuthorityAtMost,
+} from "../authority/ladder";
 import { listActiveLeases } from "../leases";
 import type { AuraMissionRecord } from "../mission/store";
 import type { AuraProofPlan, AuraVerifierResult } from "../schemas";
@@ -27,7 +30,12 @@ export function verifyProofPlan(input: {
     });
   }
 
-  if (!isAuthorityAtMost(input.mission.authorityLevel, AURA_WAVE1_AUTHORITY_CEILING)) {
+  if (
+    !isAuthorityAtMost(
+      input.mission.authorityLevel,
+      AURA_WAVE1_AUTHORITY_CEILING,
+    )
+  ) {
     findings.push({
       code: "authority_ceiling",
       severity: "error",
@@ -39,7 +47,8 @@ export function verifyProofPlan(input: {
     findings.push({
       code: "plan_authority_mismatch",
       severity: "warning",
-      message: "Plan maximum authority should equal Wave 1 ceiling L2_RECOMMEND.",
+      message:
+        "Plan maximum authority should equal Wave 1 ceiling L2_RECOMMEND.",
     });
   }
 
@@ -129,14 +138,18 @@ export function verifyProofPlan(input: {
   }
 
   // Disclosure minimisation — plan must not list diagnosis fields
-  const disclosed = input.plan.participantRequirements.map((r) => r.featureType);
+  const disclosed = input.plan.participantRequirements.map(
+    (r) => r.featureType,
+  );
   for (const field of disclosed) {
     if (
       /diagnos|medical|ndis_eligibility/i.test(field) ||
       (!input.allowedDisclosureFields.includes(field) &&
-        !["quiet_waiting_area", "plain_language_instructions", "staff_assistance"].includes(
-          field,
-        ))
+        ![
+          "quiet_waiting_area",
+          "plain_language_instructions",
+          "staff_assistance",
+        ].includes(field))
     ) {
       // preferred fields allowed; only flag diagnosis-like
       if (/diagnos|medical|ndis/i.test(field)) {
@@ -210,7 +223,8 @@ export function applyModelOverrideAttempt(
       {
         code: "model_override_ignored",
         severity: "info",
-        message: "Model cannot override verifier output; deterministic result retained.",
+        message:
+          "Model cannot override verifier output; deterministic result retained.",
       },
     ],
   };

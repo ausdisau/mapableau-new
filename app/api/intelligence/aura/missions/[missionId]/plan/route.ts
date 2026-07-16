@@ -11,13 +11,19 @@ export async function POST(
   ctx: { params: Promise<{ missionId: string }> },
 ) {
   if (!auraFlags.enabled && process.env.MAPABLE_AURA_DEMO !== "true") {
-    return NextResponse.json({ error: "MAPABLE_AURA_DISABLED" }, { status: 403 });
+    return NextResponse.json(
+      { error: "MAPABLE_AURA_DISABLED" },
+      { status: 403 },
+    );
   }
   const { missionId } = await ctx.params;
   try {
     const mission = requireMission(missionId);
     if (mission.stopState) {
-      return NextResponse.json({ error: "AURA_MISSION_STOPPED" }, { status: 409 });
+      return NextResponse.json(
+        { error: "AURA_MISSION_STOPPED" },
+        { status: 409 },
+      );
     }
     const { mission: updated, response } = runTaylorHarbourPlan(mission);
     saveMission(updated);

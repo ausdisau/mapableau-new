@@ -22,7 +22,15 @@ Wave 1 (read-only) ships on branch `cursor/mapable-aura-wave1-6ea8`:
 
 ## Topic focus: ACCESSIBILITY
 
-This document covers **ACCESSIBILITY** for AURA operators and reviewers. Production enablement requires gates in PRODUCTION_READINESS.md. Do not claim AURA is an ASI, autonomous case management, or generally production-ready while release gates remain open.
+Target **WCAG 2.2 AA**. Production enablement requires gates in PRODUCTION_READINESS.md.
+
+## Wave 2 UI requirements
+
+- Counterfactual before/after headings + text change summary (no colour-only)
+- Stop: visible text, large target, keyboard, one confirmation, focus to stopped heading
+- Audit: semantic list/timeline; no CoT; limited live regions
+- Offline pack: semantic HTML, print, works without JS for core content
+- Reduced motion respected in mission UI animations where present
 
 ## Related paths
 

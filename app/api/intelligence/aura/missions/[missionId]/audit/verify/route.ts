@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auraFlags } from "@/lib/aura/feature-flags";
-import { getMissionResponse } from "@/lib/aura/mission/service";
+import { verifyMissionAudit } from "@/lib/aura/mission/service";
 
 export const runtime = "nodejs";
 
@@ -17,7 +17,7 @@ export async function GET(
   }
   const { missionId } = await ctx.params;
   try {
-    return NextResponse.json(getMissionResponse(missionId));
+    return NextResponse.json(verifyMissionAudit(missionId));
   } catch {
     return NextResponse.json(
       { error: "AURA_MISSION_NOT_FOUND" },

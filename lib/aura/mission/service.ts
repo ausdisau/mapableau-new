@@ -1,13 +1,26 @@
-import { challengePlan } from "../challenge";
-import { auraFlags, auraMaxAuthorityLevel } from "../feature-flags";
+import { challengePlan, runBoundedPlanChallenge } from "../challenge";
+import { runCounterfactual, listCounterfactuals } from "../counterfactual";
+import {
+  assertAuraCanStart,
+  auraFlags,
+  auraMaxAuthorityLevel,
+} from "../feature-flags";
 import { listActiveLeases } from "../leases";
 import {
   createMissionDraft,
   getMission,
   requireMission,
   saveMission,
-  stopMission,
 } from "../mission/store";
+import {
+  createOfflineVisitPack,
+  deleteOfflinePack,
+  getOfflinePack,
+  listOfflinePacks,
+  markPacksStopped,
+  renderOfflinePackHtml,
+} from "../offline";
+import { assessPlanResilience, getResilience } from "../resilience";
 import {
   runTaylorHarbourPlan,
   TAYLOR_SCENARIO_ID,
@@ -17,15 +30,22 @@ import {
   type AuraResponse,
   type CreateAuraMissionInput,
 } from "../schemas";
-import { listWitness } from "../witness";
+import {
+  executeStopAura,
+  getOrCreateAbortController,
+  getStopReceipt,
+} from "../stop";
+import {
+  buildAuditReplayManifest,
+  listWitness,
+  verifyWitnessChain,
+} from "../witness";
 
-export function createAndPlanMission(raw: CreateAuraMissionInput): AuraResponse {
-  if (!auraFlags.enabled && process.env.NODE_ENV !== "test") {
-    // Allow tests and explicit demo when flag off via test env; APIs still gate.
-  }
+export function createAndPlanMission(
+  raw: CreateAuraMissionInput,
+): AuraResponse {
+  assertAuraCanStart();
   const parsed = createAuraMissionInputSchema.parse(raw);
-
-  // Accessibility profile remains off unless explicit opt-in
   const input = {
     ...parsed,
     selectedModules: parsed.accessibilityProfileOptIn
@@ -34,20 +54,41 @@ export function createAndPlanMission(raw: CreateAuraMissionInput): AuraResponse 
   };
 
   const draft = createMissionDraft(input);
+  getOrCreateAbortController(draft.id);
 
   const scenarioId = input.scenarioId ?? TAYLOR_SCENARIO_ID;
   if (
     scenarioId === TAYLOR_SCENARIO_ID ||
     input.placeId === "place-harbour-civic"
   ) {
-    const { mission, response } = runTaylorHarbourPlan(draft);
-    saveMission(mission);
-    return response;
+    const { mission } = runTaylorHarbourPlan(draft);
+    // Plan version 1
+    const withVersions = saveMission({
+      ...mission,
+      planVersions: [
+        {
+          version: 1,
+          planId: mission.plan!.id,
+          previousPlanId: null,
+          reason: "initial_plan",
+          createdAt: new Date().toISOString(),
+          simulated: false,
+        },
+      ],
+    });
+    // Auto resilience for Wave 2
+    try {
+      if (auraFlags.resilience || process.env.NODE_ENV === "test") {
+        assessPlanResilience(withVersions.id);
+      }
+    } catch {
+      /* optional */
+    }
+    return getMissionResponse(withVersions.id);
   }
 
-  // Generic empty plan path (no writes)
   const leases = listActiveLeases(draft.id);
-  const response: AuraResponse = {
+  return {
     missionId: draft.id,
     missionState: draft.status,
     goal: draft.desiredOutcome,
@@ -84,7 +125,6 @@ export function createAndPlanMission(raw: CreateAuraMissionInput): AuraResponse 
     lastCheckedAt: new Date().toISOString(),
     syntheticDemo: true,
   };
-  return response;
 }
 
 export function getMissionResponse(missionId: string): AuraResponse {
@@ -139,9 +179,13 @@ export function getMissionResponse(missionId: string): AuraResponse {
 }
 
 export function stopAuraMission(missionId: string, userId: string) {
-  const result = stopMission(missionId, userId);
+  const result = executeStopAura({ missionId, userId });
+  markPacksStopped(missionId);
   return {
-    ...result,
+    mission: result.mission,
+    revokedLeaseCount: result.receipt.revokedCapabilityLeaseIds.length,
+    witness: listWitness(missionId),
+    receipt: result.receipt,
     response: getMissionResponse(missionId),
   };
 }
@@ -150,6 +194,9 @@ export function challengeMissionPlan(missionId: string) {
   const mission = requireMission(missionId);
   if (!mission.plan) throw new Error("AURA_PLAN_MISSING");
   if (mission.stopState) throw new Error("AURA_MISSION_STOPPED");
+  if (auraFlags.planChallenge || process.env.NODE_ENV === "test") {
+    return runBoundedPlanChallenge(missionId);
+  }
   return challengePlan(mission.plan);
 }
 
@@ -158,4 +205,30 @@ export function getMissionAudit(missionId: string) {
   return listWitness(missionId);
 }
 
-export { getMission };
+export function getMissionAuditReplay(missionId: string) {
+  requireMission(missionId);
+  if (!auraFlags.auditReplay && process.env.NODE_ENV !== "test") {
+    throw new Error("MAPABLE_AURA_AUDIT_REPLAY_DISABLED");
+  }
+  return buildAuditReplayManifest(missionId);
+}
+
+export function verifyMissionAudit(missionId: string) {
+  requireMission(missionId);
+  return verifyWitnessChain(missionId);
+}
+
+export {
+  getMission,
+  runCounterfactual,
+  listCounterfactuals,
+  assessPlanResilience,
+  getResilience,
+  createOfflineVisitPack,
+  listOfflinePacks,
+  getOfflinePack,
+  deleteOfflinePack,
+  renderOfflinePackHtml,
+  getStopReceipt,
+  runBoundedPlanChallenge,
+};

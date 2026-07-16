@@ -22,7 +22,11 @@ Wave 1 (read-only) ships on branch `cursor/mapable-aura-wave1-6ea8`:
 
 ## Topic focus: EVALUATION
 
-This document covers **EVALUATION** for AURA operators and reviewers. Production enablement requires gates in PRODUCTION_READINESS.md. Do not claim AURA is an ASI, autonomous case management, or generally production-ready while release gates remain open.
+## Wave 2 acceptance (Taylor @ Harbour)
+
+See WAVE_2_IMPLEMENTATION_PLAN and `pnpm test:aura` (wave2 suite): western-lift CF → blocked; evening visit closes Entrance B; toilet confirm resolves unknown; resilience SPOF; challenge one cycle; stop idempotent; hash verify/tamper; offline pack HTML + delete.
+
+Flagship walkthrough remains synthetic. Do not claim production readiness while PRODUCTION_READINESS gates remain open.
 
 ## Related paths
 

@@ -54,9 +54,14 @@ export function rejectAuthorityEscalation(
   current: AuraAuthorityLevel,
   requested: AuraAuthorityLevel,
   ceiling: AuraAuthorityLevel = AURA_WAVE1_AUTHORITY_CEILING,
-): { allowed: false; reason: string } | { allowed: true; level: AuraAuthorityLevel } {
+):
+  | { allowed: false; reason: string }
+  | { allowed: true; level: AuraAuthorityLevel } {
   if (requested === "L6_PROHIBITED") {
-    return { allowed: false, reason: "L6_PROHIBITED is never a granted level." };
+    return {
+      allowed: false,
+      reason: "L6_PROHIBITED is never a granted level.",
+    };
   }
   if (RANK[requested] > RANK[ceiling]) {
     return {
@@ -70,7 +75,8 @@ export function rejectAuthorityEscalation(
   if (RANK[requested] > RANK[current]) {
     return {
       allowed: false,
-      reason: "Authority may only be raised by participant mandate + policy, not by the model.",
+      reason:
+        "Authority may only be raised by participant mandate + policy, not by the model.",
     };
   }
   return { allowed: true, level: clampAuthority(requested, ceiling) };

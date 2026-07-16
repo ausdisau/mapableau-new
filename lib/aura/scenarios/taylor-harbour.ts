@@ -14,11 +14,7 @@ import { rejectDiagnosisInference } from "../authority/invariants";
 import { AURA_WAVE1_AUTHORITY_CEILING } from "../authority/ladder";
 import { listActiveLeases } from "../leases";
 import type { AuraMissionRecord } from "../mission/store";
-import type {
-  AuraMissionGraph,
-  AuraProofPlan,
-  AuraResponse,
-} from "../schemas";
+import type { AuraMissionGraph, AuraProofPlan, AuraResponse } from "../schemas";
 import { verifyProofPlan } from "../verifier";
 import { appendWitness } from "../witness";
 
@@ -116,7 +112,12 @@ function buildTaylorGraph(): AuraMissionGraph {
       { id: "e7", from: "n-ent-b", to: "n-lift-west", type: "depends_on" },
       { id: "e8", from: "n-lift-main", to: "n-ent-b", type: "blocked_by" },
       { id: "e9", from: "n-lift-west", to: "n-room", type: "supports" },
-      { id: "e10", from: "n-room", to: "n-toilet-unk", type: "made_uncertain_by" },
+      {
+        id: "e10",
+        from: "n-room",
+        to: "n-toilet-unk",
+        type: "made_uncertain_by",
+      },
       {
         id: "e11",
         from: "n-room",
@@ -146,7 +147,9 @@ export function runTaylorHarbourPlan(mission: AuraMissionRecord): {
     })),
   });
 
-  const incidents = [{ ...MAIN_LIFT_OUTAGE_INCIDENT, status: "active" as const }];
+  const incidents = [
+    { ...MAIN_LIFT_OUTAGE_INCIDENT, status: "active" as const },
+  ];
   const twin = buildHarbourLivingTwin({ incidents });
   const accessGraph = buildHarbourAccessGraph();
 
@@ -188,7 +191,9 @@ export function runTaylorHarbourPlan(mission: AuraMissionRecord): {
   for (const u of fit.unknowns ?? []) {
     if (
       /toilet|staff|reception|assistance/i.test(u) &&
-      !unknowns.some((x) => x.toLowerCase().includes(u.toLowerCase().slice(0, 20)))
+      !unknowns.some((x) =>
+        x.toLowerCase().includes(u.toLowerCase().slice(0, 20)),
+      )
     ) {
       unknowns.push(u);
     }
@@ -207,7 +212,11 @@ export function runTaylorHarbourPlan(mission: AuraMissionRecord): {
   ];
 
   if (
-    !rejected.some((r) => /entrance a|steps|step-free|step free/i.test(r.label + r.reasons.join(" ")))
+    !rejected.some((r) =>
+      /entrance a|steps|step-free|step free/i.test(
+        r.label + r.reasons.join(" "),
+      ),
+    )
   ) {
     rejected.unshift({
       label: "Entrance A",
@@ -275,7 +284,9 @@ export function runTaylorHarbourPlan(mission: AuraMissionRecord): {
       {
         engine: "access-intelligence.route-engine",
         version: "1",
-        resultReference: recommended ? `route:${recommended.id}` : "route:fallback-ent-b-west",
+        resultReference: recommended
+          ? `route:${recommended.id}`
+          : "route:fallback-ent-b-west",
       },
     ],
     assumptions: [
@@ -295,8 +306,7 @@ export function runTaylorHarbourPlan(mission: AuraMissionRecord): {
       entranceId: usesEntA ? "hcc-ent-a" : "hcc-ent-b",
       entranceLabel: usesEntA ? "Entrance A" : "Entrance B",
       liftId: usesWestLift || !usesMainLift ? "hcc-lift-west" : "hcc-lift",
-      liftLabel:
-        usesWestLift || !usesMainLift ? "Western lift" : "Main lift",
+      liftLabel: usesWestLift || !usesMainLift ? "Western lift" : "Main lift",
       stepIds: nodeIds.length
         ? nodeIds
         : ["n-hcc-ent-b", "n-hcc-west-g", "n-hcc-west-3", "n-hcc-room"],
@@ -339,8 +349,9 @@ export function runTaylorHarbourPlan(mission: AuraMissionRecord): {
     .digest("hex");
 
   const missionGraph = buildTaylorGraph();
-  const unresolved = missionGraph.nodes.filter((n) => n.status === "unknown")
-    .length;
+  const unresolved = missionGraph.nodes.filter(
+    (n) => n.status === "unknown",
+  ).length;
 
   const verifier = verifyProofPlan({
     plan,

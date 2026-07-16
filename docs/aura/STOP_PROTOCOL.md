@@ -1,32 +1,35 @@
-# AURA — STOP PROTOCOL
+# AURA — STOP PROTOCOL (Wave 2)
 
-See also: [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md), [BRANCH_AND_DOMAIN_RECONCILIATION.md](./BRANCH_AND_DOMAIN_RECONCILIATION.md).
+Stop AURA is **mandatory** whenever `MAPABLE_AURA_ENABLED=true`. There is no optional flag to disable Stop.
 
-## Summary
+## States
 
-MapAble **AURA** (Accessibility · Understanding · Routing · Agency) is a participant-controlled accessibility assistant. It is **ASI-ready** in the safety sense: capability growth must not automatically expand authority, personal-data access, or write permission.
+`not_stopped` → `stop_requested` → `stopping` → `stopped` (or `stop_failed_requires_review`)
 
-**Foundational rule:** Agents interpret, retrieve, compare, simulate, draft and recommend. Participants decide. Deterministic MapAble services execute.
+Idempotent: duplicate stops return the same receipt.
 
-## Wave 1 status
+## Effects
 
-Wave 1 (read-only) ships on branch `cursor/mapable-aura-wave1-6ea8`:
+1. Mission marked stopped
+2. AbortController aborts active generation
+3. All AURA capability leases revoked
+4. New tool calls / counterfactuals / pack creation blocked
+5. Late results discarded (`discardIfStopped`)
+6. Plans and audit history preserved
+7. Stop Receipt created (no Passport / diagnosis content)
+8. Offline packs labelled `mission_stopped`
+9. Non-AI service links remain available
 
-- CareOSMission as canonical mission SoT (+ AuraMissionExtension)
-- Capability leases; authority ceiling **L2_RECOMMEND**
-- Proof-carrying plans + independent verifier
-- Stop AURA protocol
-- Accessibility Mission mode on `/ask`
-- Taylor @ Harbour Civic synthetic flagship
-- **No** application writes; **no** Prisma in agent tools; physical actuation **off**
+## API
 
-## Topic focus: STOP PROTOCOL
+`POST /api/intelligence/aura/missions/[missionId]/stop`
 
-This document covers **STOP PROTOCOL** for AURA operators and reviewers. Production enablement requires gates in PRODUCTION_READINESS.md. Do not claim AURA is an ASI, autonomous case management, or generally production-ready while release gates remain open.
+Does not require an active model session. No client-supplied authority level.
 
-## Related paths
+## UI
 
-- `lib/aura/`
-- `app/api/intelligence/aura/`
-- `components/aura/`
-- `tests/aura/`
+Visible text control “Stop AURA for this mission”, keyboard accessible, one confirmation, focus moves to stopped-state heading on success.
+
+## Implementation
+
+`lib/aura/stop/index.ts` — `executeStopAura`

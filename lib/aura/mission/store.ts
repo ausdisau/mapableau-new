@@ -34,6 +34,23 @@ export type AuraMissionRecord = {
   authorityLevel: AuraAuthorityLevel;
   authorityCeiling: AuraAuthorityLevel;
   stopState: boolean;
+  stopPhase:
+    | "not_stopped"
+    | "stop_requested"
+    | "stopping"
+    | "stopped"
+    | "stop_failed_requires_review";
+  stopReceiptId: string | null;
+  planVersions: Array<{
+    version: number;
+    planId: string;
+    previousPlanId: string | null;
+    reason: string;
+    createdAt: string;
+    simulated: boolean;
+  }>;
+  challengeCountByPlan: Record<string, number>;
+  resilience: unknown | null;
   graph: AuraMissionGraph;
   knownFacts: string[];
   unknowns: string[];
@@ -106,6 +123,11 @@ export function createMissionDraft(
     authorityLevel: "L2_RECOMMEND",
     authorityCeiling: AURA_WAVE1_AUTHORITY_CEILING,
     stopState: false,
+    stopPhase: "not_stopped",
+    stopReceiptId: null,
+    planVersions: [],
+    challengeCountByPlan: {},
+    resilience: null,
     graph: { nodes: [], edges: [] },
     knownFacts: [],
     unknowns: [],

@@ -71,6 +71,12 @@ export const MODULE_CAPABILITIES: Record<
       authorityLevel: "L2_RECOMMEND",
       fieldScope: ["route"],
     },
+    {
+      capabilityId: "access.counterfactuals",
+      authority: "recommend",
+      authorityLevel: "L2_RECOMMEND",
+      fieldScope: ["counterfactual"],
+    },
   ],
   billing_summaries: [],
   accessibility_profile: [],
@@ -108,7 +114,9 @@ export function issueLeases(input: {
   ttlMs?: number;
 }): AuraCapabilityLease[] {
   const now = Date.now();
-  const expiresAt = new Date(now + (input.ttlMs ?? DEFAULT_TTL_MS)).toISOString();
+  const expiresAt = new Date(
+    now + (input.ttlMs ?? DEFAULT_TTL_MS),
+  ).toISOString();
   const issued: AuraCapabilityLease[] = [];
 
   const always: Array<{
@@ -223,7 +231,9 @@ export function hasActiveLease(
   missionId: string,
   capabilityId: AuraCapabilityId,
 ): boolean {
-  return listActiveLeases(missionId).some((l) => l.capabilityId === capabilityId);
+  return listActiveLeases(missionId).some(
+    (l) => l.capabilityId === capabilityId,
+  );
 }
 
 export function assertLease(

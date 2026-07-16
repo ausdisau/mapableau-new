@@ -18,28 +18,35 @@ Agents interpret, retrieve, compare, simulate, draft and recommend.
 **Participants decide.**  
 **Deterministic MapAble services execute.**
 
-## Wave 1 (this release)
+## Wave 1 (complete)
 
-Read-only vertical slice:
+Read-only vertical slice: CareOSMission, leases, proof plans, verifier, Stop, Taylor@Harbour demo. Writes/proposals/memory/physical **off**.
 
-| Capability | Status |
-|------------|--------|
-| `/ask` Accessibility Mission mode | Yes |
-| CareOSMission + AuraMissionExtension | Yes |
-| Capability leases | Yes |
-| Authority ceiling L2_RECOMMEND | Yes |
-| Proof-carrying plan + verifier | Yes |
-| Stop AURA | Yes |
-| Taylor @ Harbour Civic demo | Yes (synthetic) |
-| Application writes / proposals | **Off** |
-| Durable memory | **Off** |
-| Physical actuation | **Off** |
+## Wave 2 (this release)
 
-Flags default `MAPABLE_AURA_ENABLED=false`.
+| Capability                     | Status                                           |
+| ------------------------------ | ------------------------------------------------ |
+| Deterministic counterfactuals  | Yes (simulated; no real-state mutation)          |
+| Route / journey resilience     | Yes (plan/environment — not participant scoring) |
+| Bounded plan challenge         | Yes (one cycle / plan version; no CoT)           |
+| Stop AURA + receipt + abort    | Yes (mandatory when AURA enabled)                |
+| Hash-chained audit replay      | Yes (structured; no hidden reasoning)            |
+| Offline Visit Packs            | Yes (HTML/print; stale warnings)                 |
+| Application writes / proposals | **Off**                                          |
+| Authority ceiling              | **L2_RECOMMEND**                                 |
+
+Flags default `MAPABLE_AURA_ENABLED=false`. Stop has no optional disable flag.
 
 ## Docs
 
-Start with [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) and [BRANCH_AND_DOMAIN_RECONCILIATION.md](./BRANCH_AND_DOMAIN_RECONCILIATION.md).
+- [WAVE_2_IMPLEMENTATION_PLAN.md](./WAVE_2_IMPLEMENTATION_PLAN.md)
+- [COUNTERFACTUAL_ENGINE.md](./COUNTERFACTUAL_ENGINE.md)
+- [RESILIENCE_ASSESSMENT.md](./RESILIENCE_ASSESSMENT.md)
+- [BOUNDED_PLAN_CHALLENGE.md](./BOUNDED_PLAN_CHALLENGE.md)
+- [STOP_PROTOCOL.md](./STOP_PROTOCOL.md)
+- [AUDIT_REPLAY.md](./AUDIT_REPLAY.md)
+- [OFFLINE_VISIT_PACKS.md](./OFFLINE_VISIT_PACKS.md)
+- [ROLLBACK.md](./ROLLBACK.md)
 
 ## Tests
 

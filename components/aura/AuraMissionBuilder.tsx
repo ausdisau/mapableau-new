@@ -117,7 +117,9 @@ export function AuraMissionBuilder({ demoEnabled = true }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Stop failed");
       setResult(data.response as AuraResponse);
-      setLiveMessage("AURA stopped. Leases revoked. Standard services remain available.");
+      setLiveMessage(
+        "AURA stopped. Leases revoked. Standard services remain available.",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Stop failed");
     } finally {
@@ -128,8 +130,8 @@ export function AuraMissionBuilder({ demoEnabled = true }: Props) {
   if (!demoEnabled) {
     return (
       <p role="status">
-        MapAble AURA is not enabled. Use the standard Ask MapAble tools below, or
-        open the <Link href="/access">access map</Link>.
+        MapAble AURA is not enabled. Use the standard Ask MapAble tools below,
+        or open the <Link href="/access">access map</Link>.
       </p>
     );
   }
@@ -139,7 +141,10 @@ export function AuraMissionBuilder({ demoEnabled = true }: Props) {
       aria-labelledby={`${formId}-heading`}
       className="rounded-lg border border-slate-300 bg-white p-4 shadow-sm"
     >
-      <h2 id={`${formId}-heading`} className="text-xl font-semibold text-slate-900">
+      <h2
+        id={`${formId}-heading`}
+        className="text-xl font-semibold text-slate-900"
+      >
         Accessibility Mission (AURA)
       </h2>
       <p className="mt-1 text-sm text-slate-700">
@@ -147,7 +152,8 @@ export function AuraMissionBuilder({ demoEnabled = true }: Props) {
         services execute. Wave 1 is read-only — no automatic writes.
       </p>
       <p className="mt-1 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-        Demo uses the synthetic Harbour Civic Centre Living Twin. Not a live venue.
+        Demo uses the synthetic Harbour Civic Centre Living Twin. Not a live
+        venue.
       </p>
 
       <div className="sr-only" aria-live="polite">
@@ -157,7 +163,10 @@ export function AuraMissionBuilder({ demoEnabled = true }: Props) {
       {!result ? (
         <form className="mt-4 space-y-4" onSubmit={onSubmit}>
           <div>
-            <label htmlFor={`${formId}-goal`} className="block text-sm font-medium">
+            <label
+              htmlFor={`${formId}-goal`}
+              className="block text-sm font-medium"
+            >
               My goal
             </label>
             <textarea
@@ -171,7 +180,9 @@ export function AuraMissionBuilder({ demoEnabled = true }: Props) {
           </div>
 
           <fieldset>
-            <legend className="text-sm font-medium">Modules AURA may use</legend>
+            <legend className="text-sm font-medium">
+              Modules AURA may use
+            </legend>
             <ul className="mt-2 space-y-2">
               {MODULE_OPTIONS.map((m) => (
                 <li key={m.id} className="flex items-start gap-2 text-sm">
@@ -273,23 +284,145 @@ function AuraMissionResultView({
   onReset: () => void;
 }) {
   const stopped = result.missionState === "stopped";
+  const [cfResult, setCfResult] = useState<string | null>(null);
+  const [packInfo, setPackInfo] = useState<string | null>(null);
+
+  async function runCf(label: string, mutation: Record<string, unknown>) {
+    setCfResult(null);
+    const res = await fetch(
+      `/api/intelligence/aura/missions/${result.missionId}/counterfactuals`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          basePlanId: result.plan?.id,
+          mutation: { ...mutation, simulated: true, label },
+        }),
+      },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      setCfResult(data.error || "Counterfactual failed");
+      return;
+    }
+    setCfResult(
+      `${data.disclaimer} Before: ${data.before.status}. After: ${data.after.status}. Route changed: ${data.changeSummary.routeChanged}.`,
+    );
+  }
+
+  async function saveOffline() {
+    const res = await fetch(
+      `/api/intelligence/aura/missions/${result.missionId}/offline-pack`,
+      { method: "POST" },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      setPackInfo(data.error || "Pack failed");
+      return;
+    }
+    setPackInfo(
+      `Pack ${data.pack.id} saved. Generated ${data.pack.generatedAt}. Excludes: ${data.excludedByDefault.join(", ")}.`,
+    );
+  }
+
   return (
     <div className="mt-4 space-y-4">
+      {stopped ? (
+        <h2
+          id="aura-stopped-heading"
+          tabIndex={-1}
+          className="text-lg font-semibold"
+        >
+          AURA has stopped
+        </h2>
+      ) : null}
+
       <AuraAuthorityIndicator
         current={result.authority.currentLevel}
         maximum={result.authority.maximumLevel}
         leaseCount={result.authority.activeCapabilityCount}
       />
 
-      <AuraStopControl
-        disabled={busy || stopped}
-        onStop={onStop}
-      />
+      <AuraStopControl disabled={busy || stopped} onStop={onStop} />
 
       {error ? (
         <p role="alert" className="text-sm text-red-800">
           {error}
         </p>
+      ) : null}
+
+      {!stopped ? (
+        <section aria-labelledby="aura-cf" className="space-y-2">
+          <h3 id="aura-cf" className="text-sm font-semibold">
+            Simulated what-if (does not change reality)
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded border border-slate-400 px-3 py-1 text-sm"
+              onClick={() =>
+                runCf("Western lift also unavailable", {
+                  category: "environment",
+                  operation: "set_unavailable",
+                  targetId: "hcc-lift-west",
+                })
+              }
+            >
+              What if western lift fails?
+            </button>
+            <button
+              type="button"
+              className="rounded border border-slate-400 px-3 py-1 text-sm"
+              onClick={() =>
+                runCf("Evening visit at 19:00", {
+                  category: "time",
+                  operation: "set_time",
+                  value: new Date(
+                    new Date().setHours(19, 0, 0, 0),
+                  ).toISOString(),
+                })
+              }
+            >
+              What if interview at 7:00 pm?
+            </button>
+            <button
+              type="button"
+              className="rounded border border-slate-400 px-3 py-1 text-sm"
+              onClick={() =>
+                runCf("Toilet confirmed operating", {
+                  category: "evidence",
+                  operation: "confirm_present",
+                  featureType: "accessible_toilet",
+                })
+              }
+            >
+              What if toilet is confirmed?
+            </button>
+            <button
+              type="button"
+              className="rounded border border-slate-400 px-3 py-1 text-sm"
+              onClick={saveOffline}
+            >
+              Save offline Visit Pack
+            </button>
+          </div>
+          {cfResult ? (
+            <p
+              role="status"
+              className="text-sm bg-amber-50 border border-amber-200 p-2 rounded"
+            >
+              {cfResult}
+            </p>
+          ) : null}
+          {packInfo ? (
+            <p
+              role="status"
+              className="text-sm bg-slate-50 border border-slate-200 p-2 rounded"
+            >
+              {packInfo}
+            </p>
+          ) : null}
+        </section>
       ) : null}
 
       <AuraProofPlanCard plan={result} />
@@ -303,6 +436,15 @@ function AuraMissionResultView({
       />
       <AuraPlanVerifierResult verifier={result.verifier} />
       <AuraHumanReviewPanel review={result.humanReview} />
+
+      <p className="text-sm">
+        <a
+          className="underline"
+          href={`/dashboard/aura/missions/${result.missionId}/audit`}
+        >
+          Open audit replay
+        </a>
+      </p>
 
       <section aria-labelledby="aura-non-ai">
         <h3 id="aura-non-ai" className="text-sm font-semibold">
@@ -319,11 +461,7 @@ function AuraMissionResultView({
         </ul>
       </section>
 
-      <button
-        type="button"
-        className="text-sm underline"
-        onClick={onReset}
-      >
+      <button type="button" className="text-sm underline" onClick={onReset}>
         Start another mission
       </button>
     </div>
@@ -358,14 +496,48 @@ export function AuraStopControl({
   disabled?: boolean;
   onStop: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
+  if (confirming) {
+    return (
+      <div className="rounded border-2 border-red-800 bg-red-50 p-3 space-y-2">
+        <p className="text-sm text-red-950">
+          Stop AURA for this mission? It will stop reading information and
+          generating plans. Completed MapAble records and audit history will not
+          be deleted.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="rounded bg-red-900 px-4 py-2 text-sm font-semibold text-white"
+            onClick={() => {
+              setConfirming(false);
+              onStop();
+              queueMicrotask(() => {
+                document.getElementById("aura-stopped-heading")?.focus();
+              });
+            }}
+          >
+            Confirm stop
+          </button>
+          <button
+            type="button"
+            className="rounded border border-slate-500 px-4 py-2 text-sm"
+            onClick={() => setConfirming(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <button
       type="button"
-      onClick={onStop}
+      onClick={() => setConfirming(true)}
       disabled={disabled}
       className="rounded border-2 border-red-800 bg-red-50 px-4 py-2 text-sm font-semibold text-red-950 disabled:opacity-50"
     >
-      Stop AURA
+      Stop AURA for this mission
     </button>
   );
 }
@@ -383,13 +555,14 @@ export function AuraProofPlanCard({ plan }: { plan: AuraResponse }) {
       </p>
       {p?.recommendedRoute ? (
         <p className="text-sm">
-          Route: {p.recommendedRoute.entranceLabel} → {p.recommendedRoute.liftLabel}{" "}
-          — {p.recommendedRoute.summary}
+          Route: {p.recommendedRoute.entranceLabel} →{" "}
+          {p.recommendedRoute.liftLabel} — {p.recommendedRoute.summary}
         </p>
       ) : null}
       <p className="text-sm text-slate-700">
-        Why: deterministic fit and route engines evaluated your selected Passport
-        against Harbour Civic evidence. Conditions and unknowns are listed below.
+        Why: deterministic fit and route engines evaluated your selected
+        Passport against Harbour Civic evidence. Conditions and unknowns are
+        listed below.
       </p>
     </section>
   );
@@ -458,7 +631,10 @@ export function AuraBlockersPanel({ blockers }: { blockers: string[] }) {
       </h3>
       <ul className="mt-1 list-disc pl-5 text-sm">
         {blockers.length === 0 ? (
-          <li>No hard blockers on the recommended route (conditions may still apply).</li>
+          <li>
+            No hard blockers on the recommended route (conditions may still
+            apply).
+          </li>
         ) : (
           blockers.map((b) => <li key={b}>{b}</li>)
         )}

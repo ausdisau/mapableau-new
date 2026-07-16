@@ -147,6 +147,8 @@ model User {
   auraCapabilityLeases      AuraCapabilityLease[]
   auraMemoryCards           AuraMemoryCard[]
   auraOutcomeRecords        AuraOutcomeRecord[]
+  auraMissionStopReceipts   AuraMissionStopReceipt[]
+  auraOfflineVisitPacks     AuraOfflineVisitPack[]
 }
 
 model PasskeyCredential {
@@ -9876,6 +9878,12 @@ model CareOSMission {
   auraPlanArtifacts   AuraPlanArtifact[]
   auraActionProposals AuraActionProposal[]
   auraOutcomes        AuraOutcomeRecord[]
+  auraCounterfactuals AuraCounterfactualRun[]
+  auraResilience      AuraResilienceAssessment[]
+  auraChallenges      AuraPlanChallenge[]
+  auraStopReceipts    AuraMissionStopReceipt[]
+  auraOfflinePacks    AuraOfflineVisitPack[]
+  auraAuditManifests  AuraAuditReplayManifest[]
 
   @@index([participantId, createdAt])
   @@index([tenantId, status])
@@ -10041,4 +10049,117 @@ model AuraOutcomeRecord {
   @@index([missionId, createdAt])
   @@index([participantId, createdAt])
   @@map("aura_outcome_records")
+}
+
+// ---------------------------------------------------------------------------
+// MapAble AURA Wave 2 — counterfactuals, resilience, stop, offline, audit
+// Additive only. Runtime Wave 2 uses in-memory stores unless MAPABLE_AURA_USE_PRISMA.
+// ---------------------------------------------------------------------------
+
+model AuraCounterfactualRun {
+  id                 String        @id @default(cuid())
+  missionId          String
+  mission            CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  basePlanArtifactId String
+  mutationJson       Json
+  beforeJson         Json
+  afterJson          Json
+  changeSummaryJson  Json
+  simulated          Boolean       @default(true)
+  generatedAt        DateTime      @default(now())
+  expiresAt          DateTime
+  cancelledAt        DateTime?
+
+  @@index([missionId, generatedAt])
+  @@index([expiresAt])
+  @@map("aura_counterfactual_runs")
+}
+
+model AuraResilienceAssessment {
+  id                    String        @id @default(cuid())
+  missionId             String
+  mission               CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId        String
+  level                 String
+  dependenciesJson      Json          @default("[]")
+  singlePointsOfFailure Json          @default("[]")
+  verifiedFallbacks     Json          @default("[]")
+  unverifiedFallbacks   Json          @default("[]")
+  assessedAt            DateTime      @default(now())
+
+  @@index([missionId, assessedAt])
+  @@map("aura_resilience_assessments")
+}
+
+model AuraPlanChallenge {
+  id              String        @id @default(cuid())
+  missionId       String
+  mission         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId  String
+  challengeVersion Int          @default(1)
+  resultJson      Json
+  createdAt       DateTime      @default(now())
+
+  @@unique([missionId, planArtifactId, challengeVersion])
+  @@index([missionId, createdAt])
+  @@map("aura_plan_challenges")
+}
+
+model AuraMissionStopReceipt {
+  id                     String        @id @default(cuid())
+  missionId              String
+  mission                CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  requestedByUserId      String
+  requestedBy            User          @relation(fields: [requestedByUserId], references: [id], onDelete: Cascade)
+  requestedAt            DateTime
+  completedAt            DateTime
+  revokedLeaseIds        Json          @default("[]")
+  cancelledRunIds        Json          @default("[]")
+  invalidatedProposalIds Json          @default("[]")
+  result                 String
+  auditCorrelationId     String
+  notesJson              Json          @default("[]")
+  createdAt              DateTime      @default(now())
+
+  @@index([missionId, completedAt])
+  @@index([requestedByUserId, createdAt])
+  @@map("aura_mission_stop_receipts")
+}
+
+model AuraOfflineVisitPack {
+  id              String        @id @default(cuid())
+  missionId       String
+  mission         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId  String
+  ownerUserId     String
+  owner           User          @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  snapshotJson    Json
+  generatedAt     DateTime      @default(now())
+  staleAfter      DateTime
+  status          String        @default("current_snapshot")
+  deletedAt       DateTime?
+
+  @@index([missionId, generatedAt])
+  @@index([ownerUserId, status])
+  @@index([status, staleAfter])
+  @@map("aura_offline_visit_packs")
+}
+
+model AuraAuditReplayManifest {
+  id                 String        @id @default(cuid())
+  missionId          String
+  mission            CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  version            Int           @default(1)
+  firstSequence      Int
+  lastSequence       Int
+  rootHash           String
+  eventCount         Int
+  verifiedAt         DateTime?
+  verificationStatus String        @default("pending")
+  manifestJson       Json          @default("{}")
+  createdAt          DateTime      @default(now())
+
+  @@unique([missionId, version])
+  @@index([missionId, createdAt])
+  @@map("aura_audit_replay_manifests")
 }

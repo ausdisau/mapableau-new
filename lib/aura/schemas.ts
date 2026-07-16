@@ -303,5 +303,9 @@ export const createAuraMissionInputSchema = z.object({
   tenantId: z.string().optional(),
 });
 
-export type CreateAuraMissionInput = z.input<typeof createAuraMissionInputSchema>;
-export type CreateAuraMissionParsed = z.output<typeof createAuraMissionInputSchema>;
+export type CreateAuraMissionInput = z.input<
+  typeof createAuraMissionInputSchema
+>;
+export type CreateAuraMissionParsed = z.output<
+  typeof createAuraMissionInputSchema
+>;
