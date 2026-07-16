@@ -140,6 +140,18 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  // RightsOS
+  rightsDataUseRequestsAsSubject RightsDataUseRequest[] @relation("RightsDataUseSubject")
+  rightsDataUseRequestsAsRequester RightsDataUseRequest[] @relation("RightsDataUseRequester")
+  rightsPolicyDecisions       RightsPolicyDecision[]
+  rightsCapabilityLeases      RightsCapabilityLease[]
+  rightsRequests              RightsRequest[]
+  personalVault               PersonalVault?
+  decisionRooms               DecisionRoom[]
+  decisionSupporters          DecisionSupporter[]
+  accessCapsules              AccessCapsule[]
+  vaultDevices                VaultDevice[]
 }
 
 model PasskeyCredential {
@@ -8465,4 +8477,555 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// ─── RightsOS ───────────────────────────────────────────────────────────────
+
+enum RightsDataOperation {
+  read
+  disclose
+  create_derived_data
+  store
+  update
+  export
+  contact
+}
+
+enum RightsPolicyOutcome {
+  allow
+  allow_with_duties
+  deny
+  participant_review_required
+  human_review_required
+}
+
+enum RightsRequestType {
+  access
+  correction
+  deletion
+  export
+  revocation
+  restriction
+  objection
+  explanation
+  recipient_disclosure_history
+  complaint
+}
+
+enum RightsRequestStatus {
+  draft
+  identity_check
+  scope_confirmation
+  participant_review
+  submitted
+  acknowledged
+  processing
+  partially_completed
+  completed
+  denied_with_reason
+  human_review
+  appealed
+  closed
+}
+
+enum AccessCapsuleStatus {
+  draft
+  disclosure_compiled
+  participant_review
+  approved
+  issued
+  presented
+  verified
+  used
+  expired
+  revoked
+  deleted_or_archived
+}
+
+enum DecisionRoomStatus {
+  draft
+  open
+  paused
+  decided
+  revised
+  revoked
+}
+
+enum RecipientDutyReceiptType {
+  system_verified
+  recipient_attestation
+  participant_report
+  external_verification
+  unverifiable
+}
+
+enum VaultDeviceStatus {
+  active
+  revoked
+  lost
+}
+
+enum RightsCapabilityLeaseStatus {
+  active
+  expired
+  revoked
+  consumed
+}
+
+model RightsPurpose {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  description String
+  policyOwner String
+  reviewDate  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions RightsPurposeVersion[]
+
+  @@map("rights_purposes")
+}
+
+model RightsPurposeVersion {
+  id              String   @id @default(cuid())
+  purposeId       String
+  purpose         RightsPurpose @relation(fields: [purposeId], references: [id], onDelete: Cascade)
+  version         String
+  effectiveDate   DateTime
+  definitionJson  Json
+  createdAt       DateTime @default(now())
+
+  @@unique([purposeId, version])
+  @@map("rights_purpose_versions")
+}
+
+model RightsFieldDefinition {
+  id              String   @id @default(cuid())
+  fieldPath       String   @unique
+  displayName     String
+  sensitivity     String
+  domain          String
+  description     String?
+  definitionJson  Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([domain])
+  @@map("rights_field_definitions")
+}
+
+model RightsDataUseRequest {
+  id                      String   @id @default(cuid())
+  requestId               String   @unique
+  subjectUserId           String
+  subjectUser             User     @relation("RightsDataUseSubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  requesterActorId        String
+  requesterActor          User     @relation("RightsDataUseRequester", fields: [requesterActorId], references: [id])
+  requesterActorType      String
+  requesterOrganisationId String?
+  requesterRole           String?
+  recipientDisplayName    String
+  recipientActorId        String?
+  recipientOrganisationId String?
+  recipientServiceId      String?
+  purposeCode             String
+  requestedOperations     RightsDataOperation[]
+  requestedFields         String[]
+  sourceAssets            String[] @default([])
+  contextJson             Json     @default("{}")
+  requestedAt             DateTime @default(now())
+  requestedUntil          DateTime?
+  onwardSharingRequested  Boolean  @default(false)
+  retentionRequested      String?
+  status                  String   @default("pending")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  decisions RightsPolicyDecision[]
+
+  @@index([subjectUserId])
+  @@index([purposeCode])
+  @@map("rights_data_use_requests")
+}
+
+model RightsPolicyDecision {
+  id                      String              @id @default(cuid())
+  decisionId              String              @unique
+  requestId               String
+  request                 RightsDataUseRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  subjectUserId           String
+  subjectUser             User                @relation(fields: [subjectUserId], references: [id], onDelete: Cascade)
+  outcome                 RightsPolicyOutcome
+  allowedFields           String[]            @default([])
+  deniedFields            String[]            @default([])
+  allowedOperations       RightsDataOperation[] @default([])
+  deniedOperations        RightsDataOperation[] @default([])
+  dutiesJson              Json                @default("[]")
+  prohibitionsJson        Json                @default("[]")
+  requiredApprovals       String[]            @default([])
+  requiredAuthorityRecords String[]           @default([])
+  reasonsJson             Json                @default("[]")
+  policyVersion           String
+  expiresAt               DateTime?
+  evaluatedAt             DateTime            @default(now())
+  consentRecordId         String?
+  createdAt               DateTime            @default(now())
+
+  leases RightsCapabilityLease[]
+
+  @@index([subjectUserId])
+  @@index([requestId])
+  @@map("rights_policy_decisions")
+}
+
+model RightsCapabilityLease {
+  id                    String                    @id @default(cuid())
+  subjectUserId         String
+  subjectUser           User                      @relation(fields: [subjectUserId], references: [id], onDelete: Cascade)
+  policyDecisionId      String
+  policyDecision        RightsPolicyDecision      @relation(fields: [policyDecisionId], references: [id], onDelete: Cascade)
+  vaultItemId           String?
+  requesterActorId      String
+  recipientOrganisationId String?
+  recipientServiceId    String?
+  purposeCode           String
+  permittedFields       String[]
+  permittedOperations   RightsDataOperation[]
+  expiresAt             DateTime
+  useLimit              Int                       @default(1)
+  useCount              Int                       @default(0)
+  participantApprovalRef String?
+  status                RightsCapabilityLeaseStatus @default(active)
+  revokedAt             DateTime?
+  createdAt             DateTime                  @default(now())
+
+  capsules AccessCapsule[]
+
+  @@index([subjectUserId, status])
+  @@index([expiresAt])
+  @@map("rights_capability_leases")
+}
+
+model RightsLedgerManifest {
+  id              String   @id @default(cuid())
+  subjectUserId   String
+  manifestJson    Json
+  eventCount      Int
+  generatedAt     DateTime @default(now())
+  correlationId   String?
+
+  @@index([subjectUserId])
+  @@map("rights_ledger_manifests")
+}
+
+model RightsRequest {
+  id              String              @id @default(cuid())
+  subjectUserId   String
+  subjectUser     User                @relation(fields: [subjectUserId], references: [id], onDelete: Cascade)
+  requestType     RightsRequestType
+  status          RightsRequestStatus @default(draft)
+  scopeJson       Json                @default("{}")
+  limitationNote  String?
+  assignedOfficerId String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  events RightsRequestEvent[]
+
+  @@index([subjectUserId, status])
+  @@map("rights_requests")
+}
+
+model RightsRequestEvent {
+  id          String        @id @default(cuid())
+  requestId   String
+  request     RightsRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorUserId String?
+  note        String?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+
+  @@index([requestId])
+  @@map("rights_request_events")
+}
+
+model RightsPolicyConflict {
+  id              String   @id @default(cuid())
+  subjectUserId   String
+  conflictType    String
+  affectedPolicies Json
+  participantImpact String
+  safeDefault     String
+  reviewOwner     String
+  status          String   @default("open")
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([subjectUserId, status])
+  @@map("rights_policy_conflicts")
+}
+
+model PersonalVault {
+  id              String   @id @default(cuid())
+  subjectUserId   String   @unique
+  subjectUser     User     @relation(fields: [subjectUserId], references: [id], onDelete: Cascade)
+  encryptionState String   @default("kms_envelope")
+  recoveryMethod  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items   PersonalVaultItem[]
+  devices VaultDevice[]
+  exports VaultExport[]
+
+  @@map("personal_vaults")
+}
+
+model PersonalVaultItem {
+  id                  String        @id @default(cuid())
+  vaultId             String
+  vault               PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  category            String
+  source              String
+  sensitivity         String
+  fieldsJson          Json          @default("[]")
+  encryptionState     String        @default("encrypted")
+  permittedModules    String[]      @default([])
+  permittedPurposes   String[]      @default([])
+  defaultPolicyJson   Json          @default("{}")
+  expiresAt           DateTime?
+  version             Int           @default(1)
+  provenanceJson      Json          @default("{}")
+  exportState         String?
+  deletionState       String?
+  encryptedPayload    String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([vaultId, category])
+  @@map("personal_vault_items")
+}
+
+model VaultDevice {
+  id              String            @id @default(cuid())
+  vaultId         String
+  vault           PersonalVault     @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  subjectUserId   String
+  subjectUser     User              @relation(fields: [subjectUserId], references: [id], onDelete: Cascade)
+  deviceLabel     String
+  status          VaultDeviceStatus @default(active)
+  keyReference    String?
+  registeredAt    DateTime          @default(now())
+  revokedAt       DateTime?
+
+  @@index([subjectUserId])
+  @@map("vault_devices")
+}
+
+model VaultExport {
+  id          String        @id @default(cuid())
+  vaultId     String
+  vault       PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  format      String
+  manifestJson Json
+  exportedAt  DateTime      @default(now())
+
+  @@index([vaultId])
+  @@map("vault_exports")
+}
+
+model DecisionRoom {
+  id              String             @id @default(cuid())
+  subjectUserId   String
+  subjectUser     User               @relation(fields: [subjectUserId], references: [id], onDelete: Cascade)
+  title           String
+  question        String
+  status          DecisionRoomStatus @default(draft)
+  valuesJson      Json               @default("[]")
+  constraintsJson Json               @default("[]")
+  reviewAt        DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  options     DecisionOption[]
+  supporters  DecisionSupporter[]
+  evidence    DecisionEvidenceReference[]
+  records     DecisionRecord[]
+  dissents    DecisionDissent[]
+
+  @@index([subjectUserId, status])
+  @@map("decision_rooms")
+}
+
+model DecisionOption {
+  id          String       @id @default(cuid())
+  roomId      String
+  room        DecisionRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  label       String
+  description String?
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+
+  @@index([roomId])
+  @@map("decision_options")
+}
+
+model DecisionEvidenceReference {
+  id          String       @id @default(cuid())
+  roomId      String
+  room        DecisionRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  title       String
+  source      String?
+  summary     String?
+  createdAt   DateTime     @default(now())
+
+  @@index([roomId])
+  @@map("decision_evidence_references")
+}
+
+model DecisionSupporter {
+  id              String       @id @default(cuid())
+  roomId          String
+  room            DecisionRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  supporterUserId String
+  supporterUser   User         @relation(fields: [supporterUserId], references: [id])
+  authorityScope  String
+  invitedAt       DateTime     @default(now())
+  revokedAt       DateTime?
+
+  contributions DecisionSupporterContribution[]
+  dissents      DecisionDissent[]
+
+  @@unique([roomId, supporterUserId])
+  @@map("decision_supporters")
+}
+
+model DecisionSupporterContribution {
+  id           String            @id @default(cuid())
+  supporterId  String
+  supporter    DecisionSupporter @relation(fields: [supporterId], references: [id], onDelete: Cascade)
+  content      String
+  createdAt    DateTime          @default(now())
+
+  @@index([supporterId])
+  @@map("decision_supporter_contributions")
+}
+
+model DecisionDissent {
+  id           String            @id @default(cuid())
+  roomId       String
+  room         DecisionRoom      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  supporterId  String
+  supporter    DecisionSupporter @relation(fields: [supporterId], references: [id], onDelete: Cascade)
+  content      String
+  createdAt    DateTime          @default(now())
+
+  @@index([roomId])
+  @@map("decision_dissents")
+}
+
+model DecisionRecord {
+  id                String       @id @default(cuid())
+  roomId            String
+  room              DecisionRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participantWording String
+  chosenOptionId    String?
+  reflection        String?
+  decidedAt         DateTime     @default(now())
+  revisedAt         DateTime?
+  revokedAt         DateTime?
+
+  attestations DecisionAttestation[]
+
+  @@index([roomId])
+  @@map("decision_records")
+}
+
+model DecisionAttestation {
+  id              String         @id @default(cuid())
+  recordId        String
+  record          DecisionRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  attestationType String
+  actorUserId     String?
+  createdAt       DateTime       @default(now())
+
+  @@index([recordId])
+  @@map("decision_attestations")
+}
+
+model AccessCapsule {
+  id                    String              @id @default(cuid())
+  subjectUserId         String
+  subjectUser           User                @relation(fields: [subjectUserId], references: [id], onDelete: Cascade)
+  leaseId               String?
+  lease                 RightsCapabilityLease? @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+  purposeCode           String
+  status                AccessCapsuleStatus @default(draft)
+  disclosedClaimsJson   Json                @default("[]")
+  omittedSummaryJson    Json                @default("[]")
+  holderDisplayName     String?
+  verifierOrganisationId String?
+  presentationMethod    String              @default("secure_link")
+  secureTokenHash       String?
+  useLimit              Int                 @default(1)
+  useCount              Int                 @default(0)
+  issuedAt              DateTime?
+  expiresAt             DateTime?
+  revokedAt             DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  verifications CapsuleVerification[]
+  obligations   RecipientObligation[]
+
+  @@index([subjectUserId, status])
+  @@index([secureTokenHash])
+  @@map("access_capsules")
+}
+
+model CapsuleVerification {
+  id              String        @id @default(cuid())
+  capsuleId       String
+  capsule         AccessCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+  verifierActorId String?
+  verifierOrgId   String?
+  outcome         String
+  challengePassed Boolean       @default(false)
+  verifiedAt      DateTime      @default(now())
+
+  @@index([capsuleId])
+  @@map("capsule_verifications")
+}
+
+model RecipientObligation {
+  id              String        @id @default(cuid())
+  capsuleId       String?
+  capsule         AccessCapsule? @relation(fields: [capsuleId], references: [id], onDelete: SetNull)
+  organisationId  String?
+  purposeCode     String
+  dutiesJson      Json          @default("[]")
+  prohibitionsJson Json         @default("[]")
+  dueAt           DateTime?
+  status          String        @default("pending")
+  createdAt       DateTime      @default(now())
+
+  receipts RecipientDutyReceipt[]
+
+  @@index([organisationId, status])
+  @@map("recipient_obligations")
+}
+
+model RecipientDutyReceipt {
+  id              String                   @id @default(cuid())
+  obligationId    String
+  obligation      RecipientObligation      @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+  dutyCode        String
+  receiptType     RecipientDutyReceiptType
+  attestationNote String?
+  actorUserId     String?
+  recordedAt      DateTime                 @default(now())
+
+  @@index([obligationId])
+  @@map("recipient_duty_receipts")
 }

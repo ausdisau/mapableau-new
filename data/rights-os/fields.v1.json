@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "fields": [
+    { "path": "arrival_time", "displayName": "Arrival time", "sensitivity": "participant_private", "domain": "access" },
+    { "path": "entrance_preference", "displayName": "Preferred entrance", "sensitivity": "participant_private", "domain": "access" },
+    { "path": "written_directions_preference", "displayName": "Written directions preference", "sensitivity": "participant_private", "domain": "access" },
+    { "path": "assistance_request", "displayName": "Assistance request", "sensitivity": "participant_private", "domain": "access" },
+    { "path": "mobility.equipment", "displayName": "Mobility equipment", "sensitivity": "sensitive_personal", "domain": "access" },
+    { "path": "mobility.equipment_dimensions", "displayName": "Equipment dimensions", "sensitivity": "sensitive_personal", "domain": "transport" },
+    { "path": "mobility.summary", "displayName": "Mobility summary", "sensitivity": "sensitive_personal", "domain": "care" },
+    { "path": "boarding_assistance", "displayName": "Boarding assistance", "sensitivity": "participant_private", "domain": "transport" },
+    { "path": "companion_count", "displayName": "Companion count", "sensitivity": "participant_private", "domain": "transport" },
+    { "path": "pickup_point", "displayName": "Pickup point", "sensitivity": "sensitive_personal", "domain": "transport" },
+    { "path": "pickup_time", "displayName": "Pickup time", "sensitivity": "participant_private", "domain": "transport" },
+    { "path": "destination_entrance", "displayName": "Destination entrance", "sensitivity": "participant_private", "domain": "transport" },
+    { "path": "diagnosis", "displayName": "Diagnosis", "sensitivity": "health_related", "domain": "health" },
+    { "path": "medical_history", "displayName": "Medical history", "sensitivity": "health_related", "domain": "health" },
+    { "path": "medical_history.full", "displayName": "Complete medical history", "sensitivity": "health_related", "domain": "health" },
+    { "path": "access_passport.full", "displayName": "Complete Access Passport", "sensitivity": "sensitive_personal", "domain": "access" },
+    { "path": "plan_budget", "displayName": "Plan budget", "sensitivity": "employment_confidential", "domain": "billing" },
+    { "path": "communication.preferences", "displayName": "Communication preferences", "sensitivity": "participant_private", "domain": "accessibility" },
+    { "path": "functional_requirements", "displayName": "Functional requirements", "sensitivity": "participant_private", "domain": "jobs" },
+    { "path": "equipment.needs", "displayName": "Equipment needs", "sensitivity": "participant_private", "domain": "jobs" },
+    { "path": "visit_plan.summary", "displayName": "Visit plan summary", "sensitivity": "participant_private", "domain": "access" },
+    { "path": "home_address.full", "displayName": "Full home address", "sensitivity": "sensitive_personal", "domain": "core" },
+    { "path": "notification.summary", "displayName": "Notification summary", "sensitivity": "participant_private", "domain": "core" },
+    { "path": "routines.summary", "displayName": "Routines summary", "sensitivity": "sensitive_personal", "domain": "care" },
+    { "path": "boundaries.summary", "displayName": "Boundaries summary", "sensitivity": "sensitive_personal", "domain": "care" }
+  ]
+}
