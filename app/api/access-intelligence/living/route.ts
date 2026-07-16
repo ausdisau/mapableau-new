@@ -19,6 +19,11 @@ export async function GET(request: Request) {
     const visitAt = url.searchParams.get("visitAt") ?? "2026-07-16T00:00:00.000Z";
     const twin = buildHarbourLivingTwin();
     const state = getAccessStateAt(twin, visitAt);
+    const passports = createDemoPassports(userId).map((p) => ({
+      id: p.id,
+      name: p.name,
+      requirementCount: p.requirements.length,
+    }));
     return Response.json({
       twin: {
         place: twin.place,
@@ -30,6 +35,12 @@ export async function GET(request: Request) {
         operatingRules: twin.operatingRules,
       },
       state,
+      passports,
+      destinations: twin.destinations.map((d) => ({
+        id: d.id,
+        label: d.label,
+        level: d.level,
+      })),
     });
   } catch (error) {
     if (isAccessIntelligenceError(error)) {
@@ -44,6 +55,10 @@ const visitBodySchema = z.object({
   destination: z.string().default("Interview Room 3.12"),
   visitAt: z.string().default("2026-07-16T00:00:00.000Z"),
   purpose: z.string().default("Visit planning"),
+  optimisationGoal: z
+    .enum(["shortest", "lowest_effort", "highest_confidence", "lowest_sensory_load"])
+    .default("highest_confidence"),
+  uncertaintyTolerance: z.enum(["low", "moderate", "high"]).default("low"),
 });
 
 export async function POST(request: Request) {
@@ -66,8 +81,8 @@ export async function POST(request: Request) {
         destination: parsed.data.destination,
         visitAt: parsed.data.visitAt,
         currentMobilityAid: passport.mobilityAids[0],
-        optimisationGoal: "highest_confidence",
-        uncertaintyTolerance: "low",
+        optimisationGoal: parsed.data.optimisationGoal,
+        uncertaintyTolerance: parsed.data.uncertaintyTolerance,
       },
     });
     const twin = buildHarbourLivingTwin();
@@ -78,6 +93,8 @@ export async function POST(request: Request) {
     });
     return Response.json({
       personalTwin: personal,
+      placeId: twin.place.id,
+      placeName: twin.place.name,
       ...result,
       fourMeasures: {
         venueAccessBaseline: result.decision.baselineScore,
@@ -85,6 +102,14 @@ export async function POST(request: Request) {
         evidenceConfidence: result.decision.evidenceConfidence,
         liveReliability: result.decision.liveReliability,
       },
+      statusLabel:
+        result.decision.status === "unknown"
+          ? "Information incomplete"
+          : result.decision.status === "suitable_with_conditions"
+            ? "Suitable with conditions"
+            : result.decision.status === "blocked"
+              ? "Blocked"
+              : "Suitable",
     });
   } catch (error) {
     if (isAccessIntelligenceError(error)) {

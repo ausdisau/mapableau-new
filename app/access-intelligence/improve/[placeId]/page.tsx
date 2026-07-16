@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import React from "react";
+import React, { Suspense } from "react";
 
 import { AccessIntelligenceShell } from "@/components/access-intelligence/access-intelligence-shell";
 import { MutationStudio } from "@/components/access-intelligence/living/mutation-studio";
@@ -19,7 +19,9 @@ export default async function ImprovePage({ params }: Props) {
         title="Improve it"
         description="Venue Mutation Studio with Access Coverage previews. Ranking factors are transparent planning aids, not moral truths."
       >
-        <MutationStudio placeId={placeId} />
+        <Suspense fallback={<p role="status">Loading mutation studio…</p>}>
+          <MutationStudio placeId={placeId} />
+        </Suspense>
       </AccessIntelligenceShell>
     </MapAbleCareMarketingShell>
   );

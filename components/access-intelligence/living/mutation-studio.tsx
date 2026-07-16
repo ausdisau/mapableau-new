@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
@@ -12,7 +13,17 @@ type Mutation = {
   evidenceRequiredAfterCompletion: string[];
 };
 
+function resolveRoleHeader(param: string | null): string {
+  if (!param || param === "visitor") return "demo_preview";
+  if (param === "admin" || param === "demo_preview") return "demo_preview";
+  if (param === "venue_staff") return "venue_staff";
+  return param;
+}
+
 export function MutationStudio({ placeId }: { placeId: string }) {
+  const searchParams = useSearchParams();
+  const roleHeader = resolveRoleHeader(searchParams.get("role"));
+
   const [mutations, setMutations] = useState<Mutation[]>([]);
   const [coverage, setCoverage] = useState<{
     suitable: number;
@@ -28,29 +39,33 @@ export function MutationStudio({ placeId }: { placeId: string }) {
     note: string;
   } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [forbidden, setForbidden] = useState(false);
+
+  const load = useCallback(async () => {
+    const res = await fetch("/api/access-intelligence/mutations/preview", {
+      headers: { "x-access-role": roleHeader },
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setForbidden(res.status === 403);
+      setMessage(data.error ?? data.recoveryHint ?? "Forbidden");
+      return;
+    }
+    setForbidden(false);
+    setMutations(data.mutations ?? []);
+    setCoverage(data.coverage);
+  }, [roleHeader]);
 
   useEffect(() => {
-    // demo_preview is ignored when ACCESS_INTELLIGENCE_DEMO_MODE=false.
-    void fetch("/api/access-intelligence/mutations/preview", {
-      headers: { "x-access-role": "demo_preview" },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) {
-          setMessage(data.error);
-          return;
-        }
-        setMutations(data.mutations ?? []);
-        setCoverage(data.coverage);
-      });
-  }, [placeId]);
+    void load();
+  }, [load, placeId]);
 
   async function previewMutation(mutationId: string) {
     const res = await fetch("/api/access-intelligence/mutations/preview", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-access-role": "demo_preview",
+        "x-access-role": roleHeader,
       },
       body: JSON.stringify({ action: "preview", mutationId }),
     });
@@ -72,7 +87,7 @@ export function MutationStudio({ placeId }: { placeId: string }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-access-role": "demo_preview",
+        "x-access-role": roleHeader,
       },
       body: JSON.stringify({ action: "save_draft", mutationId }),
     });
@@ -80,11 +95,24 @@ export function MutationStudio({ placeId }: { placeId: string }) {
     setMessage(data.note ?? data.error);
   }
 
+  if (forbidden) {
+    return (
+      <div className="space-y-4 rounded-2xl border border-red-200 bg-red-50 p-5" role="alert">
+        <h2 className="text-xl font-black text-red-900">Not authorised</h2>
+        <p className="text-red-900">{message}</p>
+        <p className="text-sm text-red-800">
+          Improve requires the same venue staff / admin gates as Operate. Demo role preview is
+          ignored when demo mode is off.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <p className="text-sm text-slate-600">
         Previewing a mutation does not modify baseline data. There is no “Apply to real
-        building” action in this demo.
+        building” action in this demo. Role header: {roleHeader}.
       </p>
       {coverage ? (
         <section aria-labelledby="coverage-heading" className="rounded-2xl border border-slate-200 p-5">
@@ -95,6 +123,9 @@ export function MutationStudio({ placeId }: { placeId: string }) {
             {coverage.testedProfileCount} synthetic profiles · Suitable {coverage.suitable} ·
             Conditions {coverage.suitableWithConditions} · Unknown {coverage.unknown} · Blocked{" "}
             {coverage.blocked}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Synthetic test profiles — not population prevalence.
           </p>
         </section>
       ) : null}

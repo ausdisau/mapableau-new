@@ -184,6 +184,17 @@ export function evaluateDecisionForTwin(input: {
 }): {
   decision: AccessDecision;
   routeSummary: string | null;
+  routeInstructions: string[];
+  rejectedRoutes: Array<{ summary: string; reasons: string[] }>;
+  evidenceSummary: Array<{
+    id: string;
+    title: string;
+    sourceType: string;
+    sourceName: string;
+    capturedAt: string;
+    status: string;
+    description?: string;
+  }>;
   stateNotes: string[];
 } {
   const visitAt =
@@ -191,9 +202,10 @@ export function evaluateDecisionForTwin(input: {
     input.personalTwin.journeyContext.visitAt ??
     new Date().toISOString();
   const state = getAccessStateAt(input.twin, visitAt);
+  const passport = mergePassport(input.personalTwin);
   const decision = calculatePersonalFit({
     place: input.twin.place,
-    passport: mergePassport(input.personalTwin),
+    passport,
     features: state.effectiveFeatures,
     evidence: input.twin.evidence,
     incidents: state.activeIncidents,
@@ -213,31 +225,66 @@ export function evaluateDecisionForTwin(input: {
     )?.id ??
     "n-hcc-room";
 
-  const entranceB = "n-hcc-b";
+  const rejectedRoutes: Array<{ summary: string; reasons: string[] }> = [];
   let routeSummary: string | null = null;
+  let routeInstructions: string[] = [];
+
+  // Entrance A — typically rejected for step-free passports
+  try {
+    const fromA = buildAccessibleRoute({
+      placeId: input.twin.place.id,
+      nodes: input.twin.nodes,
+      edges: state.effectiveEdges,
+      passport,
+      fromNodeId: "n-hcc-a",
+      toNodeId: destinationNode,
+      incidents: state.activeIncidents,
+    });
+    if (!fromA.recommended) {
+      rejectedRoutes.push({
+        summary: "Entrance A → destination",
+        reasons:
+          fromA.rejected[0]?.reasons ??
+          ["No eligible route from Entrance A (stepped entry)."],
+      });
+    }
+    for (const r of fromA.rejected) {
+      if (!rejectedRoutes.some((x) => x.summary === r.summary)) {
+        rejectedRoutes.push(r);
+      }
+    }
+  } catch {
+    rejectedRoutes.push({
+      summary: "Entrance A → destination",
+      reasons: ["Entrance A is not eligible under selected hard requirements."],
+    });
+  }
+
   if (!state.closedElementIds.includes("hcc-ent-b")) {
     try {
       const route = buildAccessibleRoute({
         placeId: input.twin.place.id,
         nodes: input.twin.nodes,
         edges: state.effectiveEdges,
-        passport: mergePassport(input.personalTwin),
-        fromNodeId: entranceB,
+        passport,
+        fromNodeId: "n-hcc-b",
         toNodeId: destinationNode,
         incidents: state.activeIncidents,
       });
       if (route.recommended) {
-        routeSummary = route.recommended.steps.map((s) => s.instruction).join(" → ");
+        routeInstructions = route.recommended.steps.map((s) => s.instruction);
+        routeSummary = routeInstructions.join(" → ");
         decision.recommendedRouteId = route.recommended.id;
         decision.alternatives = [
           ...decision.alternatives,
-          `Recommended text route: ${routeSummary}`,
+          `Recommended text route (Entrance B): ${routeSummary}`,
         ];
       } else {
         decision.alternatives = [
           ...decision.alternatives,
           "No eligible step-free route from Entrance B at this time.",
         ];
+        for (const r of route.rejected) rejectedRoutes.push(r);
       }
     } catch {
       decision.alternatives = [
@@ -249,7 +296,24 @@ export function evaluateDecisionForTwin(input: {
     decision.conditions.push("Entrance B closed at selected visit time.");
   }
 
-  return { decision, routeSummary, stateNotes: state.notes };
+  const evidenceSummary = input.twin.evidence.map((e) => ({
+    id: e.id,
+    title: e.title,
+    sourceType: e.sourceType,
+    sourceName: e.sourceName,
+    capturedAt: e.capturedAt,
+    status: e.status,
+    description: e.description,
+  }));
+
+  return {
+    decision,
+    routeSummary,
+    routeInstructions,
+    rejectedRoutes,
+    evidenceSummary,
+    stateNotes: state.notes,
+  };
 }
 
 function mergePassport(personal: PersonalAccessTwin): AccessPassport {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import React from "react";
+import React, { Suspense } from "react";
 
 import { AccessIntelligenceShell } from "@/components/access-intelligence/access-intelligence-shell";
 import { OperateConsole } from "@/components/access-intelligence/living/operate-console";
@@ -19,7 +19,9 @@ export default async function OperatePage({ params }: Props) {
         title="Operate it"
         description="Live incidents, evidence gaps, temporary routes, and verification responses for authorised venue staff."
       >
-        <OperateConsole placeId={placeId} />
+        <Suspense fallback={<p role="status">Loading operations console…</p>}>
+          <OperateConsole placeId={placeId} />
+        </Suspense>
       </AccessIntelligenceShell>
     </MapAbleCareMarketingShell>
   );
