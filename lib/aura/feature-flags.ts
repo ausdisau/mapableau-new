@@ -61,6 +61,30 @@ export const auraFlags = {
   journeyGuardianEnabled: envTrue("MAPABLE_AURA_JOURNEY_GUARDIAN_ENABLED"),
   wotActionsEnabled: envTrue("MAPABLE_AURA_WOT_ACTIONS_ENABLED"),
   sensorThingsTaskingEnabled: envTrue("MAPABLE_AURA_SENSORTHINGS_TASKING_ENABLED"),
+  /** Wave 8 — portable trust (default off; gated behind Wave 7) */
+  credentialWalletEnabled: envTrue("MAPABLE_AURA_CREDENTIAL_WALLET_ENABLED"),
+  accessCapsulesEnabled: envTrue("MAPABLE_AURA_ACCESS_CAPSULES_ENABLED"),
+  selectiveDisclosureEnabled: envTrue("MAPABLE_AURA_SELECTIVE_DISCLOSURE_ENABLED"),
+  agentCoordinationEnabled: envTrue("MAPABLE_AURA_AGENT_COORDINATION_ENABLED"),
+  humanAssistanceMeshEnabled: envTrue("MAPABLE_AURA_HUMAN_ASSISTANCE_MESH_ENABLED"),
+  /** Wave 9 — reliability / civic / regional (default off; gated behind Wave 8) */
+  accessReliabilityEnabled: envTrue("MAPABLE_ACCESS_RELIABILITY_ENABLED"),
+  serviceCommitmentsEnabled: envTrue("MAPABLE_ACCESS_SERVICE_COMMITMENTS_ENABLED"),
+  civicAccessTwinEnabled: envTrue("MAPABLE_CIVIC_ACCESS_TWIN_ENABLED"),
+  regionalAccessTwinEnabled: envTrue("MAPABLE_REGIONAL_ACCESS_TWIN_ENABLED"),
+  infrastructureSimulatorEnabled: envTrue("MAPABLE_INFRASTRUCTURE_SIMULATOR_ENABLED"),
+  predictiveGuardianEnabled: envTrue("MAPABLE_AURA_PREDICTIVE_GUARDIAN_ENABLED"),
+  /** Wave 10 — supervised adaptive environments (default off; gated behind Wave 9) */
+  adaptiveEnvironmentEnabled: envTrue("MAPABLE_AURA_ADAPTIVE_ENVIRONMENT_ENABLED"),
+  physicalMode: (process.env.MAPABLE_AURA_PHYSICAL_MODE ?? "demo") as
+    | "demo"
+    | "shadow"
+    | "supervised_pilot"
+    | "production",
+  supervisedActionsEnabled: envTrue("MAPABLE_AURA_SUPERVISED_ACTIONS_ENABLED"),
+  telepresenceEnabled: envTrue("MAPABLE_AURA_TELEPRESENCE_ENABLED"),
+  robotSimulationEnabled: envTrue("MAPABLE_AURA_ROBOT_SIMULATION_ENABLED"),
+  robotLiveEnabled: envTrue("MAPABLE_AURA_ROBOT_LIVE_ENABLED"),
   /** Permanent prohibitions */
   physicalActions: envTrue("MAPABLE_AURA_PHYSICAL_ACTIONS_ENABLED"),
   paymentActions: envTrue("MAPABLE_AURA_PAYMENT_ACTIONS_ENABLED"),

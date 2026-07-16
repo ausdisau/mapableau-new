@@ -47,7 +47,11 @@ describe("Wave 7 — world model", () => {
     setWave6ReleaseGatePassed(true);
     const m = mission();
     const world = buildJourneyWorld({ missionId: m.id, userId: m.participantId });
-    expect(world.nodes.some((n) => n.type === "venue_entrance")).toBe(true);
+    expect(
+      world.nodes.some(
+        (n) => n.type === "venue_entrance" || n.type === "entrance",
+      ),
+    ).toBe(true);
     expect(world.nodes.some((n) => n.canonicalId?.includes("place-harbour"))).toBe(true);
     expect(world.version).toBe(1);
   });

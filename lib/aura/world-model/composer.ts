@@ -41,6 +41,12 @@ export function buildJourneyWorld(input: {
   const nodes: AuraJourneyWorldNode[] = [
     { id: "n-origin", type: "origin", label: "Home", status: "ok" },
     {
+      id: "n-appointment",
+      type: "appointment",
+      label: "Interview Room 3.12 at 10:00",
+      status: "ok",
+    },
+    {
       id: "n-transport",
       type: "transport_service",
       label: "Accessible public transport",
@@ -52,6 +58,12 @@ export function buildJourneyWorld(input: {
         retrievedAt: new Date().toISOString(),
         trustState: "approved",
       },
+    },
+    {
+      id: "n-station",
+      type: "station",
+      label: "Central Station",
+      status: "ok",
     },
     {
       id: "n-station-ent",
@@ -88,7 +100,7 @@ export function buildJourneyWorld(input: {
     },
     {
       id: "n-ent-b",
-      type: "venue_entrance",
+      type: "entrance",
       label: "Entrance B",
       canonicalId: `${HARBOUR_PLACE_ID}:entrance-b`,
       status: "ok",

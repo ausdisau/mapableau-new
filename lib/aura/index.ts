@@ -220,6 +220,8 @@ export {
   listWorldVersions,
   propagateDependencyChange,
   evaluateWave7ReleaseGate,
+  setWave7ReleaseGatePassed,
+  assertWave7GateForWave8,
   resetWorldModelStore,
 } from "./world-model";
 export {
@@ -232,6 +234,9 @@ export {
   fixtureCurbAdapter,
   importThingDescription,
   invokeWotAction,
+  ingestGtfsRealtimeShadow,
+  resolveTripAccessibility,
+  resetGtfsRealtimeShadow,
   resetInteropStore,
   resetSensorStore,
   resetWotStore,
@@ -245,3 +250,80 @@ export {
   createGuardianProposalDraft,
   resetGuardianStore,
 } from "./guardian";
+export {
+  registerSchema,
+  registerIssuer,
+  issueCredential,
+  revokeCredential,
+  verifyCredential,
+  createPresentation,
+  consumePresentation,
+  registerWalletDevice,
+  recoverWallet,
+  assertCredentialDoesNotCreateConsent,
+  resetCredentialStore,
+  evaluateWave8ReleaseGate,
+  setWave8ReleaseGatePassed,
+  assertWave8GateForWave9,
+} from "./credentials";
+export {
+  createAccessCapsule,
+  revokeAccessCapsule,
+  getAccessCapsule,
+  listAccessCapsules,
+  previewCapsuleDisclosure,
+  resetAccessCapsuleStore,
+} from "./access-capsules";
+export {
+  registerAgent,
+  createAgentRequest,
+  respondToAgentRequest,
+  validateAgentResponse,
+  resetAgentCoordinationStore,
+} from "./agent-coordination";
+export {
+  draftHumanAssistance,
+  approveHumanAssistance,
+  getAssistanceReceipts,
+  getAssistanceRequest,
+  resetHumanAssistanceStore,
+} from "./human-assistance";
+export {
+  recordReliabilityWindow,
+  publishServiceCommitment,
+  listReliabilityWindows,
+  getPublicReliabilityCard,
+  resetReliabilityStore,
+  evaluateWave9ReleaseGate,
+  setWave9ReleaseGatePassed,
+  assertWave9GateForWave10,
+} from "./reliability";
+export {
+  buildCivicAccessTwin,
+  buildRegionalAccessTwin,
+  runInfrastructureSimulation,
+  resetCivicRegionalStore,
+} from "./civic";
+export {
+  runPredictiveGuardianScan,
+  listPredictiveFindings,
+  resetPredictiveGuardianStore,
+} from "./predictive-guardian";
+export {
+  listPhysicalCapabilities,
+  evaluateSafetyKernel,
+  executePhysicalAction,
+  cancelTelepresence,
+  setEmergencyMode,
+  setGlobalKillSwitch,
+  setVenueKillSwitch,
+  getPhysicalMode,
+  PROHIBITED_PHYSICAL_CAPABILITIES,
+  assertModelHasNoDeviceTool,
+  assertRobotMissionSimulated,
+  resetPhysicalStore,
+} from "./physical";
+export {
+  evaluateWave10ReleaseGate,
+  setWave10ReleaseGatePassed,
+} from "./physical/release-gate";
