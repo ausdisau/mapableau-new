@@ -16,7 +16,12 @@ export type AccessIntelligenceErrorCode =
   | "STRUCTURED_OUTPUT_INVALID"
   | "INVALID_SCENARIO_TRANSITION"
   | "MUTATION_NOT_SUPPORTED"
-  | "VALIDATION_ERROR";
+  | "VALIDATION_ERROR"
+  | "ENTITLEMENT_REQUIRED"
+  | "ORGANISATION_MISMATCH"
+  | "CONSENT_EXPIRED"
+  | "CONSENT_REVOKED"
+  | "PILOT_CONSENT_MISSING";
 
 export class AccessIntelligenceError extends Error {
   readonly code: AccessIntelligenceErrorCode;

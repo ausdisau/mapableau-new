@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+
+const navLinkClass = `inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`;
 
 export function AccessIntelligenceShell({
   title,
@@ -36,60 +39,36 @@ export function AccessIntelligenceShell({
             This tool provides planning support, not legal certification.
           </p>
           <nav aria-label="Access Intelligence" className="mt-6 flex flex-wrap gap-3">
-            <a
+            <Link
               href="/access-intelligence"
               className={`inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-4 text-sm font-black text-white ${mapableCareFocusRing}`}
             >
               Ask Access
-            </a>
-            <a
-              href="/access-intelligence/explore"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Explore places
-            </a>
-            <a
-              href="/access-intelligence/passport"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Access Passports
-            </a>
-            <a
-              href="/access-intelligence/visit-plans"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Visit plans
-            </a>
-            <a
-              href="/access-intelligence/pulse"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Access Pulse
-            </a>
-            <a
-              href="/access-intelligence/venue-studio"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Venue Studio
-            </a>
-            <a
+            </Link>
+            <Link href="/access-intelligence/passport" className={navLinkClass}>
+              Passports
+            </Link>
+            <Link
               href="/access-intelligence/buildings/place-harbour-civic"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
+              className={navLinkClass}
             >
               Living Building
-            </a>
-            <a
-              href="/access-intelligence/learn"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
+            </Link>
+            <Link href="/verify" className={navLinkClass}>
+              MapAble Verify
+            </Link>
+            <Link href="/access-intelligence/learn" className={navLinkClass}>
               Learning Lab
-            </a>
-            <a
-              href="/access-intelligence/insights"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Partner insights
-            </a>
+            </Link>
+            <Link href="/access-intelligence/pilots" className={navLinkClass}>
+              Pilot console
+            </Link>
+            <Link href="/access-intelligence/visit-plans" className={navLinkClass}>
+              Visit plans
+            </Link>
+            <Link href="/access-intelligence/explore" className={navLinkClass}>
+              Explore
+            </Link>
           </nav>
         </div>
       </header>

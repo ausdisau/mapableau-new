@@ -6,6 +6,19 @@ Access Intelligence helps people with disabilities decide whether they can reach
 
 Accessibility is treated as a relationship between a person, a destination, a route, available evidence, and live conditions — not a universal venue property or a wheelchair icon.
 
+## Commercial products (initial)
+
+| Product | Entry |
+|---------|-------|
+| Access Intelligence Core | `/access-intelligence` |
+| MapAble Trust Kernel | Consent/approval in Visit + [TRUST_KERNEL.md](./TRUST_KERNEL.md) |
+| MapAble Verify | `/verify` |
+| Access Intelligence Learning Lab | `/access-intelligence/learn` |
+| Living Access Twin | `/access-intelligence/buildings/place-harbour-civic` |
+| Pilot and Evaluation Console | `/access-intelligence/pilots` |
+
+Future products (Journey, Work, Cities, Campus, Tourism, Developer Platform, Adaptive Building) are documented in [PRODUCT_PORTFOLIO.md](./PRODUCT_PORTFOLIO.md) — no empty shells.
+
 ## Living Building (flagship)
 
 Four modes on one Harbour Civic Centre twin:
@@ -70,6 +83,8 @@ Open [http://localhost:3000/access-intelligence](http://localhost:3000/access-in
 | `ACCESS_INTELLIGENCE_ALLOW_DEMO_ROLE_PREVIEW` | When demo on, honour `x-access-role` for Operate/Improve (default on; set `false` to disable) |
 | `ACCESS_INTELLIGENCE_BMS_URL` | Optional HTTP BMS base URL (`/live-status`) |
 | `ACCESS_INTELLIGENCE_BMS_API_KEY` | Optional Bearer token for BMS adapter |
+| `ACCESS_INTELLIGENCE_PLAN` | Entitlement plan override (`community` … `enterprise`) |
+| `ACCESS_INTELLIGENCE_ALLOW_PILOT_DEMO` | Soft-open pilot API when demo mode is off |
 
 ## How to run
 

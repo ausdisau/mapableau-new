@@ -1,16 +1,14 @@
 # Production roadmap
 
-## Completed in Living Building vertical slice
+## Shipped
 
-1. Prisma Living persistence (twin meta, drafts, traces, staff, snapshots) behind env flags
-2. NextAuth venue gates (demo role headers ignored when demo mode off)
-3. Typed live adapters with last-known snapshot/evidence fallback
-4. Visit / Learn (Interview L3 UI) / Operate / Improve product surfaces for A–D walkthrough
+Priority 0 engines + Living Building A–D · Living Prisma path · venue gates · live adapters  
+Priority 1: MapAble Verify · Pilot console · entitlements · adapter mocks · portfolio docs  
 
-## Next three production priorities
+## Next three priorities
 
-1. Full Prisma repository for passports / places / graphs (retire forced demo repo)
-2. Durable consent grants + staff assignment admin UI
-3. Real BMS wiring + optional Playwright A–D smoke
+1. Wire AI entitlements to Stripe `BillingSubscriptionPlanCode` (test mode only; no fabricated prices)  
+2. Full Prisma repository for passports/places; durable consent grants  
+3. Real BMS + messaging adapters behind existing interfaces + Playwright A–D  
 
-Still mocked/external: live venue messaging, transport GTFS, assessor field apps, vector search. A real BMS is only connected when `ACCESS_INTELLIGENCE_BMS_URL` points at a working endpoint.
+Still mocked: GTFS, indoor positioning, BIM import, venue messaging, assessor field apps.
