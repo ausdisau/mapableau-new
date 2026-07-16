@@ -1,0 +1,58 @@
+{
+  "pilotId": "continuity-start-job-transport-cancel-v1",
+  "persona": {
+    "name": "Taylor",
+    "workplace": "Harbour Civic Centre",
+    "arrivalDeadline": "08:45"
+  },
+  "lifeEvent": {
+    "typeKey": "start_job",
+    "participantGoal": "Start my job at Harbour Civic Centre before 8:45 am with the access I need",
+    "participantWording": "I need to get to Harbour Civic Centre on time for my first day",
+    "preservedUnknowns": ["reception_assistance"],
+    "preferences": {
+      "preserveOriginalAppointment": true,
+      "avoidUnfamiliarWorkers": true,
+      "preferHumanCoordinator": true,
+      "minimiseAdditionalDisclosure": true,
+      "contactSupporterOnlyAfterAsking": true
+    },
+    "hardRequirements": ["ramp"]
+  },
+  "failureSimulation": {
+    "minutesBeforeStart": 70,
+    "rawSummary": "Accessible transport vehicle cancelled 70 minutes before first day",
+    "affectedDependencyId": "accessible_transport",
+    "sourceType": "transport",
+    "urgency": "high",
+    "essentialService": true,
+    "inaccessibleReplacementClaim": {
+      "claimedReplacementFeatures": [],
+      "partnerConfirmedAvailable": true,
+      "expectExcluded": true
+    },
+    "accessibleReplacementClaim": {
+      "claimedReplacementFeatures": ["ramp"],
+      "partnerConfirmedAvailable": false,
+      "expectAvailability": "unknown"
+    }
+  },
+  "acceptanceWalkthrough": [
+    "Create one CareOS mission with life-event extension",
+    "Apply start_job template",
+    "Preserve Taylor wording and priorities",
+    "Identify dependencies and owners",
+    "Preserve unknown reception assistance",
+    "Show first-day timeline",
+    "Identify transport and worker as single points of failure",
+    "Prepare contingency options via resilience",
+    "Perform no automatic booking",
+    "On cancel: classify transport failure",
+    "Exclude inaccessible replacement",
+    "Show cost and timing",
+    "Offer human transport coordination",
+    "Create immutable proposal after selection",
+    "Show request created separately from ride confirmed",
+    "Create recovery receipt distinguishing action vs outcome"
+  ]
+}

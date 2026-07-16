@@ -1,0 +1,533 @@
+{
+  "registryVersion": "1.0.0",
+  "effectiveDate": "2026-07-16",
+  "types": [
+    {
+      "typeKey": "start_job",
+      "category": "EMPLOYMENT",
+      "version": "1.0.0",
+      "plainLanguageDescription": "Starting a new job, including workplace access, transport, support timing and first-day adjustments.",
+      "domainsInvolved": ["jobs", "care", "transport", "calendar", "access", "equipment"],
+      "milestones": [
+        {
+          "key": "information_gathered",
+          "label": "Information gathered",
+          "horizon": "short_term",
+          "ownerRole": "participant",
+          "requiredDependencyKeys": ["workplace_access", "first_day_adjustment"]
+        },
+        {
+          "key": "employer_confirmed",
+          "label": "Employer confirmed",
+          "horizon": "medium_term",
+          "ownerRole": "employer",
+          "requiredDependencyKeys": ["employer_contact"]
+        },
+        {
+          "key": "transport_arranged",
+          "label": "Accessible transport arranged",
+          "horizon": "short_term",
+          "ownerRole": "transport_operator",
+          "requiredDependencyKeys": ["accessible_transport"]
+        },
+        {
+          "key": "support_roster_confirmed",
+          "label": "Support roster confirmed",
+          "horizon": "short_term",
+          "ownerRole": "provider",
+          "requiredDependencyKeys": ["morning_support_worker"]
+        },
+        {
+          "key": "service_commenced",
+          "label": "First day commenced",
+          "horizon": "immediate",
+          "ownerRole": "participant",
+          "requiredDependencyKeys": ["arrival_before_845", "accessible_transport", "morning_support_worker"]
+        },
+        {
+          "key": "outcome_reviewed",
+          "label": "Outcome reviewed",
+          "horizon": "medium_term",
+          "ownerRole": "participant",
+          "requiredDependencyKeys": []
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "workplace_access",
+          "label": "Accessible workplace entrance",
+          "nodeType": "place",
+          "required": true,
+          "ownerRole": "employer",
+          "responsibility": {
+            "serviceProvider": "Employer / venue",
+            "mapAbleRole": "Surface access evidence; do not certify building compliance",
+            "participantRole": "Confirm selected entrance and requirements",
+            "decisionAuthority": "Employer / venue accessibility officer",
+            "complaintRoute": "Employer HR / AHRC pathway",
+            "recoveryResponsibility": "Employer with MapAble navigator support"
+          },
+          "failureImpact": "First day may be blocked or require alternate entrance",
+          "singlePointOfFailureHint": false
+        },
+        {
+          "key": "western_lift",
+          "label": "Western lift available",
+          "nodeType": "lift",
+          "required": false,
+          "ownerRole": "venue",
+          "responsibility": {
+            "serviceProvider": "Venue facilities",
+            "mapAbleRole": "Monitor Journey Guardian / civic incidents when available",
+            "participantRole": "Report lift outage if observed",
+            "decisionAuthority": "Venue",
+            "complaintRoute": "Venue accessibility officer",
+            "recoveryResponsibility": "Venue; ContinuityOS proposes alternates"
+          },
+          "failureImpact": "Route may need staff-dependent alternative",
+          "singlePointOfFailureHint": true
+        },
+        {
+          "key": "first_day_adjustment",
+          "label": "First-day workplace adjustment",
+          "nodeType": "approval",
+          "required": true,
+          "ownerRole": "employer",
+          "responsibility": {
+            "serviceProvider": "Employer",
+            "mapAbleRole": "Draft disclosure-minimised adjustment request",
+            "participantRole": "Approve what is shared with employer",
+            "decisionAuthority": "Employer",
+            "complaintRoute": "Fair Work / workplace rights",
+            "recoveryResponsibility": "Employer; Jobs programme navigator"
+          },
+          "failureImpact": "Start may proceed without required adjustment"
+        },
+        {
+          "key": "accessible_transport",
+          "label": "Accessible transport to workplace",
+          "nodeType": "transport",
+          "required": true,
+          "ownerRole": "transport_operator",
+          "responsibility": {
+            "serviceProvider": "Transport operator",
+            "contractingOrganisation": "Participant-selected provider",
+            "mapAbleRole": "Coordinate request via Transport service; never auto-book",
+            "participantRole": "Approve booking and replacement options",
+            "decisionAuthority": "Participant",
+            "complaintRoute": "Provider complaints + Rights Navigator",
+            "cancellationResponsibility": "Transport operator per agreement",
+            "financialResponsibility": "Per service agreement / funding",
+            "recoveryResponsibility": "Transport coordinator + participant"
+          },
+          "failureImpact": "Arrival before start time at risk",
+          "singlePointOfFailureHint": true
+        },
+        {
+          "key": "morning_support_worker",
+          "label": "Morning support worker",
+          "nodeType": "worker",
+          "required": true,
+          "ownerRole": "provider",
+          "responsibility": {
+            "serviceProvider": "Support provider",
+            "workerOrOperator": "Assigned worker",
+            "mapAbleRole": "Link CareShift; BackupShiftRecovery remains care writer",
+            "participantRole": "Approve replacement preferences",
+            "decisionAuthority": "Participant for acceptance; provider for rostering",
+            "complaintRoute": "Provider + NDIS Commission incident path where applicable",
+            "cancellationResponsibility": "Provider",
+            "recoveryResponsibility": "Provider with ContinuityOS options; no auto-assign"
+          },
+          "failureImpact": "Departure time at risk",
+          "singlePointOfFailureHint": true
+        },
+        {
+          "key": "chair_charger",
+          "label": "Power-chair charger available",
+          "nodeType": "equipment",
+          "required": true,
+          "ownerRole": "participant",
+          "responsibility": {
+            "serviceProvider": "Equipment supplier / repairer when failed",
+            "mapAbleRole": "Reference Equipment Passport when available",
+            "participantRole": "Confirm equipment readiness",
+            "decisionAuthority": "Participant; clinician for clinical AT only",
+            "complaintRoute": "Supplier / AT coordinator",
+            "recoveryResponsibility": "AT repair coordinator"
+          },
+          "failureImpact": "Battery range uncertain — do not guarantee range",
+          "singlePointOfFailureHint": true
+        },
+        {
+          "key": "arrival_before_845",
+          "label": "Arrival before 8:45 am",
+          "nodeType": "appointment",
+          "required": true,
+          "ownerRole": "participant",
+          "responsibility": {
+            "mapAbleRole": "Show timing dependencies; do not declare on-time without evidence",
+            "participantRole": "Confirm acceptable arrival window",
+            "decisionAuthority": "Participant / employer start rules",
+            "complaintRoute": "Employer",
+            "recoveryResponsibility": "Participant with transport + care recovery options"
+          },
+          "failureImpact": "Job start may be missed",
+          "singlePointOfFailureHint": false
+        },
+        {
+          "key": "employer_contact",
+          "label": "Employer contact for adjustments",
+          "nodeType": "person",
+          "required": false,
+          "ownerRole": "employer",
+          "responsibility": {
+            "serviceProvider": "Employer",
+            "mapAbleRole": "Prepare notification proposal only after approval",
+            "participantRole": "Approve any employer notification",
+            "decisionAuthority": "Participant for disclosure",
+            "complaintRoute": "Employer HR",
+            "recoveryResponsibility": "Participant-approved Jobs navigator"
+          }
+        },
+        {
+          "key": "reception_assistance",
+          "label": "Reception assistance on arrival",
+          "nodeType": "service_commitment",
+          "required": false,
+          "ownerRole": "venue",
+          "responsibility": {
+            "serviceProvider": "Venue / employer",
+            "mapAbleRole": "Preserve unknown — do not invent confirmation",
+            "participantRole": "Decide whether assistance is needed",
+            "decisionAuthority": "Venue",
+            "complaintRoute": "Venue",
+            "recoveryResponsibility": "Venue"
+          },
+          "failureImpact": "Unknown — must remain unknown until confirmed"
+        }
+      ],
+      "commonDocuments": [
+        "Workplace adjustment summary (participant-approved fields only)",
+        "Transport booking confirmation",
+        "Support roster confirmation"
+      ],
+      "commonHandoffs": [
+        "support_worker_to_transport",
+        "driver_to_venue",
+        "employer_to_job_coach"
+      ],
+      "accessibilityBarriers": [
+        "Inaccessible replacement vehicle",
+        "Staff-dependent lift route",
+        "Inaccessible first-day documents"
+      ],
+      "humanRoles": [
+        "participant",
+        "authorised_supporter",
+        "employer",
+        "transport_coordinator",
+        "support_provider",
+        "jobs_navigator",
+        "rights_officer"
+      ],
+      "policySourceIds": [
+        "dda-employment-access",
+        "fair-work-adjustments",
+        "privacy-act-app",
+        "mapable-ai-authority"
+      ],
+      "requiredWarnings": [
+        "A template is a starting point — not every person needs the same steps.",
+        "Simulated or unconfirmed transport is not a confirmed ride.",
+        "ContinuityOS does not assign workers or book transport automatically."
+      ],
+      "prohibitedAutomatedDecisions": [
+        "worker_assignment",
+        "transport_booking",
+        "employer_notification_without_approval",
+        "clinical_readiness",
+        "legal_eligibility",
+        "refund_approval"
+      ],
+      "reviewOwner": "jobs-programme-owner",
+      "supersededBy": null
+    },
+    {
+      "typeKey": "leave_school",
+      "category": "EDUCATION",
+      "version": "1.0.0",
+      "plainLanguageDescription": "Leaving school and planning the next education, training or support pathway.",
+      "domainsInvolved": ["pathways", "care", "transport", "jobs"],
+      "milestones": [
+        {
+          "key": "information_gathered",
+          "label": "Information gathered",
+          "horizon": "medium_term",
+          "ownerRole": "participant",
+          "requiredDependencyKeys": []
+        },
+        {
+          "key": "decision_made",
+          "label": "Next pathway decision made",
+          "horizon": "medium_term",
+          "ownerRole": "participant",
+          "requiredDependencyKeys": []
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "pathway_option",
+          "label": "Next education or training option",
+          "nodeType": "document",
+          "required": false,
+          "ownerRole": "navigator",
+          "responsibility": {
+            "mapAbleRole": "Surface pathway options; never determine eligibility",
+            "participantRole": "Choose next step",
+            "decisionAuthority": "Participant",
+            "complaintRoute": "Rights Navigator",
+            "recoveryResponsibility": "Navigator"
+          }
+        }
+      ],
+      "commonDocuments": ["School leaving summary", "Pathway referral"],
+      "commonHandoffs": ["school_to_navigator"],
+      "accessibilityBarriers": ["Inaccessible transition documents"],
+      "humanRoles": ["participant", "navigator", "supporter"],
+      "policySourceIds": ["mapable-ai-authority"],
+      "requiredWarnings": [
+        "Templates do not presume a single post-school pathway."
+      ],
+      "prohibitedAutomatedDecisions": [
+        "programme_eligibility",
+        "provider_assignment"
+      ],
+      "reviewOwner": "pathways-programme-owner",
+      "supersededBy": null
+    },
+    {
+      "typeKey": "hospital_to_home",
+      "category": "HEALTH_AND_SUPPORT",
+      "version": "1.0.0",
+      "plainLanguageDescription": "Coordinating non-clinical dependencies around a clinician-approved hospital-to-home transition.",
+      "domainsInvolved": ["care", "transport", "home", "equipment", "transition-home"],
+      "milestones": [
+        {
+          "key": "handoff_accepted",
+          "label": "Discharge handoff accepted",
+          "horizon": "short_term",
+          "ownerRole": "discharge_coordinator",
+          "requiredDependencyKeys": ["discharge_handoff"]
+        },
+        {
+          "key": "support_roster_confirmed",
+          "label": "Home support roster confirmed",
+          "horizon": "short_term",
+          "ownerRole": "provider",
+          "requiredDependencyKeys": ["home_support_roster"]
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "discharge_decision",
+          "label": "Clinician-approved discharge decision",
+          "nodeType": "approval",
+          "required": true,
+          "ownerRole": "clinical_coordinator",
+          "responsibility": {
+            "mapAbleRole": "Never set clinical readiness; preserve clinician authority",
+            "participantRole": "Confirm non-clinical preferences",
+            "decisionAuthority": "Clinician",
+            "complaintRoute": "Health service complaints",
+            "recoveryResponsibility": "Authorised discharge coordinator"
+          }
+        },
+        {
+          "key": "home_ramp",
+          "label": "Home ramp / access ready",
+          "nodeType": "property",
+          "required": true,
+          "ownerRole": "home_provider",
+          "responsibility": {
+            "mapAbleRole": "Show unknown until confirmed",
+            "participantRole": "Confirm home access state",
+            "decisionAuthority": "Home modification provider / participant",
+            "complaintRoute": "Provider",
+            "recoveryResponsibility": "Home programme + human coordinator"
+          },
+          "failureImpact": "Mission must not say ready on AURA authority"
+        },
+        {
+          "key": "home_support_roster",
+          "label": "Home support roster",
+          "nodeType": "worker",
+          "required": true,
+          "ownerRole": "provider",
+          "responsibility": {
+            "mapAbleRole": "Coordinate Care dependencies only",
+            "participantRole": "Approve roster",
+            "decisionAuthority": "Participant / provider",
+            "complaintRoute": "Provider",
+            "recoveryResponsibility": "Provider"
+          }
+        },
+        {
+          "key": "discharge_handoff",
+          "label": "Hospital to home handoff",
+          "nodeType": "handoff",
+          "required": true,
+          "ownerRole": "discharge_coordinator",
+          "responsibility": {
+            "mapAbleRole": "Track sent vs accepted receipts",
+            "participantRole": "Approve shared fields",
+            "decisionAuthority": "Discharge coordinator for clinical; participant for disclosure",
+            "complaintRoute": "Health service",
+            "recoveryResponsibility": "Discharge coordinator"
+          }
+        }
+      ],
+      "commonDocuments": ["Discharge summary (approved fields)", "Home access checklist"],
+      "commonHandoffs": ["hospital_to_transport", "transport_to_home"],
+      "accessibilityBarriers": ["Unconfirmed home access", "Missed handoff"],
+      "humanRoles": ["clinical_coordinator", "discharge_coordinator", "provider", "participant"],
+      "policySourceIds": ["privacy-act-app", "mapable-ai-authority"],
+      "requiredWarnings": [
+        "Clinical readiness remains clinician-controlled.",
+        "Unknown home access must remain unknown until confirmed."
+      ],
+      "prohibitedAutomatedDecisions": [
+        "clinical_readiness",
+        "discharge_approval",
+        "worker_assignment"
+      ],
+      "reviewOwner": "transition-home-programme-owner",
+      "supersededBy": null
+    },
+    {
+      "typeKey": "move_house",
+      "category": "HOME_AND_COMMUNITY",
+      "version": "1.0.0",
+      "plainLanguageDescription": "Moving house, including access, equipment, support roster and transport changes.",
+      "domainsInvolved": ["home", "care", "transport", "equipment"],
+      "milestones": [
+        {
+          "key": "property_selected",
+          "label": "Property selected",
+          "horizon": "long_term",
+          "ownerRole": "participant",
+          "requiredDependencyKeys": ["property"]
+        },
+        {
+          "key": "equipment_ordered",
+          "label": "Equipment ordered or relocated",
+          "horizon": "medium_term",
+          "ownerRole": "equipment_supplier",
+          "requiredDependencyKeys": ["equipment"]
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "property",
+          "label": "New property access",
+          "nodeType": "property",
+          "required": true,
+          "ownerRole": "participant",
+          "responsibility": {
+            "mapAbleRole": "Track access unknowns",
+            "participantRole": "Confirm property and access needs",
+            "decisionAuthority": "Participant",
+            "complaintRoute": "Tenancy / housing rights",
+            "recoveryResponsibility": "Home programme navigator"
+          }
+        },
+        {
+          "key": "equipment",
+          "label": "Essential equipment at new home",
+          "nodeType": "equipment",
+          "required": true,
+          "ownerRole": "equipment_supplier",
+          "responsibility": {
+            "mapAbleRole": "Link equipment records; no battery-range guarantees",
+            "participantRole": "Confirm essential equipment list",
+            "decisionAuthority": "Participant",
+            "complaintRoute": "Supplier",
+            "recoveryResponsibility": "AT repair / supply coordinator"
+          },
+          "singlePointOfFailureHint": true
+        }
+      ],
+      "commonDocuments": ["Lease or occupancy confirmation", "Equipment list"],
+      "commonHandoffs": ["supplier_to_repairer", "provider_to_worker"],
+      "accessibilityBarriers": ["Inaccessible entrance", "Equipment delivery delay"],
+      "humanRoles": ["participant", "home_navigator", "provider", "equipment_supplier"],
+      "policySourceIds": ["privacy-act-app"],
+      "requiredWarnings": ["Do not guarantee equipment delivery dates without supplier confirmation."],
+      "prohibitedAutomatedDecisions": ["provider_assignment", "housing_eligibility"],
+      "reviewOwner": "home-programme-owner",
+      "supersededBy": null
+    },
+    {
+      "typeKey": "primary_carer_loss",
+      "category": "HEALTH_AND_SUPPORT",
+      "version": "1.0.0",
+      "plainLanguageDescription": "Primary informal carer becomes unavailable — planned or unplanned continuity of support.",
+      "domainsInvolved": ["care", "carer-continuity", "rights"],
+      "milestones": [
+        {
+          "key": "backup_support_identified",
+          "label": "Backup support identified",
+          "horizon": "immediate",
+          "ownerRole": "participant",
+          "requiredDependencyKeys": ["backup_support"]
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "continuity_plan",
+          "label": "Participant-approved continuity plan",
+          "nodeType": "document",
+          "required": true,
+          "ownerRole": "participant",
+          "responsibility": {
+            "mapAbleRole": "Use approved plan only; minimise handover fields",
+            "participantRole": "Approve who is contacted",
+            "decisionAuthority": "Participant",
+            "complaintRoute": "Rights Navigator",
+            "recoveryResponsibility": "Human coordinator"
+          }
+        },
+        {
+          "key": "backup_support",
+          "label": "Backup support arrangement",
+          "nodeType": "worker",
+          "required": true,
+          "ownerRole": "provider",
+          "responsibility": {
+            "mapAbleRole": "Propose options; never auto-assign; never grant carer full account access",
+            "participantRole": "Approve backup",
+            "decisionAuthority": "Participant",
+            "complaintRoute": "Provider",
+            "recoveryResponsibility": "Human coordinator"
+          }
+        }
+      ],
+      "commonDocuments": ["Continuity plan excerpt"],
+      "commonHandoffs": ["carer_to_backup_support"],
+      "accessibilityBarriers": ["Over-disclosure during urgent handover"],
+      "humanRoles": ["participant", "navigator", "provider", "rights_officer"],
+      "policySourceIds": ["privacy-act-app", "mapable-ai-authority"],
+      "requiredWarnings": [
+        "Distinguish planned respite from emergency support.",
+        "Do not grant the informal carer full account access."
+      ],
+      "prohibitedAutomatedDecisions": [
+        "worker_assignment",
+        "supporter_contact_without_ask",
+        "safeguarding_closure"
+      ],
+      "reviewOwner": "carer-continuity-owner",
+      "supersededBy": null
+    }
+  ]
+}

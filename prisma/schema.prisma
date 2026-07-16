@@ -140,6 +140,15 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  // ContinuityOS / CareOS mission spine (additive; aligns with CareOS tip)
+  careOsMissions            CareOSMission[]        @relation("CareOSMissionParticipant")
+  careOsMissionEvents       CareOSMissionEvent[]   @relation("CareOSMissionEventParticipant")
+  continuityAssessments     ContinuityAssessment[] @relation("ContinuityAssessmentParticipant")
+  serviceFailures           ServiceFailure[]       @relation("ServiceFailureParticipant")
+  recoveryCases             RecoveryCase[]         @relation("RecoveryCaseParticipant")
+  recoveryHandoffs          RecoveryHandoff[]      @relation("RecoveryHandoffParticipant")
+  recoveryReceipts          RecoveryReceipt[]      @relation("RecoveryReceiptParticipant")
 }
 
 model PasskeyCredential {
@@ -8646,4 +8655,247 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// =============================================================================
+// ContinuityOS + CareOS mission spine (Wave 0–6 foundation)
+// CareOSMission is the canonical mission SoT (also defined on CareOS/AURA tips).
+// ContinuityOS owns life-event extension, failures, recovery, handoffs, receipts.
+// Models never execute operational bookings; flags default fail-closed.
+// =============================================================================
+
+model CareOSMission {
+  id                  String   @id @default(cuid())
+  participantId       String
+  participant         User     @relation("CareOSMissionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  tenantId            String?
+  requestId           String   @unique
+  missionType         String
+  desiredOutcome      String   @default("")
+  status              String   @default("draft")
+  authorityDecisionId String?
+  inputSummary        Json     @default("{}")
+  graphJson           Json     @default("{}")
+  modulesJson         Json     @default("[]")
+  alertsJson          Json     @default("[]")
+  proposalsJson       Json     @default("[]")
+  stateVersion        Int      @default(1)
+  correlationId       String   @default(cuid())
+  workflowRunId       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  events             CareOSMissionEvent[]
+  lifeEventExtension LifeEventMissionExtension?
+  continuityAssessments ContinuityAssessment[]
+  serviceFailures    ServiceFailure[]
+  recoveryCases      RecoveryCase[]
+  recoveryHandoffs   RecoveryHandoff[]
+
+  @@index([participantId, createdAt])
+  @@index([tenantId, status])
+  @@index([correlationId])
+  @@index([missionType, status])
+  @@map("careos_missions")
+}
+
+model CareOSMissionEvent {
+  id             String        @id @default(cuid())
+  missionId      String
+  mission        CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId  String
+  participant    User          @relation("CareOSMissionEventParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  eventType      String
+  sourceModule   String
+  sourceEntityId String?
+  severity       String        @default("information")
+  summary        String
+  payloadJson    Json?
+  eventKey       String?
+  createdAt      DateTime      @default(now())
+
+  @@unique([missionId, eventKey])
+  @@index([missionId, createdAt])
+  @@index([participantId, createdAt])
+  @@map("careos_mission_events")
+}
+
+model LifeEventMissionExtension {
+  id                               String        @id @default(cuid())
+  missionId                        String        @unique
+  mission                          CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  typeKey                          String
+  typeVersion                      String
+  participantGoal                  String
+  participantWording               String        @default("")
+  desiredDate                      DateTime?
+  continuityStatus                 String        @default("draft")
+  preferencesJson                  Json          @default("{}")
+  unknownsJson                     Json          @default("[]")
+  blockersJson                     Json          @default("[]")
+  nonNegotiableRequirementsJson    Json          @default("[]")
+  privacyMode                      String        @default("standard")
+  templateWarningsJson             Json          @default("[]")
+  prohibitedAutomatedDecisionsJson Json          @default("[]")
+  stoppedAt                        DateTime?
+  stopReason                       String?
+  reviewDate                       DateTime?
+  createdAt                        DateTime      @default(now())
+  updatedAt                        DateTime      @updatedAt
+
+  @@index([typeKey, typeVersion])
+  @@index([continuityStatus])
+  @@map("life_event_mission_extensions")
+}
+
+model ContinuityAssessment {
+  id                        String        @id @default(cuid())
+  missionId                 String
+  mission                   CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId             String
+  participant               User          @relation("ContinuityAssessmentParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  assessmentType            String        @default("pre_mortem")
+  findingsJson              Json          @default("{}")
+  singlePointsOfFailureJson Json          @default("[]")
+  createdAt                 DateTime      @default(now())
+
+  @@index([missionId, createdAt])
+  @@index([participantId, createdAt])
+  @@map("continuity_assessments")
+}
+
+model ServiceFailure {
+  id                       String   @id @default(cuid())
+  missionId                String
+  mission                  CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId            String
+  participant              User     @relation("ServiceFailureParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  source                   String
+  sourceType               String
+  service                  String
+  observedAt               DateTime
+  receivedAt               DateTime @default(now())
+  evidence                 String?
+  confidence               String
+  urgency                  String
+  visibility               String   @default("private")
+  affectedDependencyId     String?
+  verificationRequirement  String
+  rawSummary               String
+  failureClass             String?
+  severity                 String?
+  verificationStatus       String   @default("unverified")
+  playbookKeysJson         Json     @default("[]")
+  signalsJson              Json     @default("{}")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  impacts       ServiceFailureImpact[]
+  recoveryCases RecoveryCase[]
+
+  @@index([missionId, createdAt])
+  @@index([participantId, createdAt])
+  @@index([failureClass, severity])
+  @@map("service_failures")
+}
+
+model ServiceFailureImpact {
+  id           String         @id @default(cuid())
+  failureId    String
+  failure      ServiceFailure @relation(fields: [failureId], references: [id], onDelete: Cascade)
+  version      Int            @default(1)
+  impactJson   Json           @default("{}")
+  priorPlanJson Json          @default("{}")
+  createdAt    DateTime       @default(now())
+
+  @@unique([failureId, version])
+  @@index([failureId])
+  @@map("service_failure_impacts")
+}
+
+model RecoveryCase {
+  id               String         @id @default(cuid())
+  missionId        String
+  mission          CareOSMission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId    String
+  participant      User           @relation("RecoveryCaseParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  failureId        String
+  failure          ServiceFailure @relation(fields: [failureId], references: [id], onDelete: Cascade)
+  status           String         @default("open")
+  playbookKey      String
+  shadowOnly       Boolean        @default(true)
+  impactVersion    Int            @default(1)
+  optionsJson      Json           @default("[]")
+  selectedOptionId String?
+  proposalJson     Json?
+  ownerRole        String         @default("navigator")
+  outcome          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  escalations RecoveryEscalation[]
+  handoffs    RecoveryHandoff[]
+  receipts    RecoveryReceipt[]
+
+  @@index([missionId, status])
+  @@index([participantId, createdAt])
+  @@index([failureId])
+  @@map("recovery_cases")
+}
+
+model RecoveryEscalation {
+  id                    String       @id @default(cuid())
+  recoveryCaseId        String
+  recoveryCase          RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  destinationRole       String
+  reason                String
+  status                String       @default("queued")
+  fieldMinimisationJson Json         @default("{}")
+  createdAt             DateTime     @default(now())
+
+  @@index([recoveryCaseId, createdAt])
+  @@map("recovery_escalations")
+}
+
+model RecoveryHandoff {
+  id                             String        @id @default(cuid())
+  missionId                      String
+  mission                        CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  recoveryCaseId                 String?
+  recoveryCase                   RecoveryCase? @relation(fields: [recoveryCaseId], references: [id], onDelete: SetNull)
+  participantId                  String
+  participant                    User          @relation("RecoveryHandoffParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  sendingOrganisation            String
+  receivingOrganisation          String
+  purpose                        String
+  tasksJson                      Json          @default("[]")
+  participantApprovedFieldsJson  Json          @default("[]")
+  informationOmittedJson         Json          @default("[]")
+  state                          String        @default("draft")
+  unresolvedItemsJson            Json          @default("[]")
+  fallback                       String?
+  serviceCommitment              String?
+  createdAt                      DateTime      @default(now())
+  updatedAt                      DateTime      @updatedAt
+
+  @@index([missionId, state])
+  @@index([participantId, createdAt])
+  @@index([recoveryCaseId])
+  @@map("recovery_handoffs")
+}
+
+model RecoveryReceipt {
+  id             String       @id @default(cuid())
+  recoveryCaseId String
+  recoveryCase   RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  participantId  String
+  participant    User         @relation("RecoveryReceiptParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  receiptJson    Json
+  outcome        String
+  falseRecovery  Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([recoveryCaseId])
+  @@index([participantId, createdAt])
+  @@map("recovery_receipts")
 }

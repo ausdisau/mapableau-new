@@ -1,0 +1,185 @@
+{
+  "registryVersion": "1.0.0",
+  "playbooks": [
+    {
+      "key": "accessible_transport_cancellation",
+      "version": "1.0.0",
+      "title": "Accessible transport cancellation",
+      "applicableFailureClasses": ["AVAILABILITY", "ACCESSIBILITY", "TIMING"],
+      "initialSafetyChecks": [
+        "Confirm participant is not in immediate danger",
+        "Do not contact unsafe supporters",
+        "Preserve original goal and appointment wording"
+      ],
+      "informationRequired": [
+        "Cancelled trip identifier",
+        "Required vehicle accessibility features",
+        "Arrival deadline",
+        "Linked mission milestones"
+      ],
+      "participantQuestions": [
+        "Do you want to keep the original start time if possible?",
+        "Should we ask a human transport coordinator to help?",
+        "Who may we contact, and what may we share?"
+      ],
+      "prohibitedAssumptions": [
+        "Do not treat an inaccessible replacement vehicle as available",
+        "Do not treat operator acknowledgement as ride confirmed",
+        "Do not auto-book a replacement"
+      ],
+      "immediateOptions": [
+        "verified_accessible_replacement_trip",
+        "human_transport_coordination",
+        "delay_start_with_employer_notification_proposal"
+      ],
+      "shortTermOptions": [
+        "reschedule_appointment",
+        "community_transport_partner_request"
+      ],
+      "longerTermOptions": [
+        "provider_reliability_review",
+        "accessibility_ops_false_recovery_review"
+      ],
+      "requiredHumanRoles": ["transport_coordinator", "participant", "rights_officer"],
+      "partnerServices": ["transport"],
+      "rightsAndComplaintsRoutes": [
+        "Provider complaints",
+        "Rights Navigator",
+        "Consumer guarantees pathway (human-advised)"
+      ],
+      "evidenceRequirements": [
+        "Transport cancellation event or participant report",
+        "Access Passport hard requirements for vehicle",
+        "Postcondition: ramp/vehicle features verified before restored"
+      ],
+      "recoveryReceiptFields": [
+        "original_goal",
+        "failure",
+        "option_selected",
+        "request_created_vs_ride_confirmed",
+        "remaining_unknowns"
+      ],
+      "outcomeReview": "Participant confirms whether arrival goal was met; false recovery if replacement fails hard requirements",
+      "owner": "transport-programme-owner",
+      "reviewDate": "2026-10-16",
+      "specialistHighRisk": false
+    },
+    {
+      "key": "support_worker_cancellation",
+      "version": "1.0.0",
+      "title": "Support worker cancellation or no-show",
+      "applicableFailureClasses": ["AVAILABILITY", "TIMING", "QUALITY_AND_SAFETY"],
+      "initialSafetyChecks": [
+        "If misconduct or safeguarding concern — route to human safeguarding only",
+        "Preserve preference about unfamiliar workers"
+      ],
+      "informationRequired": [
+        "CareShift identifier",
+        "Observed time",
+        "Departure dependency",
+        "Approved backup preferences"
+      ],
+      "participantQuestions": [
+        "Is an unfamiliar worker acceptable today?",
+        "Should we change transport or start time instead?",
+        "May we prepare an employer notification proposal?"
+      ],
+      "prohibitedAssumptions": [
+        "Do not auto-assign a worker",
+        "Do not treat BackupShiftRecovery proposal as assigned worker"
+      ],
+      "immediateOptions": [
+        "participant_approved_backup_via_care_recovery",
+        "change_transport_time",
+        "change_start_time",
+        "employer_notification_proposal"
+      ],
+      "shortTermOptions": ["provider_roster_repair"],
+      "longerTermOptions": ["provider_reliability_review"],
+      "requiredHumanRoles": ["provider_manager", "participant", "navigator"],
+      "partnerServices": ["care"],
+      "rightsAndComplaintsRoutes": ["Provider", "IncidentReport when required"],
+      "evidenceRequirements": ["Shift cancellation or no-show report", "Participant approval per action"],
+      "recoveryReceiptFields": ["option_selected", "care_recovery_link", "approvals"],
+      "outcomeReview": "Departure and downstream milestones separately verified",
+      "owner": "care-programme-owner",
+      "reviewDate": "2026-10-16",
+      "specialistHighRisk": false
+    },
+    {
+      "key": "family_violence_safe_mode",
+      "version": "1.0.0",
+      "title": "Family violence safe mode",
+      "applicableFailureClasses": ["DATA_AND_AUTHORITY", "QUALITY_AND_SAFETY", "COMMUNICATION"],
+      "initialSafetyChecks": [
+        "Do not contact the named supporter",
+        "Minimise visible notifications",
+        "Preserve quick exit",
+        "Route to specialist human pathway only"
+      ],
+      "informationRequired": ["Participant-private report exists", "Device/account access review needed"],
+      "participantQuestions": ["Do you want a specialist human to contact you on a safe channel?"],
+      "prohibitedAssumptions": [
+        "AURA must not investigate or close the concern",
+        "Ordinary automated recovery must not run",
+        "Default supporter contact is forbidden"
+      ],
+      "immediateOptions": ["specialist_human_pathway"],
+      "shortTermOptions": ["account_and_device_access_review"],
+      "longerTermOptions": ["supported_decision_review"],
+      "requiredHumanRoles": ["safeguarding_officer", "privacy_officer"],
+      "partnerServices": ["specialist"],
+      "rightsAndComplaintsRoutes": ["Specialist human pathway", "Privacy officer"],
+      "evidenceRequirements": ["Human pathway acknowledgement only"],
+      "recoveryReceiptFields": ["escalated_to_human", "supporter_contact_suppressed"],
+      "outcomeReview": "Human specialist only",
+      "owner": "safeguarding-lead",
+      "reviewDate": "2026-10-16",
+      "specialistHighRisk": true
+    },
+    {
+      "key": "equipment_breakdown",
+      "version": "1.0.0",
+      "title": "Equipment breakdown",
+      "applicableFailureClasses": ["AVAILABILITY", "ACCESSIBILITY"],
+      "initialSafetyChecks": ["Do not guarantee battery range", "Preserve professional-review boundaries"],
+      "informationRequired": ["Equipment Passport reference", "Compatible loan/repair options"],
+      "participantQuestions": ["Do you need a temporary loan while repair proceeds?"],
+      "prohibitedAssumptions": ["Do not claim restored until repair or verified loan confirmed"],
+      "immediateOptions": ["verified_loan", "human_at_coordinator"],
+      "shortTermOptions": ["repair_booking_proposal"],
+      "longerTermOptions": ["equipment_replacement_planning"],
+      "requiredHumanRoles": ["equipment_repair_coordinator"],
+      "partnerServices": ["equipment"],
+      "rightsAndComplaintsRoutes": ["Supplier", "AT coordinator"],
+      "evidenceRequirements": ["Equipment record", "Repair or loan confirmation"],
+      "recoveryReceiptFields": ["temporary_vs_long_term"],
+      "outcomeReview": "Separate temporary and long-term recovery",
+      "owner": "at-programme-owner",
+      "reviewDate": "2026-10-16",
+      "specialistHighRisk": false
+    },
+    {
+      "key": "inaccessible_replacement_vehicle",
+      "version": "1.0.0",
+      "title": "Inaccessible replacement vehicle",
+      "applicableFailureClasses": ["ACCESSIBILITY"],
+      "initialSafetyChecks": ["Reject false restored state", "Keep operator acknowledgement as evidence only"],
+      "informationRequired": ["Hard Access Passport vehicle requirements", "Replacement claim"],
+      "participantQuestions": ["Continue recovery with a verified accessible option?"],
+      "prohibitedAssumptions": ["Operator report is not completed recovery"],
+      "immediateOptions": ["continue_recovery", "human_transport_coordination"],
+      "shortTermOptions": ["accessibility_ops_review"],
+      "longerTermOptions": ["provider_quality_review"],
+      "requiredHumanRoles": ["transport_coordinator", "accessibility_ops"],
+      "partnerServices": ["transport", "accessibility-ops"],
+      "rightsAndComplaintsRoutes": ["Provider", "AccessibilityOps remediation"],
+      "evidenceRequirements": ["Failed hard requirement", "False-recovery risk flag"],
+      "recoveryReceiptFields": ["false_recovery", "hard_requirement_failed"],
+      "outcomeReview": "Reopen or continue recovery until postconditions pass",
+      "owner": "transport-programme-owner",
+      "reviewDate": "2026-10-16",
+      "specialistHighRisk": false
+    }
+  ]
+}
