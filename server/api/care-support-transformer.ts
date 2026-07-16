@@ -4,7 +4,7 @@ import { classifySupportCategories } from "@/lib/care/support-category-classifie
 import { applySupportJourneyPatch } from "@/lib/journey/journey-service";
 import { isAdminRole } from "@/lib/auth/roles";
 import type { CurrentUser } from "@/lib/auth/current-user";
-import { transformCareSupport } from "@/server/agents/careSupportTransformer";
+import { transformCareSupportAsync } from "@/server/agents/careSupportTransformer";
 import {
   careSupportTransformInputSchema,
   type CareSupportTransformInput,
@@ -36,7 +36,7 @@ export async function transformCareSupportRequest(
   input: CareSupportTransformInput,
   context: TransformCareSupportContext = {}
 ): Promise<CareSupportTransformOutput> {
-  const output = transformCareSupport(input);
+  const output = await transformCareSupportAsync(input);
 
   if (input.participantId && context.actorUserId) {
     await createAuditEvent({
@@ -57,6 +57,7 @@ export async function transformCareSupportRequest(
           requestType: output.carePlanDraft.requestType,
           taskNames: output.carePlanDraft.tasks.map((t) => t.name),
         }),
+        llm: output.audit.llm,
       },
     });
 

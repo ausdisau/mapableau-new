@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 export type CreateAgentRunInput = {
   agentType: AgentRunType;
   participantId?: string;
+  sessionId?: string;
   careRequestId?: string;
   matchRunId?: string;
   aiMatchRunId?: string;
@@ -45,6 +46,7 @@ export async function createAgentRun(input: CreateAgentRunInput) {
       toolsCalled: input.toolsCalled ?? [],
       guardrailsTriggered: input.guardrailsTriggered ?? [],
       participantId: input.participantId,
+      sessionId: input.sessionId,
       careRequestId: input.careRequestId,
       matchRunId: input.matchRunId,
       aiMatchRunId: input.aiMatchRunId,

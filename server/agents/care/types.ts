@@ -3,6 +3,7 @@ import { z } from "zod";
 import { careRequestTypeSchema } from "@/lib/validation/care";
 
 export const PIPELINE_VERSION = "care-support-transformer-v1";
+export const PIPELINE_VERSION_LLM = "care-support-transformer-v2";
 
 export const careSupportTransformInputSchema = z.object({
   participantId: z.string().min(1).optional(),
@@ -125,7 +126,15 @@ export type SupportJourneyPatch = {
 export type AgentDecisionRecord = {
   agent: string;
   outcome: string;
+  source?: "llm" | "rules";
   metadata?: Record<string, unknown>;
+};
+
+export type TransformLlmAudit = {
+  enabled: boolean;
+  provider?: string;
+  fallbackUsed?: boolean;
+  minConfidence?: number;
 };
 
 export type TransformAudit = {
@@ -138,6 +147,7 @@ export type TransformAudit = {
   agentDecisions: AgentDecisionRecord[];
   guardrailTriggers: string[];
   redactedFields: string[];
+  llm?: TransformLlmAudit;
 };
 
 export type CareSupportTransformOutput = {
