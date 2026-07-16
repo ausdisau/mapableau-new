@@ -51,3 +51,13 @@ export {
   resolveCanonicalAccessPlaceId,
   mapCategoryToAccessPlace,
 } from "./place-binding";
+export * as reliability from "./reliability";
+export * as regression from "./regression";
+export * as journey from "./journey";
+export * as missions from "./missions";
+export * as guides from "./guides";
+export * as mapperKit from "./mapper-kit";
+export * as events from "./events";
+export * as employment from "./employment";
+export * as regional from "./regional";
+export * as widget from "./widget";

@@ -6862,6 +6862,11 @@ model AccessPlace {
   aiAccessPlaces   AiAccessPlace[]
   aiVisitPlans     AiVisitPlan[]
   aiLivingTwinMeta AiLivingTwinMeta?
+  evidenceAssets   EvidenceAsset[]
+  accessGuides     AccessGuide[]
+  accessEvents     AccessEvent[]
+  reliabilityFindings EvidenceReliabilityFinding[]
+  dataQualitySnapshots DataQualitySnapshot[]
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -8880,4 +8885,953 @@ model AiLiveStatusSnapshot {
   @@index([placeId])
   @@index([observedAt])
   @@map("ai_live_status_snapshots")
+}
+
+
+// =============================================================================
+// Access Intelligence Expansion Programme (Waves 1–5)
+// Canonical place identity remains AccessPlace. Do not invent scores from plans.
+// =============================================================================
+
+model EvidenceAsset {
+  id              String   @id @default(cuid())
+  accessPlaceId   String   @map("access_place_id")
+  accessPlace     AccessPlace @relation(fields: [accessPlaceId], references: [id], onDelete: Cascade)
+  sourceType      String
+  title           String
+  description     String?
+  storagePath     String?
+  capturedAt      DateTime
+  expiresAt       DateTime?
+  status          String   @default("active")
+  calibrationMethod String?
+  observedVsEstimated String @default("observed")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  provenanceTraces ProvenanceTrace[]
+  freshnessFindings EvidenceReliabilityFinding[]
+  correctionRequests EvidenceCorrectionRequest[]
+
+  @@index([accessPlaceId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("access_evidence_assets")
+}
+
+model EvidenceFreshnessPolicy {
+  id              String   @id @default(cuid())
+  featureType     String   @unique
+  maxAgeDays      Int
+  sourceFloor     String?
+  requiresAssessor Boolean @default(false)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("access_evidence_freshness_policies")
+}
+
+model EvidenceReliabilityFinding {
+  id              String   @id @default(cuid())
+  accessPlaceId   String   @map("access_place_id")
+  accessPlace     AccessPlace @relation(fields: [accessPlaceId], references: [id], onDelete: Cascade)
+  evidenceAssetId String?  @map("evidence_asset_id")
+  evidenceAsset   EvidenceAsset? @relation(fields: [evidenceAssetId], references: [id], onDelete: SetNull)
+  findingType     String
+  severity        String
+  summary         String
+  details         Json     @default("{}")
+  status          String   @default("open")
+  healthScore     Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  resolvedAt      DateTime?
+
+  @@index([accessPlaceId, status])
+  @@index([findingType])
+  @@map("access_evidence_reliability_findings")
+}
+
+model ReverificationSchedule {
+  id              String   @id @default(cuid())
+  accessPlaceId   String?  @map("access_place_id")
+  featureType     String?
+  cadenceDays     Int
+  nextDueAt       DateTime
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tasks           ReverificationTask[]
+
+  @@index([nextDueAt])
+  @@index([accessPlaceId])
+  @@map("access_reverification_schedules")
+}
+
+model ReverificationTask {
+  id              String   @id @default(cuid())
+  scheduleId      String?  @map("schedule_id")
+  schedule        ReverificationSchedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  accessPlaceId   String   @map("access_place_id")
+  featureType     String?
+  reason          String
+  status          String   @default("queued")
+  assigneeUserId  String?
+  dueAt           DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([accessPlaceId, status])
+  @@index([dueAt])
+  @@map("access_reverification_tasks")
+}
+
+model ClaimConflict {
+  id              String   @id @default(cuid())
+  accessPlaceId   String   @map("access_place_id")
+  featureType     String
+  claimIds        Json     @default("[]")
+  summary         String
+  status          String   @default("open")
+  resolution      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([accessPlaceId, status])
+  @@map("access_claim_conflicts")
+}
+
+model ClaimSupersession {
+  id              String   @id @default(cuid())
+  accessPlaceId   String   @map("access_place_id")
+  featureType     String
+  supersededClaimId String
+  supersedingClaimId String
+  reason          String
+  createdAt       DateTime @default(now())
+
+  @@index([accessPlaceId])
+  @@map("access_claim_supersessions")
+}
+
+model EvidenceCorrectionRequest {
+  id              String   @id @default(cuid())
+  evidenceAssetId String?  @map("evidence_asset_id")
+  evidenceAsset   EvidenceAsset? @relation(fields: [evidenceAssetId], references: [id], onDelete: SetNull)
+  accessPlaceId   String   @map("access_place_id")
+  requesterUserId String
+  summary         String
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([accessPlaceId, status])
+  @@map("access_evidence_correction_requests")
+}
+
+model DataQualitySnapshot {
+  id              String   @id @default(cuid())
+  accessPlaceId   String?  @map("access_place_id")
+  accessPlace     AccessPlace? @relation(fields: [accessPlaceId], references: [id], onDelete: Cascade)
+  scope           String   @default("place")
+  healthScore     Float
+  metrics         Json     @default("{}")
+  capturedAt      DateTime @default(now())
+
+  @@index([accessPlaceId, capturedAt])
+  @@map("access_data_quality_snapshots")
+}
+
+model ProvenanceTrace {
+  id              String   @id @default(cuid())
+  evidenceAssetId String   @map("evidence_asset_id")
+  evidenceAsset   EvidenceAsset @relation(fields: [evidenceAssetId], references: [id], onDelete: Cascade)
+  stepOrder       Int
+  actorType       String
+  summary         String
+  payload         Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([evidenceAssetId, stepOrder])
+  @@map("access_provenance_traces")
+}
+
+/// System 2 — Journey reliability
+model VisitPreflightRun {
+  id              String   @id @default(cuid())
+  visitPlanId     String   @map("visit_plan_id")
+  userId          String
+  scheduledFor    DateTime?
+  status          String   @default("completed")
+  summary         Json     @default("{}")
+  createdAt       DateTime @default(now())
+  findings        VisitPreflightFinding[]
+
+  @@index([visitPlanId])
+  @@index([userId])
+  @@map("access_visit_preflight_runs")
+}
+
+model VisitPreflightFinding {
+  id              String   @id @default(cuid())
+  runId           String   @map("run_id")
+  run             VisitPreflightRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  code            String
+  severity        String
+  message         String
+  details         Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([runId])
+  @@map("access_visit_preflight_findings")
+}
+
+model VisitPlanRevision {
+  id              String   @id @default(cuid())
+  visitPlanId     String   @map("visit_plan_id")
+  revisionNumber  Int
+  reason          String
+  previousPlan    Json
+  revisedPlan     Json
+  deltaSummary    Json     @default("{}")
+  approvedAt      DateTime?
+  approvedByUserId String?
+  createdAt       DateTime @default(now())
+
+  @@unique([visitPlanId, revisionNumber])
+  @@map("access_visit_plan_revisions")
+}
+
+model JourneyGuardianSubscription {
+  id              String   @id @default(cuid())
+  visitPlanId     String   @map("visit_plan_id")
+  userId          String
+  active          Boolean  @default(true)
+  alertMode       String   @default("low_interaction")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([visitPlanId, userId])
+  @@map("access_journey_guardian_subscriptions")
+}
+
+model JourneyDisruption {
+  id              String   @id @default(cuid())
+  visitPlanId     String   @map("visit_plan_id")
+  type            String
+  severity        String
+  summary         String
+  status          String   @default("open")
+  detectedAt      DateTime @default(now())
+  resolvedAt      DateTime?
+  details         Json     @default("{}")
+  proposals       JourneyRecoveryProposal[]
+
+  @@index([visitPlanId, status])
+  @@map("access_journey_disruptions")
+}
+
+model JourneyRecoveryProposal {
+  id              String   @id @default(cuid())
+  disruptionId    String   @map("disruption_id")
+  disruption      JourneyDisruption @relation(fields: [disruptionId], references: [id], onDelete: Cascade)
+  proposalHash    String
+  summary         String
+  revisedPlan     Json
+  deltaSummary    Json     @default("{}")
+  status          String   @default("pending_approval")
+  approvedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([disruptionId, status])
+  @@unique([disruptionId, proposalHash])
+  @@map("access_journey_recovery_proposals")
+}
+
+model OfflineVisitPack {
+  id              String   @id @default(cuid())
+  visitPlanId     String   @map("visit_plan_id")
+  userId          String
+  format          String   @default("html")
+  contentHtml     String
+  unknowns        Json     @default("[]")
+  evidenceDates   Json     @default("[]")
+  generatedAt     DateTime @default(now())
+  updateTimestamp DateTime @default(now())
+
+  @@index([visitPlanId, userId])
+  @@map("access_offline_visit_packs")
+}
+
+model VisitOutcome {
+  id              String   @id @default(cuid())
+  visitPlanId     String   @map("visit_plan_id")
+  userId          String
+  outcome         String
+  notes           String?
+  observedAt      DateTime @default(now())
+  calibration     PostVisitCalibration?
+
+  @@index([visitPlanId])
+  @@map("access_visit_outcomes")
+}
+
+model PostVisitCalibration {
+  id              String   @id @default(cuid())
+  outcomeId       String   @unique @map("outcome_id")
+  outcome         VisitOutcome @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  predictedStatus String?
+  observedStatus  String?
+  deltaNotes      String?
+  createdAt       DateTime @default(now())
+
+  @@map("access_post_visit_calibrations")
+}
+
+/// System 3 — Access guides
+model AccessGuide {
+  id              String   @id @default(cuid())
+  accessPlaceId   String   @map("access_place_id")
+  accessPlace     AccessPlace @relation(fields: [accessPlaceId], references: [id], onDelete: Cascade)
+  title           String
+  status          String   @default("draft")
+  currentVersionId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  versions        AccessGuideVersion[]
+  publications    AccessGuidePublication[]
+
+  @@index([accessPlaceId, status])
+  @@map("access_guides")
+}
+
+model AccessGuideVersion {
+  id              String   @id @default(cuid())
+  guideId         String   @map("guide_id")
+  guide           AccessGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  versionNumber   Int
+  locale          String   @default("en-AU")
+  plainLanguage   Boolean  @default(false)
+  largePrint      Boolean  @default(false)
+  bodyJson        Json
+  aiDrafted       Boolean  @default(false)
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  sections        AccessGuideSection[]
+  reviews         AccessGuideReview[]
+  evidenceRefs    AccessGuideEvidenceReference[]
+
+  @@unique([guideId, versionNumber])
+  @@map("access_guide_versions")
+}
+
+model AccessGuideSection {
+  id              String   @id @default(cuid())
+  versionId       String   @map("version_id")
+  version         AccessGuideVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  sortOrder       Int
+  heading         String
+  body            String
+  createdAt       DateTime @default(now())
+
+  @@index([versionId, sortOrder])
+  @@map("access_guide_sections")
+}
+
+model AccessGuideEvidenceReference {
+  id              String   @id @default(cuid())
+  versionId       String   @map("version_id")
+  version         AccessGuideVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  evidenceAssetId String?
+  claimId         String?
+  sentenceKey     String
+  label           String
+  createdAt       DateTime @default(now())
+
+  @@index([versionId])
+  @@map("access_guide_evidence_references")
+}
+
+model AccessGuideReview {
+  id              String   @id @default(cuid())
+  versionId       String   @map("version_id")
+  version         AccessGuideVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  reviewType      String
+  reviewerUserId  String
+  status          String   @default("pending")
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@index([versionId, reviewType])
+  @@map("access_guide_reviews")
+}
+
+model AccessGuidePublication {
+  id              String   @id @default(cuid())
+  guideId         String   @map("guide_id")
+  guide           AccessGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  versionId       String
+  channel         String
+  publishedAt     DateTime @default(now())
+  withdrawnAt     DateTime?
+  slug            String?
+
+  @@index([guideId, channel])
+  @@map("access_guide_publications")
+}
+
+model AccessGuideDistribution {
+  id              String   @id @default(cuid())
+  publicationId   String
+  channel         String
+  recipient       String?
+  sentAt          DateTime?
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([publicationId])
+  @@map("access_guide_distributions")
+}
+
+model AccessGuideTemplate {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  title           String
+  structure       Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("access_guide_templates")
+}
+
+/// System 4 — Mapper field kit
+model MapperContributorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  pathwayLevel    String   @default("new_contributor")
+  trainingCompleted Json   @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  drafts          MapperObservationDraft[]
+  calibrations    MapperCalibrationRecord[]
+
+  @@map("access_mapper_contributor_profiles")
+}
+
+model MapperObservationDraft {
+  id              String   @id @default(cuid())
+  contributorId   String   @map("contributor_id")
+  contributor     MapperContributorProfile @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  accessPlaceId   String?  @map("access_place_id")
+  placeNameDraft  String?
+  payload         Json
+  offlineQueued   Boolean  @default(false)
+  moderationStatus String  @default("draft")
+  imageConsent    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([contributorId, moderationStatus])
+  @@map("access_mapper_observation_drafts")
+}
+
+model MapperCalibrationRecord {
+  id              String   @id @default(cuid())
+  contributorId   String   @map("contributor_id")
+  contributor     MapperContributorProfile @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  method          String
+  confirmedAt     DateTime @default(now())
+  notes           String?
+
+  @@index([contributorId])
+  @@map("access_mapper_calibration_records")
+}
+
+model MapperTrainingCompletion {
+  id              String   @id @default(cuid())
+  userId          String
+  moduleCode      String
+  completedAt     DateTime @default(now())
+
+  @@unique([userId, moduleCode])
+  @@map("access_mapper_training_completions")
+}
+
+/// System 5 — Temporary events
+model AccessEvent {
+  id              String   @id @default(cuid())
+  accessPlaceId   String   @map("access_place_id")
+  accessPlace     AccessPlace @relation(fields: [accessPlaceId], references: [id], onDelete: Cascade)
+  name            String
+  eventType       String
+  startsAt        DateTime
+  endsAt          DateTime
+  status          String   @default("intake")
+  organiserOrgId  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  venueVersions   AccessEventVenueVersion[]
+  plans           EventAccessPlan[]
+  inspections     EventAccessInspection[]
+  incidents       EventAccessIncident[]
+  afterAction     EventAfterActionReview?
+
+  @@index([accessPlaceId, status])
+  @@map("access_events")
+}
+
+model AccessEventVenueVersion {
+  id              String   @id @default(cuid())
+  eventId         String   @map("event_id")
+  event           AccessEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  versionNumber   Int
+  graphJson       Json     @default("{}")
+  createdAt       DateTime @default(now())
+  elements        TemporaryBuildingElement[]
+  edges           TemporaryRouteEdge[]
+
+  @@unique([eventId, versionNumber])
+  @@map("access_event_venue_versions")
+}
+
+model TemporaryBuildingElement {
+  id              String   @id @default(cuid())
+  venueVersionId  String   @map("venue_version_id")
+  venueVersion    AccessEventVenueVersion @relation(fields: [venueVersionId], references: [id], onDelete: Cascade)
+  type            String
+  name            String
+  geometry        Json?
+  attributes      Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([venueVersionId])
+  @@map("access_temporary_building_elements")
+}
+
+model TemporaryRouteEdge {
+  id              String   @id @default(cuid())
+  venueVersionId  String   @map("venue_version_id")
+  venueVersion    AccessEventVenueVersion @relation(fields: [venueVersionId], references: [id], onDelete: Cascade)
+  fromElementId   String
+  toElementId     String
+  attributes      Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([venueVersionId])
+  @@map("access_temporary_route_edges")
+}
+
+model EventAccessPlan {
+  id              String   @id @default(cuid())
+  eventId         String   @map("event_id")
+  event           AccessEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  status          String   @default("draft")
+  coverageSummary Json     @default("{}")
+  unresolvedQuestions Json @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([eventId])
+  @@map("access_event_access_plans")
+}
+
+model EventAccessInspection {
+  id              String   @id @default(cuid())
+  eventId         String   @map("event_id")
+  event           AccessEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  inspectorUserId String
+  findings        Json     @default("[]")
+  inspectedAt     DateTime @default(now())
+
+  @@index([eventId])
+  @@map("access_event_access_inspections")
+}
+
+model EventAccessIncident {
+  id              String   @id @default(cuid())
+  eventId         String   @map("event_id")
+  event           AccessEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  incidentReportId String?
+  summary         String
+  severity        String
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+
+  @@index([eventId, status])
+  @@map("access_event_access_incidents")
+}
+
+model EventAccessGuide {
+  id              String   @id @default(cuid())
+  eventId         String   @map("event_id")
+  guideId         String?
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+
+  @@index([eventId])
+  @@map("access_event_access_guides")
+}
+
+model EventAfterActionReview {
+  id              String   @id @default(cuid())
+  eventId         String   @unique @map("event_id")
+  event           AccessEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  lessons         Json     @default("[]")
+  createdAt       DateTime @default(now())
+
+  @@map("access_event_after_action_reviews")
+}
+
+/// System 6 — Widget / partner
+model PartnerWidgetConfig {
+  id              String   @id @default(cuid())
+  organisationId  String
+  accessPlaceId   String   @map("access_place_id")
+  modes           Json     @default("[]")
+  allowedOrigins  Json     @default("[]")
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organisationId])
+  @@index([accessPlaceId])
+  @@map("access_partner_widget_configs")
+}
+
+model PartnerWebhookSubscription {
+  id              String   @id @default(cuid())
+  organisationId  String
+  targetUrl       String
+  events          Json     @default("[]")
+  secretHash      String
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  @@index([organisationId])
+  @@map("access_partner_webhook_subscriptions")
+}
+
+model SdkCertificationRun {
+  id              String   @id @default(cuid())
+  organisationId  String
+  packageName     String
+  status          String
+  results         Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([organisationId])
+  @@map("access_sdk_certification_runs")
+}
+
+/// System 7 — Regional control tower
+model RegionalHub {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  stateOrTerritory String
+  createdAt       DateTime @default(now())
+  spokes          RegionalSpoke[]
+  snapshots       RegionalCoverageSnapshot[]
+
+  @@map("access_regional_hubs")
+}
+
+model RegionalSpoke {
+  id              String   @id @default(cuid())
+  hubId           String   @map("hub_id")
+  hub             RegionalHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  code            String
+  name            String
+  createdAt       DateTime @default(now())
+  supportRequests SpokeSupportRequest[]
+
+  @@unique([hubId, code])
+  @@map("access_regional_spokes")
+}
+
+model RegionalCoverageSnapshot {
+  id              String   @id @default(cuid())
+  hubId           String   @map("hub_id")
+  hub             RegionalHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  metrics         Json
+  suppressedCells Json     @default("[]")
+  capturedAt      DateTime @default(now())
+
+  @@index([hubId, capturedAt])
+  @@map("access_regional_coverage_snapshots")
+}
+
+model ThinMarketSignal {
+  id              String   @id @default(cuid())
+  hubId           String
+  spokeId         String?
+  signalType      String
+  severity        String
+  summary         String
+  metrics         Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([hubId, signalType])
+  @@map("access_thin_market_signals")
+}
+
+model ServiceGap {
+  id              String   @id @default(cuid())
+  hubId           String
+  serviceType     String
+  gapType         String
+  summary         String
+  metrics         Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([hubId, serviceType])
+  @@map("access_service_gaps")
+}
+
+model JourneyAssemblyGap {
+  id              String   @id @default(cuid())
+  hubId           String
+  gapCodes        Json     @default("[]")
+  summary         String
+  metrics         Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([hubId])
+  @@map("access_journey_assembly_gaps")
+}
+
+model RegionalCapacitySnapshot {
+  id              String   @id @default(cuid())
+  hubId           String
+  capacity        Json
+  capturedAt      DateTime @default(now())
+
+  @@index([hubId, capturedAt])
+  @@map("access_regional_capacity_snapshots")
+}
+
+model SpokeSupportRequest {
+  id              String   @id @default(cuid())
+  spokeId         String   @map("spoke_id")
+  spoke           RegionalSpoke @relation(fields: [spokeId], references: [id], onDelete: Cascade)
+  summary         String
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+
+  @@index([spokeId, status])
+  @@map("access_spoke_support_requests")
+}
+
+model RegionalPilotReadiness {
+  id              String   @id @default(cuid())
+  hubId           String
+  score           Float
+  checklist       Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([hubId])
+  @@map("access_regional_pilot_readiness")
+}
+
+model RegionalInterventionDraft {
+  id              String   @id @default(cuid())
+  hubId           String
+  title           String
+  body            String
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+
+  @@index([hubId])
+  @@map("access_regional_intervention_drafts")
+}
+
+/// System 8 — Mission console
+model CoordinationMission {
+  id              String   @id @default(cuid())
+  participantId   String
+  coordinatorId   String?
+  caseId          String?
+  title           String
+  goal            String
+  status          String   @default("draft")
+  visitPlanId     String?
+  consentRecordId String?
+  fieldVisibility Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  dependencies    MissionDependency[]
+  approvals       MissionApproval[]
+
+  @@index([participantId, status])
+  @@index([coordinatorId])
+  @@map("access_coordination_missions")
+}
+
+model MissionDependency {
+  id              String   @id @default(cuid())
+  missionId       String   @map("mission_id")
+  mission         CoordinationMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  dependencyType  String
+  entityType      String
+  entityId        String?
+  status          String   @default("unresolved")
+  summary         String
+  createdAt       DateTime @default(now())
+
+  @@index([missionId, status])
+  @@map("access_mission_dependencies")
+}
+
+model MissionApproval {
+  id              String   @id @default(cuid())
+  missionId       String   @map("mission_id")
+  mission         CoordinationMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  action          String
+  proposalHash    String
+  status          String   @default("pending")
+  approvedByUserId String?
+  createdAt       DateTime @default(now())
+  decidedAt       DateTime?
+
+  @@index([missionId, status])
+  @@map("access_mission_approvals")
+}
+
+/// System 9 — Employment orchestration
+model EmploymentAccessJourney {
+  id              String   @id @default(cuid())
+  participantId   String
+  jobApplicationId String?
+  employerOrgId   String?
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  interviewPlan   InterviewAccessPlan?
+  firstDayPlan    FirstDayAccessPlan?
+
+  @@index([participantId])
+  @@index([jobApplicationId])
+  @@map("access_employment_access_journeys")
+}
+
+model InterviewAccessPlan {
+  id              String   @id @default(cuid())
+  journeyId       String   @unique @map("journey_id")
+  journey         EmploymentAccessJourney @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  interviewEventId String?
+  visitPlanId     String?
+  disclosedFields Json     @default("[]")
+  adjustments     Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("access_interview_access_plans")
+}
+
+model FirstDayAccessPlan {
+  id              String   @id @default(cuid())
+  journeyId       String   @unique @map("journey_id")
+  journey         EmploymentAccessJourney @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  scheduleJson    Json     @default("{}")
+  transportBookingId String?
+  careShiftId     String?
+  contingency     Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("access_first_day_access_plans")
+}
+
+/// System 10 — Regression / red-team lab
+model RegressionSuite {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  description     String?
+  createdAt       DateTime @default(now())
+  runs            RegressionRun[]
+  fixtures        SyntheticBuildingFixture[]
+
+  @@map("access_regression_suites")
+}
+
+model RegressionRun {
+  id              String   @id @default(cuid())
+  suiteId         String   @map("suite_id")
+  suite           RegressionSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  status          String   @default("completed")
+  triggerReason   String?
+  summary         Json     @default("{}")
+  startedAt       DateTime @default(now())
+  finishedAt      DateTime?
+  findings        RegressionFinding[]
+
+  @@index([suiteId, startedAt])
+  @@map("access_regression_runs")
+}
+
+model RegressionFinding {
+  id              String   @id @default(cuid())
+  runId           String   @map("run_id")
+  run             RegressionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  severity        String
+  code            String
+  summary         String
+  details         Json     @default("{}")
+  requiresReview  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([runId, severity])
+  @@map("access_regression_findings")
+}
+
+model SyntheticBuildingFixture {
+  id              String   @id @default(cuid())
+  suiteId         String?  @map("suite_id")
+  suite           RegressionSuite? @relation(fields: [suiteId], references: [id], onDelete: SetNull)
+  code            String   @unique
+  buildingType    String
+  graphJson       Json
+  expectedDecisions Json   @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@map("access_synthetic_building_fixtures")
+}
+
+model RedTeamCase {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  category        String
+  prompt          String
+  expectedSafeOutcome String
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  @@index([category])
+  @@map("access_red_team_cases")
+}
+
+model AdapterContractScenario {
+  id              String   @id @default(cuid())
+  adapterKey      String
+  scenarioCode    String
+  mode            String
+  payload         Json     @default("{}")
+  expected        Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@unique([adapterKey, scenarioCode])
+  @@map("access_adapter_contract_scenarios")
+}
+
+model ReleaseEvidencePack {
+  id              String   @id @default(cuid())
+  versionLabel    String
+  contents        Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([versionLabel])
+  @@map("access_release_evidence_packs")
 }
