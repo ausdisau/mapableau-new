@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { formInputClass } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
 
 type VehicleFeatures = {
