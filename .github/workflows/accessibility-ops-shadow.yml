@@ -1,0 +1,42 @@
+name: AccessibilityOps shadow runner
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "lib/accessibility-ops/**"
+      - "runners/accessibility-ops/**"
+      - "app/api/accessibility-ops/**"
+      - "app/api/internal/accessibility-ops/**"
+      - "tests/accessibility-ops/**"
+
+jobs:
+  shadow-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+      - name: Unit tests (AccessibilityOps)
+        env:
+          MAPABLE_ACCESSIBILITY_OPS_ENABLED: "true"
+          MAPABLE_ACCESSIBILITY_ASSET_REGISTRY_ENABLED: "true"
+          MAPABLE_ACCESSIBILITY_RULE_REGISTRY_ENABLED: "true"
+          MAPABLE_ACCESSIBILITY_TEST_LAB_ENABLED: "true"
+          MAPABLE_ACCESSIBILITY_OPS_MODE: shadow
+          MAPABLE_ACCESSIBILITY_OPS_USE_MEMORY: "true"
+          MAPABLE_ACCESSIBILITY_OPS_RUNNER_SECRET: "ci-shadow-runner-secret"
+        run: pnpm exec vitest run tests/accessibility-ops
+      - name: Emit signed shadow result (no post)
+        env:
+          MAPABLE_ACCESSIBILITY_OPS_RUNNER_SECRET: "ci-shadow-runner-secret"
+        run: node runners/accessibility-ops/shadow-web-runner.mjs --outcome=cannot_tell

@@ -8647,3 +8647,241 @@ model WorkerTrainingCompletion {
   @@index([userId])
   @@map("worker_training_completions")
 }
+
+// =============================================================================
+// AccessibilityOps — Wave 1 asset + rule registry (shadow mode)
+// Soft FKs (String) to User/Organisation avoid dual-write coupling in Wave 1.
+// Memory store is default for tests; set MAPABLE_ACCESSIBILITY_OPS_USE_MEMORY=false
+// to prefer these tables once migrated.
+// =============================================================================
+
+enum AoAssetClass {
+  digital
+  built
+  service
+  integration
+  procurement
+}
+
+enum AoAssetCriticality {
+  informational
+  important
+  essential
+  safety_critical
+}
+
+enum AoAssetLifecycle {
+  draft
+  registered
+  active
+  deprecated
+  retired
+}
+
+enum AoVisibility {
+  public
+  internal
+  restricted
+}
+
+enum AoRuleProfile {
+  act_web
+  mobile
+  document
+  built_environment
+  service_workflow
+  procurement_conformance
+  lived_experience
+  design_system
+  mapable_internal
+}
+
+enum AoRuleAutomation {
+  automated
+  semi_automated
+  manual
+  lived_experience
+}
+
+enum AoSeverity {
+  observation
+  minor
+  moderate
+  major
+  critical
+}
+
+enum AoOutcome {
+  passed
+  failed
+  inapplicable
+  cannot_tell
+  manual_review_required
+  lived_experience_review_required
+  evidence_expired
+  disputed
+}
+
+model AccessibilityAsset {
+  id                     String             @id @default(cuid())
+  stableKey              String             @map("stable_key")
+  organisationId         String?            @map("organisation_id")
+  ownerUserId            String?            @map("owner_user_id")
+  assetClass              AoAssetClass       @map("asset_class")
+  assetType              String             @map("asset_type")
+  title                  String
+  plainLanguageTitle     String?            @map("plain_language_title")
+  description            String?
+  criticality            AoAssetCriticality
+  lifecycleState         AoAssetLifecycle   @default(registered) @map("lifecycle_state")
+  visibility             AoVisibility       @default(internal)
+  sourceSystem           String?            @map("source_system")
+  deploymentEnvironment  String?            @map("deployment_environment")
+  canonicalDomainRef     String?            @map("canonical_domain_ref")
+  purposeTags            String[]           @default([]) @map("purpose_tags")
+  metadata               Json               @default("{}")
+  createdAt              DateTime           @default(now()) @map("created_at")
+  updatedAt              DateTime           @updatedAt @map("updated_at")
+  retiredAt              DateTime?          @map("retired_at")
+
+  versions               AccessibilityAssetVersion[]
+  dependenciesFrom       AccessibilityAssetDependency[] @relation("AoDepFrom")
+  dependenciesTo         AccessibilityAssetDependency[] @relation("AoDepTo")
+  owners                 AccessibilityAssetOwner[]
+  shadowEvaluations      AccessibilityShadowEvaluation[]
+
+  @@unique([organisationId, stableKey])
+  @@index([organisationId, assetClass])
+  @@index([canonicalDomainRef])
+  @@map("accessibility_assets")
+}
+
+model AccessibilityAssetVersion {
+  id             String   @id @default(cuid())
+  assetId        String   @map("asset_id")
+  asset          AccessibilityAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  versionLabel   String   @map("version_label")
+  contentHash    String?  @map("content_hash")
+  changelog      String?
+  sourceRevision String?  @map("source_revision")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([assetId, createdAt])
+  @@map("accessibility_asset_versions")
+}
+
+model AccessibilityAssetDependency {
+  id               String @id @default(cuid())
+  assetId          String @map("asset_id")
+  asset            AccessibilityAsset @relation("AoDepFrom", fields: [assetId], references: [id], onDelete: Cascade)
+  dependsOnAssetId String @map("depends_on_asset_id")
+  dependsOn        AccessibilityAsset @relation("AoDepTo", fields: [dependsOnAssetId], references: [id], onDelete: Cascade)
+  dependencyType   String @default("depends_on") @map("dependency_type")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@unique([assetId, dependsOnAssetId, dependencyType])
+  @@map("accessibility_asset_dependencies")
+}
+
+model AccessibilityAssetOwner {
+  id          String   @id @default(cuid())
+  assetId     String   @map("asset_id")
+  asset       AccessibilityAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id")
+  roleLabel   String   @default("primary_owner") @map("role_label")
+  accountable Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([assetId, userId, roleLabel])
+  @@index([userId])
+  @@map("accessibility_asset_owners")
+}
+
+model AccessibilityStandardSource {
+  id               String   @id @default(cuid())
+  organisation     String
+  title            String
+  version          String
+  status           String
+  publicationDate  String?  @map("publication_date")
+  retrievalDate    String   @map("retrieval_date")
+  effectiveDate    String?  @map("effective_date")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  rules            AccessibilityRule[]
+
+  @@unique([organisation, title, version])
+  @@map("accessibility_standard_sources")
+}
+
+model AccessibilityRule {
+  id                      String           @id @default(cuid())
+  stableKey               String           @unique @map("stable_key")
+  title                   String
+  plainLanguageTitle      String           @map("plain_language_title")
+  description             String
+  profile                 AoRuleProfile
+  automation              AoRuleAutomation
+  standardSourceId        String           @map("standard_source_id")
+  standardSource          AccessibilityStandardSource @relation(fields: [standardSourceId], references: [id])
+  requirementRefs         String[]         @default([]) @map("requirement_refs")
+  internalInterpretation  String?          @map("internal_interpretation")
+  severityDefault         AoSeverity       @default(moderate) @map("severity_default")
+  ownerUserId             String?          @map("owner_user_id")
+  knownLimitations        String?          @map("known_limitations")
+  evidenceRequirements    String?          @map("evidence_requirements")
+  createdAt               DateTime         @default(now()) @map("created_at")
+  updatedAt               DateTime         @updatedAt @map("updated_at")
+
+  versions                AccessibilityRuleVersion[]
+  applicability           AccessibilityRuleApplicability[]
+
+  @@index([profile])
+  @@map("accessibility_rules")
+}
+
+model AccessibilityRuleVersion {
+  id                         String    @id @default(cuid())
+  ruleId                     String    @map("rule_id")
+  rule                       AccessibilityRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  versionLabel               String    @map("version_label")
+  expectation                String
+  assumptions                String?
+  inputRequirements          String?   @map("input_requirements")
+  effectiveFrom              DateTime  @default(now()) @map("effective_from")
+  reviewBy                   DateTime? @map("review_by")
+  supersededByRuleVersionId  String?   @map("superseded_by_rule_version_id")
+  createdAt                  DateTime  @default(now()) @map("created_at")
+
+  @@index([ruleId, createdAt])
+  @@map("accessibility_rule_versions")
+}
+
+model AccessibilityRuleApplicability {
+  id         String  @id @default(cuid())
+  ruleId     String  @map("rule_id")
+  rule       AccessibilityRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  assetClass AoAssetClass? @map("asset_class")
+  assetType  String? @map("asset_type")
+  notes      String?
+
+  @@index([ruleId])
+  @@map("accessibility_rule_applicability")
+}
+
+model AccessibilityShadowEvaluation {
+  id                     String   @id @default(cuid())
+  assetId                String   @map("asset_id")
+  asset                  AccessibilityAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetVersionId         String?  @map("asset_version_id")
+  mode                   String
+  correlationId          String   @map("correlation_id")
+  commercialPlanIgnored  Boolean  @default(true) @map("commercial_plan_ignored")
+  resultsJson            Json     @map("results_json")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  @@index([assetId, createdAt])
+  @@index([correlationId])
+  @@map("accessibility_shadow_evaluations")
+}
