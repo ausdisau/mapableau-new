@@ -563,6 +563,12 @@ enum ConsentScope {
   support_profile_read
   engagement_read_delegate
   engagement_submit_delegate
+  /// Access Intelligence: share named Access Passport fields
+  access_passport_share
+  /// Access Intelligence: share Visit Plan details
+  access_visit_plan_share
+  /// Access Intelligence: request venue verification with shared fields
+  access_venue_verification
 }
 
 enum ConsentStatus {
@@ -650,8 +656,12 @@ model AccessibilityProfile {
   transportRequirements    Json     @default("{}")
   digitalPreferences       Json     @default("{}")
   shareWithProviders       Json     @default("{}")
+  /// Preferred Access Intelligence passport (extends this profile's defaults).
+  defaultPassportId        String?  @map("default_passport_id")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+
+  @@index([defaultPassportId])
 }
 
 model Organisation {
@@ -5277,6 +5287,12 @@ enum BillingSubscriptionPlanCode {
   employer_pro
   marketplace_featured
   other
+  /// Access Intelligence / MapAble Verify commercial plans (test-mode price IDs via env).
+  ai_verify_starter
+  ai_verify_operations
+  ai_verify_portfolio
+  ai_learning_organisation
+  ai_enterprise
 }
 
 enum BillingSubscriptionStatus {
@@ -6842,6 +6858,10 @@ model AccessPlace {
   venueClaims      AccessVenueClaim[]
   venueProfile     AccessVenueProfile?
   importItems      AccessImportItem[]
+  /// Access Intelligence staging places bound to this canonical identity.
+  aiAccessPlaces   AiAccessPlace[]
+  aiVisitPlans     AiVisitPlan[]
+  aiLivingTwinMeta AiLivingTwinMeta?
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -8465,4 +8485,399 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// Access Intelligence (personal access planning module)
+// Demo mode uses in-memory fixtures; these tables support production persistence.
+// Wave 0: AiAccessPlace is staging only — bind via canonicalAccessPlaceId → AccessPlace.
+// =============================================================================
+
+model AiAccessPassport {
+  id                       String   @id @default(cuid())
+  userId                   String
+  name                     String
+  communicationPreferences Json     @default("[]")
+  mobilityAids             Json     @default("[]")
+  sharingDefaults          Json     @default("{}")
+  isDefault                Boolean  @default(false)
+  /// Links named passport to canonical AccessibilityProfile when present.
+  accessibilityProfileId   String?  @map("accessibility_profile_id")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  requirements             AiAccessRequirement[]
+
+  @@index([userId])
+  @@index([accessibilityProfileId])
+  @@map("ai_access_passports")
+}
+
+model AiAccessRequirement {
+  id            String   @id @default(cuid())
+  passportId    String
+  passport      AiAccessPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  featureType   String
+  importance    String
+  operator      String
+  value         Json
+  unit          String?
+  notes         String?
+  shareWithVenue Boolean @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([passportId])
+  @@index([featureType])
+  @@map("ai_access_requirements")
+}
+
+/// Staging / twin graph host. Prefer AccessPlace via canonicalAccessPlaceId.
+model AiAccessPlace {
+  id                     String   @id @default(cuid())
+  name                   String
+  address                String
+  category               String
+  lat                    Float?
+  lng                    Float?
+  operator               String?
+  openingHours           String?
+  baselineScore          Float?
+  accreditationTier      String?
+  lastVerifiedAt         DateTime?
+  /// Canonical public place identity — required for non-demo production reads.
+  canonicalAccessPlaceId String?  @unique @map("canonical_access_place_id")
+  canonicalAccessPlace   AccessPlace? @relation(fields: [canonicalAccessPlaceId], references: [id], onDelete: SetNull)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  elements               AiBuildingElement[]
+  features               AiAccessFeature[]
+  nodes                  AiRouteNode[]
+  edges                  AiRouteEdge[]
+  incidents              AiLiveIncident[]
+  visitPlans             AiVisitPlan[]
+  verificationRequests   AiVerificationRequest[]
+  barrierReports         AiBarrierReport[]
+
+  @@index([name])
+  @@map("ai_access_places")
+}
+
+model AiBuildingElement {
+  id        String   @id @default(cuid())
+  placeId   String
+  place     AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  type      String
+  name      String
+  level     String?
+  geometry  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  features  AiAccessFeature[]
+  incidents AiLiveIncident[]
+
+  @@index([placeId])
+  @@map("ai_building_elements")
+}
+
+model AiAccessFeature {
+  id          String   @id @default(cuid())
+  placeId     String
+  place       AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  elementId   String
+  element     AiBuildingElement @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  featureType String
+  value       Json
+  unit        String?
+  sourceType  String
+  observedAt  DateTime
+  validUntil  DateTime?
+  evidenceIds Json     @default("[]")
+  confidence  Float
+  disputed    Boolean  @default(false)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([placeId])
+  @@index([elementId])
+  @@index([featureType])
+  @@index([observedAt])
+  @@map("ai_access_features")
+}
+
+model AiAccessEvidence {
+  id                   String   @id @default(cuid())
+  type                 String
+  title                String
+  description          String?
+  capturedAt           DateTime
+  sourceName           String
+  sourceType           String
+  uri                  String?
+  measurement          Json?
+  calibrationConfirmed Boolean?
+  status               String
+  placeId              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([status])
+  @@index([capturedAt])
+  @@map("ai_access_evidence")
+}
+
+model AiRouteNode {
+  id        String   @id @default(cuid())
+  placeId   String
+  place     AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  elementId String?
+  label     String
+  level     String?
+  coordinates Json?
+  nodeType  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([placeId])
+  @@map("ai_route_nodes")
+}
+
+model AiRouteEdge {
+  id                  String   @id @default(cuid())
+  placeId             String
+  place               AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  fromNodeId          String
+  toNodeId            String
+  distanceMetres      Float
+  widthMm             Float?
+  gradientRatio       Float?
+  crossSlope          Float?
+  surface             String?
+  steps               Int      @default(0)
+  handrails           Boolean?
+  lighting            String?
+  noiseLevel          String?
+  tactileGuidance     Boolean?
+  automaticDoor       Boolean?
+  temporaryBarrier    Boolean  @default(false)
+  evidenceConfidence  Float
+  liftAvailable       Boolean?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([placeId])
+  @@index([fromNodeId, toNodeId])
+  @@map("ai_route_edges")
+}
+
+model AiLiveIncident {
+  id              String   @id @default(cuid())
+  placeId         String
+  place           AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  elementId       String?
+  element         AiBuildingElement? @relation(fields: [elementId], references: [id], onDelete: SetNull)
+  type            String
+  severity        String
+  description     String
+  sourceType      String
+  reportedAt      DateTime
+  confirmedAt     DateTime?
+  expiresAt       DateTime?
+  status          String
+  affectedEdgeIds Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([placeId])
+  @@index([status])
+  @@index([elementId])
+  @@map("ai_live_incidents")
+}
+
+model AiVerificationRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  placeId   String
+  place     AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  questions Json
+  recipient String
+  purpose   String
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([placeId])
+  @@map("ai_verification_requests")
+}
+
+model AiBarrierReport {
+  id          String   @id @default(cuid())
+  userId      String
+  placeId     String
+  place       AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  elementId   String?
+  description String
+  status      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([placeId])
+  @@map("ai_barrier_reports")
+}
+
+model AiVisitPlan {
+  id                       String   @id @default(cuid())
+  userId                   String
+  placeId                  String
+  place                    AiAccessPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  /// Canonical AccessPlace identity for Wave 0+ reads and journey systems.
+  accessPlaceId            String?  @map("access_place_id")
+  accessPlace              AccessPlace? @relation(fields: [accessPlaceId], references: [id], onDelete: SetNull)
+  destination              String
+  visitAt                  DateTime?
+  accessDecision           Json
+  route                    Json?
+  arrivalInstructions      Json     @default("[]")
+  contingencyInstructions  Json     @default("[]")
+  evidenceSummary          Json     @default("[]")
+  lastCheckedAt            DateTime
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([userId])
+  @@index([placeId])
+  @@index([accessPlaceId])
+  @@map("ai_visit_plans")
+}
+
+/// Module-local audit mirror. Consequential actions also write canonical AuditEvent.
+model AiAccessAuditEvent {
+  id            String   @id @default(cuid())
+  action        String
+  actorUserId   String
+  purpose       String?
+  fieldsShared  Json     @default("[]")
+  recipient     String?
+  outcome       String
+  metadata      Json?
+  correlationId String?  @map("correlation_id")
+  createdAt     DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([correlationId])
+  @@map("ai_access_audit_events")
+}
+
+/// Living Access Twin metadata keyed by canonical AccessPlace.id when bound.
+model AiLivingTwinMeta {
+  placeId              String   @id
+  version              String
+  fictionalNotice      String?
+  destinations         Json     @default("[]")
+  canonicalAccessPlaceId String? @unique @map("canonical_access_place_id")
+  canonicalAccessPlace AccessPlace? @relation(fields: [canonicalAccessPlaceId], references: [id], onDelete: SetNull)
+  updatedAt            DateTime @updatedAt
+  createdAt            DateTime @default(now())
+
+  @@map("ai_living_twin_meta")
+}
+
+model AiTemporalRule {
+  id                     String   @id
+  placeId                String
+  elementId              String?
+  edgeIds                Json     @default("[]")
+  ruleType               String
+  closesAfterHourLocal   Int?
+  opensAtHourLocal       Int?
+  startsAt               DateTime?
+  endsAt                 DateTime?
+  effectAvailable        Boolean?
+  effectNote             String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([placeId])
+  @@map("ai_temporal_rules")
+}
+
+model AiVenueMutationDraft {
+  id          String   @id @default(cuid())
+  placeId     String
+  userId      String
+  mutationId  String
+  mutation    Json
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([placeId])
+  @@index([userId])
+  @@index([status])
+  @@map("ai_venue_mutation_drafts")
+}
+
+model AiLearningSession {
+  id          String   @id
+  userId      String
+  scenarioId  String
+  stage       String
+  snapshot    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events      AiLearningTraceEvent[]
+
+  @@index([userId])
+  @@index([scenarioId])
+  @@index([updatedAt])
+  @@map("ai_learning_sessions")
+}
+
+model AiLearningTraceEvent {
+  id         String   @id @default(cuid())
+  sessionId  String
+  session    AiLearningSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type       String
+  payload    Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("ai_learning_trace_events")
+}
+
+model AiVenueStaffAssignment {
+  id        String   @id @default(cuid())
+  userId    String
+  placeId   String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, placeId])
+  @@index([placeId])
+  @@index([userId])
+  @@map("ai_venue_staff_assignments")
+}
+
+model AiLiveStatusSnapshot {
+  id            String   @id @default(cuid())
+  placeId       String
+  elementId     String?
+  feedKey       String
+  statusPayload Json
+  sourceType    String   @default("system_feed")
+  observedAt    DateTime
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  @@unique([placeId, feedKey])
+  @@index([placeId])
+  @@index([observedAt])
+  @@map("ai_live_status_snapshots")
 }

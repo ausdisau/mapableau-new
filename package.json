@@ -18,6 +18,9 @@
     "prepush": "pnpm type-check && pnpm format:check && pnpm lint && pnpm lint-staged",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:access-intelligence": "vitest run tests/access-intelligence",
+    "backfill:ai-place-binding": "tsx scripts/backfill-ai-access-place-binding.ts",
     "setup:cloud-agent": "bash scripts/setup-cloud-agent.sh",
     "mcp:av": "tsx mcp/av/server.ts",
     "neon:configure": "python3 scripts/configure-neon-env.py",
@@ -86,6 +89,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@playwright/test": "1.52.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

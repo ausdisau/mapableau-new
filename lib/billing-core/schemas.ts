@@ -74,6 +74,11 @@ export const subscriptionCheckoutSchema = z.object({
     "employer_pro",
     "marketplace_featured",
     "other",
+    "ai_verify_starter",
+    "ai_verify_operations",
+    "ai_verify_portfolio",
+    "ai_learning_organisation",
+    "ai_enterprise",
   ]),
 });
 

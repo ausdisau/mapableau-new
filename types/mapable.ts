@@ -61,7 +61,10 @@ export type ConsentScope =
   | "care.accessibility_share"
   | "support_profile.read"
   | "engagement.read_delegate"
-  | "engagement.submit_delegate";
+  | "engagement.submit_delegate"
+  | "access.passport_share"
+  | "access.visit_plan_share"
+  | "access.venue_verification";
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 

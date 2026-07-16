@@ -4,6 +4,7 @@ export {
   isStripeIntegrationEnabled,
   stripeNotConfiguredResponse,
   priceIdForSubscriptionPlan,
+  type SubscriptionPlanCode,
 } from "@/lib/stripe/config";
 export { STRIPE_API_VERSION, getStripeClient, resetStripeClientForTests } from "@/lib/stripe/client";
 export { StripeNotConfiguredError, isStripeNotConfiguredError } from "@/lib/stripe/errors";
