@@ -14,14 +14,45 @@ describe("registered provider funding rules", () => {
     expect(findings.some((f) => f.code === "plan_managed")).toBe(true);
   });
 
+  it("blocks self-managed claims", () => {
+    const findings = validateFundingForProviderClaim("ndis_self_managed");
+    expect(hasBlockingFindings(findings)).toBe(true);
+    expect(findings.some((f) => f.code === "self_managed")).toBe(true);
+  });
+
+  it("blocks private-pay claims", () => {
+    const findings = validateFundingForProviderClaim("private_pay");
+    expect(hasBlockingFindings(findings)).toBe(true);
+    expect(findings.some((f) => f.code === "private_pay")).toBe(true);
+  });
+
+  it("blocks missing or unknown funding", () => {
+    expect(hasBlockingFindings(validateFundingForProviderClaim(undefined))).toBe(
+      true
+    );
+    expect(hasBlockingFindings(validateFundingForProviderClaim("other"))).toBe(
+      true
+    );
+    expect(
+      validateFundingForProviderClaim(undefined).some(
+        (f) => f.code === "funding_unknown"
+      )
+    ).toBe(true);
+  });
+
   it("allows agency-managed with guidance", () => {
     const findings = validateFundingForProviderClaim("ndis_agency_managed");
     expect(hasBlockingFindings(findings)).toBe(false);
   });
 
-  it("maps billing funding types", () => {
+  it("maps billing funding types without agency fallthrough", () => {
     expect(mapBillingFundingType("ndis_plan_managed")).toBe("ndis_plan_managed");
-    expect(mapBillingFundingType("private_card")).toBe("ndis_agency_managed");
+    expect(mapBillingFundingType("ndis_self_managed")).toBe("ndis_self_managed");
+    expect(mapBillingFundingType("private_card")).toBe("private_pay");
+    expect(mapBillingFundingType("private_card")).not.toBe("ndis_agency_managed");
+    expect(mapBillingFundingType("grant")).toBeUndefined();
+    expect(mapBillingFundingType("organisation_invoice")).toBeUndefined();
+    expect(mapBillingFundingType("other")).toBeUndefined();
   });
 });
 

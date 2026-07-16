@@ -1,21 +1,17 @@
 import type { FundingSourceType } from "@prisma/client";
 
+import { fundingSourceTypeToFundingRoute } from "@/lib/ndis-gateway/compatibility/from-funding-source";
+import { fundingRouteToPaymentRoute } from "@/lib/ndis-gateway/compatibility/to-payment-route";
 import type { NdisPaymentRoute } from "@/lib/ndis/claiming/types";
 
+/**
+ * Compatibility facade over lib/ndis-gateway funding routes.
+ * Unsupported / private funding returns null (never falls through to ndia_managed).
+ */
 export function fundingSourceToPaymentRoute(
   type: FundingSourceType | null | undefined
 ): NdisPaymentRoute | null {
-  if (!type) return null;
-  switch (type) {
-    case "ndis_self_managed":
-      return "self_managed";
-    case "ndis_plan_managed":
-      return "plan_managed";
-    case "ndis_agency_managed":
-      return "ndia_managed";
-    default:
-      return null;
-  }
+  return fundingRouteToPaymentRoute(fundingSourceTypeToFundingRoute(type));
 }
 
 export function paymentRouteRequiresMyProviderCheck(

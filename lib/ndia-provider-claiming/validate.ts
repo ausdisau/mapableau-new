@@ -3,60 +3,101 @@ import type {
   FundingSourceType,
 } from "@prisma/client";
 
-export function mapBillingFundingType(
-  type: BillingFundingSourceType | null | undefined
-): FundingSourceType | undefined {
-  if (!type) return undefined;
-  switch (type) {
-    case "ndis_plan_managed":
-      return "ndis_plan_managed";
-    case "ndis_self_managed":
-      return "ndis_self_managed";
-    default:
-      return "ndis_agency_managed";
-  }
-}
-
+import { billingFundingTypeToFundingRoute } from "@/lib/ndis-gateway/compatibility/from-billing-funding";
+import { fundingSourceTypeToFundingRoute } from "@/lib/ndis-gateway/compatibility/from-funding-source";
+import { fundingRouteToFundingSourceType } from "@/lib/ndis-gateway/compatibility/to-funding-source-type";
+import {
+  allowsRegisteredProviderDirectClaim,
+  type FundingRoute,
+} from "@/lib/ndis-gateway/domain/funding-route";
 import type {
   ClaimValidationFinding,
   NdiaProviderClaimPayload,
 } from "@/lib/ndia-provider-claiming/types";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Compatibility facade over lib/ndis-gateway billing funding maps.
+ * Never defaults unsupported types to ndis_agency_managed.
+ */
+export function mapBillingFundingType(
+  type: BillingFundingSourceType | null | undefined
+): FundingSourceType | undefined {
+  return fundingRouteToFundingSourceType(billingFundingTypeToFundingRoute(type));
+}
+
+function fundingTypeToRoute(
+  fundingType: FundingSourceType | null | undefined
+): FundingRoute {
+  return fundingSourceTypeToFundingRoute(fundingType);
+}
+
+/**
+ * Funding rules for registered-provider direct claiming.
+ * Only NDIA-managed (agency-managed) is allowed; self/plan/private/unknown block.
+ */
 export function validateFundingForProviderClaim(
   fundingType: FundingSourceType | null | undefined
 ): ClaimValidationFinding[] {
   const findings: ClaimValidationFinding[] = [];
-  if (fundingType === "ndis_plan_managed") {
-    findings.push({
-      code: "plan_managed",
-      severity: "error",
-      message:
-        "Plan-managed participants are claimed by the plan manager, not via registered provider direct claiming.",
-    });
+  const route = fundingTypeToRoute(fundingType);
+
+  if (!allowsRegisteredProviderDirectClaim(route)) {
+    switch (route) {
+      case "plan_managed":
+        findings.push({
+          code: "plan_managed",
+          severity: "error",
+          message:
+            "Plan-managed participants are claimed by the plan manager, not via registered provider direct claiming.",
+        });
+        break;
+      case "self_managed":
+        findings.push({
+          code: "self_managed",
+          severity: "error",
+          message:
+            "Self-managed participants must be invoiced to the participant, not submitted as registered-provider NDIA claims.",
+        });
+        break;
+      case "private_pay":
+        findings.push({
+          code: "private_pay",
+          severity: "error",
+          message:
+            "Private-pay invoices must not be submitted as NDIA provider claims.",
+        });
+        break;
+      case "unknown":
+        findings.push({
+          code: "funding_unknown",
+          severity: "error",
+          message:
+            "Funding type is missing or not recognised. Correct the funding source before creating a provider claim.",
+        });
+        break;
+      case "ndia_managed":
+        break;
+      default: {
+        const _exhaustive: never = route;
+        void _exhaustive;
+        findings.push({
+          code: "funding_unknown",
+          severity: "error",
+          message:
+            "Funding type is missing or not recognised. Correct the funding source before creating a provider claim.",
+        });
+      }
+    }
+    return findings;
   }
-  if (fundingType === "private_pay") {
-    findings.push({
-      code: "private_pay",
-      severity: "error",
-      message: "Private-pay invoices must not be submitted as NDIA provider claims.",
-    });
-  }
-  if (fundingType === "ndis_self_managed") {
-    findings.push({
-      code: "self_managed",
-      severity: "warning",
-      message:
-        "Self-managed participants usually reimburse via participant claiming; confirm NDIA guidance before provider direct claim.",
-    });
-  }
-  if (!fundingType || fundingType === "ndis_agency_managed") {
-    findings.push({
-      code: "agency_managed_ok",
-      severity: "warning",
-      message: "Agency-managed funding is the typical path for registered provider NDIA claims.",
-    });
-  }
+
+  findings.push({
+    code: "agency_managed_ok",
+    severity: "warning",
+    message:
+      "Agency-managed funding is the typical path for registered provider NDIA claims.",
+  });
   return findings;
 }
 
