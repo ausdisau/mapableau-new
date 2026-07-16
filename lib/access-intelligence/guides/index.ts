@@ -111,3 +111,34 @@ export function assertGuideGeneratorEnabled(): void {
     throw new Error("Guide generator disabled.");
   }
 }
+
+export type GuidePublicationChecklist = {
+  factBound: boolean;
+  reviewComplete: boolean;
+  unknownsLabelled: boolean;
+  noLegalComplianceClaims: boolean;
+};
+
+export function evaluateGuidePublishReadiness(
+  checklist: GuidePublicationChecklist,
+): { ready: boolean; blockers: string[] } {
+  const blockers: string[] = [];
+  if (!checklist.factBound) blockers.push("All facts must be evidence-bound.");
+  if (!checklist.reviewComplete) blockers.push("Review checklist incomplete.");
+  if (!checklist.unknownsLabelled) blockers.push("Unknowns must be labelled.");
+  if (!checklist.noLegalComplianceClaims) {
+    blockers.push("Legal compliance claims are forbidden.");
+  }
+  return { ready: blockers.length === 0, blockers };
+}
+
+export function supersedeGuideVersion(input: {
+  previousVersionId: string;
+  nextVersionLabel: string;
+}): { previousVersionId: string; nextVersionLabel: string; status: "superseded" } {
+  return {
+    previousVersionId: input.previousVersionId,
+    nextVersionLabel: input.nextVersionLabel,
+    status: "superseded",
+  };
+}

@@ -1,11 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  buildProvenanceTrace,
   buildReverificationTasks,
+  clearReliabilityStoreForTests,
   DEFAULT_FRESHNESS_POLICIES,
+  persistReliabilityScan,
+  persistReverificationTasks,
   scanEvidenceReliability,
+  scheduleReverificationFromScan,
 } from "@/lib/access-intelligence/reliability";
 import type { AccessFeature, Evidence } from "@/lib/access-intelligence/schemas";
+
+afterEach(() => {
+  clearReliabilityStoreForTests();
+  delete process.env.ACCESS_INTELLIGENCE_REVERIFICATION_SCHEDULER;
+});
 
 describe("System 1 reliability", () => {
   const features: AccessFeature[] = [
@@ -97,5 +107,41 @@ describe("System 1 reliability", () => {
       findings: result.findings,
     });
     expect(tasks.length).toBeGreaterThan(0);
+  });
+
+  it("persists scans and schedules reverification when flag is on", () => {
+    process.env.ACCESS_INTELLIGENCE_REVERIFICATION_SCHEDULER = "true";
+    const result = scanEvidenceReliability({
+      accessPlaceId: "place-1",
+      features,
+      evidence,
+      now: new Date("2026-07-01T00:00:00.000Z"),
+    });
+    const scan = persistReliabilityScan({
+      accessPlaceId: "place-1",
+      healthScore: result.healthScore,
+      findings: result.findings,
+      expiredFeatureTypes: result.expiredFeatureTypes,
+    });
+    expect(scan.id).toMatch(/^scan-/);
+    const schedule = scheduleReverificationFromScan({
+      accessPlaceId: "place-1",
+      findings: result.findings,
+    });
+    expect(schedule.scheduled.length).toBeGreaterThan(0);
+    const stored = persistReverificationTasks(schedule.scheduled);
+    expect(stored[0]?.status).toBe("open");
+  });
+
+  it("builds a provenance debugger chain hash", () => {
+    const trace = buildProvenanceTrace({
+      accessPlaceId: "place-1",
+      claimOrFeatureId: "f-door-a",
+      steps: [
+        { actorType: "assessor", summary: "Measured width" },
+        { actorType: "system", summary: "Linked evidence" },
+      ],
+    });
+    expect(trace.chainHash).toHaveLength(16);
   });
 });

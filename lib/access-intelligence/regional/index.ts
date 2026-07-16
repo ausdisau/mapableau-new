@@ -78,3 +78,49 @@ export function assertRegionalControlTowerEnabled(): void {
     throw new Error("Regional control tower disabled.");
   }
 }
+
+export type PilotReadinessInput = {
+  hubId: string;
+  evidenceCoveragePct: number;
+  journeyAssemblySuccessPct: number;
+  smallCellSuppressionOk: boolean;
+  liveAdaptersOffByDefault: boolean;
+  regressionPackPresent: boolean;
+};
+
+export function evaluateRegionalPilotReadiness(input: PilotReadinessInput): {
+  hubId: string;
+  ready: boolean;
+  score: number;
+  blockers: string[];
+} {
+  const blockers: string[] = [];
+  if (input.evidenceCoveragePct < 60) {
+    blockers.push("Evidence coverage below 60%.");
+  }
+  if (input.journeyAssemblySuccessPct < 50) {
+    blockers.push("Journey assembly success below 50%.");
+  }
+  if (!input.smallCellSuppressionOk) {
+    blockers.push("Small-cell suppression not verified.");
+  }
+  if (!input.liveAdaptersOffByDefault) {
+    blockers.push("Live adapters must default off for pilot.");
+  }
+  if (!input.regressionPackPresent) {
+    blockers.push("Release regression evidence pack missing.");
+  }
+  const score = Math.round(
+    (Math.min(100, input.evidenceCoveragePct) * 0.35 +
+      Math.min(100, input.journeyAssemblySuccessPct) * 0.35 +
+      (input.smallCellSuppressionOk ? 10 : 0) +
+      (input.liveAdaptersOffByDefault ? 10 : 0) +
+      (input.regressionPackPresent ? 10 : 0)),
+  );
+  return {
+    hubId: input.hubId,
+    ready: blockers.length === 0,
+    score,
+    blockers,
+  };
+}

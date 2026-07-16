@@ -117,3 +117,26 @@ export function assertMapperKitEnabled(): void {
     throw new Error("Mapper field kit disabled.");
   }
 }
+
+export function assertContributorPathwayEnabled(): void {
+  if (!accessIntelligenceFlags.contributorPathway) {
+    throw new Error(
+      "Contributor pathway disabled. Set ACCESS_INTELLIGENCE_CONTRIBUTOR_PATHWAY=true.",
+    );
+  }
+}
+
+/**
+ * Pathway gating for evidence *types* only — never claim accuracy or confidence.
+ */
+export function assertPathwayAllowsEvidenceType(
+  level: MapperPathwayLevel,
+  evidenceType: string,
+): void {
+  assertContributorPathwayEnabled();
+  if (!canSubmitEvidenceType(level, evidenceType)) {
+    throw new Error(
+      `Pathway level ${level} cannot submit evidence type ${evidenceType}.`,
+    );
+  }
+}

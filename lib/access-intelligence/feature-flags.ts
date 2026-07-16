@@ -1,6 +1,7 @@
 /**
  * Feature flags for Access Intelligence expansion programme.
  * Risky external integrations default OFF.
+ * Values are read via getters so runtime env (and tests) can toggle safely.
  */
 
 function envTrue(name: string): boolean {
@@ -15,52 +16,92 @@ function envFalse(name: string): boolean {
 
 export const accessIntelligenceFlags = {
   /** Demo fixtures / soft open entitlements when not explicitly false. */
-  demoMode:
-    !envFalse("ACCESS_INTELLIGENCE_DEMO_MODE") &&
-    process.env.ACCESS_INTELLIGENCE_DEMO_MODE !== "0",
+  get demoMode() {
+    return (
+      !envFalse("ACCESS_INTELLIGENCE_DEMO_MODE") &&
+      process.env.ACCESS_INTELLIGENCE_DEMO_MODE !== "0"
+    );
+  },
 
   /** Persist passports / visit plans / living twin via Prisma. */
-  usePrisma: envTrue("ACCESS_INTELLIGENCE_USE_PRISMA"),
+  get usePrisma() {
+    return envTrue("ACCESS_INTELLIGENCE_USE_PRISMA");
+  },
 
   /** Prefer AccessPlace id for place resolution and visit-plan binding. */
-  canonicalPlaceBinding:
-    !envFalse("ACCESS_INTELLIGENCE_CANONICAL_PLACE_BINDING"),
+  get canonicalPlaceBinding() {
+    return !envFalse("ACCESS_INTELLIGENCE_CANONICAL_PLACE_BINDING");
+  },
 
   /** Soft-open pilot console demo data. */
-  allowPilotDemo: envTrue("ACCESS_INTELLIGENCE_ALLOW_PILOT_DEMO"),
+  get allowPilotDemo() {
+    return envTrue("ACCESS_INTELLIGENCE_ALLOW_PILOT_DEMO");
+  },
 
   /** Allow x-access-role demo preview header. */
-  allowDemoRolePreview: envTrue("ACCESS_INTELLIGENCE_ALLOW_DEMO_ROLE_PREVIEW"),
+  get allowDemoRolePreview() {
+    return envTrue("ACCESS_INTELLIGENCE_ALLOW_DEMO_ROLE_PREVIEW");
+  },
 
   /** Live BMS adapter — default off until URL configured. */
-  liveBms: Boolean(process.env.ACCESS_INTELLIGENCE_BMS_URL?.trim()),
+  get liveBms() {
+    return Boolean(process.env.ACCESS_INTELLIGENCE_BMS_URL?.trim());
+  },
 
   /** Messaging webhook delivery — default off. */
-  liveMessaging: Boolean(
-    process.env.ACCESS_INTELLIGENCE_MESSAGING_WEBHOOK_URL?.trim(),
-  ),
+  get liveMessaging() {
+    return Boolean(
+      process.env.ACCESS_INTELLIGENCE_MESSAGING_WEBHOOK_URL?.trim(),
+    );
+  },
 
   /** Wave 1+ programme flags (default off until implemented). */
-  reliabilityConsole: envTrue("ACCESS_INTELLIGENCE_RELIABILITY_CONSOLE"),
-  reverificationScheduler: envTrue(
-    "ACCESS_INTELLIGENCE_REVERIFICATION_SCHEDULER",
-  ),
-  journeyPreflight: envTrue("ACCESS_INTELLIGENCE_JOURNEY_PREFLIGHT"),
-  journeyGuardian: envTrue("ACCESS_INTELLIGENCE_JOURNEY_GUARDIAN"),
-  offlineVisitPack: envTrue("ACCESS_INTELLIGENCE_OFFLINE_VISIT_PACK"),
-  guideGenerator: envTrue("ACCESS_INTELLIGENCE_GUIDE_GENERATOR"),
-  mapperFieldKit: envTrue("ACCESS_INTELLIGENCE_MAPPER_FIELD_KIT"),
-  contributorPathway: envTrue("ACCESS_INTELLIGENCE_CONTRIBUTOR_PATHWAY"),
-  temporaryEventPlanner: envTrue("ACCESS_INTELLIGENCE_TEMPORARY_EVENT_PLANNER"),
-  widget: envTrue("ACCESS_INTELLIGENCE_WIDGET"),
-  sdkApi: envTrue("ACCESS_INTELLIGENCE_SDK_API"),
-  regionalControlTower: envTrue("ACCESS_INTELLIGENCE_REGIONAL_CONTROL_TOWER"),
-  missionConsole: envTrue("ACCESS_INTELLIGENCE_MISSION_CONSOLE"),
-  employmentOrchestrator: envTrue(
-    "ACCESS_INTELLIGENCE_EMPLOYMENT_ORCHESTRATOR",
-  ),
-  regressionSimulator: envTrue("ACCESS_INTELLIGENCE_REGRESSION_SIMULATOR"),
-} as const;
+  get reliabilityConsole() {
+    return envTrue("ACCESS_INTELLIGENCE_RELIABILITY_CONSOLE");
+  },
+  get reverificationScheduler() {
+    return envTrue("ACCESS_INTELLIGENCE_REVERIFICATION_SCHEDULER");
+  },
+  get journeyPreflight() {
+    return envTrue("ACCESS_INTELLIGENCE_JOURNEY_PREFLIGHT");
+  },
+  get journeyGuardian() {
+    return envTrue("ACCESS_INTELLIGENCE_JOURNEY_GUARDIAN");
+  },
+  get offlineVisitPack() {
+    return envTrue("ACCESS_INTELLIGENCE_OFFLINE_VISIT_PACK");
+  },
+  get guideGenerator() {
+    return envTrue("ACCESS_INTELLIGENCE_GUIDE_GENERATOR");
+  },
+  get mapperFieldKit() {
+    return envTrue("ACCESS_INTELLIGENCE_MAPPER_FIELD_KIT");
+  },
+  get contributorPathway() {
+    return envTrue("ACCESS_INTELLIGENCE_CONTRIBUTOR_PATHWAY");
+  },
+  get temporaryEventPlanner() {
+    return envTrue("ACCESS_INTELLIGENCE_TEMPORARY_EVENT_PLANNER");
+  },
+  get widget() {
+    return envTrue("ACCESS_INTELLIGENCE_WIDGET");
+  },
+  get sdkApi() {
+    return envTrue("ACCESS_INTELLIGENCE_SDK_API");
+  },
+  get regionalControlTower() {
+    return envTrue("ACCESS_INTELLIGENCE_REGIONAL_CONTROL_TOWER");
+  },
+  get missionConsole() {
+    return envTrue("ACCESS_INTELLIGENCE_MISSION_CONSOLE");
+  },
+  get employmentOrchestrator() {
+    return envTrue("ACCESS_INTELLIGENCE_EMPLOYMENT_ORCHESTRATOR");
+  },
+  get regressionSimulator() {
+    return envTrue("ACCESS_INTELLIGENCE_REGRESSION_SIMULATOR");
+  },
+};
 
 export type AccessIntelligenceFlagKey = keyof typeof accessIntelligenceFlags;
 

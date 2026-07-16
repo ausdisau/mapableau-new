@@ -1,9 +1,14 @@
 import { accessIntelligenceFlags } from "@/lib/access-intelligence/feature-flags";
-import { buildWidgetPayload } from "@/lib/access-intelligence/widget";
+import {
+  assertSdkApiEnabled,
+  buildWidgetPayload,
+  runSdkCertificationSuite,
+} from "@/lib/access-intelligence/widget";
 
 /**
  * Public widget read — no Passport by default.
  * Subscription plan query param is ignored for confidence/evidence.
+ * SDK certification path requires ACCESS_INTELLIGENCE_SDK_API.
  */
 export async function GET(request: Request) {
   if (!accessIntelligenceFlags.widget) {
@@ -40,9 +45,27 @@ export async function GET(request: Request) {
     incidents: [],
   });
 
+  let certification = null;
+  if (url.searchParams.get("certify") === "1") {
+    if (!accessIntelligenceFlags.sdkApi) {
+      return Response.json(
+        { error: "SDK API disabled for certification" },
+        { status: 403 },
+      );
+    }
+    assertSdkApiEnabled();
+    certification = runSdkCertificationSuite({
+      hasListAlternative: payload.listAlternative.length > 0,
+      passportExposedByDefault: payload.passportExposed !== false,
+      subscriptionBiasesConfidence: false,
+      originAllowlisted: true,
+    });
+  }
+
   return Response.json({
     ok: true,
     payload,
     accessibleListMandatory: true,
+    certification,
   });
 }

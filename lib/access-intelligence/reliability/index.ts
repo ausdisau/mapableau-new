@@ -212,6 +212,77 @@ export function assertReliabilityConsoleEnabled(): void {
   }
 }
 
+export function assertReverificationSchedulerEnabled(): void {
+  if (!accessIntelligenceFlags.reverificationScheduler) {
+    throw new Error(
+      "Reverification scheduler disabled. Set ACCESS_INTELLIGENCE_REVERIFICATION_SCHEDULER=true.",
+    );
+  }
+}
+
+/**
+ * System job stub: schedule open reverification tasks from findings.
+ * Does not auto-resolve disputes — creates assessor queue entries only.
+ */
+export function scheduleReverificationFromScan(input: {
+  accessPlaceId: string;
+  findings: ReliabilityFindingDraft[];
+  now?: Date;
+}): {
+  scheduled: Array<{
+    accessPlaceId: string;
+    featureType?: string;
+    reason: string;
+    dueAt: string;
+  }>;
+  skipped: number;
+} {
+  assertReverificationSchedulerEnabled();
+  const now = input.now ?? new Date();
+  const drafts = buildReverificationTasks({
+    accessPlaceId: input.accessPlaceId,
+    findings: input.findings,
+  });
+  const scheduled = drafts.map((d, i) => ({
+    ...d,
+    dueAt: new Date(now.getTime() + (i + 1) * 86_400_000).toISOString(),
+  }));
+  return { scheduled, skipped: 0 };
+}
+
+export type ProvenanceStep = {
+  actorType: string;
+  summary: string;
+  at?: string;
+  sourceId?: string;
+};
+
+/**
+ * Provenance debugger — reconstructs an inspectable source chain for a claim.
+ */
+export function buildProvenanceTrace(input: {
+  accessPlaceId: string;
+  claimOrFeatureId: string;
+  steps: ProvenanceStep[];
+}): {
+  accessPlaceId: string;
+  claimOrFeatureId: string;
+  chain: ProvenanceStep[];
+  chainHash: string;
+} {
+  return {
+    accessPlaceId: input.accessPlaceId,
+    claimOrFeatureId: input.claimOrFeatureId,
+    chain: input.steps,
+    chainHash: provenanceDebuggerHash(
+      input.steps.map((s) => ({
+        actorType: s.actorType,
+        summary: s.summary,
+      })),
+    ),
+  };
+}
+
 export function auditReliabilityScan(input: {
   actorUserId: string;
   accessPlaceId: string;
@@ -232,3 +303,12 @@ export function auditReliabilityScan(input: {
     persistCanonical: false,
   });
 }
+
+export {
+  clearReliabilityStoreForTests,
+  listReliabilityScans,
+  listReverificationTasks,
+  persistReliabilityScan,
+  persistReverificationTasks,
+  updateReverificationTaskStatus,
+} from "@/lib/access-intelligence/reliability/store";

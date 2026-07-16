@@ -62,3 +62,49 @@ export function assertWidgetEnabled(): void {
     throw new Error("Access widget disabled.");
   }
 }
+
+export function assertSdkApiEnabled(): void {
+  if (!accessIntelligenceFlags.sdkApi) {
+    throw new Error(
+      "Access SDK API disabled. Set ACCESS_INTELLIGENCE_SDK_API=true.",
+    );
+  }
+}
+
+export type SdkCertificationCase = {
+  code: string;
+  description: string;
+  passed: boolean;
+};
+
+/** Sandbox certification suite — partner embeds must keep list alternatives. */
+export function runSdkCertificationSuite(input: {
+  hasListAlternative: boolean;
+  passportExposedByDefault: boolean;
+  subscriptionBiasesConfidence: boolean;
+  originAllowlisted: boolean;
+}): { passed: boolean; cases: SdkCertificationCase[] } {
+  const cases: SdkCertificationCase[] = [
+    {
+      code: "list_alternative",
+      description: "Widget payload includes accessible list alternative",
+      passed: input.hasListAlternative,
+    },
+    {
+      code: "passport_default_deny",
+      description: "Passport fields are not exposed by default on public widget",
+      passed: !input.passportExposedByDefault,
+    },
+    {
+      code: "no_plan_bias",
+      description: "Subscription plan must not bias confidence or evidence",
+      passed: !input.subscriptionBiasesConfidence,
+    },
+    {
+      code: "origin_allowlist",
+      description: "Embed origin allowlist enforced",
+      passed: input.originAllowlisted,
+    },
+  ];
+  return { passed: cases.every((c) => c.passed), cases };
+}

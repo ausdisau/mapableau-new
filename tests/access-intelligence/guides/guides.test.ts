@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { bindGuideFacts, FactBinderError } from "@/lib/access-intelligence/guides";
+import {
+  bindGuideFacts,
+  evaluateGuidePublishReadiness,
+  FactBinderError,
+  supersedeGuideVersion,
+} from "@/lib/access-intelligence/guides";
 
 describe("System 3 guide FactBinder", () => {
   it("requires evidence bindings for factual sentences", () => {
@@ -55,5 +60,30 @@ describe("System 3 guide FactBinder", () => {
       },
     ]);
     expect(bound.evidenceReferences).toHaveLength(1);
+  });
+
+  it("gates publication on checklist and supports supersession", () => {
+    expect(
+      evaluateGuidePublishReadiness({
+        factBound: true,
+        reviewComplete: true,
+        unknownsLabelled: true,
+        noLegalComplianceClaims: true,
+      }).ready,
+    ).toBe(true);
+    expect(
+      evaluateGuidePublishReadiness({
+        factBound: false,
+        reviewComplete: true,
+        unknownsLabelled: true,
+        noLegalComplianceClaims: true,
+      }).ready,
+    ).toBe(false);
+    expect(
+      supersedeGuideVersion({
+        previousVersionId: "v1",
+        nextVersionLabel: "v2",
+      }).status,
+    ).toBe("superseded");
   });
 });
