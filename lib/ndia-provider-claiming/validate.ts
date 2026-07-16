@@ -3,6 +3,10 @@ import type {
   FundingSourceType,
 } from "@prisma/client";
 
+import type {
+  ClaimValidationFinding,
+  NdiaProviderClaimPayload,
+} from "@/lib/ndia-provider-claiming/types";
 import { billingFundingTypeToFundingRoute } from "@/lib/ndis-gateway/compatibility/from-billing-funding";
 import { fundingSourceTypeToFundingRoute } from "@/lib/ndis-gateway/compatibility/from-funding-source";
 import { fundingRouteToFundingSourceType } from "@/lib/ndis-gateway/compatibility/to-funding-source-type";
@@ -10,10 +14,6 @@ import {
   allowsRegisteredProviderDirectClaim,
   type FundingRoute,
 } from "@/lib/ndis-gateway/domain/funding-route";
-import type {
-  ClaimValidationFinding,
-  NdiaProviderClaimPayload,
-} from "@/lib/ndia-provider-claiming/types";
 import { prisma } from "@/lib/prisma";
 
 /**

@@ -1,8 +1,8 @@
 import type { FundingSourceType } from "@prisma/client";
 
+import type { NdisPaymentRoute } from "@/lib/ndis/claiming/types";
 import { fundingSourceTypeToFundingRoute } from "@/lib/ndis-gateway/compatibility/from-funding-source";
 import { fundingRouteToPaymentRoute } from "@/lib/ndis-gateway/compatibility/to-payment-route";
-import type { NdisPaymentRoute } from "@/lib/ndis/claiming/types";
 
 /**
  * Compatibility facade over lib/ndis-gateway funding routes.

@@ -127,7 +127,7 @@ export function assertCanTransition(
   }
 }
 
-/** Exhaustive helper for switch statements over canonical statuses. */
-export function exhaustClaimStatus(status: CanonicalClaimStatus): never {
+/** Exhaustive helper for switch default cases over canonical statuses. */
+export function exhaustClaimStatus(status: never): never {
   return assertNever(status, "Unhandled canonical claim status");
 }
