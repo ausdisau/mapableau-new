@@ -128,6 +128,14 @@ model User {
   ndisBillingDisputesAssigned           NdisBillingDispute[]               @relation("NdisBillingDisputeAssignedTo")
   ndisWorkflowTransitionsActor          NdisWorkflowTransition[]           @relation("NdisWorkflowTransitionActor")
   ndisRouteDecisionsActor               NdisRouteDecision[]                @relation("NdisRouteDecisionActor")
+  externalIntegrationProfilesApproved   ExternalIntegrationProfile[]       @relation("ExternalIntegrationProfileApprovedBy")
+  externalIntegrationProfilesActivated  ExternalIntegrationProfile[]       @relation("ExternalIntegrationProfileActivatedBy")
+  externalIntegrationActivationsApproved ExternalIntegrationActivation[]   @relation("ExternalIntegrationActivationApprovedBy")
+  externalIntegrationActivationsRevoked ExternalIntegrationActivation[]    @relation("ExternalIntegrationActivationRevokedBy")
+  externalRemittancesImported           ExternalRemittance[]               @relation("ExternalRemittanceImportedBy")
+  ndisPaymentAllocationsAllocated       NdisPaymentAllocation[]            @relation("NdisPaymentAllocationAllocatedBy")
+  ndisPaymentAllocationsReversed        NdisPaymentAllocation[]            @relation("NdisPaymentAllocationReversedBy")
+  integrationKillSwitchesEngaged        IntegrationKillSwitch[]            @relation("IntegrationKillSwitchEngagedBy")
 
   accessPlacesCreated            AccessPlace[]                   @relation("AccessPlaceCreatedBy")
   accessPlaceClaims              AccessPlaceClaim[]              @relation("AccessPlaceClaimUser")
@@ -715,6 +723,12 @@ model Organisation {
   ndisWorkflowTransitions          NdisWorkflowTransition[]
   ndisBillingBatches               NdisBillingBatch[]
   ndisRouteDecisions               NdisRouteDecision[]
+  externalIntegrationProfiles      ExternalIntegrationProfile[]
+  externalIntegrationOutboxes      ExternalIntegrationOutbox[]
+  externalRemittances              ExternalRemittance[]
+  ndisPaymentEvents                NdisPaymentEvent[]
+  ndisPaymentAllocations           NdisPaymentAllocation[]
+  accountingSyncRecords            AccountingSyncRecord[]
 
   careRequests                 CareRequest[]
   careBookings                 CareBooking[]
@@ -3111,8 +3125,16 @@ enum XeroSyncStatus {
 model XeroOAuthToken {
   id           String    @id @default(cuid())
   tenantId     String
+  /// @deprecated Prefer accessTokenCiphertext / secretReference (Wave 5). Kept for compatibility.
   accessToken  String
+  /// @deprecated Prefer refreshTokenCiphertext / secretReference (Wave 5). Kept for compatibility.
   refreshToken String?
+  /// Encrypted access token ciphertext (Wave 5). Prefer over plaintext accessToken.
+  accessTokenCiphertext  String?
+  /// Encrypted refresh token ciphertext (Wave 5). Prefer over plaintext refreshToken.
+  refreshTokenCiphertext String?
+  /// Opaque vault / secret-manager reference for Xero credentials (Wave 5).
+  secretReference        String?
   expiresAt    DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -6131,10 +6153,12 @@ model NdisClaimSnapshot {
   supersedes                 NdisClaimSnapshot[] @relation("NdisClaimSnapshotSupersedes")
   privacyReviewRequired      Boolean             @default(false)
 
-  approvals             NdisClaimApproval[]
-  externalSubmissions   NdisExternalSubmission[]
-  providerClaimsCurrent NdiaProviderClaim[]      @relation("NdiaProviderClaimCurrentSnapshot")
-  claimLinesCurrent     NdisClaimLine[]          @relation("NdisClaimLineCurrentSnapshot")
+  approvals               NdisClaimApproval[]
+  externalSubmissions     NdisExternalSubmission[]
+  providerClaimsCurrent   NdiaProviderClaim[]      @relation("NdiaProviderClaimCurrentSnapshot")
+  claimLinesCurrent       NdisClaimLine[]          @relation("NdisClaimLineCurrentSnapshot")
+  externalRemittanceLines ExternalRemittanceLine[]
+  ndisPaymentAllocations  NdisPaymentAllocation[]
 
   @@index([organisationId, createdAt])
   @@index([participantId, createdAt])
@@ -6455,10 +6479,12 @@ model NdisBillableServiceItem {
   blockingIssuesJson        Json?
   warningsJson              Json?
 
-  documentLines   NdisBillingDocumentLine[]
-  batchMembers    NdisBillingBatchMember[]
-  disputes        NdisBillingDispute[]
-  evidencePackage NdisServiceEvidencePackage? @relation("EvidencePackageBillableItem")
+  documentLines          NdisBillingDocumentLine[]
+  batchMembers           NdisBillingBatchMember[]
+  disputes               NdisBillingDispute[]
+  evidencePackage        NdisServiceEvidencePackage? @relation("EvidencePackageBillableItem")
+  externalRemittanceLines ExternalRemittanceLine[]
+  ndisPaymentAllocations NdisPaymentAllocation[]
 
   @@unique([organisationId, sourceKey])
   @@index([organisationId, status])
@@ -6611,8 +6637,10 @@ model NdisBillingDocument {
   voidedAt              DateTime?
   voidReason            String?
 
-  lines    NdisBillingDocumentLine[]
-  disputes NdisBillingDispute[]
+  lines                 NdisBillingDocumentLine[]
+  disputes              NdisBillingDispute[]
+  ndisPaymentAllocations NdisPaymentAllocation[]
+  accountingSyncRecords AccountingSyncRecord[]
 
   @@unique([organisationId, documentNumber])
   @@index([organisationId, status])
@@ -6638,10 +6666,12 @@ model NdisBillingDocumentLine {
   subtotalCents   Int
   gstCents        Int                     @default(0)
   totalCents      Int
-  claimType       String?
-  sortOrder       Int                     @default(0)
-  active          Boolean                 @default(true)
-  createdAt       DateTime                @default(now())
+  claimType              String?
+  sortOrder              Int                     @default(0)
+  active                 Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  externalRemittanceLines ExternalRemittanceLine[]
+  ndisPaymentAllocations NdisPaymentAllocation[]
 
   @@index([documentId])
   @@index([billableItemId, active])
@@ -6729,6 +6759,494 @@ model NdisBillingDispute {
   @@index([organisationId, status])
   @@index([participantId, status])
   @@index([billableItemId])
+}
+
+// --- NDIS gateway Wave 5: external integration sandbox, remittance, reconciliation ---
+
+enum ExternalIntegrationKind {
+  ndia_simulator
+  ndia_manual_portal
+  ndia_direct_future
+  ndia_aggregator
+  plan_manager
+  xero
+  stripe
+  email_delivery
+  secure_file_delivery
+  other
+}
+
+enum ExternalIntegrationEnvironment {
+  local
+  test
+  sandbox
+  certification
+  production
+}
+
+enum ExternalIntegrationStatus {
+  draft
+  configuration_incomplete
+  disabled
+  test_ready
+  conformance_testing
+  certification_pending
+  approved
+  active
+  suspended
+  revoked
+  retired
+}
+
+enum ExternalAuthenticationKind {
+  none
+  api_key
+  oauth2_client_credentials
+  oauth2_authorisation_code
+  oauth2_private_key_jwt
+  mutual_tls
+  signed_request
+  vendor_managed
+  technical_pack_defined
+}
+
+enum ExternalDeliveryMode {
+  synchronous_http
+  asynchronous_http
+  webhook
+  polling
+  secure_file
+  manual_portal
+  queue
+  hybrid
+}
+
+enum ExternalIntegrationActivationDecision {
+  approved
+  rejected
+  revoked
+  expired
+}
+
+enum ExternalOutboxStatus {
+  pending
+  leased
+  processing
+  awaiting_acknowledgement
+  completed
+  retry_scheduled
+  dead_letter
+  cancelled
+  submission_unknown
+}
+
+enum ExternalInboxStatus {
+  received
+  signature_invalid
+  quarantined
+  pending_processing
+  processed
+  failed
+  duplicate
+}
+
+enum ExternalCanonicalStatus {
+  prepared
+  queued
+  sent
+  received
+  acknowledged
+  processing
+  accepted
+  held
+  needs_information
+  partially_approved
+  partially_paid
+  paid
+  rejected
+  cancelled
+  reversed
+  delivery_failed
+  authentication_failed
+  submission_unknown
+  status_unknown
+}
+
+enum RemittanceMatchingStatus {
+  unmatched
+  candidate_match
+  matched
+  partially_matched
+  amount_mismatch
+  duplicate
+  disputed
+  rejected
+  manual_review
+  reconciled
+  reversed
+}
+
+enum PaymentAllocationType {
+  automatic_exact
+  automatic_composite
+  manual
+  adjustment
+  reversal
+  refund
+  recovery
+}
+
+enum PaymentAllocationStatus {
+  active
+  reversed
+  disputed
+  pending_review
+}
+
+enum IntegrationKillSwitchKey {
+  global_outbound
+  ndia_direct
+  aggregator
+  plan_manager_delivery
+  xero
+  stripe
+  webhook_processing
+  polling
+  reconciliation_automation
+}
+
+model ExternalIntegrationProfile {
+  id                      String                         @id @default(cuid())
+  organisationId          String?
+  organisation            Organisation?                  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  kind                    ExternalIntegrationKind
+  providerKey             String
+  displayName             String
+  environment             ExternalIntegrationEnvironment
+  status                  ExternalIntegrationStatus      @default(draft)
+  adapterVersion          String
+  contractVersion         String
+  authenticationKind      ExternalAuthenticationKind
+  deliveryMode            ExternalDeliveryMode
+  baseUrlCiphertext       String?
+  configurationCiphertext String?
+  publicConfigurationJson Json?
+  secretReference         String?
+  dataResidency           String
+  technicalSpecReference  String?
+  technicalSpecChecksum   String?
+  approvedById            String?
+  approvedBy              User?                          @relation("ExternalIntegrationProfileApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt              DateTime?
+  activatedById           String?
+  activatedBy             User?                          @relation("ExternalIntegrationProfileActivatedBy", fields: [activatedById], references: [id], onDelete: SetNull)
+  activatedAt             DateTime?
+  suspendedAt             DateTime?
+  suspensionReason        String?
+  lastHealthCheckAt       DateTime?
+  lastHealthStatus        String?
+  createdAt               DateTime                       @default(now())
+  updatedAt               DateTime                       @updatedAt
+
+  activations         ExternalIntegrationActivation[]
+  outboxes            ExternalIntegrationOutbox[]
+  inboxes             ExternalIntegrationInbox[]
+  statusPolls         ExternalStatusPoll[]
+  remittances         ExternalRemittance[]
+  idempotencyRecords  IntegrationIdempotencyRecord[]
+  accountingSyncRecords AccountingSyncRecord[]
+
+  @@unique([organisationId, kind, providerKey, environment])
+  @@index([kind, environment, status])
+  @@index([organisationId, status])
+  @@index([providerKey, environment])
+}
+
+model ExternalIntegrationActivation {
+  id                   String                                @id @default(cuid())
+  integrationProfileId String
+  integrationProfile   ExternalIntegrationProfile            @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
+  environment          ExternalIntegrationEnvironment
+  decision             ExternalIntegrationActivationDecision
+  approvedById         String
+  approvedBy           User                                  @relation("ExternalIntegrationActivationApprovedBy", fields: [approvedById], references: [id], onDelete: Restrict)
+  approvedAt           DateTime                              @default(now())
+  reason               String
+  evidenceJson         Json?
+  expiresAt            DateTime?
+  revokedAt            DateTime?
+  revokedById          String?
+  revokedBy            User?                                 @relation("ExternalIntegrationActivationRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
+  createdAt            DateTime                              @default(now())
+
+  @@index([integrationProfileId, createdAt])
+  @@index([environment, decision])
+}
+
+model ExternalIntegrationOutbox {
+  id                      String                      @id @default(cuid())
+  organisationId          String
+  organisation            Organisation                @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  integrationProfileId    String
+  integrationProfile      ExternalIntegrationProfile  @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
+  operationType           String
+  aggregateType           String
+  aggregateId             String
+  payloadReference        String
+  payloadHash             String
+  idempotencyKey          String
+  correlationId           String
+  priority                Int                         @default(100)
+  status                  ExternalOutboxStatus        @default(pending)
+  availableAt             DateTime                    @default(now())
+  lockedAt                DateTime?
+  lockedBy                String?
+  attemptCount            Int                         @default(0)
+  maxAttempts             Int                         @default(8)
+  lastAttemptAt           DateTime?
+  nextAttemptAt           DateTime?
+  deadlineAt              DateTime?
+  lastFailureClass        String?
+  lastSafeFailureMessage  String?
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  completedAt             DateTime?
+  cancelledAt             DateTime?
+
+  @@unique([integrationProfileId, operationType, idempotencyKey])
+  @@index([organisationId, status, availableAt])
+  @@index([status, nextAttemptAt])
+  @@index([aggregateType, aggregateId])
+  @@index([correlationId])
+}
+
+model ExternalIntegrationInbox {
+  id                         String                     @id @default(cuid())
+  integrationProfileId       String
+  integrationProfile         ExternalIntegrationProfile @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
+  externalEventId            String?
+  eventType                  String
+  sourceChecksum             String?
+  signatureStatus            String
+  receivedAt                 DateTime                   @default(now())
+  processedAt                DateTime?
+  status                     ExternalInboxStatus        @default(received)
+  encryptedPayloadCiphertext String?
+  payloadHash                String
+  safeMetadataJson           Json?
+  correlationId              String?
+  linkedSubmissionId         String?
+  failureCode                String?
+  createdAt                  DateTime                   @default(now())
+
+  @@unique([integrationProfileId, externalEventId])
+  @@unique([integrationProfileId, sourceChecksum])
+  @@index([status, receivedAt])
+  @@index([correlationId])
+  @@index([linkedSubmissionId])
+}
+
+model ExternalStatusPoll {
+  id                   String                     @id @default(cuid())
+  submissionId         String
+  integrationProfileId String
+  integrationProfile   ExternalIntegrationProfile @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
+  externalReference    String
+  status               ExternalCanonicalStatus    @default(queued)
+  nextPollAt           DateTime
+  attemptCount         Int                        @default(0)
+  lastPolledAt         DateTime?
+  lastExternalStatus   String?
+  terminalAt           DateTime?
+  failureClass         String?
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  @@index([nextPollAt, status])
+  @@index([submissionId])
+  @@index([integrationProfileId, status])
+  @@index([externalReference])
+}
+
+model ExternalRemittance {
+  id                       String                     @id @default(cuid())
+  organisationId           String
+  organisation             Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  integrationProfileId     String
+  integrationProfile       ExternalIntegrationProfile @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
+  externalRemittanceId     String?
+  sourceType               String
+  sourceChecksum           String
+  paymentDate              DateTime?
+  settlementDate           DateTime?
+  totalCents               Int
+  currency                 String                     @default("AUD")
+  status                   RemittanceMatchingStatus   @default(unmatched)
+  encryptedSourceCiphertext String?
+  safeMetadataJson         Json?
+  importedById             String?
+  importedBy               User?                      @relation("ExternalRemittanceImportedBy", fields: [importedById], references: [id], onDelete: SetNull)
+  importedAt               DateTime                   @default(now())
+  createdAt                DateTime                   @default(now())
+
+  lines ExternalRemittanceLine[]
+
+  @@unique([organisationId, sourceChecksum])
+  @@index([organisationId, status])
+  @@index([integrationProfileId, importedAt])
+  @@index([externalRemittanceId])
+}
+
+model ExternalRemittanceLine {
+  id                      String                   @id @default(cuid())
+  remittanceId            String
+  remittance              ExternalRemittance       @relation(fields: [remittanceId], references: [id], onDelete: Cascade)
+  externalClaimReference  String?
+  externalInvoiceReference String?
+  externalLineReference   String?
+  participantReferenceHash String?
+  supportItemCode         String?
+  serviceDate             DateTime?
+  claimedCents            Int?
+  approvedCents           Int?
+  paidCents               Int
+  adjustmentCents         Int                      @default(0)
+  rejectionCode           String?
+  safeRejectionMessage    String?
+  matchingStatus          RemittanceMatchingStatus @default(unmatched)
+  linkedSubmissionId      String?
+  linkedClaimSnapshotId   String?
+  linkedClaimSnapshot     NdisClaimSnapshot?       @relation(fields: [linkedClaimSnapshotId], references: [id], onDelete: SetNull)
+  linkedBillableItemId    String?
+  linkedBillableItem      NdisBillableServiceItem? @relation(fields: [linkedBillableItemId], references: [id], onDelete: SetNull)
+  linkedDocumentLineId    String?
+  linkedDocumentLine      NdisBillingDocumentLine? @relation(fields: [linkedDocumentLineId], references: [id], onDelete: SetNull)
+  createdAt               DateTime                 @default(now())
+
+  allocations NdisPaymentAllocation[]
+
+  @@index([remittanceId, matchingStatus])
+  @@index([externalClaimReference])
+  @@index([externalInvoiceReference])
+  @@index([linkedClaimSnapshotId])
+  @@index([linkedBillableItemId])
+  @@index([linkedDocumentLineId])
+}
+
+/// Wave 5 NDIS gateway payment event (distinct from any future generic PaymentEvent).
+model NdisPaymentEvent {
+  id                      String                   @id @default(cuid())
+  organisationId          String
+  organisation            Organisation             @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  source                  String
+  externalPaymentReference String?
+  amountCents             Int
+  currency                String                   @default("AUD")
+  occurredAt              DateTime
+  status                  RemittanceMatchingStatus @default(unmatched)
+  sourceChecksum          String?
+  safeMetadataJson        Json?
+  createdAt               DateTime                 @default(now())
+
+  allocations NdisPaymentAllocation[]
+
+  @@unique([organisationId, sourceChecksum])
+  @@index([organisationId, status])
+  @@index([externalPaymentReference])
+  @@index([occurredAt])
+}
+
+/// Wave 5 payment allocation — does not replace legacy PaymentAllocation.
+model NdisPaymentAllocation {
+  id                   String                  @id @default(cuid())
+  organisationId       String
+  organisation         Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  paymentEventId       String
+  paymentEvent         NdisPaymentEvent        @relation(fields: [paymentEventId], references: [id], onDelete: Cascade)
+  remittanceLineId     String?
+  remittanceLine       ExternalRemittanceLine? @relation(fields: [remittanceLineId], references: [id], onDelete: SetNull)
+  billingDocumentId    String?
+  billingDocument      NdisBillingDocument?    @relation(fields: [billingDocumentId], references: [id], onDelete: SetNull)
+  billingDocumentLineId String?
+  billingDocumentLine  NdisBillingDocumentLine? @relation(fields: [billingDocumentLineId], references: [id], onDelete: SetNull)
+  billableItemId       String?
+  billableItem         NdisBillableServiceItem? @relation(fields: [billableItemId], references: [id], onDelete: SetNull)
+  claimSnapshotId      String?
+  claimSnapshot        NdisClaimSnapshot?      @relation(fields: [claimSnapshotId], references: [id], onDelete: SetNull)
+  /// Optional bridge to legacy invoice / PaymentAllocation.invoiceId.
+  legacyInvoiceId      String?
+  amountCents          Int
+  allocationType       PaymentAllocationType
+  status               PaymentAllocationStatus @default(active)
+  allocatedById        String?
+  allocatedBy          User?                   @relation("NdisPaymentAllocationAllocatedBy", fields: [allocatedById], references: [id], onDelete: SetNull)
+  allocatedAt          DateTime                @default(now())
+  reversedAt           DateTime?
+  reversedById         String?
+  reversedBy           User?                   @relation("NdisPaymentAllocationReversedBy", fields: [reversedById], references: [id], onDelete: SetNull)
+  reversalReason       String?
+  createdAt            DateTime                @default(now())
+
+  @@index([organisationId, status])
+  @@index([paymentEventId])
+  @@index([remittanceLineId])
+  @@index([billingDocumentId])
+  @@index([billableItemId])
+  @@index([claimSnapshotId])
+  @@index([legacyInvoiceId])
+}
+
+model IntegrationKillSwitch {
+  id          String                  @id @default(cuid())
+  key         IntegrationKillSwitchKey @unique
+  engaged     Boolean                 @default(false)
+  engagedById String?
+  engagedBy   User?                   @relation("IntegrationKillSwitchEngagedBy", fields: [engagedById], references: [id], onDelete: SetNull)
+  engagedAt   DateTime?
+  reason      String?
+  updatedAt   DateTime                @updatedAt
+  createdAt   DateTime                @default(now())
+}
+
+model IntegrationIdempotencyRecord {
+  id             String                         @id @default(cuid())
+  profileId      String
+  profile        ExternalIntegrationProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  operation      String
+  idempotencyKey String
+  payloadHash    String
+  resultJson     Json?
+  environment    ExternalIntegrationEnvironment
+  createdAt      DateTime                       @default(now())
+
+  @@unique([profileId, operation, idempotencyKey])
+  @@index([environment, createdAt])
+}
+
+model AccountingSyncRecord {
+  id                   String                          @id @default(cuid())
+  organisationId       String
+  organisation         Organisation                    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  integrationProfileId String?
+  integrationProfile   ExternalIntegrationProfile?     @relation(fields: [integrationProfileId], references: [id], onDelete: SetNull)
+  billingDocumentId    String?
+  billingDocument      NdisBillingDocument?            @relation(fields: [billingDocumentId], references: [id], onDelete: SetNull)
+  xeroContactId        String?
+  xeroInvoiceId        String?
+  xeroCreditNoteId     String?
+  xeroPaymentId        String?
+  adapterVersion       String?
+  syncStatus           XeroSyncStatus                  @default(not_configured)
+  safeErrorMessage     String?
+  safeMetadataJson     Json?
+  environment          ExternalIntegrationEnvironment  @default(sandbox)
+  createdAt            DateTime                        @default(now())
+  updatedAt            DateTime                        @updatedAt
+
+  @@index([organisationId, syncStatus])
+  @@index([billingDocumentId])
+  @@index([xeroInvoiceId])
+  @@index([integrationProfileId])
 }
 
 // --- NDIS service delivery mechanism ---
