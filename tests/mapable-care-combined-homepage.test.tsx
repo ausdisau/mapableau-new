@@ -170,10 +170,16 @@ describe("MapAbleCareCombinedHomepage", () => {
   });
 
   it("renders a header donate link to Australian Disability", () => {
-    const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
-    expect(donate.getAttribute("target")).toBe("_blank");
-    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+    const donateLinks = screen.getAllByRole("link", { name: "Donate" });
+    const paypalDonate = donateLinks.find(
+      (link) => link.getAttribute("href") === "https://paypal.me/ausdisau",
+    );
+    expect(paypalDonate).toBeTruthy();
+    expect(paypalDonate?.getAttribute("target")).toBe("_blank");
+    expect(paypalDonate?.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(donateLinks.some((link) => link.getAttribute("href") === "/donate")).toBe(
+      true,
+    );
   });
 
   it("renders category chips and marketplace section", () => {
@@ -194,11 +200,11 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(screen.getAllByRole("link", { name: "Verify my venue" }).length).toBeGreaterThan(0);
   });
 
-  it("opens guided chat on panel search submit", () => {
+  it("navigates to provider finder on panel search submit", () => {
     const searchInput = screen.getByLabelText("What support do you need?");
     fireEvent.change(searchInput, { target: { value: "wheelchair transport" } });
     fireEvent.submit(searchInput.closest("form")!);
-    expect(screen.getByTestId("guided-search-dialogue")).toBeTruthy();
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith("/provider-finder?q=wheelchair+transport");
+    expect(screen.queryByTestId("guided-search-dialogue")).toBeNull();
   });
 });

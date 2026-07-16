@@ -6,6 +6,7 @@ import { syncCalendarForCareRequest } from "@/lib/calendar/calendar-service";
 import { checkConsent } from "@/lib/consent/consent-service";
 import { phase4Config } from "@/lib/config/phase4";
 import { platformPatternsConfig } from "@/lib/config/platform-patterns";
+import { y1WedgeConfig } from "@/lib/config/y1-wedge";
 import { assertProviderReadyToServe } from "@/lib/onboarding/provider-service-ready";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
@@ -121,7 +122,7 @@ export async function submitCareRequest(
       const result = await runCareWorkerMatch(careRequestId, actorUserId);
       if (result && "skipped" in result && result.skipped) {
         matchingSkipped = true;
-      } else {
+      } else if (y1WedgeConfig.participantMatchReviewEnabled) {
         redirectTo = `/dashboard/care/matches/${careRequestId}`;
       }
     } catch (e) {

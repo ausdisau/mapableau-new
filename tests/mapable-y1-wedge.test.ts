@@ -1,14 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { y1WedgeConfig } from "@/lib/config/y1-wedge";
+import {
+  isY1WedgeStagingDefaultsActive,
+  y1WedgeConfig,
+} from "@/lib/config/y1-wedge";
 import {
   defaultSupportProfileSections,
   mergeSupportProfileSections,
   participantSafeSupportProfileSummary,
 } from "@/lib/support-profile/types";
-import {
-  participantSafeCandidateSummary,
-} from "@/lib/matching/matching-service";
+import { participantSafeCandidateSummary } from "@/lib/matching/matching-service";
 import {
   validateIncidentIntakePath,
   type IncidentIntakeWizardSteps,
@@ -16,12 +17,28 @@ import {
 import { isMicroConsentEnabled } from "@/lib/consent/micro-consent-service";
 
 describe("Y1 wedge config", () => {
-  it("disables all wedge features by default", () => {
+  const envSnapshot = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...envSnapshot };
+  });
+
+  it("disables wedge features in test environment by default", () => {
+    process.env.NODE_ENV = "test";
+    delete process.env.MAPABLE_Y1_WEDGE_STAGING;
+    delete process.env.VERCEL_ENV;
+    delete process.env.SUPPORT_PROFILE_ENABLED;
+    delete process.env.PARTICIPANT_MATCH_REVIEW_ENABLED;
+
     expect(y1WedgeConfig.supportProfileEnabled).toBe(false);
     expect(y1WedgeConfig.participantMatchReviewEnabled).toBe(false);
     expect(y1WedgeConfig.incidentIntakeV2Enabled).toBe(false);
     expect(y1WedgeConfig.microConsentEnabled).toBe(false);
     expect(y1WedgeConfig.backupShiftRecoveryEnabled).toBe(false);
+  });
+
+  it("exposes staging defaults helper", () => {
+    expect(typeof isY1WedgeStagingDefaultsActive()).toBe("boolean");
   });
 });
 
@@ -71,7 +88,7 @@ describe("Incident intake v2 validation", () => {
 
   it("rejects safeguarding path without safeguarding flag", () => {
     expect(
-      validateIncidentIntakePath({ ...base, intakePath: "safeguarding" })
+      validateIncidentIntakePath({ ...base, intakePath: "safeguarding" }),
     ).toContain("Safeguarding");
   });
 

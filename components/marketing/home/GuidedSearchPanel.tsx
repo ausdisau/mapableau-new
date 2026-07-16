@@ -24,11 +24,12 @@ export function GuidedSearchPanel() {
     statusHint,
     setStatusHint,
     launchChat,
+    navigateToFinder,
     resetChat,
   } = useGuidedSearchLauncher();
 
-  function handleLaunch(nextQuery: string, promptLabel?: string) {
-    const launched = launchChat(nextQuery, promptLabel);
+  function handleFinderSearch(nextQuery: string, promptLabel?: string) {
+    const launched = navigateToFinder(nextQuery, promptLabel);
     if (!launched) {
       inputRef.current?.focus();
     }
@@ -58,7 +59,7 @@ export function GuidedSearchPanel() {
           className="mt-8 max-w-3xl"
           onSubmit={(event) => {
             event.preventDefault();
-            handleLaunch(query);
+            handleFinderSearch(query);
           }}
         >
           <label htmlFor={inputId} className="text-sm font-black text-[#0C1833]">
@@ -91,6 +92,7 @@ export function GuidedSearchPanel() {
               {statusHint}
             </p>
           ) : null}
+          <p className="mt-2 text-sm text-slate-600">{guidedSearchPanelCopy.finderHandoffHint}</p>
         </form>
 
         <div
@@ -104,7 +106,7 @@ export function GuidedSearchPanel() {
               type="button"
               onClick={() => {
                 setQuery(chip.prefill);
-                handleLaunch(chip.prefill, chip.label);
+                handleFinderSearch(chip.prefill, chip.label);
               }}
               className={`min-h-11 rounded-full border border-slate-200 bg-[#F6FBFC] px-4 py-3 text-sm font-black text-[#005B7F] transition hover:bg-[#F8C51C]/20 ${mapableCareFocusRing}`}
             >
@@ -137,13 +139,25 @@ export function GuidedSearchPanel() {
                 </li>
               ))}
             </ol>
-            <button
-              type="button"
-              onClick={() => handleLaunch(query)}
-              className={`mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#005B7F] px-6 py-4 text-base font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`}
-            >
-              {guidedSearchPanelCopy.ctaLabel}
-            </button>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => handleFinderSearch(query)}
+                className={`inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#005B7F] px-6 py-4 text-base font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`}
+              >
+                {guidedSearchPanelCopy.ctaLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const launched = launchChat(query);
+                  if (!launched) inputRef.current?.focus();
+                }}
+                className={`inline-flex min-h-12 items-center justify-center rounded-2xl border-2 border-[#005B7F] bg-white px-6 py-4 text-base font-black text-[#005B7F] transition hover:bg-[#F6FBFC] ${mapableCareFocusRing}`}
+              >
+                {guidedSearchPanelCopy.chatLinkLabel}
+              </button>
+            </div>
           </div>
 
           {chatMode ? (

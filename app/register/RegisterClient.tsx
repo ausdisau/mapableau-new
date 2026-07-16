@@ -13,7 +13,7 @@ import {
   formInputClass,
 } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
-import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
+import { normalizeAuthEmail, safeAuthCallbackPath } from "@/lib/auth/auth-flow";
 import type { OAuthProviderFlags } from "@/lib/auth/oauth-providers";
 
 export default function RegisterClient({
@@ -24,6 +24,7 @@ export default function RegisterClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("inviteToken")?.trim() ?? "";
+  const callbackUrl = safeAuthCallbackPath(searchParams.get("callbackUrl"), "/dashboard");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -61,7 +62,7 @@ export default function RegisterClient({
         email: normalizedEmail,
         password: password.trim(),
         redirect: false,
-        callbackUrl: "/dashboard",
+        callbackUrl,
       });
 
       if (result?.error) {
@@ -72,7 +73,7 @@ export default function RegisterClient({
         return;
       }
 
-      router.push(inviteToken ? "/worker/onboarding" : "/dashboard");
+      router.push(inviteToken ? "/worker/onboarding" : callbackUrl);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -103,7 +104,7 @@ export default function RegisterClient({
       <div className="flex flex-col gap-4">
         <OAuthSignInButtons
           providers={oauthProviders}
-          callbackUrl="/dashboard"
+          callbackUrl={callbackUrl}
           disabled={isLoading}
         />
         <AuthOAuthDivider label="or register with email" />

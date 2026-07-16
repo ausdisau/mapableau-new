@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { MapAbleRoleNav } from "@/components/layout/MapAbleRoleNav";
+import type { Y1WedgeConfig } from "@/lib/config/y1-wedge";
 import type { UserRole } from "@/types/mapable";
 
 const LINKS = [
@@ -29,10 +30,26 @@ const LINKS = [
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
 ];
 
-export function DashboardNav({ role }: { userName: string; role: UserRole }) {
+export function DashboardNav({
+  role,
+  wedgeFlags,
+}: {
+  userName: string;
+  role: UserRole;
+  wedgeFlags: Y1WedgeConfig;
+}) {
   const pathname = usePathname();
+  const wedgeLinks = [
+    ...(wedgeFlags.supportProfileEnabled
+      ? [{ href: "/dashboard/support-profile", label: "Support profile" }]
+      : []),
+    ...(wedgeFlags.participantMatchReviewEnabled
+      ? [{ href: "/dashboard/care", label: "Care matches", matchPrefix: "/dashboard/care/matches" }]
+      : []),
+  ];
   const links = [
     ...LINKS,
+    ...wedgeLinks,
     ...(role === "mapable_admin" ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
