@@ -95,6 +95,11 @@ export default async function DashboardPage() {
           />
         ) : null}
         <CoreHubCard
+          title="Care & Support Intelligence Lab"
+          description="Synthetic multi-agent coordination with participant-controlled safety gates"
+          href="/dashboard/intelligence"
+        />
+        <CoreHubCard
           title="MapAble Care"
           description={
             careBookingsCount
