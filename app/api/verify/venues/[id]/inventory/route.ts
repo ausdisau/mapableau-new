@@ -1,6 +1,6 @@
 import { resolveAccessIntelligenceUser } from "@/lib/access-intelligence/api-auth";
 import { requireVenueOperateAccess } from "@/lib/access-intelligence/auth/venue-access";
-import { checkEntitlement } from "@/lib/access-intelligence/entitlements";
+import { checkEntitlementForUser } from "@/lib/access-intelligence/entitlements-billing";
 import { isAccessIntelligenceError } from "@/lib/access-intelligence/errors";
 import { getVerifyInventory } from "@/lib/access-intelligence/verify/inventory";
 
@@ -11,14 +11,18 @@ export async function GET(request: Request, ctx: Ctx) {
   if (user instanceof Response) return user;
   const { id: placeId } = await ctx.params;
 
-  const entitlement = checkEntitlement({
+  const entitlement = await checkEntitlementForUser({
     userId: user.id,
     roles: user.roles,
     feature: "verify_inventory",
   });
   if (!entitlement.allowed) {
     return Response.json(
-      { error: entitlement.reason, code: "ENTITLEMENT_REQUIRED" },
+      {
+        error: entitlement.reason,
+        code: "ENTITLEMENT_REQUIRED",
+        source: entitlement.source,
+      },
       { status: 403 },
     );
   }
@@ -40,5 +44,5 @@ export async function GET(request: Request, ctx: Ctx) {
   if (!inventory) {
     return Response.json({ error: "Venue not found", code: "PLACE_NOT_FOUND" }, { status: 404 });
   }
-  return Response.json(inventory);
+  return Response.json({ ...inventory, entitlementSource: entitlement.source });
 }

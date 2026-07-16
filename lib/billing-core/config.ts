@@ -2,6 +2,7 @@ import {
   isStripeSdkAvailable,
   priceIdForSubscriptionPlan,
   stripeConfig,
+  type SubscriptionPlanCode,
 } from "@/lib/stripe/config";
 
 export const billingCoreConfig = {
@@ -18,8 +19,6 @@ export const billingCoreConfig = {
 
 export const isBillingStripeConfigured = isStripeSdkAvailable;
 
-export function priceIdForPlan(
-  planCode: "provider_pro" | "employer_pro" | "marketplace_featured" | "other"
-): string | null {
+export function priceIdForPlan(planCode: SubscriptionPlanCode): string | null {
   return priceIdForSubscriptionPlan(planCode);
 }

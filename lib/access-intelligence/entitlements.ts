@@ -1,8 +1,11 @@
 /**
  * Access Intelligence commercial entitlements.
  * Server-side policy — not scattered UI conditionals.
- * Demo repository until Stripe BillingSubscriptionPlanCode extends to AI plans.
+ * Resolves from BillingSubscription plan codes when present (test mode);
+ * falls back to env / demo defaults. Does not invent Stripe prices.
  */
+
+import type { BillingSubscriptionPlanCode } from "@prisma/client";
 
 export type AccessIntelligencePlan =
   | "community"
@@ -120,23 +123,68 @@ const PLAN_FEATURES: Record<AccessIntelligencePlan, AccessIntelligenceFeature[]>
   ],
 };
 
+/** BillingSubscriptionPlanCode → Access Intelligence plan. */
+export const BILLING_PLAN_CODE_TO_AI_PLAN: Partial<
+  Record<BillingSubscriptionPlanCode, AccessIntelligencePlan>
+> = {
+  ai_verify_starter: "verify_starter",
+  ai_verify_operations: "verify_operations",
+  ai_verify_portfolio: "verify_portfolio",
+  ai_learning_organisation: "learning_organisation",
+  ai_enterprise: "enterprise",
+};
+
+export const AI_PLAN_TO_BILLING_PLAN_CODE: Record<
+  Exclude<AccessIntelligencePlan, "community">,
+  BillingSubscriptionPlanCode
+> = {
+  verify_starter: "ai_verify_starter",
+  verify_operations: "ai_verify_operations",
+  verify_portfolio: "ai_verify_portfolio",
+  learning_organisation: "ai_learning_organisation",
+  enterprise: "ai_enterprise",
+};
+
+const AI_PLAN_RANK: Record<AccessIntelligencePlan, number> = {
+  community: 0,
+  verify_starter: 1,
+  learning_organisation: 1,
+  verify_operations: 2,
+  verify_portfolio: 3,
+  enterprise: 4,
+};
+
 export type EntitlementDecision = {
   allowed: boolean;
   plan: AccessIntelligencePlan;
   feature: AccessIntelligenceFeature;
   reason: string;
+  source: "override" | "admin" | "billing_subscription" | "env" | "demo_default" | "community_default";
 };
 
+export function mapBillingPlanCodeToAccessIntelligencePlan(
+  planCode: BillingSubscriptionPlanCode | string,
+): AccessIntelligencePlan | null {
+  return BILLING_PLAN_CODE_TO_AI_PLAN[planCode as BillingSubscriptionPlanCode] ?? null;
+}
+
+export function pickHighestAccessIntelligencePlan(
+  plans: AccessIntelligencePlan[],
+): AccessIntelligencePlan {
+  return plans.reduce<AccessIntelligencePlan>((best, next) => {
+    return AI_PLAN_RANK[next] > AI_PLAN_RANK[best] ? next : best;
+  }, "community");
+}
+
 /**
- * Resolve plan for a user/org.
- * Demo: ACCESS_INTELLIGENCE_PLAN env, else community; platform admins get enterprise.
- * Production: wire to BillingSubscription when AI plan codes exist — do not invent Stripe prices.
+ * Synchronous resolution (override / env / demo). Prefer async resolver when a user id is known.
  */
 export function resolveAccessIntelligencePlan(input: {
   userId: string;
   roles: string[];
   organisationId?: string | null;
   planOverride?: AccessIntelligencePlan | null;
+  billingPlanCodes?: BillingSubscriptionPlanCode[];
 }): AccessIntelligencePlan {
   if (input.planOverride) return input.planOverride;
   if (
@@ -145,9 +193,14 @@ export function resolveAccessIntelligencePlan(input: {
   ) {
     return "enterprise";
   }
+  if (input.billingPlanCodes?.length) {
+    const mapped = input.billingPlanCodes
+      .map(mapBillingPlanCodeToAccessIntelligencePlan)
+      .filter((p): p is AccessIntelligencePlan => p !== null);
+    if (mapped.length) return pickHighestAccessIntelligencePlan(mapped);
+  }
   const fromEnv = process.env.ACCESS_INTELLIGENCE_PLAN as AccessIntelligencePlan | undefined;
   if (fromEnv && fromEnv in PLAN_FEATURES) return fromEnv;
-  // Demo defaults to enterprise so Verify + Pilot walkthroughs work without Stripe AI plans.
   if (process.env.ACCESS_INTELLIGENCE_DEMO_MODE !== "false") {
     return "enterprise";
   }
@@ -167,15 +220,38 @@ export function checkEntitlement(input: {
   organisationId?: string | null;
   feature: AccessIntelligenceFeature;
   planOverride?: AccessIntelligencePlan | null;
+  billingPlanCodes?: BillingSubscriptionPlanCode[];
 }): EntitlementDecision {
+  let source: EntitlementDecision["source"] = "community_default";
+  if (input.planOverride) source = "override";
+  else if (
+    input.roles.includes("mapable_admin") ||
+    input.roles.includes("provider_admin")
+  ) {
+    source = "admin";
+  } else if (input.billingPlanCodes?.length) {
+    const mapped = input.billingPlanCodes
+      .map(mapBillingPlanCodeToAccessIntelligencePlan)
+      .filter((p): p is AccessIntelligencePlan => p !== null);
+    if (mapped.length) source = "billing_subscription";
+  } else if (
+    process.env.ACCESS_INTELLIGENCE_PLAN &&
+    process.env.ACCESS_INTELLIGENCE_PLAN in PLAN_FEATURES
+  ) {
+    source = "env";
+  } else if (process.env.ACCESS_INTELLIGENCE_DEMO_MODE !== "false") {
+    source = "demo_default";
+  }
+
   const plan = resolveAccessIntelligencePlan(input);
   const allowed = planIncludes(plan, input.feature);
   return {
     allowed,
     plan,
     feature: input.feature,
+    source,
     reason: allowed
-      ? `Plan ${plan} includes ${input.feature}.`
+      ? `Plan ${plan} includes ${input.feature} (source: ${source}).`
       : `Plan ${plan} does not include ${input.feature}. Upgrade required.`,
   };
 }

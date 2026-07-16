@@ -54,4 +54,4 @@ Adapter **interfaces + mocks** only. Future Journey/Work/Cities/Campus/Tourism d
 
 ## Test strategy
 
-Unit tests for entitlements, verify inventory listing, pilot export de-identification, adapters mock flag.
+Unit tests for entitlements (including billing plan-code mapping), verify inventory listing, pilot export de-identification, adapters mock flag, Trust Kernel messaging approval, Prisma repository factory.

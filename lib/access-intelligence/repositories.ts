@@ -11,6 +11,7 @@ import {
 } from "./demo-data";
 import { AccessIntelligenceError } from "./errors";
 import { ACCESS_ONTOLOGY } from "./ontology";
+import { PrismaAccessIntelligenceRepository } from "./prisma-repository";
 import type {
   AccessAuditEvent,
   AccessFeature,
@@ -370,11 +371,8 @@ let repositorySingleton: AccessIntelligenceRepository | null = null;
 
 export function getAccessIntelligenceRepository(): AccessIntelligenceRepository {
   if (!repositorySingleton) {
-    // Production Prisma adapter can replace this when demo mode is off.
-    // Until a live DB seed exists, demo repository remains the default runtime.
-    if (!isDemoMode() && process.env.ACCESS_INTELLIGENCE_USE_PRISMA === "true") {
-      // Lazy require avoided — keep demo as primary for MVP integrity.
-      repositorySingleton = new DemoAccessIntelligenceRepository();
+    if (process.env.ACCESS_INTELLIGENCE_USE_PRISMA === "true") {
+      repositorySingleton = new PrismaAccessIntelligenceRepository();
     } else {
       repositorySingleton = new DemoAccessIntelligenceRepository();
     }

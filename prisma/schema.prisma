@@ -5277,6 +5277,12 @@ enum BillingSubscriptionPlanCode {
   employer_pro
   marketplace_featured
   other
+  /// Access Intelligence / MapAble Verify commercial plans (test-mode price IDs via env).
+  ai_verify_starter
+  ai_verify_operations
+  ai_verify_portfolio
+  ai_learning_organisation
+  ai_enterprise
 }
 
 enum BillingSubscriptionStatus {

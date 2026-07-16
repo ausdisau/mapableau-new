@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 
+import { deliverApprovedVenueVerification } from "./adapters/messaging";
 import { calculateEvidenceConfidence } from "./confidence-engine";
 import { AccessIntelligenceError } from "./errors";
 import { calculatePersonalFit } from "./fit-engine";
@@ -276,12 +277,16 @@ export function createAccessIntelligenceTools(ctx: ServerAccessContext) {
       needsApproval: true,
       execute: async ({ placeId, questions, recipient, purpose }) => {
         const place = await repo.getPlace(placeId);
-        return repo.createVerificationRequest({
+        return deliverApprovedVenueVerification({
           userId: ctx.userId,
           placeId: place.id,
+          placeName: place.name,
           questions,
           recipient,
           purpose,
+          approved: true,
+          approvalId: `tool-approval-${Date.now()}`,
+          createRequest: (args) => repo.createVerificationRequest(args),
         });
       },
     }),

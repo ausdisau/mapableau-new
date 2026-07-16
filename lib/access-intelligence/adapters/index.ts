@@ -3,6 +3,8 @@
  * Do not claim live integration unless genuinely connected.
  */
 
+import { getMessagingAdapter } from "./messaging";
+
 export type TransportServiceSummary = {
   id: string;
   name: string;
@@ -42,15 +44,14 @@ export type BuildingModelImporter = {
   }>;
 };
 
-export type MessagingAdapter = {
-  readonly id: string;
-  readonly mock: boolean;
-  sendApprovedVerification(input: {
-    recipient: string;
-    payload: Record<string, unknown>;
-    approvalId: string;
-  }): Promise<{ deliveryId: string; status: "queued" | "mock_only" }>;
-};
+export type MessagingAdapter = import("./messaging").MessagingAdapter;
+
+export {
+  MockMessagingAdapter,
+  WebhookMessagingAdapter,
+  getMessagingAdapter,
+  deliverApprovedVenueVerification,
+} from "./messaging";
 
 export type BuildingManagementAdapter = {
   readonly id: string;
@@ -122,21 +123,6 @@ export class MockBuildingModelImporter implements BuildingModelImporter {
   }
 }
 
-export class MockMessagingAdapter implements MessagingAdapter {
-  readonly id = "mock-messaging";
-  readonly mock = true as const;
-  async sendApprovedVerification(input: {
-    recipient: string;
-    payload: Record<string, unknown>;
-    approvalId: string;
-  }) {
-    return {
-      deliveryId: `mock-msg-${input.approvalId}`,
-      status: "mock_only" as const,
-    };
-  }
-}
-
 export class MockBuildingManagementAdapter implements BuildingManagementAdapter {
   readonly id = "mock-bms";
   readonly mock = true as const;
@@ -176,13 +162,82 @@ export class MockDeveloperApiAdapter implements DeveloperApiAdapter {
   }
 }
 
+export class HttpBuildingManagementAdapter implements BuildingManagementAdapter {
+  readonly id: string;
+  readonly mock = false as const;
+  private readonly baseUrl: string;
+  private readonly apiKey?: string;
+
+  constructor(options: { baseUrl: string; apiKey?: string }) {
+    this.baseUrl = options.baseUrl.replace(/\/$/, "");
+    this.apiKey = options.apiKey;
+    this.id = `bms-http:${this.baseUrl}`;
+  }
+
+  async readElementState(placeId: string, elementId: string) {
+    const url = new URL(`${this.baseUrl}/live-status`);
+    url.searchParams.set("placeId", placeId);
+    url.searchParams.set("subjectKind", "element");
+    url.searchParams.set("subjectId", elementId);
+    try {
+      const response = await fetch(url.toString(), {
+        headers: {
+          Accept: "application/json",
+          ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
+        },
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        return {
+          status: "unknown",
+          note: `BMS HTTP ${response.status} — last-known cascade should be used by callers.`,
+        };
+      }
+      const body: unknown = await response.json();
+      const observations = Array.isArray(body)
+        ? body
+        : body && typeof body === "object" && Array.isArray((body as { observations?: unknown }).observations)
+          ? (body as { observations: unknown[] }).observations
+          : [];
+      const first = observations[0] as { status?: string; summary?: string } | undefined;
+      return {
+        status: first?.status ?? "unknown",
+        note: first?.summary ?? "Live BMS observation.",
+      };
+    } catch {
+      return {
+        status: "unknown",
+        note: "BMS unreachable — use live status cascade / last-known snapshot.",
+      };
+    }
+  }
+
+  async proposeEnvironmentChange(input: {
+    placeId: string;
+    elementId: string;
+    proposal: string;
+  }) {
+    return {
+      proposalId: `prop-${input.elementId}-${Date.now()}`,
+      executed: false as const,
+      note: `Proposal recorded locally only (not executed on BMS): ${input.proposal}`,
+    };
+  }
+}
+
 export function getDefaultAdapters() {
+  const bmsUrl = process.env.ACCESS_INTELLIGENCE_BMS_URL?.trim();
   return {
     transport: new MockTransportDataAdapter(),
     indoorNav: new MockIndoorNavigationAdapter(),
     buildingImport: new MockBuildingModelImporter(),
-    messaging: new MockMessagingAdapter(),
-    bms: new MockBuildingManagementAdapter(),
+    messaging: getMessagingAdapter(),
+    bms: bmsUrl
+      ? new HttpBuildingManagementAdapter({
+          baseUrl: bmsUrl,
+          apiKey: process.env.ACCESS_INTELLIGENCE_BMS_API_KEY,
+        })
+      : new MockBuildingManagementAdapter(),
     developerApi: new MockDeveloperApiAdapter(),
   };
 }

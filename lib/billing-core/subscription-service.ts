@@ -14,7 +14,32 @@ import { createBillingPortalSession } from "@/lib/stripe/portal";
 
 function roleForPlan(planCode: BillingSubscriptionPlanCode): BillingAccountRole {
   if (planCode === "employer_pro") return "employer";
+  if (
+    planCode === "ai_verify_starter" ||
+    planCode === "ai_verify_operations" ||
+    planCode === "ai_verify_portfolio" ||
+    planCode === "ai_learning_organisation" ||
+    planCode === "ai_enterprise"
+  ) {
+    return "participant";
+  }
   return "provider";
+}
+
+function checkoutUrlsForPlan(planCode: BillingSubscriptionPlanCode): {
+  successUrl: string;
+  cancelUrl: string;
+} {
+  if (String(planCode).startsWith("ai_")) {
+    return {
+      successUrl: `${billingCoreConfig.appUrl}/verify?subscription=success`,
+      cancelUrl: `${billingCoreConfig.appUrl}/verify?subscription=cancelled`,
+    };
+  }
+  return {
+    successUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=success`,
+    cancelUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=cancelled`,
+  };
 }
 
 export async function createSubscriptionCheckout(
@@ -27,7 +52,11 @@ export async function createSubscriptionCheckout(
 
   const priceId = priceIdForPlan(planCode);
   if (!priceId) {
-    return { ok: false as const, error: "Price not configured for plan" };
+    return {
+      ok: false as const,
+      error:
+        "Price not configured for plan. Set the matching STRIPE_AI_*_PRICE_ID (or provider/employer price) in test mode — prices are never invented.",
+    };
   }
 
   const role = roleForPlan(planCode);
@@ -48,11 +77,12 @@ export async function createSubscriptionCheckout(
     });
   }
 
+  const urls = checkoutUrlsForPlan(planCode);
   const session = await createStripeSubscriptionCheckoutSession({
     customerId,
     priceId,
-    successUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=success`,
-    cancelUrl: `${billingCoreConfig.appUrl}/provider/billing?subscription=cancelled`,
+    successUrl: urls.successUrl,
+    cancelUrl: urls.cancelUrl,
     metadata: { mapableUserId: userId, planCode },
   });
 
