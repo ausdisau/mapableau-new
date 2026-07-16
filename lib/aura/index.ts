@@ -85,6 +85,47 @@ export {
   getOrCreateAbortController,
   discardIfStopped,
 } from "./stop";
+export {
+  executeApprovedProposal,
+  grantExecutionApproval,
+  getExecution,
+  getExecutionReceipt,
+  cancelExecution,
+  requestExecutionApproval,
+  getExecutionApproval,
+  getExecutionApprovalForProposal,
+  resetExecutionStore,
+  resetExecutionApprovalStore,
+  resetOutboxStore,
+  resetApplicationRecordStore,
+  applicationRecords,
+  evaluateWave4ReleaseGate,
+  setWave4ReleaseGatePassed,
+  EXECUTION_SERVICE_REGISTRY,
+  ACTION_APPROVAL_LABELS,
+  rejectShadowReviewAsExecution,
+} from "./execution";
+export {
+  resetMemoryStore,
+  createMemoryCard,
+  listMemoryCards,
+  deleteMemoryCard,
+  exportMemory,
+  createMemorySuggestion,
+  acceptMemorySuggestion,
+  dismissMemorySuggestion,
+  classifyCanonicalDestination,
+} from "./memory";
+export {
+  resetCalibrationStore,
+  recordOutcome,
+  getOutcomeForMission,
+  comparePredictedVsObserved,
+  createEvidenceCorrectionDraft,
+  submitEvidenceCorrection,
+  listCorrectionsForMission,
+  getCalibrationComparison,
+} from "./calibration";
 export { resetCounterfactualStore } from "./counterfactual";
 export { resetChallengeStore } from "./challenge";
 export { resetOfflinePackStore } from "./offline";

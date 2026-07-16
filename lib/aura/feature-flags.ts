@@ -1,5 +1,5 @@
 /**
- * MapAble AURA feature flags (Wave 1–3).
+ * MapAble AURA feature flags (Wave 1–5).
  * Authority / safety flags are server-only — never NEXT_PUBLIC.
  */
 
@@ -25,12 +25,27 @@ export const auraFlags = {
   proposals: envTrue("MAPABLE_AURA_PROPOSALS_ENABLED"),
   proposalReview: envTrue("MAPABLE_AURA_PROPOSAL_REVIEW_ENABLED"),
   shadowEvaluation: envTrue("MAPABLE_AURA_SHADOW_EVALUATION_ENABLED"),
-  /** Must remain false in Wave 3 */
+  /** Legacy — must remain false; use per-action Wave 4 flags */
   writeExecution: envTrue("MAPABLE_AURA_WRITE_EXECUTION_ENABLED"),
   externalDelivery: envTrue("MAPABLE_AURA_EXTERNAL_DELIVERY_ENABLED"),
+  /** Wave 4 */
+  executionMode: process.env.MAPABLE_AURA_EXECUTION_MODE ?? "shadow",
+  executeVenueVerification: envTrue("MAPABLE_AURA_EXECUTE_VENUE_VERIFICATION"),
+  executeVisitPlanShare: envTrue("MAPABLE_AURA_EXECUTE_VISIT_PLAN_SHARE"),
+  executeSupporterNotification: envTrue("MAPABLE_AURA_EXECUTE_SUPPORTER_NOTIFICATION"),
+  executeTransportRequest: envTrue("MAPABLE_AURA_EXECUTE_TRANSPORT_REQUEST"),
+  executeBarrierReport: envTrue("MAPABLE_AURA_EXECUTE_BARRIER_REPORT"),
+  /** Wave 5 — default off */
   memory: envTrue("MAPABLE_AURA_MEMORY_ENABLED"),
-  outcomeCalibration: !envFalse("MAPABLE_AURA_OUTCOME_CALIBRATION_ENABLED"),
+  memorySuggestions: envTrue("MAPABLE_AURA_MEMORY_SUGGESTIONS_ENABLED"),
+  outcomeCalibration: envTrue("MAPABLE_AURA_OUTCOME_CALIBRATION_ENABLED"),
+  evidenceCorrections: envTrue("MAPABLE_AURA_EVIDENCE_CORRECTIONS_ENABLED"),
+  reliabilityCalibration: envTrue("MAPABLE_AURA_RELIABILITY_CALIBRATION_ENABLED"),
+  /** Permanent prohibitions */
   physicalActions: envTrue("MAPABLE_AURA_PHYSICAL_ACTIONS_ENABLED"),
+  paymentActions: envTrue("MAPABLE_AURA_PAYMENT_ACTIONS_ENABLED"),
+  claimActions: envTrue("MAPABLE_AURA_CLAIM_ACTIONS_ENABLED"),
+  clinicalActions: envTrue("MAPABLE_AURA_CLINICAL_ACTIONS_ENABLED"),
   usePrisma: envTrue("MAPABLE_AURA_USE_PRISMA"),
   globalAiEnabled: !envFalse("MAPABLE_AI_ENABLED"),
   globalAiAudit: !envFalse("MAPABLE_AI_AUDIT_ENABLED"),
