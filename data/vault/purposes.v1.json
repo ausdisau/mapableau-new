@@ -1,0 +1,90 @@
+{
+  "version": "1.0.0",
+  "effectiveDate": "2026-07-16",
+  "purposes": [
+    {
+      "code": "access.verify_venue",
+      "description": "Verify accessibility needs for arrival at a venue",
+      "allowedFields": [
+        "arrival_time",
+        "entrance_preference",
+        "written_directions_preference",
+        "assistance_request",
+        "mobility.equipment"
+      ],
+      "prohibitedFields": [
+        "diagnosis",
+        "access_passport.full",
+        "plan_budget",
+        "medical_history"
+      ],
+      "participantReviewRequired": true,
+      "humanReviewRequired": false,
+      "defaultDurationHours": 4
+    },
+    {
+      "code": "transport.driver_handover",
+      "description": "Hand over trip-specific mobility and pickup information to a driver",
+      "allowedFields": [
+        "pickup_point",
+        "pickup_time",
+        "destination",
+        "mobility.equipment_dimensions",
+        "boarding_assistance",
+        "companion_count",
+        "destination_entrance",
+        "ramp_orientation"
+      ],
+      "prohibitedFields": [
+        "diagnosis",
+        "medical_history.full",
+        "access_passport.full",
+        "plan_budget"
+      ],
+      "participantReviewRequired": true,
+      "humanReviewRequired": false,
+      "defaultDurationHours": 6
+    },
+    {
+      "code": "jobs.employer_adjustment",
+      "description": "Share functional adjustment requirements with an employer",
+      "allowedFields": [
+        "functional_adjustments",
+        "communication.preferences",
+        "workspace.access_summary"
+      ],
+      "prohibitedFields": [
+        "diagnosis",
+        "medical_history.full",
+        "care_history.full",
+        "access_passport.full"
+      ],
+      "participantReviewRequired": true,
+      "humanReviewRequired": false,
+      "defaultDurationHours": 168
+    },
+    {
+      "code": "equipment.repair_handover",
+      "description": "Share equipment handling details for repair",
+      "allowedFields": [
+        "mobility.equipment_dimensions",
+        "handling_instructions",
+        "battery_info",
+        "contact_for_collection"
+      ],
+      "prohibitedFields": ["purchase_price", "serial_number", "diagnosis"],
+      "participantReviewRequired": true,
+      "humanReviewRequired": false,
+      "defaultDurationHours": 72
+    },
+    {
+      "code": "supporter.meeting_point",
+      "description": "Share a meeting point with an authorised supporter",
+      "allowedFields": ["meeting_point", "arrival_time", "communication.preferences"],
+      "prohibitedFields": ["employment.details", "diagnosis", "home_address.full"],
+      "participantReviewRequired": true,
+      "humanReviewRequired": false,
+      "defaultDurationHours": 12
+    }
+  ]
+}
