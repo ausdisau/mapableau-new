@@ -2,50 +2,38 @@
 
 ## Do not enable for general participants until
 
-- [ ] Branch/schema reconciliation with CareOS tip complete (`CareOSMission` writers unified)
-- [ ] One canonical Access Passport naming cutover decided
-- [ ] Consent + audit canonical paths verified in staging
-- [ ] Every tool has authority classification
-- [x] No tool has direct Prisma access
-- [x] Capability leasing tested
-- [x] Participant stop tested (Wave 2: receipt, abort, idempotent)
-- [x] Unknown preservation + diagnosis non-inference tested
-- [ ] Prompt injection + tenant isolation tested (staging)
-- [x] Standard non-AI routes present
-- [ ] Keyboard / screen-reader workflows pass (manual pilot gate)
-- [x] Audit replay + hash verify unit tests
-- [x] Counterfactual labelled simulated; hard requirements protected
-- [x] Offline pack stale warnings + data minimisation
-- [x] Physical actuation remains disabled
-- [x] Safeguarding remains human-only
+- [ ] CareOS tip reconciliation complete
+- [ ] Staging consent + tenant isolation verified
+- [x] No AURA tool has Prisma / execution adapters
+- [x] Capability leasing + Stop tested
+- [x] Counterfactuals labelled simulated
+- [x] Audit replay + hash verify
+- [x] Offline pack stale warnings
+- [x] Wave 3 proposals immutable; shadow ≠ execution
+- [x] Execution guard blocks writes
+- [x] `futureExecutionEligible` always false in Wave 3
+- [ ] Manual a11y pilot (keyboard / SR)
 - [ ] Operational owner assigned
-- [x] Rollback documented (see ROLLBACK.md)
+- [x] Rollback documented
 
-## Current flags (defaults)
+## Flags (defaults)
 
-| Flag                                    | Default       |
-| --------------------------------------- | ------------- |
-| `MAPABLE_AURA_ENABLED`                  | `false`       |
-| `MAPABLE_AURA_COUNTERFACTUALS_ENABLED`  | on when unset |
-| `MAPABLE_AURA_RESILIENCE_ENABLED`       | on when unset |
-| `MAPABLE_AURA_PLAN_CHALLENGE_ENABLED`   | on when unset |
-| `MAPABLE_AURA_AUDIT_REPLAY_ENABLED`     | on when unset |
-| `MAPABLE_AURA_OFFLINE_PACKS_ENABLED`    | on when unset |
-| `MAPABLE_AURA_PROPOSALS_ENABLED`        | `false`       |
-| `MAPABLE_AURA_WRITE_EXECUTION_ENABLED`  | `false`       |
-| `MAPABLE_AURA_MEMORY_ENABLED`           | `false`       |
-| `MAPABLE_AURA_PHYSICAL_ACTIONS_ENABLED` | `false`       |
+| Flag | Default |
+|------|---------|
+| `MAPABLE_AURA_ENABLED` | `false` |
+| `MAPABLE_AURA_PROPOSALS_ENABLED` | `false` |
+| `MAPABLE_AURA_PROPOSAL_REVIEW_ENABLED` | `false` |
+| `MAPABLE_AURA_SHADOW_EVALUATION_ENABLED` | `false` |
+| `MAPABLE_AURA_WRITE_EXECUTION_ENABLED` | `false` |
+| `MAPABLE_AURA_EXTERNAL_DELIVERY_ENABLED` | `false` |
+| `MAPABLE_AURA_PHYSICAL_ACTIONS_ENABLED` | `false` |
 
-Stop AURA is mandatory whenever AURA is enabled (no disable flag).
+## Authority
 
-## Authority ceiling (Wave 1–2)
-
-**L2_RECOMMEND** — no L3+ production authority. Zero external writes.
+Wave 3 ceiling: **L3_PROPOSE**. No L4+ execution.
 
 ## Claims we do not make
 
-- AURA is not an ASI
-- Counterfactual simulation does not change reality
-- Offline packs are not live after generation time
-- Audit replay does not reveal private chain-of-thought
-- AURA is not production-ready for general participants while gates above remain open
+- No message/booking/report/notification occurred in Wave 3
+- Shadow acceptance is not execution approval
+- AURA is not production-ready for general participants while gates remain open

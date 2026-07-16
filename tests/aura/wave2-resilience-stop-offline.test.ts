@@ -20,6 +20,7 @@ import {
   resetMissionStore,
   resetOfflinePackStore,
   resetStopRegistry,
+  resetProposalStore,
   resetWitnessStore,
   runBoundedPlanChallenge,
   runCounterfactual,
@@ -37,6 +38,7 @@ function resetAll() {
   resetChallengeStore();
   resetOfflinePackStore();
   resetStopRegistry();
+  resetProposalStore();
 }
 
 afterEach(() => {

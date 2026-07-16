@@ -24,6 +24,7 @@ import {
   resetChallengeStore,
   resetOfflinePackStore,
   resetStopRegistry,
+  resetProposalStore,
   revokeAllLeases,
   stopAuraMission,
   verifyProofPlan,
@@ -39,6 +40,7 @@ function resetAll() {
   resetChallengeStore();
   resetOfflinePackStore();
   resetStopRegistry();
+  resetProposalStore();
 }
 
 afterEach(() => {

@@ -1,5 +1,5 @@
 /**
- * MapAble AURA feature flags (Wave 1 + Wave 2).
+ * MapAble AURA feature flags (Wave 1–3).
  * Authority / safety flags are server-only — never NEXT_PUBLIC.
  */
 
@@ -21,8 +21,13 @@ export const auraFlags = {
   planChallenge: !envFalse("MAPABLE_AURA_PLAN_CHALLENGE_ENABLED"),
   auditReplay: !envFalse("MAPABLE_AURA_AUDIT_REPLAY_ENABLED"),
   offlinePacks: !envFalse("MAPABLE_AURA_OFFLINE_PACKS_ENABLED"),
+  /** Wave 3 — proposals / shadow (opt-in) */
   proposals: envTrue("MAPABLE_AURA_PROPOSALS_ENABLED"),
+  proposalReview: envTrue("MAPABLE_AURA_PROPOSAL_REVIEW_ENABLED"),
+  shadowEvaluation: envTrue("MAPABLE_AURA_SHADOW_EVALUATION_ENABLED"),
+  /** Must remain false in Wave 3 */
   writeExecution: envTrue("MAPABLE_AURA_WRITE_EXECUTION_ENABLED"),
+  externalDelivery: envTrue("MAPABLE_AURA_EXTERNAL_DELIVERY_ENABLED"),
   memory: envTrue("MAPABLE_AURA_MEMORY_ENABLED"),
   outcomeCalibration: !envFalse("MAPABLE_AURA_OUTCOME_CALIBRATION_ENABLED"),
   physicalActions: envTrue("MAPABLE_AURA_PHYSICAL_ACTIONS_ENABLED"),
@@ -42,13 +47,24 @@ export function listAuraFlagStates(): Record<AuraFlagKey, boolean> {
   return out;
 }
 
-export function auraMaxAuthorityLevel(): "L2_RECOMMEND" {
+/**
+ * Wave 3 ceiling is L3_PROPOSE when proposals are enabled (or in test/demo).
+ * Execution levels remain unreachable.
+ */
+export function auraMaxAuthorityLevel(): "L2_RECOMMEND" | "L3_PROPOSE" {
+  if (
+    auraFlags.proposals ||
+    process.env.NODE_ENV === "test" ||
+    process.env.MAPABLE_AURA_DEMO === "true"
+  ) {
+    return "L3_PROPOSE";
+  }
   return "L2_RECOMMEND";
 }
 
 /**
  * Stop AURA is mandatory whenever AURA is enabled.
- * If stop infrastructure cannot initialise, fail closed.
+ * Wave 3 also fails closed if execution flags are unexpectedly true while proposing.
  */
 export function assertAuraCanStart(): void {
   if (

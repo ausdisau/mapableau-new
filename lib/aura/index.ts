@@ -88,4 +88,34 @@ export {
 export { resetCounterfactualStore } from "./counterfactual";
 export { resetChallengeStore } from "./challenge";
 export { resetOfflinePackStore } from "./offline";
+export {
+  createAuraActionProposal,
+  verifyAuraActionProposal,
+  reviewAuraProposal,
+  runProposalShadowEvaluation,
+  reviseAuraProposal,
+  cancelAuraProposal,
+  listProposalsForMission,
+  listProposalVersions,
+  getProposal,
+  requireProposal,
+  getShadowReceipts,
+  getProposalVerification,
+  expireDueProposals,
+  resetProposalStore,
+  guardWriteServiceCall,
+  AuraExecutionDisabledError,
+  AURA_FORBIDDEN_EXECUTION_TOOLS,
+  AURA_PROHIBITED_PROPOSAL_TYPES,
+  classifyProposalRisk,
+  computeProposalHash,
+  verifyAuraProposalHash,
+  validateTransportRequestDraft,
+  validateVenueVerificationDraft,
+  getPreflightSideEffectCounter,
+  resetPreflightSideEffectCounter,
+  isProhibitedProposalType,
+  auraProposalActionTypeSchema,
+} from "./proposals";
+export { AURA_WAVE3_AUTHORITY_CEILING } from "./authority/ladder";
 export * from "./schemas";
