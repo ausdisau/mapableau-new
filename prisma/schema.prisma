@@ -116,6 +116,18 @@ model User {
   ndisClaimApprovalsApproved            NdisClaimApproval[]                @relation("NdisClaimApprovalApprover")
   ndisClaimApprovalsRevoked             NdisClaimApproval[]                @relation("NdisClaimApprovalRevoker")
   ndisExternalSubmissionsSubmitted      NdisExternalSubmission[]           @relation("NdisExternalSubmissionSubmitter")
+  ndisBillableItemsAsParticipant        NdisBillableServiceItem[]          @relation("NdisBillableItemParticipant")
+  ndisBillableItemsCreated              NdisBillableServiceItem[]          @relation("NdisBillableItemCreatedBy")
+  ndisBillableItemsLocked               NdisBillableServiceItem[]          @relation("NdisBillableItemLockedBy")
+  ndisEvidencePackagesAsParticipant     NdisServiceEvidencePackage[]       @relation("NdisEvidencePackageParticipant")
+  ndisEvidenceConfirmed                 NdisServiceEvidencePackage[]       @relation("NdisEvidenceConfirmedBy")
+  ndisEvidenceDisputed                  NdisServiceEvidencePackage[]       @relation("NdisEvidenceDisputedBy")
+  ndisBillingDocumentsCreated           NdisBillingDocument[]              @relation("NdisBillingDocumentCreatedBy")
+  ndisBillingDocumentsApproved          NdisBillingDocument[]              @relation("NdisBillingDocumentApprovedBy")
+  ndisBillingDisputesRaised             NdisBillingDispute[]               @relation("NdisBillingDisputeRaisedBy")
+  ndisBillingDisputesAssigned           NdisBillingDispute[]               @relation("NdisBillingDisputeAssignedTo")
+  ndisWorkflowTransitionsActor          NdisWorkflowTransition[]           @relation("NdisWorkflowTransitionActor")
+  ndisRouteDecisionsActor               NdisRouteDecision[]                @relation("NdisRouteDecisionActor")
 
   accessPlacesCreated            AccessPlace[]                   @relation("AccessPlaceCreatedBy")
   accessPlaceClaims              AccessPlaceClaim[]              @relation("AccessPlaceClaimUser")
@@ -695,6 +707,14 @@ model Organisation {
   ndisClaimSnapshots               NdisClaimSnapshot[]
   ndisClaimApprovals               NdisClaimApproval[]
   ndisExternalSubmissions          NdisExternalSubmission[]
+  ndisBillableServiceItems         NdisBillableServiceItem[]
+  ndisServiceEvidencePackages      NdisServiceEvidencePackage[]
+  ndisBillingDocuments             NdisBillingDocument[]
+  billingNumberSequences           BillingNumberSequence[]
+  ndisBillingDisputes              NdisBillingDispute[]
+  ndisWorkflowTransitions          NdisWorkflowTransition[]
+  ndisBillingBatches               NdisBillingBatch[]
+  ndisRouteDecisions               NdisRouteDecision[]
 
   careRequests                 CareRequest[]
   careBookings                 CareBooking[]
@@ -6191,6 +6211,524 @@ model NdisExternalEvent {
 
   @@unique([submissionId, externalEventId])
   @@index([submissionId, createdAt])
+}
+
+// --- NDIS gateway Wave 4: billable items, evidence, documents, workflows ---
+
+enum NdisBillableItemStatus {
+  draft
+  evidence_pending
+  participant_confirmation_pending
+  funding_route_pending
+  pricing_pending
+  validation_failed
+  ready
+  locked
+  invoiced
+  claim_packaged
+  dispatched
+  partially_paid
+  paid
+  rejected
+  disputed
+  correction_required
+  corrected
+  reversed
+  voided
+  archived
+  migrated_review_required
+}
+
+enum NdisPaymentDestination {
+  participant
+  nominee
+  plan_manager
+  ndia_portal_export
+  ndia_api_future
+  private_payer
+  no_payment
+  unresolved
+}
+
+enum NdisBillingRoute {
+  ndis_self_managed
+  ndis_plan_managed
+  ndis_ndia_managed
+  private_pay
+  pro_bono
+  grant_funded
+  employer_funded
+  health_funded
+  other
+  unresolved
+}
+
+enum NdisEvidenceStatus {
+  missing
+  incomplete
+  ready_for_confirmation
+  participant_confirmed
+  delegate_confirmed
+  exception_recorded
+  disputed
+  locked
+  superseded
+}
+
+enum NdisConfirmationMethod {
+  participant_portal
+  participant_signature
+  nominee_portal
+  guardian_confirmation
+  support_log_signature
+  verbal_confirmation_documented
+  inaccessible_confirmation_exception
+  provider_exception
+  not_required
+  aac_assisted
+  switch_accessible
+}
+
+enum NdisDocumentKind {
+  self_managed_invoice
+  plan_manager_invoice
+  private_pay_invoice
+  ndia_payment_request_package
+  portal_bulk_upload
+  credit_note
+  adjustment_note
+  service_statement
+  evidence_summary
+  remittance_advice
+  receipt
+}
+
+enum NdisDocumentStatus {
+  draft
+  generated
+  pending_approval
+  approved
+  issued
+  mock_delivered
+  delivered
+  acknowledged
+  voided
+  superseded
+  failed
+}
+
+enum NdisDispatchStatus {
+  not_ready
+  ready
+  approval_required
+  approved
+  generated
+  delivered
+  acknowledged
+  failed
+  cancelled
+  superseded
+  manually_submitted
+}
+
+enum NdisCorrectionType {
+  administrative
+  service_date
+  support_item
+  quantity
+  unit_price
+  participant
+  payment_route
+  duplicate
+  cancellation
+  travel
+  tax
+  recipient
+  complete_reversal
+}
+
+enum NdisBillingDisputeStatus {
+  open
+  under_review
+  payment_held
+  resolved
+  withdrawn
+  escalated
+}
+
+enum NdisBillingDisputeCategory {
+  service_not_delivered
+  wrong_date
+  wrong_duration
+  wrong_support_item
+  wrong_price
+  duplicate_charge
+  cancellation_disagreement
+  travel_disagreement
+  provider_identity
+  other
+}
+
+enum NdisBillingBatchStatus {
+  draft
+  validating
+  ready
+  preparing
+  prepared
+  failed
+  cancelled
+  closed
+}
+
+enum NdisChargeType {
+  support
+  provider_travel_labour
+  provider_travel_non_labour
+  activity_based_transport
+  cancellation
+  report_writing
+  non_face_to_face
+  other
+}
+
+model NdisBillableServiceItem {
+  id                        String                    @id @default(cuid())
+  organisationId            String
+  organisation              Organisation              @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantId             String?
+  participant               User?                     @relation("NdisBillableItemParticipant", fields: [participantId], references: [id], onDelete: SetNull)
+  serviceAgreementId        String?
+  fundingSourceId           String?
+  bookingId                 String?
+  careShiftId               String?
+  timesheetId               String?
+  deliveryEventId           String?
+  legacyClaimLineId         String?
+  legacyNdiaClaimId         String?
+  correctedFromId           String?
+  correctedFrom             NdisBillableServiceItem?  @relation("NdisBillableItemCorrection", fields: [correctedFromId], references: [id], onDelete: SetNull)
+  corrections               NdisBillableServiceItem[] @relation("NdisBillableItemCorrection")
+  supersededById            String?
+  supersededBy              NdisBillableServiceItem?  @relation("NdisBillableItemSupersedes", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes                NdisBillableServiceItem[] @relation("NdisBillableItemSupersedes")
+  billingRoute              NdisBillingRoute
+  ndisPaymentRoute          NdisPaymentRoute?
+  paymentDestination        NdisPaymentDestination
+  chargeType                NdisChargeType            @default(support)
+  supportItemCode           String?
+  supportItemId             String?
+  supportDescription        String
+  claimType                 String?
+  deliveryMechanism         String?
+  serviceStartAt            DateTime
+  serviceEndAt              DateTime
+  serviceTimezone           String                    @default("Australia/Sydney")
+  quantity                  Decimal                   @db.Decimal(12, 4)
+  unitType                  String
+  agreedUnitPriceCents      Int?
+  resolvedMaximumPriceCents Int?
+  unitPriceCents            Int?
+  subtotalCents             Int?
+  gstCents                  Int                       @default(0)
+  totalCents                Int?
+  pricingReleaseId          String?
+  pricingRowId              String?
+  pricingResolverVersion    String?
+  pricingProvenanceJson     Json?
+  claimSnapshotId           String?
+  routeDecisionId           String?
+  routeDecision             NdisRouteDecision?        @relation(fields: [routeDecisionId], references: [id], onDelete: SetNull)
+  status                    NdisBillableItemStatus    @default(draft)
+  sourceKey                 String
+  correctionGeneration      Int                       @default(0)
+  paymentHold               Boolean                   @default(false)
+  lockedAt                  DateTime?
+  lockedById                String?
+  lockedBy                  User?                     @relation("NdisBillableItemLockedBy", fields: [lockedById], references: [id], onDelete: SetNull)
+  createdById               String
+  createdBy                 User                      @relation("NdisBillableItemCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt                 DateTime                  @default(now())
+  updatedAt                 DateTime                  @updatedAt
+  supersededAt              DateTime?
+  voidedAt                  DateTime?
+  voidReason                String?
+  blockingIssuesJson        Json?
+  warningsJson              Json?
+
+  documentLines   NdisBillingDocumentLine[]
+  batchMembers    NdisBillingBatchMember[]
+  disputes        NdisBillingDispute[]
+  evidencePackage NdisServiceEvidencePackage? @relation("EvidencePackageBillableItem")
+
+  @@unique([organisationId, sourceKey])
+  @@index([organisationId, status])
+  @@index([participantId, serviceStartAt])
+  @@index([bookingId])
+  @@index([billingRoute, status])
+  @@index([legacyClaimLineId])
+  @@index([claimSnapshotId])
+  @@index([supportItemCode])
+}
+
+model NdisServiceEvidencePackage {
+  id                            String                  @id @default(cuid())
+  organisationId                String
+  organisation                  Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantId                 String
+  participant                   User                    @relation("NdisEvidencePackageParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  billableItemId                String                  @unique
+  billableItem                  NdisBillableServiceItem @relation("EvidencePackageBillableItem", fields: [billableItemId], references: [id], onDelete: Cascade)
+  serviceAgreementId            String?
+  bookingId                     String?
+  shiftId                       String?
+  timesheetId                   String?
+  deliveryEventId               String?
+  status                        NdisEvidenceStatus      @default(incomplete)
+  serviceStartAt                DateTime
+  serviceEndAt                  DateTime
+  supportItemCode               String?
+  quantity                      Decimal                 @db.Decimal(12, 4)
+  workerIds                     String[]                @default([])
+  participantConfirmationMethod NdisConfirmationMethod?
+  participantConfirmedAt        DateTime?
+  participantConfirmedById      String?
+  participantConfirmedBy        User?                   @relation("NdisEvidenceConfirmedBy", fields: [participantConfirmedById], references: [id], onDelete: SetNull)
+  exceptionCode                 String?
+  exceptionReason               String?
+  exceptionRecordedById         String?
+  disputedAt                    DateTime?
+  disputedById                  String?
+  disputedBy                    User?                   @relation("NdisEvidenceDisputedBy", fields: [disputedById], references: [id], onDelete: SetNull)
+  disputeReason                 String?
+  evidenceHash                  String
+  schemaVersion                 String                  @default("1")
+  lockedAt                      DateTime?
+  createdAt                     DateTime                @default(now())
+  updatedAt                     DateTime                @updatedAt
+  supersededAt                  DateTime?
+
+  references NdisEvidenceReference[]
+
+  @@index([organisationId, status])
+  @@index([participantId, status])
+  @@index([evidenceHash])
+}
+
+model NdisEvidenceReference {
+  id                String                     @id @default(cuid())
+  evidencePackageId String
+  evidencePackage   NdisServiceEvidencePackage @relation(fields: [evidencePackageId], references: [id], onDelete: Cascade)
+  referenceType     String
+  referenceId       String
+  safeLabel         String
+  checksum          String?
+  createdAt         DateTime                   @default(now())
+
+  @@index([evidencePackageId])
+  @@index([referenceType, referenceId])
+}
+
+model NdisRouteDecision {
+  id                        String                 @id @default(cuid())
+  organisationId            String
+  organisation              Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantId             String?
+  billableItemId            String?
+  billingRoute              NdisBillingRoute
+  ndisPaymentRoute          NdisPaymentRoute?
+  paymentDestination        NdisPaymentDestination
+  destinationEntityId       String?
+  decisionStatus            String
+  matchedFundingSourceId    String?
+  matchedServiceAgreementId String?
+  warningsJson              Json?
+  blockingIssuesJson        Json?
+  provenanceJson            Json?
+  requiresHumanReview       Boolean                @default(false)
+  resolverVersion           String
+  actorUserId               String
+  actor                     User                   @relation("NdisRouteDecisionActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  overrideReason            String?
+  createdAt                 DateTime               @default(now())
+
+  billableItems NdisBillableServiceItem[]
+
+  @@index([organisationId, createdAt])
+  @@index([participantId])
+}
+
+model BillingNumberSequence {
+  id             String           @id @default(cuid())
+  organisationId String
+  organisation   Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  documentKind   NdisDocumentKind
+  financialYear  Int
+  nextNumber     Int              @default(1)
+  prefix         String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([organisationId, documentKind, financialYear])
+  @@index([organisationId])
+}
+
+model NdisBillingDocument {
+  id                    String                @id @default(cuid())
+  organisationId        String
+  organisation          Organisation          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantId         String?
+  recipientEntityId     String?
+  billingRoute          NdisBillingRoute
+  documentKind          NdisDocumentKind
+  documentNumber        String
+  status                NdisDocumentStatus    @default(draft)
+  issueDate             DateTime?
+  dueDate               DateTime?
+  currency              String                @default("AUD")
+  subtotalCents         Int                   @default(0)
+  gstCents              Int                   @default(0)
+  totalCents            Int                   @default(0)
+  contentHash           String
+  safeDocumentJson      Json
+  privateFileReference  String?
+  supersedesDocumentId  String?
+  supersedesDocument    NdisBillingDocument?  @relation("NdisBillingDocumentSupersedes", fields: [supersedesDocumentId], references: [id], onDelete: SetNull)
+  supersededBy          NdisBillingDocument[] @relation("NdisBillingDocumentSupersedes")
+  billingBatchId        String?
+  billingBatch          NdisBillingBatch?     @relation(fields: [billingBatchId], references: [id], onDelete: SetNull)
+  dispatchStatus        NdisDispatchStatus    @default(not_ready)
+  createdById           String
+  createdBy             User                  @relation("NdisBillingDocumentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedById          String?
+  approvedBy            User?                 @relation("NdisBillingDocumentApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt            DateTime?
+  deliveredAt           DateTime?
+  acknowledgedAt        DateTime?
+  manuallySubmittedAt   DateTime?
+  manuallySubmittedById String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  voidedAt              DateTime?
+  voidReason            String?
+
+  lines    NdisBillingDocumentLine[]
+  disputes NdisBillingDispute[]
+
+  @@unique([organisationId, documentNumber])
+  @@index([organisationId, status])
+  @@index([participantId])
+  @@index([documentKind, status])
+  @@index([billingBatchId])
+  @@index([contentHash])
+}
+
+model NdisBillingDocumentLine {
+  id              String                  @id @default(cuid())
+  documentId      String
+  document        NdisBillingDocument     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  billableItemId  String
+  billableItem    NdisBillableServiceItem @relation(fields: [billableItemId], references: [id], onDelete: Restrict)
+  supportItemCode String?
+  description     String
+  serviceStartAt  DateTime
+  serviceEndAt    DateTime
+  quantity        Decimal                 @db.Decimal(12, 4)
+  unitType        String
+  unitPriceCents  Int
+  subtotalCents   Int
+  gstCents        Int                     @default(0)
+  totalCents      Int
+  claimType       String?
+  sortOrder       Int                     @default(0)
+  active          Boolean                 @default(true)
+  createdAt       DateTime                @default(now())
+
+  @@index([documentId])
+  @@index([billableItemId, active])
+}
+
+model NdisBillingBatch {
+  id             String                 @id @default(cuid())
+  organisationId String
+  organisation   Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  billingRoute   NdisBillingRoute
+  status         NdisBillingBatchStatus @default(draft)
+  batchReference String
+  exportFileName String?
+  exportChecksum String?
+  exportedAt     DateTime?
+  createdById    String
+  idempotencyKey String?                @unique
+  metadataJson   Json?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  members   NdisBillingBatchMember[]
+  documents NdisBillingDocument[]
+
+  @@unique([organisationId, batchReference])
+  @@index([organisationId, status])
+  @@index([billingRoute, status])
+}
+
+model NdisBillingBatchMember {
+  id             String                  @id @default(cuid())
+  batchId        String
+  batch          NdisBillingBatch        @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  billableItemId String
+  billableItem   NdisBillableServiceItem @relation(fields: [billableItemId], references: [id], onDelete: Restrict)
+  createdAt      DateTime                @default(now())
+
+  @@unique([batchId, billableItemId])
+  @@index([billableItemId])
+}
+
+model NdisWorkflowTransition {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  entityType     String
+  entityId       String
+  fromStatus     String
+  toStatus       String
+  actorUserId    String
+  actor          User         @relation("NdisWorkflowTransitionActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  reason         String?
+  correlationId  String?
+  metadataJson   Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organisationId, createdAt])
+  @@index([entityType, entityId, createdAt])
+}
+
+model NdisBillingDispute {
+  id              String                     @id @default(cuid())
+  organisationId  String
+  organisation    Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantId   String
+  billableItemId  String?
+  billableItem    NdisBillableServiceItem?   @relation(fields: [billableItemId], references: [id], onDelete: SetNull)
+  documentId      String?
+  document        NdisBillingDocument?       @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  claimSnapshotId String?
+  raisedById      String
+  raisedBy        User                       @relation("NdisBillingDisputeRaisedBy", fields: [raisedById], references: [id], onDelete: Restrict)
+  raisedAt        DateTime                   @default(now())
+  category        NdisBillingDisputeCategory
+  description     String
+  status          NdisBillingDisputeStatus   @default(open)
+  paymentHold     Boolean                    @default(true)
+  assignedToId    String?
+  assignedTo      User?                      @relation("NdisBillingDisputeAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  resolvedAt      DateTime?
+  resolution      String?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+
+  @@index([organisationId, status])
+  @@index([participantId, status])
+  @@index([billableItemId])
 }
 
 // --- NDIS service delivery mechanism ---

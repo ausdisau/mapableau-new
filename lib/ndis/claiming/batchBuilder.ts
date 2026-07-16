@@ -5,6 +5,10 @@ import {
   mergeValidationJson,
   validateClaimLinesForBatch,
 } from "@/lib/ndis/claiming/validation";
+import {
+  allocateBatchReference,
+  australianFinancialYear,
+} from "@/lib/ndis-gateway/documents/document-number-service";
 import { prisma } from "@/lib/prisma";
 
 export type CreateBatchInput = {
@@ -26,16 +30,22 @@ export async function createClaimBatch(input: CreateBatchInput) {
   }
 
   const batch = await prisma.$transaction(async (tx) => {
+    const batchReference =
+      input.batchReference ??
+      (await allocateBatchReference(input.providerOrgId, tx));
+
     const created = await tx.ndisClaimBatch.create({
       data: {
         providerOrgId: input.providerOrgId,
         paymentRoute: input.paymentRoute,
         status: "validated",
-        batchReference:
-          input.batchReference ??
-          `MAP-BATCH-${Date.now().toString(36).toUpperCase()}`,
+        batchReference,
         createdById: input.createdById,
-        metadataJson: mergeValidationJson(validation) as Prisma.InputJsonValue,
+        metadataJson: {
+          ...((mergeValidationJson(validation) as Record<string, unknown>) ??
+            {}),
+          financialYear: australianFinancialYear(),
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -58,6 +68,7 @@ export async function createClaimBatch(input: CreateBatchInput) {
           status: created.status,
           lineCount: input.claimLineIds.length,
           paymentRoute: input.paymentRoute,
+          batchReference,
         },
       },
     });
