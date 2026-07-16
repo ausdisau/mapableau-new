@@ -66,7 +66,10 @@ Open [http://localhost:3000/access-intelligence](http://localhost:3000/access-in
 | `AI_GATEWAY_API_KEY` / `VERCEL_AI_GATEWAY_API_KEY` | Vercel AI Gateway |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | Direct Google provider |
 | `ACCESS_INTELLIGENCE_MAX_STEPS` | Agent step limit (default 12) |
-| `ACCESS_INTELLIGENCE_USE_PRISMA` | Opt-in Prisma adapter (not default) |
+| `ACCESS_INTELLIGENCE_USE_PRISMA` | Opt-in Prisma Living persistence (also requires demo mode off) |
+| `ACCESS_INTELLIGENCE_ALLOW_DEMO_ROLE_PREVIEW` | When demo on, honour `x-access-role` for Operate/Improve (default on; set `false` to disable) |
+| `ACCESS_INTELLIGENCE_BMS_URL` | Optional HTTP BMS base URL (`/live-status`) |
+| `ACCESS_INTELLIGENCE_BMS_API_KEY` | Optional Bearer token for BMS adapter |
 
 ## How to run
 

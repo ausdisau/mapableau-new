@@ -1,56 +1,85 @@
 import { z } from "zod";
 
-import { resolveAccessIntelligenceUserId } from "@/lib/access-intelligence/api-auth";
+import {
+  resolveAccessIntelligenceUser,
+} from "@/lib/access-intelligence/api-auth";
 import { recordAuditEvent } from "@/lib/access-intelligence/audit";
-import { isDemoMode } from "@/lib/access-intelligence/configuration";
+import { requireVenueOperateAccess } from "@/lib/access-intelligence/auth/venue-access";
+import { isAccessIntelligenceError } from "@/lib/access-intelligence/errors";
+import { resolveLiveStatus } from "@/lib/access-intelligence/live";
 import {
   HARBOUR_BASELINE_INCIDENTS,
   MAIN_LIFT_OUTAGE_INCIDENT,
   buildHarbourLivingTwin,
   calculateAccessCoverage,
 } from "@/lib/access-intelligence/living";
+import { getLivingPersistence } from "@/lib/access-intelligence/persistence";
 import type { LiveIncident } from "@/lib/access-intelligence/schemas";
 
-const incidentStore = new Map<string, LiveIncident>();
-incidentStore.set(MAIN_LIFT_OUTAGE_INCIDENT.id, {
-  ...MAIN_LIFT_OUTAGE_INCIDENT,
-  status: "active",
-});
-
-function assertOperateRole(roleHeader: string | null): boolean {
-  if (isDemoMode()) {
-    return (
-      roleHeader === "venue_staff" ||
-      roleHeader === "admin" ||
-      roleHeader === "demo_preview"
-    );
+async function ensureOperateIncidents(placeId: string): Promise<LiveIncident[]> {
+  const persistence = getLivingPersistence();
+  await persistence.ensureTwinSeeded(placeId);
+  let incidents = await persistence.loadIncidents(placeId);
+  if (incidents.length === 0) {
+    const seed = {
+      ...MAIN_LIFT_OUTAGE_INCIDENT,
+      placeId,
+      status: "active" as const,
+    };
+    await persistence.saveIncident(seed);
+    incidents = await persistence.loadIncidents(placeId);
   }
-  return roleHeader === "venue_staff" || roleHeader === "admin";
+  return incidents;
+}
+
+async function assertOperateAccess(
+  request: Request,
+  placeId: string,
+): Promise<Response | { userId: string }> {
+  const user = await resolveAccessIntelligenceUser();
+  if (user instanceof Response) return user;
+  try {
+    await requireVenueOperateAccess({
+      user,
+      placeId,
+      roleHeader: request.headers.get("x-access-role"),
+    });
+  } catch (error) {
+    if (isAccessIntelligenceError(error)) {
+      return Response.json(error.toPublicJson(), { status: 403 });
+    }
+    throw error;
+  }
+  return { userId: user.id };
 }
 
 export async function GET(
   request: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const userId = await resolveAccessIntelligenceUserId();
-  if (userId instanceof Response) return userId;
   const { id: placeId } = await ctx.params;
-  const role = request.headers.get("x-access-role");
-  if (!assertOperateRole(role)) {
-    return Response.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
-  }
+  const auth = await assertOperateAccess(request, placeId);
+  if (auth instanceof Response) return auth;
+
+  const stored = await ensureOperateIncidents(placeId);
   const twin = buildHarbourLivingTwin({
-    incidents: [
-      ...HARBOUR_BASELINE_INCIDENTS,
-      ...[...incidentStore.values()].filter((i) => i.placeId === placeId),
-    ],
+    incidents: [...HARBOUR_BASELINE_INCIDENTS, ...stored.filter((i) => i.placeId === placeId)],
   });
   const coverage = calculateAccessCoverage({ twin });
-  const stale = twin.evidence.filter((e) => e.status === "provisional" || e.capturedAt < "2026-01-01");
+  const stale = twin.evidence.filter(
+    (e) => e.status === "provisional" || e.capturedAt < "2026-01-01",
+  );
   const disputed = twin.features.filter((f) => f.disputed);
   const unknowns = twin.features.filter(
     (f) => f.value === "unknown" || f.value === "unknown_operational",
   );
+
+  const westernLift = await resolveLiveStatus({
+    placeId,
+    subjectKind: "element",
+    subjectId: "hcc-lift-west",
+  });
+
   return Response.json({
     placeId,
     incidents: twin.incidents,
@@ -66,9 +95,20 @@ export async function GET(
     },
     temporaryRoute: {
       label: "Western lift temporary route",
-      edgeIds: ["e-hcc-rec-west", "e-hcc-west-lift", "e-hcc-west-corr", "e-hcc-corr-merge", "e-hcc-corr-room"],
+      edgeIds: [
+        "e-hcc-rec-west",
+        "e-hcc-west-lift",
+        "e-hcc-west-corr",
+        "e-hcc-corr-merge",
+        "e-hcc-corr-room",
+      ],
       text: "Reception → Western lift → western corridor → main corridor → Room 3.12",
     },
+    liveStatus: {
+      westernLift,
+      note: "Live adapters cascade to last-known snapshots/evidence when BMS is unreachable.",
+    },
+    persistence: getLivingPersistence().kind,
   });
 }
 
@@ -83,30 +123,35 @@ export async function PATCH(
   request: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const userId = await resolveAccessIntelligenceUserId();
-  if (userId instanceof Response) return userId;
-  const role = request.headers.get("x-access-role");
-  if (!assertOperateRole(role)) {
-    return Response.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
-  }
   const { id: placeId } = await ctx.params;
+  const auth = await assertOperateAccess(request, placeId);
+  if (auth instanceof Response) return auth;
+
   const parsed = patchSchema.safeParse(await request.json());
   if (!parsed.success) {
     return Response.json({ error: "Invalid body" }, { status: 400 });
   }
-  const existing = incidentStore.get(parsed.data.incidentId) ?? {
-    ...MAIN_LIFT_OUTAGE_INCIDENT,
-    placeId,
-  };
+
+  const persistence = getLivingPersistence();
+  await persistence.ensureTwinSeeded(placeId);
+  const existing =
+    (await persistence.loadIncidents(placeId)).find(
+      (i) => i.id === parsed.data.incidentId,
+    ) ?? {
+      ...MAIN_LIFT_OUTAGE_INCIDENT,
+      placeId,
+    };
+
   const next: LiveIncident = {
     ...existing,
     status: parsed.data.status ?? existing.status,
     expiresAt: parsed.data.expiresAt ?? existing.expiresAt,
     description: parsed.data.description ?? existing.description,
   };
-  incidentStore.set(next.id, next);
+  await persistence.saveIncident(next);
+
   const audit = recordAuditEvent({
-    actorUserId: userId,
+    actorUserId: auth.userId,
     action: "update_incident",
     purpose: "venue_operations",
     recipient: placeId,
@@ -144,17 +189,15 @@ export async function POST(
   request: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const userId = await resolveAccessIntelligenceUserId();
-  if (userId instanceof Response) return userId;
-  const role = request.headers.get("x-access-role");
-  if (!assertOperateRole(role)) {
-    return Response.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
-  }
   const { id: placeId } = await ctx.params;
+  const auth = await assertOperateAccess(request, placeId);
+  if (auth instanceof Response) return auth;
+
   const parsed = createSchema.safeParse(await request.json());
   if (!parsed.success) {
     return Response.json({ error: "Invalid body" }, { status: 400 });
   }
+
   const incident: LiveIncident = {
     id: `inc-op-${Date.now()}`,
     placeId,
@@ -167,9 +210,10 @@ export async function POST(
     status: "active",
     affectedEdgeIds: parsed.data.affectedEdgeIds,
   };
-  incidentStore.set(incident.id, incident);
+  await getLivingPersistence().saveIncident(incident);
+
   const audit = recordAuditEvent({
-    actorUserId: userId,
+    actorUserId: auth.userId,
     action: "create_incident",
     purpose: "venue_operations",
     recipient: placeId,

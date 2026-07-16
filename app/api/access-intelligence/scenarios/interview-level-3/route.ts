@@ -7,13 +7,16 @@ import {
   completeFlightTeachBack,
   completeFlightTransfer,
   flightHint,
+  getFlightSim,
   getInterviewScenarioBrief,
   revealFlightEvidence,
   reviseFlightPlan,
   startInterviewFlightSim,
   submitFlightDecision,
   submitFlightPrediction,
+  type FlightSimSession,
 } from "@/lib/access-intelligence/living/flight-simulator";
+import { persistFlightSimSession } from "@/lib/access-intelligence/living/persist-flight";
 import { decisionStatusSchema } from "@/lib/access-intelligence/schemas";
 
 export async function GET() {
@@ -86,53 +89,74 @@ const actionSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
+async function withPersistedSession(
+  session: FlightSimSession,
+  body: Record<string, unknown> = {},
+) {
+  const persisted = await persistFlightSimSession(session);
+  return Response.json({
+    session,
+    ...body,
+    persistence: persisted ? "saved" : "ephemeral",
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const userId = await resolveAccessIntelligenceUserId();
     if (userId instanceof Response) return userId;
     const parsed = actionSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return Response.json({ error: "Invalid action", details: parsed.error.flatten() }, { status: 400 });
+      return Response.json(
+        { error: "Invalid action", details: parsed.error.flatten() },
+        { status: 400 },
+      );
     }
     const data = parsed.data;
     switch (data.action) {
       case "start":
-        return Response.json({ session: startInterviewFlightSim(userId) });
+        return withPersistedSession(startInterviewFlightSim(userId));
       case "predict":
-        return Response.json({
-          session: submitFlightPrediction(data.sessionId, data.status, data.confidence),
-        });
+        return withPersistedSession(
+          submitFlightPrediction(data.sessionId, data.status, data.confidence),
+        );
       case "reveal_evidence":
-        return Response.json({
-          session: revealFlightEvidence(data.sessionId, data.evidenceId),
-        });
+        return withPersistedSession(
+          revealFlightEvidence(data.sessionId, data.evidenceId),
+        );
       case "decide":
-        return Response.json({
-          session: submitFlightDecision(data.sessionId, data),
-        });
+        return withPersistedSession(submitFlightDecision(data.sessionId, data));
       case "revise":
-        return Response.json({
-          session: reviseFlightPlan(
+        return withPersistedSession(
+          reviseFlightPlan(
             data.sessionId,
             data.routeId,
             data.status,
             data.confidence,
           ),
-        });
-      case "hint":
-        return Response.json(flightHint(data.sessionId));
+        );
+      case "hint": {
+        const result = flightHint(data.sessionId);
+        await persistFlightSimSession(getFlightSim(data.sessionId));
+        return Response.json(result);
+      }
       case "teach_back":
-        return Response.json({
-          session: completeFlightTeachBack(data.sessionId, data.text),
-        });
+        return withPersistedSession(
+          completeFlightTeachBack(data.sessionId, data.text),
+        );
       case "reflect":
-        return Response.json({
-          session: completeFlightReflection(data.sessionId, data.reflections),
-        });
-      case "transfer":
-        return Response.json(completeFlightTransfer(data.sessionId, data.answer));
+        return withPersistedSession(
+          completeFlightReflection(data.sessionId, data.reflections),
+        );
+      case "transfer": {
+        const result = completeFlightTransfer(data.sessionId, data.answer);
+        if (result.session) {
+          await persistFlightSimSession(result.session);
+        }
+        return Response.json({ ...result, persistence: "saved" });
+      }
       case "advance":
-        return Response.json({ session: advanceFlightSim(data.sessionId, data.to) });
+        return withPersistedSession(advanceFlightSim(data.sessionId, data.to));
       default: {
         const _exhaustive: never = data;
         return Response.json({ error: "Unhandled", details: _exhaustive }, { status: 400 });

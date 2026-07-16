@@ -74,5 +74,8 @@ export function isAccessIntelligenceAiConfigured(): boolean {
 }
 
 export function isDemoMode(): boolean {
-  return accessIntelligenceConfig.demoMode;
+  return (
+    process.env.ACCESS_INTELLIGENCE_DEMO_MODE !== "false" &&
+    process.env.ACCESS_INTELLIGENCE_DEMO_MODE !== "0"
+  );
 }

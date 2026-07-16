@@ -1,38 +1,54 @@
 import { z } from "zod";
 
-import { resolveAccessIntelligenceUserId } from "@/lib/access-intelligence/api-auth";
-import { isDemoMode } from "@/lib/access-intelligence/configuration";
+import { resolveAccessIntelligenceUser } from "@/lib/access-intelligence/api-auth";
+import { requireVenueOperateAccess } from "@/lib/access-intelligence/auth/venue-access";
+import { isAccessIntelligenceError } from "@/lib/access-intelligence/errors";
 import {
   HARBOUR_MUTATIONS,
+  HARBOUR_PLACE_ID,
   applyMutation,
   buildHarbourLivingTwin,
   calculateAccessCoverage,
 } from "@/lib/access-intelligence/living";
+import { getLivingPersistence } from "@/lib/access-intelligence/persistence";
 
-const drafts = new Map<string, { mutationId: string; savedAt: string; userId: string }>();
-
-function assertImproveRole(roleHeader: string | null): boolean {
-  if (isDemoMode()) {
-    // Demo may preview roles client-side; still accept demo. Production enforces header below.
-    return roleHeader === "venue_staff" || roleHeader === "admin" || roleHeader === "demo_preview";
+async function assertImproveAccess(
+  request: Request,
+): Promise<Response | { userId: string }> {
+  const user = await resolveAccessIntelligenceUser();
+  if (user instanceof Response) return user;
+  try {
+    await requireVenueOperateAccess({
+      user,
+      placeId: HARBOUR_PLACE_ID,
+      roleHeader: request.headers.get("x-access-role"),
+    });
+  } catch (error) {
+    if (isAccessIntelligenceError(error)) {
+      return Response.json(error.toPublicJson(), { status: 403 });
+    }
+    throw error;
   }
-  return roleHeader === "venue_staff" || roleHeader === "admin";
+  return { userId: user.id };
 }
 
 export async function GET(request: Request) {
-  const userId = await resolveAccessIntelligenceUserId();
-  if (userId instanceof Response) return userId;
-  const role = request.headers.get("x-access-role");
-  if (!assertImproveRole(role)) {
-    return Response.json(
-      { error: "Operate/Improve requires venue staff or admin.", code: "FORBIDDEN" },
-      { status: 403 },
-    );
-  }
+  const auth = await assertImproveAccess(request);
+  if (auth instanceof Response) return auth;
+
+  const persistence = getLivingPersistence();
+  const drafts = await persistence.listMutationDrafts(auth.userId, HARBOUR_PLACE_ID);
+
   return Response.json({
     mutations: HARBOUR_MUTATIONS,
     coverage: calculateAccessCoverage(),
-    drafts: [...drafts.values()].filter((d) => d.userId === userId),
+    drafts: drafts.map((d) => ({
+      mutationId: d.mutationId,
+      savedAt: d.updatedAt,
+      userId: d.userId,
+      draftId: d.id,
+    })),
+    persistence: persistence.kind,
   });
 }
 
@@ -43,15 +59,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const userId = await resolveAccessIntelligenceUserId();
-  if (userId instanceof Response) return userId;
-  const role = request.headers.get("x-access-role");
-  if (!assertImproveRole(role)) {
-    return Response.json(
-      { error: "Forbidden", code: "FORBIDDEN" },
-      { status: 403 },
-    );
-  }
+  const auth = await assertImproveAccess(request);
+  if (auth instanceof Response) return auth;
+
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
     return Response.json({ error: "Invalid body" }, { status: 400 });
@@ -62,14 +72,18 @@ export async function POST(request: Request) {
   }
 
   if (parsed.data.action === "save_draft") {
-    const draft = {
-      mutationId: mutation.id,
-      savedAt: new Date().toISOString(),
-      userId,
-    };
-    drafts.set(`${userId}:${mutation.id}`, draft);
+    const draft = await getLivingPersistence().saveMutationDraft({
+      placeId: HARBOUR_PLACE_ID,
+      userId: auth.userId,
+      mutation,
+    });
     return Response.json({
-      draft,
+      draft: {
+        mutationId: draft.mutationId,
+        savedAt: draft.updatedAt,
+        userId: draft.userId,
+        draftId: draft.id,
+      },
       note: "Draft saved. There is no Apply-to-real-building action in this demo.",
     });
   }

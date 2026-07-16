@@ -15,6 +15,8 @@ export function OperateConsole({ placeId }: { placeId: string }) {
   const [message, setMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    // demo_preview is honoured only when ACCESS_INTELLIGENCE_DEMO_MODE is on.
+    // Production requires NextAuth mapable_admin / provider_admin / AiVenueStaffAssignment.
     const res = await fetch(`/api/access-intelligence/venue/${placeId}/operate`, {
       headers: { "x-access-role": "demo_preview" },
     });

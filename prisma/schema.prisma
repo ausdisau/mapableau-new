@@ -8737,3 +8737,116 @@ model AiAccessAuditEvent {
   @@index([createdAt])
   @@map("ai_access_audit_events")
 }
+
+/// Living Access Twin metadata (version, destinations, fictional notice).
+model AiLivingTwinMeta {
+  placeId          String   @id
+  version          String
+  fictionalNotice  String?
+  destinations     Json     @default("[]")
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
+  @@map("ai_living_twin_meta")
+}
+
+/// Temporal operating rules (opening hours, scheduled closures).
+model AiTemporalRule {
+  id                     String   @id
+  placeId                String
+  elementId              String?
+  edgeIds                Json     @default("[]")
+  ruleType               String
+  closesAfterHourLocal   Int?
+  opensAtHourLocal       Int?
+  startsAt               DateTime?
+  endsAt                 DateTime?
+  effectAvailable        Boolean?
+  effectNote             String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([placeId])
+  @@map("ai_temporal_rules")
+}
+
+/// Venue Mutation Studio drafts (never auto-apply to real buildings).
+model AiVenueMutationDraft {
+  id          String   @id @default(cuid())
+  placeId     String
+  userId      String
+  mutationId  String
+  mutation    Json
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([placeId])
+  @@index([userId])
+  @@index([status])
+  @@map("ai_venue_mutation_drafts")
+}
+
+/// Learning / flight-simulator sessions with Decision Mirror traces.
+model AiLearningSession {
+  id          String   @id
+  userId      String
+  scenarioId  String
+  stage       String
+  snapshot    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events      AiLearningTraceEvent[]
+
+  @@index([userId])
+  @@index([scenarioId])
+  @@index([updatedAt])
+  @@map("ai_learning_sessions")
+}
+
+model AiLearningTraceEvent {
+  id         String   @id @default(cuid())
+  sessionId  String
+  session    AiLearningSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type       String
+  payload    Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("ai_learning_trace_events")
+}
+
+/// Authorised venue staff for Operate / Improve modes.
+model AiVenueStaffAssignment {
+  id        String   @id @default(cuid())
+  userId    String
+  placeId   String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, placeId])
+  @@index([placeId])
+  @@index([userId])
+  @@map("ai_venue_staff_assignments")
+}
+
+/// Last-known live status snapshots for BMS / system-feed fallback.
+model AiLiveStatusSnapshot {
+  id            String   @id @default(cuid())
+  placeId       String
+  elementId     String?
+  feedKey       String
+  statusPayload Json
+  sourceType    String   @default("system_feed")
+  observedAt    DateTime
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  @@unique([placeId, feedKey])
+  @@index([placeId])
+  @@index([observedAt])
+  @@map("ai_live_status_snapshots")
+}

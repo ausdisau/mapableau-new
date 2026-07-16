@@ -30,6 +30,7 @@ export function MutationStudio({ placeId }: { placeId: string }) {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    // demo_preview is ignored when ACCESS_INTELLIGENCE_DEMO_MODE=false.
     void fetch("/api/access-intelligence/mutations/preview", {
       headers: { "x-access-role": "demo_preview" },
     })
