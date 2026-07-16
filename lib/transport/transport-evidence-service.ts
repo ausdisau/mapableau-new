@@ -33,7 +33,7 @@ export async function submitTripEvidence(
 
   if (trip.status === "trip_completed") {
     assertStatusTransition(trip.status, "evidence_submitted");
-    const updated = await prisma.transportTrip.update({
+    const afterEvidence = await prisma.transportTrip.update({
       where: { id: tripId },
       data: { status: "evidence_submitted" },
     });
@@ -43,6 +43,20 @@ export async function submitTripEvidence(
       eventType: "evidence_submitted",
       fromStatus: trip.status,
       toStatus: "evidence_submitted",
+      participantId: trip.participantId,
+    });
+
+    assertStatusTransition(afterEvidence.status, "participant_review");
+    const updated = await prisma.transportTrip.update({
+      where: { id: tripId },
+      data: { status: "participant_review" },
+    });
+    await recordTripEvent({
+      tripId,
+      actorUserId: user.id,
+      eventType: "participant_review_requested",
+      fromStatus: "evidence_submitted",
+      toStatus: "participant_review",
       participantId: trip.participantId,
     });
     return buildTripResponse({ trip: updated, user });

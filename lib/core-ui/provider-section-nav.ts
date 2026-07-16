@@ -10,6 +10,7 @@ export const PROVIDER_CARE_SUB_LINKS: SectionNavLink[] = [
 export const PROVIDER_TRANSPORT_SUB_LINKS: SectionNavLink[] = [
   { href: "/provider/transport", label: "Bookings" },
   { href: "/provider/transport/dispatch", label: "Dispatch" },
+  { href: "/provider/transport/fleet", label: "Fleet" },
   { href: "/provider/transport/runs", label: "Runs" },
   { href: "/provider/vehicles", label: "Vehicles" },
   { href: "/provider/drivers", label: "Drivers" },

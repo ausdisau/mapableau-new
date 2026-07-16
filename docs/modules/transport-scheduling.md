@@ -15,6 +15,40 @@ Parallel scheduling domain alongside legacy `TransportBooking` (Phase 3). New tr
 
 Responses include `permissions`, `nextActions`, optional `routeEstimate`, and role-shaped addresses (exact pickup/dropoff only for participant, consented nominee summary, provider org, assigned driver).
 
+## Provider UI (control panel)
+
+Signed-in providers use transport sections under `/provider/transport`:
+
+| Route | Purpose |
+|-------|---------|
+| `/provider/transport` | Legacy bookings list |
+| `/provider/transport/dispatch` | Dispatch board, suggestions, assign |
+| `/provider/transport/fleet` | Dispatch fleet, verification, mobility features |
+| `/provider/transport/runs` | Ride run pooling |
+
+## Fleet verification APIs
+
+| Method | Path |
+|--------|------|
+| GET/POST | `/api/provider/transport/drivers` |
+| GET/PATCH | `/api/provider/transport/drivers/[driverId]` |
+| PUT | `/api/provider/transport/drivers/[driverId]/verifications` |
+| GET/POST | `/api/provider/transport/vehicles` |
+| GET/PATCH | `/api/provider/transport/vehicles/[vehicleId]` |
+| PUT | `/api/provider/transport/vehicles/[vehicleId]/verifications` |
+| PUT | `/api/provider/transport/vehicles/[vehicleId]/features` |
+
+## Driver APIs
+
+| Method | Path |
+|--------|------|
+| GET | `/api/driver/transport/trips` |
+| GET | `/api/driver/transport/trips/[tripId]` |
+| POST | `/api/driver/transport/trips/[tripId]/status` |
+| POST | `/api/driver/transport/trips/[tripId]/evidence` |
+
+Evidence submission from `trip_completed` transitions the trip to `participant_review` for participant confirm/dispute.
+
 ## Participant UI (control panel)
 
 Signed-in participants use the control panel at `/dashboard` with transport trips under:
