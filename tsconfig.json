@@ -20,7 +20,15 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@server/*": ["server/*"]
+      "@server/*": ["server/*"],
+      "@mapable/access-fit": ["packages/access-fit/src/index.ts"],
+      "@mapable/access-routing": ["packages/access-routing/src/index.ts"],
+      "@mapable/access-consent": ["packages/access-consent/src/index.ts"],
+      "@mapable/access-react": ["packages/access-react/src/index.ts"],
+      "@mapable/access-test-fixtures": ["packages/access-test-fixtures/src/index.ts"],
+      "@mapable/access-types": ["packages/access-types/src/index.ts"],
+      "@mapable/access-client": ["packages/access-client/src/index.ts"],
+      "@mapable/access-widget": ["packages/access-widget/src/index.ts"]
     },
     "target": "ES2021"
   },

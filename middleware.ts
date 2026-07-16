@@ -8,6 +8,7 @@ import {
   redirectLegacySquarePath,
   shouldRunAuthMiddleware,
 } from "@/lib/mapable-peers/peer-middleware";
+import { redirectLegacyAccessIntelligencePaths } from "@/lib/access-intelligence/legacy-redirects";
 
 /** Match NextAuth secure cookie naming on HTTPS (Vercel, production). */
 function usesSecureSessionCookies(request: NextRequest): boolean {
@@ -81,6 +82,9 @@ function redirectToLogin(request: NextRequest): NextResponse {
 export default async function middleware(request: NextRequest) {
   const legacySquare = redirectLegacySquarePath(request);
   if (legacySquare) return legacySquare;
+
+  const legacyAccess = redirectLegacyAccessIntelligencePaths(request);
+  if (legacyAccess) return legacyAccess;
 
   const peerResponse = handlePeerPeersHost(request);
   if (peerResponse) return peerResponse;
