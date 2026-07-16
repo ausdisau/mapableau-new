@@ -8466,3 +8466,113 @@ model WorkerTrainingCompletion {
   @@index([userId])
   @@map("worker_training_completions")
 }
+
+// ---------------------------------------------------------------------------
+// Platform Assurance — Trust, Interoperability and Resilience Programme (Wave 1)
+// Additive only. Does not declare legal classification or NDIS registration.
+// ---------------------------------------------------------------------------
+
+enum RegulatoryAuthorityClass {
+  enacted_requirement
+  published_standard
+  draft
+  candidate_recommendation
+  consultation_proposal
+  implementation_guidance
+  organisational_policy
+  mapable_design_choice
+}
+
+enum PlatformScopeResult {
+  likely_in_scope
+  likely_out_of_scope
+  mixed_function_review_required
+  insufficient_evidence
+  legal_review_required
+}
+
+enum ScopeAssessmentStatus {
+  draft
+  submitted
+  legal_review
+  closed
+}
+
+/// Versioned external regulatory or standards source. Rows are immutable after create;
+/// corrections happen via supersession (supersededById), never silent mutation of authorityClass.
+model RegulatorySourceVersion {
+  id              String                    @id @default(cuid())
+  sourceKey       String
+  title           String
+  publisher       String
+  sourceUri       String
+  versionLabel    String?
+  publicationDate DateTime?
+  retrievedAt     DateTime
+  authorityClass  RegulatoryAuthorityClass
+  summary         String?
+  contentHash     String?
+  isImmutable     Boolean                   @default(true)
+  supersededById  String?
+  supersededBy    RegulatorySourceVersion?  @relation("SourceSupersession", fields: [supersededById], references: [id])
+  supersedes      RegulatorySourceVersion[] @relation("SourceSupersession")
+  metadata        Json                      @default("{}")
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  assessments DigitalPlatformScopeAssessment[]
+
+  @@unique([sourceKey, retrievedAt])
+  @@index([sourceKey])
+  @@index([authorityClass])
+  @@map("regulatory_source_versions")
+}
+
+/// Structured applicability assessment for a MapAble function. AI must not set final legal conclusions.
+/// Result states are review opinions / workflow states — never a claim of registration or compliance.
+model DigitalPlatformScopeAssessment {
+  id                   String                 @id @default(cuid())
+  functionName         String
+  functionDescription  String?
+  moduleKeys           String[]               @default([])
+  sourceVersionId      String
+  sourceVersion        RegulatorySourceVersion @relation(fields: [sourceVersionId], references: [id])
+  answersJson          Json                   @default("{}")
+  evidenceRefsJson     Json                   @default("[]")
+  result               PlatformScopeResult    @default(insufficient_evidence)
+  status               ScopeAssessmentStatus  @default(draft)
+  reviewerUserId       String?
+  legalReviewerUserId  String?
+  legalReviewNotes     String?
+  decisionDate         DateTime?
+  nextReviewAt         DateTime?
+  createdByUserId      String
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@index([status])
+  @@index([result])
+  @@index([sourceVersionId])
+  @@index([createdByUserId])
+  @@map("digital_platform_scope_assessments")
+}
+
+/// Registration readiness control catalogue row. Maps optionally onto ComplianceControl.code.
+/// Presence of a control does not mean MapAble is registered or certified.
+model RegistrationControl {
+  id                     String                  @id @default(cuid())
+  code                   String                  @unique
+  title                  String
+  description            String?
+  category               String
+  complianceControlCode  String?
+  requirementSourceKey   String?
+  status                 ComplianceControlStatus @default(not_started)
+  ownerRole              String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@index([category])
+  @@index([complianceControlCode])
+  @@map("registration_controls")
+}
