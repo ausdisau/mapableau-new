@@ -140,7 +140,17 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  // ContinuityOS / CareOS mission spine
+  careOSMissions            CareOSMission[]        @relation("CareOSMissionParticipant")
+  careOSMissionEvents       CareOSMissionEvent[]   @relation("CareOSMissionEventParticipant")
+  lifeEventMissionExtensions LifeEventMissionExtension[] @relation("LifeEventExtensionParticipant")
+  continuityPreferences     ContinuityPreference[] @relation("ContinuityPreferenceParticipant")
+  serviceFailures           ServiceFailure[]       @relation("ServiceFailureParticipant")
+  recoveryCases             RecoveryCase[]         @relation("RecoveryCaseParticipant")
+  accessFrictionEvents      AccessFrictionEvent[]  @relation("AccessFrictionParticipant")
 }
+
 
 model PasskeyCredential {
   id           String    @id @default(cuid())
@@ -8646,4 +8656,572 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// =============================================================================
+// ContinuityOS + minimal CareOSMission spine (hybrid control plane)
+// CareOSMission is the mission SoT; ContinuityOS owns life-event / recovery composition.
+// =============================================================================
+
+model CareOSMission {
+  id                  String   @id @default(cuid())
+  participantId       String
+  participant         User     @relation("CareOSMissionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  tenantId            String?
+  requestId           String   @unique
+  missionType         String
+  desiredOutcome      String   @default("")
+  status              String   @default("draft")
+  authorityDecisionId String?
+  inputSummary        Json     @default("{}")
+  graphJson           Json     @default("{}")
+  modulesJson         Json     @default("[]")
+  alertsJson          Json     @default("[]")
+  proposalsJson       Json     @default("[]")
+  stateVersion        Int      @default(1)
+  correlationId       String   @default(cuid())
+  workflowRunId       String?
+  stopState           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  events                 CareOSMissionEvent[]
+  lifeEventExtension     LifeEventMissionExtension?
+  milestones             LifeEventMilestone[]
+  dependencySnapshots    ContinuityDependencySnapshot[]
+  continuityAssessments  ContinuityAssessment[]
+  serviceFailures        ServiceFailure[]
+  recoveryCases          RecoveryCase[]
+  recoveryHandoffs       RecoveryHandoff[]
+  accessFrictionEvents   AccessFrictionEvent[]
+  recoveryLearningReviews RecoveryLearningReview[]
+
+  @@index([participantId, createdAt])
+  @@index([tenantId, status])
+  @@index([correlationId])
+  @@index([missionType, status])
+  @@map("careos_missions")
+}
+
+model CareOSMissionEvent {
+  id             String        @id @default(cuid())
+  missionId      String
+  mission        CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId  String
+  participant    User          @relation("CareOSMissionEventParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  eventType      String
+  sourceModule   String
+  sourceEntityId String?
+  severity       String        @default("information")
+  summary        String
+  payloadJson    Json?
+  eventKey       String?
+  createdAt      DateTime      @default(now())
+
+  @@unique([missionId, eventKey])
+  @@index([missionId, createdAt])
+  @@index([participantId, createdAt])
+  @@map("careos_mission_events")
+}
+
+model LifeEventType {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  category    String
+  title       String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions    LifeEventTypeVersion[]
+
+  @@index([category, active])
+  @@map("life_event_types")
+}
+
+model LifeEventTypeVersion {
+  id                 String        @id @default(cuid())
+  lifeEventTypeId    String
+  lifeEventType      LifeEventType @relation(fields: [lifeEventTypeId], references: [id], onDelete: Cascade)
+  version            String
+  definitionJson     Json
+  effectiveFrom      DateTime      @default(now())
+  supersededAt       DateTime?
+  reviewOwner        String
+  policySourceKeys   String[]      @default([])
+  createdAt          DateTime      @default(now())
+
+  extensions         LifeEventMissionExtension[]
+
+  @@unique([lifeEventTypeId, version])
+  @@index([effectiveFrom])
+  @@map("life_event_type_versions")
+}
+
+model LifeEventMissionExtension {
+  id                      String   @id @default(cuid())
+  missionId               String   @unique
+  mission                 CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId           String
+  participant             User     @relation("LifeEventExtensionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  lifeEventTypeVersionId  String
+  lifeEventTypeVersion    LifeEventTypeVersion @relation(fields: [lifeEventTypeVersionId], references: [id])
+  lifeEventTypeCode       String
+  participantGoal         String
+  participantWording      String   @default("")
+  targetState             String   @default("")
+  currentState            String   @default("draft")
+  selectedPassportId      String?
+  privacyMode             String   @default("standard")
+  desiredTiming           DateTime?
+  eventHorizon            String   @default("medium_term")
+  unknownsJson            Json     @default("[]")
+  blockersJson            Json     @default("[]")
+  valuesJson              Json     @default("{}")
+  nonNegotiableJson       Json     @default("[]")
+  preferredSupportJson    Json     @default("[]")
+  humanHelpRequested      Boolean  @default(false)
+  safetyConcern           Boolean  @default(false)
+  contingencyPlaybookIds  String[] @default([])
+  reviewDate              DateTime?
+  activatedAt             DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([participantId, currentState])
+  @@index([lifeEventTypeCode, createdAt])
+  @@map("life_event_mission_extensions")
+}
+
+model LifeEventMilestone {
+  id              String        @id @default(cuid())
+  missionId       String
+  mission         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  code            String
+  label           String
+  status          String        @default("pending")
+  ownerRole       String
+  ownerUserId     String?
+  dueAt           DateTime?
+  dependsOnJson   Json          @default("[]")
+  evidenceJson    Json          @default("[]")
+  authority       String        @default("participant")
+  fallbackJson    Json          @default("{}")
+  expiresAt       DateTime?
+  escalationRole  String?
+  sortOrder       Int           @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([missionId, code])
+  @@index([missionId, status])
+  @@map("life_event_milestones")
+}
+
+model ContinuityPreference {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   User     @relation("ContinuityPreferenceParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  preferenceKey String
+  valueJson     Json
+  source        String   @default("participant_confirmed")
+  status        String   @default("active")
+  confirmedAt   DateTime @default(now())
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([participantId, preferenceKey])
+  @@index([participantId, status])
+  @@map("continuity_preferences")
+}
+
+model ContinuityDependencySnapshot {
+  id              String        @id @default(cuid())
+  missionId       String
+  mission         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  version         Int
+  nodesJson       Json          @default("[]")
+  edgesJson       Json          @default("[]")
+  responsibilitiesJson Json     @default("[]")
+  unknownsJson    Json          @default("[]")
+  blockersJson    Json          @default("[]")
+  priorPlanRef    String?
+  createdAt       DateTime      @default(now())
+
+  @@unique([missionId, version])
+  @@index([missionId, createdAt])
+  @@map("continuity_dependency_snapshots")
+}
+
+model ContinuityAssessment {
+  id                    String        @id @default(cuid())
+  missionId             String
+  mission               CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  assessmentType        String        @default("pre_mortem")
+  level                 String
+  singlePointsOfFailureJson Json      @default("[]")
+  unconfirmedJson       Json          @default("[]")
+  staleEvidenceJson     Json          @default("[]")
+  timingConflictsJson   Json          @default("[]")
+  missingAlternativesJson Json        @default("[]")
+  recoveryOptionsJson   Json          @default("[]")
+  humanReviewNeedsJson  Json          @default("[]")
+  participantActionsJson Json         @default("[]")
+  nonAiContactsJson     Json          @default("[]")
+  createdAt             DateTime      @default(now())
+
+  @@index([missionId, createdAt])
+  @@map("continuity_assessments")
+}
+
+model ServiceFailure {
+  id                 String        @id @default(cuid())
+  missionId          String?
+  mission            CareOSMission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  participantId      String
+  participant        User          @relation("ServiceFailureParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  status             String        @default("signal_received")
+  failureClass       String?
+  severity           String        @default("attention")
+  serviceDomain      String
+  serviceRefType     String?
+  serviceRefId       String?
+  summary            String
+  observedAt         DateTime
+  verifiedAt         DateTime?
+  impactVersion      Int           @default(0)
+  priorPlanSnapshotId String?
+  incidentReportId   String?
+  stopHonoured       Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  signals            ServiceFailureSignal[]
+  impacts            ServiceFailureImpact[]
+  recoveryCases      RecoveryCase[]
+
+  @@index([participantId, status])
+  @@index([missionId, createdAt])
+  @@index([failureClass, severity])
+  @@map("service_failures")
+}
+
+model ServiceFailureSignal {
+  id                    String         @id @default(cuid())
+  serviceFailureId      String
+  serviceFailure        ServiceFailure @relation(fields: [serviceFailureId], references: [id], onDelete: Cascade)
+  sourceType            String
+  sourceId              String?
+  sourceLabel           String?
+  observedAt            DateTime
+  receivedAt            DateTime       @default(now())
+  evidenceJson          Json           @default("{}")
+  confidence            String         @default("unverified")
+  urgency               String         @default("attention")
+  visibility            String         @default("private")
+  affectedDependencyCode String?
+  verificationRequirement String       @default("human_or_canonical_event")
+  createdAt             DateTime       @default(now())
+
+  @@index([serviceFailureId, receivedAt])
+  @@map("service_failure_signals")
+}
+
+model ServiceFailureImpact {
+  id               String         @id @default(cuid())
+  serviceFailureId String
+  serviceFailure   ServiceFailure @relation(fields: [serviceFailureId], references: [id], onDelete: Cascade)
+  version          Int
+  affectedDepsJson Json           @default("[]")
+  timingImpactJson Json           @default("{}")
+  accessibilityImpactJson Json    @default("{}")
+  disclosureImpactJson Json       @default("{}")
+  financialImpactJson Json        @default("{}")
+  noticeListJson   Json           @default("[]")
+  alternativesJson Json           @default("[]")
+  priorPlanPreserved Boolean      @default(true)
+  createdAt        DateTime       @default(now())
+
+  @@unique([serviceFailureId, version])
+  @@map("service_failure_impacts")
+}
+
+model RecoveryCase {
+  id                 String         @id @default(cuid())
+  missionId          String?
+  mission            CareOSMission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  participantId      String
+  participant        User           @relation("RecoveryCaseParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  serviceFailureId   String?
+  serviceFailure     ServiceFailure? @relation(fields: [serviceFailureId], references: [id], onDelete: SetNull)
+  playbookCode       String?
+  playbookVersion    String?
+  status             String         @default("open")
+  originalGoal       String
+  horizon            String         @default("immediate")
+  selectedOptionId   String?
+  ownerRole          String         @default("participant")
+  ownerUserId        String?
+  stopState          Boolean        @default(false)
+  expiresAt          DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  options            RecoveryOption[]
+  decisions          RecoveryDecision[]
+  actionLinks        RecoveryActionLink[]
+  handoffs           RecoveryHandoff[]
+  escalations        RecoveryEscalation[]
+  receipts           RecoveryReceipt[]
+  postconditions     RecoveryPostcondition[]
+  outcomes           RecoveryOutcome[]
+
+  @@index([participantId, status])
+  @@index([missionId, createdAt])
+  @@index([serviceFailureId])
+  @@map("recovery_cases")
+}
+
+model RecoveryOption {
+  id                    String       @id @default(cuid())
+  recoveryCaseId        String
+  recoveryCase          RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  optionKey             String
+  label                 String
+  description           String
+  availabilityState     String       @default("requires_confirmation")
+  preservesOriginalGoal Boolean      @default(true)
+  hardRequirementsMet   Boolean      @default(true)
+  excludedReason        String?
+  unknownsJson          Json         @default("[]")
+  disclosureJson        Json         @default("{}")
+  peopleJson            Json         @default("[]")
+  timingJson            Json         @default("{}")
+  costJson              Json         @default("{}")
+  preferenceMatchJson   Json         @default("{}")
+  evidenceConfidence    String       @default("unverified")
+  approvalsRequiredJson Json         @default("[]")
+  fallbackJson          Json         @default("{}")
+  horizon               String       @default("immediate")
+  expiresAt             DateTime?
+  sortOrder             Int          @default(0)
+  createdAt             DateTime     @default(now())
+
+  @@unique([recoveryCaseId, optionKey])
+  @@index([recoveryCaseId, availabilityState])
+  @@map("recovery_options")
+}
+
+model RecoveryDecision {
+  id              String       @id @default(cuid())
+  recoveryCaseId  String
+  recoveryCase    RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  optionId        String
+  decidedByUserId String
+  decision        String
+  rationale       String?
+  approvalHash    String?
+  createdAt       DateTime     @default(now())
+
+  @@index([recoveryCaseId, createdAt])
+  @@map("recovery_decisions")
+}
+
+model RecoveryActionLink {
+  id                 String       @id @default(cuid())
+  recoveryCaseId     String
+  recoveryCase       RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  actionType         String
+  applicationService String
+  auraProposalId     String?
+  auraExecutionId    String?
+  domainEntityType   String?
+  domainEntityId     String?
+  state              String       @default("queued")
+  idempotencyKey     String       @unique
+  payloadJson        Json         @default("{}")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([recoveryCaseId, state])
+  @@map("recovery_action_links")
+}
+
+model RecoveryHandoff {
+  id                   String        @id @default(cuid())
+  recoveryCaseId       String?
+  recoveryCase         RecoveryCase? @relation(fields: [recoveryCaseId], references: [id], onDelete: SetNull)
+  missionId            String?
+  mission              CareOSMission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  sendingOrganisationId String?
+  receivingOrganisationId String?
+  sendingRole          String
+  receivingRole        String
+  purpose              String
+  status               String        @default("draft")
+  tasksJson            Json          @default("[]")
+  approvedFieldsJson   Json          @default("[]")
+  omittedFieldsJson    Json          @default("[]")
+  deadlineAt           DateTime?
+  acceptedAt           DateTime?
+  rejectedAt           DateTime?
+  rejectionReason      String?
+  unresolvedJson       Json          @default("[]")
+  fallbackJson         Json          @default("{}")
+  receiptJson          Json          @default("{}")
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@index([recoveryCaseId, status])
+  @@index([missionId, status])
+  @@map("recovery_handoffs")
+}
+
+model RecoveryEscalation {
+  id              String       @id @default(cuid())
+  recoveryCaseId  String
+  recoveryCase    RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  destinationRole String
+  organisationHint String?
+  purpose         String
+  fieldsSharedJson Json        @default("[]")
+  queueState      String       @default("queued")
+  highRisk        Boolean      @default(false)
+  expiresAt       DateTime?
+  createdAt       DateTime     @default(now())
+
+  @@index([recoveryCaseId, createdAt])
+  @@map("recovery_escalations")
+}
+
+model RecoveryReceipt {
+  id                    String       @id @default(cuid())
+  recoveryCaseId        String
+  recoveryCase          RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  originalGoal          String
+  failureSummary        String
+  optionSelectedJson    Json         @default("{}")
+  participantApprovalJson Json       @default("{}")
+  actionsTakenJson      Json         @default("[]")
+  recordsCreatedJson    Json         @default("[]")
+  communicationsJson    Json         @default("[]")
+  handoffsJson          Json         @default("[]")
+  postconditionsJson    Json         @default("[]")
+  remainingUnknownsJson Json         @default("[]")
+  financialEffectsJson  Json         @default("{}")
+  complaintRoutesJson   Json         @default("[]")
+  finalOutcome          String
+  evidenceJson          Json         @default("[]")
+  limitationsJson       Json         @default("[]")
+  serviceActionCompleted Boolean     @default(false)
+  realWorldOutcomeConfirmed Boolean  @default(false)
+  participantGoalAchieved Boolean    @default(false)
+  createdAt             DateTime     @default(now())
+
+  @@index([recoveryCaseId, createdAt])
+  @@map("recovery_receipts")
+}
+
+model RecoveryPostcondition {
+  id             String       @id @default(cuid())
+  recoveryCaseId String
+  recoveryCase   RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  code           String
+  description    String
+  status         String       @default("pending")
+  evidenceJson   Json         @default("{}")
+  verifiedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@unique([recoveryCaseId, code])
+  @@map("recovery_postconditions")
+}
+
+model RecoveryOutcome {
+  id             String       @id @default(cuid())
+  recoveryCaseId String
+  recoveryCase   RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+  state          String
+  summary        String
+  evidenceJson   Json         @default("[]")
+  falseRecovery  Boolean      @default(false)
+  recordedByUserId String?
+  createdAt      DateTime     @default(now())
+
+  @@index([recoveryCaseId, createdAt])
+  @@map("recovery_outcomes")
+}
+
+model AccessFrictionEvent {
+  id                 String        @id @default(cuid())
+  missionId          String?
+  mission            CareOSMission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  participantId      String
+  participant        User          @relation("AccessFrictionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  sourceService      String
+  organisationId     String?
+  workflow           String
+  cause              String
+  participantActionRequired Boolean @default(false)
+  timeBurdenMinutes  Int           @default(0)
+  travelBurdenKm     Float         @default(0)
+  disclosureBurden   String        @default("none")
+  financialBurdenCents Int         @default(0)
+  accessibilityBurden String       @default("none")
+  avoidable          Boolean       @default(true)
+  evidenceJson       Json          @default("{}")
+  remediationOwner   String?
+  createdAt          DateTime      @default(now())
+
+  @@index([participantId, createdAt])
+  @@index([sourceService, createdAt])
+  @@index([missionId])
+  @@map("access_friction_events")
+}
+
+model RecoveryLearningReview {
+  id                 String        @id @default(cuid())
+  missionId          String?
+  mission            CareOSMission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  recoveryCaseId     String?
+  findingType        String
+  summary            String
+  proposalJson       Json          @default("{}")
+  status             String        @default("proposed")
+  accessibilityOpsLink String?
+  createdAt          DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@map("recovery_learning_reviews")
+}
+
+model ContinuityPlaybook {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  title         String
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  versions      ContinuityPlaybookVersion[]
+
+  @@map("continuity_playbooks")
+}
+
+model ContinuityPlaybookVersion {
+  id              String             @id @default(cuid())
+  playbookId      String
+  playbook        ContinuityPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  version         String
+  definitionJson  Json
+  reviewOwner     String
+  reviewDate      DateTime?
+  effectiveFrom   DateTime           @default(now())
+  supersededAt    DateTime?
+  createdAt       DateTime           @default(now())
+
+  @@unique([playbookId, version])
+  @@map("continuity_playbook_versions")
 }
