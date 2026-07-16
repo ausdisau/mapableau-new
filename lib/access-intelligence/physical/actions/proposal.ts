@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 
-import type { DeviceCapability, FallbackPlan, PhysicalActionProposal } from "../schemas";
-import { isProhibitedAction } from "../prohibited";
 import { PhysicalSystemsError } from "../errors";
+import { isProhibitedAction } from "../prohibited";
+import type { DeviceCapability, FallbackPlan, PhysicalActionProposal } from "../schemas";
 
 export type CreateProposalInput = {
   placeId: string;

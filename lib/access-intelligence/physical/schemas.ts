@@ -3,6 +3,11 @@
  */
 import { z } from "zod";
 
+import {
+  accessDecisionSchema,
+  accessibleRouteSchema,
+} from "../schemas";
+
 export const physicalActionRiskSchema = z.enum([
   "read_only",
   "low_risk_actuation",
@@ -222,9 +227,9 @@ export const perceptionCandidateSchema = z.object({
 export const physicalAccessResponseSchema = z.object({
   placeId: z.string(),
   mode: z.enum(["demo", "shadow", "supervised", "live"]),
-  decision: z.unknown(),
-  route: z.unknown().nullable(),
-  fallbackRoute: z.unknown().nullable(),
+  decision: accessDecisionSchema,
+  route: accessibleRouteSchema.nullable(),
+  fallbackRoute: accessibleRouteSchema.nullable(),
   availableCapabilities: z.array(deviceCapabilitySchema),
   devices: z.array(deviceStateSchema),
   emergency: emergencyModeStateSchema,

@@ -1,5 +1,5 @@
-import type { PerceptionCandidate } from "../schemas";
 import { recordMetric } from "../observability";
+import type { PerceptionCandidate } from "../schemas";
 
 const FICTIONAL_NOTICE =
   "Simulated perception candidate for Access Intelligence Scout — not live camera inference.";

@@ -1,4 +1,5 @@
 import { PhysicalSystemsError } from "../errors";
+
 import { mockAssistanceAdapter } from "./mock-assistance";
 import { mockDoorAdapter } from "./mock-door";
 import { mockLiftMainAdapter, mockLiftWestAdapter } from "./mock-lift";

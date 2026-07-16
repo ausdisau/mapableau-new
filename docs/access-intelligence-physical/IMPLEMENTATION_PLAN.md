@@ -163,3 +163,17 @@ Migration plan:
 4. Shadow mode logging against mocks.
 5. Supervised pilot with human approval (no live default).
 6. Hardware only after roadmap gates — live remains off until checklist signed.
+
+
+## Delivery status (vertical slice)
+
+Completed on `cursor/access-intelligence-physical-4b25`:
+
+- Domain core: modes, Safety Kernel, Action Gateway, mock adapters, Harbour simulator
+- APIs under `/api/access-intelligence/physical/**` and `/api/venue/access-intelligence/**`
+- Participant UI: hub, passport, Concierge plan, Scout, visits, actions, simulator
+- Venue Ops Console at `/venue/access-intelligence`
+- Propose-only agent tools in `lib/access-intelligence/physical/agent/tools.ts`
+- Vitest coverage in `tests/access-intelligence/physical/`
+
+Still deferred (by design): live hardware, Prisma physical action tables, Playwright E2E (Prompt 7).

@@ -69,6 +69,12 @@ export function AccessIntelligenceShell({
             <Link href="/access-intelligence/explore" className={navLinkClass}>
               Explore
             </Link>
+            <Link
+              href="/access-intelligence/physical"
+              className={navLinkClass}
+            >
+              Physical Systems
+            </Link>
           </nav>
         </div>
       </header>

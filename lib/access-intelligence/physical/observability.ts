@@ -14,6 +14,7 @@ export type PhysicalMetricName =
   | "physical_simulator_event"
   | "physical_visit_planned"
   | "physical_scout_candidates"
+  | "physical_scout_review"
   | "physical_kill_switch_block"
   | "physical_mode_clamp";
 

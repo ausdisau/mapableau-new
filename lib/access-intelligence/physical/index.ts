@@ -7,6 +7,7 @@ import { resetAllAdapters } from "./adapters/registry";
 import { resetMetrics } from "./observability";
 import { resetPhysicalActionTransactionManager } from "./services/propose-action";
 import { resetHarbourPhysicalSimulator } from "./simulator/harbour-simulator";
+import { resetPhysicalVisitStore } from "./visit-store";
 
 export type { PhysicalOperationalMode } from "./configuration";
 export {
@@ -113,13 +114,28 @@ export {
   type PhysicalMetricName,
 } from "./observability";
 
+export {
+  resolvePhysicalPassport,
+  physicalErrorResponse,
+} from "./api-helpers";
+
+export {
+  savePhysicalVisitPlan,
+  listPhysicalVisitPlans,
+  getPhysicalVisitPlan,
+  resetPhysicalVisitStore,
+} from "./visit-store";
+
+export { createPhysicalSystemsTools } from "./agent/tools";
+
 /** Design token re-export for Physical Systems UI surfaces. */
 export { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
-/** Reset simulator, adapters, action manager, and metrics (tests / demo). */
+/** Reset simulator, adapters, action manager, visit store, and metrics (tests / demo). */
 export function resetPhysicalDomain(): void {
   resetHarbourPhysicalSimulator();
   resetAllAdapters();
   resetPhysicalActionTransactionManager();
+  resetPhysicalVisitStore();
   resetMetrics();
 }

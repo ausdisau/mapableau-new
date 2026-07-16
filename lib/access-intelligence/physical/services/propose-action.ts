@@ -1,4 +1,5 @@
 import type { AccessPassport } from "../../schemas";
+import { PhysicalActionTransactionManager } from "../actions/transaction";
 import { listHarbourCapabilities } from "../capabilities/harbour";
 import { PhysicalSystemsError } from "../errors";
 import type { PhysicalActionExecution } from "../schemas";
@@ -6,7 +7,6 @@ import {
   getHarbourPhysicalSimulator,
   type HarbourPhysicalSimulator,
 } from "../simulator/harbour-simulator";
-import { PhysicalActionTransactionManager } from "../actions/transaction";
 
 let managerSingleton: PhysicalActionTransactionManager | null = null;
 let boundSimulator: HarbourPhysicalSimulator | null = null;

@@ -1,4 +1,5 @@
 import type { DeviceState } from "../schemas";
+
 import {
   FICTIONAL_ADAPTER_NOTICE,
   type ExecuteCapabilityInput,

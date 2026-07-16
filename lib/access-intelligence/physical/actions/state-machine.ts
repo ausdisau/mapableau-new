@@ -70,7 +70,6 @@ function eventTargetState(
   execution: PhysicalActionExecution,
   event: ActionTransitionEvent,
 ): PhysicalActionState {
-  const current = execution.state;
   switch (event.type) {
     case "request_user_approval":
       return "awaiting_user_approval";

@@ -10,8 +10,8 @@ import {
   resetAllAdapters,
   getAdapterForDevice,
 } from "../adapters/registry";
-import type { DeviceState, EmergencyModeState, EnvironmentObservation } from "../schemas";
 import { recordMetric } from "../observability";
+import type { DeviceState, EmergencyModeState, EnvironmentObservation } from "../schemas";
 
 export type HarbourSimulatorEvent =
   | "main_lift_outage"
