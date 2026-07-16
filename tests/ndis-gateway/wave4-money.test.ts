@@ -13,7 +13,7 @@ import {
 } from "@/lib/ndis-gateway/workflows/billable-item-state-machine";
 import {
   billingRouteToPaymentRoute,
-  resolvePaymentDestinationForRoute,
+  defaultPaymentDestination,
 } from "@/lib/ndis-gateway/routing/route-policy";
 import { australianFinancialYear } from "@/lib/ndis-gateway/documents/document-number-service";
 
@@ -69,13 +69,12 @@ describe("Wave 4 billable validator", () => {
       participantId: "p1",
       serviceStartAt: new Date("2026-07-01T09:00:00Z"),
       serviceEndAt: new Date("2026-07-01T10:00:00Z"),
-      quantity: 1,
       unitPriceCents: 1000,
-      unitType: "hour",
-      supportDescription: "Support",
     });
     expect(pending.valid).toBe(false);
-    expect(pending.blockingIssues.some((i) => /PENDING/i.test(i))).toBe(true);
+    expect(
+      pending.blockingIssues.some((i) => /PENDING/i.test(i.message))
+    ).toBe(true);
 
     const zero = validateBillableItemDraft({
       billingRoute: "ndis_self_managed",
@@ -83,10 +82,7 @@ describe("Wave 4 billable validator", () => {
       participantId: "p1",
       serviceStartAt: new Date("2026-07-01T09:00:00Z"),
       serviceEndAt: new Date("2026-07-01T10:00:00Z"),
-      quantity: 1,
       unitPriceCents: 0,
-      unitType: "hour",
-      supportDescription: "Support",
     });
     expect(zero.valid).toBe(false);
   });
@@ -98,10 +94,7 @@ describe("Wave 4 billable validator", () => {
       participantId: "p1",
       serviceStartAt: new Date("2026-07-01T09:00:00Z"),
       serviceEndAt: new Date("2026-07-01T10:00:00Z"),
-      quantity: 1,
       unitPriceCents: 0,
-      unitType: "hour",
-      supportDescription: "Pro bono",
       allowZeroPriceReason: "pro_bono",
     });
     expect(ok.valid).toBe(true);
@@ -122,13 +115,11 @@ describe("Wave 4 route policy", () => {
   it("maps billing routes and destinations", () => {
     expect(billingRouteToPaymentRoute("ndis_ndia_managed")).toBe("ndia_managed");
     expect(billingRouteToPaymentRoute("private_pay")).toBeNull();
-    expect(resolvePaymentDestinationForRoute("ndis_plan_managed")).toBe(
-      "plan_manager"
-    );
-    expect(resolvePaymentDestinationForRoute("ndis_ndia_managed")).toBe(
+    expect(defaultPaymentDestination("ndis_plan_managed")).toBe("plan_manager");
+    expect(defaultPaymentDestination("ndis_ndia_managed")).toBe(
       "ndia_portal_export"
     );
-    expect(resolvePaymentDestinationForRoute("pro_bono")).toBe("no_payment");
+    expect(defaultPaymentDestination("pro_bono")).toBe("no_payment");
   });
 });
 

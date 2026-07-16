@@ -30,7 +30,15 @@
     "backfill:ndis-claim-snapshots": "tsx scripts/backfill-ndis-claim-snapshots.ts",
     "check:integrations-env": "npx tsx scripts/check-integrations-env.ts",
     "sync:replit-unified": "bash scripts/sync-replit-unified.sh",
-    "check:replit-unified": "bash scripts/check-replit-unified-deployment.sh"
+    "check:replit-unified": "bash scripts/check-replit-unified-deployment.sh",
+    "pilot:evaluate": "tsx scripts/pilot-evaluate.ts",
+    "pilot:daily-review": "tsx scripts/pilot-daily-review.ts",
+    "pilot:audit-bypasses": "tsx scripts/audit-pilot-bypass-paths.ts",
+    "pilot:audit-limits": "tsx scripts/audit-unbounded-transactions.ts",
+    "pilot:audit-worker-eligibility": "tsx scripts/audit-runtime-worker-eligibility.ts",
+    "pilot:audit-reconciliation": "tsx scripts/audit-pilot-reconciliation.ts",
+    "pilot:test-stop-conditions": "tsx scripts/pilot-test-stop-conditions.ts",
+    "pilot:closure-report": "tsx scripts/pilot-closure-report.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

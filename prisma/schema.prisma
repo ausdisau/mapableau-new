@@ -165,7 +165,24 @@ model User {
   caseTasksCompleted        CaseTask[]      @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]      @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[] @relation("CaseAIInsightRequestedBy")
+
+  controlledPilotsCreated           ControlledPilot[]            @relation("ControlledPilotCreatedBy")
+  controlledPilotsUpdated           ControlledPilot[]            @relation("ControlledPilotUpdatedBy")
+  controlledPilotsPaused            ControlledPilot[]            @relation("ControlledPilotPausedBy")
+  pilotDecisionsDecided             PilotDecisionRecord[]        @relation("PilotDecisionDecidedBy")
+  pilotEnrolmentsAsParticipant      PilotParticipantEnrolment[]  @relation("PilotEnrolmentParticipant")
+  pilotEnrolmentsInvited            PilotParticipantEnrolment[]  @relation("PilotEnrolmentInvitedBy")
+  pilotEnrolmentsAsDelegate         PilotParticipantEnrolment[]  @relation("PilotEnrolmentDelegate")
+  pilotWorkerAuthorisations         PilotWorkerAuthorisation[]   @relation("PilotWorkerAuthorisedUser")
+  pilotWorkerAuthorisationsGiven    PilotWorkerAuthorisation[]   @relation("PilotWorkerAuthorisedBy")
+  pilotAuthorisedOperatorRoles      PilotAuthorisedOperator[]    @relation("PilotAuthorisedOperatorUser")
+  pilotHandoversCreated             PilotHandoverRecord[]        @relation("PilotHandoverCreatedBy")
+  pilotCorrectiveActionsOwned       PilotCorrectiveAction[]      @relation("PilotCorrectiveActionOwner")
+  pilotDailyReviewsReviewed         PilotDailyReview[]           @relation("PilotDailyReviewReviewedBy")
+  pilotChangesRequested             PilotChangeRequest[]         @relation("PilotChangeRequestedBy")
+  pilotChangesApproved              PilotChangeRequest[]         @relation("PilotChangeApprovedBy")
 }
+
 
 model PasskeyCredential {
   id           String    @id @default(cuid())
@@ -758,7 +775,9 @@ model Organisation {
   engagementImprovementActions EngagementImprovementAction[]
   engagementNpsResponses       EngagementNpsResponse[]
   workerTrainingModules        WorkerTrainingModule[]
+  controlledPilots             ControlledPilot[]
 }
+
 
 model OrganisationMember {
   id             String          @id @default(cuid())
@@ -2579,6 +2598,10 @@ model IncidentReport {
   createdAt                  DateTime            @default(now())
   updatedAt                  DateTime            @updatedAt
   closedAt                   DateTime?
+  /// Optional link to a ControlledPilot (Wave 7) — does not create a second incident system.
+  pilotId                    String?
+  pilot                      ControlledPilot?    @relation(fields: [pilotId], references: [id], onDelete: SetNull)
+  reportabilityState         PilotReportabilityState?
 
   updates                IncidentUpdate[]
   actions                IncidentAction[]
@@ -2588,6 +2611,7 @@ model IncidentReport {
   @@index([status, severity])
   @@index([participantId])
   @@index([organisationId])
+  @@index([pilotId])
 }
 
 model IncidentUpdate {
@@ -9636,10 +9660,15 @@ model Complaint {
   status          TrustSafetyQueueStatus @default(open)
   escalationLevel Int                    @default(0)
   source          String                 @default("participant")
+  /// Optional link to a ControlledPilot (Wave 7) — does not create a second complaint system.
+  pilotId         String?
+  pilot           ControlledPilot?       @relation(fields: [pilotId], references: [id], onDelete: SetNull)
+  anonymous       Boolean                @default(false)
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
 
   @@index([status])
+  @@index([pilotId])
   @@map("complaints")
 }
 
@@ -9895,3 +9924,513 @@ model WorkerTrainingCompletion {
   @@index([userId])
   @@map("worker_training_completions")
 }
+
+// --- NDIS gateway Wave 7: controlled pilot operations and runtime safety ---
+
+enum PilotStatus {
+  draft
+  pending_decision
+  approved
+  active
+  paused
+  draining
+  terminated
+  closed
+}
+
+enum PilotStage {
+  design
+  readiness
+  sandbox
+  dry_run
+  shadow
+  limited_live
+  controlled_live
+  wind_down
+  closed
+}
+
+enum PilotDecision {
+  approve
+  reject
+  advance_stage
+  pause
+  resume
+  terminate
+  close
+  require_evidence
+  defer
+}
+
+enum PilotPauseReason {
+  safety_trigger
+  incident
+  complaint
+  limit_breach
+  operational
+  regulatory
+  change_freeze
+  manual
+  other
+}
+
+enum PilotEnrolmentStatus {
+  invited
+  information_provided
+  consent_pending
+  enrolled
+  suspended
+  exited
+  withdrawn
+  declined
+}
+
+enum PilotReviewOutcome {
+  continue
+  continue_with_actions
+  pause_recommended
+  terminate_recommended
+  escalate
+  insufficient_evidence
+}
+
+enum PilotSignalType {
+  incident
+  complaint
+  limit_breach
+  accessibility
+  payment_exception
+  worker_eligibility
+  consent_withdrawal
+  operational_health
+  trend_anomaly
+  other
+}
+
+enum PilotOperatorRole {
+  commander
+  deputy
+  finance
+  safety
+  support
+  observer
+}
+
+enum PilotReservationStatus {
+  reserved
+  committed
+  released
+  expired
+}
+
+enum PilotReservationType {
+  transaction
+  daily_exposure
+  participant_exposure
+  total_exposure
+}
+
+enum PilotCorrectiveActionType {
+  process
+  training
+  configuration
+  communication
+  technical
+  other
+}
+
+enum PilotCorrectiveActionStatus {
+  open
+  in_progress
+  completed
+  verified
+  cancelled
+}
+
+enum PilotChangeStatus {
+  draft
+  submitted
+  approved
+  rejected
+  scheduled
+  applied
+  rolled_back
+  cancelled
+}
+
+enum PilotTriggerStatus {
+  armed
+  fired
+  acknowledged
+  resolved
+  disarmed
+}
+
+enum PilotReportabilityState {
+  not_assessed
+  under_review
+  not_reportable
+  potentially_reportable
+  reportable
+  reported
+  closed
+}
+
+/// Controlled NDIS pilot — per-organisation scoped runtime authority.
+/// Empty allowlists deny all. limitedLiveEnabled defaults false.
+/// Wave 6 assuranceAssessmentId / goLiveAssessmentId are optional strings;
+/// limited_live requires them (fail closed). Not authorised by NdiaPilotApprovalRecord.
+model ControlledPilot {
+  id                       String             @id @default(cuid())
+  organisationId           String
+  organisation             Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name                     String
+  code                     String
+  status                   PilotStatus        @default(draft)
+  stage                    PilotStage         @default(design)
+  summary                  String?
+  /// Empty array = deny all support items (fail closed).
+  supportItemAllowlist     String[]           @default([])
+  /// Empty array = deny all funding routes (fail closed).
+  fundingRouteAllowlist    String[]           @default([])
+  /// Empty array = deny all integration profiles (fail closed).
+  integrationProfileIds    String[]           @default([])
+  maxTransactionCents      Int                @default(0)
+  maxDailyExposureCents    Int                @default(0)
+  maxParticipantExposureCents Int             @default(0)
+  maxTotalExposureCents    Int                @default(0)
+  maxActiveParticipants    Int                @default(0)
+  /// Limited live is disabled by default — never auto-enable.
+  limitedLiveEnabled       Boolean            @default(false)
+  /// Optional Wave 6 assurance assessment reference (string only; Wave 6 not implemented).
+  assuranceAssessmentId    String?
+  /// Optional Wave 6 go-live assessment reference (string only; Wave 6 not implemented).
+  goLiveAssessmentId       String?
+  pauseReason              PilotPauseReason?
+  pausedAt                 DateTime?
+  pausedById               String?
+  pausedBy                 User?              @relation("ControlledPilotPausedBy", fields: [pausedById], references: [id], onDelete: SetNull)
+  resumeRequiresDecision   Boolean            @default(true)
+  plannedStartAt           DateTime?
+  plannedEndAt             DateTime?
+  activatedAt              DateTime?
+  terminatedAt             DateTime?
+  closedAt                 DateTime?
+  createdById              String
+  createdBy                User               @relation("ControlledPilotCreatedBy", fields: [createdById], references: [id])
+  updatedById              String?
+  updatedBy                User?              @relation("ControlledPilotUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  correlationId            String?
+  safeMetadataJson         Json?
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  decisions                PilotDecisionRecord[]
+  enrolments               PilotParticipantEnrolment[]
+  workerAuthorisations     PilotWorkerAuthorisation[]
+  reservations             PilotLimitReservation[]
+  exposureLedger           PilotExposureLedger[]
+  authorisedOperators      PilotAuthorisedOperator[]
+  operatorShifts           PilotOperatorShift[]
+  handovers                PilotHandoverRecord[]
+  safetyTriggers           PilotSafetyTrigger[]
+  safetySignals            PilotSafetySignal[]
+  correctiveActions        PilotCorrectiveAction[]
+  dailyReviews             PilotDailyReview[]
+  changeRequests           PilotChangeRequest[]
+  exerciseRecords          PilotExerciseRecord[]
+  incidentReports          IncidentReport[]
+  complaints               Complaint[]
+
+  @@unique([organisationId, code])
+  @@index([organisationId, status])
+  @@index([stage, status])
+  @@index([assuranceAssessmentId])
+  @@index([goLiveAssessmentId])
+}
+
+/// Append-only human decision log for pilot progression. No AI auto-approval.
+model PilotDecisionRecord {
+  id              String        @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  decision        PilotDecision
+  fromStatus      PilotStatus?
+  toStatus        PilotStatus?
+  fromStage       PilotStage?
+  toStage         PilotStage?
+  rationale       String
+  evidenceRefsJson Json         @default("[]")
+  decidedById     String
+  decidedBy       User          @relation("PilotDecisionDecidedBy", fields: [decidedById], references: [id])
+  correlationId   String?
+  createdAt       DateTime      @default(now())
+
+  @@index([pilotId, createdAt])
+  @@index([decidedById])
+}
+
+model PilotParticipantEnrolment {
+  id                    String               @id @default(cuid())
+  pilotId               String
+  pilot                 ControlledPilot      @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  participantId         String
+  participant           User                 @relation("PilotEnrolmentParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  status                PilotEnrolmentStatus @default(invited)
+  informationProvidedAt DateTime?
+  /// Explicit pilot consent — distinct from ordinary platform consent.
+  pilotConsentAt        DateTime?
+  pilotConsentVersion   String?
+  pilotConsentById      String?
+  withdrawnAt           DateTime?
+  exitReason            String?
+  exitedAt              DateTime?
+  invitedById           String?
+  invitedBy             User?                @relation("PilotEnrolmentInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  delegateUserId        String?
+  delegateUser          User?                @relation("PilotEnrolmentDelegate", fields: [delegateUserId], references: [id], onDelete: SetNull)
+  safeNotesJson         Json?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@unique([pilotId, participantId])
+  @@index([participantId, status])
+  @@index([pilotId, status])
+}
+
+model PilotWorkerAuthorisation {
+  id              String          @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  workerUserId    String
+  workerUser      User            @relation("PilotWorkerAuthorisedUser", fields: [workerUserId], references: [id], onDelete: Cascade)
+  authorisedById  String
+  authorisedBy    User            @relation("PilotWorkerAuthorisedBy", fields: [authorisedById], references: [id])
+  active          Boolean         @default(true)
+  credentialChecksJson Json       @default("[]")
+  revokedAt       DateTime?
+  revokedById     String?
+  revokeReason    String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([pilotId, workerUserId])
+  @@index([pilotId, active])
+  @@index([workerUserId])
+}
+
+model PilotLimitReservation {
+  id               String                 @id @default(cuid())
+  pilotId          String
+  pilot            ControlledPilot        @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  participantId    String?
+  reservationType  PilotReservationType
+  status           PilotReservationStatus @default(reserved)
+  amountCents      Int
+  idempotencyKey   String
+  correlationId    String?
+  reservedAt       DateTime               @default(now())
+  committedAt      DateTime?
+  releasedAt       DateTime?
+  expiresAt        DateTime?
+  safeMetadataJson Json?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@unique([pilotId, idempotencyKey])
+  @@index([pilotId, status])
+  @@index([participantId, status])
+}
+
+model PilotExposureLedger {
+  id             String          @id @default(cuid())
+  pilotId        String
+  pilot          ControlledPilot @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  participantId  String?
+  entryType      String
+  amountCents    Int
+  balanceAfterCents Int
+  reservationId  String?
+  correlationId  String?
+  occurredAt     DateTime        @default(now())
+  safeMetadataJson Json?
+  createdAt      DateTime        @default(now())
+
+  @@index([pilotId, occurredAt])
+  @@index([participantId, occurredAt])
+  @@index([reservationId])
+}
+
+model PilotAuthorisedOperator {
+  id           String            @id @default(cuid())
+  pilotId      String
+  pilot        ControlledPilot   @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User              @relation("PilotAuthorisedOperatorUser", fields: [userId], references: [id], onDelete: Cascade)
+  role         PilotOperatorRole
+  active       Boolean           @default(true)
+  authorisedById String?
+  authorisedAt DateTime          @default(now())
+  revokedAt    DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  shifts       PilotOperatorShift[]
+
+  @@unique([pilotId, userId, role])
+  @@index([pilotId, active])
+}
+
+model PilotOperatorShift {
+  id              String                  @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot         @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  operatorId      String
+  operator        PilotAuthorisedOperator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  startedAt       DateTime                @default(now())
+  endedAt         DateTime?
+  notes           String?
+  createdAt       DateTime                @default(now())
+
+  handoversFrom   PilotHandoverRecord[]   @relation("HandoverFromShift")
+  handoversTo     PilotHandoverRecord[]   @relation("HandoverToShift")
+
+  @@index([pilotId, startedAt])
+  @@index([operatorId])
+}
+
+model PilotHandoverRecord {
+  id              String            @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot   @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  fromShiftId     String?
+  fromShift       PilotOperatorShift? @relation("HandoverFromShift", fields: [fromShiftId], references: [id], onDelete: SetNull)
+  toShiftId       String?
+  toShift         PilotOperatorShift? @relation("HandoverToShift", fields: [toShiftId], references: [id], onDelete: SetNull)
+  summary         String
+  openActionsJson Json              @default("[]")
+  acknowledgedAt  DateTime?
+  createdById     String
+  createdBy       User              @relation("PilotHandoverCreatedBy", fields: [createdById], references: [id])
+  createdAt       DateTime          @default(now())
+
+  @@index([pilotId, createdAt])
+}
+
+model PilotSafetyTrigger {
+  id              String             @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot    @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  status          PilotTriggerStatus @default(armed)
+  conditionJson   Json               @default("{}")
+  firedAt         DateTime?
+  acknowledgedAt  DateTime?
+  acknowledgedById String?
+  resolvedAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  signals         PilotSafetySignal[]
+
+  @@index([pilotId, status])
+}
+
+model PilotSafetySignal {
+  id              String           @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot  @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  triggerId       String?
+  trigger         PilotSafetyTrigger? @relation(fields: [triggerId], references: [id], onDelete: SetNull)
+  signalType      PilotSignalType
+  severity        String           @default("medium")
+  summary         String
+  sourceRef       String?
+  acknowledged    Boolean          @default(false)
+  acknowledgedById String?
+  acknowledgedAt  DateTime?
+  safePayloadJson Json?
+  createdAt       DateTime         @default(now())
+
+  @@index([pilotId, signalType, createdAt])
+  @@index([triggerId])
+}
+
+model PilotCorrectiveAction {
+  id              String                       @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot              @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  actionType      PilotCorrectiveActionType
+  status          PilotCorrectiveActionStatus  @default(open)
+  title           String
+  description     String?
+  ownerUserId     String?
+  ownerUser       User?                        @relation("PilotCorrectiveActionOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  dueAt           DateTime?
+  completedAt     DateTime?
+  verifiedAt      DateTime?
+  signalId        String?
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  @@index([pilotId, status])
+  @@index([ownerUserId])
+}
+
+model PilotDailyReview {
+  id              String              @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot     @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  reviewDate      DateTime
+  outcome         PilotReviewOutcome
+  checklistJson   Json                @default("{}")
+  findingsJson    Json                @default("[]")
+  reviewedById    String
+  reviewedBy      User                @relation("PilotDailyReviewReviewedBy", fields: [reviewedById], references: [id])
+  notes           String?
+  createdAt       DateTime            @default(now())
+
+  @@unique([pilotId, reviewDate])
+  @@index([pilotId, createdAt])
+}
+
+model PilotChangeRequest {
+  id              String            @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot   @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  status          PilotChangeStatus @default(draft)
+  title           String
+  description     String
+  changeType      String
+  riskSummary     String?
+  rollbackPlan    String?
+  requestedById   String
+  requestedBy     User              @relation("PilotChangeRequestedBy", fields: [requestedById], references: [id])
+  approvedById    String?
+  approvedBy      User?             @relation("PilotChangeApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt      DateTime?
+  appliedAt       DateTime?
+  rolledBackAt    DateTime?
+  safeDiffJson    Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([pilotId, status])
+}
+
+model PilotExerciseRecord {
+  id              String          @id @default(cuid())
+  pilotId         String
+  pilot           ControlledPilot @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+  exerciseType    String
+  summary         String
+  outcome         String?
+  conductedById   String?
+  conductedAt     DateTime        @default(now())
+  evidenceJson    Json            @default("[]")
+  createdAt       DateTime        @default(now())
+
+  @@index([pilotId, conductedAt])
+}
+
