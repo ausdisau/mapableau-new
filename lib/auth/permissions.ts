@@ -106,6 +106,18 @@ export type Permission =
   | "provider:ndis:claim:approve"
   | "provider:ndis:claim:revoke"
   | "admin:ndis:claim:break_glass"
+  | "provider:billing:view"
+  | "provider:billing:create"
+  | "provider:billing:validate"
+  | "provider:billing:approve"
+  | "provider:billing:correct"
+  | "provider:billing:void"
+  | "provider:evidence:view"
+  | "provider:evidence:exception"
+  | "participant:billing:view"
+  | "participant:evidence:confirm"
+  | "participant:billing:dispute"
+  | "admin:billing:break_glass"
   | "xero:manage"
   | "stripe:manage"
   | "route:manage"
@@ -236,6 +248,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "participant:billing:view",
+    "participant:evidence:confirm",
+    "participant:billing:dispute",
   ],
   family_member: [
     "profile:read:self",
@@ -295,6 +310,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:ndis:claim:create",
     "provider:ndis:claim:approve",
     "provider:ndis:claim:revoke",
+    "provider:billing:view",
+    "provider:billing:create",
+    "provider:billing:validate",
+    "provider:billing:approve",
+    "provider:billing:correct",
+    "provider:billing:void",
+    "provider:evidence:view",
+    "provider:evidence:exception",
     "engagement:provider:read",
   ],
   transport_operator: [
@@ -387,6 +410,15 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:ndis:claim:approve",
     "provider:ndis:claim:revoke",
     "admin:ndis:claim:break_glass",
+    "provider:billing:view",
+    "provider:billing:create",
+    "provider:billing:validate",
+    "provider:billing:approve",
+    "provider:billing:correct",
+    "provider:billing:void",
+    "provider:evidence:view",
+    "provider:evidence:exception",
+    "admin:billing:break_glass",
     "xero:manage",
     "stripe:manage",
     "route:manage",
