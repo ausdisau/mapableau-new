@@ -1,0 +1,62 @@
+---
+description: MapAble Transport non-negotiable rules (Next.js + Prisma)
+globs:
+  - app/transport/**
+  - app/dashboard/transport/**
+  - app/provider/**/transport/**
+  - app/driver/**
+  - app/admin/transport/**
+  - app/api/transport/**
+  - app/api/provider/transport/**
+  - app/api/driver/transport/**
+  - components/transport/**
+  - lib/transport/**
+  - lib/transport-routing/**
+  - lib/validation/transport*
+  - types/transport*
+  - docs/transport/**
+  - tests/**/transport*
+  - prisma/schema.prisma
+alwaysApply: false
+---
+
+# MapAble Transport rules
+
+## Stack
+
+- Preserve Next.js App Router, React, TypeScript, Prisma, Neon/PostgreSQL, NextAuth, TanStack Query, Tailwind, and existing auth/session patterns.
+- Do not introduce Vite/Express/Drizzle transport code or a second global state framework.
+- Prefer `pnpm type-check`, `pnpm build`, `pnpm test`, and `pnpm lint` over pack references to `npm run check`.
+
+## Source of truth
+
+- New transport product work uses `TransportTrip`, `TransportTripRequest`, `TransportDispatchAssignment`, and `TransportTripEvent`.
+- `TransportBooking` is legacy: readable and bridgeable only. Do not add new product features on it.
+- Do not use generic `Booking` / `/api/bookings` as the sole transport domain model for new participant create flows.
+
+## Honesty and claims
+
+- Never hard-code fares, ETAs, distances, NDIS rates, GST, cancellation charges, partner availability, or funding approval.
+- Never render unconditional `NDIS Covered`, `Companion Card Accepted`, fixed fares, or guaranteed assistance unless a verified provider response or configured rule supports it.
+- External data must include `source`, `generatedAt`, `freshness`, and advisory vs confirmed classification.
+- Public capability labels must come from the server-authoritative production-claim registry (`planned`, `sandbox`, `pilot`, `partner_required`, `production_ready`, `temporarily_unavailable`).
+- A capability cannot become `production_ready` merely because UI, local demos, feature flags, screenshots, sandbox fixtures, or API keys exist.
+
+## Privacy and safety
+
+- Exact pickup/drop-off data is restricted to the participant, authorised operator staff after acceptance, the assigned driver within the permitted window, and audited administrators.
+- Before assignment, show masked label or suburb only.
+- Do not put diagnoses, full access profiles, exact addresses, or unrestricted coordinates in logs, analytics, notifications, webhooks, or error reports.
+- Never auto-book transport from a care appointment without explicit participant confirmation.
+- Do not represent MapAble as an emergency service; direct immediate danger to 000.
+- Driver location sharing requires consent and an active trip state; stop automatically on completion, cancellation, or incident hold.
+
+## Engineering
+
+- Zod at every API boundary; shared typed DTOs between client and server.
+- No `any` in new transport code unless an external SDK forces it and the value is narrowed immediately.
+- Keep orchestration in `lib/transport/*` services; keep App Router route handlers thin.
+- Assignment and dispatch must fail closed when eligibility checks fail; record immutable eligibility snapshots.
+- Idempotency keys on mobile/retryable writes; append-only trip events with compensating events for corrections.
+- Every map interaction needs an equivalent list or form interaction (WCAG 2.2 AA).
+- Australian English; store timestamps in UTC; default display timezone `Australia/Sydney`.

@@ -27,6 +27,10 @@ export type PublicModulePageProps = {
   whoFor: string[];
   availableNow: string[];
   comingSoon: string[];
+  /** Optional: pilot/sandbox capabilities (honest intermediate claims). */
+  pilotOrSandbox?: string[];
+  /** Optional: capabilities that need a participating operator or partner. */
+  partnerRequired?: string[];
   safetyNote: ReactNode;
   primaryCta: CallToAction;
   secondaryCta?: CallToAction;
@@ -47,10 +51,16 @@ export function PublicModulePage({
   whoFor,
   availableNow,
   comingSoon,
+  pilotOrSandbox,
+  partnerRequired,
   safetyNote,
   primaryCta,
   secondaryCta,
 }: PublicModulePageProps) {
+  const showExtendedBuckets =
+    (pilotOrSandbox && pilotOrSandbox.length > 0) ||
+    (partnerRequired && partnerRequired.length > 0);
+
   return (
     <div className="bg-white text-[#0C1833]">
       <section className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
@@ -96,7 +106,13 @@ export function PublicModulePage({
           </h2>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div
+          className={
+            showExtendedBuckets
+              ? "grid gap-5 lg:grid-cols-2 xl:grid-cols-3"
+              : "grid gap-5 lg:grid-cols-3"
+          }
+        >
           <InfoPanel
             title="Who it is for"
             description="The people and teams this module is designed to support."
@@ -105,16 +121,32 @@ export function PublicModulePage({
           />
           <InfoPanel
             title="Available now"
-            description="Safe public-facing capabilities in the current pilot build."
+            description="Capabilities that meet production-claim gates in the current deployment."
             items={availableNow}
             tone="highlight"
           />
+          {pilotOrSandbox && pilotOrSandbox.length > 0 ? (
+            <InfoPanel
+              title="Pilot or sandbox"
+              description="Signed-in or deterministic sandbox capabilities — not full production claims."
+              items={pilotOrSandbox}
+              tone="default"
+            />
+          ) : null}
           <InfoPanel
-            title="Coming soon"
+            title="Coming next"
             description="Planned capabilities that are not yet production claims."
             items={comingSoon}
             tone="muted"
           />
+          {partnerRequired && partnerRequired.length > 0 ? (
+            <InfoPanel
+              title="Requires partner integration"
+              description="Needs a participating operator or transport partner before MapAble can claim delivery."
+              items={partnerRequired}
+              tone="muted"
+            />
+          ) : null}
         </div>
 
         <div className="mt-8 rounded-[1.7rem] border border-[#005B7F]/15 bg-[#F8C51C]/15 p-6 sm:p-8">
