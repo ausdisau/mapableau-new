@@ -55,6 +55,11 @@ export const metadata: Metadata = {
     description:
       "Explore disability support, provider discovery, accessible transport and consent-aware service tools.",
   },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  },
   other: {
     "purpleads-verification": "832ea0b13123578b63ae2fe9",
     "google-adsense-account": ADSENSE_CLIENT_ID,
