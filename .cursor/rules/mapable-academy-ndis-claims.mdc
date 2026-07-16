@@ -1,0 +1,13 @@
+---
+description: NDIS claim language — never over-claim compliance
+globs: app/academy/**/*,lib/academy/**/*,components/academy/**/*,docs/**/academy*
+alwaysApply: false
+---
+
+# NDIS claims language
+
+- Learning records support—but never guarantee—NDIS compliance.
+- Never use “guaranteed compliant”, “accredited”, “nationally recognised”, “qualification”, “Statement of Attainment”, or “certified support worker” for Academy outcomes.
+- Bronze / Silver / Gold are MapAble capability levels only; always show they are not AQF qualifications.
+- Do not reproduce Team DSC content, copy, branding or interface.
+- Prefer linking to authoritative public sources (NDIS Commission, legislation) rather than paraphrasing proprietary training.

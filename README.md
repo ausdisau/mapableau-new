@@ -20,9 +20,9 @@ npx prisma db seed
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Platform hub: [http://localhost:3000/core](http://localhost:3000/core).
+Open [http://localhost:3000](http://localhost:3000). Platform hub: [http://localhost:3000/core](http://localhost:3000/core). MapAble Academy: [http://localhost:3000/academy](http://localhost:3000/academy).
 
-Seed users (see [core phases — Phase 1](docs/mapable/core-phases.md#phase-1)): `participant@mapable.test`, `admin@mapable.test`.
+Seed users (see [core phases — Phase 1](docs/mapable/core-phases.md#phase-1)): `participant@mapable.test`, `admin@mapable.test`. Academy demo course after seed: **MapAble Worker Foundations**.
 
 ### Cursor cloud agent setup
 
@@ -45,6 +45,8 @@ This runs `pnpm install --frozen-lockfile` followed by `prisma generate`.
 | `pnpm lint` / `pnpm lint:fix` | ESLint |
 | `pnpm type-check` | TypeScript |
 | `pnpm test` | Vitest |
+| `pnpm test:academy` | Academy unit/integration tests |
+| `pnpm academy:catalogue:import` | Dry-run catalogue import (use `--apply` to write) |
 | `pnpm setup:cloud-agent` | Install locked dependencies and generate Prisma Client for cloud agents |
 | `pnpm check:integrations-env` | Validate optional integration env vars |
 
@@ -57,6 +59,7 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply changes w
 ```
 .
 ├── app/                      # Next.js App Router
+│   ├── academy/              # MapAble Academy (LMS vertical slice)
 │   ├── api/                  # Route handlers (REST, webhooks, transport, care, …)
 │   ├── admin/                # Admin console (bookings, care, transport, governance, …)
 │   ├── dashboard/            # Participant dashboard (bookings, care, cases, safety, …)
@@ -131,6 +134,7 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/transport.md](docs/modules/transport.md) | Transport module |
 | [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md) | Transport scheduling |
 | [docs/modules/accessibility.md](docs/modules/accessibility.md) | Accessibility profiles |
+| [docs/modules/academy.md](docs/modules/academy.md) | MapAble Academy (learning & credentials) |
 | [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md) | Admin dashboard |
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).

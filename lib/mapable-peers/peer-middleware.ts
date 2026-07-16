@@ -15,11 +15,24 @@ const AUTH_PREFIXES = [
   "/messages",
   "/practitioner",
   "/marketplace",
+  "/academy/learn",
+  "/academy/record",
+  "/academy/credentials",
+  "/academy/evidence",
+  "/academy/settings",
+  "/academy/provider",
+  "/academy/studio",
+  "/academy/admin",
 ] as const;
 
 const AUTH_PATHS = ["/care/", "/transport/"] as const;
 
 export function shouldRunAuthMiddleware(pathname: string): boolean {
+  // Public credential verification must remain anonymous
+  if (pathname.startsWith("/academy/credentials/verify")) {
+    return false;
+  }
+
   return (
     AUTH_PREFIXES.some(
       (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),

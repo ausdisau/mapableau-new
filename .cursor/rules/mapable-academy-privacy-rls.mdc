@@ -1,0 +1,21 @@
+---
+description: Academy privacy and Postgres RLS expectations
+globs: prisma/**/*,lib/academy/**/*,supabase/**/*
+alwaysApply: false
+---
+
+# Academy RLS and privacy
+
+Academy domain tables use the `academy_` prefix (or Prisma models mapped thereto). Every such table enables RLS.
+
+Policy intent:
+- learner_own: `user_id = current_setting('app.current_user_id', true)`
+- provider_org_members: actor is provider_academy_admin for an org of which the subject is a current member
+- assessor_assigned: evidence linked to an AssessorReview assigned to the actor
+- reviewer_role: ContentReview / CourseVersion drafts visible to the matching review entitlement
+- auditor_readonly: SELECT only for academy:audit:read
+- public_catalogue: published CourseVersion readable without auth
+- public_credential_verify: Credential rows where public display opted in and not revoked, minimal columns
+
+Application services still enforce capability checks. RLS is defence in depth.
+Never store real participant clinical data in Academy analytics or seeds.

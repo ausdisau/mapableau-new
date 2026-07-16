@@ -165,6 +165,14 @@ export type Permission =
   | "privacy_analytics:run"
   | "federated_research:manage"
   | "provider_academy:enroll"
+  | "academy:learn"
+  | "academy:provider:admin"
+  | "academy:studio:author"
+  | "academy:studio:publish"
+  | "academy:review"
+  | "academy:assess"
+  | "academy:admin"
+  | "academy:audit:read"
   | "data_trust_report:publish"
   | "sustainability:manage"
   | "outcomes:read"
@@ -193,6 +201,7 @@ export type Permission =
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
     "profile:read:self",
+    "academy:learn",
     "message:read",
     "message:send",
     "support:create",
@@ -261,6 +270,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "calendar:read:org",
     "timesheet:manage:org",
     "incident:create",
+    "academy:learn",
+    "provider_academy:enroll",
   ],
   provider_admin: [
     "booking:read:any",
@@ -284,6 +295,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "enterprise:console",
     "operator_dispatch:manage",
     "provider_academy:enroll",
+    "academy:learn",
+    "academy:provider:admin",
     "provider:ndia:claim",
     "provider:ndis:claim",
     "engagement:provider:read",
@@ -434,6 +447,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "privacy_analytics:run",
     "federated_research:manage",
     "provider_academy:enroll",
+    "academy:learn",
+    "academy:provider:admin",
+    "academy:studio:author",
+    "academy:studio:publish",
+    "academy:review",
+    "academy:assess",
+    "academy:admin",
+    "academy:audit:read",
     "data_trust_report:publish",
     "sustainability:manage",
     "outcomes:read",

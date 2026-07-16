@@ -1,0 +1,14 @@
+---
+description: MapAble platform architecture and Academy bounded context
+alwaysApply: true
+---
+
+# MapAble architecture
+
+- MapAble is a single Next.js App Router monorepo with Prisma on Neon Postgres.
+- Prefer bounded contexts under path prefixes (`/academy`, `/care`, `/transport`) with domain logic in `lib/<context>/`.
+- Reuse MapAble Core for identity (NextAuth / Auth0), roles, org membership, audit events, notifications, accessibility preferences, consent, feature flags, and support escalation. Do not create a second identity system.
+- AD.iD may be added later as an IdP behind the same session model; do not invent a parallel user store.
+- Application authorization uses `lib/auth/permissions.ts` plus context-specific capability checks. UI hiding is never authorization.
+- Server-only privileged database operations. Never place a Supabase service-role key (or any privileged DB secret) in browser code.
+- Academy tables additionally enforce Postgres RLS as defence in depth (see Academy RLS rule). Core app authz remains mandatory.

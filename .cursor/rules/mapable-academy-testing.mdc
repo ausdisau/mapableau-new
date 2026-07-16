@@ -1,0 +1,13 @@
+---
+description: Academy testing and Definition of Done
+globs: tests/academy/**/*,app/academy/**/*,lib/academy/**/*
+alwaysApply: false
+---
+
+# Academy testing
+
+- Unit/integration: Vitest for domain services and permission fail-closed paths.
+- RLS: automated tests that switch DB roles / session claims and assert deny-by-default.
+- E2E a11y: Playwright + axe-core on the vertical slice (catalogue → learn → quiz → certificate).
+- Fixtures use fictional workers and organisations only.
+- Assert attempted answer mutation after submit fails; immutable CourseVersion after publish/complete.
