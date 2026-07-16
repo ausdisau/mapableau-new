@@ -13,11 +13,8 @@ import { ProviderFinderResultCard } from "@/components/provider-finder/ProviderF
 import { ProviderFinderSidebar } from "@/components/provider-finder/ProviderFinderSidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  distanceKm,
-  getLocationAndPostcode,
-  type UserPosition,
-} from "@/lib/geo";
+import { distanceKm, type UserPosition } from "@/lib/geo";
+import { useGeolocationSuburb } from "@/lib/hooks/use-geolocation-suburb";
 import { trackProductEvent } from "@/lib/analytics/product-analytics";
 import {
   ACCESS_NEEDS,
@@ -115,8 +112,11 @@ export default function ProviderFinderClient() {
   const [page, setPage] = useState(1);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
   const [userLocation, setUserLocation] = useState<UserPosition | null>(null);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const {
+    loading: locationLoading,
+    error: locationError,
+    detect: detectSuburb,
+  } = useGeolocationSuburb();
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [interpretNote, setInterpretNote] = useState<string | null>(null);
@@ -188,21 +188,12 @@ export default function ProviderFinderClient() {
   }, [router, searchParams]);
 
   const useMyLocation = async () => {
-    setLocationLoading(true);
-    setLocationError(null);
-    try {
-      const { position, postcode } = await getLocationAndPostcode();
-      setUserLocation(position);
-      setLocation(postcode);
-      setPage(1);
-      setSearchSubmitted(true);
-    } catch (e) {
-      setLocationError(
-        e instanceof Error ? e.message : "Could not get your location",
-      );
-    } finally {
-      setLocationLoading(false);
-    }
+    const detected = await detectSuburb();
+    if (!detected) return;
+    setUserLocation(detected.position);
+    setLocation(detected.label);
+    setPage(1);
+    setSearchSubmitted(true);
   };
 
   const filteredSorted = useMemo(() => {

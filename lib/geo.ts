@@ -1,9 +1,24 @@
 /**
  * Browser geolocation and reverse geocoding (Nominatim) for postcode/area.
  * Distance helper (haversine) for filtering providers by radius.
+ *
+ * Server-side reverse geocode via lib/map/nominatim-server.ts is a future option
+ * if client Nominatim volume or rate limits become an issue.
  */
 
 export type UserPosition = { lat: number; lng: number };
+
+export type NominatimAddress = {
+  postcode?: string;
+  suburb?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  locality?: string;
+  municipality?: string;
+  state_district?: string;
+  state?: string;
+};
 
 export type ReverseGeocodeResult = {
   postcode: string;
@@ -11,6 +26,77 @@ export type ReverseGeocodeResult = {
   state: string;
   displayName: string;
 };
+
+export type UserSuburbResult = {
+  position: UserPosition;
+  suburb: string;
+  state: string;
+  postcode: string;
+  label: string;
+};
+
+const AU_STATE_ABBREVIATIONS: Record<string, string> = {
+  "new south wales": "NSW",
+  victoria: "VIC",
+  queensland: "QLD",
+  "south australia": "SA",
+  "western australia": "WA",
+  tasmania: "TAS",
+  "northern territory": "NT",
+  "australian capital territory": "ACT",
+};
+
+/** Normalize Australian state to abbreviation when possible. */
+export function abbreviateAustralianState(state: string): string {
+  const trimmed = state.trim();
+  if (!trimmed) return "";
+  if (/^(NSW|VIC|QLD|SA|WA|TAS|NT|ACT)$/i.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+  return AU_STATE_ABBREVIATIONS[trimmed.toLowerCase()] ?? trimmed;
+}
+
+/** Pick suburb from Nominatim address fields in AU-friendly order. */
+export function extractAustralianSuburb(address: NominatimAddress): string {
+  return (
+    address.suburb ??
+    address.city ??
+    address.town ??
+    address.village ??
+    address.locality ??
+    address.municipality ??
+    address.state_district ??
+    ""
+  ).trim();
+}
+
+/** Format suburb, state, and postcode for display and search. */
+export function formatLocationLabel(parts: {
+  suburb: string;
+  state: string;
+  postcode: string;
+}): string {
+  const suburb = parts.suburb.trim();
+  const state = abbreviateAustralianState(parts.state);
+  const postcode = parts.postcode.trim();
+
+  if (suburb && state && postcode) {
+    return `${suburb} ${state} ${postcode}`;
+  }
+  if (suburb && state) {
+    return `${suburb} ${state}`;
+  }
+  if (suburb && postcode) {
+    return `${suburb} ${postcode}`;
+  }
+  if (suburb) {
+    return suburb;
+  }
+  if (postcode && state) {
+    return `${postcode} ${state}`;
+  }
+  return postcode || state;
+}
 
 /** Get current position from browser. */
 export function getCurrentPosition(): Promise<UserPosition> {
@@ -43,28 +129,20 @@ export async function reverseGeocode(
 
   const res = await fetch(url.toString(), {
     headers: {
-      "User-Agent": "MapableAU-ProviderFinder/1.0 (NDIS provider finder)",
+      "User-Agent": "MapAbleAU-ProviderFinder/1.0 (NDIS provider finder)",
     },
   });
   if (!res.ok) {
     throw new Error(`Geocoding failed: ${res.status}`);
   }
   const data = (await res.json()) as {
-    address?: {
-      postcode?: string;
-      suburb?: string;
-      village?: string;
-      town?: string;
-      state_district?: string;
-      state?: string;
-    };
+    address?: NominatimAddress;
     display_name?: string;
   };
   const addr = data.address ?? {};
   const postcode = addr.postcode ?? "";
-  const suburb =
-    addr.suburb ?? addr.village ?? addr.town ?? addr.state_district ?? "";
-  const state = addr.state ?? "";
+  const suburb = extractAustralianSuburb(addr);
+  const state = abbreviateAustralianState(addr.state ?? "");
   return {
     postcode,
     suburb,
@@ -93,6 +171,17 @@ export function distanceKm(
   return R * c;
 }
 
+/** Get user position, suburb details, and a formatted location label. */
+export async function getUserSuburb(): Promise<UserSuburbResult> {
+  const position = await getCurrentPosition();
+  const { postcode, suburb, state } = await reverseGeocode(
+    position.lat,
+    position.lng,
+  );
+  const label = formatLocationLabel({ suburb, state, postcode });
+  return { position, suburb, state, postcode, label };
+}
+
 /** Get user position and postcode in one flow. */
 export async function getLocationAndPostcode(): Promise<{
   position: UserPosition;
@@ -100,10 +189,6 @@ export async function getLocationAndPostcode(): Promise<{
   suburb: string;
   state: string;
 }> {
-  const position = await getCurrentPosition();
-  const { postcode, suburb, state } = await reverseGeocode(
-    position.lat,
-    position.lng,
-  );
+  const { position, postcode, suburb, state } = await getUserSuburb();
   return { position, postcode, suburb, state };
 }
