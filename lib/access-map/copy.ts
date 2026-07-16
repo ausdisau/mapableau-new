@@ -24,3 +24,6 @@ export const ACCESS_IMPORT_DATA_DIR = "data/imports";
 export const ACCESS_LEGACY_GEOJSON_FILENAME = "accessible_locations_merged.geojson";
 
 export const ACCESS_LEGACY_KML_FILENAME = "MapAble.kml";
+
+export const ACCESS_LEGACY_KML_ALT_FILENAME =
+  "MapAble by Australian Disability Ltd.kml";

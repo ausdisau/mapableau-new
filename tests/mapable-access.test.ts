@@ -9,6 +9,16 @@ import {
 import { parseKmlXml, sanitizeKmlDescription } from "@/lib/access-import/kml-parser-service";
 import { parseAccessibleLocationsGeoJson } from "@/lib/access-import/geojson-parser-service";
 import { findDuplicatePlaceCandidates } from "@/lib/access-import/import-deduplication-service";
+import {
+  chunkArray,
+  MAX_IMPORT_BYTES,
+  MAX_IMPORT_ITEMS,
+  runWithConcurrency,
+  SEED_BATCH_SIZE,
+  SEED_CONCURRENCY,
+  SEED_MAX_IMPORT_BYTES,
+  SEED_MAX_IMPORT_ITEMS,
+} from "@/lib/access-import/import-limits";
 import { scanReviewForModerationFlags } from "@/lib/access-moderation/content-safety-rules";
 import {
   canEditPlace,
@@ -191,5 +201,41 @@ describe("ranking", () => {
 describe("deduplication", () => {
   it("exports function", () => {
     expect(typeof findDuplicatePlaceCandidates).toBe("function");
+  });
+});
+
+describe("bulk seed import limits", () => {
+  it("uses higher limits for CLI seed than admin API", () => {
+    expect(SEED_MAX_IMPORT_BYTES).toBeGreaterThan(MAX_IMPORT_BYTES);
+    expect(SEED_MAX_IMPORT_ITEMS).toBeGreaterThan(MAX_IMPORT_ITEMS);
+  });
+
+  it("chunks placemarks into fixed-size batches", () => {
+    const items = Array.from({ length: 1200 }, (_, i) => i);
+    const chunks = chunkArray(items, SEED_BATCH_SIZE);
+    expect(chunks).toHaveLength(3);
+    expect(chunks[0]).toHaveLength(SEED_BATCH_SIZE);
+    expect(chunks[1]).toHaveLength(SEED_BATCH_SIZE);
+    expect(chunks[2]).toHaveLength(200);
+  });
+
+  it("defaults seed concurrency for ~400/min target", () => {
+    expect(SEED_CONCURRENCY).toBeGreaterThanOrEqual(20);
+  });
+
+  it("runWithConcurrency limits parallel workers", async () => {
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const items = Array.from({ length: 20 }, (_, i) => i);
+
+    await runWithConcurrency(items, 4, async () => {
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((r) => setTimeout(r, 5));
+      inFlight--;
+    });
+
+    expect(maxInFlight).toBeLessThanOrEqual(4);
+    expect(maxInFlight).toBeGreaterThan(1);
   });
 });
