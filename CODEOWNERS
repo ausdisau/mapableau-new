@@ -62,3 +62,10 @@
 /docs/access-intelligence-next/ @ausdisau/mapable-maintainers
 /components/access-intelligence-next/ @ausdisau/mapable-maintainers
 /tests/access-intelligence-next/ @ausdisau/mapable-maintainers
+
+# Access Weather (AccessCast) — read-oriented forecast projection
+/lib/accesscast/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/app/api/accesscast/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/app/accesscast/ @ausdisau/mapable-maintainers
+/docs/accesscast/ @ausdisau/mapable-maintainers
+/tests/accesscast/ @ausdisau/mapable-maintainers
