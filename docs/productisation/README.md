@@ -19,4 +19,4 @@
 
 ## Controlled pilot
 
-Starting Work — Taylor at Harbour Civic Centre. See later `docs/productisation/STARTING_WORK_PILOT.md` (lands with pilot slice).
+Starting Work — Taylor at Harbour Civic Centre. See [STARTING_WORK_PILOT.md](./STARTING_WORK_PILOT.md).
