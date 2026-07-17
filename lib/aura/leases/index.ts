@@ -161,6 +161,34 @@ export function issueLeases(input: {
       module: "access",
       fieldScope: ["challenge"],
     },
+    {
+      capabilityId: "proposal.create",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
+    },
+    {
+      capabilityId: "proposal.verify",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
+    },
+    {
+      capabilityId: "proposal.review",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
+    },
+    {
+      capabilityId: "proposal.shadow",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
+    },
   ];
 
   for (const item of always) {

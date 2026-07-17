@@ -149,6 +149,7 @@ model User {
   auraOutcomeRecords        AuraOutcomeRecord[]
   auraMissionStopReceipts   AuraMissionStopReceipt[]
   auraOfflineVisitPacks     AuraOfflineVisitPack[]
+  auraProposalReviews       AuraProposalReview[]
 }
 
 model PasskeyCredential {
@@ -9996,26 +9997,236 @@ model AuraPlanVerification {
 }
 
 model AuraActionProposal {
-  id                 String        @id @default(cuid())
-  missionId          String
-  mission            CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
-  actionType         String
-  applicationService String
-  recipient          String?
-  purpose            String
-  payload            Json          @default("{}")
-  fieldsShared       Json          @default("[]")
-  fieldsOmitted      Json          @default("[]")
-  proposalHash       String
-  idempotencyKey     String
-  expiresAt          DateTime
-  state              String        @default("draft")
-  createdAt          DateTime      @default(now())
+  id                              String        @id @default(cuid())
+  missionId                       String
+  mission                         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId                  String?
+  planVersion                     Int           @default(1)
+  version                         Int           @default(1)
+  previousVersionId               String?
+  supersededById                  String?
+  actionType                      String
+  risk                            String        @default("communication")
+  applicationService              String
+  recipientType                   String?
+  recipientId                     String?
+  recipientLabel                  String?
+  purposeCode                     String?
+  purposeText                     String?
+  purpose                         String        @default("")
+  payload                         Json          @default("{}")
+  payloadJson                     Json          @default("{}")
+  fieldsShared                    Json          @default("[]")
+  fieldsOmitted                   Json          @default("[]")
+  disclosureJson                  Json          @default("{}")
+  evidenceReferencesJson          Json          @default("[]")
+  preconditionsJson               Json          @default("[]")
+  expectedResult                  String?
+  possibleFailures                Json          @default("[]")
+  fallbackPlanJson                Json          @default("[]")
+  requiredAuthority               String        @default("L3_PROPOSE")
+  participantShadowReviewRequired Boolean       @default(true)
+  futureParticipantApprovalRequired Boolean     @default(true)
+  futureVenueApprovalRequired     Boolean       @default(false)
+  humanReviewRequired             Boolean       @default(false)
+  createdByActorType              String        @default("aura")
+  createdByActorId                String?
+  proposalHash                    String
+  idempotencyKey                  String
+  state                           String        @default("draft")
+  expiresAt                       DateTime
+  createdAt                       DateTime      @default(now())
+  updatedAt                       DateTime      @updatedAt
+
+  verifications AuraProposalVerificationRecord[]
+  reviews       AuraProposalReview[]
+  shadows       AuraShadowEvaluation[]
+  receipts      AuraShadowReceipt[]
 
   @@unique([idempotencyKey])
   @@index([missionId, state])
   @@index([proposalHash])
+  @@index([expiresAt])
+  @@index([previousVersionId])
   @@map("aura_action_proposals")
+}
+
+model AuraProposalVerificationRecord {
+  id                      String             @id @default(cuid())
+  proposalId              String
+  proposal                AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion         Int
+  verifierVersion         String
+  status                  String
+  checksJson              Json               @default("[]")
+  futureExecutionEligible Boolean            @default(false)
+  checkedAt               DateTime           @default(now())
+
+  @@index([proposalId, checkedAt])
+  @@map("aura_proposal_verifications_wave3")
+}
+
+model AuraProposalReview {
+  id                       String             @id @default(cuid())
+  proposalId               String
+  proposal                 AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion          Int
+  participantId            String
+  participant              User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  decision                 String
+  comment                  String?
+  proposalHash             String
+  futureExecutionApproval  Boolean            @default(false)
+  decidedAt                DateTime           @default(now())
+
+  @@index([proposalId, decidedAt])
+  @@index([participantId, decidedAt])
+  @@map("aura_proposal_reviews")
+}
+
+model AuraShadowEvaluation {
+  id                     String             @id @default(cuid())
+  proposalId             String
+  proposal               AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion        Int
+  missionId              String
+  status                 String
+  stagesJson             Json               @default("[]")
+  requiredApprovalsJson  Json               @default("{}")
+  requiredConsentScopes  Json               @default("[]")
+  serviceAssessmentJson  Json               @default("{}")
+  predictedEffectsJson   Json               @default("{}")
+  failureCodes           Json               @default("[]")
+  fallbackPlanJson       Json               @default("[]")
+  executionAttempted     Boolean            @default(false)
+  externalSideEffects    Int                @default(0)
+  evaluatedAt            DateTime           @default(now())
+  expiresAt              DateTime
+
+  @@index([proposalId, evaluatedAt])
+  @@index([missionId, status])
+  @@map("aura_shadow_evaluations")
+}
+
+model AuraShadowReceipt {
+  id                   String             @id @default(cuid())
+  proposalId           String
+  proposal             AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion      Int
+  proposalHash         String
+  participantReviewId  String
+  shadowEvaluationId   String
+  status               String
+  summary              String
+  executionAttempted   Boolean            @default(false)
+  externalSideEffects  Int                @default(0)
+  auditCorrelationId   String
+  createdAt            DateTime           @default(now())
+
+  @@index([proposalId, createdAt])
+  @@index([proposalHash])
+  @@map("aura_shadow_receipts")
+}
+
+// ---------------------------------------------------------------------------
+// MapAble AURA Wave 4 — execution approvals, executions, receipts
+// ---------------------------------------------------------------------------
+
+model AuraExecutionApproval {
+  id                    String   @id @default(cuid())
+  missionId             String
+  proposalId            String
+  proposalVersion       Int
+  proposalHash          String
+  participantId         String
+  actionType            String
+  recipientSnapshotJson Json
+  purposeCode           String
+  disclosureSnapshotJson Json
+  expectedResult        String
+  possibleFailuresJson  Json     @default("[]")
+  fallbackPlanJson      Json     @default("[]")
+  consentSnapshotIdsJson Json    @default("[]")
+  policyVersion         String
+  servicePreflightVersion String
+  decision              String
+  approvedAt            DateTime?
+  declinedAt            DateTime?
+  cancelledAt           DateTime?
+  expiresAt             DateTime
+  authenticationContextJson Json
+  usedAt                DateTime?
+  usedByExecutionId     String?
+  createdAt             DateTime @default(now())
+
+  @@index([proposalId, proposalHash])
+  @@index([participantId, expiresAt])
+  @@index([missionId, decision])
+  @@map("aura_execution_approvals")
+}
+
+model AuraActionExecution {
+  id                    String   @id @default(cuid())
+  missionId             String
+  proposalId            String
+  proposalVersion       Int
+  proposalHash          String
+  executionApprovalId   String
+  actionType            String
+  serviceId             String
+  serviceVersion        String
+  state                 String
+  idempotencyKey        String   @unique
+  authorisedAt          DateTime?
+  queuedAt              DateTime?
+  startedAt             DateTime?
+  serviceReceiptReceivedAt DateTime?
+  verificationStartedAt DateTime?
+  completedAt           DateTime?
+  cancelledAt           DateTime?
+  applicationReceiptId    String?
+  outboxEventIdsJson    Json     @default("[]")
+  recordsCreatedJson    Json     @default("[]")
+  deliveryStateJson     Json?
+  postconditionsJson    Json     @default("[]")
+  realWorldOutcome      String   @default("not_observed")
+  failureCode           String?
+  failureMessage        String?
+  cancellationSupported Boolean  @default(false)
+  compensationSupported Boolean  @default(false)
+  auditCorrelationId    String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([missionId, state])
+  @@index([proposalId, proposalVersion])
+  @@map("aura_action_executions")
+}
+
+model AuraExecutionReceipt {
+  id                    String   @id @default(cuid())
+  missionId             String
+  executionId           String   @unique
+  proposalId            String
+  proposalVersion       Int
+  proposalHash          String
+  executionApprovalId   String
+  actionType            String
+  finalState            String
+  serviceReceiptJson    Json
+  recordsCreatedJson    Json     @default("[]")
+  deliveriesJson        Json     @default("[]")
+  postconditionSummaryJson Json  @default("[]")
+  realWorldOutcomeConfirmed Boolean @default(false)
+  participantFacingSummary String
+  limitationsJson       Json     @default("[]")
+  fallbackActionsJson   Json     @default("[]")
+  auditCorrelationId    String
+  createdAt             DateTime @default(now())
+
+  @@index([missionId, createdAt])
+  @@index([proposalId])
+  @@map("aura_execution_receipts")
 }
 
 model AuraMemoryCard {

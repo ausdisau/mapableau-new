@@ -1,32 +1,30 @@
-# AURA — ACTION PROPOSALS
+# AURA Wave 3 — Action Proposals
 
-See also: [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md), [BRANCH_AND_DOMAIN_RECONCILIATION.md](./BRANCH_AND_DOMAIN_RECONCILIATION.md).
+Authority: **L3_PROPOSE**. External actions: **zero**.
 
-## Summary
+## Guarantee
 
-MapAble **AURA** (Accessibility · Understanding · Routing · Agency) is a participant-controlled accessibility assistant. It is **ASI-ready** in the safety sense: capability growth must not automatically expand authority, personal-data access, or write permission.
+AURA may draft, verify, and shadow-evaluate immutable proposals. It must not send messages, create bookings, publish reports, share Passports/Visit Plans, notify supporters, or call write adapters.
 
-**Foundational rule:** Agents interpret, retrieve, compare, simulate, draft and recommend. Participants decide. Deterministic MapAble services execute.
+Participant “Accept for shadow evaluation” ≠ execution approval. Wave 4 requires a new execution-specific approval.
 
-## Wave 1 status
+## Supported types
 
-Wave 1 (read-only) ships on branch `cursor/mapable-aura-wave1-6ea8`:
+- venue_verification_request
+- visit_plan_share
+- supporter_notification
+- transport_request
+- barrier_report
 
-- CareOSMission as canonical mission SoT (+ AuraMissionExtension)
-- Capability leases; authority ceiling **L2_RECOMMEND**
-- Proof-carrying plans + independent verifier
-- Stop AURA protocol
-- Accessibility Mission mode on `/ask`
-- Taylor @ Harbour Civic synthetic flagship
-- **No** application writes; **no** Prisma in agent tools; physical actuation **off**
+## Implementation
 
-## Topic focus: ACTION PROPOSALS
+`lib/aura/proposals/index.ts` — create, hash, verify, review, revise, shadow, cancel, expiry, execution guard.
 
-This document covers **ACTION PROPOSALS** for AURA operators and reviewers. Production enablement requires gates in PRODUCTION_READINESS.md. Do not claim AURA is an ASI, autonomous case management, or generally production-ready while release gates remain open.
+Direct Access Intelligence write tools remain outside the AURA tool registry.
 
-## Related paths
+## Flags
 
-- `lib/aura/`
-- `app/api/intelligence/aura/`
-- `components/aura/`
-- `tests/aura/`
+- `MAPABLE_AURA_PROPOSALS_ENABLED`
+- `MAPABLE_AURA_PROPOSAL_REVIEW_ENABLED`
+- `MAPABLE_AURA_SHADOW_EVALUATION_ENABLED`
+- Write/delivery/physical must stay `false`

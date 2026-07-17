@@ -3,6 +3,9 @@ import { randomUUID } from "crypto";
 import { revokeAllLeases, listActiveLeases } from "../leases";
 import type { AuraMissionRecord } from "../mission/store";
 import { requireMission, saveMission } from "../mission/store";
+import { invalidateUnusedApprovalsForMission } from "../execution/approval";
+import { cancelQueuedExecutionsForMission } from "../execution/store";
+import { cancelActiveProposalsForMission } from "../proposals";
 import { appendWitness, listWitness } from "../witness";
 
 export type AuraStopState =
@@ -21,6 +24,8 @@ export type AuraStopReceipt = {
   revokedCapabilityLeaseIds: string[];
   cancelledRunIds: string[];
   invalidatedProposalIds: string[];
+  invalidatedApprovalIds: string[];
+  cancelledExecutionIds: string[];
   preservedRecordTypes: string[];
   auditCorrelationId: string;
   result: "stopped" | "partially_stopped_human_review_required";
@@ -145,6 +150,25 @@ export function executeStopAura(input: { missionId: string; userId: string }): {
 
   const activeBefore = listActiveLeases(input.missionId);
   const revoked = revokeAllLeases(input.missionId, "participant_stop");
+  const invalidatedProposalIds = cancelActiveProposalsForMission(
+    input.missionId,
+  );
+  const invalidatedApprovalIds = invalidateUnusedApprovalsForMission(
+    input.missionId,
+  );
+  const { cancelledExecutions } = (() => {
+    const cancelledExecutions = cancelQueuedExecutionsForMission(input.missionId);
+    if (cancelledExecutions.length) {
+      appendWitness({
+        missionId: input.missionId,
+        type: "execution.stopped_by_participant",
+        summary: "Queued executions cancelled by Stop AURA",
+        correlationId: mission.correlationId,
+        payload: { cancelledExecutions },
+      });
+    }
+    return { cancelledExecutions };
+  })();
 
   const completedAt = new Date().toISOString();
   const receipt: AuraStopReceipt = {
@@ -155,13 +179,17 @@ export function executeStopAura(input: { missionId: string; userId: string }): {
     completedAt,
     revokedCapabilityLeaseIds: revoked.map((l) => l.id),
     cancelledRunIds: cancelledRunIds.get(input.missionId) ?? [],
-    invalidatedProposalIds: [], // Wave 3+
+    invalidatedProposalIds,
+    invalidatedApprovalIds,
+    cancelledExecutionIds: cancelledExecutions,
     preservedRecordTypes: [
       "CareOSMission",
       "AuraProofPlan",
       "AuraPlanVersion",
       "WitnessEvent",
       "AuraCounterfactualRun",
+      "AuraActionProposal",
+      "AuraShadowReceipt",
     ],
     auditCorrelationId: mission.correlationId,
     result: "stopped",
@@ -169,6 +197,9 @@ export function executeStopAura(input: { missionId: string; userId: string }): {
       "AURA cannot continue reading information or generating plans for this mission.",
       "Completed MapAble records and audit history were not deleted.",
       `Revoked ${revoked.length} capability lease(s); ${activeBefore.length} were active.`,
+      `Cancelled ${invalidatedProposalIds.length} pending proposal(s); shadow receipts preserved.`,
+      `Invalidated ${invalidatedApprovalIds.length} unused execution approval(s).`,
+      `Cancelled ${cancelledExecutions.length} queued execution(s).`,
     ],
   };
   stopReceipts.set(input.missionId, receipt);

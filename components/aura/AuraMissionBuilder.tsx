@@ -5,6 +5,8 @@ import React, { useId, useState } from "react";
 
 import type { AuraModule, AuraResponse } from "@/lib/aura/schemas";
 
+import { AuraProposalCard } from "./AuraProposalCard";
+
 const MODULE_OPTIONS: Array<{
   id: AuraModule;
   label: string;
@@ -437,12 +439,23 @@ function AuraMissionResultView({
       <AuraPlanVerifierResult verifier={result.verifier} />
       <AuraHumanReviewPanel review={result.humanReview} />
 
+      {!stopped ? (
+        <AuraProposalCard missionId={result.missionId} />
+      ) : null}
+
       <p className="text-sm">
         <a
           className="underline"
           href={`/dashboard/aura/missions/${result.missionId}/audit`}
         >
           Open audit replay
+        </a>
+        {" · "}
+        <a
+          className="underline"
+          href={`/dashboard/aura/missions/${result.missionId}/proposals`}
+        >
+          Proposal history
         </a>
       </p>
 

@@ -105,6 +105,15 @@ export const auraCapabilityIdSchema = z.enum([
   "plan.challenge",
   "mission.read",
   "mission.stop",
+  "proposal.create",
+  "proposal.verify",
+  "proposal.review",
+  "proposal.shadow",
+  "proposal.venue_verification",
+  "proposal.visit_plan_share",
+  "proposal.supporter_notification",
+  "proposal.transport_request",
+  "proposal.barrier_report",
 ]);
 
 export type AuraCapabilityId = z.infer<typeof auraCapabilityIdSchema>;

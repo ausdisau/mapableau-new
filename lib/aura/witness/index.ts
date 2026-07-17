@@ -23,7 +23,24 @@ export type AuraReplayEventType =
   | "mission.stopped"
   | "mission.human_review_required"
   | "tool.denied"
-  | "plan.cancelled";
+  | "plan.cancelled"
+  | "proposal.created"
+  | "proposal.verification_started"
+  | "proposal.verified"
+  | "proposal.verification_failed"
+  | "proposal.ready_for_review"
+  | "proposal.revision_requested"
+  | "proposal.superseded"
+  | "proposal.participant_accepted_for_shadow"
+  | "proposal.participant_declined"
+  | "proposal.shadow_started"
+  | "proposal.shadow_allowed"
+  | "proposal.shadow_blocked"
+  | "proposal.shadow_indeterminate"
+  | "proposal.cancelled"
+  | "proposal.expired"
+  | "proposal.execution_blocked_by_wave"
+  | "proposal.execution_attempt_detected";
 
 export type WitnessEvent = {
   id: string;

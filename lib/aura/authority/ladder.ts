@@ -23,8 +23,9 @@ const RANK: Record<AuraAuthorityLevel, number> = {
   L6_PROHIBITED: 6,
 };
 
-/** Wave 1 production ceiling. */
+/** Wave 1–2 production ceiling when proposals off. Wave 3 may use L3_PROPOSE. */
 export const AURA_WAVE1_AUTHORITY_CEILING: AuraAuthorityLevel = "L2_RECOMMEND";
+export const AURA_WAVE3_AUTHORITY_CEILING: AuraAuthorityLevel = "L3_PROPOSE";
 
 export function authorityRank(level: AuraAuthorityLevel): number {
   return RANK[level];
