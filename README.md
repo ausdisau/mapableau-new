@@ -168,6 +168,18 @@ Scripts: `pnpm federation:conformance`, `federation:audit-consent`, `federation:
 
 See [docs/federation/](docs/federation/) and threat models under [docs/security/](docs/security/).
 
+### AURA participant-controlled agent OS (Wave 10)
+
+Wave 10 introduces AURA (Automated Utility & Reasoning Assistant) — a bounded execution layer for participant-authorised agent planning. **AURA is not sentient, not a legal representative, not a medical practitioner, not a financial adviser, and not a substitute decision-maker.** AURA cannot escalate its own permissions, alter consent, appoint delegation, decide incident reportability, close safeguarding cases, release its own kill switch, or approve invoices/claims/payments (the Billing specialist is explain-only). All participant data egress continues to route through Wave 9 `discloseParticipantData`. Wave 8 tenant context is required on every mutation.
+
+Set `AURA_ENABLED=false` (default) to keep everything simulator-side. MCP and A2A gateways are off by default; each server/peer additionally needs registration, conformance, and `productionActivated=true`. A2A is experimental. Legacy AI matching is retained as advisory only and the fix in `lib/ai-matching/ai-match-service.ts` separates deterministic `ruleScore` from optional `modelCommentaryScore` (never fabricated).
+
+Participant UI: `/participant/aura`. Admin UI: `/admin/aura`. Provider UI: `/provider/aura`. Well-known agent card: `/.well-known/agent-card.json` (sandbox only).
+
+Scripts: `pnpm aura:audit-actions`, `aura:audit-tools`, `aura:audit-authority`, `aura:audit-consent`, `aura:audit-memory`, `aura:audit-bypasses`, `aura:test-planning`, `aura:test-simulation`, `aura:test-execution`, `aura:test-compensation`, `aura:test-injection`, `aura:test-accessibility`, `aura:evaluate`, `aura:mcp:conformance`, `aura:a2a:conformance`, plus pack wrappers `aura:audit-ai-actions`, `aura:audit-automation-events`, `aura:audit-tool-registry`, `aura:audit-ai-tenant-scope`, `aura:audit-ai-consent`, `aura:migrate-ai-matching-runs`, `aura:backfill-agent-definitions`, `aura:classify-agent-actions`, `aura:audit-agent-memory`, `aura:audit-agent-bypasses` — all support `--dry-run` and require no DB in dry mode.
+
+See [docs/aura/](docs/aura/) — especially `wave-10-architecture-and-risk-plan.md`, `wave-10-not-sentient.md`, and `wave-10-prohibited-actions.md`.
+
 ### QA and mobile
 
 | Doc | Description |
