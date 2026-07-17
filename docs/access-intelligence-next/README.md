@@ -2,7 +2,7 @@
 
 Programme name: **MapAble Living Access Fabric**.
 
-This package delivers **Wave 0–5 foundation** contracts across three stacked PRs:
+This package delivers **Wave 0–5 foundation** plus **Wave 8–9** reliability/failure contracts:
 
 - Versioned accessibility ontology
 - Typed Access Query Language (AQL) AST + validation + fixture execution
@@ -12,6 +12,8 @@ This package delivers **Wave 0–5 foundation** contracts across three stacked P
 - Change detection reviews (auto-overwrite blocked)
 - Synthetic Harbour Living Access Graph
 - Proof-carrying door-to-room journey preflight with segment list
+- Reliability profiles (bands + cannot_forecast)
+- Journey failure / fragility graph with list alternative
 
 ## Operating mode
 
@@ -35,4 +37,5 @@ Optional durable evidence (still not production truth): see [EVIDENCE_PERSISTENC
 
 - [REPOSITORY_RECONCILIATION.md](./REPOSITORY_RECONCILIATION.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
+- [RELIABILITY_AND_FAILURE.md](./RELIABILITY_AND_FAILURE.md)
 - [NON_GOALS.md](./NON_GOALS.md)
