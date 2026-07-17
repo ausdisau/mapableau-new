@@ -30,6 +30,7 @@ Runtime seeds: `lib/convergence-os/seed/capabilities.ts` (keys prefixed `mission
 | [PARTICIPANT_RIGHTS.md](./PARTICIPANT_RIGHTS.md) | Constitution, AI boundaries, prohibited scores |
 | [DELIVERY_WAVES.md](./DELIVERY_WAVES.md) | Wave order and PR discipline |
 | [BUILD_PARTNER_DEFER.md](./BUILD_PARTNER_DEFER.md) | Mission-pack build/partner/defer deltas |
+| [SHARED_PROJECTION.md](./SHARED_PROJECTION.md) | Read-oriented dependency projection (Wave 2) |
 
 ## Feature flags (all default false — not enabled here)
 
