@@ -180,6 +180,10 @@ Scripts: `pnpm aura:audit-actions`, `aura:audit-tools`, `aura:audit-authority`, 
 
 See [docs/aura/](docs/aura/) — especially `wave-10-architecture-and-risk-plan.md`, `wave-10-not-sentient.md`, and `wave-10-prohibited-actions.md`.
 
+### Life events & service recovery (Wave 11)
+
+Wave 11 adds a *projection* over Case, AURA, incidents/complaints, and bookings to reason about life events, service continuity, and deterministic service-recovery plans. It does not duplicate any of those systems. **Continuity preserves participant goals, not merely bookings.** Care cancellation does not auto-cancel linked transport — a continuity signal is raised and a continuity case is opened for a human decision. A new AURA `service-recovery` specialist drafts goal-preserving options and plans; it can never approve invoices/claims/payments, alter consent, or dispatch emergency services (000, ambulance, police, fire). External civic feeds default to disabled and untrusted until validated and fresh. Life events are always human-declared; AURA can suggest, never auto-create. Essential support is participant-defined — never inferred from diagnosis. See [docs/continuity/](docs/continuity/) — especially `wave-11-architecture-and-risk-plan.md`, `wave-11-emergency-boundary.md`, `wave-11-essential-support-boundary.md`, and `wave-11-aura-service-recovery-specialist.md`.
+
 ### QA and mobile
 
 | Doc | Description |

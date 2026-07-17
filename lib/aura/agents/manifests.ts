@@ -37,6 +37,19 @@ const NEVER_APPROVE = [
   "safeguarding.close",
   "safety.release_kill_switch",
   "integration.activate_production",
+  // Wave 11 additions — no emergency-service automation, no financial submits.
+  "emergency.dispatch",
+  "emergency.contact_000",
+  "emergency.call_ambulance",
+  "emergency.call_police",
+  "emergency.call_fire",
+  "emergency.mental_health_crisis_dispatch",
+  "emergency.after_hours_safety_line",
+  "billing.submit_claim",
+  "invoices.approve",
+  "invoices.submit",
+  "claims.approve",
+  "claims.submit",
 ];
 
 export const SPECIALIST_MANIFESTS: SpecialistManifestTemplate[] = [
@@ -160,6 +173,34 @@ export const SPECIALIST_MANIFESTS: SpecialistManifestTemplate[] = [
       "High-risk recovery still requires a human safety officer.",
     ],
   },
+  {
+    // Wave 11 — SERVICE recovery. Distinct from account recovery above.
+    // This specialist supports service continuity: rescheduling, drafting
+    // substitute booking requests, opening continuity cases, and simulating
+    // recovery plans. It NEVER approves financial actions, alters consent,
+    // dispatches emergency services, or auto-cancels linked services.
+    slug: "service-recovery",
+    displayName: "AURA Service Recovery",
+    classification: "recovery",
+    description:
+      "Suggests service-continuity options (reschedule, substitute, waitlist, hand-off) and drafts recovery plans. Never approves payments, claims, invoices, or emergency dispatch. Cannot auto-cancel linked services.",
+    allowedActionSlugs: [
+      "continuity.explain_options",
+      "continuity.draft_recovery_plan",
+      "continuity.simulate_recovery_plan",
+      "continuity.open_case_from_signal",
+      "continuity.escalate_to_human",
+      "continuity.propose_reservation",
+    ],
+    prohibitedActionSlugs: NEVER_APPROVE,
+    requiresApprovalAtOrAbove: "medium_reversible",
+    disclaimers: [
+      "AURA Service Recovery is not a legal representative and does not decide financial matters.",
+      "It cannot call 000 or dispatch emergency services — a human safety officer handles emergencies.",
+      "It cannot auto-cancel a linked booking; a person confirms every service change.",
+      "External civic feeds may be stale; recovery plans quote the feed and its freshness at execution.",
+    ],
+  },
 ];
 
 export function isBillingApprovalAttempt(actionSlug: string): boolean {
@@ -168,4 +209,19 @@ export function isBillingApprovalAttempt(actionSlug: string): boolean {
     actionSlug === "billing.approve_claim" ||
     actionSlug === "payments.approve"
   );
+}
+
+export function isEmergencyServiceAttempt(actionSlug: string): boolean {
+  return (
+    actionSlug === "emergency.dispatch" ||
+    actionSlug === "emergency.contact_000" ||
+    actionSlug === "emergency.call_ambulance" ||
+    actionSlug === "emergency.call_police" ||
+    actionSlug === "emergency.call_fire" ||
+    actionSlug === "emergency.mental_health_crisis_dispatch"
+  );
+}
+
+export function findServiceRecoveryManifest(): SpecialistManifestTemplate | undefined {
+  return SPECIALIST_MANIFESTS.find((m) => m.slug === "service-recovery");
 }

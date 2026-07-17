@@ -204,6 +204,27 @@ export type Permission =
   | "api_ecosystem:manage"
   | "research_federation:manage"
   |     "continuity:manage"
+  | "continuity:read:self"
+  | "continuity:manage:self"
+  | "continuity:read:org"
+  | "continuity:manage:org"
+  | "continuity:signals:read"
+  | "continuity:signals:manage"
+  | "continuity:cases:read"
+  | "continuity:cases:manage"
+  | "continuity:cases:approve"
+  | "continuity:recovery:draft"
+  | "continuity:recovery:approve"
+  | "continuity:recovery:execute"
+  | "continuity:reservations:manage"
+  | "continuity:life-events:read:self"
+  | "continuity:life-events:manage:self"
+  | "continuity:life-events:read:org"
+  | "continuity:life-events:manage:org"
+  | "continuity:standing-instructions:manage:self"
+  | "continuity:standing-instructions:read:org"
+  | "continuity:standing-instructions:manage:org"
+  | "continuity:civic-feed:manage"
   | "civic_audit:publish"
   | "federation_partner:manage"
   | "case:read:self"
@@ -384,6 +405,11 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "federation:disclosure:read:self",
     "portability:export:self",
     "portability:import:self",
+    "continuity:read:self",
+    "continuity:manage:self",
+    "continuity:life-events:read:self",
+    "continuity:life-events:manage:self",
+    "continuity:standing-instructions:manage:self",
   ],
   family_member: [
     "profile:read:self",
@@ -406,6 +432,20 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:command-centre:read",
     "admin:participants:read",
     "admin:bookings:read",
+    "continuity:read:org",
+    "continuity:manage:org",
+    "continuity:signals:read",
+    "continuity:signals:manage",
+    "continuity:cases:read",
+    "continuity:cases:manage",
+    "continuity:cases:approve",
+    "continuity:recovery:draft",
+    "continuity:recovery:approve",
+    "continuity:recovery:execute",
+    "continuity:reservations:manage",
+    "continuity:life-events:read:org",
+    "continuity:life-events:manage:org",
+    "continuity:standing-instructions:read:org",
   ],
   support_worker: [
     "booking:read:any",
@@ -656,6 +696,22 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "api_ecosystem:manage",
     "research_federation:manage",
     "continuity:manage",
+    "continuity:read:org",
+    "continuity:manage:org",
+    "continuity:signals:read",
+    "continuity:signals:manage",
+    "continuity:cases:read",
+    "continuity:cases:manage",
+    "continuity:cases:approve",
+    "continuity:recovery:draft",
+    "continuity:recovery:approve",
+    "continuity:recovery:execute",
+    "continuity:reservations:manage",
+    "continuity:life-events:read:org",
+    "continuity:life-events:manage:org",
+    "continuity:standing-instructions:read:org",
+    "continuity:standing-instructions:manage:org",
+    "continuity:civic-feed:manage",
     "civic_audit:publish",
     "federation_partner:manage",
     "case:read:any",

@@ -5215,12 +5215,16 @@ model OrchestrationRescheduleRequest {
   careShiftId        String?
   transportBookingId String?
   requestedById      String
+  coordinatorId      String?
+  organisationId     String?
   status             String   @default("pending")
   notes              String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   @@index([requestedById, status])
+  @@index([coordinatorId, status])
+  @@index([organisationId, status])
   @@map("orchestration_reschedule_requests")
 }
 
@@ -10107,10 +10111,11 @@ model Case {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  notes    CaseNote[]
-  tasks    CaseTask[]
-  links    CaseLink[]
-  insights CaseAIInsight[]
+  notes           CaseNote[]
+  tasks           CaseTask[]
+  links           CaseLink[]
+  insights        CaseAIInsight[]
+  continuityCases ContinuityCase[] @relation("ContinuityCaseCase")
 
   @@index([participantId])
   @@index([assignedToId])
@@ -13198,4 +13203,646 @@ model AiSystemInventoryEntry {
   status         AiSystemInventoryStatus @default(proposed)
   createdAt      DateTime                @default(now())
   updatedAt      DateTime                @updatedAt
+}
+
+// =========================================================================
+// Wave 11 — Life Events & Service Recovery (continuity graph)
+// =========================================================================
+// Continuity is a PROJECTION over existing incidents/complaints/bookings/AURA
+// and MUST NOT duplicate them. See docs/continuity/wave-11-architecture-and-risk-plan.md.
+// Not sentient, not medical, not a legal representative, not an emergency
+// service, not a financial approver. Essential support is PARTICIPANT-DEFINED.
+
+enum LifeEventKind {
+  address_change
+  employment_change
+  household_change
+  hospital_admission
+  hospital_discharge
+  bereavement
+  legal_status_change
+  representative_change
+  travel_planned
+  service_pause_planned
+  provider_wind_down
+  provider_closure
+  disaster_impact
+  other
+}
+
+enum LifeEventStatus {
+  draft
+  confirmed
+  active
+  completed
+  cancelled
+  disputed
+}
+
+enum LifeEventSource {
+  participant_self
+  delegate
+  coordinator
+  provider
+  operational_signal
+  civic_feed
+  aura_suggestion
+}
+
+enum ContinuitySignalKind {
+  care_shift_cancelled
+  transport_booking_cancelled
+  worker_unavailable
+  provider_closure_notice
+  no_show_pattern
+  address_mismatch
+  funding_expiring
+  plan_reassessment_due
+  life_event_declared
+  aura_flag
+  external_civic_feed
+  reliability_incident
+  provider_failure
+  reservation_expired
+  other
+}
+
+enum ContinuitySignalStatus {
+  received
+  validated
+  stale
+  rejected
+  correlated
+  resolved
+}
+
+enum ContinuitySignalConfidence {
+  low
+  medium
+  high
+  verified
+}
+
+enum ContinuityNodeKind {
+  participant
+  worker
+  provider
+  care_request
+  care_shift
+  transport_booking
+  appointment
+  housing_arrangement
+  employment_placement
+  goal
+  funding_source
+  external_service
+  other
+}
+
+enum ContinuityDependencyKind {
+  required_for
+  supports
+  transports_to
+  employed_at
+  housed_at
+  funds
+  authorises
+  other
+}
+
+enum ContinuityImpactLevel {
+  none
+  minor
+  moderate
+  significant
+  critical
+}
+
+enum ContinuityCaseStatus {
+  open
+  triage
+  planning
+  awaiting_approval
+  in_recovery
+  monitoring
+  resolved
+  closed
+  abandoned
+}
+
+enum ContinuityCasePriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum ContinuityCaseCategory {
+  care
+  transport
+  appointment_non_clinical
+  employment
+  housing
+  provider_failure
+  finance_recovery
+  civic_disruption
+  life_event
+  other
+}
+
+enum RecoveryOptionKind {
+  reschedule
+  substitute_worker
+  substitute_provider
+  substitute_transport
+  waitlist
+  goal_preserving_alternative
+  standing_instruction_apply
+  manual_coordination
+  do_nothing
+  no_safe_option
+}
+
+enum RecoveryOptionEligibility {
+  eligible
+  ineligible
+  requires_approval
+  requires_consent
+  requires_participant_decision
+  blocked_by_policy
+  blocked_by_prohibition
+  blocked_by_emergency_boundary
+}
+
+enum RecoveryPlanStatus {
+  draft
+  simulated
+  awaiting_participant
+  awaiting_delegate
+  awaiting_coordinator
+  approved
+  executing
+  completed
+  compensated
+  failed
+  cancelled
+  execution_unknown
+}
+
+enum RecoveryPlanStepKind {
+  notify_participant
+  notify_delegate
+  notify_provider
+  request_consent
+  request_approval
+  create_substitute_booking
+  reschedule_existing
+  reserve_capacity
+  cancel_with_approval
+  update_goal_preserving_note
+  handoff_to_human
+  wait_for_signal
+  observe_outcome
+  compensating_action
+  no_op
+}
+
+enum RecoveryPlanStepStatus {
+  pending
+  running
+  succeeded
+  failed
+  execution_unknown
+  compensated
+  skipped
+}
+
+enum StandingRecoveryInstructionScope {
+  care
+  transport
+  appointment_non_clinical
+  employment
+  housing
+  finance_recovery
+  provider_failure
+  civic_disruption
+  general
+}
+
+enum StandingRecoveryInstructionStatus {
+  draft
+  active
+  suspended
+  revoked
+  expired
+}
+
+enum ContinuityCommunicationChannel {
+  in_app
+  sms
+  email
+  phone_human
+  postal_human
+  interpreter_required
+}
+
+enum ContinuityCommunicationStatus {
+  drafted
+  queued
+  sent
+  delivered
+  failed
+  suppressed_no_consent
+}
+
+enum ContinuityReservationStatus {
+  held
+  confirmed
+  released
+  expired
+  cancelled
+}
+
+enum ContinuityOutcomeSignal {
+  goal_preserved
+  goal_partially_preserved
+  goal_missed
+  participant_declined_all_options
+  no_safe_option_available
+  human_escalated
+  unknown
+}
+
+enum CivicFeedRegistrationStatus {
+  proposed
+  disabled
+  approved
+  suspended
+  retired
+}
+
+model LifeEvent {
+  id             String                     @id @default(cuid())
+  participantId  String
+  organisationId String?
+  kind           LifeEventKind
+  status         LifeEventStatus            @default(draft)
+  source         LifeEventSource            @default(participant_self)
+  declaredById   String
+  confirmedById  String?
+  title          String
+  narrative      String?
+  effectiveFrom  DateTime?
+  effectiveTo    DateTime?
+  detailsJson    Json?
+  confidence     ContinuitySignalConfidence @default(medium)
+  provenanceJson Json?
+  aiSuggested    Boolean                    @default(false)
+  autoCreated    Boolean                    @default(false)
+  reviewedAt     DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  signals ContinuitySignal[]
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@index([kind, status])
+  @@map("continuity_life_events")
+}
+
+model ContinuitySignal {
+  id             String                     @id @default(cuid())
+  organisationId String?
+  participantId  String?
+  kind           ContinuitySignalKind
+  status         ContinuitySignalStatus     @default(received)
+  confidence     ContinuitySignalConfidence @default(low)
+  sourceRef      String?
+  sourceKind     String?
+  lifeEventId    String?
+  lifeEvent      LifeEvent?                 @relation(fields: [lifeEventId], references: [id], onDelete: SetNull)
+  payloadJson    Json?
+  observedAt     DateTime
+  validatedAt    DateTime?
+  staleAfter     DateTime?
+  dedupeKey      String                     @unique
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  cases ContinuityCase[] @relation("ContinuitySignalCases")
+
+  @@index([participantId, status])
+  @@index([organisationId, status])
+  @@index([kind, status])
+  @@index([observedAt])
+  @@map("continuity_signals")
+}
+
+model ParticipantContinuityProfile {
+  id                          String    @id @default(cuid())
+  participantId               String    @unique
+  organisationId              String?
+  goalsNarrative              String?
+  essentialSupportsJson       Json?
+  prohibitedActionsJson       Json?
+  communicationPreferenceJson Json?
+  interpreterRequired         Boolean   @default(false)
+  reviewedById                String?
+  reviewedAt                  DateTime?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+
+  requirements         ContinuityRequirement[]
+  standingInstructions StandingRecoveryInstruction[]
+
+  @@index([organisationId])
+  @@map("participant_continuity_profiles")
+}
+
+model ContinuityRequirement {
+  id          String                       @id @default(cuid())
+  profileId   String
+  profile     ParticipantContinuityProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label       String
+  description String?
+  essential   Boolean                      @default(false)
+  scope       String
+  detailsJson Json?
+  createdById String
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+
+  @@index([profileId, essential])
+  @@map("continuity_requirements")
+}
+
+model StandingRecoveryInstruction {
+  id               String                            @id @default(cuid())
+  profileId        String
+  profile          ParticipantContinuityProfile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  scope            StandingRecoveryInstructionScope
+  status           StandingRecoveryInstructionStatus @default(draft)
+  title            String
+  instructionsJson Json
+  effectiveFrom    DateTime?
+  effectiveTo      DateTime?
+  createdById      String
+  approvedById     String?
+  approvedAt       DateTime?
+  revokedById      String?
+  revokedAt        DateTime?
+  lastCheckedAt    DateTime?
+  createdAt        DateTime                          @default(now())
+  updatedAt        DateTime                          @updatedAt
+
+  @@index([profileId, status])
+  @@index([scope, status])
+  @@map("continuity_standing_recovery_instructions")
+}
+
+model ContinuityNodeReference {
+  id             String             @id @default(cuid())
+  organisationId String?
+  participantId  String?
+  kind           ContinuityNodeKind
+  referenceKey   String
+  label          String
+  metadataJson   Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  dependenciesFrom ContinuityDependency[] @relation("ContinuityNodeFrom")
+  dependenciesTo   ContinuityDependency[] @relation("ContinuityNodeTo")
+
+  @@unique([kind, referenceKey])
+  @@index([participantId, kind])
+  @@index([organisationId, kind])
+  @@map("continuity_node_references")
+}
+
+model ContinuityDependency {
+  id          String                   @id @default(cuid())
+  fromNodeId  String
+  fromNode    ContinuityNodeReference  @relation("ContinuityNodeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNodeId    String
+  toNode      ContinuityNodeReference  @relation("ContinuityNodeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  kind        ContinuityDependencyKind
+  provenance  String
+  weight      Int                      @default(1)
+  detailsJson Json?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  @@unique([fromNodeId, toNodeId, kind])
+  @@index([toNodeId, kind])
+  @@map("continuity_dependencies")
+}
+
+model ContinuityImpactAssessment {
+  id                     String                @id @default(cuid())
+  caseId                 String?               @unique
+  case                   ContinuityCase?       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  participantId          String?
+  organisationId         String?
+  level                  ContinuityImpactLevel
+  narrative              String?
+  affectedNodesJson      Json?
+  brokenDependenciesJson Json?
+  computedById           String?
+  computedAt             DateTime              @default(now())
+  createdAt              DateTime              @default(now())
+
+  @@index([participantId])
+  @@index([organisationId])
+  @@map("continuity_impact_assessments")
+}
+
+model ContinuityCase {
+  id                 String                 @id @default(cuid())
+  organisationId     String?
+  participantId      String
+  category           ContinuityCaseCategory
+  status             ContinuityCaseStatus   @default(open)
+  priority           ContinuityCasePriority @default(medium)
+  title              String
+  summary            String?
+  coordinatorId      String?
+  linkedCaseId       String?
+  linkedCase         Case?                  @relation("ContinuityCaseCase", fields: [linkedCaseId], references: [id], onDelete: SetNull)
+  originatingSignals ContinuitySignal[]     @relation("ContinuitySignalCases")
+  goalsPreservedJson Json?
+  contextJson        Json?
+  openedById         String
+  openedAt           DateTime               @default(now())
+  closedById         String?
+  closedAt           DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  impact         ContinuityImpactAssessment?
+  options        RecoveryOption[]
+  plans          RecoveryPlan[]
+  reservations   ContinuityCapacityReservation[]
+  communications ContinuityCommunicationAttempt[]
+  outcomes       ContinuityOutcome[]
+
+  @@index([organisationId, status])
+  @@index([participantId, status])
+  @@index([coordinatorId, status])
+  @@index([category, status])
+  @@map("continuity_cases")
+}
+
+model RecoveryOption {
+  id               String                    @id @default(cuid())
+  caseId           String
+  case             ContinuityCase            @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind             RecoveryOptionKind
+  eligibility      RecoveryOptionEligibility
+  rationale        String
+  narrative        String?
+  deterministicKey String
+  detailsJson      Json?
+  preservesGoal    Boolean                   @default(false)
+  requiresConsent  Boolean                   @default(false)
+  requiresApproval Boolean                   @default(false)
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  @@unique([caseId, deterministicKey])
+  @@index([caseId, eligibility])
+  @@map("continuity_recovery_options")
+}
+
+model RecoveryPlan {
+  id               String             @id @default(cuid())
+  caseId           String
+  case             ContinuityCase     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  status           RecoveryPlanStatus @default(draft)
+  selectedOptionId String?
+  simulationJson   Json?
+  narrative        String?
+  createdById      String
+  approvedById     String?
+  approvedAt       DateTime?
+  cancelledById    String?
+  cancelledAt      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  steps      RecoveryPlanStep[]
+  executions ContinuityRecoveryExecution[]
+
+  @@index([caseId, status])
+  @@map("continuity_recovery_plans")
+}
+
+model RecoveryPlanStep {
+  id               String                 @id @default(cuid())
+  planId           String
+  plan             RecoveryPlan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  stepIndex        Int
+  kind             RecoveryPlanStepKind
+  status           RecoveryPlanStepStatus @default(pending)
+  narrative        String
+  detailsJson      Json?
+  compensationJson Json?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@unique([planId, stepIndex])
+  @@index([planId, status])
+  @@map("continuity_recovery_plan_steps")
+}
+
+model ContinuityRecoveryExecution {
+  id             String             @id @default(cuid())
+  planId         String
+  plan           RecoveryPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  status         RecoveryPlanStatus @default(executing)
+  idempotencyKey String             @unique
+  startedAt      DateTime           @default(now())
+  finishedAt     DateTime?
+  errorNarrative String?
+  snapshotJson   Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([planId, status])
+  @@map("continuity_recovery_executions")
+}
+
+model ContinuityCapacityReservation {
+  id             String                      @id @default(cuid())
+  caseId         String?
+  case           ContinuityCase?             @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  organisationId String?
+  resourceKind   String
+  resourceRef    String
+  status         ContinuityReservationStatus @default(held)
+  windowStart    DateTime
+  windowEnd      DateTime
+  detailsJson    Json?
+  createdById    String
+  releasedById   String?
+  releasedAt     DateTime?
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+
+  @@index([resourceKind, status])
+  @@index([caseId, status])
+  @@index([organisationId, status])
+  @@map("continuity_capacity_reservations")
+}
+
+model ContinuityOutcome {
+  id           String                  @id @default(cuid())
+  caseId       String
+  case         ContinuityCase          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  signal       ContinuityOutcomeSignal
+  narrative    String?
+  observedById String?
+  observedAt   DateTime                @default(now())
+  detailsJson  Json?
+  createdAt    DateTime                @default(now())
+
+  @@index([caseId, signal])
+  @@map("continuity_outcomes")
+}
+
+model ContinuityCommunicationAttempt {
+  id               String                         @id @default(cuid())
+  caseId           String
+  case             ContinuityCase                 @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  channel          ContinuityCommunicationChannel
+  status           ContinuityCommunicationStatus  @default(drafted)
+  toReference      String
+  bodySnapshot     String?
+  suppressedReason String?
+  sentAt           DateTime?
+  deliveredAt      DateTime?
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime                       @updatedAt
+
+  @@index([caseId, status])
+  @@map("continuity_communication_attempts")
+}
+
+model CivicFeedRegistration {
+  id                  String                      @id @default(cuid())
+  slug                String                      @unique
+  displayName         String
+  provenanceUrl       String
+  status              CivicFeedRegistrationStatus @default(disabled)
+  freshnessTtlMinutes Int                         @default(60)
+  approvedById        String?
+  approvedAt          DateTime?
+  productionActivated Boolean                     @default(false)
+  detailsJson         Json?
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+
+  @@index([status])
+  @@map("continuity_civic_feed_registrations")
 }
