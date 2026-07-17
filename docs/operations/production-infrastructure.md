@@ -30,7 +30,7 @@ verified.
 | `NDIS_ENCRYPTION_KEY`                                  | Recommended                   | Separate stable secret for encrypted NDIS identifiers.                                                                                        |
 | `SENDGRID_API_KEY` / `SENDGRID_FROM_EMAIL`             | If email enabled              | Required for production email delivery.                                                                                                       |
 | `DOCUMENT_STORAGE_MODE`                                | Yes                           | Use a production-safe mode once document upload workflows are live.                                                                           |
-| `AI_GATEWAY_API_KEY` or `GOOGLE_GENERATIVE_AI_API_KEY` | If search interpreter enabled | Required for natural-language provider search.                                                                                                |
+| `AI_GATEWAY_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, or `OPENAI_API_KEY` | If search interpreter enabled | Required for natural-language provider search and service category classification (`POST /api/search/classify-category`). |
 | `POSTHOG_API_KEY` / `POSTHOG_HOST`                     | If analytics enabled          | Required for LLM analytics capture.                                                                                                           |
 
 ## Deployment sequence

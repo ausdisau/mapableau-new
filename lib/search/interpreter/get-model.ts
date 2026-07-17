@@ -1,16 +1,57 @@
 import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 import { gateway } from "ai";
 
 import {
   isSearchInterpreterConfigured,
   searchInterpreterConfig,
+  type InterpreterProvider,
 } from "@/lib/config/search-interpreter";
 
-export function getInterpreterEngineId(): string {
+export function resolveInterpreterProvider(
+  modelId: string = searchInterpreterConfig.modelId,
+): InterpreterProvider {
   if (searchInterpreterConfig.aiGatewayApiKey) {
-    return `ai-sdk/gateway/${searchInterpreterConfig.modelId}`;
+    return "gateway";
   }
-  return `ai-sdk/google/${stripGooglePrefix(searchInterpreterConfig.modelId)}`;
+
+  const normalized = modelId.trim().toLowerCase();
+  if (
+    normalized.startsWith("openai/") ||
+    normalized.startsWith("gpt-") ||
+    normalized.startsWith("o1") ||
+    normalized.startsWith("o3") ||
+    normalized.startsWith("o4")
+  ) {
+    return "openai";
+  }
+
+  if (normalized.startsWith("google/") || normalized.startsWith("gemini-")) {
+    return "google";
+  }
+
+  // Bare / unknown ids: prefer matching whichever direct key exists.
+  if (searchInterpreterConfig.openaiApiKey) return "openai";
+  if (searchInterpreterConfig.googleApiKey) return "google";
+  return "google";
+}
+
+export function getInterpreterEngineId(): string {
+  const modelId = searchInterpreterConfig.modelId;
+  const provider = resolveInterpreterProvider(modelId);
+
+  switch (provider) {
+    case "gateway":
+      return `ai-sdk/gateway/${modelId}`;
+    case "openai":
+      return `ai-sdk/openai/${stripProviderPrefix(modelId, "openai/")}`;
+    case "google":
+      return `ai-sdk/google/${stripProviderPrefix(modelId, "google/")}`;
+    default: {
+      const _exhaustive: never = provider;
+      return _exhaustive;
+    }
+  }
 }
 
 export function getInterpreterModel() {
@@ -19,14 +60,32 @@ export function getInterpreterModel() {
   }
 
   const modelId = searchInterpreterConfig.modelId;
+  const provider = resolveInterpreterProvider(modelId);
 
-  if (searchInterpreterConfig.aiGatewayApiKey) {
-    return gateway(modelId);
+  switch (provider) {
+    case "gateway":
+      return gateway(modelId);
+    case "openai":
+      if (!searchInterpreterConfig.openaiApiKey) {
+        throw new Error(
+          "OpenAI model selected but OPENAI_API_KEY is not configured",
+        );
+      }
+      return openai(stripProviderPrefix(modelId, "openai/"));
+    case "google":
+      if (!searchInterpreterConfig.googleApiKey) {
+        throw new Error(
+          "Google model selected but GOOGLE_GENERATIVE_AI_API_KEY is not configured",
+        );
+      }
+      return google(stripProviderPrefix(modelId, "google/"));
+    default: {
+      const _exhaustive: never = provider;
+      return _exhaustive;
+    }
   }
-
-  return google(stripGooglePrefix(modelId));
 }
 
-function stripGooglePrefix(id: string): string {
-  return id.startsWith("google/") ? id.slice("google/".length) : id;
+function stripProviderPrefix(id: string, prefix: string): string {
+  return id.startsWith(prefix) ? id.slice(prefix.length) : id;
 }

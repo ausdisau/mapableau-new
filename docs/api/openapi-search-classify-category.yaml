@@ -1,0 +1,145 @@
+openapi: 3.1.0
+info:
+  title: MapAble Search Classify Category API
+  version: 1.0.0
+  description: |
+    Maps free-text NDIS provider search queries to a canonical service
+    category slug via Google Gemini. Agent-ready responses include
+    `operationId` and `X-Operation-Id` headers on every response.
+servers:
+  - url: https://mapable.com.au
+    description: Production
+  - url: http://localhost:3000
+    description: Local development
+paths:
+  /api/search/classify-category:
+    post:
+      operationId: searchClassifyCategory
+      summary: Classify a query into a service category slug
+      description: |
+        Uses Google Gemini or OpenAI (via Vercel AI SDK / AI Gateway) to pick one
+        canonical `service_categories` slug from the Prisma catalog.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchClassifyCategoryRequest"
+            examples:
+              transport:
+                value:
+                  query: Wheelchair taxi near Parramatta
+      responses:
+        "200":
+          description: Classification result
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+                example: searchClassifyCategory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchClassifyCategoryResponse"
+        "400":
+          description: Validation error
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchClassifyCategoryError"
+        "429":
+          description: Rate limited (60 requests per minute per IP)
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchClassifyCategoryError"
+        "502":
+          description: Upstream Gemini failure
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchClassifyCategoryError"
+        "503":
+          description: Classifier not configured (missing API keys)
+          headers:
+            X-Operation-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchClassifyCategoryError"
+components:
+  schemas:
+    SearchClassifyCategoryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Free-text search query to classify
+    SearchClassifyCategoryResponse:
+      type: object
+      required:
+        - query
+        - slug
+        - confidence
+        - source
+        - engineId
+        - configured
+      properties:
+        query:
+          type: string
+        slug:
+          type: string
+          nullable: true
+          description: Canonical service category slug, or null when unsure
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        source:
+          type: string
+          enum: [llm, none]
+        engineId:
+          type: string
+        configured:
+          type: boolean
+    SearchClassifyCategoryError:
+      type: object
+      required:
+        - error
+        - code
+        - operationId
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+            - SEARCH_CLASSIFY_NOT_CONFIGURED
+            - SEARCH_CLASSIFY_VALIDATION_ERROR
+            - SEARCH_CLASSIFY_UPSTREAM_ERROR
+            - RATE_LIMITED
+        operationId:
+          type: string
+          example: searchClassifyCategory
+        details:
+          description: Optional validation flatten or upstream detail
+        retryable:
+          type: boolean

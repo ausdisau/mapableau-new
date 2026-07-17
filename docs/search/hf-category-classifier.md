@@ -1,6 +1,10 @@
 # Hugging Face category classifier (phase 3)
 
-Optional **small-model** shortcut for `serviceCategorySlug` hints. The Vercel AI SDK interpreter remains the source of truth for multi-field extraction (location, access, provider name).
+Optional **small-model** shortcut for `serviceCategorySlug` hints after Gemini.
+Prefer the [Gemini category classifier](./gemini-category-classifier.md) when
+`GOOGLE_GENERATIVE_AI_API_KEY` or `AI_GATEWAY_API_KEY` is available. The Vercel
+AI SDK interpreter remains the source of truth for multi-field extraction
+(location, access, provider name).
 
 ## When to use
 
@@ -42,7 +46,10 @@ See the [Hugging Face model trainer](https://huggingface.co/docs) skill in Curso
 
 ## Runtime
 
-`lib/search/interpreter/classifier-hint.ts` calls the [HF Inference API](https://huggingface.co/docs/api-inference) when both `SEARCH_INTERPRETER_CLASSIFIER_HUB_ID` and `HF_TOKEN` (or `HUGGINGFACE_API_KEY`) are set.
+`lib/search/interpreter/classifier-hint.ts` calls Gemini first (when configured),
+then the [HF Inference API](https://huggingface.co/docs/api-inference) when both
+`SEARCH_INTERPRETER_CLASSIFIER_HUB_ID` and `HF_TOKEN` (or `HUGGINGFACE_API_KEY`)
+are set.
 
 - Parses `{"slug":"..."}` from model output.
 - On failure or low confidence, returns `null` — **never blocks** interpretation.

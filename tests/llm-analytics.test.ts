@@ -77,7 +77,7 @@ describe("llm-analytics", () => {
 });
 
 describe("getLlmAnalyticsProvider", () => {
-  it("classifies gateway and google engine ids", async () => {
+  it("classifies gateway, google, and openai engine ids", async () => {
     const { getLlmAnalyticsProvider } = await import("@/lib/analytics/llm-analytics");
 
     expect(getLlmAnalyticsProvider("models/gateway/gemini-2.0-flash")).toBe(
@@ -86,6 +86,7 @@ describe("getLlmAnalyticsProvider", () => {
     expect(getLlmAnalyticsProvider("models/google/gemini-2.0-flash")).toBe(
       "google",
     );
+    expect(getLlmAnalyticsProvider("ai-sdk/openai/gpt-4o-mini")).toBe("openai");
     expect(getLlmAnalyticsProvider("custom-engine")).toBe("unknown");
   });
 });

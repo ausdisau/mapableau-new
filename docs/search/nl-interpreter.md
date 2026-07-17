@@ -2,14 +2,15 @@
 
 Provider Finder and homepage search can call **`POST /api/search/interpret`** to turn free-text queries (for example *"Wheelchair accessible transport near Parramatta"*) into structured filters and a canonical **`service_categories`** slug.
 
-Prisma remains the **source of truth** for categories. Optional Elasticsearch (phase 2) and a Hugging Face classifier (phase 3) only accelerate slug resolution.
+Prisma remains the **source of truth** for categories. Optional Gemini / Hugging Face classifiers, Elasticsearch (phase 2), and keyword scoring only accelerate slug resolution.
 
 ## Architecture
 
-1. **Parse** — Vercel AI SDK `generateObject` with an NDIS-aware system prompt (`lib/search/interpreter/parse-query.ts`).
-2. **Resolve category** — Validate LLM slug, then ES `multi_match`, then keyword scoring against Prisma (`lib/search/interpreter/resolve-service-category.ts`).
-3. **Resolve access** — Map `access` text to `ACCESS_NEEDS` ids via validated LLM ids, keyword scoring, and optional dedicated needs LLM step ([`nl-needs-interpreter.md`](./nl-needs-interpreter.md), `lib/search/interpreter/resolve-access-needs.ts`).
-4. **Client** — Provider Finder and homepage apply fields and optional `supportType` chip (`lib/search/apply-interpretation.ts`).
+1. **Category hint** — Optional Google Gemini slug classifier, then optional HF hub model (`lib/search/interpreter/classifier-hint.ts`, [gemini-category-classifier.md](./gemini-category-classifier.md)).
+2. **Parse** — Vercel AI SDK `generateObject` with an NDIS-aware system prompt (`lib/search/interpreter/parse-query.ts`).
+3. **Resolve category** — Validate suggested slug, then ES `multi_match`, then keyword scoring against Prisma (`lib/search/interpreter/resolve-service-category.ts`).
+4. **Resolve access** — Map `access` text to `ACCESS_NEEDS` ids via validated LLM ids, keyword scoring, and optional dedicated needs LLM step ([`nl-needs-interpreter.md`](./nl-needs-interpreter.md), `lib/search/interpreter/resolve-access-needs.ts`).
+5. **Client** — Provider Finder and homepage apply fields and optional `supportType` chip (`lib/search/apply-interpretation.ts`).
 
 Trivial queries skip the LLM via `looksLikeNaturalLanguage` to save latency and cost.
 
@@ -20,7 +21,9 @@ Trivial queries skip the LLM via `looksLikeNaturalLanguage` to save latency and 
 | `SEARCH_INTERPRETER_ENABLED` | Set to `false` to force passthrough (default: enabled when keys exist) |
 | `AI_GATEWAY_API_KEY` or `VERCEL_AI_GATEWAY_API_KEY` | Preferred: Vercel AI Gateway |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | Fallback: `@ai-sdk/google` |
-| `SEARCH_INTERPRETER_MODEL` | Gateway-style id, e.g. `google/gemini-3.5-flash` |
+| `OPENAI_API_KEY` | Fallback: `@ai-sdk/openai` |
+| `SEARCH_INTERPRETER_MODEL` | e.g. `google/gemini-3.5-flash` or `openai/gpt-4.1-nano` |
+| `SEARCH_INTERPRETER_GEMINI_CLASSIFIER` | Dedicated category classifier (default on when keys exist) |
 | `ES_URL`, `ES_API_KEY` | Optional Elasticsearch replica (phase 2) |
 | `ES_SERVICE_CATEGORY_ALIAS` | Default `mapable_service_categories_current` |
 | `SEARCH_INTERPRETER_CLASSIFIER_HUB_ID` | Optional HF model repo (phase 3) |
@@ -105,5 +108,6 @@ Resolver tests mock Prisma via `listServiceCategories` fallback catalog; no netw
 
 - [Predictive search suggestions](../search-predictive-suggestions.md) — autocomplete (rules-based)
 - [Elasticsearch service categories](./elasticsearch-service-categories.md) — phase 2 replica
+- [Gemini category classifier](./gemini-category-classifier.md) — dedicated Gemini slug classifier + API
 - [HF category classifier](./hf-category-classifier.md) — phase 3 optional accelerator
 - [NL access needs interpreter](./nl-needs-interpreter.md) — ACCESS_NEEDS chip resolution and clarification
