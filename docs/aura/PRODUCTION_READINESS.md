@@ -2,39 +2,38 @@
 
 ## Do not enable for general participants until
 
-- [ ] Branch/schema reconciliation with CareOS tip complete (`CareOSMission` writers unified)
-- [ ] One canonical Access Passport naming cutover (AiAccessPassport → AccessPassport) decided
-- [ ] Consent + audit canonical paths verified in staging
-- [ ] Every tool has authority classification
-- [ ] No tool has direct Prisma access (Wave 1: enforced)
-- [ ] Capability leasing tested (Wave 1: unit tests)
-- [ ] Participant stop tested (Wave 1: unit tests)
-- [ ] Unknown preservation + diagnosis non-inference tested
-- [ ] Prompt injection + tenant isolation tested
-- [ ] Standard non-AI routes present (Wave 1: yes)
-- [ ] Keyboard / screen-reader workflows pass (manual pilot gate)
-- [ ] Audit replay passes
-- [ ] Physical actuation remains disabled
-- [ ] Safeguarding remains human-only
+- [ ] CareOS tip reconciliation complete
+- [ ] Staging consent + tenant isolation verified
+- [x] No AURA tool has Prisma / execution adapters
+- [x] Capability leasing + Stop tested
+- [x] Counterfactuals labelled simulated
+- [x] Audit replay + hash verify
+- [x] Offline pack stale warnings
+- [x] Wave 3 proposals immutable; shadow ≠ execution
+- [x] Execution guard blocks writes
+- [x] `futureExecutionEligible` always false in Wave 3
+- [ ] Manual a11y pilot (keyboard / SR)
 - [ ] Operational owner assigned
-- [ ] Rollback documented (see ROLLBACK.md)
+- [x] Rollback documented
 
-## Current flags (defaults)
+## Flags (defaults)
 
 | Flag | Default |
 |------|---------|
 | `MAPABLE_AURA_ENABLED` | `false` |
 | `MAPABLE_AURA_PROPOSALS_ENABLED` | `false` |
+| `MAPABLE_AURA_PROPOSAL_REVIEW_ENABLED` | `false` |
+| `MAPABLE_AURA_SHADOW_EVALUATION_ENABLED` | `false` |
 | `MAPABLE_AURA_WRITE_EXECUTION_ENABLED` | `false` |
-| `MAPABLE_AURA_MEMORY_ENABLED` | `false` |
+| `MAPABLE_AURA_EXTERNAL_DELIVERY_ENABLED` | `false` |
 | `MAPABLE_AURA_PHYSICAL_ACTIONS_ENABLED` | `false` |
 
-## Authority ceiling (Wave 1)
+## Authority
 
-**L2_RECOMMEND** — no L3+ production authority.
+Wave 3 ceiling: **L3_PROPOSE**. No L4+ execution.
 
 ## Claims we do not make
 
-- AURA is not an ASI
-- AURA is not autonomous case management
-- AURA is not production-ready for general participants while gates above remain open
+- No message/booking/report/notification occurred in Wave 3
+- Shadow acceptance is not execution approval
+- AURA is not production-ready for general participants while gates remain open

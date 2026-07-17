@@ -10,11 +10,14 @@ export async function POST(
   ctx: { params: Promise<{ missionId: string }> },
 ) {
   if (!auraFlags.enabled && process.env.MAPABLE_AURA_DEMO !== "true") {
-    return NextResponse.json({ error: "MAPABLE_AURA_DISABLED" }, { status: 403 });
-  }
-  if (!auraFlags.counterfactuals) {
     return NextResponse.json(
-      { error: "MAPABLE_AURA_COUNTERFACTUALS_DISABLED" },
+      { error: "MAPABLE_AURA_DISABLED" },
+      { status: 403 },
+    );
+  }
+  if (!auraFlags.planChallenge && !auraFlags.counterfactuals) {
+    return NextResponse.json(
+      { error: "MAPABLE_AURA_PLAN_CHALLENGE_DISABLED" },
       { status: 403 },
     );
   }
@@ -24,6 +27,7 @@ export async function POST(
     return NextResponse.json(challenge);
   } catch (err) {
     const message = err instanceof Error ? err.message : "AURA_ERROR";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status = message === "AURA_MISSION_STOPPED" ? 409 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

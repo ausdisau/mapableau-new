@@ -6,12 +6,12 @@
 
 ## Current branch and base
 
-| Fact | Value |
-|------|--------|
-| Remote | `ausdisau/mapableau-new` |
+| Fact             | Value                                              |
+| ---------------- | -------------------------------------------------- |
+| Remote           | `ausdisau/mapableau-new`                           |
 | Parent AI branch | `cursor/ai-canonical-place-binding-6ea8` (PR #266) |
-| `main` HEAD | Merge PR #263 competitor upgrade |
-| AURA branch | `cursor/mapable-aura-wave1-6ea8` |
+| `main` HEAD      | Merge PR #263 competitor upgrade                   |
+| AURA branch      | `cursor/mapable-aura-wave1-6ea8`                   |
 
 ## Existing Access Intelligence architecture (reused)
 
@@ -27,20 +27,20 @@ Present on this lineage via PR #266 port:
 
 ## Existing CareOS architecture
 
-| Component | On `main` / AI branch? | Location when present |
-|-----------|------------------------|------------------------|
-| `CareOSMission` | **No** | CareOS tips e.g. `agent/careos-platform-completion` |
-| `lib/careos/` | **No** | Same |
-| `intelligence/` fabric | **No** | CareOS / mapable-intelligence-fabric |
-| Session consent | **No** | `intelligence/consent/session-consent.ts` on fabric |
-| CloudEvent outbox | **No** | CareOS tips |
+| Component              | On `main` / AI branch? | Location when present                               |
+| ---------------------- | ---------------------- | --------------------------------------------------- |
+| `CareOSMission`        | **No**                 | CareOS tips e.g. `agent/careos-platform-completion` |
+| `lib/careos/`          | **No**                 | Same                                                |
+| `intelligence/` fabric | **No**                 | CareOS / mapable-intelligence-fabric                |
+| Session consent        | **No**                 | `intelligence/consent/session-consent.ts` on fabric |
+| CloudEvent outbox      | **No**                 | CareOS tips                                         |
 
 **Decision:** Introduce the **canonical `CareOSMission`** table (and minimal event spine) on this branch so AURA does **not** invent `AuraMission`. Full CareOS writers (`canonical-mission-service`) consolidate when CareOS PRs merge; AURA uses a thin mission service that matches the CareOS field contract.
 
 ## Existing CSI kernel
 
-| Component | On this branch? |
-|-----------|-----------------|
+| Component                                       | On this branch?                                |
+| ----------------------------------------------- | ---------------------------------------------- |
 | CSI AGI kernel (`lib/care-intelligence/kernel`) | **No** — `feat/care-support-intelligence` only |
 
 **Decision:** AURA does **not** port the CSI research kernel. Bounded specialists are deterministic tool bundles. CSI may later advise cognition; it must not gain write authority.
@@ -70,14 +70,14 @@ Present on this lineage via PR #266 port:
 
 ## Overlapping models and services
 
-| Concern | Retain | Consolidate | Do not create |
-|---------|--------|-------------|----------------|
-| Place | `AccessPlace` | AI twin FKs already bound | Second place table |
-| Passport | `AiAccessPassport` / domain AccessPassport | Rename to AccessPassport later | Parallel passport |
-| Mission | `CareOSMission` (new on this branch) | Later merge CareOS writers | `AuraMission` |
-| SC mission | `CoordinationMission` | Link by id optional | Dual SC universe |
-| Consent | `ConsentRecord` | AI durable composition | Second consent DB |
-| Audit | `AuditEvent` | AI audit mirror → correlate | Sole reliance on `AiAccessAuditEvent` |
+| Concern    | Retain                                     | Consolidate                    | Do not create                         |
+| ---------- | ------------------------------------------ | ------------------------------ | ------------------------------------- |
+| Place      | `AccessPlace`                              | AI twin FKs already bound      | Second place table                    |
+| Passport   | `AiAccessPassport` / domain AccessPassport | Rename to AccessPassport later | Parallel passport                     |
+| Mission    | `CareOSMission` (new on this branch)       | Later merge CareOS writers     | `AuraMission`                         |
+| SC mission | `CoordinationMission`                      | Link by id optional            | Dual SC universe                      |
+| Consent    | `ConsentRecord`                            | AI durable composition         | Second consent DB                     |
+| Audit      | `AuditEvent`                               | AI audit mirror → correlate    | Sole reliance on `AiAccessAuditEvent` |
 
 ## Files to retain
 
@@ -104,12 +104,12 @@ See `IMPLEMENTATION_PLAN.md`. **Wave 1 is mandatory** on this PR.
 
 ## Risks
 
-| Risk | Mitigation |
-|------|------------|
+| Risk                                    | Mitigation                                                |
+| --------------------------------------- | --------------------------------------------------------- |
 | CareOSMission schema drift vs CareOS PR | Match CareOS tip field names; document reconcile on merge |
-| Dual mission with CoordinationMission | Explicit SoT = CareOSMission; AI SC links later |
-| Model over-authority | Hard L2 ceiling; leases; verifier |
-| False reassurance from Harbour demo | Label synthetic; unknowns preserved |
+| Dual mission with CoordinationMission   | Explicit SoT = CareOSMission; AI SC links later           |
+| Model over-authority                    | Hard L2 ceiling; leases; verifier                         |
+| False reassurance from Harbour demo     | Label synthetic; unknowns preserved                       |
 
 ## Rollback
 

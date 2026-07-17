@@ -1,32 +1,22 @@
 # AURA — ROLLBACK
 
-See also: [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md), [BRANCH_AND_DOMAIN_RECONCILIATION.md](./BRANCH_AND_DOMAIN_RECONCILIATION.md).
+## By capability
 
-## Summary
+| Capability | Flag |
+| --- | --- |
+| Counterfactuals | `MAPABLE_AURA_COUNTERFACTUALS_ENABLED=false` |
+| Resilience | `MAPABLE_AURA_RESILIENCE_ENABLED=false` |
+| Plan challenge | `MAPABLE_AURA_PLAN_CHALLENGE_ENABLED=false` |
+| Audit replay UI | `MAPABLE_AURA_AUDIT_REPLAY_ENABLED=false` |
+| Offline packs | `MAPABLE_AURA_OFFLINE_PACKS_ENABLED=false` |
+| Proposals | `MAPABLE_AURA_PROPOSALS_ENABLED=false` |
+| Proposal review | `MAPABLE_AURA_PROPOSAL_REVIEW_ENABLED=false` |
+| Shadow evaluation | `MAPABLE_AURA_SHADOW_EVALUATION_ENABLED=false` |
 
-MapAble **AURA** (Accessibility · Understanding · Routing · Agency) is a participant-controlled accessibility assistant. It is **ASI-ready** in the safety sense: capability growth must not automatically expand authority, personal-data access, or write permission.
+Keep write/delivery/physical **false**.
 
-**Foundational rule:** Agents interpret, retrieve, compare, simulate, draft and recommend. Participants decide. Deterministic MapAble services execute.
+**Do not disable Stop AURA while AURA remains enabled.**
 
-## Wave 1 status
+Disable AURA entirely: `MAPABLE_AURA_ENABLED=false`.
 
-Wave 1 (read-only) ships on branch `cursor/mapable-aura-wave1-6ea8`:
-
-- CareOSMission as canonical mission SoT (+ AuraMissionExtension)
-- Capability leases; authority ceiling **L2_RECOMMEND**
-- Proof-carrying plans + independent verifier
-- Stop AURA protocol
-- Accessibility Mission mode on `/ask`
-- Taylor @ Harbour Civic synthetic flagship
-- **No** application writes; **no** Prisma in agent tools; physical actuation **off**
-
-## Topic focus: ROLLBACK
-
-This document covers **ROLLBACK** for AURA operators and reviewers. Production enablement requires gates in PRODUCTION_READINESS.md. Do not claim AURA is an ASI, autonomous case management, or generally production-ready while release gates remain open.
-
-## Related paths
-
-- `lib/aura/`
-- `app/api/intelligence/aura/`
-- `components/aura/`
-- `tests/aura/`
+Additive proposal/shadow/audit tables may remain dormant. Do not delete historical proposal, review, receipt, or audit records.

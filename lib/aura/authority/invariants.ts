@@ -67,13 +67,17 @@ export function assertUnknownPreserved(
   const leaked = unknowns.filter((u) => {
     const topic = u
       .toLowerCase()
-      .replace(/\b(unknown|unverified|not confirmed|status|today|availability|for this visit|operational)\b/g, " ")
+      .replace(
+        /\b(unknown|unverified|not confirmed|status|today|availability|for this visit|operational)\b/g,
+        " ",
+      )
       .replace(/\s+/g, " ")
       .trim();
     const keywords = topic.split(" ").filter((w) => w.length > 4);
     return claimedFacts.some((f) => {
       const fl = f.toLowerCase();
-      if (/unknown|not confirmed|unverified|do not treat/.test(fl)) return false;
+      if (/unknown|not confirmed|unverified|do not treat/.test(fl))
+        return false;
       // Fact asserts the unknown topic as resolved (e.g. "toilet is working")
       if (
         keywords.some((k) => fl.includes(k)) &&

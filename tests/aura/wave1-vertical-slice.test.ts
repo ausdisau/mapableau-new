@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
+
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
@@ -19,6 +20,11 @@ import {
   resetLeaseStore,
   resetMissionStore,
   resetWitnessStore,
+  resetCounterfactualStore,
+  resetChallengeStore,
+  resetOfflinePackStore,
+  resetStopRegistry,
+  resetProposalStore,
   revokeAllLeases,
   stopAuraMission,
   verifyProofPlan,
@@ -30,6 +36,11 @@ function resetAll() {
   resetMissionStore();
   resetLeaseStore();
   resetWitnessStore();
+  resetCounterfactualStore();
+  resetChallengeStore();
+  resetOfflinePackStore();
+  resetStopRegistry();
+  resetProposalStore();
 }
 
 afterEach(() => {
@@ -40,7 +51,12 @@ describe("AURA repository boundaries", () => {
   it("reuses CareOSMission as canonical mission id space (mission requestId aura-*)", () => {
     const res = createAndPlanMission({
       goal: "Interview at Harbour Civic Room 3.12",
-      selectedModules: ["core_calendar", "transport", "access", "access_passport"],
+      selectedModules: [
+        "core_calendar",
+        "transport",
+        "access",
+        "access_passport",
+      ],
       accessibilityProfileOptIn: false,
       placeId: "place-harbour-civic",
       scenarioId: "taylor-harbour-interview",
@@ -79,7 +95,9 @@ describe("AURA repository boundaries", () => {
       join(process.cwd(), "lib/aura/tools/index.ts"),
       "utf8",
     );
-    expect(toolsSrc.toLowerCase()).not.toMatch(/from ["']@?\/?.*prisma|prisma\./);
+    expect(toolsSrc.toLowerCase()).not.toMatch(
+      /from ["']@?\/?.*prisma|prisma\./,
+    );
     const tools = createAuraTools({
       missionId: "x",
       userId: "u",
@@ -111,7 +129,10 @@ describe("AURA authority", () => {
   });
 
   it("model cannot raise authority", () => {
-    const result = rejectAuthorityEscalation("L2_RECOMMEND", "L4_APPROVED_SERVICE_WRITE");
+    const result = rejectAuthorityEscalation(
+      "L2_RECOMMEND",
+      "L4_APPROVED_SERVICE_WRITE",
+    );
     expect(result.allowed).toBe(false);
   });
 
@@ -216,9 +237,9 @@ describe("AURA access decisions", () => {
     });
     const overridden = applyModelOverrideAttempt(res.verifier!, "verified");
     expect(overridden.status).toBe(res.verifier!.status);
-    expect(overridden.findings.some((f) => f.code === "model_override_ignored")).toBe(
-      true,
-    );
+    expect(
+      overridden.findings.some((f) => f.code === "model_override_ignored"),
+    ).toBe(true);
   });
 });
 
@@ -287,7 +308,9 @@ describe("AURA stop", () => {
     expect(stopped.mission.status).toBe("stopped");
     expect(stopped.revokedLeaseCount).toBeGreaterThan(0);
     expect(listActiveLeases(res.missionId)).toHaveLength(0);
-    expect(getMissionAudit(res.missionId).length).toBeGreaterThanOrEqual(beforeAudit);
+    expect(getMissionAudit(res.missionId).length).toBeGreaterThanOrEqual(
+      beforeAudit,
+    );
     expect(getMission(res.missionId)?.stopState).toBe(true);
   });
 });
@@ -295,9 +318,13 @@ describe("AURA stop", () => {
 describe("AURA flagship Taylor scenario", () => {
   it("creates mission graph and selects Entrance B + western lift; preserves unknowns", () => {
     const res = createAndPlanMission({
-      goal:
-        "Taylor has an interview in Room 3.12 at Harbour Civic Centre tomorrow at 10:00 am",
-      selectedModules: ["core_calendar", "transport", "access", "access_passport"],
+      goal: "Taylor has an interview in Room 3.12 at Harbour Civic Centre tomorrow at 10:00 am",
+      selectedModules: [
+        "core_calendar",
+        "transport",
+        "access",
+        "access_passport",
+      ],
       accessibilityProfileOptIn: false,
       placeId: "place-harbour-civic",
       scenarioId: "taylor-harbour-interview",
@@ -314,16 +341,18 @@ describe("AURA flagship Taylor scenario", () => {
         res.plan?.rejectedAlternatives.some((a) => /Entrance A/i.test(a.label)),
     ).toBe(true);
     expect(res.unknowns.some((u) => /toilet/i.test(u))).toBe(true);
-    expect(res.unknowns.some((u) => /reception|assistance/i.test(u))).toBe(true);
+    expect(res.unknowns.some((u) => /reception|assistance/i.test(u))).toBe(
+      true,
+    );
     expect(res.proposedActions).toHaveLength(0);
     expect(res.authority.maximumLevel).toBe("L2_RECOMMEND");
     expect(res.nonAiRoutes.length).toBeGreaterThan(0);
 
     // zero writes
     const audit = getMissionAudit(res.missionId);
-    expect(audit.some((e) => e.payload.writeCount === 0 || e.type === "plan_built")).toBe(
-      true,
-    );
+    expect(
+      audit.some((e) => e.payload.writeCount === 0 || e.type === "plan_built"),
+    ).toBe(true);
   });
 
   it("participant cancellation / stop performs no write side effects beyond stop", () => {

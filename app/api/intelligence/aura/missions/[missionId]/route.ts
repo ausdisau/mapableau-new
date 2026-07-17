@@ -10,12 +10,18 @@ export async function GET(
   ctx: { params: Promise<{ missionId: string }> },
 ) {
   if (!auraFlags.enabled && process.env.MAPABLE_AURA_DEMO !== "true") {
-    return NextResponse.json({ error: "MAPABLE_AURA_DISABLED" }, { status: 403 });
+    return NextResponse.json(
+      { error: "MAPABLE_AURA_DISABLED" },
+      { status: 403 },
+    );
   }
   const { missionId } = await ctx.params;
   try {
     return NextResponse.json(getMissionResponse(missionId));
   } catch {
-    return NextResponse.json({ error: "AURA_MISSION_NOT_FOUND" }, { status: 404 });
+    return NextResponse.json(
+      { error: "AURA_MISSION_NOT_FOUND" },
+      { status: 404 },
+    );
   }
 }

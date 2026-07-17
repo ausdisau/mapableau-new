@@ -2,15 +2,7 @@
 
 **AURA** = Accessibility · Understanding · Routing · Agency
 
-Participant-controlled accessibility assistant for MapAble. AURA helps answer:
-
-> Given my goal, functional access requirements, available supports, transport, destination evidence and current conditions, what options do I have, what is uncertain and what should happen next?
-
-## ASI-ready (safety meaning)
-
-Architecture remains governable if models become more capable at reasoning, planning, simulation and tool selection. Capability must not automatically increase authority, personal-data access, or write permission.
-
-This does **not** create artificial superintelligence.
+Participant-controlled accessibility assistant for MapAble.
 
 ## Foundational rule
 
@@ -18,28 +10,32 @@ Agents interpret, retrieve, compare, simulate, draft and recommend.
 **Participants decide.**  
 **Deterministic MapAble services execute.**
 
-## Wave 1 (this release)
-
-Read-only vertical slice:
+## Wave 3 (this release)
 
 | Capability | Status |
-|------------|--------|
-| `/ask` Accessibility Mission mode | Yes |
-| CareOSMission + AuraMissionExtension | Yes |
-| Capability leases | Yes |
-| Authority ceiling L2_RECOMMEND | Yes |
-| Proof-carrying plan + verifier | Yes |
-| Stop AURA | Yes |
-| Taylor @ Harbour Civic demo | Yes (synthetic) |
-| Application writes / proposals | **Off** |
-| Durable memory | **Off** |
-| Physical actuation | **Off** |
+| --- | --- |
+| Immutable action proposals (5 types) | Yes — draft only |
+| Disclosure previews + purpose binding | Yes |
+| Proposal verifier | Yes (`futureExecutionEligible: false`) |
+| Participant shadow review | Yes — not execution approval |
+| Shadow evaluation + receipts | Yes — zero side effects |
+| Execution guard | Yes |
+| Application writes / delivery | **Off** |
+| Authority ceiling | **L3_PROPOSE** |
 
-Flags default `MAPABLE_AURA_ENABLED=false`.
+## Prior waves
+
+- Wave 1: CareOSMission, leases, proof plans, Stop, Taylor@Harbour
+- Wave 2: Counterfactuals, resilience, challenge, audit replay, offline packs
+
+Flags default `MAPABLE_AURA_ENABLED=false`. Stop has no optional disable flag.
 
 ## Docs
 
-Start with [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) and [BRANCH_AND_DOMAIN_RECONCILIATION.md](./BRANCH_AND_DOMAIN_RECONCILIATION.md).
+- [WAVE_3_IMPLEMENTATION_PLAN.md](./WAVE_3_IMPLEMENTATION_PLAN.md)
+- [ACTION_PROPOSALS.md](./ACTION_PROPOSALS.md)
+- [SHADOW_MODE.md](./SHADOW_MODE.md)
+- [EXECUTION_GUARD.md](./EXECUTION_GUARD.md)
 
 ## Tests
 

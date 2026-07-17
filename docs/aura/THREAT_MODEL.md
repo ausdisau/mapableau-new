@@ -24,6 +24,31 @@ Wave 1 (read-only) ships on branch `cursor/mapable-aura-wave1-6ea8`:
 
 This document covers **THREAT MODEL** for AURA operators and reviewers. Production enablement requires gates in PRODUCTION_READINESS.md. Do not claim AURA is an ASI, autonomous case management, or generally production-ready while release gates remain open.
 
+## Wave 2 additions
+
+| Threat                            | Control                                                  |
+| --------------------------------- | -------------------------------------------------------- |
+| Counterfactual mutation injection | Allowlisted category/operation; schema validation        |
+| Simulated result as real          | `simulated: true` + disclaimer on every result           |
+| Hard requirement weakening        | Explicit rejection                                       |
+| Late result after stop            | AbortController + `discardIfStopped` + stop-state checks |
+| Replay tampering                  | Hash chain verification                                  |
+| Sensitive offline pack content    | Exclusion list; HTML without secrets                     |
+| Cross-user mission / audit        | Ownership checks on every route                          |
+| Unlimited simulations             | Max runs per mission                                     |
+| Recursive planning                | One automatic challenge cycle                            |
+
+## Wave 3 additions
+
+| Threat | Control |
+| --- | --- |
+| Accidental execution | Kill-switch flags + execution guard |
+| Shadow-to-live confusion | UI copy + `futureExecutionApproval: false` |
+| Disclosure expansion | Purpose allowlists + verifier |
+| Proposal hash substitution | Canonical hash verify |
+| Direct write-tool registration | Forbidden tool list + tests |
+| Client-forged shadow result | Server-built evaluation only |
+
 ## Related paths
 
 - `lib/aura/`

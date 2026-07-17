@@ -22,7 +22,15 @@ Wave 1 (read-only) ships on branch `cursor/mapable-aura-wave1-6ea8`:
 
 ## Topic focus: PRIVACY AND CONSENT
 
-This document covers **PRIVACY AND CONSENT** for AURA operators and reviewers. Production enablement requires gates in PRODUCTION_READINESS.md. Do not claim AURA is an ASI, autonomous case management, or generally production-ready while release gates remain open.
+Production enablement requires gates in PRODUCTION_READINESS.md.
+
+## Wave 2
+
+- Counterfactual / audit data must not be used for advertising or profiling
+- Offline packs exclude diagnosis, full Passport, medical/funding by default
+- Stop receipts omit Passport/health
+- Audit replay redacts passport/diagnosis/health/token/reasoning keys
+- Downloadable packs warn about shared-device persistence
 
 ## Related paths
 

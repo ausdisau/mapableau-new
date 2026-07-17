@@ -71,6 +71,12 @@ export const MODULE_CAPABILITIES: Record<
       authorityLevel: "L2_RECOMMEND",
       fieldScope: ["route"],
     },
+    {
+      capabilityId: "access.counterfactuals",
+      authority: "recommend",
+      authorityLevel: "L2_RECOMMEND",
+      fieldScope: ["counterfactual"],
+    },
   ],
   billing_summaries: [],
   accessibility_profile: [],
@@ -108,7 +114,9 @@ export function issueLeases(input: {
   ttlMs?: number;
 }): AuraCapabilityLease[] {
   const now = Date.now();
-  const expiresAt = new Date(now + (input.ttlMs ?? DEFAULT_TTL_MS)).toISOString();
+  const expiresAt = new Date(
+    now + (input.ttlMs ?? DEFAULT_TTL_MS),
+  ).toISOString();
   const issued: AuraCapabilityLease[] = [];
 
   const always: Array<{
@@ -152,6 +160,34 @@ export function issueLeases(input: {
       authorityLevel: "L2_RECOMMEND",
       module: "access",
       fieldScope: ["challenge"],
+    },
+    {
+      capabilityId: "proposal.create",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
+    },
+    {
+      capabilityId: "proposal.verify",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
+    },
+    {
+      capabilityId: "proposal.review",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
+    },
+    {
+      capabilityId: "proposal.shadow",
+      authority: "propose",
+      authorityLevel: "L3_PROPOSE",
+      module: "access",
+      fieldScope: ["proposal"],
     },
   ];
 
@@ -223,7 +259,9 @@ export function hasActiveLease(
   missionId: string,
   capabilityId: AuraCapabilityId,
 ): boolean {
-  return listActiveLeases(missionId).some((l) => l.capabilityId === capabilityId);
+  return listActiveLeases(missionId).some(
+    (l) => l.capabilityId === capabilityId,
+  );
 }
 
 export function assertLease(

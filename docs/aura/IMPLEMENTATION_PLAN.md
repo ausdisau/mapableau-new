@@ -40,13 +40,13 @@ Documented in `BRANCH_AND_DOMAIN_RECONCILIATION.md`.
 
 ## Architecture planes (Wave 1)
 
-| Plane | Implementation |
-|-------|----------------|
-| Experience | `/ask` Accessibility Mission + dashboard shells + AURA components |
-| Cognition | Optional model reasoning behind flag; deterministic planner always available |
-| Authority | Authority ladder, leases, module consent, invariants |
-| Execution | Disabled (`MAPABLE_AURA_WRITE_EXECUTION_ENABLED=false`) |
-| Witness | In-memory + AuditEvent correlation; audit replay API |
+| Plane      | Implementation                                                               |
+| ---------- | ---------------------------------------------------------------------------- |
+| Experience | `/ask` Accessibility Mission + dashboard shells + AURA components            |
+| Cognition  | Optional model reasoning behind flag; deterministic planner always available |
+| Authority  | Authority ladder, leases, module consent, invariants                         |
+| Execution  | Disabled (`MAPABLE_AURA_WRITE_EXECUTION_ENABLED=false`)                      |
+| Witness    | In-memory + AuditEvent correlation; audit replay API                         |
 
 ## Canonical decisions
 
