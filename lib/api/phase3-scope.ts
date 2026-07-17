@@ -2,6 +2,7 @@ import type { CurrentUser } from "@/lib/auth/current-user";
 import { hasPermission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
+import { assertAdminTenantAccess } from "@/lib/security/break-glass";
 
 export async function getUserOrganisationIds(userId: string): Promise<string[]> {
   const memberships = await prisma.organisationMember.findMany({
@@ -34,7 +35,11 @@ export async function assertOrganisationAccess(
   organisationId: string,
   permission: "worker:manage:org" | "care:manage:org" = "worker:manage:org"
 ): Promise<void> {
-  if (isAdminRole(user.primaryRole)) return;
+  if (isAdminRole(user.primaryRole)) {
+    // Ambient admin org access requires break-glass when enforced.
+    assertAdminTenantAccess(user, organisationId);
+    return;
+  }
   if (!hasPermission(user.primaryRole, permission)) {
     throw new OrganisationAccessError();
   }
