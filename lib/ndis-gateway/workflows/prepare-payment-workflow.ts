@@ -19,6 +19,9 @@ import { sanitiseAuditJson } from "@/lib/ndis-gateway/security/log-sanitiser";
 import type { ExternalClaimPayload } from "@/lib/ndis-gateway/security/sensitive-payload";
 import { billingRouteToPaymentRoute } from "@/lib/ndis-gateway/routing/route-policy";
 import { lockBillingPackage } from "@/lib/ndis-gateway/workflows/lock-billing-package";
+import { assertPilotTransactionAllowed } from "@/lib/pilot/limits/pilot-limit-service";
+import { isPilotEnforcementEnabled } from "@/lib/pilot/runtime/pilot-context";
+import { executeWithinPilotPolicy } from "@/lib/pilot/runtime/pilot-execution-gateway";
 import { prisma } from "@/lib/prisma";
 
 export type PreparePaymentInput = {
@@ -31,6 +34,11 @@ export type PreparePaymentInput = {
   dryRun?: boolean;
   /** When set, use this batch for NDIA export metadata. */
   billingBatchId?: string | null;
+  /**
+   * Optional ControlledPilot id. Enforced only when PILOT_ENFORCEMENT_ENABLED=true.
+   * Absent pilotId + enforcement off leaves existing flows unchanged.
+   */
+  pilotId?: string | null;
 };
 
 export type PreparePaymentResult = {
@@ -186,6 +194,31 @@ export async function preparePaymentForBillableItems(
     }
   }
 
+  if (
+    isPilotEnforcementEnabled() &&
+    input.pilotId &&
+    blockingIssues.length === 0
+  ) {
+    for (const item of items) {
+      if (!item.participantId) {
+        blockingIssues.push("PILOT_POLICY:PARTICIPANT_REQUIRED");
+        continue;
+      }
+      try {
+        await assertPilotTransactionAllowed({
+          pilotId: input.pilotId,
+          participantId: item.participantId,
+          amountCents: item.totalCents ?? 0,
+          supportItemCode: item.supportItemCode ?? "",
+          fundingRoute: input.billingRoute,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "PILOT_DENIED";
+        blockingIssues.push(`PILOT_POLICY:${message}`);
+      }
+    }
+  }
+
   if (blockingIssues.length > 0) {
     return {
       correlationId,
@@ -199,81 +232,115 @@ export async function preparePaymentForBillableItems(
     };
   }
 
-  const documentIds: string[] = [];
-  if (!dryRun) {
-    await lockBillingPackage({
-      organisationId: input.organisationId,
-      actorUserId: input.actorUserId,
-      billableItemIds: input.billableItemIds,
-      reason: "prepare_payment",
-    });
-
-    const doc = await createDocumentPackage({
-      organisationId: input.organisationId,
-      actorUserId: input.actorUserId,
-      billingRoute: input.billingRoute,
-      billableItemIds: input.billableItemIds,
-      billingBatchId: input.billingBatchId,
-    });
-    documentIds.push(doc.documentId);
-  }
-
-  const lines = items.map((i) => ({
-    billableItemId: i.id,
-    participantId: i.participantId,
-    supportItemCode: i.supportItemCode,
-    description: i.supportDescription,
-    serviceStartAt: i.serviceStartAt.toISOString(),
-    serviceEndAt: i.serviceEndAt.toISOString(),
-    quantity: i.quantity.toString(),
-    unitPriceCents: i.unitPriceCents ?? 0,
-    totalCents: i.totalCents ?? 0,
-  }));
-
-  const adapter = adapterForRoute(input.billingRoute);
-  const dispatch = await adapter.dispatch({
-    organisationId: input.organisationId,
-    actorUserId: input.actorUserId,
-    correlationId,
-    billingRoute: input.billingRoute,
-    batchId: input.billingBatchId,
-    dryRun,
-    lineIds: input.billableItemIds,
-    lines,
-  });
-
-  if (!dryRun) {
-    await prisma.ndisWorkflowTransition.create({
-      data: {
+  const runPrepare = async (): Promise<PreparePaymentResult> => {
+    const documentIds: string[] = [];
+    if (!dryRun) {
+      await lockBillingPackage({
         organisationId: input.organisationId,
-        entityType: "ndis_payment_prepare",
-        entityId: correlationId,
-        fromStatus: "ready",
-        toStatus: "prepared",
         actorUserId: input.actorUserId,
-        correlationId,
-        metadataJson: sanitiseAuditJson({
-          billingRoute: input.billingRoute,
-          paymentRoute: billingRouteToPaymentRoute(input.billingRoute),
-          billableItemIds: input.billableItemIds,
-          documentIds,
-          snapshotId,
-          approvalId,
-          adapter: dispatch.adapterKind,
-          markedSubmitted: dispatch.markedSubmitted,
-        }) as Prisma.InputJsonValue,
-      },
+        billableItemIds: input.billableItemIds,
+        reason: "prepare_payment",
+      });
+
+      const doc = await createDocumentPackage({
+        organisationId: input.organisationId,
+        actorUserId: input.actorUserId,
+        billingRoute: input.billingRoute,
+        billableItemIds: input.billableItemIds,
+        billingBatchId: input.billingBatchId,
+      });
+      documentIds.push(doc.documentId);
+    }
+
+    const lines = items.map((i) => ({
+      billableItemId: i.id,
+      participantId: i.participantId,
+      supportItemCode: i.supportItemCode,
+      description: i.supportDescription,
+      serviceStartAt: i.serviceStartAt.toISOString(),
+      serviceEndAt: i.serviceEndAt.toISOString(),
+      quantity: i.quantity.toString(),
+      unitPriceCents: i.unitPriceCents ?? 0,
+      totalCents: i.totalCents ?? 0,
+    }));
+
+    const adapter = adapterForRoute(input.billingRoute);
+    const dispatch = await adapter.dispatch({
+      organisationId: input.organisationId,
+      actorUserId: input.actorUserId,
+      correlationId,
+      billingRoute: input.billingRoute,
+      batchId: input.billingBatchId,
+      dryRun,
+      lineIds: input.billableItemIds,
+      lines,
     });
+
+    if (!dryRun) {
+      await prisma.ndisWorkflowTransition.create({
+        data: {
+          organisationId: input.organisationId,
+          entityType: "ndis_payment_prepare",
+          entityId: correlationId,
+          fromStatus: "ready",
+          toStatus: "prepared",
+          actorUserId: input.actorUserId,
+          correlationId,
+          metadataJson: sanitiseAuditJson({
+            billingRoute: input.billingRoute,
+            paymentRoute: billingRouteToPaymentRoute(input.billingRoute),
+            billableItemIds: input.billableItemIds,
+            documentIds,
+            snapshotId,
+            approvalId,
+            adapter: dispatch.adapterKind,
+            markedSubmitted: dispatch.markedSubmitted,
+            pilotId: input.pilotId ?? null,
+          }) as Prisma.InputJsonValue,
+        },
+      });
+    }
+
+    return {
+      correlationId,
+      dryRun,
+      blocked: false,
+      blockingIssues: [],
+      documentIds: [...documentIds, ...dispatch.documentIds],
+      dispatch,
+      snapshotId,
+      approvalId,
+    };
+  };
+
+  if (isPilotEnforcementEnabled() && input.pilotId && !dryRun) {
+    const totalCents = items.reduce((s, i) => s + (i.totalCents ?? 0), 0);
+    const first = items[0]!;
+    if (!first.participantId) {
+      return {
+        correlationId,
+        dryRun,
+        blocked: true,
+        blockingIssues: ["PILOT_POLICY:PARTICIPANT_REQUIRED"],
+        documentIds: [],
+        dispatch: null,
+        snapshotId,
+        approvalId,
+      };
+    }
+    const wrapped = await executeWithinPilotPolicy({
+      pilotId: input.pilotId,
+      organisationId: input.organisationId,
+      actorUserId: input.actorUserId,
+      participantId: first.participantId,
+      amountCents: totalCents,
+      supportItemCode: first.supportItemCode ?? "",
+      fundingRoute: input.billingRoute,
+      operationLabel: "prepare_payment",
+      execute: runPrepare,
+    });
+    return wrapped.result;
   }
 
-  return {
-    correlationId,
-    dryRun,
-    blocked: false,
-    blockingIssues: [],
-    documentIds: [...documentIds, ...dispatch.documentIds],
-    dispatch,
-    snapshotId,
-    approvalId,
-  };
+  return runPrepare();
 }

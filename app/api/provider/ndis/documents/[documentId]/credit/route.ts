@@ -51,6 +51,16 @@ export async function POST(req: Request, { params }: Params) {
     if (!original) return jsonNdisError("Document not found", 404);
 
     const correlationId = createCorrelationId();
+    const lineInputs = original.lines.map((l) => ({
+      supportItemCode: l.supportItemCode,
+      description: l.description,
+      serviceStartAt: l.serviceStartAt.toISOString(),
+      serviceEndAt: l.serviceEndAt.toISOString(),
+      quantity: l.quantity.toString(),
+      unitType: l.unitType,
+      unitPriceCents: l.unitPriceCents,
+      totalCents: l.totalCents,
+    }));
 
     const created = await prisma.$transaction(async (tx) => {
       const allocated = await allocateDocumentNumber({
@@ -67,16 +77,7 @@ export async function POST(req: Request, { params }: Params) {
         billingRoute: original.billingRoute,
         originalDocumentNumber: original.documentNumber,
         reason: parsed.data.reason,
-        lines: original.lines.map((l) => ({
-          supportItemCode: l.supportItemCode,
-          description: l.description,
-          serviceStartAt: l.serviceStartAt.toISOString(),
-          serviceEndAt: l.serviceEndAt.toISOString(),
-          quantity: l.quantity.toString(),
-          unitType: l.unitType,
-          unitPriceCents: l.unitPriceCents,
-          totalCents: l.totalCents,
-        })),
+        lines: lineInputs,
       });
 
       const safeJson = renderDocumentSafeJson(credit);

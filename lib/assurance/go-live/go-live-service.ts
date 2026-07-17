@@ -73,6 +73,19 @@ export async function assessProductionGoLive(params: {
   });
 }
 
+function slugCode(name: string): string {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40);
+  return `${base || "pilot"}-${Date.now().toString(36)}`;
+}
+
+/**
+ * Creates a Wave 7 ControlledPilot draft linked to an optional go-live assessment.
+ * Empty allowlists deny all. limitedLiveEnabled remains false.
+ */
 export async function createControlledPilotDraft(params: {
   organisationId: string;
   name: string;
@@ -85,12 +98,18 @@ export async function createControlledPilotDraft(params: {
     data: {
       organisationId: params.organisationId,
       name: params.name,
-      scopeStatement: params.scopeStatement,
+      code: slugCode(params.name),
+      summary: params.scopeStatement,
       createdById: params.createdById,
-      maxParticipants: params.maxParticipants,
+      maxActiveParticipants: params.maxParticipants ?? 0,
       goLiveAssessmentId: params.goLiveAssessmentId ?? null,
       status: "draft",
-      autoActivateForbidden: true,
+      stage: "design",
+      supportItemAllowlist: [],
+      fundingRouteAllowlist: [],
+      integrationProfileIds: [],
+      limitedLiveEnabled: false,
+      resumeRequiresDecision: true,
     },
   });
 
@@ -112,9 +131,8 @@ export async function approveControlledPilot(params: {
     where: { id: params.pilotId },
     data: {
       status,
-      approvedById: params.approvedById,
-      approvedAt: new Date(),
-      autoActivateForbidden: true,
+      updatedById: params.approvedById,
+      limitedLiveEnabled: false,
     },
   });
 

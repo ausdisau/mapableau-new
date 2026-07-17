@@ -28,7 +28,7 @@ describe("go-live", () => {
   });
 
   it("never auto-activates pilots", () => {
-    expect(canAutoActivatePilot("approved_not_activated")).toBe(false);
+    expect(canAutoActivatePilot("approved")).toBe(false);
     expect(canAutoActivatePilot("active")).toBe(false);
   });
 });

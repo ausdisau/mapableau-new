@@ -66,5 +66,9 @@ export async function POST(req: Request) {
     maxParticipants: parsed.data.maxParticipants,
     goLiveAssessmentId: parsed.data.goLiveAssessmentId,
   });
-  return jsonOk({ pilot, autoActivateForbidden: true });
+  return jsonOk({
+    pilot,
+    autoActivateForbidden: true,
+    limitedLiveEnabled: pilot.limitedLiveEnabled,
+  });
 }

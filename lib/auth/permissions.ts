@@ -214,7 +214,29 @@ export type Permission =
   | "engagement:read:self"
   | "engagement:submit:self"
   | "engagement:manage:any"
-  | "engagement:provider:read";
+  | "engagement:provider:read"
+  | "pilot:view"
+  | "pilot:create"
+  | "pilot:approve"
+  | "pilot:start"
+  | "pilot:advance"
+  | "pilot:pause"
+  | "pilot:resume"
+  | "pilot:terminate"
+  | "pilot:participant:invite"
+  | "pilot:participant:enrol"
+  | "pilot:worker:authorise"
+  | "pilot:operations:view"
+  | "pilot:financial:view"
+  | "pilot:reconciliation:resolve"
+  | "pilot:incident:manage"
+  | "pilot:complaint:manage"
+  | "pilot:change:approve"
+  | "participant:pilot:view"
+  | "participant:pilot:consent"
+  | "participant:pilot:withdraw"
+  | "participant:pilot:complaint"
+  | "participant:pilot:feedback";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -260,6 +282,11 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "participant:billing:view",
     "participant:evidence:confirm",
     "participant:billing:dispute",
+    "participant:pilot:view",
+    "participant:pilot:consent",
+    "participant:pilot:withdraw",
+    "participant:pilot:complaint",
+    "participant:pilot:feedback",
   ],
   family_member: [
     "profile:read:self",
@@ -330,6 +357,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "engagement:provider:read",
     "platform_trust:workers:read",
     "platform_trust:workers:assess",
+    "pilot:view",
+    "pilot:participant:invite",
+    "pilot:participant:enrol",
+    "pilot:worker:authorise",
+    "pilot:operations:view",
+    "pilot:financial:view",
+    "pilot:incident:manage",
+    "pilot:complaint:manage",
   ],
   transport_operator: [
     "booking:read:any",
@@ -527,6 +562,23 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:compliance:read",
     "admin:agent-runs:read",
     "admin:actions:write",
+    "pilot:view",
+    "pilot:create",
+    "pilot:approve",
+    "pilot:start",
+    "pilot:advance",
+    "pilot:pause",
+    "pilot:resume",
+    "pilot:terminate",
+    "pilot:participant:invite",
+    "pilot:participant:enrol",
+    "pilot:worker:authorise",
+    "pilot:operations:view",
+    "pilot:financial:view",
+    "pilot:reconciliation:resolve",
+    "pilot:incident:manage",
+    "pilot:complaint:manage",
+    "pilot:change:approve",
   ],
 };
 
