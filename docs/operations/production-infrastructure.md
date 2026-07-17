@@ -7,9 +7,9 @@ access blocks deployment.
 ## Current hosting status
 
 - Primary target: Vercel.
-- Canonical public host: `https://www.mapable.com.au`.
-- Apex host: `https://mapable.com.au` should redirect or canonicalise to
-  `https://www.mapable.com.au`.
+- Canonical public host: `https://mapable.com.au`.
+- `www.mapable.com.au` should redirect to the apex host and must keep a valid
+  TLS certificate (expired www certs block browsers before the redirect).
 - Known blocker: Vercel CLI access for the current agent account cannot deploy
   because the `ausdisau` team is suspended for billing, and the CLI account does
   not have access to `mapable.com.au`/`www.mapable.com.au`.
@@ -25,8 +25,8 @@ verified.
 | `DATABASE_URL`                                         | Yes                           | Pooled Neon/Postgres URL for runtime Prisma queries.                                                                                          |
 | `DIRECT_URL`                                           | Yes                           | Direct Neon/Postgres URL for migrations. Do not use the pooler host.                                                                          |
 | `NEXTAUTH_SECRET`                                      | Yes                           | Stable private value, at least 16 characters. The code has a fallback only to keep auth endpoints from returning 500 during misconfiguration. |
-| `NEXTAUTH_URL`                                         | Yes                           | `https://www.mapable.com.au` in production.                                                                                                   |
-| `NEXT_PUBLIC_APP_URL`                                  | Yes                           | `https://www.mapable.com.au` for canonical links and client-safe app URL.                                                                     |
+| `NEXTAUTH_URL`                                         | Yes                           | `https://mapable.com.au` in production.                                                                                                      |
+| `NEXT_PUBLIC_APP_URL`                                  | Yes                           | `https://mapable.com.au` for canonical links and client-safe app URL.                                                                        |
 | `NDIS_ENCRYPTION_KEY`                                  | Recommended                   | Separate stable secret for encrypted NDIS identifiers.                                                                                        |
 | `SENDGRID_API_KEY` / `SENDGRID_FROM_EMAIL`             | If email enabled              | Required for production email delivery.                                                                                                       |
 | `DOCUMENT_STORAGE_MODE`                                | Yes                           | Use a production-safe mode once document upload workflows are live.                                                                           |
@@ -68,11 +68,12 @@ verified.
 8. Smoke-check production:
 
    ```bash
+   curl -I https://mapable.com.au/
+   curl https://mapable.com.au/api/auth/session
+   curl https://mapable.com.au/api/auth/providers
+   curl -I https://mapable.com.au/robots.txt
+   curl -I https://mapable.com.au/sitemap.xml
    curl -I https://www.mapable.com.au/
-   curl https://www.mapable.com.au/api/auth/session
-   curl https://www.mapable.com.au/api/auth/providers
-   curl -I https://www.mapable.com.au/robots.txt
-   curl -I https://www.mapable.com.au/sitemap.xml
    ```
 
 ## Database and migrations

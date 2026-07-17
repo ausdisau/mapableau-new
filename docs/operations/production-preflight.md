@@ -15,14 +15,15 @@ Run this checklist before promoting MapAble to a public production deployment.
 - [ ] Vercel billing active, or fallback host selected.
 - [ ] Project linked to the correct GitHub repository.
 - [ ] `mapable.com.au` and `www.mapable.com.au` assigned to the production project.
-- [ ] `www.mapable.com.au` is the canonical host.
+- [ ] `mapable.com.au` is the canonical host (www should redirect to apex).
+- [ ] TLS certificates are valid for both apex and www (renew in Vercel Domains if expired).
 - [ ] Preview deployment policy understood.
 
 ## Auth
 
 - [ ] `NEXTAUTH_SECRET` is stable, private, and at least 16 characters.
-- [ ] `NEXTAUTH_URL=https://www.mapable.com.au`.
-- [ ] `NEXT_PUBLIC_APP_URL=https://www.mapable.com.au`.
+- [ ] `NEXTAUTH_URL=https://mapable.com.au`.
+- [ ] `NEXT_PUBLIC_APP_URL=https://mapable.com.au`.
 - [ ] `/api/auth/session` returns 200.
 - [ ] `/api/auth/providers` returns 200.
 - [ ] `/login` and `/register` render without client fetch errors.
@@ -59,15 +60,17 @@ Run this checklist before promoting MapAble to a public production deployment.
 
 - [ ] `/robots.txt` returns 200.
 - [ ] `/sitemap.xml` returns 200.
-- [ ] Canonical URL points to `https://www.mapable.com.au`.
+- [ ] Canonical URL points to `https://mapable.com.au`.
 - [ ] Public claims avoid unsupported NDIS registration, WCAG conformance and data sovereignty statements.
 
 ## Post-deploy smoke checks
 
 ```bash
+curl -I https://mapable.com.au/
+curl https://mapable.com.au/api/auth/session
+curl https://mapable.com.au/api/auth/providers
+curl -I https://mapable.com.au/robots.txt
+curl -I https://mapable.com.au/sitemap.xml
+# www should redirect to apex with a valid certificate (not ERR_CERT_DATE_INVALID)
 curl -I https://www.mapable.com.au/
-curl https://www.mapable.com.au/api/auth/session
-curl https://www.mapable.com.au/api/auth/providers
-curl -I https://www.mapable.com.au/robots.txt
-curl -I https://www.mapable.com.au/sitemap.xml
 ```

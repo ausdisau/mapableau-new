@@ -29,7 +29,7 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au",
+    process.env.NEXT_PUBLIC_APP_URL || "https://mapable.com.au",
   ),
   title: {
     default: "MapAble | Disability support platform",
@@ -86,14 +86,14 @@ export default function RootLayout({
               "@type": "Organization",
               name: "MapAble",
               url:
-                process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au",
+                process.env.NEXT_PUBLIC_APP_URL || "https://mapable.com.au",
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer support",
                 email: "support@mapable.com.au",
                 areaServed: "AU",
               },
-              sameAs: ["https://www.mapable.com.au"],
+              sameAs: ["https://mapable.com.au"],
             }),
           }}
         />
@@ -106,12 +106,12 @@ export default function RootLayout({
               "@type": "WebSite",
               name: "MapAble",
               url:
-                process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au",
+                process.env.NEXT_PUBLIC_APP_URL || "https://mapable.com.au",
               potentialAction: {
                 "@type": "SearchAction",
                 target:
                   (process.env.NEXT_PUBLIC_APP_URL ||
-                    "https://www.mapable.com.au") +
+                    "https://mapable.com.au") +
                   "/provider-finder?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
