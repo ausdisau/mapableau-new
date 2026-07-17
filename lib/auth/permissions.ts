@@ -262,7 +262,56 @@ export type Permission =
   | "tenant:policies:manage"
   | "tenant:quotas:read"
   | "tenant:assurance:read"
-  | "tenant:switch";
+  | "tenant:switch"
+  // Wave 9: participant-controlled credentials and consent federation
+  | "vault:read:self"
+  | "vault:manage:self"
+  | "vault:package:read:self"
+  | "vault:package:manage:self"
+  | "vault:access-history:read:self"
+  | "vault:delegate:manage:self"
+  | "vault:emergency:invoke:self"
+  | "vault:read:any"
+  | "vault:manage:any"
+  | "consent_directive:read:self"
+  | "consent_directive:manage:self"
+  | "consent_directive:read:any"
+  | "consent_directive:manage:any"
+  | "consent_receipt:read:self"
+  | "consent_receipt:read:any"
+  | "delegate:read:self"
+  | "delegate:manage:self"
+  | "delegate:read:any"
+  | "delegate:manage:any"
+  | "wallet:read:self"
+  | "wallet:activate:self"
+  | "wallet:manage:self"
+  | "wallet:recovery:self"
+  | "wallet:read:any"
+  | "wallet:manage:any"
+  | "credential:read:self"
+  | "credential:present:self"
+  | "credential:issue:self"
+  | "credential:read:any"
+  | "credential:issue:any"
+  | "credential:verify:any"
+  | "credential:trust:manage"
+  | "credential:schema:manage"
+  | "credential:statuslist:manage"
+  | "federation:read:any"
+  | "federation:manage:any"
+  | "federation:verifier:manage"
+  | "federation:issuer:manage"
+  | "federation:conformance:run"
+  | "federation:disclosure:read:self"
+  | "federation:disclosure:manage:any"
+  | "federation:emergency:review"
+  | "portability:export:self"
+  | "portability:import:self"
+  | "provider:federation:read"
+  | "provider:federation:issue"
+  | "provider:federation:verify"
+  | "provider:federation:disclose";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -313,6 +362,28 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "participant:pilot:withdraw",
     "participant:pilot:complaint",
     "participant:pilot:feedback",
+    "vault:read:self",
+    "vault:manage:self",
+    "vault:package:read:self",
+    "vault:package:manage:self",
+    "vault:access-history:read:self",
+    "vault:delegate:manage:self",
+    "vault:emergency:invoke:self",
+    "consent_directive:read:self",
+    "consent_directive:manage:self",
+    "consent_receipt:read:self",
+    "delegate:read:self",
+    "delegate:manage:self",
+    "wallet:read:self",
+    "wallet:activate:self",
+    "wallet:manage:self",
+    "wallet:recovery:self",
+    "credential:read:self",
+    "credential:present:self",
+    "credential:issue:self",
+    "federation:disclosure:read:self",
+    "portability:export:self",
+    "portability:import:self",
   ],
   family_member: [
     "profile:read:self",
@@ -380,6 +451,10 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:billing:void",
     "provider:evidence:view",
     "provider:evidence:exception",
+    "provider:federation:read",
+    "provider:federation:issue",
+    "provider:federation:verify",
+    "provider:federation:disclose",
     "engagement:provider:read",
     "platform_trust:workers:read",
     "platform_trust:workers:assess",
@@ -637,6 +712,28 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "tenant:quotas:read",
     "tenant:assurance:read",
     "tenant:switch",
+    "vault:read:any",
+    "vault:manage:any",
+    "consent_directive:read:any",
+    "consent_directive:manage:any",
+    "consent_receipt:read:any",
+    "delegate:read:any",
+    "delegate:manage:any",
+    "wallet:read:any",
+    "wallet:manage:any",
+    "credential:read:any",
+    "credential:issue:any",
+    "credential:verify:any",
+    "credential:trust:manage",
+    "credential:schema:manage",
+    "credential:statuslist:manage",
+    "federation:read:any",
+    "federation:manage:any",
+    "federation:verifier:manage",
+    "federation:issuer:manage",
+    "federation:conformance:run",
+    "federation:disclosure:manage:any",
+    "federation:emergency:review",
   ],
 };
 
