@@ -100,42 +100,42 @@ model User {
   attestationsAsActor                     Attestation[]                 @relation("AttestationActor")
   timesheetsAsParticipant                 Timesheet[]                   @relation("TimesheetParticipant")
 
-  billingAccounts                       BillingAccount[]                   @relation("BillingAccounts")
-  billingFundingSources                 BillingFundingSource[]             @relation("BillingFundingSources")
-  billingInvoices                       BillingInvoice[]                   @relation("BillingInvoices")
-  billingPayments                       BillingPayment[]                   @relation("BillingPayments")
-  billingSubscriptions                  BillingSubscription[]              @relation("BillingSubscriptions")
-  payoutRecipients                      PayoutRecipient[]                  @relation("PayoutRecipients")
-  ndisClaimLinesParticipant             NdisClaimLine[]                    @relation("NdisClaimLinesParticipant")
-  ndisInvoicesParticipant               NdisInvoice[]                      @relation("NdisInvoicesParticipant")
-  participantProviderRelationships      ParticipantProviderRelationship[]  @relation("ParticipantProviderRelationships")
-  ndisDeliveryAuthorizationsParticipant NdisServiceDeliveryAuthorization[] @relation("NdisDeliveryAuthParticipant")
-  ndisDeliveryEventsParticipant         NdisServiceDeliveryEvent[]         @relation("NdisDeliveryEventParticipant")
-  ndisClaimSnapshotsAsParticipant       NdisClaimSnapshot[]                @relation("NdisClaimSnapshotParticipant")
-  ndisClaimSnapshotsCreated             NdisClaimSnapshot[]                @relation("NdisClaimSnapshotCreatedBy")
-  ndisClaimApprovalsApproved            NdisClaimApproval[]                @relation("NdisClaimApprovalApprover")
-  ndisClaimApprovalsRevoked             NdisClaimApproval[]                @relation("NdisClaimApprovalRevoker")
-  ndisExternalSubmissionsSubmitted      NdisExternalSubmission[]           @relation("NdisExternalSubmissionSubmitter")
-  ndisBillableItemsAsParticipant        NdisBillableServiceItem[]          @relation("NdisBillableItemParticipant")
-  ndisBillableItemsCreated              NdisBillableServiceItem[]          @relation("NdisBillableItemCreatedBy")
-  ndisBillableItemsLocked               NdisBillableServiceItem[]          @relation("NdisBillableItemLockedBy")
-  ndisEvidencePackagesAsParticipant     NdisServiceEvidencePackage[]       @relation("NdisEvidencePackageParticipant")
-  ndisEvidenceConfirmed                 NdisServiceEvidencePackage[]       @relation("NdisEvidenceConfirmedBy")
-  ndisEvidenceDisputed                  NdisServiceEvidencePackage[]       @relation("NdisEvidenceDisputedBy")
-  ndisBillingDocumentsCreated           NdisBillingDocument[]              @relation("NdisBillingDocumentCreatedBy")
-  ndisBillingDocumentsApproved          NdisBillingDocument[]              @relation("NdisBillingDocumentApprovedBy")
-  ndisBillingDisputesRaised             NdisBillingDispute[]               @relation("NdisBillingDisputeRaisedBy")
-  ndisBillingDisputesAssigned           NdisBillingDispute[]               @relation("NdisBillingDisputeAssignedTo")
-  ndisWorkflowTransitionsActor          NdisWorkflowTransition[]           @relation("NdisWorkflowTransitionActor")
-  ndisRouteDecisionsActor               NdisRouteDecision[]                @relation("NdisRouteDecisionActor")
-  externalIntegrationProfilesApproved   ExternalIntegrationProfile[]       @relation("ExternalIntegrationProfileApprovedBy")
-  externalIntegrationProfilesActivated  ExternalIntegrationProfile[]       @relation("ExternalIntegrationProfileActivatedBy")
-  externalIntegrationActivationsApproved ExternalIntegrationActivation[]   @relation("ExternalIntegrationActivationApprovedBy")
-  externalIntegrationActivationsRevoked ExternalIntegrationActivation[]    @relation("ExternalIntegrationActivationRevokedBy")
-  externalRemittancesImported           ExternalRemittance[]               @relation("ExternalRemittanceImportedBy")
-  ndisPaymentAllocationsAllocated       NdisPaymentAllocation[]            @relation("NdisPaymentAllocationAllocatedBy")
-  ndisPaymentAllocationsReversed        NdisPaymentAllocation[]            @relation("NdisPaymentAllocationReversedBy")
-  integrationKillSwitchesEngaged        IntegrationKillSwitch[]            @relation("IntegrationKillSwitchEngagedBy")
+  billingAccounts                        BillingAccount[]                   @relation("BillingAccounts")
+  billingFundingSources                  BillingFundingSource[]             @relation("BillingFundingSources")
+  billingInvoices                        BillingInvoice[]                   @relation("BillingInvoices")
+  billingPayments                        BillingPayment[]                   @relation("BillingPayments")
+  billingSubscriptions                   BillingSubscription[]              @relation("BillingSubscriptions")
+  payoutRecipients                       PayoutRecipient[]                  @relation("PayoutRecipients")
+  ndisClaimLinesParticipant              NdisClaimLine[]                    @relation("NdisClaimLinesParticipant")
+  ndisInvoicesParticipant                NdisInvoice[]                      @relation("NdisInvoicesParticipant")
+  participantProviderRelationships       ParticipantProviderRelationship[]  @relation("ParticipantProviderRelationships")
+  ndisDeliveryAuthorizationsParticipant  NdisServiceDeliveryAuthorization[] @relation("NdisDeliveryAuthParticipant")
+  ndisDeliveryEventsParticipant          NdisServiceDeliveryEvent[]         @relation("NdisDeliveryEventParticipant")
+  ndisClaimSnapshotsAsParticipant        NdisClaimSnapshot[]                @relation("NdisClaimSnapshotParticipant")
+  ndisClaimSnapshotsCreated              NdisClaimSnapshot[]                @relation("NdisClaimSnapshotCreatedBy")
+  ndisClaimApprovalsApproved             NdisClaimApproval[]                @relation("NdisClaimApprovalApprover")
+  ndisClaimApprovalsRevoked              NdisClaimApproval[]                @relation("NdisClaimApprovalRevoker")
+  ndisExternalSubmissionsSubmitted       NdisExternalSubmission[]           @relation("NdisExternalSubmissionSubmitter")
+  ndisBillableItemsAsParticipant         NdisBillableServiceItem[]          @relation("NdisBillableItemParticipant")
+  ndisBillableItemsCreated               NdisBillableServiceItem[]          @relation("NdisBillableItemCreatedBy")
+  ndisBillableItemsLocked                NdisBillableServiceItem[]          @relation("NdisBillableItemLockedBy")
+  ndisEvidencePackagesAsParticipant      NdisServiceEvidencePackage[]       @relation("NdisEvidencePackageParticipant")
+  ndisEvidenceConfirmed                  NdisServiceEvidencePackage[]       @relation("NdisEvidenceConfirmedBy")
+  ndisEvidenceDisputed                   NdisServiceEvidencePackage[]       @relation("NdisEvidenceDisputedBy")
+  ndisBillingDocumentsCreated            NdisBillingDocument[]              @relation("NdisBillingDocumentCreatedBy")
+  ndisBillingDocumentsApproved           NdisBillingDocument[]              @relation("NdisBillingDocumentApprovedBy")
+  ndisBillingDisputesRaised              NdisBillingDispute[]               @relation("NdisBillingDisputeRaisedBy")
+  ndisBillingDisputesAssigned            NdisBillingDispute[]               @relation("NdisBillingDisputeAssignedTo")
+  ndisWorkflowTransitionsActor           NdisWorkflowTransition[]           @relation("NdisWorkflowTransitionActor")
+  ndisRouteDecisionsActor                NdisRouteDecision[]                @relation("NdisRouteDecisionActor")
+  externalIntegrationProfilesApproved    ExternalIntegrationProfile[]       @relation("ExternalIntegrationProfileApprovedBy")
+  externalIntegrationProfilesActivated   ExternalIntegrationProfile[]       @relation("ExternalIntegrationProfileActivatedBy")
+  externalIntegrationActivationsApproved ExternalIntegrationActivation[]    @relation("ExternalIntegrationActivationApprovedBy")
+  externalIntegrationActivationsRevoked  ExternalIntegrationActivation[]    @relation("ExternalIntegrationActivationRevokedBy")
+  externalRemittancesImported            ExternalRemittance[]               @relation("ExternalRemittanceImportedBy")
+  ndisPaymentAllocationsAllocated        NdisPaymentAllocation[]            @relation("NdisPaymentAllocationAllocatedBy")
+  ndisPaymentAllocationsReversed         NdisPaymentAllocation[]            @relation("NdisPaymentAllocationReversedBy")
+  integrationKillSwitchesEngaged         IntegrationKillSwitch[]            @relation("IntegrationKillSwitchEngagedBy")
 
   accessPlacesCreated            AccessPlace[]                   @relation("AccessPlaceCreatedBy")
   accessPlaceClaims              AccessPlaceClaim[]              @relation("AccessPlaceClaimUser")
@@ -165,6 +165,32 @@ model User {
   caseTasksCompleted        CaseTask[]      @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]      @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[] @relation("CaseAIInsightRequestedBy")
+
+  // Wave 6 assurance / platform trust
+  securityFrameworksOwned           SecurityFramework[]                   @relation("SecurityFrameworkOwner")
+  securityFrameworksApproved        SecurityFramework[]                   @relation("SecurityFrameworkApprovedBy")
+  securityControlsOwned             SecurityControl[]                     @relation("SecurityControlOwner")
+  securityControlsReviewed          SecurityControl[]                     @relation("SecurityControlReviewer")
+  assuranceEvidenceCollected        AssuranceEvidence[]                   @relation("AssuranceEvidenceCollectedBy")
+  assuranceControlTestRunsExecuted  AssuranceControlTestRun[]             @relation("AssuranceControlTestRunExecutor")
+  assuranceExceptionsApproved       AssuranceException[]                  @relation("AssuranceExceptionApprovedBy")
+  assuranceExceptionsCreated        AssuranceException[]                  @relation("AssuranceExceptionCreatedBy")
+  ndisRegistrationApplicationsOwned NdisRegistrationApplication[]         @relation("NdisRegistrationApplicationOwner")
+  ndiaDigitalPartnershipsOwned      NdiaDigitalPartnershipApplication[]   @relation("NdiaDigitalPartnershipOwner")
+  workerPlatformEligibilityAsWorker WorkerPlatformEligibilityAssessment[] @relation("WorkerPlatformEligibilityWorker")
+  workerPlatformEligibilityAssessed WorkerPlatformEligibilityAssessment[] @relation("WorkerPlatformEligibilityAssessor")
+  workerBanningOrdersAsWorker       WorkerBanningOrderAssessment[]        @relation("WorkerBanningOrderWorker")
+  workerBanningOrdersChecked        WorkerBanningOrderAssessment[]        @relation("WorkerBanningOrderChecker")
+  workerCredentialsAsWorker         WorkerCredential[]                    @relation("WorkerCredentialWorker")
+  workerCredentialsVerified         WorkerCredential[]                    @relation("WorkerCredentialVerifier")
+  dataProcessingActivitiesOwned     DataProcessingActivity[]              @relation("DataProcessingActivityOwner")
+  participantConsentPurposeRecords  ParticipantConsentPurposeRecord[]     @relation("ParticipantConsentPurposeParticipant")
+  securityFindingsOwned             SecurityFinding[]                     @relation("SecurityFindingOwner")
+  operationalIncidentsOwned         OperationalIncident[]                 @relation("OperationalIncidentOwner")
+  productionGoLiveAssessments       ProductionGoLiveAssessment[]          @relation("ProductionGoLiveAssessor")
+  controlledPilotsCreated           ControlledPilot[]                     @relation("ControlledPilotCreatedBy")
+  controlledPilotsApproved          ControlledPilot[]                     @relation("ControlledPilotApprovedBy")
+  vendorRiskAssessments             VendorRiskAssessment[]                @relation("VendorRiskAssessor")
 }
 
 model PasskeyCredential {
@@ -758,6 +784,22 @@ model Organisation {
   engagementImprovementActions EngagementImprovementAction[]
   engagementNpsResponses       EngagementNpsResponse[]
   workerTrainingModules        WorkerTrainingModule[]
+
+  // Wave 6 assurance / platform trust
+  assuranceExceptions                  AssuranceException[]
+  ndisRegistrationApplications         NdisRegistrationApplication[]
+  ndiaDigitalPartnershipApplications   NdiaDigitalPartnershipApplication[]
+  workerPlatformEligibilityAssessments WorkerPlatformEligibilityAssessment[]
+  workerBanningOrderAssessments        WorkerBanningOrderAssessment[]
+  workerCredentials                    WorkerCredential[]
+  dataProcessingActivities             DataProcessingActivity[]
+  participantConsentPurposeRecords     ParticipantConsentPurposeRecord[]
+  securityFindings                     SecurityFinding[]
+  operationalIncidents                 OperationalIncident[]
+  productionGoLiveAssessments          ProductionGoLiveAssessment[]
+  controlledPilots                     ControlledPilot[]
+  vendorRiskAssessments                VendorRiskAssessment[]
+  ndiaClaimEvidenceBundles             NdiaClaimEvidenceBundle[]
 }
 
 model OrganisationMember {
@@ -795,6 +837,8 @@ model ConsentRecord {
   sourceAction            String?
   createdAt               DateTime              @default(now())
   updatedAt               DateTime              @updatedAt
+
+  purposeRecords ParticipantConsentPurposeRecord[]
 
   @@index([subjectUserId, status])
   @@index([grantedToOrganisationId])
@@ -2546,44 +2590,49 @@ model Timesheet {
 }
 
 model IncidentReport {
-  id                         String              @id @default(cuid())
-  category                   IncidentCategory
-  severity                   IncidentSeverity    @default(medium)
-  status                     IncidentStatus      @default(draft)
-  title                      String
-  description                String
-  participantId              String?
-  bookingId                  String?
-  careShiftId                String?
-  transportBookingId         String?
-  organisationId             String?
-  organisation               Organisation?       @relation(fields: [organisationId], references: [id], onDelete: SetNull)
-  workerProfileId            String?
-  driverProfileId            String?
-  vehicleId                  String?
-  reportedById               String
-  reportedBy                 User                @relation("IncidentReportedBy", fields: [reportedById], references: [id])
-  adminOwner                 User?               @relation("IncidentAdminOwner", fields: [adminOwnerId], references: [id], onDelete: SetNull)
-  occurredAt                 DateTime?
-  immediateRiskPresent       Boolean             @default(false)
-  possibleReportableIncident Boolean             @default(false)
-  safeguardingConcern        Boolean             @default(false)
-  adminOwnerId               String?
-  adminAcknowledgedAt        DateTime?
-  resolutionSummary          String?
-  externalReportRef          String?
-  escalatedToQscAt           DateTime?
-  intakePath                 IncidentIntakePath?
-  intakeMetadataJson         Json?
-  participantIntent          String?
-  createdAt                  DateTime            @default(now())
-  updatedAt                  DateTime            @updatedAt
-  closedAt                   DateTime?
+  id                            String              @id @default(cuid())
+  category                      IncidentCategory
+  severity                      IncidentSeverity    @default(medium)
+  status                        IncidentStatus      @default(draft)
+  title                         String
+  description                   String
+  participantId                 String?
+  bookingId                     String?
+  careShiftId                   String?
+  transportBookingId            String?
+  organisationId                String?
+  organisation                  Organisation?       @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  workerProfileId               String?
+  driverProfileId               String?
+  vehicleId                     String?
+  reportedById                  String
+  reportedBy                    User                @relation("IncidentReportedBy", fields: [reportedById], references: [id])
+  adminOwner                    User?               @relation("IncidentAdminOwner", fields: [adminOwnerId], references: [id], onDelete: SetNull)
+  occurredAt                    DateTime?
+  immediateRiskPresent          Boolean             @default(false)
+  possibleReportableIncident    Boolean             @default(false)
+  safeguardingConcern           Boolean             @default(false)
+  adminOwnerId                  String?
+  adminAcknowledgedAt           DateTime?
+  resolutionSummary             String?
+  externalReportRef             String?
+  escalatedToQscAt              DateTime?
+  intakePath                    IncidentIntakePath?
+  intakeMetadataJson            Json?
+  participantIntent             String?
+  assuranceFindingId            String?
+  assuranceFinding              SecurityFinding?    @relation(fields: [assuranceFindingId], references: [id], onDelete: SetNull)
+  isOperationalSecurityIncident Boolean             @default(false)
+  containmentSummary            String?
+  createdAt                     DateTime            @default(now())
+  updatedAt                     DateTime            @updatedAt
+  closedAt                      DateTime?
 
   updates                IncidentUpdate[]
   actions                IncidentAction[]
   evidence               IncidentEvidence[]
   transportIncidentLinks TransportIncidentLink[] @relation("TransportIncidentLink")
+  operationalIncidents   OperationalIncident[]
 
   @@index([status, severity])
   @@index([participantId])
@@ -3123,21 +3172,21 @@ enum XeroSyncStatus {
 }
 
 model XeroOAuthToken {
-  id           String    @id @default(cuid())
-  tenantId     String
+  id                     String    @id @default(cuid())
+  tenantId               String
   /// @deprecated Prefer accessTokenCiphertext / secretReference (Wave 5). Kept for compatibility.
-  accessToken  String
+  accessToken            String
   /// @deprecated Prefer refreshTokenCiphertext / secretReference (Wave 5). Kept for compatibility.
-  refreshToken String?
+  refreshToken           String?
   /// Encrypted access token ciphertext (Wave 5). Prefer over plaintext accessToken.
   accessTokenCiphertext  String?
   /// Encrypted refresh token ciphertext (Wave 5). Prefer over plaintext refreshToken.
   refreshTokenCiphertext String?
   /// Opaque vault / secret-manager reference for Xero credentials (Wave 5).
   secretReference        String?
-  expiresAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  expiresAt              DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 }
 
 model XeroSyncLog {
@@ -3868,7 +3917,7 @@ model ComplianceTask {
   createdAt DateTime  @default(now())
 }
 
-// --- Security Readiness ---
+// --- Security Readiness / Wave 6 Assurance ---
 
 enum SecurityFrameworkType {
   soc2
@@ -3878,32 +3927,613 @@ enum SecurityFrameworkType {
   internal
 }
 
+enum AssuranceFrameworkKind {
+  internal_baseline
+  soc2_readiness
+  iso27001_readiness
+  privacy_act_app
+  ndis_quality_safeguards
+  ndia_digital_platform
+  essential_eight_aligned
+  other
+}
+
+enum AssuranceControlStatus {
+  not_started
+  designed
+  implemented
+  operating
+  ineffective
+  not_applicable
+  exception_granted
+}
+
+enum AssuranceEvidenceType {
+  policy
+  procedure
+  config_export
+  log_export
+  screenshot
+  test_result
+  attestation
+  third_party_report
+  architecture_diagram
+  other
+}
+
+enum AssuranceEvidenceClassification {
+  public
+  internal
+  confidential
+  restricted
+}
+
+enum AssuranceTestResult {
+  pass
+  fail
+  partial
+  not_run
+  blocked
+  waived
+}
+
+enum AssuranceExceptionStatus {
+  proposed
+  approved
+  rejected
+  expired
+  revoked
+}
+
+enum AssuranceReadinessDecision {
+  not_ready
+  conditionally_ready
+  ready_for_registration_submission
+  ready_for_external_assurance
+  ready_for_controlled_pilot
+  blocked
+}
+
+enum WorkerPlatformEligibilityStatus {
+  not_assessed
+  pending_clearance
+  eligible
+  conditionally_eligible
+  ineligible
+  suspended
+  source_unavailable
+}
+
+enum WorkerClearanceStatus {
+  not_started
+  pending
+  verified
+  expired
+  revoked
+  self_declared
+  source_unavailable
+}
+
+enum WorkerBanningAssessmentStatus {
+  not_checked
+  clear
+  match_found
+  inconclusive
+  source_unavailable
+}
+
+enum WorkerCredentialVerificationStatus {
+  self_declared
+  document_on_file
+  externally_verified
+  expired
+  revoked
+  rejected
+}
+
+enum NdisRegistrationPathway {
+  new_provider
+  existing_provider_variation
+  digital_platform
+  plan_management
+  support_coordination
+  other
+}
+
+enum NdisRegistrationApplicationStatus {
+  draft
+  evidence_incomplete
+  internal_review
+  ready_to_submit
+  submitted_externally
+  additional_info_requested
+  approved_externally
+  rejected_externally
+  withdrawn
+  superseded
+}
+
+enum NdiaDigitalPartnershipStatus {
+  not_started
+  draft
+  internal_ready
+  awaiting_external_pack
+  submitted
+  in_assessment
+  approved
+  rejected
+  suspended
+  withdrawn
+}
+
+enum ProductionGoLiveDecision {
+  not_assessed
+  blocked
+  conditionally_approved
+  approved_for_pilot
+  approved_for_production
+  revoked
+}
+
+enum ControlledPilotStatus {
+  draft
+  pending_approval
+  approved_not_activated
+  active
+  paused
+  completed
+  aborted
+  retired
+}
+
+enum SecurityFindingSeverity {
+  informational
+  low
+  medium
+  high
+  critical
+}
+
+enum SecurityFindingStatus {
+  open
+  accepted_risk
+  in_remediation
+  mitigated
+  closed
+  false_positive
+}
+
+enum NdiaEvidenceLinkageStatus {
+  exact_match
+  partially_linked
+  ambiguous
+  unsafe
+  superseded
+}
+
+enum AssuranceControlTestKind {
+  manual
+  automated
+  inquiry
+  inspection
+  reperformance
+}
+
+enum DataProcessingLawfulBasis {
+  consent
+  contract
+  legal_obligation
+  vital_interests
+  public_task
+  legitimate_interests
+  other
+}
+
 model SecurityFramework {
-  id     String                @id @default(cuid())
-  type   SecurityFrameworkType
-  name   String
-  active Boolean               @default(true)
+  id             String                 @id @default(cuid())
+  type           SecurityFrameworkType
+  kind           AssuranceFrameworkKind @default(internal_baseline)
+  name           String
+  version        String                 @default("1.0")
+  sourceLabel    String?
+  scopeStatement String?
+  ownerUserId    String?
+  ownerUser      User?                  @relation("SecurityFrameworkOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  approvedById   String?
+  approvedBy     User?                  @relation("SecurityFrameworkApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt     DateTime?
+  effectiveFrom  DateTime?
+  effectiveTo    DateTime?
+  active         Boolean                @default(true)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
 
   controls SecurityControl[]
+
+  @@index([kind, active])
 }
 
 model SecurityControl {
-  id          String            @id @default(cuid())
-  frameworkId String
-  framework   SecurityFramework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
-  code        String
-  title       String
-  status      String            @default("not_started")
+  id                    String                 @id @default(cuid())
+  frameworkId           String
+  framework             SecurityFramework      @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  code                  String
+  controlCode           String
+  title                 String
+  objective             String?
+  status                String                 @default("not_started")
+  assuranceStatus       AssuranceControlStatus @default(not_started)
+  controlOwnerId        String?
+  controlOwner          User?                  @relation("SecurityControlOwner", fields: [controlOwnerId], references: [id], onDelete: SetNull)
+  reviewerId            String?
+  reviewer              User?                  @relation("SecurityControlReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  testingFrequency      String?
+  evidenceFreshnessDays Int                    @default(90)
+  lastAssessedAt        DateTime?
+  nextAssessmentAt      DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
-  evidence SecurityEvidence[]
+  evidence          SecurityEvidence[]
+  assuranceEvidence AssuranceEvidence[]
+  mappings          AssuranceControlMapping[]
+  tests             AssuranceControlTest[]
+  exceptions        AssuranceException[]
+  findings          SecurityFinding[]
+
+  @@index([controlCode])
 }
 
 model SecurityEvidence {
-  id         String          @id @default(cuid())
-  controlId  String
-  control    SecurityControl @relation(fields: [controlId], references: [id], onDelete: Cascade)
-  documentId String?
-  notes      String?
+  id                  String             @id @default(cuid())
+  controlId           String
+  control             SecurityControl    @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  documentId          String?
+  notes               String?
+  assuranceEvidenceId String?
+  assuranceEvidence   AssuranceEvidence? @relation(fields: [assuranceEvidenceId], references: [id], onDelete: SetNull)
+  createdAt           DateTime           @default(now())
+}
+
+model AssuranceEvidence {
+  id             String                          @id @default(cuid())
+  controlId      String
+  control        SecurityControl                 @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  title          String
+  evidenceType   AssuranceEvidenceType
+  classification AssuranceEvidenceClassification @default(internal)
+  summary        String?
+  storageUri     String?
+  documentId     String?
+  checksumSha256 String?
+  collectedAt    DateTime                        @default(now())
+  expiresAt      DateTime?
+  collectedById  String?
+  collectedBy    User?                           @relation("AssuranceEvidenceCollectedBy", fields: [collectedById], references: [id], onDelete: SetNull)
+  supersededById String?
+  supersededBy   AssuranceEvidence?              @relation("AssuranceEvidenceSupersedes", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes     AssuranceEvidence[]             @relation("AssuranceEvidenceSupersedes")
+  isCurrent      Boolean                         @default(true)
+  metadataJson   Json                            @default("{}")
+  createdAt      DateTime                        @default(now())
+  updatedAt      DateTime                        @updatedAt
+
+  legacyPointers SecurityEvidence[]
+
+  @@index([controlId])
+  @@index([isCurrent, expiresAt])
+}
+
+model AssuranceControlMapping {
+  id                  String                 @id @default(cuid())
+  controlId           String
+  control             SecurityControl        @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  targetFrameworkKind AssuranceFrameworkKind
+  targetControlCode   String
+  mappingNotes        String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@unique([controlId, targetFrameworkKind, targetControlCode])
+  @@index([controlId])
+}
+
+model AssuranceControlTest {
+  id               String                   @id @default(cuid())
+  controlId        String
+  control          SecurityControl          @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  name             String
+  kind             AssuranceControlTestKind @default(manual)
+  procedureSummary String
+  expectedOutcome  String
+  active           Boolean                  @default(true)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  runs AssuranceControlTestRun[]
+
+  @@index([controlId])
+}
+
+model AssuranceControlTestRun {
+  id              String               @id @default(cuid())
+  testId          String
+  test            AssuranceControlTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  result          AssuranceTestResult  @default(not_run)
+  executedAt      DateTime             @default(now())
+  executedById    String?
+  executedBy      User?                @relation("AssuranceControlTestRunExecutor", fields: [executedById], references: [id], onDelete: SetNull)
+  findingsSummary String?
+  evidenceIds     String[]             @default([])
+  blocksReadiness Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+
+  @@index([testId, result])
+}
+
+model AssuranceException {
+  id                   String                   @id @default(cuid())
+  controlId            String
+  control              SecurityControl          @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  organisationId       String?
+  organisation         Organisation?            @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  title                String
+  rationale            String
+  status               AssuranceExceptionStatus @default(proposed)
+  compensatingControls String?
+  approvedById         String?
+  approvedBy           User?                    @relation("AssuranceExceptionApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt           DateTime?
+  expiresAt            DateTime?
+  revokedAt            DateTime?
+  createdById          String?
+  createdBy            User?                    @relation("AssuranceExceptionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  @@index([controlId, status])
+}
+
+model RegulatoryDateConfig {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  label         String
+  effectiveDate DateTime
+  description   String?
+  sourceLabel   String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model NdisRegistrationApplication {
+  id                 String                            @id @default(cuid())
+  organisationId     String
+  organisation       Organisation                      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  pathway            NdisRegistrationPathway
+  status             NdisRegistrationApplicationStatus @default(draft)
+  registrationGroups String[]                          @default([])
+  includes0137       Boolean                           @default(false)
+  decisionNotes      String?
+  submittedAt        DateTime?
+  externalReference  String?
+  ownerUserId        String?
+  ownerUser          User?                             @relation("NdisRegistrationApplicationOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  readinessDecision  AssuranceReadinessDecision        @default(not_ready)
+  createdAt          DateTime                          @default(now())
+  updatedAt          DateTime                          @updatedAt
+
+  @@index([organisationId, status])
+}
+
+model NdiaDigitalPartnershipApplication {
+  id                     String                       @id @default(cuid())
+  organisationId         String
+  organisation           Organisation                 @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  status                 NdiaDigitalPartnershipStatus @default(not_started)
+  technicalPackReference String?
+  myIdConfigured         Boolean                      @default(false)
+  ramConfigured          Boolean                      @default(false)
+  credentialsPresent     Boolean                      @default(false)
+  notes                  String?
+  ownerUserId            String?
+  ownerUser              User?                        @relation("NdiaDigitalPartnershipOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  submittedAt            DateTime?
+  createdAt              DateTime                     @default(now())
+  updatedAt              DateTime                     @updatedAt
+
+  @@index([organisationId, status])
+}
+
+model WorkerPlatformEligibilityAssessment {
+  id                 String                          @id @default(cuid())
+  organisationId     String
+  organisation       Organisation                    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerUserId       String
+  workerUser         User                            @relation("WorkerPlatformEligibilityWorker", fields: [workerUserId], references: [id], onDelete: Cascade)
+  status             WorkerPlatformEligibilityStatus @default(not_assessed)
+  clearanceStatus    WorkerClearanceStatus           @default(not_started)
+  banningStatus      WorkerBanningAssessmentStatus   @default(not_checked)
+  assessedAt         DateTime?
+  assessedById       String?
+  assessedBy         User?                           @relation("WorkerPlatformEligibilityAssessor", fields: [assessedById], references: [id], onDelete: SetNull)
+  rationale          String?
+  blocksPlatformWork Boolean                         @default(true)
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
+
+  @@index([organisationId, workerUserId])
+}
+
+model WorkerBanningOrderAssessment {
+  id             String                        @id @default(cuid())
+  organisationId String
+  organisation   Organisation                  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerUserId   String
+  workerUser     User                          @relation("WorkerBanningOrderWorker", fields: [workerUserId], references: [id], onDelete: Cascade)
+  status         WorkerBanningAssessmentStatus @default(not_checked)
+  sourceLabel    String                        @default("unconfigured")
+  checkedAt      DateTime?
+  checkedById    String?
+  checkedBy      User?                         @relation("WorkerBanningOrderChecker", fields: [checkedById], references: [id], onDelete: SetNull)
+  notes          String?
+  createdAt      DateTime                      @default(now())
+  updatedAt      DateTime                      @updatedAt
+
+  @@index([organisationId, workerUserId])
+}
+
+model WorkerCredential {
+  id                 String                             @id @default(cuid())
+  organisationId     String
+  organisation       Organisation                       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workerUserId       String
+  workerUser         User                               @relation("WorkerCredentialWorker", fields: [workerUserId], references: [id], onDelete: Cascade)
+  credentialType     String
+  verificationStatus WorkerCredentialVerificationStatus @default(self_declared)
+  issuedAt           DateTime?
+  expiresAt          DateTime?
+  verifiedAt         DateTime?
+  verifiedById       String?
+  verifiedBy         User?                              @relation("WorkerCredentialVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  documentId         String?
+  notes              String?
+  createdAt          DateTime                           @default(now())
+  updatedAt          DateTime                           @updatedAt
+
+  @@index([organisationId, workerUserId])
+}
+
+model DataProcessingActivity {
+  id              String                    @id @default(cuid())
+  organisationId  String?
+  organisation    Organisation?             @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  name            String
+  purpose         String
+  lawfulBasis     DataProcessingLawfulBasis
+  dataCategories  String[]                  @default([])
+  retentionPolicy String?
+  systemsInvolved String[]                  @default([])
+  active          Boolean                   @default(true)
+  ownerUserId     String?
+  ownerUser       User?                     @relation("DataProcessingActivityOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+}
+
+/// Purpose-specific consent slice linked to ConsentRecord when present.
+model ParticipantConsentPurposeRecord {
+  id                String         @id @default(cuid())
+  consentRecordId   String?
+  consentRecord     ConsentRecord? @relation(fields: [consentRecordId], references: [id], onDelete: SetNull)
+  participantUserId String
+  participantUser   User           @relation("ParticipantConsentPurposeParticipant", fields: [participantUserId], references: [id], onDelete: Cascade)
+  organisationId    String?
+  organisation      Organisation?  @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  purposeKey        String
+  purposeLabel      String
+  granted           Boolean        @default(false)
+  grantedAt         DateTime?
+  revokedAt         DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([participantUserId, purposeKey])
+}
+
+model SecurityFinding {
+  id             String                  @id @default(cuid())
+  organisationId String?
+  organisation   Organisation?           @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  title          String
+  severity       SecurityFindingSeverity @default(medium)
+  status         SecurityFindingStatus   @default(open)
+  source         String
+  controlId      String?
+  control        SecurityControl?        @relation(fields: [controlId], references: [id], onDelete: SetNull)
+  discoveredAt   DateTime                @default(now())
+  dueAt          DateTime?
+  closedAt       DateTime?
+  ownerUserId    String?
+  ownerUser      User?                   @relation("SecurityFindingOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  summary        String?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  incidentReports IncidentReport[]
+
+  @@index([status, severity])
+}
+
+model OperationalIncident {
+  id               String          @id @default(cuid())
+  organisationId   String?
+  organisation     Organisation?   @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  incidentReportId String?
+  incidentReport   IncidentReport? @relation(fields: [incidentReportId], references: [id], onDelete: SetNull)
+  title            String
+  severity         String          @default("medium")
+  status           String          @default("open")
+  startedAt        DateTime        @default(now())
+  resolvedAt       DateTime?
+  impactSummary    String?
+  rootCauseSummary String?
+  ownerUserId      String?
+  ownerUser        User?           @relation("OperationalIncidentOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model ProductionGoLiveAssessment {
+  id                       String                     @id @default(cuid())
+  organisationId           String?
+  organisation             Organisation?              @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  decision                 ProductionGoLiveDecision   @default(not_assessed)
+  readinessDecision        AssuranceReadinessDecision @default(not_ready)
+  featureFlagsSatisfied    Boolean                    @default(false)
+  assuranceSatisfied       Boolean                    @default(false)
+  registrationSatisfied    Boolean                    @default(false)
+  ndiaPartnershipSatisfied Boolean                    @default(false)
+  workerTrustSatisfied     Boolean                    @default(false)
+  rollbackPlanDocumented   Boolean                    @default(false)
+  decisionNotes            String?
+  assessedById             String?
+  assessedBy               User?                      @relation("ProductionGoLiveAssessor", fields: [assessedById], references: [id], onDelete: SetNull)
+  assessedAt               DateTime?
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  pilots ControlledPilot[]
+
+  @@index([organisationId, decision])
+}
+
+/// Lean Phase 22 design — NOT auto-activated. Wave 7 may expand.
+model ControlledPilot {
+  id                    String                      @id @default(cuid())
+  organisationId        String
+  organisation          Organisation                @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name                  String
+  status                ControlledPilotStatus       @default(draft)
+  scopeStatement        String
+  maxParticipants       Int?
+  autoActivateForbidden Boolean                     @default(true)
+  activatedAt           DateTime?
+  pausedAt              DateTime?
+  completedAt           DateTime?
+  goLiveAssessmentId    String?
+  goLiveAssessment      ProductionGoLiveAssessment? @relation(fields: [goLiveAssessmentId], references: [id], onDelete: SetNull)
+  createdById           String
+  createdBy             User                        @relation("ControlledPilotCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedById          String?
+  approvedBy            User?                       @relation("ControlledPilotApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt            DateTime?
+  notes                 String?
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+
+  @@index([organisationId, status])
 }
 
 model SecurityPolicy {
@@ -3922,11 +4552,22 @@ model SecurityRiskRegisterItem {
 }
 
 model VendorRiskAssessment {
-  id         String    @id @default(cuid())
-  vendor     String
-  riskLevel  String
-  notes      String?
-  reviewedAt DateTime?
+  id                String        @id @default(cuid())
+  vendor            String
+  riskLevel         String
+  notes             String?
+  reviewedAt        DateTime?
+  organisationId    String?
+  organisation      Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  vendorCategory    String?
+  dataAccessScope   String?
+  residualRiskLevel String?
+  nextReviewAt      DateTime?
+  assessorUserId    String?
+  assessorUser      User?         @relation("VendorRiskAssessor", fields: [assessorUserId], references: [id], onDelete: SetNull)
+  status            String        @default("draft")
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 }
 
 model AccessReview {
@@ -3976,14 +4617,21 @@ model NdiaApiReadinessChecklist {
 }
 
 model NdiaClaimEvidenceBundle {
-  id             String   @id @default(cuid())
-  invoiceId      String
-  referencesJson Json     @default("{}")
-  status         String   @default("draft")
-  createdAt      DateTime @default(now())
+  id              String                    @id @default(cuid())
+  invoiceId       String
+  organisationId  String?
+  organisation    Organisation?             @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  billableItemIds String[]                  @default([])
+  linkageStatus   NdiaEvidenceLinkageStatus @default(unsafe)
+  referencesJson  Json                      @default("{}")
+  status          String                    @default("draft")
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
 
   dryRuns NdiaSubmissionDryRun[]
   audits  NdiaIntegrationAudit[]
+
+  @@index([organisationId, linkageStatus])
 }
 
 model NdiaAdapterConfig {
@@ -6479,12 +7127,12 @@ model NdisBillableServiceItem {
   blockingIssuesJson        Json?
   warningsJson              Json?
 
-  documentLines          NdisBillingDocumentLine[]
-  batchMembers           NdisBillingBatchMember[]
-  disputes               NdisBillingDispute[]
-  evidencePackage        NdisServiceEvidencePackage? @relation("EvidencePackageBillableItem")
+  documentLines           NdisBillingDocumentLine[]
+  batchMembers            NdisBillingBatchMember[]
+  disputes                NdisBillingDispute[]
+  evidencePackage         NdisServiceEvidencePackage? @relation("EvidencePackageBillableItem")
   externalRemittanceLines ExternalRemittanceLine[]
-  ndisPaymentAllocations NdisPaymentAllocation[]
+  ndisPaymentAllocations  NdisPaymentAllocation[]
 
   @@unique([organisationId, sourceKey])
   @@index([organisationId, status])
@@ -6637,10 +7285,10 @@ model NdisBillingDocument {
   voidedAt              DateTime?
   voidReason            String?
 
-  lines                 NdisBillingDocumentLine[]
-  disputes              NdisBillingDispute[]
+  lines                  NdisBillingDocumentLine[]
+  disputes               NdisBillingDispute[]
   ndisPaymentAllocations NdisPaymentAllocation[]
-  accountingSyncRecords AccountingSyncRecord[]
+  accountingSyncRecords  AccountingSyncRecord[]
 
   @@unique([organisationId, documentNumber])
   @@index([organisationId, status])
@@ -6651,27 +7299,27 @@ model NdisBillingDocument {
 }
 
 model NdisBillingDocumentLine {
-  id              String                  @id @default(cuid())
-  documentId      String
-  document        NdisBillingDocument     @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  billableItemId  String
-  billableItem    NdisBillableServiceItem @relation(fields: [billableItemId], references: [id], onDelete: Restrict)
-  supportItemCode String?
-  description     String
-  serviceStartAt  DateTime
-  serviceEndAt    DateTime
-  quantity        Decimal                 @db.Decimal(12, 4)
-  unitType        String
-  unitPriceCents  Int
-  subtotalCents   Int
-  gstCents        Int                     @default(0)
-  totalCents      Int
-  claimType              String?
-  sortOrder              Int                     @default(0)
-  active                 Boolean                 @default(true)
-  createdAt              DateTime                @default(now())
+  id                      String                   @id @default(cuid())
+  documentId              String
+  document                NdisBillingDocument      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  billableItemId          String
+  billableItem            NdisBillableServiceItem  @relation(fields: [billableItemId], references: [id], onDelete: Restrict)
+  supportItemCode         String?
+  description             String
+  serviceStartAt          DateTime
+  serviceEndAt            DateTime
+  quantity                Decimal                  @db.Decimal(12, 4)
+  unitType                String
+  unitPriceCents          Int
+  subtotalCents           Int
+  gstCents                Int                      @default(0)
+  totalCents              Int
+  claimType               String?
+  sortOrder               Int                      @default(0)
+  active                  Boolean                  @default(true)
+  createdAt               DateTime                 @default(now())
   externalRemittanceLines ExternalRemittanceLine[]
-  ndisPaymentAllocations NdisPaymentAllocation[]
+  ndisPaymentAllocations  NdisPaymentAllocation[]
 
   @@index([documentId])
   @@index([billableItemId, active])
@@ -6948,12 +7596,12 @@ model ExternalIntegrationProfile {
   createdAt               DateTime                       @default(now())
   updatedAt               DateTime                       @updatedAt
 
-  activations         ExternalIntegrationActivation[]
-  outboxes            ExternalIntegrationOutbox[]
-  inboxes             ExternalIntegrationInbox[]
-  statusPolls         ExternalStatusPoll[]
-  remittances         ExternalRemittance[]
-  idempotencyRecords  IntegrationIdempotencyRecord[]
+  activations           ExternalIntegrationActivation[]
+  outboxes              ExternalIntegrationOutbox[]
+  inboxes               ExternalIntegrationInbox[]
+  statusPolls           ExternalStatusPoll[]
+  remittances           ExternalRemittance[]
+  idempotencyRecords    IntegrationIdempotencyRecord[]
   accountingSyncRecords AccountingSyncRecord[]
 
   @@unique([organisationId, kind, providerKey, environment])
@@ -6984,34 +7632,34 @@ model ExternalIntegrationActivation {
 }
 
 model ExternalIntegrationOutbox {
-  id                      String                      @id @default(cuid())
-  organisationId          String
-  organisation            Organisation                @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  integrationProfileId    String
-  integrationProfile      ExternalIntegrationProfile  @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
-  operationType           String
-  aggregateType           String
-  aggregateId             String
-  payloadReference        String
-  payloadHash             String
-  idempotencyKey          String
-  correlationId           String
-  priority                Int                         @default(100)
-  status                  ExternalOutboxStatus        @default(pending)
-  availableAt             DateTime                    @default(now())
-  lockedAt                DateTime?
-  lockedBy                String?
-  attemptCount            Int                         @default(0)
-  maxAttempts             Int                         @default(8)
-  lastAttemptAt           DateTime?
-  nextAttemptAt           DateTime?
-  deadlineAt              DateTime?
-  lastFailureClass        String?
-  lastSafeFailureMessage  String?
-  createdAt               DateTime                    @default(now())
-  updatedAt               DateTime                    @updatedAt
-  completedAt             DateTime?
-  cancelledAt             DateTime?
+  id                     String                     @id @default(cuid())
+  organisationId         String
+  organisation           Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  integrationProfileId   String
+  integrationProfile     ExternalIntegrationProfile @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
+  operationType          String
+  aggregateType          String
+  aggregateId            String
+  payloadReference       String
+  payloadHash            String
+  idempotencyKey         String
+  correlationId          String
+  priority               Int                        @default(100)
+  status                 ExternalOutboxStatus       @default(pending)
+  availableAt            DateTime                   @default(now())
+  lockedAt               DateTime?
+  lockedBy               String?
+  attemptCount           Int                        @default(0)
+  maxAttempts            Int                        @default(8)
+  lastAttemptAt          DateTime?
+  nextAttemptAt          DateTime?
+  deadlineAt             DateTime?
+  lastFailureClass       String?
+  lastSafeFailureMessage String?
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+  completedAt            DateTime?
+  cancelledAt            DateTime?
 
   @@unique([integrationProfileId, operationType, idempotencyKey])
   @@index([organisationId, status, availableAt])
@@ -7069,25 +7717,25 @@ model ExternalStatusPoll {
 }
 
 model ExternalRemittance {
-  id                       String                     @id @default(cuid())
-  organisationId           String
-  organisation             Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  integrationProfileId     String
-  integrationProfile       ExternalIntegrationProfile @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
-  externalRemittanceId     String?
-  sourceType               String
-  sourceChecksum           String
-  paymentDate              DateTime?
-  settlementDate           DateTime?
-  totalCents               Int
-  currency                 String                     @default("AUD")
-  status                   RemittanceMatchingStatus   @default(unmatched)
+  id                        String                     @id @default(cuid())
+  organisationId            String
+  organisation              Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  integrationProfileId      String
+  integrationProfile        ExternalIntegrationProfile @relation(fields: [integrationProfileId], references: [id], onDelete: Cascade)
+  externalRemittanceId      String?
+  sourceType                String
+  sourceChecksum            String
+  paymentDate               DateTime?
+  settlementDate            DateTime?
+  totalCents                Int
+  currency                  String                     @default("AUD")
+  status                    RemittanceMatchingStatus   @default(unmatched)
   encryptedSourceCiphertext String?
-  safeMetadataJson         Json?
-  importedById             String?
-  importedBy               User?                      @relation("ExternalRemittanceImportedBy", fields: [importedById], references: [id], onDelete: SetNull)
-  importedAt               DateTime                   @default(now())
-  createdAt                DateTime                   @default(now())
+  safeMetadataJson          Json?
+  importedById              String?
+  importedBy                User?                      @relation("ExternalRemittanceImportedBy", fields: [importedById], references: [id], onDelete: SetNull)
+  importedAt                DateTime                   @default(now())
+  createdAt                 DateTime                   @default(now())
 
   lines ExternalRemittanceLine[]
 
@@ -7098,30 +7746,30 @@ model ExternalRemittance {
 }
 
 model ExternalRemittanceLine {
-  id                      String                   @id @default(cuid())
-  remittanceId            String
-  remittance              ExternalRemittance       @relation(fields: [remittanceId], references: [id], onDelete: Cascade)
-  externalClaimReference  String?
+  id                       String                   @id @default(cuid())
+  remittanceId             String
+  remittance               ExternalRemittance       @relation(fields: [remittanceId], references: [id], onDelete: Cascade)
+  externalClaimReference   String?
   externalInvoiceReference String?
-  externalLineReference   String?
+  externalLineReference    String?
   participantReferenceHash String?
-  supportItemCode         String?
-  serviceDate             DateTime?
-  claimedCents            Int?
-  approvedCents           Int?
-  paidCents               Int
-  adjustmentCents         Int                      @default(0)
-  rejectionCode           String?
-  safeRejectionMessage    String?
-  matchingStatus          RemittanceMatchingStatus @default(unmatched)
-  linkedSubmissionId      String?
-  linkedClaimSnapshotId   String?
-  linkedClaimSnapshot     NdisClaimSnapshot?       @relation(fields: [linkedClaimSnapshotId], references: [id], onDelete: SetNull)
-  linkedBillableItemId    String?
-  linkedBillableItem      NdisBillableServiceItem? @relation(fields: [linkedBillableItemId], references: [id], onDelete: SetNull)
-  linkedDocumentLineId    String?
-  linkedDocumentLine      NdisBillingDocumentLine? @relation(fields: [linkedDocumentLineId], references: [id], onDelete: SetNull)
-  createdAt               DateTime                 @default(now())
+  supportItemCode          String?
+  serviceDate              DateTime?
+  claimedCents             Int?
+  approvedCents            Int?
+  paidCents                Int
+  adjustmentCents          Int                      @default(0)
+  rejectionCode            String?
+  safeRejectionMessage     String?
+  matchingStatus           RemittanceMatchingStatus @default(unmatched)
+  linkedSubmissionId       String?
+  linkedClaimSnapshotId    String?
+  linkedClaimSnapshot      NdisClaimSnapshot?       @relation(fields: [linkedClaimSnapshotId], references: [id], onDelete: SetNull)
+  linkedBillableItemId     String?
+  linkedBillableItem       NdisBillableServiceItem? @relation(fields: [linkedBillableItemId], references: [id], onDelete: SetNull)
+  linkedDocumentLineId     String?
+  linkedDocumentLine       NdisBillingDocumentLine? @relation(fields: [linkedDocumentLineId], references: [id], onDelete: SetNull)
+  createdAt                DateTime                 @default(now())
 
   allocations NdisPaymentAllocation[]
 
@@ -7135,18 +7783,18 @@ model ExternalRemittanceLine {
 
 /// Wave 5 NDIS gateway payment event (distinct from any future generic PaymentEvent).
 model NdisPaymentEvent {
-  id                      String                   @id @default(cuid())
-  organisationId          String
-  organisation            Organisation             @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  source                  String
+  id                       String                   @id @default(cuid())
+  organisationId           String
+  organisation             Organisation             @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  source                   String
   externalPaymentReference String?
-  amountCents             Int
-  currency                String                   @default("AUD")
-  occurredAt              DateTime
-  status                  RemittanceMatchingStatus @default(unmatched)
-  sourceChecksum          String?
-  safeMetadataJson        Json?
-  createdAt               DateTime                 @default(now())
+  amountCents              Int
+  currency                 String                   @default("AUD")
+  occurredAt               DateTime
+  status                   RemittanceMatchingStatus @default(unmatched)
+  sourceChecksum           String?
+  safeMetadataJson         Json?
+  createdAt                DateTime                 @default(now())
 
   allocations NdisPaymentAllocation[]
 
@@ -7158,34 +7806,34 @@ model NdisPaymentEvent {
 
 /// Wave 5 payment allocation — does not replace legacy PaymentAllocation.
 model NdisPaymentAllocation {
-  id                   String                  @id @default(cuid())
-  organisationId       String
-  organisation         Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  paymentEventId       String
-  paymentEvent         NdisPaymentEvent        @relation(fields: [paymentEventId], references: [id], onDelete: Cascade)
-  remittanceLineId     String?
-  remittanceLine       ExternalRemittanceLine? @relation(fields: [remittanceLineId], references: [id], onDelete: SetNull)
-  billingDocumentId    String?
-  billingDocument      NdisBillingDocument?    @relation(fields: [billingDocumentId], references: [id], onDelete: SetNull)
+  id                    String                   @id @default(cuid())
+  organisationId        String
+  organisation          Organisation             @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  paymentEventId        String
+  paymentEvent          NdisPaymentEvent         @relation(fields: [paymentEventId], references: [id], onDelete: Cascade)
+  remittanceLineId      String?
+  remittanceLine        ExternalRemittanceLine?  @relation(fields: [remittanceLineId], references: [id], onDelete: SetNull)
+  billingDocumentId     String?
+  billingDocument       NdisBillingDocument?     @relation(fields: [billingDocumentId], references: [id], onDelete: SetNull)
   billingDocumentLineId String?
-  billingDocumentLine  NdisBillingDocumentLine? @relation(fields: [billingDocumentLineId], references: [id], onDelete: SetNull)
-  billableItemId       String?
-  billableItem         NdisBillableServiceItem? @relation(fields: [billableItemId], references: [id], onDelete: SetNull)
-  claimSnapshotId      String?
-  claimSnapshot        NdisClaimSnapshot?      @relation(fields: [claimSnapshotId], references: [id], onDelete: SetNull)
+  billingDocumentLine   NdisBillingDocumentLine? @relation(fields: [billingDocumentLineId], references: [id], onDelete: SetNull)
+  billableItemId        String?
+  billableItem          NdisBillableServiceItem? @relation(fields: [billableItemId], references: [id], onDelete: SetNull)
+  claimSnapshotId       String?
+  claimSnapshot         NdisClaimSnapshot?       @relation(fields: [claimSnapshotId], references: [id], onDelete: SetNull)
   /// Optional bridge to legacy invoice / PaymentAllocation.invoiceId.
-  legacyInvoiceId      String?
-  amountCents          Int
-  allocationType       PaymentAllocationType
-  status               PaymentAllocationStatus @default(active)
-  allocatedById        String?
-  allocatedBy          User?                   @relation("NdisPaymentAllocationAllocatedBy", fields: [allocatedById], references: [id], onDelete: SetNull)
-  allocatedAt          DateTime                @default(now())
-  reversedAt           DateTime?
-  reversedById         String?
-  reversedBy           User?                   @relation("NdisPaymentAllocationReversedBy", fields: [reversedById], references: [id], onDelete: SetNull)
-  reversalReason       String?
-  createdAt            DateTime                @default(now())
+  legacyInvoiceId       String?
+  amountCents           Int
+  allocationType        PaymentAllocationType
+  status                PaymentAllocationStatus  @default(active)
+  allocatedById         String?
+  allocatedBy           User?                    @relation("NdisPaymentAllocationAllocatedBy", fields: [allocatedById], references: [id], onDelete: SetNull)
+  allocatedAt           DateTime                 @default(now())
+  reversedAt            DateTime?
+  reversedById          String?
+  reversedBy            User?                    @relation("NdisPaymentAllocationReversedBy", fields: [reversedById], references: [id], onDelete: SetNull)
+  reversalReason        String?
+  createdAt             DateTime                 @default(now())
 
   @@index([organisationId, status])
   @@index([paymentEventId])
@@ -7197,15 +7845,15 @@ model NdisPaymentAllocation {
 }
 
 model IntegrationKillSwitch {
-  id          String                  @id @default(cuid())
+  id          String                   @id @default(cuid())
   key         IntegrationKillSwitchKey @unique
-  engaged     Boolean                 @default(false)
+  engaged     Boolean                  @default(false)
   engagedById String?
-  engagedBy   User?                   @relation("IntegrationKillSwitchEngagedBy", fields: [engagedById], references: [id], onDelete: SetNull)
+  engagedBy   User?                    @relation("IntegrationKillSwitchEngagedBy", fields: [engagedById], references: [id], onDelete: SetNull)
   engagedAt   DateTime?
   reason      String?
-  updatedAt   DateTime                @updatedAt
-  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                 @updatedAt
+  createdAt   DateTime                 @default(now())
 }
 
 model IntegrationIdempotencyRecord {
@@ -7224,24 +7872,24 @@ model IntegrationIdempotencyRecord {
 }
 
 model AccountingSyncRecord {
-  id                   String                          @id @default(cuid())
+  id                   String                         @id @default(cuid())
   organisationId       String
-  organisation         Organisation                    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation         Organisation                   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   integrationProfileId String?
-  integrationProfile   ExternalIntegrationProfile?     @relation(fields: [integrationProfileId], references: [id], onDelete: SetNull)
+  integrationProfile   ExternalIntegrationProfile?    @relation(fields: [integrationProfileId], references: [id], onDelete: SetNull)
   billingDocumentId    String?
-  billingDocument      NdisBillingDocument?            @relation(fields: [billingDocumentId], references: [id], onDelete: SetNull)
+  billingDocument      NdisBillingDocument?           @relation(fields: [billingDocumentId], references: [id], onDelete: SetNull)
   xeroContactId        String?
   xeroInvoiceId        String?
   xeroCreditNoteId     String?
   xeroPaymentId        String?
   adapterVersion       String?
-  syncStatus           XeroSyncStatus                  @default(not_configured)
+  syncStatus           XeroSyncStatus                 @default(not_configured)
   safeErrorMessage     String?
   safeMetadataJson     Json?
-  environment          ExternalIntegrationEnvironment  @default(sandbox)
-  createdAt            DateTime                        @default(now())
-  updatedAt            DateTime                        @updatedAt
+  environment          ExternalIntegrationEnvironment @default(sandbox)
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime                       @updatedAt
 
   @@index([organisationId, syncStatus])
   @@index([billingDocumentId])

@@ -130,6 +130,15 @@ export type Permission =
   | "developer:manage"
   | "compliance:manage"
   | "security:readiness"
+  | "assurance:read"
+  | "assurance:manage"
+  | "assurance:evidence:write"
+  | "assurance:exceptions:manage"
+  | "assurance:registration:manage"
+  | "assurance:ndia-application:manage"
+  | "assurance:go-live:decide"
+  | "platform_trust:workers:read"
+  | "platform_trust:workers:assess"
   | "ndia:readiness"
   | "launch:readiness"
   | "dispatch:manage"
@@ -319,6 +328,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:evidence:view",
     "provider:evidence:exception",
     "engagement:provider:read",
+    "platform_trust:workers:read",
+    "platform_trust:workers:assess",
   ],
   transport_operator: [
     "booking:read:any",
@@ -427,6 +438,15 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "developer:manage",
     "compliance:manage",
     "security:readiness",
+    "assurance:read",
+    "assurance:manage",
+    "assurance:evidence:write",
+    "assurance:exceptions:manage",
+    "assurance:registration:manage",
+    "assurance:ndia-application:manage",
+    "assurance:go-live:decide",
+    "platform_trust:workers:read",
+    "platform_trust:workers:assess",
     "ndia:readiness",
     "admin:analytics",
     "engagement:manage:any",
