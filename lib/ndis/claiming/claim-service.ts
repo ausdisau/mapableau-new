@@ -4,8 +4,11 @@ import type {
 } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { portalExportAdapter } from "@/lib/ndis/claiming/adapters/PortalExportAdapter";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import type { CurrentUser } from "@/lib/auth/current-user";
+import { isAdminRole } from "@/lib/auth/roles";
 import { persistPlanManagerInvoices } from "@/lib/ndis/claiming/adapters/PlanManagerInvoiceAdapter";
+import { portalExportAdapter } from "@/lib/ndis/claiming/adapters/PortalExportAdapter";
 import { persistSelfManagedInvoices } from "@/lib/ndis/claiming/adapters/SelfManagedInvoiceAdapter";
 import { createClaimBatch, validateClaimBatch } from "@/lib/ndis/claiming/batchBuilder";
 import {
@@ -23,17 +26,48 @@ import {
   validateClaimLineInput,
   validationResultToStatus,
 } from "@/lib/ndis/claiming/validation";
-import { decryptNdisNumber, maskNdisNumber } from "@/lib/crypto/ndis";
+import { createClaimSnapshot } from "@/lib/ndis-gateway/security/claim-snapshot-service";
+import { sanitiseAuditJson } from "@/lib/ndis-gateway/security/log-sanitiser";
+import type { ExternalClaimPayload } from "@/lib/ndis-gateway/security/sensitive-payload";
 import { prisma } from "@/lib/prisma";
-import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
-import { isAdminRole } from "@/lib/auth/roles";
-import type { CurrentUser } from "@/lib/auth/current-user";
 
 export async function assertOrgAccess(user: CurrentUser, organisationId: string) {
   if (isAdminRole(user.primaryRole)) return;
   const orgIds = await getUserOrganisationIds(user.id);
   if (!orgIds.includes(organisationId)) {
     throw new Error("FORBIDDEN");
+  }
+}
+
+/**
+ * Allowed claim-line status transitions (Wave 4 hardening).
+ * Forbidden: arbitrary jumps such as draft → paid without export/submit.
+ */
+const CLAIM_LINE_ALLOWED_TRANSITIONS: Record<
+  NdisClaimLineStatus,
+  readonly NdisClaimLineStatus[]
+> = {
+  draft: ["validated", "validation_failed", "voided"],
+  validated: ["included_in_batch", "validation_failed", "draft", "voided"],
+  validation_failed: ["draft", "validated", "voided"],
+  included_in_batch: ["exported", "validated", "voided"],
+  exported: ["submitted", "pending", "voided"],
+  submitted: ["pending", "paid", "rejected", "voided"],
+  pending: ["paid", "rejected", "submitted"],
+  paid: [],
+  rejected: ["corrected", "voided"],
+  corrected: ["resubmitted", "voided"],
+  resubmitted: ["included_in_batch", "exported", "submitted", "pending", "voided"],
+  voided: [],
+};
+
+function assertClaimLineStatusTransition(
+  from: NdisClaimLineStatus,
+  to: NdisClaimLineStatus
+): void {
+  if (from === to) return;
+  if (!CLAIM_LINE_ALLOWED_TRANSITIONS[from].includes(to)) {
+    throw new Error(`CLAIM_LINE_TRANSITION_FORBIDDEN:${from}->${to}`);
   }
 }
 
@@ -73,39 +107,54 @@ export async function createClaimLineFromBooking(params: {
   if (!paymentRoute) throw new Error("FUNDING_ROUTE_UNKNOWN");
 
   const supportItemCode =
-    params.supportItemCode ??
-    booking.careRequest?.supportItemCode ??
-    "PENDING_CODE";
+    params.supportItemCode ?? booking.careRequest?.supportItemCode ?? null;
+  if (!supportItemCode || supportItemCode.toUpperCase() === "PENDING_CODE") {
+    throw new Error("PENDING_CODE_REFUSED");
+  }
+
   const shift = booking.careShifts[0];
   const serviceStart = shift?.startAt ?? booking.requestedStart;
   const serviceEnd = shift?.endAt ?? booking.requestedEnd ?? serviceStart;
 
   const quantity = params.quantity ?? 1;
-  const unitPriceCents = params.unitPriceCents ?? 0;
+  const unitPriceCents = params.unitPriceCents;
+  if (unitPriceCents == null) {
+    throw new Error("UNIT_PRICE_REQUIRED");
+  }
+  if (!Number.isInteger(unitPriceCents)) {
+    throw new Error("UNIT_PRICE_MUST_BE_INTEGER_CENTS");
+  }
+  if (unitPriceCents <= 0) {
+    throw new Error("ZERO_PRICE_REFUSED");
+  }
   const totalAmountCents = Math.round(quantity * unitPriceCents);
 
+  // NEVER decrypt NDIS into general claim input — presence/mask only.
   const profile = booking.participant.participantProfile;
-  const ndisRaw = profile?.ndisParticipantNumberEnc
-    ? decryptNdisNumber(profile.ndisParticipantNumberEnc)
-    : null;
+  const hasNdisOnFile = Boolean(profile?.ndisParticipantNumberEnc);
+  const ndisMasked: string | null = null;
 
-  const evidenceJson: Record<string, unknown> = {
+  const evidenceJson: Record<string, unknown> = sanitiseAuditJson({
     deliveryRecorded: true,
     shiftIds: booking.careShifts.map((s) => s.id),
     bookingId: booking.id,
     bookingStatus: booking.status,
+    hasNdisOnFile,
     ...params.evidenceJson,
-  };
-  if (params.participantConfirmationException) {
-    evidenceJson.participantConfirmationException =
-      params.participantConfirmationException;
-  }
+    ...(params.participantConfirmationException
+      ? {
+          participantConfirmationException:
+            params.participantConfirmationException,
+        }
+      : {}),
+  })!;
 
   const input: ClaimLineInput = {
     participantId: booking.participantId,
     providerOrgId: params.providerOrgId,
     bookingId: booking.id,
-    ndisParticipantNumber: ndisRaw,
+    // Masked/presence only — never raw decrypted NDIS number.
+    ndisParticipantNumber: ndisMasked,
     participantName: booking.participant.name,
     supportItemCode,
     supportDescription: booking.careRequest?.supportItemCode
@@ -129,7 +178,7 @@ export async function createClaimLineFromBooking(params: {
       participantId: input.participantId,
       providerOrgId: input.providerOrgId,
       bookingId: input.bookingId,
-      ndisParticipantNumber: ndisRaw ? maskNdisNumber(ndisRaw) : null,
+      ndisParticipantNumber: ndisMasked,
       participantName: input.participantName,
       supportItemCode: input.supportItemCode.trim(),
       supportDescription: input.supportDescription,
@@ -146,6 +195,86 @@ export async function createClaimLineFromBooking(params: {
     },
   });
 
+  const org = await prisma.organisation.findUnique({
+    where: { id: params.providerOrgId },
+  });
+  const externalPayload: ExternalClaimPayload = {
+    claimType: "registered_provider",
+    provider: {
+      abn: org?.abn ?? null,
+      ndisRegistrationNumber: org?.ndisRegistrationNumber ?? "",
+      organisationId: params.providerOrgId,
+      name: org?.name ?? "",
+    },
+    participant: {
+      // Encrypted snapshot path may load NDIS separately; never put raw decrypt here.
+      ndisNumber: null,
+      ndisNumberMasked: ndisMasked,
+      mapableUserId: booking.participantId,
+    },
+    invoiceReference: {},
+    servicePeriod: {
+      start: serviceStart.toISOString().slice(0, 10),
+      end: serviceEnd.toISOString().slice(0, 10),
+    },
+    lines: [
+      {
+        lineNumber: 1,
+        supportItemCode: input.supportItemCode.trim(),
+        description: input.supportDescription,
+        serviceDate: serviceStart.toISOString().slice(0, 10),
+        quantity,
+        unitPriceCents,
+        totalCents: totalAmountCents,
+        gstIncluded: false,
+      },
+    ],
+    totals: {
+      subtotalCents: totalAmountCents,
+      taxCents: 0,
+      totalCents: totalAmountCents,
+      currency: "AUD",
+    },
+    metadata: {
+      builtAt: new Date().toISOString(),
+      mapableVersion: "1",
+    },
+  };
+
+  let snapshotId: string | null = null;
+  let payloadHash: string | null = null;
+  try {
+    const actor = {
+      id: params.createdById,
+      primaryRole: "provider_admin" as const,
+    } as CurrentUser;
+    const snap = await createClaimSnapshot({
+      user: actor,
+      organisationId: params.providerOrgId,
+      participantId: booking.participantId,
+      sourceType: "ndis_claim_line",
+      sourceId: line.id,
+      fundingRoute: paymentRoute,
+      externalPayload,
+      forDirectSubmission: paymentRoute === "ndia_managed",
+    });
+    snapshotId = snap.snapshot.id;
+    payloadHash = snap.payloadHash;
+    await prisma.ndisClaimLine.update({
+      where: { id: line.id },
+      data: {
+        currentSnapshotId: snap.snapshot.id,
+        payloadHash: snap.payloadHash,
+      },
+    });
+  } catch {
+    // Snapshot optional for blocked funding; line remains without raw NDIS.
+  }
+
+  const refreshed = await prisma.ndisClaimLine.findUniqueOrThrow({
+    where: { id: line.id },
+  });
+
   await prisma.claimAuditEvent.create({
     data: {
       claimLineId: line.id,
@@ -153,11 +282,17 @@ export async function createClaimLineFromBooking(params: {
       entityId: line.id,
       action: "line.created_from_booking",
       actorUserId: params.createdById,
-      afterJson: { status, bookingId: booking.id },
+      afterJson: sanitiseAuditJson({
+        status,
+        bookingId: booking.id,
+        snapshotId,
+        payloadHash,
+        hasNdisOnFile,
+      }) as Prisma.InputJsonValue,
     },
   });
 
-  return { line, validation };
+  return { line: refreshed, validation };
 }
 
 export async function validateClaimLineById(lineId: string, actorUserId: string) {
@@ -183,6 +318,13 @@ export async function validateClaimLineById(lineId: string, actorUserId: string)
       (line.evidenceJson as Record<string, unknown>)
         ?.participantConfirmationException as string | undefined,
   };
+
+  if (input.supportItemCode.toUpperCase() === "PENDING_CODE") {
+    throw new Error("PENDING_CODE_REFUSED");
+  }
+  if (input.unitPriceCents <= 0) {
+    throw new Error("ZERO_PRICE_REFUSED");
+  }
 
   const validation = await validateClaimLineInput(input);
   const status = validationResultToStatus(validation);
@@ -213,7 +355,7 @@ export async function validateClaimLineById(lineId: string, actorUserId: string)
 export async function exportClaimBatch(
   batchId: string,
   actorUserId: string
-): Promise<ClaimBatchExportResult> {
+): Promise<ClaimBatchExportResult & { invoiceIds?: string[] }> {
   const batch = await prisma.ndisClaimBatch.findUnique({
     where: { id: batchId },
     include: { providerOrg: true, lines: true },
@@ -224,24 +366,27 @@ export async function exportClaimBatch(
   let contentType = "text/csv";
   let adapter: ClaimBatchExportResult["adapter"] = "portal_export";
   let fileName = `export-${batch.id}.csv`;
+  let invoiceIds: string[] = [];
 
   if (batch.paymentRoute === "ndia_managed") {
+    // Adapter already builds and persists the portal export — do not double-build.
     await portalExportAdapter.submitClaimBatch(batchId);
+    const refreshed = await prisma.ndisClaimBatch.findUniqueOrThrow({
+      where: { id: batchId },
+    });
+    fileName = refreshed.exportFileName ?? `ndia-bulk-payment-${batch.batchReference ?? batch.id}.csv`;
+    // Load content once for download payload only (adapter already stored checksum).
     const exp = await buildBulkPaymentRequestExport(batchId);
     if (!exp) throw new Error("EXPORT_FAILED");
     content = exp.csv;
-    fileName = `ndia-bulk-payment-${exp.batchReference}.csv`;
+    // Prefer adapter-stored checksum; recompute only for response payload integrity.
     checksumExport(content);
   } else if (batch.paymentRoute === "self_managed") {
-    await persistSelfManagedInvoices(batchId, actorUserId);
-    const invs = await prisma.ndisInvoice.findMany({
-      where: { providerOrgId: batch.providerOrgId, paymentRoute: "self_managed" },
-      include: { lines: true },
-      orderBy: { createdAt: "desc" },
-      take: batch.lines.length,
-    });
+    const created = await persistSelfManagedInvoices(batchId, actorUserId);
+    invoiceIds = created.map((i) => i.id);
     content = JSON.stringify(
-      invs.map((i) => ({
+      created.map((i) => ({
+        id: i.id,
         invoiceNumber: i.invoiceNumber,
         participantId: i.participantId,
         totalCents: i.totalCents,
@@ -258,15 +403,11 @@ export async function exportClaimBatch(
       data: { status: "exported", exportedAt: new Date(), exportFileName: fileName },
     });
   } else if (batch.paymentRoute === "plan_managed") {
-    await persistPlanManagerInvoices(batchId, actorUserId);
-    const invs = await prisma.ndisInvoice.findMany({
-      where: { providerOrgId: batch.providerOrgId, paymentRoute: "plan_managed" },
-      include: { lines: true },
-      orderBy: { createdAt: "desc" },
-      take: batch.lines.length,
-    });
+    const created = await persistPlanManagerInvoices(batchId, actorUserId);
+    invoiceIds = created.map((i) => i.id);
     content = JSON.stringify(
-      invs.map((i) => ({
+      created.map((i) => ({
+        id: i.id,
         invoiceNumber: i.invoiceNumber,
         planManagerName: i.planManagerName,
         totalCents: i.totalCents,
@@ -297,7 +438,12 @@ export async function exportClaimBatch(
       entityId: batchId,
       action: "batch.exported",
       actorUserId,
-      afterJson: { fileName, adapter, lineCount: batch.lines.length },
+      afterJson: sanitiseAuditJson({
+        fileName,
+        adapter,
+        lineCount: batch.lines.length,
+        invoiceIds,
+      }) as Prisma.InputJsonValue,
     },
   });
 
@@ -310,6 +456,7 @@ export async function exportClaimBatch(
     contentType,
     payloadBase64: Buffer.from(content, "utf8").toString("base64"),
     lineCount: batch.lines.length,
+    invoiceIds,
   };
 }
 
@@ -354,6 +501,10 @@ const STATUS_MAP: Record<ClaimLineStatusUpdate, NdisClaimLineStatus> = {
   voided: "voided",
 };
 
+/**
+ * @deprecated Prefer explicit workflow transitions with assertClaimLineStatusTransition.
+ * Retained for API compatibility; now enforces allowed transitions.
+ */
 export async function updateClaimLineStatus(params: {
   lineId: string;
   status: ClaimLineStatusUpdate;
@@ -365,6 +516,8 @@ export async function updateClaimLineStatus(params: {
   if (!line) throw new Error("LINE_NOT_FOUND");
 
   const nextStatus = STATUS_MAP[params.status];
+  assertClaimLineStatusTransition(line.status, nextStatus);
+
   const updated = await prisma.ndisClaimLine.update({
     where: { id: params.lineId },
     data: {
@@ -403,6 +556,17 @@ export async function correctAndResubmitClaimLine(params: {
     throw new Error("LINE_NOT_REJECTED");
   }
 
+  const supportItemCode =
+    params.corrections.supportItemCode ?? original.supportItemCode;
+  if (supportItemCode.toUpperCase() === "PENDING_CODE") {
+    throw new Error("PENDING_CODE_REFUSED");
+  }
+  const unitPriceCents =
+    params.corrections.unitPriceCents ?? original.unitPriceCents;
+  if (unitPriceCents <= 0) {
+    throw new Error("ZERO_PRICE_REFUSED");
+  }
+
   await updateClaimLineStatus({
     lineId: original.id,
     status: "corrected",
@@ -413,9 +577,10 @@ export async function correctAndResubmitClaimLine(params: {
     participantId: original.participantId,
     providerOrgId: original.providerOrgId,
     bookingId: original.bookingId,
+    // Persist masked value only — never decrypt.
     ndisParticipantNumber: original.ndisParticipantNumber,
     participantName: original.participantName,
-    supportItemCode: params.corrections.supportItemCode ?? original.supportItemCode,
+    supportItemCode,
     supportDescription:
       params.corrections.supportDescription ?? original.supportDescription,
     serviceStartDate:
@@ -423,7 +588,7 @@ export async function correctAndResubmitClaimLine(params: {
     serviceEndDate:
       params.corrections.serviceEndDate ?? original.serviceEndDate.toISOString(),
     quantity: params.corrections.quantity ?? Number(original.quantity),
-    unitPriceCents: params.corrections.unitPriceCents ?? original.unitPriceCents,
+    unitPriceCents,
     totalAmountCents:
       params.corrections.totalAmountCents ?? original.totalAmountCents,
     paymentRoute: original.paymentRoute,
@@ -515,4 +680,4 @@ export async function searchClaimLines(params: {
   });
 }
 
-export { createClaimBatch, validateClaimBatch };
+export { createClaimBatch, validateClaimBatch, assertClaimLineStatusTransition };

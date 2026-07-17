@@ -2,12 +2,13 @@ import { z } from "zod";
 
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
-import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { zodErrorResponse } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
 import {
   createProviderClaimDraft,
   listProviderClaims,
 } from "@/lib/ndia-provider-claiming/claim-service";
+import { jsonNdisError, jsonNdisOk } from "@/lib/ndis-gateway/security/http";
 
 const createSchema = z
   .object({
@@ -30,11 +31,11 @@ export async function GET(req: Request) {
     organisationId = orgIds[0];
   }
   if (!organisationId) {
-    return jsonError("organisationId required", 400);
+    return jsonNdisError("organisationId required", 400);
   }
 
   const claims = await listProviderClaims(user, organisationId);
-  return jsonOk({ claims });
+  return jsonNdisOk({ claims });
 }
 
 export async function POST(req: Request) {
@@ -52,14 +53,14 @@ export async function POST(req: Request) {
       legacyInvoiceId: parsed.data.legacyInvoiceId,
       billingInvoiceId: parsed.data.billingInvoiceId,
     });
-    if (!result.ok) return jsonError(result.error ?? "Failed", 400);
-    return jsonOk(result, 201);
+    if (!result.ok) return jsonNdisError(result.error ?? "Failed", 400);
+    return jsonNdisOk(result, 201);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed";
     if (msg === "NDIA_PROVIDER_CLAIMING_DISABLED") {
-      return jsonError("NDIA provider claiming is disabled", 503);
+      return jsonNdisError("NDIA provider claiming is disabled", 503);
     }
-    if (msg === "FORBIDDEN") return jsonError("Forbidden", 403);
+    if (msg === "FORBIDDEN") return jsonNdisError("Forbidden", 403);
     throw e;
   }
 }

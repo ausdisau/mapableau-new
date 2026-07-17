@@ -101,6 +101,23 @@ export type Permission =
   | "ndis:pricing:manage"
   | "provider:ndia:claim"
   | "provider:ndis:claim"
+  | "provider:ndis:claim:view"
+  | "provider:ndis:claim:create"
+  | "provider:ndis:claim:approve"
+  | "provider:ndis:claim:revoke"
+  | "admin:ndis:claim:break_glass"
+  | "provider:billing:view"
+  | "provider:billing:create"
+  | "provider:billing:validate"
+  | "provider:billing:approve"
+  | "provider:billing:correct"
+  | "provider:billing:void"
+  | "provider:evidence:view"
+  | "provider:evidence:exception"
+  | "participant:billing:view"
+  | "participant:evidence:confirm"
+  | "participant:billing:dispute"
+  | "admin:billing:break_glass"
   | "xero:manage"
   | "stripe:manage"
   | "route:manage"
@@ -188,7 +205,29 @@ export type Permission =
   | "engagement:read:self"
   | "engagement:submit:self"
   | "engagement:manage:any"
-  | "engagement:provider:read";
+  | "engagement:provider:read"
+  | "pilot:view"
+  | "pilot:create"
+  | "pilot:approve"
+  | "pilot:start"
+  | "pilot:advance"
+  | "pilot:pause"
+  | "pilot:resume"
+  | "pilot:terminate"
+  | "pilot:participant:invite"
+  | "pilot:participant:enrol"
+  | "pilot:worker:authorise"
+  | "pilot:operations:view"
+  | "pilot:financial:view"
+  | "pilot:reconciliation:resolve"
+  | "pilot:incident:manage"
+  | "pilot:complaint:manage"
+  | "pilot:change:approve"
+  | "participant:pilot:view"
+  | "participant:pilot:consent"
+  | "participant:pilot:withdraw"
+  | "participant:pilot:complaint"
+  | "participant:pilot:feedback";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -231,6 +270,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "participant:billing:view",
+    "participant:evidence:confirm",
+    "participant:billing:dispute",
+    "participant:pilot:view",
+    "participant:pilot:consent",
+    "participant:pilot:withdraw",
+    "participant:pilot:complaint",
+    "participant:pilot:feedback",
   ],
   family_member: [
     "profile:read:self",
@@ -286,7 +333,27 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider_academy:enroll",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "provider:ndis:claim:view",
+    "provider:ndis:claim:create",
+    "provider:ndis:claim:approve",
+    "provider:ndis:claim:revoke",
+    "provider:billing:view",
+    "provider:billing:create",
+    "provider:billing:validate",
+    "provider:billing:approve",
+    "provider:billing:correct",
+    "provider:billing:void",
+    "provider:evidence:view",
+    "provider:evidence:exception",
     "engagement:provider:read",
+    "pilot:view",
+    "pilot:participant:invite",
+    "pilot:participant:enrol",
+    "pilot:worker:authorise",
+    "pilot:operations:view",
+    "pilot:financial:view",
+    "pilot:incident:manage",
+    "pilot:complaint:manage",
   ],
   transport_operator: [
     "booking:read:any",
@@ -373,6 +440,20 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "ndis:pricing:manage",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "provider:ndis:claim:view",
+    "provider:ndis:claim:create",
+    "provider:ndis:claim:approve",
+    "provider:ndis:claim:revoke",
+    "admin:ndis:claim:break_glass",
+    "provider:billing:view",
+    "provider:billing:create",
+    "provider:billing:validate",
+    "provider:billing:approve",
+    "provider:billing:correct",
+    "provider:billing:void",
+    "provider:evidence:view",
+    "provider:evidence:exception",
+    "admin:billing:break_glass",
     "xero:manage",
     "stripe:manage",
     "route:manage",
@@ -461,6 +542,23 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:compliance:read",
     "admin:agent-runs:read",
     "admin:actions:write",
+    "pilot:view",
+    "pilot:create",
+    "pilot:approve",
+    "pilot:start",
+    "pilot:advance",
+    "pilot:pause",
+    "pilot:resume",
+    "pilot:terminate",
+    "pilot:participant:invite",
+    "pilot:participant:enrol",
+    "pilot:worker:authorise",
+    "pilot:operations:view",
+    "pilot:financial:view",
+    "pilot:reconciliation:resolve",
+    "pilot:incident:manage",
+    "pilot:complaint:manage",
+    "pilot:change:approve",
   ],
 };
 
