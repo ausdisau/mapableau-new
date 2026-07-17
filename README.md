@@ -158,6 +158,16 @@ Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, St
 
 Organisation-scoped `ControlledPilot` APIs and admin/participant UIs under `/admin/pilot` and `/participant/pilots`. Pilot approval is not production approval; empty allowlists deny; limited live is off by default; `NdiaPilotApprovalRecord` is not ControlledPilot authority; no real NDIA submission from pilot surfaces. Set `PILOT_ENFORCEMENT_ENABLED=false` unless intentionally gating payment paths. See [docs/pilot/](docs/pilot/).
 
+### Participant-controlled credentials and consent federation (Wave 9)
+
+Wave 9 adds an immutable `ConsentDirective` layer, a participant access vault, delegate authority (relationship ≠ authority), credential shells (OID4VCI / OID4VP / Bitstring Status List) and a mandatory disclosure gateway. **MapAble credentials are NOT government credentials.** All federation adapters default to simulator mode. Production activation requires `FEDERATION_ACTIVATION=true`, a passing `pnpm federation:conformance` run, and human-approved trust registry + schema entries. AI cannot approve consent, sign credentials, complete high-risk recovery or approve emergency access.
+
+Participant UI: `/participant/vault`. Admin UI: `/admin/federation`. Provider UI: `/provider/federation`.
+
+Scripts: `pnpm federation:conformance`, `federation:audit-consent`, `federation:audit-delegation`, `federation:audit-disclosures`, `federation:audit-identifiers`, `federation:test-issuance`, `federation:test-presentation`, `federation:test-status`, `federation:test-wallet-recovery`, `federation:test-accessibility` — all support `--dry-run` and require no DB in dry mode.
+
+See [docs/federation/](docs/federation/) and threat models under [docs/security/](docs/security/).
+
 ### QA and mobile
 
 | Doc | Description |
