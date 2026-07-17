@@ -201,6 +201,50 @@ export const SPECIALIST_MANIFESTS: SpecialistManifestTemplate[] = [
       "External civic feeds may be stale; recovery plans quote the feed and its freshness at execution.",
     ],
   },
+  {
+    // Wave 12 — AccessOps specialist. Explains civic access infrastructure,
+    // status freshness, and journey options. Never guarantees safety, never
+    // verifies community allegations, never actuates infrastructure, never
+    // contacts regulators, never exposes participant access profiles.
+    slug: "accessops",
+    displayName: "AURA AccessOps",
+    classification: "access",
+    description:
+      "Searches access assets, explains evidence and freshness, constructs whole-journey options with uncertainty, and prepares participant-approved reports. Never guarantees route safety or remotely controls infrastructure.",
+    allowedActionSlugs: [
+      "accessops.search_assets",
+      "accessops.compare_venues",
+      "accessops.explain_status",
+      "accessops.explain_evidence",
+      "accessops.plan_journey_options",
+      "accessops.identify_uncertain_segments",
+      "accessops.build_visit_plan_draft",
+      "accessops.prepare_operator_questions",
+      "accessops.monitor_selected_assets",
+      "accessops.draft_community_report",
+      "accessops.initiate_continuity_on_disruption",
+    ],
+    prohibitedActionSlugs: [
+      ...NEVER_APPROVE,
+      "accessops.guarantee_safety",
+      "accessops.verify_community_allegation",
+      "accessops.modify_operator_status",
+      "accessops.actuate_infrastructure",
+      "accessops.expose_participant_profile",
+      "accessops.infer_disability",
+      "accessops.contact_regulator",
+      "accessops.publish_accusation",
+      "accessops.reroute_without_authority",
+    ],
+    requiresApprovalAtOrAbove: "medium_reversible",
+    disclaimers: [
+      "AURA AccessOps cannot guarantee that a route is safe or currently usable.",
+      "Community reports remain allegations until a human validates them.",
+      "Missing or stale access data is not treated as accessible.",
+      "AURA cannot remotely operate lifts, doors, gates, or kerb infrastructure.",
+      "Participant access-fit details stay private and are never published.",
+    ],
+  },
 ];
 
 export function isBillingApprovalAttempt(actionSlug: string): boolean {

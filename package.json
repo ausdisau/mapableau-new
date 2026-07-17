@@ -132,7 +132,24 @@
     "continuity:audit-recovery-idempotency": "tsx scripts/continuity/audit-recovery-idempotency.ts",
     "continuity:audit-placeholder-operational-data": "tsx scripts/continuity/audit-placeholder-operational-data.ts",
     "continuity:audit-continuity-consent": "tsx scripts/continuity/audit-continuity-consent.ts",
-    "continuity:audit-provider-failure-paths": "tsx scripts/continuity/audit-provider-failure-paths.ts"
+    "continuity:audit-provider-failure-paths": "tsx scripts/continuity/audit-provider-failure-paths.ts",
+    "accessops:audit-assets": "tsx scripts/accessops/audit-assets.ts --dry-run",
+    "accessops:audit-provenance": "tsx scripts/accessops/audit-provenance.ts --dry-run",
+    "accessops:audit-freshness": "tsx scripts/accessops/audit-freshness.ts --dry-run",
+    "accessops:audit-restricted-geometry": "tsx scripts/accessops/audit-restricted-geometry.ts --dry-run",
+    "accessops:audit-status": "tsx scripts/accessops/audit-status.ts --dry-run",
+    "accessops:audit-sensors": "tsx scripts/accessops/audit-sensors.ts --dry-run",
+    "accessops:audit-partner-api": "tsx scripts/accessops/audit-partner-api.ts --dry-run",
+    "accessops:audit-open-data": "tsx scripts/accessops/audit-open-data.ts --dry-run",
+    "accessops:test-twin": "tsx scripts/accessops/test-twin.ts --dry-run",
+    "accessops:test-routing": "tsx scripts/accessops/test-routing.ts --dry-run",
+    "accessops:test-reliability": "tsx scripts/accessops/test-reliability.ts --dry-run",
+    "accessops:test-webhooks": "tsx scripts/accessops/test-webhooks.ts --dry-run",
+    "accessops:test-accessibility": "tsx scripts/accessops/test-accessibility.ts --dry-run",
+    "accessops:sensorthings:conformance": "tsx scripts/accessops/sensorthings-conformance.ts --dry-run",
+    "accessops:wot:conformance": "tsx scripts/accessops/wot-conformance.ts --dry-run",
+    "accessops:ogc:conformance": "tsx scripts/accessops/ogc-conformance.ts --dry-run",
+    "accessops:evaluate": "tsx scripts/accessops/evaluate.ts --dry-run"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

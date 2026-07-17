@@ -55,6 +55,7 @@ export const SPECIALIST_AGENT_SLUGS = [
   "billing-explain-only",
   "evidence",
   "recovery",
+  "accessops",
 ] as const;
 
 export type SpecialistAgentSlug = (typeof SPECIALIST_AGENT_SLUGS)[number];

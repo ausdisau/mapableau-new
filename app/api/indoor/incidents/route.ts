@@ -21,6 +21,9 @@ export async function GET(request: Request) {
   if (!isIndoorFeatureEnabled("operationalStatus")) {
     return featureDisabledResponse("operationalStatus");
   }
+  // Wave 12: authenticated + DTO — never return raw Prisma rows publicly.
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
   const url = new URL(request.url);
   const placeId = url.searchParams.get("placeId");
   if (!placeId) return Response.json({ error: "placeId required" }, { status: 400 });
@@ -34,7 +37,24 @@ export async function GET(request: Request) {
     orderBy: { reportedAt: "desc" },
     take: 50,
   });
-  return Response.json({ incidents });
+  return Response.json({
+    incidents: incidents.map((i) => ({
+      id: i.id,
+      placeId: i.placeId,
+      floorPlanId: i.floorPlanId,
+      featureId: i.featureId,
+      incidentType: i.incidentType,
+      description: i.description,
+      source: i.source,
+      trustLevel: i.trustLevel,
+      operationalStatus: i.operationalStatus,
+      reportedAt: i.reportedAt.toISOString(),
+      verifiedAt: i.verifiedAt?.toISOString() ?? null,
+      expectedResolutionAt: i.expectedResolutionAt?.toISOString() ?? null,
+      moderationState: i.moderationState,
+      // Evidence / reporter identity fields intentionally omitted.
+    })),
+  });
 }
 
 export async function POST(request: Request) {

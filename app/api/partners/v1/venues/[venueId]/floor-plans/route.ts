@@ -36,10 +36,13 @@ export async function GET(request: Request, { params }: RouteParams) {
     },
   });
 
+  // Wave 12: never return raw feature geometry on v1 floorplans:read.
+  // Restricted zones are stripped. Full feature payloads require partner v2
+  // scope `restricted-assets:read` (or indoor-graphs:read) via AccessOps DTOs.
   const filtered = plans.map((p) => {
     const data = p.structuredData as { features?: unknown[]; zones?: unknown[] };
     const publicZones = ((data.zones ?? []) as Array<{ type?: string }>).filter(
-      (z) => z.type !== "restricted",
+      (z) => z.type !== "restricted" && z.type !== "security" && z.type !== "staff_only",
     );
     return {
       id: p.id,
@@ -49,8 +52,10 @@ export async function GET(request: Request, { params }: RouteParams) {
       altText: p.altText,
       verifiedAt: p.verifiedAt?.toISOString() ?? null,
       featureCount: data.features?.length ?? 0,
-      zones: publicZones,
-      features: data.features,
+      zones: publicZones.map((z) => ({
+        type: z.type ?? "unknown",
+      })),
+      // Intentionally omit raw features — prevents restricted geometry leakage.
     };
   });
 

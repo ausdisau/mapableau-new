@@ -132,6 +132,7 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/transport.md](docs/modules/transport.md) | Transport module |
 | [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md) | Transport scheduling |
 | [docs/modules/accessibility.md](docs/modules/accessibility.md) | Accessibility profiles |
+| [docs/accessops/wave-12-accessops.md](docs/accessops/wave-12-accessops.md) | Wave 12 AccessOps civic access digital twin |
 | [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md) | Admin dashboard |
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).
@@ -183,6 +184,10 @@ See [docs/aura/](docs/aura/) — especially `wave-10-architecture-and-risk-plan.
 ### Life events & service recovery (Wave 11)
 
 Wave 11 adds a *projection* over Case, AURA, incidents/complaints, and bookings to reason about life events, service continuity, and deterministic service-recovery plans. It does not duplicate any of those systems. **Continuity preserves participant goals, not merely bookings.** Care cancellation does not auto-cancel linked transport — a continuity signal is raised and a continuity case is opened for a human decision. A new AURA `service-recovery` specialist drafts goal-preserving options and plans; it can never approve invoices/claims/payments, alter consent, or dispatch emergency services (000, ambulance, police, fire). External civic feeds default to disabled and untrusted until validated and fresh. Life events are always human-declared; AURA can suggest, never auto-create. Essential support is participant-defined — never inferred from diagnosis. See [docs/continuity/](docs/continuity/) — especially `wave-11-architecture-and-risk-plan.md`, `wave-11-emergency-boundary.md`, `wave-11-essential-support-boundary.md`, and `wave-11-aura-service-recovery-specialist.md`.
+
+### AccessOps civic digital twin (Wave 12)
+
+Wave 12 adds AccessOps for civic access assets, feature observations, operational status, reliability, incidents, work orders, sensors, partner v2 APIs, and disabled-by-default open-data projections. Accreditation is not live status; missing data is not accessible; stale data is not current; sensors do not actuate infrastructure; routes are advisory; participant journeys stay off operator dashboards. See [docs/accessops/](docs/accessops/).
 
 ### QA and mobile
 

@@ -4,6 +4,7 @@
 
 - Floor plan viewer: arrow pan, +/- zoom, Tab between features (existing toolbar).
 - Authoring API supports numeric coordinate entry (full canvas editor pending).
+- AccessOps Wave 12 adds a keyboard authoring panel for labelled coordinate tables under `/admin/floor-plans/[id]/edit`.
 - Route planner: native `<select>` controls, no drag-only workflow.
 
 ## Screen reader

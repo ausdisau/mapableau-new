@@ -1,6 +1,11 @@
 export const ACCESSOPS_PARTNER_SCOPES = [
   "assets:read",
+  "features:read",
   "status:read",
+  "status:write",
+  "incidents:read",
+  "reliability:read",
+  "observations:write",
   "webhooks:write",
   "open-data:read",
 ] as const;

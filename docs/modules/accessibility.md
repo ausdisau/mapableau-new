@@ -15,3 +15,7 @@ Participants control provider sharing via consent scopes `care.accessibility_sha
 ## Phase 2
 
 Provider-scoped filtered views, AAC/Auslan workflow hooks, and interface theme application from digital preferences.
+
+## AccessOps pointer
+
+Wave 12 AccessOps extends place and indoor accessibility with civic access assets, live status, reliability, and keyboard floor-plan authoring. See `docs/accessops/wave-12-accessops.md`.

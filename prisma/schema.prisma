@@ -13846,3 +13846,1087 @@ model CivicFeedRegistration {
   @@index([status])
   @@map("continuity_civic_feed_registrations")
 }
+
+// =============================================================================
+// Wave 12 — AccessOps Civic Infrastructure Digital Twin
+// Accessibility information as operational infrastructure: provenance, ownership,
+// freshness, reliability and repair. Does NOT create a parallel map — overlays
+// AccessPlace / AccessFloorPlan / IndoorAccessibilityIncident.
+// Hard rules: no universal score; unknown/stale ≠ accessible; no actuation;
+// no fabricated owners/uptime; accreditation ≠ live status; feeds disabled by default.
+// =============================================================================
+
+enum AccessAssetType {
+  venue
+  building
+  entrance
+  floor
+  room
+  corridor
+  path
+  footpath
+  crossing
+  kerb_ramp
+  drop_off_zone
+  parking_space
+  transit_stop
+  station
+  platform
+  lift
+  escalator
+  ramp
+  stair
+  door
+  gate
+  toilet
+  changing_place
+  service_counter
+  quiet_space
+  hearing_loop
+  tactile_feature
+  wayfinding_sign
+  checkpoint
+  vehicle
+  route_segment
+  equipment
+  sensor
+  other
+}
+
+enum AccessOpsFeatureType {
+  step_free_access
+  wheelchair_access
+  mobility_device_access
+  level_entry
+  ramp_access
+  lift_access
+  automatic_door
+  door_clearance
+  corridor_clearance
+  turning_space
+  accessible_toilet
+  changing_place
+  accessible_parking
+  accessible_drop_off
+  accessible_boarding
+  tactile_guidance
+  braille_signage
+  hearing_loop
+  captioning
+  quiet_space
+  sensory_support
+  visual_alarm
+  audio_guidance
+  staff_assistance
+  assistance_animal_access
+  accessible_service_counter
+  seating
+  rest_point
+  lighting
+  surface_quality
+  gradient
+  crossfall
+  kerb_height
+  other
+}
+
+enum AccessOperationalState {
+  unknown
+  reported_available
+  verified_available
+  degraded
+  partially_available
+  temporarily_unavailable
+  scheduled_unavailable
+  under_maintenance
+  permanently_removed
+  status_conflict
+  stale
+  test_only
+}
+
+enum AccessEvidenceLevel {
+  self_reported
+  community_observed
+  operator_reported
+  document_supported
+  sensor_observed
+  assessor_verified
+  independently_verified
+  authoritative_source
+  disputed
+  unknown
+}
+
+enum AccessAssetLifecycleStatus {
+  proposed
+  mapped
+  awaiting_owner
+  awaiting_verification
+  active
+  degraded
+  maintenance
+  suspended
+  retired
+  removed
+  archived
+}
+
+enum AccessPublicVisibility {
+  public
+  authenticated
+  restricted
+  staff_only
+  never_public
+}
+
+enum AccessSecurityClassification {
+  public
+  internal
+  restricted
+  security_sensitive
+}
+
+enum AccessObservationMethod {
+  manual_measurement
+  professional_assessment
+  operator_declaration
+  community_report
+  sensor
+  document_import
+  structured_feed
+  MapAble_import
+  inferred_from_geometry
+  unknown
+}
+
+enum AccessVerificationStatus {
+  unverified
+  pending_review
+  verified
+  rejected
+  superseded
+}
+
+enum AccessDisputeStatus {
+  none
+  open
+  under_review
+  upheld
+  withdrawn
+}
+
+enum AccessTwinEdgeType {
+  contains
+  located_within
+  connects_to
+  accessible_via
+  alternative_to
+  required_for
+  depends_on
+  powered_by
+  monitored_by
+  operated_by
+  maintained_by
+  owned_by
+  blocks
+  bypasses
+  serves
+  enters
+  exits
+  transfers_to
+  adjacent_to
+  replacement_for
+  supersedes
+}
+
+enum AccessEdgeDirection {
+  directed
+  undirected
+}
+
+enum AccessDependencyCriticality {
+  optional
+  preferred
+  required
+  blocking
+}
+
+enum AccessStatusReasonCode {
+  normal_operation
+  planned_maintenance
+  unplanned_failure
+  vandalism
+  weather
+  power_failure
+  network_failure
+  construction
+  staffing
+  obstruction
+  cleanliness
+  safety_issue
+  sensor_fault
+  inspection
+  community_report
+  data_conflict
+  unknown
+}
+
+enum AccessStatusSourceType {
+  operator
+  sensor
+  community
+  assessor
+  system_projection
+  import_feed
+  test
+}
+
+enum AccessDataSourceType {
+  government_open_data
+  transport_operator
+  venue_operator
+  building_operator
+  council
+  private_partner
+  community
+  assessor
+  sensor_gateway
+  MapAble
+  manual
+  test
+}
+
+enum AccessDataSourceStatus {
+  proposed
+  approved
+  active
+  suspended
+  retired
+  disabled
+}
+
+enum AccessSourceTrustLevel {
+  untrusted
+  low
+  medium
+  high
+  authoritative_domain_specific
+}
+
+enum AccessConformanceStatus {
+  unknown
+  not_checked
+  partial
+  conformant
+  non_conformant
+}
+
+enum CivicAccessEntityType {
+  venue_owner
+  venue_operator
+  asset_owner
+  asset_operator
+  maintainer
+  transport_agency
+  council
+  government_department
+  contractor
+  accreditation_body
+  community_organisation
+  MapAble
+  unknown
+}
+
+enum CivicAccessEntityStatus {
+  active
+  inactive
+  disputed
+  archived
+}
+
+enum AccessResponsibilityType {
+  ownership
+  operation
+  maintenance
+  inspection
+  status_reporting
+  incident_response
+  public_communication
+  data_stewardship
+}
+
+enum AccessResponsibilityStatus {
+  asserted
+  verified
+  disputed
+  ended
+}
+
+enum AccessIncidentCategory {
+  asset_failure
+  lift_failure
+  door_failure
+  toilet_unavailable
+  changing_place_unavailable
+  kerb_obstruction
+  parking_misuse
+  route_obstruction
+  construction_barrier
+  signage_failure
+  sensory_access_failure
+  hearing_loop_failure
+  information_failure
+  staff_access_failure
+  transit_access_failure
+  digital_access_failure
+  sensor_failure
+  data_integrity
+  other
+}
+
+enum AccessIncidentState {
+  reported
+  validating
+  acknowledged
+  impact_assessing
+  owner_notified
+  response_planned
+  remediation_active
+  monitoring
+  restored_pending_verification
+  restored
+  disputed
+  closed
+  archived
+}
+
+enum AccessWorkOrderType {
+  inspection
+  cleaning
+  obstruction_removal
+  repair
+  replacement
+  software_update
+  signage
+  temporary_access_measure
+  preventive_maintenance
+  data_correction
+  sensor_service
+  other
+}
+
+enum AccessWorkOrderPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum AccessWorkOrderStatus {
+  requested
+  acknowledged
+  scheduled
+  in_progress
+  completed_pending_verification
+  verified
+  cancelled
+  overdue
+}
+
+enum AccessCommunityReportKind {
+  working
+  not_working
+  blocked
+  difficult_to_use
+  information_incorrect
+  temporary_change
+  staff_assistance_unavailable
+  accessible_toilet_unavailable
+  lift_unavailable
+  drop_off_blocked
+  route_inaccessible
+  sensory_condition_changed
+  other
+}
+
+enum AccessCommunityReportStatus {
+  submitted
+  provisional_status_applied
+  under_moderation
+  validated
+  disputed
+  withdrawn
+  closed
+}
+
+enum AccessSensorDeviceType {
+  lift_state
+  door_state
+  obstruction
+  parking_occupancy
+  drop_off_occupancy
+  environmental
+  equipment_health
+  connectivity
+  other
+}
+
+enum AccessSensorHealthStatus {
+  healthy
+  degraded
+  unknown
+  offline
+  suspended
+  compromised
+}
+
+enum AccessSensorTrustStatus {
+  untrusted
+  provisional
+  trusted
+  revoked
+}
+
+enum AccessSensorCalibrationStatus {
+  unknown
+  calibrated
+  due
+  overdue
+  not_applicable
+}
+
+enum AccessCurbZoneType {
+  accessible_drop_off
+  accessible_pick_up
+  wheelchair_taxi
+  community_transport
+  accessible_parking
+  loading
+  passenger
+  temporary_access_zone
+}
+
+enum AccessJourneyPlanStatus {
+  draft
+  generated
+  selected
+  monitoring
+  expired
+  superseded
+  cancelled
+}
+
+enum AccessFitResult {
+  compatible
+  incompatible
+  uncertain
+  requires_confirmation
+  insufficient_data
+}
+
+enum AccessGraphPublicationStatus {
+  draft
+  in_review
+  published
+  superseded
+  rejected
+  test_only
+}
+
+enum AccessWebhookDeliveryStatus {
+  queued
+  delivering
+  delivered
+  failed
+  dead_letter
+  cancelled
+}
+
+enum AccessOpsAssuranceOutcome {
+  pass
+  fail
+  conditional
+  not_assessed
+}
+
+model AccessAsset {
+  id                       String                       @id @default(cuid())
+  tenantId                 String?                      @map("tenant_id")
+  publicIdentifier         String                       @unique @map("public_identifier")
+  assetType                AccessAssetType              @map("asset_type")
+  parentAssetId            String?                      @map("parent_asset_id")
+  parentAsset              AccessAsset?                 @relation("AccessAssetHierarchy", fields: [parentAssetId], references: [id], onDelete: SetNull)
+  childAssets              AccessAsset[]                @relation("AccessAssetHierarchy")
+  placeId                  String?                      @map("place_id")
+  venueId                  String?                      @map("venue_id")
+  floorPlanId              String?                      @map("floor_plan_id")
+  geometryReference        String?                      @map("geometry_reference")
+  geometryType             String?                      @map("geometry_type")
+  geometryVersion          Int                          @default(1) @map("geometry_version")
+  indoorLevel              String?                      @map("indoor_level")
+  title                    String
+  plainLanguageDescription String?                      @map("plain_language_description")
+  ownerEntityId            String?                      @map("owner_entity_id")
+  operatorEntityId         String?                      @map("operator_entity_id")
+  maintainerEntityId       String?                      @map("maintainer_entity_id")
+  jurisdiction             String                       @default("AU")
+  lifecycleStatus          AccessAssetLifecycleStatus   @default(proposed) @map("lifecycle_status")
+  publicVisibility         AccessPublicVisibility       @default(public) @map("public_visibility")
+  securityClassification   AccessSecurityClassification @default(public) @map("security_classification")
+  sourceSystem             String                       @map("source_system")
+  sourceReference          String?                      @map("source_reference")
+  dataSourceId             String?                      @map("data_source_id")
+  dataSource               AccessDataSource?            @relation(fields: [dataSourceId], references: [id], onDelete: SetNull)
+  dataLicence              String?                      @map("data_licence")
+  effectiveFrom            DateTime                     @default(now()) @map("effective_from")
+  effectiveTo              DateTime?                    @map("effective_to")
+  createdAt                DateTime                     @default(now()) @map("created_at")
+  updatedAt                DateTime                     @updatedAt @map("updated_at")
+
+  featureObservations     AccessFeatureObservation[]
+  twinEdgesFrom           AccessTwinEdge[]               @relation("TwinEdgeFrom")
+  twinEdgesTo             AccessTwinEdge[]               @relation("TwinEdgeTo")
+  statusEvents            AccessStatusEvent[]
+  responsibilities        AccessAssetResponsibility[]
+  reliabilityProfiles     AccessReliabilityProfile[]
+  reliabilityMeasurements AccessReliabilityMeasurement[]
+  sloProfiles             AccessSloProfile[]
+  sloBreaches             AccessSloBreach[]
+  incidents               AccessOpsIncident[]
+  workOrders              AccessWorkOrder[]
+  communityReports        AccessCommunityReport[]
+  sensors                 AccessSensorDevice[]
+  curbZones               AccessCurbZone[]
+  graphPublications       AccessGraphPublication[]
+
+  @@index([tenantId, lifecycleStatus])
+  @@index([placeId])
+  @@index([assetType, lifecycleStatus])
+  @@index([ownerEntityId])
+  @@index([securityClassification, publicVisibility])
+  @@map("accessops_assets")
+}
+
+model AccessFeatureObservation {
+  id                       String                   @id @default(cuid())
+  assetId                  String                   @map("asset_id")
+  asset                    AccessAsset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  featureType              AccessOpsFeatureType     @map("feature_type")
+  observedValue            Json                     @map("observed_value")
+  unit                     String?
+  evidenceLevel            AccessEvidenceLevel      @default(unknown) @map("evidence_level")
+  sourceType               String                   @map("source_type")
+  sourceEntityId           String?                  @map("source_entity_id")
+  sourceReference          String?                  @map("source_reference")
+  observationMethod        AccessObservationMethod  @default(unknown) @map("observation_method")
+  observedAt               DateTime                 @map("observed_at")
+  receivedAt               DateTime                 @default(now()) @map("received_at")
+  validUntil               DateTime?                @map("valid_until")
+  confidence               Float                    @default(0.5)
+  verificationStatus       AccessVerificationStatus @default(unverified) @map("verification_status")
+  disputeStatus            AccessDisputeStatus      @default(none) @map("dispute_status")
+  safeNotes                String?                  @map("safe_notes")
+  privateEvidenceReference String?                  @map("private_evidence_reference")
+  schemaVersion            Int                      @default(1) @map("schema_version")
+  isInferred               Boolean                  @default(false) @map("is_inferred")
+  createdAt                DateTime                 @default(now()) @map("created_at")
+
+  @@index([assetId, featureType, observedAt])
+  @@index([verificationStatus, disputeStatus])
+  @@map("accessops_feature_observations")
+}
+
+model AccessTwinEdge {
+  id                       String                       @id @default(cuid())
+  fromAssetId              String                       @map("from_asset_id")
+  fromAsset                AccessAsset                  @relation("TwinEdgeFrom", fields: [fromAssetId], references: [id], onDelete: Cascade)
+  toAssetId                String                       @map("to_asset_id")
+  toAsset                  AccessAsset                  @relation("TwinEdgeTo", fields: [toAssetId], references: [id], onDelete: Cascade)
+  edgeType                 AccessTwinEdgeType           @map("edge_type")
+  direction                AccessEdgeDirection          @default(directed)
+  conditions               Json?
+  accessibilityConstraints Json?                        @map("accessibility_constraints")
+  minimumClearance         Float?                       @map("minimum_clearance")
+  maximumGradient          Float?                       @map("maximum_gradient")
+  timeRestriction          Json?                        @map("time_restriction")
+  dependencyCriticality    AccessDependencyCriticality  @default(optional) @map("dependency_criticality")
+  sourceReference          String                       @map("source_reference")
+  evidenceLevel            AccessEvidenceLevel          @default(unknown) @map("evidence_level")
+  securityClassification   AccessSecurityClassification @default(public) @map("security_classification")
+  validFrom                DateTime                     @default(now()) @map("valid_from")
+  validUntil               DateTime?                    @map("valid_until")
+  version                  Int                          @default(1)
+  createdAt                DateTime                     @default(now()) @map("created_at")
+  supersededAt             DateTime?                    @map("superseded_at")
+
+  @@index([fromAssetId, edgeType])
+  @@index([toAssetId, edgeType])
+  @@index([version, supersededAt])
+  @@map("accessops_twin_edges")
+}
+
+model AccessStatusEvent {
+  id                     String                   @id @default(cuid())
+  assetId                String                   @map("asset_id")
+  asset                  AccessAsset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  state                  AccessOperationalState
+  previousState          AccessOperationalState?  @map("previous_state")
+  sourceType             AccessStatusSourceType   @map("source_type")
+  sourceEntityId         String?                  @map("source_entity_id")
+  sourceReference        String?                  @map("source_reference")
+  evidenceLevel          AccessEvidenceLevel      @default(unknown) @map("evidence_level")
+  reasonCode             AccessStatusReasonCode   @default(unknown) @map("reason_code")
+  safeDescription        String                   @map("safe_description")
+  observedAt             DateTime                 @map("observed_at")
+  receivedAt             DateTime                 @default(now()) @map("received_at")
+  effectiveFrom          DateTime                 @map("effective_from")
+  expectedUntil          DateTime?                @map("expected_until")
+  actualUntil            DateTime?                @map("actual_until")
+  confidence             Float                    @default(0.5)
+  freshnessWindowSeconds Int                      @default(86400) @map("freshness_window_seconds")
+  correlationId          String                   @map("correlation_id")
+  externalEventId        String?                  @map("external_event_id")
+  verificationStatus     AccessVerificationStatus @default(unverified) @map("verification_status")
+  createdAt              DateTime                 @default(now()) @map("created_at")
+
+  @@unique([assetId, externalEventId])
+  @@index([assetId, effectiveFrom])
+  @@index([state, effectiveFrom])
+  @@index([correlationId])
+  @@map("accessops_status_events")
+}
+
+model AccessDataSource {
+  id                     String                  @id @default(cuid())
+  sourceKey              String                  @unique @map("source_key")
+  displayName            String                  @map("display_name")
+  ownerEntityId          String                  @map("owner_entity_id")
+  sourceType             AccessDataSourceType    @map("source_type")
+  protocol               String
+  endpointReference      String?                 @map("endpoint_reference")
+  jurisdiction           String                  @default("AU")
+  dataLicence            String                  @map("data_licence")
+  allowedUses            Json                    @map("allowed_uses")
+  attributionText        String                  @map("attribution_text")
+  trustLevel             AccessSourceTrustLevel  @default(untrusted) @map("trust_level")
+  expectedUpdateInterval Int                     @map("expected_update_interval_seconds")
+  staleAfterSeconds      Int                     @map("stale_after_seconds")
+  schemaProfile          String                  @map("schema_profile")
+  conformanceStatus      AccessConformanceStatus @default(not_checked) @map("conformance_status")
+  securityReviewId       String?                 @map("security_review_id")
+  privacyReviewId        String?                 @map("privacy_review_id")
+  accessibilityReviewId  String?                 @map("accessibility_review_id")
+  status                 AccessDataSourceStatus  @default(proposed)
+  productionActivated    Boolean                 @default(false) @map("production_activated")
+  effectiveFrom          DateTime                @default(now()) @map("effective_from")
+  effectiveTo            DateTime?               @map("effective_to")
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
+
+  assets AccessAsset[]
+
+  @@index([status, productionActivated])
+  @@map("accessops_data_sources")
+}
+
+model CivicAccessEntity {
+  id                                 String                  @id @default(cuid())
+  entityType                         CivicAccessEntityType   @map("entity_type")
+  legalName                          String                  @map("legal_name")
+  displayName                        String                  @map("display_name")
+  tenantId                           String?                 @map("tenant_id")
+  jurisdiction                       String                  @default("AU")
+  registrationReference              String?                 @map("registration_reference")
+  publicContactReference             String?                 @map("public_contact_reference")
+  privateOperationalContactReference String?                 @map("private_operational_contact_reference")
+  status                             CivicAccessEntityStatus @default(active)
+  createdAt                          DateTime                @default(now()) @map("created_at")
+  updatedAt                          DateTime                @updatedAt @map("updated_at")
+
+  responsibilities AccessAssetResponsibility[]
+
+  @@index([entityType, status])
+  @@index([tenantId])
+  @@map("accessops_civic_entities")
+}
+
+model AccessAssetResponsibility {
+  id                 String                     @id @default(cuid())
+  assetId            String                     @map("asset_id")
+  asset              AccessAsset                @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  entityId           String                     @map("entity_id")
+  entity             CivicAccessEntity          @relation(fields: [entityId], references: [id], onDelete: Restrict)
+  responsibilityType AccessResponsibilityType   @map("responsibility_type")
+  effectiveFrom      DateTime                   @default(now()) @map("effective_from")
+  effectiveTo        DateTime?                  @map("effective_to")
+  evidenceReference  String?                    @map("evidence_reference")
+  verifiedAt         DateTime?                  @map("verified_at")
+  verifiedById       String?                    @map("verified_by_id")
+  status             AccessResponsibilityStatus @default(asserted)
+  createdAt          DateTime                   @default(now()) @map("created_at")
+
+  @@index([assetId, responsibilityType, status])
+  @@index([entityId])
+  @@map("accessops_asset_responsibilities")
+}
+
+model AccessReliabilityProfile {
+  id                            String      @id @default(cuid())
+  assetId                       String      @map("asset_id")
+  asset                         AccessAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  measurementWindow             String      @map("measurement_window")
+  expectedOperatingSchedule     Json        @map("expected_operating_schedule")
+  availabilityTarget            Float?      @map("availability_target")
+  maximumUnplannedOutageMinutes Int?        @map("maximum_unplanned_outage_minutes")
+  maximumRestoreTimeMinutes     Int?        @map("maximum_restore_time_minutes")
+  statusFreshnessTargetSeconds  Int?        @map("status_freshness_target_seconds")
+  reportingCompletenessTarget   Float?      @map("reporting_completeness_target")
+  policyVersion                 String      @map("policy_version")
+  effectiveFrom                 DateTime    @default(now()) @map("effective_from")
+  effectiveTo                   DateTime?   @map("effective_to")
+  createdAt                     DateTime    @default(now()) @map("created_at")
+
+  @@index([assetId, effectiveFrom])
+  @@map("accessops_reliability_profiles")
+}
+
+model AccessReliabilityMeasurement {
+  id                          String      @id @default(cuid())
+  assetId                     String      @map("asset_id")
+  asset                       AccessAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  windowStart                 DateTime    @map("window_start")
+  windowEnd                   DateTime    @map("window_end")
+  expectedAvailableMinutes    Int         @map("expected_available_minutes")
+  verifiedAvailableMinutes    Int         @map("verified_available_minutes")
+  degradedMinutes             Int         @default(0) @map("degraded_minutes")
+  unavailableMinutes          Int         @default(0) @map("unavailable_minutes")
+  unknownMinutes              Int         @default(0) @map("unknown_minutes")
+  scheduledMaintenanceMinutes Int         @default(0) @map("scheduled_maintenance_minutes")
+  unplannedOutageCount        Int         @default(0) @map("unplanned_outage_count")
+  meanRestoreMinutes          Float?      @map("mean_restore_minutes")
+  longestOutageMinutes        Float?      @map("longest_outage_minutes")
+  statusCoveragePercent       Float       @map("status_coverage_percent")
+  evidenceCompleteness        Float       @map("evidence_completeness")
+  calculationVersion          String      @map("calculation_version")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+
+  @@index([assetId, windowStart])
+  @@map("accessops_reliability_measurements")
+}
+
+model AccessSloProfile {
+  id            String           @id @default(cuid())
+  assetId       String?          @map("asset_id")
+  asset         AccessAsset?     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetType     AccessAssetType? @map("asset_type")
+  sloKey        String           @map("slo_key")
+  targetValue   Float            @map("target_value")
+  unit          String
+  policyVersion String           @map("policy_version")
+  effectiveFrom DateTime         @default(now()) @map("effective_from")
+  effectiveTo   DateTime?        @map("effective_to")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  breaches AccessSloBreach[]
+
+  @@index([sloKey, effectiveFrom])
+  @@index([assetId])
+  @@map("accessops_slo_profiles")
+}
+
+model AccessSloBreach {
+  id                   String           @id @default(cuid())
+  sloProfileId         String           @map("slo_profile_id")
+  sloProfile           AccessSloProfile @relation(fields: [sloProfileId], references: [id], onDelete: Cascade)
+  assetId              String?          @map("asset_id")
+  asset                AccessAsset?     @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  observedValue        Float            @map("observed_value")
+  errorBudgetRemaining Float?           @map("error_budget_remaining")
+  reviewRequired       Boolean          @default(true) @map("review_required")
+  penaltyAutomatic     Boolean          @default(false) @map("penalty_automatic")
+  openedAt             DateTime         @default(now()) @map("opened_at")
+  closedAt             DateTime?        @map("closed_at")
+  narrative            String?
+  createdAt            DateTime         @default(now()) @map("created_at")
+
+  @@index([sloProfileId, openedAt])
+  @@map("accessops_slo_breaches")
+}
+
+model AccessOpsIncident {
+  id                     String                 @id @default(cuid())
+  assetId                String                 @map("asset_id")
+  asset                  AccessAsset            @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  legacyIndoorIncidentId String?                @unique @map("legacy_indoor_incident_id")
+  category               AccessIncidentCategory
+  state                  AccessIncidentState    @default(reported)
+  title                  String
+  safeDescription        String                 @map("safe_description")
+  evidenceLevel          AccessEvidenceLevel    @default(community_observed) @map("evidence_level")
+  sourceType             String                 @map("source_type")
+  reporterOpaqueRef      String?                @map("reporter_opaque_ref")
+  ownerNotifiedAt        DateTime?              @map("owner_notified_at")
+  operatorNotifiedAt     DateTime?              @map("operator_notified_at")
+  restorationEvidenceRef String?                @map("restoration_evidence_ref")
+  recurringFlag          Boolean                @default(false) @map("recurring_flag")
+  systemicReviewRequired Boolean                @default(false) @map("systemic_review_required")
+  reportedAt             DateTime               @default(now()) @map("reported_at")
+  acknowledgedAt         DateTime?              @map("acknowledged_at")
+  restoredAt             DateTime?              @map("restored_at")
+  closedAt               DateTime?              @map("closed_at")
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @updatedAt @map("updated_at")
+
+  workOrders AccessWorkOrder[]
+
+  @@index([assetId, state])
+  @@index([state, reportedAt])
+  @@map("accessops_incidents")
+}
+
+model AccessWorkOrder {
+  id                                   String                  @id @default(cuid())
+  assetId                              String                  @map("asset_id")
+  asset                                AccessAsset             @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  incidentId                           String?                 @map("incident_id")
+  incident                             AccessOpsIncident?      @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  ownerEntityId                        String?                 @map("owner_entity_id")
+  operatorEntityId                     String?                 @map("operator_entity_id")
+  maintainerEntityId                   String?                 @map("maintainer_entity_id")
+  workType                             AccessWorkOrderType     @map("work_type")
+  priority                             AccessWorkOrderPriority @default(medium)
+  title                                String
+  safeDescription                      String                  @map("safe_description")
+  privateTechnicalDescriptionReference String?                 @map("private_technical_description_reference")
+  requestedAt                          DateTime                @default(now()) @map("requested_at")
+  acknowledgedAt                       DateTime?               @map("acknowledged_at")
+  scheduledAt                          DateTime?               @map("scheduled_at")
+  startedAt                            DateTime?               @map("started_at")
+  completedAt                          DateTime?               @map("completed_at")
+  verificationRequired                 Boolean                 @default(true) @map("verification_required")
+  verifiedAt                           DateTime?               @map("verified_at")
+  verifiedById                         String?                 @map("verified_by_id")
+  status                               AccessWorkOrderStatus   @default(requested)
+  createdAt                            DateTime                @default(now()) @map("created_at")
+  updatedAt                            DateTime                @updatedAt @map("updated_at")
+
+  @@index([assetId, status])
+  @@index([incidentId])
+  @@map("accessops_work_orders")
+}
+
+model AccessCommunityReport {
+  id                String                      @id @default(cuid())
+  assetId           String                      @map("asset_id")
+  asset             AccessAsset                 @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  kind              AccessCommunityReportKind
+  status            AccessCommunityReportStatus @default(submitted)
+  safeNarrative     String                      @map("safe_narrative")
+  evidenceLevel     AccessEvidenceLevel         @default(community_observed) @map("evidence_level")
+  reporterOpaqueRef String?                     @map("reporter_opaque_ref")
+  wantsUpdates      Boolean                     @default(false) @map("wants_updates")
+  provisionalOutage Boolean                     @default(false) @map("provisional_outage")
+  evidenceRefs      Json?
+  moderatedAt       DateTime?                   @map("moderated_at")
+  withdrawnAt       DateTime?                   @map("withdrawn_at")
+  createdAt         DateTime                    @default(now()) @map("created_at")
+  updatedAt         DateTime                    @updatedAt @map("updated_at")
+
+  @@index([assetId, status])
+  @@index([kind, createdAt])
+  @@map("accessops_community_reports")
+}
+
+model AccessSensorDevice {
+  id                        String                        @id @default(cuid())
+  assetId                   String                        @map("asset_id")
+  asset                     AccessAsset                   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tenantId                  String?                       @map("tenant_id")
+  deviceIdentifier          String                        @map("device_identifier")
+  deviceType                AccessSensorDeviceType        @map("device_type")
+  manufacturer              String?
+  model                     String?
+  firmwareVersion           String?                       @map("firmware_version")
+  gatewayId                 String?                       @map("gateway_id")
+  protocol                  String
+  observationTypes          Json                          @map("observation_types")
+  installationDate          DateTime?                     @map("installation_date")
+  calibrationStatus         AccessSensorCalibrationStatus @default(unknown) @map("calibration_status")
+  lastCalibrationAt         DateTime?                     @map("last_calibration_at")
+  nextCalibrationAt         DateTime?                     @map("next_calibration_at")
+  healthStatus              AccessSensorHealthStatus      @default(unknown) @map("health_status")
+  trustStatus               AccessSensorTrustStatus       @default(untrusted) @map("trust_status")
+  thingDescriptionReference String?                       @map("thing_description_reference")
+  sensorThingsReference     String?                       @map("sensor_things_reference")
+  status                    String                        @default("registered")
+  productionActivated       Boolean                       @default(false) @map("production_activated")
+  createdAt                 DateTime                      @default(now()) @map("created_at")
+  updatedAt                 DateTime                      @updatedAt @map("updated_at")
+
+  observations AccessSensorObservation[]
+
+  @@unique([deviceIdentifier])
+  @@index([assetId, healthStatus])
+  @@index([trustStatus, status])
+  @@map("accessops_sensor_devices")
+}
+
+model AccessSensorObservation {
+  id              String             @id @default(cuid())
+  deviceId        String             @map("device_id")
+  device          AccessSensorDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  observationType String             @map("observation_type")
+  resultValue     Json               @map("result_value")
+  unit            String?
+  phenomenonTime  DateTime           @map("phenomenon_time")
+  resultTime      DateTime           @map("result_time")
+  externalId      String?            @map("external_id")
+  integrityOk     Boolean            @default(true) @map("integrity_ok")
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  @@unique([deviceId, externalId])
+  @@index([deviceId, phenomenonTime])
+  @@map("accessops_sensor_observations")
+}
+
+model AccessCurbZone {
+  id                    String             @id @default(cuid())
+  assetId               String             @map("asset_id")
+  asset                 AccessAsset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  geometryReference     String             @map("geometry_reference")
+  zoneType              AccessCurbZoneType @map("zone_type")
+  vehicleTypes          Json               @map("vehicle_types")
+  permitRequirements    Json?              @map("permit_requirements")
+  operatingSchedule     Json               @map("operating_schedule")
+  maximumStayMinutes    Int?               @map("maximum_stay_minutes")
+  accessibilityFeatures Json               @map("accessibility_features")
+  sourceReference       String             @map("source_reference")
+  operatorEntityId      String?            @map("operator_entity_id")
+  status                String             @default("active")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  @@index([assetId, zoneType])
+  @@map("accessops_curb_zones")
+}
+
+model AccessJourneyPlan {
+  id                   String                  @id @default(cuid())
+  participantId        String?                 @map("participant_id")
+  tenantId             String?                 @map("tenant_id")
+  requestId            String                  @unique @map("request_id")
+  graphVersions        Json                    @map("graph_versions")
+  sourceVersions       Json                    @map("source_versions")
+  statusSnapshotId     String                  @map("status_snapshot_id")
+  preferenceSnapshotId String?                 @map("preference_snapshot_id")
+  consentDirectiveIds  Json                    @map("consent_directive_ids")
+  origin               Json
+  destination          Json
+  departureWindow      Json                    @map("departure_window")
+  arrivalTarget        DateTime?               @map("arrival_target")
+  routeOptions         Json                    @map("route_options")
+  selectedRouteId      String?                 @map("selected_route_id")
+  retainOrigin         Boolean                 @default(false) @map("retain_origin")
+  status               AccessJourneyPlanStatus @default(draft)
+  generatedAt          DateTime                @default(now()) @map("generated_at")
+  expiresAt            DateTime                @map("expires_at")
+  createdAt            DateTime                @default(now()) @map("created_at")
+
+  @@index([participantId, status])
+  @@index([tenantId, status])
+  @@index([expiresAt])
+  @@map("accessops_journey_plans")
+}
+
+model AccessGraphPublication {
+  id           String                       @id @default(cuid())
+  assetId      String                       @map("asset_id")
+  asset        AccessAsset                  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  floorPlanId  String?                      @map("floor_plan_id")
+  version      Int
+  checksum     String
+  status       AccessGraphPublicationStatus @default(draft)
+  graphJsonRef String                       @map("graph_json_ref")
+  publishedAt  DateTime?                    @map("published_at")
+  supersededAt DateTime?                    @map("superseded_at")
+  createdAt    DateTime                     @default(now()) @map("created_at")
+
+  @@unique([assetId, version])
+  @@index([floorPlanId, status])
+  @@map("accessops_graph_publications")
+}
+
+model AccessOpsWebhookSubscription {
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  clientId        String   @map("client_id")
+  destinationUrl  String   @map("destination_url")
+  eventTypes      Json     @map("event_types")
+  secretHash      String   @map("secret_hash")
+  secretHint      String?  @map("secret_hint")
+  status          String   @default("active")
+  allowlistedHost String   @map("allowlisted_host")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  deliveries AccessOpsWebhookDelivery[]
+
+  @@index([tenantId, clientId, status])
+  @@map("accessops_webhook_subscriptions")
+}
+
+model AccessOpsWebhookDelivery {
+  id             String                       @id @default(cuid())
+  subscriptionId String                       @map("subscription_id")
+  subscription   AccessOpsWebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  eventId        String                       @map("event_id")
+  eventType      String                       @map("event_type")
+  schemaVersion  String                       @map("schema_version")
+  payloadJson    Json                         @map("payload_json")
+  status         AccessWebhookDeliveryStatus  @default(queued)
+  attemptCount   Int                          @default(0) @map("attempt_count")
+  nextAttemptAt  DateTime?                    @map("next_attempt_at")
+  lastError      String?                      @map("last_error")
+  deliveredAt    DateTime?                    @map("delivered_at")
+  createdAt      DateTime                     @default(now()) @map("created_at")
+  updatedAt      DateTime                     @updatedAt @map("updated_at")
+
+  @@unique([subscriptionId, eventId])
+  @@index([status, nextAttemptAt])
+  @@map("accessops_webhook_deliveries")
+}
+
+model AccessOpsPartnerClient {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  clientKey    String   @unique @map("client_key")
+  name         String
+  keyHash      String   @map("key_hash")
+  scopes       Json
+  purpose      String
+  status       String   @default("active")
+  rateLimitRpm Int      @default(60) @map("rate_limit_rpm")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId, status])
+  @@map("accessops_partner_clients")
+}
+
+model AccessOpsAssuranceAssessment {
+  id                   String                    @id @default(cuid())
+  controlArea          String                    @map("control_area")
+  outcome              AccessOpsAssuranceOutcome @default(not_assessed)
+  evidenceRefs         Json                      @map("evidence_refs")
+  expiresAt            DateTime?                 @map("expires_at")
+  restrictsPublication Boolean                   @default(false) @map("restricts_publication")
+  restrictsRouting     Boolean                   @default(false) @map("restricts_routing")
+  remediationRef       String?                   @map("remediation_ref")
+  assessedAt           DateTime                  @default(now()) @map("assessed_at")
+  assessedById         String?                   @map("assessed_by_id")
+  createdAt            DateTime                  @default(now()) @map("created_at")
+
+  @@index([controlArea, outcome])
+  @@map("accessops_assurance_assessments")
+}

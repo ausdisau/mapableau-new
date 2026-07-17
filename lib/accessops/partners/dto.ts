@@ -1,4 +1,5 @@
 import type { AccessAssetDto } from "../types";
+import { toAccessAssetResponseDto } from "../http/dto";
 
 export function toPartnerAssetDto(
   asset: AccessAssetDto,
@@ -6,11 +7,12 @@ export function toPartnerAssetDto(
   AccessAssetDto,
   "ownerEntityId" | "operatorEntityId" | "maintainerEntityId"
 > {
+  const safeAsset = toAccessAssetResponseDto(asset);
   const {
     ownerEntityId: _ownerEntityId,
     operatorEntityId: _operatorEntityId,
     maintainerEntityId: _maintainerEntityId,
     ...dto
-  } = asset;
+  } = safeAsset;
   return dto;
 }

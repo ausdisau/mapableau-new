@@ -4,6 +4,10 @@
 
 `/api/partners/v1/`
 
+AccessOps Wave 12 adds a separate scope-based Partner API v2 under
+`/api/partners/v2/` for civic assets, status, reliability, observations, and
+webhooks. See `docs/accessops/partner-api-v2.md`.
+
 ## Authentication
 
 `Authorization: Bearer <api-key>` — keys stored hashed in `partner_api_clients`.
