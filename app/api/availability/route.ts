@@ -10,16 +10,6 @@ import {
 } from "@/lib/availability/availability-service";
 import { createAvailabilityBodySchema } from "@/lib/validation/org-transport";
 
-const DAY_OF_WEEK_FROM_INT = [
-  "SUNDAY",
-  "MONDAY",
-  "TUESDAY",
-  "WEDNESDAY",
-  "THURSDAY",
-  "FRIDAY",
-  "SATURDAY",
-] as const;
-
 export async function GET(req: Request) {
   const user = await requireApiPermission("availability:manage:org");
   if (user instanceof Response) return user;
@@ -57,7 +47,7 @@ export async function POST(req: Request) {
       workerProfileId: parsed.data.workerProfileId,
       driverProfileId: parsed.data.driverProfileId,
       vehicleId: parsed.data.vehicleId,
-      dayOfWeek: DAY_OF_WEEK_FROM_INT[parsed.data.dayOfWeek],
+      dayOfWeek: parsed.data.dayOfWeek,
       startTime: parsed.data.startTime,
       endTime: parsed.data.endTime,
       timezone: parsed.data.timezone,
