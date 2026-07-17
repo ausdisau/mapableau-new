@@ -50,36 +50,38 @@ export async function POST(req: Request, { params }: Params) {
     });
     if (!original) return jsonNdisError("Document not found", 404);
 
-    const allocated = await allocateDocumentNumber({
-      organisationId,
-      documentKind: "credit_note",
-      prefix: prefixForDocumentKind("credit_note"),
-    });
-
-    const credit = buildCreditNote({
-      documentNumber: allocated.documentNumber,
-      organisationName: original.organisation.name,
-      participantId: original.participantId,
-      billingRoute: original.billingRoute,
-      originalDocumentNumber: original.documentNumber,
-      reason: parsed.data.reason,
-      lines: original.lines.map((l) => ({
-        supportItemCode: l.supportItemCode,
-        description: l.description,
-        serviceStartAt: l.serviceStartAt.toISOString(),
-        serviceEndAt: l.serviceEndAt.toISOString(),
-        quantity: l.quantity.toString(),
-        unitType: l.unitType,
-        unitPriceCents: l.unitPriceCents,
-        totalCents: l.totalCents,
-      })),
-    });
-
-    const safeJson = renderDocumentSafeJson(credit);
-    const contentHash = checksumJson(safeJson);
     const correlationId = createCorrelationId();
 
     const created = await prisma.$transaction(async (tx) => {
+      const allocated = await allocateDocumentNumber({
+        organisationId,
+        documentKind: "credit_note",
+        prefix: prefixForDocumentKind("credit_note"),
+        tx,
+      });
+
+      const credit = buildCreditNote({
+        documentNumber: allocated.documentNumber,
+        organisationName: original.organisation.name,
+        participantId: original.participantId,
+        billingRoute: original.billingRoute,
+        originalDocumentNumber: original.documentNumber,
+        reason: parsed.data.reason,
+        lines: original.lines.map((l) => ({
+          supportItemCode: l.supportItemCode,
+          description: l.description,
+          serviceStartAt: l.serviceStartAt.toISOString(),
+          serviceEndAt: l.serviceEndAt.toISOString(),
+          quantity: l.quantity.toString(),
+          unitType: l.unitType,
+          unitPriceCents: l.unitPriceCents,
+          totalCents: l.totalCents,
+        })),
+      });
+
+      const safeJson = renderDocumentSafeJson(credit);
+      const contentHash = checksumJson(safeJson);
+
       const doc = await tx.ndisBillingDocument.create({
         data: {
           organisationId,

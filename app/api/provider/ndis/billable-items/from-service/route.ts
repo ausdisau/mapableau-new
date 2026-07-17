@@ -40,7 +40,10 @@ const bodySchema = z.object({
       "other",
     ])
     .optional(),
-  allowZeroPriceReason: z.string().max(200).nullable().optional(),
+  allowZeroPriceReason: z
+    .enum(["pro_bono", "grant_funded", "explicit_zero_authorised"])
+    .nullable()
+    .optional(),
   clientRequestedRoute: z
     .enum([
       "ndis_self_managed",
