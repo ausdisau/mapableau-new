@@ -247,6 +247,20 @@ model User {
   disclosureManifestsSubject         DisclosureManifest[]           @relation("DisclosureManifestSubject")
   credentialTrustEntriesApproved     CredentialTrustRegistryEntry[] @relation("CredentialTrustApprover")
   credentialSchemaDefinitionsAuthor  CredentialSchemaDefinition[]   @relation("CredentialSchemaAuthor")
+
+  // Wave 10 — AURA
+  auraGoalsAsParticipant      AuraGoal[]                  @relation("AuraGoalParticipant")
+  auraGoalsCreated            AuraGoal[]                  @relation("AuraGoalCreatedBy")
+  auraAuthoritiesAsSubject    AuraAuthorityEnvelope[]     @relation("AuraAuthoritySubject")
+  auraAuthoritiesGranted      AuraAuthorityEnvelope[]     @relation("AuraAuthorityGrantedBy")
+  auraExecutionsAsParticipant AuraExecution[]             @relation("AuraExecutionParticipant")
+  auraApprovalDecisions       AuraApprovalDecision[]      @relation("AuraApprovalDecider")
+  auraMemoryItems             AuraMemoryItem[]            @relation("AuraMemoryParticipant")
+  auraHandoffsToHuman         AuraAgentHandoff[]          @relation("AuraHandoffHuman")
+  auraOutcomeObservations     AuraOutcomeObservation[]    @relation("AuraOutcomeObserver")
+  auraSafetyHoldsCreated      AuraSafetyHold[]            @relation("AuraSafetyHoldCreatedBy")
+  auraSafetyHoldsReleased     AuraSafetyHold[]            @relation("AuraSafetyHoldReleasedBy")
+  auraMcpApprovals            AuraMcpServerRegistration[] @relation("AuraMcpServerApprover")
 }
 
 model PasskeyCredential {
@@ -908,6 +922,12 @@ model Organisation {
   credentialIssuanceOffersIssuer CredentialIssuanceOffer[]       @relation("CredentialIssuanceOfferIssuer")
   credentialPresentationRequests CredentialPresentationRequest[] @relation("CredentialPresentationRequestVerifier")
   issuedCredentialsIssuer        IssuedCredential[]              @relation("IssuedCredentialIssuerOrganisation")
+
+  // Wave 10 — AURA
+  auraAgentsOwned        AuraAgentDefinition[]   @relation("AuraAgentOwner")
+  auraAuthorityEnvelopes AuraAuthorityEnvelope[] @relation("AuraAuthorityOrganisation")
+  auraGoals              AuraGoal[]              @relation("AuraGoalOrganisation")
+  auraExecutions         AuraExecution[]         @relation("AuraExecutionOrganisation")
 }
 
 model OrganisationMember {
@@ -12532,4 +12552,650 @@ model PortabilityImportJob {
   errors        Json?
 
   @@index([participantId, status])
+}
+
+// ============================================================================
+// Wave 10 — AURA (Automated Utility & Reasoning Assistant)
+// Participant-controlled agent planning with bounded execution.
+// AURA is NOT sentient, NOT a legal representative, NOT a substitute
+// decision-maker. Every model, prompt, policy, tool and manifest version is
+// pinned to executions so decisions are reconstructable.
+// ============================================================================
+
+enum AuraAgentClassification {
+  core
+  care
+  transport
+  jobs
+  access
+  billing_explain_only
+  evidence
+  recovery
+  specialist_other
+}
+
+enum AuraAgentLifecycleStatus {
+  draft
+  active
+  suspended
+  retired
+}
+
+enum AuraAuthorityEnvelopeStatus {
+  draft
+  active
+  suspended
+  revoked
+  expired
+}
+
+enum AuraGoalStatus {
+  draft
+  clarifying
+  ready
+  executing
+  paused
+  completed
+  abandoned
+  declined
+}
+
+enum AuraGoalSource {
+  participant
+  delegate
+  provider_referral
+  system_suggested
+}
+
+enum AuraPlanStatus {
+  draft
+  simulated
+  approved
+  executing
+  completed
+  failed
+  cancelled
+}
+
+enum AuraPlanStepStatus {
+  pending
+  ready
+  running
+  succeeded
+  failed
+  skipped
+  compensated
+}
+
+enum AuraExecutionState {
+  queued
+  running
+  waiting_approval
+  paused
+  completed
+  failed
+  execution_unknown
+  compensated
+  cancelled
+}
+
+enum AuraStepExecutionState {
+  pending
+  running
+  succeeded
+  failed
+  execution_unknown
+  compensated
+  skipped
+}
+
+enum AuraActionRiskTier {
+  low_readonly
+  low_readwrite
+  medium_reversible
+  high_irreversible
+  prohibited
+}
+
+enum AuraApprovalStatus {
+  pending
+  approved
+  rejected
+  expired
+  invalidated
+}
+
+enum AuraApprovalKind {
+  participant_step_confirm
+  provider_review
+  two_person_high_risk
+  safety_officer_override
+}
+
+enum AuraMemoryScope {
+  session
+  participant_persistent
+  operational
+  redacted
+}
+
+enum AuraMemoryClass {
+  preference
+  goal_history
+  interaction_summary
+  tool_output_reference
+  correction_note
+  prohibited
+}
+
+enum AuraToolKind {
+  internal_query
+  internal_action
+  mcp_external
+  a2a_external
+  human_handoff
+  simulator
+}
+
+enum AuraToolStatus {
+  draft
+  active
+  suspended
+  retired
+}
+
+enum AuraHandoffKind {
+  agent_to_agent
+  agent_to_human
+  human_to_agent
+  external_service
+}
+
+enum AuraOutcomeSignal {
+  confirmed_success
+  partial_success
+  declined_by_participant
+  no_action_needed
+  regression
+  failure
+  waiting_evidence
+}
+
+enum AuraSafetyHoldReason {
+  participant_paused
+  consent_withdrawn
+  kill_switch
+  safety_officer_hold
+  incident_declared
+  policy_breach
+}
+
+enum AuraSafetyHoldStatus {
+  active
+  released
+  expired
+}
+
+enum AiModelProvider {
+  disabled
+  simulator
+  internal
+  vendor_api
+}
+
+enum AiPromptRole {
+  system
+  user
+  assistant
+  tool
+  guardrail
+}
+
+enum AiSystemInventoryStatus {
+  proposed
+  active
+  retired
+}
+
+model AuraAgentDefinition {
+  id                  String                   @id @default(cuid())
+  slug                String                   @unique
+  displayName         String
+  classification      AuraAgentClassification
+  status              AuraAgentLifecycleStatus @default(draft)
+  description         String
+  ownerOrganisationId String?
+  ownerOrganisation   Organisation?            @relation("AuraAgentOwner", fields: [ownerOrganisationId], references: [id], onDelete: SetNull)
+  currentManifestId   String?                  @unique
+  currentManifest     AuraAgentManifest?       @relation("AuraAgentCurrentManifest", fields: [currentManifestId], references: [id], onDelete: SetNull)
+  productionActivated Boolean                  @default(false)
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  manifests          AuraAgentManifest[]     @relation("AuraAgentDefinitionManifests")
+  authorityEnvelopes AuraAuthorityEnvelope[]
+  goals              AuraGoal[]
+  plans              AuraPlan[]
+  executions         AuraExecution[]
+  handoffsFrom       AuraAgentHandoff[]      @relation("AuraHandoffFromAgent")
+  handoffsTo         AuraAgentHandoff[]      @relation("AuraHandoffToAgent")
+
+  @@index([status, classification])
+}
+
+model AuraAgentManifest {
+  id                  String              @id @default(cuid())
+  agentId             String
+  agent               AuraAgentDefinition @relation("AuraAgentDefinitionManifests", fields: [agentId], references: [id], onDelete: Cascade)
+  versionKey          String
+  promptBundleId      String?
+  promptBundle        AiPromptBundle?     @relation(fields: [promptBundleId], references: [id], onDelete: SetNull)
+  modelProfileId      String?
+  modelProfile        AiModelProfile?     @relation(fields: [modelProfileId], references: [id], onDelete: SetNull)
+  toolAllowlist       Json                @default("[]")
+  policyKey           String
+  policyVersion       String
+  safetyDisclaimers   Json                @default("[]")
+  supportedActions    Json                @default("[]")
+  productionActivated Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+
+  currentFor AuraAgentDefinition[] @relation("AuraAgentCurrentManifest")
+  executions AuraExecution[]
+
+  @@unique([agentId, versionKey])
+  @@index([agentId, productionActivated])
+}
+
+model AuraAuthorityEnvelope {
+  id                           String                      @id @default(cuid())
+  subjectUserId                String
+  subjectUser                  User                        @relation("AuraAuthoritySubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  grantedByUserId              String
+  grantedBy                    User                        @relation("AuraAuthorityGrantedBy", fields: [grantedByUserId], references: [id], onDelete: Restrict)
+  agentId                      String
+  agent                        AuraAgentDefinition         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status                       AuraAuthorityEnvelopeStatus @default(draft)
+  scopePermissions             Json                        @default("[]")
+  allowedActionSlugs           Json                        @default("[]")
+  allowedToolIds               Json                        @default("[]")
+  financialCapDollars          Int?
+  perActionFinancialCapDollars Int?
+  perSessionCallCap            Int?
+  perDayCallCap                Int?
+  requiresParticipantEachTime  Boolean                     @default(false)
+  humanReviewAtOrAboveRiskTier AuraActionRiskTier          @default(medium_reversible)
+  effectiveFrom                DateTime                    @default(now())
+  effectiveUntil               DateTime?
+  organisationId               String?
+  organisation                 Organisation?               @relation("AuraAuthorityOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+  createdAt                    DateTime                    @default(now())
+  revokedAt                    DateTime?
+  revocationReason             String?
+
+  goals      AuraGoal[]
+  executions AuraExecution[]
+
+  @@index([subjectUserId, status])
+  @@index([agentId])
+}
+
+model AuraActionDefinition {
+  id                  String             @id @default(cuid())
+  slug                String             @unique
+  displayName         String
+  description         String
+  riskTier            AuraActionRiskTier
+  prohibited          Boolean            @default(false)
+  requiresConsent     Boolean            @default(true)
+  requiredPermissions Json               @default("[]")
+  compensationRefSlug String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  planSteps      AuraPlanStep[]
+  stepExecutions AuraStepExecution[]
+
+  @@index([riskTier])
+}
+
+model AuraGoal {
+  id                      String                 @id @default(cuid())
+  participantId           String
+  participant             User                   @relation("AuraGoalParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  createdByUserId         String
+  createdBy               User                   @relation("AuraGoalCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  agentId                 String?
+  agent                   AuraAgentDefinition?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  authorityEnvelopeId     String?
+  authorityEnvelope       AuraAuthorityEnvelope? @relation(fields: [authorityEnvelopeId], references: [id], onDelete: SetNull)
+  source                  AuraGoalSource         @default(participant)
+  title                   String
+  summary                 String
+  clarificationsJson      Json                   @default("[]")
+  status                  AuraGoalStatus         @default(draft)
+  organisationId          String?
+  organisation            Organisation?          @relation("AuraGoalOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+  lastParticipantSignalAt DateTime?
+  abandonedAt             DateTime?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  plans AuraPlan[]
+
+  @@index([participantId, status])
+  @@index([source])
+}
+
+model AuraPlan {
+  id              String              @id @default(cuid())
+  goalId          String
+  goal            AuraGoal            @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  agentId         String
+  agent           AuraAgentDefinition @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status          AuraPlanStatus      @default(draft)
+  planGraph       Json                @default("{}")
+  inputHash       String
+  simulationRunId String?             @unique
+  simulationRun   AuraPlanSimulation? @relation(fields: [simulationRunId], references: [id], onDelete: SetNull)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  steps      AuraPlanStep[]
+  approvals  AuraApprovalRequest[]
+  executions AuraExecution[]
+
+  @@index([goalId, status])
+}
+
+model AuraPlanStep {
+  id                  String               @id @default(cuid())
+  planId              String
+  plan                AuraPlan             @relation(fields: [planId], references: [id], onDelete: Cascade)
+  stepIndex           Int
+  actionId            String
+  action              AuraActionDefinition @relation(fields: [actionId], references: [id], onDelete: Restrict)
+  parentsJson         Json                 @default("[]")
+  inputsJson          Json                 @default("{}")
+  expectedOutputsJson Json                 @default("{}")
+  toolId              String?
+  tool                AuraToolDefinition?  @relation(fields: [toolId], references: [id], onDelete: SetNull)
+  status              AuraPlanStepStatus   @default(pending)
+  createdAt           DateTime             @default(now())
+
+  stepExecutions AuraStepExecution[]
+
+  @@unique([planId, stepIndex])
+}
+
+model AuraPlanSimulation {
+  id             String   @id @default(cuid())
+  planSnapshot   Json     @default("{}")
+  wallClockMs    Int      @default(0)
+  externalWrites Int      @default(0)
+  warnings       Json     @default("[]")
+  outcome        String   @default("ok")
+  createdAt      DateTime @default(now())
+
+  plan AuraPlan?
+}
+
+model AuraApprovalRequest {
+  id                String             @id @default(cuid())
+  planId            String
+  plan              AuraPlan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  kind              AuraApprovalKind
+  requiredApprovers Int                @default(1)
+  inputHash         String
+  status            AuraApprovalStatus @default(pending)
+  expiresAt         DateTime?
+  invalidatedReason String?
+  createdAt         DateTime           @default(now())
+
+  decisions AuraApprovalDecision[]
+
+  @@index([planId, status])
+}
+
+model AuraApprovalDecision {
+  id                String              @id @default(cuid())
+  approvalRequestId String
+  approvalRequest   AuraApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  decidedByUserId   String
+  decidedBy         User                @relation("AuraApprovalDecider", fields: [decidedByUserId], references: [id], onDelete: Restrict)
+  decision          AuraApprovalStatus
+  rationale         String?
+  createdAt         DateTime            @default(now())
+
+  @@unique([approvalRequestId, decidedByUserId])
+}
+
+model AuraExecution {
+  id                     String                @id @default(cuid())
+  planId                 String
+  plan                   AuraPlan              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  agentId                String
+  agent                  AuraAgentDefinition   @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  manifestId             String
+  manifest               AuraAgentManifest     @relation(fields: [manifestId], references: [id], onDelete: Restrict)
+  authorityEnvelopeId    String
+  authorityEnvelope      AuraAuthorityEnvelope @relation(fields: [authorityEnvelopeId], references: [id], onDelete: Restrict)
+  participantId          String
+  participant            User                  @relation("AuraExecutionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  organisationId         String?
+  organisation           Organisation?         @relation("AuraExecutionOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+  state                  AuraExecutionState    @default(queued)
+  pinnedPromptBundleId   String?
+  pinnedModelProfileId   String?
+  pinnedPolicyVersion    String
+  pinnedToolVersionsJson Json                  @default("{}")
+  inputHash              String
+  idempotencyKey         String                @unique
+  startedAt              DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  stepExecutions AuraStepExecution[]
+  compensations  AuraCompensationRecord[]
+  outcomes       AuraOutcomeObservation[]
+
+  @@index([participantId, state])
+  @@index([agentId, state])
+}
+
+model AuraStepExecution {
+  id             String                 @id @default(cuid())
+  executionId    String
+  execution      AuraExecution          @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  planStepId     String
+  planStep       AuraPlanStep           @relation(fields: [planStepId], references: [id], onDelete: Cascade)
+  actionId       String
+  action         AuraActionDefinition   @relation(fields: [actionId], references: [id], onDelete: Restrict)
+  state          AuraStepExecutionState @default(pending)
+  attempt        Int                    @default(1)
+  idempotencyKey String
+  toolCallJson   Json?
+  toolResultJson Json?
+  errorMessage   String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime               @default(now())
+
+  @@unique([executionId, planStepId, attempt])
+  @@unique([idempotencyKey])
+  @@index([state])
+}
+
+model AuraToolDefinition {
+  id               String             @id @default(cuid())
+  slug             String             @unique
+  displayName      String
+  description      String
+  kind             AuraToolKind
+  status           AuraToolStatus     @default(draft)
+  versionKey       String             @default("0.0.1")
+  inputSchema      Json               @default("{}")
+  outputSchema     Json               @default("{}")
+  riskTier         AuraActionRiskTier @default(low_readonly)
+  requiresConsent  Boolean            @default(true)
+  writeCapable     Boolean            @default(false)
+  externalEndpoint String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  planSteps  AuraPlanStep[]
+  mcpServers AuraMcpServerRegistration[]
+
+  @@index([kind, status])
+}
+
+model AuraMemoryItem {
+  id                   String          @id @default(cuid())
+  participantId        String
+  participant          User            @relation("AuraMemoryParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  scope                AuraMemoryScope
+  memoryClass          AuraMemoryClass
+  key                  String
+  valueJson            Json            @default("{}")
+  participantConfirmed Boolean         @default(false)
+  autoSaved            Boolean         @default(false)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  expiresAt            DateTime?
+
+  @@unique([participantId, scope, key])
+  @@index([participantId, memoryClass])
+}
+
+model AuraAgentHandoff {
+  id             String               @id @default(cuid())
+  fromAgentId    String?
+  fromAgent      AuraAgentDefinition? @relation("AuraHandoffFromAgent", fields: [fromAgentId], references: [id], onDelete: SetNull)
+  toAgentId      String?
+  toAgent        AuraAgentDefinition? @relation("AuraHandoffToAgent", fields: [toAgentId], references: [id], onDelete: SetNull)
+  toHumanUserId  String?
+  toHumanUser    User?                @relation("AuraHandoffHuman", fields: [toHumanUserId], references: [id], onDelete: SetNull)
+  kind           AuraHandoffKind
+  contextJson    Json                 @default("{}")
+  reason         String
+  acknowledgedAt DateTime?
+  createdAt      DateTime             @default(now())
+
+  @@index([fromAgentId])
+  @@index([toAgentId])
+}
+
+model AuraCompensationRecord {
+  id                  String        @id @default(cuid())
+  executionId         String
+  execution           AuraExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  reason              String
+  compensatedStepJson Json          @default("{}")
+  successful          Boolean       @default(false)
+  createdAt           DateTime      @default(now())
+
+  @@index([executionId])
+}
+
+model AuraOutcomeObservation {
+  id               String            @id @default(cuid())
+  executionId      String
+  execution        AuraExecution     @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  observedByUserId String?
+  observedBy       User?             @relation("AuraOutcomeObserver", fields: [observedByUserId], references: [id], onDelete: SetNull)
+  signal           AuraOutcomeSignal
+  narrative        String?
+  createdAt        DateTime          @default(now())
+
+  @@index([executionId, signal])
+}
+
+model AuraSafetyHold {
+  id                   String               @id @default(cuid())
+  reason               AuraSafetyHoldReason
+  status               AuraSafetyHoldStatus @default(active)
+  affectsAgentId       String?
+  affectsParticipantId String?
+  createdByUserId      String
+  createdBy            User                 @relation("AuraSafetyHoldCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  releasedByUserId     String?
+  releasedBy           User?                @relation("AuraSafetyHoldReleasedBy", fields: [releasedByUserId], references: [id], onDelete: SetNull)
+  narrative            String?
+  createdAt            DateTime             @default(now())
+  releasedAt           DateTime?
+
+  @@index([status])
+  @@index([affectsAgentId])
+  @@index([affectsParticipantId])
+}
+
+model AuraMcpServerRegistration {
+  id                  String              @id @default(cuid())
+  slug                String              @unique
+  displayName         String
+  endpoint            String
+  versionPin          String
+  approvedAt          DateTime?
+  approvedByUserId    String?
+  approvedBy          User?               @relation("AuraMcpServerApprover", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  conformancePassed   Boolean             @default(false)
+  toolId              String?
+  tool                AuraToolDefinition? @relation(fields: [toolId], references: [id], onDelete: SetNull)
+  productionActivated Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+
+  @@index([productionActivated])
+}
+
+model AuraA2AParticipation {
+  id                String   @id @default(cuid())
+  peerLabel         String   @unique
+  entitlementKey    String
+  conformancePassed Boolean  @default(false)
+  enabled           Boolean  @default(false)
+  createdAt         DateTime @default(now())
+}
+
+model AiModelProfile {
+  id                  String          @id @default(cuid())
+  slug                String          @unique
+  provider            AiModelProvider @default(disabled)
+  modelName           String
+  versionKey          String
+  contextWindow       Int             @default(0)
+  supportsTools       Boolean         @default(false)
+  productionActivated Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+
+  manifests AuraAgentManifest[]
+
+  @@unique([slug, versionKey])
+}
+
+model AiPromptBundle {
+  id                  String       @id @default(cuid())
+  slug                String       @unique
+  versionKey          String
+  role                AiPromptRole @default(system)
+  bodyMarkdown        String
+  bodyHash            String
+  productionActivated Boolean      @default(false)
+  createdAt           DateTime     @default(now())
+
+  manifests AuraAgentManifest[]
+
+  @@unique([slug, versionKey])
+}
+
+model AiSystemInventoryEntry {
+  id             String                  @id @default(cuid())
+  systemKey      String                  @unique
+  displayName    String
+  owner          String
+  purposeSummary String
+  riskTier       AuraActionRiskTier      @default(low_readonly)
+  status         AiSystemInventoryStatus @default(proposed)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
 }
