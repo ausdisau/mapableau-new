@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     mode: accessIntelligenceNextFlags.mode,
     synthetic: true,
-    productionClaim: "none",
     ...result,
+    productionClaim: "none" as const,
   });
 }
