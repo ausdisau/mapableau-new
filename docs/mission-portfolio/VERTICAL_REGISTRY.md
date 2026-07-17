@@ -26,8 +26,8 @@ All public claims: **false**. All master flags: **default false** (documented on
 | Key | Title | Maturity | Flag (default false) |
 | --- | --- | --- | --- |
 | `mission.framework` | Shared Mission Framework (contracts + projection) | documented | `MAPABLE_MISSION_FRAMEWORK_ENABLED` |
-| `mission.service_standard` | Participant-defined Service Standard | concept | `MAPABLE_SERVICE_STANDARD_ENABLED` |
-| `mission.service_diff` | What Changed service diff | concept | `MAPABLE_SERVICE_DIFF_ENABLED` |
+| `mission.service_standard` | Participant-defined Service Standard | scaffold | `MAPABLE_SERVICE_STANDARD_ENABLED` |
+| `mission.service_diff` | What Changed service diff | scaffold | `MAPABLE_SERVICE_DIFF_ENABLED` |
 | `mission.handoff_protocol` | Cross-provider Handoff Protocol | concept | `MAPABLE_HANDOFF_PROTOCOL_ENABLED` |
 | `mission.accessible_queue` | Accessible Queue and Wait-Time Layer | concept | `MAPABLE_ACCESSIBLE_QUEUE_ENABLED` |
 | `mission.human_navigators` | Human Navigator Network | concept | `MAPABLE_HUMAN_NAVIGATORS_ENABLED` |

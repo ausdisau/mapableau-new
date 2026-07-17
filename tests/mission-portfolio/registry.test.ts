@@ -45,6 +45,8 @@ describe("Mission Portfolio registry", () => {
   it("mirrors vertical capability keys in ConvergenceOS seeds", () => {
     const seedKeys = new Set(CAPABILITY_SEEDS.map((c) => c.capabilityKey));
     expect(seedKeys.has("mission.framework")).toBe(true);
+    expect(seedKeys.has("mission.service_standard")).toBe(true);
+    expect(seedKeys.has("mission.service_diff")).toBe(true);
     for (const vertical of MISSION_VERTICALS) {
       expect(seedKeys.has(vertical.capabilityKey)).toBe(true);
       const seed = CAPABILITY_SEEDS.find(
