@@ -652,14 +652,15 @@ export const CAPABILITY_SEEDS: CapabilitySeed[] = [
     implementationPaths: [
       "docs/mission-portfolio/",
       "lib/mission-portfolio/contracts/",
+      "lib/mission-portfolio/projection/",
       "lib/pilot/starting-work/",
     ],
     featureFlags: ["MAPABLE_MISSION_FRAMEWORK_ENABLED"],
-    maturity: "documented",
+    maturity: "scaffolded",
     persistenceType: "none",
     productionClaimStatus: "unsupported",
     rollbackNotes:
-      "Contracts only — no CareOSMission / MissionInstance DDL; flags remain off",
+      "Read projection + contracts only — no CareOSMission / MissionInstance DDL; flags remain off",
     honesty: {
       implemented: true,
       featureEnabled: false,
