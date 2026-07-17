@@ -1,0 +1,194 @@
+# Synthetic only — Harbour Starting Work Under Compound Failure
+# Reuses fixture:taylor and harbour-civic-synthetic-v1
+scenario:
+  id: starting-work-storm
+  version: 1
+  title: Starting Work Under Compound Failure
+  purpose: engineering_regression_compound_failure
+  mode: engineering_regression
+  author: mapable-replay-lab
+  reviewers:
+    - platform-engineering
+  lastReview: "2026-07-17"
+  deprecation: active
+  ontologyVersion: "access-ontology-1.0.0"
+  canonicalDomainVersions:
+    access-intelligence-next: "harbour-civic-synthetic-v1"
+    care: "synthetic-adapter-v1"
+    transport: "synthetic-adapter-v1"
+  policyVersions:
+    authority: "participant-directed-v1"
+participant:
+  fixture: fixture:taylor
+goal:
+  type: start_job
+  outcome: complete_induction
+requirements:
+  communication:
+    one_question_at_a_time: true
+    response_time_seconds: 30
+    written_and_spoken: true
+    aac_required: true
+  mobility:
+    step_free: true
+    minimum_clear_width_mm: 850
+    power_chair_transport: true
+  authority:
+    participant_directed: true
+    supporter_may_not_consent: true
+world:
+  precinct: harbour_civic
+  harbourSnapshotId: harbour-civic-synthetic-v1
+actors:
+  - id: actor:taylor
+    displayName: Taylor
+    role: participant
+    organisationId: null
+    authorityScopes:
+      - self
+      - stop_process
+    communicationCapabilities:
+      - aac
+      - written
+      - spoken
+    availableActions:
+      - approve_option
+      - refuse_option
+      - revoke_consent
+    prohibitedActions:
+      - forced_assignment
+    responseDelaySeconds: 30
+    failureBehaviour: wait_for_accessible_option
+  - id: actor:morgan
+    displayName: Morgan
+    role: worker
+    organisationId: org:harbour-support
+    authorityScopes: []
+    communicationCapabilities:
+      - spoken
+    availableActions:
+      - cancel_shift
+    prohibitedActions:
+      - auto_assign_replacement
+    responseDelaySeconds: 0
+    failureBehaviour: cancel_without_handoff
+  - id: actor:priya
+    displayName: Priya
+    role: provider_coordinator
+    organisationId: org:harbour-support
+    authorityScopes:
+      - propose_recovery
+    communicationCapabilities:
+      - written
+      - spoken
+    availableActions:
+      - open_continuity
+      - propose_recovery
+      - share_communication_requirements
+    prohibitedActions:
+      - confirm_unknown_hoist
+      - auto_assign
+    responseDelaySeconds: 60
+    failureBehaviour: escalate_with_options
+  - id: actor:sam
+    displayName: Sam
+    role: driver
+    organisationId: org:harbour-accessible-transport
+    authorityScopes: []
+    communicationCapabilities:
+      - spoken
+    availableActions:
+      - propose_vehicle
+    prohibitedActions:
+      - confirm_inaccessible_vehicle
+    responseDelaySeconds: 120
+    failureBehaviour: propose_without_compatibility_proof
+localisation:
+  locale: en-AU
+  timeZone: Australia/Sydney
+timeline:
+  - at: "06:30"
+    event: mapable.replay.participant.goal_selected
+    actor: actor:taylor
+    data:
+      goal: complete_induction
+  - at: "06:40"
+    event: mapable.replay.equipment.battery_low
+    data:
+      equipment: communication_device
+      level: 8
+  - at: "06:45"
+    event: mapable.replay.worker.cancelled
+    actor: actor:morgan
+    data:
+      minutes_before_departure: 45
+  - at: "06:47"
+    event: mapable.replay.continuity.case_opened
+    actor: actor:priya
+    data:
+      reason: worker_cancelled
+  - at: "06:48"
+    event: mapable.replay.communication.instructions_shared
+    actor: actor:priya
+    data:
+      one_question_at_a_time: true
+      aac_required: true
+  - at: "06:49"
+    event: mapable.replay.communication.instructions_acknowledged
+    actor: actor:priya
+    data:
+      acknowledged: true
+  - at: "06:50"
+    event: mapable.replay.recovery.option_created
+    actor: actor:priya
+    data:
+      option: search_replacement_worker_and_transport
+  - at: "07:05"
+    event: mapable.replay.transport.replacement_proposed
+    actor: actor:sam
+    data:
+      hoist_compatibility: unknown
+      accessible: false
+      vehicle: standard_sedan
+      proposalId: proposal:sedan-1
+  - at: "07:06"
+    event: mapable.replay.transport.trip_rejected
+    actor: actor:priya
+    data:
+      proposalId: proposal:sedan-1
+      reason: unknown_hoist_and_inaccessible
+  - at: "07:07"
+    event: mapable.replay.system.prohibited_action_blocked
+    actor: actor:application_service
+    data:
+      proposalId: proposal:sedan-1
+      action: confirm_trip
+      reason: unknown_hoist_not_confirmed
+  - at: "07:35"
+    event: mapable.replay.access.lift_unavailable
+    data:
+      place: harbour_civic.lift_a
+  - at: "08:10"
+    event: mapable.replay.employer.room_changed
+    actor: actor:alex
+    data:
+      from: room_3_12
+      to: room_2_04
+chaos_cards:
+  - worker-cancels-45-minutes-before
+  - accessible-vehicle-replaced-with-sedan
+  - station-lift-unavailable
+  - communication-device-battery-below-10
+expected:
+  - participant_authority_preserved
+  - inaccessible_replacement_rejected
+  - unknown_hoist_not_confirmed
+  - communication_requirements_transferred
+  - recovery_options_presented
+  - no_automatic_assignment
+  - outcome_not_marked_achieved_without_confirmation
+prohibited:
+  - automatic_assignment
+  - confirm_unknown_hoist
+  - mark_outcome_achieved_without_confirmation
+  - silence_as_consent

@@ -1,0 +1,25 @@
+# Synthetic chaos card — not a production incident record
+id: accessible-vehicle-replaced-with-sedan
+title: Accessible vehicle replaced with standard sedan
+trigger:
+  event: mapable.replay.transport.replacement_proposed
+  data:
+    vehicle: standard_sedan
+    accessible: false
+    hoist_compatibility: unknown
+affected_dependencies:
+  - transport.vehicle
+  - mobility.power_chair_transport
+expected_system_behaviour:
+  - reject_inaccessible_replacement
+  - do_not_confirm_unknown_hoist
+prohibited_system_behaviour:
+  - confirm_trip_with_unknown_hoist
+  - mark_accessible_when_unknown
+recovery_possibilities:
+  - wait_for_compatible_vehicle
+  - participant_refuses_and_reschedules
+participant_decision_point: approve_compatible_option_only
+assertions:
+  - inaccessible_replacement_rejected
+  - unknown_hoist_not_confirmed

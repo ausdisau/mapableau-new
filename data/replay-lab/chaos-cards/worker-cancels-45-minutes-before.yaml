@@ -1,0 +1,26 @@
+# Synthetic chaos card — not a production incident record
+id: worker-cancels-45-minutes-before
+title: Worker cancels 45 minutes before departure
+trigger:
+  event: mapable.replay.worker.cancelled
+  data:
+    minutes_before_departure: 45
+affected_dependencies:
+  - care.shift
+  - transport.pickup
+  - communication.handoff
+expected_system_behaviour:
+  - open_continuity_case
+  - present_recovery_options
+  - transfer_communication_requirements
+prohibited_system_behaviour:
+  - automatic_assignment
+  - silence_as_consent
+recovery_possibilities:
+  - search_replacement_with_competency_evidence
+  - reschedule_with_participant_approval
+participant_decision_point: approve_or_refuse_recovery_options
+assertions:
+  - no_automatic_assignment
+  - recovery_options_presented
+  - communication_requirements_transferred
