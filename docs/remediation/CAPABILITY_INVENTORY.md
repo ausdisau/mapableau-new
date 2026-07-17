@@ -21,7 +21,7 @@ see `lib/convergence-os/seed/capabilities.ts` and
 | care.invoice_from_evidence | Evidence-backed care invoicing | care | internal_alpha | false | verified | billing-handoff → BillingServiceRecord; legacy invoice-placeholder retained |
 | transport.trip_ops | TransportTrip operations | transport | controlled_pilot | false | verified | Trip service + feature-status matrix |
 | transport.routing | Live routing | transport | demo | false | verified | Default provider `mock` |
-| transport.quotes | Quotes and pricing rules | transport | **process_local** (demo durability) | false | verified | In-process Map until programme PR 2; accept + funding disclaimer exist |
+| transport.quotes | Quotes and pricing rules | transport | controlled_pilot | false | verified | Prisma TransportQuote + versions; accept + staged disclosure; not production_supported |
 | billing.centre | Billing Centre invoices | billing | internal_alpha | false | verified | `BillingInvoice` foundations + Care/Transport handoff |
 | billing.legacy_invoice | Legacy Invoice model | billing | suspended (compat) | false | verified | Parallel SoT |
 | billing.ndia_submit | NDIA claim submission | billing | scaffold | false | verified | Mock gateway; must stay disabled |
