@@ -13,4 +13,10 @@ export const RLS_POLICY_NOTES = {
   providerDocuments: "provider scoped to organisation membership",
   messages: "conversation participants only",
   auditLogs: "admin and authorised quality roles",
+  accountabilityPublic:
+    "anonymous and authenticated users may read published accountability snapshots/metrics only; never operational Care/Transport/Jobs/incident/complaint rows",
+  accountabilityAdmin:
+    "accountability:prepare_snapshot / review / approve / publish enforced in lib/accountability/publication-workflow.ts with separation of duties",
+  accountabilityEvidence:
+    "accountability:view_source_evidence required; publicAvailability=false evidence must never appear on public routes",
 } as const;

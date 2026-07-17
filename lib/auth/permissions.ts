@@ -169,6 +169,18 @@ export type Permission =
   | "sustainability:manage"
   | "outcomes:read"
   | "accountability:publish"
+  | "accountability:read_public"
+  | "accountability:submit_challenge"
+  | "accountability:manage_metrics"
+  | "accountability:manage_methodology"
+  | "accountability:prepare_snapshot"
+  | "accountability:review_privacy"
+  | "accountability:review_safeguarding"
+  | "accountability:approve_publication"
+  | "accountability:issue_correction"
+  | "accountability:manage_datasets"
+  | "accountability:view_source_evidence"
+  | "accountability:export_audit"
   | "safeguards:read"
   | "safeguards:manage"
   | "membership:read"
@@ -225,6 +237,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "attestation:read:self",
     "data_vault:self",
     "outcomes:read",
+    "accountability:read_public",
+    "accountability:submit_challenge",
     "safeguards:read",
     "membership:read",
     "transport_investment:read",
@@ -237,6 +251,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "booking:read:self",
     "transport:read:self",
     "notification:read:self",
+    "accountability:read_public",
+    "accountability:submit_challenge",
     "engagement:read:self",
     "engagement:submit:self",
   ],
@@ -438,6 +454,18 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "sustainability:manage",
     "outcomes:read",
     "accountability:publish",
+    "accountability:read_public",
+    "accountability:submit_challenge",
+    "accountability:manage_metrics",
+    "accountability:manage_methodology",
+    "accountability:prepare_snapshot",
+    "accountability:review_privacy",
+    "accountability:review_safeguarding",
+    "accountability:approve_publication",
+    "accountability:issue_correction",
+    "accountability:manage_datasets",
+    "accountability:view_source_evidence",
+    "accountability:export_audit",
     "safeguards:read",
     "safeguards:manage",
     "membership:read",

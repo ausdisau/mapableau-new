@@ -8647,3 +8647,472 @@ model WorkerTrainingCompletion {
   @@index([userId])
   @@map("worker_training_completions")
 }
+
+// --- Public Accountability Portal (Wave 1 foundation) ---
+
+enum AccountabilityPublicationStatus {
+  draft
+  privacy_review
+  quality_review
+  approval_required
+  approved
+  published
+  corrected
+  withdrawn
+  archived
+}
+
+enum AccountabilityCommitmentStatus {
+  proposed
+  accepted
+  planned
+  in_progress
+  at_risk
+  delayed
+  completed
+  verified
+  withdrawn
+}
+
+enum AccountabilityChallengeStatus {
+  received
+  acknowledged
+  under_review
+  information_requested
+  accepted
+  partially_accepted
+  not_accepted
+  corrected
+  closed
+}
+
+enum AccountabilityMetricUnit {
+  count
+  percentage
+  duration
+  currency
+  rate
+  score
+}
+
+enum AccountabilitySensitivity {
+  public
+  protected
+  sensitive
+  highly_sensitive
+}
+
+enum AccountabilityEvidenceAccess {
+  public_citation
+  internal
+  restricted
+}
+
+model AccountabilityMethodology {
+  id              String   @id @default(cuid())
+  publicCode      String   @unique
+  title           String
+  plainLanguage   String
+  technicalNotes  String?
+  version         String   @default("1")
+  ownerRole       String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  metrics AccountabilityMetric[]
+
+  @@map("accountability_methodologies")
+}
+
+model AccountabilityMetric {
+  id                   String                   @id @default(cuid())
+  publicCode           String                   @unique
+  name                 String
+  description          String
+  domain               String
+  unit                 AccountabilityMetricUnit @default(count)
+  numeratorDefinition  String?
+  denominatorDefinition String?
+  methodologyId        String
+  methodology          AccountabilityMethodology @relation(fields: [methodologyId], references: [id])
+  sensitivity          AccountabilitySensitivity @default(public)
+  minimumCohortSize    Int                      @default(10)
+  updateFrequency      String                   @default("quarterly")
+  ownerRole            String
+  isActive             Boolean                  @default(true)
+  isDemonstration      Boolean                  @default(false)
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  values AccountabilityMetricValue[]
+
+  @@index([domain, isActive])
+  @@map("accountability_metrics")
+}
+
+model AccountabilityPublicationSnapshot {
+  id                   String                         @id @default(cuid())
+  publicId             String                         @unique @default(cuid())
+  title                String
+  reportingPeriodStart DateTime
+  reportingPeriodEnd   DateTime
+  status               AccountabilityPublicationStatus @default(draft)
+  packageJson          Json                           @default("{}")
+  contentSha256        String?
+  previousSnapshotHash String?
+  dataCompletenessPct  Float?
+  hasMajorCorrection   Boolean                        @default(false)
+  hasUnresolvedCriticalCommitment Boolean             @default(false)
+  isDemonstration      Boolean                        @default(false)
+  preparedById         String?
+  publishedAt          DateTime?
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime                       @updatedAt
+
+  values     AccountabilityMetricValue[]
+  approvals  AccountabilityPublicationApproval[]
+  evidence   AccountabilityEvidenceItem[]
+  corrections AccountabilityCorrection[]
+
+  @@index([status, publishedAt])
+  @@map("accountability_publication_snapshots")
+}
+
+model AccountabilityMetricValue {
+  id                     String                         @id @default(cuid())
+  publicId               String                         @unique @default(cuid())
+  metricId               String
+  metric                 AccountabilityMetric           @relation(fields: [metricId], references: [id])
+  snapshotId             String
+  snapshot               AccountabilityPublicationSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  reportingPeriodStart   DateTime
+  reportingPeriodEnd     DateTime
+  value                  Float?
+  numerator              Float?
+  denominator            Float?
+  target                 Float?
+  previousValue          Float?
+  sampleSize             Int?
+  completenessPercentage Float?
+  status                 AccountabilityPublicationStatus @default(draft)
+  suppressionReason      String?
+  explanatoryNote        String?
+  trendDescription       String?
+  accessibleSummary      String?
+  isDemonstration        Boolean                        @default(false)
+  createdAt              DateTime                       @default(now())
+  updatedAt              DateTime                       @updatedAt
+
+  @@index([metricId, reportingPeriodEnd])
+  @@index([snapshotId, status])
+  @@map("accountability_metric_values")
+}
+
+model AccountabilityPublicationApproval {
+  id           String   @id @default(cuid())
+  snapshotId   String
+  snapshot     AccountabilityPublicationSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  stage        String
+  decision     String
+  actorUserId  String
+  comments     String?
+  createdAt    DateTime @default(now())
+
+  @@index([snapshotId, stage])
+  @@map("accountability_publication_approvals")
+}
+
+model AccountabilityEvidenceItem {
+  id                 String                     @id @default(cuid())
+  publicCitationLabel String
+  evidenceType       String
+  sourceSystem       String?
+  sourceOwner        String?
+  collectionDate     DateTime?
+  reportingPeriodStart DateTime?
+  reportingPeriodEnd DateTime?
+  checksum           String?
+  accessClassification AccountabilityEvidenceAccess @default(internal)
+  reviewerUserId     String?
+  publicAvailability Boolean                    @default(false)
+  snapshotId         String?
+  snapshot           AccountabilityPublicationSnapshot? @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+  metadataJson       Json                       @default("{}")
+  isDemonstration    Boolean                    @default(false)
+  createdAt          DateTime                   @default(now())
+
+  @@index([snapshotId])
+  @@map("accountability_evidence_items")
+}
+
+model AccountabilityDisclosurePolicy {
+  id                String                   @id @default(cuid())
+  policyKey         String                   @unique
+  name              String
+  sensitivity       AccountabilitySensitivity @default(public)
+  minimumCohortSize Int                      @default(10)
+  roundToNearest    Int?
+  notes             String?
+  isActive          Boolean                  @default(true)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@map("accountability_disclosure_policies")
+}
+
+model AccountabilityRedactionRecord {
+  id              String   @id @default(cuid())
+  snapshotId      String?
+  metricValueId   String?
+  fieldName       String
+  action          String
+  reason          String
+  actorUserId     String?
+  createdAt       DateTime @default(now())
+
+  @@index([snapshotId])
+  @@map("accountability_redaction_records")
+}
+
+model AccountabilityCommitment {
+  id                    String                        @id @default(cuid())
+  slug                  String                        @unique
+  title                 String
+  plainLanguage         String
+  accountableBody       String
+  serviceVertical       String?
+  region                String?
+  theme                 String?
+  publicationDate       DateTime                      @default(now())
+  targetDate            DateTime?
+  status                AccountabilityCommitmentStatus @default(proposed)
+  latestUpdate          String?
+  nextUpdateDate        DateTime?
+  delayReason           String?
+  withdrawalDate        DateTime?
+  withdrawalReason      String?
+  withdrawalAuthority   String?
+  replacementCommitmentSlug String?
+  evidenceJson          Json                          @default("[]")
+  dependenciesJson      Json                          @default("[]")
+  risksJson             Json                          @default("[]")
+  milestonesJson        Json                          @default("[]")
+  isDemonstration       Boolean                       @default(false)
+  createdAt             DateTime                      @default(now())
+  updatedAt             DateTime                      @updatedAt
+
+  updates AccountabilityCommitmentUpdate[]
+
+  @@index([status, targetDate])
+  @@map("accountability_commitments")
+}
+
+model AccountabilityCommitmentUpdate {
+  id           String   @id @default(cuid())
+  commitmentId String
+  commitment   AccountabilityCommitment @relation(fields: [commitmentId], references: [id], onDelete: Cascade)
+  status       AccountabilityCommitmentStatus
+  summary      String
+  publishedAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@index([commitmentId])
+  @@map("accountability_commitment_updates")
+}
+
+model AccountabilityGovernanceDecision {
+  id                       String   @id @default(cuid())
+  publicId                 String   @unique @default(cuid())
+  decisionDate             DateTime
+  decisionBody             String
+  questionConsidered       String
+  decisionSummary          String
+  optionsConsidered        String?
+  participantRightsImplications String?
+  accessibilityImplications String?
+  privacyImplications      String?
+  financialImplications    String?
+  conflictsDeclared        String?
+  dissentingViews          String?
+  implementationOwner      String?
+  reviewDate               DateTime?
+  linkedCommitmentSlugs    Json     @default("[]")
+  status                   String   @default("published")
+  isDemonstration          Boolean  @default(false)
+  publishedAt              DateTime?
+  createdAt                DateTime @default(now())
+
+  @@index([status, decisionDate])
+  @@map("accountability_governance_decisions")
+}
+
+model AccountabilityAiSystem {
+  id                    String   @id @default(cuid())
+  publicCode            String   @unique
+  name                  String
+  purpose               String
+  serviceVertical       String?
+  decisionRole          String
+  humanReviewRequired   Boolean  @default(true)
+  dataCategoriesJson    Json     @default("[]")
+  prohibitedUsesJson    Json     @default("[]")
+  knownLimitations      String?
+  affectedUserGroups    String?
+  accessibilityNotes    String?
+  biasFairnessNotes     String?
+  overrideMechanisms    String?
+  appealPathway         String?
+  monitoringFrequency   String?
+  modelOrRuleVersion    String?
+  lastMaterialChangeAt  DateTime?
+  responsibleOwner      String?
+  retirementStatus      String   @default("active")
+  status                String   @default("published")
+  isDemonstration       Boolean  @default(false)
+  publishedAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  evaluations AccountabilityAiEvaluation[]
+
+  @@map("accountability_ai_systems")
+}
+
+model AccountabilityAiEvaluation {
+  id          String   @id @default(cuid())
+  systemId    String
+  system      AccountabilityAiSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  periodLabel String
+  metricsJson Json     @default("{}")
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([systemId])
+  @@map("accountability_ai_evaluations")
+}
+
+model AccountabilityCorrection {
+  id                      String   @id @default(cuid())
+  publicId                String   @unique @default(cuid())
+  title                   String
+  originalValueSummary    String
+  correctedValueSummary   String
+  reason                  String
+  discoveryDate           DateTime
+  correctionDate          DateTime
+  materiality             String   @default("material")
+  approvingAuthority      String?
+  snapshotId              String?
+  snapshot                AccountabilityPublicationSnapshot? @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+  affectedReportsJson     Json     @default("[]")
+  notificationStatus      String   @default("pending")
+  status                  String   @default("published")
+  isDemonstration         Boolean  @default(false)
+  createdAt               DateTime @default(now())
+
+  @@index([status, correctionDate])
+  @@map("accountability_corrections")
+}
+
+model AccountabilityPublicChallenge {
+  id                String                      @id @default(cuid())
+  trackingReference String                      @unique
+  subjectType       String
+  subjectPublicId   String?
+  description       String
+  status            AccountabilityChallengeStatus @default(received)
+  submitterContactHash String?
+  publicResponse    String?
+  isDemonstration   Boolean                     @default(false)
+  acknowledgedAt    DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+
+  @@index([status, createdAt])
+  @@map("accountability_public_challenges")
+}
+
+model AccountabilityPublicSubmission {
+  id              String   @id @default(cuid())
+  trackingReference String @unique
+  submissionType  String
+  body            String
+  status          String   @default("received")
+  isDemonstration Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@map("accountability_public_submissions")
+}
+
+model AccountabilityOpenDataset {
+  id              String   @id @default(cuid())
+  publicId        String   @unique @default(cuid())
+  title           String
+  description     String
+  publisher       String   @default("MapAble")
+  geography       String?
+  updateFrequency String?
+  licence         String   @default("CC BY 4.0")
+  methodologySummary String?
+  schemaJson      Json     @default("{}")
+  suppressionRules String?
+  knownLimitations String?
+  status          String   @default("draft")
+  isDemonstration Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  versions AccountabilityDatasetVersion[]
+
+  @@map("accountability_open_datasets")
+}
+
+model AccountabilityDatasetVersion {
+  id              String   @id @default(cuid())
+  datasetId       String
+  dataset         AccountabilityOpenDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  version         String
+  reportingPeriodStart DateTime?
+  reportingPeriodEnd   DateTime?
+  checksum        String?
+  recordCount     Int      @default(0)
+  packageJson     Json     @default("{}")
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([datasetId, version])
+  @@map("accountability_dataset_versions")
+}
+
+model AccountabilitySubscription {
+  id              String   @id @default(cuid())
+  emailHash       String?
+  userId          String?
+  topicsJson      Json     @default("[]")
+  channel         String   @default("email")
+  consentGranted  Boolean  @default(true)
+  revokedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@map("accountability_subscriptions")
+}
+
+model AccountabilityPublicNotice {
+  id              String   @id @default(cuid())
+  publicId        String   @unique @default(cuid())
+  noticeType      String
+  title           String
+  body            String
+  severity        String   @default("info")
+  isActive        Boolean  @default(true)
+  isDemonstration Boolean  @default(false)
+  publishedAt     DateTime @default(now())
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([isActive, publishedAt])
+  @@map("accountability_public_notices")
+}

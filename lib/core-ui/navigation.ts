@@ -24,7 +24,11 @@ export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
 export const CORE_CIVIC_LINKS: CoreNavLink[] = [
   { href: "/peers", label: "MapAble PEERS", description: "Disability community without feed algorithms" },
   { href: "/transparency", label: "Transparency" },
-  { href: "/accountability", label: "Accountability" },
+  {
+    href: "/accountability",
+    label: "Accountability",
+    description: "Public evidence-backed performance, safeguards and commitments",
+  },
   { href: "/decisions", label: "Decisions" },
   { href: "/governance", label: "Governance" },
   { href: "/safeguards", label: "Safeguards" },

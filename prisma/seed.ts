@@ -405,6 +405,16 @@ async function main() {
   const { seedMapAblePhase12 } = await import("./seed-mapable-phase12");
   await seedMapAblePhase12();
 
+  try {
+    const { seedAccountabilityDemo } = await import("./seed-accountability-demo");
+    await seedAccountabilityDemo();
+  } catch (error) {
+    console.warn(
+      "Accountability demo seed skipped:",
+      error instanceof Error ? error.message : error
+    );
+  }
+
   console.log("Seed complete.");
 }
 
