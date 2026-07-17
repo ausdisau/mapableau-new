@@ -7,8 +7,9 @@ Phase 5 does **not** ship a production native app. This folder defines contracts
 - Reuse existing REST APIs under `/api/*`
 - Shared Zod schemas in `mobile-contracts/schemas`
 - Auth via NextAuth session cookie or future token exchange
-- Offline: draft incidents and timesheet notes only (see `MOBILE_OFFLINE_STRATEGY.md`)
+- Offline: draft incidents and timesheet notes only (see `MOBILE_OFFLINE_STRATEGY.md`); Connected Capability Visit Packs require encrypted secure storage (`schemas/visit-pack.ts`)
 - Accessibility: 44px touch targets, screen reader labels, reduced motion
+- Companion target (Connected Capability): React Native + Expo, Android-first — **not** a WebView shell
 
 ## Layers
 

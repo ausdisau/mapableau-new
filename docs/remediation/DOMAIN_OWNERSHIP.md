@@ -4,24 +4,34 @@
 
 ## Canonical owners
 
-| Domain                      | Canonical owner                                          | Aggregate / SoT                       | Notes                                                             |
-| --------------------------- | -------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------- |
-| Authentication and sessions | `lib/auth/**`                                            | NextAuth session / JWT                | Keep NextAuth                                                     |
-| Permissions                 | `lib/auth/permissions*`                                  | Permission matrix                     | Ambient admin grant to be removed in PR 3                         |
-| Consent and delegation      | `lib/consent/**`                                         | `ConsentRecord`                       | FHIR/telehealth specialised; must not become second authority SoT |
-| Audit events                | `lib/audit/**`                                           | `AuditEvent`                          | Domain-specific audit adapters may emit through this boundary     |
-| Care delivery               | `lib/care/**`                                            | Care request/booking/shift/log        | Generic `Booking` bridge only where required                      |
-| Transport                   | `lib/transport/**`                                       | **`TransportTrip` (+ scheduling)**    | Legacy `TransportBooking` compatibility via bridge                |
-| Jobs                        | `lib/jobs/**`                                            | Job / application                     | Employer ATS subordinate                                          |
-| Billing and invoices        | `lib/billing/**`                                         | **`BillingInvoice` / Billing Centre** | `lib/invoices`, `lib/billing-core` become adapters then deprecate |
-| Payments                    | `lib/stripe/**`                                          | Stripe adapter                        | Must not invent a second invoice SoT                              |
-| Accounting                  | `lib/xero/**`                                            | Xero adapter                          | Stub until configured; never invoice SoT                          |
-| Incidents and safeguarding  | `lib/incidents/**`                                       | `IncidentReport`                      | Do not collapse support tickets into incidents                    |
-| Organisations and tenancy   | Organisation membership services                         | **`Organisation.id`**                 | Server-derived tenant context; no client-selected authority       |
-| Accessibility evidence      | Existing access modules under `lib/access*` / access map | Access registry                       | No new parallel registry in PR 1                                  |
-| Access place identity       | `lib/access-map/**`                                      | **`AccessPlace`**                     | Sole public place writer                                          |
+| Domain                      | Canonical owner                                          | Aggregate / SoT                              | Notes                                                                   |
+| --------------------------- | -------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
+| Authentication and sessions | `lib/auth/**`                                            | NextAuth session / JWT                       | Keep NextAuth                                                           |
+| Permissions                 | `lib/auth/permissions*`                                  | Permission matrix                            | Ambient admin grant to be removed in PR 3                               |
+| Consent and delegation      | `lib/consent/**`                                         | `ConsentRecord`                              | FHIR/telehealth specialised; must not become second authority SoT       |
+| Audit events                | `lib/audit/**`                                           | `AuditEvent`                                 | Domain-specific audit adapters may emit through this boundary           |
+| Care delivery               | `lib/care/**`                                            | Care request/booking/shift/log               | Generic `Booking` bridge only where required                            |
+| Transport                   | `lib/transport/**`                                       | **`TransportTrip` (+ scheduling)**           | Legacy `TransportBooking` compatibility via bridge                      |
+| Jobs                        | `lib/jobs/**`                                            | Job / application                            | Employer ATS subordinate                                                |
+| Billing and invoices        | `lib/billing/**`                                         | **`BillingInvoice` / Billing Centre**        | `lib/invoices`, `lib/billing-core` become adapters then deprecate       |
+| Payments                    | `lib/stripe/**`                                          | Stripe adapter                               | Must not invent a second invoice SoT                                    |
+| Accounting                  | `lib/xero/**`                                            | Xero adapter                                 | Stub until configured; never invoice SoT                                |
+| Incidents and safeguarding  | `lib/incidents/**`                                       | `IncidentReport`                             | Do not collapse support tickets into incidents                          |
+| Organisations and tenancy   | Organisation membership services                         | **`Organisation.id`**                        | Server-derived tenant context; no client-selected authority             |
+| Accessibility evidence      | Existing access modules under `lib/access*` / access map | Access registry                              | No new parallel registry in PR 1                                        |
+| Access place identity       | `lib/access-map/**`                                      | **`AccessPlace`**                            | Sole public place writer                                                |
 | Access Intelligence Next    | `lib/access-intelligence-next/**`                        | Deterministic fit / proof / graph projection | Synthetic contracts only in foundation; must not become AccessPlace SoT |
-| Public accountability       | `lib/national-accountability/**`                         | National accountability publications  | Evolve to governed pipeline (PR 11); no second portal             |
+| Public accountability       | `lib/national-accountability/**`                         | National accountability publications         | Evolve to governed pipeline (PR 11); no second portal                   |
+| Connected Capability spine  | `lib/connected-capability/**`                            | Shared contracts / evidence / handoff        | Projections only; no second identity/consent/audit SoT                  |
+| CommunicationsOS            | `lib/communications-os/**`                               | Communication Passport projection            | Projects from AccessibilityProfile; not a competing profile             |
+| WorkforceOS readiness       | `lib/workforce-os/**`                                    | Readiness projection                         | Reads WorkerProfile; no auto-assignment                                 |
+| MapAble Academy contracts   | `lib/academy/**`                                         | Catalogue + completion exchange              | Completion ≠ competency; bridges ProviderAcademy                        |
+| AT LifecycleOS              | `lib/at-lifecycle-os/**`                                 | Equipment Passport (shadow)                  | Coordination only — no clinical prescription                            |
+| Companion contracts         | `lib/companion/**`                                       | Offline Visit Pack contracts                 | Not a WebView shell; no continuous location                             |
+| Outcomes Ledger             | `lib/outcomes-ledger/**`                                 | Outcome Contract / Receipt                   | Participant-authored; no success scores                                 |
+| Provider Ops projection     | `lib/provider-ops/**`                                    | Attention queue projection                   | Read-only; not operational SoT                                          |
+| Regional Capacity           | `lib/regional-capacity/**`                               | Need / candidate exchange                    | No automatic assignment                                                 |
+| Developer Platform          | `lib/developer-platform/**`                              | Capability catalogue / sandbox               | Purpose-bound; no unrestricted participant data                         |
 
 ## Mutation rule
 
