@@ -190,21 +190,35 @@ model User {
   productionGoLiveAssessments       ProductionGoLiveAssessment[]          @relation("ProductionGoLiveAssessor")
   vendorRiskAssessments             VendorRiskAssessment[]                @relation("VendorRiskAssessor")
   // Wave 7 controlled pilot
-  controlledPilotsCreated        ControlledPilot[]           @relation("ControlledPilotCreatedBy")
-  controlledPilotsUpdated        ControlledPilot[]           @relation("ControlledPilotUpdatedBy")
-  controlledPilotsPaused         ControlledPilot[]           @relation("ControlledPilotPausedBy")
-  pilotDecisionsDecided          PilotDecisionRecord[]       @relation("PilotDecisionDecidedBy")
-  pilotEnrolmentsAsParticipant   PilotParticipantEnrolment[] @relation("PilotEnrolmentParticipant")
-  pilotEnrolmentsInvited         PilotParticipantEnrolment[] @relation("PilotEnrolmentInvitedBy")
-  pilotEnrolmentsAsDelegate      PilotParticipantEnrolment[] @relation("PilotEnrolmentDelegate")
-  pilotWorkerAuthorisations      PilotWorkerAuthorisation[]  @relation("PilotWorkerAuthorisedUser")
-  pilotWorkerAuthorisationsGiven PilotWorkerAuthorisation[]  @relation("PilotWorkerAuthorisedBy")
-  pilotAuthorisedOperatorRoles   PilotAuthorisedOperator[]   @relation("PilotAuthorisedOperatorUser")
-  pilotHandoversCreated          PilotHandoverRecord[]       @relation("PilotHandoverCreatedBy")
-  pilotCorrectiveActionsOwned    PilotCorrectiveAction[]     @relation("PilotCorrectiveActionOwner")
-  pilotDailyReviewsReviewed      PilotDailyReview[]          @relation("PilotDailyReviewReviewedBy")
-  pilotChangesRequested          PilotChangeRequest[]        @relation("PilotChangeRequestedBy")
-  pilotChangesApproved           PilotChangeRequest[]        @relation("PilotChangeApprovedBy")
+  controlledPilotsCreated           ControlledPilot[]                     @relation("ControlledPilotCreatedBy")
+  controlledPilotsUpdated           ControlledPilot[]                     @relation("ControlledPilotUpdatedBy")
+  controlledPilotsPaused            ControlledPilot[]                     @relation("ControlledPilotPausedBy")
+  pilotDecisionsDecided             PilotDecisionRecord[]                 @relation("PilotDecisionDecidedBy")
+  pilotEnrolmentsAsParticipant      PilotParticipantEnrolment[]           @relation("PilotEnrolmentParticipant")
+  pilotEnrolmentsInvited            PilotParticipantEnrolment[]           @relation("PilotEnrolmentInvitedBy")
+  pilotEnrolmentsAsDelegate         PilotParticipantEnrolment[]           @relation("PilotEnrolmentDelegate")
+  pilotWorkerAuthorisations         PilotWorkerAuthorisation[]            @relation("PilotWorkerAuthorisedUser")
+  pilotWorkerAuthorisationsGiven    PilotWorkerAuthorisation[]            @relation("PilotWorkerAuthorisedBy")
+  pilotAuthorisedOperatorRoles      PilotAuthorisedOperator[]             @relation("PilotAuthorisedOperatorUser")
+  pilotHandoversCreated             PilotHandoverRecord[]                 @relation("PilotHandoverCreatedBy")
+  pilotCorrectiveActionsOwned       PilotCorrectiveAction[]               @relation("PilotCorrectiveActionOwner")
+  pilotDailyReviewsReviewed         PilotDailyReview[]                    @relation("PilotDailyReviewReviewedBy")
+  pilotChangesRequested             PilotChangeRequest[]                  @relation("PilotChangeRequestedBy")
+  pilotChangesApproved              PilotChangeRequest[]                  @relation("PilotChangeApprovedBy")
+
+  // Wave 8 governed multi-organisation production scale
+  tenantStatusTransitionsByActor     TenantStatusTransition[]        @relation("TenantStatusTransitionActor")
+  tenantOnboardingCasesOwned         TenantOnboardingCase[]          @relation("TenantOnboardingCaseOwner")
+  tenantPolicyProfilesApproved       TenantPolicyProfile[]           @relation("TenantPolicyProfileApprover")
+  regulatoryChangeCasesReviewed      RegulatoryChangeCase[]          @relation("RegulatoryChangeCaseReviewer")
+  tenantFeatureEntitlementsGranted   TenantFeatureEntitlement[]      @relation("TenantFeatureEntitlementGrantedBy")
+  productionReleasesRequested        ProductionRelease[]             @relation("ProductionReleaseRequestedBy")
+  productionReleasesApproved         ProductionRelease[]             @relation("ProductionReleaseApprovedBy")
+  releaseDeploymentsInitiated        ReleaseDeployment[]             @relation("ReleaseDeploymentInitiatedBy")
+  generalAvailabilityAssessmentsExec GeneralAvailabilityAssessment[] @relation("GeneralAvailabilityExecutive")
+  breakGlassSessionsActor            BreakGlassSession[]             @relation("BreakGlassActor")
+  breakGlassSessionsApprover         BreakGlassSession[]             @relation("BreakGlassApprover")
+  delegatedTenantAuthoritiesApproved DelegatedTenantAuthority[]      @relation("DelegatedTenantAuthorityApprovedBy")
 }
 
 model PasskeyCredential {
@@ -738,6 +752,32 @@ model Organisation {
   createdAt               DateTime           @default(now())
   updatedAt               DateTime           @updatedAt
 
+  // --- Wave 8 tenant lifecycle fields (Organisation.id remains the tenant boundary) ---
+  /// Stable tenant slug/key used for logs, queues, and object-storage prefixes.
+  /// Nullable so existing rows migrate; backfill from a slugified id/name.
+  tenantKey            String?                 @unique
+  legalName            String?
+  tradingName          String?
+  tenantType           TenantType              @default(registered_provider)
+  operatingModel       TenantOperatingModel    @default(standalone)
+  tenantStatus         TenantStatus            @default(active_limited)
+  parentOrganisationId String?
+  parentOrganisation   Organisation?           @relation("OrganisationParent", fields: [parentOrganisationId], references: [id], onDelete: SetNull)
+  childOrganisations   Organisation[]          @relation("OrganisationParent")
+  federationId         String?
+  federation           TenantFederation?       @relation("TenantFederationOrgs", fields: [federationId], references: [id], onDelete: SetNull)
+  jurisdiction         String                  @default("AU")
+  timezone             String                  @default("Australia/Sydney")
+  defaultLocale        String                  @default("en-AU")
+  dataIsolationMode    TenantDataIsolationMode @default(shared_schema_strict)
+  dataRegion           String                  @default("au")
+  onboardingStartedAt  DateTime?
+  activatedAt          DateTime?
+  restrictedAt         DateTime?
+  suspendedAt          DateTime?
+  offboardingStartedAt DateTime?
+  archivedAt           DateTime?
+
   members                          OrganisationMember[]
   consents                         ConsentRecord[]
   bookings                         Booking[]
@@ -814,6 +854,22 @@ model Organisation {
   controlledPilots                     ControlledPilot[]
   vendorRiskAssessments                VendorRiskAssessment[]
   ndiaClaimEvidenceBundles             NdiaClaimEvidenceBundle[]
+
+  // Wave 8 governed multi-organisation production scale
+  tenantStatusTransitions        TenantStatusTransition[]
+  tenantEncryptionProfiles       TenantEncryptionProfile[]
+  federationMemberships          FederationMembership[]
+  delegatedAuthoritiesFrom       DelegatedTenantAuthority[]      @relation("DelegatedTenantAuthorityFrom")
+  delegatedAuthoritiesTo         DelegatedTenantAuthority[]      @relation("DelegatedTenantAuthorityTo")
+  tenantOnboardingCases          TenantOnboardingCase[]
+  tenantPolicyProfiles           TenantPolicyProfile[]
+  tenantFeatureEntitlements      TenantFeatureEntitlement[]
+  releaseDeployments             ReleaseDeployment[]
+  tenantQuotaProfiles            TenantQuotaProfile[]
+  tenantOperationalHealth        TenantOperationalHealth[]
+  generalAvailabilityAssessments GeneralAvailabilityAssessment[]
+  breakGlassSessions             BreakGlassSession[]             @relation("BreakGlassTargetOrganisation")
+  regulatoryChangeCases          RegulatoryChangeCase[]
 }
 
 model OrganisationMember {
@@ -10689,27 +10745,27 @@ enum PilotReportabilityState {
 /// Wave 6 assuranceAssessmentId / goLiveAssessmentId are optional strings;
 /// limited_live requires them (fail closed). Not authorised by NdiaPilotApprovalRecord.
 model ControlledPilot {
-  id                          String            @id @default(cuid())
+  id                          String                      @id @default(cuid())
   organisationId              String
-  organisation                Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation                Organisation                @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   name                        String
   code                        String
-  status                      PilotStatus       @default(draft)
-  stage                       PilotStage        @default(design)
+  status                      PilotStatus                 @default(draft)
+  stage                       PilotStage                  @default(design)
   summary                     String?
   /// Empty array = deny all support items (fail closed).
-  supportItemAllowlist        String[]          @default([])
+  supportItemAllowlist        String[]                    @default([])
   /// Empty array = deny all funding routes (fail closed).
-  fundingRouteAllowlist       String[]          @default([])
+  fundingRouteAllowlist       String[]                    @default([])
   /// Empty array = deny all integration profiles (fail closed).
-  integrationProfileIds       String[]          @default([])
-  maxTransactionCents         Int               @default(0)
-  maxDailyExposureCents       Int               @default(0)
-  maxParticipantExposureCents Int               @default(0)
-  maxTotalExposureCents       Int               @default(0)
-  maxActiveParticipants       Int               @default(0)
+  integrationProfileIds       String[]                    @default([])
+  maxTransactionCents         Int                         @default(0)
+  maxDailyExposureCents       Int                         @default(0)
+  maxParticipantExposureCents Int                         @default(0)
+  maxTotalExposureCents       Int                         @default(0)
+  maxActiveParticipants       Int                         @default(0)
   /// Limited live is disabled by default — never auto-enable.
-  limitedLiveEnabled          Boolean           @default(false)
+  limitedLiveEnabled          Boolean                     @default(false)
   /// Optional Wave 6 assurance assessment reference (string only; Wave 6 not implemented).
   assuranceAssessmentId       String?
   /// Optional Wave 6 ProductionGoLiveAssessment reference.
@@ -10718,21 +10774,21 @@ model ControlledPilot {
   pauseReason                 PilotPauseReason?
   pausedAt                    DateTime?
   pausedById                  String?
-  pausedBy                    User?             @relation("ControlledPilotPausedBy", fields: [pausedById], references: [id], onDelete: SetNull)
-  resumeRequiresDecision      Boolean           @default(true)
+  pausedBy                    User?                       @relation("ControlledPilotPausedBy", fields: [pausedById], references: [id], onDelete: SetNull)
+  resumeRequiresDecision      Boolean                     @default(true)
   plannedStartAt              DateTime?
   plannedEndAt                DateTime?
   activatedAt                 DateTime?
   terminatedAt                DateTime?
   closedAt                    DateTime?
   createdById                 String
-  createdBy                   User              @relation("ControlledPilotCreatedBy", fields: [createdById], references: [id])
+  createdBy                   User                        @relation("ControlledPilotCreatedBy", fields: [createdById], references: [id])
   updatedById                 String?
-  updatedBy                   User?             @relation("ControlledPilotUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedBy                   User?                       @relation("ControlledPilotUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   correlationId               String?
   safeMetadataJson            Json?
-  createdAt                   DateTime          @default(now())
-  updatedAt                   DateTime          @updatedAt
+  createdAt                   DateTime                    @default(now())
+  updatedAt                   DateTime                    @updatedAt
 
   decisions            PilotDecisionRecord[]
   enrolments           PilotParticipantEnrolment[]
@@ -11041,4 +11097,587 @@ model PilotExerciseRecord {
   createdAt     DateTime        @default(now())
 
   @@index([pilotId, conductedAt])
+}
+
+// ============================================================================
+// NDIS gateway Wave 8: governed multi-organisation production scale
+// ---------------------------------------------------------------------------
+// Organisation.id remains the tenant security boundary. These models extend
+// it with tenant lifecycle, entitlements, releases, quotas, GA governance,
+// and audited break-glass. Feature flags / env vars are NOT entitlements or
+// production approval, and AI must not approve GA, onboarding, or break-glass.
+// ============================================================================
+
+enum TenantStatus {
+  prospective
+  onboarding
+  active_limited
+  active
+  restricted
+  suspended
+  offboarding
+  archived
+}
+
+enum TenantType {
+  registered_provider
+  unregistered_provider
+  plan_manager
+  support_coordinator
+  peak_body
+  government
+  research_partner
+  internal
+}
+
+enum TenantOperatingModel {
+  standalone
+  hub_and_spoke_parent
+  hub_and_spoke_child
+  federation_member
+  managed_service
+  demo_or_sandbox
+}
+
+enum TenantDataIsolationMode {
+  shared_schema_strict
+  shared_schema_row_scoped
+  dedicated_schema
+  dedicated_database
+}
+
+enum TenantEnvironment {
+  sandbox
+  staging
+  limited_production
+  production
+}
+
+enum TenantEncryptionAlgorithm {
+  aes_256_gcm_envelope
+  aes_256_gcm_double_wrapped
+  external_kms_managed
+}
+
+enum TenantFederationType {
+  peak_body
+  government_partnership
+  research_consortium
+  cross_provider_cooperative
+  internal
+}
+
+enum FederationMembershipRole {
+  member
+  admin
+  observer
+  hub
+}
+
+enum FederationMembershipStatus {
+  invited
+  active
+  suspended
+  withdrawn
+}
+
+enum DelegatedAuthorityScope {
+  operational_read
+  operational_write
+  billing_read
+  incident_read
+  reporting_read
+  service_management
+}
+
+enum DelegatedAuthorityStatus {
+  proposed
+  approved
+  active
+  suspended
+  revoked
+  expired
+}
+
+enum TenantOnboardingStage {
+  intake
+  due_diligence
+  contracts
+  configuration
+  pre_launch_review
+  launched_limited
+  launched
+  cancelled
+}
+
+enum TenantOnboardingDecision {
+  proceed
+  hold
+  conditional
+  reject
+  escalate
+}
+
+enum PolicyProfileStatus {
+  draft
+  in_review
+  approved
+  active
+  superseded
+  retired
+}
+
+enum RegulatorySourceKind {
+  ndis_commission
+  ndia
+  privacy_commissioner
+  cyber_authority
+  state_regulator
+  international
+  internal
+}
+
+enum RegulatoryChangeStatus {
+  monitoring
+  triage
+  in_analysis
+  impact_assessed
+  action_required
+  implemented
+  monitoring_after_change
+  closed
+}
+
+enum EntitlementStatus {
+  pending
+  active
+  suspended
+  revoked
+  expired
+}
+
+enum ReleaseRing {
+  ring_0_internal
+  ring_1_canary
+  ring_2_pilot
+  ring_3_general_limited
+  ring_4_general
+}
+
+enum ReleaseStatus {
+  draft
+  scheduled
+  in_progress
+  paused
+  completed
+  rolled_back
+  cancelled
+}
+
+enum ReleaseApprovalKind {
+  engineering
+  safety
+  privacy
+  security
+  executive
+}
+
+enum DeploymentStatus {
+  scheduled
+  deploying
+  succeeded
+  failed
+  rolled_back
+  skipped
+}
+
+enum ServiceCatalogueDomain {
+  care
+  transport
+  billing
+  identity
+  integrations
+  observability
+  platform
+  data
+  ai
+  workforce
+  compliance
+}
+
+enum ServiceCriticality {
+  critical
+  high
+  medium
+  low
+}
+
+enum GeneralAvailabilityDecision {
+  not_assessed
+  not_ready
+  conditionally_ready
+  ready_pending_executive
+  approved
+  withdrawn
+}
+
+enum BreakGlassStatus {
+  requested
+  approved
+  active
+  expired
+  revoked
+  denied
+}
+
+enum ModelClassification {
+  participant_data
+  worker_data
+  claim_and_funding_data
+  organisation_operational_data
+  platform_operational_data
+  anonymised_aggregate
+  public_reference
+}
+
+/// Audit of every tenant status change on Organisation.
+model TenantStatusTransition {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  fromStatus     TenantStatus
+  toStatus       TenantStatus
+  reason         String
+  metadata       Json?
+  actorUserId    String?
+  actor          User?        @relation("TenantStatusTransitionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+
+  @@index([organisationId, createdAt])
+}
+
+/// Per-tenant envelope-encryption profile. Design intent only — keys are not
+/// created by this record. Presence of a profile does NOT prove custody.
+model TenantEncryptionProfile {
+  id             String                    @id @default(cuid())
+  organisationId String
+  organisation   Organisation              @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  algorithm      TenantEncryptionAlgorithm @default(aes_256_gcm_envelope)
+  keyReference   String
+  kmsProvider    String?
+  rotationDays   Int                       @default(90)
+  lastRotatedAt  DateTime?
+  nextRotationAt DateTime?
+  active         Boolean                   @default(true)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([organisationId, active])
+}
+
+/// Federation grouping of organisations for governance/reporting. Does NOT
+/// grant cross-tenant data access.
+model TenantFederation {
+  id          String               @id @default(cuid())
+  name        String
+  type        TenantFederationType @default(peak_body)
+  description String?
+  active      Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  organisations Organisation[]         @relation("TenantFederationOrgs")
+  memberships   FederationMembership[]
+}
+
+model FederationMembership {
+  id             String                     @id @default(cuid())
+  federationId   String
+  federation     TenantFederation           @relation(fields: [federationId], references: [id], onDelete: Cascade)
+  organisationId String
+  organisation   Organisation               @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  role           FederationMembershipRole   @default(member)
+  status         FederationMembershipStatus @default(invited)
+  scopeJson      Json?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  @@unique([federationId, organisationId])
+  @@index([organisationId])
+}
+
+/// Narrow, opt-in delegation of specific operational rights from one tenant
+/// to another. Never grants unrestricted cross-tenant access.
+model DelegatedTenantAuthority {
+  id                 String                   @id @default(cuid())
+  fromOrganisationId String
+  fromOrganisation   Organisation             @relation("DelegatedTenantAuthorityFrom", fields: [fromOrganisationId], references: [id], onDelete: Cascade)
+  toOrganisationId   String
+  toOrganisation     Organisation             @relation("DelegatedTenantAuthorityTo", fields: [toOrganisationId], references: [id], onDelete: Cascade)
+  scope              DelegatedAuthorityScope
+  status             DelegatedAuthorityStatus @default(proposed)
+  reason             String
+  scopeJson          Json?
+  effectiveFrom      DateTime?
+  expiresAt          DateTime?
+  approvedByUserId   String?
+  approvedBy         User?                    @relation("DelegatedTenantAuthorityApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  approvedAt         DateTime?
+  revokedAt          DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@index([fromOrganisationId, status])
+  @@index([toOrganisationId, status])
+}
+
+model TenantOnboardingCase {
+  id             String                    @id @default(cuid())
+  organisationId String
+  organisation   Organisation              @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  stage          TenantOnboardingStage     @default(intake)
+  decision       TenantOnboardingDecision?
+  ownerUserId    String?
+  owner          User?                     @relation("TenantOnboardingCaseOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  summary        String?
+  checklistJson  Json?
+  blockersJson   Json?
+  startedAt      DateTime                  @default(now())
+  targetLaunchAt DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([organisationId, stage])
+}
+
+model TenantPolicyProfile {
+  id             String              @id @default(cuid())
+  organisationId String
+  organisation   Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  profileKey     String
+  version        String
+  status         PolicyProfileStatus @default(draft)
+  policyJson     Json
+  approvedById   String?
+  approvedBy     User?               @relation("TenantPolicyProfileApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt     DateTime?
+  effectiveFrom  DateTime?
+  effectiveUntil DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([organisationId, profileKey, version])
+  @@index([organisationId, status])
+}
+
+model RegulatorySource {
+  id           String               @id @default(cuid())
+  key          String               @unique
+  name         String
+  kind         RegulatorySourceKind
+  jurisdiction String               @default("AU")
+  url          String?
+  active       Boolean              @default(true)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  changeCases RegulatoryChangeCase[]
+}
+
+model RegulatoryChangeCase {
+  id                String                 @id @default(cuid())
+  sourceId          String
+  source            RegulatorySource       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  organisationId    String?
+  organisation      Organisation?          @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  title             String
+  summary           String
+  status            RegulatoryChangeStatus @default(monitoring)
+  detectedAt        DateTime               @default(now())
+  effectiveAt       DateTime?
+  humanReviewerId   String?
+  humanReviewer     User?                  @relation("RegulatoryChangeCaseReviewer", fields: [humanReviewerId], references: [id], onDelete: SetNull)
+  reviewedAt        DateTime?
+  impactAssessment  String?
+  aiSuggestionsJson Json?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([sourceId, status])
+  @@index([organisationId, status])
+}
+
+model TenantFeatureEntitlement {
+  id             String            @id @default(cuid())
+  organisationId String
+  organisation   Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  featureKey     String
+  status         EntitlementStatus @default(pending)
+  environment    TenantEnvironment @default(sandbox)
+  grantedById    String?
+  grantedBy      User?             @relation("TenantFeatureEntitlementGrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
+  grantedAt      DateTime?
+  expiresAt      DateTime?
+  configJson     Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([organisationId, featureKey, environment])
+  @@index([organisationId, status])
+}
+
+model ProductionRelease {
+  id                    String        @id @default(cuid())
+  releaseKey            String        @unique
+  title                 String
+  summary               String?
+  targetRing            ReleaseRing   @default(ring_0_internal)
+  status                ReleaseStatus @default(draft)
+  requestedById         String
+  requestedBy           User          @relation("ProductionReleaseRequestedBy", fields: [requestedById], references: [id])
+  approvals             Json          @default("[]")
+  executiveApprovedById String?
+  executiveApprovedBy   User?         @relation("ProductionReleaseApprovedBy", fields: [executiveApprovedById], references: [id], onDelete: SetNull)
+  executiveApprovedAt   DateTime?
+  scheduledAt           DateTime?
+  startedAt             DateTime?
+  completedAt           DateTime?
+  rolledBackAt          DateTime?
+  rollbackReason        String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  deployments ReleaseDeployment[]
+
+  @@index([status, targetRing])
+}
+
+model ReleaseDeployment {
+  id             String            @id @default(cuid())
+  releaseId      String
+  release        ProductionRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  organisationId String?
+  organisation   Organisation?     @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  ring           ReleaseRing
+  status         DeploymentStatus  @default(scheduled)
+  initiatedById  String?
+  initiatedBy    User?             @relation("ReleaseDeploymentInitiatedBy", fields: [initiatedById], references: [id], onDelete: SetNull)
+  scheduledAt    DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  rollbackReason String?
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([releaseId, ring])
+  @@index([organisationId, status])
+}
+
+model ServiceCatalogueEntry {
+  id           String                 @id @default(cuid())
+  serviceKey   String                 @unique
+  name         String
+  domain       ServiceCatalogueDomain
+  criticality  ServiceCriticality     @default(medium)
+  ownerTeam    String?
+  description  String?
+  runbookUrl   String?
+  slosJson     Json?
+  dependencies String[]               @default([])
+  active       Boolean                @default(true)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@index([domain, criticality])
+}
+
+model TenantQuotaProfile {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  profileKey     String
+  quotasJson     Json
+  effectiveFrom  DateTime?
+  effectiveUntil DateTime?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organisationId, profileKey])
+}
+
+model TenantOperationalHealth {
+  id                String       @id @default(cuid())
+  organisationId    String
+  organisation      Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  windowStart       DateTime
+  windowEnd         DateTime
+  availabilityRatio Float?
+  errorBudgetBurn   Float?
+  slowRequestRatio  Float?
+  saturationSummary Json?
+  incidentIds       String[]     @default([])
+  createdAt         DateTime     @default(now())
+
+  @@index([organisationId, windowEnd])
+}
+
+/// Advisory GA record. AI must not approve. Requires named executive.
+model GeneralAvailabilityAssessment {
+  id                    String                      @id @default(cuid())
+  organisationId        String
+  organisation          Organisation                @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  decision              GeneralAvailabilityDecision @default(not_assessed)
+  scorecardJson         Json
+  outstandingBlockers   Json?
+  advisoryOnly          Boolean                     @default(true)
+  executiveUserId       String?
+  executive             User?                       @relation("GeneralAvailabilityExecutive", fields: [executiveUserId], references: [id], onDelete: SetNull)
+  executiveDecisionAt   DateTime?
+  executiveDecisionText String?
+  aiAssistanceSummary   String?
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+
+  @@index([organisationId, decision])
+}
+
+/// Explicit, time-bound cross-tenant elevation. Every use MUST also
+/// generate an AuditEvent.
+model BreakGlassSession {
+  id                   String           @id @default(cuid())
+  actorUserId          String
+  actor                User             @relation("BreakGlassActor", fields: [actorUserId], references: [id])
+  targetOrganisationId String
+  targetOrganisation   Organisation     @relation("BreakGlassTargetOrganisation", fields: [targetOrganisationId], references: [id], onDelete: Cascade)
+  reason               String
+  ticketRef            String?
+  status               BreakGlassStatus @default(requested)
+  approverUserId       String?
+  approver             User?            @relation("BreakGlassApprover", fields: [approverUserId], references: [id], onDelete: SetNull)
+  approvedAt           DateTime?
+  expiresAt            DateTime
+  revokedAt            DateTime?
+  revokedReason        String?
+  metadata             Json?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([actorUserId, status])
+  @@index([targetOrganisationId, status])
+  @@index([expiresAt])
+}
+
+/// Registry of model → data classification. Optional companion to the JSON
+/// registry file in lib/tenancy/storage/model-classification.ts.
+model TenantModelClassification {
+  id                 String              @id @default(cuid())
+  modelName          String              @unique
+  classification     ModelClassification
+  organisationScoped Boolean             @default(true)
+  notes              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }

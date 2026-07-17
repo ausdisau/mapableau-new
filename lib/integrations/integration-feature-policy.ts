@@ -1,10 +1,59 @@
 import type { IntegrationKey } from "@/lib/integrations/integration-types";
 
-/** Safety-critical integrations must fail closed when disabled or unhealthy. */
+/**
+ * Safety-critical integrations must fail closed when disabled or unhealthy.
+ *
+ * Wave 8 hardening: this list was too small before. It now covers payment,
+ * accounting, regulator sandbox, screening, encryption, and identity — any
+ * integration whose absence or misconfiguration could cause a participant,
+ * worker, provider, or financial harm.
+ */
 export const FAIL_CLOSED_INTEGRATION_KEYS: IntegrationKey[] = [
   "postgres",
   "temporal",
+  "stripe",
+  "xero",
+  "ndia",
+  "keycloak",
 ];
+
+/**
+ * Integration criticality classification (Wave 8). Used by continuous
+ * assurance and admin dashboards to prioritise incidents.
+ */
+export type IntegrationCriticality =
+  | "critical"
+  | "high"
+  | "medium"
+  | "low";
+
+export const INTEGRATION_CRITICALITY: Record<string, IntegrationCriticality> = {
+  postgres: "critical",
+  temporal: "critical",
+  stripe: "critical",
+  xero: "high",
+  ndia: "critical",
+  keycloak: "critical",
+  opensearch: "medium",
+  supabase: "medium",
+  supabase_realtime: "medium",
+  socketio: "low",
+  n8n: "low",
+  directus: "low",
+  metabase: "low",
+  medplum: "high",
+  hapi_fhir: "high",
+  jitsi: "medium",
+  livekit: "medium",
+  calcom: "low",
+  erpnext: "medium",
+  maplibre: "low",
+  openstreetmap: "low",
+};
+
+export function integrationCriticality(key: string): IntegrationCriticality {
+  return INTEGRATION_CRITICALITY[key] ?? "medium";
+}
 
 /** Events that must never be sent via n8n or similar low-risk automation. */
 export const BLOCKED_AUTOMATION_EVENTS = [

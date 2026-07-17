@@ -1,12 +1,19 @@
 import { requireApiPermission, requireApiSession } from "@/lib/api/auth-handler";
+import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { jsonOk } from "@/lib/api/response";
+import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createVehicle } from "@/lib/transport/vehicle-service";
 
 export async function GET() {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
-  const vehicles = await prisma.vehicle.findMany({ take: 100 });
+
+  const where = isAdminRole(user.primaryRole)
+    ? { organisationId: "__platform_unscoped_denied__" }
+    : { organisationId: { in: await getUserOrganisationIds(user.id) } };
+
+  const vehicles = await prisma.vehicle.findMany({ where, take: 100 });
   return jsonOk({ vehicles });
 }
 

@@ -50,7 +50,21 @@
     "pilot:audit-worker-eligibility": "tsx scripts/audit-runtime-worker-eligibility.ts",
     "pilot:audit-reconciliation": "tsx scripts/audit-pilot-reconciliation.ts",
     "pilot:test-stop-conditions": "tsx scripts/pilot-test-stop-conditions.ts",
-    "pilot:closure-report": "tsx scripts/pilot-closure-report.ts"
+    "pilot:closure-report": "tsx scripts/pilot-closure-report.ts",
+    "tenancy:audit-ownership": "tsx scripts/tenancy/audit-ownership.ts",
+    "tenancy:audit-isolation": "tsx scripts/tenancy/audit-isolation.ts",
+    "tenancy:audit-admin-bypass": "tsx scripts/tenancy/audit-admin-bypass.ts",
+    "tenancy:audit-unscoped-queries": "tsx scripts/tenancy/audit-unscoped-queries.ts",
+    "tenancy:audit-cache": "tsx scripts/tenancy/audit-cache.ts",
+    "tenancy:audit-queues": "tsx scripts/tenancy/audit-queues.ts",
+    "tenancy:audit-files": "tsx scripts/tenancy/audit-files.ts",
+    "tenancy:audit-encryption": "tsx scripts/tenancy/audit-encryption.ts",
+    "platform:evaluate-entitlements": "tsx scripts/platform/evaluate-entitlements.ts",
+    "platform:evaluate-assurance": "tsx scripts/platform/evaluate-assurance.ts",
+    "platform:test-release-rings": "tsx scripts/platform/test-release-rings.ts",
+    "platform:audit-capacity": "tsx scripts/platform/audit-capacity.ts",
+    "platform:test-resilience": "tsx scripts/platform/test-resilience.ts",
+    "platform:assess-ga": "tsx scripts/platform/assess-ga.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

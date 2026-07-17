@@ -236,7 +236,33 @@ export type Permission =
   | "participant:pilot:consent"
   | "participant:pilot:withdraw"
   | "participant:pilot:complaint"
-  | "participant:pilot:feedback";
+  | "participant:pilot:feedback"
+  // Wave 8: governed multi-organisation production scale
+  | "platform:tenants:read"
+  | "platform:tenants:manage"
+  | "platform:tenants:lifecycle"
+  | "platform:entitlements:manage"
+  | "platform:releases:read"
+  | "platform:releases:manage"
+  | "platform:releases:approve"
+  | "platform:capacity:read"
+  | "platform:capacity:manage"
+  | "platform:continuous-assurance:read"
+  | "platform:ga:read"
+  | "platform:ga:decide"
+  | "platform:federations:manage"
+  | "platform:sre:read"
+  | "platform:break-glass:request"
+  | "platform:break-glass:approve"
+  | "platform:regulatory:manage"
+  | "tenant:admin:read"
+  | "tenant:admin:manage"
+  | "tenant:entitlements:read"
+  | "tenant:policies:read"
+  | "tenant:policies:manage"
+  | "tenant:quotas:read"
+  | "tenant:assurance:read"
+  | "tenant:switch";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -365,6 +391,13 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "pilot:financial:view",
     "pilot:incident:manage",
     "pilot:complaint:manage",
+    "tenant:admin:read",
+    "tenant:admin:manage",
+    "tenant:entitlements:read",
+    "tenant:policies:read",
+    "tenant:quotas:read",
+    "tenant:assurance:read",
+    "tenant:switch",
   ],
   transport_operator: [
     "booking:read:any",
@@ -579,6 +612,31 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "pilot:incident:manage",
     "pilot:complaint:manage",
     "pilot:change:approve",
+    "platform:tenants:read",
+    "platform:tenants:manage",
+    "platform:tenants:lifecycle",
+    "platform:entitlements:manage",
+    "platform:releases:read",
+    "platform:releases:manage",
+    "platform:releases:approve",
+    "platform:capacity:read",
+    "platform:capacity:manage",
+    "platform:continuous-assurance:read",
+    "platform:ga:read",
+    "platform:ga:decide",
+    "platform:federations:manage",
+    "platform:sre:read",
+    "platform:break-glass:request",
+    "platform:break-glass:approve",
+    "platform:regulatory:manage",
+    "tenant:admin:read",
+    "tenant:admin:manage",
+    "tenant:entitlements:read",
+    "tenant:policies:read",
+    "tenant:policies:manage",
+    "tenant:quotas:read",
+    "tenant:assurance:read",
+    "tenant:switch",
   ],
 };
 

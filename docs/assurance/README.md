@@ -2,6 +2,11 @@
 
 Internal registration cyber assurance and go-live readiness controls for MapAble NDIS Wave 6.
 
+> **Wave 8 update:** Continuous assurance snapshots and tenant-scoped
+> assurance views are documented in
+> [`docs/platform/wave-8-governed-production-scale.md`](../platform/wave-8-governed-production-scale.md).
+> Env flags never equal assurance readiness. AI does not approve GA.
+
 ## Disclaimers
 
 - **Internal readiness ≠ certification, registration, or NDIA approval.**
