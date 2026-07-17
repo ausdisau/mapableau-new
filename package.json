@@ -81,7 +81,9 @@
     "federation:classify-portable-data": "tsx scripts/federation/classify-portable-data.ts",
     "federation:audit-delegate-authority": "tsx scripts/federation/audit-delegate-authority.ts",
     "federation:audit-external-identifiers": "tsx scripts/federation/audit-external-identifiers.ts",
-    "federation:audit-disclosure-bypasses": "tsx scripts/federation/audit-disclosure-bypasses.ts"
+    "federation:audit-disclosure-bypasses": "tsx scripts/federation/audit-disclosure-bypasses.ts",
+    "federation:audit-consent-recipients": "tsx scripts/federation/audit-consent-recipients.ts",
+    "federation:audit-credential-eligibility": "tsx scripts/federation/audit-credential-eligibility.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
