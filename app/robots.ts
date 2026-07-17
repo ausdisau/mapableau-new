@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           "/provider-finder",
           "/resources",
           "/guides",
+          "/guides/suburbs",
           "/help",
           "/about",
           "/pricing",
@@ -42,7 +43,10 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: [
+      `${baseUrl}/sitemap.xml`,
+      `${baseUrl}/guides/suburbs/sitemap.xml`,
+    ],
     host: baseUrl,
   };
 }

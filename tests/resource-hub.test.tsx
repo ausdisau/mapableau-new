@@ -9,6 +9,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { AccessGuidesSection } from "@/components/resources/AccessGuidesSection";
+import { FeaturedResourceArticles } from "@/components/resources/FeaturedResourceArticles";
 import { PolicyResourceGrid } from "@/components/canvas/PolicyResourceGrid";
 import { ResourceModuleGrid } from "@/components/canvas/ResourceModuleGrid";
 import {
@@ -25,6 +26,11 @@ import {
   getAccessGuideBySlug,
   getCapitalAccessGuides,
 } from "@/lib/resources/access-guides-data";
+import {
+  getFeaturedResourceArticles,
+  getResourceArticleBySlug,
+  resourceArticles,
+} from "@/lib/resources/resource-articles-data";
 
 describe("resource hub data", () => {
   it("defines module and policy links for the hub", () => {
@@ -85,6 +91,33 @@ describe("access guides data", () => {
   });
 });
 
+describe("resource articles data", () => {
+  it("includes the sensory-friendly Canberra itinerary as featured", () => {
+    expect(resourceArticles.length).toBeGreaterThanOrEqual(1);
+    const featured = getFeaturedResourceArticles();
+    expect(featured.some((a) => a.slug === "sensory-friendly-canberra-half-day-itinerary")).toBe(
+      true,
+    );
+    const article = getResourceArticleBySlug(
+      "sensory-friendly-canberra-half-day-itinerary",
+    );
+    expect(article?.href).toBe(
+      "/resources/sensory-friendly-canberra-half-day-itinerary",
+    );
+    expect(article?.featured).toBe(true);
+    expect(article?.checklistDownloadHref).toBeTruthy();
+  });
+
+  it("publishes the printable checklist under public/", () => {
+    const article = getResourceArticleBySlug(
+      "sensory-friendly-canberra-half-day-itinerary",
+    );
+    const relative = article?.checklistDownloadHref?.replace(/^\//, "");
+    expect(relative).toBeTruthy();
+    expect(existsSync(join(process.cwd(), "public", relative!))).toBe(true);
+  });
+});
+
 describe("resource hub components", () => {
   it("renders module grid links", () => {
     render(<ResourceModuleGrid modules={resourceModuleLinks.slice(0, 2)} />);
@@ -125,6 +158,22 @@ describe("resource hub components", () => {
         .getAttribute("href"),
     ).toBe("/guides/nsw/sydney-accessibility-guide");
   });
+
+  it("renders featured resource article cards", () => {
+    render(
+      <FeaturedResourceArticles articles={getFeaturedResourceArticles()} />,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Featured planning resources" }),
+    ).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", {
+          name: /Sensory-Friendly Canberra Half-Day Itinerary/i,
+        })
+        .getAttribute("href"),
+    ).toBe("/resources/sensory-friendly-canberra-half-day-itinerary");
+  });
 });
 
 describe("resources page contract", () => {
@@ -132,11 +181,31 @@ describe("resources page contract", () => {
     const pagePath = join(process.cwd(), "app/(marketing)/resources/page.tsx");
     expect(existsSync(pagePath)).toBe(true);
     const source = readFileSync(pagePath, "utf8");
+    expect(source).toContain("FeaturedResourceArticles");
     expect(source).toContain("AccessGuidesSection");
     expect(source).toContain("ResourceModuleGrid");
     expect(source).toContain("CanvasBlockGrid");
     expect(source).toContain("Participant support journey");
     expect(source).toContain("PolicyResourceGrid");
+    expect(source).toContain("sensory-friendly-canberra-half-day-itinerary");
+    expect(source).not.toContain("requireAuth");
+  });
+
+  it("publishes the sensory-friendly Canberra itinerary page", () => {
+    const itineraryPath = join(
+      process.cwd(),
+      "app/(marketing)/resources/sensory-friendly-canberra-half-day-itinerary/page.tsx",
+    );
+    expect(existsSync(itineraryPath)).toBe(true);
+    const source = readFileSync(itineraryPath, "utf8");
+    expect(source).toContain("Sensory-Friendly Canberra Half-Day Itinerary");
+    expect(source).toContain("National Museum of Australia");
+    expect(source).toContain("National Arboretum Canberra");
+    expect(source).toContain("no direct public");
+    expect(source).toContain(
+      "Check current opening hours, quiet-hour bookings, transport availability and accessibility details before travelling.",
+    );
+    expect(source).toContain("not medical, therapy, legal or NDIS advice");
     expect(source).not.toContain("requireAuth");
   });
 });
