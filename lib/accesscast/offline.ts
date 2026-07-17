@@ -64,18 +64,29 @@ export type AccessCastOfflineLoadResult = {
   statusLabel: string;
 };
 
+/** Hash pack content. `contentHash` on a full pack is ignored if present. */
 export function hashAccessCastOfflineContent(
-  pack: Omit<AccessCastOfflinePack, "contentHash">,
+  pack: Omit<AccessCastOfflinePack, "contentHash"> | AccessCastOfflinePack,
 ): string {
+  const {
+    forecastId,
+    missionId,
+    conclusionState,
+    intendedJourneyTime,
+    why,
+    suggestedChecks,
+    segmentSummaries,
+    expiresAt,
+  } = pack;
   const payload = {
-    forecastId: pack.forecastId,
-    missionId: pack.missionId,
-    conclusionState: pack.conclusionState,
-    intendedJourneyTime: pack.intendedJourneyTime,
-    why: pack.why,
-    suggestedChecks: pack.suggestedChecks,
-    segmentSummaries: pack.segmentSummaries,
-    expiresAt: pack.expiresAt,
+    forecastId,
+    missionId,
+    conclusionState,
+    intendedJourneyTime,
+    why,
+    suggestedChecks,
+    segmentSummaries,
+    expiresAt,
   };
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
 }

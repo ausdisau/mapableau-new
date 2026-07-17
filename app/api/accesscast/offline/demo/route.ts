@@ -48,23 +48,28 @@ export async function POST(request: Request) {
 
   // Force expiry for offline_expired / simulateExpired demos
   const saved = body.simulateExpired
-    ? {
-        ...pack,
-        expiresAt: "2026-07-15T20:00:00.000+10:00",
-        contentHash: hashAccessCastOfflineContent({
+    ? (() => {
+        const expiresAt = "2026-07-15T20:00:00.000+10:00";
+        const { contentHash: _discard, ...packBody } = pack;
+        return {
           ...pack,
-          expiresAt: "2026-07-15T20:00:00.000+10:00",
-          contentHash: "",
-        }),
-      }
+          expiresAt,
+          contentHash: hashAccessCastOfflineContent({
+            ...packBody,
+            expiresAt,
+          }),
+        };
+      })()
     : pack;
 
   const latestHash = body.simulateChanged
-    ? hashAccessCastOfflineContent({
-        ...saved,
-        conclusionState: "temporarily_unavailable",
-        contentHash: "",
-      })
+    ? (() => {
+        const { contentHash: _discard, ...savedBody } = saved;
+        return hashAccessCastOfflineContent({
+          ...savedBody,
+          conclusionState: "temporarily_unavailable",
+        });
+      })()
     : saved.contentHash;
 
   const evaluation = evaluateAccessCastOfflinePack({

@@ -53,14 +53,16 @@ describe("AccessCast offline Companion pack", () => {
       generatedAt: "2026-07-15T08:00:00.000+10:00",
       ttlHours: 1,
     });
+    const expiresAt = "2026-07-15T10:00:00.000+10:00";
+    const { contentHash: _discard, ...packBody } = pack;
     const expired = {
       ...pack,
-      expiresAt: "2026-07-15T10:00:00.000+10:00",
+      expiresAt,
+      contentHash: hashAccessCastOfflineContent({
+        ...packBody,
+        expiresAt,
+      }),
     };
-    expired.contentHash = hashAccessCastOfflineContent({
-      ...expired,
-      contentHash: "",
-    });
 
     const evaluation = evaluateAccessCastOfflinePack({
       saved: expired,
@@ -77,10 +79,10 @@ describe("AccessCast offline Companion pack", () => {
     const pack = compileAccessCastOfflinePack({
       journey: { scenario: "starting_work_tomorrow" },
     });
+    const { contentHash: _discard, ...packBody } = pack;
     const newerHash = hashAccessCastOfflineContent({
-      ...pack,
+      ...packBody,
       conclusionState: "temporarily_unavailable",
-      contentHash: "",
     });
 
     const evaluation = evaluateAccessCastOfflinePack({
