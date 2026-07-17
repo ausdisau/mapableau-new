@@ -55,6 +55,9 @@ export default async function AdminAccessDashboardPage() {
         <Link href="/access" className="underline">
           Public map
         </Link>
+        <Link href="/accessibility-ops" className="underline">
+          AccessibilityOps
+        </Link>
       </nav>
       <p className="text-sm text-muted-foreground">
         Legacy data: copy MapAble.kml and accessible_locations_merged.geojson into{" "}
