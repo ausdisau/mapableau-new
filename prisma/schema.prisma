@@ -140,6 +140,16 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  // MapAble AURA / CareOS mission spine (canonical mission SoT)
+  careOSMissions            CareOSMission[]
+  careOSMissionEvents       CareOSMissionEvent[]
+  auraCapabilityLeases      AuraCapabilityLease[]
+  auraMemoryCards           AuraMemoryCard[]
+  auraOutcomeRecords        AuraOutcomeRecord[]
+  auraMissionStopReceipts   AuraMissionStopReceipt[]
+  auraOfflineVisitPacks     AuraOfflineVisitPack[]
+  auraProposalReviews       AuraProposalReview[]
 }
 
 model PasskeyCredential {
@@ -9834,4 +9844,533 @@ model ReleaseEvidencePack {
 
   @@index([versionLabel])
   @@map("access_release_evidence_packs")
+}
+
+// ---------------------------------------------------------------------------
+// MapAble AURA + canonical CareOSMission spine
+// CareOSMission is the mission source of truth (aligned with CareOS tip fields).
+// Aura* models are children/extensions — not a second mission universe.
+// ---------------------------------------------------------------------------
+
+model CareOSMission {
+  id                  String   @id @default(cuid())
+  participantId       String
+  participant         User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  tenantId            String?
+  requestId           String   @unique
+  missionType         String
+  desiredOutcome      String   @default("")
+  status              String   @default("draft")
+  authorityDecisionId String?
+  inputSummary        Json     @default("{}")
+  graphJson           Json     @default("{}")
+  modulesJson         Json     @default("[]")
+  alertsJson          Json     @default("[]")
+  proposalsJson       Json     @default("[]")
+  stateVersion        Int      @default(1)
+  correlationId       String   @default(cuid())
+  workflowRunId       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  events              CareOSMissionEvent[]
+  auraExtension       AuraMissionExtension?
+  auraLeases          AuraCapabilityLease[]
+  auraPlanArtifacts   AuraPlanArtifact[]
+  auraActionProposals AuraActionProposal[]
+  auraOutcomes        AuraOutcomeRecord[]
+  auraCounterfactuals AuraCounterfactualRun[]
+  auraResilience      AuraResilienceAssessment[]
+  auraChallenges      AuraPlanChallenge[]
+  auraStopReceipts    AuraMissionStopReceipt[]
+  auraOfflinePacks    AuraOfflineVisitPack[]
+  auraAuditManifests  AuraAuditReplayManifest[]
+
+  @@index([participantId, createdAt])
+  @@index([tenantId, status])
+  @@index([correlationId])
+  @@index([missionType, status])
+  @@map("careos_missions")
+}
+
+model CareOSMissionEvent {
+  id             String        @id @default(cuid())
+  missionId      String
+  mission        CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId  String
+  participant    User          @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  eventType      String
+  sourceModule   String
+  sourceEntityId String?
+  severity       String        @default("information")
+  summary        String
+  payloadJson    Json?
+  eventKey       String?
+  createdAt      DateTime      @default(now())
+
+  @@unique([missionId, eventKey])
+  @@index([missionId, createdAt])
+  @@index([participantId, createdAt])
+  @@map("careos_mission_events")
+}
+
+model AuraMissionExtension {
+  id               String        @id @default(cuid())
+  missionId        String        @unique
+  mission          CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  selectedPassportId String?
+  authorityLevel   String        @default("L2_RECOMMEND")
+  stopState        Boolean       @default(false)
+  proofPlanVersion Int           @default(0)
+  lastVerifiedAt   DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([stopState])
+  @@map("aura_mission_extensions")
+}
+
+model AuraCapabilityLease {
+  id                String        @id @default(cuid())
+  missionId         String
+  mission           CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module            String
+  capabilityId      String
+  authority         String
+  resourceScope     Json          @default("[]")
+  fieldScope        Json          @default("[]")
+  issuedAt          DateTime      @default(now())
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  revocationReason  String?
+  correlationId     String
+
+  @@index([missionId, revokedAt])
+  @@index([userId, expiresAt])
+  @@index([capabilityId, expiresAt])
+  @@map("aura_capability_leases")
+}
+
+model AuraPlanArtifact {
+  id             String        @id @default(cuid())
+  missionId      String
+  mission        CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  version        Int
+  structuredPlan Json
+  verifierStatus String?
+  createdAt      DateTime      @default(now())
+  expiresAt      DateTime
+
+  evidenceLinks  AuraPlanEvidenceLink[]
+  verifications  AuraPlanVerification[]
+
+  @@index([missionId, version])
+  @@map("aura_plan_artifacts")
+}
+
+model AuraPlanEvidenceLink {
+  id             String           @id @default(cuid())
+  planArtifactId String
+  planArtifact   AuraPlanArtifact @relation(fields: [planArtifactId], references: [id], onDelete: Cascade)
+  evidenceType   String
+  evidenceId     String
+  sourceVersion  String?
+
+  @@index([planArtifactId])
+  @@index([evidenceId])
+  @@map("aura_plan_evidence_links")
+}
+
+model AuraPlanVerification {
+  id              String           @id @default(cuid())
+  planArtifactId  String
+  planArtifact    AuraPlanArtifact @relation(fields: [planArtifactId], references: [id], onDelete: Cascade)
+  verifierVersion String
+  status          String
+  findings        Json             @default("[]")
+  checkedAt       DateTime         @default(now())
+
+  @@index([planArtifactId, checkedAt])
+  @@map("aura_plan_verifications")
+}
+
+model AuraActionProposal {
+  id                              String        @id @default(cuid())
+  missionId                       String
+  mission                         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId                  String?
+  planVersion                     Int           @default(1)
+  version                         Int           @default(1)
+  previousVersionId               String?
+  supersededById                  String?
+  actionType                      String
+  risk                            String        @default("communication")
+  applicationService              String
+  recipientType                   String?
+  recipientId                     String?
+  recipientLabel                  String?
+  purposeCode                     String?
+  purposeText                     String?
+  purpose                         String        @default("")
+  payload                         Json          @default("{}")
+  payloadJson                     Json          @default("{}")
+  fieldsShared                    Json          @default("[]")
+  fieldsOmitted                   Json          @default("[]")
+  disclosureJson                  Json          @default("{}")
+  evidenceReferencesJson          Json          @default("[]")
+  preconditionsJson               Json          @default("[]")
+  expectedResult                  String?
+  possibleFailures                Json          @default("[]")
+  fallbackPlanJson                Json          @default("[]")
+  requiredAuthority               String        @default("L3_PROPOSE")
+  participantShadowReviewRequired Boolean       @default(true)
+  futureParticipantApprovalRequired Boolean     @default(true)
+  futureVenueApprovalRequired     Boolean       @default(false)
+  humanReviewRequired             Boolean       @default(false)
+  createdByActorType              String        @default("aura")
+  createdByActorId                String?
+  proposalHash                    String
+  idempotencyKey                  String
+  state                           String        @default("draft")
+  expiresAt                       DateTime
+  createdAt                       DateTime      @default(now())
+  updatedAt                       DateTime      @updatedAt
+
+  verifications AuraProposalVerificationRecord[]
+  reviews       AuraProposalReview[]
+  shadows       AuraShadowEvaluation[]
+  receipts      AuraShadowReceipt[]
+
+  @@unique([idempotencyKey])
+  @@index([missionId, state])
+  @@index([proposalHash])
+  @@index([expiresAt])
+  @@index([previousVersionId])
+  @@map("aura_action_proposals")
+}
+
+model AuraProposalVerificationRecord {
+  id                      String             @id @default(cuid())
+  proposalId              String
+  proposal                AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion         Int
+  verifierVersion         String
+  status                  String
+  checksJson              Json               @default("[]")
+  futureExecutionEligible Boolean            @default(false)
+  checkedAt               DateTime           @default(now())
+
+  @@index([proposalId, checkedAt])
+  @@map("aura_proposal_verifications_wave3")
+}
+
+model AuraProposalReview {
+  id                       String             @id @default(cuid())
+  proposalId               String
+  proposal                 AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion          Int
+  participantId            String
+  participant              User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  decision                 String
+  comment                  String?
+  proposalHash             String
+  futureExecutionApproval  Boolean            @default(false)
+  decidedAt                DateTime           @default(now())
+
+  @@index([proposalId, decidedAt])
+  @@index([participantId, decidedAt])
+  @@map("aura_proposal_reviews")
+}
+
+model AuraShadowEvaluation {
+  id                     String             @id @default(cuid())
+  proposalId             String
+  proposal               AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion        Int
+  missionId              String
+  status                 String
+  stagesJson             Json               @default("[]")
+  requiredApprovalsJson  Json               @default("{}")
+  requiredConsentScopes  Json               @default("[]")
+  serviceAssessmentJson  Json               @default("{}")
+  predictedEffectsJson   Json               @default("{}")
+  failureCodes           Json               @default("[]")
+  fallbackPlanJson       Json               @default("[]")
+  executionAttempted     Boolean            @default(false)
+  externalSideEffects    Int                @default(0)
+  evaluatedAt            DateTime           @default(now())
+  expiresAt              DateTime
+
+  @@index([proposalId, evaluatedAt])
+  @@index([missionId, status])
+  @@map("aura_shadow_evaluations")
+}
+
+model AuraShadowReceipt {
+  id                   String             @id @default(cuid())
+  proposalId           String
+  proposal             AuraActionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion      Int
+  proposalHash         String
+  participantReviewId  String
+  shadowEvaluationId   String
+  status               String
+  summary              String
+  executionAttempted   Boolean            @default(false)
+  externalSideEffects  Int                @default(0)
+  auditCorrelationId   String
+  createdAt            DateTime           @default(now())
+
+  @@index([proposalId, createdAt])
+  @@index([proposalHash])
+  @@map("aura_shadow_receipts")
+}
+
+// ---------------------------------------------------------------------------
+// MapAble AURA Wave 4 — execution approvals, executions, receipts
+// ---------------------------------------------------------------------------
+
+model AuraExecutionApproval {
+  id                    String   @id @default(cuid())
+  missionId             String
+  proposalId            String
+  proposalVersion       Int
+  proposalHash          String
+  participantId         String
+  actionType            String
+  recipientSnapshotJson Json
+  purposeCode           String
+  disclosureSnapshotJson Json
+  expectedResult        String
+  possibleFailuresJson  Json     @default("[]")
+  fallbackPlanJson      Json     @default("[]")
+  consentSnapshotIdsJson Json    @default("[]")
+  policyVersion         String
+  servicePreflightVersion String
+  decision              String
+  approvedAt            DateTime?
+  declinedAt            DateTime?
+  cancelledAt           DateTime?
+  expiresAt             DateTime
+  authenticationContextJson Json
+  usedAt                DateTime?
+  usedByExecutionId     String?
+  createdAt             DateTime @default(now())
+
+  @@index([proposalId, proposalHash])
+  @@index([participantId, expiresAt])
+  @@index([missionId, decision])
+  @@map("aura_execution_approvals")
+}
+
+model AuraActionExecution {
+  id                    String   @id @default(cuid())
+  missionId             String
+  proposalId            String
+  proposalVersion       Int
+  proposalHash          String
+  executionApprovalId   String
+  actionType            String
+  serviceId             String
+  serviceVersion        String
+  state                 String
+  idempotencyKey        String   @unique
+  authorisedAt          DateTime?
+  queuedAt              DateTime?
+  startedAt             DateTime?
+  serviceReceiptReceivedAt DateTime?
+  verificationStartedAt DateTime?
+  completedAt           DateTime?
+  cancelledAt           DateTime?
+  applicationReceiptId    String?
+  outboxEventIdsJson    Json     @default("[]")
+  recordsCreatedJson    Json     @default("[]")
+  deliveryStateJson     Json?
+  postconditionsJson    Json     @default("[]")
+  realWorldOutcome      String   @default("not_observed")
+  failureCode           String?
+  failureMessage        String?
+  cancellationSupported Boolean  @default(false)
+  compensationSupported Boolean  @default(false)
+  auditCorrelationId    String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([missionId, state])
+  @@index([proposalId, proposalVersion])
+  @@map("aura_action_executions")
+}
+
+model AuraExecutionReceipt {
+  id                    String   @id @default(cuid())
+  missionId             String
+  executionId           String   @unique
+  proposalId            String
+  proposalVersion       Int
+  proposalHash          String
+  executionApprovalId   String
+  actionType            String
+  finalState            String
+  serviceReceiptJson    Json
+  recordsCreatedJson    Json     @default("[]")
+  deliveriesJson        Json     @default("[]")
+  postconditionSummaryJson Json  @default("[]")
+  realWorldOutcomeConfirmed Boolean @default(false)
+  participantFacingSummary String
+  limitationsJson       Json     @default("[]")
+  fallbackActionsJson   Json     @default("[]")
+  auditCorrelationId    String
+  createdAt             DateTime @default(now())
+
+  @@index([missionId, createdAt])
+  @@index([proposalId])
+  @@map("aura_execution_receipts")
+}
+
+model AuraMemoryCard {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content               String
+  structuredPreference  Json?
+  purpose               String?
+  modules               Json      @default("[]")
+  source                String    @default("participant")
+  expiresAt             DateTime?
+  deletedAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId, deletedAt])
+  @@map("aura_memory_cards")
+}
+
+model AuraOutcomeRecord {
+  id                String        @id @default(cuid())
+  missionId         String
+  mission           CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  participantId     String
+  participant       User          @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  outcomeType       String
+  structuredOutcome Json          @default("{}")
+  createdAt         DateTime      @default(now())
+
+  @@index([missionId, createdAt])
+  @@index([participantId, createdAt])
+  @@map("aura_outcome_records")
+}
+
+// ---------------------------------------------------------------------------
+// MapAble AURA Wave 2 — counterfactuals, resilience, stop, offline, audit
+// Additive only. Runtime Wave 2 uses in-memory stores unless MAPABLE_AURA_USE_PRISMA.
+// ---------------------------------------------------------------------------
+
+model AuraCounterfactualRun {
+  id                 String        @id @default(cuid())
+  missionId          String
+  mission            CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  basePlanArtifactId String
+  mutationJson       Json
+  beforeJson         Json
+  afterJson          Json
+  changeSummaryJson  Json
+  simulated          Boolean       @default(true)
+  generatedAt        DateTime      @default(now())
+  expiresAt          DateTime
+  cancelledAt        DateTime?
+
+  @@index([missionId, generatedAt])
+  @@index([expiresAt])
+  @@map("aura_counterfactual_runs")
+}
+
+model AuraResilienceAssessment {
+  id                    String        @id @default(cuid())
+  missionId             String
+  mission               CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId        String
+  level                 String
+  dependenciesJson      Json          @default("[]")
+  singlePointsOfFailure Json          @default("[]")
+  verifiedFallbacks     Json          @default("[]")
+  unverifiedFallbacks   Json          @default("[]")
+  assessedAt            DateTime      @default(now())
+
+  @@index([missionId, assessedAt])
+  @@map("aura_resilience_assessments")
+}
+
+model AuraPlanChallenge {
+  id              String        @id @default(cuid())
+  missionId       String
+  mission         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId  String
+  challengeVersion Int          @default(1)
+  resultJson      Json
+  createdAt       DateTime      @default(now())
+
+  @@unique([missionId, planArtifactId, challengeVersion])
+  @@index([missionId, createdAt])
+  @@map("aura_plan_challenges")
+}
+
+model AuraMissionStopReceipt {
+  id                     String        @id @default(cuid())
+  missionId              String
+  mission                CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  requestedByUserId      String
+  requestedBy            User          @relation(fields: [requestedByUserId], references: [id], onDelete: Cascade)
+  requestedAt            DateTime
+  completedAt            DateTime
+  revokedLeaseIds        Json          @default("[]")
+  cancelledRunIds        Json          @default("[]")
+  invalidatedProposalIds Json          @default("[]")
+  result                 String
+  auditCorrelationId     String
+  notesJson              Json          @default("[]")
+  createdAt              DateTime      @default(now())
+
+  @@index([missionId, completedAt])
+  @@index([requestedByUserId, createdAt])
+  @@map("aura_mission_stop_receipts")
+}
+
+model AuraOfflineVisitPack {
+  id              String        @id @default(cuid())
+  missionId       String
+  mission         CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planArtifactId  String
+  ownerUserId     String
+  owner           User          @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  snapshotJson    Json
+  generatedAt     DateTime      @default(now())
+  staleAfter      DateTime
+  status          String        @default("current_snapshot")
+  deletedAt       DateTime?
+
+  @@index([missionId, generatedAt])
+  @@index([ownerUserId, status])
+  @@index([status, staleAfter])
+  @@map("aura_offline_visit_packs")
+}
+
+model AuraAuditReplayManifest {
+  id                 String        @id @default(cuid())
+  missionId          String
+  mission            CareOSMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  version            Int           @default(1)
+  firstSequence      Int
+  lastSequence       Int
+  rootHash           String
+  eventCount         Int
+  verifiedAt         DateTime?
+  verificationStatus String        @default("pending")
+  manifestJson       Json          @default("{}")
+  createdAt          DateTime      @default(now())
+
+  @@unique([missionId, version])
+  @@index([missionId, createdAt])
+  @@map("aura_audit_replay_manifests")
 }

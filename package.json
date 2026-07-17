@@ -20,6 +20,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:access-intelligence": "vitest run tests/access-intelligence",
+    "test:aura": "vitest run tests/aura",
     "backfill:ai-place-binding": "tsx scripts/backfill-ai-access-place-binding.ts",
     "setup:cloud-agent": "bash scripts/setup-cloud-agent.sh",
     "mcp:av": "tsx mcp/av/server.ts",
