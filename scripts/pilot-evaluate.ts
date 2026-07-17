@@ -2,7 +2,8 @@
  * Evaluate ControlledPilot progression readiness.
  *
  * Usage:
- *   pnpm pilot:evaluate -- --pilotId=<id> [--dry-run]
+ *   pnpm pilot:evaluate -- --dry-run
+ *   pnpm pilot:evaluate -- --pilotId=<id>
  *
  * Artifact sample (artifacts/pilot-evaluate.json):
  * {
@@ -13,25 +14,65 @@
  *   "recommendedNextStage": "limited_live"
  * }
  */
-import { parseArgs } from "node:util";
-
-import { evaluatePilotProgression } from "@/lib/pilot/progression/progression-evaluator";
-import { prisma } from "@/lib/prisma";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { parseArgs } from "node:util";
+
+import { isLimitedLivePermitted } from "@/lib/pilot/policy/stage-policy";
+import { evaluatePilotProgression } from "@/lib/pilot/progression/progression-evaluator";
+import { prisma } from "@/lib/prisma";
 
 async function main() {
   const { values } = parseArgs({
-    args: process.argv.slice(2),
+    args: process.argv.slice(2).filter((a) => a !== "--"),
+    allowPositionals: true,
     options: {
       pilotId: { type: "string" },
-      "dry-run": { type: "boolean", default: false },
+      "dry-run": { type: "boolean", default: true },
     },
   });
-  const dryRun = Boolean(values["dry-run"]);
+  const dryRun = values["dry-run"] !== false;
   const pilotId = values.pilotId;
-  if (!pilotId) {
-    throw new Error("--pilotId is required");
+
+  if (!pilotId || dryRun) {
+    const liveCheck = isLimitedLivePermitted({
+      stage: "limited_live",
+      limitedLiveEnabled: false,
+      assuranceAssessmentId: null,
+      goLiveAssessmentId: null,
+    });
+    const blockers = [
+      ...(liveCheck.ok ? [] : liveCheck.reasons),
+      "SYNTHETIC_EVALUATION_NO_DB",
+    ];
+    const artifact = {
+      dryRun: true,
+      pilotId: pilotId ?? null,
+      mode: "synthetic_policy",
+      canAdvance: false,
+      blockers,
+      recommendedNextStage: "limited_live",
+      evidence: null,
+      notes: [
+        "limited_live remains disabled by default",
+        "Wave 6 assessment IDs are optional string refs until Wave 6 lands",
+        "empty allowlists deny (fail closed)",
+        "NdiaPilotApprovalRecord is not ControlledPilot authority",
+      ],
+    };
+    const dir = path.join(process.cwd(), "artifacts");
+    await mkdir(dir, { recursive: true });
+    const file = path.join(dir, "pilot-evaluate.json");
+    await writeFile(file, JSON.stringify(artifact, null, 2) + "\n");
+    console.log(
+      JSON.stringify({
+        wrote: file,
+        dryRun: true,
+        canAdvance: false,
+        blockers,
+      })
+    );
+    return;
   }
 
   const pilot = await prisma.controlledPilot.findUniqueOrThrow({
@@ -47,7 +88,7 @@ async function main() {
   });
 
   const artifact = {
-    dryRun,
+    dryRun: false,
     pilotId,
     canAdvance: evaluation.canAdvance,
     blockers: evaluation.blockers,
@@ -59,7 +100,9 @@ async function main() {
   await mkdir(dir, { recursive: true });
   const file = path.join(dir, "pilot-evaluate.json");
   await writeFile(file, JSON.stringify(artifact, null, 2) + "\n");
-  console.log(JSON.stringify({ wrote: file, dryRun, canAdvance: evaluation.canAdvance }));
+  console.log(
+    JSON.stringify({ wrote: file, dryRun: false, canAdvance: evaluation.canAdvance })
+  );
 }
 
 main().catch((err) => {

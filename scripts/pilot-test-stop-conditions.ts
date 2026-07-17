@@ -13,15 +13,54 @@ import { prisma } from "@/lib/prisma";
 
 async function main() {
   const { values } = parseArgs({
-    args: process.argv.slice(2),
+    args: process.argv.slice(2).filter((a) => a !== "--"),
     options: {
       pilotId: { type: "string" },
-      "dry-run": { type: "boolean", default: false },
+      "dry-run": { type: "boolean", default: true },
     },
+    allowPositionals: true,
   });
-  const dryRun = Boolean(values["dry-run"]);
+  const dryRun = values["dry-run"] !== false;
   const pilotId = values.pilotId;
-  if (!pilotId) throw new Error("--pilotId is required");
+
+  // Offline/unit evaluation when no pilotId — proves policy without DB.
+  if (!pilotId || dryRun) {
+    const synthetic = evaluateStopConditions({
+      openCriticalSignals: 2,
+      limitBreachCount: 0,
+      unacknowledgedIncidents: 0,
+      maxCriticalSignals: 1,
+      maxLimitBreaches: 1,
+    });
+    const clear = evaluateStopConditions({
+      openCriticalSignals: 0,
+      limitBreachCount: 0,
+      unacknowledgedIncidents: 0,
+      maxCriticalSignals: 1,
+      maxLimitBreaches: 1,
+    });
+    const artifact = {
+      dryRun: true,
+      pilotId: pilotId ?? null,
+      mode: "synthetic_policy",
+      cases: { criticalExceeds: synthetic, clear },
+    };
+    const dir = path.join(process.cwd(), "artifacts");
+    await mkdir(dir, { recursive: true });
+    const file = path.join(dir, "pilot-stop-conditions.json");
+    await writeFile(file, JSON.stringify(artifact, null, 2) + "\n");
+    console.log(
+      JSON.stringify({
+        wrote: file,
+        shouldStop: synthetic.shouldStop,
+        clearShouldStop: clear.shouldStop,
+      })
+    );
+    if (!synthetic.shouldStop || clear.shouldStop) {
+      throw new Error("STOP_CONDITION_POLICY_FAILED");
+    }
+    return;
+  }
 
   const [critical, limitBreaches, incidents] = await Promise.all([
     prisma.pilotSafetySignal.count({
@@ -43,7 +82,7 @@ async function main() {
     maxLimitBreaches: 1,
   });
 
-  const artifact = { dryRun, pilotId, ...result };
+  const artifact = { dryRun: false, pilotId, ...result };
   const dir = path.join(process.cwd(), "artifacts");
   await mkdir(dir, { recursive: true });
   const file = path.join(dir, "pilot-stop-conditions.json");

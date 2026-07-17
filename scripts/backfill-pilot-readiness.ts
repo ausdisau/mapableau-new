@@ -20,7 +20,8 @@ import { prisma } from "@/lib/prisma";
 
 async function main() {
   const { values } = parseArgs({
-    args: process.argv.slice(2),
+    args: process.argv.slice(2).filter((a) => a !== "--"),
+    allowPositionals: true,
     options: { "dry-run": { type: "boolean", default: true } },
   });
   const dryRun = values["dry-run"] !== false;

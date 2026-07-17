@@ -124,12 +124,14 @@ describe("Wave 4 route policy", () => {
 });
 
 describe("Wave 4 document numbering FY", () => {
-  it("uses Australian financial year (July–June)", () => {
-    expect(australianFinancialYear(new Date("2026-06-30T12:00:00+10:00"))).toBe(
-      2025
-    );
-    expect(australianFinancialYear(new Date("2026-07-01T12:00:00+10:00"))).toBe(
+  it("uses Australian financial year labelled by ending calendar year", () => {
+    // FY ending 2026: 1 Jul 2025 – 30 Jun 2026
+    expect(australianFinancialYear(new Date("2026-06-30T02:00:00.000Z"))).toBe(
       2026
+    );
+    // FY ending 2027 begins 1 Jul 2026
+    expect(australianFinancialYear(new Date("2026-07-01T02:00:00.000Z"))).toBe(
+      2027
     );
   });
 });

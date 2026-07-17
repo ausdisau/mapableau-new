@@ -10,8 +10,9 @@ import { parseArgs } from "node:util";
 
 async function main() {
   const { values } = parseArgs({
-    args: process.argv.slice(2),
+    args: process.argv.slice(2).filter((a) => a !== "--"),
     options: { "dry-run": { type: "boolean", default: true } },
+    allowPositionals: true,
   });
   const dryRun = values["dry-run"] !== false;
   const findings: Array<{ code: string; detail: string }> = [];
