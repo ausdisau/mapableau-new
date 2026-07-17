@@ -73,6 +73,7 @@ const LEGACY_LINKS = [
   { href: "/admin/social-impact", label: "Impact" },
   { href: "/admin/scale-plan", label: "Scale" },
   { href: "/admin/ndia-pilot", label: "NDIA pilot" },
+  { href: "/admin/pilot", label: "Controlled pilot" },
   { href: "/admin/app-store-release", label: "App store" },
   { href: "/admin/transport-network", label: "Network" },
   { href: "/admin/settlement-batches", label: "Settlement" },

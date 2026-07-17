@@ -77,6 +77,12 @@ yarn.lock
 *.temp
 .cache/
 
+# Generated audit / conformance reports (local dry-runs)
+/artifacts/
+
 # Logs
 logs
 *.log
+
+# Generated assurance / SBOM reports
+/artifacts/
