@@ -21,10 +21,11 @@ Governing docs: [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md), [CURRENT_S
 
 ### Prompt 1 — Routes and application shell
 
-- [ ] Goal: Preserve public `/transport`; add pack route aliases and role-aware shells without fake data
+- [x] Goal: Preserve public `/transport`; add pack route aliases and role-aware shells without fake data
 - Depends on: Prompt 0
-- Touch paths: `app/transport/**`, `app/dashboard/transport/**`, `app/provider/(console)/transport/**`, `app/driver/**`, `app/admin/transport/**`, `components/transport/*`, `middleware.ts`, feature-status component
-- Acceptance: anonymous `/transport`; auth for request/profile/dashboard/trips; unauthorised operator/driver/admin get accessible denial; aliases work; no hard-coded fare/ETA/funding; type-check + build
+- Touch paths: `app/transport/**`, `app/dashboard/transport/**`, `components/transport/*`, `lib/transport/feature-status.ts`, `lib/transport/transport-ui-access.ts`
+- Acceptance: anonymous `/transport`; auth for request/profile/dashboard/trips; unauthorised operator/driver get accessible denial; aliases work; no hard-coded fare/ETA/funding; type-check + build
+- Done: 2026-07-17 — pack paths + `TransportFeatureStatus` local config; canonical list/detail remain under `/dashboard/transport`
 
 ### Prompt 2 — Domain model and Prisma migration
 
