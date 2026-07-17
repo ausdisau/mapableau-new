@@ -134,6 +134,7 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/accessibility.md](docs/modules/accessibility.md) | Accessibility profiles |
 | [docs/accessops/wave-12-accessops.md](docs/accessops/wave-12-accessops.md) | Wave 12 AccessOps civic access digital twin |
 | [docs/governance/wave-13.md](docs/governance/wave-13.md) | Wave 13 public-interest governance, algorithm register, appeals and oversight |
+| [docs/participation/wave-17.md](docs/participation/wave-17.md) | Wave 17 inclusive life planner and community participation |
 | [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md) | Admin dashboard |
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).
@@ -189,6 +190,10 @@ Wave 11 adds a *projection* over Case, AURA, incidents/complaints, and bookings 
 ### AccessOps civic digital twin (Wave 12)
 
 Wave 12 adds AccessOps for civic access assets, feature observations, operational status, reliability, incidents, work orders, sensors, partner v2 APIs, and disabled-by-default open-data projections. Accreditation is not live status; missing data is not accessible; stale data is not current; sensors do not actuate infrastructure; routes are advisory; participant journeys stay off operator dashboards. See [docs/accessops/](docs/accessops/).
+
+### Inclusive life planner (Wave 17)
+
+Wave 17 extends `ParticipationGoal` for participant-defined community participation, discovery, event access, plans, organiser portals, and AURA participation guardrails. It does not infer loneliness, score attendance, assume funding eligibility, duplicate bookings/calendar/access systems, or expose private reflections. See [docs/participation/](docs/participation/).
 
 ### QA and mobile
 

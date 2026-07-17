@@ -2138,26 +2138,369 @@ model ContinuityMetricSnapshot {
 }
 
 enum ParticipationGoalStatus {
+  draft
+  clarifying
   active
+  confirmed
+  paused
+  achieved
+  partially_achieved
+  changed
+  abandoned
+  expired
+  archived
   completed
   cancelled
 }
 
+enum ParticipationDomain {
+  recreation
+  sport
+  arts
+  culture
+  music
+  faith
+  volunteering
+  education
+  training
+  employment
+  advocacy
+  civic
+  peer_support
+  social
+  travel
+  online
+  health_and_wellbeing
+  participant_defined
+  other
+}
+
+enum OpportunityStatus {
+  draft
+  pending_review
+  published
+  hidden
+  suspended
+  expired
+  archived
+}
+
+enum ParticipationPlanStatus {
+  draft
+  simulated
+  awaiting_approval
+  approved
+  executing
+  completed
+  cancelled
+  paused
+}
+
+enum ParticipationPrivacyLevel {
+  private
+  household
+  authorised_support
+  organisation_minimum
+  public_listing_safe
+}
+
+enum OpportunityDeliveryMode {
+  in_person
+  online
+  hybrid
+}
+
+enum CommunityOrganisationType {
+  community_group
+  charity
+  council
+  faith
+  arts
+  sport
+  education
+  employer
+  peer_network
+  other
+}
+
+enum CommunityOrganisationVerificationStatus {
+  unverified
+  pending
+  verified
+  disputed
+  suspended
+}
+
 model ParticipationGoal {
-  id             String                  @id @default(cuid())
-  participantId  String
-  organisationId String?
-  title          String
-  status         ParticipationGoalStatus @default(active)
-  targetDate     DateTime?
-  notes          String?
-  loggedAt       DateTime                @default(now())
-  completedAt    DateTime?
-  createdAt      DateTime                @default(now())
-  updatedAt      DateTime                @updatedAt
+  id                 String                    @id @default(cuid())
+  participantId      String
+  organisationId     String?
+  tenantId           String?
+  title              String
+  participantWording String?
+  interpretedSummary String?
+  domain             ParticipationDomain?
+  desiredExperience  String?
+  successDescription String?
+  boundaries         Json?
+  constraints        Json?
+  privacyLevel       ParticipationPrivacyLevel @default(private)
+  startsAt           DateTime?
+  expiresAt          DateTime?
+  confirmedAt        DateTime?
+  status             ParticipationGoalStatus   @default(active)
+  targetDate         DateTime?
+  notes              String?
+  loggedAt           DateTime                  @default(now())
+  completedAt        DateTime?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  preferences       ParticipationPreference[]
+  boundariesRecords ParticipationBoundary[]
+  plans             ParticipationPlan[]
 
   @@index([participantId, status])
+  @@index([tenantId, status])
+  @@index([domain])
   @@map("participation_goals")
+}
+
+model ParticipationPreference {
+  id            String                    @id @default(cuid())
+  participantId String
+  goalId        String?
+  goal          ParticipationGoal?        @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  domain        ParticipationDomain?
+  preferenceKey String
+  preference    Json
+  privacyLevel  ParticipationPrivacyLevel @default(private)
+  source        String                    @default("participant")
+  active        Boolean                   @default(true)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([participantId, active])
+  @@index([goalId])
+  @@index([domain])
+  @@map("participation_preferences")
+}
+
+model ParticipationBoundary {
+  id            String                    @id @default(cuid())
+  participantId String
+  goalId        String?
+  goal          ParticipationGoal?        @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  boundaryType  String
+  description   String
+  privacyLevel  ParticipationPrivacyLevel @default(private)
+  active        Boolean                   @default(true)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([participantId, active])
+  @@index([goalId])
+  @@map("participation_boundaries")
+}
+
+model CommunityOrganisation {
+  id                 String                                  @id @default(cuid())
+  tenantId           String?
+  name               String
+  organisationType   CommunityOrganisationType
+  description        String?
+  website            String?
+  contactEmail       String?
+  contactPhone       String?
+  locationReference  String?
+  verificationStatus CommunityOrganisationVerificationStatus @default(unverified)
+  sourceReference    String?
+  sourceUpdatedAt    DateTime?
+  createdAt          DateTime                                @default(now())
+  updatedAt          DateTime                                @updatedAt
+
+  opportunities ParticipationOpportunity[]
+  events        CommunityEvent[]
+
+  @@index([tenantId, verificationStatus])
+  @@index([organisationType])
+  @@map("community_organisations")
+}
+
+model ParticipationOpportunity {
+  id                      String                  @id @default(cuid())
+  organisationId          String?
+  organisation            CommunityOrganisation?  @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  venueId                 String?
+  accessPlaceId           String?
+  title                   String
+  description             String
+  domain                  ParticipationDomain
+  opportunityType         String
+  costDescription         String?
+  priceCents              Int?
+  /// Funding notes are descriptive only; never assume NDIS eligibility.
+  fundingClaims           String?
+  ageRestrictions         String?
+  eligibilityDescription  String?
+  deliveryMode            OpportunityDeliveryMode
+  locationReference       String?
+  onlineLocationReference String?
+  accessProfileId         String?
+  moderationStatus        String                  @default("pending")
+  sourceReference         String
+  sourceUpdatedAt         DateTime?
+  publishedAt             DateTime?
+  status                  OpportunityStatus       @default(draft)
+  sponsored               Boolean                 @default(false)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  events CommunityEvent[]
+  plans  ParticipationPlan[]
+
+  @@index([organisationId, status])
+  @@index([domain, status])
+  @@index([accessPlaceId])
+  @@index([sponsored])
+  @@map("participation_opportunities")
+}
+
+model CommunityEvent {
+  id                      String                    @id @default(cuid())
+  opportunityId           String?
+  opportunity             ParticipationOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  organisationId          String?
+  organisation            CommunityOrganisation?    @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  title                   String
+  description             String?
+  domain                  ParticipationDomain
+  startsAt                DateTime
+  endsAt                  DateTime?
+  timezone                String                    @default("Australia/Sydney")
+  deliveryMode            OpportunityDeliveryMode
+  venueId                 String?
+  accessPlaceId           String?
+  locationReference       String?
+  onlineLocationReference String?
+  costDescription         String?
+  priceCents              Int?
+  moderationStatus        String                    @default("pending")
+  sourceReference         String
+  sourceUpdatedAt         DateTime?
+  publishedAt             DateTime?
+  status                  OpportunityStatus         @default(draft)
+  sponsored               Boolean                   @default(false)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  accessProfile EventAccessProfile?
+  plans         ParticipationPlan[]
+
+  @@index([organisationId, status])
+  @@index([opportunityId])
+  @@index([domain, startsAt])
+  @@index([accessPlaceId])
+  @@map("community_events")
+}
+
+model EventAccessProfile {
+  id                  String         @id @default(cuid())
+  eventId             String         @unique
+  event               CommunityEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  mobilityAccess      Json?
+  sensoryAccess       Json?
+  communicationAccess Json?
+  transportAccess     Json?
+  supportAccess       Json?
+  toiletAccess        Json?
+  quietSpace          Json?
+  dietaryAccess       Json?
+  evidenceLevel       String
+  lastCheckedAt       DateTime
+  validUntil          DateTime?
+  uncertainty         String?
+  accessAssetIds      Json           @default("[]")
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([lastCheckedAt])
+  @@index([validUntil])
+  @@map("participation_event_access_profiles")
+}
+
+model ParticipationPlan {
+  id                    String                    @id @default(cuid())
+  participantId         String
+  goalId                String?
+  goal                  ParticipationGoal?        @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  opportunityId         String?
+  opportunity           ParticipationOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  eventId               String?
+  event                 CommunityEvent?           @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  title                 String
+  status                ParticipationPlanStatus   @default(draft)
+  privacyLevel          ParticipationPrivacyLevel @default(private)
+  consentDirectiveIds   Json                      @default("[]")
+  calendarEventId       String?
+  bookingId             String?
+  accessJourneyPlanId   String?
+  supportAllocationNote String?
+  participantNotes      String?
+  approvedAt            DateTime?
+  executedAt            DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  steps       ParticipationPlanStep[]
+  reflections ParticipationReflection[]
+
+  @@index([participantId, status])
+  @@index([goalId])
+  @@index([opportunityId])
+  @@index([eventId])
+  @@map("participation_plans")
+}
+
+model ParticipationPlanStep {
+  id                  String                  @id @default(cuid())
+  planId              String
+  plan                ParticipationPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  stepType            String
+  title               String
+  description         String?
+  sortOrder           Int                     @default(0)
+  status              ParticipationPlanStatus @default(draft)
+  calendarEventId     String?
+  bookingId           String?
+  accessJourneyPlanId String?
+  metadata            Json                    @default("{}")
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+
+  @@index([planId, sortOrder])
+  @@map("participation_plan_steps")
+}
+
+model ParticipationReflection {
+  id             String                    @id @default(cuid())
+  participantId  String
+  planId         String?
+  plan           ParticipationPlan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
+  goalId         String?
+  opportunityId  String?
+  eventId        String?
+  body           String
+  mood           String?
+  privacyLevel   ParticipationPrivacyLevel @default(private)
+  organiserNotes Json?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([participantId, createdAt])
+  @@index([planId])
+  @@map("participation_reflections")
 }
 
 model AvailabilityWindow {

@@ -21,7 +21,7 @@ export interface RegisteredAgent {
 }
 
 export async function findAgentBySlug(
-  slug: string
+  slug: string,
 ): Promise<RegisteredAgent | null> {
   const agent = await prisma.auraAgentDefinition.findUnique({
     where: { slug },
@@ -56,6 +56,7 @@ export const SPECIALIST_AGENT_SLUGS = [
   "evidence",
   "recovery",
   "accessops",
+  "participation",
 ] as const;
 
 export type SpecialistAgentSlug = (typeof SPECIALIST_AGENT_SLUGS)[number];

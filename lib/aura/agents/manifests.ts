@@ -172,6 +172,45 @@ export const SPECIALIST_MANIFESTS: SpecialistManifestTemplate[] = [
     disclaimers: ["High-risk recovery still requires a human safety officer."],
   },
   {
+    slug: "participation",
+    displayName: "AURA Participation",
+    classification: "specialist_other",
+    description:
+      "Helps participants clarify self-defined participation goals, search community opportunities, compare access information, and draft participant-approved plans without defining what a meaningful life is.",
+    allowedActionSlugs: [
+      "participation.clarify_goals",
+      "participation.search_opportunities",
+      "participation.compare_access",
+      "participation.prepare_organiser_questions",
+      "participation.draft_itinerary",
+      "participation.draft_rsvp",
+      "participation.coordinate_approved_transport_support",
+      "participation.monitor_access_changes",
+      "participation.initiate_continuity_on_disruption",
+      "participation.invite_private_reflection",
+    ],
+    prohibitedActionSlugs: [
+      ...NEVER_APPROVE,
+      "participation.define_meaningful_life",
+      "participation.infer_loneliness",
+      "participation.pressure_participation",
+      "participation.reward_activity_quantity",
+      "participation.expose_sensitive_affiliations",
+      "participation.book_without_authority",
+      "participation.spend_without_approval",
+      "participation.infer_funding",
+      "participation.contact_organisers_without_authority",
+      "participation.publish_reflections",
+    ],
+    requiresApprovalAtOrAbove: "medium_reversible",
+    disclaimers: [
+      "The participant defines what matters; AURA does not define a meaningful life.",
+      "AURA does not infer loneliness, social isolation, interests, diagnosis, or funding eligibility.",
+      "Bookings, spending, organiser contact, and transport/support coordination require participant authority.",
+      "Private reflections are never published or shared with organisers.",
+    ],
+  },
+  {
     // Wave 11 — SERVICE recovery. Distinct from account recovery above.
     // This specialist supports service continuity: rescheduling, drafting
     // substitute booking requests, opening continuity cases, and simulating
@@ -274,4 +313,10 @@ export function findAccessOpsManifest():
   | SpecialistManifestTemplate
   | undefined {
   return SPECIALIST_MANIFESTS.find((m) => m.slug === "accessops");
+}
+
+export function findParticipationManifest():
+  | SpecialistManifestTemplate
+  | undefined {
+  return SPECIALIST_MANIFESTS.find((m) => m.slug === "participation");
 }
