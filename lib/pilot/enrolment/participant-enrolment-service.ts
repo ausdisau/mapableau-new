@@ -1,5 +1,5 @@
-import { assertOperationAllowedAtStage } from "@/lib/pilot/policy/stage-policy";
 import { evaluateParticipantEligibility } from "@/lib/pilot/enrolment/participant-eligibility";
+import { assertOperationAllowedAtStage } from "@/lib/pilot/policy/stage-policy";
 import { prisma } from "@/lib/prisma";
 
 export async function inviteParticipantToPilot(input: {

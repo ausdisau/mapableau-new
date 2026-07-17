@@ -1,8 +1,8 @@
+import type { ControlledPilot } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
 import { evaluatePilotPolicy } from "@/lib/pilot/runtime/pilot-policy-evaluator";
 import { pauseBlocksNewOperations } from "@/lib/pilot/safety/pause-policy";
-import type { ControlledPilot } from "@prisma/client";
 
 function basePilot(overrides: Partial<ControlledPilot> = {}): ControlledPilot {
   return {

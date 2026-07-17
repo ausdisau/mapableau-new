@@ -1,4 +1,9 @@
 import {
+  assertExposureHeadroom,
+  assertWithinTransactionLimit,
+} from "@/lib/pilot/limits/limit-policy";
+import { loadPilotCounters } from "@/lib/pilot/limits/pilot-counter-store";
+import {
   assertFundingRouteAllowed,
   assertSupportItemAllowed,
 } from "@/lib/pilot/policy/allowlist";
@@ -7,11 +12,6 @@ import {
   assertOperationAllowedAtStage,
   isLimitedLivePermitted,
 } from "@/lib/pilot/policy/stage-policy";
-import { loadPilotCounters } from "@/lib/pilot/limits/pilot-counter-store";
-import {
-  assertExposureHeadroom,
-  assertWithinTransactionLimit,
-} from "@/lib/pilot/limits/limit-policy";
 import { prisma } from "@/lib/prisma";
 
 export type AssertPilotTransactionInput = {

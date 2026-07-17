@@ -1,7 +1,7 @@
 import type { PilotStage, PilotStatus } from "@prisma/client";
 
-import { capturePilotEvidenceSnapshot } from "@/lib/pilot/progression/pilot-evidence-snapshot";
 import { isLimitedLivePermitted } from "@/lib/pilot/policy/stage-policy";
+import { capturePilotEvidenceSnapshot } from "@/lib/pilot/progression/pilot-evidence-snapshot";
 
 export type ProgressionEvaluation = {
   canAdvance: boolean;

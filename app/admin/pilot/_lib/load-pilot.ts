@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { requirePermission } from "@/lib/auth/guards";
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
+import { requirePermission } from "@/lib/auth/guards";
 import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 
