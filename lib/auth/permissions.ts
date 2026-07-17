@@ -153,6 +153,11 @@ export type Permission =
   | "decision_register:publish"
   | "data_vault:self"
   | "data_vault:manage"
+  | "vault:read:self"
+  | "vault:manage:self"
+  | "vault:device:manage:self"
+  | "vault:recovery:participate"
+  | "vault:privacy_officer"
   | "research_safe_room:manage"
   | "provider_benchmark:read"
   | "governance_charter:manage"
@@ -224,6 +229,10 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "agreement:read:self",
     "attestation:read:self",
     "data_vault:self",
+    "vault:read:self",
+    "vault:manage:self",
+    "vault:device:manage:self",
+    "vault:recovery:participate",
     "outcomes:read",
     "safeguards:read",
     "membership:read",
@@ -239,6 +248,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "notification:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "vault:recovery:participate",
   ],
   support_coordinator: [
     "profile:read:any",
@@ -422,6 +432,11 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "assessor_network:manage",
     "decision_register:publish",
     "data_vault:manage",
+    "vault:read:self",
+    "vault:manage:self",
+    "vault:device:manage:self",
+    "vault:recovery:participate",
+    "vault:privacy_officer",
     "research_safe_room:manage",
     "provider_benchmark:read",
     "governance_charter:manage",

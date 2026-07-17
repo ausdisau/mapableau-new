@@ -140,6 +140,11 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  // Personal Access Vault
+  personalVault             PersonalVault?
+  vaultDevices              VaultDevice[]          @relation("VaultDeviceOwner")
+  vaultRecoveryParticipations VaultRecoveryParticipant[] @relation("VaultRecoveryParticipantUser")
 }
 
 model PasskeyCredential {
@@ -8646,4 +8651,461 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// =============================================================================
+// Personal Access Vault — reference-first hybrid capability layer
+// Does not replace AccessibilityProfile, Access Passport, AURA Memory, or consent.
+// =============================================================================
+
+enum VaultDeviceStatus {
+  active
+  revoked
+  lost
+  pending
+}
+
+enum VaultCapabilityStatus {
+  draft
+  active
+  revoked
+  expired
+  shadow
+}
+
+enum VaultRecoveryStatus {
+  draft
+  pending
+  completed
+  failed
+  cancelled
+}
+
+enum VaultImportStatus {
+  received
+  malware_scan
+  integrity_check
+  schema_check
+  provenance_review
+  duplicate_detection
+  canonical_routing
+  participant_review
+  imported
+  quarantined
+  rejected
+}
+
+enum VaultDeletionReceiptKind {
+  system_confirmed
+  local_confirmed
+  key_destroyed
+  recipient_attested
+  external_requested
+  backup_pending
+  denied
+  limited_by_retention
+}
+
+model PersonalVault {
+  id          String   @id @default(cuid())
+  ownerUserId String   @unique
+  ownerUser   User     @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  mode        String   @default("shadow")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items                  VaultItem[]
+  devices                VaultDevice[]
+  capabilities           VaultCapability[]
+  disclosures            VaultDisclosureView[]
+  recoveryConfigurations VaultRecoveryConfiguration[]
+  recoveryRequests       VaultRecoveryRequest[]
+  exports                VaultExport[]
+  imports                VaultImport[]
+  deletionRequests       VaultDeletionRequest[]
+  syncOperations         VaultSyncOperation[]
+  envelopes              VaultEncryptedEnvelope[]
+  trustedContacts        VaultTrustedContact[]
+
+  @@map("personal_vaults")
+}
+
+model VaultItem {
+  id                String        @id @default(cuid())
+  vaultId           String
+  vault             PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  itemType          String
+  category          String
+  displayName       String
+  canonicalDomain   String
+  canonicalRecordId String?
+  canonicalVersion  String?
+  vaultTreatment    String        @default("reference_only")
+  classification    String
+  fieldManifestJson Json          @default("[]")
+  purpose           String        @default("participant_visibility")
+  provenanceJson    Json          @default("{}")
+  retentionReason   String?
+  encryptionState   String        @default("none_reference_only")
+  exportState       String?
+  deletionState     String?
+  version           Int           @default(1)
+  expiresAt         DateTime?
+  deletedAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  capabilities VaultCapability[]
+  disclosures  VaultDisclosureView[]
+  envelopes    VaultEncryptedEnvelope[]
+
+  @@index([vaultId, category])
+  @@index([vaultId, itemType])
+  @@index([canonicalDomain, canonicalRecordId])
+  @@map("vault_items")
+}
+
+model VaultEncryptedEnvelope {
+  id                        String        @id @default(cuid())
+  vaultId                   String
+  vault                     PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  itemId                    String?
+  item                      VaultItem?    @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  encryptedPayloadReference String?
+  algorithm                 String        @default("aes-256-gcm")
+  keyReference              String?
+  keyVersion                String        @default("1")
+  encryptedDataKey          String?
+  payloadHash               String?
+  metadataHash              String?
+  policyReference           String?
+  provenanceReference       String?
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  expiresAt                 DateTime?
+  deletedAt                 DateTime?
+
+  @@index([vaultId])
+  @@index([itemId])
+  @@map("vault_encrypted_envelopes")
+}
+
+model VaultDevice {
+  id                    String            @id @default(cuid())
+  vaultId               String
+  vault                 PersonalVault     @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  ownerUserId           String
+  ownerUser             User              @relation("VaultDeviceOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  deviceLabel           String
+  platform              String?
+  devicePublicKey       String?
+  attestationState      String?
+  passkeyCredentialId   String?
+  localVaultEligible    Boolean           @default(false)
+  offlineKeyVersion     String?
+  syncStatus            String            @default("never_synced")
+  riskState             String            @default("unknown")
+  status                VaultDeviceStatus @default(pending)
+  lastUsedAt            DateTime?
+  registeredAt          DateTime          @default(now())
+  revokedAt             DateTime?
+  lostAt                DateTime?
+  remoteWipeRequestedAt DateTime?
+
+  capabilities VaultDeviceCapability[]
+
+  @@index([ownerUserId, status])
+  @@index([vaultId, status])
+  @@map("vault_devices")
+}
+
+model VaultDeviceCapability {
+  id        String      @id @default(cuid())
+  deviceId  String
+  device    VaultDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  scopeJson Json        @default("[]")
+  expiresAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime    @default(now())
+
+  @@index([deviceId])
+  @@map("vault_device_capabilities")
+}
+
+model VaultCapability {
+  id                      String                @id @default(cuid())
+  vaultId                 String
+  vault                   PersonalVault         @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  itemId                  String?
+  item                    VaultItem?            @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  holderUserId            String
+  issuer                  String                @default("mapable_vault")
+  purposeCode             String
+  recipientOrganisationId String?
+  recipientServiceId      String?
+  fieldSet                String[]              @default([])
+  allowedOperations       String[]              @default([])
+  contextJson             Json                  @default("{}")
+  useLimit                Int                   @default(1)
+  useCount                Int                   @default(0)
+  delegationRule          String                @default("non_transferable")
+  onwardSharingRule       String                @default("prohibited")
+  status                  VaultCapabilityStatus @default(shadow)
+  issuedAt                DateTime              @default(now())
+  expiresAt               DateTime
+  revokedAt               DateTime?
+  auditCorrelationId      String?
+  rightsLeaseReference    String?
+  createdAt               DateTime              @default(now())
+
+  uses VaultCapabilityUse[]
+
+  @@index([vaultId, status])
+  @@index([holderUserId, expiresAt])
+  @@index([purposeCode])
+  @@map("vault_capabilities")
+}
+
+model VaultCapabilityUse {
+  id           String          @id @default(cuid())
+  capabilityId String
+  capability   VaultCapability @relation(fields: [capabilityId], references: [id], onDelete: Cascade)
+  actorUserId  String?
+  outcome      String
+  metadataJson Json            @default("{}")
+  usedAt       DateTime        @default(now())
+
+  @@index([capabilityId])
+  @@map("vault_capability_uses")
+}
+
+model VaultDisclosureView {
+  id                      String        @id @default(cuid())
+  vaultId                 String
+  vault                   PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  itemId                  String?
+  item                    VaultItem?    @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  purposeCode             String
+  recipientLabel          String?
+  recipientOrganisationId String?
+  permittedFields         String[]      @default([])
+  deniedFields            String[]      @default([])
+  reasonsJson             Json          @default("[]")
+  status                  String        @default("compiled")
+  mode                    String        @default("shadow")
+  expiresAt               DateTime?
+  approvedAt              DateTime?
+  revokedAt               DateTime?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  receipts VaultDisclosureReceipt[]
+
+  @@index([vaultId, purposeCode])
+  @@map("vault_disclosure_views")
+}
+
+model VaultDisclosureReceipt {
+  id           String              @id @default(cuid())
+  disclosureId String
+  disclosure   VaultDisclosureView @relation(fields: [disclosureId], references: [id], onDelete: Cascade)
+  eventType    String
+  actorUserId  String?
+  metadataJson Json                @default("{}")
+  createdAt    DateTime            @default(now())
+
+  @@index([disclosureId])
+  @@map("vault_disclosure_receipts")
+}
+
+model VaultTrustedContact {
+  id            String        @id @default(cuid())
+  vaultId       String
+  vault         PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  displayName   String
+  relationship  String?
+  contactMethod String?
+  purposesJson  Json          @default("[]")
+  status        String        @default("active")
+  createdAt     DateTime      @default(now())
+  revokedAt     DateTime?
+
+  @@index([vaultId, status])
+  @@map("vault_trusted_contacts")
+}
+
+model VaultRecoveryConfiguration {
+  id              String        @id @default(cuid())
+  vaultId         String
+  vault           PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  method          String
+  thresholdJson   Json          @default("{}")
+  accessibleNotes String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([vaultId])
+  @@map("vault_recovery_configurations")
+}
+
+model VaultRecoveryRequest {
+  id                String              @id @default(cuid())
+  vaultId           String
+  vault             PersonalVault       @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  status            VaultRecoveryStatus @default(draft)
+  evidenceJson      Json                @default("{}")
+  restoredScopeJson Json                @default("{}")
+  createdAt         DateTime            @default(now())
+  completedAt       DateTime?
+  failedAt          DateTime?
+
+  participants VaultRecoveryParticipant[]
+  receipts     VaultRecoveryReceipt[]
+
+  @@index([vaultId, status])
+  @@map("vault_recovery_requests")
+}
+
+model VaultRecoveryParticipant {
+  id             String               @id @default(cuid())
+  requestId      String
+  request        VaultRecoveryRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  role           String
+  userId         String?
+  user           User?                @relation("VaultRecoveryParticipantUser", fields: [userId], references: [id], onDelete: SetNull)
+  status         String               @default("pending")
+  participatedAt DateTime?
+  createdAt      DateTime             @default(now())
+
+  @@index([requestId])
+  @@map("vault_recovery_participants")
+}
+
+model VaultRecoveryReceipt {
+  id        String               @id @default(cuid())
+  requestId String
+  request   VaultRecoveryRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  eventType String
+  note      String?
+  createdAt DateTime             @default(now())
+
+  @@index([requestId])
+  @@map("vault_recovery_receipts")
+}
+
+model VaultSyncOperation {
+  id          String        @id @default(cuid())
+  vaultId     String
+  vault       PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  deviceId    String?
+  status      String        @default("started")
+  summaryJson Json          @default("{}")
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
+
+  conflicts VaultSyncConflict[]
+
+  @@index([vaultId, status])
+  @@map("vault_sync_operations")
+}
+
+model VaultSyncConflict {
+  id           String             @id @default(cuid())
+  operationId  String
+  operation    VaultSyncOperation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  conflictType String
+  detailsJson  Json               @default("{}")
+  status       String             @default("open")
+  resolvedAt   DateTime?
+  createdAt    DateTime           @default(now())
+
+  @@index([operationId, status])
+  @@map("vault_sync_conflicts")
+}
+
+model VaultExport {
+  id           String        @id @default(cuid())
+  vaultId      String
+  vault        PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  format       String        @default("mapable_portable_vault_package")
+  status       String        @default("created")
+  manifestJson Json          @default("{}")
+  expiresAt    DateTime?
+  downloadedAt DateTime?
+  createdAt    DateTime      @default(now())
+
+  items VaultExportItem[]
+
+  @@index([vaultId])
+  @@map("vault_exports")
+}
+
+model VaultExportItem {
+  id       String      @id @default(cuid())
+  exportId String
+  export   VaultExport @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  itemId   String?
+  itemType String
+  included Boolean     @default(true)
+
+  @@index([exportId])
+  @@map("vault_export_items")
+}
+
+model VaultImport {
+  id           String            @id @default(cuid())
+  vaultId      String
+  vault        PersonalVault     @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  status       VaultImportStatus @default(received)
+  sourceLabel  String?
+  manifestJson Json              @default("{}")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  findings VaultImportFinding[]
+
+  @@index([vaultId, status])
+  @@map("vault_imports")
+}
+
+model VaultImportFinding {
+  id        String      @id @default(cuid())
+  importId  String
+  import    VaultImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+  severity  String
+  code      String
+  message   String
+  createdAt DateTime    @default(now())
+
+  @@index([importId])
+  @@map("vault_import_findings")
+}
+
+model VaultDeletionRequest {
+  id          String        @id @default(cuid())
+  vaultId     String
+  vault       PersonalVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  itemId      String?
+  scopeJson   Json          @default("[]")
+  status      String        @default("requested")
+  note        String?
+  createdAt   DateTime      @default(now())
+  completedAt DateTime?
+
+  receipts VaultDeletionReceipt[]
+
+  @@index([vaultId, status])
+  @@map("vault_deletion_requests")
+}
+
+model VaultDeletionReceipt {
+  id        String                   @id @default(cuid())
+  requestId String
+  request   VaultDeletionRequest     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  kind      VaultDeletionReceiptKind
+  message   String
+  createdAt DateTime                 @default(now())
+
+  @@index([requestId])
+  @@map("vault_deletion_receipts")
 }
