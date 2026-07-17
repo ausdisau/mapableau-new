@@ -1,5 +1,6 @@
 import { runDoorToRoomPreflight } from "../journey/door-to-room-preflight";
 import type { AccessQueryAst } from "../query/ast";
+
 import type { AccessBurdenEvent, AccessBurdenProfile } from "./types";
 
 /**

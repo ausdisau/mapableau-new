@@ -1,8 +1,9 @@
+import type { AccessQueryAst } from "../query/ast";
 import { resolveSegmentReliability } from "../reliability/evaluate";
 import type { AccessReliabilityBand } from "../reliability/types";
 import type { AccessConclusionState } from "../results/states";
+
 import { runDoorToRoomPreflight } from "./door-to-room-preflight";
-import type { AccessQueryAst } from "../query/ast";
 import type {
   JourneyDependencyEdge,
   JourneyDependencyGraph,

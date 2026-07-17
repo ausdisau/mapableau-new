@@ -3,9 +3,9 @@
  * No Prisma persistence. Geometry estimates are always provisional schemas.
  */
 
+import type { VisionCandidateState } from "./candidate-state-machine";
 import type { VisionCapturePurpose } from "./capture-purposes";
 import type { VisionConfidenceDimensions, VisionParticipantFacingState } from "./confidence";
-import type { VisionCandidateState } from "./candidate-state-machine";
 import type { VisionDeviceCapabilityProfile } from "./device-capability";
 import type { VisionMeasurementClass } from "./measurement-classes";
 import type { VisionFeatureClass, VisionHazardClass } from "./taxonomy";

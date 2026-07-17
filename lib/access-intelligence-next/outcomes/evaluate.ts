@@ -1,5 +1,6 @@
 import { runDoorToRoomPreflight } from "../journey/door-to-room-preflight";
 import type { AccessQueryAst } from "../query/ast";
+
 import type { AccessOutcomeRecord, AccessOutcomeState } from "./types";
 
 const shadowOutcomes = new Map<string, AccessOutcomeRecord>();

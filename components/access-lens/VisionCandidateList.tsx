@@ -1,12 +1,12 @@
 import React from "react";
 
+import { mapablePublicCardClass } from "@/lib/marketing/public-page-styles";
 import {
   VISION_FEATURE_LABELS,
   VISION_HAZARD_LABELS,
   VISION_PARTICIPANT_STATE_LABELS,
   type PerceptionCandidate,
 } from "@/lib/vision-access";
-import { mapablePublicCardClass } from "@/lib/marketing/public-page-styles";
 
 type VisionCandidateListProps = {
   candidates: PerceptionCandidate[];
