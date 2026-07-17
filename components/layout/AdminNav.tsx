@@ -110,7 +110,7 @@ const LEGACY_LINKS = [
   { href: "/admin/data-trust-reports", label: "Trust report" },
   { href: "/admin/sustainability-plan", label: "Sustainability" },
   { href: "/admin/long-term-outcomes", label: "Outcomes" },
-  { href: "/admin/national-accountability", label: "Accountability" },
+  { href: "/admin/accountability", label: "Accountability" },
   { href: "/admin/constitutional-safeguards", label: "Safeguards" },
   { href: "/admin/community-membership", label: "Membership" },
   { href: "/admin/transport-investment", label: "Investment" },
