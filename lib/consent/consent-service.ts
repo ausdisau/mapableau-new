@@ -78,12 +78,38 @@ export async function revokeConsent(
   return record;
 }
 
+/**
+ * Legacy boolean consent check. Wave 9 hardens this to fail-closed:
+ *
+ * - Requires an explicit grantee (`grantedToUserId` OR
+ *   `grantedToOrganisationId`). If both are omitted, we return `false` and
+ *   record an audit event. Callers that used to depend on the accidental
+ *   "any grantee matches" behaviour must be updated to specify the recipient.
+ * - If a matching `ConsentDirective` exists for the subject/purpose/recipient
+ *   whose latest version has decision != `active`, we return false even if a
+ *   legacy `ConsentRecord` is still marked active. The directive wins.
+ *
+ * New code SHOULD use `evaluateConsentDirective` from `lib/consent-v2/` which
+ * returns a rich result. This projection is retained for backwards
+ * compatibility.
+ */
 export async function checkConsent(params: {
   subjectUserId: string;
   scope: ConsentScope;
   grantedToUserId?: string;
   grantedToOrganisationId?: string;
 }): Promise<boolean> {
+  if (!params.grantedToUserId && !params.grantedToOrganisationId) {
+    await createAuditEvent({
+      actorUserId: params.subjectUserId,
+      action: "consent.check.grantee_missing",
+      entityType: "ConsentRecord",
+      participantId: params.subjectUserId,
+      metadata: { scope: params.scope, reason: "grantee_omitted_fail_closed" },
+    }).catch(() => {});
+    return false;
+  }
+
   const prismaScope = consentScopeToPrisma(params.scope);
   const now = new Date();
 
@@ -102,7 +128,22 @@ export async function checkConsent(params: {
     },
   });
 
-  return Boolean(record);
+  if (!record) return false;
+
+  if (record.directiveId) {
+    const directive = await prisma.consentDirective.findUnique({
+      where: { id: record.directiveId },
+      select: { decision: true, status: true, effectiveUntil: true },
+    });
+    if (!directive) return false;
+    if (directive.decision !== "active") return false;
+    if (directive.status !== "active") return false;
+    if (directive.effectiveUntil && directive.effectiveUntil <= now) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export async function listConsentsForParticipant(subjectUserId: string) {

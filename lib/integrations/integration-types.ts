@@ -19,10 +19,21 @@ export type IntegrationConnectionStatus =
   | "degraded"
   | "error";
 
+/** Substantive NDIA adapter health — never derived from feature flags alone. */
+export type NdiaAdapterHealthStatus =
+  | "healthy"
+  | "degraded"
+  | "blocked"
+  | "not_configured"
+  | "suspended";
+
 export type IntegrationHealthResult = {
   status: "healthy" | "degraded" | "unhealthy";
+  /** Extended NDIA-specific status when adapter is NDIA. */
+  ndiaStatus?: NdiaAdapterHealthStatus;
   latencyMs?: number;
   message?: string;
+  dimensions?: Record<string, unknown>;
 };
 
 export interface IntegrationAdapter {

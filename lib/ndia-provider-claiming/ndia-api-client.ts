@@ -1,8 +1,18 @@
+import { createHash } from "node:crypto";
+
 import {
   isNdiaProviderLiveSubmitAllowed,
   ndiaProviderClaimingConfig,
 } from "@/lib/ndia-provider-claiming/config";
 import type { NdiaProviderClaimPayload } from "@/lib/ndia-provider-claiming/types";
+
+/**
+ * Compatibility facade for legacy provider claim submission.
+ *
+ * Live HTTP delivery must go through the Wave 5 integration registry:
+ * `lib/ndis-gateway/integrations` (simulator / manual portal / certified adapters).
+ * This module must never guess NDIA endpoints or perform client_credentials submission.
+ */
 
 export type NdiaSubmitResult = {
   mode: "mock" | "http";
@@ -11,100 +21,55 @@ export type NdiaSubmitResult = {
   response?: unknown;
 };
 
-let cachedToken: { token: string; expiresAt: number } | null = null;
+export type NdiaIntegrationErrorCode = "NDIA_TECHNICAL_SPEC_NOT_CONFIGURED";
 
-async function fetchAccessToken(): Promise<string> {
-  if (!ndiaProviderClaimingConfig.tokenUrl) {
-    throw new Error("NDIA_PROVIDER_TOKEN_URL not configured");
-  }
-  const now = Date.now();
-  if (cachedToken && cachedToken.expiresAt > now) {
-    return cachedToken.token;
-  }
+export class NdiaIntegrationError extends Error {
+  readonly code: NdiaIntegrationErrorCode;
 
-  const body = new URLSearchParams({
-    grant_type: "client_credentials",
-    client_id: ndiaProviderClaimingConfig.apiClientId,
-    client_secret: ndiaProviderClaimingConfig.apiClientSecret,
-  });
-
-  const res = await fetch(ndiaProviderClaimingConfig.tokenUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!res.ok) {
-    throw new Error(`NDIA token request failed: ${res.status}`);
+  constructor(code: NdiaIntegrationErrorCode, message: string) {
+    super(message);
+    this.name = "NdiaIntegrationError";
+    this.code = code;
   }
-  const json = (await res.json()) as {
-    access_token: string;
-    expires_in?: number;
-  };
-  cachedToken = {
-    token: json.access_token,
-    expiresAt: now + (json.expires_in ?? 3600) * 1000 - 60_000,
-  };
-  return cachedToken.token;
+}
+
+function deterministicMockClaimId(payload: NdiaProviderClaimPayload): string {
+  const digest = createHash("sha256")
+    .update(JSON.stringify(payload))
+    .digest("hex")
+    .slice(0, 24);
+  return `ndia_mock_${digest}`;
 }
 
 /**
- * Submit claim to NDIA partner API. Uses mock adapter until credentials are configured.
- * Replace `submitPath` when NDIA issues your Payments/Claims endpoint path.
+ * Submit claim via mock simulator path, or fail closed for live delivery.
+ * Live submission requires an approved Wave 5 adapter profile — never guessed HTTP.
  */
 export async function submitProviderClaimToNdia(
   payload: NdiaProviderClaimPayload
 ): Promise<NdiaSubmitResult> {
   if (!isNdiaProviderLiveSubmitAllowed()) {
-    const mockId = `ndia_mock_${Date.now()}`;
+    const mockId = deterministicMockClaimId(payload);
     return {
       mode: "mock",
       externalClaimId: mockId,
       externalStatus: "submitted_mock",
       response: {
         message:
-          "Mock submission — configure NDIA_PROVIDER_API_* and NDIA_REAL_SUBMISSION_ENABLED for live API.",
+          "Mock submission — live NDIA delivery is disabled until a certified Wave 5 integration profile is activated.",
         payloadSummary: {
           lines: payload.lines.length,
           totalCents: payload.totals.totalCents,
           registration: payload.provider.ndisRegistrationNumber,
+          adapterMode: ndiaProviderClaimingConfig.adapterMode,
         },
       },
     };
   }
 
-  const token = await fetchAccessToken();
-  const submitPath =
-    process.env.NDIA_PROVIDER_CLAIM_SUBMIT_PATH ?? "/v1/provider/claims";
-  const url = `${ndiaProviderClaimingConfig.apiBaseUrl.replace(/\/$/, "")}${submitPath}`;
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const text = await res.text();
-  let json: unknown;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    json = { raw: text };
-  }
-
-  if (!res.ok) {
-    throw new Error(
-      `NDIA claim submit failed: ${res.status} ${typeof json === "object" ? JSON.stringify(json) : text}`
-    );
-  }
-
-  const record = json as { claimId?: string; id?: string; status?: string };
-  return {
-    mode: "http",
-    externalClaimId: record.claimId ?? record.id ?? `ndia_${Date.now()}`,
-    externalStatus: record.status ?? "submitted",
-    response: json,
-  };
+  // Live path fails closed: no client_credentials, no guessed /v1/provider/claims, no token cache.
+  throw new NdiaIntegrationError(
+    "NDIA_TECHNICAL_SPEC_NOT_CONFIGURED",
+    "NDIA live submission is not configured. Use the Wave 5 integration registry (lib/ndis-gateway/integrations) with an approved technical pack and certified adapter profile."
+  );
 }
