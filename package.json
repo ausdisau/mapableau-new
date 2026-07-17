@@ -64,7 +64,24 @@
     "platform:test-release-rings": "tsx scripts/platform/test-release-rings.ts",
     "platform:audit-capacity": "tsx scripts/platform/audit-capacity.ts",
     "platform:test-resilience": "tsx scripts/platform/test-resilience.ts",
-    "platform:assess-ga": "tsx scripts/platform/assess-ga.ts"
+    "platform:assess-ga": "tsx scripts/platform/assess-ga.ts",
+    "federation:conformance": "tsx scripts/federation/conformance.ts",
+    "federation:audit-consent": "tsx scripts/federation/audit-consent.ts",
+    "federation:audit-delegation": "tsx scripts/federation/audit-delegation.ts",
+    "federation:audit-disclosures": "tsx scripts/federation/audit-disclosures.ts",
+    "federation:audit-identifiers": "tsx scripts/federation/audit-identifiers.ts",
+    "federation:test-issuance": "tsx scripts/federation/test-issuance.ts",
+    "federation:test-presentation": "tsx scripts/federation/test-presentation.ts",
+    "federation:test-status": "tsx scripts/federation/test-status.ts",
+    "federation:test-wallet-recovery": "tsx scripts/federation/test-wallet-recovery.ts",
+    "federation:test-accessibility": "tsx scripts/federation/test-accessibility.ts",
+    "federation:migrate-consent-records-v2": "tsx scripts/federation/migrate-consent-records-v2.ts",
+    "federation:audit-consent-purpose": "tsx scripts/federation/audit-consent-purpose.ts",
+    "federation:backfill-access-vaults": "tsx scripts/federation/backfill-access-vaults.ts",
+    "federation:classify-portable-data": "tsx scripts/federation/classify-portable-data.ts",
+    "federation:audit-delegate-authority": "tsx scripts/federation/audit-delegate-authority.ts",
+    "federation:audit-external-identifiers": "tsx scripts/federation/audit-external-identifiers.ts",
+    "federation:audit-disclosure-bypasses": "tsx scripts/federation/audit-disclosure-bypasses.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
