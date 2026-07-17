@@ -12,6 +12,9 @@ const BLOCKED_CERTIFICATION_PHRASES = [
   "guaranteed unbiased",
 ];
 
+// Wave 13 GovernedSystem + AlgorithmRegisterEntry is authoritative for new
+// public-interest registrations. RegisteredAlgorithm remains the legacy list.
+
 export function assertTransparencyCopy(text: string) {
   const lower = text.toLowerCase();
   for (const phrase of BLOCKED_CERTIFICATION_PHRASES) {

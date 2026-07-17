@@ -5017,23 +5017,27 @@ model BoardReportSnapshot {
 }
 
 model CommunityGovernanceMeeting {
-  id        String   @id @default(cuid())
-  title     String
-  meetingAt DateTime
-  notes     String?
-  createdAt DateTime @default(now())
+  id                  String   @id @default(cuid())
+  title               String
+  meetingAt           DateTime
+  notes               String?
+  tenantId            String?
+  constituencySummary String?
+  createdAt           DateTime @default(now())
 
   decisions CommunityGovernanceDecision[]
 }
 
 model CommunityGovernanceDecision {
-  id        String                      @id @default(cuid())
-  meetingId String?
-  meeting   CommunityGovernanceMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
-  title     String
-  summary   String
-  status    String                      @default("recorded")
-  createdAt DateTime                    @default(now())
+  id                     String                      @id @default(cuid())
+  meetingId              String?
+  meeting                CommunityGovernanceMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  title                  String
+  summary                String
+  status                 String                      @default("recorded")
+  constituencySummary    String?
+  conflictCheckCompleted Boolean                     @default(false)
+  createdAt              DateTime                    @default(now())
 }
 
 // --- MapAble Core Phase 7 ---
@@ -14929,4 +14933,552 @@ model AccessOpsAssuranceAssessment {
 
   @@index([controlArea, outcome])
   @@map("accessops_assurance_assessments")
+}
+
+// =============================================================================
+// Wave 13 — Public-interest governance
+// Rights-based accountability for consequential systems, notices, appeals,
+// independent review, community oversight, conflicts and public transparency.
+// =============================================================================
+
+enum GovernedSystemType {
+  deterministic_rule
+  ranking
+  recommendation
+  predictive_model
+  generative_model
+  optimisation
+  matching
+  moderation
+  fraud_or_anomaly_detection
+  identity_or_credential
+  access_control
+  workflow_automation
+  reporting
+  other
+}
+
+enum DecisionImpact {
+  informational
+  low
+  moderate
+  high
+  rights_affecting
+  safety_relevant
+  financial
+  legally_significant
+  prohibited_for_automation
+}
+
+enum GovernedDecisionStatus {
+  proposed
+  pending
+  issued
+  challenged
+  under_review
+  varied
+  withdrawn
+  upheld
+  overturned
+  remitted
+  expired
+  archived
+}
+
+enum AppealStatus {
+  draft
+  submitted
+  acknowledged
+  triage
+  information_requested
+  reviewer_assigned
+  under_review
+  participant_response
+  decision_pending
+  resolved
+  withdrawn
+  escalated
+  closed
+}
+
+enum AiaStatus {
+  draft
+  in_assessment
+  under_review
+  approved
+  conditional
+  rejected
+  expired
+  retired
+}
+
+enum AppealGroundType {
+  factual_error
+  process_unfair
+  discrimination
+  accessibility_barrier
+  consent_misuse
+  incorrect_evidence
+  disproportionate_effect
+  human_oversight_absent
+  other
+}
+
+enum RemedyActionType {
+  reverse_decision
+  vary_decision
+  republish_corrected
+  restore_access
+  notify_downstream
+  apologise
+  retrain_process
+  other
+}
+
+enum OversightBodyType {
+  community_panel
+  independent_review_board
+  technical_advisory
+  privacy_security
+  first_nations
+  other
+}
+
+enum PublicationVisibility {
+  public
+  authenticated
+  sealed
+  internal
+}
+
+model GovernedSystem {
+  id                    String             @id @default(cuid())
+  systemKey             String             @unique
+  displayName           String
+  systemType            GovernedSystemType
+  tenantId              String?
+  ownerUserId           String?
+  ownerTeam             String
+  businessPurpose       String
+  affectedPeopleSummary String
+  decisionRole          String
+  actionRiskCeiling     String
+  prohibitedUses        Json
+  knownLimitations      String
+  incidentContact       String
+  status                String             @default("draft")
+  legacyAlgorithmId     String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  versions                GovernedSystemVersion[]
+  registerEntries         AlgorithmRegisterEntry[]
+  impactAssessments       AlgorithmicImpactAssessment[]
+  rightsImpactAssessments RightsImpactAssessment[]
+  decisions               DecisionRecord[]
+
+  @@index([tenantId, status])
+  @@index([systemType, status])
+  @@map("pig_governed_systems")
+}
+
+model GovernedSystemVersion {
+  id                          String         @id @default(cuid())
+  systemId                    String
+  system                      GovernedSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  versionKey                  String
+  modelOrRulesVersion         String
+  promptVersion               String?
+  inputsJson                  Json
+  outputsJson                 Json
+  dataCategories              Json
+  humanOversightDescription   String
+  fairnessTestingSummary      String?
+  accessibilityTestingSummary String?
+  securityTestingSummary      String?
+  privacyTestingSummary       String?
+  monitoringSummary           String?
+  sourceReference             String?
+  publicExplanation           String
+  effectiveFrom               DateTime
+  effectiveTo                 DateTime?
+  retirementDate              DateTime?
+  createdAt                   DateTime       @default(now())
+
+  registerEntries   AlgorithmRegisterEntry[]
+  impactAssessments AlgorithmicImpactAssessment[]
+  decisions         DecisionRecord[]
+
+  @@unique([systemId, versionKey])
+  @@index([effectiveFrom, effectiveTo])
+  @@map("pig_governed_system_versions")
+}
+
+model AlgorithmRegisterEntry {
+  id                          String                 @id @default(cuid())
+  systemId                    String
+  system                      GovernedSystem         @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  systemVersionId             String?
+  systemVersion               GovernedSystemVersion? @relation(fields: [systemVersionId], references: [id], onDelete: SetNull)
+  legacyRegisteredAlgorithmId String?
+  publicTitle                 String
+  publicSummary               String
+  doesNotDoSummary            String
+  aiInvolved                  Boolean
+  ranksOrRecommends           Boolean
+  ownerDisplay                String
+  affectedPeoplePublic        String
+  dataCategoriesPublic        Json
+  exclusionsPublic            String
+  humanReviewPublic           String
+  limitationsPublic           String
+  latestAssessmentAt          DateTime?
+  operatingStatus             String
+  challengeHowTo              String
+  publishedAt                 DateTime?
+  visibility                  PublicationVisibility  @default(public)
+  certificationClaimForbidden Boolean                @default(true)
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
+
+  publications PublicRegisterPublication[]
+
+  @@index([systemId, visibility])
+  @@index([publishedAt])
+  @@map("pig_algorithm_register_entries")
+}
+
+model AlgorithmicImpactAssessment {
+  id              String                 @id @default(cuid())
+  systemId        String
+  system          GovernedSystem         @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  systemVersionId String?
+  systemVersion   GovernedSystemVersion? @relation(fields: [systemVersionId], references: [id], onDelete: SetNull)
+  status          AiaStatus              @default(draft)
+  assessorId      String?
+  reviewerId      String?
+  summary         String
+  rightsImpacts   Json
+  residualRisks   Json
+  approvedAt      DateTime?
+  expiresAt       DateTime?
+  evidenceRefs    Json?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  rightsImpactAssessments RightsImpactAssessment[]
+
+  @@index([systemId, status])
+  @@index([expiresAt])
+  @@map("pig_algorithmic_impact_assessments")
+}
+
+model RightsImpactAssessment {
+  id          String                       @id @default(cuid())
+  systemId    String
+  system      GovernedSystem               @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  aiaId       String?
+  aia         AlgorithmicImpactAssessment? @relation(fields: [aiaId], references: [id], onDelete: SetNull)
+  summary     String
+  impactAreas Json
+  mitigations Json
+  createdAt   DateTime                     @default(now())
+
+  @@index([systemId])
+  @@index([aiaId])
+  @@map("pig_rights_impact_assessments")
+}
+
+model DecisionRecord {
+  id                 String                 @id @default(cuid())
+  tenantId           String?
+  subjectUserId      String?
+  systemId           String?
+  system             GovernedSystem?        @relation(fields: [systemId], references: [id], onDelete: SetNull)
+  systemVersionId    String?
+  systemVersion      GovernedSystemVersion? @relation(fields: [systemVersionId], references: [id], onDelete: SetNull)
+  impact             DecisionImpact
+  status             GovernedDecisionStatus @default(proposed)
+  title              String
+  summary            String
+  decisionOwnerId    String
+  humanInvolved      Boolean
+  systemInvolved     Boolean
+  policyVersion      String
+  materialFacts      Json?
+  uncertaintyNotes   String?
+  notConsideredNotes String?
+  effectOnPerson     String?
+  effectiveAt        DateTime
+  expiresAt          DateTime?
+  correlationId      String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  notice          DecisionNotice?
+  evidenceRefs    DecisionEvidenceReference[]
+  appeals         AppealCase[]
+  affectedParties AiGovernanceAffectedParty[]
+
+  @@index([tenantId, status])
+  @@index([subjectUserId, createdAt])
+  @@index([systemId, impact])
+  @@index([correlationId])
+  @@map("governance_decision_records")
+}
+
+model DecisionNotice {
+  id               String         @id @default(cuid())
+  decisionId       String         @unique
+  decision         DecisionRecord @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  plainLanguage    String
+  easyRead         String
+  detailedNotice   String
+  machineReadable  Json
+  printableRef     String?
+  appealDeadlineAt DateTime?
+  createdAt        DateTime       @default(now())
+
+  @@map("pig_decision_notices")
+}
+
+model DecisionEvidenceReference {
+  id          String         @id @default(cuid())
+  decisionId  String
+  decision    DecisionRecord @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  label       String
+  evidenceRef String
+  sensitivity String
+  createdAt   DateTime       @default(now())
+
+  @@index([decisionId])
+  @@map("pig_decision_evidence_references")
+}
+
+model AppealCase {
+  id                         String         @id @default(cuid())
+  decisionId                 String
+  decision                   DecisionRecord @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  tenantId                   String?
+  appellantUserId            String
+  advocateUserId             String?
+  status                     AppealStatus   @default(draft)
+  nonRetaliationAcknowledged Boolean
+  serviceAccessContinued     Boolean        @default(true)
+  lateSubmissionReason       String?
+  submittedAt                DateTime?
+  closedAt                   DateTime?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+
+  grounds     AppealGround[]
+  submissions AppealSubmission[]
+  reviews     IndependentReview[]
+  remedies    RemedyAction[]
+
+  @@index([decisionId, status])
+  @@index([appellantUserId, status])
+  @@index([tenantId, status])
+  @@map("pig_appeal_cases")
+}
+
+model AppealGround {
+  id         String           @id @default(cuid())
+  appealId   String
+  appeal     AppealCase       @relation(fields: [appealId], references: [id], onDelete: Cascade)
+  groundType AppealGroundType
+  narrative  String
+  createdAt  DateTime         @default(now())
+
+  @@index([appealId])
+  @@map("pig_appeal_grounds")
+}
+
+model AppealSubmission {
+  id               String     @id @default(cuid())
+  appealId         String
+  appeal           AppealCase @relation(fields: [appealId], references: [id], onDelete: Cascade)
+  kind             String
+  body             String
+  accessibleFormat String?
+  createdAt        DateTime   @default(now())
+
+  @@index([appealId, kind])
+  @@map("pig_appeal_submissions")
+}
+
+model IndependentReview {
+  id              String     @id @default(cuid())
+  appealId        String
+  appeal          AppealCase @relation(fields: [appealId], references: [id], onDelete: Cascade)
+  reviewerUserId  String
+  conflictChecked Boolean
+  conflictFound   Boolean    @default(false)
+  assignedAt      DateTime
+  completedAt     DateTime?
+  createdAt       DateTime   @default(now())
+
+  findings ReviewFinding[]
+
+  @@index([appealId])
+  @@index([reviewerUserId])
+  @@map("pig_independent_reviews")
+}
+
+model ReviewFinding {
+  id        String            @id @default(cuid())
+  reviewId  String
+  review    IndependentReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  finding   String
+  outcome   String
+  rationale String
+  createdAt DateTime          @default(now())
+
+  @@index([reviewId])
+  @@map("pig_review_findings")
+}
+
+model RemedyAction {
+  id             String           @id @default(cuid())
+  appealId       String
+  appeal         AppealCase       @relation(fields: [appealId], references: [id], onDelete: Cascade)
+  actionType     RemedyActionType
+  status         String           @default("pending")
+  description    String
+  downstreamRefs Json?
+  completedAt    DateTime?
+  createdAt      DateTime         @default(now())
+
+  @@index([appealId, status])
+  @@map("pig_remedy_actions")
+}
+
+model OversightBody {
+  id         String            @id @default(cuid())
+  name       String
+  bodyType   OversightBodyType
+  tenantId   String?
+  status     String
+  termMonths Int?
+  createdAt  DateTime          @default(now())
+
+  memberships     OversightMembership[]
+  panels          CommunityPanel[]
+  recommendations CommunityRecommendation[]
+
+  @@index([tenantId, status])
+  @@map("pig_oversight_bodies")
+}
+
+model OversightMembership {
+  id               String        @id @default(cuid())
+  bodyId           String
+  body             OversightBody @relation(fields: [bodyId], references: [id], onDelete: Cascade)
+  userId           String?
+  displayName      String
+  constituency     String
+  termStart        DateTime
+  termEnd          DateTime?
+  status           String
+  remunerationNote String?
+  createdAt        DateTime      @default(now())
+
+  @@index([bodyId, status])
+  @@index([userId])
+  @@map("pig_oversight_memberships")
+}
+
+model CommunityPanel {
+  id        String         @id @default(cuid())
+  bodyId    String?
+  body      OversightBody? @relation(fields: [bodyId], references: [id], onDelete: SetNull)
+  name      String
+  tenantId  String?
+  status    String
+  createdAt DateTime       @default(now())
+
+  recommendations CommunityRecommendation[]
+
+  @@index([tenantId, status])
+  @@map("pig_community_panels")
+}
+
+model CommunityRecommendation {
+  id               String          @id @default(cuid())
+  panelId          String?
+  panel            CommunityPanel? @relation(fields: [panelId], references: [id], onDelete: SetNull)
+  bodyId           String?
+  body             OversightBody?  @relation(fields: [bodyId], references: [id], onDelete: SetNull)
+  title            String
+  recommendation   String
+  status           String          @default("draft")
+  bindingAuthority Boolean         @default(false)
+  minorityView     String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  responses GovernanceResponse[]
+
+  @@index([panelId, status])
+  @@index([bodyId, status])
+  @@map("pig_community_recommendations")
+}
+
+model GovernanceResponse {
+  id               String                  @id @default(cuid())
+  recommendationId String
+  recommendation   CommunityRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  responderId      String?
+  responseBody     String
+  respondedAt      DateTime
+  createdAt        DateTime                @default(now())
+
+  @@index([recommendationId])
+  @@map("pig_governance_responses")
+}
+
+model ConflictOfInterestDeclaration {
+  id              String   @id @default(cuid())
+  subjectUserId   String
+  contextType     String
+  contextId       String
+  declaration     String
+  recusalRequired Boolean
+  declaredAt      DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([subjectUserId, contextType, contextId])
+  @@map("pig_conflict_of_interest_declarations")
+}
+
+model PublicRegisterPublication {
+  id           String                  @id @default(cuid())
+  entryId      String?
+  entry        AlgorithmRegisterEntry? @relation(fields: [entryId], references: [id], onDelete: SetNull)
+  kind         String
+  payloadHash  String
+  publishedAt  DateTime
+  supersededAt DateTime?
+  visibility   PublicationVisibility
+  createdAt    DateTime                @default(now())
+
+  @@index([entryId, publishedAt])
+  @@index([visibility, publishedAt])
+  @@map("pig_public_register_publications")
+}
+
+model AiGovernanceAffectedParty {
+  id               String          @id @default(cuid())
+  incidentId       String
+  subjectUserId    String?
+  noticeDecisionId String?
+  noticeDecision   DecisionRecord? @relation(fields: [noticeDecisionId], references: [id], onDelete: SetNull)
+  status           String
+  notifiedAt       DateTime?
+  remediatedAt     DateTime?
+  createdAt        DateTime        @default(now())
+
+  @@index([incidentId, status])
+  @@index([subjectUserId])
+  @@map("pig_ai_governance_affected_parties")
 }

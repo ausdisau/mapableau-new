@@ -48,14 +48,40 @@ export async function recordAiGovernanceIncident(params: {
   return incident;
 }
 
+export async function linkAiGovernanceAffectedParty(params: {
+  incidentId: string;
+  subjectUserId?: string;
+  noticeDecisionId?: string;
+  status?: string;
+  notifiedAt?: Date;
+}) {
+  return prisma.aiGovernanceAffectedParty.create({
+    data: {
+      incidentId: params.incidentId,
+      subjectUserId: params.subjectUserId,
+      noticeDecisionId: params.noticeDecisionId,
+      status: params.status ?? "identified",
+      notifiedAt: params.notifiedAt,
+    },
+  });
+}
+
 export async function getAiGovernanceDashboard() {
   const [monitors, incidents, fairnessChecks] = await Promise.all([
-    prisma.aiModelMonitor.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
+    prisma.aiModelMonitor.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
     prisma.aiGovernanceIncident.findMany({
       where: { status: "open" },
       take: 20,
     }),
     prisma.fairnessCheck.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
   ]);
-  return { monitors, incidents, fairnessWarningCount: monitors.filter((m) => m.fairnessWarning).length, fairnessChecks };
+  return {
+    monitors,
+    incidents,
+    fairnessWarningCount: monitors.filter((m) => m.fairnessWarning).length,
+    fairnessChecks,
+  };
 }

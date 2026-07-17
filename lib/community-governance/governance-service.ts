@@ -6,6 +6,8 @@ export async function recordGovernanceMeeting(params: {
   title: string;
   meetingAt: Date;
   notes?: string;
+  tenantId?: string;
+  constituencySummary?: string;
   actorUserId: string;
 }) {
   if (!phase6Config.communityGovernanceEnabled) {
@@ -17,6 +19,8 @@ export async function recordGovernanceMeeting(params: {
       title: params.title,
       meetingAt: params.meetingAt,
       notes: params.notes,
+      tenantId: params.tenantId,
+      constituencySummary: params.constituencySummary,
     },
   });
 
@@ -34,13 +38,18 @@ export async function recordGovernanceDecision(params: {
   meetingId?: string;
   title: string;
   summary: string;
+  constituencySummary?: string;
   actorUserId: string;
 }) {
+  // Wave 13 publish-style governance decisions require conflict declarations
+  // before publication; new records default conflictCheckCompleted to false.
   const decision = await prisma.communityGovernanceDecision.create({
     data: {
       meetingId: params.meetingId,
       title: params.title,
       summary: params.summary,
+      constituencySummary: params.constituencySummary,
+      conflictCheckCompleted: false,
     },
   });
 
