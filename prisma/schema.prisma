@@ -219,6 +219,34 @@ model User {
   breakGlassSessionsActor            BreakGlassSession[]             @relation("BreakGlassActor")
   breakGlassSessionsApprover         BreakGlassSession[]             @relation("BreakGlassApprover")
   delegatedTenantAuthoritiesApproved DelegatedTenantAuthority[]      @relation("DelegatedTenantAuthorityApprovedBy")
+
+  // Wave 9: participant-controlled credentials and consent federation
+  participantAccessVault             ParticipantAccessVault?
+  participantDataPackages            ParticipantDataPackage[]       @relation("ParticipantDataPackageParticipant")
+  portableClaimsAsSubject            PortableClaim[]                @relation("PortableClaimSubject")
+  portableClaimsAsserted             PortableClaim[]                @relation("PortableClaimAsserter")
+  consentDirectivesAsSubject         ConsentDirective[]             @relation("ConsentDirectiveSubject")
+  consentDirectivesAuthored          ConsentDirective[]             @relation("ConsentDirectiveAuthor")
+  consentDirectivesWithdrawn         ConsentDirective[]             @relation("ConsentDirectiveWithdrawnBy")
+  consentReceiptsIssued              ConsentReceipt[]               @relation("ConsentReceiptIssuedTo")
+  consentUseEventsActor              ConsentUseEvent[]              @relation("ConsentUseEventActor")
+  delegateAuthoritiesAsParticipant   DelegateAuthority[]            @relation("DelegateAuthorityParticipant")
+  delegateAuthoritiesAsDelegate      DelegateAuthority[]            @relation("DelegateAuthorityDelegate")
+  delegateAuthorityTransactions      DelegateAuthorityTransaction[] @relation("DelegateAuthorityTransactionActor")
+  issuedCredentials                  IssuedCredential[]             @relation("IssuedCredentialSubject")
+  credentialIssuanceOffers           CredentialIssuanceOffer[]      @relation("CredentialIssuanceOfferSubject")
+  credentialPresentations            CredentialPresentation[]       @relation("CredentialPresentationSubject")
+  participantWallet                  ParticipantWallet?
+  walletRecoveryEventsActor          WalletRecoveryEvent[]          @relation("WalletRecoveryEventActor")
+  pairwiseSubjectIdentifiers         PairwiseSubjectIdentifier[]    @relation("PairwiseSubjectIdentifierParticipant")
+  emergencyAccessRequestsAsSubject   EmergencyAccessRequest[]       @relation("EmergencyAccessRequestSubject")
+  emergencyAccessRequestsAsRequester EmergencyAccessRequest[]       @relation("EmergencyAccessRequestRequester")
+  emergencyAccessRequestsReviewed    EmergencyAccessRequest[]       @relation("EmergencyAccessRequestReviewer")
+  portabilityExportJobs              PortabilityExportJob[]         @relation("PortabilityExportJobParticipant")
+  portabilityImportJobs              PortabilityImportJob[]         @relation("PortabilityImportJobParticipant")
+  disclosureManifestsSubject         DisclosureManifest[]           @relation("DisclosureManifestSubject")
+  credentialTrustEntriesApproved     CredentialTrustRegistryEntry[] @relation("CredentialTrustApprover")
+  credentialSchemaDefinitionsAuthor  CredentialSchemaDefinition[]   @relation("CredentialSchemaAuthor")
 }
 
 model PasskeyCredential {
@@ -870,6 +898,16 @@ model Organisation {
   generalAvailabilityAssessments GeneralAvailabilityAssessment[]
   breakGlassSessions             BreakGlassSession[]             @relation("BreakGlassTargetOrganisation")
   regulatoryChangeCases          RegulatoryChangeCase[]
+
+  // Wave 9: participant-controlled credentials and consent federation
+  consentDirectivesRecipient     ConsentDirective[]              @relation("ConsentDirectiveRecipientOrganisation")
+  delegateAuthorityScopedOrg     DelegateAuthority[]             @relation("DelegateAuthorityScopedOrganisation")
+  credentialTrustEntries         CredentialTrustRegistryEntry[]  @relation("CredentialTrustOrganisation")
+  externalFederationEntities     ExternalFederationEntity[]      @relation("ExternalFederationEntityOwner")
+  disclosureManifestsRecipient   DisclosureManifest[]            @relation("DisclosureManifestRecipient")
+  credentialIssuanceOffersIssuer CredentialIssuanceOffer[]       @relation("CredentialIssuanceOfferIssuer")
+  credentialPresentationRequests CredentialPresentationRequest[] @relation("CredentialPresentationRequestVerifier")
+  issuedCredentialsIssuer        IssuedCredential[]              @relation("IssuedCredentialIssuerOrganisation")
 }
 
 model OrganisationMember {
@@ -910,8 +948,13 @@ model ConsentRecord {
 
   purposeRecords ParticipantConsentPurposeRecord[]
 
+  // Wave 9 bridge to immutable directive layer (optional; nullable).
+  directiveId String?
+  directive   ConsentDirective? @relation("ConsentRecordDirective", fields: [directiveId], references: [id], onDelete: SetNull)
+
   @@index([subjectUserId, status])
   @@index([grantedToOrganisationId])
+  @@index([directiveId])
 }
 
 model NotificationPreference {
@@ -11680,4 +11723,813 @@ model TenantModelClassification {
   notes              String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+}
+
+// ============================================================================
+// Wave 9 — participant-controlled credentials and consent federation
+//
+// Federation != participant data access. Relationship != authority.
+// AI must not grant consent, sign credentials, approve delegation, complete
+// high-risk recovery, approve emergency access, or establish issuer trust.
+// MapAble credentials are NOT government credentials.
+// ============================================================================
+
+enum ConsentDirectiveDecision {
+  active
+  denied
+  withdrawn
+  superseded
+  expired
+}
+
+enum ConsentDirectiveStatus {
+  draft
+  active
+  withdrawn
+  expired
+  superseded
+}
+
+enum ConsentRecipientCategory {
+  self
+  family_or_informal_supporter
+  emergency_contact
+  support_coordinator
+  plan_manager
+  registered_provider
+  unregistered_provider
+  government_agency
+  research_partner
+  external_verifier
+  external_app
+  federation_partner
+  mapable_internal_ops
+}
+
+enum ConsentPurpose {
+  service_delivery
+  billing
+  safeguarding
+  accessibility_share
+  transport_coordination
+  care_coordination
+  emergency_response
+  research_deidentified
+  regulatory_reporting
+  quality_improvement
+  external_verification
+  portability_export
+  audit_and_compliance
+}
+
+enum ConsentFrequency {
+  one_time
+  session_bound
+  ongoing_until_revoked
+  fixed_period
+  event_bound
+}
+
+enum PortableClaimProvenance {
+  self_asserted
+  platform_asserted
+  provider_asserted
+  third_party_asserted
+  externally_verified
+}
+
+enum PortableClaimCategory {
+  accessibility_preference
+  communication_preference
+  environmental_need
+  service_history
+  provider_relationship
+  training_or_accreditation
+  peer_endorsement
+  contact_reference
+  lived_experience_note
+  emergency_instruction
+}
+
+enum DelegateRelationshipKind {
+  family_member
+  informal_supporter
+  emergency_contact
+  legal_guardian
+  power_of_attorney_personal
+  power_of_attorney_financial
+  nominee_ndis
+  professional_advocate
+  paid_supporter
+  none
+}
+
+enum DelegateAuthorityCategory {
+  view_only
+  contact_and_scheduling
+  service_coordination
+  billing_view
+  billing_manage
+  legal_representation
+  emergency_action
+  identity_recovery_assist
+}
+
+enum DelegateAuthorityStatus {
+  proposed
+  active
+  suspended
+  revoked
+  expired
+}
+
+enum DelegateAuthorityVerification {
+  self_asserted
+  platform_verified
+  document_verified
+  legal_instrument_verified
+}
+
+enum CredentialTrustLevel {
+  untrusted
+  observed
+  allowed_verifier
+  allowed_issuer
+  fully_trusted
+}
+
+enum CredentialTrustStatus {
+  proposed
+  active
+  suspended
+  revoked
+}
+
+enum CredentialSchemaKind {
+  access_passport
+  accessibility_preference
+  service_history
+  provider_endorsement
+  self_asserted_preference
+  peer_endorsement
+  emergency_instruction
+  portability_receipt
+}
+
+enum CredentialIssuanceMode {
+  simulator_only
+  operator_review_required
+  automated_low_risk
+  disabled
+}
+
+enum CredentialIssuanceStatus {
+  offered
+  accepted
+  issued
+  rejected
+  revoked
+  expired
+}
+
+enum CredentialPresentationStatus {
+  requested
+  approved_by_participant
+  presented
+  rejected
+  expired
+}
+
+enum CredentialStatusListPurpose {
+  revocation
+  suspension
+}
+
+enum WalletActivationStatus {
+  not_activated
+  provisional
+  active
+  suspended
+  archived
+}
+
+enum WalletKeyPurpose {
+  authentication
+  presentation_signing
+  key_agreement
+  recovery_wrap
+}
+
+enum WalletKeyBinding {
+  platform_kms
+  device_secure_element
+  hardware_key
+  external_wallet_reference
+}
+
+enum WalletRecoveryMethod {
+  none
+  operator_assisted
+  guardian_shard
+  hardware_recovery_kit
+  offline_paper_kit
+}
+
+enum WalletRecoveryStatus {
+  requested
+  awaiting_verification
+  approved
+  denied
+  completed
+  cancelled
+}
+
+enum WalletDeviceTrust {
+  unknown
+  observed
+  trusted
+  suspended
+  revoked
+}
+
+enum ExternalFederationEntityKind {
+  issuer
+  verifier
+  app
+  peer_platform
+  government_gateway
+}
+
+enum ExternalFederationEntityStatus {
+  proposed
+  approved
+  suspended
+  revoked
+}
+
+enum EmergencyAccessStatus {
+  requested
+  reviewing
+  approved
+  denied
+  auto_expired
+  revoked
+}
+
+enum EmergencyAccessScope {
+  contact_only
+  accessibility_only
+  medical_instruction_only
+  service_history_only
+  full_break_glass
+}
+
+enum PortabilityJobStatus {
+  queued
+  running
+  completed
+  failed
+  cancelled
+}
+
+enum PortabilityDataScope {
+  vault_only
+  vault_and_receipts
+  vault_and_credentials
+  full_portable_bundle
+}
+
+enum DisclosureDecision {
+  allowed
+  minimised
+  denied
+  requires_participant_review
+}
+
+model ParticipantAccessVault {
+  id                    String    @id @default(cuid())
+  participantId         String    @unique
+  participant           User      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  activatedAt           DateTime?
+  status                String    @default("draft")
+  privacyModeDefault    String    @default("minimum_necessary")
+  externalIssuanceOptIn Boolean   @default(false)
+  recoveryPolicyVersion Int       @default(0)
+  notes                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  packages ParticipantDataPackage[] @relation("ParticipantDataPackageVault")
+
+  @@index([status])
+}
+
+model ParticipantDataPackage {
+  id              String                  @id @default(cuid())
+  participantId   String
+  participant     User                    @relation("ParticipantDataPackageParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  vaultId         String?
+  vault           ParticipantAccessVault? @relation("ParticipantDataPackageVault", fields: [vaultId], references: [id], onDelete: SetNull)
+  key             String
+  displayName     String
+  category        String
+  classification  String                  @default("participant_confidential")
+  contentHash     String?
+  contentSummary  Json?
+  sourceSystem    String?
+  lastRefreshedAt DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  claims PortableClaim[] @relation("PortableClaimPackage")
+
+  @@unique([participantId, key])
+  @@index([participantId, category])
+}
+
+model PortableClaim {
+  id                String                  @id @default(cuid())
+  subjectId         String
+  subject           User                    @relation("PortableClaimSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  asserterId        String?
+  asserter          User?                   @relation("PortableClaimAsserter", fields: [asserterId], references: [id], onDelete: SetNull)
+  packageId         String?
+  package           ParticipantDataPackage? @relation("PortableClaimPackage", fields: [packageId], references: [id], onDelete: SetNull)
+  category          PortableClaimCategory
+  provenance        PortableClaimProvenance
+  statement         String
+  functionalContext String?
+  verificationRef   String?
+  effectiveFrom     DateTime?
+  effectiveUntil    DateTime?
+  supersededById    String?
+  supersededBy      PortableClaim?          @relation("PortableClaimSupersededBy", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes        PortableClaim[]         @relation("PortableClaimSupersededBy")
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@index([subjectId, category])
+  @@index([provenance])
+}
+
+model ConsentDirective {
+  id                      String                   @id @default(cuid())
+  version                 Int                      @default(1)
+  subjectId               String
+  subject                 User                     @relation("ConsentDirectiveSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  authorId                String
+  author                  User                     @relation("ConsentDirectiveAuthor", fields: [authorId], references: [id])
+  recipientCategory       ConsentRecipientCategory
+  recipientOrganisationId String?
+  recipientOrganisation   Organisation?            @relation("ConsentDirectiveRecipientOrganisation", fields: [recipientOrganisationId], references: [id], onDelete: SetNull)
+  recipientEntityId       String?
+  purpose                 ConsentPurpose
+  purposeDetail           String
+  scopeKeys               String[]                 @default([])
+  frequency               ConsentFrequency
+  decision                ConsentDirectiveDecision @default(active)
+  status                  ConsentDirectiveStatus   @default(active)
+  effectiveFrom           DateTime                 @default(now())
+  effectiveUntil          DateTime?
+  supersedesId            String?
+  supersedes              ConsentDirective?        @relation("ConsentDirectiveSupersedes", fields: [supersedesId], references: [id], onDelete: SetNull)
+  supersededBy            ConsentDirective[]       @relation("ConsentDirectiveSupersedes")
+  withdrawnById           String?
+  withdrawnBy             User?                    @relation("ConsentDirectiveWithdrawnBy", fields: [withdrawnById], references: [id], onDelete: SetNull)
+  withdrawnAt             DateTime?
+  proofBundle             Json?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+
+  receipts       ConsentReceipt[]  @relation("ConsentReceiptDirective")
+  useEvents      ConsentUseEvent[] @relation("ConsentUseEventDirective")
+  consentRecords ConsentRecord[]   @relation("ConsentRecordDirective")
+
+  @@index([subjectId, status, decision])
+  @@index([recipientOrganisationId, status])
+  @@index([purpose])
+}
+
+model ConsentReceipt {
+  id           String           @id @default(cuid())
+  directiveId  String
+  directive    ConsentDirective @relation("ConsentReceiptDirective", fields: [directiveId], references: [id], onDelete: Cascade)
+  issuedToId   String
+  issuedTo     User             @relation("ConsentReceiptIssuedTo", fields: [issuedToId], references: [id], onDelete: Cascade)
+  receiptHash  String           @unique
+  previousHash String?
+  humanSummary String
+  issuedAt     DateTime         @default(now())
+  contents     Json
+
+  @@index([directiveId])
+  @@index([issuedToId, issuedAt])
+}
+
+model ConsentUseEvent {
+  id            String           @id @default(cuid())
+  directiveId   String
+  directive     ConsentDirective @relation("ConsentUseEventDirective", fields: [directiveId], references: [id], onDelete: Cascade)
+  actorId       String?
+  actor         User?            @relation("ConsentUseEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actorLabel    String?
+  purpose       ConsentPurpose
+  action        String
+  outcome       String           @default("allowed")
+  minimisation  Json?
+  correlationId String?
+  createdAt     DateTime         @default(now())
+
+  @@index([directiveId, createdAt])
+  @@index([purpose, outcome])
+}
+
+model DelegateAuthority {
+  id                   String                        @id @default(cuid())
+  participantId        String
+  participant          User                          @relation("DelegateAuthorityParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  delegateId           String
+  delegate             User                          @relation("DelegateAuthorityDelegate", fields: [delegateId], references: [id], onDelete: Cascade)
+  relationshipKind     DelegateRelationshipKind
+  authorityCategories  DelegateAuthorityCategory[]   @default([])
+  scopedOrganisationId String?
+  scopedOrganisation   Organisation?                 @relation("DelegateAuthorityScopedOrganisation", fields: [scopedOrganisationId], references: [id], onDelete: SetNull)
+  verification         DelegateAuthorityVerification @default(self_asserted)
+  status               DelegateAuthorityStatus       @default(proposed)
+  effectiveFrom        DateTime?
+  effectiveUntil       DateTime?
+  legalInstrumentRef   String?
+  notes                String?
+  createdAt            DateTime                      @default(now())
+  updatedAt            DateTime                      @updatedAt
+
+  transactions DelegateAuthorityTransaction[] @relation("DelegateAuthorityTransactionAuthority")
+
+  @@unique([participantId, delegateId, relationshipKind])
+  @@index([status])
+  @@index([verification])
+}
+
+model DelegateAuthorityTransaction {
+  id              String                   @id @default(cuid())
+  authorityId     String
+  authority       DelegateAuthority        @relation("DelegateAuthorityTransactionAuthority", fields: [authorityId], references: [id], onDelete: Cascade)
+  actorId         String?
+  actor           User?                    @relation("DelegateAuthorityTransactionActor", fields: [actorId], references: [id], onDelete: SetNull)
+  transactionKind String
+  fromStatus      DelegateAuthorityStatus?
+  toStatus        DelegateAuthorityStatus
+  reason          String?
+  evidence        Json?
+  createdAt       DateTime                 @default(now())
+
+  @@index([authorityId, createdAt])
+}
+
+model CredentialTrustRegistryEntry {
+  id             String                       @id @default(cuid())
+  entityKey      String                       @unique
+  displayName    String
+  organisationId String?
+  organisation   Organisation?                @relation("CredentialTrustOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
+  entityKind     ExternalFederationEntityKind
+  trustLevel     CredentialTrustLevel         @default(observed)
+  status         CredentialTrustStatus        @default(proposed)
+  didOrPublicKey String?
+  approvedById   String?
+  approvedBy     User?                        @relation("CredentialTrustApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt     DateTime?
+  notes          String?
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+
+  @@index([status, trustLevel])
+  @@index([entityKind])
+}
+
+model CredentialSchemaDefinition {
+  id             String               @id @default(cuid())
+  schemaKey      String               @unique
+  displayName    String
+  kind           CredentialSchemaKind
+  version        String
+  authorId       String?
+  author         User?                @relation("CredentialSchemaAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  isGovernment   Boolean              @default(false)
+  isActive       Boolean              @default(true)
+  attributeShape Json
+  proofRules     Json?
+  notes          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  offers      CredentialIssuanceOffer[] @relation("CredentialIssuanceSchema")
+  credentials IssuedCredential[]        @relation("IssuedCredentialSchema")
+
+  @@index([kind, isActive])
+}
+
+model IssuedCredential {
+  id                   String                     @id @default(cuid())
+  subjectId            String
+  subject              User                       @relation("IssuedCredentialSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  schemaId             String
+  schema               CredentialSchemaDefinition @relation("IssuedCredentialSchema", fields: [schemaId], references: [id])
+  issuerOrganisationId String?
+  issuerOrganisation   Organisation?              @relation("IssuedCredentialIssuerOrganisation", fields: [issuerOrganisationId], references: [id], onDelete: SetNull)
+  externalIssuerId     String?
+  externalIssuer       ExternalFederationEntity?  @relation("IssuedCredentialExternalIssuer", fields: [externalIssuerId], references: [id], onDelete: SetNull)
+  credentialSubject    Json
+  claimHash            String?
+  proofType            String?
+  proofValue           Json?
+  simulator            Boolean                    @default(true)
+  issuedAt             DateTime                   @default(now())
+  effectiveUntil       DateTime?
+  revokedAt            DateTime?
+  statusListId         String?
+  statusList           CredentialStatusList?      @relation("CredentialStatusListEntries", fields: [statusListId], references: [id], onDelete: SetNull)
+  statusListIndex      Int?
+  offerId              String?
+  offer                CredentialIssuanceOffer?   @relation("IssuedCredentialOffer", fields: [offerId], references: [id], onDelete: SetNull)
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  presentations CredentialPresentation[] @relation("CredentialPresentationCredential")
+
+  @@index([subjectId, revokedAt])
+  @@index([schemaId])
+  @@index([simulator])
+}
+
+model CredentialIssuanceOffer {
+  id                   String                     @id @default(cuid())
+  subjectId            String
+  subject              User                       @relation("CredentialIssuanceOfferSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  schemaId             String
+  schema               CredentialSchemaDefinition @relation("CredentialIssuanceSchema", fields: [schemaId], references: [id])
+  issuerOrganisationId String?
+  issuerOrganisation   Organisation?              @relation("CredentialIssuanceOfferIssuer", fields: [issuerOrganisationId], references: [id], onDelete: SetNull)
+  mode                 CredentialIssuanceMode     @default(simulator_only)
+  status               CredentialIssuanceStatus   @default(offered)
+  purposeSummary       String
+  offeredAt            DateTime                   @default(now())
+  respondedAt          DateTime?
+  expiresAt            DateTime?
+  payload              Json?
+  humanReviewer        String?
+
+  credentials IssuedCredential[] @relation("IssuedCredentialOffer")
+
+  @@index([subjectId, status])
+  @@index([issuerOrganisationId, status])
+}
+
+model CredentialPresentationRequest {
+  id                     String                       @id @default(cuid())
+  verifierOrganisationId String?
+  verifierOrganisation   Organisation?                @relation("CredentialPresentationRequestVerifier", fields: [verifierOrganisationId], references: [id], onDelete: SetNull)
+  externalVerifierId     String?
+  externalVerifier       ExternalFederationEntity?    @relation("CredentialPresentationRequestExternal", fields: [externalVerifierId], references: [id], onDelete: SetNull)
+  purposeSummary         String
+  requestedClaims        Json
+  challenge              String
+  status                 CredentialPresentationStatus @default(requested)
+  simulator              Boolean                      @default(true)
+  createdAt              DateTime                     @default(now())
+  expiresAt              DateTime?
+
+  presentations CredentialPresentation[] @relation("CredentialPresentationRequest")
+
+  @@index([verifierOrganisationId, status])
+  @@index([externalVerifierId, status])
+}
+
+model CredentialPresentation {
+  id                   String                        @id @default(cuid())
+  requestId            String
+  request              CredentialPresentationRequest @relation("CredentialPresentationRequest", fields: [requestId], references: [id], onDelete: Cascade)
+  subjectId            String
+  subject              User                          @relation("CredentialPresentationSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  credentialId         String?
+  credential           IssuedCredential?             @relation("CredentialPresentationCredential", fields: [credentialId], references: [id], onDelete: SetNull)
+  disclosureManifestId String?                       @unique
+  disclosureManifest   DisclosureManifest?           @relation("DisclosureManifestPresentation", fields: [disclosureManifestId], references: [id], onDelete: SetNull)
+  status               CredentialPresentationStatus  @default(requested)
+  disclosedClaims      Json?
+  simulator            Boolean                       @default(true)
+  presentedAt          DateTime?
+  createdAt            DateTime                      @default(now())
+
+  @@index([subjectId, createdAt])
+  @@index([requestId, status])
+}
+
+model CredentialStatusList {
+  id          String                      @id @default(cuid())
+  listKey     String                      @unique
+  purpose     CredentialStatusListPurpose @default(revocation)
+  size        Int                         @default(131072)
+  encodedList String
+  privateOnly Boolean                     @default(true)
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+
+  credentials IssuedCredential[] @relation("CredentialStatusListEntries")
+
+  @@index([purpose])
+}
+
+model ParticipantWallet {
+  id                    String                 @id @default(cuid())
+  participantId         String                 @unique
+  participant           User                   @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  activationStatus      WalletActivationStatus @default(not_activated)
+  activationConfirmedAt DateTime?
+  recoveryPolicyId      String?                @unique
+  recoveryPolicy        WalletRecoveryPolicy?  @relation(fields: [recoveryPolicyId], references: [id], onDelete: SetNull)
+  labels                Json?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  keyReferences  WalletKeyReference[]  @relation("WalletKeyReferenceWallet")
+  devices        WalletDevice[]        @relation("WalletDeviceWallet")
+  recoveryEvents WalletRecoveryEvent[] @relation("WalletRecoveryEventWallet")
+
+  @@index([activationStatus])
+}
+
+model WalletKeyReference {
+  id           String            @id @default(cuid())
+  walletId     String
+  wallet       ParticipantWallet @relation("WalletKeyReferenceWallet", fields: [walletId], references: [id], onDelete: Cascade)
+  purpose      WalletKeyPurpose
+  binding      WalletKeyBinding
+  keyRef       String
+  algorithm    String
+  publicKeyJwk Json?
+  createdAt    DateTime          @default(now())
+  revokedAt    DateTime?
+
+  @@index([walletId, purpose])
+  @@index([binding])
+}
+
+model WalletRecoveryPolicy {
+  id                    String               @id @default(cuid())
+  method                WalletRecoveryMethod
+  quorum                Int                  @default(1)
+  guardianReferences    Json?
+  operatorAssistAllowed Boolean              @default(false)
+  offlineKitDeliveryRef String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  wallet ParticipantWallet? @relation
+}
+
+model WalletRecoveryEvent {
+  id          String               @id @default(cuid())
+  walletId    String
+  wallet      ParticipantWallet    @relation("WalletRecoveryEventWallet", fields: [walletId], references: [id], onDelete: Cascade)
+  actorId     String?
+  actor       User?                @relation("WalletRecoveryEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+  method      WalletRecoveryMethod
+  status      WalletRecoveryStatus
+  requestedAt DateTime             @default(now())
+  reviewedAt  DateTime?
+  completedAt DateTime?
+  reason      String?
+  evidence    Json?
+
+  @@index([walletId, status])
+}
+
+model WalletDevice {
+  id              String            @id @default(cuid())
+  walletId        String
+  wallet          ParticipantWallet @relation("WalletDeviceWallet", fields: [walletId], references: [id], onDelete: Cascade)
+  deviceLabel     String
+  platform        String?
+  trust           WalletDeviceTrust @default(observed)
+  fingerprintHash String
+  attestation     Json?
+  addedAt         DateTime          @default(now())
+  lastSeenAt      DateTime?
+  revokedAt       DateTime?
+
+  @@unique([walletId, fingerprintHash])
+  @@index([trust])
+}
+
+model ExternalFederationEntity {
+  id                  String                         @id @default(cuid())
+  entityKey           String                         @unique
+  displayName         String
+  kind                ExternalFederationEntityKind
+  status              ExternalFederationEntityStatus @default(proposed)
+  ownerOrganisationId String?
+  ownerOrganisation   Organisation?                  @relation("ExternalFederationEntityOwner", fields: [ownerOrganisationId], references: [id], onDelete: SetNull)
+  metadataEndpoint    String?
+  publicKeyJwks       Json?
+  didDocument         Json?
+  contactEmail        String?
+  notes               String?
+  createdAt           DateTime                       @default(now())
+  updatedAt           DateTime                       @updatedAt
+
+  pairwiseIds  PairwiseSubjectIdentifier[]     @relation("PairwiseSubjectIdentifierEntity")
+  issuedCreds  IssuedCredential[]              @relation("IssuedCredentialExternalIssuer")
+  verifierReqs CredentialPresentationRequest[] @relation("CredentialPresentationRequestExternal")
+
+  @@index([kind, status])
+}
+
+model DisclosureManifest {
+  id                      String             @id @default(cuid())
+  subjectId               String
+  subject                 User               @relation("DisclosureManifestSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  recipientOrganisationId String?
+  recipientOrganisation   Organisation?      @relation("DisclosureManifestRecipient", fields: [recipientOrganisationId], references: [id], onDelete: SetNull)
+  recipientEntityKey      String?
+  purposeSummary          String
+  decision                DisclosureDecision @default(minimised)
+  requestedFields         Json
+  minimisedFields         Json
+  redactedFields          Json?
+  directiveId             String?
+  receiptId               String?
+  simulator               Boolean            @default(true)
+  createdAt               DateTime           @default(now())
+
+  presentation CredentialPresentation? @relation("DisclosureManifestPresentation")
+
+  @@index([subjectId, createdAt])
+  @@index([recipientOrganisationId, decision])
+}
+
+model PairwiseSubjectIdentifier {
+  id            String                   @id @default(cuid())
+  participantId String
+  participant   User                     @relation("PairwiseSubjectIdentifierParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  entityId      String
+  entity        ExternalFederationEntity @relation("PairwiseSubjectIdentifierEntity", fields: [entityId], references: [id], onDelete: Cascade)
+  pairwiseSub   String                   @unique
+  algorithm     String                   @default("HMAC-SHA-256")
+  createdAt     DateTime                 @default(now())
+
+  @@unique([participantId, entityId])
+  @@index([entityId])
+}
+
+model EmergencyAccessRequest {
+  id             String                @id @default(cuid())
+  subjectId      String
+  subject        User                  @relation("EmergencyAccessRequestSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  requesterId    String
+  requester      User                  @relation("EmergencyAccessRequestRequester", fields: [requesterId], references: [id])
+  reviewerId     String?
+  reviewer       User?                 @relation("EmergencyAccessRequestReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  scope          EmergencyAccessScope
+  status         EmergencyAccessStatus @default(requested)
+  claimedContext String
+  evidence       Json?
+  approvedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([subjectId, status])
+  @@index([requesterId, status])
+}
+
+model PortabilityExportJob {
+  id            String               @id @default(cuid())
+  participantId String
+  participant   User                 @relation("PortabilityExportJobParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  status        PortabilityJobStatus @default(queued)
+  scope         PortabilityDataScope @default(vault_only)
+  requestedAt   DateTime             @default(now())
+  completedAt   DateTime?
+  artifactRef   String?
+  humanSummary  String?
+  errors        Json?
+
+  @@index([participantId, status])
+}
+
+model PortabilityImportJob {
+  id            String               @id @default(cuid())
+  participantId String
+  participant   User                 @relation("PortabilityImportJobParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  status        PortabilityJobStatus @default(queued)
+  sourceLabel   String
+  requestedAt   DateTime             @default(now())
+  completedAt   DateTime?
+  conflicts     Json?
+  humanSummary  String?
+  errors        Json?
+
+  @@index([participantId, status])
 }
