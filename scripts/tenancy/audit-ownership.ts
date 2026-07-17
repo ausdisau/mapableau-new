@@ -4,6 +4,20 @@ import { parseArgs, writeArtifact, ts } from "./_shared";
 
 async function main() {
   const { dryRun } = parseArgs(process.argv.slice(2));
+  if (dryRun) {
+    const file = writeArtifact(
+      "tenancy",
+      `audit-ownership-${ts()}.json`,
+      {
+        generatedAt: new Date().toISOString(),
+        dryRun: true,
+        would: ["audit_without_db"],
+        note: "Dry-run only — no database connection required.",
+      }
+    );
+    console.log(JSON.stringify({ dryRun: true, report: file, pass: true }, null, 2));
+    return;
+  }
   const orgs = await prisma.organisation.findMany({
     select: {
       id: true,

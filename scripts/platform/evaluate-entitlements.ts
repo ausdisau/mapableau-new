@@ -5,6 +5,20 @@ import { parseArgs, writeArtifact, ts } from "../tenancy/_shared";
 
 async function main() {
   const { dryRun } = parseArgs(process.argv.slice(2));
+  if (dryRun) {
+    const file = writeArtifact(
+      "platform",
+      `evaluate-entitlements-${ts()}.json`,
+      {
+        generatedAt: new Date().toISOString(),
+        dryRun: true,
+        would: ["evaluate_without_db_writes"],
+        note: "Dry-run only — no database connection required.",
+      }
+    );
+    console.log(JSON.stringify({ dryRun: true, report: file }, null, 2));
+    return;
+  }
   const active = await prisma.tenantFeatureEntitlement.findMany({
     where: { status: "active" },
     take: 500,

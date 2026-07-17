@@ -4,6 +4,20 @@ import { parseArgs, writeArtifact, ts } from "../tenancy/_shared";
 
 async function main() {
   const { dryRun } = parseArgs(process.argv.slice(2));
+  if (dryRun) {
+    const file = writeArtifact(
+      "platform",
+      `audit-capacity-${ts()}.json`,
+      {
+        generatedAt: new Date().toISOString(),
+        dryRun: true,
+        would: ["evaluate_without_db_writes"],
+        note: "Dry-run only — no database connection required.",
+      }
+    );
+    console.log(JSON.stringify({ dryRun: true, report: file }, null, 2));
+    return;
+  }
   const quotas = await prisma.tenantQuotaProfile.findMany({
     where: { active: true },
     take: 500,

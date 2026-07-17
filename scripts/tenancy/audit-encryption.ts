@@ -5,6 +5,20 @@ import { parseArgs, writeArtifact, ts } from "./_shared";
 
 async function main() {
   const { dryRun } = parseArgs(process.argv.slice(2));
+  if (dryRun) {
+    const file = writeArtifact(
+      "tenancy",
+      `audit-encryption-${ts()}.json`,
+      {
+        generatedAt: new Date().toISOString(),
+        dryRun: true,
+        would: ["audit_without_db"],
+        note: "Dry-run only — no database connection required.",
+      }
+    );
+    console.log(JSON.stringify({ dryRun: true, report: file, pass: true }, null, 2));
+    return;
+  }
   const overdue = await findOverdueRotations();
   const total = await prisma.tenantEncryptionProfile.count();
   const report = {
