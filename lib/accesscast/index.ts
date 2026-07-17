@@ -84,3 +84,6 @@ export type {
   AccessCastSegmentKind,
   AccessCastTimelineEntry,
 } from "./types";
+
+export { ACCESSCAST_EVENTS } from "./audit-events";
+export type { AccessCastEventName } from "./audit-events";
