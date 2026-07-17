@@ -79,19 +79,20 @@ draft → validated → dry_run_passed → submitted → accepted / rejected / p
 
 ## Data model
 
-- `NdiaProviderClaim` — payload JSON, status, external IDs
-- `NdiaProviderClaimAudit` — immutable action log
+- `NdiaProviderClaim` — **masked** payload JSON, status, external IDs, `currentSnapshotId`, `payloadHash`
+- `NdisClaimSnapshot` — immutable masked + encrypted claim snapshot (Wave 2)
+- `NdisClaimApproval` — claim/org/payload-hash specific approval (Wave 2)
+- `NdiaProviderClaimAudit` — immutable action log (sanitised)
+
+See `docs/ndis-gateway/wave-2-private-claim-storage.md`.
 
 ## Governance
 
-- Plan-managed funding is **blocked** at validation.
-- Live submit requires `NDIA_REAL_SUBMISSION_ENABLED` and HTTP adapter config.
-- Optional `NdiaPilotApprovalRecord` when human approval is enforced.
-- All submits write `AuditEvent` and claim audits.
-
-## Extending the NDIA adapter
-
-Update `lib/ndia-provider-claiming/ndia-api-client.ts` when NDIA supplies your Payments/Claims OpenAPI path and response schema. MapAble stores the full `claimPayloadJson` for reconciliation.
+- Plan-managed and self-managed funding are **blocked** for registered-provider direct claiming.
+- Live submit requires claim-specific snapshot approval (not `NdiaPilotApprovalRecord`), plus `NDIA_REAL_SUBMISSION_ENABLED` and HTTP adapter config.
+- `NdiaPilotApprovalRecord` is historical/pilot readiness only — it must never authorise an individual claim.
+- Ordinary `claimPayloadJson` must not contain raw participant NDIS numbers.
+- All submits write sanitised `AuditEvent` and claim audits.
 
 ## Related modules
 

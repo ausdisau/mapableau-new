@@ -47,6 +47,7 @@ This runs `pnpm install --frozen-lockfile` followed by `prisma generate`.
 | `pnpm test` | Vitest |
 | `pnpm setup:cloud-agent` | Install locked dependencies and generate Prisma Client for cloud agents |
 | `pnpm check:integrations-env` | Validate optional integration env vars |
+| `pnpm backfill:ndis-claim-snapshots` | Idempotent NDIS claim snapshot backfill (supports `--dry-run`) |
 
 ### Database
 
@@ -147,7 +148,25 @@ Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, St
 | [docs/safety.md](docs/safety.md) | Safety and incident centre |
 | [docs/av-mcp.md](docs/av-mcp.md) | AV / MCP transport |
 | [docs/ndia-provider-claiming.md](docs/ndia-provider-claiming.md) | NDIA provider claiming |
+| [docs/ndis-gateway/wave-2-private-claim-storage.md](docs/ndis-gateway/wave-2-private-claim-storage.md) | Wave 2 privacy-safe claim snapshots |
+| [docs/ndis-gateway/claim-approval-governance.md](docs/ndis-gateway/claim-approval-governance.md) | Claim-specific approval rules |
+| [docs/ndis-gateway/encryption-key-rotation.md](docs/ndis-gateway/encryption-key-rotation.md) | NDIS encryption key rotation |
+| [docs/pilot/wave-7-controlled-pilot-operations.md](docs/pilot/wave-7-controlled-pilot-operations.md) | Wave 7 controlled pilot operations |
 | [docs/ROUTING_SLUGS.md](docs/ROUTING_SLUGS.md) | Route slugs |
+
+### NDIS Controlled Pilot (Wave 7)
+
+Organisation-scoped `ControlledPilot` APIs and admin/participant UIs under `/admin/pilot` and `/participant/pilots`. Pilot approval is not production approval; empty allowlists deny; limited live is off by default; `NdiaPilotApprovalRecord` is not ControlledPilot authority; no real NDIA submission from pilot surfaces. Set `PILOT_ENFORCEMENT_ENABLED=false` unless intentionally gating payment paths. See [docs/pilot/](docs/pilot/).
+
+### Participant-controlled credentials and consent federation (Wave 9)
+
+Wave 9 adds an immutable `ConsentDirective` layer, a participant access vault, delegate authority (relationship ≠ authority), credential shells (OID4VCI / OID4VP / Bitstring Status List) and a mandatory disclosure gateway. **MapAble credentials are NOT government credentials.** All federation adapters default to simulator mode. Production activation requires `FEDERATION_ACTIVATION=true`, a passing `pnpm federation:conformance` run, and human-approved trust registry + schema entries. AI cannot approve consent, sign credentials, complete high-risk recovery or approve emergency access.
+
+Participant UI: `/participant/vault`. Admin UI: `/admin/federation`. Provider UI: `/provider/federation`.
+
+Scripts: `pnpm federation:conformance`, `federation:audit-consent`, `federation:audit-delegation`, `federation:audit-disclosures`, `federation:audit-identifiers`, `federation:test-issuance`, `federation:test-presentation`, `federation:test-status`, `federation:test-wallet-recovery`, `federation:test-accessibility` — all support `--dry-run` and require no DB in dry mode.
+
+See [docs/federation/](docs/federation/) and threat models under [docs/security/](docs/security/).
 
 ### QA and mobile
 
