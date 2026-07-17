@@ -3,11 +3,11 @@ import { randomUUID } from "crypto";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { isTrustFabricEnabled } from "@/lib/config/trust-fabric";
 import { prisma } from "@/lib/prisma";
+import { TrustFabricError } from "@/lib/trust-fabric/receipt-service";
 import type {
   DecisionNotice,
   DecisionNoticeInput,
 } from "@/lib/trust-fabric/types";
-import { TrustFabricError } from "@/lib/trust-fabric/receipt-service";
 
 /**
  * Record a consequential deterministic decision notice.
