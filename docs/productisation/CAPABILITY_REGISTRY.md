@@ -21,7 +21,7 @@ or assert registration.
 | workforce.readiness | Assignment readiness | merged_but_flagged | evaluates WorkerProfile | `MAPABLE_WORKFORCE_READINESS_ENABLED=false` | Auto-assign permanently false |
 | access.intelligence_next | Living Access Fabric | merged_but_synthetic | fixtures | AI Next flags off | Not personally usable truth |
 | accesscast.outlook | AccessCast outlook | merged_but_synthetic | fixtures | `MAPABLE_ACCESSCAST_*=false` | Synthetic Harbour / Starting Work |
-| pilot.starting_work | Starting Work pilot | merged_but_synthetic | process/fixture | `MAPABLE_STARTING_WORK_PILOT_ENABLED=false`; synthetic-only default | DB journey is PR 4 |
+| pilot.starting_work | Starting Work pilot | merged_but_synthetic | Prisma `PilotStartingWorkRun` + seed refs | `MAPABLE_STARTING_WORK_PILOT_ENABLED=false`; synthetic-only default | Persisted projection; not live booking engine |
 | mobile.companion | Native Companion | scaffold + flagged server | Expo + APIs | `MAPABLE_COMPANION_*=false` | Foundation; not production Companion |
 | provider.ops_attention | Provider Ops attention | merged_but_flagged | Prisma reads only | `MAPABLE_PROVIDER_OPS_ENABLED=false` | Read-only; never second writer |
 | continuity.mission_recovery | Continuity / mission recovery | open_pr / thin on main | Care backup recovery only | — | Full Continuity is later PR |

@@ -6,8 +6,11 @@ import {
   isStartingWorkPilotEnabled,
   startingWorkPilotConfig,
 } from "@/lib/config/starting-work-pilot";
-import { runGoldenJourney } from "@/lib/pilot/starting-work/golden-journey";
 import { getStartingWorkLoopStatus } from "@/lib/pilot/starting-work/loop-status";
+import {
+  assertStartingWorkIntegrationHonesty,
+  runAndPersistStartingWorkJourney,
+} from "@/lib/pilot/starting-work/persist-journey";
 
 const postSchema = z
   .object({
@@ -43,6 +46,7 @@ export async function GET() {
     venue: "Harbour Civic Centre",
     participant: "Taylor (synthetic)",
     syntheticOnly: startingWorkPilotConfig.syntheticOnly,
+    persistence: "pilot_starting_work_runs",
     loops: getStartingWorkLoopStatus(),
     prohibitions: [
       "no_auto_assignment",
@@ -69,11 +73,22 @@ export async function POST(req: Request) {
 
   try {
     const parsed = postSchema.parse(body ?? {});
-    const state = runGoldenJourney(parsed);
-    return jsonOk({
-      state,
+    const run = await runAndPersistStartingWorkJourney({
+      ...parsed,
       actorUserId: user.id,
-      notice: "Synthetic controlled-pilot simulation — not a live booking engine",
+    });
+    const honestyErrors = assertStartingWorkIntegrationHonesty(run);
+    return jsonOk({
+      runId: run.id,
+      journeyKey: run.journeyKey,
+      state: run.state,
+      links: run.links,
+      persisted: true,
+      synthetic: run.synthetic,
+      honestyErrors,
+      actorUserId: user.id,
+      notice:
+        "Database-backed controlled-pilot projection with seed integration refs — not a live booking engine",
     });
   } catch (err) {
     if (err instanceof ZodError) return zodErrorResponse(err);

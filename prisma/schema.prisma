@@ -10346,3 +10346,40 @@ model RuntimeComponent {
   @@index([environment])
   @@map("convergence_runtime_components")
 }
+
+/// Database-backed Starting Work pilot journey projection (Harbour / Taylor seed).
+/// Links are fictional seed references when syntheticOnly; never a second Care/Transport SoT.
+model PilotStartingWorkRun {
+  id                     String   @id @default(cuid())
+  journeyKey             String   @unique
+  participantSyntheticId String   @default("taylor-synthetic")
+  venueLabel             String   @default("Harbour Civic Centre")
+  status                 String
+  stepsCompleted         Json     @default("[]")
+  notices                Json     @default("[]")
+  failureMode            String?
+  blockReason            String?
+  readinessJson          Json?
+  /// Seed / integration refs — not FK to avoid second SoT; point at canonical IDs when present
+  careBookingId          String?
+  careAgreementVersion   Int?
+  transportQuoteId       String?
+  transportTripId        String?
+  billingServiceRecordId String?
+  invoiceId              String?
+  outcomeReceiptId       String?
+  accesscastJourneyRef   String?
+  visitPackRef           String?
+  workerReadinessReady   Boolean  @default(false)
+  returnTransportStatus  String?
+  continuityCaseRef      String?
+  integrationLinks       Json     @default("{}")
+  synthetic              Boolean  @default(true)
+  actorUserId            String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([participantSyntheticId])
+  @@map("pilot_starting_work_runs")
+}

@@ -93,7 +93,8 @@ describe("Strategic opportunity registry honesty", () => {
     expect(accesscast?.honesty.productionSupported).toBe(false);
     expect(starting?.maturity).toBe("fixture_only");
     expect(starting?.honesty.implemented).toBe(true);
-    expect(starting?.honesty.durable).toBe(false);
+    expect(starting?.persistenceType).toBe("prisma");
+    expect(starting?.honesty.durable).toBe(true);
     expect(starting?.honesty.productionSupported).toBe(false);
   });
 

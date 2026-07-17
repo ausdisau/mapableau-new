@@ -18,7 +18,10 @@ Communication Passport → worker readiness → Academy evidence ≠ competency 
 ## APIs
 
 - `GET /api/pilot/starting-work` — loop status + prohibitions
-- `POST /api/pilot/starting-work` — run golden journey (optional failureMode)
+- `POST /api/pilot/starting-work` — run golden journey and **persist** `PilotStartingWorkRun`
+  with seed integration refs (Care agreement, readiness, transport quote, AccessCast,
+  Visit Pack, BillingServiceRecord, invoice, return-trip recovery). Synthetic-only by
+  default; not a live booking engine.
 
 ## Kill criteria
 
