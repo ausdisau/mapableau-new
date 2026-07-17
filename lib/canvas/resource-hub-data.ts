@@ -41,6 +41,13 @@ export const resourceModuleLinks: ResourceModuleLink[] = [
       "Capital and regional accessibility guides for Australian cities and towns.",
   },
   {
+    eyebrow: "Tours",
+    label: "Accessible Tours",
+    href: "/resources/tours",
+    description:
+      "Map-based outings with list-view itineraries, toilets, quiet spaces and transport notes.",
+  },
+  {
     eyebrow: "Employment",
     label: "MapAble Employment",
     href: "/employment",

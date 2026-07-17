@@ -1,14 +1,14 @@
 import Link from "next/link";
 import React from "react";
 
-import type { AccessGuide } from "@/lib/resources/access-guides-data";
-import { accessGuideDownloads } from "@/lib/resources/access-guides-data";
 import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
   mapablePublicPageContainerClass,
   mapablePublicPrimaryButtonClass,
 } from "@/lib/marketing/public-page-styles";
+import type { AccessGuide } from "@/lib/resources/access-guides-data";
+import { accessGuideDownloads } from "@/lib/resources/access-guides-data";
 
 type AccessGuidesSectionProps = {
   capitalGuides: AccessGuide[];
@@ -25,6 +25,10 @@ function statusLabel(guide: AccessGuide): string {
       return "Needs local verification";
     case "planned":
       return "Planned";
+    case "partner_supplied":
+      return "Partner supplied";
+    case "community_reported":
+      return "Community reported";
     default: {
       const _exhaustive: never = guide.statusKey;
       return _exhaustive;
@@ -86,6 +90,12 @@ export function AccessGuidesSection({
           >
             Browse all guides
           </Link>
+          <Link
+            href="/guides/suburbs"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+          >
+            Suburb guides
+          </Link>
         </div>
 
         <h3 className="mt-10 text-lg font-black text-[#0C1833]">
@@ -123,7 +133,14 @@ export function AccessGuidesSection({
           >
             all Access Guides
           </Link>{" "}
-          for the full list.
+          and{" "}
+          <Link
+            href="/guides/suburbs"
+            className="font-medium text-primary hover:underline"
+          >
+            Suburb Access Guides
+          </Link>{" "}
+          for locality-level planning notes.
         </p>
       </div>
     </section>
