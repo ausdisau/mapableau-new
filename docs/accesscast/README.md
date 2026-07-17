@@ -29,6 +29,8 @@ Wave 1 foundation: **synthetic contracts only**. No Prisma migration, no live fe
 
 See [JOURNEY_OUTLOOK.md](./JOURNEY_OUTLOOK.md).
 
+Offline Companion Visit Pack: [OFFLINE_COMPANION.md](./OFFLINE_COMPANION.md) — API `POST /api/accesscast/offline/demo`.
+
 ## Safety
 
 See [SAFETY_BOUNDARY.md](./SAFETY_BOUNDARY.md). AccessCast is **not** a safety guarantee, navigation authority, universal score, weather service, or emergency alerting platform.

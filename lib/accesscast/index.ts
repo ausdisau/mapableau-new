@@ -50,6 +50,25 @@ export type {
   StartingWorkJourneyAccessCast,
 } from "./journey";
 
+export {
+  ACCESSCAST_OFFLINE_STORAGE_KEY,
+  compileAccessCastOfflinePack,
+  evaluateAccessCastOfflinePack,
+  hashAccessCastOfflineContent,
+  saveAccessCastOfflineLocal,
+  loadAccessCastOfflineLocal,
+  clearAccessCastOfflineLocal,
+  setAccessCastEncryptedStore,
+  getAccessCastEncryptedStore,
+  memoryAccessCastEncryptedStore,
+  __resetAccessCastOfflineStoreForTests,
+} from "./offline";
+export type {
+  AccessCastOfflinePack,
+  AccessCastOfflineLoadResult,
+  AccessCastEncryptedStore,
+} from "./offline";
+
 export type {
   AccessCastForecastHorizon,
   AccessCastRequirementStatus,
