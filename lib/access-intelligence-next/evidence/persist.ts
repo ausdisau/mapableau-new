@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { accessIntelligenceNextFlags } from "@/lib/access-intelligence-next/flags";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 
 import type { AccessEvidenceClass } from "./classes";
