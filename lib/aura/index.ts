@@ -85,6 +85,47 @@ export {
   getOrCreateAbortController,
   discardIfStopped,
 } from "./stop";
+export {
+  executeApprovedProposal,
+  grantExecutionApproval,
+  getExecution,
+  getExecutionReceipt,
+  cancelExecution,
+  requestExecutionApproval,
+  getExecutionApproval,
+  getExecutionApprovalForProposal,
+  resetExecutionStore,
+  resetExecutionApprovalStore,
+  resetOutboxStore,
+  resetApplicationRecordStore,
+  applicationRecords,
+  evaluateWave4ReleaseGate,
+  setWave4ReleaseGatePassed,
+  EXECUTION_SERVICE_REGISTRY,
+  ACTION_APPROVAL_LABELS,
+  rejectShadowReviewAsExecution,
+} from "./execution";
+export {
+  resetMemoryStore,
+  createMemoryCard,
+  listMemoryCards,
+  deleteMemoryCard,
+  exportMemory,
+  createMemorySuggestion,
+  acceptMemorySuggestion,
+  dismissMemorySuggestion,
+  classifyCanonicalDestination,
+} from "./memory";
+export {
+  resetCalibrationStore,
+  recordOutcome,
+  getOutcomeForMission,
+  comparePredictedVsObserved,
+  createEvidenceCorrectionDraft,
+  submitEvidenceCorrection,
+  listCorrectionsForMission,
+  getCalibrationComparison,
+} from "./calibration";
 export { resetCounterfactualStore } from "./counterfactual";
 export { resetChallengeStore } from "./challenge";
 export { resetOfflinePackStore } from "./offline";
@@ -119,3 +160,88 @@ export {
 } from "./proposals";
 export { AURA_WAVE3_AUTHORITY_CEILING } from "./authority/ladder";
 export * from "./schemas";
+export {
+  detectPocketCapabilities,
+  selectInferenceProvider,
+  assertLocalOnlyNoCloud,
+  buildMissionSnapshot,
+  assertSnapshotExcludesSensitive,
+  saveSnapshot,
+  getSnapshot,
+  listSnapshots,
+  deleteAllSnapshotsForUser,
+  deleteSnapshot,
+  assertSnapshotAccess,
+  assertNotPlainLocalStorage,
+  resetPocketStorage,
+  queueOfflineStop,
+  processSyncQueue,
+  rejectOfflineExecutionApproval,
+  deleteOfflineData,
+  resetPocketSyncStore,
+  evaluateWave6ReleaseGate,
+  setWave6ReleaseGatePassed,
+  assertWave6GateForWave7,
+} from "./pocket";
+export {
+  prepareMultimodalInput,
+  processMultimodalInput,
+  acceptCandidate,
+  rejectCandidate,
+  getCandidate,
+  assertCandidateNotMeasurement,
+  stripExifByDefault,
+  resetMultimodalStore,
+} from "./multimodal";
+export {
+  selectSpatialAdapter,
+  simulatorSpatialAdapter,
+  recordManualMeasurement,
+  assertSpatialProvisional,
+  resetSpatialStore,
+} from "./spatial";
+export {
+  renderContent,
+  computeMeaningHash,
+  setCommunicationProfile,
+  getCommunicationProfile,
+  assertCriticalActionHasText,
+  listConcepts,
+  resetCommunicationStore,
+} from "./communication";
+export {
+  selectOnDeviceAdapter,
+  simulatorOnDeviceAdapter,
+  NATIVE_BRIDGE_CONTRACT,
+} from "./on-device-ai";
+export {
+  buildJourneyWorld,
+  getLatestWorld,
+  listWorldVersions,
+  propagateDependencyChange,
+  evaluateWave7ReleaseGate,
+  resetWorldModelStore,
+} from "./world-model";
+export {
+  registerSource,
+  listSources,
+  importGtfsScheduleFixture,
+  mapWheelchairBoarding,
+  ingestObservation,
+  getDerivedState,
+  fixtureCurbAdapter,
+  importThingDescription,
+  invokeWotAction,
+  resetInteropStore,
+  resetSensorStore,
+  resetWotStore,
+} from "./interoperability";
+export {
+  enableGuardian,
+  stopGuardian,
+  getGuardian,
+  listAlerts,
+  processLiftOutage,
+  createGuardianProposalDraft,
+  resetGuardianStore,
+} from "./guardian";
