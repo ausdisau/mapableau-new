@@ -1,6 +1,6 @@
-# Wave 10 migration runbook
+# Goal understanding
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS.
+Participant-initiated goals, clarification loops, and refusal when intent is ambiguous or out of scope.
 
 ## Phase 33 disclaimers
 
@@ -26,9 +26,8 @@ See also: `docs/aura/wave-10-not-sentient.md`, `docs/aura/wave-10-prohibited-act
 
 ## Scope
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
+Participant-initiated goals, clarification loops, and refusal when intent is ambiguous or out of scope. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
 
 ## Related Wave 10 references
 
-- `docs/aura/wave-10-architecture-and-risk-plan.md`
-- `docs/aura/wave-10-ai-inventory.md`
+- `docs/aura/wave-10-planning.md`

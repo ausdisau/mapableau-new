@@ -1,6 +1,6 @@
-# Wave 10 migration runbook
+# Agent domain model
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS.
+Bounded agent domains, roles, and separation of concerns for the participant Agent OS.
 
 ## Phase 33 disclaimers
 
@@ -26,9 +26,10 @@ See also: `docs/aura/wave-10-not-sentient.md`, `docs/aura/wave-10-prohibited-act
 
 ## Scope
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
+Bounded agent domains, roles, and separation of concerns for the participant Agent OS. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
 
 ## Related Wave 10 references
 
+- `docs/aura/wave-10-agents.md`
+- `docs/aura/wave-10-agent-os.md`
 - `docs/aura/wave-10-architecture-and-risk-plan.md`
-- `docs/aura/wave-10-ai-inventory.md`

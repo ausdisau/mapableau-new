@@ -1,6 +1,6 @@
-# Wave 10 migration runbook
+# Safety interlocks
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS.
+Kill switches, rate limits, envelope violations, and automatic human escalation.
 
 ## Phase 33 disclaimers
 
@@ -26,9 +26,9 @@ See also: `docs/aura/wave-10-not-sentient.md`, `docs/aura/wave-10-prohibited-act
 
 ## Scope
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
+Kill switches, rate limits, envelope violations, and automatic human escalation. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
 
 ## Related Wave 10 references
 
-- `docs/aura/wave-10-architecture-and-risk-plan.md`
-- `docs/aura/wave-10-ai-inventory.md`
+- `docs/aura/wave-10-safety.md`
+- `docs/aura/wave-10-prohibited-actions.md`

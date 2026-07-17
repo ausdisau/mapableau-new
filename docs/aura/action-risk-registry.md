@@ -1,6 +1,6 @@
-# Wave 10 migration runbook
+# Action risk registry
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS.
+Risk classes for agent actions, escalation rules, and human-in-the-loop triggers.
 
 ## Phase 33 disclaimers
 
@@ -26,9 +26,10 @@ See also: `docs/aura/wave-10-not-sentient.md`, `docs/aura/wave-10-prohibited-act
 
 ## Scope
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
+Risk classes for agent actions, escalation rules, and human-in-the-loop triggers. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
 
 ## Related Wave 10 references
 
-- `docs/aura/wave-10-architecture-and-risk-plan.md`
-- `docs/aura/wave-10-ai-inventory.md`
+- `docs/aura/wave-10-ai-risk-assessment.md`
+- `docs/aura/wave-10-prohibited-actions.md`
+- `docs/aura/wave-10-safety.md`

@@ -1,6 +1,6 @@
-# Wave 10 migration runbook
+# Authority envelopes
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS.
+Hard ceilings on what an agent may propose or execute per participant and tenant.
 
 ## Phase 33 disclaimers
 
@@ -26,9 +26,9 @@ See also: `docs/aura/wave-10-not-sentient.md`, `docs/aura/wave-10-prohibited-act
 
 ## Scope
 
-Phase 33 operational steps to migrate tenants onto the participant Agent OS. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
+Hard ceilings on what an agent may propose or execute per participant and tenant. This surface is bounded by authority envelopes, plan validation, simulation, and approval mechanics.
 
 ## Related Wave 10 references
 
-- `docs/aura/wave-10-architecture-and-risk-plan.md`
-- `docs/aura/wave-10-ai-inventory.md`
+- `docs/aura/wave-10-authority.md`
+- `docs/aura/wave-10-prohibited-actions.md`
