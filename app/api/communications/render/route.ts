@@ -4,20 +4,20 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import {
-  isCommunicationRenderingEnabled,
-  isCommunicationsEnabled,
-} from "@/lib/config/connected-capability-flags";
-import {
   COMMUNICATION_AUDIT_ACTIONS,
   createAuraCommunicationAdapter,
   projectCommunicationPassport,
   renderCommunicationPassport,
 } from "@/lib/communications-os";
-import { prisma } from "@/lib/prisma";
+import {
+  isCommunicationRenderingEnabled,
+  isCommunicationsEnabled,
+} from "@/lib/config/connected-capability-flags";
 import {
   TAYLOR_FIXTURE_ID,
   taylorAccessibilityProfile,
 } from "@/lib/connected-capability/taylor-fixture";
+import { prisma } from "@/lib/prisma";
 
 const bodySchema = z.object({
   fixture: z.enum(["taylor"]).optional(),

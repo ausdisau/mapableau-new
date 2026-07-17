@@ -2,19 +2,19 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import {
-  isCommunicationPassportEnabled,
-  isCommunicationsEnabled,
-} from "@/lib/config/connected-capability-flags";
-import {
   buildCommunicationHandoffCard,
   COMMUNICATION_AUDIT_ACTIONS,
   projectCommunicationPassport,
 } from "@/lib/communications-os";
-import { prisma } from "@/lib/prisma";
+import {
+  isCommunicationPassportEnabled,
+  isCommunicationsEnabled,
+} from "@/lib/config/connected-capability-flags";
 import {
   TAYLOR_FIXTURE_ID,
   taylorAccessibilityProfile,
 } from "@/lib/connected-capability/taylor-fixture";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET Communication Passport projection.

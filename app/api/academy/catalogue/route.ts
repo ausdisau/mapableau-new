@@ -1,5 +1,5 @@
-import { jsonError, jsonOk } from "@/lib/api/response";
 import { getAcademyCatalogueShell, getAcademySsoArchitecture } from "@/lib/academy";
+import { jsonError, jsonOk } from "@/lib/api/response";
 import { isAcademyEnabled } from "@/lib/config/connected-capability-flags";
 
 export async function GET() {

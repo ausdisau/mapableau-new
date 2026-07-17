@@ -6,12 +6,6 @@
 import type { EvidenceClass, EvidenceReference } from "./evidence";
 import type { UniversalHandoff } from "./handoff";
 
-export type {
-  EvidenceClass,
-  EvidenceReference,
-  UniversalHandoff,
-};
-
 export type CommunicationPassportState =
   | "draft"
   | "participant_confirmed"

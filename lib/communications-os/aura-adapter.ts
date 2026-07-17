@@ -1,7 +1,7 @@
 import type { CommunicationRenderingResponse } from "@/lib/connected-capability";
 
-import type { CommunicationPassportProjection } from "./types";
 import { renderCommunicationPassport } from "./render";
+import type { CommunicationPassportProjection } from "./types";
 
 /**
  * AURA presentation adapter interface.

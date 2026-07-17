@@ -1,11 +1,11 @@
+import { buildTaylorCommunicationDevicePassport } from "@/lib/at-lifecycle-os";
+import { projectCommunicationPassport } from "@/lib/communications-os";
 import {
   CONNECTED_CAPABILITY_SOURCE_VERSION,
   type MobileCapabilityProfile,
   type OfflineMissionPack,
 } from "@/lib/connected-capability";
-import { projectCommunicationPassport } from "@/lib/communications-os";
 import { taylorAccessibilityProfile } from "@/lib/connected-capability/taylor-fixture";
-import { buildTaylorCommunicationDevicePassport } from "@/lib/at-lifecycle-os";
 
 export const COMPANION_ARCHITECTURE = {
   framework: "react_native_expo",
