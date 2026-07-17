@@ -1,6 +1,6 @@
 # MapAble Mobile App Architecture (Scaffold)
 
-Phase 5 does **not** ship a production native app. This folder defines contracts for a future React Native / Expo client.
+Phase 5 contracts plus the **Expo Companion foundation** under `apps/companion` (not production-ready; flags default off). This folder remains the shared contract source.
 
 ## Principles
 
