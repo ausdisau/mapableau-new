@@ -188,7 +188,27 @@ export type Permission =
   | "engagement:read:self"
   | "engagement:submit:self"
   | "engagement:manage:any"
-  | "engagement:provider:read";
+  | "engagement:provider:read"
+  | "qs:ops:read"
+  | "qs:signal:triage"
+  | "incident:triage"
+  | "incident:confirm_reportability"
+  | "incident:close"
+  | "complaint:investigate"
+  | "complaint:resolve"
+  | "complaint:view_identity"
+  | "evidence:add"
+  | "evidence:export"
+  | "credential:verify"
+  | "worker:restrict_assignment"
+  | "capa:approve"
+  | "audit:manage"
+  | "audit:view"
+  | "policy:publish"
+  | "restrictive_practice:view"
+  | "restrictive_practice:manage"
+  | "analytics:view_identified"
+  | "analytics:view_deidentified";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -280,6 +300,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "timesheet:manage:org",
     "agreement:manage:org",
     "incident:create",
+    "incident:triage",
     "verification:manage:org",
     "enterprise:console",
     "operator_dispatch:manage",
@@ -287,6 +308,13 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider:ndia:claim",
     "provider:ndis:claim",
     "engagement:provider:read",
+    "qs:ops:read",
+    "qs:signal:triage",
+    "complaint:investigate",
+    "complaint:resolve",
+    "evidence:add",
+    "credential:verify",
+    "analytics:view_deidentified",
   ],
   transport_operator: [
     "booking:read:any",
@@ -461,6 +489,26 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:compliance:read",
     "admin:agent-runs:read",
     "admin:actions:write",
+    "qs:ops:read",
+    "qs:signal:triage",
+    "incident:triage",
+    "incident:confirm_reportability",
+    "incident:close",
+    "complaint:investigate",
+    "complaint:resolve",
+    "complaint:view_identity",
+    "evidence:add",
+    "evidence:export",
+    "credential:verify",
+    "worker:restrict_assignment",
+    "capa:approve",
+    "audit:manage",
+    "audit:view",
+    "policy:publish",
+    "restrictive_practice:view",
+    "restrictive_practice:manage",
+    "analytics:view_identified",
+    "analytics:view_deidentified",
   ],
 };
 
@@ -475,6 +523,7 @@ export const ADMIN_SCOPE_PERMISSIONS: Permission[] = [
   "admin:compliance:read",
   "admin:agent-runs:read",
   "admin:actions:write",
+  "qs:ops:read",
 ];
 
 export function hasAnyAdminScopePermission(
