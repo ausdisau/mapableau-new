@@ -4,6 +4,8 @@ Internal registration cyber assurance and go-live readiness controls for MapAble
 
 > **Wave 8 update:** Continuous assurance snapshots and tenant-scoped
 > assurance views are documented in
+> [`docs/platform/continuous-assurance.md`](../platform/continuous-assurance.md)
+> and indexed from
 > [`docs/platform/wave-8-governed-production-scale.md`](../platform/wave-8-governed-production-scale.md).
 > Env flags never equal assurance readiness. AI does not approve GA.
 
@@ -101,6 +103,16 @@ Internal registration cyber assurance and go-live readiness controls for MapAble
 ## Admin console
 
 `/admin/assurance` — internal readiness visibility only.
+
+## Wave 8 platform cross-links
+
+| Document | Relevance |
+|----------|-----------|
+| [Continuous assurance](../platform/continuous-assurance.md) | Tenant assurance snapshots (not certification) |
+| [General availability readiness](../platform/general-availability-readiness.md) | Advisory GA assessment |
+| [Regulatory change management](../platform/regulatory-change-management.md) | Human-reviewed regulatory cases |
+| [Tenant policy profiles](../platform/tenant-policy-profiles.md) | Versioned policy binding |
+| [Wave 8 migration runbook](../platform/wave-8-migration-runbook.md) | Backfill sequence |
 
 ## See also
 

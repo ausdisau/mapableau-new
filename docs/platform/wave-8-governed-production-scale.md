@@ -144,10 +144,58 @@ Tenant:
 
 Each page carries an amber disclaimer that env ≠ entitlement ≠ assurance ≠ GA.
 
+## Phase 32 documentation index
+
+| Document | Topic |
+|----------|-------|
+| [tenant-model](./tenant-model.md) | Authoritative `Organisation.id` boundary |
+| [tenant-context](./tenant-context.md) | Active tenant propagation |
+| [tenant-data-isolation](./tenant-data-isolation.md) | Isolation modes and query enforcement |
+| [tenant-encryption](./tenant-encryption.md) | Encryption profile intent (not KMS proof) |
+| [tenant-file-isolation](./tenant-file-isolation.md) | Object storage namespacing |
+| [hub-and-spoke-governance](./hub-and-spoke-governance.md) | Federation and delegation |
+| [tenant-onboarding](./tenant-onboarding.md) | Human-governed onboarding cases |
+| [tenant-suspension-and-offboarding](./tenant-suspension-and-offboarding.md) | Suspension and terminal states |
+| [tenant-policy-profiles](./tenant-policy-profiles.md) | Versioned per-tenant policies |
+| [regulatory-change-management](./regulatory-change-management.md) | Regulatory change cases |
+| [feature-entitlements](./feature-entitlements.md) | Per-tenant runtime entitlements |
+| [release-rings](./release-rings.md) | Staged deployment rings |
+| [production-sre](./production-sre.md) | SRE catalogue and SLOs |
+| [tenant-observability](./tenant-observability.md) | Privacy-safe tenant telemetry |
+| [capacity-and-quotas](./capacity-and-quotas.md) | Quota profiles |
+| [noisy-neighbour-controls](./noisy-neighbour-controls.md) | Fair-share under load |
+| [multi-region-readiness](./multi-region-readiness.md) | Regional posture (not active-active) |
+| [continuous-assurance](./continuous-assurance.md) | Tenant assurance snapshots |
+| [platform-analytics-boundary](./platform-analytics-boundary.md) | Fleet analytics privacy |
+| [market-integrity](./market-integrity.md) | Fair access controls |
+| [service-management](./service-management.md) | Service catalogue lifecycle |
+| [status-communications](./status-communications.md) | Incident and maintenance comms |
+| [general-availability-readiness](./general-availability-readiness.md) | Advisory GA assessment |
+| [wave-8-migration-runbook](./wave-8-migration-runbook.md) | Backfill and audit sequence |
+
+### Phase 32 implementation notes
+
+| Document | Topic |
+|----------|-------|
+| [phase-32-tenancy-boundary](./phase-32-tenancy-boundary.md) | Tenancy boundary summary |
+| [phase-32-runtime-gate](./phase-32-runtime-gate.md) | Four-layer runtime gate |
+| [phase-32-break-glass](./phase-32-break-glass.md) | Break-glass sessions |
+| [phase-32-release-rings](./phase-32-release-rings.md) | Ring approval matrix |
+| [phase-32-ga-decision](./phase-32-ga-decision.md) | GA decision record |
+| [phase-32-regional-posture](./phase-32-regional-posture.md) | Regional design intent |
+| [phase-32-market-integrity](./phase-32-market-integrity.md) | Market integrity notes |
+
+### Security
+
+| Document | Topic |
+|----------|-------|
+| [tenant-rls](../security/tenant-rls.md) | RLS readiness (RLS **not** deployed) |
+
 ## What is NOT in Wave 8
 
 - Live NDIA submission client.
 - Production GA activation of any tenant.
 - Active-active multi-region.
 - Cryptographic KMS custody claims.
+- Postgres RLS enforcement (application scoping only).
 - Any certification claim (SOC 2, ISO 27001, NDIS digital platform).

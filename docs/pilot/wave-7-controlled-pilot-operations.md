@@ -26,3 +26,12 @@ MapAble NDIS Gateway **Wave 7** adds organisation-scoped `ControlledPilot` runti
 ## Related docs
 
 See sibling files in `docs/pilot/` for lifecycle, enrolment, limits, gateway, ops, safety, change, finance, and closure.
+
+## Wave 8 platform cross-links
+
+Controlled pilot is **not** general availability. Wave 8 production-scale governance is documented separately:
+
+- [Wave 8 overview](../platform/wave-8-governed-production-scale.md)
+- [Feature entitlements](../platform/feature-entitlements.md) — pilot ≠ GA; env ≠ entitlement
+- [General availability readiness](../platform/general-availability-readiness.md)
+- [Release rings](../platform/release-rings.md) — `ring_2_pilot` is a deployment ring, not Controlled Pilot authority
