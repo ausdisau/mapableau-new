@@ -184,7 +184,7 @@ export const SHARED_MISSION_FEATURES: SharedMissionFeatureDefinition[] = [
     title: "Participant-defined Service Standard",
     capabilityKey: "mission.service_standard",
     masterFlag: "MAPABLE_SERVICE_STANDARD_ENABLED",
-    maturity: "concept",
+    maturity: "scaffold",
     publicClaimAllowed: false,
   },
   {
@@ -192,7 +192,7 @@ export const SHARED_MISSION_FEATURES: SharedMissionFeatureDefinition[] = [
     title: "What Changed service diff",
     capabilityKey: "mission.service_diff",
     masterFlag: "MAPABLE_SERVICE_DIFF_ENABLED",
-    maturity: "concept",
+    maturity: "scaffold",
     publicClaimAllowed: false,
   },
   {
