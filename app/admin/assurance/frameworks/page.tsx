@@ -24,7 +24,11 @@ export default async function AssuranceFrameworksPage() {
         <ul className="space-y-4">
           {frameworks.map((fw) => (
             <li key={fw.id} className="rounded-lg border p-4">
-              <h2 className="font-semibold">{fw.name}</h2>
+              <h2 className="font-semibold">
+                <Link className="underline" href={`/admin/assurance/frameworks/${fw.id}`}>
+                  {fw.name}
+                </Link>
+              </h2>
               <p className="text-sm">
                 {fw.kind} · v{fw.version} · {fw.controls.length} controls
               </p>

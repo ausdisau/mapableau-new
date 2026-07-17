@@ -6,10 +6,18 @@ const LINKS = [
   { href: "/admin/assurance/frameworks", label: "Frameworks" },
   { href: "/admin/assurance/controls", label: "Controls" },
   { href: "/admin/assurance/evidence", label: "Evidence" },
+  { href: "/admin/assurance/tests", label: "Tests" },
+  { href: "/admin/assurance/findings", label: "Findings" },
+  { href: "/admin/assurance/exceptions", label: "Exceptions" },
   { href: "/admin/assurance/readiness", label: "Readiness" },
   { href: "/admin/assurance/registration", label: "Registration" },
+  { href: "/admin/assurance/registration/0137", label: "Registration 0137" },
   { href: "/admin/assurance/ndia-application", label: "NDIA application" },
   { href: "/admin/assurance/go-live", label: "Go-live" },
+  { href: "/admin/assurance/vendors", label: "Vendors" },
+  { href: "/admin/assurance/incidents", label: "Incidents" },
+  { href: "/admin/assurance/continuity", label: "Continuity" },
+  { href: "/admin/assurance/architecture", label: "Architecture" },
 ] as const;
 
 export default async function AssuranceHomePage() {

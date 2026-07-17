@@ -19,7 +19,9 @@ export default async function AssuranceControlsPage() {
         {controls.map((c) => (
           <li key={c.id} className="border-b py-2">
             <div className="font-medium">
-              {c.controlCode} — {c.title}
+              <Link className="underline" href={`/admin/assurance/controls/${c.id}`}>
+                {c.controlCode} — {c.title}
+              </Link>
             </div>
             <div className="text-sm">
               {c.framework.name} · status {c.assuranceStatus} · freshness{" "}
