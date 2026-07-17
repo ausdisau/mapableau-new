@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { listRegistrationApplications } from "@/lib/assurance/registration/provider-registration-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssuranceRegistrationPage() {
   await requireAdmin();

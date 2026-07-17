@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { listAssuranceFrameworks } from "@/lib/assurance/frameworks/framework-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssuranceFrameworksPage() {
   await requireAdmin();

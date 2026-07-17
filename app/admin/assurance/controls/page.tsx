@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { listControls } from "@/lib/assurance/controls/control-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssuranceControlsPage() {
   await requireAdmin();

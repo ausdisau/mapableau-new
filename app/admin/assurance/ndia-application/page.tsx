@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { listNdiaDigitalPartnershipApplications } from "@/lib/assurance/ndia-application/digital-partnership-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function NdiaApplicationPage() {
   await requireAdmin();

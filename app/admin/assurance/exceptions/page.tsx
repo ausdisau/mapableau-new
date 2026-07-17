@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { listExceptions } from "@/lib/assurance/exceptions/exception-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssuranceExceptionsPage() {
   await requireAdmin();

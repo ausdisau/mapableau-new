@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { listAssuranceEvidence } from "@/lib/assurance/evidence/evidence-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssuranceEvidencePage() {
   await requireAdmin();

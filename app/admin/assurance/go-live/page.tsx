@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { listGoLiveAssessments } from "@/lib/assurance/go-live/go-live-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function GoLivePage() {
   await requireAdmin();

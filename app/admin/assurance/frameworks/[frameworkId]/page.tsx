@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { getAssuranceFramework } from "@/lib/assurance/frameworks/framework-service";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssuranceFrameworkDetailPage({
   params,

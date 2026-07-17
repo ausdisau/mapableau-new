@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { evaluateAssuranceReadiness } from "@/lib/assurance/readiness/evaluate-assurance-readiness";
 import { projectAssuranceReadiness } from "@/lib/assurance/readiness/readiness-projection";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export default async function AssuranceReadinessPage() {
   await requireAdmin();
