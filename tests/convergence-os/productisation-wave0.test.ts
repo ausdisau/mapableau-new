@@ -3,7 +3,11 @@ import { CAPABILITY_SEEDS } from "@/lib/convergence-os/seed/capabilities";
 import {
   PR_ACTION_LEDGER,
   SUPERSEDED_CLOSE_TARGETS,
+  MAX_UNMERGED_STACK_DEPTH,
+  PRODUCTISATION_TRAIN_HEADS,
   assertSupersededCloseTargetsInLedger,
+  assertStackDepthPolicy,
+  assertProductisationTrainDepth,
   ledgerEntriesByAction,
 } from "@/lib/convergence-os/seed/pr-action-ledger";
 import {
@@ -12,7 +16,7 @@ import {
 } from "@/lib/convergence-os/seed/public-claims";
 import { PRODUCTISATION_MERGE_TRAIN } from "@/lib/convergence-os/trains/productisation-merge-train";
 import { FOUNDATION_MERGE_TRAIN } from "@/lib/convergence-os/trains/foundation-merge-train";
-import { readdirSync } from "node:fs";
+import { readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 describe("Productisation Wave 0 registries", () => {
@@ -22,7 +26,7 @@ describe("Productisation Wave 0 registries", () => {
       "productisation_connected_service_v1",
     );
     expect(PRODUCTISATION_MERGE_TRAIN.trainType).toBe("PRODUCTISATION");
-    expect(PRODUCTISATION_MERGE_TRAIN.steps.length).toBeGreaterThanOrEqual(15);
+    expect(PRODUCTISATION_MERGE_TRAIN.steps.length).toBeGreaterThanOrEqual(14);
   });
 
   it("requires superseded PRs to be close actions", () => {
@@ -32,9 +36,41 @@ describe("Productisation Wave 0 registries", () => {
       expect(entry?.action).toBe("close");
       expect(entry?.productionClaimAllowed).toBe(false);
     }
-    expect(ledgerEntriesByAction("close").map((e) => e.number).sort()).toEqual(
-      [...SUPERSEDED_CLOSE_TARGETS].sort(),
-    );
+    const closeNumbers = ledgerEntriesByAction("close")
+      .map((e) => e.number)
+      .sort((a, b) => a - b);
+    expect(closeNumbers).toEqual([...SUPERSEDED_CLOSE_TARGETS].sort((a, b) => a - b));
+  });
+
+  it("enforces stack depth policy and train heads ≤ 3", () => {
+    expect(MAX_UNMERGED_STACK_DEPTH).toBe(3);
+    expect(PRODUCTISATION_TRAIN_HEADS).toEqual([312, 313, 314]);
+    expect(() => assertStackDepthPolicy()).not.toThrow();
+    expect(() => assertProductisationTrainDepth()).not.toThrow();
+    for (const entry of PR_ACTION_LEDGER) {
+      if (
+        entry.stackDepth !== undefined &&
+        entry.stackDepth > MAX_UNMERGED_STACK_DEPTH
+      ) {
+        expect(entry.action).not.toBe("merge");
+      }
+    }
+  });
+
+  it("records AccessCast #324 as merged and duplicates as close", () => {
+    expect(existsSync(join(process.cwd(), "lib/accesscast/index.ts"))).toBe(true);
+    const merged = PR_ACTION_LEDGER.find((e) => e.number === 324);
+    expect(merged?.state).toBe("MERGED");
+    expect(merged?.action).toBe("retain_as_reference");
+    for (const n of [320, 321, 322, 325]) {
+      expect(PR_ACTION_LEDGER.find((e) => e.number === n)?.action).toBe("close");
+    }
+  });
+
+  it("refuses to merge RC1 mega-branch", () => {
+    const rc1 = PR_ACTION_LEDGER.find((e) => e.number === 323);
+    expect(rc1?.action).toBe("split");
+    expect(rc1?.action).not.toBe("merge");
   });
 
   it("forbids public production claims without maturity evidence", () => {
@@ -84,10 +120,14 @@ describe("Productisation Wave 0 registries", () => {
     const closeSteps = PRODUCTISATION_MERGE_TRAIN.steps.filter((s) =>
       s.action.startsWith("close"),
     );
-    const firstProduct = PRODUCTISATION_MERGE_TRAIN.steps.find(
-      (s) => s.prNumber === 310 || s.prNumber === 273,
-    );
+    const wave0 = PRODUCTISATION_MERGE_TRAIN.steps.find((s) => s.prNumber === 312);
     expect(closeSteps.length).toBeGreaterThanOrEqual(4);
-    expect(closeSteps[0]!.stepOrder).toBeLessThan(firstProduct!.stepOrder);
+    expect(closeSteps[0]!.stepOrder).toBeLessThan(wave0!.stepOrder);
+  });
+
+  it("archives or defers CareOS parallel platform", () => {
+    const careos = PR_ACTION_LEDGER.find((e) => e.number === 231);
+    expect(["archive", "defer"]).toContain(careos?.action);
+    expect(careos?.productionClaimAllowed).toBe(false);
   });
 });

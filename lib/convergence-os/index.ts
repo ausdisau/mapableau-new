@@ -66,8 +66,12 @@ export {
 export {
   PR_ACTION_LEDGER,
   SUPERSEDED_CLOSE_TARGETS,
+  MAX_UNMERGED_STACK_DEPTH,
+  PRODUCTISATION_TRAIN_HEADS,
   ledgerEntriesByAction,
   assertSupersededCloseTargetsInLedger,
+  assertStackDepthPolicy,
+  assertProductisationTrainDepth,
 } from "@/lib/convergence-os/seed/pr-action-ledger";
 export {
   PUBLIC_CLAIM_REGISTRY,

@@ -1,16 +1,19 @@
 /**
  * Productisation Wave 0 — PR action ledger.
- * Actions: merge | rebase | split | consolidate | supersede | close | retain_as_reference | retire_after_migration
- * Verified against live GitHub state at ledger refresh; descriptions are not evidence of main source.
+ * Actions: merge | rebase | recreate | split | consolidate | supersede | close | archive | defer | retain_as_reference | retire_after_migration
+ * Verified against live GitHub state at ledger refresh (2026-07-17); descriptions are not evidence of main source.
  */
 
 export type PrLedgerAction =
   | "merge"
   | "rebase"
+  | "recreate"
   | "split"
   | "consolidate"
   | "supersede"
   | "close"
+  | "archive"
+  | "defer"
   | "retain_as_reference"
   | "retire_after_migration";
 
@@ -30,10 +33,26 @@ export type PrActionLedgerEntry = {
   dependencies: number[];
   operatingModeNote: string;
   productionClaimAllowed: boolean;
+  /** Unmerged stack depth when base is not main (informational). */
+  stackDepth?: number;
 };
 
-/** Superseded PRs that must be closed (or labelled supersede) before merge-train progress. */
-export const SUPERSEDED_CLOSE_TARGETS: number[] = [289, 290, 291, 264, 287, 288];
+/**
+ * Superseded PRs that must be closed (or labelled supersede) before merge-train progress.
+ * Includes AccessCast duplicates after #324 landed on main.
+ */
+export const SUPERSEDED_CLOSE_TARGETS: number[] = [
+  289, 290, 291, 264, 287, 288, 320, 321, 322, 325, 202,
+];
+
+/** Maximum unmerged PR stack depth allowed by productisation policy. */
+export const MAX_UNMERGED_STACK_DEPTH = 3;
+
+/**
+ * Immediate productisation train on current main (depth ≤ 3).
+ * 312 → 313 → 314; further work rebases onto main after each merge.
+ */
+export const PRODUCTISATION_TRAIN_HEADS: number[] = [312, 313, 314];
 
 export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
   {
@@ -59,7 +78,7 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     schemaImpact: "medium",
     canonicalDomains: ["convergence.control_plane"],
     action: "retain_as_reference",
-    reason: "Constitution + twin on main; extend registries in productisation Wave 0.",
+    reason: "Constitution + twin on main; Wave 0 extends registries only.",
     dependencies: [300],
     operatingModeNote: "internal_alpha audit",
     productionClaimAllowed: false,
@@ -73,7 +92,7 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     schemaImpact: "high",
     canonicalDomains: ["places.access_place", "access.intelligence_next"],
     action: "retain_as_reference",
-    reason: "AI Next foundation on main; do not fork legacy AI.",
+    reason: "AI Next foundation on main; do not fork legacy AI place writers.",
     dependencies: [],
     operatingModeNote: "synthetic_demo → shadow",
     productionClaimAllowed: false,
@@ -122,7 +141,7 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
   },
   {
     number: 297,
-    title: "Transport MVP shell",
+    title: "Transport MVP shell (Prompt 0–1)",
     state: "MERGED",
     isDraft: false,
     baseBranch: "main",
@@ -146,6 +165,220 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     reason: "Indoor on main; authoring canvas still incomplete.",
     dependencies: [],
     operatingModeNote: "controlled_pilot candidate",
+    productionClaimAllowed: false,
+  },
+  {
+    number: 324,
+    title: "AccessCast synthetic outlook + Starting Work contracts",
+    state: "MERGED",
+    isDraft: false,
+    baseBranch: "main",
+    schemaImpact: "none",
+    canonicalDomains: ["access.cast"],
+    action: "retain_as_reference",
+    reason:
+      "AccessCast synthetic foundation on main; duplicate AccessCast stacks #320–#322/#325 must close.",
+    supersedes: [320, 321, 322, 325],
+    dependencies: [306],
+    operatingModeNote: "synthetic_demo — no production claim",
+    productionClaimAllowed: false,
+  },
+  {
+    number: 312,
+    title: "Productisation Wave 0 — canonical repo reconciliation",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["convergence.control_plane"],
+    action: "merge",
+    reason:
+      "Wave 0 registries only: PR ledger, public claims, capability honesty, merge train. No product schema/flags.",
+    dependencies: [300, 302, 324],
+    operatingModeNote: "advisory registries",
+    productionClaimAllowed: false,
+    stackDepth: 1,
+  },
+  {
+    number: 313,
+    title: "Wave 1 high-risk API and tenant hardening",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/canonical-repo-reconciliation-6ea8",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["security.encryption", "platform.tenancy"],
+    action: "rebase",
+    reason:
+      "Rebase onto main after #312; encryption fail-closed, break-glass, high-risk Zod, org membership asserts.",
+    dependencies: [312],
+    operatingModeNote: "security — flags default off",
+    productionClaimAllowed: false,
+    stackDepth: 2,
+  },
+  {
+    number: 314,
+    title: "Communication Passport → readiness vertical slice",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/api-tenant-hardening-6ea8",
+    mergeable: "MERGEABLE",
+    schemaImpact: "medium",
+    canonicalDomains: ["communication.passport", "workforce.readiness"],
+    action: "rebase",
+    reason:
+      "Hold until #313 on main; then rebase. No auto-assign; completion ≠ competency.",
+    dependencies: [313],
+    operatingModeNote: "internal_alpha slice",
+    productionClaimAllowed: false,
+    stackDepth: 3,
+  },
+  {
+    number: 315,
+    title: "Native Expo Companion foundation and Visit Pack",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/comm-workforce-slice-6ea8",
+    mergeable: "MERGEABLE",
+    schemaImpact: "low",
+    canonicalDomains: ["mobile.companion"],
+    action: "split",
+    reason:
+      "Stack depth >3 — split off and rebase onto main after #314; no WebView shell.",
+    dependencies: [314],
+    operatingModeNote: "concept → controlled_pilot later",
+    productionClaimAllowed: false,
+    stackDepth: 4,
+  },
+  {
+    number: 316,
+    title: "Provider Ops read-only daily attention queue",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/native-companion-foundation-6ea8",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["provider.ops_attention"],
+    action: "split",
+    reason: "Read projection only; rebase onto main after security + passport; never a second writer.",
+    dependencies: [315],
+    operatingModeNote: "scaffold — read only",
+    productionClaimAllowed: false,
+    stackDepth: 5,
+  },
+  {
+    number: 317,
+    title: "Starting Work golden journey and operating loop status",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/provider-ops-projection-6ea8",
+    mergeable: "MERGEABLE",
+    schemaImpact: "medium",
+    canonicalDomains: ["journeys.starting_work"],
+    action: "split",
+    reason:
+      "Executable journey after Care/Transport/Billing adapters; do not merge deep stack as-is.",
+    dependencies: [316],
+    operatingModeNote: "synthetic → controlled_pilot",
+    productionClaimAllowed: false,
+    stackDepth: 6,
+  },
+  {
+    number: 319,
+    title: "Replay Lab Mission Simulator kernel",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["assurance.replay_lab"],
+    action: "defer",
+    reason: "Land after security; synthetic only — not proof of production safety.",
+    dependencies: [313],
+    operatingModeNote: "synthetic assurance gate",
+    productionClaimAllowed: false,
+  },
+  {
+    number: 323,
+    title: "Release candidate 1 consolidation",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "CONFLICTING",
+    schemaImpact: "high",
+    canonicalDomains: ["release.rc1"],
+    action: "split",
+    reason:
+      "Never merge giant RC branch (~100k+ LOC). Cherry-pick inventories only; domain-owned PRs required.",
+    dependencies: [],
+    operatingModeNote: "non-mergeable mega-branch",
+    productionClaimAllowed: false,
+  },
+  {
+    number: 320,
+    title: "AccessCast shared contracts (duplicate stack)",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "CONFLICTING",
+    schemaImpact: "none",
+    canonicalDomains: ["access.cast"],
+    action: "close",
+    reason: "Superseded by merged #324 AccessCast on main.",
+    supersededBy: 324,
+    dependencies: [],
+    operatingModeNote: "retired duplicate",
+    productionClaimAllowed: false,
+  },
+  {
+    number: 321,
+    title: "AccessCast Starting Work journey (duplicate stack)",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/accesscast-synthetic-outlook-1c07",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["access.cast"],
+    action: "close",
+    reason: "Superseded by merged #324.",
+    supersededBy: 324,
+    dependencies: [320],
+    operatingModeNote: "retired duplicate",
+    productionClaimAllowed: false,
+    stackDepth: 2,
+  },
+  {
+    number: 322,
+    title: "AccessCast Companion offline Visit Pack (duplicate)",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/accesscast-starting-work-journey-1c07",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["access.cast", "mobile.companion"],
+    action: "close",
+    reason: "Superseded by merged #324/#326 AccessCast path.",
+    supersededBy: 324,
+    dependencies: [321],
+    operatingModeNote: "retired duplicate",
+    productionClaimAllowed: false,
+    stackDepth: 3,
+  },
+  {
+    number: 325,
+    title: "AccessCast Starting Work timeline (duplicate tip)",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "cursor/accesscast-synthetic-outlook-57ca",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["access.cast"],
+    action: "close",
+    reason: "Base #324 already merged; tip work should land as follow-up on main if still needed.",
+    supersededBy: 324,
+    dependencies: [324],
+    operatingModeNote: "retired duplicate tip",
     productionClaimAllowed: false,
   },
   {
@@ -245,17 +478,32 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     productionClaimAllowed: false,
   },
   {
+    number: 202,
+    title: "Migrate from NextAuth to Supabase Auth",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "CONFLICTING",
+    schemaImpact: "high",
+    canonicalDomains: ["auth.sessions"],
+    action: "close",
+    reason: "Conflicts with declared NextAuth ownership in DOMAIN_OWNERSHIP.md.",
+    dependencies: [],
+    operatingModeNote: "retired — wrong auth SoT",
+    productionClaimAllowed: false,
+  },
+  {
     number: 310,
     title: "Connected Capability Programme foundation",
     state: "OPEN",
     isDraft: true,
     baseBranch: "main",
-    mergeable: "MERGEABLE",
+    mergeable: "CONFLICTING",
     schemaImpact: "medium",
     canonicalDomains: ["programmes.connected_capability"],
-    action: "merge",
-    reason: "Early Wave 0 train — capability foundation without new participant SoT.",
-    dependencies: [302],
+    action: "rebase",
+    reason: "CONFLICTING with main; rebase after #312/#313 — no new participant SoT.",
+    dependencies: [312],
     operatingModeNote: "scaffold",
     productionClaimAllowed: false,
   },
@@ -270,7 +518,7 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     canonicalDomains: ["ndis.gateway", "finance.funding"],
     action: "rebase",
     reason: "Merge after security wave; keep real NDIA submission disabled.",
-    dependencies: [],
+    dependencies: [313],
     operatingModeNote: "scaffold — adapters off",
     productionClaimAllowed: false,
   },
@@ -283,10 +531,27 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     mergeable: "MERGEABLE",
     schemaImpact: "high",
     canonicalDomains: ["access.intelligence", "places.access_place"],
-    action: "merge",
-    reason: "Merge after reconciliation; then consolidate with AI Next namespaces.",
-    dependencies: [306],
+    action: "consolidate",
+    reason:
+      "Consolidate with AI Next on main; refuse second AccessPlace writer (AiAccessPlace).",
+    dependencies: [306, 313],
     operatingModeNote: "shadow / internal_alpha — flags default off",
+    productionClaimAllowed: false,
+  },
+  {
+    number: 266,
+    title: "Access Intelligence Wave 0–5 production expansion (sibling)",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "CONFLICTING",
+    schemaImpact: "high",
+    canonicalDomains: ["access.intelligence", "places.access_place"],
+    action: "supersede",
+    reason: "Sibling of #273; rebuild/consolidate onto AI Next — do not merge both.",
+    supersededBy: 273,
+    dependencies: [],
+    operatingModeNote: "superseded sibling",
     productionClaimAllowed: false,
   },
   {
@@ -295,11 +560,11 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     state: "OPEN",
     isDraft: true,
     baseBranch: "main",
-    mergeable: "MERGEABLE",
+    mergeable: "CONFLICTING",
     schemaImpact: "medium",
     canonicalDomains: ["access.intelligence_next", "access.vision"],
-    action: "merge",
-    reason: "Bridge VisionAccess; supersedes #291.",
+    action: "rebase",
+    reason: "Bridge VisionAccess after consolidate #273; supersedes #291.",
     supersedes: [291],
     dependencies: [273],
     operatingModeNote: "synthetic_demo / shadow",
@@ -314,9 +579,9 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     mergeable: "MERGEABLE",
     schemaImpact: "medium",
     canonicalDomains: ["accountability.portal"],
-    action: "rebase",
-    reason: "Wave 18 prep; unify with #311 later.",
-    dependencies: [],
+    action: "defer",
+    reason: "After security + billing honesty; unify with #311 later.",
+    dependencies: [313],
     operatingModeNote: "scaffold",
     productionClaimAllowed: false,
   },
@@ -330,9 +595,9 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     schemaImpact: "high",
     canonicalDomains: ["continuity.os"],
     action: "consolidate",
-    reason: "Single ContinuityOS; supersedes #287/#288; no dual mission DDL.",
+    reason: "Single Continuity owner; supersedes #287/#288; no dual mission DDL.",
     supersedes: [287, 288],
-    dependencies: [],
+    dependencies: [313],
     operatingModeNote: "scaffold",
     productionClaimAllowed: false,
   },
@@ -346,7 +611,7 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     schemaImpact: "high",
     canonicalDomains: ["access.ops", "places.civic_asset"],
     action: "consolidate",
-    reason: "One AccessOps adapter layer; supersede parallel CivicAsset SoT concepts.",
+    reason: "One AccessOps adapter layer; no parallel CivicAsset SoT.",
     dependencies: [308],
     operatingModeNote: "concept → scaffold",
     productionClaimAllowed: false,
@@ -360,7 +625,7 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     mergeable: "CONFLICTING",
     schemaImpact: "medium",
     canonicalDomains: ["accountability.governance"],
-    action: "rebase",
+    action: "defer",
     reason: "After #307; unify appeals path.",
     dependencies: [307],
     operatingModeNote: "scaffold",
@@ -405,9 +670,9 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     mergeable: "CONFLICTING",
     schemaImpact: "high",
     canonicalDomains: ["aura.proposal"],
-    action: "split",
+    action: "defer",
     reason: "Land only after security + consent; L≤3 propose; no authority writes.",
-    dependencies: [298],
+    dependencies: [298, 313],
     operatingModeNote: "concept — ceiling L3_PROPOSE",
     productionClaimAllowed: false,
   },
@@ -426,6 +691,38 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     operatingModeNote: "retire writers after Trip migration",
     productionClaimAllowed: false,
   },
+  {
+    number: 231,
+    title: "CareOS agentic network and Intelligence Fabric",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "CONFLICTING",
+    schemaImpact: "high",
+    canonicalDomains: ["care.careos_parallel"],
+    action: "archive",
+    reason:
+      "Parallel platform risk — defer/archive; extract adapters only after ADR. Case/Care on main remain writers.",
+    dependencies: [],
+    operatingModeNote: "archived parallel stack root",
+    productionClaimAllowed: false,
+  },
+  {
+    number: 252,
+    title: "CareOS platform completion — mission SoR",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "agent/careos-national-platform",
+    mergeable: "MERGEABLE",
+    schemaImpact: "high",
+    canonicalDomains: ["care.careos_parallel"],
+    action: "defer",
+    reason: "Second CareOSMission writer — blocked without architecture decision.",
+    dependencies: [231],
+    operatingModeNote: "deferred — kill criterion if merged as SoT",
+    productionClaimAllowed: false,
+    stackDepth: 3,
+  },
 ];
 
 export function ledgerEntriesByAction(action: PrLedgerAction): PrActionLedgerEntry[] {
@@ -440,5 +737,28 @@ export function assertSupersededCloseTargetsInLedger(): void {
         `Superseded PR #${n} must appear in PR_ACTION_LEDGER with action=close`,
       );
     }
+  }
+}
+
+/** Entries with stackDepth > MAX_UNMERGED_STACK_DEPTH must not use action=merge. */
+export function assertStackDepthPolicy(): void {
+  for (const entry of PR_ACTION_LEDGER) {
+    if (
+      entry.stackDepth !== undefined &&
+      entry.stackDepth > MAX_UNMERGED_STACK_DEPTH &&
+      entry.action === "merge"
+    ) {
+      throw new Error(
+        `PR #${entry.number} stackDepth=${entry.stackDepth} exceeds ${MAX_UNMERGED_STACK_DEPTH} and must not merge as-is`,
+      );
+    }
+  }
+}
+
+export function assertProductisationTrainDepth(): void {
+  if (PRODUCTISATION_TRAIN_HEADS.length > MAX_UNMERGED_STACK_DEPTH) {
+    throw new Error(
+      `Productisation train heads exceed max depth ${MAX_UNMERGED_STACK_DEPTH}`,
+    );
   }
 }
