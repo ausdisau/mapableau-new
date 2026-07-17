@@ -15,6 +15,7 @@ const OPS_LINKS = [
   { href: "/admin/engagement", label: "Engagement" },
   { href: "/admin/ops/billing", label: "Billing" },
   { href: "/admin/ops/compliance", label: "Compliance" },
+  { href: "/admin/platform-assurance", label: "Platform assurance" },
   { href: "/admin/ops/agent-runs", label: "Agent runs" },
   { href: "/admin/open-data", label: "Open data" },
   { href: "/admin/ndis-provider-ingestion", label: "NDIS ingestion" },
