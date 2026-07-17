@@ -37,6 +37,19 @@ export type { HarbourAccessCastFixture, HarbourSegmentSpec } from "./harbour-fix
 
 export { runAccessCastForecast, runHarbourPlaceOutlook } from "./forecast";
 
+export {
+  buildAccessCastTimeline,
+  formatTimelinePlainText,
+  STARTING_WORK_TIMELINE_HINTS,
+} from "./timeline";
+export type { TimelineHint } from "./timeline";
+
+export { runStartingWorkJourneyAccessCast } from "./journey";
+export type {
+  StartingWorkJourneyInput,
+  StartingWorkJourneyAccessCast,
+} from "./journey";
+
 export type {
   AccessCastForecastHorizon,
   AccessCastRequirementStatus,

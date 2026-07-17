@@ -24,6 +24,10 @@ Wave 1 foundation: **synthetic contracts only**. No Prisma migration, no live fe
 
 - UI: `/accesscast/demo` (requires `MAPABLE_ACCESSCAST_ENABLED=true`, mode `synthetic`)
 - API: `GET|POST /api/accesscast/demo`
+- Journey UI: `/accesscast/journey` (also requires `MAPABLE_ACCESSCAST_JOURNEY_OUTLOOK_ENABLED=true`)
+- Journey API: `GET|POST /api/accesscast/journeys/demo/outlook`
+
+See [JOURNEY_OUTLOOK.md](./JOURNEY_OUTLOOK.md).
 
 ## Safety
 
