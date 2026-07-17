@@ -15,6 +15,7 @@ const AUTH_PREFIXES = [
   "/messages",
   "/practitioner",
   "/marketplace",
+  "/ops",
 ] as const;
 
 const AUTH_PATHS = ["/care/", "/transport/"] as const;

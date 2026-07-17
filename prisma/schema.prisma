@@ -140,6 +140,14 @@ model User {
   caseTasksCompleted        CaseTask[]             @relation("CaseTaskCompletedBy")
   caseLinksCreated          CaseLink[]             @relation("CaseLinkCreatedBy")
   caseAiInsightsRequested   CaseAIInsight[]        @relation("CaseAIInsightRequestedBy")
+
+  // Quality & Safeguards Ops Centre
+  qsCapabilityGrants        QsCapabilityGrant[]    @relation("QsCapabilityGrantUser")
+  qsCapabilityGrantsGranted QsCapabilityGrant[]    @relation("QsCapabilityGrantGrantedBy")
+  qsSignalsAssigned         SafeguardSignal[]      @relation("SafeguardSignalAssignee")
+  qsSignalsCreated          SafeguardSignal[]      @relation("SafeguardSignalCreatedBy")
+  qsWorkflowTasksAssigned   QsWorkflowTask[]       @relation("QsWorkflowTaskAssignee")
+  qsImmutableAuditEvents    QsImmutableAuditEvent[] @relation("QsImmutableAuditActor")
 }
 
 model PasskeyCredential {
@@ -716,6 +724,14 @@ model Organisation {
   engagementImprovementActions EngagementImprovementAction[]
   engagementNpsResponses EngagementNpsResponse[]
   workerTrainingModules  WorkerTrainingModule[]
+
+  // Quality & Safeguards Ops Centre
+  qsCapabilityGrants     QsCapabilityGrant[]
+  safeguardSignals       SafeguardSignal[]
+  qsDeadlineInstances    QsDeadlineInstance[]
+  qsWorkflowTasks        QsWorkflowTask[]
+  qsImmutableAuditEvents QsImmutableAuditEvent[]
+  qsRegulatoryProfiles   QsRegulatoryProfileConfig[]
 }
 
 model OrganisationMember {
@@ -8646,4 +8662,289 @@ model WorkerTrainingCompletion {
   @@unique([moduleId, userId])
   @@index([userId])
   @@map("worker_training_completions")
+}
+
+// ---------------------------------------------------------------------------
+// Quality & Safeguards Ops Centre (Wave 1 foundation)
+// ---------------------------------------------------------------------------
+
+enum SafeguardSignalSourceType {
+  participant_report
+  worker_report
+  complaint
+  incident
+  care_shift
+  transport_trip
+  job_service
+  credential
+  training
+  service_note
+  system_rule
+  external_referral
+  anonymous
+  trust_safety_queue
+}
+
+enum SafeguardSignalUrgency {
+  critical
+  high
+  moderate
+  low
+  unassessed
+}
+
+enum SafeguardSignalStatus {
+  new
+  triaged
+  linked
+  converted_to_case
+  dismissed_with_reason
+}
+
+enum SafeguardServiceVertical {
+  care
+  transport
+  jobs
+  core
+  other
+}
+
+enum QsDeadlineInstanceStatus {
+  pending
+  due_soon
+  overdue
+  completed
+  cancelled
+  escalated
+}
+
+enum QsWorkflowTaskStatus {
+  open
+  in_progress
+  blocked
+  done
+  cancelled
+}
+
+enum QsCapabilityCode {
+  qs_ops_read
+  qs_signal_triage
+  incident_triage
+  incident_confirm_reportability
+  incident_close
+  complaint_investigate
+  complaint_resolve
+  complaint_view_identity
+  evidence_add
+  evidence_export
+  credential_verify
+  worker_restrict_assignment
+  capa_approve
+  audit_manage
+  audit_view
+  policy_publish
+  restrictive_practice_view
+  restrictive_practice_manage
+  analytics_view_identified
+  analytics_view_deidentified
+}
+
+model SafeguardSignal {
+  id                     String                    @id @default(cuid())
+  organisationId         String?
+  organisation           Organisation?             @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  sourceType             SafeguardSignalSourceType
+  sourceId               String?
+  participantId          String?
+  workerId               String?
+  providerId             String?
+  serviceVertical        SafeguardServiceVertical  @default(core)
+  summary                String
+  observedAt             DateTime
+  receivedAt             DateTime                  @default(now())
+  urgency                SafeguardSignalUrgency    @default(unassessed)
+  immediateSafetyConcern Boolean                   @default(false)
+  assignedTeam           String?
+  assignedUserId         String?
+  assignedUser           User?                     @relation("SafeguardSignalAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  status                 SafeguardSignalStatus     @default(new)
+  ruleTriggers           Json                      @default("[]")
+  createdById            String?
+  createdBy              User?                     @relation("SafeguardSignalCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  isAnonymous            Boolean                   @default(false)
+  dismissReason          String?
+  triageNotes            String?
+  convertedResourceType  String?
+  convertedResourceId    String?
+  deletedAt              DateTime?
+  version                Int                       @default(1)
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  linksFrom SafeguardSignalLink[] @relation("SafeguardSignalLinkFrom")
+  linksTo   SafeguardSignalLink[] @relation("SafeguardSignalLinkTo")
+
+  @@index([organisationId, status])
+  @@index([urgency, status])
+  @@index([sourceType, sourceId])
+  @@index([participantId])
+  @@index([immediateSafetyConcern, status])
+  @@map("safeguard_signals")
+}
+
+model SafeguardSignalLink {
+  id           String          @id @default(cuid())
+  fromSignalId String
+  fromSignal   SafeguardSignal @relation("SafeguardSignalLinkFrom", fields: [fromSignalId], references: [id], onDelete: Cascade)
+  toSignalId   String
+  toSignal     SafeguardSignal @relation("SafeguardSignalLinkTo", fields: [toSignalId], references: [id], onDelete: Cascade)
+  linkType     String          @default("related")
+  note         String?
+  createdAt    DateTime        @default(now())
+
+  @@unique([fromSignalId, toSignalId, linkType])
+  @@index([toSignalId])
+  @@map("safeguard_signal_links")
+}
+
+model QsCapabilityGrant {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation("QsCapabilityGrantUser", fields: [userId], references: [id], onDelete: Cascade)
+  organisationId String?
+  organisation   Organisation?    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  capability     QsCapabilityCode
+  grantedById    String?
+  grantedBy      User?            @relation("QsCapabilityGrantGrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
+  activeFrom     DateTime         @default(now())
+  activeTo       DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([userId, organisationId, capability])
+  @@index([userId, capability])
+  @@index([organisationId])
+  @@map("qs_capability_grants")
+}
+
+model QsDeadlineRule {
+  id              String   @id @default(cuid())
+  code            String
+  version         String
+  triggerEvent    String
+  conditionsJson  Json     @default("[]")
+  durationKind    String
+  durationValue   Int
+  jurisdiction    String?
+  priority        String   @default("normal")
+  escalationPath  Json     @default("[]")
+  sourceReference String?
+  effectiveFrom   DateTime @default(now())
+  effectiveTo     DateTime?
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  instances QsDeadlineInstance[]
+
+  @@unique([code, version])
+  @@index([triggerEvent, active])
+  @@map("qs_deadline_rules")
+}
+
+model QsDeadlineInstance {
+  id               String                   @id @default(cuid())
+  organisationId   String?
+  organisation     Organisation?            @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  ruleId           String?
+  rule             QsDeadlineRule?          @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  ruleCode         String
+  ruleVersion      String
+  resourceType     String
+  resourceId       String
+  triggerEvent     String
+  timezone         String                   @default("Australia/Sydney")
+  dueAt            DateTime
+  status           QsDeadlineInstanceStatus @default(pending)
+  escalatedAt      DateTime?
+  completedAt      DateTime?
+  correlationId    String?
+  metadataJson     Json                     @default("{}")
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  @@index([organisationId, status, dueAt])
+  @@index([resourceType, resourceId])
+  @@index([dueAt, status])
+  @@map("qs_deadline_instances")
+}
+
+model QsWorkflowTask {
+  id             String               @id @default(cuid())
+  organisationId String?
+  organisation   Organisation?        @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  title          String
+  description    String?
+  resourceType   String
+  resourceId     String
+  status         QsWorkflowTaskStatus @default(open)
+  priority       String               @default("normal")
+  assigneeId     String?
+  assignee       User?                @relation("QsWorkflowTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  dueAt          DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([organisationId, status])
+  @@index([assigneeId, status])
+  @@index([resourceType, resourceId])
+  @@map("qs_workflow_tasks")
+}
+
+model QsImmutableAuditEvent {
+  id             String        @id @default(cuid())
+  organisationId String?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  actorId        String?
+  actor          User?         @relation("QsImmutableAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actorRole      String?
+  action         String
+  resourceType   String
+  resourceId     String
+  occurredAt     DateTime      @default(now())
+  ipHash         String?
+  userAgentHash  String?
+  reason         String?
+  beforeHash     String?
+  afterHash      String?
+  eventHash      String
+  previousHash   String?
+  correlationId  String
+  metadataJson   Json          @default("{}")
+
+  @@index([organisationId, occurredAt])
+  @@index([resourceType, resourceId])
+  @@index([correlationId])
+  @@index([eventHash])
+  @@map("qs_immutable_audit_events")
+}
+
+model QsRegulatoryProfileConfig {
+  id             String        @id @default(cuid())
+  organisationId String?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  code           String
+  version        String
+  jurisdiction   String        @default("AU")
+  profileJson    Json
+  effectiveFrom  DateTime      @default(now())
+  effectiveTo    DateTime?
+  active         Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([code, version, organisationId])
+  @@index([active, effectiveFrom])
+  @@map("qs_regulatory_profile_configs")
 }

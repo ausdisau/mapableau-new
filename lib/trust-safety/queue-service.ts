@@ -1,6 +1,8 @@
 import type { TrustSafetyQueueSource, TrustSafetyQueueStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { isQualitySafeguardsOpsEnabled } from "@/lib/quality-safeguards/feature-flags";
+import { syncSignalsFromTrustSafetyQueue } from "@/lib/quality-safeguards/signals-service";
 
 export async function syncTrustSafetyQueue() {
   const [incidents, complaints, disputedLogs] = await Promise.all([
@@ -85,6 +87,11 @@ export async function syncTrustSafetyQueue() {
         summary: `${disputedLogs} service log(s) marked disputed`,
       },
     });
+  }
+
+  if (isQualitySafeguardsOpsEnabled()) {
+    // Non-destructive feeder into the unified SafeguardSignal inbox.
+    await syncSignalsFromTrustSafetyQueue();
   }
 
   return listTrustSafetyQueue();

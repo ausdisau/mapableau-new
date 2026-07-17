@@ -85,6 +85,12 @@ export function AdminDashboard() {
               href="/admin/ops/safeguarding"
             />
             <AdminMetricCard
+              title="Quality & Safeguards"
+              value={m.safeguardingAlerts}
+              href="/admin/ops/quality-safeguards"
+              description="Ops Centre — signals, deadlines, incidents, complaints"
+            />
+            <AdminMetricCard
               title="Guardrail blocks (7d)"
               value={m.guardrailBlocks}
               href="/admin/ops/agent-runs"
