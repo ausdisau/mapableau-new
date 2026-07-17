@@ -8647,3 +8647,197 @@ model WorkerTrainingCompletion {
   @@index([userId])
   @@map("worker_training_completions")
 }
+
+// ---------------------------------------------------------------------------
+// MapAble Civic Access Infrastructure — Wave 1 Asset Registry
+// Projection registry over AccessPlace / indoor / transport. Not a second AMS.
+// ---------------------------------------------------------------------------
+
+enum CivicAssetClass {
+  transport
+  pedestrian_realm
+  curb_parking
+  buildings_services
+  events
+  service_infrastructure
+}
+
+enum CivicAssetLifecycle {
+  draft
+  registered
+  active
+  deprecated
+  retired
+}
+
+enum CivicVisibility {
+  public
+  internal
+  restricted
+}
+
+enum CivicExternalSystem {
+  access_place
+  access_floor_plan
+  indoor_feature
+  transport_pickup
+  transport_dropoff
+  transport_vehicle
+  gtfs_stop
+  gtfs_pathway
+  cds_curb_zone
+  accessibility_ops_asset
+  council_ams
+  operator_feed
+  other
+}
+
+enum CivicSourceKind {
+  mapable_canonical
+  partner_feed
+  government_open_data
+  operator
+  venue
+  community_mapping
+  assessor
+  synthetic_pilot
+  other
+}
+
+enum CivicLicenceKind {
+  cc_by
+  cc_by_sa
+  cc_by_nc
+  open_government
+  restricted_operational
+  commercial
+  community_contributed
+  research_extract
+  emergency
+  internal
+  unknown
+}
+
+model CivicSource {
+  id             String   @id @default(cuid())
+  stableKey      String   @unique @map("stable_key")
+  name           String
+  kind           CivicSourceKind
+  organisationId String?  @map("organisation_id")
+  publisher      String?
+  homepageUrl    String?  @map("homepage_url")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  versions CivicSourceVersion[]
+  licences CivicSourceLicence[]
+  assets   CivicAsset[]
+
+  @@index([kind])
+  @@map("civic_sources")
+}
+
+model CivicSourceVersion {
+  id            String    @id @default(cuid())
+  sourceId      String    @map("source_id")
+  source        CivicSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  versionLabel  String    @map("version_label")
+  retrievedAt   DateTime  @map("retrieved_at")
+  publishedAt   DateTime? @map("published_at")
+  contentHash   String?   @map("content_hash")
+  feedUrl       String?   @map("feed_url")
+  notes         String?
+  metadata      Json      @default("{}")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([sourceId, createdAt])
+  @@map("civic_source_versions")
+}
+
+model CivicSourceLicence {
+  id                       String           @id @default(cuid())
+  sourceId                 String           @map("source_id")
+  source                   CivicSource      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  licenceKind              CivicLicenceKind @map("licence_kind")
+  licenceName              String           @map("licence_name")
+  licenceUrl               String?          @map("licence_url")
+  attributionText          String?          @map("attribution_text")
+  allowsPublicPublication  Boolean          @default(false) @map("allows_public_publication")
+  allowsCommercialReuse    Boolean          @default(false) @map("allows_commercial_reuse")
+  notes                    String?
+  createdAt                DateTime         @default(now()) @map("created_at")
+
+  @@index([sourceId])
+  @@map("civic_source_licences")
+}
+
+model CivicAsset {
+  id                       String             @id @default(cuid())
+  stableKey                String             @map("stable_key")
+  organisationId           String?            @map("organisation_id")
+  ownerOrganisationId      String?            @map("owner_organisation_id")
+  operatorOrganisationId   String?            @map("operator_organisation_id")
+  /** Soft reference to AccessPlace.id — never duplicates place rows. Not a hard FK so synthetic pilot IDs and pre-bind refs are allowed. */
+  accessPlaceId            String?            @map("access_place_id")
+  sourceId                 String?            @map("source_id")
+  source                   CivicSource?       @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  assetClass               CivicAssetClass    @map("asset_class")
+  assetType                String             @map("asset_type")
+  title                    String
+  plainLanguageTitle       String?            @map("plain_language_title")
+  description              String?
+  jurisdictionCode         String?            @map("jurisdiction_code")
+  lifecycleState           CivicAssetLifecycle @default(registered) @map("lifecycle_state")
+  visibility               CivicVisibility    @default(internal)
+  geometry                 Json?
+  operatingHours           String?            @map("operating_hours")
+  accessibilityClaims      Json               @default("[]") @map("accessibility_claims")
+  lastVerifiedAt           DateTime?          @map("last_verified_at")
+  nextReviewAt             DateTime?          @map("next_review_at")
+  attribution              String?
+  metadata                 Json               @default("{}")
+  createdAt                DateTime           @default(now()) @map("created_at")
+  updatedAt                DateTime           @updatedAt @map("updated_at")
+  retiredAt                DateTime?          @map("retired_at")
+
+  versions           CivicAssetVersion[]
+  externalReferences CivicAssetExternalReference[]
+
+  @@unique([organisationId, stableKey])
+  @@index([accessPlaceId])
+  @@index([organisationId, assetClass])
+  @@index([jurisdictionCode])
+  @@map("civic_assets")
+}
+
+model CivicAssetVersion {
+  id                  String   @id @default(cuid())
+  assetId             String   @map("asset_id")
+  asset               CivicAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  versionLabel        String   @map("version_label")
+  contentHash         String?  @map("content_hash")
+  changelog           String?
+  sourceRevision      String?  @map("source_revision")
+  projectionSnapshot  Json?    @map("projection_snapshot")
+  metadata            Json     @default("{}")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@index([assetId, createdAt])
+  @@map("civic_asset_versions")
+}
+
+model CivicAssetExternalReference {
+  id           String              @id @default(cuid())
+  assetId      String              @map("asset_id")
+  asset        CivicAsset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  system       CivicExternalSystem
+  externalId   String              @map("external_id")
+  canonicalRef String?             @map("canonical_ref")
+  metadata     Json                @default("{}")
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  @@unique([assetId, system, externalId])
+  @@index([system, externalId])
+  @@map("civic_asset_external_references")
+}

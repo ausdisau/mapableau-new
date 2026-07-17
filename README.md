@@ -132,6 +132,8 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md) | Transport scheduling |
 | [docs/modules/accessibility.md](docs/modules/accessibility.md) | Accessibility profiles |
 | [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md) | Admin dashboard |
+| [docs/civic-access/README.md](docs/civic-access/README.md) | MapAble Civic Access Infrastructure (Wave 1 registry) |
+| [docs/indoor-accessibility/architecture.md](docs/indoor-accessibility/architecture.md) | Indoor accessibility platform |
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).
 
