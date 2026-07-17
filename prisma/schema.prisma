@@ -10383,3 +10383,84 @@ model PilotStartingWorkRun {
   @@index([participantSyntheticId])
   @@map("pilot_starting_work_runs")
 }
+
+enum ContinuityRecoveryStatus {
+  detected
+  alternatives_prepared
+  awaiting_participant
+  participant_approved
+  confirmed
+  unresolved
+  closed
+}
+
+enum ContinuityRecoveryAlternativeKind {
+  worker_candidate
+  transport_keep
+  transport_reschedule
+  transport_cancel_request
+  regional_candidate
+}
+
+/// Participant-controlled recovery case. Care cancel ≠ Transport cancel.
+model ContinuityRecoveryCase {
+  id                     String                    @id @default(cuid())
+  caseKey                String                    @unique
+  participantId          String
+  organisationId         String?
+  careShiftId            String?
+  careBookingId          String?
+  transportTripId        String?
+  transportBookingId     String?
+  missionRef             String?
+  failureSignal          String
+  status                 ContinuityRecoveryStatus  @default(detected)
+  transportPreserved     Boolean                   @default(true)
+  transportAutoCancelled Boolean                   @default(false)
+  summary                String?
+  createdById            String?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  alternatives ContinuityRecoveryAlternative[]
+  receipt      ContinuityRecoveryReceipt?
+
+  @@index([participantId, status])
+  @@index([careShiftId])
+  @@index([transportTripId])
+  @@map("continuity_recovery_cases")
+}
+
+model ContinuityRecoveryAlternative {
+  id                 String                           @id @default(cuid())
+  caseId             String
+  case               ContinuityRecoveryCase           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind               ContinuityRecoveryAlternativeKind
+  label              String
+  /// candidate | available | compatible | provider_accepted — never "confirmed" without participant
+  readinessState     String                           @default("candidate")
+  compatible         Boolean                          @default(false)
+  providerAccepted   Boolean                          @default(false)
+  participantApproved Boolean                         @default(false)
+  confirmed          Boolean                          @default(false)
+  reasonsJson        Json                             @default("[]")
+  createdAt          DateTime                         @default(now())
+
+  @@index([caseId])
+  @@map("continuity_recovery_alternatives")
+}
+
+model ContinuityRecoveryReceipt {
+  id                      String                  @id @default(cuid())
+  caseId                  String                  @unique
+  case                    ContinuityRecoveryCase  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  chosenAlternativeId     String?
+  participantUserId       String
+  transportPreserved      Boolean
+  transportCancelRequested Boolean                @default(false)
+  outcome                 String
+  plainLanguageSummary    String
+  createdAt               DateTime                @default(now())
+
+  @@map("continuity_recovery_receipts")
+}

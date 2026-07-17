@@ -82,7 +82,8 @@ Flag: `MAPABLE_CARE_RECURRING_SCHEDULES_ENABLED` (default **false**).
 - Recurring schedules require the feature flag; not production_supported
 - NDIS pricing is unresolved until versioned pricing policy — no funding approval claims
 - Billing handoff creates `BillingServiceRecord`; it does not submit to NDIA
-- Cancel Care must not silently cancel connected Transport (Continuity PR 5)
+- Cancel Care must not silently cancel connected Transport — Continuity recovery
+  (`MAPABLE_CONTINUITY_RECOVERY_ENABLED`) opens participant-controlled alternatives
 
 ## Tests
 

@@ -163,20 +163,30 @@ export async function propagateCareShiftStatusToTransport(params: {
   if (!event?.transportBookingId) return { skipped: true };
 
   if (params.newStatus === "cancelled") {
-    await prisma.transportBooking.update({
-      where: { id: event.transportBookingId },
-      data: { status: "cancelled" },
-    });
+    // Permanent rule: Care cancel must not auto-cancel Transport.
+    // Open Continuity recovery / participant choice instead of silent cancel.
     await prisma.orchestrationEvent.create({
       data: {
-        eventType: "care_transport_cancel_propagated",
+        eventType: "care_transport_cancel_deferred_to_participant",
         careRequestId: shift.careRequestId,
         transportBookingId: event.transportBookingId,
-        idempotencyKey: `cancel-${shift.id}-${Date.now()}`,
+        idempotencyKey: `cancel-deferred-${shift.id}-${Date.now()}`,
         createdById: params.actorUserId,
-        metadata: { careShiftId: shift.id },
+        metadata: {
+          careShiftId: shift.id,
+          transportAutoCancelled: false,
+          transportPreserved: true,
+          reason:
+            "Care cancellation does not auto-cancel connected Transport; participant-controlled recovery required",
+        },
       },
     });
+    return {
+      propagated: false,
+      deferredToParticipant: true,
+      transportPreserved: true,
+      transportBookingId: event.transportBookingId,
+    };
   }
 
   return { propagated: true, transportBookingId: event.transportBookingId };

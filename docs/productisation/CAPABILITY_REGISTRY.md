@@ -24,7 +24,7 @@ or assert registration.
 | pilot.starting_work | Starting Work pilot | merged_but_synthetic | Prisma `PilotStartingWorkRun` + seed refs | `MAPABLE_STARTING_WORK_PILOT_ENABLED=false`; synthetic-only default | Persisted projection; not live booking engine |
 | mobile.companion | Native Companion | scaffold + flagged server | Expo + APIs | `MAPABLE_COMPANION_*=false` | Foundation; not production Companion |
 | provider.ops_attention | Provider Ops attention | merged_but_flagged | Prisma reads only | `MAPABLE_PROVIDER_OPS_ENABLED=false` | Read-only; never second writer |
-| continuity.mission_recovery | Continuity / mission recovery | open_pr / thin on main | Care backup recovery only | — | Full Continuity is later PR |
+| continuity.participant_recovery | Continuity / mission recovery | merged_but_flagged | Prisma ContinuityRecovery* | `MAPABLE_CONTINUITY_RECOVERY_ENABLED=false` | Care cancel preserves Transport; participant chooses |
 | academy.courses | Provider Academy | merged_but_flagged | Prisma enrollments | — | Course ≠ competency |
 | regional.capacity_exchange | Regional Capacity Exchange | scaffold / absent as product | CapacityBlock ≠ exchange | — | Defer national marketplace |
 | at.lifecycle | Assistive technology lifecycle | scaffold | marketplace taxonomy | — | Partner assessment/repair |

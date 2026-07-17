@@ -622,6 +622,33 @@ export const CAPABILITY_SEEDS: CapabilitySeed[] = [
     },
   },
   {
+    capabilityKey: "continuity.participant_recovery",
+    name: "Participant-controlled Continuity recovery",
+    programme: "Continuity",
+    canonicalOwner: "missions.case",
+    implementationPaths: [
+      "lib/continuity/participant-recovery-service.ts",
+      "app/api/continuity/recovery/",
+      "prisma/migrations/20260717150000_continuity_recovery_cases/",
+    ],
+    featureFlags: ["MAPABLE_CONTINUITY_RECOVERY_ENABLED"],
+    maturity: "scaffolded",
+    persistenceType: "prisma",
+    productionClaimStatus: "unsupported",
+    rollbackNotes:
+      "Care cancel never auto-cancels Transport; participant approval required; no emergency automation",
+    honesty: {
+      implemented: true,
+      featureEnabled: false,
+      connected: true,
+      durable: true,
+      tested: true,
+      piloted: false,
+      externallyIntegrated: false,
+      productionSupported: false,
+    },
+  },
+  {
     capabilityKey: "managed.support_delivery",
     name: "MapAble Managed Support (direct regulated delivery)",
     programme: "Managed Support",
