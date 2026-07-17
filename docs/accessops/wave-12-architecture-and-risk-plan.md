@@ -7,14 +7,14 @@
 
 **Do not create a parallel accessibility map.** AccessOps overlays and governs existing systems:
 
-| Existing surface | AccessOps role |
-| --- | --- |
-| `AccessPlace` / `AccessFeature` / `AccessOperationalStatus` | Canonical place inventory; projected into `AccessAsset` |
-| `AccessFloorPlan` + `structuredData` route graph | Indoor twin geometry; versioned via `AccessGraphPublication` |
-| `IndoorAccessibilityIncident` | Migrates toward `AccessOpsIncident` with provenance |
-| `AccessiblePlace` (legacy) | Backfill source only; not new writes |
-| `lib/access-map/**`, `lib/indoor-accessibility/**` | Reused engines behind AccessOps policy |
-| Partner API v1 | Retained; v2 is scope-controlled AccessOps surface |
+| Existing surface                                            | AccessOps role                                               |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| `AccessPlace` / `AccessFeature` / `AccessOperationalStatus` | Canonical place inventory; projected into `AccessAsset`      |
+| `AccessFloorPlan` + `structuredData` route graph            | Indoor twin geometry; versioned via `AccessGraphPublication` |
+| `IndoorAccessibilityIncident`                               | Migrates toward `AccessOpsIncident` with provenance          |
+| `AccessiblePlace` (legacy)                                  | Backfill source only; not new writes                         |
+| `lib/access-map/**`, `lib/indoor-accessibility/**`          | Reused engines behind AccessOps policy                       |
+| Partner API v1                                              | Retained; v2 is scope-controlled AccessOps surface           |
 
 ## Phase 1 audit findings (summary)
 
@@ -34,22 +34,22 @@
 12. **Webhooks:** partner scaffolding; **delivery worker absent**
 13. **Feature flags:** indoor, status subscriptions, 3D/AR disabled, open-data gated
 14. **Env gates:** substantial operational enablement via flags
-15–33. Provenance/freshness/owner gaps, restricted geometry risk, partner DTO leakage, demo routes, incomplete authoring
+    15–33. Provenance/freshness/owner gaps, restricted geometry risk, partner DTO leakage, demo routes, incomplete authoring
 
 ### Critical risks remediated in Wave 12
 
-| Risk | Remediation |
-| --- | --- |
-| Partner floor-plans return raw `features` | Strip to public DTO; require `restricted-assets` scope for internals |
-| Indoor incidents GET unauthenticated + raw Prisma | Auth + entitlement + AccessOps DTO |
-| Authoring GET unauthenticated | Require session + floor-plan manage permission |
-| Dual place stores | Backfill into `AccessAsset`; no new `AccessiblePlace` writes from AccessOps |
-| Demo incidents/routes as live | `test_only` lifecycle; audit scripts |
-| Status without freshness | `AccessStatusEvent` + projection marks `stale` |
-| Missing owner fabricated | Explicit `unknown` entity; never invent ownership |
-| Sensor → status mutation | Sensors emit candidates only; no actuation |
-| Universal accessibility score | Forbidden; feature-level only |
-| Participant journeys in open data / webhooks | Privacy filter + payload minimisation |
+| Risk                                              | Remediation                                                                 |
+| ------------------------------------------------- | --------------------------------------------------------------------------- |
+| Partner floor-plans return raw `features`         | Strip to public DTO; require `restricted-assets` scope for internals        |
+| Indoor incidents GET unauthenticated + raw Prisma | Auth + entitlement + AccessOps DTO                                          |
+| Authoring GET unauthenticated                     | Require session + floor-plan manage permission                              |
+| Dual place stores                                 | Backfill into `AccessAsset`; no new `AccessiblePlace` writes from AccessOps |
+| Demo incidents/routes as live                     | `test_only` lifecycle; audit scripts                                        |
+| Status without freshness                          | `AccessStatusEvent` + projection marks `stale`                              |
+| Missing owner fabricated                          | Explicit `unknown` entity; never invent ownership                           |
+| Sensor → status mutation                          | Sensors emit candidates only; no actuation                                  |
+| Universal accessibility score                     | Forbidden; feature-level only                                               |
+| Participant journeys in open data / webhooks      | Privacy filter + payload minimisation                                       |
 
 ### Known limitations (honest)
 

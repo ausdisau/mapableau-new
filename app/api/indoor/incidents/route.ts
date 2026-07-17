@@ -1,7 +1,13 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { isIndoorFeatureEnabled } from "@/lib/indoor-accessibility/feature-flags";
-import { featureDisabledResponse, indoorApiError } from "@/lib/indoor-accessibility/api-errors";
-import { canReportStatus, canVerifyStatus } from "@/lib/indoor-accessibility/permissions";
+import {
+  featureDisabledResponse,
+  indoorApiError,
+} from "@/lib/indoor-accessibility/api-errors";
+import {
+  canReportStatus,
+  canVerifyStatus,
+} from "@/lib/indoor-accessibility/permissions";
 import { recordIndoorAuditEvent } from "@/lib/indoor-accessibility/audit/indoor-audit-service";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -26,7 +32,8 @@ export async function GET(request: Request) {
   if (user instanceof Response) return user;
   const url = new URL(request.url);
   const placeId = url.searchParams.get("placeId");
-  if (!placeId) return Response.json({ error: "placeId required" }, { status: 400 });
+  if (!placeId)
+    return Response.json({ error: "placeId required" }, { status: 400 });
   const now = new Date();
   const incidents = await prisma.indoorAccessibilityIncident.findMany({
     where: {
@@ -68,12 +75,19 @@ export async function POST(request: Request) {
   }
   const body = await request.json();
   const parsed = incidentSchema.safeParse(body);
-  if (!parsed.success) return indoorApiError("FLOOR_PLAN_VALIDATION_FAILED", "Invalid incident.", 400);
+  if (!parsed.success)
+    return indoorApiError(
+      "FLOOR_PLAN_VALIDATION_FAILED",
+      "Invalid incident.",
+      400,
+    );
 
   const incident = await prisma.indoorAccessibilityIncident.create({
     data: {
       ...parsed.data,
-      expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : undefined,
+      expiresAt: parsed.data.expiresAt
+        ? new Date(parsed.data.expiresAt)
+        : undefined,
       moderationState: "pending",
     },
   });
@@ -95,11 +109,20 @@ export async function PATCH(request: Request) {
     action: z.enum(["verify", "resolve"]),
   });
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return indoorApiError("FLOOR_PLAN_VALIDATION_FAILED", "Invalid request.", 400);
+  if (!parsed.success)
+    return indoorApiError(
+      "FLOOR_PLAN_VALIDATION_FAILED",
+      "Invalid request.",
+      400,
+    );
 
   const data =
     parsed.data.action === "verify"
-      ? { verifiedAt: new Date(), moderationState: "verified", trustLevel: "mapable_verified" }
+      ? {
+          verifiedAt: new Date(),
+          moderationState: "verified",
+          trustLevel: "mapable_verified",
+        }
       : { resolvedAt: new Date(), moderationState: "resolved" };
 
   const incident = await prisma.indoorAccessibilityIncident.update({

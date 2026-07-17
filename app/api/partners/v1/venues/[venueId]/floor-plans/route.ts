@@ -40,9 +40,15 @@ export async function GET(request: Request, { params }: RouteParams) {
   // Restricted zones are stripped. Full feature payloads require partner v2
   // scope `restricted-assets:read` (or indoor-graphs:read) via AccessOps DTOs.
   const filtered = plans.map((p) => {
-    const data = p.structuredData as { features?: unknown[]; zones?: unknown[] };
+    const data = p.structuredData as {
+      features?: unknown[];
+      zones?: unknown[];
+    };
     const publicZones = ((data.zones ?? []) as Array<{ type?: string }>).filter(
-      (z) => z.type !== "restricted" && z.type !== "security" && z.type !== "staff_only",
+      (z) =>
+        z.type !== "restricted" &&
+        z.type !== "security" &&
+        z.type !== "staff_only",
     );
     return {
       id: p.id,

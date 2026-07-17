@@ -12,7 +12,10 @@ export async function GET(request: Request) {
   const auth = await authenticatePartnerRequest(request);
   if (auth instanceof Response) return auth;
   if (!requirePartnerScope(auth.scopes, "venues:read")) {
-    return Response.json({ error: { code: "SCOPE_DENIED", message: "venues:read required" } }, { status: 403 });
+    return Response.json(
+      { error: { code: "SCOPE_DENIED", message: "venues:read required" } },
+      { status: 403 },
+    );
   }
 
   const url = new URL(request.url);

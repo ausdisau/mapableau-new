@@ -169,9 +169,7 @@ export const SPECIALIST_MANIFESTS: SpecialistManifestTemplate[] = [
     ],
     prohibitedActionSlugs: NEVER_APPROVE,
     requiresApprovalAtOrAbove: "high_irreversible",
-    disclaimers: [
-      "High-risk recovery still requires a human safety officer.",
-    ],
+    disclaimers: ["High-risk recovery still requires a human safety officer."],
   },
   {
     // Wave 11 — SERVICE recovery. Distinct from account recovery above.
@@ -266,6 +264,14 @@ export function isEmergencyServiceAttempt(actionSlug: string): boolean {
   );
 }
 
-export function findServiceRecoveryManifest(): SpecialistManifestTemplate | undefined {
+export function findServiceRecoveryManifest():
+  | SpecialistManifestTemplate
+  | undefined {
   return SPECIALIST_MANIFESTS.find((m) => m.slug === "service-recovery");
+}
+
+export function findAccessOpsManifest():
+  | SpecialistManifestTemplate
+  | undefined {
+  return SPECIALIST_MANIFESTS.find((m) => m.slug === "accessops");
 }
