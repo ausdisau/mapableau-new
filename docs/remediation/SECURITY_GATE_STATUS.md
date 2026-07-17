@@ -5,22 +5,22 @@
 
 ## Credential exposure
 
-| Location | Status | Agent action | Human action still required |
-| -------- | ------ | ------------ | --------------------------- |
+| Location     | Status                                                          | Agent action                      | Human action still required                                                                                               |
+| ------------ | --------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | PR #344 body | Scrubbed (credential text removed; compromised notice retained) | PR body rewritten without secrets | **Rotate** the exposed test-account password; invalidate sessions; confirm least privilege; search logs/history for reuse |
-| PR #136 body | Scrubbed | Secret removed from description | **Rotate** Uber client secret |
-| PR #22 body | Scrubbed | Key removed from description | **Rotate** ORS API key |
+| PR #136 body | Scrubbed                                                        | Secret removed from description   | **Rotate** Uber client secret                                                                                             |
+| PR #22 body  | Scrubbed                                                        | Key removed from description      | **Rotate** ORS API key                                                                                                    |
 
 Do **not** re-publish credentials in PR bodies, docs, fixtures, screenshots, or commits.
 
 ## Canonical host and TLS
 
-| Item | Status |
-| ---- | ------ |
-| www TLS certificate | **Blocked on human / Vercel** — www reported expired; apex login works |
-| Host policy PR | Draft #344 proposes apex-canonical (`https://mapable.com.au`) |
-| Production env | Human must set `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` to the chosen canonical host |
-| www → apex redirect | Only after www certificate is valid again |
+| Item                | Status                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| www TLS certificate | **Blocked on human / Vercel** — www reported expired; apex login works               |
+| Host policy PR      | Draft #344 proposes apex-canonical (`https://mapable.com.au`)                        |
+| Production env      | Human must set `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` to the chosen canonical host |
+| www → apex redirect | Only after www certificate is valid again                                            |
 
 Until TLS/host is confirmed in production, treat auth/host remediation as **BLOCKED** for production claims.
 
@@ -37,12 +37,12 @@ Until TLS/host is confirmed in production, treat auth/host remediation as **BLOC
 
 ## Gate verdict
 
-| Check | Verdict |
-| ----- | ------- |
-| PR body scrub | Done (agent) |
-| Credential rotation | **BLOCKED — human** |
-| Session invalidation | **BLOCKED — human** |
-| www cert / canonical host | **BLOCKED — human** |
-| CI secret patterns | Done in this change set |
+| Check                     | Verdict                 |
+| ------------------------- | ----------------------- |
+| PR body scrub             | Done (agent)            |
+| Credential rotation       | **BLOCKED — human**     |
+| Session invalidation      | **BLOCKED — human**     |
+| www cert / canonical host | **BLOCKED — human**     |
+| CI secret patterns        | Done in this change set |
 
 Mission Portfolio product implementation may proceed for **docs/contracts** once leadership-train depth allows. Production enablement and public claims remain blocked until human TLS + rotation confirmations land.
