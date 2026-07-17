@@ -62,3 +62,29 @@
 /docs/access-intelligence-next/ @ausdisau/mapable-maintainers
 /components/access-intelligence-next/ @ausdisau/mapable-maintainers
 /tests/access-intelligence-next/ @ausdisau/mapable-maintainers
+
+# Connected Capability Programme
+/lib/connected-capability/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/lib/communications-os/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/lib/workforce-os/ @ausdisau/mapable-maintainers
+/lib/academy/ @ausdisau/mapable-maintainers
+/lib/at-lifecycle-os/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/lib/companion/ @ausdisau/mapable-maintainers @ausdisau/mapable-security
+/lib/outcomes-ledger/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/lib/provider-ops/ @ausdisau/mapable-maintainers
+/lib/regional-capacity/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/lib/developer-platform/ @ausdisau/mapable-maintainers @ausdisau/mapable-security
+/lib/config/connected-capability-flags.ts @ausdisau/mapable-maintainers @ausdisau/mapable-security
+/docs/connected-capability/ @ausdisau/mapable-maintainers
+/app/api/communications/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/app/api/workforce/ @ausdisau/mapable-maintainers
+/app/api/academy/ @ausdisau/mapable-maintainers
+/app/api/equipment/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/app/api/companion/ @ausdisau/mapable-maintainers @ausdisau/mapable-security
+/app/api/outcomes/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/app/api/provider-ops/ @ausdisau/mapable-maintainers
+/app/api/regional-capacity/ @ausdisau/mapable-maintainers @ausdisau/mapable-privacy
+/tests/connected-capability/ @ausdisau/mapable-maintainers
+/tests/communications-os/ @ausdisau/mapable-maintainers
+/tests/workforce-os/ @ausdisau/mapable-maintainers
+/tests/academy/ @ausdisau/mapable-maintainers

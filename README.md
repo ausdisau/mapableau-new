@@ -80,6 +80,7 @@ The data model lives in a single schema: `prisma/schema.prisma`. Apply reviewed 
 │   └── seed*.ts              # Seed scripts
 ├── docs/
 │   ├── mapable/              # Core hub, phases 1–12, Cursor prompts
+│   ├── connected-capability/ # Connected Capability Programme (nine systems)
 │   ├── modules/              # Feature guides (care, transport, cases, …)
 │   ├── operations/           # Neon, ops notes
 │   ├── integrations/         # Env var reference
@@ -114,6 +115,7 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/mapable/cursor-prompts-phases-6-10.md](docs/mapable/cursor-prompts-phases-6-10.md)   | Cursor prompt packs (phases 6–10)     |
 | [docs/mapable/cursor-five-year-masterplan.md](docs/mapable/cursor-five-year-masterplan.md) | Cursor five-year strategic masterplan |
 | [docs/convergence-os/README.md](docs/convergence-os/README.md) | ConvergenceOS governance control plane (audit/advisory) |
+| [docs/connected-capability/README.md](docs/connected-capability/README.md) | Connected Capability Programme — nine systems |
 
 ### Modules
 

@@ -22,6 +22,16 @@
 | Access place identity       | `lib/access-map/**`                                      | **`AccessPlace`**                     | Sole public place writer                                          |
 | Access Intelligence Next    | `lib/access-intelligence-next/**`                        | Deterministic fit / proof / graph projection | Synthetic contracts only in foundation; must not become AccessPlace SoT |
 | Public accountability       | `lib/national-accountability/**`                         | National accountability publications  | Evolve to governed pipeline (PR 11); no second portal             |
+| Connected Capability spine  | `lib/connected-capability/**`                            | Shared contracts / evidence / handoff | Projections only; no second identity/consent/audit SoT            |
+| CommunicationsOS            | `lib/communications-os/**`                               | Communication Passport projection     | Projects from AccessibilityProfile; not a competing profile      |
+| WorkforceOS readiness       | `lib/workforce-os/**`                                    | Readiness projection                  | Reads WorkerProfile; no auto-assignment                           |
+| MapAble Academy contracts   | `lib/academy/**`                                         | Catalogue + completion exchange       | Completion ≠ competency; bridges ProviderAcademy                  |
+| AT LifecycleOS              | `lib/at-lifecycle-os/**`                                 | Equipment Passport (shadow)           | Coordination only — no clinical prescription                      |
+| Companion contracts         | `lib/companion/**`                                       | Offline Visit Pack contracts          | Not a WebView shell; no continuous location                       |
+| Outcomes Ledger             | `lib/outcomes-ledger/**`                                 | Outcome Contract / Receipt            | Participant-authored; no success scores                           |
+| Provider Ops projection     | `lib/provider-ops/**`                                    | Attention queue projection            | Read-only; not operational SoT                                    |
+| Regional Capacity           | `lib/regional-capacity/**`                               | Need / candidate exchange             | No automatic assignment                                           |
+| Developer Platform          | `lib/developer-platform/**`                              | Capability catalogue / sandbox        | Purpose-bound; no unrestricted participant data                   |
 
 ## Mutation rule
 
