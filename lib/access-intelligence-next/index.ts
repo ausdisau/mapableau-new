@@ -13,3 +13,6 @@ export * from "./change-detection";
 export * from "./graph";
 export * from "./journey";
 export * from "./reliability";
+export * from "./counterfactuals";
+export * from "./burden";
+export * from "./outcomes";
