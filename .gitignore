@@ -80,3 +80,6 @@ yarn.lock
 # Logs
 logs
 *.log
+
+# Generated assurance / SBOM reports
+/artifacts/

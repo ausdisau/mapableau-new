@@ -101,6 +101,23 @@ export type Permission =
   | "ndis:pricing:manage"
   | "provider:ndia:claim"
   | "provider:ndis:claim"
+  | "provider:ndis:claim:view"
+  | "provider:ndis:claim:create"
+  | "provider:ndis:claim:approve"
+  | "provider:ndis:claim:revoke"
+  | "admin:ndis:claim:break_glass"
+  | "provider:billing:view"
+  | "provider:billing:create"
+  | "provider:billing:validate"
+  | "provider:billing:approve"
+  | "provider:billing:correct"
+  | "provider:billing:void"
+  | "provider:evidence:view"
+  | "provider:evidence:exception"
+  | "participant:billing:view"
+  | "participant:evidence:confirm"
+  | "participant:billing:dispute"
+  | "admin:billing:break_glass"
   | "xero:manage"
   | "stripe:manage"
   | "route:manage"
@@ -113,6 +130,15 @@ export type Permission =
   | "developer:manage"
   | "compliance:manage"
   | "security:readiness"
+  | "assurance:read"
+  | "assurance:manage"
+  | "assurance:evidence:write"
+  | "assurance:exceptions:manage"
+  | "assurance:registration:manage"
+  | "assurance:ndia-application:manage"
+  | "assurance:go-live:decide"
+  | "platform_trust:workers:read"
+  | "platform_trust:workers:assess"
   | "ndia:readiness"
   | "launch:readiness"
   | "dispatch:manage"
@@ -231,6 +257,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "case:read:self",
     "engagement:read:self",
     "engagement:submit:self",
+    "participant:billing:view",
+    "participant:evidence:confirm",
+    "participant:billing:dispute",
   ],
   family_member: [
     "profile:read:self",
@@ -286,7 +315,21 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "provider_academy:enroll",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "provider:ndis:claim:view",
+    "provider:ndis:claim:create",
+    "provider:ndis:claim:approve",
+    "provider:ndis:claim:revoke",
+    "provider:billing:view",
+    "provider:billing:create",
+    "provider:billing:validate",
+    "provider:billing:approve",
+    "provider:billing:correct",
+    "provider:billing:void",
+    "provider:evidence:view",
+    "provider:evidence:exception",
     "engagement:provider:read",
+    "platform_trust:workers:read",
+    "platform_trust:workers:assess",
   ],
   transport_operator: [
     "booking:read:any",
@@ -373,6 +416,20 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "ndis:pricing:manage",
     "provider:ndia:claim",
     "provider:ndis:claim",
+    "provider:ndis:claim:view",
+    "provider:ndis:claim:create",
+    "provider:ndis:claim:approve",
+    "provider:ndis:claim:revoke",
+    "admin:ndis:claim:break_glass",
+    "provider:billing:view",
+    "provider:billing:create",
+    "provider:billing:validate",
+    "provider:billing:approve",
+    "provider:billing:correct",
+    "provider:billing:void",
+    "provider:evidence:view",
+    "provider:evidence:exception",
+    "admin:billing:break_glass",
     "xero:manage",
     "stripe:manage",
     "route:manage",
@@ -381,6 +438,15 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "developer:manage",
     "compliance:manage",
     "security:readiness",
+    "assurance:read",
+    "assurance:manage",
+    "assurance:evidence:write",
+    "assurance:exceptions:manage",
+    "assurance:registration:manage",
+    "assurance:ndia-application:manage",
+    "assurance:go-live:decide",
+    "platform_trust:workers:read",
+    "platform_trust:workers:assess",
     "ndia:readiness",
     "admin:analytics",
     "engagement:manage:any",
