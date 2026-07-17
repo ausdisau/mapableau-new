@@ -88,6 +88,13 @@ export async function markAppealReviewerAssigned(appealId: string) {
 }
 
 export async function decideAppeal(appealId: string) {
+  const appeal = await prisma.appealCase.findUnique({
+    where: { id: appealId },
+  });
+  if (!appeal) throw new Error("APPEAL_NOT_FOUND");
+  if (appeal.status === "reviewer_assigned") {
+    await transitionAppeal(appealId, "under_review");
+  }
   await transitionAppeal(appealId, "decision_pending");
   return transitionAppeal(appealId, "resolved");
 }

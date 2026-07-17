@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { requirePermission } from "@/lib/auth/guards";
 
 export const dynamic = "force-dynamic";
@@ -12,8 +14,12 @@ export default async function VaultDisputesPage() {
         raise a dispute. Disputes are reviewed by a human and never by AI.
       </p>
       <p className="text-sm">
-        In this build, disputes are captured via the existing complaints
-        pipeline. A dedicated dispute registry is planned for the next wave.
+        Wave 13 routes consequential decision challenges through the dedicated{" "}
+        <Link href="/participant/appeals" className="underline">
+          participant appeals pathway
+        </Link>
+        . Access disputes that involve a governed decision should use that page
+        so non-retaliation, independent review and remedies are tracked.
       </p>
     </div>
   );

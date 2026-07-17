@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
+export function shouldBlockForRecusal(
+  declaration: { recusalRequired: boolean } | null | undefined,
+): boolean {
+  return Boolean(declaration?.recusalRequired);
+}
+
 export async function declareConflictOfInterest(params: {
   subjectUserId: string;
   contextType: string;
@@ -31,7 +37,7 @@ export async function requireNoRecusal(params: {
     orderBy: { declaredAt: "desc" },
   });
 
-  if (recusal) throw new Error("RECUSAL_REQUIRED");
+  if (shouldBlockForRecusal(recusal)) throw new Error("RECUSAL_REQUIRED");
 }
 
 export async function listConflictDeclarations(params: {

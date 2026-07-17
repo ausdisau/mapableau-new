@@ -133,6 +133,7 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md) | Transport scheduling |
 | [docs/modules/accessibility.md](docs/modules/accessibility.md) | Accessibility profiles |
 | [docs/accessops/wave-12-accessops.md](docs/accessops/wave-12-accessops.md) | Wave 12 AccessOps civic access digital twin |
+| [docs/governance/wave-13.md](docs/governance/wave-13.md) | Wave 13 public-interest governance, algorithm register, appeals and oversight |
 | [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md) | Admin dashboard |
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).

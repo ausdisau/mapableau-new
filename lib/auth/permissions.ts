@@ -31,7 +31,6 @@ export type Permission =
   | "admin:compliance:read"
   | "admin:agent-runs:read"
   | "admin:actions:write"
-
   | "message:read"
   | "message:send"
   | "support:create"
@@ -203,7 +202,7 @@ export type Permission =
   | "transport_investment:manage"
   | "api_ecosystem:manage"
   | "research_federation:manage"
-  |     "continuity:manage"
+  | "continuity:manage"
   | "continuity:read:self"
   | "continuity:manage:self"
   | "continuity:read:org"
@@ -332,7 +331,25 @@ export type Permission =
   | "provider:federation:read"
   | "provider:federation:issue"
   | "provider:federation:verify"
-  | "provider:federation:disclose";
+  | "provider:federation:disclose"
+  // Wave 13: public-interest governance
+  | "governance:system:read"
+  | "governance:system:manage"
+  | "governance:system:assess"
+  | "governance:system:publish"
+  | "governance:system:suspend"
+  | "governance:decision:read:self"
+  | "governance:appeal:create"
+  | "governance:appeal:read:self"
+  | "governance:appeal:evidence:self"
+  | "governance:appeal:withdraw:self"
+  | "governance:appeal:read"
+  | "governance:appeal:assign"
+  | "governance:appeal:decide"
+  | "governance:appeal:remedy"
+  | "governance:community:read"
+  | "governance:community:recommend"
+  | "governance:community:respond";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -410,6 +427,13 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "continuity:life-events:read:self",
     "continuity:life-events:manage:self",
     "continuity:standing-instructions:manage:self",
+    "governance:decision:read:self",
+    "governance:appeal:create",
+    "governance:appeal:read:self",
+    "governance:appeal:evidence:self",
+    "governance:appeal:withdraw:self",
+    "governance:community:read",
+    "governance:community:recommend",
   ],
   family_member: [
     "profile:read:self",
@@ -790,6 +814,23 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "federation:conformance:run",
     "federation:disclosure:manage:any",
     "federation:emergency:review",
+    "governance:system:read",
+    "governance:system:manage",
+    "governance:system:assess",
+    "governance:system:publish",
+    "governance:system:suspend",
+    "governance:decision:read:self",
+    "governance:appeal:create",
+    "governance:appeal:read:self",
+    "governance:appeal:evidence:self",
+    "governance:appeal:withdraw:self",
+    "governance:appeal:read",
+    "governance:appeal:assign",
+    "governance:appeal:decide",
+    "governance:appeal:remedy",
+    "governance:community:read",
+    "governance:community:recommend",
+    "governance:community:respond",
   ],
 };
 
@@ -807,23 +848,23 @@ export const ADMIN_SCOPE_PERMISSIONS: Permission[] = [
 ];
 
 export function hasAnyAdminScopePermission(
-  role: UserRole | MapAbleUserRole
+  role: UserRole | MapAbleUserRole,
 ): boolean {
   if (isAdminRole(role)) return true;
   return ADMIN_SCOPE_PERMISSIONS.some((p) =>
-    getPermissionsForRole(role).includes(p)
+    getPermissionsForRole(role).includes(p),
   );
 }
 
 export function getPermissionsForRole(
-  role: UserRole | MapAbleUserRole
+  role: UserRole | MapAbleUserRole,
 ): Permission[] {
   return ROLE_PERMISSIONS[role as UserRole] ?? [];
 }
 
 export function hasPermission(
   role: UserRole | MapAbleUserRole,
-  permission: Permission
+  permission: Permission,
 ): boolean {
   if (isAdminRole(role)) return true;
   return getPermissionsForRole(role).includes(permission);
@@ -832,14 +873,11 @@ export function hasPermission(
 export function canViewParticipantProfile(
   actorRole: UserRole | MapAbleUserRole,
   actorId: string,
-  participantUserId: string
+  participantUserId: string,
 ): boolean {
   if (actorId === participantUserId) return true;
   if (isAdminRole(actorRole)) return true;
-  if (
-    actorRole === "support_coordinator" ||
-    actorRole === "family_member"
-  ) {
+  if (actorRole === "support_coordinator" || actorRole === "family_member") {
     return true;
   }
   return false;

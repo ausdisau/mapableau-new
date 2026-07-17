@@ -149,7 +149,14 @@
     "accessops:sensorthings:conformance": "tsx scripts/accessops/sensorthings-conformance.ts --dry-run",
     "accessops:wot:conformance": "tsx scripts/accessops/wot-conformance.ts --dry-run",
     "accessops:ogc:conformance": "tsx scripts/accessops/ogc-conformance.ts --dry-run",
-    "accessops:evaluate": "tsx scripts/accessops/evaluate.ts --dry-run"
+    "accessops:evaluate": "tsx scripts/accessops/evaluate.ts --dry-run",
+    "governance:audit-systems": "tsx scripts/audit-governed-systems.ts --dry-run",
+    "governance:audit-decisions": "tsx scripts/audit-consequential-decisions.ts --dry-run",
+    "governance:audit-appeals": "tsx scripts/audit-appeal-pathways.ts --dry-run",
+    "governance:audit-tenant-scope": "tsx scripts/audit-governance-tenant-scope.ts --dry-run",
+    "governance:audit-explanations": "tsx scripts/audit-public-explanations.ts --dry-run",
+    "governance:backfill-register": "tsx scripts/backfill-algorithm-register.ts --dry-run",
+    "governance:evaluate": "tsx scripts/governance/evaluate.ts --dry-run"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

@@ -6,6 +6,7 @@ export * from "./community/recommendation-service";
 export * from "./conflicts/conflict-service";
 export * from "./decisions/decision-service";
 export * from "./feature-flags";
+export * from "./governance-service";
 export * from "./notices/notice-service";
 export * from "./oversight/body-service";
 export * from "./publication/publication-service";
