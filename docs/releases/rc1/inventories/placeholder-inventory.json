@@ -1,0 +1,403 @@
+{
+  "metadata": {
+    "name": "placeholder-inventory",
+    "generatedAt": "2026-07-17T08:31:02.943Z",
+    "source": "repository-static-scan"
+  },
+  "payload": {
+    "aggregate": {
+      "fileCount": 82,
+      "totalMatches": 250,
+      "samplePaths": [
+        {
+          "path": "lib/demo/floor-plan-fixture.ts",
+          "count": 37
+        },
+        {
+          "path": "app/admin/institutional-permanence/PermanenceAdminForms.tsx",
+          "count": 14
+        },
+        {
+          "path": "lib/release-candidate/placeholders/classifier.ts",
+          "count": 12
+        },
+        {
+          "path": "app/admin/federated-accountability/FederatedAccountabilityForm.tsx",
+          "count": 10
+        },
+        {
+          "path": "lib/floor-plan/floor-plan-service.ts",
+          "count": 10
+        },
+        {
+          "path": "app/accessibility-map/[slug]/page.tsx",
+          "count": 6
+        },
+        {
+          "path": "app/admin/certified-api-ecosystem/EcosystemAdminForm.tsx",
+          "count": 6
+        },
+        {
+          "path": "app/admin/long-term-outcomes/OutcomesWaveForm.tsx",
+          "count": 6
+        },
+        {
+          "path": "app/admin/public-decisions/PublishDecisionForm.tsx",
+          "count": 6
+        },
+        {
+          "path": "app/api/access/places/[placeId]/floor-plans/route.ts",
+          "count": 6
+        },
+        {
+          "path": "lib/demo/accessibility-places.ts",
+          "count": 6
+        },
+        {
+          "path": "app/access-intelligence/page.tsx",
+          "count": 5
+        },
+        {
+          "path": "app/access/[location]/page.tsx",
+          "count": 5
+        },
+        {
+          "path": "app/admin/community-membership/MembershipAdminForm.tsx",
+          "count": 5
+        },
+        {
+          "path": "app/admin/federated-research/FederatedResearchAdminForm.tsx",
+          "count": 5
+        },
+        {
+          "path": "app/admin/provider-benchmarking/BenchmarkCaptureForm.tsx",
+          "count": 5
+        },
+        {
+          "path": "app/admin/research-federation-nodes/FederationNodesAdminForm.tsx",
+          "count": 5
+        },
+        {
+          "path": "app/admin/api-certification/ApiCertificationReviewForm.tsx",
+          "count": 4
+        },
+        {
+          "path": "app/admin/governance/appeals/page.tsx",
+          "count": 4
+        },
+        {
+          "path": "lib/care/care-invoice-link-service.ts",
+          "count": 4
+        },
+        {
+          "path": "lib/demo/providers.ts",
+          "count": 4
+        },
+        {
+          "path": "lib/payouts/export-service.ts",
+          "count": 4
+        },
+        {
+          "path": "app/admin/floor-plans/page.tsx",
+          "count": 3
+        },
+        {
+          "path": "lib/orchestration/care-transport-orchestrator.ts",
+          "count": 3
+        },
+        {
+          "path": "app/admin/governance/community/page.tsx",
+          "count": 2
+        }
+      ]
+    },
+    "byTerm": [
+      {
+        "term": "TODO",
+        "fileCount": 6,
+        "totalMatches": 6,
+        "samplePaths": [
+          {
+            "path": "app/api/provider-admin/[providerId]/route.ts",
+            "count": 1
+          },
+          {
+            "path": "app/map/page.tsx",
+            "count": 1
+          },
+          {
+            "path": "app/provider/(public)/[slug]/page.tsx",
+            "count": 1
+          },
+          {
+            "path": "lib/cases/case-access.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/ingestion/ndis-providers.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/locationCoords.ts",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "term": "FIXME",
+        "fileCount": 0,
+        "totalMatches": 0,
+        "samplePaths": []
+      },
+      {
+        "term": "placeholder",
+        "fileCount": 49,
+        "totalMatches": 127,
+        "samplePaths": [
+          {
+            "path": "app/admin/institutional-permanence/PermanenceAdminForms.tsx",
+            "count": 14
+          },
+          {
+            "path": "app/admin/federated-accountability/FederatedAccountabilityForm.tsx",
+            "count": 10
+          },
+          {
+            "path": "app/admin/certified-api-ecosystem/EcosystemAdminForm.tsx",
+            "count": 6
+          },
+          {
+            "path": "app/admin/long-term-outcomes/OutcomesWaveForm.tsx",
+            "count": 6
+          },
+          {
+            "path": "app/admin/public-decisions/PublishDecisionForm.tsx",
+            "count": 6
+          },
+          {
+            "path": "app/admin/community-membership/MembershipAdminForm.tsx",
+            "count": 5
+          },
+          {
+            "path": "app/admin/federated-research/FederatedResearchAdminForm.tsx",
+            "count": 5
+          },
+          {
+            "path": "app/admin/provider-benchmarking/BenchmarkCaptureForm.tsx",
+            "count": 5
+          },
+          {
+            "path": "app/admin/research-federation-nodes/FederationNodesAdminForm.tsx",
+            "count": 5
+          },
+          {
+            "path": "app/admin/api-certification/ApiCertificationReviewForm.tsx",
+            "count": 4
+          },
+          {
+            "path": "app/admin/governance/appeals/page.tsx",
+            "count": 4
+          },
+          {
+            "path": "lib/care/care-invoice-link-service.ts",
+            "count": 4
+          },
+          {
+            "path": "lib/payouts/export-service.ts",
+            "count": 4
+          },
+          {
+            "path": "lib/release-candidate/placeholders/classifier.ts",
+            "count": 4
+          },
+          {
+            "path": "lib/orchestration/care-transport-orchestrator.ts",
+            "count": 3
+          },
+          {
+            "path": "app/admin/governance/community/page.tsx",
+            "count": 2
+          },
+          {
+            "path": "app/dashboard/support-profile/edit/page.tsx",
+            "count": 2
+          },
+          {
+            "path": "app/plan-manager/invoices/[id]/page.tsx",
+            "count": 2
+          },
+          {
+            "path": "app/reset-password/ResetPasswordClient.tsx",
+            "count": 2
+          },
+          {
+            "path": "lib/brand/styles.ts",
+            "count": 2
+          },
+          {
+            "path": "lib/care/care-booking-service.ts",
+            "count": 2
+          },
+          {
+            "path": "lib/continuity/recovery/option-builder.ts",
+            "count": 2
+          },
+          {
+            "path": "lib/route-optimisation/route-plan-service.ts",
+            "count": 2
+          },
+          {
+            "path": "app/admin/audit-events/page.tsx",
+            "count": 1
+          },
+          {
+            "path": "app/admin/organisations/page.tsx",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "term": "stub",
+        "fileCount": 7,
+        "totalMatches": 10,
+        "samplePaths": [
+          {
+            "path": "lib/release-candidate/placeholders/classifier.ts",
+            "count": 3
+          },
+          {
+            "path": "lib/participation/support/support-coordination-adapter.ts",
+            "count": 2
+          },
+          {
+            "path": "lib/cases/ai/engine.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/integrations/adapters/stub-adapter.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/integrations/integration-registry.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/ndis/claiming/adapters/NdiaApiAdapter.stub.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/participation/access/journey-adapter.ts",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "term": "demo",
+        "fileCount": 25,
+        "totalMatches": 107,
+        "samplePaths": [
+          {
+            "path": "lib/demo/floor-plan-fixture.ts",
+            "count": 37
+          },
+          {
+            "path": "lib/floor-plan/floor-plan-service.ts",
+            "count": 10
+          },
+          {
+            "path": "app/accessibility-map/[slug]/page.tsx",
+            "count": 6
+          },
+          {
+            "path": "app/api/access/places/[placeId]/floor-plans/route.ts",
+            "count": 6
+          },
+          {
+            "path": "lib/demo/accessibility-places.ts",
+            "count": 6
+          },
+          {
+            "path": "app/access-intelligence/page.tsx",
+            "count": 5
+          },
+          {
+            "path": "app/access/[location]/page.tsx",
+            "count": 5
+          },
+          {
+            "path": "lib/release-candidate/placeholders/classifier.ts",
+            "count": 5
+          },
+          {
+            "path": "lib/demo/providers.ts",
+            "count": 4
+          },
+          {
+            "path": "app/admin/floor-plans/page.tsx",
+            "count": 3
+          },
+          {
+            "path": "app/dev/payout-demo/page.tsx",
+            "count": 2
+          },
+          {
+            "path": "app/sitemap.ts",
+            "count": 2
+          },
+          {
+            "path": "lib/demo/local-access-pages.ts",
+            "count": 2
+          },
+          {
+            "path": "lib/prms/mockPrmsData.ts",
+            "count": 2
+          },
+          {
+            "path": "lib/search/suggestion-fallback-catalog.ts",
+            "count": 2
+          },
+          {
+            "path": "app/accessibility-map/[slug]/floor-plan/page.tsx",
+            "count": 1
+          },
+          {
+            "path": "app/accessibility-map/page.tsx",
+            "count": 1
+          },
+          {
+            "path": "app/mapping-days/page.tsx",
+            "count": 1
+          },
+          {
+            "path": "app/provider-growth/page.tsx",
+            "count": 1
+          },
+          {
+            "path": "lib/indoor-accessibility/routing/route-planner.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/ledger/createLedgerEvent.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/mapable-peers/seed-threads.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/marketing/mapable-care-combined-data.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/oversight-board/oversight-service.ts",
+            "count": 1
+          },
+          {
+            "path": "lib/release-candidate/inventory/types.ts",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  }
+}

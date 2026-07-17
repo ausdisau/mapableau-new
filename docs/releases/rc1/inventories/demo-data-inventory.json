@@ -1,0 +1,127 @@
+{
+  "metadata": {
+    "name": "demo-data-inventory",
+    "generatedAt": "2026-07-17T08:31:03.003Z",
+    "source": "repository-static-scan"
+  },
+  "payload": {
+    "demoDirectories": [
+      "lib/demo",
+      "tests/fixtures"
+    ],
+    "demoFileCount": 5,
+    "demoFiles": [
+      "lib/demo/accessibility-places.ts",
+      "lib/demo/floor-plan-fixture.ts",
+      "lib/demo/local-access-pages.ts",
+      "lib/demo/providers.ts",
+      "tests/fixtures/ndis-list-providers-array.json"
+    ],
+    "hardCodedDemoReferences": {
+      "fileCount": 55,
+      "totalMatches": 177,
+      "samplePaths": [
+        {
+          "path": "lib/demo/floor-plan-fixture.ts",
+          "count": 38
+        },
+        {
+          "path": "lib/release-candidate/golden-paths/registry.ts",
+          "count": 12
+        },
+        {
+          "path": "lib/floor-plan/floor-plan-service.ts",
+          "count": 11
+        },
+        {
+          "path": "lib/release-candidate/placeholders/classifier.ts",
+          "count": 8
+        },
+        {
+          "path": "app/api/access/places/[placeId]/floor-plans/route.ts",
+          "count": 7
+        },
+        {
+          "path": "app/accessibility-map/[slug]/page.tsx",
+          "count": 6
+        },
+        {
+          "path": "lib/demo/accessibility-places.ts",
+          "count": 6
+        },
+        {
+          "path": "app/access-intelligence/page.tsx",
+          "count": 5
+        },
+        {
+          "path": "app/access/[location]/page.tsx",
+          "count": 5
+        },
+        {
+          "path": "lib/ndis-gateway/routing/adapters/mock-dispatch.ts",
+          "count": 5
+        },
+        {
+          "path": "lib/demo/providers.ts",
+          "count": 4
+        },
+        {
+          "path": "lib/ndia-provider-claiming/ndia-api-client.ts",
+          "count": 4
+        },
+        {
+          "path": "app/admin/floor-plans/page.tsx",
+          "count": 3
+        },
+        {
+          "path": "app/api/provider/ndis/documents/[documentId]/mock-deliver/route.ts",
+          "count": 3
+        },
+        {
+          "path": "lib/ndia-provider-claiming/config.ts",
+          "count": 3
+        },
+        {
+          "path": "lib/telehealth/video/video-adapter.ts",
+          "count": 3
+        },
+        {
+          "path": "lib/transport-routing/mock-routing-adapter.ts",
+          "count": 3
+        },
+        {
+          "path": "lib/trust-passport/trust-passport-service.ts",
+          "count": 3
+        },
+        {
+          "path": "app/dev/payout-demo/page.tsx",
+          "count": 2
+        },
+        {
+          "path": "app/sitemap.ts",
+          "count": 2
+        },
+        {
+          "path": "lib/demo/local-access-pages.ts",
+          "count": 2
+        },
+        {
+          "path": "lib/ingestion/ndis-providers.ts",
+          "count": 2
+        },
+        {
+          "path": "lib/ledger/createLedgerEvent.ts",
+          "count": 2
+        },
+        {
+          "path": "lib/oversight-board/oversight-service.ts",
+          "count": 2
+        },
+        {
+          "path": "lib/prms/mockPrmsData.ts",
+          "count": 2
+        }
+      ]
+    }
+  }
+}

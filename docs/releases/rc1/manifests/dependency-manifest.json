@@ -1,0 +1,340 @@
+{
+  "generatedAt": "2026-07-17T08:26:44.427Z",
+  "dependencies": [
+    {
+      "name": "@ai-sdk/google",
+      "version": "^3.0.80",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@ai-sdk/react",
+      "version": "^3.0.198",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@better-auth/infra",
+      "version": "^0.2.13",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@chat-adapter/slack",
+      "version": "^4.30.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@chat-adapter/state-memory",
+      "version": "^4.30.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@prisma/client",
+      "version": "6.19.2",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@pusher/push-notifications-web",
+      "version": "^1.1.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-slot",
+      "version": "^1.2.4",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@sendgrid/mail",
+      "version": "^8.1.6",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@simplewebauthn/browser",
+      "version": "^13.3.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@simplewebauthn/server",
+      "version": "^13.3.1",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@supabase/supabase-js",
+      "version": "^2.107.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@tanstack/react-query",
+      "version": "^5.90.16",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@vercel/speed-insights",
+      "version": "^2.0.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "ai",
+      "version": "^6.0.196",
+      "scope": "dependencies"
+    },
+    {
+      "name": "bcryptjs",
+      "version": "^3.0.3",
+      "scope": "dependencies"
+    },
+    {
+      "name": "chat",
+      "version": "^4.30.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "^0.7.1",
+      "scope": "dependencies"
+    },
+    {
+      "name": "clsx",
+      "version": "^2.1.1",
+      "scope": "dependencies"
+    },
+    {
+      "name": "date-fns",
+      "version": "^4.2.1",
+      "scope": "dependencies"
+    },
+    {
+      "name": "embla-carousel-autoplay",
+      "version": "^8.6.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "embla-carousel-react",
+      "version": "^8.6.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "framer-motion",
+      "version": "^12.26.1",
+      "scope": "dependencies"
+    },
+    {
+      "name": "leaflet",
+      "version": "^1.9.4",
+      "scope": "dependencies"
+    },
+    {
+      "name": "lucide-react",
+      "version": "^0.562.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "maplibre-gl",
+      "version": "^5.24.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "next",
+      "version": "15.5.7",
+      "scope": "dependencies"
+    },
+    {
+      "name": "next-auth",
+      "version": "^4.24.13",
+      "scope": "dependencies"
+    },
+    {
+      "name": "posthog-node",
+      "version": "^5.36.7",
+      "scope": "dependencies"
+    },
+    {
+      "name": "react",
+      "version": "^18.0.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "react-dom",
+      "version": "^18.0.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "react-leaflet",
+      "version": "^5.0.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "react-map-gl",
+      "version": "^8.1.1",
+      "scope": "dependencies"
+    },
+    {
+      "name": "stripe",
+      "version": "^22.1.1",
+      "scope": "dependencies"
+    },
+    {
+      "name": "tailwind-merge",
+      "version": "^3.4.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "tailwindcss",
+      "version": "^3.4.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "tw-animate-css",
+      "version": "^1.0.0",
+      "scope": "dependencies"
+    },
+    {
+      "name": "zod",
+      "version": "^4.3.6",
+      "scope": "dependencies"
+    },
+    {
+      "name": "@modelcontextprotocol/sdk",
+      "version": "^1.29.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@testing-library/dom",
+      "version": "^10.4.1",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@testing-library/react",
+      "version": "^16.3.2",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@testing-library/user-event",
+      "version": "^14.6.1",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@types/leaflet",
+      "version": "^1.9.21",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@types/node",
+      "version": "^20.0.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@types/react",
+      "version": "^18.0.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@types/react-dom",
+      "version": "^18.0.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@typescript-eslint/eslint-plugin",
+      "version": "8.46.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "@typescript-eslint/parser",
+      "version": "8.46.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "autoprefixer",
+      "version": "^10.4.20",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "dotenv",
+      "version": "^16.4.7",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "eslint",
+      "version": "^8.57.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "eslint-config-next",
+      "version": "15.5.7",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "eslint-config-prettier",
+      "version": "^10.1.8",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "eslint-import-resolver-typescript",
+      "version": "^3.6.1",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "eslint-plugin-import",
+      "version": "^2.32.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "eslint-plugin-jsx-a11y",
+      "version": "^6.10.2",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "eslint-plugin-prettier",
+      "version": "^5.5.4",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "husky",
+      "version": "^9.1.7",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "jsdom",
+      "version": "^29.1.1",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "lint-staged",
+      "version": "^16.2.4",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "postcss",
+      "version": "^8.4.47",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "prettier",
+      "version": "^3.6.2",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "prettier-eslint",
+      "version": "^16.4.2",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "prisma",
+      "version": "6.19.2",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "tsx",
+      "version": "^4.22.3",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "typescript",
+      "version": "^5.0.0",
+      "scope": "devDependencies"
+    },
+    {
+      "name": "vitest",
+      "version": "^3.2.4",
+      "scope": "devDependencies"
+    }
+  ]
+}

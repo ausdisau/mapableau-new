@@ -1,0 +1,99 @@
+{
+  "metadata": {
+    "name": "duplicate-service-inventory",
+    "generatedAt": "2026-07-17T08:31:03.092Z",
+    "source": "repository-static-scan"
+  },
+  "payload": {
+    "notes": [
+      {
+        "topic": "RequestContext / TenantContext candidates",
+        "authoritative": "lib/tenancy/context/*",
+        "duplicates": [
+          "lib/multi-tenant-admin/tenant-context.ts"
+        ],
+        "action": "Use release-candidate context adapters to document boundaries before any rewrites."
+      },
+      {
+        "topic": "Auth handlers",
+        "authoritative": "lib/auth/current-user.ts, lib/auth/guards.ts, lib/auth/permissions.ts",
+        "duplicates": [
+          "Route-level auth checks under app/api remain candidates for consolidation."
+        ],
+        "action": "Do not bypass existing guards; inventory route handlers before consolidation."
+      }
+    ],
+    "requestContextCandidatePaths": [
+      "docs/platform/tenant-context.md",
+      "lib/multi-tenant-admin/tenant-context.ts",
+      "lib/release-candidate/context/request-context.ts",
+      "lib/release-candidate/context/tenant-context.ts",
+      "lib/tenancy/context/request-context.ts",
+      "lib/tenancy/context/tenant-context.ts",
+      "scripts/audit-queue-tenant-context.ts",
+      "tests/tenancy/tenant-context.test.ts"
+    ],
+    "authHandlerCandidateSamplePaths": [
+      "app/api/admin/pilots/[pilotId]/workers/[workerId]/authorise/route.ts",
+      "app/api/aura/authority/evaluate/route.ts",
+      "app/api/auth/[...nextauth]/authOptions.ts",
+      "app/api/auth/[...nextauth]/route.ts",
+      "app/api/auth/forgot-password/route.ts",
+      "app/api/auth/keycloak/callback/route.ts",
+      "app/api/auth/keycloak/login/route.ts",
+      "app/api/auth/keycloak/logout/route.ts",
+      "app/api/auth/reset-password/route.ts",
+      "app/api/auth/twilio-2fa/start/route.ts",
+      "app/api/auth/twilio-2fa/verify/route.ts",
+      "app/api/indoor/authoring/[placeId]/floor-plans/route.ts",
+      "app/api/ndis/service-delivery/authorizations/[id]/route.ts",
+      "app/api/ndis/service-delivery/authorizations/route.ts",
+      "app/api/payments/create-checkout-session/route.ts",
+      "app/api/xero/oauth/callback/route.ts",
+      "app/api/xero/oauth/start/route.ts",
+      "app/lib/auth.ts",
+      "app/lib/authClient.tsx",
+      "lib/accessops/partners/api-auth.ts",
+      "lib/admin/cron-auth.ts",
+      "lib/agent-sessions/provider-finder-session.ts",
+      "lib/api/auth-handler.ts",
+      "lib/api/optional-session.ts",
+      "lib/assurance/access/session-policy.ts",
+      "lib/aura/authority/evaluate.ts",
+      "lib/auth/app-base-url.ts",
+      "lib/auth/apple-client-secret.ts",
+      "lib/auth/auth-flow.ts",
+      "lib/auth/current-user.ts",
+      "lib/auth/ensure-oauth-user.ts",
+      "lib/auth/guards.ts",
+      "lib/auth/keycloak/keycloak-admin-adapter.ts",
+      "lib/auth/keycloak/keycloak-client.ts",
+      "lib/auth/keycloak/keycloak-config.ts",
+      "lib/auth/keycloak/keycloak-profile-bridge.ts",
+      "lib/auth/keycloak/keycloak-role-mapper.ts",
+      "lib/auth/keycloak/keycloak-session-service.ts",
+      "lib/auth/nextauth-env.ts",
+      "lib/auth/nextauth-session.ts",
+      "lib/auth/oauth-providers.ts",
+      "lib/auth/passkeys.ts",
+      "lib/auth/password-reset-email.ts",
+      "lib/auth/password-reset-token.ts",
+      "lib/auth/permissions.ts",
+      "lib/auth/resolve-nextauth-secret.ts",
+      "lib/auth/roles.ts",
+      "lib/auth/twilio-verify.ts",
+      "lib/auth/two-factor-token.ts",
+      "lib/authorisation/consent-bound-tokens.ts",
+      "lib/authorisation/continuous-access-evaluation.ts",
+      "lib/authorisation/index.ts",
+      "lib/authorisation/token-policy.ts",
+      "lib/delegation/authority.ts",
+      "lib/indoor-accessibility/authoring/floor-plan-authoring-service.ts",
+      "lib/indoor-accessibility/authoring/keyboard-geometry.ts",
+      "lib/indoor-accessibility/partner/api-auth.ts",
+      "lib/ndis/service-delivery/authorization-service.ts",
+      "lib/pilot/enrolment/delegate-authority.ts",
+      "lib/release-candidate/context/authority-boundary.ts"
+    ]
+  }
+}

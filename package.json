@@ -166,7 +166,21 @@
     "governance:audit-tenant-scope": "tsx scripts/audit-governance-tenant-scope.ts --dry-run",
     "governance:audit-explanations": "tsx scripts/audit-public-explanations.ts --dry-run",
     "governance:backfill-register": "tsx scripts/backfill-algorithm-register.ts --dry-run",
-    "governance:evaluate": "tsx scripts/governance/evaluate.ts --dry-run"
+    "governance:evaluate": "tsx scripts/governance/evaluate.ts --dry-run",
+    "rc:inventories": "tsx scripts/rc/generate-inventories.ts",
+    "rc:audit-migrations": "tsx scripts/rc/audit-migrations.ts --dry-run",
+    "rc:audit-orphans": "tsx scripts/rc/audit-orphans.ts --dry-run",
+    "rc:audit-enums": "tsx scripts/rc/audit-enums.ts --dry-run",
+    "rc:audit-indexes": "tsx scripts/rc/audit-indexes.ts --dry-run",
+    "rc:verify-migration-state": "tsx scripts/rc/verify-migration-state.ts --dry-run",
+    "rc:backfill-required-fields": "tsx scripts/rc/backfill-required-fields.ts --dry-run",
+    "rc:evaluate": "tsx scripts/rc/evaluate.ts --dry-run",
+    "rc:manifests": "tsx scripts/rc/generate-manifests.ts",
+    "test:golden-paths": "vitest run tests/golden-paths",
+    "test:tenant-isolation": "vitest run tests/tenancy",
+    "test:accessibility": "vitest run tests/accessops/accessibility-authoring.test.ts tests/aura/accessibility-language.test.ts tests/participation/wave17.test.ts",
+    "test:integration": "vitest run tests/tenancy tests/federation tests/aura tests/continuity tests/accessops tests/participation",
+    "test:e2e": "vitest run tests/golden-paths"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

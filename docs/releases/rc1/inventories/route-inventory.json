@@ -1,0 +1,5031 @@
+{
+  "metadata": {
+    "name": "route-inventory",
+    "generatedAt": "2026-07-17T08:31:02.593Z",
+    "source": "repository-static-scan"
+  },
+  "payload": {
+    "apiRouteCount": 640,
+    "pageCount": 614,
+    "apiRoutes": [
+      {
+        "path": "app/api/academy/enroll/route.ts",
+        "route": "/api/academy/enroll"
+      },
+      {
+        "path": "app/api/access/places/[placeId]/claim/route.ts",
+        "route": "/api/access/places/[placeId]/claim"
+      },
+      {
+        "path": "app/api/access/places/[placeId]/floor-plans/[floorPlanId]/route.ts",
+        "route": "/api/access/places/[placeId]/floor-plans/[floorPlanId]"
+      },
+      {
+        "path": "app/api/access/places/[placeId]/floor-plans/route.ts",
+        "route": "/api/access/places/[placeId]/floor-plans"
+      },
+      {
+        "path": "app/api/access/places/[placeId]/report/route.ts",
+        "route": "/api/access/places/[placeId]/report"
+      },
+      {
+        "path": "app/api/access/places/[placeId]/reviews/route.ts",
+        "route": "/api/access/places/[placeId]/reviews"
+      },
+      {
+        "path": "app/api/access/places/[placeId]/route.ts",
+        "route": "/api/access/places/[placeId]"
+      },
+      {
+        "path": "app/api/access/places/route.ts",
+        "route": "/api/access/places"
+      },
+      {
+        "path": "app/api/access/reviews/[reviewId]/route.ts",
+        "route": "/api/access/reviews/[reviewId]"
+      },
+      {
+        "path": "app/api/access/search/route.ts",
+        "route": "/api/access/search"
+      },
+      {
+        "path": "app/api/accessibility-profile/route.ts",
+        "route": "/api/accessibility-profile"
+      },
+      {
+        "path": "app/api/accessops/assets/[assetId]/features/route.ts",
+        "route": "/api/accessops/assets/[assetId]/features"
+      },
+      {
+        "path": "app/api/accessops/assets/[assetId]/observations/route.ts",
+        "route": "/api/accessops/assets/[assetId]/observations"
+      },
+      {
+        "path": "app/api/accessops/assets/[assetId]/publish/route.ts",
+        "route": "/api/accessops/assets/[assetId]/publish"
+      },
+      {
+        "path": "app/api/accessops/assets/[assetId]/reliability/route.ts",
+        "route": "/api/accessops/assets/[assetId]/reliability"
+      },
+      {
+        "path": "app/api/accessops/assets/[assetId]/retire/route.ts",
+        "route": "/api/accessops/assets/[assetId]/retire"
+      },
+      {
+        "path": "app/api/accessops/assets/[assetId]/route.ts",
+        "route": "/api/accessops/assets/[assetId]"
+      },
+      {
+        "path": "app/api/accessops/assets/[assetId]/status/route.ts",
+        "route": "/api/accessops/assets/[assetId]/status"
+      },
+      {
+        "path": "app/api/accessops/assets/route.ts",
+        "route": "/api/accessops/assets"
+      },
+      {
+        "path": "app/api/accessops/community/reports/[id]/route.ts",
+        "route": "/api/accessops/community/reports/[id]"
+      },
+      {
+        "path": "app/api/accessops/community/reports/route.ts",
+        "route": "/api/accessops/community/reports"
+      },
+      {
+        "path": "app/api/accessops/incidents/[incidentId]/acknowledge/route.ts",
+        "route": "/api/accessops/incidents/[incidentId]/acknowledge"
+      },
+      {
+        "path": "app/api/accessops/incidents/[incidentId]/close/route.ts",
+        "route": "/api/accessops/incidents/[incidentId]/close"
+      },
+      {
+        "path": "app/api/accessops/incidents/[incidentId]/restore/route.ts",
+        "route": "/api/accessops/incidents/[incidentId]/restore"
+      },
+      {
+        "path": "app/api/accessops/incidents/[incidentId]/route.ts",
+        "route": "/api/accessops/incidents/[incidentId]"
+      },
+      {
+        "path": "app/api/accessops/incidents/route.ts",
+        "route": "/api/accessops/incidents"
+      },
+      {
+        "path": "app/api/accessops/journeys/[id]/route.ts",
+        "route": "/api/accessops/journeys/[id]"
+      },
+      {
+        "path": "app/api/accessops/journeys/plan/route.ts",
+        "route": "/api/accessops/journeys/plan"
+      },
+      {
+        "path": "app/api/accessops/reliability/reports/route.ts",
+        "route": "/api/accessops/reliability/reports"
+      },
+      {
+        "path": "app/api/accessops/sensors/[id]/observations/route.ts",
+        "route": "/api/accessops/sensors/[id]/observations"
+      },
+      {
+        "path": "app/api/accessops/sensors/[id]/suspend/route.ts",
+        "route": "/api/accessops/sensors/[id]/suspend"
+      },
+      {
+        "path": "app/api/accessops/sensors/route.ts",
+        "route": "/api/accessops/sensors"
+      },
+      {
+        "path": "app/api/accessops/status/active/route.ts",
+        "route": "/api/accessops/status/active"
+      },
+      {
+        "path": "app/api/accessops/work-orders/[id]/complete/route.ts",
+        "route": "/api/accessops/work-orders/[id]/complete"
+      },
+      {
+        "path": "app/api/accessops/work-orders/[id]/verify/route.ts",
+        "route": "/api/accessops/work-orders/[id]/verify"
+      },
+      {
+        "path": "app/api/accessops/work-orders/route.ts",
+        "route": "/api/accessops/work-orders"
+      },
+      {
+        "path": "app/api/account/access-reviews/route.ts",
+        "route": "/api/account/access-reviews"
+      },
+      {
+        "path": "app/api/admin/access/import/[importId]/commit/route.ts",
+        "route": "/api/admin/access/import/[importId]/commit"
+      },
+      {
+        "path": "app/api/admin/access/import/[importId]/preview/route.ts",
+        "route": "/api/admin/access/import/[importId]/preview"
+      },
+      {
+        "path": "app/api/admin/access/import/[importId]/route.ts",
+        "route": "/api/admin/access/import/[importId]"
+      },
+      {
+        "path": "app/api/admin/access/import/kml/route.ts",
+        "route": "/api/admin/access/import/kml"
+      },
+      {
+        "path": "app/api/admin/accessops/reliability/calculate/route.ts",
+        "route": "/api/admin/accessops/reliability/calculate"
+      },
+      {
+        "path": "app/api/admin/accreditation-public/route.ts",
+        "route": "/api/admin/accreditation-public"
+      },
+      {
+        "path": "app/api/admin/agent-runs/route.ts",
+        "route": "/api/admin/agent-runs"
+      },
+      {
+        "path": "app/api/admin/ai-governance/route.ts",
+        "route": "/api/admin/ai-governance"
+      },
+      {
+        "path": "app/api/admin/ai-monitoring/route.ts",
+        "route": "/api/admin/ai-monitoring"
+      },
+      {
+        "path": "app/api/admin/algorithm-register/[id]/route.ts",
+        "route": "/api/admin/algorithm-register/[id]"
+      },
+      {
+        "path": "app/api/admin/algorithm-register/route.ts",
+        "route": "/api/admin/algorithm-register"
+      },
+      {
+        "path": "app/api/admin/analytics/care/route.ts",
+        "route": "/api/admin/analytics/care"
+      },
+      {
+        "path": "app/api/admin/analytics/incidents/route.ts",
+        "route": "/api/admin/analytics/incidents"
+      },
+      {
+        "path": "app/api/admin/analytics/summary/route.ts",
+        "route": "/api/admin/analytics/summary"
+      },
+      {
+        "path": "app/api/admin/analytics/transport/route.ts",
+        "route": "/api/admin/analytics/transport"
+      },
+      {
+        "path": "app/api/admin/api-certification/route.ts",
+        "route": "/api/admin/api-certification"
+      },
+      {
+        "path": "app/api/admin/api-versioning/route.ts",
+        "route": "/api/admin/api-versioning"
+      },
+      {
+        "path": "app/api/admin/app-store-release/route.ts",
+        "route": "/api/admin/app-store-release"
+      },
+      {
+        "path": "app/api/admin/assessor-network/members/[id]/verify/route.ts",
+        "route": "/api/admin/assessor-network/members/[id]/verify"
+      },
+      {
+        "path": "app/api/admin/assessor-network/members/route.ts",
+        "route": "/api/admin/assessor-network/members"
+      },
+      {
+        "path": "app/api/admin/assessor-network/route.ts",
+        "route": "/api/admin/assessor-network"
+      },
+      {
+        "path": "app/api/admin/assurance/controls/route.ts",
+        "route": "/api/admin/assurance/controls"
+      },
+      {
+        "path": "app/api/admin/assurance/evidence/route.ts",
+        "route": "/api/admin/assurance/evidence"
+      },
+      {
+        "path": "app/api/admin/assurance/exceptions/route.ts",
+        "route": "/api/admin/assurance/exceptions"
+      },
+      {
+        "path": "app/api/admin/assurance/frameworks/route.ts",
+        "route": "/api/admin/assurance/frameworks"
+      },
+      {
+        "path": "app/api/admin/assurance/go-live/route.ts",
+        "route": "/api/admin/assurance/go-live"
+      },
+      {
+        "path": "app/api/admin/assurance/ndia-application/route.ts",
+        "route": "/api/admin/assurance/ndia-application"
+      },
+      {
+        "path": "app/api/admin/assurance/readiness/route.ts",
+        "route": "/api/admin/assurance/readiness"
+      },
+      {
+        "path": "app/api/admin/assurance/registration/route.ts",
+        "route": "/api/admin/assurance/registration"
+      },
+      {
+        "path": "app/api/admin/audit-events/route.ts",
+        "route": "/api/admin/audit-events"
+      },
+      {
+        "path": "app/api/admin/automation/n8n/webhook/route.ts",
+        "route": "/api/admin/automation/n8n/webhook"
+      },
+      {
+        "path": "app/api/admin/backup-recovery/route.ts",
+        "route": "/api/admin/backup-recovery"
+      },
+      {
+        "path": "app/api/admin/billing/invoices/route.ts",
+        "route": "/api/admin/billing/invoices"
+      },
+      {
+        "path": "app/api/admin/billing/route.ts",
+        "route": "/api/admin/billing"
+      },
+      {
+        "path": "app/api/admin/board-reporting/route.ts",
+        "route": "/api/admin/board-reporting"
+      },
+      {
+        "path": "app/api/admin/bookings/route.ts",
+        "route": "/api/admin/bookings"
+      },
+      {
+        "path": "app/api/admin/certified-api-ecosystem/route.ts",
+        "route": "/api/admin/certified-api-ecosystem"
+      },
+      {
+        "path": "app/api/admin/civic-audit-index/route.ts",
+        "route": "/api/admin/civic-audit-index"
+      },
+      {
+        "path": "app/api/admin/command-centre/route.ts",
+        "route": "/api/admin/command-centre"
+      },
+      {
+        "path": "app/api/admin/community-governance/route.ts",
+        "route": "/api/admin/community-governance"
+      },
+      {
+        "path": "app/api/admin/community-membership/route.ts",
+        "route": "/api/admin/community-membership"
+      },
+      {
+        "path": "app/api/admin/compliance-renewals/route.ts",
+        "route": "/api/admin/compliance-renewals"
+      },
+      {
+        "path": "app/api/admin/compliance/route.ts",
+        "route": "/api/admin/compliance"
+      },
+      {
+        "path": "app/api/admin/constitutional-safeguards/route.ts",
+        "route": "/api/admin/constitutional-safeguards"
+      },
+      {
+        "path": "app/api/admin/dashboard-summary/route.ts",
+        "route": "/api/admin/dashboard-summary"
+      },
+      {
+        "path": "app/api/admin/data-trust-council/route.ts",
+        "route": "/api/admin/data-trust-council"
+      },
+      {
+        "path": "app/api/admin/data-trust-reports/route.ts",
+        "route": "/api/admin/data-trust-reports"
+      },
+      {
+        "path": "app/api/admin/dispatch/route.ts",
+        "route": "/api/admin/dispatch"
+      },
+      {
+        "path": "app/api/admin/dr-exercises/route.ts",
+        "route": "/api/admin/dr-exercises"
+      },
+      {
+        "path": "app/api/admin/engagement/analytics/route.ts",
+        "route": "/api/admin/engagement/analytics"
+      },
+      {
+        "path": "app/api/admin/engagement/improvements/route.ts",
+        "route": "/api/admin/engagement/improvements"
+      },
+      {
+        "path": "app/api/admin/engagement/submissions/route.ts",
+        "route": "/api/admin/engagement/submissions"
+      },
+      {
+        "path": "app/api/admin/evidence-automation/route.ts",
+        "route": "/api/admin/evidence-automation"
+      },
+      {
+        "path": "app/api/admin/federated-accountability/route.ts",
+        "route": "/api/admin/federated-accountability"
+      },
+      {
+        "path": "app/api/admin/federated-research/route.ts",
+        "route": "/api/admin/federated-research"
+      },
+      {
+        "path": "app/api/admin/governance-charter/route.ts",
+        "route": "/api/admin/governance-charter"
+      },
+      {
+        "path": "app/api/admin/governance/appeals/[id]/assign/route.ts",
+        "route": "/api/admin/governance/appeals/[id]/assign"
+      },
+      {
+        "path": "app/api/admin/governance/appeals/[id]/decide/route.ts",
+        "route": "/api/admin/governance/appeals/[id]/decide"
+      },
+      {
+        "path": "app/api/admin/governance/appeals/[id]/remedy/route.ts",
+        "route": "/api/admin/governance/appeals/[id]/remedy"
+      },
+      {
+        "path": "app/api/admin/governance/appeals/route.ts",
+        "route": "/api/admin/governance/appeals"
+      },
+      {
+        "path": "app/api/admin/governance/community/[id]/respond/route.ts",
+        "route": "/api/admin/governance/community/[id]/respond"
+      },
+      {
+        "path": "app/api/admin/governance/systems/[id]/assess/route.ts",
+        "route": "/api/admin/governance/systems/[id]/assess"
+      },
+      {
+        "path": "app/api/admin/governance/systems/[id]/publish/route.ts",
+        "route": "/api/admin/governance/systems/[id]/publish"
+      },
+      {
+        "path": "app/api/admin/governance/systems/[id]/suspend/route.ts",
+        "route": "/api/admin/governance/systems/[id]/suspend"
+      },
+      {
+        "path": "app/api/admin/governance/systems/route.ts",
+        "route": "/api/admin/governance/systems"
+      },
+      {
+        "path": "app/api/admin/government-portals/route.ts",
+        "route": "/api/admin/government-portals"
+      },
+      {
+        "path": "app/api/admin/government-reporting/route.ts",
+        "route": "/api/admin/government-reporting"
+      },
+      {
+        "path": "app/api/admin/grant-reporting/route.ts",
+        "route": "/api/admin/grant-reporting"
+      },
+      {
+        "path": "app/api/admin/i18n/route.ts",
+        "route": "/api/admin/i18n"
+      },
+      {
+        "path": "app/api/admin/ingest/ndis-providers/route.ts",
+        "route": "/api/admin/ingest/ndis-providers"
+      },
+      {
+        "path": "app/api/admin/institutional-continuity/route.ts",
+        "route": "/api/admin/institutional-continuity"
+      },
+      {
+        "path": "app/api/admin/integrations/[key]/health-check/route.ts",
+        "route": "/api/admin/integrations/[key]/health-check"
+      },
+      {
+        "path": "app/api/admin/integrations/[key]/route.ts",
+        "route": "/api/admin/integrations/[key]"
+      },
+      {
+        "path": "app/api/admin/integrations/[key]/settings/route.ts",
+        "route": "/api/admin/integrations/[key]/settings"
+      },
+      {
+        "path": "app/api/admin/integrations/events/route.ts",
+        "route": "/api/admin/integrations/events"
+      },
+      {
+        "path": "app/api/admin/integrations/route.ts",
+        "route": "/api/admin/integrations"
+      },
+      {
+        "path": "app/api/admin/launch-readiness/route.ts",
+        "route": "/api/admin/launch-readiness"
+      },
+      {
+        "path": "app/api/admin/long-term-outcomes/route.ts",
+        "route": "/api/admin/long-term-outcomes"
+      },
+      {
+        "path": "app/api/admin/longitudinal-impact/route.ts",
+        "route": "/api/admin/longitudinal-impact"
+      },
+      {
+        "path": "app/api/admin/mobile-release/route.ts",
+        "route": "/api/admin/mobile-release"
+      },
+      {
+        "path": "app/api/admin/national-accountability/route.ts",
+        "route": "/api/admin/national-accountability"
+      },
+      {
+        "path": "app/api/admin/national-insights/route.ts",
+        "route": "/api/admin/national-insights"
+      },
+      {
+        "path": "app/api/admin/national-rollout/route.ts",
+        "route": "/api/admin/national-rollout"
+      },
+      {
+        "path": "app/api/admin/ndia-pilot/route.ts",
+        "route": "/api/admin/ndia-pilot"
+      },
+      {
+        "path": "app/api/admin/ndia-readiness/evidence-bundles/from-invoice/[invoiceId]/route.ts",
+        "route": "/api/admin/ndia-readiness/evidence-bundles/from-invoice/[invoiceId]"
+      },
+      {
+        "path": "app/api/admin/open-data/route.ts",
+        "route": "/api/admin/open-data"
+      },
+      {
+        "path": "app/api/admin/operator-dispatch/route.ts",
+        "route": "/api/admin/operator-dispatch"
+      },
+      {
+        "path": "app/api/admin/oversight-board/[id]/route.ts",
+        "route": "/api/admin/oversight-board/[id]"
+      },
+      {
+        "path": "app/api/admin/oversight-board/route.ts",
+        "route": "/api/admin/oversight-board"
+      },
+      {
+        "path": "app/api/admin/participants/route.ts",
+        "route": "/api/admin/participants"
+      },
+      {
+        "path": "app/api/admin/partner-api-program/route.ts",
+        "route": "/api/admin/partner-api-program"
+      },
+      {
+        "path": "app/api/admin/partner-billing/route.ts",
+        "route": "/api/admin/partner-billing"
+      },
+      {
+        "path": "app/api/admin/partner-marketplace/route.ts",
+        "route": "/api/admin/partner-marketplace"
+      },
+      {
+        "path": "app/api/admin/partner-sandbox/route.ts",
+        "route": "/api/admin/partner-sandbox"
+      },
+      {
+        "path": "app/api/admin/payment-reconciliation/route.ts",
+        "route": "/api/admin/payment-reconciliation"
+      },
+      {
+        "path": "app/api/admin/personal-data-vault/[id]/route.ts",
+        "route": "/api/admin/personal-data-vault/[id]"
+      },
+      {
+        "path": "app/api/admin/personal-data-vault/route.ts",
+        "route": "/api/admin/personal-data-vault"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/advance/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/advance"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/approve/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/approve"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/changes/[changeId]/approve/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/changes/[changeId]/approve"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/changes/[changeId]/record-deployment/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/changes/[changeId]/record-deployment"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/changes/[changeId]/rollback/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/changes/[changeId]/rollback"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/changes/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/changes"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/command/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/command"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/complaints/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/complaints"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/complete/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/complete"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/corrective-actions/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/corrective-actions"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/incidents/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/incidents"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/limits/release/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/limits/release"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/limits/reserve/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/limits/reserve"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/limits/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/limits"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/participants/[participantId]/enrol/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/participants/[participantId]/enrol"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/participants/[participantId]/exit/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/participants/[participantId]/exit"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/participants/[participantId]/suspend/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/participants/[participantId]/suspend"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/participants/invite/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/participants/invite"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/participants/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/participants"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/pause/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/pause"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/reconciliation/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/reconciliation"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/request-approval/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/request-approval"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/resume/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/resume"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/reviews/daily/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/reviews/daily"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/reviews/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/reviews"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/route.ts",
+        "route": "/api/admin/pilots/[pilotId]"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/signals/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/signals"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/start/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/start"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/terminate/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/terminate"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/triggers/[triggerId]/acknowledge/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/triggers/[triggerId]/acknowledge"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/triggers/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/triggers"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/workers/[workerId]/authorise/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/workers/[workerId]/authorise"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/workers/[workerId]/recheck/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/workers/[workerId]/recheck"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/workers/[workerId]/suspend/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/workers/[workerId]/suspend"
+      },
+      {
+        "path": "app/api/admin/pilots/[pilotId]/workers/route.ts",
+        "route": "/api/admin/pilots/[pilotId]/workers"
+      },
+      {
+        "path": "app/api/admin/pilots/route.ts",
+        "route": "/api/admin/pilots"
+      },
+      {
+        "path": "app/api/admin/plan-manager-pilot/route.ts",
+        "route": "/api/admin/plan-manager-pilot"
+      },
+      {
+        "path": "app/api/admin/platform-status/route.ts",
+        "route": "/api/admin/platform-status"
+      },
+      {
+        "path": "app/api/admin/privacy-analytics/route.ts",
+        "route": "/api/admin/privacy-analytics"
+      },
+      {
+        "path": "app/api/admin/provider-academy/route.ts",
+        "route": "/api/admin/provider-academy"
+      },
+      {
+        "path": "app/api/admin/provider-benchmarking/route.ts",
+        "route": "/api/admin/provider-benchmarking"
+      },
+      {
+        "path": "app/api/admin/provider-onboarding/route.ts",
+        "route": "/api/admin/provider-onboarding"
+      },
+      {
+        "path": "app/api/admin/provider-quality/route.ts",
+        "route": "/api/admin/provider-quality"
+      },
+      {
+        "path": "app/api/admin/public-beta/route.ts",
+        "route": "/api/admin/public-beta"
+      },
+      {
+        "path": "app/api/admin/public-decisions/route.ts",
+        "route": "/api/admin/public-decisions"
+      },
+      {
+        "path": "app/api/admin/public-transparency/route.ts",
+        "route": "/api/admin/public-transparency"
+      },
+      {
+        "path": "app/api/admin/reporting/summary/route.ts",
+        "route": "/api/admin/reporting/summary"
+      },
+      {
+        "path": "app/api/admin/research-federation-nodes/route.ts",
+        "route": "/api/admin/research-federation-nodes"
+      },
+      {
+        "path": "app/api/admin/research-safe-room/[id]/route.ts",
+        "route": "/api/admin/research-safe-room/[id]"
+      },
+      {
+        "path": "app/api/admin/research-safe-room/route.ts",
+        "route": "/api/admin/research-safe-room"
+      },
+      {
+        "path": "app/api/admin/safeguarding/route.ts",
+        "route": "/api/admin/safeguarding"
+      },
+      {
+        "path": "app/api/admin/scale-plan/route.ts",
+        "route": "/api/admin/scale-plan"
+      },
+      {
+        "path": "app/api/admin/security-audit-packs/route.ts",
+        "route": "/api/admin/security-audit-packs"
+      },
+      {
+        "path": "app/api/admin/service-ops/at-risk/route.ts",
+        "route": "/api/admin/service-ops/at-risk"
+      },
+      {
+        "path": "app/api/admin/service-ops/care/route.ts",
+        "route": "/api/admin/service-ops/care"
+      },
+      {
+        "path": "app/api/admin/service-ops/jobs/route.ts",
+        "route": "/api/admin/service-ops/jobs"
+      },
+      {
+        "path": "app/api/admin/service-ops/summary/route.ts",
+        "route": "/api/admin/service-ops/summary"
+      },
+      {
+        "path": "app/api/admin/service-ops/transport/route.ts",
+        "route": "/api/admin/service-ops/transport"
+      },
+      {
+        "path": "app/api/admin/settlement-batches/route.ts",
+        "route": "/api/admin/settlement-batches"
+      },
+      {
+        "path": "app/api/admin/sla-reporting/route.ts",
+        "route": "/api/admin/sla-reporting"
+      },
+      {
+        "path": "app/api/admin/social-impact/route.ts",
+        "route": "/api/admin/social-impact"
+      },
+      {
+        "path": "app/api/admin/sustainability-plan/route.ts",
+        "route": "/api/admin/sustainability-plan"
+      },
+      {
+        "path": "app/api/admin/tenants/route.ts",
+        "route": "/api/admin/tenants"
+      },
+      {
+        "path": "app/api/admin/transport-investment/route.ts",
+        "route": "/api/admin/transport-investment"
+      },
+      {
+        "path": "app/api/admin/transport-network/route.ts",
+        "route": "/api/admin/transport-network"
+      },
+      {
+        "path": "app/api/admin/trust-safety/route.ts",
+        "route": "/api/admin/trust-safety"
+      },
+      {
+        "path": "app/api/admin/workers/route.ts",
+        "route": "/api/admin/workers"
+      },
+      {
+        "path": "app/api/agent/booking-services/route.ts",
+        "route": "/api/agent/booking-services"
+      },
+      {
+        "path": "app/api/agent/disability-services/route.ts",
+        "route": "/api/agent/disability-services"
+      },
+      {
+        "path": "app/api/ai-matching/candidates/[candidateId]/accept/route.ts",
+        "route": "/api/ai-matching/candidates/[candidateId]/accept"
+      },
+      {
+        "path": "app/api/ai-matching/care/[careRequestId]/run/route.ts",
+        "route": "/api/ai-matching/care/[careRequestId]/run"
+      },
+      {
+        "path": "app/api/assessor/cases/route.ts",
+        "route": "/api/assessor/cases"
+      },
+      {
+        "path": "app/api/attestations/route.ts",
+        "route": "/api/attestations"
+      },
+      {
+        "path": "app/api/aura/authority/evaluate/route.ts",
+        "route": "/api/aura/authority/evaluate"
+      },
+      {
+        "path": "app/api/aura/goals/route.ts",
+        "route": "/api/aura/goals"
+      },
+      {
+        "path": "app/api/aura/mcp/route.ts",
+        "route": "/api/aura/mcp"
+      },
+      {
+        "path": "app/api/aura/plans/simulate/route.ts",
+        "route": "/api/aura/plans/simulate"
+      },
+      {
+        "path": "app/api/auth/[...nextauth]/route.ts",
+        "route": "/api/auth/[...nextauth]"
+      },
+      {
+        "path": "app/api/auth/forgot-password/route.ts",
+        "route": "/api/auth/forgot-password"
+      },
+      {
+        "path": "app/api/auth/keycloak/callback/route.ts",
+        "route": "/api/auth/keycloak/callback"
+      },
+      {
+        "path": "app/api/auth/keycloak/login/route.ts",
+        "route": "/api/auth/keycloak/login"
+      },
+      {
+        "path": "app/api/auth/keycloak/logout/route.ts",
+        "route": "/api/auth/keycloak/logout"
+      },
+      {
+        "path": "app/api/auth/reset-password/route.ts",
+        "route": "/api/auth/reset-password"
+      },
+      {
+        "path": "app/api/auth/twilio-2fa/start/route.ts",
+        "route": "/api/auth/twilio-2fa/start"
+      },
+      {
+        "path": "app/api/auth/twilio-2fa/verify/route.ts",
+        "route": "/api/auth/twilio-2fa/verify"
+      },
+      {
+        "path": "app/api/availability/[availabilityId]/route.ts",
+        "route": "/api/availability/[availabilityId]"
+      },
+      {
+        "path": "app/api/availability/route.ts",
+        "route": "/api/availability"
+      },
+      {
+        "path": "app/api/billing/checkout/route.ts",
+        "route": "/api/billing/checkout"
+      },
+      {
+        "path": "app/api/billing/connect/create-account/route.ts",
+        "route": "/api/billing/connect/create-account"
+      },
+      {
+        "path": "app/api/billing/connect/onboarding-link/route.ts",
+        "route": "/api/billing/connect/onboarding-link"
+      },
+      {
+        "path": "app/api/billing/customer-portal/route.ts",
+        "route": "/api/billing/customer-portal"
+      },
+      {
+        "path": "app/api/billing/funding-sources/route.ts",
+        "route": "/api/billing/funding-sources"
+      },
+      {
+        "path": "app/api/billing/invoices/[invoiceId]/dispute/route.ts",
+        "route": "/api/billing/invoices/[invoiceId]/dispute"
+      },
+      {
+        "path": "app/api/billing/invoices/[invoiceId]/route.ts",
+        "route": "/api/billing/invoices/[invoiceId]"
+      },
+      {
+        "path": "app/api/billing/invoices/export/route.ts",
+        "route": "/api/billing/invoices/export"
+      },
+      {
+        "path": "app/api/billing/invoices/route.ts",
+        "route": "/api/billing/invoices"
+      },
+      {
+        "path": "app/api/billing/subscriptions/checkout/route.ts",
+        "route": "/api/billing/subscriptions/checkout"
+      },
+      {
+        "path": "app/api/booking-graph/validate/route.ts",
+        "route": "/api/booking-graph/validate"
+      },
+      {
+        "path": "app/api/bookings/[id]/attest-service-delivered/route.ts",
+        "route": "/api/bookings/[id]/attest-service-delivered"
+      },
+      {
+        "path": "app/api/bookings/[id]/confirm-service/route.ts",
+        "route": "/api/bookings/[id]/confirm-service"
+      },
+      {
+        "path": "app/api/bookings/[id]/dispute-service/route.ts",
+        "route": "/api/bookings/[id]/dispute-service"
+      },
+      {
+        "path": "app/api/bookings/[id]/route.ts",
+        "route": "/api/bookings/[id]"
+      },
+      {
+        "path": "app/api/bookings/rag/search/route.ts",
+        "route": "/api/bookings/rag/search"
+      },
+      {
+        "path": "app/api/bookings/route.ts",
+        "route": "/api/bookings"
+      },
+      {
+        "path": "app/api/calendar/events/[eventId]/route.ts",
+        "route": "/api/calendar/events/[eventId]"
+      },
+      {
+        "path": "app/api/calendar/events/route.ts",
+        "route": "/api/calendar/events"
+      },
+      {
+        "path": "app/api/care-support-transformer/transform/route.ts",
+        "route": "/api/care-support-transformer/transform"
+      },
+      {
+        "path": "app/api/care/bookings/[id]/accept/route.ts",
+        "route": "/api/care/bookings/[id]/accept"
+      },
+      {
+        "path": "app/api/care/bookings/[id]/assign-worker/route.ts",
+        "route": "/api/care/bookings/[id]/assign-worker"
+      },
+      {
+        "path": "app/api/care/bookings/[id]/decline/route.ts",
+        "route": "/api/care/bookings/[id]/decline"
+      },
+      {
+        "path": "app/api/care/bookings/[id]/invoice-placeholder/route.ts",
+        "route": "/api/care/bookings/[id]/invoice-placeholder"
+      },
+      {
+        "path": "app/api/care/bookings/[id]/route.ts",
+        "route": "/api/care/bookings/[id]"
+      },
+      {
+        "path": "app/api/care/bookings/route.ts",
+        "route": "/api/care/bookings"
+      },
+      {
+        "path": "app/api/care/incidents/[id]/escalate-qsc/route.ts",
+        "route": "/api/care/incidents/[id]/escalate-qsc"
+      },
+      {
+        "path": "app/api/care/incidents/route.ts",
+        "route": "/api/care/incidents"
+      },
+      {
+        "path": "app/api/care/platform-org/route.ts",
+        "route": "/api/care/platform-org"
+      },
+      {
+        "path": "app/api/care/recovery/[shiftId]/route.ts",
+        "route": "/api/care/recovery/[shiftId]"
+      },
+      {
+        "path": "app/api/care/requests/[careRequestId]/accept/route.ts",
+        "route": "/api/care/requests/[careRequestId]/accept"
+      },
+      {
+        "path": "app/api/care/requests/[careRequestId]/assign-provider/route.ts",
+        "route": "/api/care/requests/[careRequestId]/assign-provider"
+      },
+      {
+        "path": "app/api/care/requests/[careRequestId]/decline/route.ts",
+        "route": "/api/care/requests/[careRequestId]/decline"
+      },
+      {
+        "path": "app/api/care/requests/[careRequestId]/route.ts",
+        "route": "/api/care/requests/[careRequestId]"
+      },
+      {
+        "path": "app/api/care/requests/[careRequestId]/submit/route.ts",
+        "route": "/api/care/requests/[careRequestId]/submit"
+      },
+      {
+        "path": "app/api/care/requests/route.ts",
+        "route": "/api/care/requests"
+      },
+      {
+        "path": "app/api/care/service-logs/[id]/confirm/route.ts",
+        "route": "/api/care/service-logs/[id]/confirm"
+      },
+      {
+        "path": "app/api/care/service-logs/[id]/dispute/route.ts",
+        "route": "/api/care/service-logs/[id]/dispute"
+      },
+      {
+        "path": "app/api/care/service-logs/[id]/route.ts",
+        "route": "/api/care/service-logs/[id]"
+      },
+      {
+        "path": "app/api/care/service-logs/route.ts",
+        "route": "/api/care/service-logs"
+      },
+      {
+        "path": "app/api/care/shifts/[shiftId]/approve/route.ts",
+        "route": "/api/care/shifts/[shiftId]/approve"
+      },
+      {
+        "path": "app/api/care/shifts/[shiftId]/check-in/route.ts",
+        "route": "/api/care/shifts/[shiftId]/check-in"
+      },
+      {
+        "path": "app/api/care/shifts/[shiftId]/check-out/route.ts",
+        "route": "/api/care/shifts/[shiftId]/check-out"
+      },
+      {
+        "path": "app/api/care/shifts/[shiftId]/route.ts",
+        "route": "/api/care/shifts/[shiftId]"
+      },
+      {
+        "path": "app/api/care/shifts/route.ts",
+        "route": "/api/care/shifts"
+      },
+      {
+        "path": "app/api/cases/[caseId]/ai/[insightId]/route.ts",
+        "route": "/api/cases/[caseId]/ai/[insightId]"
+      },
+      {
+        "path": "app/api/cases/[caseId]/ai/route.ts",
+        "route": "/api/cases/[caseId]/ai"
+      },
+      {
+        "path": "app/api/cases/[caseId]/links/route.ts",
+        "route": "/api/cases/[caseId]/links"
+      },
+      {
+        "path": "app/api/cases/[caseId]/notes/route.ts",
+        "route": "/api/cases/[caseId]/notes"
+      },
+      {
+        "path": "app/api/cases/[caseId]/route.ts",
+        "route": "/api/cases/[caseId]"
+      },
+      {
+        "path": "app/api/cases/[caseId]/tasks/[taskId]/route.ts",
+        "route": "/api/cases/[caseId]/tasks/[taskId]"
+      },
+      {
+        "path": "app/api/cases/[caseId]/tasks/route.ts",
+        "route": "/api/cases/[caseId]/tasks"
+      },
+      {
+        "path": "app/api/cases/route.ts",
+        "route": "/api/cases"
+      },
+      {
+        "path": "app/api/cases/search/route.ts",
+        "route": "/api/cases/search"
+      },
+      {
+        "path": "app/api/chat/slack/route.ts",
+        "route": "/api/chat/slack"
+      },
+      {
+        "path": "app/api/community-organiser/participation/access/route.ts",
+        "route": "/api/community-organiser/participation/access"
+      },
+      {
+        "path": "app/api/community-organiser/participation/events/route.ts",
+        "route": "/api/community-organiser/participation/events"
+      },
+      {
+        "path": "app/api/community-organiser/participation/opportunities/route.ts",
+        "route": "/api/community-organiser/participation/opportunities"
+      },
+      {
+        "path": "app/api/community-organiser/participation/status/route.ts",
+        "route": "/api/community-organiser/participation/status"
+      },
+      {
+        "path": "app/api/consent/micro/route.ts",
+        "route": "/api/consent/micro"
+      },
+      {
+        "path": "app/api/consents/[id]/revoke/route.ts",
+        "route": "/api/consents/[id]/revoke"
+      },
+      {
+        "path": "app/api/consents/route.ts",
+        "route": "/api/consents"
+      },
+      {
+        "path": "app/api/contact/route.ts",
+        "route": "/api/contact"
+      },
+      {
+        "path": "app/api/continuity/cases/route.ts",
+        "route": "/api/continuity/cases"
+      },
+      {
+        "path": "app/api/continuity/executions/route.ts",
+        "route": "/api/continuity/executions"
+      },
+      {
+        "path": "app/api/continuity/life-events/route.ts",
+        "route": "/api/continuity/life-events"
+      },
+      {
+        "path": "app/api/continuity/options/route.ts",
+        "route": "/api/continuity/options"
+      },
+      {
+        "path": "app/api/continuity/outcomes/route.ts",
+        "route": "/api/continuity/outcomes"
+      },
+      {
+        "path": "app/api/continuity/plans/route.ts",
+        "route": "/api/continuity/plans"
+      },
+      {
+        "path": "app/api/continuity/profile/route.ts",
+        "route": "/api/continuity/profile"
+      },
+      {
+        "path": "app/api/continuity/reservations/route.ts",
+        "route": "/api/continuity/reservations"
+      },
+      {
+        "path": "app/api/continuity/signals/route.ts",
+        "route": "/api/continuity/signals"
+      },
+      {
+        "path": "app/api/continuity/standing-instructions/route.ts",
+        "route": "/api/continuity/standing-instructions"
+      },
+      {
+        "path": "app/api/contracts/route.ts",
+        "route": "/api/contracts"
+      },
+      {
+        "path": "app/api/contracts/run/route.ts",
+        "route": "/api/contracts/run"
+      },
+      {
+        "path": "app/api/data-vault/route.ts",
+        "route": "/api/data-vault"
+      },
+      {
+        "path": "app/api/debug/agent-log/route.ts",
+        "route": "/api/debug/agent-log"
+      },
+      {
+        "path": "app/api/developer/apps/route.ts",
+        "route": "/api/developer/apps"
+      },
+      {
+        "path": "app/api/documents/[documentId]/route.ts",
+        "route": "/api/documents/[documentId]"
+      },
+      {
+        "path": "app/api/documents/route.ts",
+        "route": "/api/documents"
+      },
+      {
+        "path": "app/api/driver/transport/trips/[tripId]/accept/route.ts",
+        "route": "/api/driver/transport/trips/[tripId]/accept"
+      },
+      {
+        "path": "app/api/driver/transport/trips/[tripId]/evidence/route.ts",
+        "route": "/api/driver/transport/trips/[tripId]/evidence"
+      },
+      {
+        "path": "app/api/driver/transport/trips/[tripId]/location/route.ts",
+        "route": "/api/driver/transport/trips/[tripId]/location"
+      },
+      {
+        "path": "app/api/driver/transport/trips/[tripId]/reject/route.ts",
+        "route": "/api/driver/transport/trips/[tripId]/reject"
+      },
+      {
+        "path": "app/api/driver/transport/trips/[tripId]/report-issue/route.ts",
+        "route": "/api/driver/transport/trips/[tripId]/report-issue"
+      },
+      {
+        "path": "app/api/driver/transport/trips/[tripId]/route.ts",
+        "route": "/api/driver/transport/trips/[tripId]"
+      },
+      {
+        "path": "app/api/driver/transport/trips/[tripId]/status/route.ts",
+        "route": "/api/driver/transport/trips/[tripId]/status"
+      },
+      {
+        "path": "app/api/driver/transport/trips/route.ts",
+        "route": "/api/driver/transport/trips"
+      },
+      {
+        "path": "app/api/driver/trips/[transportBookingId]/status/route.ts",
+        "route": "/api/driver/trips/[transportBookingId]/status"
+      },
+      {
+        "path": "app/api/driver/trips/route.ts",
+        "route": "/api/driver/trips"
+      },
+      {
+        "path": "app/api/drivers/[driverId]/route.ts",
+        "route": "/api/drivers/[driverId]"
+      },
+      {
+        "path": "app/api/drivers/route.ts",
+        "route": "/api/drivers"
+      },
+      {
+        "path": "app/api/engagement/commission-lodge/route.ts",
+        "route": "/api/engagement/commission-lodge"
+      },
+      {
+        "path": "app/api/engagement/complaints/route.ts",
+        "route": "/api/engagement/complaints"
+      },
+      {
+        "path": "app/api/engagement/improvements/route.ts",
+        "route": "/api/engagement/improvements"
+      },
+      {
+        "path": "app/api/engagement/nps/route.ts",
+        "route": "/api/engagement/nps"
+      },
+      {
+        "path": "app/api/engagement/submissions/[id]/route.ts",
+        "route": "/api/engagement/submissions/[id]"
+      },
+      {
+        "path": "app/api/engagement/submissions/route.ts",
+        "route": "/api/engagement/submissions"
+      },
+      {
+        "path": "app/api/fairness/checks/[runId]/review/route.ts",
+        "route": "/api/fairness/checks/[runId]/review"
+      },
+      {
+        "path": "app/api/federation/.well-known/openid-credential-issuer/route.ts",
+        "route": "/api/federation/.well-known/openid-credential-issuer"
+      },
+      {
+        "path": "app/api/federation/disclosure/evaluate/route.ts",
+        "route": "/api/federation/disclosure/evaluate"
+      },
+      {
+        "path": "app/api/federation/disclosure/execute/route.ts",
+        "route": "/api/federation/disclosure/execute"
+      },
+      {
+        "path": "app/api/federation/emergency/review/route.ts",
+        "route": "/api/federation/emergency/review"
+      },
+      {
+        "path": "app/api/federation/issuance/route.ts",
+        "route": "/api/federation/issuance"
+      },
+      {
+        "path": "app/api/federation/presentation/route.ts",
+        "route": "/api/federation/presentation"
+      },
+      {
+        "path": "app/api/funding-sources/[fundingSourceId]/route.ts",
+        "route": "/api/funding-sources/[fundingSourceId]"
+      },
+      {
+        "path": "app/api/funding-sources/route.ts",
+        "route": "/api/funding-sources"
+      },
+      {
+        "path": "app/api/governance/community/recommendations/route.ts",
+        "route": "/api/governance/community/recommendations"
+      },
+      {
+        "path": "app/api/governance/community/route.ts",
+        "route": "/api/governance/community"
+      },
+      {
+        "path": "app/api/i18n/[locale]/route.ts",
+        "route": "/api/i18n/[locale]"
+      },
+      {
+        "path": "app/api/incidents/[incidentId]/escalate/route.ts",
+        "route": "/api/incidents/[incidentId]/escalate"
+      },
+      {
+        "path": "app/api/incidents/[incidentId]/resolve/route.ts",
+        "route": "/api/incidents/[incidentId]/resolve"
+      },
+      {
+        "path": "app/api/incidents/[incidentId]/route.ts",
+        "route": "/api/incidents/[incidentId]"
+      },
+      {
+        "path": "app/api/incidents/intake/route.ts",
+        "route": "/api/incidents/intake"
+      },
+      {
+        "path": "app/api/incidents/route.ts",
+        "route": "/api/incidents"
+      },
+      {
+        "path": "app/api/indoor/authoring/[placeId]/floor-plans/route.ts",
+        "route": "/api/indoor/authoring/[placeId]/floor-plans"
+      },
+      {
+        "path": "app/api/indoor/checkpoints/resolve/route.ts",
+        "route": "/api/indoor/checkpoints/resolve"
+      },
+      {
+        "path": "app/api/indoor/corrections/route.ts",
+        "route": "/api/indoor/corrections"
+      },
+      {
+        "path": "app/api/indoor/feature-flags/route.ts",
+        "route": "/api/indoor/feature-flags"
+      },
+      {
+        "path": "app/api/indoor/fit/evaluate/route.ts",
+        "route": "/api/indoor/fit/evaluate"
+      },
+      {
+        "path": "app/api/indoor/incidents/route.ts",
+        "route": "/api/indoor/incidents"
+      },
+      {
+        "path": "app/api/indoor/routes/plan/route.ts",
+        "route": "/api/indoor/routes/plan"
+      },
+      {
+        "path": "app/api/indoor/visit-plans/route.ts",
+        "route": "/api/indoor/visit-plans"
+      },
+      {
+        "path": "app/api/indoor/visit-plans/share/[token]/route.ts",
+        "route": "/api/indoor/visit-plans/share/[token]"
+      },
+      {
+        "path": "app/api/invoices/[invoiceId]/preflight/route.ts",
+        "route": "/api/invoices/[invoiceId]/preflight"
+      },
+      {
+        "path": "app/api/invoices/[invoiceId]/route.ts",
+        "route": "/api/invoices/[invoiceId]"
+      },
+      {
+        "path": "app/api/invoices/[invoiceId]/void/route.ts",
+        "route": "/api/invoices/[invoiceId]/void"
+      },
+      {
+        "path": "app/api/invoices/draft-from-booking/route.ts",
+        "route": "/api/invoices/draft-from-booking"
+      },
+      {
+        "path": "app/api/invoices/route.ts",
+        "route": "/api/invoices"
+      },
+      {
+        "path": "app/api/job-applications/[applicationId]/route.ts",
+        "route": "/api/job-applications/[applicationId]"
+      },
+      {
+        "path": "app/api/job-applications/[applicationId]/status/route.ts",
+        "route": "/api/job-applications/[applicationId]/status"
+      },
+      {
+        "path": "app/api/job-applications/[applicationId]/submit/route.ts",
+        "route": "/api/job-applications/[applicationId]/submit"
+      },
+      {
+        "path": "app/api/job-applications/route.ts",
+        "route": "/api/job-applications"
+      },
+      {
+        "path": "app/api/jobs/[jobId]/close/route.ts",
+        "route": "/api/jobs/[jobId]/close"
+      },
+      {
+        "path": "app/api/jobs/[jobId]/publish/route.ts",
+        "route": "/api/jobs/[jobId]/publish"
+      },
+      {
+        "path": "app/api/jobs/[jobId]/route.ts",
+        "route": "/api/jobs/[jobId]"
+      },
+      {
+        "path": "app/api/jobs/route.ts",
+        "route": "/api/jobs"
+      },
+      {
+        "path": "app/api/journey/route.ts",
+        "route": "/api/journey"
+      },
+      {
+        "path": "app/api/ledger/events/route.ts",
+        "route": "/api/ledger/events"
+      },
+      {
+        "path": "app/api/mapable/ask/route.ts",
+        "route": "/api/mapable/ask"
+      },
+      {
+        "path": "app/api/marketplace/products/[productId]/route.ts",
+        "route": "/api/marketplace/products/[productId]"
+      },
+      {
+        "path": "app/api/marketplace/products/route.ts",
+        "route": "/api/marketplace/products"
+      },
+      {
+        "path": "app/api/matching/candidates/[candidateId]/reject/route.ts",
+        "route": "/api/matching/candidates/[candidateId]/reject"
+      },
+      {
+        "path": "app/api/matching/candidates/[candidateId]/select/route.ts",
+        "route": "/api/matching/candidates/[candidateId]/select"
+      },
+      {
+        "path": "app/api/matching/care/[careRequestId]/review/route.ts",
+        "route": "/api/matching/care/[careRequestId]/review"
+      },
+      {
+        "path": "app/api/matching/care/[careRequestId]/run/route.ts",
+        "route": "/api/matching/care/[careRequestId]/run"
+      },
+      {
+        "path": "app/api/matching/runs/[matchRunId]/route.ts",
+        "route": "/api/matching/runs/[matchRunId]"
+      },
+      {
+        "path": "app/api/matching/transport/[transportBookingId]/run/route.ts",
+        "route": "/api/matching/transport/[transportBookingId]/run"
+      },
+      {
+        "path": "app/api/me/active-tenant/route.ts",
+        "route": "/api/me/active-tenant"
+      },
+      {
+        "path": "app/api/me/route.ts",
+        "route": "/api/me"
+      },
+      {
+        "path": "app/api/me/tenants/route.ts",
+        "route": "/api/me/tenants"
+      },
+      {
+        "path": "app/api/messages/[messageId]/read/route.ts",
+        "route": "/api/messages/[messageId]/read"
+      },
+      {
+        "path": "app/api/messages/conversations/[conversationId]/messages/route.ts",
+        "route": "/api/messages/conversations/[conversationId]/messages"
+      },
+      {
+        "path": "app/api/messages/conversations/[conversationId]/route.ts",
+        "route": "/api/messages/conversations/[conversationId]"
+      },
+      {
+        "path": "app/api/messages/conversations/[conversationId]/typing/route.ts",
+        "route": "/api/messages/conversations/[conversationId]/typing"
+      },
+      {
+        "path": "app/api/messages/conversations/route.ts",
+        "route": "/api/messages/conversations"
+      },
+      {
+        "path": "app/api/ndis/claim-batches/[id]/export/route.ts",
+        "route": "/api/ndis/claim-batches/[id]/export"
+      },
+      {
+        "path": "app/api/ndis/claim-batches/[id]/mark-submitted/route.ts",
+        "route": "/api/ndis/claim-batches/[id]/mark-submitted"
+      },
+      {
+        "path": "app/api/ndis/claim-batches/[id]/route.ts",
+        "route": "/api/ndis/claim-batches/[id]"
+      },
+      {
+        "path": "app/api/ndis/claim-batches/[id]/validate/route.ts",
+        "route": "/api/ndis/claim-batches/[id]/validate"
+      },
+      {
+        "path": "app/api/ndis/claim-batches/route.ts",
+        "route": "/api/ndis/claim-batches"
+      },
+      {
+        "path": "app/api/ndis/claim-lines/[id]/status/route.ts",
+        "route": "/api/ndis/claim-lines/[id]/status"
+      },
+      {
+        "path": "app/api/ndis/claims/from-booking/route.ts",
+        "route": "/api/ndis/claims/from-booking"
+      },
+      {
+        "path": "app/api/ndis/claims/search/route.ts",
+        "route": "/api/ndis/claims/search"
+      },
+      {
+        "path": "app/api/ndis/claims/validate/route.ts",
+        "route": "/api/ndis/claims/validate"
+      },
+      {
+        "path": "app/api/ndis/participant-provider-relationships/[id]/route.ts",
+        "route": "/api/ndis/participant-provider-relationships/[id]"
+      },
+      {
+        "path": "app/api/ndis/participant-provider-relationships/route.ts",
+        "route": "/api/ndis/participant-provider-relationships"
+      },
+      {
+        "path": "app/api/ndis/pricing/import/route.ts",
+        "route": "/api/ndis/pricing/import"
+      },
+      {
+        "path": "app/api/ndis/service-delivery/authorizations/[id]/route.ts",
+        "route": "/api/ndis/service-delivery/authorizations/[id]"
+      },
+      {
+        "path": "app/api/ndis/service-delivery/authorizations/route.ts",
+        "route": "/api/ndis/service-delivery/authorizations"
+      },
+      {
+        "path": "app/api/ndis/service-delivery/events/route.ts",
+        "route": "/api/ndis/service-delivery/events"
+      },
+      {
+        "path": "app/api/ndis/service-delivery/mechanisms/route.ts",
+        "route": "/api/ndis/service-delivery/mechanisms"
+      },
+      {
+        "path": "app/api/ndis/suggest-line-item/route.ts",
+        "route": "/api/ndis/suggest-line-item"
+      },
+      {
+        "path": "app/api/ndis/support-items/route.ts",
+        "route": "/api/ndis/support-items"
+      },
+      {
+        "path": "app/api/notification-preferences/route.ts",
+        "route": "/api/notification-preferences"
+      },
+      {
+        "path": "app/api/notifications/[id]/read/route.ts",
+        "route": "/api/notifications/[id]/read"
+      },
+      {
+        "path": "app/api/notifications/route.ts",
+        "route": "/api/notifications"
+      },
+      {
+        "path": "app/api/ogc/collections/[collectionId]/items/[featureId]/route.ts",
+        "route": "/api/ogc/collections/[collectionId]/items/[featureId]"
+      },
+      {
+        "path": "app/api/ogc/collections/[collectionId]/items/route.ts",
+        "route": "/api/ogc/collections/[collectionId]/items"
+      },
+      {
+        "path": "app/api/ogc/collections/[collectionId]/route.ts",
+        "route": "/api/ogc/collections/[collectionId]"
+      },
+      {
+        "path": "app/api/ogc/collections/route.ts",
+        "route": "/api/ogc/collections"
+      },
+      {
+        "path": "app/api/ogc/conformance/route.ts",
+        "route": "/api/ogc/conformance"
+      },
+      {
+        "path": "app/api/ogc/route.ts",
+        "route": "/api/ogc"
+      },
+      {
+        "path": "app/api/onboarding/me/route.ts",
+        "route": "/api/onboarding/me"
+      },
+      {
+        "path": "app/api/orchestration/care-transport/[careRequestId]/route.ts",
+        "route": "/api/orchestration/care-transport/[careRequestId]"
+      },
+      {
+        "path": "app/api/orchestration/care-transport/from-care-request/route.ts",
+        "route": "/api/orchestration/care-transport/from-care-request"
+      },
+      {
+        "path": "app/api/orchestration/care-transport/route.ts",
+        "route": "/api/orchestration/care-transport"
+      },
+      {
+        "path": "app/api/orchestration/invoices/from-care-shift/route.ts",
+        "route": "/api/orchestration/invoices/from-care-shift"
+      },
+      {
+        "path": "app/api/orchestration/jobs/create-interview-support-draft/route.ts",
+        "route": "/api/orchestration/jobs/create-interview-support-draft"
+      },
+      {
+        "path": "app/api/organisations/[id]/route.ts",
+        "route": "/api/organisations/[id]"
+      },
+      {
+        "path": "app/api/organisations/[id]/workers/[workerId]/route.ts",
+        "route": "/api/organisations/[id]/workers/[workerId]"
+      },
+      {
+        "path": "app/api/organisations/[id]/workers/invite/route.ts",
+        "route": "/api/organisations/[id]/workers/invite"
+      },
+      {
+        "path": "app/api/organisations/[id]/workers/invites/[inviteId]/route.ts",
+        "route": "/api/organisations/[id]/workers/invites/[inviteId]"
+      },
+      {
+        "path": "app/api/organisations/[id]/workers/invites/route.ts",
+        "route": "/api/organisations/[id]/workers/invites"
+      },
+      {
+        "path": "app/api/organisations/[id]/workers/route.ts",
+        "route": "/api/organisations/[id]/workers"
+      },
+      {
+        "path": "app/api/organisations/route.ts",
+        "route": "/api/organisations"
+      },
+      {
+        "path": "app/api/participant-profile/route.ts",
+        "route": "/api/participant-profile"
+      },
+      {
+        "path": "app/api/participant/appeals/[id]/evidence/route.ts",
+        "route": "/api/participant/appeals/[id]/evidence"
+      },
+      {
+        "path": "app/api/participant/appeals/[id]/route.ts",
+        "route": "/api/participant/appeals/[id]"
+      },
+      {
+        "path": "app/api/participant/appeals/[id]/withdraw/route.ts",
+        "route": "/api/participant/appeals/[id]/withdraw"
+      },
+      {
+        "path": "app/api/participant/appeals/route.ts",
+        "route": "/api/participant/appeals"
+      },
+      {
+        "path": "app/api/participant/decisions/[id]/appeal/route.ts",
+        "route": "/api/participant/decisions/[id]/appeal"
+      },
+      {
+        "path": "app/api/participant/decisions/[id]/route.ts",
+        "route": "/api/participant/decisions/[id]"
+      },
+      {
+        "path": "app/api/participant/decisions/route.ts",
+        "route": "/api/participant/decisions"
+      },
+      {
+        "path": "app/api/participant/participation/goals/[goalId]/pause/route.ts",
+        "route": "/api/participant/participation/goals/[goalId]/pause"
+      },
+      {
+        "path": "app/api/participant/participation/goals/[goalId]/route.ts",
+        "route": "/api/participant/participation/goals/[goalId]"
+      },
+      {
+        "path": "app/api/participant/participation/goals/route.ts",
+        "route": "/api/participant/participation/goals"
+      },
+      {
+        "path": "app/api/participant/participation/plans/[planId]/approve/route.ts",
+        "route": "/api/participant/participation/plans/[planId]/approve"
+      },
+      {
+        "path": "app/api/participant/participation/plans/[planId]/cancel/route.ts",
+        "route": "/api/participant/participation/plans/[planId]/cancel"
+      },
+      {
+        "path": "app/api/participant/participation/plans/[planId]/execute/route.ts",
+        "route": "/api/participant/participation/plans/[planId]/execute"
+      },
+      {
+        "path": "app/api/participant/participation/plans/[planId]/route.ts",
+        "route": "/api/participant/participation/plans/[planId]"
+      },
+      {
+        "path": "app/api/participant/participation/plans/[planId]/simulate/route.ts",
+        "route": "/api/participant/participation/plans/[planId]/simulate"
+      },
+      {
+        "path": "app/api/participant/participation/plans/route.ts",
+        "route": "/api/participant/participation/plans"
+      },
+      {
+        "path": "app/api/participant/participation/reflections/route.ts",
+        "route": "/api/participant/participation/reflections"
+      },
+      {
+        "path": "app/api/participant/pilots/[pilotId]/complaint/route.ts",
+        "route": "/api/participant/pilots/[pilotId]/complaint"
+      },
+      {
+        "path": "app/api/participant/pilots/[pilotId]/consent/route.ts",
+        "route": "/api/participant/pilots/[pilotId]/consent"
+      },
+      {
+        "path": "app/api/participant/pilots/[pilotId]/feedback/route.ts",
+        "route": "/api/participant/pilots/[pilotId]/feedback"
+      },
+      {
+        "path": "app/api/participant/pilots/[pilotId]/route.ts",
+        "route": "/api/participant/pilots/[pilotId]"
+      },
+      {
+        "path": "app/api/participant/pilots/[pilotId]/support-request/route.ts",
+        "route": "/api/participant/pilots/[pilotId]/support-request"
+      },
+      {
+        "path": "app/api/participant/pilots/[pilotId]/withdraw/route.ts",
+        "route": "/api/participant/pilots/[pilotId]/withdraw"
+      },
+      {
+        "path": "app/api/participant/pilots/route.ts",
+        "route": "/api/participant/pilots"
+      },
+      {
+        "path": "app/api/participant/vault/consent-directives/route.ts",
+        "route": "/api/participant/vault/consent-directives"
+      },
+      {
+        "path": "app/api/participant/vault/delegates/route.ts",
+        "route": "/api/participant/vault/delegates"
+      },
+      {
+        "path": "app/api/participant/vault/emergency/route.ts",
+        "route": "/api/participant/vault/emergency"
+      },
+      {
+        "path": "app/api/participant/vault/route.ts",
+        "route": "/api/participant/vault"
+      },
+      {
+        "path": "app/api/participant/vault/wallet/route.ts",
+        "route": "/api/participant/vault/wallet"
+      },
+      {
+        "path": "app/api/participation/events/route.ts",
+        "route": "/api/participation/events"
+      },
+      {
+        "path": "app/api/participation/goals/route.ts",
+        "route": "/api/participation/goals"
+      },
+      {
+        "path": "app/api/participation/opportunities/route.ts",
+        "route": "/api/participation/opportunities"
+      },
+      {
+        "path": "app/api/partners/v1/venues/[venueId]/floor-plans/route.ts",
+        "route": "/api/partners/v1/venues/[venueId]/floor-plans"
+      },
+      {
+        "path": "app/api/partners/v1/venues/route.ts",
+        "route": "/api/partners/v1/venues"
+      },
+      {
+        "path": "app/api/partners/v2/assets/route.ts",
+        "route": "/api/partners/v2/assets"
+      },
+      {
+        "path": "app/api/partners/v2/features/route.ts",
+        "route": "/api/partners/v2/features"
+      },
+      {
+        "path": "app/api/partners/v2/incidents/route.ts",
+        "route": "/api/partners/v2/incidents"
+      },
+      {
+        "path": "app/api/partners/v2/observations/route.ts",
+        "route": "/api/partners/v2/observations"
+      },
+      {
+        "path": "app/api/partners/v2/reliability/route.ts",
+        "route": "/api/partners/v2/reliability"
+      },
+      {
+        "path": "app/api/partners/v2/status/route.ts",
+        "route": "/api/partners/v2/status"
+      },
+      {
+        "path": "app/api/partners/v2/status/write/route.ts",
+        "route": "/api/partners/v2/status/write"
+      },
+      {
+        "path": "app/api/partners/v2/webhooks/route.ts",
+        "route": "/api/partners/v2/webhooks"
+      },
+      {
+        "path": "app/api/passkeys/login/options/route.ts",
+        "route": "/api/passkeys/login/options"
+      },
+      {
+        "path": "app/api/passkeys/login/verify/route.ts",
+        "route": "/api/passkeys/login/verify"
+      },
+      {
+        "path": "app/api/passkeys/register/options/route.ts",
+        "route": "/api/passkeys/register/options"
+      },
+      {
+        "path": "app/api/passkeys/register/verify/route.ts",
+        "route": "/api/passkeys/register/verify"
+      },
+      {
+        "path": "app/api/payments/create-checkout-session/route.ts",
+        "route": "/api/payments/create-checkout-session"
+      },
+      {
+        "path": "app/api/payout-recipients/[id]/dashboard-link/route.ts",
+        "route": "/api/payout-recipients/[id]/dashboard-link"
+      },
+      {
+        "path": "app/api/payout-recipients/[id]/onboarding-link/route.ts",
+        "route": "/api/payout-recipients/[id]/onboarding-link"
+      },
+      {
+        "path": "app/api/payout-recipients/[id]/status/route.ts",
+        "route": "/api/payout-recipients/[id]/status"
+      },
+      {
+        "path": "app/api/payout-recipients/create/route.ts",
+        "route": "/api/payout-recipients/create"
+      },
+      {
+        "path": "app/api/payouts/batches/[id]/process/route.ts",
+        "route": "/api/payouts/batches/[id]/process"
+      },
+      {
+        "path": "app/api/payouts/export/[paymentId]/route.ts",
+        "route": "/api/payouts/export/[paymentId]"
+      },
+      {
+        "path": "app/api/payouts/route.ts",
+        "route": "/api/payouts"
+      },
+      {
+        "path": "app/api/payouts/splits/[id]/transfer/route.ts",
+        "route": "/api/payouts/splits/[id]/transfer"
+      },
+      {
+        "path": "app/api/platform/continuous-assurance/route.ts",
+        "route": "/api/platform/continuous-assurance"
+      },
+      {
+        "path": "app/api/platform/ga-readiness/route.ts",
+        "route": "/api/platform/ga-readiness"
+      },
+      {
+        "path": "app/api/platform/releases/route.ts",
+        "route": "/api/platform/releases"
+      },
+      {
+        "path": "app/api/platform/tenants/route.ts",
+        "route": "/api/platform/tenants"
+      },
+      {
+        "path": "app/api/prms/actions/confirm/route.ts",
+        "route": "/api/prms/actions/confirm"
+      },
+      {
+        "path": "app/api/prms/actions/draft/route.ts",
+        "route": "/api/prms/actions/draft"
+      },
+      {
+        "path": "app/api/prms/consent/check/route.ts",
+        "route": "/api/prms/consent/check"
+      },
+      {
+        "path": "app/api/prms/evidence-packs/route.ts",
+        "route": "/api/prms/evidence-packs"
+      },
+      {
+        "path": "app/api/prms/participants/[id]/context/route.ts",
+        "route": "/api/prms/participants/[id]/context"
+      },
+      {
+        "path": "app/api/profiles/[slug]/route.ts",
+        "route": "/api/profiles/[slug]"
+      },
+      {
+        "path": "app/api/profiles/claim/route.ts",
+        "route": "/api/profiles/claim"
+      },
+      {
+        "path": "app/api/profiles/claimed/route.ts",
+        "route": "/api/profiles/claimed"
+      },
+      {
+        "path": "app/api/profiles/verify/route.ts",
+        "route": "/api/profiles/verify"
+      },
+      {
+        "path": "app/api/provider-admin/[providerId]/route.ts",
+        "route": "/api/provider-admin/[providerId]"
+      },
+      {
+        "path": "app/api/provider-admin/[providerId]/workers/[workerId]/route.ts",
+        "route": "/api/provider-admin/[providerId]/workers/[workerId]"
+      },
+      {
+        "path": "app/api/provider-admin/catalog/route.ts",
+        "route": "/api/provider-admin/catalog"
+      },
+      {
+        "path": "app/api/provider-admin/memberships/route.ts",
+        "route": "/api/provider-admin/memberships"
+      },
+      {
+        "path": "app/api/provider-finder/chat/route.ts",
+        "route": "/api/provider-finder/chat"
+      },
+      {
+        "path": "app/api/provider-verification/cases/route.ts",
+        "route": "/api/provider-verification/cases"
+      },
+      {
+        "path": "app/api/provider/bookings/[bookingId]/accept/route.ts",
+        "route": "/api/provider/bookings/[bookingId]/accept"
+      },
+      {
+        "path": "app/api/provider/bookings/[bookingId]/decline/route.ts",
+        "route": "/api/provider/bookings/[bookingId]/decline"
+      },
+      {
+        "path": "app/api/provider/bookings/route.ts",
+        "route": "/api/provider/bookings"
+      },
+      {
+        "path": "app/api/provider/engagement/analytics/route.ts",
+        "route": "/api/provider/engagement/analytics"
+      },
+      {
+        "path": "app/api/provider/engagement/complaints/route.ts",
+        "route": "/api/provider/engagement/complaints"
+      },
+      {
+        "path": "app/api/provider/engagement/improvements/route.ts",
+        "route": "/api/provider/engagement/improvements"
+      },
+      {
+        "path": "app/api/provider/engagement/training/route.ts",
+        "route": "/api/provider/engagement/training"
+      },
+      {
+        "path": "app/api/provider/entitlements/route.ts",
+        "route": "/api/provider/entitlements"
+      },
+      {
+        "path": "app/api/provider/ndia-claims/[claimId]/dry-run/route.ts",
+        "route": "/api/provider/ndia-claims/[claimId]/dry-run"
+      },
+      {
+        "path": "app/api/provider/ndia-claims/[claimId]/submit/route.ts",
+        "route": "/api/provider/ndia-claims/[claimId]/submit"
+      },
+      {
+        "path": "app/api/provider/ndia-claims/[claimId]/validate/route.ts",
+        "route": "/api/provider/ndia-claims/[claimId]/validate"
+      },
+      {
+        "path": "app/api/provider/ndia-claims/route.ts",
+        "route": "/api/provider/ndia-claims"
+      },
+      {
+        "path": "app/api/provider/ndis/billable-items/[id]/correct/route.ts",
+        "route": "/api/provider/ndis/billable-items/[id]/correct"
+      },
+      {
+        "path": "app/api/provider/ndis/billable-items/[id]/lock/route.ts",
+        "route": "/api/provider/ndis/billable-items/[id]/lock"
+      },
+      {
+        "path": "app/api/provider/ndis/billable-items/[id]/route.ts",
+        "route": "/api/provider/ndis/billable-items/[id]"
+      },
+      {
+        "path": "app/api/provider/ndis/billable-items/[id]/validate/route.ts",
+        "route": "/api/provider/ndis/billable-items/[id]/validate"
+      },
+      {
+        "path": "app/api/provider/ndis/billable-items/[id]/void/route.ts",
+        "route": "/api/provider/ndis/billable-items/[id]/void"
+      },
+      {
+        "path": "app/api/provider/ndis/billable-items/from-service/route.ts",
+        "route": "/api/provider/ndis/billable-items/from-service"
+      },
+      {
+        "path": "app/api/provider/ndis/billable-items/route.ts",
+        "route": "/api/provider/ndis/billable-items"
+      },
+      {
+        "path": "app/api/provider/ndis/billing/prepare/dry-run/route.ts",
+        "route": "/api/provider/ndis/billing/prepare/dry-run"
+      },
+      {
+        "path": "app/api/provider/ndis/billing/prepare/route.ts",
+        "route": "/api/provider/ndis/billing/prepare"
+      },
+      {
+        "path": "app/api/provider/ndis/billing/resolve-route/route.ts",
+        "route": "/api/provider/ndis/billing/resolve-route"
+      },
+      {
+        "path": "app/api/provider/ndis/claims/[claimId]/snapshot/route.ts",
+        "route": "/api/provider/ndis/claims/[claimId]/snapshot"
+      },
+      {
+        "path": "app/api/provider/ndis/claims/[claimId]/snapshots/route.ts",
+        "route": "/api/provider/ndis/claims/[claimId]/snapshots"
+      },
+      {
+        "path": "app/api/provider/ndis/disputes/[id]/resolve/route.ts",
+        "route": "/api/provider/ndis/disputes/[id]/resolve"
+      },
+      {
+        "path": "app/api/provider/ndis/disputes/route.ts",
+        "route": "/api/provider/ndis/disputes"
+      },
+      {
+        "path": "app/api/provider/ndis/documents/[documentId]/approve/route.ts",
+        "route": "/api/provider/ndis/documents/[documentId]/approve"
+      },
+      {
+        "path": "app/api/provider/ndis/documents/[documentId]/credit/route.ts",
+        "route": "/api/provider/ndis/documents/[documentId]/credit"
+      },
+      {
+        "path": "app/api/provider/ndis/documents/[documentId]/mock-deliver/route.ts",
+        "route": "/api/provider/ndis/documents/[documentId]/mock-deliver"
+      },
+      {
+        "path": "app/api/provider/ndis/documents/[documentId]/render/route.ts",
+        "route": "/api/provider/ndis/documents/[documentId]/render"
+      },
+      {
+        "path": "app/api/provider/ndis/documents/[documentId]/route.ts",
+        "route": "/api/provider/ndis/documents/[documentId]"
+      },
+      {
+        "path": "app/api/provider/ndis/documents/[documentId]/void/route.ts",
+        "route": "/api/provider/ndis/documents/[documentId]/void"
+      },
+      {
+        "path": "app/api/provider/ndis/documents/route.ts",
+        "route": "/api/provider/ndis/documents"
+      },
+      {
+        "path": "app/api/provider/ndis/evidence/[packageId]/exception/route.ts",
+        "route": "/api/provider/ndis/evidence/[packageId]/exception"
+      },
+      {
+        "path": "app/api/provider/ndis/evidence/[packageId]/route.ts",
+        "route": "/api/provider/ndis/evidence/[packageId]"
+      },
+      {
+        "path": "app/api/provider/ndis/evidence/[packageId]/validate/route.ts",
+        "route": "/api/provider/ndis/evidence/[packageId]/validate"
+      },
+      {
+        "path": "app/api/provider/ndis/portal-exports/[id]/record-manual-submission/route.ts",
+        "route": "/api/provider/ndis/portal-exports/[id]/record-manual-submission"
+      },
+      {
+        "path": "app/api/provider/ndis/portal-exports/[id]/route.ts",
+        "route": "/api/provider/ndis/portal-exports/[id]"
+      },
+      {
+        "path": "app/api/provider/ndis/portal-exports/route.ts",
+        "route": "/api/provider/ndis/portal-exports"
+      },
+      {
+        "path": "app/api/provider/ndis/snapshots/[snapshotId]/approval/route.ts",
+        "route": "/api/provider/ndis/snapshots/[snapshotId]/approval"
+      },
+      {
+        "path": "app/api/provider/ndis/snapshots/[snapshotId]/approve/route.ts",
+        "route": "/api/provider/ndis/snapshots/[snapshotId]/approve"
+      },
+      {
+        "path": "app/api/provider/ndis/snapshots/[snapshotId]/reject/route.ts",
+        "route": "/api/provider/ndis/snapshots/[snapshotId]/reject"
+      },
+      {
+        "path": "app/api/provider/ndis/snapshots/[snapshotId]/revoke/route.ts",
+        "route": "/api/provider/ndis/snapshots/[snapshotId]/revoke"
+      },
+      {
+        "path": "app/api/provider/ndis/snapshots/[snapshotId]/route.ts",
+        "route": "/api/provider/ndis/snapshots/[snapshotId]"
+      },
+      {
+        "path": "app/api/provider/platform-trust/workers/route.ts",
+        "route": "/api/provider/platform-trust/workers"
+      },
+      {
+        "path": "app/api/provider/policies/route.ts",
+        "route": "/api/provider/policies"
+      },
+      {
+        "path": "app/api/provider/quotas/route.ts",
+        "route": "/api/provider/quotas"
+      },
+      {
+        "path": "app/api/provider/transport/requests/route.ts",
+        "route": "/api/provider/transport/requests"
+      },
+      {
+        "path": "app/api/provider/transport/trips/[tripId]/accept/route.ts",
+        "route": "/api/provider/transport/trips/[tripId]/accept"
+      },
+      {
+        "path": "app/api/provider/transport/trips/[tripId]/assign/route.ts",
+        "route": "/api/provider/transport/trips/[tripId]/assign"
+      },
+      {
+        "path": "app/api/provider/transport/trips/[tripId]/decline/route.ts",
+        "route": "/api/provider/transport/trips/[tripId]/decline"
+      },
+      {
+        "path": "app/api/provider/transport/trips/[tripId]/request-service-recovery/route.ts",
+        "route": "/api/provider/transport/trips/[tripId]/request-service-recovery"
+      },
+      {
+        "path": "app/api/provider/transport/trips/[tripId]/route.ts",
+        "route": "/api/provider/transport/trips/[tripId]"
+      },
+      {
+        "path": "app/api/provider/transport/trips/[tripId]/suggestions/route.ts",
+        "route": "/api/provider/transport/trips/[tripId]/suggestions"
+      },
+      {
+        "path": "app/api/provider/transport/trips/[tripId]/unassign/route.ts",
+        "route": "/api/provider/transport/trips/[tripId]/unassign"
+      },
+      {
+        "path": "app/api/provider/transport/trips/route.ts",
+        "route": "/api/provider/transport/trips"
+      },
+      {
+        "path": "app/api/provider/usage/route.ts",
+        "route": "/api/provider/usage"
+      },
+      {
+        "path": "app/api/providers/map/route.ts",
+        "route": "/api/providers/map"
+      },
+      {
+        "path": "app/api/providers/ndis/search/route.ts",
+        "route": "/api/providers/ndis/search"
+      },
+      {
+        "path": "app/api/register/route.ts",
+        "route": "/api/register"
+      },
+      {
+        "path": "app/api/search/autocomplete/route.ts",
+        "route": "/api/search/autocomplete"
+      },
+      {
+        "path": "app/api/search/interpret/route.ts",
+        "route": "/api/search/interpret"
+      },
+      {
+        "path": "app/api/search/location-config/route.ts",
+        "route": "/api/search/location-config"
+      },
+      {
+        "path": "app/api/search/providers/route.ts",
+        "route": "/api/search/providers"
+      },
+      {
+        "path": "app/api/search/transport/route.ts",
+        "route": "/api/search/transport"
+      },
+      {
+        "path": "app/api/search/vehicles/route.ts",
+        "route": "/api/search/vehicles"
+      },
+      {
+        "path": "app/api/search/workers/route.ts",
+        "route": "/api/search/workers"
+      },
+      {
+        "path": "app/api/service-agreements/[agreementId]/sign/route.ts",
+        "route": "/api/service-agreements/[agreementId]/sign"
+      },
+      {
+        "path": "app/api/service-agreements/route.ts",
+        "route": "/api/service-agreements"
+      },
+      {
+        "path": "app/api/stripe/payment-intents/create/route.ts",
+        "route": "/api/stripe/payment-intents/create"
+      },
+      {
+        "path": "app/api/stripe/webhooks/route.ts",
+        "route": "/api/stripe/webhooks"
+      },
+      {
+        "path": "app/api/support-coordinator/access-request/[id]/approve/route.ts",
+        "route": "/api/support-coordinator/access-request/[id]/approve"
+      },
+      {
+        "path": "app/api/support-coordinator/access-request/route.ts",
+        "route": "/api/support-coordinator/access-request"
+      },
+      {
+        "path": "app/api/support-coordinator/participants/route.ts",
+        "route": "/api/support-coordinator/participants"
+      },
+      {
+        "path": "app/api/support-profile/[participantId]/route.ts",
+        "route": "/api/support-profile/[participantId]"
+      },
+      {
+        "path": "app/api/support-profile/route.ts",
+        "route": "/api/support-profile"
+      },
+      {
+        "path": "app/api/support/tickets/[ticketId]/comments/route.ts",
+        "route": "/api/support/tickets/[ticketId]/comments"
+      },
+      {
+        "path": "app/api/support/tickets/[ticketId]/escalate/route.ts",
+        "route": "/api/support/tickets/[ticketId]/escalate"
+      },
+      {
+        "path": "app/api/support/tickets/[ticketId]/resolve/route.ts",
+        "route": "/api/support/tickets/[ticketId]/resolve"
+      },
+      {
+        "path": "app/api/support/tickets/[ticketId]/route.ts",
+        "route": "/api/support/tickets/[ticketId]"
+      },
+      {
+        "path": "app/api/support/tickets/route.ts",
+        "route": "/api/support/tickets"
+      },
+      {
+        "path": "app/api/system/db-health/route.ts",
+        "route": "/api/system/db-health"
+      },
+      {
+        "path": "app/api/system/storage-health/route.ts",
+        "route": "/api/system/storage-health"
+      },
+      {
+        "path": "app/api/timesheets/[timesheetId]/approve/route.ts",
+        "route": "/api/timesheets/[timesheetId]/approve"
+      },
+      {
+        "path": "app/api/timesheets/[timesheetId]/create-invoice-line/route.ts",
+        "route": "/api/timesheets/[timesheetId]/create-invoice-line"
+      },
+      {
+        "path": "app/api/timesheets/[timesheetId]/dispute/route.ts",
+        "route": "/api/timesheets/[timesheetId]/dispute"
+      },
+      {
+        "path": "app/api/timesheets/[timesheetId]/route.ts",
+        "route": "/api/timesheets/[timesheetId]"
+      },
+      {
+        "path": "app/api/timesheets/[timesheetId]/submit/route.ts",
+        "route": "/api/timesheets/[timesheetId]/submit"
+      },
+      {
+        "path": "app/api/timesheets/from-care-shift/[shiftId]/route.ts",
+        "route": "/api/timesheets/from-care-shift/[shiftId]"
+      },
+      {
+        "path": "app/api/timesheets/route.ts",
+        "route": "/api/timesheets"
+      },
+      {
+        "path": "app/api/transparency/systems/[id]/route.ts",
+        "route": "/api/transparency/systems/[id]"
+      },
+      {
+        "path": "app/api/transparency/systems/route.ts",
+        "route": "/api/transparency/systems"
+      },
+      {
+        "path": "app/api/transport/[transportBookingId]/report-delay/route.ts",
+        "route": "/api/transport/[transportBookingId]/report-delay"
+      },
+      {
+        "path": "app/api/transport/[transportBookingId]/tracking/route.ts",
+        "route": "/api/transport/[transportBookingId]/tracking"
+      },
+      {
+        "path": "app/api/transport/[transportBookingId]/tracking/start/route.ts",
+        "route": "/api/transport/[transportBookingId]/tracking/start"
+      },
+      {
+        "path": "app/api/transport/[transportBookingId]/tracking/status/route.ts",
+        "route": "/api/transport/[transportBookingId]/tracking/status"
+      },
+      {
+        "path": "app/api/transport/bookings/[transportBookingId]/accept/route.ts",
+        "route": "/api/transport/bookings/[transportBookingId]/accept"
+      },
+      {
+        "path": "app/api/transport/bookings/[transportBookingId]/assign-driver/route.ts",
+        "route": "/api/transport/bookings/[transportBookingId]/assign-driver"
+      },
+      {
+        "path": "app/api/transport/bookings/[transportBookingId]/assign-operator/route.ts",
+        "route": "/api/transport/bookings/[transportBookingId]/assign-operator"
+      },
+      {
+        "path": "app/api/transport/bookings/[transportBookingId]/assign-vehicle/route.ts",
+        "route": "/api/transport/bookings/[transportBookingId]/assign-vehicle"
+      },
+      {
+        "path": "app/api/transport/bookings/[transportBookingId]/decline/route.ts",
+        "route": "/api/transport/bookings/[transportBookingId]/decline"
+      },
+      {
+        "path": "app/api/transport/bookings/[transportBookingId]/route.ts",
+        "route": "/api/transport/bookings/[transportBookingId]"
+      },
+      {
+        "path": "app/api/transport/bookings/route.ts",
+        "route": "/api/transport/bookings"
+      },
+      {
+        "path": "app/api/transport/mobility-prefill/route.ts",
+        "route": "/api/transport/mobility-prefill"
+      },
+      {
+        "path": "app/api/transport/routing/cache/refresh/route.ts",
+        "route": "/api/transport/routing/cache/refresh"
+      },
+      {
+        "path": "app/api/transport/routing/estimate/route.ts",
+        "route": "/api/transport/routing/estimate"
+      },
+      {
+        "path": "app/api/transport/routing/matrix/route.ts",
+        "route": "/api/transport/routing/matrix"
+      },
+      {
+        "path": "app/api/transport/routing/optimisation-jobs/[jobId]/route.ts",
+        "route": "/api/transport/routing/optimisation-jobs/[jobId]"
+      },
+      {
+        "path": "app/api/transport/routing/optimise/route.ts",
+        "route": "/api/transport/routing/optimise"
+      },
+      {
+        "path": "app/api/transport/runs/[runId]/lock/route.ts",
+        "route": "/api/transport/runs/[runId]/lock"
+      },
+      {
+        "path": "app/api/transport/runs/[runId]/trips/route.ts",
+        "route": "/api/transport/runs/[runId]/trips"
+      },
+      {
+        "path": "app/api/transport/runs/route.ts",
+        "route": "/api/transport/runs"
+      },
+      {
+        "path": "app/api/transport/tp/alerts/route.ts",
+        "route": "/api/transport/tp/alerts"
+      },
+      {
+        "path": "app/api/transport/tp/coord/route.ts",
+        "route": "/api/transport/tp/coord"
+      },
+      {
+        "path": "app/api/transport/tp/departures/route.ts",
+        "route": "/api/transport/tp/departures"
+      },
+      {
+        "path": "app/api/transport/tp/stops/search/route.ts",
+        "route": "/api/transport/tp/stops/search"
+      },
+      {
+        "path": "app/api/transport/traffic/cameras/route.ts",
+        "route": "/api/transport/traffic/cameras"
+      },
+      {
+        "path": "app/api/transport/traffic/hazards/route.ts",
+        "route": "/api/transport/traffic/hazards"
+      },
+      {
+        "path": "app/api/transport/traffic/nearby/route.ts",
+        "route": "/api/transport/traffic/nearby"
+      },
+      {
+        "path": "app/api/transport/traffic/status/route.ts",
+        "route": "/api/transport/traffic/status"
+      },
+      {
+        "path": "app/api/transport/trips/[tripId]/cancel/route.ts",
+        "route": "/api/transport/trips/[tripId]/cancel"
+      },
+      {
+        "path": "app/api/transport/trips/[tripId]/confirm/route.ts",
+        "route": "/api/transport/trips/[tripId]/confirm"
+      },
+      {
+        "path": "app/api/transport/trips/[tripId]/dispute/route.ts",
+        "route": "/api/transport/trips/[tripId]/dispute"
+      },
+      {
+        "path": "app/api/transport/trips/[tripId]/handover/route.ts",
+        "route": "/api/transport/trips/[tripId]/handover"
+      },
+      {
+        "path": "app/api/transport/trips/[tripId]/route.ts",
+        "route": "/api/transport/trips/[tripId]"
+      },
+      {
+        "path": "app/api/transport/trips/[tripId]/safety-check/route.ts",
+        "route": "/api/transport/trips/[tripId]/safety-check"
+      },
+      {
+        "path": "app/api/transport/trips/route.ts",
+        "route": "/api/transport/trips"
+      },
+      {
+        "path": "app/api/trust-passport/route.ts",
+        "route": "/api/trust-passport"
+      },
+      {
+        "path": "app/api/v1/places/route.ts",
+        "route": "/api/v1/places"
+      },
+      {
+        "path": "app/api/v1/plan-manager/exports/route.ts",
+        "route": "/api/v1/plan-manager/exports"
+      },
+      {
+        "path": "app/api/v2/care/shifts/route.ts",
+        "route": "/api/v2/care/shifts"
+      },
+      {
+        "path": "app/api/v2/places/route.ts",
+        "route": "/api/v2/places"
+      },
+      {
+        "path": "app/api/v2/plan-manager/exports/route.ts",
+        "route": "/api/v2/plan-manager/exports"
+      },
+      {
+        "path": "app/api/vehicles/[vehicleId]/route.ts",
+        "route": "/api/vehicles/[vehicleId]"
+      },
+      {
+        "path": "app/api/vehicles/route.ts",
+        "route": "/api/vehicles"
+      },
+      {
+        "path": "app/api/webhooks/stripe/route.ts",
+        "route": "/api/webhooks/stripe"
+      },
+      {
+        "path": "app/api/worker-invites/[token]/accept/route.ts",
+        "route": "/api/worker-invites/[token]/accept"
+      },
+      {
+        "path": "app/api/worker-invites/[token]/route.ts",
+        "route": "/api/worker-invites/[token]"
+      },
+      {
+        "path": "app/api/worker/assist/route.ts",
+        "route": "/api/worker/assist"
+      },
+      {
+        "path": "app/api/worker/shifts/[shiftId]/brief/route.ts",
+        "route": "/api/worker/shifts/[shiftId]/brief"
+      },
+      {
+        "path": "app/api/workers/[workerId]/credentials/route.ts",
+        "route": "/api/workers/[workerId]/credentials"
+      },
+      {
+        "path": "app/api/workers/[workerId]/route.ts",
+        "route": "/api/workers/[workerId]"
+      },
+      {
+        "path": "app/api/workers/[workerId]/verify/route.ts",
+        "route": "/api/workers/[workerId]/verify"
+      },
+      {
+        "path": "app/api/workers/route.ts",
+        "route": "/api/workers"
+      },
+      {
+        "path": "app/api/xero/invoices/[invoiceId]/sync-status/route.ts",
+        "route": "/api/xero/invoices/[invoiceId]/sync-status"
+      },
+      {
+        "path": "app/api/xero/invoices/[invoiceId]/sync/route.ts",
+        "route": "/api/xero/invoices/[invoiceId]/sync"
+      },
+      {
+        "path": "app/api/xero/oauth/callback/route.ts",
+        "route": "/api/xero/oauth/callback"
+      },
+      {
+        "path": "app/api/xero/oauth/start/route.ts",
+        "route": "/api/xero/oauth/start"
+      }
+    ],
+    "pages": [
+      {
+        "path": "app/(core)/accountability/page.tsx",
+        "route": "/accountability"
+      },
+      {
+        "path": "app/(core)/accreditation/page.tsx",
+        "route": "/accreditation"
+      },
+      {
+        "path": "app/(core)/algorithms/page.tsx",
+        "route": "/algorithms"
+      },
+      {
+        "path": "app/(core)/audit-index/page.tsx",
+        "route": "/audit-index"
+      },
+      {
+        "path": "app/(core)/decisions/page.tsx",
+        "route": "/decisions"
+      },
+      {
+        "path": "app/(core)/ecosystem/page.tsx",
+        "route": "/ecosystem"
+      },
+      {
+        "path": "app/(core)/governance/page.tsx",
+        "route": "/governance"
+      },
+      {
+        "path": "app/(core)/insights/national/page.tsx",
+        "route": "/insights/national"
+      },
+      {
+        "path": "app/(core)/investment-models/page.tsx",
+        "route": "/investment-models"
+      },
+      {
+        "path": "app/(core)/membership/page.tsx",
+        "route": "/membership"
+      },
+      {
+        "path": "app/(core)/outcomes/page.tsx",
+        "route": "/outcomes"
+      },
+      {
+        "path": "app/(core)/oversight/page.tsx",
+        "route": "/oversight"
+      },
+      {
+        "path": "app/(core)/partners/certified/page.tsx",
+        "route": "/partners/certified"
+      },
+      {
+        "path": "app/(core)/peers/page.tsx",
+        "route": "/peers"
+      },
+      {
+        "path": "app/(core)/peers/principles/page.tsx",
+        "route": "/peers/principles"
+      },
+      {
+        "path": "app/(core)/peers/rooms/[slug]/page.tsx",
+        "route": "/peers/rooms/[slug]"
+      },
+      {
+        "path": "app/(core)/reports/data-trust/page.tsx",
+        "route": "/reports/data-trust"
+      },
+      {
+        "path": "app/(core)/research-federation/page.tsx",
+        "route": "/research-federation"
+      },
+      {
+        "path": "app/(core)/safeguards/page.tsx",
+        "route": "/safeguards"
+      },
+      {
+        "path": "app/(core)/status/page.tsx",
+        "route": "/status"
+      },
+      {
+        "path": "app/(core)/sustainability/page.tsx",
+        "route": "/sustainability"
+      },
+      {
+        "path": "app/(marketing)/about/page.tsx",
+        "route": "/about"
+      },
+      {
+        "path": "app/(marketing)/accessibility-statement/page.tsx",
+        "route": "/accessibility-statement"
+      },
+      {
+        "path": "app/(marketing)/contact/page.tsx",
+        "route": "/contact"
+      },
+      {
+        "path": "app/(marketing)/data-deletion/page.tsx",
+        "route": "/data-deletion"
+      },
+      {
+        "path": "app/(marketing)/for-providers/page.tsx",
+        "route": "/for-providers"
+      },
+      {
+        "path": "app/(marketing)/guides/[state]/[city]/page.tsx",
+        "route": "/guides/[state]/[city]"
+      },
+      {
+        "path": "app/(marketing)/guides/page.tsx",
+        "route": "/guides"
+      },
+      {
+        "path": "app/(marketing)/help/page.tsx",
+        "route": "/help"
+      },
+      {
+        "path": "app/(marketing)/page.tsx",
+        "route": "/(marketing)"
+      },
+      {
+        "path": "app/(marketing)/peer/page.tsx",
+        "route": "/peer"
+      },
+      {
+        "path": "app/(marketing)/pricing/page.tsx",
+        "route": "/pricing"
+      },
+      {
+        "path": "app/(marketing)/privacy/page.tsx",
+        "route": "/privacy"
+      },
+      {
+        "path": "app/(marketing)/providers/page.tsx",
+        "route": "/providers"
+      },
+      {
+        "path": "app/(marketing)/resources/page.tsx",
+        "route": "/resources"
+      },
+      {
+        "path": "app/(marketing)/telehealth/page.tsx",
+        "route": "/telehealth"
+      },
+      {
+        "path": "app/(marketing)/terms/page.tsx",
+        "route": "/terms"
+      },
+      {
+        "path": "app/academy/page.tsx",
+        "route": "/academy"
+      },
+      {
+        "path": "app/access-intelligence/page.tsx",
+        "route": "/access-intelligence"
+      },
+      {
+        "path": "app/access-pass/page.tsx",
+        "route": "/access-pass"
+      },
+      {
+        "path": "app/access/[location]/page.tsx",
+        "route": "/access/[location]"
+      },
+      {
+        "path": "app/access/add-place/page.tsx",
+        "route": "/access/add-place"
+      },
+      {
+        "path": "app/access/page.tsx",
+        "route": "/access"
+      },
+      {
+        "path": "app/access/places/[placeId]/accreditation/page.tsx",
+        "route": "/access/places/[placeId]/accreditation"
+      },
+      {
+        "path": "app/access/places/[placeId]/claim/page.tsx",
+        "route": "/access/places/[placeId]/claim"
+      },
+      {
+        "path": "app/access/places/[placeId]/page.tsx",
+        "route": "/access/places/[placeId]"
+      },
+      {
+        "path": "app/access/places/[placeId]/reviews/page.tsx",
+        "route": "/access/places/[placeId]/reviews"
+      },
+      {
+        "path": "app/access/review/[placeId]/page.tsx",
+        "route": "/access/review/[placeId]"
+      },
+      {
+        "path": "app/accessibility-map/[slug]/floor-plan/page.tsx",
+        "route": "/accessibility-map/[slug]/floor-plan"
+      },
+      {
+        "path": "app/accessibility-map/[slug]/page.tsx",
+        "route": "/accessibility-map/[slug]"
+      },
+      {
+        "path": "app/accessibility-map/page.tsx",
+        "route": "/accessibility-map"
+      },
+      {
+        "path": "app/add-access-info/page.tsx",
+        "route": "/add-access-info"
+      },
+      {
+        "path": "app/admin/access/accreditation/page.tsx",
+        "route": "/admin/access/accreditation"
+      },
+      {
+        "path": "app/admin/access/analytics/page.tsx",
+        "route": "/admin/access/analytics"
+      },
+      {
+        "path": "app/admin/access/import/[importId]/page.tsx",
+        "route": "/admin/access/import/[importId]"
+      },
+      {
+        "path": "app/admin/access/import/page.tsx",
+        "route": "/admin/access/import"
+      },
+      {
+        "path": "app/admin/access/moderation/page.tsx",
+        "route": "/admin/access/moderation"
+      },
+      {
+        "path": "app/admin/access/page.tsx",
+        "route": "/admin/access"
+      },
+      {
+        "path": "app/admin/access/reviews/page.tsx",
+        "route": "/admin/access/reviews"
+      },
+      {
+        "path": "app/admin/accessibility-accreditation/page.tsx",
+        "route": "/admin/accessibility-accreditation"
+      },
+      {
+        "path": "app/admin/accessops/assets/page.tsx",
+        "route": "/admin/accessops/assets"
+      },
+      {
+        "path": "app/admin/accessops/assurance/page.tsx",
+        "route": "/admin/accessops/assurance"
+      },
+      {
+        "path": "app/admin/accessops/data-quality/page.tsx",
+        "route": "/admin/accessops/data-quality"
+      },
+      {
+        "path": "app/admin/accessops/feeds/page.tsx",
+        "route": "/admin/accessops/feeds"
+      },
+      {
+        "path": "app/admin/accessops/incidents/page.tsx",
+        "route": "/admin/accessops/incidents"
+      },
+      {
+        "path": "app/admin/accessops/open-data/page.tsx",
+        "route": "/admin/accessops/open-data"
+      },
+      {
+        "path": "app/admin/accessops/page.tsx",
+        "route": "/admin/accessops"
+      },
+      {
+        "path": "app/admin/accessops/partners/page.tsx",
+        "route": "/admin/accessops/partners"
+      },
+      {
+        "path": "app/admin/accessops/reliability/page.tsx",
+        "route": "/admin/accessops/reliability"
+      },
+      {
+        "path": "app/admin/accessops/routes/page.tsx",
+        "route": "/admin/accessops/routes"
+      },
+      {
+        "path": "app/admin/accessops/sensors/page.tsx",
+        "route": "/admin/accessops/sensors"
+      },
+      {
+        "path": "app/admin/accessops/sources/page.tsx",
+        "route": "/admin/accessops/sources"
+      },
+      {
+        "path": "app/admin/accessops/status/page.tsx",
+        "route": "/admin/accessops/status"
+      },
+      {
+        "path": "app/admin/accessops/webhooks/page.tsx",
+        "route": "/admin/accessops/webhooks"
+      },
+      {
+        "path": "app/admin/accessops/work-orders/page.tsx",
+        "route": "/admin/accessops/work-orders"
+      },
+      {
+        "path": "app/admin/accreditation-public/page.tsx",
+        "route": "/admin/accreditation-public"
+      },
+      {
+        "path": "app/admin/ai-governance/page.tsx",
+        "route": "/admin/ai-governance"
+      },
+      {
+        "path": "app/admin/ai-matching/page.tsx",
+        "route": "/admin/ai-matching"
+      },
+      {
+        "path": "app/admin/ai-monitoring/page.tsx",
+        "route": "/admin/ai-monitoring"
+      },
+      {
+        "path": "app/admin/algorithm-register/page.tsx",
+        "route": "/admin/algorithm-register"
+      },
+      {
+        "path": "app/admin/analytics/page.tsx",
+        "route": "/admin/analytics"
+      },
+      {
+        "path": "app/admin/api-certification/page.tsx",
+        "route": "/admin/api-certification"
+      },
+      {
+        "path": "app/admin/api-versioning/page.tsx",
+        "route": "/admin/api-versioning"
+      },
+      {
+        "path": "app/admin/app-store-release/page.tsx",
+        "route": "/admin/app-store-release"
+      },
+      {
+        "path": "app/admin/assessor-network/page.tsx",
+        "route": "/admin/assessor-network"
+      },
+      {
+        "path": "app/admin/assurance/architecture/page.tsx",
+        "route": "/admin/assurance/architecture"
+      },
+      {
+        "path": "app/admin/assurance/continuity/page.tsx",
+        "route": "/admin/assurance/continuity"
+      },
+      {
+        "path": "app/admin/assurance/controls/[controlId]/page.tsx",
+        "route": "/admin/assurance/controls/[controlId]"
+      },
+      {
+        "path": "app/admin/assurance/controls/page.tsx",
+        "route": "/admin/assurance/controls"
+      },
+      {
+        "path": "app/admin/assurance/evidence/page.tsx",
+        "route": "/admin/assurance/evidence"
+      },
+      {
+        "path": "app/admin/assurance/exceptions/page.tsx",
+        "route": "/admin/assurance/exceptions"
+      },
+      {
+        "path": "app/admin/assurance/findings/page.tsx",
+        "route": "/admin/assurance/findings"
+      },
+      {
+        "path": "app/admin/assurance/frameworks/[frameworkId]/page.tsx",
+        "route": "/admin/assurance/frameworks/[frameworkId]"
+      },
+      {
+        "path": "app/admin/assurance/frameworks/page.tsx",
+        "route": "/admin/assurance/frameworks"
+      },
+      {
+        "path": "app/admin/assurance/go-live/page.tsx",
+        "route": "/admin/assurance/go-live"
+      },
+      {
+        "path": "app/admin/assurance/incidents/page.tsx",
+        "route": "/admin/assurance/incidents"
+      },
+      {
+        "path": "app/admin/assurance/ndia-application/page.tsx",
+        "route": "/admin/assurance/ndia-application"
+      },
+      {
+        "path": "app/admin/assurance/page.tsx",
+        "route": "/admin/assurance"
+      },
+      {
+        "path": "app/admin/assurance/readiness/page.tsx",
+        "route": "/admin/assurance/readiness"
+      },
+      {
+        "path": "app/admin/assurance/registration/0137/page.tsx",
+        "route": "/admin/assurance/registration/0137"
+      },
+      {
+        "path": "app/admin/assurance/registration/page.tsx",
+        "route": "/admin/assurance/registration"
+      },
+      {
+        "path": "app/admin/assurance/tests/page.tsx",
+        "route": "/admin/assurance/tests"
+      },
+      {
+        "path": "app/admin/assurance/vendors/page.tsx",
+        "route": "/admin/assurance/vendors"
+      },
+      {
+        "path": "app/admin/audit-events/page.tsx",
+        "route": "/admin/audit-events"
+      },
+      {
+        "path": "app/admin/aura/agents/page.tsx",
+        "route": "/admin/aura/agents"
+      },
+      {
+        "path": "app/admin/aura/conformance/page.tsx",
+        "route": "/admin/aura/conformance"
+      },
+      {
+        "path": "app/admin/aura/costs/page.tsx",
+        "route": "/admin/aura/costs"
+      },
+      {
+        "path": "app/admin/aura/evaluations/page.tsx",
+        "route": "/admin/aura/evaluations"
+      },
+      {
+        "path": "app/admin/aura/incidents/page.tsx",
+        "route": "/admin/aura/incidents"
+      },
+      {
+        "path": "app/admin/aura/models/page.tsx",
+        "route": "/admin/aura/models"
+      },
+      {
+        "path": "app/admin/aura/outcomes/page.tsx",
+        "route": "/admin/aura/outcomes"
+      },
+      {
+        "path": "app/admin/aura/page.tsx",
+        "route": "/admin/aura"
+      },
+      {
+        "path": "app/admin/aura/prompts/page.tsx",
+        "route": "/admin/aura/prompts"
+      },
+      {
+        "path": "app/admin/aura/protocols/page.tsx",
+        "route": "/admin/aura/protocols"
+      },
+      {
+        "path": "app/admin/aura/safety/page.tsx",
+        "route": "/admin/aura/safety"
+      },
+      {
+        "path": "app/admin/aura/tools/page.tsx",
+        "route": "/admin/aura/tools"
+      },
+      {
+        "path": "app/admin/automation/n8n/page.tsx",
+        "route": "/admin/automation/n8n"
+      },
+      {
+        "path": "app/admin/backup-recovery/page.tsx",
+        "route": "/admin/backup-recovery"
+      },
+      {
+        "path": "app/admin/billing/page.tsx",
+        "route": "/admin/billing"
+      },
+      {
+        "path": "app/admin/board-reporting/page.tsx",
+        "route": "/admin/board-reporting"
+      },
+      {
+        "path": "app/admin/bookings/[id]/page.tsx",
+        "route": "/admin/bookings/[id]"
+      },
+      {
+        "path": "app/admin/bookings/page.tsx",
+        "route": "/admin/bookings"
+      },
+      {
+        "path": "app/admin/calendar/page.tsx",
+        "route": "/admin/calendar"
+      },
+      {
+        "path": "app/admin/care/[careRequestId]/page.tsx",
+        "route": "/admin/care/[careRequestId]"
+      },
+      {
+        "path": "app/admin/care/page.tsx",
+        "route": "/admin/care"
+      },
+      {
+        "path": "app/admin/care/shifts/[shiftId]/page.tsx",
+        "route": "/admin/care/shifts/[shiftId]"
+      },
+      {
+        "path": "app/admin/care/shifts/page.tsx",
+        "route": "/admin/care/shifts"
+      },
+      {
+        "path": "app/admin/certified-api-ecosystem/page.tsx",
+        "route": "/admin/certified-api-ecosystem"
+      },
+      {
+        "path": "app/admin/civic-audit-index/page.tsx",
+        "route": "/admin/civic-audit-index"
+      },
+      {
+        "path": "app/admin/community-governance/page.tsx",
+        "route": "/admin/community-governance"
+      },
+      {
+        "path": "app/admin/community-membership/page.tsx",
+        "route": "/admin/community-membership"
+      },
+      {
+        "path": "app/admin/compliance-renewals/page.tsx",
+        "route": "/admin/compliance-renewals"
+      },
+      {
+        "path": "app/admin/compliance/page.tsx",
+        "route": "/admin/compliance"
+      },
+      {
+        "path": "app/admin/consents/page.tsx",
+        "route": "/admin/consents"
+      },
+      {
+        "path": "app/admin/constitutional-safeguards/page.tsx",
+        "route": "/admin/constitutional-safeguards"
+      },
+      {
+        "path": "app/admin/content/directus/page.tsx",
+        "route": "/admin/content/directus"
+      },
+      {
+        "path": "app/admin/continuity-intelligence/page.tsx",
+        "route": "/admin/continuity-intelligence"
+      },
+      {
+        "path": "app/admin/continuity/access/page.tsx",
+        "route": "/admin/continuity/access"
+      },
+      {
+        "path": "app/admin/continuity/capacity/page.tsx",
+        "route": "/admin/continuity/capacity"
+      },
+      {
+        "path": "app/admin/continuity/cases/page.tsx",
+        "route": "/admin/continuity/cases"
+      },
+      {
+        "path": "app/admin/continuity/configuration/page.tsx",
+        "route": "/admin/continuity/configuration"
+      },
+      {
+        "path": "app/admin/continuity/escalations/page.tsx",
+        "route": "/admin/continuity/escalations"
+      },
+      {
+        "path": "app/admin/continuity/life-events/page.tsx",
+        "route": "/admin/continuity/life-events"
+      },
+      {
+        "path": "app/admin/continuity/outcomes/page.tsx",
+        "route": "/admin/continuity/outcomes"
+      },
+      {
+        "path": "app/admin/continuity/page.tsx",
+        "route": "/admin/continuity"
+      },
+      {
+        "path": "app/admin/continuity/providers/page.tsx",
+        "route": "/admin/continuity/providers"
+      },
+      {
+        "path": "app/admin/continuity/reliability/page.tsx",
+        "route": "/admin/continuity/reliability"
+      },
+      {
+        "path": "app/admin/continuity/signals/page.tsx",
+        "route": "/admin/continuity/signals"
+      },
+      {
+        "path": "app/admin/continuity/transport/page.tsx",
+        "route": "/admin/continuity/transport"
+      },
+      {
+        "path": "app/admin/contracts/page.tsx",
+        "route": "/admin/contracts"
+      },
+      {
+        "path": "app/admin/contracts/runs/page.tsx",
+        "route": "/admin/contracts/runs"
+      },
+      {
+        "path": "app/admin/data-trust-council/page.tsx",
+        "route": "/admin/data-trust-council"
+      },
+      {
+        "path": "app/admin/data-trust-reports/page.tsx",
+        "route": "/admin/data-trust-reports"
+      },
+      {
+        "path": "app/admin/disaster-recovery/page.tsx",
+        "route": "/admin/disaster-recovery"
+      },
+      {
+        "path": "app/admin/dispatch/page.tsx",
+        "route": "/admin/dispatch"
+      },
+      {
+        "path": "app/admin/documents/page.tsx",
+        "route": "/admin/documents"
+      },
+      {
+        "path": "app/admin/dr-exercises/page.tsx",
+        "route": "/admin/dr-exercises"
+      },
+      {
+        "path": "app/admin/drivers/[driverId]/page.tsx",
+        "route": "/admin/drivers/[driverId]"
+      },
+      {
+        "path": "app/admin/drivers/page.tsx",
+        "route": "/admin/drivers"
+      },
+      {
+        "path": "app/admin/engagement/analytics/page.tsx",
+        "route": "/admin/engagement/analytics"
+      },
+      {
+        "path": "app/admin/engagement/page.tsx",
+        "route": "/admin/engagement"
+      },
+      {
+        "path": "app/admin/evidence-automation/page.tsx",
+        "route": "/admin/evidence-automation"
+      },
+      {
+        "path": "app/admin/fairness/page.tsx",
+        "route": "/admin/fairness"
+      },
+      {
+        "path": "app/admin/federated-accountability/page.tsx",
+        "route": "/admin/federated-accountability"
+      },
+      {
+        "path": "app/admin/federated-research/page.tsx",
+        "route": "/admin/federated-research"
+      },
+      {
+        "path": "app/admin/federation/conformance/page.tsx",
+        "route": "/admin/federation/conformance"
+      },
+      {
+        "path": "app/admin/federation/issuers/page.tsx",
+        "route": "/admin/federation/issuers"
+      },
+      {
+        "path": "app/admin/federation/page.tsx",
+        "route": "/admin/federation"
+      },
+      {
+        "path": "app/admin/federation/schemas/page.tsx",
+        "route": "/admin/federation/schemas"
+      },
+      {
+        "path": "app/admin/federation/status-lists/page.tsx",
+        "route": "/admin/federation/status-lists"
+      },
+      {
+        "path": "app/admin/federation/trust-registry/page.tsx",
+        "route": "/admin/federation/trust-registry"
+      },
+      {
+        "path": "app/admin/federation/verifiers/page.tsx",
+        "route": "/admin/federation/verifiers"
+      },
+      {
+        "path": "app/admin/floor-plans/[id]/edit/page.tsx",
+        "route": "/admin/floor-plans/[id]/edit"
+      },
+      {
+        "path": "app/admin/floor-plans/moderation/page.tsx",
+        "route": "/admin/floor-plans/moderation"
+      },
+      {
+        "path": "app/admin/floor-plans/page.tsx",
+        "route": "/admin/floor-plans"
+      },
+      {
+        "path": "app/admin/governance-charter/page.tsx",
+        "route": "/admin/governance-charter"
+      },
+      {
+        "path": "app/admin/governance/aia/page.tsx",
+        "route": "/admin/governance/aia"
+      },
+      {
+        "path": "app/admin/governance/appeals/page.tsx",
+        "route": "/admin/governance/appeals"
+      },
+      {
+        "path": "app/admin/governance/community/page.tsx",
+        "route": "/admin/governance/community"
+      },
+      {
+        "path": "app/admin/governance/page.tsx",
+        "route": "/admin/governance"
+      },
+      {
+        "path": "app/admin/governance/systems/page.tsx",
+        "route": "/admin/governance/systems"
+      },
+      {
+        "path": "app/admin/government-portals/page.tsx",
+        "route": "/admin/government-portals"
+      },
+      {
+        "path": "app/admin/government-reporting/page.tsx",
+        "route": "/admin/government-reporting"
+      },
+      {
+        "path": "app/admin/grant-reporting/page.tsx",
+        "route": "/admin/grant-reporting"
+      },
+      {
+        "path": "app/admin/i18n/page.tsx",
+        "route": "/admin/i18n"
+      },
+      {
+        "path": "app/admin/identity/keycloak/page.tsx",
+        "route": "/admin/identity/keycloak"
+      },
+      {
+        "path": "app/admin/incidents/[incidentId]/page.tsx",
+        "route": "/admin/incidents/[incidentId]"
+      },
+      {
+        "path": "app/admin/incidents/page.tsx",
+        "route": "/admin/incidents"
+      },
+      {
+        "path": "app/admin/institutional-continuity/page.tsx",
+        "route": "/admin/institutional-continuity"
+      },
+      {
+        "path": "app/admin/institutional-permanence/page.tsx",
+        "route": "/admin/institutional-permanence"
+      },
+      {
+        "path": "app/admin/integrations/[key]/page.tsx",
+        "route": "/admin/integrations/[key]"
+      },
+      {
+        "path": "app/admin/integrations/erpnext/page.tsx",
+        "route": "/admin/integrations/erpnext"
+      },
+      {
+        "path": "app/admin/integrations/fhir/page.tsx",
+        "route": "/admin/integrations/fhir"
+      },
+      {
+        "path": "app/admin/integrations/page.tsx",
+        "route": "/admin/integrations"
+      },
+      {
+        "path": "app/admin/invoices/page.tsx",
+        "route": "/admin/invoices"
+      },
+      {
+        "path": "app/admin/job-applications/[applicationId]/page.tsx",
+        "route": "/admin/job-applications/[applicationId]"
+      },
+      {
+        "path": "app/admin/job-applications/page.tsx",
+        "route": "/admin/job-applications"
+      },
+      {
+        "path": "app/admin/jobs/[jobId]/page.tsx",
+        "route": "/admin/jobs/[jobId]"
+      },
+      {
+        "path": "app/admin/jobs/page.tsx",
+        "route": "/admin/jobs"
+      },
+      {
+        "path": "app/admin/launch-readiness/page.tsx",
+        "route": "/admin/launch-readiness"
+      },
+      {
+        "path": "app/admin/long-term-outcomes/page.tsx",
+        "route": "/admin/long-term-outcomes"
+      },
+      {
+        "path": "app/admin/longitudinal-impact/page.tsx",
+        "route": "/admin/longitudinal-impact"
+      },
+      {
+        "path": "app/admin/matching/[matchRunId]/page.tsx",
+        "route": "/admin/matching/[matchRunId]"
+      },
+      {
+        "path": "app/admin/matching/page.tsx",
+        "route": "/admin/matching"
+      },
+      {
+        "path": "app/admin/messages/page.tsx",
+        "route": "/admin/messages"
+      },
+      {
+        "path": "app/admin/mobile-release/page.tsx",
+        "route": "/admin/mobile-release"
+      },
+      {
+        "path": "app/admin/national-accountability/page.tsx",
+        "route": "/admin/national-accountability"
+      },
+      {
+        "path": "app/admin/national-insights/page.tsx",
+        "route": "/admin/national-insights"
+      },
+      {
+        "path": "app/admin/national-rollout/page.tsx",
+        "route": "/admin/national-rollout"
+      },
+      {
+        "path": "app/admin/ndia-pilot/page.tsx",
+        "route": "/admin/ndia-pilot"
+      },
+      {
+        "path": "app/admin/ndia-readiness/page.tsx",
+        "route": "/admin/ndia-readiness"
+      },
+      {
+        "path": "app/admin/ndis-provider-ingestion/page.tsx",
+        "route": "/admin/ndis-provider-ingestion"
+      },
+      {
+        "path": "app/admin/notifications/page.tsx",
+        "route": "/admin/notifications"
+      },
+      {
+        "path": "app/admin/open-data/page.tsx",
+        "route": "/admin/open-data"
+      },
+      {
+        "path": "app/admin/operations/billing/page.tsx",
+        "route": "/admin/operations/billing"
+      },
+      {
+        "path": "app/admin/operations/bookings/page.tsx",
+        "route": "/admin/operations/bookings"
+      },
+      {
+        "path": "app/admin/operations/documents/page.tsx",
+        "route": "/admin/operations/documents"
+      },
+      {
+        "path": "app/admin/operations/page.tsx",
+        "route": "/admin/operations"
+      },
+      {
+        "path": "app/admin/operations/tickets/page.tsx",
+        "route": "/admin/operations/tickets"
+      },
+      {
+        "path": "app/admin/operator-dispatch/page.tsx",
+        "route": "/admin/operator-dispatch"
+      },
+      {
+        "path": "app/admin/ops/agent-runs/page.tsx",
+        "route": "/admin/ops/agent-runs"
+      },
+      {
+        "path": "app/admin/ops/billing/page.tsx",
+        "route": "/admin/ops/billing"
+      },
+      {
+        "path": "app/admin/ops/bookings/page.tsx",
+        "route": "/admin/ops/bookings"
+      },
+      {
+        "path": "app/admin/ops/compliance/page.tsx",
+        "route": "/admin/ops/compliance"
+      },
+      {
+        "path": "app/admin/ops/page.tsx",
+        "route": "/admin/ops"
+      },
+      {
+        "path": "app/admin/ops/participants/page.tsx",
+        "route": "/admin/ops/participants"
+      },
+      {
+        "path": "app/admin/ops/safeguarding/page.tsx",
+        "route": "/admin/ops/safeguarding"
+      },
+      {
+        "path": "app/admin/ops/trust-safety/page.tsx",
+        "route": "/admin/ops/trust-safety"
+      },
+      {
+        "path": "app/admin/ops/workers/page.tsx",
+        "route": "/admin/ops/workers"
+      },
+      {
+        "path": "app/admin/organisations/[id]/page.tsx",
+        "route": "/admin/organisations/[id]"
+      },
+      {
+        "path": "app/admin/organisations/new/page.tsx",
+        "route": "/admin/organisations/new"
+      },
+      {
+        "path": "app/admin/organisations/page.tsx",
+        "route": "/admin/organisations"
+      },
+      {
+        "path": "app/admin/oversight-board/page.tsx",
+        "route": "/admin/oversight-board"
+      },
+      {
+        "path": "app/admin/page.tsx",
+        "route": "/admin"
+      },
+      {
+        "path": "app/admin/participants/[id]/accessibility/page.tsx",
+        "route": "/admin/participants/[id]/accessibility"
+      },
+      {
+        "path": "app/admin/participants/[id]/page.tsx",
+        "route": "/admin/participants/[id]"
+      },
+      {
+        "path": "app/admin/participants/page.tsx",
+        "route": "/admin/participants"
+      },
+      {
+        "path": "app/admin/participation/access-quality/page.tsx",
+        "route": "/admin/participation/access-quality"
+      },
+      {
+        "path": "app/admin/participation/events/page.tsx",
+        "route": "/admin/participation/events"
+      },
+      {
+        "path": "app/admin/participation/incidents/page.tsx",
+        "route": "/admin/participation/incidents"
+      },
+      {
+        "path": "app/admin/participation/moderation/page.tsx",
+        "route": "/admin/participation/moderation"
+      },
+      {
+        "path": "app/admin/participation/opportunities/page.tsx",
+        "route": "/admin/participation/opportunities"
+      },
+      {
+        "path": "app/admin/participation/organisations/page.tsx",
+        "route": "/admin/participation/organisations"
+      },
+      {
+        "path": "app/admin/participation/page.tsx",
+        "route": "/admin/participation"
+      },
+      {
+        "path": "app/admin/participation/privacy/page.tsx",
+        "route": "/admin/participation/privacy"
+      },
+      {
+        "path": "app/admin/partner-api-program/page.tsx",
+        "route": "/admin/partner-api-program"
+      },
+      {
+        "path": "app/admin/partner-billing/page.tsx",
+        "route": "/admin/partner-billing"
+      },
+      {
+        "path": "app/admin/partner-marketplace/page.tsx",
+        "route": "/admin/partner-marketplace"
+      },
+      {
+        "path": "app/admin/partner-sandbox/page.tsx",
+        "route": "/admin/partner-sandbox"
+      },
+      {
+        "path": "app/admin/payment-reconciliation/page.tsx",
+        "route": "/admin/payment-reconciliation"
+      },
+      {
+        "path": "app/admin/payouts/page.tsx",
+        "route": "/admin/payouts"
+      },
+      {
+        "path": "app/admin/personal-data-vault/page.tsx",
+        "route": "/admin/personal-data-vault"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/closure/page.tsx",
+        "route": "/admin/pilot/[pilotId]/closure"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/command/page.tsx",
+        "route": "/admin/pilot/[pilotId]/command"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/complaints/page.tsx",
+        "route": "/admin/pilot/[pilotId]/complaints"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/incidents/page.tsx",
+        "route": "/admin/pilot/[pilotId]/incidents"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/page.tsx",
+        "route": "/admin/pilot/[pilotId]"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/participants/page.tsx",
+        "route": "/admin/pilot/[pilotId]/participants"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/pause/page.tsx",
+        "route": "/admin/pilot/[pilotId]/pause"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/progression/page.tsx",
+        "route": "/admin/pilot/[pilotId]/progression"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/reconciliation/page.tsx",
+        "route": "/admin/pilot/[pilotId]/reconciliation"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/reviews/page.tsx",
+        "route": "/admin/pilot/[pilotId]/reviews"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/transactions/page.tsx",
+        "route": "/admin/pilot/[pilotId]/transactions"
+      },
+      {
+        "path": "app/admin/pilot/[pilotId]/workers/page.tsx",
+        "route": "/admin/pilot/[pilotId]/workers"
+      },
+      {
+        "path": "app/admin/pilot/page.tsx",
+        "route": "/admin/pilot"
+      },
+      {
+        "path": "app/admin/plan-manager-pilot/page.tsx",
+        "route": "/admin/plan-manager-pilot"
+      },
+      {
+        "path": "app/admin/platform/capacity/page.tsx",
+        "route": "/admin/platform/capacity"
+      },
+      {
+        "path": "app/admin/platform/continuous-assurance/page.tsx",
+        "route": "/admin/platform/continuous-assurance"
+      },
+      {
+        "path": "app/admin/platform/federations/page.tsx",
+        "route": "/admin/platform/federations"
+      },
+      {
+        "path": "app/admin/platform/ga-readiness/page.tsx",
+        "route": "/admin/platform/ga-readiness"
+      },
+      {
+        "path": "app/admin/platform/release-rings/page.tsx",
+        "route": "/admin/platform/release-rings"
+      },
+      {
+        "path": "app/admin/platform/releases/page.tsx",
+        "route": "/admin/platform/releases"
+      },
+      {
+        "path": "app/admin/platform/sre/page.tsx",
+        "route": "/admin/platform/sre"
+      },
+      {
+        "path": "app/admin/platform/tenants/[tenantId]/page.tsx",
+        "route": "/admin/platform/tenants/[tenantId]"
+      },
+      {
+        "path": "app/admin/platform/tenants/page.tsx",
+        "route": "/admin/platform/tenants"
+      },
+      {
+        "path": "app/admin/privacy-analytics/page.tsx",
+        "route": "/admin/privacy-analytics"
+      },
+      {
+        "path": "app/admin/provider-academy/page.tsx",
+        "route": "/admin/provider-academy"
+      },
+      {
+        "path": "app/admin/provider-benchmarking/page.tsx",
+        "route": "/admin/provider-benchmarking"
+      },
+      {
+        "path": "app/admin/provider-capacity/page.tsx",
+        "route": "/admin/provider-capacity"
+      },
+      {
+        "path": "app/admin/provider-onboarding/page.tsx",
+        "route": "/admin/provider-onboarding"
+      },
+      {
+        "path": "app/admin/provider-quality/page.tsx",
+        "route": "/admin/provider-quality"
+      },
+      {
+        "path": "app/admin/public-beta/page.tsx",
+        "route": "/admin/public-beta"
+      },
+      {
+        "path": "app/admin/public-decisions/page.tsx",
+        "route": "/admin/public-decisions"
+      },
+      {
+        "path": "app/admin/public-transparency/page.tsx",
+        "route": "/admin/public-transparency"
+      },
+      {
+        "path": "app/admin/reporting/page.tsx",
+        "route": "/admin/reporting"
+      },
+      {
+        "path": "app/admin/research-federation-nodes/page.tsx",
+        "route": "/admin/research-federation-nodes"
+      },
+      {
+        "path": "app/admin/research-safe-room/page.tsx",
+        "route": "/admin/research-safe-room"
+      },
+      {
+        "path": "app/admin/scale-plan/page.tsx",
+        "route": "/admin/scale-plan"
+      },
+      {
+        "path": "app/admin/security-audit-packs/page.tsx",
+        "route": "/admin/security-audit-packs"
+      },
+      {
+        "path": "app/admin/security-readiness/page.tsx",
+        "route": "/admin/security-readiness"
+      },
+      {
+        "path": "app/admin/service-ops/at-risk/page.tsx",
+        "route": "/admin/service-ops/at-risk"
+      },
+      {
+        "path": "app/admin/service-ops/calendar/page.tsx",
+        "route": "/admin/service-ops/calendar"
+      },
+      {
+        "path": "app/admin/service-ops/care/page.tsx",
+        "route": "/admin/service-ops/care"
+      },
+      {
+        "path": "app/admin/service-ops/jobs/page.tsx",
+        "route": "/admin/service-ops/jobs"
+      },
+      {
+        "path": "app/admin/service-ops/page.tsx",
+        "route": "/admin/service-ops"
+      },
+      {
+        "path": "app/admin/service-ops/transport/page.tsx",
+        "route": "/admin/service-ops/transport"
+      },
+      {
+        "path": "app/admin/settlement-batches/page.tsx",
+        "route": "/admin/settlement-batches"
+      },
+      {
+        "path": "app/admin/sla-reporting/page.tsx",
+        "route": "/admin/sla-reporting"
+      },
+      {
+        "path": "app/admin/social-impact/page.tsx",
+        "route": "/admin/social-impact"
+      },
+      {
+        "path": "app/admin/support/page.tsx",
+        "route": "/admin/support"
+      },
+      {
+        "path": "app/admin/sustainability-plan/page.tsx",
+        "route": "/admin/sustainability-plan"
+      },
+      {
+        "path": "app/admin/tenants/page.tsx",
+        "route": "/admin/tenants"
+      },
+      {
+        "path": "app/admin/transport-investment/page.tsx",
+        "route": "/admin/transport-investment"
+      },
+      {
+        "path": "app/admin/transport-network/page.tsx",
+        "route": "/admin/transport-network"
+      },
+      {
+        "path": "app/admin/transport/[transportBookingId]/page.tsx",
+        "route": "/admin/transport/[transportBookingId]"
+      },
+      {
+        "path": "app/admin/transport/page.tsx",
+        "route": "/admin/transport"
+      },
+      {
+        "path": "app/admin/vehicles/[vehicleId]/page.tsx",
+        "route": "/admin/vehicles/[vehicleId]"
+      },
+      {
+        "path": "app/admin/vehicles/page.tsx",
+        "route": "/admin/vehicles"
+      },
+      {
+        "path": "app/admin/workers/[workerId]/page.tsx",
+        "route": "/admin/workers/[workerId]"
+      },
+      {
+        "path": "app/admin/workers/page.tsx",
+        "route": "/admin/workers"
+      },
+      {
+        "path": "app/admin/workers/trust-passport/page.tsx",
+        "route": "/admin/workers/trust-passport"
+      },
+      {
+        "path": "app/admin/workflows/page.tsx",
+        "route": "/admin/workflows"
+      },
+      {
+        "path": "app/ask/page.tsx",
+        "route": "/ask"
+      },
+      {
+        "path": "app/assessor/page.tsx",
+        "route": "/assessor"
+      },
+      {
+        "path": "app/billing/page.tsx",
+        "route": "/billing"
+      },
+      {
+        "path": "app/care/bookings/[id]/page.tsx",
+        "route": "/care/bookings/[id]"
+      },
+      {
+        "path": "app/care/bookings/page.tsx",
+        "route": "/care/bookings"
+      },
+      {
+        "path": "app/care/find/page.tsx",
+        "route": "/care/find"
+      },
+      {
+        "path": "app/care/page.tsx",
+        "route": "/care"
+      },
+      {
+        "path": "app/care/request/page.tsx",
+        "route": "/care/request"
+      },
+      {
+        "path": "app/care/service-logs/page.tsx",
+        "route": "/care/service-logs"
+      },
+      {
+        "path": "app/care/shifts/[shiftId]/page.tsx",
+        "route": "/care/shifts/[shiftId]"
+      },
+      {
+        "path": "app/care/shifts/page.tsx",
+        "route": "/care/shifts"
+      },
+      {
+        "path": "app/civic/assets/[assetId]/page.tsx",
+        "route": "/civic/assets/[assetId]"
+      },
+      {
+        "path": "app/civic/assets/page.tsx",
+        "route": "/civic/assets"
+      },
+      {
+        "path": "app/civic/data-sources/page.tsx",
+        "route": "/civic/data-sources"
+      },
+      {
+        "path": "app/civic/incidents/page.tsx",
+        "route": "/civic/incidents"
+      },
+      {
+        "path": "app/civic/page.tsx",
+        "route": "/civic"
+      },
+      {
+        "path": "app/civic/reliability/page.tsx",
+        "route": "/civic/reliability"
+      },
+      {
+        "path": "app/civic/reports/page.tsx",
+        "route": "/civic/reports"
+      },
+      {
+        "path": "app/civic/sensors/page.tsx",
+        "route": "/civic/sensors"
+      },
+      {
+        "path": "app/civic/settings/page.tsx",
+        "route": "/civic/settings"
+      },
+      {
+        "path": "app/civic/status/page.tsx",
+        "route": "/civic/status"
+      },
+      {
+        "path": "app/civic/team/page.tsx",
+        "route": "/civic/team"
+      },
+      {
+        "path": "app/civic/webhooks/page.tsx",
+        "route": "/civic/webhooks"
+      },
+      {
+        "path": "app/civic/work-orders/page.tsx",
+        "route": "/civic/work-orders"
+      },
+      {
+        "path": "app/community-organiser/access/page.tsx",
+        "route": "/community-organiser/access"
+      },
+      {
+        "path": "app/community-organiser/events/page.tsx",
+        "route": "/community-organiser/events"
+      },
+      {
+        "path": "app/community-organiser/feedback/page.tsx",
+        "route": "/community-organiser/feedback"
+      },
+      {
+        "path": "app/community-organiser/opportunities/page.tsx",
+        "route": "/community-organiser/opportunities"
+      },
+      {
+        "path": "app/community-organiser/page.tsx",
+        "route": "/community-organiser"
+      },
+      {
+        "path": "app/community-organiser/profile/page.tsx",
+        "route": "/community-organiser/profile"
+      },
+      {
+        "path": "app/community-organiser/questions/page.tsx",
+        "route": "/community-organiser/questions"
+      },
+      {
+        "path": "app/community-organiser/status/page.tsx",
+        "route": "/community-organiser/status"
+      },
+      {
+        "path": "app/compare/page.tsx",
+        "route": "/compare"
+      },
+      {
+        "path": "app/core/page.tsx",
+        "route": "/core"
+      },
+      {
+        "path": "app/dashboard/accessibility/edit/page.tsx",
+        "route": "/dashboard/accessibility/edit"
+      },
+      {
+        "path": "app/dashboard/accessibility/page.tsx",
+        "route": "/dashboard/accessibility"
+      },
+      {
+        "path": "app/dashboard/billing/funding/[id]/page.tsx",
+        "route": "/dashboard/billing/funding/[id]"
+      },
+      {
+        "path": "app/dashboard/billing/funding/new/page.tsx",
+        "route": "/dashboard/billing/funding/new"
+      },
+      {
+        "path": "app/dashboard/billing/funding/page.tsx",
+        "route": "/dashboard/billing/funding"
+      },
+      {
+        "path": "app/dashboard/billing/invoices/[invoiceId]/page.tsx",
+        "route": "/dashboard/billing/invoices/[invoiceId]"
+      },
+      {
+        "path": "app/dashboard/billing/invoices/page.tsx",
+        "route": "/dashboard/billing/invoices"
+      },
+      {
+        "path": "app/dashboard/billing/legacy/[invoiceId]/page.tsx",
+        "route": "/dashboard/billing/legacy/[invoiceId]"
+      },
+      {
+        "path": "app/dashboard/billing/legacy/page.tsx",
+        "route": "/dashboard/billing/legacy"
+      },
+      {
+        "path": "app/dashboard/billing/page.tsx",
+        "route": "/dashboard/billing"
+      },
+      {
+        "path": "app/dashboard/bookings/[id]/page.tsx",
+        "route": "/dashboard/bookings/[id]"
+      },
+      {
+        "path": "app/dashboard/bookings/new/page.tsx",
+        "route": "/dashboard/bookings/new"
+      },
+      {
+        "path": "app/dashboard/bookings/page.tsx",
+        "route": "/dashboard/bookings"
+      },
+      {
+        "path": "app/dashboard/budget/page.tsx",
+        "route": "/dashboard/budget"
+      },
+      {
+        "path": "app/dashboard/calendar/page.tsx",
+        "route": "/dashboard/calendar"
+      },
+      {
+        "path": "app/dashboard/care/[careRequestId]/page.tsx",
+        "route": "/dashboard/care/[careRequestId]"
+      },
+      {
+        "path": "app/dashboard/care/matches/[careRequestId]/page.tsx",
+        "route": "/dashboard/care/matches/[careRequestId]"
+      },
+      {
+        "path": "app/dashboard/care/new/page.tsx",
+        "route": "/dashboard/care/new"
+      },
+      {
+        "path": "app/dashboard/care/page.tsx",
+        "route": "/dashboard/care"
+      },
+      {
+        "path": "app/dashboard/care/recovery/[shiftId]/page.tsx",
+        "route": "/dashboard/care/recovery/[shiftId]"
+      },
+      {
+        "path": "app/dashboard/care/shifts/[shiftId]/page.tsx",
+        "route": "/dashboard/care/shifts/[shiftId]"
+      },
+      {
+        "path": "app/dashboard/care/shifts/page.tsx",
+        "route": "/dashboard/care/shifts"
+      },
+      {
+        "path": "app/dashboard/cases/[caseId]/page.tsx",
+        "route": "/dashboard/cases/[caseId]"
+      },
+      {
+        "path": "app/dashboard/cases/new/page.tsx",
+        "route": "/dashboard/cases/new"
+      },
+      {
+        "path": "app/dashboard/cases/page.tsx",
+        "route": "/dashboard/cases"
+      },
+      {
+        "path": "app/dashboard/cases/search/page.tsx",
+        "route": "/dashboard/cases/search"
+      },
+      {
+        "path": "app/dashboard/consent/[id]/page.tsx",
+        "route": "/dashboard/consent/[id]"
+      },
+      {
+        "path": "app/dashboard/consent/new/page.tsx",
+        "route": "/dashboard/consent/new"
+      },
+      {
+        "path": "app/dashboard/consent/page.tsx",
+        "route": "/dashboard/consent"
+      },
+      {
+        "path": "app/dashboard/documents/page.tsx",
+        "route": "/dashboard/documents"
+      },
+      {
+        "path": "app/dashboard/engagement/[id]/page.tsx",
+        "route": "/dashboard/engagement/[id]"
+      },
+      {
+        "path": "app/dashboard/engagement/new/page.tsx",
+        "route": "/dashboard/engagement/new"
+      },
+      {
+        "path": "app/dashboard/engagement/page.tsx",
+        "route": "/dashboard/engagement"
+      },
+      {
+        "path": "app/dashboard/find-support/page.tsx",
+        "route": "/dashboard/find-support"
+      },
+      {
+        "path": "app/dashboard/find-transport/page.tsx",
+        "route": "/dashboard/find-transport"
+      },
+      {
+        "path": "app/dashboard/funding/[id]/page.tsx",
+        "route": "/dashboard/funding/[id]"
+      },
+      {
+        "path": "app/dashboard/funding/new/page.tsx",
+        "route": "/dashboard/funding/new"
+      },
+      {
+        "path": "app/dashboard/funding/page.tsx",
+        "route": "/dashboard/funding"
+      },
+      {
+        "path": "app/dashboard/incidents/[incidentId]/page.tsx",
+        "route": "/dashboard/incidents/[incidentId]"
+      },
+      {
+        "path": "app/dashboard/incidents/new/page.tsx",
+        "route": "/dashboard/incidents/new"
+      },
+      {
+        "path": "app/dashboard/incidents/page.tsx",
+        "route": "/dashboard/incidents"
+      },
+      {
+        "path": "app/dashboard/invoices/[id]/page.tsx",
+        "route": "/dashboard/invoices/[id]"
+      },
+      {
+        "path": "app/dashboard/invoices/page.tsx",
+        "route": "/dashboard/invoices"
+      },
+      {
+        "path": "app/dashboard/jobs/[jobId]/apply/page.tsx",
+        "route": "/dashboard/jobs/[jobId]/apply"
+      },
+      {
+        "path": "app/dashboard/jobs/[jobId]/page.tsx",
+        "route": "/dashboard/jobs/[jobId]"
+      },
+      {
+        "path": "app/dashboard/jobs/applications/[applicationId]/page.tsx",
+        "route": "/dashboard/jobs/applications/[applicationId]"
+      },
+      {
+        "path": "app/dashboard/jobs/applications/page.tsx",
+        "route": "/dashboard/jobs/applications"
+      },
+      {
+        "path": "app/dashboard/jobs/page.tsx",
+        "route": "/dashboard/jobs"
+      },
+      {
+        "path": "app/dashboard/messages/[conversationId]/page.tsx",
+        "route": "/dashboard/messages/[conversationId]"
+      },
+      {
+        "path": "app/dashboard/messages/page.tsx",
+        "route": "/dashboard/messages"
+      },
+      {
+        "path": "app/dashboard/notifications/page.tsx",
+        "route": "/dashboard/notifications"
+      },
+      {
+        "path": "app/dashboard/onboarding/page.tsx",
+        "route": "/dashboard/onboarding"
+      },
+      {
+        "path": "app/dashboard/page.tsx",
+        "route": "/dashboard"
+      },
+      {
+        "path": "app/dashboard/participation/page.tsx",
+        "route": "/dashboard/participation"
+      },
+      {
+        "path": "app/dashboard/payouts/page.tsx",
+        "route": "/dashboard/payouts"
+      },
+      {
+        "path": "app/dashboard/profile/edit/page.tsx",
+        "route": "/dashboard/profile/edit"
+      },
+      {
+        "path": "app/dashboard/profile/page.tsx",
+        "route": "/dashboard/profile"
+      },
+      {
+        "path": "app/dashboard/safety/incidents/[incidentId]/page.tsx",
+        "route": "/dashboard/safety/incidents/[incidentId]"
+      },
+      {
+        "path": "app/dashboard/safety/incidents/new/page.tsx",
+        "route": "/dashboard/safety/incidents/new"
+      },
+      {
+        "path": "app/dashboard/safety/incidents/page.tsx",
+        "route": "/dashboard/safety/incidents"
+      },
+      {
+        "path": "app/dashboard/safety/page.tsx",
+        "route": "/dashboard/safety"
+      },
+      {
+        "path": "app/dashboard/safety/support/[ticketId]/page.tsx",
+        "route": "/dashboard/safety/support/[ticketId]"
+      },
+      {
+        "path": "app/dashboard/safety/support/new/page.tsx",
+        "route": "/dashboard/safety/support/new"
+      },
+      {
+        "path": "app/dashboard/safety/support/page.tsx",
+        "route": "/dashboard/safety/support"
+      },
+      {
+        "path": "app/dashboard/settings/notifications/page.tsx",
+        "route": "/dashboard/settings/notifications"
+      },
+      {
+        "path": "app/dashboard/support-profile/edit/page.tsx",
+        "route": "/dashboard/support-profile/edit"
+      },
+      {
+        "path": "app/dashboard/support-profile/page.tsx",
+        "route": "/dashboard/support-profile"
+      },
+      {
+        "path": "app/dashboard/support-profile/view/[participantId]/page.tsx",
+        "route": "/dashboard/support-profile/view/[participantId]"
+      },
+      {
+        "path": "app/dashboard/support/[ticketId]/page.tsx",
+        "route": "/dashboard/support/[ticketId]"
+      },
+      {
+        "path": "app/dashboard/support/new/page.tsx",
+        "route": "/dashboard/support/new"
+      },
+      {
+        "path": "app/dashboard/support/page.tsx",
+        "route": "/dashboard/support"
+      },
+      {
+        "path": "app/dashboard/timesheets/[timesheetId]/page.tsx",
+        "route": "/dashboard/timesheets/[timesheetId]"
+      },
+      {
+        "path": "app/dashboard/timesheets/page.tsx",
+        "route": "/dashboard/timesheets"
+      },
+      {
+        "path": "app/dashboard/transport/[tripId]/page.tsx",
+        "route": "/dashboard/transport/[tripId]"
+      },
+      {
+        "path": "app/dashboard/transport/legacy/[transportBookingId]/page.tsx",
+        "route": "/dashboard/transport/legacy/[transportBookingId]"
+      },
+      {
+        "path": "app/dashboard/transport/legacy/page.tsx",
+        "route": "/dashboard/transport/legacy"
+      },
+      {
+        "path": "app/dashboard/transport/new/page.tsx",
+        "route": "/dashboard/transport/new"
+      },
+      {
+        "path": "app/dashboard/transport/page.tsx",
+        "route": "/dashboard/transport"
+      },
+      {
+        "path": "app/dashboard/worker/shifts/[shiftId]/assist/page.tsx",
+        "route": "/dashboard/worker/shifts/[shiftId]/assist"
+      },
+      {
+        "path": "app/dashboard/worker/trust-passport/page.tsx",
+        "route": "/dashboard/worker/trust-passport"
+      },
+      {
+        "path": "app/data-vault/page.tsx",
+        "route": "/data-vault"
+      },
+      {
+        "path": "app/dev/payout-demo/page.tsx",
+        "route": "/dev/payout-demo"
+      },
+      {
+        "path": "app/driver/profile/page.tsx",
+        "route": "/driver/profile"
+      },
+      {
+        "path": "app/driver/trips/[transportBookingId]/page.tsx",
+        "route": "/driver/trips/[transportBookingId]"
+      },
+      {
+        "path": "app/driver/trips/page.tsx",
+        "route": "/driver/trips"
+      },
+      {
+        "path": "app/employer/applications/[applicationId]/page.tsx",
+        "route": "/employer/applications/[applicationId]"
+      },
+      {
+        "path": "app/employer/applications/page.tsx",
+        "route": "/employer/applications"
+      },
+      {
+        "path": "app/employer/calendar/page.tsx",
+        "route": "/employer/calendar"
+      },
+      {
+        "path": "app/employer/jobs/[jobId]/page.tsx",
+        "route": "/employer/jobs/[jobId]"
+      },
+      {
+        "path": "app/employer/jobs/new/page.tsx",
+        "route": "/employer/jobs/new"
+      },
+      {
+        "path": "app/employer/jobs/page.tsx",
+        "route": "/employer/jobs"
+      },
+      {
+        "path": "app/employment/page.tsx",
+        "route": "/employment"
+      },
+      {
+        "path": "app/enterprise-provider/page.tsx",
+        "route": "/enterprise-provider"
+      },
+      {
+        "path": "app/foods/page.tsx",
+        "route": "/foods"
+      },
+      {
+        "path": "app/forgot-password/page.tsx",
+        "route": "/forgot-password"
+      },
+      {
+        "path": "app/government-partner/page.tsx",
+        "route": "/government-partner"
+      },
+      {
+        "path": "app/invite/worker/[token]/page.tsx",
+        "route": "/invite/worker/[token]"
+      },
+      {
+        "path": "app/jonathan/profile/[slug]/page.tsx",
+        "route": "/jonathan/profile/[slug]"
+      },
+      {
+        "path": "app/jonathan/profile/page.tsx",
+        "route": "/jonathan/profile"
+      },
+      {
+        "path": "app/journey-planner/page.tsx",
+        "route": "/journey-planner"
+      },
+      {
+        "path": "app/kids/page.tsx",
+        "route": "/kids"
+      },
+      {
+        "path": "app/login/page.tsx",
+        "route": "/login"
+      },
+      {
+        "path": "app/map/page.tsx",
+        "route": "/map"
+      },
+      {
+        "path": "app/mapping-days/page.tsx",
+        "route": "/mapping-days"
+      },
+      {
+        "path": "app/marketplace/browse/page.tsx",
+        "route": "/marketplace/browse"
+      },
+      {
+        "path": "app/marketplace/cart/page.tsx",
+        "route": "/marketplace/cart"
+      },
+      {
+        "path": "app/marketplace/page.tsx",
+        "route": "/marketplace"
+      },
+      {
+        "path": "app/marketplace/products/[productId]/page.tsx",
+        "route": "/marketplace/products/[productId]"
+      },
+      {
+        "path": "app/messages/[threadId]/page.tsx",
+        "route": "/messages/[threadId]"
+      },
+      {
+        "path": "app/messages/page.tsx",
+        "route": "/messages"
+      },
+      {
+        "path": "app/moves/page.tsx",
+        "route": "/moves"
+      },
+      {
+        "path": "app/participant/appeals/page.tsx",
+        "route": "/participant/appeals"
+      },
+      {
+        "path": "app/participant/aura/approvals/page.tsx",
+        "route": "/participant/aura/approvals"
+      },
+      {
+        "path": "app/participant/aura/executions/page.tsx",
+        "route": "/participant/aura/executions"
+      },
+      {
+        "path": "app/participant/aura/feedback/page.tsx",
+        "route": "/participant/aura/feedback"
+      },
+      {
+        "path": "app/participant/aura/goals/page.tsx",
+        "route": "/participant/aura/goals"
+      },
+      {
+        "path": "app/participant/aura/history/page.tsx",
+        "route": "/participant/aura/history"
+      },
+      {
+        "path": "app/participant/aura/memory/page.tsx",
+        "route": "/participant/aura/memory"
+      },
+      {
+        "path": "app/participant/aura/page.tsx",
+        "route": "/participant/aura"
+      },
+      {
+        "path": "app/participant/aura/permissions/page.tsx",
+        "route": "/participant/aura/permissions"
+      },
+      {
+        "path": "app/participant/aura/plans/page.tsx",
+        "route": "/participant/aura/plans"
+      },
+      {
+        "path": "app/participant/aura/safety/page.tsx",
+        "route": "/participant/aura/safety"
+      },
+      {
+        "path": "app/participant/aura/settings/page.tsx",
+        "route": "/participant/aura/settings"
+      },
+      {
+        "path": "app/participant/aura/specialists/page.tsx",
+        "route": "/participant/aura/specialists"
+      },
+      {
+        "path": "app/participant/continuity/cases/page.tsx",
+        "route": "/participant/continuity/cases"
+      },
+      {
+        "path": "app/participant/continuity/history/page.tsx",
+        "route": "/participant/continuity/history"
+      },
+      {
+        "path": "app/participant/continuity/life-events/page.tsx",
+        "route": "/participant/continuity/life-events"
+      },
+      {
+        "path": "app/participant/continuity/options/page.tsx",
+        "route": "/participant/continuity/options"
+      },
+      {
+        "path": "app/participant/continuity/outcomes/page.tsx",
+        "route": "/participant/continuity/outcomes"
+      },
+      {
+        "path": "app/participant/continuity/page.tsx",
+        "route": "/participant/continuity"
+      },
+      {
+        "path": "app/participant/continuity/profile/page.tsx",
+        "route": "/participant/continuity/profile"
+      },
+      {
+        "path": "app/participant/continuity/standing-instructions/page.tsx",
+        "route": "/participant/continuity/standing-instructions"
+      },
+      {
+        "path": "app/participant/participation/calendar/page.tsx",
+        "route": "/participant/participation/calendar"
+      },
+      {
+        "path": "app/participant/participation/discover/page.tsx",
+        "route": "/participant/participation/discover"
+      },
+      {
+        "path": "app/participant/participation/goals/page.tsx",
+        "route": "/participant/participation/goals"
+      },
+      {
+        "path": "app/participant/participation/opportunities/[id]/page.tsx",
+        "route": "/participant/participation/opportunities/[id]"
+      },
+      {
+        "path": "app/participant/participation/page.tsx",
+        "route": "/participant/participation"
+      },
+      {
+        "path": "app/participant/participation/plans/[id]/page.tsx",
+        "route": "/participant/participation/plans/[id]"
+      },
+      {
+        "path": "app/participant/participation/plans/page.tsx",
+        "route": "/participant/participation/plans"
+      },
+      {
+        "path": "app/participant/participation/privacy/page.tsx",
+        "route": "/participant/participation/privacy"
+      },
+      {
+        "path": "app/participant/participation/reflections/page.tsx",
+        "route": "/participant/participation/reflections"
+      },
+      {
+        "path": "app/participant/pilots/[pilotId]/page.tsx",
+        "route": "/participant/pilots/[pilotId]"
+      },
+      {
+        "path": "app/participant/pilots/page.tsx",
+        "route": "/participant/pilots"
+      },
+      {
+        "path": "app/participant/vault/access-history/page.tsx",
+        "route": "/participant/vault/access-history"
+      },
+      {
+        "path": "app/participant/vault/consent/page.tsx",
+        "route": "/participant/vault/consent"
+      },
+      {
+        "path": "app/participant/vault/credentials/page.tsx",
+        "route": "/participant/vault/credentials"
+      },
+      {
+        "path": "app/participant/vault/delegates/page.tsx",
+        "route": "/participant/vault/delegates"
+      },
+      {
+        "path": "app/participant/vault/devices/page.tsx",
+        "route": "/participant/vault/devices"
+      },
+      {
+        "path": "app/participant/vault/disputes/page.tsx",
+        "route": "/participant/vault/disputes"
+      },
+      {
+        "path": "app/participant/vault/emergency/page.tsx",
+        "route": "/participant/vault/emergency"
+      },
+      {
+        "path": "app/participant/vault/exports/page.tsx",
+        "route": "/participant/vault/exports"
+      },
+      {
+        "path": "app/participant/vault/import/page.tsx",
+        "route": "/participant/vault/import"
+      },
+      {
+        "path": "app/participant/vault/packages/page.tsx",
+        "route": "/participant/vault/packages"
+      },
+      {
+        "path": "app/participant/vault/page.tsx",
+        "route": "/participant/vault"
+      },
+      {
+        "path": "app/participant/vault/presentations/page.tsx",
+        "route": "/participant/vault/presentations"
+      },
+      {
+        "path": "app/participant/vault/recovery/page.tsx",
+        "route": "/participant/vault/recovery"
+      },
+      {
+        "path": "app/participant/vault/wallet/page.tsx",
+        "route": "/participant/vault/wallet"
+      },
+      {
+        "path": "app/plan-manager/invoices/[id]/page.tsx",
+        "route": "/plan-manager/invoices/[id]"
+      },
+      {
+        "path": "app/plan-manager/invoices/page.tsx",
+        "route": "/plan-manager/invoices"
+      },
+      {
+        "path": "app/plan-manager/page.tsx",
+        "route": "/plan-manager"
+      },
+      {
+        "path": "app/practitioner/scheduling/page.tsx",
+        "route": "/practitioner/scheduling"
+      },
+      {
+        "path": "app/profiles/[slug]/page.tsx",
+        "route": "/profiles/[slug]"
+      },
+      {
+        "path": "app/provider-admin/[providerId]/page.tsx",
+        "route": "/provider-admin/[providerId]"
+      },
+      {
+        "path": "app/provider-admin/page.tsx",
+        "route": "/provider-admin"
+      },
+      {
+        "path": "app/provider-finder/page.tsx",
+        "route": "/provider-finder"
+      },
+      {
+        "path": "app/provider-growth/page.tsx",
+        "route": "/provider-growth"
+      },
+      {
+        "path": "app/provider/(console)/availability/new/page.tsx",
+        "route": "/provider/availability/new"
+      },
+      {
+        "path": "app/provider/(console)/availability/page.tsx",
+        "route": "/provider/availability"
+      },
+      {
+        "path": "app/provider/(console)/benchmarks/page.tsx",
+        "route": "/provider/benchmarks"
+      },
+      {
+        "path": "app/provider/(console)/billing/page.tsx",
+        "route": "/provider/billing"
+      },
+      {
+        "path": "app/provider/(console)/bookings/[bookingId]/page.tsx",
+        "route": "/provider/bookings/[bookingId]"
+      },
+      {
+        "path": "app/provider/(console)/bookings/page.tsx",
+        "route": "/provider/bookings"
+      },
+      {
+        "path": "app/provider/(console)/calendar/page.tsx",
+        "route": "/provider/calendar"
+      },
+      {
+        "path": "app/provider/(console)/capacity/page.tsx",
+        "route": "/provider/capacity"
+      },
+      {
+        "path": "app/provider/(console)/care/[careRequestId]/page.tsx",
+        "route": "/provider/care/[careRequestId]"
+      },
+      {
+        "path": "app/provider/(console)/care/bookings/[id]/page.tsx",
+        "route": "/provider/care/bookings/[id]"
+      },
+      {
+        "path": "app/provider/(console)/care/page.tsx",
+        "route": "/provider/care"
+      },
+      {
+        "path": "app/provider/(console)/care/requests/page.tsx",
+        "route": "/provider/care/requests"
+      },
+      {
+        "path": "app/provider/(console)/care/roster/page.tsx",
+        "route": "/provider/care/roster"
+      },
+      {
+        "path": "app/provider/(console)/care/service-logs/page.tsx",
+        "route": "/provider/care/service-logs"
+      },
+      {
+        "path": "app/provider/(console)/care/shifts/[shiftId]/page.tsx",
+        "route": "/provider/care/shifts/[shiftId]"
+      },
+      {
+        "path": "app/provider/(console)/care/shifts/page.tsx",
+        "route": "/provider/care/shifts"
+      },
+      {
+        "path": "app/provider/(console)/claiming/page.tsx",
+        "route": "/provider/claiming"
+      },
+      {
+        "path": "app/provider/(console)/documents/page.tsx",
+        "route": "/provider/documents"
+      },
+      {
+        "path": "app/provider/(console)/drivers/[driverId]/page.tsx",
+        "route": "/provider/drivers/[driverId]"
+      },
+      {
+        "path": "app/provider/(console)/drivers/new/page.tsx",
+        "route": "/provider/drivers/new"
+      },
+      {
+        "path": "app/provider/(console)/drivers/page.tsx",
+        "route": "/provider/drivers"
+      },
+      {
+        "path": "app/provider/(console)/engagement/analytics/page.tsx",
+        "route": "/provider/engagement/analytics"
+      },
+      {
+        "path": "app/provider/(console)/engagement/complaints/page.tsx",
+        "route": "/provider/engagement/complaints"
+      },
+      {
+        "path": "app/provider/(console)/engagement/improvements/page.tsx",
+        "route": "/provider/engagement/improvements"
+      },
+      {
+        "path": "app/provider/(console)/engagement/page.tsx",
+        "route": "/provider/engagement"
+      },
+      {
+        "path": "app/provider/(console)/engagement/training/page.tsx",
+        "route": "/provider/engagement/training"
+      },
+      {
+        "path": "app/provider/(console)/insights/page.tsx",
+        "route": "/provider/insights"
+      },
+      {
+        "path": "app/provider/(console)/invoices/page.tsx",
+        "route": "/provider/invoices"
+      },
+      {
+        "path": "app/provider/(console)/messages/page.tsx",
+        "route": "/provider/messages"
+      },
+      {
+        "path": "app/provider/(console)/ndia-claims/page.tsx",
+        "route": "/provider/ndia-claims"
+      },
+      {
+        "path": "app/provider/(console)/ndis-claims/batches/page.tsx",
+        "route": "/provider/ndis-claims/batches"
+      },
+      {
+        "path": "app/provider/(console)/ndis-claims/export/page.tsx",
+        "route": "/provider/ndis-claims/export"
+      },
+      {
+        "path": "app/provider/(console)/ndis-claims/page.tsx",
+        "route": "/provider/ndis-claims"
+      },
+      {
+        "path": "app/provider/(console)/ndis-claims/ready/page.tsx",
+        "route": "/provider/ndis-claims/ready"
+      },
+      {
+        "path": "app/provider/(console)/ndis-claims/reconciliation/page.tsx",
+        "route": "/provider/ndis-claims/reconciliation"
+      },
+      {
+        "path": "app/provider/(console)/ndis-claims/rejected/page.tsx",
+        "route": "/provider/ndis-claims/rejected"
+      },
+      {
+        "path": "app/provider/(console)/ndis-claims/validation-errors/page.tsx",
+        "route": "/provider/ndis-claims/validation-errors"
+      },
+      {
+        "path": "app/provider/(console)/onboarding/page.tsx",
+        "route": "/provider/onboarding"
+      },
+      {
+        "path": "app/provider/(console)/page.tsx",
+        "route": "/provider/(console)"
+      },
+      {
+        "path": "app/provider/(console)/payouts/page.tsx",
+        "route": "/provider/payouts"
+      },
+      {
+        "path": "app/provider/(console)/reports/page.tsx",
+        "route": "/provider/reports"
+      },
+      {
+        "path": "app/provider/(console)/scheduling/page.tsx",
+        "route": "/provider/scheduling"
+      },
+      {
+        "path": "app/provider/(console)/support/page.tsx",
+        "route": "/provider/support"
+      },
+      {
+        "path": "app/provider/(console)/transport/[transportBookingId]/page.tsx",
+        "route": "/provider/transport/[transportBookingId]"
+      },
+      {
+        "path": "app/provider/(console)/transport/dispatch/page.tsx",
+        "route": "/provider/transport/dispatch"
+      },
+      {
+        "path": "app/provider/(console)/transport/page.tsx",
+        "route": "/provider/transport"
+      },
+      {
+        "path": "app/provider/(console)/transport/runs/page.tsx",
+        "route": "/provider/transport/runs"
+      },
+      {
+        "path": "app/provider/(console)/vehicles/[vehicleId]/page.tsx",
+        "route": "/provider/vehicles/[vehicleId]"
+      },
+      {
+        "path": "app/provider/(console)/vehicles/new/page.tsx",
+        "route": "/provider/vehicles/new"
+      },
+      {
+        "path": "app/provider/(console)/vehicles/page.tsx",
+        "route": "/provider/vehicles"
+      },
+      {
+        "path": "app/provider/(console)/workers/[workerId]/page.tsx",
+        "route": "/provider/workers/[workerId]"
+      },
+      {
+        "path": "app/provider/(console)/workers/new/page.tsx",
+        "route": "/provider/workers/new"
+      },
+      {
+        "path": "app/provider/(console)/workers/page.tsx",
+        "route": "/provider/workers"
+      },
+      {
+        "path": "app/provider/(public)/[slug]/page.tsx",
+        "route": "/provider/[slug]"
+      },
+      {
+        "path": "app/provider/admin/assurance/page.tsx",
+        "route": "/provider/admin/assurance"
+      },
+      {
+        "path": "app/provider/admin/entitlements/page.tsx",
+        "route": "/provider/admin/entitlements"
+      },
+      {
+        "path": "app/provider/admin/organisation/page.tsx",
+        "route": "/provider/admin/organisation"
+      },
+      {
+        "path": "app/provider/admin/policies/page.tsx",
+        "route": "/provider/admin/policies"
+      },
+      {
+        "path": "app/provider/admin/quotas/page.tsx",
+        "route": "/provider/admin/quotas"
+      },
+      {
+        "path": "app/provider/aura/approvals/page.tsx",
+        "route": "/provider/aura/approvals"
+      },
+      {
+        "path": "app/provider/aura/exceptions/page.tsx",
+        "route": "/provider/aura/exceptions"
+      },
+      {
+        "path": "app/provider/aura/handoffs/page.tsx",
+        "route": "/provider/aura/handoffs"
+      },
+      {
+        "path": "app/provider/aura/incidents/page.tsx",
+        "route": "/provider/aura/incidents"
+      },
+      {
+        "path": "app/provider/aura/page.tsx",
+        "route": "/provider/aura"
+      },
+      {
+        "path": "app/provider/aura/tasks/page.tsx",
+        "route": "/provider/aura/tasks"
+      },
+      {
+        "path": "app/provider/continuity/capacity/page.tsx",
+        "route": "/provider/continuity/capacity"
+      },
+      {
+        "path": "app/provider/continuity/cases/page.tsx",
+        "route": "/provider/continuity/cases"
+      },
+      {
+        "path": "app/provider/continuity/handoffs/page.tsx",
+        "route": "/provider/continuity/handoffs"
+      },
+      {
+        "path": "app/provider/continuity/page.tsx",
+        "route": "/provider/continuity"
+      },
+      {
+        "path": "app/provider/continuity/requests/page.tsx",
+        "route": "/provider/continuity/requests"
+      },
+      {
+        "path": "app/provider/continuity/transport/page.tsx",
+        "route": "/provider/continuity/transport"
+      },
+      {
+        "path": "app/provider/continuity/worker-availability/page.tsx",
+        "route": "/provider/continuity/worker-availability"
+      },
+      {
+        "path": "app/provider/federation/delegations/page.tsx",
+        "route": "/provider/federation/delegations"
+      },
+      {
+        "path": "app/provider/federation/disclosures/page.tsx",
+        "route": "/provider/federation/disclosures"
+      },
+      {
+        "path": "app/provider/federation/issuer/page.tsx",
+        "route": "/provider/federation/issuer"
+      },
+      {
+        "path": "app/provider/federation/page.tsx",
+        "route": "/provider/federation"
+      },
+      {
+        "path": "app/provider/federation/presentations/page.tsx",
+        "route": "/provider/federation/presentations"
+      },
+      {
+        "path": "app/provider/federation/requests/page.tsx",
+        "route": "/provider/federation/requests"
+      },
+      {
+        "path": "app/provider/federation/verifier/page.tsx",
+        "route": "/provider/federation/verifier"
+      },
+      {
+        "path": "app/register/page.tsx",
+        "route": "/register"
+      },
+      {
+        "path": "app/reset-password/page.tsx",
+        "route": "/reset-password"
+      },
+      {
+        "path": "app/support-coordinator/page.tsx",
+        "route": "/support-coordinator"
+      },
+      {
+        "path": "app/support-coordinator/participants/[id]/page.tsx",
+        "route": "/support-coordinator/participants/[id]"
+      },
+      {
+        "path": "app/support-coordinator/participants/page.tsx",
+        "route": "/support-coordinator/participants"
+      },
+      {
+        "path": "app/support-coordinator/tasks/page.tsx",
+        "route": "/support-coordinator/tasks"
+      },
+      {
+        "path": "app/transparency/appeals/page.tsx",
+        "route": "/transparency/appeals"
+      },
+      {
+        "path": "app/transparency/change-log/page.tsx",
+        "route": "/transparency/change-log"
+      },
+      {
+        "path": "app/transparency/community-oversight/page.tsx",
+        "route": "/transparency/community-oversight"
+      },
+      {
+        "path": "app/transparency/decisions/page.tsx",
+        "route": "/transparency/decisions"
+      },
+      {
+        "path": "app/transparency/incidents/page.tsx",
+        "route": "/transparency/incidents"
+      },
+      {
+        "path": "app/transparency/page.tsx",
+        "route": "/transparency"
+      },
+      {
+        "path": "app/transparency/systems/[systemKey]/page.tsx",
+        "route": "/transparency/systems/[systemKey]"
+      },
+      {
+        "path": "app/transparency/systems/page.tsx",
+        "route": "/transparency/systems"
+      },
+      {
+        "path": "app/transport/new/page.tsx",
+        "route": "/transport/new"
+      },
+      {
+        "path": "app/transport/page.tsx",
+        "route": "/transport"
+      },
+      {
+        "path": "app/verify-my-venue/page.tsx",
+        "route": "/verify-my-venue"
+      },
+      {
+        "path": "app/worker/onboarding/page.tsx",
+        "route": "/worker/onboarding"
+      },
+      {
+        "path": "app/worker/profile/page.tsx",
+        "route": "/worker/profile"
+      },
+      {
+        "path": "app/worker/report-issue/page.tsx",
+        "route": "/worker/report-issue"
+      },
+      {
+        "path": "app/worker/service-log/page.tsx",
+        "route": "/worker/service-log"
+      },
+      {
+        "path": "app/worker/shifts/[id]/page.tsx",
+        "route": "/worker/shifts/[id]"
+      },
+      {
+        "path": "app/worker/today/page.tsx",
+        "route": "/worker/today"
+      }
+    ]
+  }
+}

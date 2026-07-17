@@ -24,6 +24,10 @@ Open [http://localhost:3000](http://localhost:3000). Platform hub: [http://local
 
 Seed users (see [core phases — Phase 1](docs/mapable/core-phases.md#phase-1)): `participant@mapable.test`, `admin@mapable.test`.
 
+## Release Candidate 1
+
+RC1 consolidation artifacts live under [docs/releases/rc1](docs/releases/rc1/). Start with the [implementation report](docs/releases/rc1/implementation-report.md), [release manifest](docs/releases/rc1/release-manifest.md), and [exit gate](docs/releases/rc1/exit-gate.md). Current RC1 recommendation: **reject** until Waves 18-20, Wave 20 constitutional invariants, and Pack A blockers are resolved.
+
 ### Cursor cloud agent setup
 
 Before running build, type-check, lint or tests in a fresh cloud agent, install

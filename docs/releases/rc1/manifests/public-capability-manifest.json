@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-07-17T08:26:44.427Z",
+  "capabilities": [
+    {
+      "name": "tenant isolation",
+      "status": "implemented"
+    },
+    {
+      "name": "consent and delegation authority",
+      "status": "implemented"
+    },
+    {
+      "name": "AURA authority evaluation",
+      "status": "implemented"
+    },
+    {
+      "name": "participation life planner",
+      "status": "scaffolded"
+    },
+    {
+      "name": "NDIA live provider submission",
+      "status": "disabled"
+    },
+    {
+      "name": "AccessOps external feeds",
+      "status": "disabled"
+    },
+    {
+      "name": "AccessOps outdoor routing providers",
+      "status": "disabled"
+    },
+    {
+      "name": "Wave 20 constitutional invariants",
+      "status": "disabled"
+    }
+  ]
+}

@@ -1,0 +1,514 @@
+{
+  "metadata": {
+    "name": "dead-code-inventory",
+    "generatedAt": "2026-07-17T08:31:14.864Z",
+    "source": "repository-static-scan"
+  },
+  "payload": {
+    "heuristic": "Exported symbols with one repository-wide textual occurrence; false positives expected.",
+    "scannedExportCount": 5372,
+    "likelyUnusedCount": 100,
+    "likelyUnused": [
+      {
+        "symbol": "useBrandSafe",
+        "path": "app/contexts/BrandContext.tsx",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "getModuleByKey",
+        "path": "app/lib/modules.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "getModuleIcon",
+        "path": "app/lib/modules.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "mainModule",
+        "path": "app/lib/modules.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "PROVIDER_CATEGORIES",
+        "path": "app/provider-finder/providers.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "PROVIDERS",
+        "path": "app/provider-finder/providers.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "createAssessment",
+        "path": "lib/access-accreditation/accreditation-assessment-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "publishAssessment",
+        "path": "lib/access-accreditation/accreditation-assessment-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "scoreAssessment",
+        "path": "lib/access-accreditation/accreditation-assessment-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "addAssessmentEvidence",
+        "path": "lib/access-accreditation/accreditation-evidence-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "expireAssessment",
+        "path": "lib/access-accreditation/accreditation-publication-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "withdrawAssessment",
+        "path": "lib/access-accreditation/accreditation-publication-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "tierLabel",
+        "path": "lib/access-accreditation/accreditation-scoring-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "escapeXmlText",
+        "path": "lib/access-import/xml-escape.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "canPublishPlace",
+        "path": "lib/access-map/access-place-policy.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "canReportPlace",
+        "path": "lib/access-map/access-place-policy.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "canViewPublishedPlaces",
+        "path": "lib/access-map/access-place-policy.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "publishAccessPlace",
+        "path": "lib/access-map/access-place-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "logModerationAction",
+        "path": "lib/access-moderation/moderation-audit-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "listContentReports",
+        "path": "lib/access-moderation/report-handling-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "decideModeration",
+        "path": "lib/access-moderation/review-moderation-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "assertPortableClaim",
+        "path": "lib/access-passport/claims.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "listClaimsForSubject",
+        "path": "lib/access-passport/claims.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildPassportPresentation",
+        "path": "lib/access-passport/presentation.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "RATING_CATEGORIES",
+        "path": "lib/access-reviews/access-rating-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "canCreateReview",
+        "path": "lib/access-reviews/review-access-policy.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "upsertParticipantDataPackage",
+        "path": "lib/access-vault/packages.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "activateVault",
+        "path": "lib/access-vault/vault.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "createAccreditationCase",
+        "path": "lib/accessibility-accreditation/accreditation-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "scoreAccreditationCase",
+        "path": "lib/accessibility-accreditation/accreditation-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "createAccessiblePlace",
+        "path": "lib/accessibility-map/place-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "formatPlaceForDisplay",
+        "path": "lib/accessibility-map/place-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "linkPlaceToEntity",
+        "path": "lib/accessibility-map/place-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "assessmentRestrictsLiveUse",
+        "path": "lib/accessops/accreditation/assessment-projection.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "accreditationEvidenceRequired",
+        "path": "lib/accessops/accreditation/evidence-profile.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "isAccreditationExpired",
+        "path": "lib/accessops/accreditation/expiry.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "accreditationClaimIsLiveStatus",
+        "path": "lib/accessops/accreditation/public-claims.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildPublicAccreditationClaim",
+        "path": "lib/accessops/accreditation/public-claims.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "recordAccessOpsAssuranceAssessment",
+        "path": "lib/accessops/assurance/assessment-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "assuranceAllowsPublication",
+        "path": "lib/accessops/assurance/publication-gate.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "assuranceAllowsRouting",
+        "path": "lib/accessops/assurance/routing-gate.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "ACCESSOPS_SPECIALIST_MANIFEST",
+        "path": "lib/accessops/aura/accessops-specialist.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "createCheckpointToken",
+        "path": "lib/accessops/checkpoints/index.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "submitCommunityCorrection",
+        "path": "lib/accessops/community/correction-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "evidenceUploadChecksum",
+        "path": "lib/accessops/community/evidence-upload.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "canOperatorDeleteCriticism",
+        "path": "lib/accessops/community/moderation.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "communityReportIsAllegation",
+        "path": "lib/accessops/community/report-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "socialScoreEnabled",
+        "path": "lib/accessops/community/reputation-boundary.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildCurbZone",
+        "path": "lib/accessops/curb/curb-zone.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "isAccessibleDropOff",
+        "path": "lib/accessops/curb/drop-off.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "canIssueAutomaticInfringement",
+        "path": "lib/accessops/curb/enforcement-boundary.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "isLprAllowed",
+        "path": "lib/accessops/curb/enforcement-boundary.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "projectCurbOccupancy",
+        "path": "lib/accessops/curb/occupancy.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "canReserveCurbZone",
+        "path": "lib/accessops/curb/reservations.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "completenessScore",
+        "path": "lib/accessops/data-quality/completeness.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "valuesConflict",
+        "path": "lib/accessops/data-quality/conflicts.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "duplicateKey",
+        "path": "lib/accessops/data-quality/duplicates.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "remediationRequired",
+        "path": "lib/accessops/data-quality/remediation.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "requiredFieldRule",
+        "path": "lib/accessops/data-quality/rules.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildEvidenceReference",
+        "path": "lib/accessops/evidence/evidence-profile.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "correctFeatureObservation",
+        "path": "lib/accessops/features/observation-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "markFeatureObservationStale",
+        "path": "lib/accessops/features/observation-service.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildAudioGuidanceText",
+        "path": "lib/accessops/guidance/audio-guidance.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildHapticCue",
+        "path": "lib/accessops/guidance/haptic-contract.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildInstruction",
+        "path": "lib/accessops/guidance/instruction-builder.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildLandmarkPhrase",
+        "path": "lib/accessops/guidance/landmark-guidance.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "symbolForAccessInstruction",
+        "path": "lib/accessops/guidance/symbol-guidance.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildTextGuidance",
+        "path": "lib/accessops/guidance/text-guidance.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "encodeJsonArray",
+        "path": "lib/accessops/http/internal-api.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "requireAccessOpsFeatureFlag",
+        "path": "lib/accessops/http/route-guards.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "reviewIncidentClosure",
+        "path": "lib/accessops/incidents/closure-review.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "draftIncidentCommunication",
+        "path": "lib/accessops/incidents/communications.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "shouldAutoContactRegulator",
+        "path": "lib/accessops/incidents/communications.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "analyseIncidentImpact",
+        "path": "lib/accessops/incidents/impact-analysis.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "exportIndoorModel",
+        "path": "lib/accessops/indoor/exporter.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildIndoorGraphEdges",
+        "path": "lib/accessops/indoor/graph-builder.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "importIndoorModel",
+        "path": "lib/accessops/indoor/importer.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "filterRestrictedZones",
+        "path": "lib/accessops/indoor/security-zones.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "validateIndoorModel",
+        "path": "lib/accessops/indoor/validation.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "evaluateAccessibilityFit",
+        "path": "lib/accessops/journeys/accessibility-fit.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "indexAffectedJourney",
+        "path": "lib/accessops/journeys/affected-journey-index.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "rankJourneyAlternatives",
+        "path": "lib/accessops/journeys/alternatives.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "excludeBlockedAssets",
+        "path": "lib/accessops/journeys/journey-graph.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "draftParticipantJourneyNotification",
+        "path": "lib/accessops/journeys/participant-notification.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "recordJourneyRerouteContinuitySignal",
+        "path": "lib/accessops/journeys/rerouting.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "validateTransferWindow",
+        "path": "lib/accessops/journeys/transfer-validator.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildStaleWarning",
+        "path": "lib/accessops/journeys/uncertainty.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "guaranteesSafeRoute",
+        "path": "lib/accessops/journeys/uncertainty.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "isPreventiveMaintenanceDue",
+        "path": "lib/accessops/maintenance/preventive-maintenance.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "nextPreventiveMaintenanceDate",
+        "path": "lib/accessops/maintenance/preventive-maintenance.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "assignVendorToWorkOrder",
+        "path": "lib/accessops/maintenance/vendor-assignment.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "verifyWorkOrderCompletion",
+        "path": "lib/accessops/maintenance/verification.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildOfflinePack",
+        "path": "lib/accessops/offline/index.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "openDataQualityWarnings",
+        "path": "lib/accessops/open-data/data-quality.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "openDataLicenceAllowed",
+        "path": "lib/accessops/open-data/licence-policy.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "openDataVersion",
+        "path": "lib/accessops/open-data/versioning.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildCrossingGraph",
+        "path": "lib/accessops/outdoor/crossing-graph.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "normalizeGradient",
+        "path": "lib/accessops/outdoor/gradient-model.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "importOutdoorProviderData",
+        "path": "lib/accessops/outdoor/importer.ts",
+        "occurrenceCount": 1
+      },
+      {
+        "symbol": "buildKerbGraph",
+        "path": "lib/accessops/outdoor/kerb-graph.ts",
+        "occurrenceCount": 1
+      }
+    ]
+  }
+}
