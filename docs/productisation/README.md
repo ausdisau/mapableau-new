@@ -23,21 +23,25 @@
 6. #328 — Trust Fabric access receipts
 7. #329 — Persistent Access Evidence Envelope
 
-## Active leadership train (max 3)
+## Leadership train (cleared on main)
 
-1. Database-backed Starting Work projection — this PR (#330)
-2. Persistent Transport quotes — recreate after #330 (`20260717150000`)
-3. Recurring Care — recreate after quotes (`20260717160000`)
+1. #330 — Database-backed Starting Work projection (`20260717140000`)
+2. #341 — Persistent Transport quotes (`20260717150000`)
+3. #346 — Recurring Care schedules (`20260717160000`)
 
 See [LEADERSHIP_TRAIN_RECONCILIATION.md](../remediation/LEADERSHIP_TRAIN_RECONCILIATION.md) and
 [MOAT_PR_RECONCILIATION.md](./MOAT_PR_RECONCILIATION.md).
+
+## Mission Portfolio (next train)
+
+Registry and shared boundaries: [docs/mission-portfolio/README.md](../mission-portfolio/README.md).
 
 ## Controlled pilot
 
 Starting Work — Taylor at Harbour Civic Centre.
 See [STARTING_WORK_PILOT.md](./STARTING_WORK_PILOT.md).  
 **Honesty:** synthetic/fixtures by default (`MAPABLE_STARTING_WORK_SYNTHETIC_ONLY`);
-not a live production journey until the database-backed PR exits criteria.
+DB projection is gated and not production_supported.
 
 ## Hard rules
 

@@ -1,44 +1,41 @@
 # Leadership train reconciliation (Prompt 0)
 
-**Inspected main tip (initial):** `fb80bc83ad7cbd80f8f8b3ced01ef62372081d7b`  
+**Inspected main tip:** post `#346` Care recurring on `main`  
 **Reconciliation completed (UTC):** `2026-07-17`  
 **Repository:** `ausdisau/mapableau-new`
 
-## Landed
+## Landed (complete)
 
-| PR   | Role                                  | Migration        |
-| ---- | ------------------------------------- | ---------------- |
-| #336 | CI type-check / lint + ledger refresh | none             |
-| #331 | Strategy / operating lanes            | none             |
-| #328 | Trust Fabric access receipts          | `20260717120000` |
-| #329 | Access Evidence Envelope              | `20260717130000` |
+| PR | Role | Migration |
+| --- | --- | --- |
+| #336 | CI type-check / lint + ledger refresh | none |
+| #331 | Strategy / operating lanes | none |
+| #328 | Trust Fabric access receipts | `20260717120000` |
+| #329 | Access Evidence Envelope | `20260717130000` |
+| #330 | Starting Work DB journey | `20260717140000` |
+| #341 | Persistent Transport quotes | `20260717150000` |
+| #346 | Recurring Care schedules (retarget of #340 onto main) | `20260717160000` |
 
-## Active train (≤ 3)
+## Note on #340
 
-| Order | PR   | Branch                                              | Migration        |
-| ----- | ---- | --------------------------------------------------- | ---------------- |
-| 1     | #330 | `cursor/starting-work-db-journey-a2fa`              | `20260717140000` |
-| 2     | #341 | `cursor/transport-persistent-quotes-b3d4`           | `20260717150000` |
-| 3     | #340 | `cursor/care-recurring-agreements-b3d4` (base #341) | `20260717160000` |
+PR #340 originally based on the Transport tip and merged into that branch tip. Content was rebased onto `main` and landed via **#346**.
 
-## Closed colliding / overflow tips
+## Next product train (Mission Portfolio — depth ≤ 3)
 
-#332, #333, #334, #335 — recreated as #341 / #340.
+| Order | Branch | Purpose | Product migration |
+| --- | --- | --- | --- |
+| 1 | `cursor/mission-portfolio-registry-fd3d` | Registry, ownership, contracts | none |
+| 2 | `cursor/shared-mission-projection-fd3d` | Shared dependency projection | none (prefer read models) |
+| 3 | `cursor/participant-service-standard-fd3d` | Service Standard + Diff | only if required |
 
-## Extract-only mega-branches
+## Ops / security (independent)
 
-| PR                       | Status                                             |
-| ------------------------ | -------------------------------------------------- |
-| #301 Continuity          | Open — extract-only comment; never merge wholesale |
-| #309 AccessOps           | Open — extract-only comment                        |
-| #319 Replay Lab          | Open — deferred to Prompt 13                       |
-| #280 RightsOS            | Closed — superseded by #328                        |
-| #283 Transport MVP       | Closed — retire onto TransportTrip                 |
-| #265 / #273 AI expansion | Closed — AI Next + #329 path                       |
+| PR | Role |
+| --- | --- |
+| #345 | Secret-pattern CI + SECURITY_GATE_STATUS |
+| #344 | Apex canonical host / www TLS (human cert renewal still required) |
 
 ## Decision
 
-**STOP** opening additional product PRs until one of #330 / #341 / #340 merges.  
-**GO** for landing #330 next, then #341, then #340.
-
-NEXT SAFE CURSOR PROMPT: Prompt 1 is already embodied by #341 (persistent Transport quotes); merge #330 first, then land #341/#340 before opening Prompt 3 Continuity recovery.
+**GO** for Mission Portfolio Wave 1 registry after leadership train clearance.  
+Credential **rotation** and www **TLS** remain human blockers for production claims.
