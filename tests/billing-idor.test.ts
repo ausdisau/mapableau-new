@@ -37,6 +37,7 @@ const participantA: CurrentUser = {
   locale: "en-AU",
   primaryRole: "participant",
   roles: ["participant"],
+  avatarUrl: null,
 };
 
 const participantB: CurrentUser = {
@@ -55,6 +56,7 @@ const providerOrgA: CurrentUser = {
   locale: "en-AU",
   primaryRole: "provider_admin",
   roles: ["provider_admin"],
+  avatarUrl: null,
 };
 
 const providerOrgB: CurrentUser = {

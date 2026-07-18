@@ -159,6 +159,7 @@ describe.skipIf(!enabled)("billing tenant DB integration", () => {
           locale: "en-AU",
           primaryRole: "participant",
           roles: ["participant"],
+          avatarUrl: null,
         },
         ids.invoiceA
       )
@@ -179,6 +180,7 @@ describe.skipIf(!enabled)("billing tenant DB integration", () => {
           locale: "en-AU",
           primaryRole: "provider_admin",
           roles: ["provider_admin"],
+          avatarUrl: null,
         },
         ids.orgA
       )

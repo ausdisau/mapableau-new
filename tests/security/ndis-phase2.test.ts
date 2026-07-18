@@ -51,6 +51,7 @@ const providerAdmin: CurrentUser = {
   locale: "en-AU",
   primaryRole: "provider_admin",
   roles: ["provider_admin"],
+  avatarUrl: null,
 };
 
 const participant: CurrentUser = {
@@ -62,6 +63,7 @@ const participant: CurrentUser = {
   locale: "en-AU",
   primaryRole: "participant",
   roles: ["participant"],
+  avatarUrl: null,
 };
 
 describe("participant-provider relationship checks", () => {

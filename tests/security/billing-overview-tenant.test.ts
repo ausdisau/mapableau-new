@@ -26,6 +26,7 @@ const provider: CurrentUser = {
   locale: "en-AU",
   primaryRole: "provider_admin",
   roles: ["provider_admin"],
+  avatarUrl: null,
 };
 
 describe("billing overview tenant scope", () => {

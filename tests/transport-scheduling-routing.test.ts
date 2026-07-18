@@ -26,6 +26,7 @@ const participantUser: CurrentUser = {
   locale: "en-AU",
   primaryRole: "participant",
   roles: ["participant"],
+  avatarUrl: null,
 };
 
 const otherParticipant: CurrentUser = {
@@ -43,6 +44,7 @@ const providerUser: CurrentUser = {
   locale: "en-AU",
   primaryRole: "transport_operator",
   roles: ["transport_operator"],
+  avatarUrl: null,
 };
 
 const driverUser: CurrentUser = {
@@ -54,6 +56,7 @@ const driverUser: CurrentUser = {
   locale: "en-AU",
   primaryRole: "driver",
   roles: ["driver"],
+  avatarUrl: null,
 };
 
 const baseTrip = {

@@ -37,6 +37,7 @@ const admin: CurrentUser = {
   locale: "en-AU",
   primaryRole: "mapable_admin",
   roles: ["mapable_admin"],
+  avatarUrl: null,
 };
 
 beforeEach(() => {

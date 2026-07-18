@@ -23,7 +23,12 @@ export function AuthenticatedRoleAppShell({
       headerTitle={headerTitle}
       logoHref={logoHref}
       headerActions={
-        <MapAbleUserBar userName={user.name} role={user.primaryRole as UserRole} />
+        <MapAbleUserBar
+          userName={user.name}
+          role={user.primaryRole as UserRole}
+          email={user.email}
+          avatarUrl={user.avatarUrl}
+        />
       }
       secondaryNav={secondaryNav}
     >
