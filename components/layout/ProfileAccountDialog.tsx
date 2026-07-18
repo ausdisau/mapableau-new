@@ -2,12 +2,7 @@
 
 import { X } from "lucide-react";
 import Link from "next/link";
-import {
-  useEffect,
-  useId,
-  useRef,
-  type KeyboardEvent as ReactKeyboardEvent,
-} from "react";
+import { useEffect, useId, useRef } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { MapAbleSignOutButton } from "@/components/layout/MapAbleSignOutButton";
@@ -66,6 +61,26 @@ export function ProfileAccountDialog({
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
+        return;
+      }
+
+      if (event.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
 
@@ -96,27 +111,6 @@ export function ProfileAccountDialog({
 
   if (!open) return null;
 
-  function handlePanelKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "Tab" || !panelRef.current) return;
-
-    const focusable = panelRef.current.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length === 0) return;
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const active = document.activeElement;
-
-    if (event.shiftKey && active === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center motion-reduce:transition-none">
       <button
@@ -132,7 +126,6 @@ export function ProfileAccountDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        onKeyDown={handlePanelKeyDown}
         className={cn(
           "relative z-10 flex max-h-[min(90vh,40rem)] w-full max-w-md flex-col overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl",
           "motion-safe:transition-opacity motion-reduce:transition-none"

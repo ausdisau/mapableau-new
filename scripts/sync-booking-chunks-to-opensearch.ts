@@ -92,6 +92,7 @@ async function main() {
       locale: currentUser.locale,
       primaryRole: currentUser.primaryRole,
       roles: uniqueRoles,
+      avatarUrl: null,
     });
 
     const docs: BookingChunkIndexDoc[] = [];
