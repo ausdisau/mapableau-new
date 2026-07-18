@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { getAuspostPacDiagnostics } from "@/lib/config/auspost-pac";
+import { getGeoscapePredictiveDiagnostics } from "@/lib/config/geoscape-predictive";
 import { searchAutocompleteWithMeta } from "@/lib/search/autocomplete-service";
 import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
+import { isBookingAddressContext } from "@/types/search";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -74,10 +76,16 @@ export async function GET(request: Request) {
   });
 
   const responseMeta =
-    parsed.data.field === "location"
+    parsed.data.field === "location" ||
+    isBookingAddressContext(parsed.data.context)
       ? {
           ...meta,
-          locationDiagnostics: getAuspostPacDiagnostics(),
+          locationDiagnostics: isBookingAddressContext(parsed.data.context)
+            ? {
+                ...getAuspostPacDiagnostics(),
+                ...getGeoscapePredictiveDiagnostics(),
+              }
+            : getAuspostPacDiagnostics(),
         }
       : meta;
 
