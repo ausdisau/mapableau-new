@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { isGeoscapePredictiveConfigured } from "@/lib/config/geoscape-predictive";
 import { getAddress } from "@/lib/geoscape-predictive/address-search-service";
 import { GeoscapePredictiveApiError } from "@/lib/geoscape-predictive/geoscape-predictive-api-error";
-import { isGeoscapePredictiveConfigured } from "@/lib/config/geoscape-predictive";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;

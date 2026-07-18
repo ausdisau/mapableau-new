@@ -1,8 +1,8 @@
-import { suggestAddresses } from "@/lib/geoscape-predictive/address-search-service";
 import {
   geoscapePredictiveConfig,
   isGeoscapeStreetSearchAvailable,
 } from "@/lib/config/geoscape-predictive";
+import { suggestAddresses } from "@/lib/geoscape-predictive/address-search-service";
 import type { LocationAutocompleteAdapter } from "@/lib/search/location-autocomplete-adapter";
 import type { AutocompleteSuggestion } from "@/types/search";
 

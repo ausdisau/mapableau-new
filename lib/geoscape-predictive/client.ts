@@ -1,11 +1,11 @@
 import {
-  geoscapeNotConfiguredError,
-  geoscapeUpstreamError,
-} from "@/lib/geoscape-predictive/geoscape-predictive-api-error";
-import {
   geoscapePredictiveConfig,
   isGeoscapePredictiveConfigured,
 } from "@/lib/config/geoscape-predictive";
+import {
+  geoscapeNotConfiguredError,
+  geoscapeUpstreamError,
+} from "@/lib/geoscape-predictive/geoscape-predictive-api-error";
 
 type GeoscapeFetchOptions = {
   path: string;

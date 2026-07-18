@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { StreetAddressAutocomplete } from "@/components/addresses/StreetAddressAutocomplete";
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { CarePlanDraftReview } from "@/components/care/CarePlanDraftReview";
 import {
   SupportTypeChips,
   type CareRequestTypeValue,
 } from "@/components/care/SupportTypeChips";
-import { StreetAddressAutocomplete } from "@/components/addresses/StreetAddressAutocomplete";
 import {
   AccessibleFormField,
   formInputClass,

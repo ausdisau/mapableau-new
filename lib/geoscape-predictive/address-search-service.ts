@@ -1,3 +1,4 @@
+import { geoscapePredictiveConfig } from "@/lib/config/geoscape-predictive";
 import { geoscapePredictiveGetJson } from "@/lib/geoscape-predictive/client";
 import {
   geoscapeNotFoundError,
@@ -7,7 +8,6 @@ import {
   normalizeAddressResponse,
   normalizeSuggestResponse,
 } from "@/lib/geoscape-predictive/normalize";
-import { geoscapePredictiveConfig } from "@/lib/config/geoscape-predictive";
 import type {
   GeoscapeResolvedAddress,
   GeoscapeSuggestResult,
