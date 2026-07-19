@@ -36,7 +36,7 @@ export function parseAccessShareSettings(value: unknown): AccessShareSettings {
   if (!value || typeof value !== "object") {
     return { ...DEFAULT_ACCESS_SHARE_SETTINGS };
   }
-  const raw = value as Record<string, unknown>;
+  let raw = value as Record<string, unknown>;
   if (!("version" in raw) || raw.version !== 1) {
     return { ...DEFAULT_ACCESS_SHARE_SETTINGS };
   }
