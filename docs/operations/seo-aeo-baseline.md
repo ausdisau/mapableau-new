@@ -10,7 +10,7 @@ engines without overstating compliance, registration, hosting or funding claims.
 - `app/robots.ts` exposes `/robots.txt` and blocks authenticated/admin/API
   surfaces.
 - Organisation and WebSite JSON-LD are emitted from the root layout.
-- Canonical host should be `https://www.mapable.com.au`.
+- Canonical host should be `https://mapable.com.au`.
 
 ## Claim safety
 

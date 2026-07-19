@@ -318,8 +318,16 @@ export default function LoginClient({
 
               setError("An unexpected error occurred. Please try again.");
               setIsLoading(false);
-            } catch {
-              setError("An error occurred. Please try again.");
+            } catch (err) {
+              const isNetworkFailure =
+                err instanceof TypeError ||
+                (err instanceof Error &&
+                  /failed to fetch|networkerror|load failed/i.test(err.message));
+              setError(
+                isNetworkFailure
+                  ? "Could not reach MapAble. Use https://mapable.com.au/login (not www) and try again."
+                  : "An error occurred. Please try again.",
+              );
               setIsLoading(false);
             }
           }}

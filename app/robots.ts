@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.mapable.com.au";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mapable.com.au";
 
 export default function robots(): MetadataRoute.Robots {
   return {

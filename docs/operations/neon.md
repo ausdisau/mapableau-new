@@ -86,7 +86,7 @@ The Vercel project is linked to GitHub `ausdisau/mapableau-new`. Add these **Env
 | `DATABASE_URL`    | Neon **pooled** URL (`-pooler` in hostname)                                                                    |
 | `DIRECT_URL`      | Neon **direct** URL (no `-pooler`)                                                                             |
 | `NEXTAUTH_SECRET` | Random secret (same as local `.env`)                                                                           |
-| `NEXTAUTH_URL`    | Production: `https://www.mapable.com.au` (or your canonical host); Preview: leave unset or use the preview URL |
+| `NEXTAUTH_URL`    | Production: `https://mapable.com.au` (or your canonical host); Preview: leave unset or use the preview URL |
 
 Copy database values from your local `.env` (do not commit `.env`). Alternatively, install the [Neon Vercel integration](https://vercel.com/marketplace/neon) on the project — it can provision `DATABASE_URL` automatically.
 
