@@ -3,8 +3,8 @@
 | Order | Branch | Base | Scope |
 | --- | --- | --- | --- |
 | 1 | `cursor/adaptive-access-profile-6ea8` (#363) | `main` | Access Profile + Presentation Policy Resolver; flags false |
-| 2 | `cursor/supported-decision-studio-6ea8` | adapt-runtime (#363) | Decision Studio + worker-replacement pilot |
-| 3 | `cursor/portable-access-wallet-6ea8` | decision-studio | Wallet contracts + synthetic Communication Passport presentation |
+| 2 | `cursor/supported-decision-studio-6ea8` (#364) | adapt-runtime (#363) | Decision Studio + worker-replacement pilot |
+| 3 | `cursor/portable-access-wallet-6ea8` | decision-studio (#364) | Wallet contracts + synthetic Communication Passport presentation |
 
 ## Wave 0 housekeeping (2026-07-18)
 
