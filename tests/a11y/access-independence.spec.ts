@@ -47,7 +47,9 @@ test.describe("Access independence public flows", () => {
     await expect(page.getByText(/draft saved on this device/i)).toBeVisible();
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.getByText(/draft restored on this device/i)).toBeVisible();
+    await expect(
+      page.getByText(/draft restored on this device/i),
+    ).toBeVisible();
     await expect(page.getByLabel(/plain-language description/i)).toHaveValue(
       /Temporary ramp removed/,
     );
@@ -59,15 +61,13 @@ test.describe("Access independence public flows", () => {
     const toggle = page.getByTestId("accessible-map-list-toggle");
     await expect(toggle).toBeVisible();
     await page.getByRole("button", { name: /^list$/i }).click();
-    await expect(page.getByRole("button", { name: /^list$/i }).first()).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    await expect(
+      page.getByRole("button", { name: /^list$/i }).first(),
+    ).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: /^map$/i }).click();
-    await expect(page.getByRole("button", { name: /^map$/i }).first()).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    await expect(
+      page.getByRole("button", { name: /^map$/i }).first(),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 
   test("help dialog restores focus after Escape", async ({ page }) => {

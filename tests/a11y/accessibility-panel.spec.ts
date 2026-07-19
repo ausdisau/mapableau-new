@@ -42,7 +42,10 @@ async function runAxe(page: Page, options?: { include?: string }) {
 
 async function clearStoredPreferences(page: Page) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.evaluate((key) => window.localStorage.removeItem(key), STORAGE_KEY);
+  await page.evaluate(
+    (key) => window.localStorage.removeItem(key),
+    STORAGE_KEY,
+  );
 }
 
 test.describe("MapAble Accessibility Panel", () => {
@@ -52,11 +55,15 @@ test.describe("MapAble Accessibility Panel", () => {
     await clearStoredPreferences(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(
-      page.locator("#accessibe, script[src*='acsbapp'], script[src*='accessibe']"),
+      page.locator(
+        "#accessibe, script[src*='acsbapp'], script[src*='accessibe']",
+      ),
     ).toHaveCount(0);
     await expect(page.getByTestId("accessibility-panel")).toHaveCount(1);
     await expect(
-      page.getByRole("button", { name: /open accessibility settings/i }).first(),
+      page
+        .getByRole("button", { name: /open accessibility settings/i })
+        .first(),
     ).toBeVisible();
     await runAxe(page);
   });
@@ -126,14 +133,18 @@ test.describe("MapAble Accessibility Panel", () => {
         document.documentElement.clientWidth + 1,
     );
     expect(overflowX).toBe(false);
-    await runAxe(page, { include: "header, [data-testid='accessibility-panel']" });
+    await runAxe(page, {
+      include: "header, [data-testid='accessibility-panel']",
+    });
   });
 
   test("reduced motion preset", async ({ page }) => {
     await clearStoredPreferences(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await openPanel(page);
-    await page.getByRole("button", { name: /reduce motion and flashing/i }).click();
+    await page
+      .getByRole("button", { name: /reduce motion and flashing/i })
+      .click();
     await expect
       .poll(async () =>
         page.evaluate(() => document.documentElement.dataset.a11yMotion),
@@ -143,7 +154,9 @@ test.describe("MapAble Accessibility Panel", () => {
     await runAxe(page);
   });
 
-  test("reading guide and mask do not trap pointer events", async ({ page }) => {
+  test("reading guide and mask do not trap pointer events", async ({
+    page,
+  }) => {
     await clearStoredPreferences(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await openPanel(page);
@@ -151,7 +164,9 @@ test.describe("MapAble Accessibility Panel", () => {
     await page.getByLabel(/reading mask/i).check();
     await page.getByTestId("accessibility-panel-close").click();
     await expect(
-      page.getByRole("button", { name: /open accessibility settings/i }).first(),
+      page
+        .getByRole("button", { name: /open accessibility settings/i })
+        .first(),
     ).toBeVisible();
     await runAxe(page);
   });
