@@ -2,8 +2,9 @@
 
 **Authoritative runtime seed:** `lib/convergence-os/seed/capabilities.ts`  
 **Remediation inventory:** `docs/remediation/CAPABILITY_INVENTORY.md`  
-**Inspection date:** 2026-07-17 — post #327 on `main`  
-**Public claim allowed:** false for all rows below unless registry + evidence say otherwise.
+**Inspection date:** 2026-07-17 — post leadership train (#330/#341/#346) + Mission Portfolio registry  
+**Public claim allowed:** false for all rows below unless registry + evidence say otherwise.  
+**Mission Portfolio:** [docs/mission-portfolio/README.md](../mission-portfolio/README.md)
 
 This table reconciles documentation with verified source. It does **not** enable flags
 or assert registration.
@@ -21,7 +22,10 @@ or assert registration.
 | workforce.readiness | Assignment readiness | merged_but_flagged | evaluates WorkerProfile | `MAPABLE_WORKFORCE_READINESS_ENABLED=false` | Auto-assign permanently false |
 | access.intelligence_next | Living Access Fabric | merged_but_synthetic | fixtures | AI Next flags off | Not personally usable truth |
 | accesscast.outlook | AccessCast outlook | merged_but_synthetic | fixtures | `MAPABLE_ACCESSCAST_*=false` | Synthetic Harbour / Starting Work |
-| pilot.starting_work | Starting Work pilot | merged_but_synthetic | process/fixture | `MAPABLE_STARTING_WORK_PILOT_ENABLED=false`; synthetic-only default | DB journey is PR 4 |
+| pilot.starting_work | Starting Work pilot | merged_but_synthetic | Prisma projection + fixtures | `MAPABLE_STARTING_WORK_PILOT_ENABLED=false`; synthetic-only default | DB projection landed (#330); not production_supported |
+| mission.framework | Shared Mission Framework | documented / contracts | none | `MAPABLE_MISSION_FRAMEWORK_ENABLED=false` | No CareOSMission DDL; see mission-portfolio docs |
+| vertical.at_continuity | AT Continuity pack | concept | none | `MAPABLE_AT_CONTINUITY_ENABLED=false` | Equipment SoT still scaffold |
+| vertical.* (other packs) | Health/Home/Foundational/Transitions/Events/Emergency/Justice/Enterprise/Age@Home | concept | none | corresponding `MAPABLE_*_ENABLED=false` | [VERTICAL_REGISTRY.md](../mission-portfolio/VERTICAL_REGISTRY.md) |
 | mobile.companion | Native Companion | scaffold + flagged server | Expo + APIs | `MAPABLE_COMPANION_*=false` | Foundation; not production Companion |
 | provider.ops_attention | Provider Ops attention | merged_but_flagged | Prisma reads only | `MAPABLE_PROVIDER_OPS_ENABLED=false` | Read-only; never second writer |
 | continuity.mission_recovery | Continuity / mission recovery | open_pr / thin on main | Care backup recovery only | — | Full Continuity is later PR |
