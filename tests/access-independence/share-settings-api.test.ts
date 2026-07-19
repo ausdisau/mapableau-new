@@ -63,7 +63,7 @@ describe("PATCH share-settings consent binding", () => {
       displayName: "Acme Care",
     });
     replaceAccessPassportConsent.mockResolvedValue({
-      consentRecordId: "consent-new",
+      grantId: "consent-new",
     });
     updateProfile.mockResolvedValue({ id: "profile-1" });
 
@@ -131,7 +131,7 @@ describe("PATCH share-settings consent binding", () => {
         expiresAt: null,
         active: true,
         updatedAt: new Date().toISOString(),
-        consentRecordId: "consent-old",
+        grantId: "consent-old",
       },
     });
     verifyRecipient.mockResolvedValue({
@@ -140,7 +140,7 @@ describe("PATCH share-settings consent binding", () => {
       displayName: "Acme Care",
     });
     replaceAccessPassportConsent.mockResolvedValue({
-      consentRecordId: "consent-new",
+      grantId: "consent-new",
     });
     updateProfile.mockResolvedValue({ id: "profile-1" });
 
@@ -160,7 +160,7 @@ describe("PATCH share-settings consent binding", () => {
     expect(res.status).toBe(200);
     expect(replaceAccessPassportConsent).toHaveBeenCalledWith(
       expect.objectContaining({
-        previousConsentRecordId: "consent-old",
+        previousGrantId: "consent-old",
         active: true,
       }),
     );
@@ -178,7 +178,7 @@ describe("PATCH share-settings consent binding", () => {
         expiresAt: null,
         active: true,
         updatedAt: new Date().toISOString(),
-        consentRecordId: "consent-1",
+        grantId: "consent-1",
       },
     });
 

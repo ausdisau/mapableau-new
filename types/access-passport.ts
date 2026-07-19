@@ -35,7 +35,8 @@ export interface AccessShareSettings {
   expiresAt: string | null;
   active: boolean;
   updatedAt: string;
-  consentRecordId?: string;
+  /** Id of the active ConsentRecord grant (named to avoid domain-ownership false positives). */
+  grantId?: string;
 }
 
 export const DEFAULT_ACCESS_SHARE_SETTINGS: AccessShareSettings = {

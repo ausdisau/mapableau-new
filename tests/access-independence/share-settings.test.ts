@@ -79,7 +79,7 @@ describe("access share settings", () => {
       expiresAt: null,
       active: true,
       updatedAt: new Date().toISOString(),
-      consentRecordId: "consent-1",
+      grantId: "consent-1",
     });
     expect(
       shareSettingsMateriallyEqual(current, {

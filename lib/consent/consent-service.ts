@@ -159,20 +159,20 @@ export async function canShareAccessibilityWithOrganisation(
 export async function replaceAccessPassportConsent(input: {
   subjectUserId: string;
   actorUserId: string;
-  previousConsentRecordId?: string | null;
+  previousGrantId?: string | null;
   recipientOrganisationId: string | null;
   purpose: string;
   categories: string[];
   expiresAt: string | null;
   active: boolean;
-}): Promise<{ consentRecordId?: string }> {
+}): Promise<{ grantId?: string }> {
   const prismaScope = consentScopeToPrisma("accessibility.read");
 
   return prisma.$transaction(async (tx) => {
-    if (input.previousConsentRecordId) {
+    if (input.previousGrantId) {
       await tx.consentRecord.updateMany({
         where: {
-          id: input.previousConsentRecordId,
+          id: input.previousGrantId,
           subjectUserId: input.subjectUserId,
           status: "active",
         },
@@ -220,7 +220,7 @@ export async function replaceAccessPassportConsent(input: {
       },
     });
 
-    return { consentRecordId: consent.id };
+    return { grantId: consent.id };
   });
 }
 

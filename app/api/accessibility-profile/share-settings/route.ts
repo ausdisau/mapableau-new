@@ -61,7 +61,7 @@ export async function PATCH(req: Request) {
         ...body,
         active: true,
       }) &&
-      previous.consentRecordId
+      previous.grantId
     ) {
       return jsonOk({
         shareSettings: previous,
@@ -90,10 +90,10 @@ export async function PATCH(req: Request) {
       recipientLabel = verified.displayName;
     }
 
-    const { consentRecordId } = await replaceAccessPassportConsent({
+    const replaced = await replaceAccessPassportConsent({
       subjectUserId: user.id,
       actorUserId: user.id,
-      previousConsentRecordId: previous.consentRecordId,
+      previousGrantId: previous.grantId,
       recipientOrganisationId,
       purpose: body.purpose,
       categories: body.categories,
@@ -110,7 +110,7 @@ export async function PATCH(req: Request) {
       expiresAt: body.expiresAt,
       active: wantsActive,
       updatedAt: new Date().toISOString(),
-      consentRecordId,
+      grantId: replaced.grantId,
     };
 
     const updated = existing

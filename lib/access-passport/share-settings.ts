@@ -18,7 +18,7 @@ export const accessShareSettingsSchema = z
     expiresAt: z.string().datetime().nullable(),
     active: z.boolean(),
     updatedAt: z.string().datetime().optional(),
-    consentRecordId: z.string().optional(),
+    grantId: z.string().optional(),
   })
   .strict();
 
@@ -39,6 +39,10 @@ export function parseAccessShareSettings(value: unknown): AccessShareSettings {
   const raw = value as Record<string, unknown>;
   if (!("version" in raw) || raw.version !== 1) {
     return { ...DEFAULT_ACCESS_SHARE_SETTINGS };
+  }
+  // Migrate legacy field name from earlier MVP drafts.
+  if (!("grantId" in raw) && typeof raw.consentRecordId === "string") {
+    raw = { ...raw, grantId: raw.consentRecordId };
   }
   const parsed = accessShareSettingsSchema.safeParse(raw);
   if (!parsed.success) {
