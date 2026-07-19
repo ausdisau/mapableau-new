@@ -477,6 +477,88 @@ export function AccessibilityPanel() {
               ]}
               onChange={(value) => setPreference("cursorMode", value)}
             />
+            <AccessibilityToggleControl
+              id="a11y-large-controls"
+              label="Large controls"
+              description="Increases tap and click target size for primary buttons and form controls."
+              checked={preferences.largeControls}
+              onChange={(checked) => setPreference("largeControls", checked)}
+            />
+          </section>
+
+          <section className="a11y-panel__section" aria-labelledby="a11y-layout-heading">
+            <h3 id="a11y-layout-heading" className="a11y-panel__section-title">
+              Layout, reading and tasks
+            </h3>
+            <p className="a11y-panel__section-help">
+              These settings change how MapAble looks and behaves on this device. They are private
+              by default and are never sent to providers as access requirements.
+            </p>
+            <AccessibilityToggleControl
+              id="a11y-simplified"
+              label="Simplified page mode"
+              description="Hides decorative clutter marked as non-essential while keeping navigation, forms and results."
+              checked={preferences.simplifiedLayout}
+              onChange={(checked) => setPreference("simplifiedLayout", checked)}
+            />
+            <AccessibilityAdjustmentControl
+              id="a11y-map-list"
+              label="Default map or list view"
+              description="Prefer list or map when both are available. You can still switch on each page."
+              value={preferences.defaultMapListView}
+              options={[
+                { value: "system" as const, label: "Use page default" },
+                { value: "list" as const, label: "Prefer list" },
+                { value: "map" as const, label: "Prefer map" },
+              ]}
+              onChange={(value) => setPreference("defaultMapListView", value)}
+            />
+            <AccessibilityToggleControl
+              id="a11y-symbols"
+              label="Symbols alongside labels"
+              description="Shows simple symbols next to supported status labels where available."
+              checked={preferences.showSymbols}
+              onChange={(checked) => setPreference("showSymbols", checked)}
+            />
+            <AccessibilityAdjustmentControl
+              id="a11y-reading-level"
+              label="Reading level"
+              description="Plain language shortens supported help and summary text where available."
+              value={preferences.readingLevel}
+              options={[
+                { value: "default" as const, label: "Default" },
+                { value: "plain" as const, label: "Plain language" },
+              ]}
+              onChange={(value) => setPreference("readingLevel", value)}
+            />
+            <AccessibilityToggleControl
+              id="a11y-reduce-data"
+              label="Reduced-data mode"
+              description="Avoids loading decorative media and heavy map layers when a lighter view exists."
+              checked={preferences.reduceData}
+              onChange={(checked) => setPreference("reduceData", checked)}
+            />
+            <AccessibilityToggleControl
+              id="a11y-longer-tasks"
+              label="Longer task time"
+              description="Gives more time before idle warnings on multi-step tasks when the product supports it."
+              checked={preferences.longerTaskTime}
+              onChange={(checked) => setPreference("longerTaskTime", checked)}
+            />
+            <AccessibilityToggleControl
+              id="a11y-never-autoplay"
+              label="Never autoplay media"
+              description="Prevents video and audio from starting automatically. Recommended for most people."
+              checked={preferences.neverAutoplayMedia}
+              onChange={(checked) => setPreference("neverAutoplayMedia", checked)}
+            />
+            <AccessibilityToggleControl
+              id="a11y-mute"
+              label="Mute automatic sounds"
+              description="Stops non-essential interface sounds. Does not block assistive technology speech."
+              checked={preferences.muteAutomaticSounds}
+              onChange={(checked) => setPreference("muteAutomaticSounds", checked)}
+            />
           </section>
 
           <section className="a11y-panel__section" aria-labelledby="a11y-help-heading">

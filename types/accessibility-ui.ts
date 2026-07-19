@@ -73,6 +73,15 @@ export interface AccessibilityUiPreferences {
   textMagnifier: boolean;
   cursorMode: AccessibilityCursorMode;
   muteAutomaticSounds: boolean;
+  /** Panel extensions for independence MVP */
+  simplifiedLayout: boolean;
+  defaultMapListView: "system" | "list" | "map";
+  largeControls: boolean;
+  showSymbols: boolean;
+  readingLevel: "default" | "plain";
+  reduceData: boolean;
+  longerTaskTime: boolean;
+  neverAutoplayMedia: boolean;
   customColors?: AccessibilityCustomColors;
 }
 

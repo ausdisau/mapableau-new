@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { CarePlanDraftReview } from "@/components/care/CarePlanDraftReview";
@@ -13,12 +14,23 @@ import {
   AccessibleFormField,
   formInputClass,
 } from "@/components/forms/AccessibleFormField";
+import { FormErrorSummary } from "@/components/forms/FormErrorSummary";
+import { StepByStepForm } from "@/components/forms/step/StepByStepForm";
+import { ConsistentHelp } from "@/components/help/ConsistentHelp";
 import { Button } from "@/components/ui/button";
 import {
   composeCareSupportMessage,
   type CareIntakeTaskRow,
 } from "@/lib/care/compose-care-message";
+import {
+  clearLocalDraft,
+  loadLocalDraft,
+  sanitizeLocalDraftPayload,
+  saveLocalDraft,
+} from "@/lib/form-drafts/draft-storage";
 import type { CareSupportTransformOutput } from "@/server/agents/care/types";
+
+const CARE_DRAFT_KEY = "care-request-wizard";
 
 function newSessionId(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -43,26 +55,100 @@ export function CareRequestWizard({
   preferredProviderName?: string;
 }) {
   const router = useRouter();
+  const { status: sessionStatus } = useSession();
   const sessionId = useMemo(() => newSessionId(), []);
+  const localDraft = useMemo(() => loadLocalDraft(CARE_DRAFT_KEY), []);
 
-  const [step, setStep] = useState<"describe" | "review">("describe");
+  const [step, setStep] = useState<"describe" | "tasks" | "access" | "review">(
+    "describe",
+  );
   const [requestType, setRequestType] =
-    useState<CareRequestTypeValue>("personal_care");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [address, setAddress] = useState("");
-  const [tasks, setTasks] = useState<CareIntakeTaskRow[]>([
-    { name: "", intensity: "standard" },
-  ]);
-  const [shareAccessibility, setShareAccessibility] = useState(false);
-  const [accessSummary, setAccessSummary] = useState("");
-  const [linkedTransport, setLinkedTransport] = useState(false);
+    useState<CareRequestTypeValue>(
+      (localDraft?.payload.requestType as CareRequestTypeValue) ||
+        "personal_care",
+    );
+  const [title, setTitle] = useState((localDraft?.payload.title as string) || "");
+  const [description, setDescription] = useState(
+    (localDraft?.payload.description as string) || "",
+  );
+  const [address, setAddress] = useState(
+    (localDraft?.payload.address as string) || "",
+  );
+  const [tasks, setTasks] = useState<CareIntakeTaskRow[]>(
+    (localDraft?.payload.tasks as CareIntakeTaskRow[]) || [
+      { name: "", intensity: "standard" },
+    ],
+  );
+  const [shareAccessibility, setShareAccessibility] = useState(
+    Boolean(localDraft?.payload.shareAccessibility),
+  );
+  const [accessSummary, setAccessSummary] = useState(
+    (localDraft?.payload.accessSummary as string) || "",
+  );
+  const [linkedTransport, setLinkedTransport] = useState(
+    Boolean(localDraft?.payload.linkedTransport),
+  );
 
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [draftMessage, setDraftMessage] = useState(
+    localDraft ? "Draft restored on this device." : "",
+  );
+  const [draftSaving, setDraftSaving] = useState(false);
   const [transformOutput, setTransformOutput] =
     useState<CareSupportTransformOutput | null>(null);
+
+  useEffect(() => {
+    if (sessionStatus !== "authenticated") return;
+    void fetch(`/api/form-drafts?workflowKey=${encodeURIComponent(CARE_DRAFT_KEY)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { draft?: { payload?: Record<string, unknown>; stepId?: string } | null } | null) => {
+        const draft = data?.draft;
+        if (!draft?.payload) return;
+        if (typeof draft.payload.title === "string") setTitle(draft.payload.title);
+        if (typeof draft.payload.description === "string") {
+          setDescription(draft.payload.description);
+        }
+        if (draft.stepId === "tasks" || draft.stepId === "access") {
+          setStep(draft.stepId);
+        }
+        setDraftMessage("Draft restored from your MapAble account.");
+      })
+      .catch(() => undefined);
+  }, [sessionStatus]);
+
+  async function persistDraft(currentStep: string) {
+    setDraftSaving(true);
+    const payload = sanitizeLocalDraftPayload({
+      requestType,
+      title,
+      description,
+      address,
+      tasks,
+      shareAccessibility,
+      accessSummary,
+      linkedTransport,
+    });
+    saveLocalDraft({
+      workflowKey: CARE_DRAFT_KEY,
+      stepId: currentStep,
+      payload,
+    });
+    if (sessionStatus === "authenticated") {
+      await fetch("/api/form-drafts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workflowKey: CARE_DRAFT_KEY,
+          stepId: currentStep,
+          payload,
+        }),
+      }).catch(() => undefined);
+    }
+    setDraftSaving(false);
+    setDraftMessage("Draft saved. You can leave and resume later.");
+  }
 
   const assessmentSignals = useMemo(() => {
     const signals: Record<string, unknown> = {};
@@ -190,6 +276,13 @@ export function CareRequestWizard({
           redirectTo = submitData.redirectTo;
         }
       }
+      clearLocalDraft(CARE_DRAFT_KEY);
+      if (sessionStatus === "authenticated") {
+        void fetch(
+          `/api/form-drafts?workflowKey=${encodeURIComponent(CARE_DRAFT_KEY)}`,
+          { method: "DELETE" },
+        );
+      }
       router.push(redirectTo);
       router.refresh();
     } catch {
@@ -198,12 +291,36 @@ export function CareRequestWizard({
     }
   }
 
+  const stepDefs = [
+    {
+      id: "describe",
+      title: "Describe your support need",
+      description: "One clear question group at a time. Nothing is shared yet.",
+      whyAsking:
+        "We ask this so support workers understand what you need in your own words.",
+    },
+    {
+      id: "tasks",
+      title: "Tasks and location",
+      description: "Add the tasks involved and where support should happen.",
+      whyAsking: "Tasks help matching and planning without guessing your needs.",
+    },
+    {
+      id: "access",
+      title: "Access sharing and transport",
+      description:
+        "Choose whether to share access notes. Private display settings are never included.",
+      whyAsking:
+        "Sharing is optional and consent-based. You control what providers can see.",
+    },
+  ] as const;
+
   if (step === "review" && transformOutput) {
     return (
       <CarePlanDraftReview
         output={transformOutput}
         onBack={() => {
-          setStep("describe");
+          setStep("access");
           setError(null);
         }}
         onConfirm={() => void handleConfirmSave()}
@@ -213,204 +330,239 @@ export function CareRequestWizard({
     );
   }
 
+  const fieldErrors = error
+    ? [{ id: "care-title", message: error }]
+    : [];
+
   return (
-    <form className="space-y-6" onSubmit={(e) => void handleContinueToReview(e)}>
-      {preferredProviderName ? (
-        <AuthAlert variant="info">
-          You are requesting care with a preference for{" "}
-          <strong>{preferredProviderName}</strong>. MapAble will use this when
-          matching and assigning your request
-          {preferredOrganisationId ? " to a verified provider on the platform" : ""}
-          .
-        </AuthAlert>
-      ) : null}
-
-      <AuthAlert variant="info">
-        Describe what you need in everyday language. You will review a draft
-        plan before anything is shared with providers. Pricing and worker
-        matching come after you confirm — no surprises at this step.
-      </AuthAlert>
-
-      {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
-
-      <fieldset className="space-y-3" disabled={loading}>
-        <legend className="text-sm font-medium">What type of support?</legend>
-        <SupportTypeChips
-          value={requestType}
-          onChange={setRequestType}
-          disabled={loading}
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <ConsistentHelp
+          contextTitle="Care request"
+          plainLanguage="Complete each step, save a draft any time, then review before anything is sent to providers. You can sign in again later without losing answers saved as a draft."
+          safetyNote="If you are in immediate danger, call 000."
         />
-      </fieldset>
-
-      <AccessibleFormField id="care-title" label="Short title" required>
-        <input
-          id="care-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className={formInputClass}
-          placeholder="e.g. Morning personal care on Tuesdays"
-          required
-          disabled={loading}
-        />
-      </AccessibleFormField>
-
-      <AccessibleFormField
-        id="care-description"
-        label="Tell us what you need"
-        required
-        hint="Include timing, location, and anything important for the support worker."
+      </div>
+      <StepByStepForm
+        steps={[...stepDefs]}
+        currentStepId={step === "review" ? "access" : step}
+        errors={fieldErrors}
+        draftMessage={draftMessage}
+        draftSaving={draftSaving}
+        onSaveDraft={() => void persistDraft(step)}
+        onBack={() => {
+          if (step === "tasks") setStep("describe");
+          if (step === "access") setStep("tasks");
+        }}
+        onContinue={() => {
+          if (step === "describe") {
+            if (title.trim().length < 3 || description.trim().length < 1) {
+              setError("Add a short title and describe what support you need.");
+              document.getElementById("form-error-summary")?.focus();
+              return;
+            }
+            setError(null);
+            void persistDraft("tasks");
+            setStep("tasks");
+            return;
+          }
+          if (step === "tasks") {
+            if (tasks.every((task) => !task.name.trim())) {
+              setError("Add at least one support task.");
+              document.getElementById("form-error-summary")?.focus();
+              return;
+            }
+            setError(null);
+            void persistDraft("access");
+            setStep("access");
+          }
+        }}
+        continueLabel={step === "access" ? "Continue to review" : "Continue"}
+        hideContinue={step === "access"}
       >
-        <textarea
-          id="care-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className={formInputClass}
-          rows={4}
-          required
-          disabled={loading}
-        />
-      </AccessibleFormField>
+        {preferredProviderName ? (
+          <AuthAlert variant="info">
+            You are requesting care with a preference for{" "}
+            <strong>{preferredProviderName}</strong>.
+          </AuthAlert>
+        ) : null}
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium">Support tasks</span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={loading || tasks.length >= 8}
-            onClick={() => setTasks((prev) => [...prev, emptyTask()])}
-          >
-            Add task
-          </Button>
-        </div>
-        {tasks.map((task, index) => (
-          <div
-            key={`task-${index}`}
-            className="flex flex-col gap-2 rounded-xl border border-border/50 p-3 sm:flex-row sm:items-end"
-          >
-            <div className="min-w-0 flex-1">
-              <label
-                htmlFor={`task-name-${index}`}
-                className="text-xs font-medium text-muted-foreground"
-              >
-                Task {index + 1}
-              </label>
-              <input
-                id={`task-name-${index}`}
-                value={task.name}
-                onChange={(e) =>
-                  setTasks((prev) =>
-                    prev.map((t, i) =>
-                      i === index ? { ...t, name: e.target.value } : t
-                    )
-                  )
-                }
-                className={formInputClass}
-                placeholder="e.g. Help with shower and dressing"
+        {step === "describe" ? (
+          <div className="space-y-4">
+            <fieldset className="space-y-3" disabled={loading}>
+              <legend className="text-sm font-medium">What type of support?</legend>
+              <SupportTypeChips
+                value={requestType}
+                onChange={setRequestType}
                 disabled={loading}
               />
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={task.intensity === "high"}
-                  onChange={(e) =>
-                    setTasks((prev) =>
-                      prev.map((t, i) =>
-                        i === index
-                          ? {
-                              ...t,
-                              intensity: e.target.checked ? "high" : "standard",
-                            }
-                          : t
-                      )
-                    )
-                  }
-                  disabled={loading}
-                />
-                Higher intensity
-              </label>
-              {tasks.length > 1 ? (
+            </fieldset>
+            <AccessibleFormField id="care-title" label="Short title" required>
+              <input
+                id="care-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={formInputClass}
+                placeholder="Example: Morning personal care on Tuesdays"
+                disabled={loading}
+              />
+            </AccessibleFormField>
+            <AccessibleFormField
+              id="care-description"
+              label="Tell us what you need"
+              required
+              hint="Example format: days, times, and what good support looks like for you."
+            >
+              <textarea
+                id="care-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={formInputClass}
+                rows={4}
+                disabled={loading}
+              />
+            </AccessibleFormField>
+          </div>
+        ) : null}
+
+        {step === "tasks" ? (
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">Support tasks</span>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={loading}
-                  onClick={() =>
-                    setTasks((prev) => prev.filter((_, i) => i !== index))
-                  }
+                  disabled={loading || tasks.length >= 8}
+                  onClick={() => setTasks((prev) => [...prev, emptyTask()])}
                 >
-                  Remove
+                  Add task
                 </Button>
-              ) : null}
+              </div>
+              {tasks.map((task, index) => (
+                <div
+                  key={`task-${index}`}
+                  className="flex flex-col gap-2 rounded-xl border border-border/50 p-3 sm:flex-row sm:items-end"
+                >
+                  <div className="min-w-0 flex-1">
+                    <label
+                      htmlFor={`task-name-${index}`}
+                      className="text-xs font-medium text-muted-foreground"
+                    >
+                      Task {index + 1}
+                    </label>
+                    <input
+                      id={`task-name-${index}`}
+                      value={task.name}
+                      onChange={(e) =>
+                        setTasks((prev) =>
+                          prev.map((t, i) =>
+                            i === index ? { ...t, name: e.target.value } : t,
+                          ),
+                        )
+                      }
+                      className={formInputClass}
+                      placeholder="Example: Help with shower and dressing"
+                      disabled={loading}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={task.intensity === "high"}
+                      onChange={(e) =>
+                        setTasks((prev) =>
+                          prev.map((t, i) =>
+                            i === index
+                              ? {
+                                  ...t,
+                                  intensity: e.target.checked
+                                    ? "high"
+                                    : "standard",
+                                }
+                              : t,
+                          ),
+                        )
+                      }
+                      disabled={loading}
+                    />
+                    Higher intensity
+                  </label>
+                </div>
+              ))}
             </div>
+            <AccessibleFormField id="care-address" label="Suburb or address (optional)">
+              <input
+                id="care-address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className={formInputClass}
+                disabled={loading}
+              />
+            </AccessibleFormField>
           </div>
-        ))}
-      </div>
-
-      <AccessibleFormField id="care-address" label="Suburb or address (optional)">
-        <input
-          id="care-address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className={formInputClass}
-          disabled={loading}
-        />
-      </AccessibleFormField>
-
-      <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-muted/20 p-4">
-        <label className="flex items-start gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={shareAccessibility}
-            onChange={(e) => setShareAccessibility(e.target.checked)}
-            disabled={loading}
-            className="mt-1"
-          />
-          <span>
-            Share accessibility or access notes with an assigned provider (only
-            after you confirm — requires consent)
-          </span>
-        </label>
-        {shareAccessibility ? (
-          <AccessibleFormField
-            id="care-access"
-            label="Access needs summary"
-            hint="Minimum necessary detail only."
-          >
-            <textarea
-              id="care-access"
-              value={accessSummary}
-              onChange={(e) => setAccessSummary(e.target.value)}
-              className={formInputClass}
-              rows={2}
-              disabled={loading}
-            />
-          </AccessibleFormField>
         ) : null}
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={linkedTransport}
-            onChange={(e) => setLinkedTransport(e.target.checked)}
-            disabled={loading}
-          />
-          I may also need transport linked to this support
-        </label>
-      </div>
 
-      <Button
-        type="submit"
-        variant="default"
-        size="lg"
-        className="w-full sm:w-auto"
-        disabled={loading}
-        loading={loading}
-      >
-        {loading ? "Preparing your draft…" : "Continue to review"}
-      </Button>
-    </form>
+        {step === "access" ? (
+          <form
+            className="space-y-4"
+            onSubmit={(event) => void handleContinueToReview(event)}
+          >
+            <FormErrorSummary errors={fieldErrors} />
+            <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-muted/20 p-4">
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={shareAccessibility}
+                  onChange={(e) => setShareAccessibility(e.target.checked)}
+                  disabled={loading}
+                  className="mt-1"
+                />
+                <span>
+                  Share access requirements with an assigned provider after I
+                  confirm (consent required). Interface preferences are never shared
+                  here.
+                </span>
+              </label>
+              {shareAccessibility ? (
+                <AccessibleFormField
+                  id="care-access"
+                  label="Access needs summary"
+                  hint="Minimum necessary functional detail only — not diagnoses."
+                >
+                  <textarea
+                    id="care-access"
+                    value={accessSummary}
+                    onChange={(e) => setAccessSummary(e.target.value)}
+                    className={formInputClass}
+                    rows={2}
+                    disabled={loading}
+                  />
+                </AccessibleFormField>
+              ) : null}
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={linkedTransport}
+                  onChange={(e) => setLinkedTransport(e.target.checked)}
+                  disabled={loading}
+                />
+                I may also need transport linked to this support
+              </label>
+            </div>
+            <Button
+              type="submit"
+              variant="default"
+              size="lg"
+              disabled={loading}
+              loading={loading}
+            >
+              {loading ? "Preparing your draft…" : "Review before submit"}
+            </Button>
+          </form>
+        ) : null}
+      </StepByStepForm>
+    </div>
   );
 }

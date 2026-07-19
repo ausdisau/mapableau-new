@@ -4,7 +4,7 @@ import { startAuthentication } from "@simplewebauthn/browser";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthFormCard, AuthOAuthDivider } from "@/components/auth/AuthFormCard";
@@ -55,8 +55,15 @@ export default function LoginClient({
   const [authMode, setAuthMode] = useState<"password" | "passkey">("password");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
   const isTwoFactorStep = Boolean(twoFactorToken);
   const isPasskeyMode = authMode === "passkey";
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [error]);
 
   async function handlePasskeyLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -150,10 +157,16 @@ export default function LoginClient({
         <AuthOAuthDivider label="or sign in with email" />
       </div>
 
+      <p className="text-sm text-muted-foreground">
+        Password managers, copy and paste, and browser autofill are supported.
+        In-progress form drafts on this device are kept when you sign in again
+        after a session ends.
+      </p>
+
       <div className="flex flex-col gap-2">
         <button
           type="button"
-          className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+          className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline mapable-focus"
           onClick={() => {
             setAuthMode(isPasskeyMode ? "password" : "passkey");
             setError("");
@@ -164,7 +177,15 @@ export default function LoginClient({
         </button>
       </div>
 
-      {oauthError ? <AuthAlert variant="error">{oauthError}</AuthAlert> : null}
+      {oauthError ? (
+        <div ref={errorRef} tabIndex={-1} className="outline-none">
+          <AuthAlert variant="error">{oauthError}</AuthAlert>
+        </div>
+      ) : null}
+
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isLoading ? "Signing in, please wait." : ""}
+      </div>
 
       {isPasskeyMode ? (
         <form className="flex flex-col gap-4" onSubmit={handlePasskeyLogin}>
@@ -182,7 +203,11 @@ export default function LoginClient({
             />
           </AccessibleFormField>
 
-          {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
+          {error ? (
+            <div ref={errorRef} tabIndex={-1} className="outline-none">
+              <AuthAlert variant="error">{error}</AuthAlert>
+            </div>
+          ) : null}
 
           <Button
             type="submit"
@@ -386,7 +411,11 @@ export default function LoginClient({
             </AuthAlert>
           ) : null}
 
-          {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
+          {error ? (
+            <div ref={errorRef} tabIndex={-1} className="outline-none">
+              <AuthAlert variant="error">{error}</AuthAlert>
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-3 pt-1">
             <Button

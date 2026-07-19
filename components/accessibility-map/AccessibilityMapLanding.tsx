@@ -5,8 +5,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { AccessFitBadge } from "@/components/access-fit/AccessFitBadge";
 import { AccessNeedsTogglePanel } from "@/components/access-fit/AccessNeedsTogglePanel";
+import { AccessibleMapListToggle } from "@/components/accessibility-map/AccessibleMapListToggle";
 import { ViewFloorPlanButton } from "@/components/accessibility-map/floor-plan/ViewFloorPlanButton";
 import { OpenStreetMapView } from "@/components/accessibility-map/OpenStreetMapView";
+import { AccessPreflight } from "@/components/access-preflight/AccessPreflight";
+import { ConsistentHelp } from "@/components/help/ConsistentHelp";
 import { calculateAccessFit } from "@/lib/access-fit/calculate-access-fit";
 import { hasActiveAccessNeeds } from "@/lib/access-fit/has-active-access-needs";
 import { DEMO_ACCESS_NEEDS, EMPTY_ACCESS_NEEDS } from "@/lib/access-fit/types";
@@ -55,6 +58,14 @@ export function AccessibilityMapLanding({
 
   useEffect(() => {
     try {
+      const preferred =
+        typeof document !== "undefined"
+          ? document.documentElement.dataset.a11yMapList
+          : undefined;
+      if (preferred === "list" || preferred === "map") {
+        setView(preferred);
+        return;
+      }
       const stored = sessionStorage.getItem(VIEW_STORAGE_KEY);
       if (stored === "list" || stored === "map") {
         setView(stored);
@@ -376,32 +387,18 @@ export function AccessibilityMapLanding({
         </aside>
 
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-slate-600" role="status" aria-live="polite" aria-atomic="true">
-              Showing {places.length} place{places.length === 1 ? "" : "s"}
-            </p>
-            <div
-              role="group"
-              aria-label="Map or list view"
-              className="inline-flex rounded-xl border border-slate-300 p-1"
-            >
-              <button
-                type="button"
-                className={`min-h-11 rounded-lg px-4 text-sm font-bold ${view === "list" ? "bg-[#005B7F] text-white" : ""} ${mapableCareFocusRing}`}
-                aria-pressed={view === "list"}
-                onClick={() => handleViewChange("list")}
-              >
-                List
-              </button>
-              <button
-                type="button"
-                className={`min-h-11 rounded-lg px-4 text-sm font-bold ${view === "map" ? "bg-[#005B7F] text-white" : ""} ${mapableCareFocusRing}`}
-                aria-pressed={view === "map"}
-                onClick={() => handleViewChange("map")}
-              >
-                Map
-              </button>
-            </div>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <AccessibleMapListToggle
+              view={view}
+              onChange={handleViewChange}
+              resultCount={places.length}
+              selectedLabel={places.find((place) => place.id === selectedId)?.name}
+            />
+            <ConsistentHelp
+              contextTitle="Accessibility map"
+              plainLanguage="Use List view for the same places and access facts as the map. Unknown access details mean we do not have confirmation yet — not that the place is accessible."
+              safetyNote="If you are in immediate danger, call 000. MapAble is not an emergency service."
+            />
           </div>
 
           {view === "map" ? (
@@ -521,6 +518,13 @@ export function AccessibilityMapLanding({
                               Report update
                               <span className="sr-only"> for {place.name}</span>
                             </Link>
+                            <Link
+                              href={`/report-barrier?placeSlug=${encodeURIComponent(place.slug)}&placeName=${encodeURIComponent(place.name)}`}
+                              className={`inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-black ${mapableCareFocusRing}`}
+                            >
+                              Report an access barrier
+                              <span className="sr-only"> for {place.name}</span>
+                            </Link>
                           </div>
                         </details>
                       </div>
@@ -530,6 +534,15 @@ export function AccessibilityMapLanding({
               })}
             </ul>
           ) : null}
+
+          {selectedId
+            ? (() => {
+                const selected = places.find((place) => place.id === selectedId);
+                return selected ? (
+                  <AccessPreflight key={selected.id} place={selected} />
+                ) : null;
+              })()
+            : null}
 
           <section
             aria-labelledby="help-map-heading"

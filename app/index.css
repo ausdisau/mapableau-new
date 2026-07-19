@@ -694,6 +694,56 @@ html[data-a11y-hover="highlight"] button:hover {
   outline-offset: 2px;
 }
 
+/* --- Layout / task preference extensions --- */
+html[data-a11y-simplified="true"] [data-a11y-clutter],
+html[data-a11y-simplified="true"] [data-a11y-nonessential] {
+  display: none !important;
+}
+
+html[data-a11y-large-controls="true"] button,
+html[data-a11y-large-controls="true"] [role="button"],
+html[data-a11y-large-controls="true"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-a11y-large-controls="true"] select,
+html[data-a11y-large-controls="true"] textarea,
+html[data-a11y-large-controls="true"] .mapable-focus {
+  min-height: 2.75rem;
+}
+
+html[data-a11y-large-controls="true"] input[type="checkbox"],
+html[data-a11y-large-controls="true"] input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+html[data-a11y-symbols="true"] [data-a11y-symbol]::before {
+  content: attr(data-a11y-symbol) " ";
+}
+
+html[data-a11y-reading-level="plain"] [data-a11y-default-copy] {
+  display: none !important;
+}
+
+html[data-a11y-reading-level="plain"] [data-a11y-plain-alt] {
+  display: contents;
+}
+
+html:not([data-a11y-reading-level="plain"]) [data-a11y-plain-alt] {
+  display: none !important;
+}
+
+html[data-a11y-reduce-data="true"] [data-a11y-heavy-media],
+html[data-a11y-reduce-data="true"] img[data-a11y-decorative],
+html[data-a11y-reduce-data="true"] [data-a11y-decorative-image] {
+  display: none !important;
+}
+
+html[data-a11y-autoplay="off"] video[autoplay],
+html[data-a11y-autoplay="off"] audio[autoplay] {
+  pointer-events: auto;
+}
+
+/* Mute is applied via the data-a11y-mute attribute for JS media helpers. */
+
 /* Custom cursors — pointer devices only; hotspot near tip */
 @media (hover: hover) and (pointer: fine) {
   html[data-a11y-cursor="large-dark"] body,

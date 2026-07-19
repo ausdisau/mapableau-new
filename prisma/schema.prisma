@@ -150,6 +150,10 @@ model User {
   accessReceiptsAsActor       ParticipantAccessReceipt[] @relation("AccessReceiptActor")
   breakGlassSessionsOpened    BreakGlassAccessSession[]  @relation("BreakGlassOpenedBy")
   decisionNoticesOwned        DecisionNoticeRecord[]     @relation("DecisionNoticeHumanOwner")
+
+  // Access independence MVP
+  accessBarrierReports        AccessBarrierReport[]      @relation("AccessBarrierReportReporter")
+  formDrafts                  FormDraft[]                @relation("FormDraftOwner")
 }
 
 model PasskeyCredential {
@@ -659,9 +663,89 @@ model AccessibilityProfile {
   cognitivePreferences     Json     @default("{}")
   transportRequirements    Json     @default("{}")
   digitalPreferences       Json     @default("{}")
+  /// Granular share categories + consent metadata. Never auto-filled from UI prefs.
   shareWithProviders       Json     @default("{}")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+}
+
+/// Community / participant access barrier reports for places and services.
+model AccessBarrierReport {
+  id              String                   @id @default(cuid())
+  referenceNumber String                   @unique
+  reporterUserId  String?
+  reporterUser    User?                    @relation("AccessBarrierReportReporter", fields: [reporterUserId], references: [id], onDelete: SetNull)
+  placeId         String?
+  placeSlug       String?
+  placeName       String?
+  serviceId       String?
+  category        AccessBarrierCategory
+  description     String
+  locationDetail  String?
+  urgency         AccessBarrierUrgency     @default(standard)
+  observedAt      DateTime?
+  imageUrl        String?
+  imageDescription String?
+  contactEmail    String?
+  contactPhone    String?
+  anonymous       Boolean                  @default(false)
+  consentToContact Boolean                 @default(false)
+  status          AccessBarrierReportStatus @default(received)
+  isDraft         Boolean                  @default(false)
+  metadata        Json?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@index([reporterUserId, status])
+  @@index([placeSlug])
+  @@index([status, createdAt])
+}
+
+enum AccessBarrierCategory {
+  entrance
+  lift
+  toilet
+  parking_dropoff
+  path_surface
+  signage
+  communication
+  sensory_environment
+  website_booking
+  staff_service_process
+  incorrect_mapable_information
+  other
+}
+
+enum AccessBarrierUrgency {
+  low
+  standard
+  high
+  safety_critical
+}
+
+enum AccessBarrierReportStatus {
+  draft
+  received
+  reviewing
+  actioned
+  closed
+}
+
+/// Versioned form drafts for save/resume across auth expiry.
+model FormDraft {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation("FormDraftOwner", fields: [userId], references: [id], onDelete: Cascade)
+  workflowKey  String
+  schemaVersion Int     @default(1)
+  stepId       String?
+  payload      Json
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, workflowKey])
+  @@index([expiresAt])
 }
 
 model Organisation {

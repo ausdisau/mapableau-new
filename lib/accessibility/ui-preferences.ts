@@ -33,6 +33,14 @@ export const DEFAULT_ACCESSIBILITY_UI_PREFERENCES: AccessibilityUiPreferences = 
   textMagnifier: false,
   cursorMode: "default",
   muteAutomaticSounds: false,
+  simplifiedLayout: false,
+  defaultMapListView: "system",
+  largeControls: false,
+  showSymbols: false,
+  readingLevel: "default",
+  reduceData: false,
+  longerTaskTime: false,
+  neverAutoplayMedia: true,
 };
 
 const hexColorSchema = z
@@ -69,6 +77,14 @@ export const accessibilityUiPreferencesSchema = z.object({
   textMagnifier: z.boolean(),
   cursorMode: z.enum(["default", "large-dark", "large-light"]),
   muteAutomaticSounds: z.boolean(),
+  simplifiedLayout: z.boolean().default(false),
+  defaultMapListView: z.enum(["system", "list", "map"]).default("system"),
+  largeControls: z.boolean().default(false),
+  showSymbols: z.boolean().default(false),
+  readingLevel: z.enum(["default", "plain"]).default("default"),
+  reduceData: z.boolean().default(false),
+  longerTaskTime: z.boolean().default(false),
+  neverAutoplayMedia: z.boolean().default(true),
   customColors: z
     .object({
       text: hexColorSchema.optional(),
@@ -159,7 +175,12 @@ export const CONTRAST_RATIO_LARGE_TEXT = 3;
 export function parseAccessibilityUiPreferences(
   value: unknown,
 ): AccessibilityUiPreferences | null {
-  const parsed = accessibilityUiPreferencesSchema.safeParse(value);
+  if (!value || typeof value !== "object") return null;
+  // Merge defaults so older stored payloads remain valid after schema extensions.
+  const parsed = accessibilityUiPreferencesSchema.safeParse({
+    ...DEFAULT_ACCESSIBILITY_UI_PREFERENCES,
+    ...value,
+  });
   if (!parsed.success) return null;
   if (parsed.data.customColors && !areCustomColorsSafe(parsed.data.customColors)) {
     return { ...parsed.data, customColors: undefined };
@@ -472,6 +493,48 @@ export function applyPreferencesToDocument(
     "a11yMute",
     preferences.muteAutomaticSounds ? "true" : null,
   );
+  setOrClearDataset(
+    root,
+    "a11yAutoplay",
+    preferences.neverAutoplayMedia ? "off" : null,
+  );
+  setOrClearDataset(
+    root,
+    "a11ySimplified",
+    preferences.simplifiedLayout ? "true" : null,
+  );
+  setOrClearDataset(
+    root,
+    "a11yMapList",
+    preferences.defaultMapListView === "system"
+      ? null
+      : preferences.defaultMapListView,
+  );
+  setOrClearDataset(
+    root,
+    "a11yLargeControls",
+    preferences.largeControls ? "true" : null,
+  );
+  setOrClearDataset(
+    root,
+    "a11ySymbols",
+    preferences.showSymbols ? "true" : null,
+  );
+  setOrClearDataset(
+    root,
+    "a11yReadingLevel",
+    preferences.readingLevel === "plain" ? "plain" : null,
+  );
+  setOrClearDataset(
+    root,
+    "a11yReduceData",
+    preferences.reduceData ? "true" : null,
+  );
+  setOrClearDataset(
+    root,
+    "a11yLongerTasks",
+    preferences.longerTaskTime ? "true" : null,
+  );
 
   if (preferences.textScale !== defaults.textScale) {
     root.style.setProperty(
@@ -531,6 +594,13 @@ export function clearPreferencesFromDocument(): void {
     "a11yMagnifier",
     "a11yCursor",
     "a11yMute",
+    "a11ySimplified",
+    "a11yMapList",
+    "a11yLargeControls",
+    "a11ySymbols",
+    "a11yReadingLevel",
+    "a11yReduceData",
+    "a11yLongerTasks",
     "a11yCustomColors",
   ] as const;
   for (const key of keys) {
