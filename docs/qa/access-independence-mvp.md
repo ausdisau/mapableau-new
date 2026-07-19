@@ -6,16 +6,17 @@ This document covers the Access Independence MVP (passport, preflight, step-by-s
 
 ## Automated checks that genuinely ran
 
-Record results from the hardening verification run (update when re-run):
+Hardening verification (branch `cursor/mapable-access-independence-mvp-3a2d`, commit `ff65dcf0` + QA doc follow-up):
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Format | `pnpm format:check` | See verification section in PR notes |
-| Types | `pnpm type-check` | See verification section in PR notes |
-| Lint | `pnpm lint` | See verification section in PR notes |
-| Unit/integration | `pnpm exec vitest run tests/access-independence tests/accessibility` | See verification section in PR notes |
-| Playwright (a11y shells) | `pnpm exec playwright test tests/a11y/access-independence.spec.ts tests/a11y/accessibility-panel.spec.ts tests/a11y/route-shells.spec.ts` | See verification section in PR notes |
-| Build | `pnpm build` | See verification section in PR notes |
+| Prisma client | `pnpm db:generate` | Passed |
+| Format | `pnpm format:check` | Passed |
+| Types | `pnpm type-check` | Passed |
+| Lint | `pnpm lint` | Passed |
+| Unit/integration | `pnpm exec vitest run tests/access-independence tests/accessibility` | Passed — 15 files / 68 tests |
+| Playwright (a11y shells) | `pnpm exec playwright test tests/a11y/access-independence.spec.ts tests/a11y/accessibility-panel.spec.ts tests/a11y/route-shells.spec.ts` | Passed — 41 passed, 7 skipped (auth-gated / no seeded session) |
+| Build | `pnpm build` | Passed |
 
 ## Manual accessibility checklist (remaining)
 
