@@ -28,7 +28,10 @@ const PUBLIC_ROUTES = [
  * Unauthenticated visits should redirect to /login (not count as feature coverage).
  * 503 from missing auth/database config is an explicit environment skip.
  */
-const AUTH_GATED_ENTRY_ROUTES = ["/care/request", "/transport/request"] as const;
+const AUTH_GATED_ENTRY_ROUTES = [
+  "/care/request",
+  "/transport/request",
+] as const;
 
 const AUTH_ROUTES = [
   "/dashboard",
@@ -63,7 +66,9 @@ async function gotoPublicRoute(page: Page, route: string) {
   expect(response, `navigation to ${route}`).not.toBeNull();
   const status = response!.status();
   expect(status, `${route} returned HTTP ${status}`).toBeLessThan(400);
-  await expect(page).toHaveURL(new RegExp(`${route.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\?.*)?$`));
+  await expect(page).toHaveURL(
+    new RegExp(`${route.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\?.*)?$`),
+  );
   return response!;
 }
 
@@ -100,7 +105,10 @@ test.describe("Public route shells (axe + structure)", () => {
       await expect(page.locator("body")).toBeVisible();
 
       const h1 = page.locator("h1");
-      await expect(h1, `${route} should expose exactly one H1 after load`).toHaveCount(1);
+      await expect(
+        h1,
+        `${route} should expose exactly one H1 after load`,
+      ).toHaveCount(1);
       await expect(h1.first()).not.toHaveText(/loading mapable/i);
 
       await expect(page.locator("h1").first()).toBeVisible();
@@ -108,9 +116,13 @@ test.describe("Public route shells (axe + structure)", () => {
         const ids = Array.from(document.body.querySelectorAll("[id]"))
           .map((el) => el.id)
           .filter(Boolean);
-        return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+        return [
+          ...new Set(ids.filter((id, index) => ids.indexOf(id) !== index)),
+        ];
       });
-      expect(dupes, `duplicate ids on ${route}: ${dupes.join(", ")}`).toEqual([]);
+      expect(dupes, `duplicate ids on ${route}: ${dupes.join(", ")}`).toEqual(
+        [],
+      );
 
       const unnamed = page.locator(
         "a:not([aria-label]):not([aria-labelledby]):not(:has(img[alt])), button:not([aria-label]):not([aria-labelledby])",
@@ -143,15 +155,21 @@ test.describe("Public route shells (axe + structure)", () => {
     });
   }
 
-  test("intentional 404 for /jobs is not treated as feature coverage", async ({ page }) => {
-    const response = await page.goto("/jobs", { waitUntil: "domcontentloaded" });
+  test("intentional 404 for /jobs is not treated as feature coverage", async ({
+    page,
+  }) => {
+    const response = await page.goto("/jobs", {
+      waitUntil: "domcontentloaded",
+    });
     expect(response).not.toBeNull();
     expect(response!.status()).toBeGreaterThanOrEqual(400);
   });
 
   for (const route of AUTH_GATED_ENTRY_ROUTES) {
     test(`auth-gated entry: ${route}`, async ({ page }) => {
-      const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+      const response = await page.goto(route, {
+        waitUntil: "domcontentloaded",
+      });
       expect(response, `navigation to ${route}`).not.toBeNull();
       const status = response!.status();
       test.skip(
@@ -166,9 +184,15 @@ test.describe("Public route shells (axe + structure)", () => {
 });
 
 test.describe("No competing accessibility overlay", () => {
-  test("homepage does not inject accessiBe / duplicate skip links", async ({ page }) => {
+  test("homepage does not inject accessiBe / duplicate skip links", async ({
+    page,
+  }) => {
     await gotoPublicRoute(page, "/");
-    await expect(page.locator("#accessibe, script[src*='acsbapp'], script[src*='accessibe']")).toHaveCount(0);
+    await expect(
+      page.locator(
+        "#accessibe, script[src*='acsbapp'], script[src*='accessibe']",
+      ),
+    ).toHaveCount(0);
     await expect(page.locator("[class*='acsb'], [id*='acsb']")).toHaveCount(0);
 
     const skipLinks = page.locator(
@@ -189,7 +213,9 @@ test.describe("Authenticated route shells (axe)", () => {
         `A11Y_SKIP_AUTH_ROUTES — ${route} requires seeded authenticated storage state (documented skip)`,
       );
 
-      const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+      const response = await page.goto(route, {
+        waitUntil: "domcontentloaded",
+      });
       expect(response).not.toBeNull();
       expect(response!.status()).toBeLessThan(400);
       // Must remain on the authenticated route — login redirects are not coverage
@@ -201,7 +227,9 @@ test.describe("Authenticated route shells (axe)", () => {
 });
 
 test.describe("Keyboard / focus behaviours", () => {
-  test("skip link is first MapAble focus target and focuses main", async ({ page }) => {
+  test("skip link is first MapAble focus target and focuses main", async ({
+    page,
+  }) => {
     await gotoPublicRoute(page, "/");
     await page.keyboard.press("Tab");
     const focused = page.locator(":focus");
@@ -231,7 +259,9 @@ test.describe("Keyboard / focus behaviours", () => {
     await expect(menu).toBeFocused();
   });
 
-  test("direct fragment navigation clears sticky header overlap", async ({ page }) => {
+  test("direct fragment navigation clears sticky header overlap", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/#guided-search-panel", { waitUntil: "networkidle" });
     const target = page.locator("#guided-search-panel");
@@ -242,7 +272,9 @@ test.describe("Keyboard / focus behaviours", () => {
     expect(box!.y).toBeGreaterThanOrEqual(80);
   });
 
-  test("accessibility map list/map toggle and filter clear", async ({ page }) => {
+  test("accessibility map list/map toggle and filter clear", async ({
+    page,
+  }) => {
     await gotoPublicRoute(page, "/accessibility-map");
     await page.getByRole("button", { name: /^Map$/i }).click();
     await expect(page.getByRole("button", { name: /^Map$/i })).toHaveAttribute(
@@ -257,24 +289,35 @@ test.describe("Keyboard / focus behaviours", () => {
 
     const stepFree = page.getByLabel("Step-free entry");
     await stepFree.check();
-    await expect(page.getByRole("button", { name: /Remove Step-free entry filter/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Remove Step-free entry filter/i }),
+    ).toBeVisible();
     await page.getByRole("button", { name: /Clear all filters/i }).click();
     await expect(stepFree).not.toBeChecked();
   });
 
-  test("place-card More actions disclosure remains keyboard operable", async ({ page }) => {
+  test("place-card More actions disclosure remains keyboard operable", async ({
+    page,
+  }) => {
     await gotoPublicRoute(page, "/accessibility-map");
-    const more = page.locator("details").filter({ hasText: "More actions" }).first();
+    const more = page
+      .locator("details")
+      .filter({ hasText: "More actions" })
+      .first();
     const summary = more.locator("summary");
     await summary.focus();
     await page.keyboard.press(" ");
     await expect(more).toHaveJSProperty("open", true);
-    await expect(more.getByRole("link", { name: /Report update/i })).toBeVisible();
+    await expect(
+      more.getByRole("link", { name: /Report update/i }),
+    ).toBeVisible();
   });
 });
 
 test.describe("Responsive / motion / forced-colours smoke", () => {
-  test("320px width has no horizontal page scroll on home", async ({ page }) => {
+  test("320px width has no horizontal page scroll on home", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 320, height: 720 });
     await gotoPublicRoute(page, "/");
     const overflow = await page.evaluate(() => {
@@ -297,12 +340,14 @@ test.describe("Responsive / motion / forced-colours smoke", () => {
     expect(overflow).toBeLessThanOrEqual(8);
   });
 
-  test("reduced motion disables loading spinner animation class", async ({ page }) => {
+  test("reduced motion disables loading spinner animation class", async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await gotoPublicRoute(page, "/");
     // Spinners in scope use motion-reduce:animate-none — assert CSS media is honoured
-    const reduces = await page.evaluate(() =>
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    const reduces = await page.evaluate(
+      () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     );
     expect(reduces).toBe(true);
   });
@@ -318,19 +363,29 @@ test.describe("Responsive / motion / forced-colours smoke", () => {
 });
 
 test.describe("Accessibility map list and map states", () => {
-  test("list and map states both expose results or list alternative", async ({ page }) => {
+  test("list and map states both expose results or list alternative", async ({
+    page,
+  }) => {
     await gotoPublicRoute(page, "/accessibility-map");
-    await expect(page.getByRole("list", { name: /Accessible places/i })).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: /Accessible places/i }),
+    ).toBeVisible();
     await page.getByRole("button", { name: /^Map$/i }).click();
     await expect(page.getByRole("button", { name: /^List$/i })).toBeVisible();
     // List control remains available for motor/error recovery
     await page.getByRole("button", { name: /^List$/i }).click();
-    await expect(page.getByRole("list", { name: /Accessible places/i })).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: /Accessible places/i }),
+    ).toBeVisible();
   });
 
-  test("Access-Fit does not show 0/100 Unknown before needs are set", async ({ page }) => {
+  test("Access-Fit does not show 0/100 Unknown before needs are set", async ({
+    page,
+  }) => {
     await gotoPublicRoute(page, "/accessibility-map");
     await expect(page.getByText(/0\/100\s*·\s*Unknown/i)).toHaveCount(0);
-    await expect(page.getByText(/Set your access needs to calculate fit/i).first()).toBeVisible();
+    await expect(
+      page.getByText(/Set your access needs to calculate fit/i).first(),
+    ).toBeVisible();
   });
 });
