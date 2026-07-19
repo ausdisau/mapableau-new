@@ -4,7 +4,6 @@ import type { PortalNavLink } from "@/components/core/PortalNav";
 export const PROVIDER_NAV_LINKS: PortalNavLink[] = [
   { href: "/provider", label: "Control panel", match: "exact" },
   { href: "/provider/care", label: "Care" },
-  { href: "/provider/access-barriers", label: "Access barriers" },
   { href: "/provider/transport", label: "Transport" },
   { href: "/provider/workers", label: "Workers" },
   { href: "/provider/calendar", label: "Calendar" },

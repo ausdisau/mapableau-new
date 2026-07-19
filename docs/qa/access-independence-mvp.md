@@ -88,7 +88,7 @@ Hardening verification (branch `cursor/mapable-access-independence-mvp-3a2d`, co
 
 ## Provider barrier inbox
 
-- Route: `/provider/access-barriers` (org-scoped only)
+- Route: `/provider/care/access-barriers` (org-scoped only; Care section sub-nav — keeps top-level provider hubs ≤ 10)
 - Admin moderation: `/api/admin/access-barrier-reports` (+ `[id]` assign org)
 - Workflow: received → reviewing → actioned → closed (with status history)
 - Feature flag: `ACCESS_INDEPENDENCE_PROVIDER_BARRIER_INBOX` (default on; still fail-closed without `organisationId`)

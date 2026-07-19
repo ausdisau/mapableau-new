@@ -2,6 +2,7 @@ import type { SectionNavLink } from "@/components/provider/ProviderSectionNav";
 
 export const PROVIDER_CARE_SUB_LINKS: SectionNavLink[] = [
   { href: "/provider/care/requests", label: "Inbox" },
+  { href: "/provider/care/access-barriers", label: "Access barriers" },
   { href: "/provider/care/roster", label: "Roster" },
   { href: "/provider/care/shifts", label: "Shifts" },
   { href: "/provider/care/service-logs", label: "Logs" },
