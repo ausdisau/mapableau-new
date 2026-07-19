@@ -15,13 +15,27 @@ jobs:
     name: Accessibility
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mapable_a11y
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       NODE_OPTIONS: --max-old-space-size=6144
       NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production-use-32chars
       NEXTAUTH_URL: http://localhost:3000
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_a11y?schema=public
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_a11y?schema=public
-      # Public shells only when DB unavailable; auth routes skip honestly
+      # Public shells only when auth fixtures unavailable; auth routes skip honestly
       A11Y_SKIP_AUTH_ROUTES: "1"
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +54,12 @@ jobs:
 
       - name: Prisma generate
         run: pnpm exec prisma generate
+
+      # Public routes such as /accountability query Postgres at request time.
+      # Historical migration stubs block migrate-from-zero; ephemeral CI uses db push
+      # (same pattern as ci.yml — not a production runbook instruction).
+      - name: Apply schema for a11y server (ephemeral)
+        run: pnpm exec prisma db push --accept-data-loss --skip-generate
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
