@@ -39,6 +39,10 @@ describe("AI platform capability registry", () => {
         "access_intelligence_next.preflight",
         "intake.document_classify",
         "intake.field_extract",
+        "mission.evidence_graph",
+        "mission.semantic_retrieval",
+        "edge.visit_pack_summary",
+        "edge.what_changed_explain",
       ])
     );
   });

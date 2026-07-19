@@ -60,3 +60,30 @@ export type {
   IntakeProvenanceReceipt,
   IntakeSession,
 } from "./intake";
+export {
+  buildStartingWorkEvidenceGraph,
+  proposeCandidateEdge,
+} from "./graph";
+export type { MissionEvidenceGraph, EvidenceGraphEdge } from "./graph";
+export {
+  chunksFromEvidenceGraph,
+  filterChunksForSecurity,
+  hybridRetrieve,
+  answerStartingWorkQuestion,
+} from "./retrieval";
+export type {
+  SemanticEvidenceChunk,
+  HybridRetrievalResult,
+  RetrievalSecurityContext,
+} from "./retrieval";
+export {
+  selectProcessingMode,
+  summarizeVisitPackOffline,
+  explainWhatChangedLocally,
+  routeModelBackedEdgeCapability,
+} from "./edge";
+export type {
+  ProcessingReceipt,
+  DeviceCapabilitySnapshot,
+  EdgeBrokerResult,
+} from "./edge";
