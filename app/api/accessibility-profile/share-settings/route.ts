@@ -1,13 +1,13 @@
 import type { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
-import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import {
   accessShareSettingsPatchSchema,
   isSharingActive,
   parseAccessShareSettings,
 } from "@/lib/access-passport/share-settings";
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { grantConsent, revokeConsent } from "@/lib/consent/consent-service";
 import { prisma } from "@/lib/prisma";

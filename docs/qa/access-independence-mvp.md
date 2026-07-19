@@ -55,10 +55,19 @@ This document covers the Access Independence MVP (passport, preflight, step-by-s
 | Password managers / autofill | Supported (`autocomplete` on email/password) |
 | Copy/paste allowed | Supported (no paste blocking) |
 | Passkeys | Available via “Login with passkey” |
-| Email magic links | **Not implemented** — NextAuth Email provider not configured; would need provider + migration work |
+| Email magic links | Implemented via SendGrid + credentials token (`/login` → “Email me a sign-in link”). Requires `SENDGRID_API_KEY` + `SENDGRID_FROM_EMAIL`. Does **not** use NextAuth EmailProvider / VerificationToken adapter migration. |
+| SMS sign-in | Twilio SMS 2FA remains available after password when enabled. SMS-only passwordless login needs verified phone numbers on accounts (not implemented). |
 | Errors preserve identifier | Email retained in controlled inputs on failure |
 | Focus after errors | Error region receives focus |
 | Drafts across session expiry | Local drafts for signed-out users; account drafts via `/api/form-drafts` when signed in |
+| Longer task idle warning | `TaskIdleWarning` on step-by-step forms; 15 min default, 45 min with longer-task-time preference |
+
+## Provider barrier inbox
+
+- Route: `/provider/access-barriers`
+- Workflow: received → reviewing → actioned → closed
+- Reporter contact details never returned
+- Org-scoped place ownership still a follow-up
 
 ## Commands
 
@@ -66,5 +75,5 @@ This document covers the Access Independence MVP (passport, preflight, step-by-s
 pnpm db:generate
 pnpm exec tsc --noEmit
 pnpm exec vitest run tests/access-independence tests/accessibility
-pnpm exec playwright test tests/a11y/accessibility-panel.spec.ts
+pnpm exec playwright test tests/a11y/access-independence.spec.ts tests/a11y/accessibility-panel.spec.ts
 ```

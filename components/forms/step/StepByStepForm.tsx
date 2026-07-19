@@ -4,6 +4,7 @@ import React, { useId, useState } from "react";
 
 import { FormErrorSummary, type FormErrorItem } from "@/components/forms/FormErrorSummary";
 import { DraftStatus } from "@/components/forms/step/DraftStatus";
+import { TaskIdleWarning } from "@/components/forms/step/TaskIdleWarning";
 import { Button } from "@/components/ui/button";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
@@ -59,6 +60,7 @@ export function StepByStepForm({
 
   return (
     <div className="space-y-4" data-testid="step-by-step-form">
+      <TaskIdleWarning enabled onSaveDraft={onSaveDraft} />
       <header className="space-y-2">
         <p className="text-sm font-semibold text-slate-600">
           Step {index + 1} of {total}: {current.title}

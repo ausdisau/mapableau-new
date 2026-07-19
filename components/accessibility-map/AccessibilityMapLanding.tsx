@@ -5,10 +5,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { AccessFitBadge } from "@/components/access-fit/AccessFitBadge";
 import { AccessNeedsTogglePanel } from "@/components/access-fit/AccessNeedsTogglePanel";
+import { AccessPreflight } from "@/components/access-preflight/AccessPreflight";
 import { AccessibleMapListToggle } from "@/components/accessibility-map/AccessibleMapListToggle";
 import { ViewFloorPlanButton } from "@/components/accessibility-map/floor-plan/ViewFloorPlanButton";
 import { OpenStreetMapView } from "@/components/accessibility-map/OpenStreetMapView";
-import { AccessPreflight } from "@/components/access-preflight/AccessPreflight";
 import { ConsistentHelp } from "@/components/help/ConsistentHelp";
 import { calculateAccessFit } from "@/lib/access-fit/calculate-access-fit";
 import { hasActiveAccessNeeds } from "@/lib/access-fit/has-active-access-needs";

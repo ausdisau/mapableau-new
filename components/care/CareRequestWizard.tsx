@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { CarePlanDraftReview } from "@/components/care/CarePlanDraftReview";
@@ -46,7 +46,7 @@ function emptyTask(): CareIntakeTaskRow {
 export function CareRequestWizard({
   redirectBase = "/care",
   participantId,
-  preferredOrganisationId,
+  preferredOrganisationId: _preferredOrganisationId,
   preferredProviderName,
 }: {
   redirectBase?: string;

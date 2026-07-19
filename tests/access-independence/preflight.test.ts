@@ -94,4 +94,53 @@ describe("Access Preflight", () => {
       result.facts.find((fact) => fact.id === "changing_places")?.state,
     ).toBe("unknown");
   });
+
+  it("uses measurements, sensory notes and domains without inventing confirmed access", () => {
+    const rich = place(
+      emptyProfile({
+        stepFreeEntry: true,
+        doorWidthMm: null,
+        accessibleToilet: null,
+      }),
+    );
+    rich.measurements = [
+      { label: "Entrance door clear width", value: "920 mm" },
+      { label: "Path to entrance gradient", value: "1:20" },
+    ];
+    rich.sensoryNotes = ["Quiet study rooms available"];
+    rich.domains = [
+      {
+        name: "External path of travel",
+        summary: "Ramped path from street.",
+        status: "known",
+      },
+      {
+        name: "Internal movement",
+        summary: "Lift to public floors.",
+        status: "known",
+      },
+    ];
+    rich.hasFloorPlan = true;
+    rich.topAccessFacts = ["Changing Places facility on ground floor"];
+
+    const result = buildAccessPreflight(rich);
+    expect(result.facts.find((f) => f.id === "door_width")?.state).toBe(
+      "confirmed",
+    );
+    expect(
+      result.facts.find((f) => f.id === "surface_gradient_kerb")?.state,
+    ).toBe("confirmed");
+    expect(result.facts.find((f) => f.id === "quiet_low_sensory")?.state).toBe(
+      "confirmed",
+    );
+    expect(result.facts.find((f) => f.id === "changing_places")?.state).toBe(
+      "confirmed",
+    );
+    expect(result.facts.find((f) => f.id === "alternative_route")?.state).toBe(
+      "confirmed",
+    );
+    expect(
+      result.facts.find((f) => f.id === "equipment_charging")?.state,
+    ).toBe("unknown");
+  });
 });
