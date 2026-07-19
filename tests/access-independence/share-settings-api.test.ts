@@ -5,11 +5,9 @@ const createAuditEvent = vi.fn();
 const verifyRecipient = vi.fn();
 const listRecipients = vi.fn();
 const findUnique = vi.fn();
-const updateMany = vi.fn();
-const createConsent = vi.fn();
 const updateProfile = vi.fn();
 const createProfile = vi.fn();
-const transaction = vi.fn();
+const replaceAccessPassportConsent = vi.fn();
 
 vi.mock("@/lib/api/auth-handler", () => ({
   requireApiSession: (...args: unknown[]) => requireApiSession(...args),
@@ -26,17 +24,17 @@ vi.mock("@/lib/access-passport/verify-recipient", () => ({
     listRecipients(...args),
 }));
 
+vi.mock("@/lib/consent/consent-service", () => ({
+  replaceAccessPassportConsent: (...args: unknown[]) =>
+    replaceAccessPassportConsent(...args),
+}));
+
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    $transaction: (...args: unknown[]) => transaction(...args),
     accessibilityProfile: {
       findUnique: (...args: unknown[]) => findUnique(...args),
       update: (...args: unknown[]) => updateProfile(...args),
       create: (...args: unknown[]) => createProfile(...args),
-    },
-    consentRecord: {
-      updateMany: (...args: unknown[]) => updateMany(...args),
-      create: (...args: unknown[]) => createConsent(...args),
     },
   },
 }));
@@ -52,19 +50,6 @@ describe("PATCH share-settings consent binding", () => {
       id: "user-1",
       primaryRole: "participant",
     });
-    transaction.mockImplementation(async (fn: (tx: unknown) => unknown) =>
-      fn({
-        accessibilityProfile: {
-          findUnique,
-          update: updateProfile,
-          create: createProfile,
-        },
-        consentRecord: {
-          updateMany,
-          create: createConsent,
-        },
-      }),
-    );
   });
 
   it("creates an organisation-bound grant for a verified recipient", async () => {
@@ -77,8 +62,9 @@ describe("PATCH share-settings consent binding", () => {
       organisationId: orgId,
       displayName: "Acme Care",
     });
-    updateMany.mockResolvedValue({ count: 0 });
-    createConsent.mockResolvedValue({ id: "consent-new" });
+    replaceAccessPassportConsent.mockResolvedValue({
+      consentRecordId: "consent-new",
+    });
     updateProfile.mockResolvedValue({ id: "profile-1" });
 
     const res = await PATCH(
@@ -95,12 +81,11 @@ describe("PATCH share-settings consent binding", () => {
       }),
     );
     expect(res.status).toBe(200);
-    expect(createConsent).toHaveBeenCalledWith(
+    expect(replaceAccessPassportConsent).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          grantedToOrganisationId: orgId,
-          status: "active",
-        }),
+        recipientOrganisationId: orgId,
+        active: true,
+        categories: ["mobility"],
       }),
     );
     const body = (await res.json()) as {
@@ -131,7 +116,7 @@ describe("PATCH share-settings consent binding", () => {
       }),
     );
     expect(res.status).toBe(403);
-    expect(createConsent).not.toHaveBeenCalled();
+    expect(replaceAccessPassportConsent).not.toHaveBeenCalled();
   });
 
   it("revokes the previous grant when sharing changes", async () => {
@@ -154,8 +139,9 @@ describe("PATCH share-settings consent binding", () => {
       organisationId: orgId,
       displayName: "Acme Care",
     });
-    updateMany.mockResolvedValue({ count: 1 });
-    createConsent.mockResolvedValue({ id: "consent-new" });
+    replaceAccessPassportConsent.mockResolvedValue({
+      consentRecordId: "consent-new",
+    });
     updateProfile.mockResolvedValue({ id: "profile-1" });
 
     const res = await PATCH(
@@ -172,8 +158,12 @@ describe("PATCH share-settings consent binding", () => {
       }),
     );
     expect(res.status).toBe(200);
-    expect(updateMany).toHaveBeenCalled();
-    expect(createConsent).toHaveBeenCalled();
+    expect(replaceAccessPassportConsent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        previousConsentRecordId: "consent-old",
+        active: true,
+      }),
+    );
   });
 
   it("does not create a duplicate grant when nothing material changed", async () => {
@@ -206,6 +196,6 @@ describe("PATCH share-settings consent binding", () => {
       }),
     );
     expect(res.status).toBe(200);
-    expect(createConsent).not.toHaveBeenCalled();
+    expect(replaceAccessPassportConsent).not.toHaveBeenCalled();
   });
 });
