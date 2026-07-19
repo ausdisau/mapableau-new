@@ -2,3 +2,4 @@ packages:
   - "."
   - "apps/realtime-server"
   - "packages/*"
+  # apps/companion installs independently (Expo) — see apps/companion/README.md
