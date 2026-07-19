@@ -43,10 +43,12 @@ export function MapAbleCareCombinedHomepageSections() {
 
 export default function MapAbleCareCombinedHomepage() {
   return (
-    <main id="main-content" className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
+    <div className="flex min-h-screen flex-col bg-white text-[#0C1833]">
       <MapAbleCareMarketingHeader />
-      <MapAbleCareCombinedHomepageSections />
+      <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+        <MapAbleCareCombinedHomepageSections />
+      </main>
       <MapAbleCareMarketingFooter />
-    </main>
+    </div>
   );
 }

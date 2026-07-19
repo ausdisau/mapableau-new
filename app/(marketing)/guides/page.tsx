@@ -15,7 +15,7 @@ import {
 } from "@/lib/resources/access-guides-data";
 
 export const metadata = {
-  title: "Access Guides | MapAble",
+  title: "Access Guides",
   description:
     "MapAble Access Guides for Australian capital cities and regional locations — practical accessibility planning for visitors and locals.",
 };

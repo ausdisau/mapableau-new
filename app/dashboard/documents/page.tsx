@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Documents | MapAble" };
+export const metadata = { title: "Documents" };
 
 export default async function DocumentsPage() {
   const user = await requireAuth();

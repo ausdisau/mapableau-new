@@ -5,7 +5,7 @@ import { CorePageHeader } from "@/components/core/CorePageHeader";
 import ResetPasswordClient from "./ResetPasswordClient";
 
 export const metadata = {
-  title: "Reset password | MapAble",
+  title: "Reset password",
 };
 
 export default function ResetPasswordPage() {

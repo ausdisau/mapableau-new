@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/app/lib/utils";
+import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { MapAbleLogo, type MapAbleLogoVariant } from "@/components/brand/MapAbleLogo";
 import { MapAbleNavMenuPanel } from "@/components/brand/MapAbleNavMenuPanel";
 import {
@@ -114,6 +115,7 @@ export function MapAbleSiteHeader({
                 </Link>
               ))}
             </nav>
+            <AccessibilityPanelTrigger />
             {actions ? (
               <div className="flex items-center gap-2">{actions}</div>
             ) : externalCta ? (
@@ -132,20 +134,20 @@ export function MapAbleSiteHeader({
             )}
           </div>
 
-          <button
-            ref={menuButtonRef}
-            type="button"
-            className={cn(
-              "inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              breakpointClasses.menu,
-            )}
-            aria-expanded={open}
-            aria-controls={useGroupedMenu ? "mapable-nav-menu" : "mapable-mobile-nav"}
-            onClick={toggleMenu}
-          >
-            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-            {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
-          </button>
+          <div className={cn("flex items-center gap-2", breakpointClasses.menu)}>
+            <AccessibilityPanelTrigger showLabel={false} />
+            <button
+              ref={menuButtonRef}
+              type="button"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-expanded={open}
+              aria-controls={useGroupedMenu ? "mapable-nav-menu" : "mapable-mobile-nav"}
+              onClick={toggleMenu}
+            >
+              <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+              {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -184,6 +186,9 @@ export function MapAbleSiteHeader({
                 </Link>
               </li>
             ))}
+            <li className="px-3 pt-2">
+              <AccessibilityPanelTrigger className="w-full justify-start" />
+            </li>
             {actions ? (
               <li className="flex flex-col gap-2 px-3 pt-2">{actions}</li>
             ) : (

@@ -11,7 +11,7 @@ import { mapableRoleNavBarClass } from "@/lib/brand/styles";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Billing Centre | MapAble",
+  title: "Billing Centre",
   description:
     "MapAble Billing Centre — invoices, claims, payments, and finance workspaces",
 };

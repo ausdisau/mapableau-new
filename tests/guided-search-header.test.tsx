@@ -53,7 +53,7 @@ describe("MapAbleCareMarketingHeader", () => {
   it("renders donate link to Australian Disability", () => {
     render(<MapAbleCareMarketingHeader />);
 
-    const donate = screen.getByRole("link", { name: "Donate" });
+    const donate = screen.getByRole("link", { name: /Donate/i });
     expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
     expect(donate.getAttribute("target")).toBe("_blank");
     expect(donate.getAttribute("rel")).toBe("noopener noreferrer");

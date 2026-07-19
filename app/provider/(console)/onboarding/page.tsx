@@ -4,7 +4,7 @@ import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
 
-export const metadata = { title: "Provider onboarding | MapAble" };
+export const metadata = { title: "Provider onboarding" };
 
 export default async function ProviderOnboardingPage() {
   const user = await requireAuth();

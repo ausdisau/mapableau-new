@@ -11,7 +11,7 @@ import {
 } from "@/lib/canvas/canvas-filters";
 
 export const metadata = {
-  title: "For providers | MapAble",
+  title: "For providers",
   description:
     "Register provider interest for the MapAble controlled pilot and verification pathway.",
 };

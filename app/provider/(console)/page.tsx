@@ -7,7 +7,7 @@ import { roleLabel } from "@/lib/auth/roles";
 import { getEnterpriseWorkspaceSummaryV2 } from "@/lib/enterprise-provider/workspace-v2-service";
 import { getProviderControlPanelSummaryForUser } from "@/lib/provider/provider-control-panel-service";
 
-export const metadata = { title: "Provider control panel | MapAble" };
+export const metadata = { title: "Provider control panel" };
 
 function MetricTile({
   label,

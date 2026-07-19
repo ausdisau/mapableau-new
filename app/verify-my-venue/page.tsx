@@ -4,7 +4,7 @@ import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMar
 import { VerifyVenueForm } from "@/components/venue/VerifyVenueForm";
 
 export const metadata: Metadata = {
-  title: "Verify my venue | MapAble",
+  title: "Verify my venue",
   description:
     "Make venue accessibility visible and measurable with MapAble Bronze, Silver and Gold accreditation guidance.",
 };

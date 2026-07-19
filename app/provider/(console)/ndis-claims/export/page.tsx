@@ -2,7 +2,7 @@ import { NdisDirectClaimingClient } from "@/components/provider/ndis-claiming/Nd
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { requirePermission } from "@/lib/auth/guards";
 
-export const metadata = { title: "Export claim batch | NDIS claiming | MapAble" };
+export const metadata = { title: "Export claim batch | NDIS claiming" };
 
 export default async function ExportClaimBatchPage() {
   const user = await requirePermission("provider:ndis:claim");

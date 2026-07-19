@@ -3,8 +3,12 @@
 import Link from "next/link";
 import React, { type ReactNode } from "react";
 
+import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { SponsoredBadge } from "@/components/marketing/mapable-care-shared";
-import { MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
+import {
+  MAPABLE_SOCIAL_LINKS,
+  MAPABLE_SUPPORT_EMAIL,
+} from "@/lib/brand/constants";
 import {
   companyRegistrationDetails,
   footerPlatformLinks,
@@ -12,35 +16,39 @@ import {
   MAPABLE_CARE_COMBINED_PHONE,
   sponsoredPlacements,
 } from "@/lib/marketing/mapable-care-combined-data";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 function FooterTextLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link
       href={href}
-      className="rounded-lg text-sm font-medium text-slate-600 transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+      className={`rounded-lg text-sm font-medium text-slate-600 transition hover:text-[#005B7F] ${mapableCareFocusRing}`}
     >
       {children}
     </Link>
   );
 }
 
-const socialLinks = [
-  { href: "https://facebook.com", label: "Facebook", icon: "f" },
-  { href: "https://twitter.com", label: "X", icon: "𝕏" },
-  { href: "https://instagram.com", label: "Instagram", icon: "◎" },
-  { href: "https://linkedin.com", label: "LinkedIn", icon: "in" },
-] as const;
-
-function SocialLink({ href, label, icon }: { href: string; label: string; icon: string }) {
+function SocialLink({
+  href,
+  label,
+  icon,
+}: {
+  href: string;
+  label: string;
+  icon: string;
+}) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black text-slate-600 transition hover:bg-white hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-sm font-black text-slate-600 transition hover:bg-white hover:text-[#005B7F] ${mapableCareFocusRing}`}
     >
-      {icon}
+      <span aria-hidden="true">{icon}</span>
+      <span className="sr-only">
+        {label} (opens in a new tab)
+      </span>
     </a>
   );
 }
@@ -58,9 +66,12 @@ function FooterBrandMark() {
 
 function AustralianDisabilityMark() {
   return (
-    <div className="mt-5 rounded-2xl border border-slate-200 bg-white/60 p-4">
+    <div
+      className="mt-5 rounded-2xl border border-slate-200 bg-white/60 p-4"
+      data-a11y-nonessential
+    >
       <div className="flex items-center gap-3">
-        <div className="text-3xl font-black leading-none tracking-tight">
+        <div className="text-3xl font-black leading-none tracking-tight" aria-hidden="true">
           <span className="text-[#2F80C4]">A</span>
           <span className="text-[#2AA6B8]">D</span>
         </div>
@@ -83,8 +94,22 @@ function RegistrationDetails() {
         <dd>{companyRegistrationDetails.abn}</dd>
       </div>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <dt className="font-black text-[#0C1833]">NDIS Registration Number:</dt>
-        <dd>{companyRegistrationDetails.ndisRegistrationNumber}</dd>
+        <dt className="font-black text-[#0C1833]">NDIS registration:</dt>
+        <dd>
+          {companyRegistrationDetails.ndisRegistrationNumber}
+          {companyRegistrationDetails.ndisRegistrationNumber === "To be confirmed" ? (
+            <>
+              {" "}
+              —{" "}
+              <Link
+                href="/accessibility-statement"
+                className={`font-semibold text-[#005B7F] underline-offset-2 hover:underline ${mapableCareFocusRing}`}
+              >
+                status explained
+              </Link>
+            </>
+          ) : null}
+        </dd>
       </div>
     </dl>
   );
@@ -94,7 +119,10 @@ function FooterPartnerStrip() {
   const footerPlacements = sponsoredPlacements.filter((placement) => placement.placement === "footer");
   if (footerPlacements.length === 0) return null;
   return (
-    <div className="mb-10 rounded-[1.5rem] border border-slate-200 bg-white p-5">
+    <div
+      className="mb-10 rounded-[1.5rem] border border-slate-200 bg-white p-5"
+      data-a11y-nonessential
+    >
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <SponsoredBadge>Community partners</SponsoredBadge>
@@ -107,7 +135,7 @@ function FooterPartnerStrip() {
             <Link
               key={placement.id}
               href={placement.href}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:bg-[#F8C51C]/15 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+              className={`rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:bg-[#F8C51C]/15 ${mapableCareFocusRing}`}
             >
               <span className="block text-sm font-black text-[#0C1833]">{placement.title}</span>
               <span className="mt-1 block text-xs leading-5 text-slate-600">
@@ -121,7 +149,12 @@ function FooterPartnerStrip() {
   );
 }
 
+function copyrightYear(): number {
+  return new Date().getFullYear();
+}
+
 export function MapAbleCareMarketingFooter() {
+  const year = copyrightYear();
   return (
     <footer className="mt-auto border-t border-slate-200 bg-slate-50 text-[#0C1833]">
       <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-14">
@@ -133,11 +166,18 @@ export function MapAbleCareMarketingFooter() {
               A combined care and support platform helping people with disability connect with care,
               transport, opportunity and everyday access.
             </p>
-            <div className="mt-5 flex items-center gap-2">
-              {socialLinks.map((link) => (
-                <SocialLink key={link.label} href={link.href} label={link.label} icon={link.icon} />
-              ))}
-            </div>
+            {MAPABLE_SOCIAL_LINKS.length > 0 ? (
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {MAPABLE_SOCIAL_LINKS.map((link) => (
+                  <SocialLink
+                    key={link.label}
+                    href={link.href}
+                    label={link.label}
+                    icon={link.icon}
+                  />
+                ))}
+              </div>
+            ) : null}
             <AustralianDisabilityMark />
             <RegistrationDetails />
           </section>
@@ -163,6 +203,8 @@ export function MapAbleCareMarketingFooter() {
                   {item.label}
                 </FooterTextLink>
               ))}
+              <FooterTextLink href="/contact">Accessibility feedback</FooterTextLink>
+              <AccessibilityPanelTrigger variant="link" className="justify-start text-left" />
             </nav>
           </section>
           <section aria-labelledby="footer-contact-heading">
@@ -172,13 +214,13 @@ export function MapAbleCareMarketingFooter() {
             <address className="mt-5 grid gap-4 not-italic text-sm text-slate-600">
               <a
                 href={`mailto:${MAPABLE_SUPPORT_EMAIL}`}
-                className="rounded-lg transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                className={`rounded-lg transition hover:text-[#005B7F] ${mapableCareFocusRing}`}
               >
                 {MAPABLE_SUPPORT_EMAIL}
               </a>
               <a
                 href="tel:0434083624"
-                className="rounded-lg transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                className={`rounded-lg transition hover:text-[#005B7F] ${mapableCareFocusRing}`}
               >
                 {MAPABLE_CARE_COMBINED_PHONE}
               </a>
@@ -187,7 +229,7 @@ export function MapAbleCareMarketingFooter() {
           </section>
         </div>
         <div className="mt-10 flex flex-col gap-4 border-t border-slate-200 pt-7 text-xs text-slate-600 md:flex-row md:items-center md:justify-between">
-          <p>© 2025 Australian Disability Ltd. All rights reserved.</p>
+          <p>© {year} Australian Disability Ltd. All rights reserved.</p>
           <nav className="flex gap-6" aria-label="Legal links">
             <FooterTextLink href="/privacy">Privacy Policy</FooterTextLink>
             <FooterTextLink href="/terms">Terms of Service</FooterTextLink>
@@ -199,16 +241,19 @@ export function MapAbleCareMarketingFooter() {
 }
 
 export function MapAbleCareSlimFooter() {
+  const year = copyrightYear();
   return (
     <footer className="mt-auto border-t border-slate-200 bg-slate-50 text-[#0C1833]">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-        <p>© 2025 Australian Disability Ltd.</p>
+        <p>© {year} Australian Disability Ltd.</p>
         <nav className="flex flex-wrap gap-4" aria-label="Legal links">
           <FooterTextLink href="/privacy">Privacy</FooterTextLink>
           <FooterTextLink href="/terms">Terms</FooterTextLink>
+          <FooterTextLink href="/accessibility-statement">Accessibility</FooterTextLink>
+          <AccessibilityPanelTrigger variant="link" />
           <a
             href={`mailto:${MAPABLE_SUPPORT_EMAIL}`}
-            className="rounded-lg font-medium transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className={`rounded-lg font-medium transition hover:text-[#005B7F] ${mapableCareFocusRing}`}
           >
             Contact
           </a>

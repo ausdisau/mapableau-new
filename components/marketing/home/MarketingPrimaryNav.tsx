@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { LogoMark } from "@/components/marketing/mapable-care-shared";
 import { MAPABLE_DONATION_URL } from "@/lib/brand/constants";
 import { marketingFeatureRoutes } from "@/lib/marketing/mapable-care-routes";
@@ -46,8 +47,14 @@ function DonateHeaderLink({ compact = false }: { compact?: boolean }) {
     : `inline-flex min-h-11 items-center rounded-xl bg-[#F8C51C] px-4 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] md:px-5 ${mapableCareFocusRing}`;
 
   return (
-    <a href={MAPABLE_DONATION_URL} target="_blank" rel="noopener noreferrer" className={className}>
+    <a
+      href={MAPABLE_DONATION_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
       Donate
+      <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
 }
@@ -78,7 +85,26 @@ export function MarketingPrimaryNav() {
   const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
-  useDismissOnOutsideAndEscape(mobileOpen, () => setMobileOpen(false), navRef);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const firstMobileLinkRef = useRef<HTMLAnchorElement>(null);
+  const menuId = useId();
+  const wasOpenRef = useRef(false);
+
+  const closeMobile = useCallback(() => {
+    setMobileOpen(false);
+  }, []);
+
+  useDismissOnOutsideAndEscape(mobileOpen, closeMobile, navRef);
+
+  useEffect(() => {
+    if (mobileOpen && !wasOpenRef.current) {
+      firstMobileLinkRef.current?.focus();
+    }
+    if (!mobileOpen && wasOpenRef.current) {
+      menuButtonRef.current?.focus();
+    }
+    wasOpenRef.current = mobileOpen;
+  }, [mobileOpen]);
 
   const searchHref = isHome ? "#guided-search-panel" : marketingFeatureRoutes.providerFinder;
 
@@ -93,11 +119,11 @@ export function MarketingPrimaryNav() {
     <div ref={navRef} className="relative flex w-full items-center justify-between gap-4">
       <Link
         href={marketingFeatureRoutes.home}
+        aria-label="MapAble home"
         className={`shrink-0 overflow-visible rounded-2xl p-1 transition hover:bg-slate-50 ${mapableCareFocusRing}`}
         onClick={() => setMobileOpen(false)}
       >
-        <span className="sr-only">MapAble home</span>
-        <LogoMark />
+        <LogoMark decorative />
       </Link>
 
       <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
@@ -109,43 +135,51 @@ export function MarketingPrimaryNav() {
       </nav>
 
       <div className="flex items-center gap-2 md:gap-3">
+        <div className="hidden md:block">
+          <AccessibilityPanelTrigger />
+        </div>
         <DonateHeaderLink />
         <div className="hidden md:flex">
           <MarketingAuthLinks />
         </div>
         <button
+          ref={menuButtonRef}
           type="button"
           aria-expanded={mobileOpen}
-          aria-controls="marketing-primary-nav-mobile"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black md:hidden ${mapableCareFocusRing}`}
+          aria-controls={menuId}
+          onClick={() => setMobileOpen((open) => !open)}
+          className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black md:hidden ${mapableCareFocusRing}`}
         >
           Menu
         </button>
       </div>
 
-      {mobileOpen && (
+      {mobileOpen ? (
         <div
-          id="marketing-primary-nav-mobile"
+          id={menuId}
           className="absolute left-5 right-5 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl md:hidden"
         >
           <nav aria-label="Primary mobile" className="grid gap-1">
-            {primaryLinks.map((link) => (
+            {primaryLinks.map((link, index) => (
               <Link
                 key={link.label}
+                ref={index === 0 ? firstMobileLinkRef : undefined}
                 href={link.href}
-                className={`min-h-11 rounded-xl px-4 py-3 text-sm font-black text-[#0C1833] transition hover:bg-slate-50 ${mapableCareFocusRing}`}
-                onClick={() => setMobileOpen(false)}
+                className={`flex min-h-11 items-center rounded-xl px-4 py-3 text-sm font-black text-[#0C1833] transition hover:bg-slate-50 ${mapableCareFocusRing}`}
+                onClick={closeMobile}
               >
                 {link.label}
               </Link>
             ))}
+            <div className="px-1 py-1">
+              <AccessibilityPanelTrigger className="w-full justify-start" />
+            </div>
           </nav>
           <div className="mt-3 border-t border-slate-100 pt-3">
             <MarketingAuthLinks compact />
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

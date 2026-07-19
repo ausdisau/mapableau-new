@@ -41,12 +41,15 @@ export function AccessibilityProfileForm({
     communicationPreferences: string[];
     transportRequirements: TransportRequirements;
     digitalPreferences: DigitalPreferences;
+    sensoryPreferences?: Record<string, unknown>;
+    cognitivePreferences?: Record<string, unknown>;
+    shareWithProviders?: Record<string, boolean>;
   };
 }) {
   const router = useRouter();
   const [mobility, setMobility] = useState<string[]>(initial.mobilityNeeds);
   const [communication, setCommunication] = useState<string[]>(
-    initial.communicationPreferences
+    initial.communicationPreferences,
   );
   const [transport, setTransport] = useState(initial.transportRequirements);
   const [digital, setDigital] = useState(initial.digitalPreferences);
@@ -54,11 +57,7 @@ export function AccessibilityProfileForm({
   const [loading, setLoading] = useState(false);
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
-    setter(
-      list.includes(value)
-        ? list.filter((x) => x !== value)
-        : [...list, value]
-    );
+    setter(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
   }
 
   return (
@@ -75,9 +74,10 @@ export function AccessibilityProfileForm({
             communicationPreferences: communication,
             transportRequirements: transport,
             digitalPreferences: digital,
-            sensoryPreferences: {},
-            cognitivePreferences: {},
-            shareWithProviders: {},
+            // Preserve unrelated profile JSON — never reset to empty objects.
+            sensoryPreferences: initial.sensoryPreferences ?? {},
+            cognitivePreferences: initial.cognitivePreferences ?? {},
+            shareWithProviders: initial.shareWithProviders ?? {},
           }),
         });
         setLoading(false);
@@ -97,7 +97,10 @@ export function AccessibilityProfileForm({
           <legend className="sr-only">Mobility aids</legend>
           <div className="flex flex-wrap gap-2">
             {MOBILITY_OPTIONS.map((opt) => (
-              <label key={opt} className="flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-border px-3">
+              <label
+                key={opt}
+                className="flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-border px-3"
+              >
                 <input
                   type="checkbox"
                   checked={mobility.includes(opt)}
@@ -116,7 +119,10 @@ export function AccessibilityProfileForm({
       >
         <div className="flex flex-wrap gap-2">
           {COMM_OPTIONS.map((opt) => (
-            <label key={opt} className="flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-border px-3">
+            <label
+              key={opt}
+              className="flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-border px-3"
+            >
               <input
                 type="checkbox"
                 checked={communication.includes(opt)}
@@ -133,14 +139,16 @@ export function AccessibilityProfileForm({
         description="Requirements for accessible transport bookings"
       >
         <div className="space-y-3">
-          {[
-            ["requiresWheelchairAccessibleVehicle", "Wheelchair accessible vehicle"],
-            ["canTransferFromWheelchair", "Can transfer from wheelchair"],
-            ["requiresRamp", "Requires ramp"],
-            ["assistanceAnimalPresent", "Assistance animal"],
-            ["needsDriverAssistanceToDoor", "Driver assistance to door"],
-            ["needsExtraBoardingTime", "Extra boarding time"],
-          ].map(([key, label]) => (
+          {(
+            [
+              ["requiresWheelchairAccessibleVehicle", "Wheelchair accessible vehicle"],
+              ["canTransferFromWheelchair", "Can transfer from wheelchair"],
+              ["requiresRamp", "Requires ramp"],
+              ["assistanceAnimalPresent", "Assistance animal"],
+              ["needsDriverAssistanceToDoor", "Driver assistance to door"],
+              ["needsExtraBoardingTime", "Extra boarding time"],
+            ] as const
+          ).map(([key, label]) => (
             <label key={key} className="flex min-h-10 items-center gap-2">
               <input
                 type="checkbox"
@@ -168,22 +176,28 @@ export function AccessibilityProfileForm({
 
       <AccessibilityPreferenceCard
         title="Digital interface"
-        description="How MapAble should present information to you"
+        description="Legacy flags kept for compatibility. Use Accessibility settings in the header for display personalisation — these flags do not toggle keyboard or screen-reader support."
       >
         <div className="space-y-2">
-          {[
-            ["largeText", "Large text"],
-            ["highContrast", "High contrast"],
-            ["reducedMotion", "Reduced motion"],
-            ["screenReaderUser", "Screen reader user"],
-            ["simpleLanguageMode", "Simple language mode"],
-          ].map(([key, label]) => (
+          {(
+            [
+              ["largeText", "Large text"],
+              ["highContrast", "High contrast"],
+              ["reducedMotion", "Reduced motion"],
+              ["simpleLanguageMode", "Simple language mode"],
+            ] as const
+          ).map(([key, label]) => (
             <label key={key} className="flex min-h-10 items-center gap-2">
               <input
                 type="checkbox"
-                checked={Boolean(digital[key as keyof DigitalPreferences])}
+                checked={Boolean(digital[key])}
                 onChange={(e) =>
-                  setDigital({ ...digital, [key]: e.target.checked })
+                  setDigital({
+                    ...digital,
+                    [key]: e.target.checked,
+                    // Preserve nested panel UI prefs when editing legacy flags.
+                    ui: digital.ui,
+                  })
                 }
               />
               <span className="text-sm">{label}</span>

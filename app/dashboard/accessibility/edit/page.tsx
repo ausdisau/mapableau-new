@@ -31,6 +31,12 @@ export default async function EditAccessibilityPage() {
             (profile?.transportRequirements as TransportRequirements) ?? {},
           digitalPreferences:
             (profile?.digitalPreferences as DigitalPreferences) ?? {},
+          sensoryPreferences:
+            (profile?.sensoryPreferences as Record<string, unknown>) ?? {},
+          cognitivePreferences:
+            (profile?.cognitivePreferences as Record<string, unknown>) ?? {},
+          shareWithProviders:
+            (profile?.shareWithProviders as Record<string, boolean>) ?? {},
         }}
       />
     </div>

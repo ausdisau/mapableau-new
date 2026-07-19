@@ -1,21 +1,29 @@
 .mapable-display {
-  font-family: ui-rounded, "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  font-family: var(--font-heading), Outfit, ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
+/* Prefer Plus Jakarta Sans from the root layout — do not override body with a third face. */
 .mapable-soft {
-  font-family: "Trebuchet MS", ui-rounded, system-ui, sans-serif;
+  font-family: inherit;
 }
 
 .mapable-wavy-letter {
   display: inline-block;
   transform: translateY(var(--wave-y, 0em)) rotate(var(--wave-r, 0deg));
   transform-origin: 50% 80%;
+  letter-spacing: -0.02em;
 }
 
 .mapable-wavy-word {
   display: inline-block;
   white-space: nowrap;
-  margin-right: 0.34em;
+  margin-right: 0.28em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapable-wavy-letter {
+    transform: none;
+  }
 }

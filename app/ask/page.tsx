@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { AskPageClient } from "./AskPageClient";
 
 export const metadata = {
-  title: "Ask MapAble | MapAble",
+  title: "Ask MapAble",
   description:
     "Accessible Co-Pilot guidance with participant-controlled PRMS records underneath.",
 };

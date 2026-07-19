@@ -23,3 +23,36 @@ export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 export const MAPABLE_LOGO_MARK_SRC = "/brand/mapable-logo-mark.svg";
 
 export const MAPABLE_LOGO_ALT = "MapAble — Empowering Independence";
+
+/**
+ * Verified organisation social profiles. Only configured URLs are rendered.
+ * Never invent MapAble account URLs — leave unset until confirmed.
+ */
+export type MapAbleSocialLink = {
+  href: string;
+  label: string;
+  icon: string;
+};
+
+function socialFromEnv(
+  envValue: string | undefined,
+  label: string,
+  icon: string,
+): MapAbleSocialLink | null {
+  const href = envValue?.trim();
+  if (!href) return null;
+  try {
+    const url = new URL(href);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return { href: url.toString(), label, icon };
+  } catch {
+    return null;
+  }
+}
+
+export const MAPABLE_SOCIAL_LINKS: MapAbleSocialLink[] = [
+  socialFromEnv(process.env.NEXT_PUBLIC_FACEBOOK_URL, "Facebook", "f"),
+  socialFromEnv(process.env.NEXT_PUBLIC_X_URL, "X", "𝕏"),
+  socialFromEnv(process.env.NEXT_PUBLIC_INSTAGRAM_URL, "Instagram", "◎"),
+  socialFromEnv(process.env.NEXT_PUBLIC_LINKEDIN_URL, "LinkedIn", "in"),
+].filter((link): link is MapAbleSocialLink => link !== null);
