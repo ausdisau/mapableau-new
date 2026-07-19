@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AccessFitBadge } from "@/components/access-fit/AccessFitBadge";
 import { ViewFloorPlanButton } from "@/components/accessibility-map/floor-plan/ViewFloorPlanButton";
 import { calculateAccessFit } from "@/lib/access-fit/calculate-access-fit";
+import { hasActiveAccessNeeds } from "@/lib/access-fit/has-active-access-needs";
 import type { AccessNeed } from "@/lib/access-fit/types";
 import type { DemoAccessPlace } from "@/lib/demo/accessibility-places";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
@@ -21,6 +22,7 @@ export function AccessibilityMapPopup({
   onViewDetails,
 }: AccessibilityMapPopupProps) {
   const fit = calculateAccessFit(activeNeeds, place.profile);
+  const preferencesActive = hasActiveAccessNeeds(activeNeeds);
 
   return (
     <div className="access-map-popup min-w-[220px] max-w-[280px] text-sm text-[#0C1833]">
@@ -29,9 +31,9 @@ export function AccessibilityMapPopup({
         {place.category.replace(/_/g, " ")} · {place.suburb}, {place.state}
       </p>
 
-      <dl className="mt-2 space-y-1">
+      <dl className="mt-2 space-y-1 text-sm">
         <div className="flex flex-wrap gap-x-2">
-          <dt className="font-semibold">Access score:</dt>
+          <dt className="font-semibold">Access evidence score:</dt>
           <dd>
             {place.accessScore} · {place.tier}
           </dd>
@@ -70,7 +72,11 @@ export function AccessibilityMapPopup({
       ) : null}
 
       <div className="mt-2">
-        <AccessFitBadge score={fit.score} label={fit.label} />
+        <AccessFitBadge
+          score={fit.score}
+          label={fit.label}
+          preferencesActive={preferencesActive}
+        />
       </div>
 
       <div className="mt-3 space-y-2">

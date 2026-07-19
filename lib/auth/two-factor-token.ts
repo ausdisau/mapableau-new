@@ -7,6 +7,7 @@ const TWO_FACTOR_TOKEN_VERSION = "v1";
 export type TwoFactorTokenPurpose =
   | "credentials-2fa"
   | "credentials-passkey"
+  | "credentials-magic-link"
   | "passkey-authentication"
   | "passkey-registration"
   | "twilio-2fa-challenge";

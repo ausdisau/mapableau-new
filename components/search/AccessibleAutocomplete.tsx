@@ -302,8 +302,9 @@ export function AccessibleAutocomplete({
             <li
               className="px-3 py-2.5 text-sm text-muted-foreground"
               role="presentation"
+              aria-hidden="true"
             >
-              Loading suggestions…
+              Loading…
             </li>
           ) : null}
           {suggestions.length === 0 && !loading ? (

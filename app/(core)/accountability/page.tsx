@@ -5,6 +5,12 @@ import {
   listPublicAccountabilityReports,
 } from "@/lib/national-accountability/accountability-service";
 
+export const metadata = {
+  title: "National accountability portal",
+  description:
+    "Published aggregate accountability reports — no participant-identifiable data.",
+};
+
 export default async function AccountabilityPortalPage() {
   const [reports, partners] = await Promise.all([
     listPublicAccountabilityReports(),
@@ -19,7 +25,7 @@ export default async function AccountabilityPortalPage() {
       <p className="text-muted-foreground">
         Published aggregate accountability reports — no participant-identifiable data.
       </p>
-      <p className="text-xs text-muted-foreground">{getAccountabilityDisclaimer()}</p>
+      <p className="text-sm text-muted-foreground">{getAccountabilityDisclaimer()}</p>
       {partners.length > 0 ? (
         <section className="space-y-3">
           <h2 className="font-medium">Federated partners</h2>
@@ -47,6 +53,11 @@ export default async function AccountabilityPortalPage() {
           </li>
         ))}
       </ul>
+      {reports.length === 0 ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          No published accountability reports are available right now.
+        </p>
+      ) : null}
     </div>
   );
 }

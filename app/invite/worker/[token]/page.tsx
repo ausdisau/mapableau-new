@@ -1,6 +1,6 @@
 import { WorkerInviteAcceptClient } from "@/components/worker/WorkerInviteAcceptClient";
 
-export const metadata = { title: "Accept worker invite | MapAble" };
+export const metadata = { title: "Accept worker invite" };
 
 export default async function WorkerInvitePage({
   params,

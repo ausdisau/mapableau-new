@@ -1,6 +1,7 @@
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import Link from "next/link";
 
+import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
 import {
   MAPABLE_MARKETING_URL,
@@ -139,6 +140,9 @@ export function MapAbleMarketingFooter() {
                 >
                   Accessibility
                 </Link>
+              </li>
+              <li>
+                <AccessibilityPanelTrigger variant="link" />
               </li>
             </ul>
           </div>

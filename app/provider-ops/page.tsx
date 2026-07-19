@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth/guards";
 import { isProviderOpsEnabled } from "@/lib/config/provider-ops";
 
 export const metadata = {
-  title: "Provider Operations | MapAble",
+  title: "Provider Operations",
 };
 
 export default async function ProviderOpsPage({

@@ -6,7 +6,7 @@ import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMar
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export const metadata: Metadata = {
-  title: "Mapping Days | MapAble",
+  title: "Mapping Days",
   description:
     "Join community mapping days to collect evidence-based access information across Australian suburbs.",
 };

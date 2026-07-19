@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { ensureOAuthUser } from "@/lib/auth/ensure-oauth-user";
+import { consumeMagicLinkToken } from "@/lib/auth/magic-link-token";
 import {
   ensureNextAuthEnv,
   resolveNextAuthSecret,
@@ -41,6 +42,7 @@ export const authOptions = {
       credentials: {
         email: { type: "email" },
         passkeyToken: { type: "text" },
+        magicLinkToken: { type: "text" },
         password: { type: "password" },
         twoFactorToken: { type: "text" },
       },
@@ -51,6 +53,26 @@ export const authOptions = {
           hasPassword: Boolean(credentials?.password),
         });
         // #endregion
+
+        if (credentials?.magicLinkToken) {
+          // One-time DB-backed tokens only — never accept replayable signed JWT magic links.
+          const consumed = await consumeMagicLinkToken(
+            credentials.magicLinkToken,
+          );
+          if (!consumed) return null;
+
+          const user = await prisma.user.findUnique({
+            where: { id: consumed.userId },
+          });
+          if (!user) return null;
+
+          return {
+            id: user.id,
+            email: user.email ?? null,
+            name: user.name ?? null,
+            role: user.primaryRole,
+          };
+        }
 
         if (credentials?.passkeyToken) {
           const token = verifyTwoFactorToken(

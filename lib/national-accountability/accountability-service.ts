@@ -37,21 +37,26 @@ export async function publishAccountabilityReport(params: {
 
 export async function listPublicAccountabilityReports() {
   if (!phase12Config.nationalAccountabilityPortalEnabled) return [];
-  return prisma.nationalAccountabilityPublication.findMany({
-    where: { status: "published" },
-    orderBy: { publishedAt: "desc" },
-    take: 30,
-    select: {
-      id: true,
-      periodLabel: true,
-      title: true,
-      summary: true,
-      category: true,
-      metricsJson: true,
-      federatedPartnerId: true,
-      publishedAt: true,
-    },
-  });
+  try {
+    return await prisma.nationalAccountabilityPublication.findMany({
+      where: { status: "published" },
+      orderBy: { publishedAt: "desc" },
+      take: 30,
+      select: {
+        id: true,
+        periodLabel: true,
+        title: true,
+        summary: true,
+        category: true,
+        metricsJson: true,
+        federatedPartnerId: true,
+        publishedAt: true,
+      },
+    });
+  } catch {
+    // Public page should remain readable when the database is unavailable.
+    return [];
+  }
 }
 
 export function getAccountabilityDisclaimer() {

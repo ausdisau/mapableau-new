@@ -93,18 +93,22 @@ export async function publishCoordinatedReportBundle(params: {
 
 export async function listPublicFederatedPartners() {
   if (!isFederatedAccountabilityV2Enabled()) return [];
-  return prisma.federatedAccountabilityPartner.findMany({
-    where: { status: "active" },
-    orderBy: { linkedAt: "desc" },
-    take: 30,
-    select: {
-      id: true,
-      partnerName: true,
-      jurisdiction: true,
-      jurisdictionLabel: true,
-      scope: true,
-      linkedPublicationId: true,
-      linkedAt: true,
-    },
-  });
+  try {
+    return await prisma.federatedAccountabilityPartner.findMany({
+      where: { status: "active" },
+      orderBy: { linkedAt: "desc" },
+      take: 30,
+      select: {
+        id: true,
+        partnerName: true,
+        jurisdiction: true,
+        jurisdictionLabel: true,
+        scope: true,
+        linkedPublicationId: true,
+        linkedAt: true,
+      },
+    });
+  } catch {
+    return [];
+  }
 }

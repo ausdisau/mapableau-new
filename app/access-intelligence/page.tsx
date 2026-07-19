@@ -5,7 +5,7 @@ import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMar
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export const metadata: Metadata = {
-  title: "Access Intelligence | MapAble",
+  title: "Access Intelligence",
   description:
     "Aggregated accessibility intelligence for councils, venues, tourism, transport partners, and disability organisations.",
 };

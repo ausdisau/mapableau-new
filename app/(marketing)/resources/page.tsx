@@ -25,7 +25,7 @@ import {
 } from "@/lib/resources/access-guides-data";
 
 export const metadata = {
-  title: "Resources | MapAble",
+  title: "Resources",
   description:
     "MapAble resource hub for Access Guides, modules, ecosystem canvas, policy links, and support pathways.",
 };

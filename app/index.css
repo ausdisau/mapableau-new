@@ -44,6 +44,12 @@
   --mapable-navy: 222 56% 12%;
   --mapable-gold: 45 94% 54%;
   --mapable-surface: 195 50% 98%;
+  --mapable-navy-hex: #0c1833;
+  --mapable-teal-hex: #005b7f;
+  --mapable-green-hex: #00a979;
+  --mapable-gold-hex: #f8c51c;
+  --mapable-surface-hex: #f6fbfc;
+  --mapable-header-offset: 105px;
 }
 
 .dark {
@@ -94,6 +100,39 @@
 }
 
 @layer components {
+  /**
+   * Canonical MapAble keyboard focus indicator.
+   * Dark navy ring + white offset remains visible on white, teal, green, navy and maps.
+   * Prefer pairing with Tailwind `mapableCareFocusRing` token classes.
+   */
+  .mapable-focus:focus-visible {
+    outline: 2px solid var(--mapable-navy-hex);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px #ffffff;
+  }
+
+  @media (forced-colors: active) {
+    .mapable-focus:focus-visible {
+      outline: 3px solid Highlight;
+      outline-offset: 2px;
+      box-shadow: none;
+    }
+  }
+
+  /* Sticky header fragment targets (marketing primary nav ~105px) */
+  #guided-search-panel,
+  #map-preview,
+  #main-content,
+  #my-access-needs {
+    scroll-margin-top: var(--mapable-header-offset, 105px);
+  }
+
+  @media (max-width: 767px) {
+    :root {
+      --mapable-header-offset: 88px;
+    }
+  }
+
   .map-marker {
     box-sizing: border-box;
     border: 2px solid white;
@@ -190,9 +229,10 @@
     color: white;
   }
 
+  /* Navy text on brand green — white on #00A979 is ~3.02:1 (fails AA for marker glyphs) */
   .access-map-marker--silver {
     background: #00A979;
-    color: white;
+    color: #0C1833;
   }
 
   .access-map-marker--bronze {
@@ -219,8 +259,37 @@
   }
 
   .access-map-marker:focus-visible {
-    outline: 3px solid #F8C51C;
-    outline-offset: 2px;
+    outline: 2px solid #0C1833;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 5px #ffffff, 0 2px 6px rgb(0 0 0 / 0.35);
+  }
+
+  @media (forced-colors: active) {
+    .access-map-marker:focus-visible {
+      outline: 3px solid Highlight;
+      box-shadow: none;
+    }
+  }
+
+  /* Leaflet zoom — ~44×44px activation areas */
+  .access-map-leaflet .leaflet-control-zoom a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 18px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .access-map-leaflet .leaflet-control-zoom {
+    border: none !important;
+    margin-top: 12px !important;
+    margin-left: 12px !important;
+  }
+
+  .access-map-leaflet .leaflet-control-attribution {
+    max-width: calc(100% - 8rem);
   }
 
   .access-map-user-marker {
@@ -387,5 +456,552 @@
     .fp-marker--selected {
       outline: 3px solid Highlight;
     }
+  }
+}
+
+/* =============================================================================
+   MapAble Accessibility Panel — presentation preferences (data-a11y-* layer)
+   Personalisation only. Core keyboard/screen-reader accessibility is always on.
+   Forced-colours mode takes precedence. Prefer tokens over hard-coded overrides.
+   ============================================================================= */
+
+:root {
+  --a11y-text-scale: 1;
+}
+
+html {
+  font-size: calc(100% * var(--a11y-text-scale, 1));
+}
+
+/* Do not scale map geometry with root rem uncontrollably */
+.leaflet-container,
+.leaflet-pane,
+.access-map-canvas,
+[data-mapable-map] {
+  font-size: 16px;
+}
+
+/* --- Text --- */
+html[data-a11y-font="readable"] body {
+  font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+html[data-a11y-font="dyslexia-friendly"] body {
+  font-family: "Comic Neue", "Atkinson Hyperlegible", "Segoe UI", Verdana, sans-serif;
+  letter-spacing: 0.03em;
+  word-spacing: 0.08em;
+}
+
+html[data-a11y-line-height="relaxed"] .a11y-prose,
+html[data-a11y-line-height="relaxed"] article.prose,
+html[data-a11y-line-height="relaxed"] .prose,
+html[data-a11y-line-height="relaxed"] [data-a11y-reading-content],
+html[data-a11y-line-height="relaxed"] p {
+  line-height: 1.7;
+}
+
+html[data-a11y-line-height="extra-relaxed"] .a11y-prose,
+html[data-a11y-line-height="extra-relaxed"] article.prose,
+html[data-a11y-line-height="extra-relaxed"] .prose,
+html[data-a11y-line-height="extra-relaxed"] [data-a11y-reading-content],
+html[data-a11y-line-height="extra-relaxed"] p {
+  line-height: 2;
+}
+
+html[data-a11y-letter-spacing="increased"] .a11y-prose,
+html[data-a11y-letter-spacing="increased"] article.prose,
+html[data-a11y-letter-spacing="increased"] .prose,
+html[data-a11y-letter-spacing="increased"] [data-a11y-reading-content],
+html[data-a11y-letter-spacing="increased"] p {
+  letter-spacing: 0.04em;
+}
+
+html[data-a11y-letter-spacing="extra-increased"] .a11y-prose,
+html[data-a11y-letter-spacing="extra-increased"] article.prose,
+html[data-a11y-letter-spacing="extra-increased"] .prose,
+html[data-a11y-letter-spacing="extra-increased"] [data-a11y-reading-content],
+html[data-a11y-letter-spacing="extra-increased"] p {
+  letter-spacing: 0.08em;
+}
+
+html[data-a11y-text-scale] body {
+  overflow-x: clip;
+  overflow-wrap: anywhere;
+}
+
+/* Alignment scoped to reading/prose surfaces only */
+html[data-a11y-alignment="left"] .a11y-prose,
+html[data-a11y-alignment="left"] article.prose,
+html[data-a11y-alignment="left"] .prose,
+html[data-a11y-alignment="left"] [data-a11y-reading-content] {
+  text-align: left;
+}
+
+html[data-a11y-alignment="center"] .a11y-prose,
+html[data-a11y-alignment="center"] article.prose,
+html[data-a11y-alignment="center"] .prose,
+html[data-a11y-alignment="center"] [data-a11y-reading-content] {
+  text-align: center;
+}
+
+html[data-a11y-alignment="right"] .a11y-prose,
+html[data-a11y-alignment="right"] article.prose,
+html[data-a11y-alignment="right"] .prose,
+html[data-a11y-alignment="right"] [data-a11y-reading-content] {
+  text-align: right;
+}
+
+html[data-a11y-headings="highlight"] h1,
+html[data-a11y-headings="highlight"] h2,
+html[data-a11y-headings="highlight"] h3 {
+  background: color-mix(in srgb, var(--mapable-gold-hex) 18%, #ffffff);
+  color: #0c1833;
+  padding-inline: 0.2em;
+  border-radius: 0.2em;
+}
+
+html[data-a11y-links="highlight"] a:not([class*="btn"]):not([role="button"]) {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.12em;
+}
+
+/* --- Contrast themes --- */
+html[data-a11y-contrast="light"] {
+  --background: 0 0% 100%;
+  --foreground: 222 62% 12%;
+  --card: 0 0% 100%;
+  --muted: 210 20% 96%;
+  --border: 215 16% 80%;
+  color-scheme: light;
+}
+
+html[data-a11y-contrast="dark"] {
+  --background: 222 47% 10%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 12%;
+  --card-foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 75%;
+  --border: 217 20% 30%;
+  --primary: 196 100% 45%;
+  --primary-foreground: 222 62% 12%;
+  color-scheme: dark;
+}
+
+html[data-a11y-contrast="high"] {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 15%;
+  --border: 0 0% 0%;
+  --primary: 196 100% 20%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 160 100% 22%;
+  --secondary-foreground: 0 0% 100%;
+  --ring: 0 0% 0%;
+  color-scheme: light;
+}
+
+html[data-a11y-contrast="high"] body {
+  background: #ffffff;
+  color: #000000;
+}
+
+html[data-a11y-contrast="high"] a {
+  color: #00406a;
+  text-decoration: underline;
+}
+
+html[data-a11y-saturation="low"] body {
+  filter: saturate(0.55);
+}
+
+html[data-a11y-saturation="high"] body {
+  filter: saturate(1.35);
+}
+
+html[data-a11y-saturation="monochrome"] body {
+  filter: grayscale(1);
+}
+
+/* Keep maps/charts readable — undo body filter on map surfaces */
+html[data-a11y-saturation="low"] .leaflet-container,
+html[data-a11y-saturation="high"] .leaflet-container,
+html[data-a11y-saturation="monochrome"] .leaflet-container,
+html[data-a11y-saturation="low"] [data-mapable-map],
+html[data-a11y-saturation="high"] [data-mapable-map],
+html[data-a11y-saturation="monochrome"] [data-mapable-map] {
+  filter: none;
+}
+
+html[data-a11y-custom-colors="true"] body {
+  color: var(--a11y-custom-text, inherit);
+  background-color: var(--a11y-custom-bg, inherit);
+}
+
+html[data-a11y-custom-colors="true"] h1,
+html[data-a11y-custom-colors="true"] h2,
+html[data-a11y-custom-colors="true"] h3,
+html[data-a11y-custom-colors="true"] h4 {
+  color: var(--a11y-custom-heading, inherit);
+}
+
+/* --- Motion --- */
+html[data-a11y-motion="reduce"] *,
+html[data-a11y-motion="reduce"] *::before,
+html[data-a11y-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-a11y-stop-animations="true"] [data-a11y-decorative-animation],
+html[data-a11y-stop-animations="true"] .animate-spin:not([role="status"]):not([aria-busy="true"]),
+html[data-a11y-stop-animations="true"] .animate-pulse:not([role="status"]) {
+  animation: none !important;
+}
+
+html[data-a11y-smooth-scroll="off"] html,
+html[data-a11y-smooth-scroll="off"] {
+  scroll-behavior: auto !important;
+}
+
+html[data-a11y-decorative="reduce"] [data-a11y-decorative-image],
+html[data-a11y-decorative="reduce"] img[data-a11y-decorative] {
+  display: none;
+}
+
+html[data-a11y-clutter="reduce"] [data-a11y-clutter],
+html[data-a11y-reading="mode"] [data-a11y-nonessential] {
+  display: none !important;
+}
+
+/* --- Focus / hover supplements --- */
+html[data-a11y-focus="strong"] :focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px #ffffff !important;
+}
+
+html[data-a11y-hover="highlight"] a:hover,
+html[data-a11y-hover="highlight"] button:hover {
+  outline: 2px dashed #005b7f;
+  outline-offset: 2px;
+}
+
+/* --- Layout / task preference extensions --- */
+html[data-a11y-simplified="true"] [data-a11y-clutter],
+html[data-a11y-simplified="true"] [data-a11y-nonessential] {
+  display: none !important;
+}
+
+html[data-a11y-large-controls="true"] button,
+html[data-a11y-large-controls="true"] [role="button"],
+html[data-a11y-large-controls="true"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-a11y-large-controls="true"] select,
+html[data-a11y-large-controls="true"] textarea,
+html[data-a11y-large-controls="true"] .mapable-focus {
+  min-height: 2.75rem;
+}
+
+html[data-a11y-large-controls="true"] input[type="checkbox"],
+html[data-a11y-large-controls="true"] input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+html[data-a11y-symbols="true"] [data-a11y-symbol]::before {
+  content: attr(data-a11y-symbol) " ";
+}
+
+html[data-a11y-reading-level="plain"] [data-a11y-default-copy] {
+  display: none !important;
+}
+
+html[data-a11y-reading-level="plain"] [data-a11y-plain-alt] {
+  display: contents;
+}
+
+html:not([data-a11y-reading-level="plain"]) [data-a11y-plain-alt] {
+  display: none !important;
+}
+
+html[data-a11y-reduce-data="true"] [data-a11y-heavy-media],
+html[data-a11y-reduce-data="true"] img[data-a11y-decorative],
+html[data-a11y-reduce-data="true"] [data-a11y-decorative-image] {
+  display: none !important;
+}
+
+html[data-a11y-autoplay="off"] video[autoplay],
+html[data-a11y-autoplay="off"] audio[autoplay] {
+  pointer-events: auto;
+}
+
+/* Mute is applied via the data-a11y-mute attribute for JS media helpers. */
+
+/* Custom cursors — pointer devices only; hotspot near tip */
+@media (hover: hover) and (pointer: fine) {
+  html[data-a11y-cursor="large-dark"] body,
+  html[data-a11y-cursor="large-dark"] body * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23000' stroke='%23fff' stroke-width='2' d='M4 2v24l7-6h10z'/%3E%3C/svg%3E") 2 2, auto;
+  }
+
+  html[data-a11y-cursor="large-light"] body,
+  html[data-a11y-cursor="large-light"] body * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23fff' stroke='%23000' stroke-width='2' d='M4 2v24l7-6h10z'/%3E%3C/svg%3E") 2 2, auto;
+  }
+
+  html[data-a11y-cursor="large-dark"] .leaflet-container,
+  html[data-a11y-cursor="large-light"] .leaflet-container,
+  html[data-a11y-cursor="large-dark"] [data-mapable-map],
+  html[data-a11y-cursor="large-light"] [data-mapable-map] {
+    cursor: grab;
+  }
+}
+
+/* --- Panel chrome --- */
+.a11y-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.a11y-panel::backdrop {
+  background: rgba(12, 24, 51, 0.45);
+}
+
+.a11y-panel__inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  color: #0c1833;
+  box-shadow: -8px 0 32px rgba(12, 24, 51, 0.18);
+}
+
+.a11y-panel__header {
+  flex: 0 0 auto;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.a11y-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid #0c1833;
+  border-radius: 0.75rem;
+  background: #fff;
+  font-weight: 800;
+  font-size: 0.875rem;
+}
+
+.a11y-panel__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.a11y-panel__description,
+.a11y-panel__section-help,
+.a11y-panel__status {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.a11y-panel__body {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 1rem 1.25rem 2rem;
+  overscroll-behavior: contain;
+}
+
+.a11y-panel__section {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.a11y-panel__section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.a11y-panel__presets {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.a11y-panel__changes {
+  border-radius: 0.75rem;
+  background: #f1f5f9;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+}
+
+.a11y-panel__changes-title {
+  margin: 0 0 0.35rem;
+  font-weight: 800;
+}
+
+.a11y-panel__help ul {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+}
+
+.a11y-panel__help-title {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.a11y-panel__inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.a11y-panel__primary-btn,
+.a11y-panel__secondary-btn,
+.a11y-panel__danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.a11y-panel__primary-btn {
+  background: #005b7f;
+  color: #fff;
+  border: 2px solid #005b7f;
+}
+
+.a11y-panel__secondary-btn {
+  background: #fff;
+  color: #0c1833;
+  border: 2px solid #0c1833;
+}
+
+.a11y-panel__danger-btn {
+  background: #fff;
+  color: #9f1239;
+  border: 2px solid #9f1239;
+}
+
+.a11y-panel__color-fields {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.a11y-panel__color-field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.a11y-panel__input {
+  min-height: 2.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.a11y-panel__error {
+  color: #9f1239;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.a11y-panel__contrast-live,
+.a11y-panel__sync-message {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  color: #334155;
+}
+
+.a11y-panel__confirm,
+.a11y-panel__account {
+  margin-top: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .a11y-panel {
+    inset: 0 0 0 auto;
+    width: min(28rem, 100vw);
+    max-width: 28rem;
+    height: 100%;
+  }
+
+  .a11y-panel__presets {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (forced-colors: active) {
+  html[data-a11y-contrast],
+  html[data-a11y-saturation],
+  html[data-a11y-custom-colors="true"] body {
+    filter: none !important;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .a11y-panel__inner,
+  .a11y-panel__close,
+  .a11y-panel__primary-btn,
+  .a11y-panel__secondary-btn {
+    border: 2px solid ButtonText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  html[data-a11y-focus="strong"] :focus-visible {
+    outline: 3px solid Highlight !important;
+    box-shadow: none !important;
+  }
+}
+
+@media print {
+  .a11y-panel,
+  [data-a11y-reading-guide],
+  [data-a11y-reading-mask] {
+    display: none !important;
+  }
+
+  html[data-a11y-saturation] body {
+    filter: none !important;
   }
 }

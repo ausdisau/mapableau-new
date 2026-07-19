@@ -4,7 +4,7 @@ import { AddAccessInfoForm } from "@/components/mapping/AddAccessInfoForm";
 import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
 
 export const metadata: Metadata = {
-  title: "Add Access Info | MapAble",
+  title: "Add Access Info",
   description:
     "Submit community access details for places with confidence labels, consent, and safer photo guidelines.",
 };

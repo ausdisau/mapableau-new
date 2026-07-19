@@ -1,6 +1,8 @@
+import Link from "next/link";
 import React from "react";
 
 import type { AccessFitLabel } from "@/lib/access-fit/types";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 const LABEL_STYLES: Record<AccessFitLabel, string> = {
   "strong fit": "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -13,10 +15,29 @@ const LABEL_STYLES: Record<AccessFitLabel, string> = {
 export function AccessFitBadge({
   score,
   label,
+  preferencesActive = true,
+  needsAnchorHref = "#my-access-needs",
 }: {
   score: number;
   label: AccessFitLabel;
+  /** When false, do not show a misleading 0/100 · Unknown score. */
+  preferencesActive?: boolean;
+  needsAnchorHref?: string;
 }) {
+  if (!preferencesActive) {
+    return (
+      <p className="inline-flex min-h-11 flex-wrap items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800">
+        <span>Set your access needs to calculate fit</span>
+        <Link
+          href={needsAnchorHref}
+          className={`underline underline-offset-2 ${mapableCareFocusRing}`}
+        >
+          My access needs
+        </Link>
+      </p>
+    );
+  }
+
   return (
     <p
       className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold ${LABEL_STYLES[label]}`}

@@ -20,9 +20,9 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { location } = await params;
   const page = getLocalAccessPage(location);
-  if (!page) return { title: "Local access | MapAble" };
+  if (!page) return { title: "Local access" };
   return {
-    title: `Accessible places and supports in ${page.location} | MapAble`,
+    title: `Accessible places and supports in ${page.location}`,
     description: page.intro,
   };
 }

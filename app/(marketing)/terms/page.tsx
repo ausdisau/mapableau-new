@@ -1,7 +1,7 @@
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 
 export const metadata = {
-  title: "Terms | MapAble",
+  title: "Terms",
   description: "MapAble public website and pilot terms summary.",
 };
 

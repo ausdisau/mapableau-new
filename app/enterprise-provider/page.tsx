@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Enterprise provider console | MapAble",
+  title: "Enterprise provider console",
 };
 
 /** Folded into the provider control panel at `/provider`. */

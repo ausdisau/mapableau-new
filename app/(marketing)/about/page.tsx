@@ -10,7 +10,7 @@ import {
 } from "@/lib/canvas/canvas-data";
 
 export const metadata = {
-  title: "About | MapAble",
+  title: "About",
   description:
     "About MapAble's accessibility-first disability support operating system.",
 };

@@ -5,7 +5,7 @@ import { CorePageHeader } from "@/components/core/CorePageHeader";
 import ForgotPasswordClient from "./ForgotPasswordClient";
 
 export const metadata = {
-  title: "Forgot password | MapAble",
+  title: "Forgot password",
 };
 
 export default function ForgotPasswordPage() {

@@ -5,7 +5,7 @@ import { getCommunicationPassport } from "@/lib/communication-passport/service";
 import { isCommunicationPassportEnabled } from "@/lib/config/communication-workforce";
 
 export const metadata = {
-  title: "Communication Passport | MapAble",
+  title: "Communication Passport",
 };
 
 export default async function CommunicationPassportPage() {

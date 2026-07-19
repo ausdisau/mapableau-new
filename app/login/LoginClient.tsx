@@ -4,7 +4,7 @@ import { startAuthentication } from "@simplewebauthn/browser";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthFormCard, AuthOAuthDivider } from "@/components/auth/AuthFormCard";
@@ -52,11 +52,23 @@ export default function LoginClient({
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [twoFactorPhoneHint, setTwoFactorPhoneHint] = useState("");
   const [passkeyEmail, setPasskeyEmail] = useState("");
-  const [authMode, setAuthMode] = useState<"password" | "passkey">("password");
+  const [magicEmail, setMagicEmail] = useState("");
+  const [magicSent, setMagicSent] = useState("");
+  const [authMode, setAuthMode] = useState<"password" | "passkey" | "magic">(
+    "password",
+  );
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
   const isTwoFactorStep = Boolean(twoFactorToken);
   const isPasskeyMode = authMode === "passkey";
+  const isMagicMode = authMode === "magic";
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [error]);
 
   async function handlePasskeyLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -124,6 +136,40 @@ export default function LoginClient({
     }
   }
 
+  async function handleMagicLink(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setMagicSent("");
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/auth/magic-link/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizeAuthEmail(magicEmail),
+          callbackUrl,
+        }),
+      });
+      const data = (await response.json()) as { error?: string; message?: string };
+      if (!response.ok) {
+        setError(
+          data.error ||
+            "Email sign-in links are not available. Use password or passkey instead.",
+        );
+        setIsLoading(false);
+        return;
+      }
+      setMagicSent(
+        data.message ||
+          "If an account exists for that email, a sign-in link has been sent.",
+      );
+      setIsLoading(false);
+    } catch {
+      setError("Could not send a sign-in link. Please try again.");
+      setIsLoading(false);
+    }
+  }
+
   return (
     <AuthFormCard
       title="Welcome back"
@@ -150,23 +196,92 @@ export default function LoginClient({
         <AuthOAuthDivider label="or sign in with email" />
       </div>
 
+      <p className="text-sm text-muted-foreground">
+        Password managers, copy and paste, and browser autofill are supported.
+        In-progress form drafts on this device are kept when you sign in again
+        after a session ends.
+      </p>
+
       <div className="flex flex-col gap-2">
         <button
           type="button"
-          className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+          className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline mapable-focus"
           onClick={() => {
             setAuthMode(isPasskeyMode ? "password" : "passkey");
             setError("");
+            setMagicSent("");
             setTwoFactorToken("");
           }}
         >
           {isPasskeyMode ? "Use email and password" : "Login with passkey"}
         </button>
+        <button
+          type="button"
+          className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline mapable-focus"
+          data-testid="login-magic-link-toggle"
+          onClick={() => {
+            setAuthMode(isMagicMode ? "password" : "magic");
+            setError("");
+            setMagicSent("");
+            setTwoFactorToken("");
+          }}
+        >
+          {isMagicMode
+            ? "Use email and password"
+            : "Email me a sign-in link"}
+        </button>
       </div>
 
-      {oauthError ? <AuthAlert variant="error">{oauthError}</AuthAlert> : null}
+      {oauthError ? (
+        <div ref={errorRef} tabIndex={-1} className="outline-none">
+          <AuthAlert variant="error">{oauthError}</AuthAlert>
+        </div>
+      ) : null}
 
-      {isPasskeyMode ? (
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isLoading ? "Signing in, please wait." : ""}
+      </div>
+
+      {isMagicMode ? (
+        <form className="flex flex-col gap-4" onSubmit={handleMagicLink}>
+          <p className="text-sm text-muted-foreground">
+            We will email a one-time sign-in link. No puzzle, no code to copy by
+            hand. SMS verification remains available after password sign-in when
+            your organisation enables it.
+          </p>
+          <AccessibleFormField id="magic-email" label="Email" required>
+            <input
+              id="magic-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={magicEmail}
+              onChange={(e) => setMagicEmail(e.target.value)}
+              required
+              disabled={isLoading}
+              className={formInputClass}
+            />
+          </AccessibleFormField>
+          {magicSent ? (
+            <AuthAlert variant="success">{magicSent}</AuthAlert>
+          ) : null}
+          {error ? (
+            <div ref={errorRef} tabIndex={-1} className="outline-none">
+              <AuthAlert variant="error">{error}</AuthAlert>
+            </div>
+          ) : null}
+          <Button
+            type="submit"
+            variant="default"
+            size="lg"
+            className="w-full"
+            disabled={isLoading}
+            loading={isLoading}
+          >
+            {isLoading ? "Sending link…" : "Send sign-in link"}
+          </Button>
+        </form>
+      ) : isPasskeyMode ? (
         <form className="flex flex-col gap-4" onSubmit={handlePasskeyLogin}>
           <AccessibleFormField id="passkey-email" label="Email" required>
             <input
@@ -182,7 +297,11 @@ export default function LoginClient({
             />
           </AccessibleFormField>
 
-          {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
+          {error ? (
+            <div ref={errorRef} tabIndex={-1} className="outline-none">
+              <AuthAlert variant="error">{error}</AuthAlert>
+            </div>
+          ) : null}
 
           <Button
             type="submit"
@@ -386,7 +505,11 @@ export default function LoginClient({
             </AuthAlert>
           ) : null}
 
-          {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
+          {error ? (
+            <div ref={errorRef} tabIndex={-1} className="outline-none">
+              <AuthAlert variant="error">{error}</AuthAlert>
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-3 pt-1">
             <Button

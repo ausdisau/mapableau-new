@@ -13,6 +13,7 @@ import {
   MapAbleCareMarketingFooter,
   MapAbleCareSlimFooter,
 } from "@/components/marketing/MapAbleCareMarketingFooter";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export type MapAbleAppShellVariant = "marketing" | "app" | "minimal";
 
@@ -33,10 +34,10 @@ export function MapAbleAppShell({
 }) {
   if (variant === "marketing") {
     return (
-      <div className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
+      <div className="flex min-h-screen flex-col bg-white text-[#0C1833]">
         <SkipToContent />
         <MapAbleCareMarketingHeader />
-        <main id="main-content" className="flex-1">
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           {children}
         </main>
         <MapAbleCareMarketingFooter />
@@ -46,18 +47,18 @@ export function MapAbleAppShell({
 
   if (variant === "minimal") {
     return (
-      <div className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
+      <div className="flex min-h-screen flex-col bg-white text-[#0C1833]">
         <SkipToContent />
         <header className="border-b border-slate-200 bg-white px-5 py-3">
           <Link
             href="/"
-            className="inline-flex rounded-xl p-1 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            aria-label="MapAble home"
+            className={`inline-flex rounded-xl p-1 ${mapableCareFocusRing}`}
           >
-            <LogoMark compact />
-            <span className="sr-only">MapAble home</span>
+            <LogoMark compact decorative />
           </Link>
         </header>
-        <main id="main-content" className="flex-1">
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           {children}
         </main>
       </div>
@@ -65,7 +66,7 @@ export function MapAbleAppShell({
   }
 
   return (
-    <div className="mapable-soft flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]">
+    <div className="flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]">
       <SkipToContent />
       <MapAbleAppCompactHeader
         title={headerTitle}
@@ -73,7 +74,11 @@ export function MapAbleAppShell({
         logoHref={logoHref ?? "/dashboard"}
       />
       {secondaryNav}
-      <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 outline-none"
+      >
         {children}
       </main>
       <MapAbleCareSlimFooter />

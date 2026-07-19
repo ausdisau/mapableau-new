@@ -151,4 +151,77 @@ export async function canShareAccessibilityWithOrganisation(
   });
 }
 
+/**
+ * Access Passport share-settings: revoke superseded accessibility.read grants
+ * and optionally create a replacement org-bound grant in one transaction.
+ * Callers must not write ConsentRecord directly.
+ */
+export async function replaceAccessPassportConsent(input: {
+  subjectUserId: string;
+  actorUserId: string;
+  previousGrantId?: string | null;
+  recipientOrganisationId: string | null;
+  purpose: string;
+  categories: string[];
+  expiresAt: string | null;
+  active: boolean;
+}): Promise<{ grantId?: string }> {
+  const prismaScope = consentScopeToPrisma("accessibility.read");
+
+  return prisma.$transaction(async (tx) => {
+    if (input.previousGrantId) {
+      await tx.consentRecord.updateMany({
+        where: {
+          id: input.previousGrantId,
+          subjectUserId: input.subjectUserId,
+          status: "active",
+        },
+        data: {
+          status: "revoked",
+          revokedById: input.actorUserId,
+          revokedAt: new Date(),
+        },
+      });
+    }
+
+    if (input.recipientOrganisationId) {
+      await tx.consentRecord.updateMany({
+        where: {
+          subjectUserId: input.subjectUserId,
+          grantedToOrganisationId: input.recipientOrganisationId,
+          scope: prismaScope,
+          status: "active",
+        },
+        data: {
+          status: "revoked",
+          revokedById: input.actorUserId,
+          revokedAt: new Date(),
+        },
+      });
+    }
+
+    if (!input.active || !input.recipientOrganisationId) {
+      return {};
+    }
+
+    const consent = await tx.consentRecord.create({
+      data: {
+        subjectUserId: input.subjectUserId,
+        grantedToOrganisationId: input.recipientOrganisationId,
+        scope: prismaScope,
+        purpose: input.purpose,
+        status: "active",
+        expiryDate: input.expiresAt ? new Date(input.expiresAt) : undefined,
+        createdById: input.actorUserId,
+        shareMode: "always_for_service",
+        recipientType: "organisation",
+        dataScope: input.categories,
+        sourceAction: "access_passport.share_settings",
+      },
+    });
+
+    return { grantId: consent.id };
+  });
+}
+
 export type { PrismaConsentScope };

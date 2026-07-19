@@ -13,7 +13,7 @@ import {
 } from "@/lib/marketing/public-page-styles";
 
 export const metadata = {
-  title: "Contact | MapAble",
+  title: "Contact",
   description:
     "Contact MapAble about participant pilots, provider registration, access reviews or privacy requests.",
 };

@@ -4,7 +4,7 @@ import { WorkerProfileForm } from "@/components/worker/WorkerProfileForm";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Worker profile | MapAble" };
+export const metadata = { title: "Worker profile" };
 
 export default async function WorkerProfilePage() {
   const user = await requireAuth();

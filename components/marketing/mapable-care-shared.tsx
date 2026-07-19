@@ -27,6 +27,7 @@ import {
   buildGuidedSearchUrl,
   supportAreaToSupportTypeId,
 } from "@/lib/marketing/mapable-care-routes";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import { SUPPORT_TYPES } from "@/lib/provider-finder/filters";
 
 function useDismissOnOutsideAndEscape(
@@ -62,11 +63,11 @@ function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
     ? "flex flex-col gap-2"
     : "flex items-center gap-3";
   const loginClassName = compact
-    ? "rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-    : "rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+    ? "rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+    : "rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white";
   const registerClassName = compact
-    ? "rounded-xl bg-[#005B7F] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-    : "rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+    ? "rounded-xl bg-[#005B7F] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+    : "rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white";
 
   return (
     <div className={className}>
@@ -93,13 +94,22 @@ function SparkIcon() {
   );
 }
 
-export function LogoMark({ compact = false }: { compact?: boolean }) {
+export function LogoMark({
+  compact = false,
+  decorative = false,
+}: {
+  compact?: boolean;
+  /** When true, image is decorative (parent link provides the accessible name). */
+  decorative?: boolean;
+}) {
   if (compact) {
     return (
       <img
         src={MAPABLE_LOGO_MARK_SRC}
         alt=""
         aria-hidden
+        width={36}
+        height={36}
         className="h-9 w-9 shrink-0 object-contain"
         decoding="async"
       />
@@ -109,7 +119,8 @@ export function LogoMark({ compact = false }: { compact?: boolean }) {
   return (
     <img
       src={MAPABLE_LOGO_SRC}
-      alt={MAPABLE_LOGO_ALT}
+      alt={decorative ? "" : MAPABLE_LOGO_ALT}
+      aria-hidden={decorative || undefined}
       width={754}
       height={1008}
       className="block h-14 w-auto max-h-[4.5rem] shrink-0 bg-transparent object-contain object-left sm:h-16"
@@ -128,18 +139,18 @@ export function LogoMenu() {
     <div ref={menuRef} className="relative flex min-w-fit items-center gap-1">
       <Link
         href="/"
-        className="rounded-2xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        aria-label="MapAble home"
+        className={`rounded-2xl p-1 transition hover:bg-slate-50 ${mapableCareFocusRing}`}
         onClick={() => setOpen(false)}
       >
-        <span className="sr-only">MapAble home</span>
-        <LogoMark />
+        <LogoMark decorative />
       </Link>
       <button
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="rounded-full bg-slate-100 p-2 text-[#005B7F] transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-slate-100 p-2 text-[#005B7F] transition hover:bg-slate-200 ${mapableCareFocusRing}`}
       >
         <span className="sr-only">Open MapAble menu</span>
         <ChevronDown />
@@ -194,7 +205,7 @@ function SupportAreaCombo({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="inline-flex h-9 max-w-[11rem] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black text-[#0C1833] transition hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="inline-flex h-9 max-w-[11rem] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black text-[#0C1833] transition hover:bg-slate-100 mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         <span className="truncate">{selectedArea}</span>
         <ChevronDown />
@@ -211,8 +222,8 @@ function SupportAreaCombo({
           {supportAreas.map((area) => {
             const selected = selectedArea === area;
             const optionClassName = selected
-              ? "w-full rounded-xl bg-[#005B7F]/10 px-3 py-3 text-left text-sm font-black text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-              : "w-full rounded-xl px-3 py-3 text-left text-sm font-black text-[#0C1833] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+              ? "w-full rounded-xl bg-[#005B7F]/10 px-3 py-3 text-left text-sm font-black text-[#005B7F] mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              : "w-full rounded-xl px-3 py-3 text-left text-sm font-black text-[#0C1833] transition hover:bg-slate-50 mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white";
             return (
               <button
                 key={area}
@@ -247,7 +258,7 @@ export function ResultRow({ result }: { result: SearchResult }) {
       <p className="mt-2 text-sm leading-6 text-slate-600">{result.description}</p>
       <Link
         href={result.href}
-        className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-[#005B7F] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-[#005B7F] transition hover:bg-[#F8C51C]/20 mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         {result.action} <ArrowIcon />
       </Link>
@@ -282,7 +293,7 @@ export function SponsoredCard({
       <p className="mt-2 text-sm leading-6 text-slate-600">{placement.description}</p>
       <Link
         href={placement.href}
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#005B7F] px-4 py-2 text-sm font-black text-white transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#005B7F] px-4 py-2 text-sm font-black text-white transition hover:bg-[#004766] mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         {placement.cta} <ArrowIcon />
       </Link>
@@ -387,7 +398,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
           <SupportAreaCombo selectedArea={selectedArea} setSelectedArea={setSelectedArea} />
           <button
             type="submit"
-            className="rounded-xl bg-[#005B7F] px-4 py-2 text-sm font-black text-white transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="rounded-xl bg-[#005B7F] px-4 py-2 text-sm font-black text-white transition hover:bg-[#004766] mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             Find
           </button>
@@ -459,7 +470,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
                     setQuery(prompt);
                     launchChat(prompt);
                   }}
-                  className="rounded-xl px-3 py-3 text-left text-sm font-bold text-[#0C1833] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                  className="rounded-xl px-3 py-3 text-left text-sm font-bold text-[#0C1833] transition hover:bg-[#F8C51C]/20 mapable-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C1833] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
                   {prompt}
                 </button>

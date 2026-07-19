@@ -162,7 +162,9 @@ describe("MapAbleCareCombinedHomepage", () => {
   });
 
   it("renders guided landing headline and blank panel search field", () => {
-    expect(screen.getByLabelText(homepageHeroCopy.headline)).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { level: 1, name: homepageHeroCopy.headline }),
+    ).toBeTruthy();
     const searchInput = screen.getByLabelText(
       "What support do you need?",
     ) as HTMLInputElement;
@@ -170,7 +172,7 @@ describe("MapAbleCareCombinedHomepage", () => {
   });
 
   it("renders a header donate link to Australian Disability", () => {
-    const donate = screen.getByRole("link", { name: "Donate" });
+    const donate = screen.getByRole("link", { name: /Donate/i });
     expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
     expect(donate.getAttribute("target")).toBe("_blank");
     expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
@@ -186,7 +188,7 @@ describe("MapAbleCareCombinedHomepage", () => {
   it("renders footer contact and registration details", () => {
     expect(screen.getByText("0434 083 624")).toBeTruthy();
     expect(screen.getByText(/55 641 613 541/)).toBeTruthy();
-    expect(screen.getByText("To be confirmed")).toBeTruthy();
+    expect(screen.getByText(/To be confirmed/i)).toBeTruthy();
   });
 
   it("renders competitor final CTA instead of sponsored home band", () => {

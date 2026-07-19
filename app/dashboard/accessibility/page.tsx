@@ -25,12 +25,20 @@ export default async function AccessibilityPage() {
           Your access needs are reused across care, transport and other MapAble
           services. Providers only see what you consent to share.
         </p>
-        <Link
-          href="/dashboard/accessibility/edit"
-          className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
-        >
-          Edit preferences →
-        </Link>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium">
+          <Link
+            href="/dashboard/access-passport"
+            className="text-primary underline-offset-4 hover:underline mapable-focus"
+          >
+            Open Access Passport →
+          </Link>
+          <Link
+            href="/dashboard/accessibility/edit"
+            className="text-primary underline-offset-4 hover:underline mapable-focus"
+          >
+            Edit preferences →
+          </Link>
+        </div>
       </header>
 
       <dl className="grid max-w-xl gap-4 rounded-xl border border-border bg-card p-4 text-sm">

@@ -106,6 +106,38 @@ export function categoryIconLetter(category: string): string {
   }
 }
 
+/** Plain-language category for accessible names (expand cryptic letters). */
+export function categoryAccessibleLabel(category: string): string {
+  switch (category) {
+    case "library":
+      return "library";
+    case "cafe_restaurant":
+      return "cafe or restaurant";
+    case "public_toilet":
+      return "public toilet";
+    case "other":
+      return "venue";
+    default:
+      return category.replace(/_/g, " ");
+  }
+}
+
+/** Plain-language tier for accessible names. */
+export function tierAccessibleLabel(tier: string): string {
+  switch (tier) {
+    case "Gold":
+      return "Gold verification";
+    case "Silver":
+      return "Silver verification";
+    case "Bronze":
+      return "Bronze verification";
+    case "Unverified":
+      return "unverified";
+    default:
+      return tier;
+  }
+}
+
 /** Check if user prefers reduced motion. Safe for SSR. */
 export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;

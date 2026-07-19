@@ -20,10 +20,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const place = getDemoPlaceBySlug(slug);
   if (!place) {
-    return { title: "Place not found | MapAble" };
+    return { title: "Place not found" };
   }
   return {
-    title: `${place.name} access details | MapAble`,
+    title: `${place.name} access details`,
     description: `Access score ${place.accessScore}, ${place.tier} tier, last checked ${place.lastChecked}. Evidence-based access information for ${place.suburb}.`,
   };
 }

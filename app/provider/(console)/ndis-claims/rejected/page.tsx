@@ -2,7 +2,7 @@ import { NdisDirectClaimingClient } from "@/components/provider/ndis-claiming/Nd
 import { getUserOrganisationIds } from "@/lib/api/phase3-scope";
 import { requirePermission } from "@/lib/auth/guards";
 
-export const metadata = { title: "Rejected claims | NDIS claiming | MapAble" };
+export const metadata = { title: "Rejected claims | NDIS claiming" };
 
 export default async function RejectedClaimsPage() {
   const user = await requirePermission("provider:ndis:claim");
