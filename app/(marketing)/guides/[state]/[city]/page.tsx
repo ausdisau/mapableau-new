@@ -31,10 +31,10 @@ export async function generateMetadata({ params }: GuidePageProps) {
   const { state, city } = await params;
   const guide = getAccessGuideBySlug(state, city);
   if (!guide) {
-    return { title: "Access Guide | MapAble" };
+    return { title: "Access Guide" };
   }
   return {
-    title: `${guide.city} Accessibility Guide | MapAble`,
+    title: `${guide.city} Accessibility Guide`,
     description: guide.launchAngle,
   };
 }

@@ -107,15 +107,21 @@ export const homepageHeroCopy = {
   headline: "Find accessible places, supports, and journeys you can actually use.",
   subheading:
     "MapAble connects verified accessibility information, NDIS-aware providers, accessible transport, employment pathways, and support coordination into one practical platform.",
-  primaryCta: "Find accessible places",
-  secondaryCta: "Request support",
+  primaryCta: "Find support",
+  secondaryCta: "Explore accessible places",
 };
 
 export const homepageHeroCtas = [
-  { label: "Find accessible places", href: "/accessibility-map" },
-  { label: "Request support", href: "/care/request" },
-  { label: "Plan accessible transport", href: "/journey-planner" },
-  { label: "Verify my venue", href: "/verify-my-venue" },
+  { label: "Find support", href: "/provider-finder", priority: "primary" },
+  { label: "Explore accessible places", href: "/accessibility-map", priority: "secondary" },
+] as const;
+
+/** Destinations kept discoverable without equal-weight hero buttons. */
+export const homepageHeroTertiaryLinks = [
+  { label: "Accessible transport", href: "/transport" },
+  { label: "Venue verification", href: "/verify-my-venue" },
+  { label: "Provider registration", href: "/for-providers" },
+  { label: "Jobs and employment", href: "/employment" },
 ] as const;
 
 export const homepageCategoryChips = [

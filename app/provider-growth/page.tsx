@@ -6,7 +6,7 @@ import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMar
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export const metadata: Metadata = {
-  title: "Provider growth tools | MapAble",
+  title: "Provider growth tools",
   description:
     "Grow by being useful, trusted, and accessible with availability, access-readiness, and enquiry tools.",
 };

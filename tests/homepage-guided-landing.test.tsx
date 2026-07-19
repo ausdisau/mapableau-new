@@ -59,17 +59,19 @@ describe("homepage guided landing", () => {
   });
 
   it("renders updated hero headline and single h1", () => {
-    expect(screen.getByLabelText(homepageHeroCopy.headline)).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { level: 1, name: homepageHeroCopy.headline }),
+    ).toBeTruthy();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
-  it("renders hero CTAs targeting access journeys", () => {
+  it("renders hero CTAs targeting support and places", () => {
     expect(
-      screen.getByRole("link", { name: /Find accessible places/i }).getAttribute("href"),
-    ).toBe("/accessibility-map");
+      screen.getByRole("link", { name: /Find support/i }).getAttribute("href"),
+    ).toBe("/provider-finder");
     expect(
       screen.getByRole("link", { name: homepageHeroCopy.secondaryCta }).getAttribute("href"),
-    ).toBe("/care/request");
+    ).toBe("/accessibility-map");
   });
 
   it("renders guided search panel with labeled input", () => {

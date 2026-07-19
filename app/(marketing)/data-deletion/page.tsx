@@ -1,7 +1,7 @@
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 
 export const metadata = {
-  title: "Data deletion | MapAble",
+  title: "Data deletion",
   description:
     "How to request deletion or review of personal information held by MapAble.",
 };

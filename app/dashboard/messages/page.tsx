@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth/guards";
 import { isAdminRole } from "@/lib/auth/roles";
 import { listConversationsForUser } from "@/lib/messages/message-service";
 
-export const metadata = { title: "Messages | MapAble" };
+export const metadata = { title: "Messages" };
 
 export default async function MessagesPage() {
   const user = await requireAuth();

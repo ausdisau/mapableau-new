@@ -1,7 +1,7 @@
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 
 export const metadata = {
-  title: "Privacy | MapAble",
+  title: "Privacy",
   description:
     "MapAble privacy notice for public visitors and pilot participants.",
 };

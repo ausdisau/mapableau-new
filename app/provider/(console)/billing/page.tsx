@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { mapableEyebrowBadgeClass, mapablePageContainerClass } from "@/lib/brand/styles";
 
 export const metadata = {
-  title: "Provider billing | MapAble",
+  title: "Provider billing",
 };
 
 export default function ProviderBillingPage() {

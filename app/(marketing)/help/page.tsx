@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PublicInfoPage } from "@/components/marketing/PublicInfoPage";
 
 export const metadata = {
-  title: "Help Centre | MapAble",
+  title: "Help Centre",
   description:
     "Get help with MapAble public pages, pilot interest and privacy requests.",
 };

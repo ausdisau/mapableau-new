@@ -1,3 +1,5 @@
+import type { AccessibilityUiPreferences } from "@/types/accessibility-ui";
+
 export type UserRole =
   | "participant"
   | "family_member"
@@ -124,4 +126,6 @@ export interface DigitalPreferences {
   voiceControlPreferred?: boolean;
   dyslexiaFriendlyMode?: boolean;
   simpleLanguageMode?: boolean;
+  /** Nested MapAble Accessibility Panel preferences (account sync). */
+  ui?: AccessibilityUiPreferences;
 }

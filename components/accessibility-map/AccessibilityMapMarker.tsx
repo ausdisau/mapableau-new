@@ -6,13 +6,14 @@ import { Marker } from "react-leaflet";
 
 import type { DemoAccessTier } from "@/lib/demo/accessibility-places";
 import {
+  categoryAccessibleLabel,
   categoryIconLetter,
   tierAbbreviation,
+  tierAccessibleLabel,
   tierMarkerClass,
   type CoordinatePlace,
   getPlaceCoordinates,
 } from "@/lib/map/accessibilityMapUtils";
-
 
 export type AccessibilityMapMarkerPlace = CoordinatePlace & {
   id: string;
@@ -41,17 +42,22 @@ function createAccessibilityMarkerIcon(
     className: "",
     html: `<div
       class="access-map-marker ${tierClass} ${selectedClass}"
-      role="img"
-      aria-label="Accessibility marker for ${place.name}, tier ${place.tier}, score category ${catLetter}"
+      aria-hidden="true"
     >
-      <span class="access-map-marker__icon" aria-hidden="true">♿</span>
-      <span class="access-map-marker__tier" aria-hidden="true">${tierAbbr}</span>
-      <span class="access-map-marker__category" aria-hidden="true">${catLetter}</span>
+      <span class="access-map-marker__icon">♿</span>
+      <span class="access-map-marker__tier">${tierAbbr}</span>
+      <span class="access-map-marker__category">${catLetter}</span>
     </div>`,
     iconSize: [44, 44],
     iconAnchor: [22, 44],
     popupAnchor: [0, -44],
   });
+}
+
+export function markerAccessibleName(place: AccessibilityMapMarkerPlace): string {
+  const category = categoryAccessibleLabel(place.category);
+  const tier = tierAccessibleLabel(String(place.tier));
+  return `${place.name}, ${category}, ${tier}`;
 }
 
 export function AccessibilityMapMarker({
@@ -82,7 +88,7 @@ export function AccessibilityMapMarker({
         },
       }}
       // eslint-disable-next-line jsx-a11y/aria-props -- Leaflet manages marker button semantics
-      aria-label={`Open accessibility details for ${place.name}`}
+      aria-label={markerAccessibleName(place)}
     >
       {children}
     </Marker>

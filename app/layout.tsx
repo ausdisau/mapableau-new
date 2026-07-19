@@ -5,12 +5,12 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 
-import { AccessiBeWidget } from "@/components/accessibility/AccessiBeWidget";
 import {
   ADSENSE_CLIENT_ID,
   GoogleAdSense,
 } from "@/components/ads/GoogleAdSense";
 import { Providers } from "@/components/providers";
+import { getPreHydrationAccessibilityScript } from "@/lib/accessibility/ui-preferences";
 import { MAPABLE_LOGO_MARK_SRC } from "@/lib/brand/constants";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -75,6 +75,11 @@ export default function RootLayout({
           content="832ea0b13123578b63ae2fe9"
         />
         <meta name="google-adsense-account" content={ADSENSE_CLIENT_ID} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: getPreHydrationAccessibilityScript(),
+          }}
+        />
       </head>
       <body className={plusJakarta.className}>
         <script
@@ -119,7 +124,6 @@ export default function RootLayout({
           }}
         />
         <Providers>{children}</Providers>
-        <AccessiBeWidget />
         <GoogleAdSense />
         <SpeedInsights />
       </body>

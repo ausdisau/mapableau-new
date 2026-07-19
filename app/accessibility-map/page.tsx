@@ -5,7 +5,7 @@ import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMar
 import { DEMO_ACCESS_PLACES } from "@/lib/demo/accessibility-places";
 
 export const metadata: Metadata = {
-  title: "Accessibility Map | MapAble",
+  title: "Accessibility Map",
   description:
     "Know before you go. Search accessible places with practical details, confidence levels, measurements, and transport options.",
 };

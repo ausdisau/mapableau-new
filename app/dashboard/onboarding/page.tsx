@@ -3,7 +3,7 @@ import Link from "next/link";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { requireAuth } from "@/lib/auth/guards";
 
-export const metadata = { title: "Onboarding | MapAble" };
+export const metadata = { title: "Onboarding" };
 
 export default async function ParticipantOnboardingPage() {
   await requireAuth();
