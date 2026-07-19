@@ -37,21 +37,36 @@ test.describe("Access independence public flows", () => {
     await expect(page.getByText(/ABR-TEST123/i)).toBeVisible();
   });
 
-  test("saves and resumes a barrier draft on this device", async ({ page }) => {
+  test("saves allowlisted progress without storing description locally", async ({
+    page,
+  }) => {
     await page.goto("/report-barrier", { waitUntil: "domcontentloaded" });
-    await page.getByLabel(/barrier category/i).selectOption("entrance");
+    await page.getByLabel(/barrier category/i).selectOption("toilet");
     await page
       .getByLabel(/plain-language description/i)
       .fill("Temporary ramp removed at the side entrance.");
-    await page.getByRole("button", { name: /save on this device/i }).click();
-    await expect(page.getByText(/draft saved on this device/i)).toBeVisible();
+    await page
+      .getByRole("button", { name: /save progress on this device/i })
+      .click();
+    await expect(
+      page.getByText(/progress saved on this device/i),
+    ).toBeVisible();
+
+    const stored = await page.evaluate(() =>
+      window.localStorage.getItem(
+        "mapable:form-draft:v1:access-barrier-report",
+      ),
+    );
+    expect(stored).toBeTruthy();
+    expect(stored).not.toContain("Temporary ramp removed");
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(
-      page.getByText(/draft restored on this device/i),
+      page.getByText(/progress restored on this device/i),
     ).toBeVisible();
+    await expect(page.getByLabel(/barrier category/i)).toHaveValue("toilet");
     await expect(page.getByLabel(/plain-language description/i)).toHaveValue(
-      /Temporary ramp removed/,
+      "",
     );
   });
 

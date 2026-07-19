@@ -93,7 +93,9 @@ export function CareRequestWizard({
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draftMessage, setDraftMessage] = useState(
-    localDraft ? "Draft restored on this device." : "",
+    localDraft
+      ? "Progress restored on this device (safe selections only). Care description and address are not stored in the browser — sign in to resume full drafts from your account."
+      : "",
   );
   const [draftSaving, setDraftSaving] = useState(false);
   const [transformOutput, setTransformOutput] =
@@ -120,7 +122,7 @@ export function CareRequestWizard({
 
   async function persistDraft(currentStep: string) {
     setDraftSaving(true);
-    const payload = sanitizeLocalDraftPayload({
+    const fullPayload = {
       requestType,
       title,
       description,
@@ -129,11 +131,13 @@ export function CareRequestWizard({
       shareAccessibility,
       accessSummary,
       linkedTransport,
-    });
+      stepId: currentStep,
+    };
+    // Local device: allowlisted progress only — never care free text by default.
     saveLocalDraft({
       workflowKey: CARE_DRAFT_KEY,
       stepId: currentStep,
-      payload,
+      payload: sanitizeLocalDraftPayload(CARE_DRAFT_KEY, fullPayload),
     });
     if (sessionStatus === "authenticated") {
       await fetch("/api/form-drafts", {
@@ -142,7 +146,7 @@ export function CareRequestWizard({
         body: JSON.stringify({
           workflowKey: CARE_DRAFT_KEY,
           stepId: currentStep,
-          payload,
+          payload: fullPayload,
         }),
       }).catch(() => undefined);
     }

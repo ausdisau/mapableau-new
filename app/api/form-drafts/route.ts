@@ -3,9 +3,10 @@ import { ZodError, z } from "zod";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { accessIndependenceConfig } from "@/lib/config/access-independence";
 import {
   FORM_DRAFT_SCHEMA_VERSION,
-  sanitizeLocalDraftPayload,
+  sanitizeAccountDraftPayload,
 } from "@/lib/form-drafts/draft-storage";
 import { prisma } from "@/lib/prisma";
 
@@ -38,6 +39,11 @@ export async function GET(req: Request) {
     return jsonOk({ draft: null });
   }
 
+  if (draft.schemaVersion !== FORM_DRAFT_SCHEMA_VERSION) {
+    await prisma.formDraft.delete({ where: { id: draft.id } }).catch(() => undefined);
+    return jsonOk({ draft: null });
+  }
+
   return jsonOk({
     draft: {
       id: draft.id,
@@ -57,7 +63,11 @@ export async function PUT(req: Request) {
 
   try {
     const body = upsertSchema.parse(await req.json());
-    const payload = sanitizeLocalDraftPayload(body.payload);
+    const payload = sanitizeAccountDraftPayload(body.payload);
+    const serialized = JSON.stringify(payload);
+    if (serialized.length > accessIndependenceConfig.localDraftMaxBytes * 8) {
+      return jsonError("Draft payload is too large", 413);
+    }
     const expiresAt = new Date(Date.now() + body.ttlDays * 24 * 60 * 60 * 1000);
 
     const draft = await prisma.formDraft.upsert({

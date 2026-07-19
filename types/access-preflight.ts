@@ -1,3 +1,5 @@
+/** Canonical Access Preflight evidence — never promote weak notes to confirmed. */
+
 export const ACCESS_PREFLIGHT_CHECKS = [
   "step_free_entrance",
   "door_width",
@@ -24,19 +26,43 @@ export type AccessFactState =
   | "unknown"
   | "not_applicable";
 
-export interface AccessFactVerification {
+export type AccessEvidenceDisputeState =
+  | "none"
+  | "disputed"
+  | "superseded"
+  | "expired";
+
+export interface AccessEvidenceRecord {
+  factType: AccessPreflightCheckId;
+  state: AccessFactState;
+  /** Structured measurement when applicable (e.g. door clear width). */
+  value?: number | null;
+  unit?: string | null;
+  source: string;
+  sourceRecordId?: string;
+  verificationMethod?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  expiresAt?: string | null;
+  confidence: "low" | "medium" | "high" | "unknown";
+  disputeState: AccessEvidenceDisputeState;
+  notes?: string;
+}
+
+export interface AccessPreflightFact {
+  id: AccessPreflightCheckId;
+  label: string;
+  state: AccessFactState;
+  critical?: boolean;
   source?: string;
   verificationStatus?: string;
   lastCheckedAt?: string;
   notes?: string;
   confidence?: "low" | "medium" | "high" | "unknown";
-}
-
-export interface AccessPreflightFact extends AccessFactVerification {
-  id: AccessPreflightCheckId;
-  label: string;
-  state: AccessFactState;
-  critical?: boolean;
+  /** Why this state was assigned — shown to users. */
+  explanation: string;
+  value?: number | null;
+  unit?: string | null;
 }
 
 export interface AccessPreflightResult {
@@ -63,4 +89,16 @@ export const ACCESS_PREFLIGHT_LABELS: Record<AccessPreflightCheckId, string> = {
   accessible_communication: "Accessible communication",
   emergency_evacuation: "Emergency evacuation arrangements",
   alternative_route: "Alternative route or backup arrangement",
+};
+
+/** Transparent threshold for clear door width (mm). Not a universal guarantee. */
+export const DOOR_CLEAR_WIDTH_THRESHOLD_MM = 850;
+
+/** Display metadata for a resolved preflight fact. */
+export type AccessFactVerification = {
+  source?: string;
+  verificationStatus?: string;
+  lastCheckedAt?: string;
+  notes?: string;
+  confidence?: "low" | "medium" | "high" | "unknown";
 };

@@ -154,6 +154,7 @@ model User {
   // Access independence MVP
   accessBarrierReports        AccessBarrierReport[]      @relation("AccessBarrierReportReporter")
   formDrafts                  FormDraft[]                @relation("FormDraftOwner")
+  magicLinkTokens             MagicLinkToken[]           @relation("MagicLinkTokenUser")
 }
 
 model PasskeyCredential {
@@ -670,20 +671,26 @@ model AccessibilityProfile {
 }
 
 /// Community / participant access barrier reports for places and services.
+/// Provider inbox visibility requires organisationId (explicit assignment).
+/// Unassigned reports are platform-moderation only — no place→org ownership exists yet.
 model AccessBarrierReport {
   id              String                   @id @default(cuid())
   referenceNumber String                   @unique
   reporterUserId  String?
   reporterUser    User?                    @relation("AccessBarrierReportReporter", fields: [reporterUserId], references: [id], onDelete: SetNull)
+  /// Authoritative tenant owner for provider inbox. Null = platform moderation only.
+  organisationId  String?
+  organisation    Organisation?            @relation("AccessBarrierReportOrganisation", fields: [organisationId], references: [id], onDelete: SetNull)
   placeId         String?
   placeSlug       String?
   placeName       String?
   serviceId       String?
   category        AccessBarrierCategory
-  description     String
+  description     String                   @default("")
   locationDetail  String?
   urgency         AccessBarrierUrgency     @default(standard)
   observedAt      DateTime?
+  /// Deferred: remote URL field is not a safe upload. Prefer null until upload service is wired.
   imageUrl        String?
   imageDescription String?
   contactEmail    String?
@@ -692,13 +699,33 @@ model AccessBarrierReport {
   consentToContact Boolean                 @default(false)
   status          AccessBarrierReportStatus @default(received)
   isDraft         Boolean                  @default(false)
+  /// Internal triage notes — never returned on public/reporter responses.
+  triageNotes     String?
+  statusHistory   Json?
   metadata        Json?
   createdAt       DateTime                 @default(now())
   updatedAt       DateTime                 @updatedAt
 
   @@index([reporterUserId, status])
+  @@index([organisationId, status])
   @@index([placeSlug])
   @@index([status, createdAt])
+}
+
+/// One-time email magic-link tokens (hash only; raw token never stored).
+model MagicLinkToken {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation("MagicLinkTokenUser", fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  purpose     String    @default("credentials-magic-link")
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
 }
 
 enum AccessBarrierCategory {
@@ -781,6 +808,7 @@ model Organisation {
   participantProviderRelationships ParticipantProviderRelationship[]
   ndisDeliveryAuthorizations NdisServiceDeliveryAuthorization[]
   ndisDeliveryEvents         NdisServiceDeliveryEvent[]
+  accessBarrierReports   AccessBarrierReport[] @relation("AccessBarrierReportOrganisation")
 
   careRequests           CareRequest[]
   careBookings           CareBooking[]

@@ -5,11 +5,16 @@ import {
   accessShareSettingsPatchSchema,
   isSharingActive,
   parseAccessShareSettings,
+  shareSettingsMateriallyEqual,
 } from "@/lib/access-passport/share-settings";
+import {
+  listEligiblePassportRecipients,
+  verifyPassportRecipientOrganisation,
+} from "@/lib/access-passport/verify-recipient";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { grantConsent, revokeConsent } from "@/lib/consent/consent-service";
+import { consentScopeToPrisma } from "@/lib/consent/scope-map";
 import { prisma } from "@/lib/prisma";
 import type { AccessShareSettings } from "@/types/access-passport";
 
@@ -21,15 +26,19 @@ export async function GET() {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
 
-  const profile = await prisma.accessibilityProfile.findUnique({
-    where: { userId: user.id },
-    select: { shareWithProviders: true },
-  });
+  const [profile, recipients] = await Promise.all([
+    prisma.accessibilityProfile.findUnique({
+      where: { userId: user.id },
+      select: { shareWithProviders: true },
+    }),
+    listEligiblePassportRecipients(user.id),
+  ]);
 
   const settings = parseAccessShareSettings(profile?.shareWithProviders);
   return jsonOk({
     shareSettings: settings,
     sharingActive: isSharingActive(settings),
+    eligibleRecipients: recipients,
   });
 }
 
@@ -39,82 +48,172 @@ export async function PATCH(req: Request) {
 
   try {
     const body = accessShareSettingsPatchSchema.parse(await req.json());
-    const existing = await prisma.accessibilityProfile.findUnique({
-      where: { userId: user.id },
-    });
-    const previous = parseAccessShareSettings(existing?.shareWithProviders);
 
-    let consentRecordId = previous.consentRecordId;
-
-    if (previous.active && previous.consentRecordId && (!body.active || body.categories.length === 0)) {
-      await revokeConsent(previous.consentRecordId, user.id);
-      consentRecordId = undefined;
-    }
-
-    if (body.active && body.categories.length > 0) {
-      const consent = await grantConsent({
-        subjectUserId: user.id,
-        createdById: user.id,
-        scope: "accessibility.read",
-        purpose: body.purpose,
-        expiryDate: body.expiresAt ? new Date(body.expiresAt) : undefined,
-        shareMode: "always_for_service",
-        recipientType: "organisation",
-        dataScope: body.categories,
-        sourceAction: "access_passport.share_settings",
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.accessibilityProfile.findUnique({
+        where: { userId: user.id },
       });
-      consentRecordId = consent.id;
-    }
+      const previous = parseAccessShareSettings(existing?.shareWithProviders);
 
-    const next: AccessShareSettings = {
-      version: 1,
-      categories: body.categories,
-      recipientLabel: body.recipientLabel,
-      purpose: body.purpose,
-      expiresAt: body.expiresAt,
-      active: body.active && body.categories.length > 0,
-      updatedAt: new Date().toISOString(),
-      consentRecordId,
-    };
+      const wantsActive = body.active && body.categories.length > 0;
+      if (
+        wantsActive &&
+        shareSettingsMateriallyEqual(previous, {
+          ...body,
+          active: true,
+        }) &&
+        previous.consentRecordId
+      ) {
+        return {
+          shareSettings: previous,
+          sharingActive: isSharingActive(previous),
+          noop: true as const,
+        };
+      }
 
-    const updated = existing
-      ? await prisma.accessibilityProfile.update({
-          where: { userId: user.id },
-          data: { shareWithProviders: toJson(next) },
-        })
-      : await prisma.accessibilityProfile.create({
+      let recipientOrganisationId: string | null = null;
+      let recipientLabel = "";
+
+      if (wantsActive) {
+        if (!body.recipientOrganisationId) {
+          throw new Error("RECIPIENT_REQUIRED");
+        }
+        const verified = await verifyPassportRecipientOrganisation({
+          participantUserId: user.id,
+          organisationId: body.recipientOrganisationId,
+        });
+        if (!verified.ok) {
+          throw new Error(`RECIPIENT_INVALID:${verified.reason}`);
+        }
+        recipientOrganisationId = verified.organisationId;
+        recipientLabel = verified.displayName;
+      }
+
+      if (previous.consentRecordId) {
+        await tx.consentRecord.updateMany({
+          where: {
+            id: previous.consentRecordId,
+            subjectUserId: user.id,
+            status: "active",
+          },
           data: {
-            userId: user.id,
-            mobilityNeeds: [],
-            communicationPreferences: [],
-            sensoryPreferences: {},
-            cognitivePreferences: {},
-            transportRequirements: {},
-            digitalPreferences: {},
-            shareWithProviders: toJson(next),
+            status: "revoked",
+            revokedById: user.id,
+            revokedAt: new Date(),
           },
         });
+      }
 
-    await createAuditEvent({
-      actorUserId: user.id,
-      actorRole: user.primaryRole as never,
-      action: body.active ? "consent.granted" : "consent.revoked",
-      entityType: "AccessibilityProfile",
-      entityId: updated.id,
-      participantId: user.id,
-      metadata: {
-        categories: next.categories,
-        active: next.active,
-        // Do not log requirement values.
-      },
+      // Also revoke any other active accessibility.read grants for this subject
+      // to the same org to prevent duplicate actives under race conditions.
+      if (recipientOrganisationId) {
+        await tx.consentRecord.updateMany({
+          where: {
+            subjectUserId: user.id,
+            grantedToOrganisationId: recipientOrganisationId,
+            scope: consentScopeToPrisma("accessibility.read"),
+            status: "active",
+          },
+          data: {
+            status: "revoked",
+            revokedById: user.id,
+            revokedAt: new Date(),
+          },
+        });
+      }
+
+      let consentRecordId: string | undefined;
+      if (wantsActive && recipientOrganisationId) {
+        const consent = await tx.consentRecord.create({
+          data: {
+            subjectUserId: user.id,
+            grantedToOrganisationId: recipientOrganisationId,
+            scope: consentScopeToPrisma("accessibility.read"),
+            purpose: body.purpose,
+            status: "active",
+            expiryDate: body.expiresAt ? new Date(body.expiresAt) : undefined,
+            createdById: user.id,
+            shareMode: "always_for_service",
+            recipientType: "organisation",
+            dataScope: body.categories,
+            sourceAction: "access_passport.share_settings",
+          },
+        });
+        consentRecordId = consent.id;
+      }
+
+      const next: AccessShareSettings = {
+        version: 1,
+        categories: body.categories,
+        recipientOrganisationId,
+        recipientLabel,
+        purpose: body.purpose,
+        expiresAt: body.expiresAt,
+        active: wantsActive,
+        updatedAt: new Date().toISOString(),
+        consentRecordId,
+      };
+
+      const updated = existing
+        ? await tx.accessibilityProfile.update({
+            where: { userId: user.id },
+            data: { shareWithProviders: toJson(next) },
+          })
+        : await tx.accessibilityProfile.create({
+            data: {
+              userId: user.id,
+              mobilityNeeds: [],
+              communicationPreferences: [],
+              sensoryPreferences: {},
+              cognitivePreferences: {},
+              transportRequirements: {},
+              digitalPreferences: {},
+              shareWithProviders: toJson(next),
+            },
+          });
+
+      return {
+        shareSettings: next,
+        sharingActive: isSharingActive(next),
+        profileId: updated.id,
+        wantsActive,
+        noop: false as const,
+      };
     });
 
+    if (!result.noop && "profileId" in result) {
+      await createAuditEvent({
+        actorUserId: user.id,
+        actorRole: user.primaryRole as never,
+        action: result.wantsActive ? "consent.granted" : "consent.revoked",
+        entityType: "AccessibilityProfile",
+        entityId: result.profileId,
+        participantId: user.id,
+        metadata: {
+          categories: result.shareSettings.categories,
+          active: result.shareSettings.active,
+          recipientOrganisationId: result.shareSettings.recipientOrganisationId,
+        },
+      });
+    }
+
     return jsonOk({
-      shareSettings: next,
-      sharingActive: isSharingActive(next),
+      shareSettings: result.shareSettings,
+      sharingActive: result.sharingActive,
     });
   } catch (e) {
     if (e instanceof ZodError) return zodErrorResponse(e);
+    if (e instanceof Error) {
+      if (e.message === "RECIPIENT_REQUIRED") {
+        return jsonError(
+          "Select a verified organisation before sharing access requirements.",
+          400,
+        );
+      }
+      if (e.message.startsWith("RECIPIENT_INVALID:")) {
+        return jsonError(e.message.replace("RECIPIENT_INVALID:", ""), 403);
+      }
+    }
     return jsonError("Could not update share settings", 500);
   }
 }

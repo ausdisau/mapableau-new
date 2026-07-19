@@ -7,7 +7,7 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CareRequestWizard } from "@/components/care/CareRequestWizard";
-import { clearLocalDraft } from "@/lib/form-drafts/draft-storage";
+import { clearLocalDraft, loadLocalDraft } from "@/lib/form-drafts/draft-storage";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -52,7 +52,7 @@ describe("CareRequestWizard keyboard flow", () => {
     clearLocalDraft("care-request-wizard");
   });
 
-  it("moves through steps with keyboard and preserves a draft", async () => {
+  it("moves through steps with keyboard without storing care text locally", async () => {
     const user = userEvent.setup();
     render(<CareRequestWizard />);
 
@@ -72,9 +72,14 @@ describe("CareRequestWizard keyboard flow", () => {
     await user.click(
       screen.getByRole("button", { name: /save and continue later/i }),
     );
-    await expect(
-      waitFor(() => screen.getByText(/draft saved/i)),
-    ).resolves.toBeTruthy();
+    await waitFor(() => screen.getByText(/draft saved|progress saved|device/i));
+
+    const draft = loadLocalDraft("care-request-wizard");
+    expect(draft?.payload.requestType).toBeTruthy();
+    expect(draft?.payload.description).toBeUndefined();
+    expect(draft?.payload.title).toBeUndefined();
+    expect(JSON.stringify(draft)).not.toContain("Morning support");
+    expect(JSON.stringify(draft)).not.toContain("Shower support");
 
     await user.click(screen.getByRole("button", { name: /^continue$/i }));
     await waitFor(() => {
@@ -84,10 +89,11 @@ describe("CareRequestWizard keyboard flow", () => {
     cleanup();
     render(<CareRequestWizard />);
     await waitFor(() => {
-      expect(screen.getByText(/draft restored on this device/i)).toBeTruthy();
+      expect(screen.getByText(/progress restored on this device/i)).toBeTruthy();
     });
-    expect((screen.getByLabelText(/short title/i) as HTMLInputElement).value).toBe(
-      "Morning support",
-    );
+    // Sensitive free text must not be restored from localStorage for signed-out users.
+    expect(
+      (screen.getByLabelText(/short title/i) as HTMLInputElement).value,
+    ).toBe("");
   });
 });

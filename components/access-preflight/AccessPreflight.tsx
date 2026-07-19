@@ -53,6 +53,11 @@ export function AccessPreflight({ place }: { place: DemoAccessPlace }) {
               <h3 className="text-sm font-black text-[#0C1833]">{fact.label}</h3>
               <AccessFactStatus state={fact.state} />
             </div>
+            {fact.explanation ? (
+              <p className="mt-2 text-sm leading-6 text-slate-700">
+                {fact.explanation}
+              </p>
+            ) : null}
             <VerificationMetadata
               source={fact.source}
               verificationStatus={fact.verificationStatus}

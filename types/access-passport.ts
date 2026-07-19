@@ -26,12 +26,12 @@ export const ACCESS_SHARE_CATEGORY_LABELS: Record<AccessShareCategory, string> =
 
 export interface AccessShareSettings {
   version: 1;
-  /** Categories the user chose to share. Empty = nothing shared. */
   categories: AccessShareCategory[];
-  /** Who may receive shared categories (plain-language label). */
+  /** Verified organisation recipient — authority for consent grants. */
+  recipientOrganisationId: string | null;
+  /** Server-resolved display name only. */
   recipientLabel: string;
   purpose: string;
-  /** ISO date string or null for session/booking-bound. */
   expiresAt: string | null;
   active: boolean;
   updatedAt: string;
@@ -41,6 +41,7 @@ export interface AccessShareSettings {
 export const DEFAULT_ACCESS_SHARE_SETTINGS: AccessShareSettings = {
   version: 1,
   categories: [],
+  recipientOrganisationId: null,
   recipientLabel: "",
   purpose: "",
   expiresAt: null,

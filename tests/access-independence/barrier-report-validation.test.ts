@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { barrierReportSchema } from "@/lib/barrier-report/validation";
 
 describe("barrier report validation", () => {
-  it("accepts a report without an image", () => {
+  it("accepts a final report without an image", () => {
     const result = barrierReportSchema.safeParse({
       category: "entrance",
       description: "The temporary ramp was removed this morning.",
@@ -13,7 +13,27 @@ describe("barrier report validation", () => {
     expect(result.success).toBe(true);
   });
 
-  it("requires an image description when an image URL is provided", () => {
+  it("allows an empty partial draft", () => {
+    const result = barrierReportSchema.safeParse({
+      category: "entrance",
+      description: "",
+      isDraft: true,
+      anonymous: true,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an empty final submission", () => {
+    const result = barrierReportSchema.safeParse({
+      category: "entrance",
+      description: "",
+      isDraft: false,
+      anonymous: true,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects remote image URLs (upload deferred)", () => {
     const result = barrierReportSchema.safeParse({
       category: "lift",
       description: "Lift out of service on level 2.",

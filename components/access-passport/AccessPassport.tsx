@@ -23,6 +23,8 @@ type ProfileSnapshot = {
   transportRequirements: Record<string, unknown>;
 };
 
+type EligibleRecipient = { id: string; name: string };
+
 export function AccessPassport({
   initialProfile,
   initialShareSettings,
@@ -36,9 +38,12 @@ export function AccessPassport({
   const [categories, setCategories] = useState<AccessShareCategory[]>(
     initialShareSettings?.categories ?? [],
   );
-  const [recipientLabel, setRecipientLabel] = useState(
-    initialShareSettings?.recipientLabel ?? "",
+  const [recipientOrganisationId, setRecipientOrganisationId] = useState(
+    initialShareSettings?.recipientOrganisationId ?? "",
   );
+  const [eligibleRecipients, setEligibleRecipients] = useState<
+    EligibleRecipient[]
+  >([]);
   const [purpose, setPurpose] = useState(initialShareSettings?.purpose ?? "");
   const [expiresAt, setExpiresAt] = useState(
     initialShareSettings?.expiresAt
@@ -50,17 +55,50 @@ export function AccessPassport({
 
   useEffect(() => {
     setShareSettings(initialShareSettings ?? DEFAULT_ACCESS_SHARE_SETTINGS);
+    setRecipientOrganisationId(
+      initialShareSettings?.recipientOrganisationId ?? "",
+    );
   }, [initialShareSettings]);
+
+  useEffect(() => {
+    void fetch("/api/accessibility-profile/share-settings")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(
+        (data: {
+          shareSettings?: AccessShareSettings;
+          eligibleRecipients?: EligibleRecipient[];
+        } | null) => {
+          if (!data) return;
+          if (data.shareSettings) setShareSettings(data.shareSettings);
+          if (data.eligibleRecipients) {
+            setEligibleRecipients(data.eligibleRecipients);
+          }
+          if (data.shareSettings?.recipientOrganisationId) {
+            setRecipientOrganisationId(
+              data.shareSettings.recipientOrganisationId,
+            );
+          }
+        },
+      )
+      .catch(() => undefined);
+  }, []);
 
   async function saveSharing(active: boolean) {
     setLoading(true);
     setStatus("");
+    if (active && !recipientOrganisationId) {
+      setLoading(false);
+      setStatus(
+        "Select a verified organisation before sharing access requirements.",
+      );
+      return;
+    }
     const res = await fetch("/api/accessibility-profile/share-settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         categories,
-        recipientLabel: recipientLabel.trim() || "Selected providers",
+        recipientOrganisationId: active ? recipientOrganisationId : null,
         purpose: purpose.trim() || "Support delivery and booking coordination",
         expiresAt: expiresAt
           ? new Date(`${expiresAt}T23:59:59.000Z`).toISOString()
@@ -70,14 +108,23 @@ export function AccessPassport({
     });
     setLoading(false);
     if (!res.ok) {
-      setStatus("Could not update sharing settings. Please try again.");
+      const data = (await res.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      setStatus(
+        data?.error ||
+          "Could not update sharing settings. Please try again.",
+      );
       return;
     }
     const data = (await res.json()) as { shareSettings: AccessShareSettings };
     setShareSettings(data.shareSettings);
+    setRecipientOrganisationId(
+      data.shareSettings.recipientOrganisationId ?? "",
+    );
     setStatus(
       active
-        ? "Sharing updated. Providers only see categories you selected."
+        ? `Sharing updated with ${data.shareSettings.recipientLabel || "the selected organisation"}. Providers only see categories you selected.`
         : "Sharing revoked for these categories.",
     );
   }
@@ -85,6 +132,10 @@ export function AccessPassport({
   function printSummary() {
     window.print();
   }
+
+  const selectedName =
+    eligibleRecipients.find((row) => row.id === recipientOrganisationId)
+      ?.name || shareSettings.recipientLabel;
 
   return (
     <div className="space-y-8" data-testid="access-passport">
@@ -161,15 +212,41 @@ export function AccessPassport({
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className="text-lg font-black text-[#0C1833]">Sharing controls</h2>
         <ConsentCategorySelector value={categories} onChange={setCategories} />
-        <AccessibleFormField id="share-recipient" label="Who will receive this">
-          <input
+        <AccessibleFormField
+          id="share-recipient"
+          label="Who will receive this"
+          hint="Only organisations with a verified relationship to you can be selected. Free-text labels are not used for authority."
+        >
+          <select
             id="share-recipient"
             className={formInputClass}
-            value={recipientLabel}
-            onChange={(event) => setRecipientLabel(event.target.value)}
-            placeholder="Example: My support provider for this booking"
-          />
+            value={recipientOrganisationId}
+            onChange={(event) => setRecipientOrganisationId(event.target.value)}
+            required
+            data-testid="share-recipient-org"
+          >
+            <option value="">Select a verified organisation</option>
+            {eligibleRecipients.map((org) => (
+              <option key={org.id} value={org.id}>
+                {org.name}
+              </option>
+            ))}
+          </select>
         </AccessibleFormField>
+        {selectedName ? (
+          <p className="text-sm text-slate-600" data-testid="share-recipient-name">
+            Selected organisation: <strong>{selectedName}</strong>
+            {shareSettings.expiresAt
+              ? ` · Sharing ends ${new Date(shareSettings.expiresAt).toLocaleDateString("en-AU")}`
+              : null}
+          </p>
+        ) : null}
+        {eligibleRecipients.length === 0 ? (
+          <p className="text-sm text-amber-900" role="status">
+            No eligible organisations yet. Sharing becomes available after a
+            verified provider relationship, care request or booking is linked.
+          </p>
+        ) : null}
         <AccessibleFormField id="share-purpose" label="Purpose">
           <input
             id="share-purpose"
@@ -199,7 +276,7 @@ export function AccessPassport({
             size="default"
             loading={loading}
             onClick={() => void saveSharing(true)}
-            disabled={categories.length === 0}
+            disabled={categories.length === 0 || !recipientOrganisationId}
           >
             Save and start sharing selected categories
           </Button>

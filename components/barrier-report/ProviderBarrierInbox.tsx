@@ -139,10 +139,9 @@ export function ProviderBarrierInbox({
                     Location detail: {report.locationDetail}
                   </p>
                 ) : null}
-                {report.imageUrl ? (
+                {report.imageDescription ? (
                   <p className="mt-2 text-sm text-slate-600">
-                    Image description:{" "}
-                    {report.imageDescription || "No description provided"}
+                    Image description: {report.imageDescription}
                   </p>
                 ) : null}
                 {canManage && transitions.length > 0 ? (

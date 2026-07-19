@@ -1,79 +1,108 @@
 # Access Independence MVP — QA notes
 
-This document covers the Access Independence MVP (passport, preflight, step-by-step care request, drafts, barrier reports, map/list equivalence, consistent help, panel extensions).
+This document covers the Access Independence MVP (passport, preflight, step-by-step care request, drafts, barrier reports, map/list equivalence, consistent help, panel extensions) after security/privacy hardening.
 
-**Important:** Meeting these checks does not claim WCAG 2.2 AA compliance for the whole product. Automated scans and the Accessibility Panel are helpers only.
+**Important:** Meeting these checks does **not** claim WCAG 2.2 AA (or any WCAG) compliance for the whole product. Automated scans and the Accessibility Panel are helpers only. See `docs/brand/public-claims-register.md`.
 
-## Manual accessibility checklist
+## Automated checks that genuinely ran
 
-### Assistive technology
+Record results from the hardening verification run (update when re-run):
 
-- [ ] **NVDA + Chrome or Firefox**: open Access Passport, change a share category, confirm “You are sharing…” status is announced; complete Care Request steps with virtual cursor and browse mode off for forms.
-- [ ] **VoiceOver + Safari**: same flows; verify dialogs (Accessibility Panel, Consistent Help) announce name, trap focus, restore focus on close.
-- [ ] Confirm Access Preflight fact states (Confirmed / Unavailable / Unknown / Not applicable) are spoken with labels, not colour alone.
+| Check | Command | Result |
+| --- | --- | --- |
+| Format | `pnpm format:check` | See verification section in PR notes |
+| Types | `pnpm type-check` | See verification section in PR notes |
+| Lint | `pnpm lint` | See verification section in PR notes |
+| Unit/integration | `pnpm exec vitest run tests/access-independence tests/accessibility` | See verification section in PR notes |
+| Playwright (a11y shells) | `pnpm exec playwright test tests/a11y/access-independence.spec.ts tests/a11y/accessibility-panel.spec.ts tests/a11y/route-shells.spec.ts` | See verification section in PR notes |
+| Build | `pnpm build` | See verification section in PR notes |
 
-### Keyboard only
+## Manual accessibility checklist (remaining)
 
-- [ ] Tab through map landing: map/list toggle, place list, selected place, Access Preflight, Report barrier link, Consistent Help.
-- [ ] Complete Care Request wizard: Back / Continue never auto-advance on chip select; review screen before submit; error summary links move focus to fields.
-- [ ] Barrier report: choose category, enter description, skip image, submit; receive reference number.
+### Assistive technology — **Not run**
+
+- [ ] **Not run** — NVDA + Chrome or Firefox: Access Passport, Care Request, barrier report tracking, provider barrier inbox.
+- [ ] **Not run** — VoiceOver + Safari: same flows; dialogs announce name, trap focus, restore focus on close.
+- [ ] **Not run** — Confirm Access Preflight fact states are spoken with labels, not colour alone.
+
+### Keyboard only — **partially covered by Playwright; full authenticated flows Not run**
+
+- [ ] **Not run** (authenticated) — Access Passport: select verified org, share, revoke; status announced; focus restoration.
+- [ ] **Not run** (authenticated) — Care Request wizard end-to-end with account draft restore.
+- [ ] **Not run** (authenticated) — Report tracking and provider barrier inbox keyboard completion.
+- [ ] Tab through map landing: map/list toggle, place list, selected place, Access Preflight, Report barrier link, Consistent Help (smoke covered where Playwright seeds exist).
 - [ ] Open/close Accessibility Panel and dialogs with Escape; focus returns to trigger.
 
-### Voice control
+### Voice control — **Not run**
 
-- [ ] Visible names match spoken names for primary actions: “Continue”, “Save and continue later”, “Report an access barrier”, “Open accessibility settings”.
+- [ ] **Not run** — Visible names match spoken names for primary actions.
 
-### Zoom and spacing
+### Zoom and spacing — **Not run** (representative layouts)
 
-- [ ] 200% and 400% browser zoom on map landing and Care Request: no clipped controls; list view usable when map is constrained.
-- [ ] Increase text spacing (browser/extension): no overlapping labels on passport and barrier form.
+- [ ] **Not run** — 320 px reflow on map landing, passport, care request, barrier form.
+- [ ] **Not run** — 200% and 400% browser zoom: no clipped controls; sticky sharing status does not obscure focus.
+- [ ] **Not run** — Text spacing: no overlapping labels.
 
-### Motion, contrast, touch
+### Motion, contrast, touch — **Not run**
 
-- [ ] OS reduced motion: decorative motion stays off even if panel reduce-motion is unset.
-- [ ] High contrast / forced colours: status text and icons remain readable; markers not colour-only.
-- [ ] Touch targets: primary controls at least 44×44 CSS px where large-controls is on; minimum 24×24 otherwise.
+- [ ] **Not run** — OS reduced motion, high contrast / forced colours, touch targets.
 
-### Cognitive / plain-language walkthrough
+### Cognitive / plain-language walkthrough — **Not run**
 
-- [ ] Task: “Share only mobility needs with Clinic A until next Friday.”
-- [ ] Task: “Check whether this place has a Changing Places toilet before I go.”
-- [ ] Task: “Start a care request, leave halfway, sign in again, resume.”
-- [ ] Task: “Report a lift barrier without uploading a photo.”
+- [ ] **Not run** — “Share only mobility needs with a verified organisation until next Friday.”
+- [ ] **Not run** — “Check whether this place has a Changing Places toilet before I go.”
+- [ ] **Not run** — “Start a care request, leave halfway, sign in again, resume.”
+- [ ] **Not run** — “Report a lift barrier without uploading a photo.”
 
-## Privacy checks
+## Privacy and security checks
 
-- [ ] UI panel settings do not appear in provider-facing share payloads.
-- [ ] Consent audit events log categories/active flags only — not requirement values.
-- [ ] Barrier reports do not expose reporter contact details on public place pages.
-- [ ] Anonymous report path works without a session when policy allows.
+- [x] UI panel / digital preferences are not included in provider-facing share payloads.
+- [x] Consent binds `grantedToOrganisationId` after server verification; free-text recipient is display-only.
+- [x] Superseded active consent is revoked in the same transaction as replacement.
+- [x] Local drafts use schema allowlists — care description/address/access summary/tasks not stored in localStorage by default.
+- [x] Provider barrier list/update scoped by organisation membership; cross-tenant IDs return 404.
+- [x] Reporter contact and triage notes omitted from provider list select.
+- [x] Magic links are one-time, hashed at rest, rate-limited; external callbacks rejected.
+- [x] Anonymous barrier submissions rate-limited; remote image URLs rejected (upload deferred).
+- [x] Safety-critical reports show emergency boundary (MapAble is not emergency monitoring).
+
+## Known limitations / dependencies
+
+1. **No canonical place→organisation ownership** in Prisma. Provider inbox is fail-closed to reports with explicit `organisationId` (admin assignment). Unassigned reports stay on `/api/admin/access-barrier-reports`.
+2. **Image upload deferred** — no remote URL substitute; keyboard-accessible MIME-restricted upload to be wired later.
+3. **Authenticated Playwright seeds** for passport / care / provider inbox still needed for full keyboard regression.
+4. **Map movement** must not announce every pan/zoom (preserve list equivalence; avoid live-region spam).
 
 ## Auth review notes
 
 | Requirement | Status |
 | --- | --- |
-| Password managers / autofill | Supported (`autocomplete` on email/password) |
-| Copy/paste allowed | Supported (no paste blocking) |
-| Passkeys | Available via “Login with passkey” |
-| Email magic links | Implemented via SendGrid + credentials token (`/login` → “Email me a sign-in link”). Requires `SENDGRID_API_KEY` + `SENDGRID_FROM_EMAIL`. Does **not** use NextAuth EmailProvider / VerificationToken adapter migration. |
-| SMS sign-in | Twilio SMS 2FA remains available after password when enabled. SMS-only passwordless login needs verified phone numbers on accounts (not implemented). |
-| Errors preserve identifier | Email retained in controlled inputs on failure |
-| Focus after errors | Error region receives focus |
-| Drafts across session expiry | Local drafts for signed-out users; account drafts via `/api/form-drafts` when signed in |
-| Longer task idle warning | `TaskIdleWarning` on step-by-step forms; 15 min default, 45 min with longer-task-time preference |
+| Password managers / autofill | Supported |
+| Copy/paste allowed | Supported |
+| Passkeys | Available |
+| Email magic links | One-time DB token (`MagicLinkToken` hash only) + SendGrid; IP/email rate limits; generic responses |
+| SMS sign-in | Twilio 2FA after password when enabled |
+| Drafts | Local = allowlisted progress; account = authenticated `/api/form-drafts` for sensitive fields |
+| Longer task idle warning | `TaskIdleWarning` on step-by-step forms |
 
 ## Provider barrier inbox
 
-- Route: `/provider/access-barriers`
-- Workflow: received → reviewing → actioned → closed
-- Reporter contact details never returned
-- Org-scoped place ownership still a follow-up
+- Route: `/provider/access-barriers` (org-scoped only)
+- Admin moderation: `/api/admin/access-barrier-reports` (+ `[id]` assign org)
+- Workflow: received → reviewing → actioned → closed (with status history)
+- Feature flag: `ACCESS_INDEPENDENCE_PROVIDER_BARRIER_INBOX` (default on; still fail-closed without `organisationId`)
 
 ## Commands
 
 ```bash
 pnpm db:generate
-pnpm exec tsc --noEmit
+pnpm format:check
+pnpm type-check
+pnpm lint
 pnpm exec vitest run tests/access-independence tests/accessibility
-pnpm exec playwright test tests/a11y/access-independence.spec.ts tests/a11y/accessibility-panel.spec.ts
+pnpm exec playwright test \
+  tests/a11y/access-independence.spec.ts \
+  tests/a11y/accessibility-panel.spec.ts \
+  tests/a11y/route-shells.spec.ts
+pnpm build
 ```

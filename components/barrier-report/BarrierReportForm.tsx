@@ -39,27 +39,23 @@ export function BarrierReportForm({
   const [category, setCategory] = useState(
     (restored?.payload.category as string) || "entrance",
   );
-  const [description, setDescription] = useState(
-    (restored?.payload.description as string) || "",
-  );
-  const [locationDetail, setLocationDetail] = useState(
-    (restored?.payload.locationDetail as string) || "",
-  );
+  const [description, setDescription] = useState("");
+  const [locationDetail, setLocationDetail] = useState("");
   const [urgency, setUrgency] = useState(
     (restored?.payload.urgency as string) || "standard",
   );
-  const [observedAt, setObservedAt] = useState(
-    (restored?.payload.observedAt as string) || "",
-  );
-  const [imageUrl, setImageUrl] = useState("");
-  const [imageDescription, setImageDescription] = useState("");
+  const [observedAt, setObservedAt] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [anonymous, setAnonymous] = useState(true);
+  const [anonymous, setAnonymous] = useState(
+    restored?.payload.anonymous === false ? false : true,
+  );
   const [consentToContact, setConsentToContact] = useState(false);
   const [errors, setErrors] = useState<FormErrorItem[]>([]);
   const [reference, setReference] = useState<string | null>(null);
   const [draftMessage, setDraftMessage] = useState(
-    restored ? "Draft restored on this device." : "",
+    restored
+      ? "Progress restored on this device (category and urgency only). Sensitive description text is not stored locally."
+      : "",
   );
   const [loading, setLoading] = useState(false);
 
@@ -69,15 +65,16 @@ export function BarrierReportForm({
       stepId: "details",
       payload: {
         category,
-        description,
-        locationDetail,
         urgency,
-        observedAt,
         placeSlug,
         placeName,
+        anonymous,
+        stepId: "details",
       },
     });
-    setDraftMessage("Draft saved on this device.");
+    setDraftMessage(
+      "Progress saved on this device. Description and contact details are not stored in local browser storage.",
+    );
   }
 
   async function submit(isDraft: boolean) {
@@ -96,8 +93,6 @@ export function BarrierReportForm({
           : undefined,
         placeSlug,
         placeName,
-        imageUrl: imageUrl || undefined,
-        imageDescription: imageDescription || undefined,
         contactEmail: anonymous ? undefined : contactEmail || undefined,
         anonymous,
         consentToContact,
@@ -158,7 +153,23 @@ export function BarrierReportForm({
       }}
     >
       <FormErrorSummary errors={errors} />
-      <DraftStatus message={draftMessage || "You can save a draft without an image."} />
+      <DraftStatus message={draftMessage || "You can save a partial draft without a full description."} />
+
+      {urgency === "safety_critical" ? (
+        <div
+          className="rounded-xl border-2 border-red-800 bg-red-50 p-4 text-sm text-red-950"
+          role="alert"
+          data-testid="barrier-emergency-boundary"
+        >
+          <p className="font-black">This is not emergency monitoring</p>
+          <p className="mt-1">
+            MapAble does not provide emergency response. If anyone is in
+            immediate danger, call emergency services now (000 in Australia).
+            Use this form for non-emergency access barrier reporting and
+            follow-up only.
+          </p>
+        </div>
+      ) : null}
 
       <AccessibleFormField id="barrier-category" label="Barrier category">
         <select
@@ -178,7 +189,7 @@ export function BarrierReportForm({
       <AccessibleFormField
         id="barrier-description"
         label="Plain-language description"
-        hint="Describe what blocked access. Images are optional."
+        hint="Required for final submission. Drafts may be empty or short. Image upload is deferred — describe the barrier in text."
         error={errors.find((item) => item.id === "barrier-description")?.message}
       >
         <textarea
@@ -187,7 +198,6 @@ export function BarrierReportForm({
           rows={5}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          required
         />
       </AccessibleFormField>
 
@@ -225,32 +235,11 @@ export function BarrierReportForm({
         />
       </AccessibleFormField>
 
-      <AccessibleFormField
-        id="barrier-image"
-        label="Optional image URL"
-        hint="Upload is keyboard accessible via URL or future file picker. Do not rely on drag-and-drop alone."
-      >
-        <input
-          id="barrier-image"
-          type="url"
-          className={formInputClass}
-          value={imageUrl}
-          onChange={(event) => setImageUrl(event.target.value)}
-        />
-      </AccessibleFormField>
-
-      <AccessibleFormField
-        id="barrier-image-description"
-        label="Image description"
-        hint="Required if you add an image."
-      >
-        <input
-          id="barrier-image-description"
-          className={formInputClass}
-          value={imageDescription}
-          onChange={(event) => setImageDescription(event.target.value)}
-        />
-      </AccessibleFormField>
+      <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+        Photo upload is deferred until a keyboard-accessible, MIME-restricted
+        upload service is wired. Do not paste remote image URLs — they are not
+        accepted.
+      </p>
 
       <fieldset className="space-y-3 rounded-xl border border-slate-200 p-4">
         <legend className="px-1 text-sm font-black">Contact and consent</legend>
@@ -310,7 +299,7 @@ export function BarrierReportForm({
           size="default"
           onClick={persistLocal}
         >
-          Save on this device
+          Save progress on this device
         </Button>
       </div>
     </form>

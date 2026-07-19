@@ -4,25 +4,41 @@ import {
   accessShareSettingsPatchSchema,
   isSharingActive,
   parseAccessShareSettings,
+  shareSettingsMateriallyEqual,
 } from "@/lib/access-passport/share-settings";
 
 describe("access share settings", () => {
-  it("rejects unknown fields on patch payloads", () => {
+  it("rejects unknown fields and free-text recipient authority on patch", () => {
     const result = accessShareSettingsPatchSchema.safeParse({
       categories: ["mobility"],
-      recipientLabel: "Acme Care",
+      recipientOrganisationId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      recipientLabel: "should-not-be-client-authority",
       purpose: "Prepare for my appointment",
       expiresAt: null,
       active: true,
-      diagnosis: "should-not-be-allowed",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("requires a verified organisation id for active sharing", () => {
+    const settings = parseAccessShareSettings({
+      version: 1,
+      categories: ["mobility"],
+      recipientOrganisationId: null,
+      recipientLabel: "Acme Care",
+      purpose: "Visit support",
+      expiresAt: null,
+      active: true,
+      updatedAt: new Date().toISOString(),
+    });
+    expect(isSharingActive(settings)).toBe(false);
   });
 
   it("treats expired consent as inactive", () => {
     const settings = parseAccessShareSettings({
       version: 1,
       categories: ["mobility"],
+      recipientOrganisationId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
       recipientLabel: "Acme Care",
       purpose: "Visit support",
       expiresAt: "2020-01-01T00:00:00.000Z",
@@ -39,10 +55,11 @@ describe("access share settings", () => {
     expect(isSharingActive(settings)).toBe(false);
   });
 
-  it("recognises active non-expired sharing", () => {
+  it("recognises active non-expired org-bound sharing", () => {
     const settings = parseAccessShareSettings({
       version: 1,
       categories: ["communication", "assistance_animal"],
+      recipientOrganisationId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
       recipientLabel: "City Clinic",
       purpose: "Accessible appointment planning",
       expiresAt: null,
@@ -50,5 +67,37 @@ describe("access share settings", () => {
       updatedAt: new Date().toISOString(),
     });
     expect(isSharingActive(settings)).toBe(true);
+  });
+
+  it("detects material equality to avoid duplicate active grants", () => {
+    const current = parseAccessShareSettings({
+      version: 1,
+      categories: ["mobility", "sensory"],
+      recipientOrganisationId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      recipientLabel: "Clinic",
+      purpose: "Visit",
+      expiresAt: null,
+      active: true,
+      updatedAt: new Date().toISOString(),
+      consentRecordId: "consent-1",
+    });
+    expect(
+      shareSettingsMateriallyEqual(current, {
+        categories: ["sensory", "mobility"],
+        recipientOrganisationId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+        purpose: "Visit",
+        expiresAt: null,
+        active: true,
+      }),
+    ).toBe(true);
+    expect(
+      shareSettingsMateriallyEqual(current, {
+        categories: ["mobility"],
+        recipientOrganisationId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+        purpose: "Visit",
+        expiresAt: null,
+        active: true,
+      }),
+    ).toBe(false);
   });
 });
