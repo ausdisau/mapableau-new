@@ -15,6 +15,8 @@ export interface CurrentUser {
   locale: string;
   primaryRole: UserRole;
   roles: UserRole[];
+  /** Presentation-safe avatar URL generated server-side; null uses initials fallback. */
+  avatarUrl: string | null;
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -55,6 +57,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     locale: user.locale,
     primaryRole: user.primaryRole as UserRole,
     roles: uniqueRoles,
+    // Persistence and signed URL generation land in the profile-picture upload PR.
+    avatarUrl: null,
   };
 }
 

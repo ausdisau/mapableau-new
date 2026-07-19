@@ -79,6 +79,7 @@ describe("createBookingServicesAgent", () => {
         locale: "en-AU",
         primaryRole: "participant",
         roles: ["participant"],
+        avatarUrl: null,
       }),
     ).toThrow("Booking services agent is not enabled");
   });

@@ -16,6 +16,7 @@ const providerAdmin: CurrentUser = {
   locale: "en-AU",
   primaryRole: "provider_admin",
   roles: ["provider_admin"],
+  avatarUrl: null,
 };
 
 const workerUser: CurrentUser = {
@@ -27,6 +28,7 @@ const workerUser: CurrentUser = {
   locale: "en-AU",
   primaryRole: "support_worker",
   roles: ["support_worker"],
+  avatarUrl: null,
 };
 
 vi.mock("@/lib/prisma", () => ({

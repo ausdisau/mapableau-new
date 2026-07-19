@@ -11,17 +11,28 @@ export function DashboardAppShell({
   children,
   userName,
   role,
+  email,
+  avatarUrl = null,
 }: {
   children: ReactNode;
   userName: string;
   role: UserRole;
+  email?: string;
+  avatarUrl?: string | null;
 }) {
   return (
     <MapAbleAppShell
       variant="app"
       headerTitle="Dashboard"
       logoHref="/dashboard"
-      headerActions={<MapAbleUserBar userName={userName} role={role} />}
+      headerActions={
+        <MapAbleUserBar
+          userName={userName}
+          role={role}
+          email={email}
+          avatarUrl={avatarUrl}
+        />
+      }
       secondaryNav={<DashboardNav userName={userName} role={role} />}
     >
       {children}

@@ -12,7 +12,12 @@ export default async function DashboardLayout({
   const user = await requireAuth();
 
   return (
-    <DashboardAppShell userName={user.name} role={user.primaryRole as UserRole}>
+    <DashboardAppShell
+      userName={user.name}
+      role={user.primaryRole as UserRole}
+      email={user.email}
+      avatarUrl={user.avatarUrl}
+    >
       {children}
     </DashboardAppShell>
   );

@@ -46,6 +46,7 @@ const provider: CurrentUser = {
   locale: "en-AU",
   primaryRole: "provider_admin",
   roles: ["provider_admin"],
+  avatarUrl: null,
 };
 
 describe("Provider Operations attention queue", () => {

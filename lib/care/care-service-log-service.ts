@@ -31,6 +31,7 @@ export async function ensureServiceLogDraftForShift(
     locale: user.locale,
     primaryRole: user.primaryRole as CurrentUser["primaryRole"],
     roles: [...new Set(roles)],
+    avatarUrl: null,
   };
   try {
     return await createCareServiceLogDraft({

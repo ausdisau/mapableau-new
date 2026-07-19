@@ -49,6 +49,7 @@ const participant: CurrentUser = {
   locale: "en-AU",
   primaryRole: "participant",
   roles: ["participant"],
+  avatarUrl: null,
 };
 
 const otherParticipant: CurrentUser = {
@@ -65,6 +66,7 @@ const providerAdmin: CurrentUser = {
   locale: "en-AU",
   primaryRole: "provider_admin",
   roles: ["provider_admin"],
+  avatarUrl: null,
 };
 
 const worker: CurrentUser = {
@@ -76,6 +78,7 @@ const worker: CurrentUser = {
   locale: "en-AU",
   primaryRole: "support_worker",
   roles: ["support_worker"],
+  avatarUrl: null,
 };
 
 const shift = {

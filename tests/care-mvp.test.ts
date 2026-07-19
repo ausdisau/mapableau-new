@@ -20,6 +20,7 @@ const participantUser: CurrentUser = {
   locale: "en-AU",
   primaryRole: "participant",
   roles: ["participant"],
+  avatarUrl: null,
 };
 
 describe("Care MVP permissions", () => {

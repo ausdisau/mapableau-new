@@ -16,6 +16,7 @@ function makeUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     locale: "en-AU",
     primaryRole: "participant",
     roles: ["participant"],
+    avatarUrl: null,
     ...overrides,
   };
 }
