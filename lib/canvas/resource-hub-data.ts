@@ -13,6 +13,13 @@ export type PolicyResourceLink = {
 
 export const resourceModuleLinks: ResourceModuleLink[] = [
   {
+    eyebrow: "Business",
+    label: "Business Access Resources",
+    href: "/resources/business",
+    description:
+      "Self-checks, service guides and access statement tools to reduce access barriers.",
+  },
+  {
     eyebrow: "Care",
     label: "MapAble Care",
     href: "/care",
