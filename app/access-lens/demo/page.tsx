@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { AccessLensSyntheticDemo } from "@/components/access-lens/AccessLensSyntheticDemo";
 import {
   mapablePublicPageContainerClass,

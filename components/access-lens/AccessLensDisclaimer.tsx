@@ -1,10 +1,10 @@
 import React from "react";
 
+import { mapablePublicMutedCardClass } from "@/lib/marketing/public-page-styles";
 import {
   VISION_ACCESS_DISCLAIMER,
   VISION_ACCESS_TRUST_NOTE,
 } from "@/lib/vision-access";
-import { mapablePublicMutedCardClass } from "@/lib/marketing/public-page-styles";
 
 type AccessLensDisclaimerProps = {
   id?: string;

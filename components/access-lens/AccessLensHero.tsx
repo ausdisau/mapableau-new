@@ -1,10 +1,6 @@
-import React from "react";
 import Link from "next/link";
+import React from "react";
 
-import {
-  visionAccessHeroCopy,
-  VISION_ACCESS_SYNTHETIC_BANNER,
-} from "@/lib/vision-access";
 import {
   mapablePublicLeadClass,
   mapablePublicPageContainerClass,
@@ -12,6 +8,10 @@ import {
   mapablePublicSecondaryButtonClass,
   mapablePublicTitleClass,
 } from "@/lib/marketing/public-page-styles";
+import {
+  visionAccessHeroCopy,
+  VISION_ACCESS_SYNTHETIC_BANNER,
+} from "@/lib/vision-access";
 
 export function AccessLensHero() {
   return (

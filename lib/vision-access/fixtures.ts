@@ -5,12 +5,12 @@ import type {
   PerceptionCandidate,
   SyntheticScene,
 } from "./contracts";
-import { syntheticDemoDeviceProfile } from "./device-capability";
 import {
   VISION_ACCESS_DISCLAIMER,
   VISION_ACCESS_MEASUREMENT_LIMITATION,
   VISION_ACCESS_NO_NAVIGATION,
 } from "./copy";
+import { syntheticDemoDeviceProfile } from "./device-capability";
 
 const NOW = "2026-07-16T10:00:00.000Z";
 

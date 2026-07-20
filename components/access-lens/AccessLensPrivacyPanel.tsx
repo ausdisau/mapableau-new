@@ -1,10 +1,10 @@
 import React from "react";
 
-import { visionAccessPrivacyBullets } from "@/lib/vision-access";
 import {
   mapablePublicCardClass,
   mapablePublicSectionTitleClass,
 } from "@/lib/marketing/public-page-styles";
+import { visionAccessPrivacyBullets } from "@/lib/vision-access";
 
 export function AccessLensPrivacyPanel() {
   return (
