@@ -7,7 +7,17 @@ export {
   confirmAddressResolution,
   isConfirmedAddressResolution,
 } from "@/lib/spatial/address-intelligence";
+export {
+  filterPublishableApproachCandidates,
+  listSyntheticCivicApproachCandidates,
+  reviewApproachCandidate,
+} from "@/lib/spatial/approach-resolver";
 export { createGeoscapeSourceReference } from "@/lib/spatial/provenance";
+export type {
+  AccessApproachCandidate,
+  AccessApproachCandidateType,
+  AccessApproachReviewDecision,
+} from "@/lib/spatial/approach-types";
 export type {
   AddressAmbiguity,
   AddressResolutionResult,

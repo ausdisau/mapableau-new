@@ -26,6 +26,9 @@ export const accessAddressIntelligenceFlags = {
   get providerServiceAreasEnabled() {
     return flag("MAPABLE_PROVIDER_SERVICE_AREAS_ENABLED");
   },
+  get serviceAreaMapEnabled() {
+    return flag("MAPABLE_SERVICE_AREA_MAP_ENABLED");
+  },
 };
 
 export function isAccessAddressIntelligenceAvailable(): boolean {
