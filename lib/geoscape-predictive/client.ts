@@ -10,9 +10,12 @@ import {
 type GeoscapeFetchOptions = {
   path: string;
   query?: Record<string, string | number | boolean | undefined>;
+  /** AbortSignal for request cancellation. */
+  signal?: AbortSignal;
 };
 
 const memoryCache = new Map<string, { expiresAt: number; body: unknown }>();
+const DEFAULT_TIMEOUT_MS = 8_000;
 
 function buildUrl(path: string, query?: GeoscapeFetchOptions["query"]): string {
   const base = geoscapePredictiveConfig.baseUrl.replace(/\/$/, "");
@@ -43,15 +46,32 @@ export async function geoscapePredictiveGetJson<T>(
   }
 
   const apiKey = geoscapePredictiveConfig.apiKey!.trim();
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: apiKey,
-      "API-Key": apiKey,
-      Accept: "application/json",
-    },
-    next: { revalidate: geoscapePredictiveConfig.cacheTtlSeconds },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  const onOuterAbort = () => controller.abort();
+  options.signal?.addEventListener("abort", onOuterAbort);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: apiKey,
+        "API-Key": apiKey,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+      next: { revalidate: geoscapePredictiveConfig.cacheTtlSeconds },
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw geoscapeUpstreamError(504, "Geoscape request timed out");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+    options.signal?.removeEventListener("abort", onOuterAbort);
+  }
 
   const text = await res.text().catch(() => "");
 
@@ -71,6 +91,9 @@ export async function geoscapePredictiveGetJson<T>(
       }
     } catch {
       detail = text.slice(0, 200) || undefined;
+    }
+    if (res.status === 429) {
+      throw geoscapeUpstreamError(429, detail ?? "Geoscape rate limit exceeded");
     }
     throw geoscapeUpstreamError(res.status, detail);
   }

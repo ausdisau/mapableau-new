@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  isGeoscapePredictiveConfigured,
+} from "@/lib/config/geoscape-predictive";
+import {
   getAddress,
   suggestAddresses,
 } from "@/lib/geoscape-predictive/address-search-service";
@@ -9,8 +12,8 @@ import {
   normalizeAddressResponse,
   normalizeSuggestResponse,
 } from "@/lib/geoscape-predictive/normalize";
-import { geoscapeStreetAdapter } from "@/lib/search/geoscape-street-adapter";
 import { autocompleteQuerySchema } from "@/lib/search/autocomplete-validation";
+import { geoscapeStreetAdapter } from "@/lib/search/geoscape-street-adapter";
 
 describe("Geoscape normalize", () => {
   it("normalizes suggest list", () => {
@@ -72,6 +75,14 @@ describe("Geoscape Predictive client", () => {
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
     clearGeoscapePredictiveClientCache();
+  });
+
+  it("defaults to disabled when GEOSCAPE_PREDICTIVE_ENABLED is not true", async () => {
+    vi.stubEnv("GEOSCAPE_PREDICTIVE_ENABLED", "");
+    expect(isGeoscapePredictiveConfigured()).toBe(false);
+    await expect(suggestAddresses({ q: "116 Warren" })).rejects.toMatchObject({
+      code: "GEOSCAPE_NOT_CONFIGURED",
+    });
   });
 
   it("throws when API key is missing", async () => {

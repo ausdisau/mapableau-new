@@ -1,5 +1,15 @@
+/**
+ * Geoscape Predictive configuration (server-side only).
+ * Never expose GEOSCAPE_API_KEY via NEXT_PUBLIC_* or client bundles.
+ * Opt-in: GEOSCAPE_PREDICTIVE_ENABLED must be exactly "true".
+ */
+
 function envApiKey(): string | undefined {
   return process.env.GEOSCAPE_API_KEY ?? process.env.GEOSCAPE_PREDICTIVE_API_KEY;
+}
+
+function isPredictiveEnabled(): boolean {
+  return process.env.GEOSCAPE_PREDICTIVE_ENABLED === "true";
 }
 
 export const geoscapePredictiveConfig = {
@@ -13,7 +23,7 @@ export const geoscapePredictiveConfig = {
     );
   },
   get enabled() {
-    return process.env.GEOSCAPE_PREDICTIVE_ENABLED !== "false";
+    return isPredictiveEnabled();
   },
   get cacheTtlSeconds() {
     return Number(process.env.GEOSCAPE_PREDICTIVE_CACHE_TTL_SECONDS ?? "300");
@@ -42,7 +52,7 @@ export function getGeoscapePredictiveDiagnostics() {
   const aliasKey = process.env.GEOSCAPE_PREDICTIVE_API_KEY;
   const keyTrimmed = key?.trim() ?? "";
   const aliasTrimmed = aliasKey?.trim() ?? "";
-  const enabled = process.env.GEOSCAPE_PREDICTIVE_ENABLED !== "false";
+  const enabled = isPredictiveEnabled();
 
   return {
     geoscapeEnabled: enabled,

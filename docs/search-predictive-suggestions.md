@@ -77,6 +77,8 @@ Booking-related forms use a separate street-level path — not AusPost PAC subur
 - UI: `StreetAddressAutocomplete` → `AccessibleAutocomplete` with `field=location`
 - Suggest: Geoscape Predictive `GET /predictive/address?query=...` via `lib/geoscape-predictive/*`
 - Resolve on select: `GET /api/addresses/resolve?id=...` (full formatted address, suburb, coords)
-- Requires `GEOSCAPE_API_KEY` on the server (Vercel). Free-text entry still works if Geoscape is unset or fails.
+- Requires `GEOSCAPE_PREDICTIVE_ENABLED=true` **and** `GEOSCAPE_API_KEY` on the server (Vercel). Both default off / empty.
+- Free-text entry still works if Geoscape is unset, disabled, or fails.
 - Homepage / Provider Finder location fields are unchanged (local + AusPost suburb composite only).
 - Do not log exact addresses; transport disclosure still masks streets from providers until assignment.
+- Never expose Geoscape keys via `NEXT_PUBLIC_*`.
