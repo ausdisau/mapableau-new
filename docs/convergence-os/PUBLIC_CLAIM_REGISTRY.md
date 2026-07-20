@@ -10,6 +10,7 @@ A public claim is allowed only when maturity is `limited_release`, `production_r
 
 ## Current prohibitions (examples)
 
+- MapAble Positive Behaviour Support as autonomous, Commission-approved, clinically validated, or production-ready
 - Living Access Fabric as live personal accessibility truth
 - Live NDIA submission
 - Guaranteed transport arrival

@@ -107,3 +107,5 @@ See `scripts/ci/allowed-migration-repairs.json`. PR 1 repairs `20260521120000_ma
 - Additive migrations only before deprecating legacy structures
 - Never edit historical `migration.sql` bodies except via allowlisted remediation repairs
 - Never instruct `prisma db push` for production
+
+- `20260720120000_positive_behaviour_support_foundation` — PBS controlled-pilot aggregates (`Pbs*`); ConsentScope `behaviour_support_share`; DocumentCategory `behaviour_support_plan`.

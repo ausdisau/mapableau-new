@@ -122,6 +122,7 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 | [docs/modules/bookings.md](docs/modules/bookings.md)                                     | Bookings foundation           |
 | [docs/modules/care.md](docs/modules/care.md)                                             | Care MVP                      |
 | [docs/modules/case-management.md](docs/modules/case-management.md)                       | Case management (AI-assisted) |
+| [docs/modules/positive-behaviour-support.md](docs/modules/positive-behaviour-support.md) | Positive Behaviour Support (controlled pilot) |
 | [docs/modules/calendar.md](docs/modules/calendar.md)                                     | Unified calendar              |
 | [docs/modules/consent.md](docs/modules/consent.md)                                       | Consent model                 |
 | [docs/modules/cross-module-orchestration.md](docs/modules/cross-module-orchestration.md) | Cross-module flows            |

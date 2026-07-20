@@ -41,3 +41,6 @@ No new capability may be added until its domain owner, source of truth, producti
 ## Honesty labels
 
 Demo, mock, scaffold, and pilot behaviour must be labelled honestly in UI, API, and docs. Feature flags are not assurance.
+## Narrow exceptions recorded
+
+- 2026-07-20 — MapAble Positive Behaviour Support foundation (`docs/decisions/positive-behaviour-support-capability-introduction.md`) — controlled pilot only; does not lift this freeze globally.

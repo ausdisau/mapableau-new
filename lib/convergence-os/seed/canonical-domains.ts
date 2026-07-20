@@ -337,4 +337,18 @@ export const CANONICAL_DOMAIN_SEEDS: DomainSeed[] = [
     status: "canonical",
     notes: "Records and validates; humans approve; GitHub/CI execute",
   },
+  {
+    domainKey: "pbs.positive_behaviour_support",
+    name: "Positive Behaviour Support",
+    purpose:
+      "Controlled-pilot practitioner-led PBS workspace (not clinical substitution)",
+    canonicalModel: "PbsEngagement / PbsPlan",
+    canonicalService: "lib/positive-behaviour-support/",
+    canonicalApi: "/api/positive-behaviour-support/",
+    owningProgramme: "Positive Behaviour Support",
+    authoritativePath: "lib/positive-behaviour-support/",
+    status: "canonical",
+    notes:
+      "publicClaimAllowed false; DRAFT_ONLY AI; assignment/org scoped access",
+  },
 ];

@@ -239,6 +239,33 @@ export const PUBLIC_CLAIM_REGISTRY: PublicClaimEntry[] = [
     sourceOnMain: true,
     notes: "Indoor exists; personal usability claims require evidence.",
   },
+  {
+    claimKey: "claim.pbs_autonomous_or_commission_approved",
+    surface: "pbs / marketing",
+    capabilityKey: "pbs.positive_behaviour_support",
+    currentMaturity: "controlled_pilot",
+    publicClaimAllowed: false,
+    prohibitedWording: [
+      "autonomous behaviour support",
+      "Commission-approved",
+      "clinically validated PBS",
+      "MapAble approves restrictive practices",
+      "substitutes PBS",
+    ],
+    allowedWording: [
+      "controlled-pilot, practitioner-led workspace",
+      "AI proposals only",
+      "suitable practitioner required",
+    ],
+    evidenceRequired: [
+      "verified practitioner suitability",
+      "restrictive-practice gate tests",
+      "publicClaimAllowed remains false",
+    ],
+    sourceOnMain: false,
+    notes:
+      "See docs/decisions/positive-behaviour-support-capability-introduction.md — controlled pilot only.",
+  },
 ];
 
 export function assertNoProductionClaimsWithoutEvidence(): void {
