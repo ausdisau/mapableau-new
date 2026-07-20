@@ -2,8 +2,10 @@
 
 Source of structured actions: [`lib/convergence-os/seed/pr-action-ledger.ts`](../../lib/convergence-os/seed/pr-action-ledger.ts).
 
-**Inspected main tip:** `6279ab9198df2ebefb15a1ec5fe22ac735d21aa1`  
+**Inspected main tip:** `6279ab9198df2ebefb15a1ec5fe22ac735d21aa1` (pre-#387 merge)  
 **Full Phase 0 rescan:** [RESCAN_RECONCILIATION.md](./RESCAN_RECONCILIATION.md)  
+**Axios scope:** [AXIOS_GHSA_GCFJ_64VW_6MP9.md](./AXIOS_GHSA_GCFJ_64VW_6MP9.md)  
+**#387 review:** [INDEPENDENT_REVIEW_387.md](./INDEPENDENT_REVIEW_387.md)  
 **Rule:** PR descriptions are not evidence that code exists on `main`. Path searches and tests are.  
 **Stack policy:** No unmerged stack may grow beyond **3** PRs (`MAX_UNMERGED_STACK_DEPTH`).
 
@@ -15,11 +17,27 @@ Source of structured actions: [`lib/convergence-os/seed/pr-action-ledger.ts`](..
 
 Prefer independent branches from current `main`. Do **not** add a fifth PR on the Geoscape train.
 
-| Order | PR                                          | Action                                      | Notes                                    |
-| ----- | ------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
-| 1     | Remediation truth/controls (this programme) | `merge` when CI + review green              | Docs + readiness CI only                 |
-| 2     | #382 AT Continuity                          | `rebase`/`retain` repair on existing tip    | Format + a11y OOM; flag off; leave draft |
-| 3     | Runtime hardening (Phase 3)                 | Independent from `main` after #1 reviewable | CSP preview gate; no prod enforce        |
+| Order | PR                         | Action                                       | Notes                                          |
+| ----- | -------------------------- | -------------------------------------------- | ---------------------------------------------- |
+| 1     | **#387** truth/controls    | **`merge`** (authorised this session)        | Docs + readiness CI + axios override; CI green |
+| 2     | **#388** runtime hardening | `rebase` onto post-#387 `main` then validate | CSP preview gate; no prod enforce              |
+| 3     | **#382** AT Continuity     | `rebase`/`repair` on tip; leave draft        | Ownership + build-memory; human preview        |
+
+### Geoscape train reduction (licensing/privacy gated)
+
+| Step | Action                                   | Gate                                                                               |
+| ---- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| A    | Merge **#367**                           | **Only after** licensing/privacy approval (`OWNER_ACTION_REQUIRED` until recorded) |
+| B    | Retarget/rebase **#384** onto `main`     | After #367 merges                                                                  |
+| C    | Keep **#385 → #386** as depth ≤3 on #384 | Do **not** open a fifth PR                                                         |
+
+### Stale product PRs
+
+| PR                   | Action                                                        |
+| -------------------- | ------------------------------------------------------------- |
+| #379 PBS             | **Blocked** — recreate later under `lib/pbs-operations/**`    |
+| #383 VisionAccess    | Keep **draft** until explicit feature-freeze waiver           |
+| #371/#372 a11y panel | Extract first-party panel into focused PR from current `main` |
 
 ## Geoscape stack (policy breach — depth 4)
 

@@ -926,9 +926,9 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     mergeable: "MERGEABLE",
     schemaImpact: "low",
     canonicalDomains: ["booking.address", "geoscape.predictive"],
-    action: "merge",
+    action: "defer",
     reason:
-      "Independent depth-1 tip; flags default false. Human merge only after review — do not deepen children beyond stack policy.",
+      "Merge only after licensing/privacy approval (OWNER_ACTION_REQUIRED). Then retarget #384 onto main to reduce stack to ≤3. Do not add a fifth PR.",
     dependencies: [],
     operatingModeNote:
       "controlled_pilot adapters — GEOSCAPE_PREDICTIVE_ENABLED default false",
@@ -1035,6 +1035,42 @@ export const PR_ACTION_LEDGER: PrActionLedgerEntry[] = [
     operatingModeNote: "flags default false — no paid ranking",
     productionClaimAllowed: false,
     stackDepth: 4,
+  },
+  {
+    number: 387,
+    title: "Reconcile production-readiness truth and change controls",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["convergence.control_plane"],
+    action: "merge",
+    reason:
+      "Authorised merge tip — docs/CI/ledger + scoped axios >=1.18.0 override for GHSA-gcfj-64vw-6mp9; no product domain.",
+    dependencies: [],
+    operatingModeNote:
+      "remediation controls — see AXIOS_GHSA_GCFJ_64VW_6MP9.md",
+    productionClaimAllowed: false,
+    stackDepth: 1,
+  },
+  {
+    number: 388,
+    title: "Preview-gated runtime assurance controls",
+    state: "OPEN",
+    isDraft: true,
+    baseBranch: "main",
+    mergeable: "MERGEABLE",
+    schemaImpact: "none",
+    canonicalDomains: ["security.csp", "ops.runtime"],
+    action: "rebase",
+    reason:
+      "Rebase onto post-#387 main; validate CSP preview flag-on evidence; production enforce remains off.",
+    dependencies: [387],
+    operatingModeNote:
+      "MAPABLE_CSP_ENFORCE_PREVIEW fail-closed; hard-off in production",
+    productionClaimAllowed: false,
+    stackDepth: 1,
   },
 ];
 
