@@ -2,6 +2,7 @@ import {
   evaluateFinalisationGates,
   assertDraftIsNotActivePlan,
 } from "./invariants";
+import type { PbsRpGateResult } from "./restrictive-practice-gate";
 import {
   assertPbsPlanTransition,
   isPbsPlanVersionImmutable,
@@ -11,7 +12,6 @@ import type {
   PbsPlanStatus,
   PbsPlanType,
 } from "./types";
-import type { PbsRpGateResult } from "./restrictive-practice-gate";
 
 export interface PbsPlanLifecycleState {
   status: PbsPlanStatus;

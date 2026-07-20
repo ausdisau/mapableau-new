@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { PBS_POSITIONING } from "@/lib/positive-behaviour-support";
 import { pbsConfig } from "@/lib/config/positive-behaviour-support";
+import { PBS_POSITIONING } from "@/lib/positive-behaviour-support";
 
 export const metadata = {
   title: "Positive Behaviour Support | MapAble",

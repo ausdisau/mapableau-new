@@ -1,9 +1,9 @@
+import { assertUnknownRemainsUnknown } from "./invariants";
 import {
   PBS_QUESTIONNAIRE_SECTIONS,
   type PbsAnswerStatus,
   type PbsQuestionnaireSection,
 } from "./types";
-import { assertUnknownRemainsUnknown } from "./invariants";
 
 export const PBS_QUESTIONNAIRE_VERSION = "pbs-questionnaire-v1";
 

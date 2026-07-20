@@ -1,5 +1,40 @@
-export { PBS_POSITIONING, PBS_FORBIDDEN_CLAIMS } from "./types";
-export type * from "./types";
+export {
+  PBS_POSITIONING,
+  PBS_FORBIDDEN_CLAIMS,
+  PBS_PLAN_STATUSES,
+  PBS_PLAN_TYPES,
+  PBS_ENGAGEMENT_STATUSES,
+  PBS_SUITABILITY_STATUSES,
+  PBS_QUESTIONNAIRE_SECTIONS,
+  PBS_ANSWER_STATUSES,
+  PBS_RP_CLASSIFICATIONS,
+  PBS_RP_AUTHORISATION_STATUSES,
+  PBS_ASSISTANCE_ACTIONS,
+  PBS_PROHIBITED_ASSISTANCE_ACTIONS,
+  PBS_EXTERNAL_FIELD_ALLOWLIST,
+  PBS_EXTERNAL_FORBIDDEN_FIELD_KEYS,
+} from "./types";
+export type {
+  PbsPlanStatus,
+  PbsPlanType,
+  PbsEngagementStatus,
+  PbsSuitabilityStatus,
+  PbsQuestionnaireSection,
+  PbsAnswerStatus,
+  PbsRpClassification,
+  PbsRpAuthorisationStatus,
+  PbsAssistanceAction,
+  PbsProhibitedAssistanceAction,
+  PbsAuthorityCeiling,
+  PbsAccessActor,
+  PbsAccessPurpose,
+  PbsAccessDecision,
+  PbsFinalisationChecklist,
+  PbsAssistanceRequest,
+  PbsAssistanceResult,
+  PbsExternalPayloadField,
+  PbsDeidentifiedPayload,
+} from "./types";
 
 export {
   canTransitionPbsPlanStatus,
