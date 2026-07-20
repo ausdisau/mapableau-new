@@ -1,8 +1,8 @@
-import { createGeoscapeSourceReference } from "@/lib/spatial/provenance";
 import type {
   AccessApproachCandidate,
   AccessApproachReviewDecision,
 } from "@/lib/spatial/approach-types";
+import { createGeoscapeSourceReference } from "@/lib/spatial/provenance";
 import type { SpatialCandidateStatus } from "@/lib/spatial/types";
 
 /**

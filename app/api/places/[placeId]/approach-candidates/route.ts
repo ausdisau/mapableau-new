@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { accessAddressIntelligenceFlags } from "@/lib/spatial/flags";
 import {
   filterPublishableApproachCandidates,
   listSyntheticCivicApproachCandidates,
   reviewApproachCandidate,
 } from "@/lib/spatial/approach-resolver";
+import { accessAddressIntelligenceFlags } from "@/lib/spatial/flags";
 
 const postBodySchema = z.object({
   action: z.enum(["list", "review"]).default("list"),
