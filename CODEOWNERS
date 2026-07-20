@@ -69,3 +69,12 @@
 /docs/access-intelligence-next/ @ausdisau
 /components/access-intelligence-next/ @ausdisau
 /tests/access-intelligence-next/ @ausdisau
+
+# Geoscape / Access Address Intelligence (server-side spatial adapters)
+/lib/geoscape-predictive/ @ausdisau
+/lib/spatial/ @ausdisau
+/lib/addresses/ @ausdisau
+/app/api/addresses/ @ausdisau
+/docs/spatial/ @ausdisau
+/tests/spatial/ @ausdisau
+/tests/geoscape-predictive.test.ts @ausdisau
