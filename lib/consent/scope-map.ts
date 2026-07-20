@@ -17,6 +17,7 @@ const TO_PRISMA: Record<ConsentScope, PrismaConsentScope> = {
   "support_profile.read": "support_profile_read",
   "engagement.read_delegate": "engagement_read_delegate",
   "engagement.submit_delegate": "engagement_submit_delegate",
+  "behaviour_support.share": "behaviour_support_share",
 };
 
 const FROM_PRISMA: Record<PrismaConsentScope, ConsentScope> = Object.fromEntries(

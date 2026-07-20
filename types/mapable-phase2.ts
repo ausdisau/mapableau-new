@@ -40,6 +40,7 @@ export type DocumentCategory =
   | "invoice_attachment"
   | "support_ticket_attachment"
   | "accessibility_evidence"
+  | "behaviour_support_plan"
   | "other";
 
 export type DocumentVisibility =

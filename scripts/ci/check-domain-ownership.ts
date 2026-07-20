@@ -59,6 +59,20 @@ const OWNERSHIP: Array<{
       /CareBooking|CareRequest|prisma\.careBooking|prisma\.careRequest/i,
     ],
   },
+  {
+    domain: "pbs",
+    ownerPrefixes: [
+      "lib/positive-behaviour-support/",
+      "app/api/positive-behaviour-support/",
+      "app/dashboard/positive-behaviour-support/",
+      "app/practitioner/positive-behaviour-support/",
+      "app/provider/positive-behaviour-support/",
+      "app/admin/positive-behaviour-support/",
+      "app/positive-behaviour-support/",
+      "prisma/",
+    ],
+    foreignWriteHints: [/PbsPlan|PbsEngagement|prisma\.pbs/i],
+  },
 ];
 
 /** Known cross-domain orchestration / adapter packages (documented, not new SoTs). */

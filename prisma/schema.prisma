@@ -166,6 +166,21 @@ model User {
   programmeSourceRecordsOwned             ProgrammeSourceRecord[]     @relation("ProgrammeSourceRecordReviewOwner")
   programmeSourceImpactReviewsOwned       ProgrammeSourceImpactReview[] @relation("ProgrammeSourceImpactReviewOwner")
   trustRelationshipRecordsAsParticipant   ServiceRelationshipRecord[] @relation("TrustRelationshipParticipant")
+
+  // Positive Behaviour Support (controlled pilot)
+  pbsPractitionerProfiles                 PbsPractitionerProfile[]    @relation("PbsPractitionerUser")
+  pbsEngagementsAsParticipant             PbsEngagement[]             @relation("PbsEngagementParticipant")
+  pbsQuestionnaireResponsesSupplied       PbsQuestionnaireResponse[]  @relation("PbsResponseSupplier")
+  pbsObservationsRecorded                 PbsObservation[]            @relation("PbsObservationRecorder")
+  pbsAssessmentsAsPractitioner            PbsAssessment[]             @relation("PbsAssessmentPractitioner")
+  pbsPlansAsPractitioner                  PbsPlan[]                   @relation("PbsPlanPractitioner")
+  pbsConsultationAsPractitioner           PbsConsultationRecord[]     @relation("PbsConsultationPractitioner")
+  pbsFeedbackAsParticipant                PbsParticipantFeedback[]    @relation("PbsFeedbackParticipant")
+  pbsReviewsAsPractitioner                PbsReview[]                 @relation("PbsReviewPractitioner")
+  pbsAiRunsAsRequester                    PbsAiAssistanceRun[]        @relation("PbsAiRunRequester")
+  pbsAiRunsAsReviewer                     PbsAiAssistanceRun[]        @relation("PbsAiRunReviewer")
+  pbsDeidentificationReviewsAsPractitioner PbsDeidentificationReview[] @relation("PbsDeidReviewer")
+  pbsSuitabilityVerificationsPerformed    PbsPractitionerProfile[]    @relation("PbsSuitabilityVerifiedBy")
 }
 
 model PasskeyCredential {
@@ -589,6 +604,7 @@ enum ConsentScope {
   support_profile_read
   engagement_read_delegate
   engagement_submit_delegate
+  behaviour_support_share
 }
 
 enum ConsentStatus {
@@ -755,6 +771,12 @@ model Organisation {
   navigatorOrganisations               NavigatorOrganisation[]
   serviceRelationshipRecordsAsProvider ServiceRelationshipRecord[] @relation("TrustRelationshipProvider")
   serviceRelationshipRecordsAsPlatform ServiceRelationshipRecord[] @relation("TrustRelationshipPlatform")
+
+  // Positive Behaviour Support (controlled pilot)
+  pbsProviderProfiles                  PbsProviderProfile[]
+  pbsPractitionerProfiles              PbsPractitionerProfile[]
+  pbsEngagements                       PbsEngagement[]
+  pbsImplementationAssignments         PbsImplementationAssignment[]
 }
 
 model OrganisationMember {
@@ -1037,6 +1059,7 @@ enum DocumentCategory {
   invoice_attachment
   support_ticket_attachment
   accessibility_evidence
+  behaviour_support_plan
   other
 }
 
@@ -11018,4 +11041,545 @@ model TrustRelationshipSnapshot {
 
   @@index([relationshipId, status])
   @@map("trust_relationship_snapshots")
+}
+
+// =============================================================================
+// Positive Behaviour Support (controlled pilot) — domain owner: lib/positive-behaviour-support/
+// =============================================================================
+
+enum PbsSuitabilityStatus {
+  claimed
+  pending_verification
+  verified
+  rejected
+  expired
+  revoked
+}
+
+enum PbsEngagementStatus {
+  draft
+  active
+  paused
+  closed
+  archived
+}
+
+enum PbsPlanType {
+  interim
+  comprehensive
+}
+
+enum PbsPlanStatus {
+  draft
+  assessment_in_progress
+  consultation
+  practitioner_review
+  finalised
+  active
+  review_due
+  superseded
+  archived
+}
+
+enum PbsAnswerStatus {
+  answered
+  skipped
+  unknown
+  paused
+  disagreed
+  corrected
+}
+
+enum PbsRpClassification {
+  not_restrictive
+  possible_restrictive
+  regulated_restrictive
+  unclassified
+}
+
+enum PbsRpAuthorisationStatus {
+  not_required
+  required_missing
+  pending_external
+  recorded_external
+  gap_blocks_activation
+}
+
+enum PbsStatementAcceptance {
+  candidate
+  accepted
+  corrected
+  rejected
+}
+
+enum PbsDeidentificationStatus {
+  pending
+  approved
+  rejected
+}
+
+model PbsProviderProfile {
+  id                      String   @id @default(cuid())
+  organisationId          String
+  organisation            Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  claimedRegistrationGroup String?
+  registrationClaimed     Boolean  @default(false)
+  registrationVerified    Boolean  @default(false)
+  verificationNotes       String?
+  verifiedAt              DateTime?
+  verifiedByUserId        String?
+  status                  String   @default("active")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  practitionerProfiles PbsPractitionerProfile[]
+  engagements          PbsEngagement[]
+
+  @@unique([organisationId])
+  @@index([organisationId, registrationVerified])
+  @@map("pbs_provider_profiles")
+}
+
+model PbsPractitionerProfile {
+  id                   String               @id @default(cuid())
+  userId               String
+  user                 User                 @relation("PbsPractitionerUser", fields: [userId], references: [id], onDelete: Cascade)
+  organisationId       String
+  organisation         Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  providerProfileId    String?
+  providerProfile      PbsProviderProfile?  @relation(fields: [providerProfileId], references: [id], onDelete: SetNull)
+  claimedCredential    String?
+  suitabilityStatus    PbsSuitabilityStatus @default(claimed)
+  verifiedAt           DateTime?
+  verifiedByUserId     String?
+  verifiedBy           User?                @relation("PbsSuitabilityVerifiedBy", fields: [verifiedByUserId], references: [id], onDelete: SetNull)
+  verificationRecordRef String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  engagementsAsPractitioner PbsEngagement[] @relation("PbsEngagementPractitioner")
+
+  @@unique([userId, organisationId])
+  @@index([organisationId, suitabilityStatus])
+  @@index([userId])
+  @@map("pbs_practitioner_profiles")
+}
+
+model PbsEngagement {
+  id                         String              @id @default(cuid())
+  organisationId             String
+  organisation               Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  participantUserId          String
+  participant                User                @relation("PbsEngagementParticipant", fields: [participantUserId], references: [id], onDelete: Cascade)
+  providerProfileId          String?
+  providerProfile            PbsProviderProfile? @relation(fields: [providerProfileId], references: [id], onDelete: SetNull)
+  assignedPractitionerProfileId String?
+  assignedPractitionerProfile   PbsPractitionerProfile? @relation("PbsEngagementPractitioner", fields: [assignedPractitionerProfileId], references: [id], onDelete: SetNull)
+  status                     PbsEngagementStatus @default(draft)
+  consentRecordId            String?
+  authorityGrantId           String?
+  sourceChecklistVersion     String?
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
+
+  questionnaireSessions PbsQuestionnaireSession[]
+  observations          PbsObservation[]
+  assessments           PbsAssessment[]
+  plans                 PbsPlan[]
+  aiAssistanceRuns      PbsAiAssistanceRun[]
+
+  @@index([participantUserId, status])
+  @@index([organisationId, status])
+  @@index([assignedPractitionerProfileId])
+  @@map("pbs_engagements")
+}
+
+model PbsQuestionnaireSession {
+  id              String   @id @default(cuid())
+  engagementId    String
+  engagement      PbsEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  organisationId  String
+  participantUserId String
+  questionnaireVersion String
+  status          String   @default("in_progress")
+  easyReadMode    Boolean  @default(false)
+  autosaveStatus  String   @default("idle")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  responses PbsQuestionnaireResponse[]
+
+  @@index([engagementId])
+  @@index([participantUserId])
+  @@index([organisationId])
+  @@map("pbs_questionnaire_sessions")
+}
+
+model PbsQuestionnaireResponse {
+  id              String          @id @default(cuid())
+  sessionId       String
+  session         PbsQuestionnaireSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  organisationId  String
+  questionId      String
+  sectionKey      String
+  status          PbsAnswerStatus @default(unknown)
+  valueText       String?
+  suppliedByUserId String
+  suppliedBy      User            @relation("PbsResponseSupplier", fields: [suppliedByUserId], references: [id], onDelete: Cascade)
+  informantRole   String
+  disagreementNote String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([sessionId, sectionKey])
+  @@index([organisationId])
+  @@index([suppliedByUserId])
+  @@map("pbs_questionnaire_responses")
+}
+
+model PbsObservation {
+  id              String   @id @default(cuid())
+  engagementId    String
+  engagement      PbsEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  organisationId  String
+  participantUserId String
+  recordedByUserId String
+  recordedBy      User     @relation("PbsObservationRecorder", fields: [recordedByUserId], references: [id], onDelete: Cascade)
+  observedAt      DateTime?
+  antecedentText  String?
+  behaviourText   String?
+  consequenceText String?
+  contextText     String?
+  frequencyBand   String?
+  intensityBand   String?
+  isUnknown       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([engagementId])
+  @@index([organisationId, participantUserId])
+  @@map("pbs_observations")
+}
+
+model PbsAssessment {
+  id              String   @id @default(cuid())
+  engagementId    String
+  engagement      PbsEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  organisationId  String
+  participantUserId String
+  practitionerUserId String?
+  practitioner    User?    @relation("PbsAssessmentPractitioner", fields: [practitionerUserId], references: [id], onDelete: SetNull)
+  status          String   @default("draft")
+  isFunctionalBehaviourAssessment Boolean @default(false)
+  questionnaireAloneCannotFinalise Boolean @default(true)
+  requiredSectionsComplete Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  behaviourDefinitions PbsBehaviourDefinition[]
+  workingHypotheses    PbsWorkingHypothesis[]
+
+  @@index([engagementId])
+  @@index([organisationId, participantUserId])
+  @@map("pbs_assessments")
+}
+
+model PbsBehaviourDefinition {
+  id              String   @id @default(cuid())
+  assessmentId    String
+  assessment      PbsAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  organisationId  String
+  label           String
+  observableDescription String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([assessmentId])
+  @@index([organisationId])
+  @@map("pbs_behaviour_definitions")
+}
+
+model PbsWorkingHypothesis {
+  id              String   @id @default(cuid())
+  assessmentId    String
+  assessment      PbsAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  organisationId  String
+  statementText   String
+  isClinicalDetermination Boolean @default(false)
+  recordedByPractitioner Boolean @default(false)
+  unresolved      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([assessmentId])
+  @@index([organisationId])
+  @@map("pbs_working_hypotheses")
+}
+
+model PbsPlan {
+  id              String        @id @default(cuid())
+  engagementId    String
+  engagement      PbsEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  organisationId  String
+  participantUserId String
+  practitionerUserId String?
+  practitioner    User?         @relation("PbsPlanPractitioner", fields: [practitionerUserId], references: [id], onDelete: SetNull)
+  planType        PbsPlanType   @default(interim)
+  status          PbsPlanStatus @default(draft)
+  currentVersionNumber Int      @default(1)
+  sourceChecklistVersion String?
+  unresolvedConflictAcknowledged Boolean @default(false)
+  practitionerDeclarationAt DateTime?
+  participantFeedbackObtained Boolean @default(false)
+  participantFeedbackUnavailableReason String?
+  consultationEvidencePresent Boolean @default(false)
+  finalisedAt     DateTime?
+  activatedAt     DateTime?
+  reviewDueAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  versions                 PbsPlanVersion[]
+  consultations            PbsConsultationRecord[]
+  participantFeedback      PbsParticipantFeedback[]
+  restrictivePractices     PbsRestrictivePracticeRecord[]
+  implementationAssignments PbsImplementationAssignment[]
+  reviews                  PbsReview[]
+  aiAssistanceRuns         PbsAiAssistanceRun[]
+
+  @@index([engagementId, status])
+  @@index([organisationId, participantUserId])
+  @@index([practitionerUserId])
+  @@map("pbs_plans")
+}
+
+model PbsPlanVersion {
+  id              String        @id @default(cuid())
+  planId          String
+  plan            PbsPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  organisationId  String
+  versionNumber   Int
+  status          PbsPlanStatus
+  immutable       Boolean       @default(false)
+  changeSummary   String?
+  createdAt       DateTime      @default(now())
+
+  sections    PbsPlanSection[]
+  strategies  PbsStrategy[]
+  provenances PbsStatementProvenance[]
+
+  @@unique([planId, versionNumber])
+  @@index([organisationId])
+  @@map("pbs_plan_versions")
+}
+
+model PbsPlanSection {
+  id              String   @id @default(cuid())
+  planVersionId   String
+  planVersion     PbsPlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Cascade)
+  organisationId  String
+  sectionKey      String
+  title           String
+  bodyText        String?
+  aiAssisted      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([planVersionId, sectionKey])
+  @@index([organisationId])
+  @@map("pbs_plan_sections")
+}
+
+model PbsStrategy {
+  id              String   @id @default(cuid())
+  planVersionId   String
+  planVersion     PbsPlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Cascade)
+  organisationId  String
+  category        String
+  summary         String
+  detailText      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([planVersionId])
+  @@index([organisationId])
+  @@map("pbs_strategies")
+}
+
+model PbsConsultationRecord {
+  id              String   @id @default(cuid())
+  planId          String
+  plan            PbsPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  organisationId  String
+  practitionerUserId String?
+  practitioner    User?    @relation("PbsConsultationPractitioner", fields: [practitionerUserId], references: [id], onDelete: SetNull)
+  accessibleFormat String
+  summary         String?
+  consultedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@index([planId])
+  @@index([organisationId])
+  @@map("pbs_consultation_records")
+}
+
+model PbsParticipantFeedback {
+  id              String   @id @default(cuid())
+  planId          String
+  plan            PbsPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  organisationId  String
+  participantUserId String
+  participant     User     @relation("PbsFeedbackParticipant", fields: [participantUserId], references: [id], onDelete: Cascade)
+  agrees          Boolean?
+  feedbackText    String?
+  challengeNote   String?
+  createdAt       DateTime @default(now())
+
+  @@index([planId])
+  @@index([organisationId, participantUserId])
+  @@map("pbs_participant_feedback")
+}
+
+model PbsRestrictivePracticeRecord {
+  id              String   @id @default(cuid())
+  planId          String
+  plan            PbsPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  organisationId  String
+  classification  PbsRpClassification @default(unclassified)
+  jurisdiction    String?
+  authorisationStatus PbsRpAuthorisationStatus @default(required_missing)
+  checklistVersion String
+  leastRestrictiveChecked Boolean @default(false)
+  lastResortChecked Boolean @default(false)
+  proportionalityChecked Boolean @default(false)
+  shortestDurationChecked Boolean @default(false)
+  reductionEliminationPlanRecorded Boolean @default(false)
+  monitoringReviewArrangementsRecorded Boolean @default(false)
+  consultationAccessibleFormatRecorded Boolean @default(false)
+  manualClassificationByPractitioner Boolean @default(false)
+  aiDraftingSuspended Boolean @default(true)
+  highPriorityReview Boolean @default(true)
+  activationBlocked Boolean @default(true)
+  checklistJson   Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([planId])
+  @@index([organisationId, authorisationStatus])
+  @@map("pbs_restrictive_practice_records")
+}
+
+model PbsImplementationAssignment {
+  id              String   @id @default(cuid())
+  planId          String
+  plan            PbsPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  organisationId  String
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  status          String   @default("assigned")
+  acknowledgedAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  records PbsImplementationRecord[]
+
+  @@index([planId])
+  @@index([organisationId, status])
+  @@map("pbs_implementation_assignments")
+}
+
+model PbsImplementationRecord {
+  id              String   @id @default(cuid())
+  assignmentId    String
+  assignment      PbsImplementationAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  organisationId  String
+  monitoringNote  String?
+  occurredAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@index([assignmentId])
+  @@index([organisationId])
+  @@map("pbs_implementation_records")
+}
+
+model PbsReview {
+  id              String   @id @default(cuid())
+  planId          String
+  plan            PbsPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  organisationId  String
+  practitionerUserId String?
+  practitioner    User?    @relation("PbsReviewPractitioner", fields: [practitionerUserId], references: [id], onDelete: SetNull)
+  outcome         String?
+  nextReviewAt    DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([planId])
+  @@index([organisationId])
+  @@map("pbs_reviews")
+}
+
+model PbsAiAssistanceRun {
+  id              String   @id @default(cuid())
+  engagementId    String
+  engagement      PbsEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  planId          String?
+  plan            PbsPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  organisationId  String
+  requesterUserId String?
+  requester       User?    @relation("PbsAiRunRequester", fields: [requesterUserId], references: [id], onDelete: SetNull)
+  reviewerUserId  String?
+  reviewer        User?    @relation("PbsAiRunReviewer", fields: [reviewerUserId], references: [id], onDelete: SetNull)
+  action          String
+  authorityCeiling String  @default("DRAFT_ONLY")
+  provider        String
+  model           String
+  promptVersion   String
+  inputHash       String
+  outputHash      String
+  unknownsJson    Json     @default("[]")
+  conflictsJson   Json     @default("[]")
+  externalModelUsed Boolean @default(false)
+  createdAt       DateTime @default(now())
+
+  provenances PbsStatementProvenance[]
+
+  @@index([engagementId])
+  @@index([planId])
+  @@index([organisationId])
+  @@map("pbs_ai_assistance_runs")
+}
+
+model PbsStatementProvenance {
+  id              String   @id @default(cuid())
+  planVersionId   String?
+  planVersion     PbsPlanVersion? @relation(fields: [planVersionId], references: [id], onDelete: SetNull)
+  aiRunId         String?
+  aiRun           PbsAiAssistanceRun? @relation(fields: [aiRunId], references: [id], onDelete: SetNull)
+  organisationId  String
+  statementText   String
+  sourceRef       String?
+  acceptance      PbsStatementAcceptance @default(candidate)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([planVersionId])
+  @@index([aiRunId])
+  @@index([organisationId])
+  @@map("pbs_statement_provenances")
+}
+
+model PbsDeidentificationReview {
+  id              String   @id @default(cuid())
+  organisationId  String
+  engagementId    String?
+  practitionerUserId String
+  practitioner    User     @relation("PbsDeidReviewer", fields: [practitionerUserId], references: [id], onDelete: Cascade)
+  status          PbsDeidentificationStatus @default(pending)
+  payloadHash     String
+  approvedExactPayloadHash String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organisationId, status])
+  @@index([practitionerUserId])
+  @@map("pbs_deidentification_reviews")
 }

@@ -29,7 +29,7 @@ Integration boundary: agreement, evidence, mission coordination — not clinical
 | SIL / SDA | Partner delivers; MapAble coordinates journey refs | Claim property/clinical ownership |
 | Complex clinical supports | Referral + Passport disclosure | Clinical decisions / AI approval |
 | Allied health | Booking + evidence handoff | Prescribe therapy |
-| Behaviour support | Partner clinical governance | Substitute PBS |
+| Behaviour support | Partner clinical governance; MapAble may host a controlled-pilot practitioner-led workspace (`lib/positive-behaviour-support/`) that does not make clinical determinations | Substitute PBS; claim Commission approval/registration; autonomous plan generation |
 | Professional AT assessment | Assessment ref + equipment lifecycle links | Claim clinical suitability |
 | Accessible vehicle fleets | Eligibility + quote + evidence | Own fleet ops initially |
 | Equipment repair | Repair partner + Continuity mission | Guarantee repair SLA alone |
