@@ -28,6 +28,7 @@
     "ci:production-claims": "tsx scripts/ci/check-production-claims.ts",
     "ci:feature-dependencies": "tsx scripts/ci/check-feature-dependencies.ts",
     "ci:merge-train-integrity": "tsx scripts/ci/check-merge-train-integrity.ts",
+    "ci:readiness-evidence": "tsx scripts/ci/check-readiness-evidence-consistency.ts",
     "ci:prod-audit": "tsx scripts/ci/check-prod-audit.ts",
     "setup:cloud-agent": "bash scripts/setup-cloud-agent.sh",
     "mcp:av": "tsx mcp/av/server.ts",
