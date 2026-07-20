@@ -41,14 +41,47 @@ const navLinkClass =
   `inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-black text-[#0C1833] transition hover:bg-slate-50 ${mapableCareFocusRing}`;
 
 function DonateHeaderLink({ compact = false }: { compact?: boolean }) {
+  const [pending, setPending] = useState(false);
   const className = compact
-    ? `inline-flex min-h-11 items-center justify-center rounded-xl bg-[#F8C51C] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] ${mapableCareFocusRing}`
-    : `inline-flex min-h-11 items-center rounded-xl bg-[#F8C51C] px-4 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] md:px-5 ${mapableCareFocusRing}`;
+    ? `inline-flex min-h-11 items-center justify-center rounded-xl bg-[#F8C51C] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] disabled:cursor-wait disabled:opacity-80 ${mapableCareFocusRing}`
+    : `inline-flex min-h-11 items-center rounded-xl bg-[#F8C51C] px-4 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] disabled:cursor-wait disabled:opacity-80 md:px-5 ${mapableCareFocusRing}`;
+
+  async function handleDonate() {
+    if (pending) return;
+    setPending(true);
+    try {
+      const res = await fetch("/api/donate/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = (await res.json()) as {
+        checkoutUrl?: string;
+        fallbackUrl?: string;
+      };
+      if (data.checkoutUrl) {
+        window.location.assign(data.checkoutUrl);
+        return;
+      }
+      const fallback = data.fallbackUrl ?? MAPABLE_DONATION_URL;
+      window.open(fallback, "_blank", "noopener,noreferrer");
+    } catch {
+      window.open(MAPABLE_DONATION_URL, "_blank", "noopener,noreferrer");
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
-    <a href={MAPABLE_DONATION_URL} target="_blank" rel="noopener noreferrer" className={className}>
-      Donate
-    </a>
+    <button
+      type="button"
+      onClick={handleDonate}
+      disabled={pending}
+      aria-busy={pending}
+      className={className}
+    >
+      {pending ? "Donate…" : "Donate"}
+    </button>
   );
 }
 
