@@ -1,10 +1,10 @@
 import React from "react";
 
+import { mapablePublicMutedCardClass } from "@/lib/marketing/public-page-styles";
 import {
   VISION_PARTICIPANT_STATE_LABELS,
   type PerceptionCandidate,
 } from "@/lib/vision-access";
-import { mapablePublicMutedCardClass } from "@/lib/marketing/public-page-styles";
 
 type VisionCandidateOverlayProps = {
   candidates: PerceptionCandidate[];

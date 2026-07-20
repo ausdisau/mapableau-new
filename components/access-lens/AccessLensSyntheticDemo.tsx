@@ -4,6 +4,10 @@ import { AccessLensDisclaimer } from "@/components/access-lens/AccessLensDisclai
 import { VisionCandidateList } from "@/components/access-lens/VisionCandidateList";
 import { VisionCandidateOverlay } from "@/components/access-lens/VisionCandidateOverlay";
 import {
+  mapablePublicCardClass,
+  mapablePublicSectionTitleClass,
+} from "@/lib/marketing/public-page-styles";
+import {
   VISION_ACCESS_MEASUREMENT_LIMITATION,
   VISION_ACCESS_SYNTHETIC_BANNER,
   VISION_DEVICE_TIER_LABELS,
@@ -12,10 +16,6 @@ import {
   getSortedCandidates,
   type SyntheticScene,
 } from "@/lib/vision-access";
-import {
-  mapablePublicCardClass,
-  mapablePublicSectionTitleClass,
-} from "@/lib/marketing/public-page-styles";
 
 type AccessLensSyntheticDemoProps = {
   scene?: SyntheticScene;

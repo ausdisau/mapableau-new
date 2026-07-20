@@ -3,14 +3,14 @@ import { AccessLensHero } from "@/components/access-lens/AccessLensHero";
 import { AccessLensPrivacyPanel } from "@/components/access-lens/AccessLensPrivacyPanel";
 import { AccessLensSyntheticDemo } from "@/components/access-lens/AccessLensSyntheticDemo";
 import {
-  visionAccessBuiltForA11yCopy,
-  visionAccessHowItWorksSteps,
-} from "@/lib/vision-access";
-import {
   mapablePublicCardClass,
   mapablePublicPageContainerClass,
   mapablePublicSectionTitleClass,
 } from "@/lib/marketing/public-page-styles";
+import {
+  visionAccessBuiltForA11yCopy,
+  visionAccessHowItWorksSteps,
+} from "@/lib/vision-access";
 
 export const metadata = {
   title: "MapAble Access Lens | Provisional access candidates",
