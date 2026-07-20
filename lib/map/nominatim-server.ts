@@ -5,6 +5,7 @@
 
 import {
   isNominatimGeocodingConfigured,
+  isOpenStreetMapConfigured,
   openStreetMapConfig,
 } from "@/lib/config/openstreetmap";
 
@@ -38,4 +39,57 @@ export async function forwardGeocodeAustralia(
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
   return { lat, lng };
+}
+
+export type ReverseGeocodeResult = {
+  postcode: string;
+  suburb: string;
+  state: string;
+  displayName: string;
+};
+
+/** Server-side reverse geocode via Nominatim (OpenStreetMap). */
+export async function reverseGeocodeCoordinates(
+  lat: number,
+  lng: number,
+): Promise<ReverseGeocodeResult | null> {
+  if (!isOpenStreetMapConfigured()) return null;
+
+  const url = new URL(`${openStreetMapConfig.nominatimBaseUrl}/reverse`);
+  url.searchParams.set("lat", String(lat));
+  url.searchParams.set("lon", String(lng));
+  url.searchParams.set("format", "json");
+  url.searchParams.set("addressdetails", "1");
+
+  const res = await fetch(url.toString(), {
+    headers: { "User-Agent": openStreetMapConfig.nominatimUserAgent },
+    next: { revalidate: 86400 },
+  });
+
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as {
+    address?: {
+      postcode?: string;
+      suburb?: string;
+      village?: string;
+      town?: string;
+      state_district?: string;
+      state?: string;
+    };
+    display_name?: string;
+  };
+
+  const addr = data.address ?? {};
+  const postcode = addr.postcode ?? "";
+  const suburb =
+    addr.suburb ?? addr.village ?? addr.town ?? addr.state_district ?? "";
+  const state = addr.state ?? "";
+
+  return {
+    postcode,
+    suburb,
+    state,
+    displayName: data.display_name ?? "",
+  };
 }
