@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      NODE_OPTIONS: --max-old-space-size=6144
+      # Standard runners ~7GB RAM; swap + higher heap needed for Next typecheck/lint.
+      NODE_OPTIONS: --max-old-space-size=12288
       NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production-use-32chars
       NEXTAUTH_URL: http://localhost:3000
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_a11y?schema=public
@@ -25,6 +26,14 @@ jobs:
       A11Y_SKIP_AUTH_ROUTES: "1"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Enable swap for Next build typecheck
+        run: |
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
 
       - uses: pnpm/action-setup@v4
         with:

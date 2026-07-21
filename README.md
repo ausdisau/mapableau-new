@@ -117,23 +117,23 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 
 ### Modules
 
-| Doc                                                                                      | Description                   |
-| ---------------------------------------------------------------------------------------- | ----------------------------- |
-| [docs/modules/bookings.md](docs/modules/bookings.md)                                     | Bookings foundation           |
-| [docs/modules/care.md](docs/modules/care.md)                                             | Care MVP                      |
-| [docs/modules/case-management.md](docs/modules/case-management.md)                       | Case management (AI-assisted) |
+| Doc                                                                                      | Description                                   |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [docs/modules/bookings.md](docs/modules/bookings.md)                                     | Bookings foundation                           |
+| [docs/modules/care.md](docs/modules/care.md)                                             | Care MVP                                      |
+| [docs/modules/case-management.md](docs/modules/case-management.md)                       | Case management (AI-assisted)                 |
 | [docs/modules/positive-behaviour-support.md](docs/modules/positive-behaviour-support.md) | Positive Behaviour Support (controlled pilot) |
-| [docs/modules/calendar.md](docs/modules/calendar.md)                                     | Unified calendar              |
-| [docs/modules/consent.md](docs/modules/consent.md)                                       | Consent model                 |
-| [docs/modules/cross-module-orchestration.md](docs/modules/cross-module-orchestration.md) | Cross-module flows            |
-| [docs/modules/incidents.md](docs/modules/incidents.md)                                   | Incident reporting            |
-| [docs/modules/jobs.md](docs/modules/jobs.md)                                             | Inclusive jobs                |
-| [docs/modules/privacy-and-audit.md](docs/modules/privacy-and-audit.md)                   | Privacy and audit             |
-| [docs/modules/provider-capacity.md](docs/modules/provider-capacity.md)                   | Provider capacity             |
-| [docs/modules/transport.md](docs/modules/transport.md)                                   | Transport module              |
-| [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md)             | Transport scheduling          |
-| [docs/modules/accessibility.md](docs/modules/accessibility.md)                           | Accessibility profiles        |
-| [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md)                       | Admin dashboard               |
+| [docs/modules/calendar.md](docs/modules/calendar.md)                                     | Unified calendar                              |
+| [docs/modules/consent.md](docs/modules/consent.md)                                       | Consent model                                 |
+| [docs/modules/cross-module-orchestration.md](docs/modules/cross-module-orchestration.md) | Cross-module flows                            |
+| [docs/modules/incidents.md](docs/modules/incidents.md)                                   | Incident reporting                            |
+| [docs/modules/jobs.md](docs/modules/jobs.md)                                             | Inclusive jobs                                |
+| [docs/modules/privacy-and-audit.md](docs/modules/privacy-and-audit.md)                   | Privacy and audit                             |
+| [docs/modules/provider-capacity.md](docs/modules/provider-capacity.md)                   | Provider capacity                             |
+| [docs/modules/transport.md](docs/modules/transport.md)                                   | Transport module                              |
+| [docs/modules/transport-scheduling.md](docs/modules/transport-scheduling.md)             | Transport scheduling                          |
+| [docs/modules/accessibility.md](docs/modules/accessibility.md)                           | Accessibility profiles                        |
+| [docs/modules/admin-dashboard.md](docs/modules/admin-dashboard.md)                       | Admin dashboard                               |
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).
 

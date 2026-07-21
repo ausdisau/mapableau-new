@@ -22,7 +22,7 @@
 | Access place identity       | `lib/access-map/**`                                      | **`AccessPlace`**                            | Sole public place writer                                                |
 | Access Intelligence Next    | `lib/access-intelligence-next/**`                        | Deterministic fit / proof / graph projection | Synthetic contracts only in foundation; must not become AccessPlace SoT |
 | Public accountability       | `lib/national-accountability/**`                         | National accountability publications         | Evolve to governed pipeline (PR 11); no second portal                   |
-| Positive behaviour support | `lib/positive-behaviour-support/**` | **`Pbs*` aggregates** | Controlled pilot; assignment/org scoped; do not reuse case:read:any |
+| Positive behaviour support  | `lib/positive-behaviour-support/**`                      | **`Pbs*` aggregates**                        | Controlled pilot; assignment/org scoped; do not reuse case:read:any     |
 
 ## Mutation rule
 

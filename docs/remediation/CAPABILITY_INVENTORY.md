@@ -53,13 +53,12 @@ Strategy lanes: [OPERATING_LANES](../strategy/OPERATING_LANES.md).
 ## Marketing language vs inventory
 
 | Surface                            | Observation                                                  | Status   |
-| ---------------------------------- | ------------------------------------------------------------ | -------- |
+| ---------------------------------- | ------------------------------------------------------------ | -------- | ---------------- | ----- | -------- | --------------------------------------------------------------------------- |
 | `/transport` feature-status matrix | Relatively honest pilot/sandbox labels                       | verified |
 | `/care` hub                        | May lag agreement/handoff APIs — keep coming-soon honest     | likely   |
 | Pricing / about pages              | Avoid certification and NDIS registration claims for MapAble | verified |
 | Strategy docs                      | Describe intent; never production_ready without registry     | verified |
-| pbs.positive_behaviour_support | Positive Behaviour Support workspace | pbs | controlled_pilot | false | verified | lib/positive-behaviour-support; MAPABLE_PBS_* default false; DRAFT_ONLY AI |
+| pbs.positive_behaviour_support     | Positive Behaviour Support workspace                         | pbs      | controlled_pilot | false | verified | lib/positive-behaviour-support; MAPABLE*PBS*\* default false; DRAFT_ONLY AI |
 
 After capability registry wiring, public availability must come from server maturity evidence,
 not hard-coded marketing arrays.
-
