@@ -8,6 +8,7 @@ import { WorkerShiftActions } from "@/components/care/WorkerShiftActions";
 import { requirePermission } from "@/lib/auth/guards";
 import { assertWorkerAssignedToShift } from "@/lib/care/access-control";
 import { filterParticipantInfoForWorker } from "@/lib/care/care-participant-info";
+import { isPaceTelemetryClaimingEnabled } from "@/lib/ndis/pace-config";
 import { prisma } from "@/lib/prisma";
 
 export default async function WorkerShiftPage({
@@ -43,7 +44,11 @@ export default async function WorkerShiftPage({
       ) : null}
       <SupportTasksSummary tasks={info.tasks} />
       <AccessNeedsSummary summary={info.accessSummary} />
-      <WorkerShiftActions shiftId={shift.id} status={shift.status} />
+      <WorkerShiftActions
+        shiftId={shift.id}
+        status={shift.status}
+        paceTelemetryEnabled={isPaceTelemetryClaimingEnabled()}
+      />
       <p className="flex flex-wrap gap-4 text-sm">
         <Link href={`/worker/service-log?shiftId=${shift.id}`} className="underline">
           Submit service log
