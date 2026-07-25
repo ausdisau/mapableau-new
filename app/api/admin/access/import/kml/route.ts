@@ -11,6 +11,7 @@ import {
 import {
   fetchAllowlistedKml,
   isAllowlistedNetworkLinkUrl,
+  toFetchableAllowlistedKmlUrl,
 } from "@/lib/access-import/kml-networklink-service";
 import { readTextWithByteLimit } from "@/lib/access-import/read-limited-body";
 import { requireApiAdmin } from "@/lib/api/auth-handler";
@@ -149,11 +150,12 @@ export async function POST(req: Request) {
       return jsonError("NetworkLink URL is not on the allowlist", 403);
     }
 
-    const xml = await fetchAllowlistedKml(networkLinkUrl);
+    const fetchUrl = toFetchableAllowlistedKmlUrl(networkLinkUrl);
+    const xml = await fetchAllowlistedKml(fetchUrl);
     const job = await createImportJob({
       createdById: user.id,
       sourceType: "kml_network_link",
-      sourceUrl: networkLinkUrl,
+      sourceUrl: fetchUrl,
       fileName: "MapAble by Australian Disability Ltd.kml",
     });
 

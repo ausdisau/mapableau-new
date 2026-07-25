@@ -9,16 +9,22 @@ import {
   ACCESS_ADL_KML_FILENAME,
   MAPABLE_ADL_DATASET_PUBLIC_PATH,
   MAPABLE_MY_MAPS_KML_URL,
+  MAPABLE_MY_MAPS_SHARE_URL,
 } from "@/lib/access-map/copy";
 import {
   mapAdlPlaceToAccessPlace,
   type MapableAdlCompactPlace,
 } from "@/lib/access-map/mapable-adl-dataset";
+import { resolveMapableMyMapsKmlUrl } from "@/lib/access-map/mapable-my-maps-url";
 import { filterDemoPlaces } from "@/lib/demo/accessibility-places";
 
 describe("MapAble ADL KML integration", () => {
-  it("allowlists the MapAble Google My Maps KML URL", () => {
+  it("allowlists the MapAble Google My Maps KML and share URLs", () => {
     expect(isAllowlistedNetworkLinkUrl(MAPABLE_MY_MAPS_KML_URL)).toBe(true);
+    expect(isAllowlistedNetworkLinkUrl(MAPABLE_MY_MAPS_SHARE_URL)).toBe(true);
+    expect(resolveMapableMyMapsKmlUrl(MAPABLE_MY_MAPS_SHARE_URL)).toBe(
+      MAPABLE_MY_MAPS_KML_URL
+    );
   });
 
   it("parses NetworkLink stub for operations filename", () => {

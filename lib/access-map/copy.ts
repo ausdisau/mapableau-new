@@ -17,7 +17,15 @@ export const ACCESS_LABELS = {
 export const MAPABLE_MY_MAPS_KML_URL =
   "https://www.google.com/maps/d/kml?forcekml=1&mid=1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI";
 
-export const ACCESS_IMPORT_ALLOWLIST_URLS = [MAPABLE_MY_MAPS_KML_URL] as const;
+/** Share/edit link for the same My Maps document (normalized to KML on import). */
+export const MAPABLE_MY_MAPS_SHARE_URL =
+  "https://www.google.com/maps/d/edit?mid=1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI&usp=sharing";
+
+export const ACCESS_IMPORT_ALLOWLIST_URLS = [
+  MAPABLE_MY_MAPS_KML_URL,
+  MAPABLE_MY_MAPS_SHARE_URL,
+  "https://www.google.com/maps/d/viewer?mid=1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI",
+] as const;
 
 export const ACCESS_IMPORT_DATA_DIR = "data/imports";
 

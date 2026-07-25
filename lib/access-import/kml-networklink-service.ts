@@ -1,14 +1,18 @@
 import { MAX_ALLOWLISTED_KML_BYTES } from "@/lib/access-import/import-limits";
 import { parseKmlXml } from "@/lib/access-import/kml-parser-service";
-import { ACCESS_IMPORT_ALLOWLIST_URLS } from "@/lib/access-map/copy";
+import { MAPABLE_MY_MAPS_KML_URL } from "@/lib/access-map/copy";
+import {
+  isAllowlistedMapableMyMapsUrl,
+  resolveMapableMyMapsKmlUrl,
+} from "@/lib/access-map/mapable-my-maps-url";
 
 export function isAllowlistedNetworkLinkUrl(url: string): boolean {
-  try {
-    const normalized = new URL(url).toString();
-    return ACCESS_IMPORT_ALLOWLIST_URLS.some((allowed) => allowed === normalized);
-  } catch {
-    return false;
-  }
+  return isAllowlistedMapableMyMapsUrl(url);
+}
+
+/** Resolve share/edit/viewer URLs to the force-KML export URL before fetch. */
+export function toFetchableAllowlistedKmlUrl(url: string): string {
+  return resolveMapableMyMapsKmlUrl(url) ?? url;
 }
 
 export async function fetchAllowlistedKml(url: string): Promise<string> {
@@ -16,8 +20,15 @@ export async function fetchAllowlistedKml(url: string): Promise<string> {
     throw new Error("NetworkLink URL is not on the allowlist");
   }
 
-  const res = await fetch(url, {
-    headers: { Accept: "application/vnd.google-earth.kml+xml, application/xml, text/xml" },
+  const fetchUrl = toFetchableAllowlistedKmlUrl(url);
+  if (!isAllowlistedNetworkLinkUrl(fetchUrl)) {
+    throw new Error("Resolved KML URL is not on the allowlist");
+  }
+
+  const res = await fetch(fetchUrl, {
+    headers: {
+      Accept: "application/vnd.google-earth.kml+xml, application/xml, text/xml",
+    },
     signal: AbortSignal.timeout(60_000),
   });
 
@@ -42,7 +53,10 @@ export async function resolveKmlDocument(xml: string) {
     return {
       ...parsed,
       // Preserve the allowlisted href that was resolved (nested docs omit it).
-      networkLinkHref: doc.networkLinkHref,
+      networkLinkHref:
+        resolveMapableMyMapsKmlUrl(doc.networkLinkHref) ??
+        doc.networkLinkHref ??
+        MAPABLE_MY_MAPS_KML_URL,
     };
   }
 

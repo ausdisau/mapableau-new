@@ -6,6 +6,7 @@ import {
   ACCESS_LEGACY_GEOJSON_FILENAME,
   ACCESS_LEGACY_KML_FILENAME,
   MAPABLE_MY_MAPS_KML_URL,
+  MAPABLE_MY_MAPS_SHARE_URL,
 } from "@/lib/access-map/copy";
 import { requireAdmin } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
@@ -29,7 +30,18 @@ export default async function AdminAccessImportPage() {
         forms below. Access Map also loads the synced dataset from{" "}
         <code>public/data/mapable-adl-places.json</code>.
       </p>
-      <KmlImportForm networkLinkUrl={MAPABLE_MY_MAPS_KML_URL} />
+      <p className="text-sm text-muted-foreground">
+        Google My Maps:{" "}
+        <a className="underline" href={MAPABLE_MY_MAPS_SHARE_URL} rel="noreferrer">
+          open shared map
+        </a>{" "}
+        · import uses{" "}
+        <a className="underline" href={MAPABLE_MY_MAPS_KML_URL} rel="noreferrer">
+          KML export
+        </a>
+        .
+      </p>
+      <KmlImportForm networkLinkUrl={MAPABLE_MY_MAPS_SHARE_URL} />
       <section>
         <h2 className="text-lg font-semibold">Recent jobs</h2>
         <ul className="mt-2 space-y-2">

@@ -12,13 +12,20 @@ Large `*.kml` / `*.geojson` payloads are gitignored. This folder may contain sma
 
 `https://www.google.com/maps/d/kml?forcekml=1&mid=1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI`
 
+Shared map (same `mid`):
+
+`https://www.google.com/maps/d/edit?mid=1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI&usp=sharing`
+
 ## Refresh Access Map pins
 
 ```bash
 # From a full local KML export:
 python3 scripts/sync-mapable-adl-kml.py "G:/Operations/MapAble/MapAble by Australian Disability Ltd.kml"
 
-# Or from the allowlisted My Maps URL / NetworkLink stub:
+# From the shared Google My Maps link (normalized to KML export):
+python3 scripts/sync-mapable-adl-kml.py "https://www.google.com/maps/d/edit?mid=1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI&usp=sharing"
+
+# Or from the allowlisted My Maps KML URL / NetworkLink stub:
 python3 scripts/sync-mapable-adl-kml.py
 ```
 

@@ -27,8 +27,10 @@ from xml.etree import ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 NS = {"k": "http://www.opengis.net/kml/2.2"}
 SOURCE_NAME = "MapAble by Australian Disability Ltd"
-SOURCE_URL = (
-    "https://www.google.com/maps/d/kml?forcekml=1&mid=1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI"
+SOURCE_MID = "1sx0iyF2RqJKO8maeZ_Sn_EvWVyybcrOI"
+SOURCE_URL = f"https://www.google.com/maps/d/kml?forcekml=1&mid={SOURCE_MID}"
+SOURCE_SHARE_URL = (
+    f"https://www.google.com/maps/d/edit?mid={SOURCE_MID}&usp=sharing"
 )
 OUT_PATH = ROOT / "public" / "data" / "mapable-adl-places.json"
 
@@ -80,12 +82,20 @@ def strip_html(html: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def my_maps_mid_from_url(value: str) -> str | None:
+    match = re.search(r"[?&]mid=([^&]+)", value)
+    if match:
+        return match.group(1)
+    match = re.search(r"/d/(?:u/\d+/)?(?:edit|viewer|kml)/([^/?#]+)", value, re.I)
+    return match.group(1) if match else None
+
+
 def resolve_kml_path() -> Path | None:
     candidates: list[Path] = []
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 1 and not str(sys.argv[1]).startswith("http"):
         candidates.append(Path(sys.argv[1]))
     env = os.environ.get("MAPABLE_ADL_KML_PATH")
-    if env:
+    if env and not env.startswith("http"):
         candidates.append(Path(env))
     candidates.extend(
         [
@@ -108,6 +118,17 @@ def resolve_kml_path() -> Path | None:
     return None
 
 
+def fetch_source_url() -> str:
+    """Prefer CLI/env Google My Maps URL when it matches the allowlisted mid."""
+    for candidate in [*(sys.argv[1:] if len(sys.argv) > 1 else []), os.environ.get("MAPABLE_ADL_KML_PATH") or ""]:
+        if not candidate.startswith("http"):
+            continue
+        mid = my_maps_mid_from_url(candidate)
+        if mid == SOURCE_MID:
+            return SOURCE_URL
+    return SOURCE_URL
+
+
 def load_kml_xml() -> tuple[str, str]:
     path = resolve_kml_path()
     if path is not None:
@@ -128,11 +149,13 @@ def load_kml_xml() -> tuple[str, str]:
                 .replace("&lt;", "<")
                 .replace("&gt;", ">")
             )
-            if href == SOURCE_URL:
-                with urllib.request.urlopen(href, timeout=60) as res:
-                    return res.read().decode("utf-8", errors="ignore"), href
-    with urllib.request.urlopen(SOURCE_URL, timeout=60) as res:
-        return res.read().decode("utf-8", errors="ignore"), SOURCE_URL
+            mid = my_maps_mid_from_url(href)
+            if href == SOURCE_URL or mid == SOURCE_MID:
+                with urllib.request.urlopen(SOURCE_URL, timeout=60) as res:
+                    return res.read().decode("utf-8", errors="ignore"), SOURCE_URL
+    fetch_url = fetch_source_url()
+    with urllib.request.urlopen(fetch_url, timeout=60) as res:
+        return res.read().decode("utf-8", errors="ignore"), fetch_url
 
 
 def build_places(xml: str) -> tuple[list[dict], dict[str, int]]:
@@ -222,8 +245,9 @@ def main() -> int:
     places, skipped = build_places(xml)
     payload = {
         "source": SOURCE_NAME,
-        "sourceUrl": SOURCE_URL,
-        "attribution": "MapAble by Australian Disability Ltd (Google My Maps KML)",
+        "sourceUrl": SOURCE_SHARE_URL,
+        "kmlUrl": SOURCE_URL,
+        "attribution": "MapAble by Australian Disability Ltd (Google My Maps share)",
         "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "loadedFrom": source,
         "count": len(places),
