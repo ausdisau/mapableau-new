@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CoreHubCard } from "@/components/core/CoreHubCard";
+import { PaceTelemetryClaimingPanel } from "@/components/provider/ndis-claiming/PaceTelemetryClaimingPanel";
 import { ProviderSectionNav } from "@/components/provider/ProviderSectionNav";
 import { PROVIDER_CLAIMING_LINKS } from "@/lib/core-ui/provider-section-nav";
 
@@ -31,6 +32,8 @@ export default function ProviderClaimingHubPage() {
           description="Agency-managed participants via NDIA partner API credentials"
         />
       </div>
+
+      <PaceTelemetryClaimingPanel />
 
       <p className="text-sm text-muted-foreground">
         <Link href="/provider/billing" className="text-primary underline">
