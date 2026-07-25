@@ -1,3 +1,4 @@
+import { MAX_ALLOWLISTED_KML_BYTES } from "@/lib/access-import/import-limits";
 import { parseKmlXml } from "@/lib/access-import/kml-parser-service";
 import { ACCESS_IMPORT_ALLOWLIST_URLS } from "@/lib/access-map/copy";
 
@@ -17,7 +18,7 @@ export async function fetchAllowlistedKml(url: string): Promise<string> {
 
   const res = await fetch(url, {
     headers: { Accept: "application/vnd.google-earth.kml+xml, application/xml, text/xml" },
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(60_000),
   });
 
   if (!res.ok) {
@@ -25,7 +26,7 @@ export async function fetchAllowlistedKml(url: string): Promise<string> {
   }
 
   const text = await res.text();
-  if (text.length > 5_000_000) {
+  if (text.length > MAX_ALLOWLISTED_KML_BYTES) {
     throw new Error("KML response too large");
   }
   return text;
@@ -37,7 +38,12 @@ export async function resolveKmlDocument(xml: string) {
 
   if (doc.networkLinkHref && isAllowlistedNetworkLinkUrl(doc.networkLinkHref)) {
     const nested = await fetchAllowlistedKml(doc.networkLinkHref);
-    return parseKmlXml(nested);
+    const parsed = parseKmlXml(nested);
+    return {
+      ...parsed,
+      // Preserve the allowlisted href that was resolved (nested docs omit it).
+      networkLinkHref: doc.networkLinkHref,
+    };
   }
 
   return doc;

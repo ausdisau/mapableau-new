@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { KmlImportForm } from "@/components/access-import/KmlImportForm";
 import {
+  ACCESS_ADL_KML_FILENAME,
   ACCESS_LEGACY_GEOJSON_FILENAME,
   ACCESS_LEGACY_KML_FILENAME,
   MAPABLE_MY_MAPS_KML_URL,
@@ -21,9 +22,12 @@ export default async function AdminAccessImportPage() {
     <div className="space-y-6 p-6">
       <h1 className="text-2xl font-bold">Import places</h1>
       <p className="text-sm text-muted-foreground">
-        Upload <strong>{ACCESS_LEGACY_KML_FILENAME}</strong> (NetworkLink to Google My Maps) or{" "}
-        <strong>{ACCESS_LEGACY_GEOJSON_FILENAME}</strong> from your operations folder into{" "}
-        <code>data/imports/</code>, or use the forms below.
+        Upload <strong>{ACCESS_ADL_KML_FILENAME}</strong> or{" "}
+        <strong>{ACCESS_LEGACY_KML_FILENAME}</strong> (NetworkLink / full Google My Maps
+        export) or <strong>{ACCESS_LEGACY_GEOJSON_FILENAME}</strong> from{" "}
+        <code>G:\Operations\MapAble\</code> into <code>data/imports/</code>, or use the
+        forms below. Access Map also loads the synced dataset from{" "}
+        <code>public/data/mapable-adl-places.json</code>.
       </p>
       <KmlImportForm networkLinkUrl={MAPABLE_MY_MAPS_KML_URL} />
       <section>
