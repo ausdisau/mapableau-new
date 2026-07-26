@@ -1,6 +1,6 @@
 import type { RiskDimension, RiskDimensionId } from "@/lib/aura-harness/types";
 
-/** Default organisational weights for MapAbleAU (privacy / medical elevated). */
+/** Default organisational weights for MapAbleAU (privacy / medical / autonomy elevated). */
 export const DEFAULT_DIMENSION_WEIGHTS: Record<RiskDimensionId, number> = {
   accountability: 1.0,
   transparency: 0.8,
@@ -9,6 +9,9 @@ export const DEFAULT_DIMENSION_WEIGHTS: Record<RiskDimensionId, number> = {
   human_oversight: 1.0,
   accessibility_representation: 1.2,
   medical_data_exposure: 1.5,
+  capability_dependence: 1.4,
+  irreversibility: 1.6,
+  cascading_impact: 1.5,
 };
 
 export const ALL_DIMENSION_IDS = Object.keys(

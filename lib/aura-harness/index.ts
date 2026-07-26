@@ -46,3 +46,27 @@ export {
   wrapToolsWithAuraHarness,
   type AuraHarnessWrapContext,
 } from "@/lib/aura-harness/wrap-tools";
+
+export {
+  applyRecogniseToContexts,
+  autonomyPolicyHint,
+  capabilityDependenceEvaluator,
+  cascadingImpactEvaluator,
+  DEFAULT_AUTONOMY_EVALUATORS,
+  ensureDefaultAutonomyEvaluators,
+  evaluateAccreditationBridge,
+  evaluateRecogniseContext,
+  irreversibilityEvaluator,
+  listRiskCriterionEvaluators,
+  mergeAutonomyScores,
+  registerRiskCriterionEvaluator,
+  unregisterRiskCriterionEvaluator,
+  __resetDefaultAutonomyRegistrationForTests,
+  __resetRiskCriterionEvaluatorsForTests,
+} from "@/lib/aura-harness/recognise";
+export type {
+  AccreditationTierHint,
+  AutonomyCriteriaScores,
+  RecogniseEvaluation,
+  RiskCriterionEvaluator,
+} from "@/lib/aura-harness/recognise";

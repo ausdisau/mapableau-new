@@ -7,7 +7,10 @@ export type RiskDimensionId =
   | "privacy"
   | "human_oversight"
   | "accessibility_representation"
-  | "medical_data_exposure";
+  | "medical_data_exposure"
+  | "capability_dependence"
+  | "irreversibility"
+  | "cascading_impact";
 
 export interface RiskDimension {
   id: RiskDimensionId;
@@ -70,6 +73,16 @@ export interface HarnessDecision {
   guardrailIds: string[];
   /** Args after mitigation (if any); undefined when blocked. */
   safeArgs?: unknown;
+  /** Recognise-layer autonomy + accreditation summary (audit). */
+  recognise?: {
+    autonomy: {
+      capabilityDependence: number;
+      irreversibility: number;
+      cascadingImpact: number;
+    };
+    accreditationTier?: string | null;
+    evaluatorIds: string[];
+  };
 }
 
 export interface HarnessToolEvaluation {
@@ -90,6 +103,7 @@ export interface HarnessSessionSummary {
     normalizedGamma: number;
     concentrationCoeff: number;
     reason: string;
+    recognise?: HarnessDecision["recognise"];
   }>;
 }
 

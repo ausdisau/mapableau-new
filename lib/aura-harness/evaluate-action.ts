@@ -14,14 +14,44 @@ import {
   resolvePolicyAction,
 } from "@/lib/aura-harness/policy-engine";
 import {
-  extractSemanticScores,
-  reScoreAfterMitigation,
-} from "@/lib/aura-harness/semantic-judge";
+  applyRecogniseToContexts,
+  evaluateRecogniseContext,
+} from "@/lib/aura-harness/recognise/pipeline";
+import type { RecogniseEvaluation } from "@/lib/aura-harness/recognise/types";
+import { extractSemanticScores } from "@/lib/aura-harness/semantic-judge";
 import type {
   HarnessDecision,
   HarnessToolEvaluation,
   MitigationStrategy,
+  PolicyAction,
 } from "@/lib/aura-harness/types";
+
+function toRecogniseAudit(recognise: RecogniseEvaluation): NonNullable<
+  HarnessDecision["recognise"]
+> {
+  return {
+    autonomy: { ...recognise.autonomy },
+    accreditationTier: recognise.accreditation?.tier ?? null,
+    evaluatorIds: [...recognise.evaluatorIds],
+  };
+}
+
+function resolveWithAutonomy(
+  matrixAction: PolicyAction,
+  recognise: RecogniseEvaluation,
+): { action: PolicyAction; reasonSuffix?: string } {
+  // Systemic DENY wins; autonomy HITL escalates APPROVE/MITIGATE only.
+  if (matrixAction === "DENY" || matrixAction === "REQUIRE_HITL") {
+    return { action: matrixAction };
+  }
+  if (recognise.policyHint === "REQUIRE_HITL") {
+    return {
+      action: "REQUIRE_HITL",
+      reasonSuffix: recognise.reason,
+    };
+  }
+  return { action: matrixAction };
+}
 
 function blockedDecision(
   profile: ReturnType<typeof gammaCalculator.calculateProfile>,
@@ -29,6 +59,7 @@ function blockedDecision(
   reason: string,
   guardrailIds: string[],
   pendingHitl: boolean,
+  recognise?: RecogniseEvaluation,
 ): HarnessDecision {
   return {
     outcome: pendingHitl ? "HITL_PENDING" : "DENIED",
@@ -45,7 +76,27 @@ function blockedDecision(
         },
     reason,
     guardrailIds,
+    recognise: recognise ? toRecogniseAudit(recognise) : undefined,
   };
+}
+
+async function scoreContexts(toolName: string, payload: unknown) {
+  const baseContexts = extractSemanticScores(toolName, payload);
+  const draftProfile = gammaCalculator.calculateProfile(baseContexts);
+  const recognise = await evaluateRecogniseContext(
+    toolName,
+    payload,
+    draftProfile,
+  );
+  const contexts = applyRecogniseToContexts(baseContexts, recognise);
+  const profile = gammaCalculator.calculateProfile(contexts);
+  // Recompute autonomy hint against final profile.
+  const recogniseFinal = await evaluateRecogniseContext(
+    toolName,
+    payload,
+    profile,
+  );
+  return { contexts, profile, recognise: recogniseFinal };
 }
 
 async function applyMitigatePath(
@@ -53,8 +104,8 @@ async function applyMitigatePath(
   payload: unknown,
   _profile: ReturnType<typeof gammaCalculator.calculateProfile>,
   mitigationHint: MitigationStrategy | null,
+  recognise: RecogniseEvaluation,
 ): Promise<HarnessDecision> {
-  // Prefer MASK_PII for concentrated privacy spikes, then REDUCE_SCOPE if needed.
   const primary: MitigationStrategy =
     mitigationHint?.actionType === "MASK_PII"
       ? mitigationHint
@@ -62,9 +113,11 @@ async function applyMitigatePath(
 
   let safeArgs = applyMitigationLayer(payload, primary);
   let effective = primary;
-  let rescoredContexts = reScoreAfterMitigation(toolName, safeArgs);
-  let rescored = gammaCalculator.calculateProfile(rescoredContexts);
+  let { contexts: rescoredContexts, profile: rescored, recognise: rescoredRec } =
+    await scoreContexts(toolName, safeArgs);
   let rescoredPolicy = resolvePolicyAction(rescored);
+  const resolved = resolveWithAutonomy(rescoredPolicy, rescoredRec);
+  rescoredPolicy = resolved.action;
 
   if (rescoredPolicy !== "APPROVE" && rescored.highConcentration) {
     const reduce = selectMitigationForTool(toolName);
@@ -81,12 +134,36 @@ async function applyMitigatePath(
       actionType: "MASK_PII",
       targetFields: reduceStrategy.targetFields,
     };
-    rescoredContexts = reScoreAfterMitigation(toolName, safeArgs);
-    rescored = gammaCalculator.calculateProfile(rescoredContexts);
-    rescoredPolicy = resolvePolicyAction(rescored);
+    const again = await scoreContexts(toolName, safeArgs);
+    rescoredContexts = again.contexts;
+    rescored = again.profile;
+    rescoredRec = again.recognise;
+    rescoredPolicy = resolveWithAutonomy(
+      resolvePolicyAction(rescored),
+      rescoredRec,
+    ).action;
   }
 
   if (rescoredPolicy === "APPROVE" || !rescored.highConcentration) {
+    if (rescoredPolicy === "REQUIRE_HITL") {
+      await vectorMemoryStore.commitAction(
+        toolName,
+        payload,
+        rescored,
+        effective,
+        "DENIED",
+        rescoredContexts[0]?.dimensions,
+      );
+      return blockedDecision(
+        rescored,
+        "REQUIRE_HITL",
+        rescoredRec.reason ??
+          "Autonomy criteria require HITL after mitigation.",
+        ["aura:mitigate_autonomy_hitl", "aura:hitl"],
+        true,
+        rescoredRec,
+      );
+    }
     await vectorMemoryStore.commitAction(
       toolName,
       payload,
@@ -103,10 +180,10 @@ async function applyMitigatePath(
       reason: `Mitigation ${effective.actionType} reduced concentration (C_conc=${rescored.concentrationCoeff.toFixed(1)}).`,
       guardrailIds: ["aura:mitigate", `aura:mitigate:${effective.actionType}`],
       safeArgs,
+      recognise: toRecogniseAudit(recognise),
     };
   }
 
-  // Fail closed — mitigation did not clear concentrated risk.
   await vectorMemoryStore.commitAction(
     toolName,
     payload,
@@ -121,6 +198,7 @@ async function applyMitigatePath(
     `Mitigation insufficient; fail-closed HITL (C_conc=${rescored.concentrationCoeff.toFixed(1)}).`,
     ["aura:mitigate_failed", "aura:hitl"],
     true,
+    rescoredRec,
   );
 }
 
@@ -215,10 +293,36 @@ export async function evaluateToolAction(
     }
   }
 
-  const contexts = extractSemanticScores(toolName, payload);
-  const profile = gammaCalculator.calculateProfile(contexts);
-  const policyAction = resolvePolicyAction(profile);
-  const reason = policyActionReason(policyAction, profile);
+  const { contexts, profile, recognise } = await scoreContexts(
+    toolName,
+    payload,
+  );
+  const matrixAction = resolvePolicyAction(profile);
+  const resolved = resolveWithAutonomy(matrixAction, recognise);
+  const policyAction = resolved.action;
+  let reason = policyActionReason(
+    policyAction === "REQUIRE_HITL" && matrixAction !== "REQUIRE_HITL"
+      ? "REQUIRE_HITL"
+      : matrixAction === policyAction
+        ? policyAction
+        : matrixAction,
+    profile,
+  );
+  if (resolved.reasonSuffix) {
+    reason = `${reason} ${resolved.reasonSuffix}`;
+  }
+  // Prefer matrix reason when actions match; when autonomy escalates, use its reason.
+  if (
+    matrixAction !== "REQUIRE_HITL" &&
+    policyAction === "REQUIRE_HITL" &&
+    recognise.reason
+  ) {
+    reason = recognise.reason;
+  } else if (policyAction === matrixAction) {
+    reason = policyActionReason(policyAction, profile);
+  }
+
+  const audit = toRecogniseAudit(recognise);
 
   if (policyAction === "APPROVE") {
     await vectorMemoryStore.commitAction(
@@ -238,8 +342,9 @@ export async function evaluateToolAction(
         profile,
         mitigation: null,
         reason,
-        guardrailIds: ["aura:approve"],
+        guardrailIds: ["aura:approve", "aura:recognise"],
         safeArgs: payload,
+        recognise: audit,
       },
     };
   }
@@ -251,6 +356,7 @@ export async function evaluateToolAction(
       payload,
       profile,
       known,
+      recognise,
     );
     return { toolName, fingerprint, decision };
   }
@@ -267,11 +373,17 @@ export async function evaluateToolAction(
     return {
       toolName,
       fingerprint,
-      decision: blockedDecision(profile, "DENY", reason, ["aura:deny"], false),
+      decision: blockedDecision(
+        profile,
+        "DENY",
+        reason,
+        ["aura:deny", "aura:recognise"],
+        false,
+        recognise,
+      ),
     };
   }
 
-  // REQUIRE_HITL — fail closed
   await vectorMemoryStore.commitAction(
     toolName,
     payload,
@@ -287,8 +399,9 @@ export async function evaluateToolAction(
       profile,
       "REQUIRE_HITL",
       reason,
-      ["aura:hitl"],
+      ["aura:hitl", "aura:recognise"],
       true,
+      recognise,
     ),
   };
 }
@@ -304,6 +417,7 @@ export function buildAuraBlockedToolResult(decision: HarnessDecision): {
       concentrationCoeff: number;
       variance: number;
     };
+    recognise?: HarnessDecision["recognise"];
   };
 } {
   return {
@@ -317,6 +431,7 @@ export function buildAuraBlockedToolResult(decision: HarnessDecision): {
         concentrationCoeff: decision.profile.concentrationCoeff,
         variance: decision.profile.variance,
       },
+      recognise: decision.recognise,
     },
   };
 }

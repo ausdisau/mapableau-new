@@ -124,6 +124,11 @@ export function extractSemanticScores(
     }
   }
 
+  // Autonomy dims start at baseline; Recognise pipeline overwrites them.
+  let capabilityDependence = baseline;
+  let irreversibility = baseline;
+  let cascadingImpact = baseline;
+
   if (
     DANGEROUS_VERB_PATTERN.test(toolName) ||
     DANGEROUS_VERB_PATTERN.test(blob)
@@ -137,11 +142,15 @@ export function extractSemanticScores(
     privacy = destroyFloor;
     medical = destroyFloor;
     accessibilityRep = destroyFloor;
+    capabilityDependence = destroyFloor;
+    irreversibility = destroyFloor;
+    cascadingImpact = destroyFloor;
   }
 
   if (PUBLISH_PATTERN.test(toolName) || PUBLISH_PATTERN.test(blob)) {
     if (sawMedical || sawPii || sawNarrative) {
       // High γ with acute privacy/medical concentration → REQUIRE_HITL when mitigation fails.
+      // Align autonomy floors with Recognise defaults so γ is not diluted before the pipeline runs.
       accountability = maxScore(accountability, 80);
       humanOversight = maxScore(humanOversight, 82);
       transparency = maxScore(transparency, 70);
@@ -149,6 +158,9 @@ export function extractSemanticScores(
       medical = maxScore(medical, 99);
       privacy = maxScore(privacy, 99);
       accessibilityRep = maxScore(accessibilityRep, 70);
+      capabilityDependence = maxScore(capabilityDependence, 70);
+      irreversibility = maxScore(irreversibility, 75);
+      cascadingImpact = maxScore(cascadingImpact, 70);
     } else {
       // Publish without residual sensitive payload — modest uniform elevation.
       const publishFloor = 35;
@@ -159,6 +171,9 @@ export function extractSemanticScores(
       fairness = maxScore(fairness, publishFloor);
       humanOversight = maxScore(humanOversight, publishFloor);
       accessibilityRep = maxScore(accessibilityRep, publishFloor);
+      capabilityDependence = maxScore(capabilityDependence, publishFloor);
+      irreversibility = maxScore(irreversibility, publishFloor);
+      cascadingImpact = maxScore(cascadingImpact, publishFloor);
     }
   }
 
@@ -170,6 +185,9 @@ export function extractSemanticScores(
     fairness,
     human_oversight: humanOversight,
     accessibility_representation: accessibilityRep,
+    capability_dependence: capabilityDependence,
+    irreversibility,
+    cascading_impact: cascadingImpact,
   };
 
   return [

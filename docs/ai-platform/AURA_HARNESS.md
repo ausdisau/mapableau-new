@@ -38,11 +38,17 @@ Fail-closed tool results keep the AI SDK loop stable:
 { "aura": { "blocked": true, "pendingHumanReview": true, "reason": "...", "profile": { } } }
 ```
 
+## Recognise criteria (pluggable)
+
+Dimensions `capability_dependence`, `irreversibility`, and `cascading_impact` are scored by default evaluators in [`lib/aura-harness/recognise/`](../../lib/aura-harness/recognise/) and folded into γ / C_conc. Register additional evaluators with `registerRiskCriterionEvaluator` for future Act/Memory waves. Acute irreversibility or cascading impact escalates APPROVE/MITIGATE to fail-closed HITL (does not override systemic DENY).
+
+Optional accreditation bridge: payload fields `accreditationTotalScore` / `venueAccessibilityScore` / `placeAccessibilityScore` map MapAble tiers into accessibility risk. See [RECOGNISE.md](./RECOGNISE.md).
+
 ## Integration
 
 - Core: [`lib/aura-harness/`](../../lib/aura-harness/)
 - Wrapped in [`lib/agent/disability-services-agent.ts`](../../lib/agent/disability-services-agent.ts) and [`lib/agent/booking-services-agent.ts`](../../lib/agent/booking-services-agent.ts)
-- Session summary → `createAgentRun` risk tier / `humanReviewRequired` / `guardrailsTriggered`
+- Session summary → `createAgentRun` risk tier / `humanReviewRequired` / `guardrailsTriggered` (includes `recognise` audit)
 - Memory: Prisma `AuraHarnessMemory` fingerprint table (no live embeddings)
 - Mitigations reuse [`redactSensitiveText`](../../lib/ai-platform/redaction/sensitive.ts) and [`deidentifyRecord`](../../lib/data-governance/deidentification-service.ts)
 - Kill switches: `assertModelCallAllowed` when AI platform foundation is enabled
@@ -53,3 +59,4 @@ Fail-closed tool results keep the AI SDK loop stable:
 - Evaluator LLM judge
 - Live vector embeddings
 - Granting autonomous write authority
+- Deferred `lib/aura/` Agent OS (Pocket / Guardian / Memory cards)

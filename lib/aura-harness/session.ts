@@ -47,6 +47,7 @@ export class HarnessSessionAccumulator {
         normalizedGamma: decision.profile.normalizedGamma,
         concentrationCoeff: decision.profile.concentrationCoeff,
         reason: decision.reason,
+        recognise: decision.recognise,
       })),
     };
   }
