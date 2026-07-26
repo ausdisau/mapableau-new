@@ -80,6 +80,15 @@ export function hashShareToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
+/**
+ * 64-char hex token (256 bits of entropy) — high-entropy share secret.
+ * Callers must validate the same shape before DB lookup to blunt enumeration.
+ */
 export function generateShareToken(): string {
-  return randomBytes(32).toString("base64url");
+  return randomBytes(32).toString("hex");
+}
+
+/** True when token is a 64-character hex string (SHA-256 digest shape). */
+export function isShareTokenFormat(token: string): boolean {
+  return /^[a-f0-9]{64}$/i.test(token);
 }

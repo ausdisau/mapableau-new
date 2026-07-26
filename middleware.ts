@@ -14,12 +14,20 @@ import {
   isCspPreviewEnforceEnabled,
 } from "@/lib/security/csp-preview-enforce";
 import { buildForwardRequestHeaders } from "@/lib/security/forward-request-headers";
-import { buildContentSecurityPolicyEnforce } from "@/lib/security/headers";
+import { resolveEmbedFrameAncestors } from "@/lib/security/embed-frame-ancestors";
+import {
+  buildContentSecurityPolicy,
+  buildContentSecurityPolicyEnforce,
+} from "@/lib/security/headers";
 import {
   CORRELATION_ID_HEADER,
   REQUEST_ID_HEADER,
   resolveCorrelationId,
 } from "@/lib/security/request-correlation";
+
+function isEmbedPath(pathname: string): boolean {
+  return pathname === "/embed" || pathname.startsWith("/embed/");
+}
 
 /** Match NextAuth secure cookie naming on HTTPS (Vercel, production). */
 function usesSecureSessionCookies(request: NextRequest): boolean {
@@ -93,14 +101,48 @@ function redirectToLogin(request: NextRequest): NextResponse {
  * Apply the resolved correlation ID and, when preview enforce is on, the
  * nonce-bearing Content-Security-Policy to the response. Request-side CSP and
  * correlation headers are applied in `buildForwardRequestHeaders`.
+ *
+ * Embed routes (`/embed/*`) override framing controls:
+ * - Global default remains `frame-ancestors 'none'` (+ X-Frame-Options DENY).
+ * - Embed destinations resolve `frame-ancestors` from `ALLOWED_EMBED_DOMAINS`
+ *   (never `*`). Unknown / empty allowlist → `'self'` only.
  */
 function withCorrelationAndCsp(
   response: NextResponse,
   correlationId: string,
   enforcePolicy: string | null,
+  embedRoute: boolean,
+  request: NextRequest,
 ): NextResponse {
   response.headers.set(CORRELATION_ID_HEADER, correlationId);
   response.headers.set(REQUEST_ID_HEADER, correlationId);
+
+  if (embedRoute) {
+    // SECURITY: strip legacy XFO DENY so CSP frame-ancestors is authoritative.
+    response.headers.delete("X-Frame-Options");
+
+    // Dynamic allowlist check (Referer/Origin vs ALLOWED_EMBED_DOMAINS).
+    const frameAncestors = resolveEmbedFrameAncestors(request.headers);
+
+    response.headers.set(
+      "Content-Security-Policy-Report-Only",
+      buildContentSecurityPolicy({
+        allowUnsafeEval: true,
+        frameAncestors,
+      }),
+    );
+    // Enforcing minimal directive — browsers honour this even if report-only is ignored.
+    response.headers.set(
+      "Content-Security-Policy",
+      `frame-ancestors ${frameAncestors}`,
+    );
+
+    if (enforcePolicy) {
+      // Caller builds enforcePolicy with the same allowlist-derived frameAncestors.
+      response.headers.set(CSP_ENFORCE_HEADER, enforcePolicy);
+    }
+    return response;
+  }
 
   if (enforcePolicy) {
     response.headers.set(CSP_ENFORCE_HEADER, enforcePolicy);
@@ -111,9 +153,16 @@ function withCorrelationAndCsp(
 
 export default async function middleware(request: NextRequest) {
   const nonce = createScriptNonce();
+  const embedRoute = isEmbedPath(request.nextUrl.pathname);
+  const embedFrameAncestors = embedRoute
+    ? resolveEmbedFrameAncestors(request.headers)
+    : undefined;
   const enforceEnabled = isCspPreviewEnforceEnabled();
   const enforcePolicy = enforceEnabled
-    ? buildContentSecurityPolicyEnforce(nonce)
+    ? buildContentSecurityPolicyEnforce(
+        nonce,
+        embedFrameAncestors ? { frameAncestors: embedFrameAncestors } : undefined,
+      )
     : null;
 
   const correlationId = resolveCorrelationId(
@@ -130,12 +179,24 @@ export default async function middleware(request: NextRequest) {
 
   const legacySquare = redirectLegacySquarePath(request);
   if (legacySquare) {
-    return withCorrelationAndCsp(legacySquare, correlationId, enforcePolicy);
+    return withCorrelationAndCsp(
+      legacySquare,
+      correlationId,
+      enforcePolicy,
+      embedRoute,
+      request,
+    );
   }
 
   const peerResponse = handlePeerPeersHost(request);
   if (peerResponse) {
-    return withCorrelationAndCsp(peerResponse, correlationId, enforcePolicy);
+    return withCorrelationAndCsp(
+      peerResponse,
+      correlationId,
+      enforcePolicy,
+      embedRoute,
+      request,
+    );
   }
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {
@@ -145,12 +206,16 @@ export default async function middleware(request: NextRequest) {
           authMisconfiguredResponse(request),
           correlationId,
           enforcePolicy,
+          embedRoute,
+          request,
         );
       }
       return withCorrelationAndCsp(
         redirectToLogin(request),
         correlationId,
         enforcePolicy,
+        embedRoute,
+        request,
       );
     }
   }
@@ -158,7 +223,13 @@ export default async function middleware(request: NextRequest) {
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
-  return withCorrelationAndCsp(response, correlationId, enforcePolicy);
+  return withCorrelationAndCsp(
+    response,
+    correlationId,
+    enforcePolicy,
+    embedRoute,
+    request,
+  );
 }
 
 export const config = {
