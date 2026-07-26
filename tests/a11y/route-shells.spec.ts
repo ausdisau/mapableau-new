@@ -52,9 +52,27 @@ async function settleNavigation(page: Page): Promise<void> {
 }
 
 async function runAxe(page: Page, route: string): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
+  // Wait for client navigations/redirects to settle before injecting axe.
+  await page.waitForLoadState("load").catch(() => undefined);
+  await page.waitForTimeout(100);
+
+  let results;
+  try {
+    results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (/Execution context was destroyed|navigation/i.test(message)) {
+      await page.waitForLoadState("domcontentloaded").catch(() => undefined);
+      await expect(page.locator("body")).toBeVisible();
+      results = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .analyze();
+    } else {
+      throw err;
+    }
+  }
 
   const serious = results.violations.filter((v) =>
     ["critical", "serious"].includes(v.impact || ""),
