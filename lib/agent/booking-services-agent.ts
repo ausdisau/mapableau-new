@@ -1,6 +1,7 @@
 import { ToolLoopAgent, stepCountIs } from "ai";
 
 import { createBookingServicesTools } from "@/lib/agent/booking-services-tools";
+import { assertModelCallAllowed } from "@/lib/ai-platform/policies/kill-switches";
 import {
   createHarnessSession,
   isAuraHarnessEnabled,
@@ -8,7 +9,6 @@ import {
   type HarnessSessionAccumulator,
   type HarnessSessionSummary,
 } from "@/lib/aura-harness";
-import { assertModelCallAllowed } from "@/lib/ai-platform/policies/kill-switches";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { isAiPlatformFoundationEnabled } from "@/lib/config/ai-platform";
 import {
