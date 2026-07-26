@@ -8948,6 +8948,33 @@ model AgentRun {
   @@map("agent_runs")
 }
 
+enum AuraHarnessMemoryDecision {
+  APPROVED
+  MITIGATED
+  DENIED
+  HITL_APPROVED
+  HITL_REJECTED
+}
+
+/// Fingerprint cache for AURA tool-call risk precedents (no live embeddings).
+model AuraHarnessMemory {
+  id                 String                     @id @default(cuid())
+  fingerprint        String                     @unique
+  toolName           String
+  normalizedGamma    Float
+  concentrationCoeff Float
+  decision           AuraHarnessMemoryDecision
+  mitigationJson     Json?
+  dimensionScores    Json?
+  expiresAt          DateTime
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+
+  @@index([toolName])
+  @@index([expiresAt])
+  @@map("aura_harness_memory")
+}
+
 model ReliabilitySnapshot {
   id                 String   @id @default(cuid())
   workerProfileId    String?
