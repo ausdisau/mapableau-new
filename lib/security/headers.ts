@@ -118,11 +118,17 @@ export function buildContentSecurityPolicyEnforce(
  * CSP for `/embed/*` iframe destinations.
  * `frame-ancestors *` intentionally allows any host to frame the widget.
  *
- * Follow-up: replace `*` with a dynamic allowlist of registered provider
- * domains (e.g. from Organisation.embedAllowlist / Partner domain registry).
- * Middleware should then emit `frame-ancestors https://provider.example …`
- * per request after looking up the location's owning organisation. Keep
- * fail-closed (`'none'`) when the location is unknown or embedding is disabled.
+ * Non-embed routes keep `frame-ancestors 'none'` + `X-Frame-Options: DENY`
+ * via `getBaselineSecurityHeaders` / next.config negative-lookahead so the
+ * catch-all DENY never re-applies on `/embed/:path*`.
+ *
+ * Follow-up (registered-provider allowlist): replace `*` with a dynamic
+ * allowlist of registered provider domains (e.g. Organisation.embedAllowlist
+ * / Partner domain registry). Middleware should then emit
+ * `frame-ancestors https://provider.example …` per request after looking up
+ * the location's owning organisation. Keep fail-closed (`'none'`) when the
+ * location is unknown or embedding is disabled. Do not weaken framing outside
+ * `/embed`.
  */
 export function buildEmbedFrameAncestorsCsp(
   options: CspBuildOptions = {},

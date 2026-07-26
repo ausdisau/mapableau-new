@@ -7,6 +7,9 @@
  * </div>
  * <script src="https://mapable.com.au/embed.js" async></script>
  *
+ * Also accepts data-place-id (location-id wins when both are set).
+ * Preserves the SEO fallback <a> in the DOM (visually hidden) for no-JS crawlers.
+ *
  * Dependency-free IIFE — does not pollute the host global scope.
  */
 (function () {
@@ -14,6 +17,7 @@
 
   var ATTR_WIDGET = "data-mapable-widget";
   var ATTR_LOCATION = "data-location-id";
+  var ATTR_PLACE = "data-place-id";
   var ATTR_ORIGIN = "data-mapable-origin";
   var ATTR_ENHANCED = "data-mapable-enhanced";
   var DEFAULT_ORIGIN = "https://mapable.com.au";
@@ -49,6 +53,33 @@
   }
 
   /**
+   * Prefer data-location-id; fall back to data-place-id.
+   * @param {HTMLElement} container
+   * @returns {string}
+   */
+  function resolveLocationId(container) {
+    var locationId = (container.getAttribute(ATTR_LOCATION) || "").trim();
+    if (locationId) return locationId;
+    return (container.getAttribute(ATTR_PLACE) || "").trim();
+  }
+
+  /**
+   * Visually hide SEO fallback anchors without removing them from the DOM.
+   * @param {HTMLElement} container
+   */
+  function hideSeoFallbackLinks(container) {
+    var anchors = container.querySelectorAll("a");
+    for (var i = 0; i < anchors.length; i++) {
+      var a = /** @type {HTMLElement} */ (anchors[i]);
+      a.setAttribute("aria-hidden", "true");
+      a.setAttribute("tabindex", "-1");
+      a.style.cssText =
+        "position:absolute;width:1px;height:1px;padding:0;margin:-1px;" +
+        "overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;";
+    }
+  }
+
+  /**
    * @param {HTMLElement} container
    * @param {string} locationId
    * @param {string} origin
@@ -56,6 +87,14 @@
   function injectIframe(container, locationId, origin) {
     if (container.getAttribute(ATTR_ENHANCED) === "1") return;
     container.setAttribute(ATTR_ENHANCED, "1");
+
+    // Keep SEO fallback <a> in the initial HTML tree for crawlers that skip JS.
+    // Never clear the container; append the iframe as a sibling of the link.
+    hideSeoFallbackLinks(container);
+
+    if (window.getComputedStyle(container).position === "static") {
+      container.style.position = "relative";
+    }
 
     var iframe = document.createElement("iframe");
     iframe.src =
@@ -73,8 +112,6 @@
       MIN_HEIGHT_PX +
       "px;height:auto;aspect-ratio:16/10;border:0;border-radius:0;background:#0f172a;";
 
-    // Replace SEO fallback link content with the interactive iframe.
-    container.innerHTML = "";
     container.appendChild(iframe);
   }
 
@@ -82,11 +119,11 @@
    * @param {HTMLElement} container
    */
   function enhanceContainer(container) {
-    var locationId = (container.getAttribute(ATTR_LOCATION) || "").trim();
+    var locationId = resolveLocationId(container);
     if (!locationId || !isSafeLocationId(locationId)) {
       if (typeof console !== "undefined" && console.warn) {
         console.warn(
-          "[MapAble embed] missing or invalid data-location-id on widget container",
+          "[MapAble embed] missing or invalid data-location-id / data-place-id on widget container",
         );
       }
       return;

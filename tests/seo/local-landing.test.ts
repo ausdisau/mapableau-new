@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import { PROVIDERS } from "@/app/provider-finder/providers";
 import { buildLocalBusinessSchemaGraph } from "@/components/seo/LocalBusinessSchema";
 import {
+  accessibilityFeaturesFromProvider,
   buildLocalLandingCopy,
   buildLocalLandingStaticParams,
   filterProvidersForLocalLanding,
   resolveLocalService,
+  resolveSuburbState,
   titleCaseFromSlug,
   toSeoSlug,
 } from "@/lib/seo/local-landing";
@@ -47,17 +49,30 @@ describe("programmatic local SEO landing helpers", () => {
     ).toBe(true);
   });
 
-  it("builds exact-match metadata copy", () => {
+  it("builds exact-match AU title and NDIS/accessible description", () => {
     const service = resolveLocalService("ndis-transport");
     expect(service).not.toBeNull();
+    const state = resolveSuburbState("bayswater");
     const copy = buildLocalLandingCopy({
       suburbSlug: "bayswater",
       service: service!,
       resultCount: 1,
+      state,
     });
-    expect(copy.title).toContain("Bayswater");
-    expect(copy.description.toLowerCase()).toContain("transport");
-    expect(copy.description.toLowerCase()).toContain("facilities");
+    expect(copy.title).toBe(
+      `NDIS accessible transport in Bayswater, ${state} | NDIS providers | MapAble`,
+    );
+    expect(copy.description.toLowerCase()).toContain("accessible");
+    expect(copy.description.toLowerCase()).toContain("ndis");
+    expect(copy.description.toLowerCase()).toContain("bayswater");
+    expect(copy.h1).toContain("Bayswater");
+  });
+
+  it("maps provider supports into richer accessibility features", () => {
+    const inPerson = PROVIDERS.find((p) => p.supports.includes("In-person"))!;
+    const features = accessibilityFeaturesFromProvider(inPerson);
+    expect(features.wheelchairAccess).toBe(true);
+    expect(features.stepFreeEntry).toBe(true);
   });
 
   it("generates static params including seed suburb/service pairs", () => {

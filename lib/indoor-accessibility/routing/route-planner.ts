@@ -5,12 +5,27 @@ import type {
   RouteMode,
 } from "@/lib/indoor-accessibility/schemas/core";
 
+/**
+ * Mobility cost multipliers applied on top of route mode filters.
+ * Defaults favour wheelchair-like profiles (stairs excluded).
+ */
+export type MobilityProfile = {
+  /** When true (default for wheelchair-like), non-step-free edges are impassable. */
+  excludeStairs?: boolean;
+  /** Multiplier >= 1 applied when an edge declares a positive gradient. */
+  gradientPenalty?: number;
+  /** Multiplier >= 1 applied for high-friction surface types. */
+  surfaceFriction?: number;
+  minDoorWidthMm?: number;
+};
+
 export type RoutePlanRequest = {
   graph: IndoorRouteGraph;
   fromNodeId: string;
   toNodeId: string;
   mode: RouteMode;
   minDoorWidthMm?: number;
+  mobilityProfile?: MobilityProfile;
   unavailableEdgeIds?: Set<string>;
   restrictedNodeIds?: Set<string>;
 };
@@ -37,34 +52,121 @@ export type RoutePlanResult =
       reasons: string[];
     };
 
-function edgeCost(
+/** Parse edge maximumGradient strings like "1:12", "8%", or "0.08". */
+export function parseEdgeGradient(value: string | undefined): number {
+  if (!value) return 0;
+  const trimmed = value.trim();
+  const ratio = trimmed.match(/^1\s*:\s*(\d+(?:\.\d+)?)$/i);
+  if (ratio) {
+    const denom = Number(ratio[1]);
+    return denom > 0 ? 1 / denom : 0;
+  }
+  const pct = trimmed.match(/^(\d+(?:\.\d+)?)\s*%$/);
+  if (pct) return Number(pct[1]) / 100;
+  const n = Number(trimmed);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function isHighFrictionSurface(surfaceType: string | undefined): boolean {
+  if (!surfaceType) return false;
+  return /(carpet|gravel|uneven|cobble)/i.test(surfaceType);
+}
+
+/**
+ * Map mobilityProfile → planner mode / door width.
+ * Wheelchair-like profiles (excludeStairs default true) use step_free.
+ */
+export function resolveModeFromMobility(
+  mobility: MobilityProfile | undefined,
+  explicitMode?: RouteMode,
+): { mode: RouteMode; minDoorWidthMm?: number } {
+  if (explicitMode) {
+    return {
+      mode: explicitMode,
+      minDoorWidthMm: mobility?.minDoorWidthMm,
+    };
+  }
+  const excludeStairs = mobility?.excludeStairs ?? true;
+  return {
+    mode: excludeStairs ? "step_free" : "shortest_verified",
+    minDoorWidthMm: mobility?.minDoorWidthMm,
+  };
+}
+
+export function edgeCost(
   edge: IndoorRouteEdge,
   mode: RouteMode,
   minDoorWidthMm?: number,
+  mobility?: MobilityProfile,
 ): number | null {
   if (edge.restricted) return null;
-  if (edge.operationalStatus === "unavailable" || edge.operationalStatus === "temporarily_closed") {
+  if (
+    edge.operationalStatus === "unavailable" ||
+    edge.operationalStatus === "temporarily_closed"
+  ) {
     return null;
   }
+
+  const excludeStairs =
+    mobility?.excludeStairs ??
+    (mode === "step_free" || mode === "avoid_stairs");
+
+  if (excludeStairs && edge.stepFree === false) return null;
   if (mode === "step_free" && edge.stepFree === false) return null;
   if (mode === "avoid_stairs" && edge.stepFree === false) return null;
-  if (minDoorWidthMm && edge.minimumWidthMm != null && edge.minimumWidthMm < minDoorWidthMm) {
+
+  const doorMin = mobility?.minDoorWidthMm ?? minDoorWidthMm;
+  if (
+    doorMin &&
+    edge.minimumWidthMm != null &&
+    edge.minimumWidthMm < doorMin
+  ) {
     return null;
   }
+
   let cost = edge.distanceMetres ?? 1;
+
+  // Documented defaults: missing gradient → 0 (flat); missing surface → smooth (1×).
+  const gradientPenalty = Math.max(1, mobility?.gradientPenalty ?? 1);
+  const gradient = parseEdgeGradient(edge.maximumGradient);
+  if (gradientPenalty > 1 && gradient > 0) {
+    cost *= gradientPenalty;
+  }
+
+  const surfaceFriction = Math.max(1, mobility?.surfaceFriction ?? 1);
+  if (surfaceFriction > 1 && isHighFrictionSurface(edge.surfaceType)) {
+    cost *= surfaceFriction;
+  }
+
   if (edge.stepFree === "unknown") cost *= 1.5;
-  if (edge.trustLevel === "community_reported" || edge.trustLevel === "not_verified") cost *= 1.2;
+  if (
+    edge.trustLevel === "community_reported" ||
+    edge.trustLevel === "not_verified"
+  ) {
+    cost *= 1.2;
+  }
   return cost;
 }
 
 /** Deterministic Dijkstra over verified indoor route graph. */
 export function planIndoorRoute(req: RoutePlanRequest): RoutePlanResult {
-  const { graph, fromNodeId, toNodeId, mode, minDoorWidthMm, unavailableEdgeIds, restrictedNodeIds } =
-    req;
+  const {
+    graph,
+    fromNodeId,
+    toNodeId,
+    mode,
+    minDoorWidthMm,
+    mobilityProfile,
+    unavailableEdgeIds,
+    restrictedNodeIds,
+  } = req;
 
   const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]));
   if (!nodeMap.has(fromNodeId) || !nodeMap.has(toNodeId)) {
-    return { found: false, reasons: ["Origin or destination not found in route graph."] };
+    return {
+      found: false,
+      reasons: ["Origin or destination not found in route graph."],
+    };
   }
 
   if (restrictedNodeIds?.has(fromNodeId) || restrictedNodeIds?.has(toNodeId)) {
@@ -105,7 +207,7 @@ export function planIndoorRoute(req: RoutePlanRequest): RoutePlanResult {
 
     for (const { edge, to } of adj.get(u) ?? []) {
       if (restrictedNodeIds?.has(to)) continue;
-      const cost = edgeCost(edge, mode, minDoorWidthMm);
+      const cost = edgeCost(edge, mode, minDoorWidthMm, mobilityProfile);
       if (cost === null) continue;
       const alt = dist.get(u)! + cost;
       if (alt < (dist.get(to) ?? Infinity)) {
@@ -117,11 +219,15 @@ export function planIndoorRoute(req: RoutePlanRequest): RoutePlanResult {
 
   if ((dist.get(toNodeId) ?? Infinity) === Infinity) {
     const reasons: string[] = [];
-    if (mode === "step_free") reasons.push("No verified step-free connection found.");
+    if (mode === "step_free" || mobilityProfile?.excludeStairs !== false) {
+      reasons.push("No verified step-free connection found.");
+    }
     if (unavailableEdgeIds && unavailableEdgeIds.size > 0) {
       reasons.push("A required lift or corridor is reported unavailable.");
     }
-    if (reasons.length === 0) reasons.push("Route graph incomplete or no path exists.");
+    if (reasons.length === 0) {
+      reasons.push("Route graph incomplete or no path exists.");
+    }
     return { found: false, reasons };
   }
 
@@ -175,9 +281,13 @@ export function graphFromFloorPlanFeatures(
 ): IndoorRouteGraph {
   const nodes: IndoorRouteNode[] = features
     .filter((f) =>
-      ["accessible_entrance", "lift", "accessible_toilet", "reception", "route_destination"].includes(
-        f.type,
-      ),
+      [
+        "accessible_entrance",
+        "lift",
+        "accessible_toilet",
+        "reception",
+        "route_destination",
+      ].includes(f.type),
     )
     .map((f) => ({
       id: `node-${f.id}`,
