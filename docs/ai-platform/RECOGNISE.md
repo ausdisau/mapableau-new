@@ -28,7 +28,7 @@ registerRiskCriterionEvaluator({
 | Phase | Status on main |
 |---|---|
 | Awareness | Product agents + transport/GTFS stacks (existing) |
-| Understanding | AI-platform gateway / copilots (partial) |
+| Understanding | `lib/understanding/` + gateway capability (flag off) — see [UNDERSTANDING.md](./UNDERSTANDING.md) |
 | **Recognise** | **This harness kernel** |
 | Act | Deferred A2H / billing automation (not this PR) |
 | Memory / Pocket / Guardian | Deferred `lib/aura/` Agent OS |

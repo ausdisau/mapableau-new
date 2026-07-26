@@ -26,6 +26,7 @@
 | Plan manager workflows      | `lib/plan-manager/**`                                    | PM relationships + invoice review            | Wave 10 infrastructure extends; NDIA submit stays off                   |
 | Provider quality            | `lib/provider-quality/**`                                | Quality / safeguard review services          | No worker worthiness scores                                             |
 | Workforce readiness         | `lib/workforce-readiness/**`                             | Reason-coded readiness evaluation            | Auto-assign permanently forbidden                                       |
+| Understanding (CSNN)        | `lib/understanding/**`                                   | Understanding KG / informal supports         | Flag-gated (`MAPABLE_UNDERSTANDING_ENABLED`); projects goals/routines/events; no SDA eligibility SoT |
 
 ### NDIS Expansion — planned owners (no writers on main yet)
 
