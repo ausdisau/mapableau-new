@@ -27,6 +27,7 @@
 | Provider quality            | `lib/provider-quality/**`                                | Quality / safeguard review services          | No worker worthiness scores                                             |
 | Workforce readiness         | `lib/workforce-readiness/**`                             | Reason-coded readiness evaluation            | Auto-assign permanently forbidden                                       |
 | Understanding (CSNN)        | `lib/understanding/**`                                   | Understanding KG / informal supports         | Flag-gated (`MAPABLE_UNDERSTANDING_ENABLED`); projects goals/routines/events; no SDA eligibility SoT |
+| AURA Wave 5 Memory          | `lib/aura/memory/**`, `lib/aura/calibration/**`          | Participant memory cards / outcomes          | Flag-gated; session-bound subject IDs; full Agent OS still deferred |
 
 ### NDIS Expansion — planned owners (no writers on main yet)
 

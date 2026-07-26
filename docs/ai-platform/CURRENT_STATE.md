@@ -30,6 +30,8 @@ Positioning: *An evidence-aware, participant-controlled copilot for complete dis
 | agent.aura_harness | deterministic | experimental | MAPABLE_AURA_HARNESS off |
 | agent.aura_recognise | deterministic | experimental | rides AURA harness flag |
 | understanding.contextual | model_backed | experimental | MAPABLE_UNDERSTANDING off |
+| aura.memory_cards (Wave 5) | deterministic | experimental | MAPABLE_AURA_MEMORY off |
+| aura.outcome_calibration (Wave 5) | deterministic | experimental | MAPABLE_AURA_OUTCOME_CALIBRATION off |
 
 ## Advanced AI Expansion train (≤ 3)
 
