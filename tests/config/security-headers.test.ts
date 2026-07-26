@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildContentSecurityPolicyEnforce,
   buildContentSecurityPolicyReportOnly,
+  buildEmbedFrameAncestorsCsp,
   getBaselineSecurityHeaders,
+  getEmbedSecurityHeaders,
 } from "@/lib/security/headers";
 
 describe("baseline security headers", () => {
@@ -36,6 +38,24 @@ describe("baseline security headers", () => {
     expect(csp).toContain("'nonce-test-nonce-value'");
     expect(csp).not.toContain("'unsafe-eval'");
     expect(csp).toContain("report-uri /api/security/csp-report");
+    expect(csp).toContain("frame-ancestors 'none'");
     expect(() => buildContentSecurityPolicyEnforce("")).toThrow(/nonce/i);
+  });
+
+  it("embed headers allow framing and omit X-Frame-Options", () => {
+    const headers = getEmbedSecurityHeaders();
+    const map = Object.fromEntries(headers.map((h) => [h.key, h.value]));
+
+    expect(map["X-Frame-Options"]).toBeUndefined();
+    expect(map["Content-Security-Policy"]).toBe("frame-ancestors *");
+    expect(map["Content-Security-Policy-Report-Only"]).toContain(
+      "frame-ancestors *",
+    );
+    expect(buildEmbedFrameAncestorsCsp()).toContain("frame-ancestors *");
+    expect(
+      buildContentSecurityPolicyEnforce("embed-nonce", {
+        frameAncestors: "*",
+      }),
+    ).toContain("frame-ancestors *");
   });
 });

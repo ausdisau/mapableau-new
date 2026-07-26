@@ -195,20 +195,85 @@ export function buildLocalLandingStaticParams(
   return params;
 }
 
+/** Seed / fallback AU state codes for programmatic local landings. */
+const LOCAL_SEO_SUBURB_STATES: Record<string, Provider["state"]> = {
+  "allambie-heights": "NSW",
+  parramatta: "NSW",
+  footscray: "VIC",
+  chermside: "QLD",
+  bayswater: "VIC",
+  geelong: "VIC",
+  newcastle: "NSW",
+  hobart: "TAS",
+  "morphett-vale": "SA",
+};
+
+/**
+ * Resolve AU state for a suburb slug from fixtures, then seed map.
+ */
+export function resolveSuburbState(
+  suburbSlug: string,
+  providers: readonly Provider[] = PROVIDERS,
+): Provider["state"] | undefined {
+  const normalised = toSeoSlug(suburbSlug);
+  const match = providers.find(
+    (provider) =>
+      provider.suburb !== "Remote" &&
+      toSeoSlug(provider.suburb) === normalised,
+  );
+  if (match) return match.state;
+  return LOCAL_SEO_SUBURB_STATES[normalised];
+}
+
+/**
+ * Map provider support / category signals into LocalBusiness amenity features.
+ */
+export function accessibilityFeaturesFromProvider(provider: Provider): {
+  wheelchairAccess?: boolean;
+  stepFreeEntry?: boolean;
+  accessibleToilet?: boolean;
+  accessibleParking?: boolean;
+  hearingLoop?: boolean;
+  auslan?: boolean;
+} {
+  const haystack = [
+    ...provider.categories,
+    ...provider.supports,
+    provider.name,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const inPerson = provider.supports.includes("In-person");
+  return {
+    wheelchairAccess: inPerson || /wheelchair|accessible/.test(haystack),
+    stepFreeEntry: inPerson || /step[- ]?free|ramp/.test(haystack),
+    accessibleToilet: /toilet|bathroom|washroom/.test(haystack),
+    accessibleParking:
+      provider.categories.some((c) => c.toLowerCase() === "transport") ||
+      /parking|transport/.test(haystack),
+    hearingLoop: /hearing|loop|auslan/.test(haystack),
+    auslan: /auslan/.test(haystack),
+  };
+}
+
 export function buildLocalLandingCopy(input: {
   suburbSlug: string;
   service: LocalSeoService;
   resultCount: number;
+  state?: Provider["state"];
 }): { title: string; description: string; h1: string; intro: string } {
   const suburbLabel = titleCaseFromSlug(input.suburbSlug);
   const serviceLabel = input.service.label;
-  const title = `${serviceLabel} in ${suburbLabel}`;
-  const description = `Compare ${serviceLabel.toLowerCase()} providers near ${suburbLabel}. MapAble lists brick-and-mortar NDIS services, accessible facilities, and inclusive community infrastructure — not freelancer marketplaces.`;
-  const h1 = `${serviceLabel} near ${suburbLabel}`;
+  const state =
+    input.state ?? resolveSuburbState(input.suburbSlug) ?? "Australia";
+  const title = `${serviceLabel} in ${suburbLabel}, ${state} | NDIS providers | MapAble`;
+  const description = `Find accessible ${serviceLabel.toLowerCase()} in ${suburbLabel}, ${state}. Compare NDIS-registered providers, accessible facilities, and inclusive brick-and-mortar services near you — on MapAble Australia.`;
+  const h1 = `${serviceLabel} in ${suburbLabel}, ${state}`;
   const intro =
     input.resultCount > 0
-      ? `Explore ${input.resultCount} ${serviceLabel.toLowerCase()} option${input.resultCount === 1 ? "" : "s"} for ${suburbLabel}, with facility and access signals surfaced first.`
-      : `We are building a facility-first directory of ${serviceLabel.toLowerCase()} near ${suburbLabel}. Browse related providers below or open the full Provider Finder.`;
+      ? `Explore ${input.resultCount} ${serviceLabel.toLowerCase()} option${input.resultCount === 1 ? "" : "s"} for ${suburbLabel}, ${state}, with facility and access signals surfaced first.`
+      : `We are building a facility-first directory of accessible ${serviceLabel.toLowerCase()} near ${suburbLabel}, ${state}. Browse related NDIS providers below or open the full Provider Finder.`;
 
   return { title, description, h1, intro };
 }

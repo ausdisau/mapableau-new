@@ -4,16 +4,19 @@ import { notFound } from "next/navigation";
 
 import { PROVIDERS } from "@/app/provider-finder/providers";
 import { DirectoryView } from "@/components/DirectoryView";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import {
   canonicalAlternate,
   getCanonicalPublicOrigin,
 } from "@/lib/config/canonical-url";
 import {
+  accessibilityFeaturesFromProvider,
   buildLocalLandingCopy,
   buildLocalLandingStaticParams,
   filterProvidersForLocalLanding,
   resolveLocalService,
+  resolveSuburbState,
   titleCaseFromSlug,
   toSeoSlug,
 } from "@/lib/seo/local-landing";
@@ -47,15 +50,19 @@ export async function generateMetadata({
   }
 
   const results = filterProvidersForLocalLanding(suburbSlug, service.slug);
+  const state = resolveSuburbState(suburbSlug, results.length ? results : PROVIDERS);
   const copy = buildLocalLandingCopy({
     suburbSlug,
     service,
     resultCount: results.length,
+    state,
   });
   const pathname = `/provider-finder/${suburbSlug}/${service.slug}`;
 
   return {
-    title: copy.title,
+    title: {
+      absolute: copy.title,
+    },
     description: copy.description,
     alternates: canonicalAlternate(pathname),
     openGraph: {
@@ -85,17 +92,35 @@ export default async function ProviderFinderLocalLandingPage({
   }
 
   const providers = filterProvidersForLocalLanding(suburbSlug, service.slug);
+  const state = resolveSuburbState(suburbSlug, providers.length ? providers : PROVIDERS);
   const copy = buildLocalLandingCopy({
     suburbSlug,
     service,
     resultCount: providers.length,
+    state,
   });
   const suburbLabel = titleCaseFromSlug(suburbSlug);
   const origin = getCanonicalPublicOrigin();
   const landingUrl = `${origin}/provider-finder/${suburbSlug}/${service.slug}`;
 
+  const itemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: copy.h1,
+    description: copy.description,
+    numberOfItems: providers.length,
+    itemListElement: providers.map((provider, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${origin}/jonathan/profile/${encodeURIComponent(provider.slug)}`,
+      name: provider.name,
+    })),
+  };
+
   return (
     <main className="container mx-auto max-w-5xl space-y-8 px-4 py-10">
+      <JsonLd data={itemList} />
+
       {providers.map((provider) => (
         <LocalBusinessSchema
           key={provider.id}
@@ -112,9 +137,7 @@ export default async function ProviderFinderLocalLandingPage({
           telephone={provider.phone}
           ndisRegistered={provider.registered}
           description={`${provider.name} — ${service.label} near ${suburbLabel}. Facility-first listing on MapAble Australia.`}
-          accessibilityFeatures={{
-            wheelchairAccess: provider.supports.includes("In-person"),
-          }}
+          accessibilityFeatures={accessibilityFeaturesFromProvider(provider)}
         />
       ))}
 

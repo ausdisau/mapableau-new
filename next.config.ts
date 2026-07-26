@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 import { assertDeployedProductionEnv } from "./lib/env/assert-deployed-production-env";
-import { getBaselineSecurityHeaders } from "./lib/security/headers";
+import {
+  getBaselineSecurityHeaders,
+  getEmbedSecurityHeaders,
+} from "./lib/security/headers";
 
 // Fail closed on real Vercel production builds when env is invalid.
 // Local/CI builds (no VERCEL_ENV=production) remain usable.
@@ -32,8 +35,19 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      // Embed widget: allow third-party framing (no X-Frame-Options DENY).
       {
-        source: "/:path*",
+        source: "/embed/:path*",
+        headers: getEmbedSecurityHeaders(),
+      },
+      // All other routes: clickjacking protection via frame-ancestors 'none' + XFO DENY.
+      // Negative lookahead keeps /embed/* from also receiving X-Frame-Options: DENY.
+      {
+        source: "/:path((?!embed/).*)*",
+        headers: getBaselineSecurityHeaders(),
+      },
+      {
+        source: "/",
         headers: getBaselineSecurityHeaders(),
       },
       {
