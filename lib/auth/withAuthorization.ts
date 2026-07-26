@@ -67,8 +67,13 @@ export type WithAuthorizationOptions = {
   ) => boolean | Response | Promise<boolean | Response>;
 };
 
+/**
+ * Next.js 15 App Router validates exported handlers against a context whose
+ * `params` is a required `Promise<…>` (not optional / undefined). Routes without
+ * dynamic segments still receive `params` as `Promise<{}>`.
+ */
 type AppRouteContext = {
-  params?: Promise<Record<string, string | string[]>>;
+  params: Promise<Record<string, string | string[]>>;
 };
 
 export type AuthorizedRouteHandler<TContext extends AppRouteContext = AppRouteContext> = (
