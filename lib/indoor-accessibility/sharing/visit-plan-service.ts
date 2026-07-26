@@ -4,6 +4,7 @@ import { recordIndoorAuditEvent } from "@/lib/indoor-accessibility/audit/indoor-
 import {
   generateShareToken,
   hashShareToken,
+  isShareTokenFormat,
 } from "@/lib/indoor-accessibility/verification/correction-service";
 import { prisma } from "@/lib/prisma";
 
@@ -65,31 +66,71 @@ export async function createVisitPlanShare(params: {
   return { share, token };
 }
 
-export async function resolveVisitPlanShare(token: string) {
+export type ResolveVisitPlanShareResult =
+  | { plan: Record<string, unknown>; scopes: string[] }
+  | { error: "invalid_format" | "not_found" | "revoked" | "expired" };
+
+/**
+ * Resolve a shared visit plan by high-entropy token.
+ *
+ * SECURITY:
+ * - Rejects non-64-hex tokens before touching the DB (enumeration resistance).
+ * - Active lookup requires `expiresAt > NOW()` and `revokedAt IS NULL`.
+ * - Separate expired/revoked probes return typed errors for HTTP 410.
+ */
+export async function resolveVisitPlanShare(
+  token: string,
+): Promise<ResolveVisitPlanShareResult> {
+  // Fail closed on weak / non-canonical token shapes.
+  if (!isShareTokenFormat(token)) {
+    return { error: "invalid_format" };
+  }
+
   const tokenHash = hashShareToken(token);
-  const share = await prisma.visitPlanShare.findUnique({
-    where: { tokenHash },
+  const now = new Date();
+
+  // Primary query: only non-revoked, non-expired shares (expiresAt > NOW()).
+  const active = await prisma.visitPlanShare.findFirst({
+    where: {
+      tokenHash,
+      revokedAt: null,
+      expiresAt: { gt: now },
+    },
     include: { visitPlan: { include: { place: { select: { name: true } } } } },
   });
-  if (!share) return null;
-  if (share.revokedAt) return { error: "revoked" as const };
-  if (share.expiresAt < new Date()) return { error: "expired" as const };
 
-  await prisma.visitPlanShare.update({
-    where: { id: share.id },
-    data: { accessCount: { increment: 1 } },
-  });
+  if (active) {
+    await prisma.visitPlanShare.update({
+      where: { id: active.id },
+      data: { accessCount: { increment: 1 } },
+    });
 
-  const scopes = share.scopes as string[];
-  const payload = share.visitPlan.payload as Record<string, unknown>;
-  const filtered: Record<string, unknown> = { venueName: share.visitPlan.place.name };
-  for (const scope of scopes) {
-    if (payload[scope] !== undefined) filtered[scope] = payload[scope];
+    const scopes = active.scopes as string[];
+    const payload = active.visitPlan.payload as Record<string, unknown>;
+    const filtered: Record<string, unknown> = {
+      venueName: active.visitPlan.place.name,
+    };
+    for (const scope of scopes) {
+      if (payload[scope] !== undefined) filtered[scope] = payload[scope];
+    }
+    return { plan: filtered, scopes };
   }
-  return { plan: filtered, scopes };
+
+  // Distinguish expired/revoked from unknown for accurate 410 vs 404.
+  const any = await prisma.visitPlanShare.findUnique({
+    where: { tokenHash },
+    select: { revokedAt: true, expiresAt: true },
+  });
+  if (!any) return { error: "not_found" };
+  if (any.revokedAt) return { error: "revoked" };
+  if (any.expiresAt <= now) return { error: "expired" };
+  return { error: "not_found" };
 }
 
-export async function revokeVisitPlanShare(shareId: string, ownerUserId: string) {
+export async function revokeVisitPlanShare(
+  shareId: string,
+  ownerUserId: string,
+) {
   const share = await prisma.visitPlanShare.findFirst({
     where: { id: shareId, visitPlan: { ownerUserId } },
     include: { visitPlan: true },

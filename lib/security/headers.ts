@@ -43,6 +43,11 @@ export type CspBuildOptions = {
   scriptNonce?: string;
   /** Include 'unsafe-eval' — only for report-only compatibility with current Next.js tooling. */
   allowUnsafeEval?: boolean;
+  /**
+   * Override `frame-ancestors`. Default `'none'` (clickjacking protection).
+   * Embed widget routes must pass an allowlist-derived value — never `*`.
+   */
+  frameAncestors?: string;
 };
 
 function joinSources(sources: readonly string[]): string {
@@ -65,6 +70,8 @@ export function buildContentSecurityPolicy(
   }
   scriptSources.push(...CSP_EXTERNAL_ORIGINS.scripts);
 
+  const frameAncestors = options.frameAncestors?.trim() || "'none'";
+
   const directives = [
     "default-src 'self'",
     `script-src ${scriptSources.join(" ")}`,
@@ -77,7 +84,7 @@ export function buildContentSecurityPolicy(
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    `frame-ancestors ${frameAncestors}`,
     // Report sink redacts URI query/secrets — see app/api/security/csp-report
     "report-uri /api/security/csp-report",
   ];
@@ -93,19 +100,23 @@ export function buildContentSecurityPolicyReportOnly(): string {
  * Future enforce builder. Do not wire into next.config until smoke tests prove
  * Next.js/auth/Stripe/maps survive without unsafe-eval (nonce injection required).
  */
-export function buildContentSecurityPolicyEnforce(scriptNonce: string): string {
+export function buildContentSecurityPolicyEnforce(
+  scriptNonce: string,
+  options: Pick<CspBuildOptions, "frameAncestors"> = {},
+): string {
   if (!scriptNonce.trim()) {
     throw new Error("CSP enforce requires a non-empty script nonce");
   }
   return buildContentSecurityPolicy({
     scriptNonce: scriptNonce.trim(),
     allowUnsafeEval: false,
+    frameAncestors: options.frameAncestors,
   });
 }
 
 export type SecurityHeader = { key: string; value: string };
 
-/** Headers applied to all routes. HSTS is left to Vercel. */
+/** Headers applied to non-embed routes. HSTS is left to Vercel. */
 export function getBaselineSecurityHeaders(): SecurityHeader[] {
   return [
     {
@@ -123,5 +134,37 @@ export function getBaselineSecurityHeaders(): SecurityHeader[] {
         "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()",
     },
     { key: "X-Frame-Options", value: "DENY" },
+  ];
+}
+
+/**
+ * Static headers for `/embed/:path*` in next.config.
+ * Middleware overwrites `frame-ancestors` per-request from ALLOWED_EMBED_DOMAINS.
+ * Omits X-Frame-Options so CSP controls embedding.
+ */
+export function getEmbedSecurityHeaders(): SecurityHeader[] {
+  return [
+    {
+      key: "Content-Security-Policy-Report-Only",
+      value: buildContentSecurityPolicy({
+        allowUnsafeEval: true,
+        // Fail closed until middleware resolves the dynamic allowlist.
+        frameAncestors: "'self'",
+      }),
+    },
+    {
+      key: "Content-Security-Policy",
+      value: "frame-ancestors 'self'",
+    },
+    { key: "X-Content-Type-Options", value: "nosniff" },
+    {
+      key: "Referrer-Policy",
+      value: "strict-origin-when-cross-origin",
+    },
+    {
+      key: "Permissions-Policy",
+      value:
+        "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()",
+    },
   ];
 }
