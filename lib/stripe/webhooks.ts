@@ -5,6 +5,7 @@ import {
   markWebhookProcessed,
   storeWebhookEventIdempotent,
 } from "@/lib/billing/core/webhook-handler";
+import { isDonationMetadata } from "@/lib/donations/config";
 import { getStripeClient } from "@/lib/stripe/client";
 import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
 import {
@@ -29,7 +30,31 @@ export function constructStripeWebhookEvent(
   );
 }
 
+function eventMetadata(
+  event: Stripe.Event,
+): Record<string, string> | null | undefined {
+  const obj = event.data.object as { metadata?: Stripe.Metadata | null };
+  return obj.metadata as Record<string, string> | null | undefined;
+}
+
+/** Charity Checkout sessions must not mutate invoices / payouts. */
+export function isDonationStripeEvent(event: Stripe.Event): boolean {
+  return isDonationMetadata(eventMetadata(event));
+}
+
+function acknowledgeDonationEvent(event: Stripe.Event): void {
+  const meta = eventMetadata(event);
+  console.info("[donations] stripe webhook", {
+    type: event.type,
+    id: event.id,
+    amountCents: meta?.amountCents,
+    purpose: meta?.purpose,
+  });
+}
+
 function shouldHandleBillingCore(event: Stripe.Event): boolean {
+  if (isDonationStripeEvent(event)) return false;
+
   const alwaysBilling = [
     "checkout.session.completed",
     "checkout.session.async_payment_failed",
@@ -49,8 +74,7 @@ function shouldHandleBillingCore(event: Stripe.Event): boolean {
   ];
   if (alwaysBilling.includes(event.type)) return true;
 
-  const obj = event.data.object as { metadata?: Stripe.Metadata | null };
-  const meta = obj.metadata;
+  const meta = eventMetadata(event);
   if (!meta) {
     return false;
   }
@@ -63,6 +87,8 @@ function shouldHandleBillingCore(event: Stripe.Event): boolean {
 }
 
 function shouldHandleLegacy(event: Stripe.Event): boolean {
+  if (isDonationStripeEvent(event)) return false;
+
   const obj = event.data.object as { metadata?: Stripe.Metadata | null };
   const invoiceId = legacyInvoiceIdFromMetadata(obj.metadata);
   if (invoiceId) return true;
@@ -75,15 +101,24 @@ function shouldHandleLegacy(event: Stripe.Event): boolean {
 
 /**
  * Dispatch verified webhook to billing-core and/or legacy Invoice handlers.
+ * Donation sessions are acknowledged and skipped.
  */
 export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
   billing: { duplicate: boolean; processed: boolean };
   legacy: { duplicate: boolean; processed: boolean };
+  donation: { acknowledged: boolean };
 }> {
   const result = {
     billing: { duplicate: false, processed: false },
     legacy: { duplicate: false, processed: false },
+    donation: { acknowledged: false },
   };
+
+  if (isDonationStripeEvent(event)) {
+    acknowledgeDonationEvent(event);
+    result.donation.acknowledged = true;
+    return result;
+  }
 
   if (shouldHandleBillingCore(event)) {
     const stored = await storeWebhookEventIdempotent(
@@ -128,7 +163,12 @@ export async function parseAndProcessWebhookRequest(
   rawBody: string,
   signature: string | null
 ): Promise<
-  | { ok: true; billing: { duplicate: boolean }; legacy: { duplicate: boolean } }
+  | {
+      ok: true;
+      billing: { duplicate: boolean };
+      legacy: { duplicate: boolean };
+      donation: { acknowledged: boolean };
+    }
   | { ok: false; status: number; message: string }
 > {
   if (!isStripeSdkAvailable()) {
@@ -136,6 +176,7 @@ export async function parseAndProcessWebhookRequest(
       ok: true,
       billing: { duplicate: false },
       legacy: { duplicate: false },
+      donation: { acknowledged: false },
     };
   }
   if (!signature) {
@@ -154,6 +195,7 @@ export async function parseAndProcessWebhookRequest(
     ok: true,
     billing: { duplicate: dispatched.billing.duplicate },
     legacy: { duplicate: dispatched.legacy.duplicate },
+    donation: { acknowledged: dispatched.donation.acknowledged },
   };
 }
 
@@ -162,6 +204,12 @@ export async function processStripeWebhookEvent(event: Stripe.Event) {
   const r = await dispatchStripeWebhook(event);
   return {
     duplicate: r.billing.duplicate || r.legacy.duplicate,
-    handled: r.billing.processed ? "billing" : r.legacy.processed ? "legacy" : "none",
+    handled: r.donation.acknowledged
+      ? "donation"
+      : r.billing.processed
+        ? "billing"
+        : r.legacy.processed
+          ? "legacy"
+          : "none",
   };
 }

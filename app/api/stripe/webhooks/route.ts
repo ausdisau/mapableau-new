@@ -23,5 +23,6 @@ export async function POST(req: Request) {
     duplicate: result.billing.duplicate || result.legacy.duplicate,
     billing: result.billing,
     legacy: result.legacy,
+    donation: result.donation,
   });
 }

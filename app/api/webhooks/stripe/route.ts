@@ -17,6 +17,7 @@ export async function POST(req: Request) {
       received: true,
       billing: result.billing,
       legacy: result.legacy,
+      donation: result.donation,
     }),
     {
       status: 200,
