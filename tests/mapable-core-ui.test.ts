@@ -4,8 +4,8 @@ import {
   CORE_CIVIC_LINKS,
   CORE_HUB_SECTIONS,
   CORE_PLATFORM_LINKS,
-} from "@/lib/core-ui/navigation";
-import { PROVIDER_NAV_LINKS } from "@/lib/core-ui/provider-nav";
+} from "@/lib/platform/core-ui/navigation";
+import { PROVIDER_NAV_LINKS } from "@/lib/platform/core-ui/provider-nav";
 
 describe("Core UI navigation", () => {
   it("includes civic transparency routes", () => {
@@ -47,6 +47,10 @@ describe("Core UI navigation", () => {
     expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/claiming")).toBe(
       true
     );
+    expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/developer")).toBe(
+      true
+    );
+    // Section hubs only — keep top-level nav lean (Developer partner API hub included).
     expect(PROVIDER_NAV_LINKS.length).toBeLessThanOrEqual(11);
   });
 });

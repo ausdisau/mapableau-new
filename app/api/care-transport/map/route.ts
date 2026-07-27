@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getOptionalApiUser } from "@/lib/api/optional-session";
+import { isCareTransportMapEnabled } from "@/lib/config/care-transport-map";
 import {
   buildCareTransportMapPayload,
   type CareTransportMapLayer,
-} from "@/lib/care-transport-map/map-payload";
-import { isCareTransportMapEnabled } from "@/lib/config/care-transport-map";
+} from "@/lib/transport/care-map/map-payload";
 
 const layerSchema = z.enum(["careProviders", "infrastructure", "trips"]);
 
