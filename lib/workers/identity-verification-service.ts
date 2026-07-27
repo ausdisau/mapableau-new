@@ -2,17 +2,16 @@ import type { WorkerCredentialStatus } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
+import type {
+  IdentityVerificationProvider,
+  IdentityVerificationStatusView,
+} from "@/lib/workers/identity-verification-constants";
 
-export type IdentityVerificationProvider = "manual_review" | "stripe_identity";
-
-export type IdentityVerificationStatusView = {
-  workerProfileId: string;
-  verificationStatus: WorkerCredentialStatus;
-  workerScreeningStatus: WorkerCredentialStatus;
-  provider: IdentityVerificationProvider;
-  stripeIdentityConfigured: boolean;
-  canStart: boolean;
-};
+export type {
+  IdentityVerificationProvider,
+  IdentityVerificationStatusView,
+} from "@/lib/workers/identity-verification-constants";
+export { IDENTITY_VERIFICATION_STEPS } from "@/lib/workers/identity-verification-constants";
 
 export function isStripeIdentityConfigured(
   env: NodeJS.ProcessEnv = process.env,
