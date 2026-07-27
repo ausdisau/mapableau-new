@@ -6,13 +6,13 @@ import { createHarnessSession } from "@/lib/aura-harness/session";
 import { wrapToolsWithAuraHarness } from "@/lib/aura-harness/wrap-tools";
 
 describe("evaluateToolAction", () => {
-  beforeEach(() => {
-    __resetAuraMemoryForTests();
+  beforeEach(async () => {
+    await __resetAuraMemoryForTests();
     vi.stubEnv("MAPABLE_AURA_HARNESS_ENABLED", "true");
   });
 
-  afterEach(() => {
-    __resetAuraMemoryForTests();
+  afterEach(async () => {
+    await __resetAuraMemoryForTests();
     vi.unstubAllEnvs();
   });
 
@@ -55,8 +55,8 @@ describe("evaluateToolAction", () => {
 });
 
 describe("wrapToolsWithAuraHarness", () => {
-  afterEach(() => {
-    __resetAuraMemoryForTests();
+  afterEach(async () => {
+    await __resetAuraMemoryForTests();
     vi.unstubAllEnvs();
   });
 
@@ -96,7 +96,7 @@ describe("wrapToolsWithAuraHarness", () => {
     const { __resetAuraMemoryForTests: reset } = await import(
       "@/lib/aura-harness/memory-store"
     );
-    reset();
+    await reset();
 
     const execute = vi.fn(async () => ({ deleted: true }));
     const session = createSession();
@@ -135,7 +135,7 @@ describe("wrapToolsWithAuraHarness", () => {
     const { __resetAuraMemoryForTests: reset } = await import(
       "@/lib/aura-harness/memory-store"
     );
-    reset();
+    await reset();
 
     const session = createSession();
     const wrapped = wrap(

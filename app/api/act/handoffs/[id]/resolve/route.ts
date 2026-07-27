@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isA2hHandoffEnabled } from "@/lib/act/flags";
 import { resolveActHandoff } from "@/lib/act/handoff/service";
 import { requireApiSession } from "@/lib/api/auth-handler";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import {
   jsonBodyErrorResponse,
   parseJsonRequestBody,
@@ -28,6 +29,11 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function POST(req: Request, ctx: Ctx) {
   if (!isA2hHandoffEnabled()) {
     return jsonError("MAPABLE_A2H_HANDOFF_DISABLED", 403);
+  }
+
+  const ip = getClientIp(req);
+  if (!checkIpRateLimit(`act-handoff-resolve:${ip}`, { windowMs: 60_000, max: 30 })) {
+    return jsonError("RATE_LIMITED", 429);
   }
 
   const user = await requireApiSession();

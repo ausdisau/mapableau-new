@@ -17,16 +17,16 @@ import { extractSemanticScores } from "@/lib/aura-harness/semantic-judge";
 import { resolvePolicyAction } from "@/lib/aura-harness/policy-engine";
 
 describe("Recognise autonomy criteria", () => {
-  beforeEach(() => {
-    __resetAuraMemoryForTests();
+  beforeEach(async () => {
+    await __resetAuraMemoryForTests();
     __resetRiskCriterionEvaluatorsForTests();
     __resetDefaultAutonomyRegistrationForTests();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     __resetRiskCriterionEvaluatorsForTests();
     __resetDefaultAutonomyRegistrationForTests();
-    __resetAuraMemoryForTests();
+    await __resetAuraMemoryForTests();
   });
 
   it("scores routine search autonomy as low/uniform", async () => {
