@@ -28,8 +28,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useProviderOutlets } from "@/lib/provider/finder/use-provider-outlets";
 import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
-import { useProviderOutlets } from "@/lib/provider-finder/use-provider-outlets";
 import { buildProviderProfileJsonLd } from "@/lib/seo/provider-profile-json-ld";
 
 function formatLocation(provider: Provider) {
