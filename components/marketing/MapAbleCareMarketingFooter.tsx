@@ -5,7 +5,11 @@ import React, { type ReactNode } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { SponsoredBadge } from "@/components/marketing/mapable-care-shared";
-import { MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
+import {
+  MAPABLE_LOGO_ALT,
+  MAPABLE_LOGO_SRC,
+  MAPABLE_SUPPORT_EMAIL,
+} from "@/lib/brand/constants";
 import {
   companyRegistrationDetails,
   footerPlatformLinks,
@@ -62,14 +66,14 @@ function SocialLink({
 
 function FooterBrandMark() {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#005B7F] text-white shadow-sm">
-        <div className="h-4 w-4 rounded-b-full rounded-tl-full bg-white" />
-      </div>
-      <span className="text-xl font-black tracking-tight text-[#005B7F]">
-        MapAble
-      </span>
-    </div>
+    <img
+      src={MAPABLE_LOGO_SRC}
+      alt={MAPABLE_LOGO_ALT}
+      width={754}
+      height={1008}
+      className="h-12 w-auto max-w-[180px] bg-transparent object-contain object-left"
+      decoding="async"
+    />
   );
 }
 
