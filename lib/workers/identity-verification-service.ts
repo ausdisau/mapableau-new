@@ -1,11 +1,6 @@
-import type { WorkerCredentialStatus } from "@prisma/client";
-
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
-import type {
-  IdentityVerificationProvider,
-  IdentityVerificationStatusView,
-} from "@/lib/workers/identity-verification-constants";
+import type { IdentityVerificationStatusView } from "@/lib/workers/identity-verification-constants";
 
 export type {
   IdentityVerificationProvider,
