@@ -9,19 +9,15 @@ import {
 import {
   AU_JURISDICTIONS,
   type AuJurisdiction,
+  type ScreeningSubmissionView,
 } from "@/lib/workers/screening-constants";
 
-export { AU_JURISDICTIONS, type AuJurisdiction } from "@/lib/workers/screening-constants";
+export {
+  AU_JURISDICTIONS,
+  type AuJurisdiction,
+  type ScreeningSubmissionView,
+} from "@/lib/workers/screening-constants";
 
-export type ScreeningSubmissionView = {
-  id: string;
-  workerProfileId: string;
-  workerName: string;
-  jurisdiction: string;
-  submittedAt: string;
-  status: "Pending" | "Verified" | "Rejected" | "Expired" | "Not provided";
-  documentId: string | null;
-};
 
 function isJurisdiction(value: string): value is AuJurisdiction {
   return (AU_JURISDICTIONS as readonly string[]).includes(value);
