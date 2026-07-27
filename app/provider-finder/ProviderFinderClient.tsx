@@ -34,13 +34,13 @@ import {
   supportAreaLandingRoutes,
   supportAreaToSupportTypeId,
 } from "@/lib/marketing/mapable-care-routes";
-import { fetchProviderMapPins } from "@/lib/provider-finder/fetch-map-pins";
+import { fetchProviderMapPins } from "@/lib/provider/finder/fetch-map-pins";
 import {
   ACCESS_NEEDS,
   SUPPORT_TYPES,
   type SupportTypeId,
-} from "@/lib/provider-finder/filters";
-import { useProviderOutlets } from "@/lib/provider-finder/use-provider-outlets";
+} from "@/lib/provider/finder/filters";
+import { useProviderOutlets } from "@/lib/provider/finder/use-provider-outlets";
 import {
   applyInterpretationToFields,
   buildFinderSearchParams,

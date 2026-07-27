@@ -2,11 +2,11 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { requirePermission } from "@/lib/auth/guards";
+import { prisma } from "@/lib/prisma";
 import {
   approveInvoiceForPayment,
   raisePlanManagerQuery,
-} from "@/lib/plan-manager/invoice-review-service";
-import { prisma } from "@/lib/prisma";
+} from "@/lib/support/plan-manager/invoice-review-service";
 
 export default async function PlanManagerInvoiceDetailPage({
   params,
