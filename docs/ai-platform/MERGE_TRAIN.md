@@ -17,3 +17,15 @@ Draft mega-stack closed as non-mergeable depth violation: #350, #351, #352, #353
 - ConvergenceOS: no unmerged stack deeper than 3.
 - Do not wholesale-merge AURA / Continuity / Replay Lab mega-branches; extract only.
 - Feature flags default false; no public-claim flips in this train.
+
+## Autonomy Assurance trains (separate, ≤ 3 each)
+
+Prompt 0 reconciliation + W-AA-1: [AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md](./AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md).
+
+| Train | Prompts | Theme |
+| --- | --- | --- |
+| A | 1–3 | ARC sidecar; AURA v2 shadow + memory; Dignity of Risk |
+| B | 4–6 | Decision Passport projection; Governed Envelope v2; A2H hardening |
+| C | 7–8 | Evidence choreography / redress; accessible controls + shadow pilot |
+
+Do not deepen the waves 1–3 stack above or the Geoscape W-GEO-1 stack with these trains.
