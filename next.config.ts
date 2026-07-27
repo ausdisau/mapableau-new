@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     staticGenerationMaxConcurrency: 1,
     // Fewer workers / larger page batches reduce peak RSS on Vercel preview.
     // Raised from 100 after preview SIGKILL at 6144 MB heap (PR #390).
-    staticGenerationMinPagesPerWorker: 200,
+    staticGenerationMinPagesPerWorker: 400,
   },
   async redirects() {
     return [
