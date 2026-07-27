@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { getAiCapability } from "@/lib/ai-platform/capabilities/registry";
-import { getPrompt } from "@/lib/ai-platform/prompts/registry";
-import { isModelAllowedForTask } from "@/lib/ai-platform/models/registry";
+import { getAiCapability } from "@/lib/ai/platform/capabilities/registry";
+import { getPrompt } from "@/lib/ai/platform/prompts/registry";
+import { isModelAllowedForTask } from "@/lib/ai/platform/models/registry";
 import { createUnderstandingAgent } from "@/lib/understanding/understanding-agent";
 
 describe("Understanding registry + agent gate", () => {
