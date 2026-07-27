@@ -67,9 +67,12 @@ export type WithAuthorizationOptions = {
   ) => boolean | Response | Promise<boolean | Response>;
 };
 
-/** Next.js App Router context — `params` must be a required Promise (not optional). */
+/**
+ * Must stay assignable to Next.js App Router's `AppRouteHandlerFnContext`
+ * (`params` required Promise; value union includes `undefined`).
+ */
 type AppRouteContext = {
-  params: Promise<Record<string, string | string[]>>;
+  params: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export type AuthorizedRouteHandler<

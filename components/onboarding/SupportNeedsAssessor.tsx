@@ -333,12 +333,12 @@ export function SupportNeedsAssessor() {
             <div className="grid gap-2">
               {SUPPORT_NEEDS_INTENSITY_OPTIONS.map((option) => {
                 const checked = currentIntensity() === option.value;
-                const inputId = `intensity-${currentArea}-${option.value}`;
+                const inputId = `sna-intensity-${currentArea}-${option.value}`;
                 return (
                   <label
                     key={option.value}
                     htmlFor={inputId}
-                    aria-label={`${option.label}. ${option.description}`}
+                    aria-label={`${option.label}: ${option.description}`}
                     className={cn(
                       "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 focus-within:ring-2 focus-within:ring-ring",
                       checked
