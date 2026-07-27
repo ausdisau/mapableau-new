@@ -33,7 +33,7 @@ vi.mock("@/lib/consent/consent-service", () => ({
 import {
   publishSupportProfile,
   saveSupportProfileDraft,
-} from "@/lib/support-profile/support-profile-service";
+} from "@/lib/support/profile/support-profile-service";
 
 describe("SupportProfile expectedVersion CAS", () => {
   beforeEach(() => {
