@@ -113,9 +113,9 @@ export const logoMenuItems: MenuItem[] = [
 ];
 
 export const homepageHeroCopy = {
-  headline: "MapAble — accessibility you can plan around.",
+  headline: "Accessibility you can plan around.",
   subheading:
-    "Explore evidence-based access detail for places and supports, then pre-register for the controlled pilot as a participant or provider.",
+    "Use MapAble’s public accessibility map and programme explainers today, then pre-register for the controlled pilot as a participant or provider.",
   primaryCta: "Pre-register interest",
   secondaryCta: "Explore accessible places",
 };
@@ -142,6 +142,49 @@ export const homepageTrustStripItems = [
   "Built with lived experience",
 ];
 
+/**
+ * Public surfaces that exist in-repo today (informational / discovery).
+ * Keep claims aligned with fail-closed feature flags — no bookings/claims GA.
+ */
+export const homepageExploreFeatures = [
+  {
+    eyebrow: "Places",
+    title: "Accessibility map",
+    body: "Browse venues with access notes, measurements, confidence, and sources — so you can plan before you go.",
+    href: "/accessibility-map",
+  },
+  {
+    eyebrow: "Care",
+    title: "Care programme explainer",
+    body: "Learn how MapAble approaches consent-aware care coordination. Public pages explain the programme; bookings stay separately governed.",
+    href: "/care",
+  },
+  {
+    eyebrow: "Transport",
+    title: "Transport programme explainer",
+    body: "Read how accessible journey planning is intended to work. Live matching and trip booking are not generally available on this site.",
+    href: "/transport",
+  },
+  {
+    eyebrow: "Jobs",
+    title: "Employment pathways",
+    body: "Explore inclusive employment programme information and pathways MapAble is building with partners.",
+    href: "/employment",
+  },
+  {
+    eyebrow: "Providers",
+    title: "Provider discovery",
+    body: "Find providers and services through public discovery pages. Enquiry and listing interest is available; live marketplace checkout is not.",
+    href: "/providers",
+  },
+  {
+    eyebrow: "Guidance",
+    title: "NDIS guidance",
+    body: "Ask MapAble for practical NDIS-aware guidance. This is informational support — not NDIA claim submission.",
+    href: "/ask",
+  },
+] as const;
+
 /** @deprecated Hidden from homepage splash — retained for legacy imports/tests. */
 export const homepageProofMetrics: TrustMetric[] = [
   { value: "Pilot target", label: "Places mapped" },
@@ -153,22 +196,22 @@ export const homepageProofMetrics: TrustMetric[] = [
 export const competitorContrastCards: DifferenceCard[] = [
   {
     title: "More than a directory",
-    body: "Find providers alongside availability signals, access-readiness, and practical next steps.",
+    body: "Discover places and providers with access-readiness context and practical next steps — not listings alone.",
     badge: "Beyond listings",
   },
   {
     title: "More detailed than traffic-light ratings",
-    body: "See measurements, confidence, last checked dates, and evidence sources — not only a colour.",
+    body: "See measurements, confidence, last checked dates, and evidence sources on the accessibility map — not only a colour.",
     badge: "Evidence-based",
   },
   {
     title: "More practical than static place reviews",
-    body: "Use access notes to plan visits, then contact MapAble about pilot interest when transactional services open.",
+    body: "Use access notes to plan visits today, then pre-register for the controlled pilot when you want deeper programme access.",
     badge: "Journey-ready",
   },
   {
-    title: "Built for care + transport + support coordination",
-    body: "MapAble connects access information with providers, journeys, and coordination workflows.",
+    title: "Built around care, transport, and jobs",
+    body: "Year-one modules cover core access, Care, Transport, and Employment as programme explainers — with transactional delivery still separately gated.",
     badge: "Connected support",
   },
 ];
@@ -180,8 +223,8 @@ export const homepageMapPreviewFilters = [
   "Quiet/sensory-friendly",
   "Assistance animal welcome",
   "Public transport nearby",
-  "MapAble verified",
-  "Transport bookable",
+  "Access notes with confidence",
+  "Evidence sources listed",
 ] as const;
 
 export const homepageSupportJourneySteps: JourneyStep[] = [
@@ -219,16 +262,16 @@ export const homepageSupportJourneySteps: JourneyStep[] = [
 
 export const homepageProviderPitch = {
   headline: "Grow by being useful, trusted, and accessible.",
-  body: "Providers on MapAble can show live availability, verified access-readiness, NDIS-aware enquiry flows, response-time badges, and venue or clinic access profiles — so participants can choose with clearer evidence.",
+  body: "Providers can explore MapAble’s public discovery pages and pre-register interest for pilot listing workflows. Live availability badges, marketplace checkout, and NDIA claim submission remain separately gated.",
   points: [
-    "Live availability",
-    "Verified access-readiness",
-    "NDIS-aware enquiry flow",
-    "Response-time badge",
-    "Venue/provider access profile",
+    "Public provider discovery",
+    "Access-readiness profiles (pilot)",
+    "Interest registration for listings",
+    "Programme explainers for Care & Transport",
+    "Consent-aware coordination (pilot)",
   ],
-  ctaLabel: "Explore provider tools",
-  ctaHref: "/provider-growth",
+  ctaLabel: "Register provider interest",
+  ctaHref: "/for-providers",
 };
 
 export const homepageFinalCta = {
@@ -532,6 +575,7 @@ export const mapAbleCareCombinedDesignTests = [
     name: "guided landing includes primary homepage sections",
     expectedSections: [
       "HeroSection",
+      "HomepageExploreStrip",
       "CompetitorContrastStrip",
       "PreRegistrationSection",
       "HomepageFinalCta",

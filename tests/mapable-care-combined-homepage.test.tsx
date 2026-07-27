@@ -157,6 +157,7 @@ describe("mapAbleCareCombinedDesignTests", () => {
     );
     expect(spec?.expectedSections).toEqual([
       "HeroSection",
+      "HomepageExploreStrip",
       "CompetitorContrastStrip",
       "PreRegistrationSection",
       "HomepageFinalCta",
@@ -184,10 +185,18 @@ describe("MapAbleCareCombinedHomepage", () => {
   });
 
   it("renders splash headline without Coming soon progress signals", () => {
-    expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
-      "MapAble",
-    );
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: homepageHeroCopy.headline,
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText(/Empowering Independence/i)).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: /What you can use on the public site today/i,
+      }),
+    ).toBeTruthy();
     expect(screen.queryByText("Honest progress signals")).toBeNull();
     expect(screen.queryByText("Coming soon")).toBeNull();
   });

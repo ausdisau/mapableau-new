@@ -67,8 +67,10 @@ describe("homepage marketing splash", () => {
   });
 
   it("renders updated hero headline and single h1", () => {
-    const h1 = screen.getByRole("heading", { level: 1 });
-    expect(h1.textContent).toContain("MapAble");
+    const h1 = screen.getByRole("heading", {
+      level: 1,
+      name: homepageHeroCopy.headline,
+    });
     expect(h1.getAttribute("aria-label")).toBe(homepageHeroCopy.headline);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
