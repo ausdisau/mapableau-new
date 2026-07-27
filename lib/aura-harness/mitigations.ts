@@ -1,6 +1,6 @@
-import { redactSensitiveText } from "@/lib/ai-platform/redaction/sensitive";
+import { redactSensitiveText } from "@/lib/ai/platform/redaction/sensitive";
 import type { MitigationStrategy } from "@/lib/aura-harness/types";
-import { deidentifyRecord } from "@/lib/data-governance/deidentification-service";
+import { deidentifyRecord } from "@/lib/governance/data/deidentification-service";
 
 const HIGH_RISK_KEYS =
   /(email|phone|mobile|address|full.?name|dob|dateOfBirth|ndisNumber|medicare|diagnos|medical|medication|clinical|health.?note|user_reports|narratives?|accessRequirementsSummary|personal.?story)/i;
