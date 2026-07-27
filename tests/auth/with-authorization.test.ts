@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import { createTwoFactorToken } from "@/lib/auth/two-factor-token";
 import type { CurrentUser } from "@/lib/auth/current-user";
+import { createTwoFactorToken } from "@/lib/auth/two-factor-token";
 
 const mockGetServerSession = vi.fn();
 const mockGetCurrentUser = vi.fn();
@@ -121,7 +121,7 @@ describe("withAuthorization", () => {
       new Request("http://localhost/api/x", {
         headers: { "x-mfa-assertion": assertion },
       }),
-      {},
+      { params: Promise.resolve({}) },
     );
     expect(allowedRes.status).toBe(200);
   });
