@@ -27,9 +27,9 @@ vi.mock("@/lib/db/transaction-service", () => ({
 }));
 
 describe("Act A2H handoff", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
-    __resetAuraMemoryForTests();
+    await __resetAuraMemoryForTests();
     createNotification.mockReset();
     actHandoffCreate.mockReset();
     actHandoffFindFirst.mockReset();
@@ -48,8 +48,8 @@ describe("Act A2H handoff", () => {
     process.env.MAPABLE_A2H_HANDOFF_ENABLED = "true";
   });
 
-  afterEach(() => {
-    __resetAuraMemoryForTests();
+  afterEach(async () => {
+    await __resetAuraMemoryForTests();
     delete process.env.MAPABLE_AURA_HARNESS_ENABLED;
     delete process.env.MAPABLE_A2H_HANDOFF_ENABLED;
   });
