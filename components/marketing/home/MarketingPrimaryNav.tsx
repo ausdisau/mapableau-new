@@ -109,12 +109,12 @@ export function MarketingPrimaryNav() {
     >
       <Link
         href={marketingFeatureRoutes.home}
-        className={`flex min-w-0 shrink items-center gap-2 overflow-visible rounded-2xl p-1 transition hover:bg-slate-50 sm:gap-3 ${mapableCareFocusRing}`}
+        className={`flex min-w-0 shrink items-center gap-2.5 overflow-visible rounded-2xl p-1 transition hover:bg-slate-50 sm:gap-3 ${mapableCareFocusRing}`}
         onClick={() => setMobileOpen(false)}
       >
         <span className="sr-only">MapAble home</span>
         <LogoMark className="block h-9 w-auto max-w-[140px] shrink-0 bg-transparent object-contain object-left sm:h-10 sm:max-w-[160px]" />
-        <span className="rounded-full bg-[#0C1833] px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-[0.16em] text-[#F8C51C] sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.18em]">
+        <span className="rounded-full bg-[#0C1833] px-3 py-1.5 font-playfair text-[0.7rem] font-bold uppercase leading-none tracking-[0.08em] text-[#F8C51C] sm:px-3.5 sm:text-xs sm:tracking-[0.1em]">
           {MAPABLE_BRAND_TAGLINE}
         </span>
       </Link>
