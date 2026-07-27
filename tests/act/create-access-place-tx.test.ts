@@ -31,7 +31,7 @@ describe("createAccessPlace transaction", () => {
     });
 
     const { createAccessPlace } = await import(
-      "@/lib/access-map/access-place-service"
+      "@/lib/access/map/access-place-service"
     );
 
     const place = await createAccessPlace({
