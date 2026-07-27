@@ -27,6 +27,7 @@
 | Provider quality            | `lib/provider-quality/**`                                | Quality / safeguard review services          | No worker worthiness scores                                             |
 | Workforce readiness         | `lib/workforce-readiness/**`                             | Reason-coded readiness evaluation            | Auto-assign permanently forbidden                                       |
 | Understanding (CSNN)        | `lib/understanding/**`                                   | Understanding KG / informal supports         | Flag-gated (`MAPABLE_UNDERSTANDING_ENABLED`); projects goals/routines/events; no SDA eligibility SoT |
+| Act (CSNN)                  | `lib/act/**`                                             | Act drafts / A2H handoffs                    | Flag-gated (`MAPABLE_ACT_LAYER_ENABLED`, `MAPABLE_A2H_HANDOFF_ENABLED`); never claim/payment SoT     |
 
 ### NDIS Expansion — planned owners (no writers on main yet)
 
@@ -51,7 +52,7 @@ No other module may directly mutate another domain’s aggregate tables except t
 
 CI ownership check (`scripts/ci/check-domain-ownership.ts`) flags changed files that touch foreign aggregate write paths without going through the owner package (heuristic; expands in later PRs).
 
-Cross-domain **read/orchestration** adapters allowlisted in that script (not second SoTs): `lib/matching/`, `lib/ai-matching/`, `lib/ai-platform/`, `lib/mission-portfolio/`, `lib/mission-copilot/`, `lib/case-copilot/`, `lib/programmes/`, plus existing orchestration/booking-graph packages. They must not become care/transport/billing writers. Programme services may store foreign-key references (e.g. `consentRecordId`, `careRequestId`) without owning those aggregates.
+Cross-domain **read/orchestration** adapters allowlisted in that script (not second SoTs): `lib/matching/`, `lib/ai-matching/`, `lib/ai-platform/`, `lib/mission-portfolio/`, `lib/mission-copilot/`, `lib/case-copilot/`, `lib/programmes/`, `lib/act/`, `lib/aura-harness/`, plus existing orchestration/booking-graph packages. They must not become care/transport/billing writers. Programme services may store foreign-key references (e.g. `consentRecordId`, `careRequestId`) without owning those aggregates.
 
 ## CODEOWNERS mapping
 
