@@ -181,6 +181,10 @@ model User {
   informalSupportLinksAsParticipant       InformalSupportLink[]       @relation("InformalSupportParticipant")
   informalSupportLinksAsSupporter         InformalSupportLink[]       @relation("InformalSupportSupporterUser")
   livingArrangementSignal                 LivingArrangementSignal?    @relation("LivingArrangementSignalParticipant")
+
+  // Act layer A2H handoffs (CSNN Sprint 4)
+  actHandoffsRequested                    ActHandoff[]                @relation("ActHandoffRequester")
+  actHandoffsAssigned                     ActHandoff[]                @relation("ActHandoffAssignee")
 }
 
 model PasskeyCredential {
@@ -11334,5 +11338,37 @@ model LivingArrangementSignal {
   updatedAt          DateTime                   @updatedAt
 
   @@map("living_arrangement_signals")
+}
+
+enum ActHandoffStatus {
+  pending
+  approved
+  denied
+  expired
+}
+
+/// Agent-to-Human handoff queue from AURA HITL_PENDING (Act layer).
+model ActHandoff {
+  id              String           @id @default(cuid())
+  fingerprint     String
+  toolName        String
+  payloadJson     Json
+  gamma           Float
+  cConc           Float
+  riskTier        String
+  status          ActHandoffStatus @default(pending)
+  reason          String
+  requesterUserId String
+  requester       User             @relation("ActHandoffRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
+  assigneeUserId  String?
+  assignee        User?            @relation("ActHandoffAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
+  resolveNote     String?
+  createdAt       DateTime         @default(now())
+  resolvedAt      DateTime?
+
+  @@index([status, createdAt])
+  @@index([fingerprint, status])
+  @@index([requesterUserId])
+  @@map("act_handoffs")
 }
 
