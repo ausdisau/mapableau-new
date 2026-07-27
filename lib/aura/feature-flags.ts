@@ -1,4 +1,4 @@
-/** MapAble AURA feature flags — Wave 5/6 slice used on this branch. */
+/** MapAble AURA feature flags — Wave 5/6/7 slice used on this branch. */
 
 function envTrue(name: string): boolean {
   const v = process.env[name];
@@ -21,6 +21,18 @@ export const auraFlags = {
   },
   get nativeBridgesEnabled(): boolean {
     return envTrue("MAPABLE_AURA_NATIVE_BRIDGES_ENABLED");
+  },
+  get worldModelEnabled(): boolean {
+    return envTrue("MAPABLE_AURA_WORLD_MODEL_ENABLED");
+  },
+  get journeyGuardianEnabled(): boolean {
+    return envTrue("MAPABLE_AURA_JOURNEY_GUARDIAN_ENABLED");
+  },
+  get sensorThingsEnabled(): boolean {
+    return envTrue("MAPABLE_AURA_SENSORTHINGS_ENABLED");
+  },
+  get waiAdaptEnabled(): boolean {
+    return envTrue("MAPABLE_AURA_WAI_ADAPT_ENABLED");
   },
 };
 

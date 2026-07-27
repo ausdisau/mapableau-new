@@ -1,6 +1,8 @@
+import type { ParticipantRequirementSet } from "../compiler/types";
 import type { AccessQueryAst } from "../query/ast";
 import { createProofCarryingResult, type ProofCarryingAccessResult } from "../results";
 
+import { applyRequirementSetToQueryAst } from "./apply-requirements";
 import type {
   DoorToRoomPreflight,
   JourneyDependencyGraph,
@@ -11,13 +13,24 @@ import { runSyntheticJourneyPreflight } from "./synthetic-preflight";
 /**
  * Proof-carrying door-to-room journey preflight for Harbour Room 3.12.
  * Models origin → curb → entrance → lift → corridor → room (+ return stub).
+ * Compiles ParticipantRequirementSet objects into hard constraints on the query AST.
  * Does not stop at street address. Does not execute external actions.
  */
 export function runDoorToRoomPreflight(input: {
   query: AccessQueryAst;
-  requirementSetRef: string;
+  requirementSetRef?: string;
+  requirementSet?: ParticipantRequirementSet;
 }): { preflight: DoorToRoomPreflight; proof: ProofCarryingAccessResult } {
-  const proof = runSyntheticJourneyPreflight(input.query, input.requirementSetRef);
+  let query = input.query;
+  let requirementSetRef = input.requirementSetRef ?? "fixture:taylor-harbour-v1";
+
+  if (input.requirementSet) {
+    const applied = applyRequirementSetToQueryAst(query, input.requirementSet);
+    query = applied.query;
+    requirementSetRef = applied.requirementSetRef;
+  }
+
+  const proof = runSyntheticJourneyPreflight(query, requirementSetRef);
   const segments = buildHarbourSegments(proof.conclusion);
   const dependencyGraph = buildDependencyGraph(segments);
 
@@ -30,10 +43,10 @@ export function runDoorToRoomPreflight(input: {
   const failedHardRequirements = proof.failedConstraints.map((c) => c.ontologyConceptId);
 
   const preflight: DoorToRoomPreflight = {
-    preflightId: `preflight:${input.query.id}`,
-    queryId: input.query.id,
-    requirementSetRef: input.requirementSetRef,
-    destinationRef: input.query.to ?? "harbour_civic.room_3_12",
+    preflightId: `preflight:${query.id}`,
+    queryId: query.id,
+    requirementSetRef,
+    destinationRef: query.to ?? "harbour_civic.room_3_12",
     segments,
     dependencyGraph,
     overallConclusion: proof.conclusion,
@@ -299,8 +312,28 @@ function buildDependencyGraph(segments: JourneySegment[]): JourneyDependencyGrap
     .filter((s) => s.confirmationRequired || s.operationalState === "unknown")
     .map((s) => s.label);
 
+  // Staff-only / policy exclusions must not be labelled as unverified fallbacks.
+  // Match only true verification gaps — not "excluded by participant avoid rule".
   const unverifiedFallbacks = segments
-    .filter((s) => s.fallback && /unverified|excluded|no verified/i.test(s.fallback))
+    .filter(
+      (s) =>
+        s.fallback &&
+        /unverified|no verified/i.test(s.fallback) &&
+        !/excluded by participant|staff.?only|staff.?dependent|avoid rule/i.test(
+          s.fallback,
+        ),
+    )
+    .map((s) => s.fallback!)
+    .filter(Boolean);
+
+  const policyExclusions = segments
+    .filter(
+      (s) =>
+        s.fallback &&
+        /excluded by participant|staff.?only|staff.?dependent|avoid rule/i.test(
+          s.fallback,
+        ),
+    )
     .map((s) => s.fallback!)
     .filter(Boolean);
 
@@ -309,5 +342,6 @@ function buildDependencyGraph(segments: JourneySegment[]): JourneyDependencyGrap
     edges,
     singlePointsOfFailure,
     unverifiedFallbacks,
+    policyExclusions,
   };
 }
