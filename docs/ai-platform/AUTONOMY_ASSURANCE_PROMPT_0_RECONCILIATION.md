@@ -130,6 +130,7 @@ If W-AA-1 is refused: pause product implementation; this docs-only reconciliatio
 
 ## Related docs
 
+- [`AUTONOMY_ASSURANCE_DEFINITION_OF_DONE.md`](./AUTONOMY_ASSURANCE_DEFINITION_OF_DONE.md) — programme exit criteria
 - [`FEATURE_FREEZE.md`](../remediation/FEATURE_FREEZE.md) — W-AA-1
 - [`TRUST_FABRIC.md`](../productisation/TRUST_FABRIC.md)
 - [`MOAT_PR_RECONCILIATION.md`](../productisation/MOAT_PR_RECONCILIATION.md)
