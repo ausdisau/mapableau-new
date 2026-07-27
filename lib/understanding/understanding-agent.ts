@@ -1,8 +1,8 @@
 import { ToolLoopAgent, stepCountIs } from "ai";
 
-import { resolveModelForCapability } from "@/lib/ai-platform/models/gateway";
-import { assertModelCallAllowed } from "@/lib/ai-platform/policies/kill-switches";
-import { getPrompt } from "@/lib/ai-platform/prompts/registry";
+import { resolveModelForCapability } from "@/lib/ai/platform/models/gateway";
+import { assertModelCallAllowed } from "@/lib/ai/platform/policies/kill-switches";
+import { getPrompt } from "@/lib/ai/platform/prompts/registry";
 import { isAiPlatformFoundationEnabled } from "@/lib/config/ai-platform";
 import {
   isUnderstandingEnabled,
