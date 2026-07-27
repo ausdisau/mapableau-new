@@ -60,6 +60,7 @@ module.exports = {
       fontFamily: {
         sans: ["var(--font-sans)", "Plus Jakarta Sans", "sans-serif"],
         heading: ["var(--font-heading)", "Outfit", "sans-serif"],
+        playfair: ["var(--font-playfair)", "Georgia", "serif"],
       },
     },
   },

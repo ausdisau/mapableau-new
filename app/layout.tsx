@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import { Outfit, Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { headers } from "next/headers";
 
 import { AccessiBeWidget } from "@/components/accessibility/AccessiBeWidget";
@@ -41,6 +41,15 @@ const outfit = Outfit({
   variable: "--font-heading",
   display: "swap",
   // Heading font loads on first h1/logo; avoid unused preload console warnings.
+  preload: false,
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  weight: ["700"],
+  display: "swap",
+  // Header tagline pill only; avoid unused preload console warnings.
   preload: false,
 });
 
@@ -114,7 +123,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en-AU"
-      className={`${plusJakarta.variable} ${outfit.variable}`}
+      className={`${plusJakarta.variable} ${outfit.variable} ${playfair.variable}`}
     >
       <head>
         <meta
