@@ -32,6 +32,7 @@ lerna-debug.log*
 
 # Local env files
 .env
+.env.replit
 .env*.local
 .env.development.local
 .env.test.local
@@ -89,6 +90,17 @@ tests/a11y/.auth/
 # Local Replit import working tree (must not be a gitlink/submodule)
 /tmp/mapable-unified-replit/
 /tmp/mapable-unified-replit
+
+# Never re-commit Replit-attached secrets (rotated after #444 history purge)
+attached_assets/*.key
+attached_assets/vercelAPI_*.txt
+attached_assets/**/*secret*
+attached_assets/**/*token*
+
+# Isolated Replit npm install tree (see scripts/bootstrap-replit-deps.sh)
+.replit-node_modules/
+.replit-node-path.env
+client/node_modules
 
 # Local open-weight model checkouts (serve via GPT_OSS_BASE_URL)
 /gpt-oss-120b/

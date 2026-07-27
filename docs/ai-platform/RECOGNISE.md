@@ -30,8 +30,7 @@ registerRiskCriterionEvaluator({
 | Awareness | Product agents + transport/GTFS stacks (existing) |
 | Understanding | `lib/understanding/` + gateway capability (flag off) — see [UNDERSTANDING.md](./UNDERSTANDING.md) |
 | **Recognise** | **This harness kernel** |
-| Act | Flag-gated drafts + A2H handoffs — see [ACT.md](./ACT.md) (`MAPABLE_ACT_LAYER_ENABLED`, `MAPABLE_A2H_HANDOFF_ENABLED`) |
-| Memory / Pocket / Guardian | Deferred `lib/aura/` Agent OS |
+| Act | Flag-gated drafts + A2H handoffs — see [ACT.md](./ACT.md) (`MAPABLE_ACT_LAYER_ENABLED`, `MAPABLE_A2H_HANDOFF_ENABLED`) || Memory / Pocket / Guardian | Deferred `lib/aura/` Agent OS |
 
 ## Flags
 

@@ -6,14 +6,13 @@ import { createHarnessSession } from "@/lib/aura-harness/session";
 import { wrapToolsWithAuraHarness } from "@/lib/aura-harness/wrap-tools";
 
 describe("evaluateToolAction", () => {
-  beforeEach(async () => {
-    await __resetAuraMemoryForTests();
+  beforeEach(() => {
+    __resetAuraMemoryForTests();
     vi.stubEnv("MAPABLE_AURA_HARNESS_ENABLED", "true");
   });
 
-  afterEach(async () => {
-    await __resetAuraMemoryForTests();
-    vi.unstubAllEnvs();
+  afterEach(() => {
+    __resetAuraMemoryForTests();    vi.unstubAllEnvs();
   });
 
   it("approves routine search", async () => {
@@ -55,9 +54,8 @@ describe("evaluateToolAction", () => {
 });
 
 describe("wrapToolsWithAuraHarness", () => {
-  afterEach(async () => {
-    await __resetAuraMemoryForTests();
-    vi.unstubAllEnvs();
+  afterEach(() => {
+    __resetAuraMemoryForTests();    vi.unstubAllEnvs();
   });
 
   it("is a no-op when harness flag is off", async () => {
@@ -96,8 +94,7 @@ describe("wrapToolsWithAuraHarness", () => {
     const { __resetAuraMemoryForTests: reset } = await import(
       "@/lib/aura-harness/memory-store"
     );
-    await reset();
-
+    reset();
     const execute = vi.fn(async () => ({ deleted: true }));
     const session = createSession();
     const wrapped = wrap(
@@ -135,8 +132,7 @@ describe("wrapToolsWithAuraHarness", () => {
     const { __resetAuraMemoryForTests: reset } = await import(
       "@/lib/aura-harness/memory-store"
     );
-    await reset();
-
+    reset();
     const session = createSession();
     const wrapped = wrap(
       {

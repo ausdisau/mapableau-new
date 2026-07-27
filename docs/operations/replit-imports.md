@@ -9,6 +9,17 @@ Guides for pulling code from `@ausdisau1` Repls into `ausdisau/mapableau-new`.
 | [MapAble-Transport](https://replit.com/@ausdisau1/MapAble-Transport) | `scripts/import-replit-transport.sh` | [replit-mapable-transport-import.md](./replit-mapable-transport-import.md) |
 | [MapAble-Marketplace](https://replit.com/@ausdisau1/MapAble-Marketplace) | `scripts/import-replit-marketplace.sh` | [replit-mapable-marketplace-import.md](./replit-mapable-marketplace-import.md) |
 
+## Cursor ↔ Replit branch bridge
+
+Day-to-day sync between Replit and Cursor uses Git branches `replit-agent` and
+`cursor-main` (not a literal `cursor` branch — GitHub forbids that name as a
+prefix of `cursor/*`). See:
+
+- [cursor-replit-branch-sync.md](./cursor-replit-branch-sync.md)
+- `pnpm sync:cursor-replit -- report`
+
+`cursor/replit-agent-main-reconcile-a08f` is **retired** in favour of that pair.
+
 ## Import both Care and Unified
 
 ```bash
@@ -53,3 +64,18 @@ The monorepo already wires the Unified shell and Care module:
 Module registry links in `app/lib/modules.ts` resolve to live routes (`/care`, `/transport`, `/marketplace`, `/dashboard/jobs`, plus coming-soon stubs for Foods/Moves/Kids).
 
 Verify: `pnpm test tests/mapable-core-ui.test.ts tests/module-routes.test.ts tests/marketplace-catalog.test.ts tests/care-mvp.test.ts`
+
+## UI integration map (uploaded Replit assets)
+
+After the MapAble-Unified UI upload that shipped in [PR #439](https://github.com/ausdisau/mapableau-new/pull/439), the asset → monorepo mapping lives at:
+
+[`design/imports/replit-mapable-integration-map.html`](../../design/imports/replit-mapable-integration-map.html)
+
+Open that file in a browser for shipped / stubbed / open / blocked status. Original JSX/HTML uploads remain under `design/imports/`.
+
+Client-safe constants for the verify-id and screening UIs live in:
+
+- `lib/workers/identity-verification-shared.ts`
+- `lib/workers/worker-screening-shared.ts`
+
+Server services (`*-service.ts`) must not be imported from `"use client"` components.

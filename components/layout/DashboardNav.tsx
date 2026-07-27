@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { MapAbleRoleNav } from "@/components/layout/MapAbleRoleNav";
 import type { UserRole } from "@/types/mapable";
 
-const LINKS = [
+const BASE_LINKS = [
   { href: "/dashboard", label: "Control panel", exact: true },
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
@@ -27,12 +27,39 @@ const LINKS = [
   { href: "/dashboard/documents", label: "Documents" },
   { href: "/dashboard/billing", label: "Billing centre" },
   { href: "/dashboard/settings/notifications", label: "Notification settings" },
-];
+] as const;
 
-export function DashboardNav({ role }: { userName: string; role: UserRole }) {
+const CAREOS_LINKS = [
+  {
+    href: "/careos/appointment",
+    label: "CareOS appointment mission",
+    matchPrefix: "/careos/appointment",
+  },
+  {
+    href: "/careos/missions",
+    label: "CareOS missions",
+    matchPrefix: "/careos/missions",
+  },
+  {
+    href: "/dashboard/careos",
+    label: "My CareOS",
+    matchPrefix: "/dashboard/careos",
+  },
+] as const;
+
+export function DashboardNav({
+  role,
+  showCareOsNav = false,
+}: {
+  userName: string;
+  role: UserRole;
+  showCareOsNav?: boolean;
+}) {
   const pathname = usePathname();
   const links = [
-    ...LINKS,
+    BASE_LINKS[0]!,
+    ...(showCareOsNav ? CAREOS_LINKS : []),
+    ...BASE_LINKS.slice(1),
     ...(role === "mapable_admin" ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 

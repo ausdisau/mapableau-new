@@ -52,8 +52,7 @@ export function wrapToolsWithAuraHarness<T extends Record<string, AnyTool>>(
         const evaluation = await evaluateToolAction(name, input);
         ctx.session.record(evaluation);
 
-        const { decision, fingerprint } = evaluation;
-        if (
+        const { decision, fingerprint } = evaluation;        if (
           decision.outcome === "DENIED" ||
           decision.outcome === "HITL_PENDING"
         ) {
@@ -76,8 +75,7 @@ export function wrapToolsWithAuraHarness<T extends Record<string, AnyTool>>(
               // Fail closed on the tool call without losing the HITL block.
             }
           }
-          return buildAuraBlockedToolResult(decision, { handoffId });
-        }
+          return buildAuraBlockedToolResult(decision, { handoffId });        }
 
         const args =
           decision.outcome === "MITIGATED" && decision.safeArgs !== undefined
