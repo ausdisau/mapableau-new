@@ -1,6 +1,4 @@
-import type { MapAbleUserRole, Prisma } from "@prisma/client";
-import { headers } from "next/headers";
-
+import type { MapAbleUserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { AuditAction } from "@/types/mapable";
 
@@ -13,15 +11,16 @@ export interface CreateAuditEventInput {
   participantId?: string | null;
   organisationId?: string | null;
   metadata?: Record<string, unknown> | null;
-  /** Optional transaction client for atomic writes with domain creates. */
-  tx?: Prisma.TransactionClient;
 }
 
 async function requestMeta(): Promise<{
   ipAddress?: string;
   userAgent?: string;
 }> {
+  // Dynamic import keeps this module out of Client Component graphs that
+  // accidentally transitively reference createAuditEvent.
   try {
+    const { headers } = await import("next/headers");
     const h = await headers();
     return {
       ipAddress:
@@ -53,8 +52,7 @@ export async function createAuditEvent(
       )
     : undefined;
 
-  const db = input.tx ?? prisma;
-  await db.auditEvent.create({
+  await prisma.auditEvent.create({
     data: {
       actorUserId: input.actorUserId ?? null,
       actorRole: input.actorRole ?? null,
