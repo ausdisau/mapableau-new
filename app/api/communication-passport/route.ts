@@ -2,12 +2,12 @@ import { ZodError, z } from "zod";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import { isCommunicationPassportEnabled } from "@/lib/config/communication-workforce";
 import {
   CommunicationPassportError,
   getCommunicationPassport,
   updateCommunicationPassportModes,
-} from "@/lib/communication-passport/service";
-import { isCommunicationPassportEnabled } from "@/lib/config/communication-workforce";
+} from "@/lib/support/communication-passport/service";
 
 const updateSchema = z
   .object({
