@@ -1,6 +1,4 @@
 import type { MapAbleUserRole } from "@prisma/client";
-import { headers } from "next/headers";
-
 import { prisma } from "@/lib/prisma";
 import type { AuditAction } from "@/types/mapable";
 
@@ -19,7 +17,10 @@ async function requestMeta(): Promise<{
   ipAddress?: string;
   userAgent?: string;
 }> {
+  // Dynamic import keeps this module out of Client Component graphs that
+  // accidentally transitively reference createAuditEvent.
   try {
+    const { headers } = await import("next/headers");
     const h = await headers();
     return {
       ipAddress:
