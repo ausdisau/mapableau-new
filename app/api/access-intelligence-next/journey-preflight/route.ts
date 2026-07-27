@@ -36,17 +36,22 @@ export async function POST(request: Request) {
     body = {};
   }
 
-  const query = body.query ?? taylorRoom312Query();
-  const requirementSetRef = body.requirementSet
-    ? compileParticipantRequirements(body.requirementSet).requirementSetRef
-    : "fixture:taylor-harbour-v1";
+  const baseQuery = body.query ?? taylorRoom312Query();
+  const compiled = body.requirementSet
+    ? compileParticipantRequirements(body.requirementSet)
+    : null;
 
-  const { preflight, proof } = runDoorToRoomPreflight({ query, requirementSetRef });
+  const { preflight, proof } = runDoorToRoomPreflight({
+    query: baseQuery,
+    requirementSet: body.requirementSet,
+    requirementSetRef: compiled?.requirementSetRef ?? "fixture:taylor-harbour-v1",
+  });
 
   return NextResponse.json({
     mode: accessIntelligenceNextFlags.mode,
     synthetic: true,
     productionClaim: "none",
+    hardConstraints: compiled?.hardConstraints ?? null,
     preflight,
     proof,
     segmentListAlternative: preflight.segments.map((s) => ({
