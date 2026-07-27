@@ -1,4 +1,4 @@
-import { tierFromTotalScore } from "@/lib/access-accreditation/accreditation-scoring-service";
+import { tierFromTotalScore } from "@/lib/access/accreditation/accreditation-scoring-service";
 import { clampScore } from "@/lib/aura-harness/dimensions";
 import type { AccreditationTierHint } from "@/lib/aura-harness/recognise/types";
 
