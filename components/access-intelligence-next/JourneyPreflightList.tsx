@@ -56,6 +56,9 @@ export function JourneyPreflightList({ preflight }: Props) {
           {preflight.dependencyGraph.unverifiedFallbacks.map((f) => (
             <li key={f}>Unverified fallback: {f}</li>
           ))}
+          {(preflight.dependencyGraph.policyExclusions ?? []).map((f) => (
+            <li key={f}>Policy exclusion: {f}</li>
+          ))}
         </ul>
       </section>
 

@@ -57,6 +57,8 @@ export type JourneyDependencyGraph = {
   edges: JourneyDependencyEdge[];
   singlePointsOfFailure: string[];
   unverifiedFallbacks: string[];
+  /** Policy / participant avoid exclusions — not unverified fallbacks. */
+  policyExclusions: string[];
 };
 
 export type DoorToRoomPreflight = {
