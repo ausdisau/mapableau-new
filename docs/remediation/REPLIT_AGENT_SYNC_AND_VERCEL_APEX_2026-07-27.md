@@ -46,12 +46,15 @@ Agent cannot add/move custom domains via MCP (no domain write tool; no `VERCEL_T
 | Production tip (post #455) | `dpl_AtTsYKysRATjQphFF5A1CPJvRtEp` — **READY** (SHA `a838521c`) |
 | Apex asset `?dpl=` | Matches `dpl_AtTsYKysRATjQphFF5A1CPJvRtEp` |
 | `/api/health/live` | **200** `{"status":"ok"}` |
-| `/api/health/ready` | Still **503** — all prod 503s in prior 24h were this route (DB timeout/connectivity) |
+| `/api/health/ready` | Prior 24h: all prod 503s were this route; **re-probe 2026-07-27**: **200** `{"status":"ready"}` (Neon reachable) |
 | Runtime error clusters (24h) | None |
 | Repo hardening | `READY_TIMEOUT_MS` **2500 → 8000**; `post-deploy-health.sh` now requires live+ready JSON 200 |
+| `post-deploy-health.sh` @ apex | **passed** (live + ready) |
+| `pnpm audit:https-gate` | `VERIFIED_PUBLIC_EDGE_ONLY` |
+| `www.mapable.com.au` TLS | Still **expired** (owner renew) |
 
 ### Owner gates still open
 
-1. Vercel Production: confirm Neon **pooled** `DATABASE_URL` + **direct** `DIRECT_URL`, then redeploy; re-probe until ready is **200**.
+1. Keep Vercel Production Neon **pooled** `DATABASE_URL` + **direct** `DIRECT_URL` correct after any env churn; redeploy when changed.
 2. Renew `www.mapable.com.au` TLS (or remove+re-add); expect redirect to `https://mapable.com.au/`.
-3. Verify after env/TLS: `HEALTH_CHECK_BASE_URL=https://mapable.com.au bash scripts/release/post-deploy-health.sh` and `pnpm audit:https-gate`.
+3. After TLS fix: re-run `HEALTH_CHECK_BASE_URL=https://mapable.com.au bash scripts/release/post-deploy-health.sh` and `pnpm audit:https-gate`.
