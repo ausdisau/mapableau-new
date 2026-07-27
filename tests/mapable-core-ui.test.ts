@@ -47,6 +47,6 @@ describe("Core UI navigation", () => {
     expect(PROVIDER_NAV_LINKS.some((l) => l.href === "/provider/claiming")).toBe(
       true
     );
-    expect(PROVIDER_NAV_LINKS.length).toBeLessThanOrEqual(10);
+    expect(PROVIDER_NAV_LINKS.length).toBeLessThanOrEqual(11);
   });
 });

@@ -29,8 +29,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
-import { buildProviderProfileJsonLd } from "@/lib/seo/provider-profile-json-ld";
 import { useProviderOutlets } from "@/lib/provider-finder/use-provider-outlets";
+import { buildProviderProfileJsonLd } from "@/lib/seo/provider-profile-json-ld";
 
 function formatLocation(provider: Provider) {
   if (provider.suburb === "Remote") return "Telehealth (Australia-wide)";
