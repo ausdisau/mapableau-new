@@ -1,7 +1,7 @@
 import { ToolLoopAgent, stepCountIs } from "ai";
 
 import { createDisabilityServicesTools } from "@/lib/agent/disability-services-tools";
-import { assertModelCallAllowed } from "@/lib/ai-platform/policies/kill-switches";
+import { assertModelCallAllowed } from "@/lib/ai/platform/policies/kill-switches";
 import {
   createHarnessSession,
   isAuraHarnessEnabled,
