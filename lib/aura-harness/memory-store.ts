@@ -38,6 +38,8 @@ type MemoryRow = {
 const localMemory = new Map<string, MemoryRow>();
 
 function dbAvailable(): boolean {
+  // Vitest workers share a CI DATABASE_URL; keep unit-test memory process-local.
+  if (process.env.VITEST === "true") return false;
   return Boolean(process.env.DATABASE_URL);
 }
 
