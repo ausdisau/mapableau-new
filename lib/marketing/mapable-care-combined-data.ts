@@ -1,4 +1,10 @@
-export type SupportArea = "All" | "Care" | "Transport" | "NDIS Help" | "Jobs" | "Places";
+export type SupportArea =
+  | "All"
+  | "Care"
+  | "Transport"
+  | "NDIS Help"
+  | "Jobs"
+  | "Places";
 export type ResultCategory = SupportArea | "Plan" | "Support";
 
 export type SearchResult = {
@@ -74,7 +80,8 @@ export const logoMenuItems: MenuItem[] = [
   {
     label: "Care",
     href: "/care",
-    description: "Consent-aware support coordination for participants and providers.",
+    description:
+      "Consent-aware support coordination for participants and providers.",
   },
   {
     label: "Transport",
@@ -89,12 +96,14 @@ export const logoMenuItems: MenuItem[] = [
   {
     label: "Accessible places",
     href: "/accessibility-map",
-    description: "Explore venues with access notes, quiet spaces and community guidance.",
+    description:
+      "Explore venues with access notes, quiet spaces and community guidance.",
   },
   {
     label: "List your service",
     href: "/for-providers",
-    description: "Join MapAble as a support worker, provider or transport partner.",
+    description:
+      "Join MapAble as a support worker, provider or transport partner.",
   },
   {
     label: "Help Centre",
@@ -104,19 +113,18 @@ export const logoMenuItems: MenuItem[] = [
 ];
 
 export const homepageHeroCopy = {
-  headline: "Find accessible places, supports, and journeys you can actually use.",
+  headline: "MapAble — accessibility you can plan around.",
   subheading:
-    "MapAble publishes accessibility information and programme explainers. Care bookings, transport matching, and NDIS service delivery remain separately governed and are not claimed as generally available here.",
-  primaryCta: "Find accessible places",
-  secondaryCta: "Contact MapAble",
+    "Explore evidence-based access detail for places and supports, then pre-register for the controlled pilot as a participant or provider.",
+  primaryCta: "Pre-register interest",
+  secondaryCta: "Explore accessible places",
 };
 
-/** Informational-release CTAs — no unfinished transactional destinations. */
+/** Informational-release CTAs — splash page anchors + public informational destinations. */
 export const homepageHeroCtas = [
-  { label: "Find accessible places", href: "/accessibility-map" },
-  { label: "Learn about Care", href: "/care" },
-  { label: "Learn about Transport", href: "/transport" },
-  { label: "Contact MapAble", href: "/contact" },
+  { label: "Pre-register interest", href: "#pre-register" },
+  { label: "Explore accessible places", href: "/accessibility-map" },
+  { label: "About MapAble", href: "/about" },
 ] as const;
 
 export const homepageCategoryChips = [
@@ -128,17 +136,18 @@ export const homepageCategoryChips = [
 ];
 
 export const homepageTrustStripItems = [
-  "Verified support options",
+  "Evidence-based access notes",
   "Accessible-first design",
-  "NDIS-aware workflows",
+  "Pilot interest for participants & providers",
   "Built with lived experience",
 ];
 
+/** @deprecated Hidden from homepage splash — retained for legacy imports/tests. */
 export const homepageProofMetrics: TrustMetric[] = [
   { value: "Pilot target", label: "Places mapped" },
-  { value: "Coming soon", label: "Access details verified" },
+  { value: "Pilot target", label: "Access details verified" },
   { value: "Demo", label: "Providers accepting enquiries" },
-  { value: "Coming soon", label: "Transport-ready journeys" },
+  { value: "Pilot target", label: "Transport-ready journeys" },
 ];
 
 export const competitorContrastCards: DifferenceCard[] = [
@@ -224,9 +233,9 @@ export const homepageProviderPitch = {
 
 export const homepageFinalCta = {
   headline: "Help build Australia’s access layer.",
-  body: "Read how MapAble works, explore programme explainers, or contact us about pilot interest. Public informational pages do not open general bookings or claims.",
+  body: "Pre-register for the pilot, read how MapAble works, or contact us. Public pages do not open general bookings or NDIS claims.",
   ctas: [
-    { label: "About MapAble", href: "/about" },
+    { label: "Pre-register interest", href: "#pre-register" },
     { label: "Accessibility statement", href: "/accessibility-statement" },
     { label: "Contact MapAble", href: "/contact" },
     { label: "Help Centre", href: "/help" },
@@ -281,13 +290,15 @@ export type PersonaEntry = {
 export const personaEntries: PersonaEntry[] = [
   {
     title: "I'm looking for support",
-    description: "Compare care, transport and practical help in one guided search.",
+    description:
+      "Compare care, transport and practical help in one guided search.",
     href: "/provider-finder",
     cta: "Find support",
   },
   {
     title: "I'm a carer or family member",
-    description: "Explore support workers and providers with clear access notes.",
+    description:
+      "Explore support workers and providers with clear access notes.",
     href: "/provider-finder?area=Care",
     cta: "Explore care options",
   },
@@ -299,13 +310,15 @@ export const personaEntries: PersonaEntry[] = [
   },
   {
     title: "I'm a provider",
-    description: "List your service and connect with participants who need your support.",
+    description:
+      "List your service and connect with participants who need your support.",
     href: "/for-providers",
     cta: "List your service",
   },
   {
     title: "I'm an employer",
-    description: "Build inclusive hiring pathways and workplace adjustment support.",
+    description:
+      "Build inclusive hiring pathways and workplace adjustment support.",
     href: "/employment",
     cta: "Explore employment",
   },
@@ -483,8 +496,7 @@ export const mapAbleCareCombinedDesignTests = [
   },
   {
     name: "positioning uses combined care language",
-    expectedHeadline:
-      "Find accessible places, supports, and journeys you can actually use.",
+    expectedHeadline: homepageHeroCopy.headline,
   },
   {
     name: "support selector uses user-facing areas instead of agents",
@@ -508,7 +520,9 @@ export const mapAbleCareCombinedDesignTests = [
   },
   {
     name: "design includes clearly labelled sponsored partner placements",
-    expectedSponsoredPlacements: sponsoredPlacements.map((placement) => placement.placement),
+    expectedSponsoredPlacements: sponsoredPlacements.map(
+      (placement) => placement.placement,
+    ),
   },
   {
     name: "hero section is extracted to dedicated component",
@@ -518,19 +532,15 @@ export const mapAbleCareCombinedDesignTests = [
     name: "guided landing includes primary homepage sections",
     expectedSections: [
       "HeroSection",
-      "HomepageProofStrip",
       "CompetitorContrastStrip",
-      "HomepageMapPreview",
-      "HomepageSupportJourney",
-      "HomepageProviderPitch",
+      "PreRegistrationSection",
       "HomepageFinalCta",
-      "GuidedSearchPanel",
       "BoundaryNotice",
     ],
   },
   {
-    name: "homepage has single guided search panel anchor",
-    expectedGuidedSearchAnchor: "guided-search-panel",
+    name: "homepage has single pre-registration panel anchor",
+    expectedPreRegistrationAnchor: "pre-register",
   },
 ];
 
@@ -553,17 +563,26 @@ export function getFilteredResults(query: string, area: SupportArea) {
   const lowerQuery = query.toLowerCase();
   return sampleResults
     .filter((result) => {
-      const matchesArea = area === "All" || result.category === area || result.category === "Plan";
-      const searchableText = `${result.title} ${result.category} ${result.description}`.toLowerCase();
+      const matchesArea =
+        area === "All" ||
+        result.category === area ||
+        result.category === "Plan";
+      const searchableText =
+        `${result.title} ${result.category} ${result.description}`.toLowerCase();
       const matchesQuery =
         !lowerQuery ||
-        lowerQuery.split(" ").some((word) => word.length > 3 && searchableText.includes(word));
+        lowerQuery
+          .split(" ")
+          .some((word) => word.length > 3 && searchableText.includes(word));
       return matchesArea && matchesQuery;
     })
     .slice(0, 4);
 }
 
-export function getSponsoredPlacement(area: SupportArea, placement: SponsoredPlacement["placement"]) {
+export function getSponsoredPlacement(
+  area: SupportArea,
+  placement: SponsoredPlacement["placement"],
+) {
   return sponsoredPlacements.find(
     (item) =>
       item.placement === placement &&
