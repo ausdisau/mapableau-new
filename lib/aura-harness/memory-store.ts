@@ -38,8 +38,7 @@ type MemoryRow = {
 const localMemory = new Map<string, MemoryRow>();
 
 function dbAvailable(): boolean {
-  // Vitest workers share a CI DATABASE_URL; persist only outside unit tests so
-  // process-local resets actually isolate fingerprints across files.
+  // Vitest workers share a CI DATABASE_URL; keep unit-test memory process-local.
   if (process.env.VITEST === "true") return false;
   return Boolean(process.env.DATABASE_URL);
 }
@@ -210,15 +209,7 @@ export class VectorMemoryStore {
 
 export const vectorMemoryStore = new VectorMemoryStore();
 
-/** Test helper — clears process-local memory cache (and DB rows when persisted). */
-export async function __resetAuraMemoryForTests(): Promise<void> {
+/** Test helper — clears process-local memory cache. */
+export function __resetAuraMemoryForTests(): void {
   localMemory.clear();
-  if (!Boolean(process.env.DATABASE_URL) || process.env.VITEST === "true") {
-    return;
-  }
-  try {
-    await prisma.auraHarnessMemory.deleteMany({});
-  } catch {
-    // Ignore when the table is unavailable in lightweight environments.
-  }
 }
