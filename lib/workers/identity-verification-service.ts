@@ -1,21 +1,18 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
-import type { IdentityVerificationStatusView } from "@/lib/workers/identity-verification-constants";
+import {
+  type IdentityVerificationStatusView,
+  isStripeIdentityConfigured,
+} from "@/lib/workers/identity-verification-shared";
 
 export type {
   IdentityVerificationProvider,
   IdentityVerificationStatusView,
-} from "@/lib/workers/identity-verification-constants";
-export { IDENTITY_VERIFICATION_STEPS } from "@/lib/workers/identity-verification-constants";
-
-export function isStripeIdentityConfigured(
-  env: NodeJS.ProcessEnv = process.env,
-): boolean {
-  return (
-    env.STRIPE_IDENTITY_ENABLED === "true" &&
-    Boolean(env.STRIPE_SECRET_KEY?.trim())
-  );
-}
+} from "@/lib/workers/identity-verification-shared";
+export {
+  IDENTITY_VERIFICATION_STEPS,
+  isStripeIdentityConfigured,
+} from "@/lib/workers/identity-verification-shared";
 
 function publicDisplayName(displayName: string): string {
   const parts = displayName.trim().split(/\s+/).filter(Boolean);
