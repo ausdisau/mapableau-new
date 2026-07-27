@@ -12,7 +12,10 @@ export const MAPABLE_TAGLINE =
 
 export const MAPABLE_SUPPORT_EMAIL = "support@mapable.com.au";
 
-/** Australian Disability Ltd — PayPal donations (override in env). */
+/**
+ * Australian Disability Ltd — PayPal secondary CTA on `/donate`
+ * (primary path is native Stripe Checkout). Override in env if needed.
+ */
 export const MAPABLE_DONATION_URL =
   process.env.NEXT_PUBLIC_DONATION_URL ?? "https://paypal.me/ausdisau";
 

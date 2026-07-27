@@ -25,6 +25,7 @@ describe("public informational route allowlist (canonical)", () => {
         "/",
         "/about",
         "/contact",
+        "/donate",
         "/privacy",
         "/terms",
         "/accessibility-statement",

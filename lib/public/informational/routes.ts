@@ -58,6 +58,16 @@ export const PUBLIC_INFORMATIONAL_ROUTES: readonly InformationalRoute[] = [
     kind: "informational",
   },
   {
+    path: "/donate",
+    label: "Donate",
+    inSitemap: true,
+    titleIncludes: "Donate",
+    h1Includes: "Donate",
+    formsPermitted: true,
+    authenticationProhibited: true,
+    kind: "informational",
+  },
+  {
     path: "/privacy",
     label: "Privacy",
     inSitemap: true,

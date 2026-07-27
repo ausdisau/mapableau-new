@@ -141,6 +141,17 @@ Detailed guides live under `docs/`. This file is the only project README at the 
 
 Phase 2 and Phase 4 capabilities (messaging, documents, matching, timesheets, Stripe/Xero placeholders, etc.) are documented in [core phases](docs/mapable/core-phases.md#phase-2) and [phase 4](docs/mapable/core-phases.md#phase-4).
 
+### Donations (Stripe)
+
+Public one-time donations: [`/donate`](https://mapable.com.au/donate) (Stripe Checkout) with PayPal as a secondary CTA.
+
+Owner setup for the `mapableau@gmail.com` Stripe account (AUD):
+
+1. Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Vercel.
+2. Webhook URL: `https://mapable.com.au/api/webhooks/stripe` (`checkout.session.completed`).
+3. Enable `MAPABLE_DONATIONS_STRIPE_ENABLED=true` (independent of billing `STRIPE_ENABLED`).
+4. Optional PayPal override: `NEXT_PUBLIC_DONATION_URL`.
+
 ### Operations and integrations
 
 | Doc                                                                    | Description                                                  |
