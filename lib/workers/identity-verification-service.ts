@@ -130,14 +130,3 @@ export async function startIdentityVerification(userId: string): Promise<{
     nextStep: "await_admin_review",
   };
 }
-
-export const IDENTITY_VERIFICATION_STEPS = [
-  "Worker initiates ID verification",
-  "Redirect to third-party service (e.g., Stripe Identity, IDVerse)",
-  "Upload ID and selfie for liveness check",
-  "Third-party validates ID and returns result",
-  "Verification result stored in backend",
-  "Worker profile updated (badge shown)",
-  "Optional: Cross-check with NDIS Worker Screening DB",
-  "Audit log saved with timestamp",
-] as const;
