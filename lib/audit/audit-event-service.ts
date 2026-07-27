@@ -1,4 +1,4 @@
-import type { MapAbleUserRole } from "@prisma/client";
+import type { MapAbleUserRole, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 
 import { prisma } from "@/lib/prisma";
@@ -13,6 +13,8 @@ export interface CreateAuditEventInput {
   participantId?: string | null;
   organisationId?: string | null;
   metadata?: Record<string, unknown> | null;
+  /** Optional transaction client for atomic writes with domain creates. */
+  tx?: Prisma.TransactionClient;
 }
 
 async function requestMeta(): Promise<{
@@ -51,7 +53,8 @@ export async function createAuditEvent(
       )
     : undefined;
 
-  await prisma.auditEvent.create({
+  const db = input.tx ?? prisma;
+  await db.auditEvent.create({
     data: {
       actorUserId: input.actorUserId ?? null,
       actorRole: input.actorRole ?? null,
