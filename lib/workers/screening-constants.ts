@@ -1,4 +1,4 @@
-/** Client-safe worker screening constants (no server-only imports). */
+/** Client-safe worker screening constants/types (no server-only imports). */
 
 export const AU_JURISDICTIONS = [
   "NSW",
@@ -12,3 +12,13 @@ export const AU_JURISDICTIONS = [
 ] as const;
 
 export type AuJurisdiction = (typeof AU_JURISDICTIONS)[number];
+
+export type ScreeningSubmissionView = {
+  id: string;
+  workerProfileId: string;
+  workerName: string;
+  jurisdiction: string;
+  submittedAt: string;
+  status: "Pending" | "Verified" | "Rejected" | "Expired" | "Not provided";
+  documentId: string | null;
+};
