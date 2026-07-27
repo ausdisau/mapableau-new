@@ -22,7 +22,7 @@
 | Dependency                      | Required for `/api/health/ready` 200? | Notes                                                               |
 | ------------------------------- | ------------------------------------- | ------------------------------------------------------------------- |
 | Application process             | Yes (implicit)                        | Covered by `/api/health/live`                                       |
-| Database (`prisma.$queryRaw`)   | **Yes** (current design)              | 2500ms timeout; 503 on failure — do **not** force unconditional 200 |
+| Database (`prisma.$queryRaw`)   | **Yes** (current design)              | 8000ms timeout (Neon cold start); 503 on failure — do **not** force unconditional 200 |
 | Participant matching / bookings | No                                    | Not probed                                                          |
 | Payments / claims               | No                                    | Not probed                                                          |
 
@@ -33,7 +33,7 @@ Static marketing HTML can render without DB, but the **ready** probe intentional
 | Endpoint                | Behaviour                                                                                                                        |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /api/health/live`  | `{ "status": "ok" }`, `Cache-Control: no-store`, no version/host/env/secrets                                                     |
-| `GET /api/health/ready` | DB check with 2500ms timeout; 200 `{ "status": "ready" }` or 503 `{ "status": "unavailable" }`; no connection strings/SQL/stacks |
+| `GET /api/health/ready` | DB check with 8000ms timeout; 200 `{ "status": "ready" }` or 503 `{ "status": "unavailable" }`; no connection strings/SQL/stacks |
 
 Unit coverage: `tests/api/health-probes.test.ts` (live/ready success, failure, timeout, redaction, GET-only exports).
 
