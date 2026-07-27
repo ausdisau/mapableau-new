@@ -58,12 +58,14 @@ describe("withAuthorization", () => {
     else process.env.NEXTAUTH_SECRET = previousSecret;
   });
 
+  const emptyCtx = { params: Promise.resolve({}) };
+
   it("returns 401 when there is no session", async () => {
     mockGetServerSession.mockResolvedValue(null);
     const handler = withAuthorization({ roles: ["ADMIN"] }, async () =>
       Response.json({ ok: true }),
     );
-    const res = await handler(new Request("http://localhost/api/x"), {});
+    const res = await handler(new Request("http://localhost/api/x"), emptyCtx);
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toMatchObject({ error: "Unauthorized" });
   });
@@ -80,7 +82,7 @@ describe("withAuthorization", () => {
     const handler = withAuthorization({ roles: ["ADMIN"] }, async () =>
       Response.json({ ok: true }),
     );
-    const res = await handler(new Request("http://localhost/api/x"), {});
+    const res = await handler(new Request("http://localhost/api/x"), emptyCtx);
     expect(res.status).toBe(403);
   });
 
@@ -93,7 +95,7 @@ describe("withAuthorization", () => {
       { roles: ["ADMIN"], requireMfa: true },
       async (_req, _ctx, user) => Response.json({ id: user.id }),
     );
-    const res = await handler(new Request("http://localhost/api/x"), {});
+    const res = await handler(new Request("http://localhost/api/x"), emptyCtx);
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({ id: "user_admin" });
   });
@@ -106,7 +108,10 @@ describe("withAuthorization", () => {
       { roles: ["ADMIN"], requireMfa: true },
       async () => Response.json({ ok: true }),
     );
-    const deniedRes = await denied(new Request("http://localhost/api/x"), {});
+    const deniedRes = await denied(
+      new Request("http://localhost/api/x"),
+      emptyCtx,
+    );
     expect(deniedRes.status).toBe(403);
 
     const assertion = createTwoFactorToken({
@@ -121,7 +126,7 @@ describe("withAuthorization", () => {
       new Request("http://localhost/api/x", {
         headers: { "x-mfa-assertion": assertion },
       }),
-      {},
+      emptyCtx,
     );
     expect(allowedRes.status).toBe(200);
   });
