@@ -83,6 +83,9 @@ export const participantSlas = pgTable(
   (table) => [
     uniqueIndex("participant_slas_agreement_reference_unique").on(table.agreementReference),
     uniqueIndex("participant_slas_user_version_unique").on(table.userId, table.version),
+    uniqueIndex("participant_slas_one_active_per_user_unique")
+      .on(table.userId)
+      .where(sql`${table.status} = 'active'`),
     index("participant_slas_user_status_idx").on(table.userId, table.status),
   ],
 );

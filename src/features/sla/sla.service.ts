@@ -13,6 +13,8 @@ import {
 import { db } from "../../../server/db";
 import { renderSlaDocument, SlaRenderError } from "./sla.render";
 import {
+  getModuleDefinition,
+  getVariantDefinition,
   SLA_CORE_TEMPLATE_KEY,
   SLA_MODULES,
   SLA_VARIANTS,
@@ -90,11 +92,43 @@ function agreementReference(now: Date = new Date()): string {
   return `MAP-AG-${year}-${suffix}`;
 }
 
+function planValue(planData: unknown, key: string): string | undefined {
+  if (!planData || Array.isArray(planData) || typeof planData !== "object") {
+    return undefined;
+  }
+  const value = (planData as Record<string, unknown>)[key];
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 async function getTemplateAndVariantSources(input: GenerateSlaInput): Promise<{
   coreTemplate: SlaTemplateSource;
   moduleTemplates: SlaTemplateSource[];
   variants: SlaVariantSource[];
 }> {
+  for (const selection of input.selectedModules) {
+    const moduleDefinition = getModuleDefinition(selection.moduleId);
+    if (!moduleDefinition) {
+      throw new SlaServiceError(
+        `Unknown SLA module: ${selection.moduleId}`,
+        400,
+        "INVALID_SLA_SELECTION",
+      );
+    }
+    for (const variantId of selection.variantIds) {
+      const variantDefinition = getVariantDefinition(variantId);
+      if (
+        !variantDefinition ||
+        variantDefinition.moduleId !== selection.moduleId
+      ) {
+        throw new SlaServiceError(
+          `Variant ${variantId} does not belong to module ${selection.moduleId}`,
+          400,
+          "INVALID_SLA_SELECTION",
+        );
+      }
+    }
+  }
+
   const selectedModuleIds = input.selectedModules.map((selection) => selection.moduleId);
   const selectedVariantIds = input.selectedModules.flatMap((selection) => selection.variantIds);
   const templateKeys = [
@@ -120,10 +154,38 @@ async function getTemplateAndVariantSources(input: GenerateSlaInput): Promise<{
     );
   }
 
+  const moduleTemplates = selectedModuleIds.map((moduleId) => {
+    const template = templateRows.find(
+      (candidate) =>
+        candidate.type === "module" && candidate.moduleId === moduleId,
+    );
+    if (!template) {
+      throw new SlaServiceError(
+        `The SLA template for ${moduleId} is not installed`,
+        503,
+        "SLA_TEMPLATES_NOT_READY",
+      );
+    }
+    return template;
+  });
+  const variants = selectedVariantIds.map((variantId) => {
+    const variant = variantRows.find(
+      (candidate) => candidate.variantId === variantId,
+    );
+    if (!variant) {
+      throw new SlaServiceError(
+        `The SLA variant ${variantId} is not installed`,
+        503,
+        "SLA_TEMPLATES_NOT_READY",
+      );
+    }
+    return variant;
+  });
+
   return {
     coreTemplate,
-    moduleTemplates: templateRows.filter((template) => template.type === "module"),
-    variants: variantRows,
+    moduleTemplates,
+    variants,
   };
 }
 
@@ -137,23 +199,35 @@ export async function listSlaModules(): Promise<SlaModuleOption[]> {
   ]);
   const installedTemplateKeys = new Set(templateRows.map((row) => row.key));
 
-  return SLA_MODULES.filter((module) => installedTemplateKeys.has(module.templateKey)).map(
-    (module) => ({
+  return SLA_MODULES.map((module) => {
+    if (!installedTemplateKeys.has(module.templateKey)) {
+      throw new SlaServiceError(
+        `The SLA template ${module.templateKey} is not installed`,
+        503,
+        "SLA_TEMPLATES_NOT_READY",
+      );
+    }
+    return {
       ...module,
       variants: SLA_VARIANTS.filter((definition) => definition.moduleId === module.moduleId)
         .map((definition) => {
           const stored = variantRows.find((row) => row.variantId === definition.variantId);
-          if (!stored) return null;
+          if (!stored || stored.moduleId !== module.moduleId) {
+            throw new SlaServiceError(
+              `The SLA variant ${definition.variantId} is not installed`,
+              503,
+              "SLA_TEMPLATES_NOT_READY",
+            );
+          }
           return {
             variantId: stored.variantId,
             name: stored.name,
             description: definition.description,
             defaultParams: parseParams(stored.defaultParams, stored.variantId),
           };
-        })
-        .filter((variant): variant is NonNullable<typeof variant> => variant !== null),
-    }),
-  );
+        }),
+    };
+  });
 }
 
 export async function generateParticipantSla(input: GenerateSlaInput): Promise<ParticipantSla> {
@@ -179,9 +253,13 @@ export async function generateParticipantSla(input: GenerateSlaInput): Promise<P
     );
   }
 
+  let selectedPlanData: unknown;
   if (input.participantPlanId) {
     const [plan] = await db
-      .select({ id: ndisPlanCache.id })
+      .select({
+        id: ndisPlanCache.id,
+        planData: ndisPlanCache.planData,
+      })
       .from(ndisPlanCache)
       .where(
         and(
@@ -196,6 +274,7 @@ export async function generateParticipantSla(input: GenerateSlaInput): Promise<P
         "PARTICIPANT_PLAN_NOT_FOUND",
       );
     }
+    selectedPlanData = plan.planData;
   }
 
   const sources = await getTemplateAndVariantSources(input);
@@ -204,8 +283,14 @@ export async function generateParticipantSla(input: GenerateSlaInput): Promise<P
     ...(input.customParameters ?? {}),
     participantName: participant.fullName,
     ndisNumber: participant.ndisNumber || "Not provided",
-    planStartDate: participant.planStartDate || "Not provided",
-    planEndDate: participant.planEndDate || "Not provided",
+    planStartDate:
+      participant.planStartDate ||
+      planValue(selectedPlanData, "startDate") ||
+      "Not provided",
+    planEndDate:
+      participant.planEndDate ||
+      planValue(selectedPlanData, "endDate") ||
+      "Not provided",
     agreementDate: dateOnly(),
     agreementReference: reference,
   };

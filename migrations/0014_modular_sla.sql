@@ -86,6 +86,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS "participant_slas_agreement_reference_unique"
   ON "participant_slas" USING btree ("agreement_reference");
 CREATE UNIQUE INDEX IF NOT EXISTS "participant_slas_user_version_unique"
   ON "participant_slas" USING btree ("user_id", "version");
+CREATE UNIQUE INDEX IF NOT EXISTS "participant_slas_one_active_per_user_unique"
+  ON "participant_slas" USING btree ("user_id")
+  WHERE "status" = 'active';
 CREATE INDEX IF NOT EXISTS "participant_slas_user_status_idx"
   ON "participant_slas" USING btree ("user_id", "status");
 

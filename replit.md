@@ -47,6 +47,7 @@ Participant-facing HITL AI features (Concepts B, C, E from `research/hitl-ai-dis
 - `AI_INTEGRATIONS_OPENAI_API_KEY` — OpenAI API key (via Replit integrations)
 - `AI_INTEGRATIONS_OPENAI_BASE_URL` — OpenAI base URL (via Replit integrations)
 - `SESSION_SECRET` — Session secret key
+- `MAPABLE_SERVICE_AGREEMENTS_ENABLED` — set to `true` only after migration 0014 and legal/NDIS review to enable modular SLA APIs
 - `STRIPE_SECRET_KEY` — Stripe secret API key
 - `STRIPE_PUBLISHABLE_KEY` — Stripe publishable key (exposed to frontend)
 - `STRIPE_WEBHOOK_SECRET` — Stripe webhook signing secret
