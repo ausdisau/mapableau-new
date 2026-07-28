@@ -13,6 +13,7 @@ import type { Express } from "express";
   import { registerQuickBooksRoutes } from "./quickbooks";
   import { registerGroceryRoutes } from "./grocery";
   import { registerGeoRoutes } from "./geo";
+  import { registerSlaRoutes } from "../../src/features/sla/sla.routes";
 
   export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
     registerAuthRoutes(app);
@@ -30,6 +31,6 @@ import type { Express } from "express";
     }
     registerGroceryRoutes(app);
     registerGeoRoutes(app);
+    registerSlaRoutes(app);
     return httpServer;
   }
-  
