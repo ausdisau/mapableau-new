@@ -74,6 +74,8 @@ describe("renderSlaDocument", () => {
     expect(markdown).toContain("Taylor Example");
     expect(markdown).toContain("### Standard Care");
     expect(markdown).toContain("### Standard Transport");
+    expect(markdown).toContain("not an emergency service");
+    expect(markdown).toContain("call `000`");
     expect(markdown.indexOf("Module A")).toBeLessThan(
       markdown.indexOf("Module B"),
     );

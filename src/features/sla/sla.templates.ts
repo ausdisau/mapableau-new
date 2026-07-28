@@ -94,7 +94,7 @@ The participant, nominee or authorised representative will:
 
 ### 6. Safety, incidents and continuity
 
-Immediate safety concerns take priority over service delivery. Incidents and suspected abuse, neglect or exploitation will be handled under MapAble's safeguarding procedures and applicable NDIS requirements. If a support is interrupted, MapAble will explain the change and take reasonable steps with the participant to arrange continuity or a safe transition.
+MapAble is not an emergency service. If there is immediate danger or a life-threatening emergency, call \`000\`. Immediate safety concerns take priority over service delivery. Incidents and suspected abuse, neglect or exploitation will be handled under MapAble's safeguarding procedures and applicable NDIS requirements. If a support is interrupted, MapAble will explain the change and take reasonable steps with the participant to arrange continuity or a safe transition.
 
 ### 7. Privacy and information
 

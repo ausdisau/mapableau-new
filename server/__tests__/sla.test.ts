@@ -68,6 +68,8 @@ describe("modular SLA rendering", () => {
     assert.match(markdown, /participant directs their supports/i);
     assert.match(markdown, /will not retaliate/i);
     assert.match(markdown, /NDIS Quality and Safeguards Commission/);
+    assert.match(markdown, /not an emergency service/i);
+    assert.match(markdown, /call `000`/);
     assert.match(markdown, /authenticated acceptance/i);
     assert.doesNotMatch(markdown, /{{[^}]+}}/);
   });

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS "sla_templates" (
   "module_id" text,
   "version" integer DEFAULT 1 NOT NULL,
   "content_markdown" text NOT NULL,
-  "created_at" timestamp DEFAULT now() NOT NULL
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "sla_variants" (
@@ -39,10 +39,10 @@ CREATE TABLE IF NOT EXISTS "participant_slas" (
   "content_markdown" text NOT NULL,
   "version" integer DEFAULT 1 NOT NULL,
   "status" "participant_sla_status" DEFAULT 'draft' NOT NULL,
-  "accepted_at" timestamp,
+  "accepted_at" timestamp with time zone,
   "accepted_by_user_id" varchar,
   "acceptance_method" text,
-  "created_at" timestamp DEFAULT now() NOT NULL
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
 DO $$ BEGIN
@@ -148,7 +148,7 @@ The participant, nominee or authorised representative will:
 
 ### 6. Safety, incidents and continuity
 
-Immediate safety concerns take priority over service delivery. Incidents and suspected abuse, neglect or exploitation will be handled under MapAble's safeguarding procedures and applicable NDIS requirements. If a support is interrupted, MapAble will explain the change and take reasonable steps with the participant to arrange continuity or a safe transition.
+MapAble is not an emergency service. If there is immediate danger or a life-threatening emergency, call `000`. Immediate safety concerns take priority over service delivery. Incidents and suspected abuse, neglect or exploitation will be handled under MapAble's safeguarding procedures and applicable NDIS requirements. If a support is interrupted, MapAble will explain the change and take reasonable steps with the participant to arrange continuity or a safe transition.
 
 ### 7. Privacy and information
 

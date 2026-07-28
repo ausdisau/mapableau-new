@@ -31,7 +31,7 @@ export const slaTemplates = pgTable(
     moduleId: text("module_id"),
     version: integer("version").notNull().default(1),
     contentMarkdown: text("content_markdown").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex("sla_templates_key_unique").on(table.key),
@@ -73,12 +73,12 @@ export const participantSlas = pgTable(
     contentMarkdown: text("content_markdown").notNull(),
     version: integer("version").notNull().default(1),
     status: participantSlaStatusEnum("status").notNull().default("draft"),
-    acceptedAt: timestamp("accepted_at"),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
     acceptedByUserId: varchar("accepted_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
     acceptanceMethod: text("acceptance_method"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex("participant_slas_agreement_reference_unique").on(table.agreementReference),
