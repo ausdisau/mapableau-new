@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   VISION_ACCESS_DISCLAIMER,
   VISION_AUDIT_EVENTS,
+  VISION_FEATURE_CLASSES,
+  VISION_HAZARD_CLASSES,
   VISION_MEASUREMENT_CLASS_LABELS,
   VISION_PERMANENT_OFF_FLAGS,
+  VISION_PILOT_ALLOWLIST,
   VISION_PROHIBITED_OUTPUTS,
   assertCandidateTransition,
   assertDangerousVisionFlagsOff,
@@ -26,15 +29,25 @@ import {
 } from "@/lib/vision-access";
 
 describe("vision access feature flags", () => {
-  it("defaults dangerous capabilities to false", () => {
+  it("defaults product and dangerous capabilities to false", () => {
     const flags = listVisionAccessFlagStates();
     for (const key of VISION_PERMANENT_OFF_FLAGS) {
       expect(flags[key]).toBe(false);
     }
+    expect(visionAccessFlags.enabled).toBe(false);
+    expect(visionAccessFlags.syntheticDemo).toBe(false);
+    expect(visionAccessFlags.stopAndScan).toBe(false);
+    expect(visionAccessFlags.guidedMeasurement).toBe(false);
+    expect(visionAccessFlags.mapperSurvey).toBe(false);
+    expect(visionAccessFlags.personalFit).toBe(false);
     expect(visionAccessFlags.autoPublish).toBe(false);
     expect(visionAccessFlags.liveAdvisory).toBe(false);
     expect(visionAccessFlags.evidenceUpload).toBe(false);
     expect(visionAccessFlags.depth).toBe(false);
+    expect(visionAccessFlags.onDevice).toBe(false);
+    expect(visionAccessFlags.ocr).toBe(false);
+    expect(visionAccessFlags.moderation).toBe(false);
+    expect(visionAccessFlags.twinComparison).toBe(false);
   });
 
   it("assertDangerousVisionFlagsOff passes with safe defaults", () => {
@@ -43,6 +56,18 @@ describe("vision access feature flags", () => {
 
   it("exposes synthetic demo in test environment", () => {
     expect(isVisionSyntheticDemoAvailable()).toBe(true);
+  });
+});
+
+describe("pilot allowlist", () => {
+  it("only references known feature or hazard classes", () => {
+    const known = new Set<string>([
+      ...VISION_FEATURE_CLASSES,
+      ...VISION_HAZARD_CLASSES,
+    ]);
+    for (const entry of VISION_PILOT_ALLOWLIST) {
+      expect(known.has(entry)).toBe(true);
+    }
   });
 });
 

@@ -18,7 +18,7 @@ afterEach(() => {
 
 describe("Access Lens synthetic demo accessibility smoke", () => {
   it("shows synthetic banner and list-first candidates", () => {
-    render(<AccessLensSyntheticDemo />);
+    render(<AccessLensSyntheticDemo forceShow />);
 
     expect(
       screen.getAllByText(VISION_ACCESS_SYNTHETIC_BANNER).length,
@@ -51,7 +51,7 @@ describe("Access Lens synthetic demo accessibility smoke", () => {
   });
 
   it("marks decorative preview with accessible summary label", () => {
-    render(<AccessLensSyntheticDemo />);
+    render(<AccessLensSyntheticDemo forceShow />);
     expect(
       screen.getByRole("img", {
         name: /Synthetic phone preview for Harbour Civic Centre/i,

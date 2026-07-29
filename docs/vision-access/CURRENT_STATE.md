@@ -1,7 +1,7 @@
 # VisionAccessOS — Current state
 
-**Inspected / authored:** 2026-07-16  
-**Branch basis:** `cursor/vision-access-contracts-synthetic-c71c` against `main`
+**Inspected / authored:** 2026-07-29  
+**Branch basis:** `cursor/vision-access-contracts-synthetic-c71c` against current `main`
 
 ## On main before Wave 1
 
@@ -31,7 +31,9 @@
 | Candidate state machine | Unit tested | Forbidden `detected → verified` |
 | Feature flags | All default **false** | Permanent offs for face ID, auto-publish, etc. |
 | Audit event names | Constants only | No production emitters with media |
-| Synthetic Harbour Civic scene | Demo UI | List + decorative overlay |
+| Synthetic Harbour Civic scene | `/access-lens/demo` always; overview gated | List + decorative overlay |
+| Read-only config API | Flags / `MAPABLE_VISION_DEMO` | `GET /api/vision-access/configuration` — 404 when gated off |
+| Permanent-off assertion | API entry | `assertDangerousVisionFlagsOff()` → 503 if violated |
 | Docs | `docs/vision-access/` | README, CURRENT_STATE, ARCHITECTURE |
 
 ## Explicit non-claims

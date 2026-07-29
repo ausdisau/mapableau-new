@@ -33,7 +33,8 @@ export default function AccessLensDemoPage() {
         </div>
 
         <div className="mt-12">
-          <AccessLensSyntheticDemo />
+          {/* Wave 1 acceptance surface: fixture walkthrough without camera. */}
+          <AccessLensSyntheticDemo forceShow />
         </div>
       </div>
     </div>

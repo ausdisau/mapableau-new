@@ -51,6 +51,7 @@ export default function AccessLensPage() {
           </ol>
         </section>
 
+        {/* Embedded demo respects MAPABLE_VISION_* / MAPABLE_VISION_DEMO gates. */}
         <AccessLensSyntheticDemo />
 
         <section

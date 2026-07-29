@@ -130,6 +130,7 @@ export type VisionHazardClass = (typeof VISION_HAZARD_CLASSES)[number];
 /** Wave 1 / pilot allowlist — narrow classes only. */
 export const VISION_PILOT_ALLOWLIST = [
   "entrance_candidate",
+  "entrance_obstruction",
   "hinged_door",
   "sliding_door",
   "automatic_door",
@@ -138,7 +139,6 @@ export const VISION_PILOT_ALLOWLIST = [
   "stairs",
   "step",
   "stair",
-  "path_occlusion",
   "lift_notice",
   "lift_unavailable",
   "illegal_obstruction_candidate",

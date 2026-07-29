@@ -1,5 +1,6 @@
 import React from "react";
 
+import { AccessLensDemoUnavailable } from "@/components/access-lens/AccessLensDemoUnavailable";
 import { AccessLensDisclaimer } from "@/components/access-lens/AccessLensDisclaimer";
 import { VisionCandidateList } from "@/components/access-lens/VisionCandidateList";
 import { VisionCandidateOverlay } from "@/components/access-lens/VisionCandidateOverlay";
@@ -14,18 +15,26 @@ import {
   VISION_MEASUREMENT_CLASS_LABELS,
   getDefaultSyntheticScene,
   getSortedCandidates,
+  isVisionSyntheticDemoAvailable,
   type SyntheticScene,
 } from "@/lib/vision-access";
 
 type AccessLensSyntheticDemoProps = {
   scene?: SyntheticScene;
   id?: string;
+  /** When true, skip flag gate (unit/a11y tests that pass an explicit scene). */
+  forceShow?: boolean;
 };
 
 export function AccessLensSyntheticDemo({
   scene = getDefaultSyntheticScene(),
   id = "access-lens-demo",
+  forceShow = false,
 }: AccessLensSyntheticDemoProps) {
+  if (!forceShow && !isVisionSyntheticDemoAvailable()) {
+    return <AccessLensDemoUnavailable />;
+  }
+
   const headingId = `${id}-heading`;
   const candidates = getSortedCandidates(scene.candidates);
   const geometry = scene.geometryEstimates[0];
