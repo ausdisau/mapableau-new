@@ -6,12 +6,11 @@ import {
 import {
   assertProviderCanManageBooking,
   getBookingForUser,
-  providerAcceptBookingRequest,
+  startBooking,
 } from "@/lib/bookings/booking-service";
-import { providerResponseSchema } from "@/lib/validation/booking-schemas";
 
 export async function POST(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ bookingId: string }> }
 ) {
   const { user, error } = await requireBookingSession();
@@ -20,20 +19,8 @@ export async function POST(
   const { bookingId } = await params;
 
   try {
-    const parsed = providerResponseSchema.parse(await req.json());
-    const bookingRecord = await assertProviderCanManageBooking(
-      user!,
-      bookingId,
-      parsed.organisationId
-    );
-
-    const orgId = parsed.organisationId ?? bookingRecord.assignedOrganisationId!;
-    const booking = await providerAcceptBookingRequest(
-      bookingId,
-      orgId,
-      user!.id,
-      parsed.note
-    );
+    await assertProviderCanManageBooking(user!, bookingId);
+    const booking = await startBooking(bookingId, user!.id);
     const refreshed = await getBookingForUser(user!, booking.id);
     return bookingOk({ booking: refreshed });
   } catch (e) {
