@@ -1,13 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import {
+  type WorkerMarketplaceCandidate,
+  type WorkerSearchFilters,
+} from "@/lib/search/worker-search-types";
 
-export type ProviderSearchFilters = {
-  serviceRegion?: string;
-  serviceType?: string;
-  wheelchairAccessible?: boolean;
-  verificationStatus?: string;
-  language?: string;
-  organisationType?: string;
-};
+export type ProviderSearchFilters = WorkerSearchFilters;
 
 export async function searchCareProviders(filters: ProviderSearchFilters) {
   const orgs = await prisma.organisation.findMany({
@@ -77,10 +74,26 @@ export async function searchWorkersPublic(filters: ProviderSearchFilters) {
   return prisma.workerProfile.findMany({
     where: {
       active: true,
+      ...(filters.query
+        ? {
+            OR: [
+              { displayName: { contains: filters.query, mode: "insensitive" } },
+              {
+                profileSummary: {
+                  contains: filters.query,
+                  mode: "insensitive",
+                },
+              },
+            ],
+          }
+        : {}),
       ...(filters.serviceType
         ? { serviceTypes: { has: filters.serviceType } }
         : {}),
       ...(filters.language ? { languages: { has: filters.language } } : {}),
+      ...(filters.serviceRegion
+        ? { serviceRegions: { has: filters.serviceRegion } }
+        : {}),
     },
     select: {
       id: true,
@@ -93,4 +106,67 @@ export async function searchWorkersPublic(filters: ProviderSearchFilters) {
     },
     take: 50,
   });
+}
+
+export async function searchProvidersPublic(filters: ProviderSearchFilters) {
+  return prisma.organisation.findMany({
+    where: {
+      status: "active",
+      organisationType: {
+        in: ["care_provider", "support_coordination"],
+      },
+      ...(filters.query
+        ? { name: { contains: filters.query, mode: "insensitive" } }
+        : {}),
+      ...(filters.verificationStatus
+        ? { verificationStatus: filters.verificationStatus as never }
+        : {}),
+      ...(filters.serviceRegion
+        ? { serviceRegions: { has: filters.serviceRegion } }
+        : {}),
+    },
+    select: {
+      id: true,
+      name: true,
+      organisationType: true,
+      serviceRegions: true,
+      verificationStatus: true,
+      notes: true,
+    },
+    take: 50,
+    orderBy: { name: "asc" },
+  });
+}
+
+export async function searchWorkerMarketplaceCandidates(
+  filters: ProviderSearchFilters,
+): Promise<WorkerMarketplaceCandidate[]> {
+  const [workers, providers] = await Promise.all([
+    searchWorkersPublic(filters),
+    searchProvidersPublic(filters),
+  ]);
+
+  const workerCandidates: WorkerMarketplaceCandidate[] = workers.map((worker) => ({
+    id: worker.id,
+    kind: "worker",
+    displayName: worker.displayName,
+    serviceTypes: worker.serviceTypes,
+    serviceRegions: worker.serviceRegions,
+    languages: worker.languages,
+    verificationStatus: worker.verificationStatus,
+    summary: worker.profileSummary,
+  }));
+
+  const providerCandidates: WorkerMarketplaceCandidate[] = providers.map((provider) => ({
+    id: provider.id,
+    kind: "provider",
+    displayName: provider.name,
+    serviceTypes: provider.organisationType ? [provider.organisationType] : [],
+    serviceRegions: provider.serviceRegions,
+    languages: [],
+    verificationStatus: provider.verificationStatus,
+    summary: provider.notes,
+  }));
+
+  return [...workerCandidates, ...providerCandidates];
 }
