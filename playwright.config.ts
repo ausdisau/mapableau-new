@@ -20,6 +20,14 @@ const projects: Project[] = [
     name: "informational-boundary",
     testMatch: /informational-boundary\.spec\.ts/,
   },
+  {
+    name: "accessibility-panel",
+    testMatch: /accessibility-panel\.spec\.ts/,
+  },
+  {
+    name: "care-request-wizard",
+    testMatch: /care-request-wizard\.spec\.ts/,
+  },
 ];
 
 if (!skipAuth) {
