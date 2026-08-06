@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KeyboardEvent, useCallback } from "react";
 
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
 import type { TransportTripApiResponse } from "@/types/transport";
@@ -10,8 +11,12 @@ function formatAddress(label: string, suburb: string | null, address?: string) {
 
 export function TransportTripListItem({
   response,
+  selected,
+  onSelect,
 }: {
   response: TransportTripApiResponse;
+  selected?: boolean;
+  onSelect?: () => void;
 }) {
   const { trip } = response;
   const when = new Date(trip.scheduledStart).toLocaleString("en-AU", {
@@ -19,10 +24,27 @@ export function TransportTripListItem({
     timeStyle: "short",
   });
 
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onSelect?.();
+      }
+    },
+    [onSelect]
+  );
+
   return (
     <Link
       href={`/dashboard/transport/${trip.id}`}
-      className="block rounded-xl border border-border bg-card p-4 transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      data-trip-button={trip.id}
+      role="option"
+      aria-selected={selected ? "true" : "false"}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className={`block rounded-xl border border-border bg-card p-4 transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        selected ? "border-primary bg-primary/5" : ""
+      }`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <TransportTripStatusBadge status={trip.status} />
