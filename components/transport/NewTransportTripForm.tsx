@@ -11,6 +11,7 @@ import {
 import { MobilityRequirementsForm } from "@/components/transport/MobilityRequirementsForm";
 import { Button } from "@/components/ui/button";
 import type { MobilityRequirements } from "@/lib/transport/mobility-schema";
+import { useAccessibilityAnnouncement, useMotionPreferencesSafe } from "@/lib/accessibility/use-accessibility";
 
 export function NewTransportTripForm() {
   const router = useRouter();
@@ -19,6 +20,19 @@ export function NewTransportTripForm() {
   const [prefillFromProfile, setPrefillFromProfile] = useState(true);
   const [mobility, setMobility] = useState<MobilityRequirements>({});
   const [profileLoaded, setProfileLoaded] = useState(false);
+
+  const { announcerRef, announce } = useAccessibilityAnnouncement();
+  const motion = useMotionPreferencesSafe();
+
+  const msFromDuration = (d: string) => {
+    try {
+      const seconds = parseFloat(d.replace("s", ""));
+      if (Number.isFinite(seconds)) return Math.round(seconds * 1000);
+    } catch (e) {
+      /* ignore */
+    }
+    return 300;
+  };
 
   useEffect(() => {
     if (!prefillFromProfile) return;
@@ -70,21 +84,22 @@ export function NewTransportTripForm() {
         setLoading(false);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          setError(
+          const message =
             typeof data.error === "string"
               ? data.error
-              : "Could not create the trip. Please check your details and try again."
-          );
+              : "Could not create the trip. Please check your details and try again.";
+          announce(message, { priority: "assertive" });
+          setError(message);
           return;
         }
         const tripId = data.trip?.id;
-        if (tripId) {
-          router.push(`/dashboard/transport/${tripId}`);
-        } else {
-          router.push("/dashboard/transport");
-        }
+        const redirectUrl = tripId ? `/dashboard/transport/${tripId}` : "/dashboard/transport";
+        announce("Trip requested. Redirecting to trip details.", { priority: "polite" });
+        const delay = motion && motion.transitionDuration ? msFromDuration(motion.transitionDuration) : 300;
+        setTimeout(() => router.push(redirectUrl), delay > 0 ? delay : 100);
       }}
     >
+      <div ref={announcerRef} className="sr-only" aria-live="polite" aria-atomic="true" />
       {error ? (
         <p role="alert" className="text-sm text-destructive">
           {error}
