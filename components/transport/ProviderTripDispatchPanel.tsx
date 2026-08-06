@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useAccessibilityAnnouncement, useMotionPreferencesSafe } from "@/lib/accessibility/use-accessibility";
 
 import { formInputClass } from "@/components/forms/AccessibleFormField";
 import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
@@ -41,6 +42,34 @@ export function ProviderTripDispatchPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { announcerRef, announce } = useAccessibilityAnnouncement();
+  const motion = useMotionPreferencesSafe();
+
+  const focusTripButton = (id?: string | null) => {
+    if (!id) return;
+    const el = document.querySelector(`[data-trip-button="${id}"]`) as HTMLElement | null;
+    el?.focus();
+  };
+
+  const handleListKeyDown = (e: any) => {
+    const key = e.key;
+    if (!trips || trips.length === 0) return;
+    const idx = trips.findIndex((t) => t.trip.id === selectedId);
+    let next = idx;
+    if (key === "ArrowDown") next = Math.min(trips.length - 1, idx + 1);
+    else if (key === "ArrowUp") next = Math.max(0, idx - 1);
+    else if (key === "Home") next = 0;
+    else if (key === "End") next = trips.length - 1;
+    else return;
+
+    e.preventDefault();
+    const nextId = trips[next].trip.id;
+    setSelectedId(nextId);
+    // small timeout to allow re-render before focusing
+    const delay = motion && motion.transitionDuration ? Math.round(parseFloat(motion.transitionDuration.replace("s", "")) * 1000) : 150;
+    setTimeout(() => focusTripButton(nextId), delay);
+  };
+
   const selected = trips.find((t) => t.trip.id === selectedId);
 
   const loadSuggestions = useCallback(async (tripId: string) => {
@@ -78,19 +107,24 @@ export function ProviderTripDispatchPanel({
     setLoading(false);
     if (!res.ok) {
       const reasons = data.details?.reasons;
-      setError(
+      const message =
         Array.isArray(reasons)
           ? reasons.join(". ")
           : typeof data.error === "string"
             ? data.error
-            : "Assignment failed"
-      );
+            : "Assignment failed";
+      announce(message, { priority: "assertive" });
+      setError(message);
       return;
     }
     if (data.trip?.id) {
       setTrips((prev) =>
         prev.map((t) => (t.trip.id === selectedId ? (data as TransportTripApiResponse) : t))
       );
+      // Announce success and return focus
+      announce("Driver and vehicle assigned", { priority: "polite" });
+      const delay = motion && motion.transitionDuration ? Math.round(parseFloat(motion.transitionDuration.replace("s", "")) * 1000) : 150;
+      setTimeout(() => focusTripButton(selectedId), delay);
     }
   }
 
@@ -113,18 +147,26 @@ export function ProviderTripDispatchPanel({
     const listData = await listRes.json().catch(() => ({}));
     if (listRes.ok && Array.isArray(listData.trips)) {
       setTrips(listData.trips);
+      announce("Trip accepted", { priority: "polite" });
+      // focus the currently selected trip after a short motion-aware delay
+      const delay = motion && motion.transitionDuration ? Math.round(parseFloat(motion.transitionDuration.replace("s", "")) * 1000) : 150;
+      setTimeout(() => focusTripButton(selectedId), delay);
     }
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
+      <div ref={announcerRef} className="sr-only" aria-live="polite" aria-atomic="true" />
       <section className="space-y-2">
         <h2 className="font-semibold">Trips</h2>
-        <ul className="space-y-2">
+        <ul className="space-y-2" onKeyDown={handleListKeyDown} role="listbox" aria-label="Trips list">
           {trips.map((item) => (
             <li key={item.trip.id}>
               <button
                 type="button"
+                data-trip-button={item.trip.id}
+                aria-pressed={selectedId === item.trip.id}
+                tabIndex={0}
                 className={`w-full rounded-lg border p-3 text-left text-sm ${
                   selectedId === item.trip.id
                     ? "border-primary bg-primary/5"
