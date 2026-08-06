@@ -25,6 +25,12 @@ const projects: Project[] = [
     testMatch: /accessibility-panel\.spec\.ts/,
   },
   {
+    name: "dispatch",
+    testMatch: /dispatch-panel\.spec\.ts/,
+    dependencies: ["setup"],
+    use: { storageState: "tests/a11y/.auth/provider.json" },
+  },
+  {
     name: "care-request-wizard",
     testMatch: /care-request-wizard\.spec\.ts/,
   },
