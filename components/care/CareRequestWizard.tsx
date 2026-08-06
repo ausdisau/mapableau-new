@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useAccessibilityAnnouncement } from "@/lib/accessibility";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { CarePlanDraftReview } from "@/components/care/CarePlanDraftReview";
@@ -71,6 +72,7 @@ export function CareRequestWizard({
 }) {
   const router = useRouter();
   const sessionId = useMemo(() => newSessionId(), []);
+  const { announcerRef, announce } = useAccessibilityAnnouncement();
 
   const [step, setStep] = useState<"describe" | "review">("describe");
   const [requestType, setRequestType] =
@@ -109,12 +111,16 @@ export function CareRequestWizard({
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
     if (trimmedTitle.length < 3) {
-      setError("Please add a short title (at least 3 characters).");
+      const msg = "Please add a short title (at least 3 characters).";
+      setError(msg);
+      announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("care-title"));
       return;
     }
     if (trimmedDescription.length < 1) {
-      setError("Please describe what support you need.");
+      const msg = "Please describe what support you need.";
+      setError(msg);
+      announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("care-description"));
       return;
     }
@@ -123,28 +129,32 @@ export function CareRequestWizard({
       .map((t) => ({ ...t, name: t.name.trim() }))
       .filter((t) => t.name.length > 0);
     if (taskRows.length === 0) {
-      setError("Add at least one support task, or describe tasks in your details.");
+      const msg = "Add at least one support task, or describe tasks in your details.";
+      setError(msg);
+      announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("task-name-0"));
       return;
     }
 
     if (!consentIds.includes("care_draft_processing")) {
-      setConsentError(
-        "Confirm MapAble may process this description to prepare your draft.",
-      );
+      const msg = "Confirm MapAble may process this description to prepare your draft.";
+      setConsentError(msg);
+      announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("care-consent-legend"));
       return;
     }
     if (!consentIds.includes("no_sensitive_upload")) {
-      setConsentError(
-        "Confirm you have not pasted NDIS plan or clinical records into this form.",
-      );
+      const msg = "Confirm you have not pasted NDIS plan or clinical records into this form.";
+      setConsentError(msg);
+      announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("care-consent-legend"));
       return;
     }
 
     if (shareAccessibility && accessSummary.trim().length < 3) {
-      setError("Add a brief access needs summary, or untick sharing.");
+      const msg = "Add a brief access needs summary, or untick sharing.";
+      setError(msg);
+      announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("care-access"));
       return;
     }
@@ -182,16 +192,21 @@ export function CareRequestWizard({
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Could not prepare your care plan draft.");
+        const msg = data.error ?? "Could not prepare your care plan draft.";
+        setError(msg);
+        announce(msg, { priority: "assertive" });
         setLoading(false);
         return;
       }
 
       setTransformOutput(data as CareSupportTransformOutput);
+      announce("Draft prepared. Review your draft before confirming.", { priority: "polite" });
       setStep("review");
       setLoading(false);
     } catch {
-      setError("Something went wrong. Please try again.");
+      const msg = "Something went wrong. Please try again.";
+      setError(msg);
+      announce(msg, { priority: "assertive" });
       setLoading(false);
     }
   }
@@ -226,7 +241,9 @@ export function CareRequestWizard({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Could not save your request.");
+        const msg = data.error ?? "Could not save your request.";
+        setError(msg);
+        announce(msg, { priority: "assertive" });
         setConfirming(false);
         return;
       }
@@ -248,7 +265,9 @@ export function CareRequestWizard({
       router.push(redirectTo);
       router.refresh();
     } catch {
-      setError("Could not save your request. Please try again.");
+      const msg = "Could not save your request. Please try again.";
+      setError(msg);
+      announce(msg, { priority: "assertive" });
       setConfirming(false);
     }
   }
@@ -270,6 +289,7 @@ export function CareRequestWizard({
 
   return (
     <form className="space-y-6" onSubmit={(e) => void handleContinueToReview(e)}>
+      <div ref={announcerRef} className="sr-only" />
       {preferredProviderName ? (
         <AuthAlert variant="info">
           You are requesting care with a preference for{" "}
