@@ -43,6 +43,7 @@ describe("AI platform capability registry", () => {
         "mission.semantic_retrieval",
         "edge.visit_pack_summary",
         "edge.what_changed_explain",
+        "navigator.provider_search_pilot",
       ])
     );
   });

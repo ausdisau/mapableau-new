@@ -85,7 +85,7 @@ against `main` @ `dd5ff9fc`. Extends existing Trust Fabric and AURA harness; doe
 | Field        | Value                                                                                                                                 |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Domain       | AI Autonomy Assurance (TrustX ARC sidecar, AURA v2 shadow, Dignity of Risk, Decision Passport projection, A2H hardening, evidence choreography) |
-| Paths        | `lib/ai/platform/capabilities/**` (ARC sidecar), `lib/aura-harness/**`, `lib/trust/fabric/**`, `lib/act/handoff/**`, `intelligence/actions/**` (Governed Envelope v2 attachment), related `docs/ai-platform/**` / `docs/productisation/**` / tests |
+| Paths        | `lib/ai/platform/capabilities/**` (ARC sidecar), `lib/ai/platform/decision-passport/**`, `lib/aura-harness/**`, `lib/trust/fabric/**`, `lib/act/handoff/**`, `intelligence/actions/**` (Governed Envelope v2 attachment), `lib/navigator/pilot/**`, `lib/provider/finder/matching/**`, `app/api/navigator/**`, related `docs/ai-platform/**` / `docs/productisation/**` / tests |
 | Schema       | Additive only under those domains; no second consent/authority SoT tables disguised as wallets or delegation ledgers                 |
 | Flags        | All new/changed capability flags remain default **false** (`=== "true"` to enable); Trust Fabric permanent denials stay hard-coded off |
 | Public claim | `internal_alpha` / `not_claimable` — no public production claims                                                                      |
