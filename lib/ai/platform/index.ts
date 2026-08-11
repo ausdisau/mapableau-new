@@ -6,6 +6,14 @@ export {
   listModelBackedCapabilities,
   assertHonestPublicLabel,
 } from "./capabilities/registry";
+export {
+  assertCapabilityInvocation,
+  assertToolAllowlisted,
+} from "./capabilities/enforcement";
+export type {
+  CapabilityInvocationResult,
+  CapabilityInvocationDenialReason,
+} from "./capabilities/enforcement";
 export type { AiCapabilityRegistration } from "./capabilities/types";
 export {
   resolveModelForCapability,

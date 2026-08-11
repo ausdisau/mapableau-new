@@ -1,0 +1,43 @@
+{
+  "capabilityKey": "navigator.provider_search_pilot",
+  "version": "1.0.0",
+  "framework": "TrustX-ARC-sidecar",
+  "owner": "ai-platform",
+  "reviewedAt": "2026-08-11",
+  "reviewDue": "2026-12-31",
+  "tier": "L3",
+  "grantsRuntimeAuthority": false,
+  "categories": [
+    "participant_facing_search",
+    "draft_only_actions",
+    "human_escalation"
+  ],
+  "criticalDimensions": [
+    "consent_and_delegation",
+    "hard_constraint_integrity",
+    "cross_tenant_isolation",
+    "no_clinical_or_eligibility_judgment"
+  ],
+  "permanentProhibitions": [
+    "book_or_cancel_service",
+    "approve_or_pay",
+    "change_participant_records",
+    "determine_ndis_eligibility_or_funding",
+    "clinical_recommendation",
+    "authorise_restrictive_practice",
+    "allege_fraud_abuse_or_misconduct",
+    "submit_incident_or_regulatory_report",
+    "infer_capacity"
+  ],
+  "dignityOfRisk": {
+    "kernel": "checklist_record_v1",
+    "leastRestrictiveAlternativeRequired": true,
+    "neverScoreParticipantDangerousnessOrCapacity": true
+  },
+  "releaseCriteria": [
+    "flags_default_false",
+    "security_and_a11y_suites_green",
+    "co_design_gate_for_participant_facing_enablement"
+  ],
+  "rollback": "Set MAPABLE_NAVIGATOR_PROVIDER_SEARCH_PILOT=false; engage capability kill switch navigator.provider_search_pilot; optional global MAPABLE_AI_GLOBAL_KILL_SWITCH=true"
+}

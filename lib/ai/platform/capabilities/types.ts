@@ -9,6 +9,8 @@ export type CapabilityBackend = "deterministic" | "model_backed" | "hybrid";
 
 export type AiCapabilityRegistration = {
   key: string;
+  /** Semver-style capability version for audit and ARC sidecars. */
+  version?: string;
   publicName: string;
   internalOwner: string;
   responsibleDomain: string;
@@ -26,7 +28,12 @@ export type AiCapabilityRegistration = {
   outputSchemaRef: string;
   permittedDataClasses: DataClass[];
   prohibitedDataClasses: DataClass[];
+  /** Purpose-specific consent scopes that must be current before invocation. */
+  requiredConsentScopes?: string[];
+  /** Maximum autonomy / authority ceiling for this capability. */
   authorityCeiling: AuthorityCeiling;
+  /** Approval envelope lifetime in minutes when participant/human approval is required. */
+  approvalExpiryMinutes?: number;
   humanReviewRequired: boolean;
   participantApprovalRequired: boolean;
   fallbackBehaviour: string;
@@ -37,4 +44,6 @@ export type AiCapabilityRegistration = {
   algorithmRegisterRef: string | null;
   reviewDueDate: string | null;
   killSwitchKey: string;
+  /** Required audit action prefixes emitted for consequential uses. */
+  auditEventRequirements?: string[];
 };

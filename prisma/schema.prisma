@@ -12795,21 +12795,126 @@ model ComplianceEvidence {
 }
 
 model ConsentReceipt {
-  id              String   @id @default(cuid())
-  consentRecordId String?
-  participantId   String
-  participant     User     @relation("ConsentReceiptParticipant", fields: [participantId], references: [id], onDelete: Cascade)
-  actorUserId     String
-  actor           User     @relation("ConsentReceiptActor", fields: [actorUserId], references: [id], onDelete: Cascade)
-  scope           String
-  purpose         String
-  recipientType   String?
-  recipientId     String?
-  action          String
-  createdAt       DateTime @default(now())
+  id                String    @id @default(cuid())
+  consentRecordId   String?
+  participantId     String
+  participant       User      @relation("ConsentReceiptParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  actorUserId       String
+  actor             User      @relation("ConsentReceiptActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  scope             String
+  purpose           String
+  recipientType     String?
+  recipientId       String?
+  action            String
+  /// Additive purpose-consent fields (Navigator / Trust Fabric).
+  tenantId          String?
+  permittedFields   String[]  @default([])
+  permittedActions  String[]  @default([])
+  supporterInvolved Boolean   @default(false)
+  accessibleFormat  String?
+  policyVersion     String?
+  consentTextVersion String?
+  issuedAt          DateTime?
+  expiresAt         DateTime?
+  withdrawnAt       DateTime?
+  supersededById    String?
+  auditEventId      String?
+  createdAt         DateTime  @default(now())
 
   @@index([participantId, createdAt])
+  @@index([participantId, purpose, action])
+  @@index([expiresAt])
   @@map("consent_receipts")
+}
+
+/// Governed action envelope for consequential Navigator proposals (draft-only in pilot).
+model GovernedActionEnvelope {
+  id                   String    @id @default(cuid())
+  tenantId             String?
+  participantId        String
+  initiatingUserId     String
+  capabilityKey        String
+  actionType           String
+  payloadJson          Json
+  payloadHash          String
+  evidenceRefs         String[]  @default([])
+  modelVersion         String?
+  promptVersion        String?
+  toolVersion          String?
+  consentReceiptId     String
+  requiredApproverRole String
+  issuedAt             DateTime  @default(now())
+  expiresAt            DateTime
+  nonce                String
+  status               String    @default("proposed")
+  singleUseConsumed    Boolean   @default(false)
+  decisionReason       String?
+  approvedByUserId     String?
+  approvedAt           DateTime?
+  executedAt           DateTime?
+  executionResultJson  Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([participantId, status])
+  @@index([tenantId, status])
+  @@index([expiresAt])
+  @@index([nonce])
+  @@map("governed_action_envelopes")
+}
+
+/// Participant-scoped governed memory (approved categories only).
+model NavigatorGovernedMemory {
+  id               String    @id @default(cuid())
+  tenantId         String
+  participantId    String
+  category         String
+  purpose          String
+  contentJson      Json
+  provenance       String
+  confidence       String
+  createdByUserId  String
+  consentReceiptId String
+  createdAt        DateTime  @default(now())
+  reviewedAt       DateTime?
+  expiresAt        DateTime
+  deletedAt        DateTime?
+  updatedAt        DateTime  @updatedAt
+
+  @@index([tenantId, participantId, category])
+  @@index([expiresAt])
+  @@map("navigator_governed_memory")
+}
+
+/// Tenant-safe Navigator human escalation cases.
+model NavigatorEscalationCase {
+  id                           String    @id @default(cuid())
+  tenantId                     String
+  participantId                String
+  reason                       String
+  urgency                      String
+  preferredContactMethod       String
+  confidentialityRestrictions  String[]  @default([])
+  requiredReviewerRole         String
+  summary                      String
+  conflictCheckJson            Json      @default("{}")
+  assignmentHistoryJson        Json      @default("[]")
+  responseDeadlineAt           DateTime
+  participantVisibleStatus     String    @default("awaiting_human_review")
+  status                       String    @default("open")
+  evidenceRefs                 String[]  @default([])
+  passportId                   String?
+  envelopeId                   String?
+  resolutionSummary            String?
+  createdByUserId              String
+  resolvedAt                   DateTime?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
+
+  @@index([tenantId, status])
+  @@index([participantId, status])
+  @@index([responseDeadlineAt])
+  @@map("navigator_escalation_cases")
 }
 
 model CoordinationCase {

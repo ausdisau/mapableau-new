@@ -14,6 +14,7 @@ const SHARED_INTERPRETER_TASKS = [
   "agent.disability_services",
   "agent.booking_services",
   "understanding.contextual",
+  "navigator.provider_search_pilot",
 ];
 
 const MODELS: ModelRegistration[] = [
