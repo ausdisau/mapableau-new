@@ -129,17 +129,29 @@ export const matchStatusSchema = z.enum([
 
 export type MatchStatus = z.infer<typeof matchStatusSchema>;
 
+export const eliminationSummarySchema = z.record(
+  eliminationCategorySchema,
+  z.number().int().nonnegative(),
+);
+
+export type EliminationSummary = Partial<
+  Record<EliminationCategory, number>
+>;
+
 export const matchResultSchema = z
   .object({
     status: matchStatusSchema,
     /** Counts by elimination category only — no sensitive participant detail. */
-    eliminatedByConstraint: z.record(eliminationCategorySchema, z.number().int().nonnegative()),
+    eliminatedByConstraint: eliminationSummarySchema,
     shortlist: z.array(shortlistEntrySchema).max(20),
     weightsUsed: rankingWeightsSchema,
     limitations: z.array(z.string().max(500)).max(30),
   })
   .strict();
 
-export type MatchResult = z.infer<typeof matchResultSchema>;
-
-export type EliminationSummary = Partial<Record<EliminationCategory, number>>;
+export type MatchResult = Omit<
+  z.infer<typeof matchResultSchema>,
+  "eliminatedByConstraint"
+> & {
+  eliminatedByConstraint: EliminationSummary;
+};

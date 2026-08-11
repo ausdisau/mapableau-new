@@ -1,5 +1,6 @@
 import {
   DEFAULT_RANKING_WEIGHTS,
+  type EliminationSummary,
   type HardConstraints,
   type MatchResult,
   type ProviderCandidate,
@@ -260,7 +261,7 @@ export function preferenceRank(
 
 export function buildMatchResult(input: {
   eligible: ProviderCandidate[];
-  eliminationSummary: MatchResult["eliminatedByConstraint"];
+  eliminationSummary: EliminationSummary;
   constraints?: HardConstraints;
   weights?: RankingWeights;
   shortlistLimit?: number;

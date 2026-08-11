@@ -30,11 +30,15 @@ Positioning: *An evidence-aware, participant-controlled copilot for complete dis
 | agent.aura_harness | deterministic | experimental | MAPABLE_AURA_HARNESS off |
 | agent.aura_recognise | deterministic | experimental | rides AURA harness flag |
 | understanding.contextual | model_backed | experimental | MAPABLE_UNDERSTANDING off |
-| navigator.provider_search.interpret | hybrid | experimental | MAPABLE_NAVIGATOR_PILOT off |
+| navigator.provider_search.interpret | hybrid | experimental | MAPABLE_NAVIGATOR_PILOT_ENABLED off |
 | navigator.provider_search.reply | model_backed | experimental | MAPABLE_NAVIGATOR_PILOT_MODEL_ASSISTED off |
-| navigator.provider_search.match | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT off |
+| navigator.provider_search.match | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENABLED (+ MATCHING) off |
 | navigator.provider_search.draft_service_request | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENVELOPES off |
-| navigator.provider_search.escalate | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT off |
+| navigator.provider_search.escalate | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENABLED off |
+
+Navigator pilot surfaces (Decision Passport, governed memory, matching) also require
+`MAPABLE_NAVIGATOR_PILOT_PASSPORT` / `_MEMORY` / `_MATCHING` (all default false).
+See [NAVIGATOR_ASSURANCE.md](./NAVIGATOR_ASSURANCE.md).
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

@@ -342,28 +342,37 @@ Use synthetic fixtures only.
 
 ---
 
-## Phase 1 status (implemented on this branch)
+## Phase 0 review decision (2026-08-11)
 
-Phase 1 enforcement foundation landed under W-AA-1 (flags default false):
+| Field | Decision |
+|-------|----------|
+| Inspection tip | `20bdebea` (`main`) |
+| Overlap | Draft PR [#472](https://github.com/ausdisau/mapableau-new/pull/472) already contained this Phase 0 artefact + Phase 1 |
+| Choice | **Continue #472 work** on agent branch `cursor/navigator-governed-pilot-fedd` (preserves Phase 1; does **not** fork a parallel Navigator stack) |
+| Waiver | W-AA-1; all Navigator flags stay default **false** |
+| Verdict | **NARROW_SCOPE** |
 
-- Navigator + `agent.aura_*` capability registration and ARC sidecar
-- Runtime gates (`lib/ai/navigator/gates.ts`)
-- Purpose consent verification (`lib/ai/navigator/consent-gate.ts`)
-- Draft-only Governed Action Envelope v2 + migration
-- A2H `tenantId` / `participantId` hardening
-- Prohibition + consent + envelope + A2H tests
+## Implementation status on this branch
 
-Next safe increment: Phase 2 (Decision Passport projection, correction/challenge, governed memory).
+| Phase | Status |
+|-------|--------|
+| 1 Enforcement foundation | Complete — gates, consent, envelopes, A2H, prohibitions |
+| 2 Participant control | Complete — Decision Passport, memory, opt-out, escalation UI/API |
+| 3 Bounded Navigator | Complete — interpret review, hard constraints, ranking, orchestrator |
+| 4 Assurance | Complete — see [`NAVIGATOR_ASSURANCE.md`](./NAVIGATOR_ASSURANCE.md); production flags remain off |
 
 ---
 
 ## Related documents
 
+- [`NAVIGATOR_ASSURANCE.md`](./NAVIGATOR_ASSURANCE.md)
 - [`AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md`](./AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md)
 - [`AUTONOMY_ASSURANCE_DEFINITION_OF_DONE.md`](./AUTONOMY_ASSURANCE_DEFINITION_OF_DONE.md)
 - [`CURRENT_STATE.md`](./CURRENT_STATE.md)
 - [`CAPABILITY_REGISTRY.md`](./CAPABILITY_REGISTRY.md)
 - [`THREAT_MODEL.md`](./THREAT_MODEL.md)
+- [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md)
+- [`ROLLBACK.md`](./ROLLBACK.md)
 - [`../remediation/FEATURE_FREEZE.md`](../remediation/FEATURE_FREEZE.md)
 - [`../careos/CONSENT_AND_AUTHORITY.md`](../careos/CONSENT_AND_AUTHORITY.md)
 - [`../search/guided-search-dialogue.md`](../search/guided-search-dialogue.md)

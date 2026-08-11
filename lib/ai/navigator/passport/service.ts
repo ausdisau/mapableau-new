@@ -79,20 +79,18 @@ function parseShortlist(value: Prisma.JsonValue): ShortlistItem[] {
 function parseSources(
   value: Prisma.JsonValue,
 ): Array<{ id?: string; label: string; kind?: string }> {
-  return asArray(value)
-    .map((item) => {
-      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
-      const row = item as Record<string, unknown>;
-      if (typeof row.label !== "string" || !row.label.trim()) return null;
-      return {
-        id: typeof row.id === "string" ? row.id : undefined,
-        label: row.label,
-        kind: typeof row.kind === "string" ? row.kind : undefined,
-      };
-    })
-    .filter((item): item is { id?: string; label: string; kind?: string } =>
-      Boolean(item),
-    );
+  const sources: Array<{ id?: string; label: string; kind?: string }> = [];
+  for (const item of asArray(value)) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const row = item as Record<string, unknown>;
+    if (typeof row.label !== "string" || !row.label.trim()) continue;
+    sources.push({
+      id: typeof row.id === "string" ? row.id : undefined,
+      label: row.label,
+      kind: typeof row.kind === "string" ? row.kind : undefined,
+    });
+  }
+  return sources;
 }
 
 /** Project a participant-facing Decision Passport view (no chain-of-thought). */
