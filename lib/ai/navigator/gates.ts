@@ -19,6 +19,15 @@ export const NAVIGATOR_AUDIT = {
   envelopeReplayBlocked: "navigator.envelope.replay_blocked",
   prohibitionBlocked: "navigator.prohibition.blocked",
   escalationCreated: "navigator.escalation.created",
+  passportCreated: "navigator.passport.created",
+  passportCorrected: "navigator.passport.corrected",
+  passportChallenged: "navigator.passport.challenged",
+  passportSuggestionRejected: "navigator.passport.suggestion_rejected",
+  passportAiOptOut: "navigator.passport.ai_opt_out",
+  memoryUpserted: "navigator.memory.upserted",
+  memoryCorrected: "navigator.memory.corrected",
+  memoryWithdrawn: "navigator.memory.withdrawn",
+  memoryDeleted: "navigator.memory.deleted",
 } as const;
 
 export type NavigatorGateContext = {
@@ -44,6 +53,15 @@ function isFeatureFlagEnabled(flagName: string): boolean {
   }
   if (flagName === "MAPABLE_NAVIGATOR_PILOT_ENVELOPES") {
     return navigatorPilotConfig.envelopesEnabled;
+  }
+  if (flagName === "MAPABLE_NAVIGATOR_PILOT_PASSPORT") {
+    return navigatorPilotConfig.passportEnabled;
+  }
+  if (flagName === "MAPABLE_NAVIGATOR_PILOT_MEMORY") {
+    return navigatorPilotConfig.memoryEnabled;
+  }
+  if (flagName === "MAPABLE_NAVIGATOR_PILOT_MATCHING") {
+    return navigatorPilotConfig.matchingEnabled;
   }
   // Unknown / other flags: fail closed unless explicitly "true".
   return process.env[flagName] === "true";

@@ -26,6 +26,18 @@ export const navigatorPilotConfig = {
   get envelopesEnabled(): boolean {
     return this.enabled && envFlag("MAPABLE_NAVIGATOR_PILOT_ENVELOPES", false);
   },
+  /** Decision Passport projection surface. */
+  get passportEnabled(): boolean {
+    return this.enabled && envFlag("MAPABLE_NAVIGATOR_PILOT_PASSPORT", false);
+  },
+  /** Approved-category governed memory only. */
+  get memoryEnabled(): boolean {
+    return this.enabled && envFlag("MAPABLE_NAVIGATOR_PILOT_MEMORY", false);
+  },
+  /** Deterministic matching / shortlist. */
+  get matchingEnabled(): boolean {
+    return this.enabled && envFlag("MAPABLE_NAVIGATOR_PILOT_MATCHING", false);
+  },
 };
 
 export function isNavigatorPilotEnabled(): boolean {
@@ -34,4 +46,16 @@ export function isNavigatorPilotEnabled(): boolean {
 
 export function isNavigatorEnvelopesEnabled(): boolean {
   return navigatorPilotConfig.envelopesEnabled;
+}
+
+export function isNavigatorPassportEnabled(): boolean {
+  return navigatorPilotConfig.passportEnabled;
+}
+
+export function isNavigatorMemoryEnabled(): boolean {
+  return navigatorPilotConfig.memoryEnabled;
+}
+
+export function isNavigatorMatchingEnabled(): boolean {
+  return navigatorPilotConfig.matchingEnabled;
 }

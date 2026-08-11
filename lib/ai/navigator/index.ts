@@ -20,3 +20,35 @@ export {
   hashGovernedPayload,
   validateGovernedEnvelopePayload,
 } from "@/lib/ai/navigator/envelopes/schema";
+export {
+  createDecisionPassport,
+  getDecisionPassport,
+  correctDecisionPassport,
+  challengeDecisionPassport,
+  rejectSuggestion,
+  setAiOptOut,
+  projectDecisionPassport,
+} from "@/lib/ai/navigator/passport/service";
+export {
+  passportCreateSchema,
+  passportInterpretationSchema,
+  hardConstraintsSchema,
+  rankingWeightsSchema,
+  shortlistItemSchema,
+} from "@/lib/ai/navigator/passport/types";
+export {
+  upsertMemoryItem,
+  listMemoryItems,
+  correctMemoryItem,
+  withdrawMemoryItem,
+  deleteMemoryItem,
+  assertApprovedMemoryCategory,
+  NAVIGATOR_MEMORY_CATEGORIES,
+  FORBIDDEN_MEMORY_LABELS,
+} from "@/lib/ai/navigator/memory/service";
+export {
+  createNavigatorEscalation,
+  getEscalationStatus,
+  NAVIGATOR_ESCALATION_REASONS,
+  EMERGENCY_GUIDANCE_AU,
+} from "@/lib/ai/navigator/escalation/service";

@@ -268,6 +268,8 @@ model User {
   actHandoffsAsParticipant                ActHandoff[]                @relation("ActHandoffParticipant")
   governedActionEnvelopesAsParticipant    GovernedActionEnvelope[]    @relation("GovernedEnvelopeParticipant")
   governedActionEnvelopesInitiated        GovernedActionEnvelope[]    @relation("GovernedEnvelopeInitiator")
+  navigatorDecisionPassports              NavigatorDecisionPassport[] @relation("NavigatorPassportParticipant")
+  navigatorGovernedMemoryItems            NavigatorGovernedMemoryItem[] @relation("NavigatorMemoryParticipant")
 }
 
 model PasskeyCredential {
@@ -11862,6 +11864,82 @@ model GovernedActionEnvelope {
   @@index([expiresAt])
   @@index([capabilityKey])
   @@map("governed_action_envelopes")
+}
+
+enum NavigatorMemoryCategory {
+  explicit_preference
+  communication_requirement
+  accessibility_requirement
+  participant_exclusion
+  consented_workflow_state
+}
+
+enum NavigatorMemoryVerification {
+  participant_stated
+  corrected
+  withdrawn
+  deleted
+}
+
+/// Decision Passport — participant-facing projection of Navigator decision factors (Phase 2).
+model NavigatorDecisionPassport {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  participantId         String
+  participant           User     @relation("NavigatorPassportParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  actorUserId           String
+  sessionId             String
+  goalSummary           String
+  interpretationJson    Json     @default("{}")
+  hardConstraintsJson   Json     @default("[]")
+  rankingWeightsJson    Json     @default("{}")
+  sourcesJson           Json     @default("[]")
+  shortlistJson         Json     @default("[]")
+  uncertaintyNotes      String[] @default([])
+  limitationsNotes      String[] @default([])
+  conflictsOfInterest   String[] @default([])
+  aiInvolved            Boolean  @default(false)
+  modelIndependentRules String[] @default([])
+  nextStep              String?
+  nextStepController    String   @default("participant")
+  consentedPurpose      String
+  consentRecordId       String?
+  aiOptedOut            Boolean  @default(false)
+  status                String   @default("active") // active | corrected | rejected | escalated | closed
+  correlationId         String   @default(cuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([tenantId, participantId, createdAt])
+  @@index([sessionId])
+  @@map("navigator_decision_passports")
+}
+
+/// Governed memory — approved categories only; never free-form conversation dumps.
+model NavigatorGovernedMemoryItem {
+  id               String                       @id @default(cuid())
+  tenantId         String
+  participantId    String
+  participant      User                         @relation("NavigatorMemoryParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  purpose          String
+  category         NavigatorMemoryCategory
+  contentSummary   String
+  provenance       String
+  verification     NavigatorMemoryVerification  @default(participant_stated)
+  creatingActorId  String
+  consentRecordId  String?
+  confidence       String                       @default("stated")
+  expiresAt        DateTime?
+  correctedAt      DateTime?
+  withdrawnAt      DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+  reviewedAt       DateTime?
+
+  @@index([tenantId, participantId, category])
+  @@index([expiresAt])
+  @@map("navigator_governed_memory_items")
 }
 
 // --- Absorbed from agent/careos-top-ten-implement (models/enums not on main) ---
