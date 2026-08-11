@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 import { ACCREDITATION_CRITERIA } from "../lib/access/accreditation/accreditation-criteria-service";
+import { ensureAaIDemoPlace } from "../lib/access/infrastructure/demo-place-seed";
 
 const prisma = new PrismaClient();
 
@@ -45,6 +46,8 @@ async function main() {
       },
     });
   }
+
+  await ensureAaIDemoPlace();
 
   console.log("Access seed complete");
 }

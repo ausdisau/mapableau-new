@@ -24,7 +24,7 @@
 | Tenancy                         | `Organisation` + `OrganisationMember`                    | available on main | Server-derived tenant only                        |
 | Participant identity            | `ParticipantProfile`                                     | available on main | Demographics — do not fork                        |
 | Presentation prefs              | `AccessibilityProfile`                                   | available on main | Operational UI/access prefs                       |
-| Communication / Access Passport | TS projection over `AccessibilityProfile`                | available on main | Adapter if AccessPassport PR absent               |
+| Communication / Access Passport | `AccessPassport` when AaI passport flag on; else Communication Passport over `AccessibilityProfile` | available on main (flag-gated) | Programme adapter switches on flag |
 | Consent                         | `ConsentRecord`                                          | available on main | Field/purpose-scoped sharing                      |
 | Scoped delegation               | `ParticipantAuthorityGrant`                              | available on main | Purpose/field/action/expiry                       |
 | Audit                           | `AuditEvent`                                             | available on main | No sensitive payloads                             |

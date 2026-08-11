@@ -10,7 +10,7 @@
 | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
 | Prompt 0 shared foundation               | **this reconciliation PR**                                                                    |
 | `CareOSMission` (#252)                   | closed/unmerged — adapter-backed                                                              |
-| `AccessPassport` (#273)                  | closed/unmerged — adapter-backed                                                              |
+| `AccessPassport` (#470 + passport slice) | schema on main; CRUD/UI behind `MAPABLE_ACCESS_PASSPORT_ENABLED` (default OFF)                |
 | Platform Assurance registry (#278)       | open, not mergeable — deferred adapter                                                        |
 | AURA Waves 4–5 (#272)                    | merged historically; full `lib/aura/` still absent on main — use AI-platform + companion stop |
 | AccessPlace / ConsentRecord / AuditEvent | available on main                                                                             |

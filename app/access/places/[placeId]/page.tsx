@@ -2,8 +2,10 @@ import Link from "next/link";
 
 import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
+import { PlaceCompatibilityPanel } from "@/components/access/PlaceCompatibilityPanel";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access/accreditation/accreditation-assessment-service";
+import { accessInfrastructureFlags } from "@/lib/access/infrastructure";
 import { getPlaceById } from "@/lib/access/map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access/reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access/reviews/review-access-policy";
@@ -74,6 +76,12 @@ export default async function AccessPlacePage({
             : null
         }
       />
+
+      {accessInfrastructureFlags.enabled &&
+      (accessInfrastructureFlags.compatibilityEngine ||
+        accessInfrastructureFlags.capabilities) ? (
+        <PlaceCompatibilityPanel placeId={place.id} />
+      ) : null}
 
       {place.location ? (
         <section aria-label="Location map">

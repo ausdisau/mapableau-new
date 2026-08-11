@@ -14,6 +14,7 @@ test.describe("participant journeys", () => {
     "/dashboard/consent",
     "/dashboard/safety",
     "/dashboard/billing",
+    "/my-access",
   ] as const) {
     test(`shell ${route}`, async ({ page }) => {
       await assertAuthShell(page, route);

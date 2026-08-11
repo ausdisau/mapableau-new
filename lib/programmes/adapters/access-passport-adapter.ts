@@ -1,15 +1,19 @@
 /**
- * AccessPassport Prisma model is absent on main.
- * Operational source: AccessibilityProfile + Communication Passport projection.
- * Replaceable interface — do not invent a second passport SoT.
+ * Programme Access Passport adapter.
+ * When AaI passport flag is on, reads AccessPassport (C-010).
+ * Otherwise falls back to Communication Passport over AccessibilityProfile.
  */
 
+import { accessInfrastructureFlags } from "@/lib/access/infrastructure/flags";
+import { getAccessPassportForUser } from "@/lib/access/infrastructure/passport-service";
 import { getCommunicationPassport } from "@/lib/support/communication-passport/service";
 import type { CommunicationPassport } from "@/lib/support/communication-passport/types";
 
 export type ProgrammeAccessPassportView = {
   participantId: string;
-  source: "accessibility_profile_communication_passport";
+  source:
+    | "access_passport"
+    | "accessibility_profile_communication_passport";
   version: number;
   updatedAt: string;
   communicationModes: string[];
@@ -57,15 +61,51 @@ class AccessibilityProfilePassportAdapter implements ProgrammeAccessPassportAdap
   }
 }
 
-let adapter: ProgrammeAccessPassportAdapter =
-  new AccessibilityProfilePassportAdapter();
+class AccessInfrastructurePassportAdapter implements ProgrammeAccessPassportAdapter {
+  readonly isMock = false;
+  readonly sourceLabel = "AccessPassport (Access as Infrastructure)";
+
+  private readonly fallback = new AccessibilityProfilePassportAdapter();
+
+  async getForParticipant(
+    participantId: string,
+  ): Promise<ProgrammeAccessPassportView | null> {
+    const passport = await getAccessPassportForUser(participantId);
+    if (!passport) {
+      return this.fallback.getForParticipant(participantId);
+    }
+    return {
+      participantId,
+      source: "access_passport",
+      version: Date.parse(passport.updatedAt) || 1,
+      updatedAt: passport.updatedAt,
+      communicationModes: passport.requirements
+        .filter(
+          (r) =>
+            r.domain === "speech_communication" ||
+            r.domain === "auslan_language",
+        )
+        .map((r) => r.ontologyConceptId),
+      disclosableFieldKeys: passport.requirements
+        .filter((r) => r.disclosureScopes.some((s) => s !== "private"))
+        .map((r) => r.ontologyConceptId),
+      containsDiagnosis: false,
+    };
+  }
+}
+
+let override: ProgrammeAccessPassportAdapter | null = null;
 
 export function getProgrammeAccessPassportAdapter(): ProgrammeAccessPassportAdapter {
-  return adapter;
+  if (override) return override;
+  if (accessInfrastructureFlags.passport) {
+    return new AccessInfrastructurePassportAdapter();
+  }
+  return new AccessibilityProfilePassportAdapter();
 }
 
 export function __setProgrammeAccessPassportAdapterForTests(
   next: ProgrammeAccessPassportAdapter | null,
 ): void {
-  adapter = next ?? new AccessibilityProfilePassportAdapter();
+  override = next;
 }
