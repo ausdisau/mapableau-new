@@ -342,6 +342,21 @@ Use synthetic fixtures only.
 
 ---
 
+## Phase 1 status (implemented on this branch)
+
+Phase 1 enforcement foundation landed under W-AA-1 (flags default false):
+
+- Navigator + `agent.aura_*` capability registration and ARC sidecar
+- Runtime gates (`lib/ai/navigator/gates.ts`)
+- Purpose consent verification (`lib/ai/navigator/consent-gate.ts`)
+- Draft-only Governed Action Envelope v2 + migration
+- A2H `tenantId` / `participantId` hardening
+- Prohibition + consent + envelope + A2H tests
+
+Next safe increment: Phase 2 (Decision Passport projection, correction/challenge, governed memory).
+
+---
+
 ## Related documents
 
 - [`AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md`](./AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md)
