@@ -27,6 +27,7 @@ POST /api/access-infrastructure/compatibility
 GET  /api/access-infrastructure/assessments/{id}
 POST /api/access-infrastructure/disclosures
 POST /api/access-infrastructure/transport/compatibility
+POST /api/access-infrastructure/care/compatibility
 ```
 
 Partner-oriented Lane 4 aliases (future promotion):

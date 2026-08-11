@@ -1,7 +1,10 @@
+import { confirmCarePreShiftDisclosure } from "@/lib/access/infrastructure/adapters/care/pre-shift-disclosure";
+import { isCareAccessMatchingEnabled } from "@/lib/access/infrastructure/adapters/care";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { syncCalendarForCareShift } from "@/lib/calendar/calendar-service";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export async function createCareShiftFromRequest(params: {
   careRequestId: string;
@@ -20,6 +23,30 @@ export async function createCareShiftFromRequest(params: {
   });
   if (!request) throw new Error("NOT_FOUND");
 
+  let accessRequirementsSnapshot: Prisma.InputJsonValue =
+    request.accessRequirementsSummary
+      ? { summary: request.accessRequirementsSummary }
+      : {};
+
+  if (params.workerProfileId && isCareAccessMatchingEnabled()) {
+    try {
+      const disclosure = await confirmCarePreShiftDisclosure({
+        participantUserId: request.participantId,
+        workerProfileId: params.workerProfileId,
+      });
+      if (disclosure) {
+        accessRequirementsSnapshot = {
+          summary: request.accessRequirementsSummary,
+          disclosureReceiptId: disclosure.receiptId,
+          permittedAttributes: disclosure.permittedAttributes,
+          permittedSummaryLines: disclosure.permittedSummaryLines,
+        };
+      }
+    } catch {
+      // Fall back to legacy summary snapshot — never block shift creation on disclosure.
+    }
+  }
+
   const shift = await prisma.careShift.create({
     data: {
       careRequestId: params.careRequestId,
@@ -32,9 +59,7 @@ export async function createCareShiftFromRequest(params: {
       endAt: params.endAt,
       location: params.location ?? request.address,
       tasks: request.tasks ?? [],
-      accessRequirementsSnapshot: request.accessRequirementsSummary
-        ? { summary: request.accessRequirementsSummary }
-        : {},
+      accessRequirementsSnapshot,
       status: params.workerProfileId ? "worker_assigned" : "scheduled",
       recurringScheduleId: params.recurringScheduleId,
       occurrenceDate: params.occurrenceDate,

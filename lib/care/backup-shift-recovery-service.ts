@@ -1,3 +1,7 @@
+import {
+  filterSufficientlyCompatibleWorkers,
+  isCareAccessMatchingEnabled,
+} from "@/lib/access/infrastructure/adapters/care";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { isAdminRole } from "@/lib/auth/roles";
@@ -88,21 +92,62 @@ export async function proposeBackupCandidates(
     throw new Error("MATCHING_DISABLED");
   }
 
-  const topCandidates = (match.candidates ?? []).slice(0, 2);
+  let ranked = match.rankedMatches ?? [];
+  let escalateToOperations = false;
+
+  // Prefer sufficiently compatible replacements — never silent unverified substitute.
+  if (isCareAccessMatchingEnabled() && ranked.length > 0) {
+    const accessByWorker = new Map(
+      ranked
+        .filter((m) => m.accessCompatibility?.state)
+        .map((m) => [m.workerId, m.accessCompatibility!.state] as const),
+    );
+    const highComplexity = Boolean(
+      recovery.careShift.careRequest?.tasks &&
+        JSON.stringify(recovery.careShift.careRequest.tasks)
+          .toLowerCase()
+          .includes("high"),
+    );
+    const filtered = filterSufficientlyCompatibleWorkers(
+      ranked.map((m) => ({ workerId: m.workerId, match: m })),
+      accessByWorker,
+      { highComplexity },
+    );
+    escalateToOperations = filtered.escalateToOperations;
+    if (filtered.kept.length > 0) {
+      ranked = filtered.kept.map((k) => k.match);
+    } else if (highComplexity) {
+      ranked = [];
+    }
+  }
+
+  const topWorkerIds = new Set(ranked.slice(0, 2).map((m) => m.workerId));
+  const topCandidates = (match.candidates ?? []).filter((c) =>
+    c.candidateWorkerId ? topWorkerIds.has(c.candidateWorkerId) : false,
+  );
 
   await prisma.backupShiftRecovery.update({
     where: { id: recoveryId },
     data: {
       matchRunId: match.run?.id,
       status: "awaiting_participant",
+      notes: escalateToOperations
+        ? [recovery.notes, "Access matching: escalate to operations — no verified compatible replacement."]
+            .filter(Boolean)
+            .join(" ")
+        : recovery.notes,
     },
   });
 
   await notifyUser(
     recovery.participantId,
     "booking",
-    "Backup support options ready",
-    "A shift needs cover. Review suggested workers and confirm your choice."
+    escalateToOperations
+      ? "Backup support needs operations review"
+      : "Backup support options ready",
+    escalateToOperations
+      ? "No verified compatible replacement worker was found. Operations will follow up — MapAble will not silently substitute."
+      : "A shift needs cover. Review suggested workers and confirm your choice."
   );
 
   await createAuditEvent({
@@ -111,10 +156,20 @@ export async function proposeBackupCandidates(
     entityType: "BackupShiftRecovery",
     entityId: recoveryId,
     participantId: recovery.participantId,
-    metadata: { candidateCount: topCandidates.length },
+    metadata: {
+      candidateCount: topCandidates.length,
+      escalateToOperations,
+      accessMatching: isCareAccessMatchingEnabled(),
+    },
   });
 
-  return { recovery, matchRun: match.run, candidates: topCandidates };
+  return {
+    recovery,
+    matchRun: match.run,
+    candidates: topCandidates,
+    escalateToOperations,
+    silentSubstitutionForbidden: true,
+  };
 }
 
 export async function participantApproveBackupCandidate(params: {

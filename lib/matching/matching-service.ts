@@ -17,6 +17,11 @@ import { prisma } from "@/lib/prisma";
 import { getLatestReliabilityAdvisory } from "@/lib/reliability/reliability-service";
 import { getPublishedSupportProfileSections } from "@/lib/support/profile/support-profile-service";
 import type { SupportProfileSections } from "@/lib/support/profile/types";
+import {
+  isCareAccessMatchingEnabled,
+  suggestCompatibleWorkers,
+  type CareAccessMatchCandidate,
+} from "@/lib/access/infrastructure/adapters/care";
 import { getVehicleSuitabilityWarnings } from "@/lib/transport/vehicle-suitability";
 import type { GuardrailDecision } from "@/server/agents/care/types";
 
@@ -143,6 +148,11 @@ export async function runCareWorkerMatch(
     missingChecks: string[];
     guardrailDecision: GuardrailDecision;
     reliabilityAdvisory?: string;
+    /** Access Infrastructure annotation — advisory only; never auto-assigns. */
+    accessCompatibility?: Pick<
+      CareAccessMatchCandidate,
+      "state" | "summary" | "missingCompetencies" | "preferenceGaps" | "decisionOwner" | "productionClaim"
+    >;
   }[] = [];
 
   const candidates = [];
@@ -288,6 +298,46 @@ export async function runCareWorkerMatch(
       },
     });
     candidates.push(candidate);
+  }
+
+  // Access Infrastructure annotation (flag-gated). Never changes auto-assign.
+  if (isCareAccessMatchingEnabled()) {
+    const accessCandidates = await suggestCompatibleWorkers({
+      careRequestId,
+      excludeWorkerProfileIds: options?.excludeWorkerProfileIds,
+      actorUserId: requestedById,
+    });
+    const byWorker = new Map(accessCandidates.map((c) => [c.workerId, c]));
+    for (const match of rankedMatches) {
+      const access = byWorker.get(match.workerId);
+      if (!access) continue;
+      match.accessCompatibility = {
+        state: access.state,
+        summary: access.summary,
+        missingCompetencies: access.missingCompetencies,
+        preferenceGaps: access.preferenceGaps,
+        decisionOwner: access.decisionOwner,
+        productionClaim: access.productionClaim,
+      };
+      if (access.state === "incompatible") {
+        match.risks.push("Access requirements show a known mismatch for this worker");
+        match.missingChecks.push("access_compatibility");
+        match.guardrailDecision = {
+          ...match.guardrailDecision,
+          autoAssignWorkers: false,
+          humanReviewRequired: true,
+        };
+      } else if (access.state === "uncertain") {
+        match.risks.push("Access evidence incomplete — confirm with participant");
+        match.guardrailDecision = {
+          ...match.guardrailDecision,
+          autoAssignWorkers: false,
+          humanReviewRequired: true,
+        };
+      }
+      // Reinforce: never auto-assign from access matching.
+      match.guardrailDecision.autoAssignWorkers = false;
+    }
   }
 
   await prisma.matchRun.update({

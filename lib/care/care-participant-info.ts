@@ -1,5 +1,6 @@
 import type { CareRequest, CareShift } from "@prisma/client";
 
+import { isCareAccessMatchingEnabled } from "@/lib/access/infrastructure/adapters/care";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { isAdminRole } from "@/lib/auth/roles";
 import { getWorkerBriefSliceForShift } from "@/lib/support/profile/support-profile-service";
@@ -10,8 +11,18 @@ export type WorkerParticipantView = {
   tasks: unknown[];
   accessSummary?: string;
   communicationNotes?: string;
+  /** Present when Access Infrastructure pre-shift disclosure was used. */
+  disclosureReceiptId?: string;
+  permittedAccessAttributes?: string[];
   supportProfileBrief?: Awaited<ReturnType<typeof getWorkerBriefSliceForShift>>;
 };
+
+type AccessSnapshot = {
+  summary?: string;
+  disclosureReceiptId?: string;
+  permittedAttributes?: string[];
+  permittedSummaryLines?: string[];
+} | null;
 
 export function filterParticipantInfoForWorker(
   user: CurrentUser,
@@ -33,10 +44,28 @@ export function filterParticipantInfoForWorker(
     [request.address, request.suburb, request.state].filter(Boolean).join(", ");
 
   const tasks = shift?.tasks ?? request.tasks ?? [];
-  const accessSnapshot = shift?.accessRequirementsSnapshot as
-    | { summary?: string }
-    | null
-    | undefined;
+  const accessSnapshot = shift?.accessRequirementsSnapshot as AccessSnapshot | undefined;
+
+  // Access Infrastructure path: prefer purpose-limited disclosure receipt contents.
+  if (
+    isCareAccessMatchingEnabled() &&
+    accessSnapshot?.disclosureReceiptId &&
+    request.shareAccessibility
+  ) {
+    const summary =
+      accessSnapshot.permittedSummaryLines?.join("; ") ||
+      accessSnapshot.summary ||
+      undefined;
+    return {
+      displayLabel: request.title,
+      location: location || undefined,
+      tasks: Array.isArray(tasks) ? tasks : [],
+      accessSummary: summary,
+      communicationNotes: request.communicationNotes ?? undefined,
+      disclosureReceiptId: accessSnapshot.disclosureReceiptId,
+      permittedAccessAttributes: accessSnapshot.permittedAttributes,
+    };
+  }
 
   return {
     displayLabel: request.title,
