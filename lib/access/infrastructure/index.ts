@@ -40,3 +40,13 @@ export type {
 
 export { isDecisiveCompatibility, mapConclusionToCompatibility } from "./compatibility";
 export { accessInfrastructureFlags } from "./flags";
+export {
+  evaluateCompatibility,
+  summariseCompatibilityForParticipant,
+} from "./engine";
+export type {
+  CompatibilityEvaluationInput,
+  CompatibilityEvaluationResult,
+  CompatibilityFinding,
+  FindingResult,
+} from "./engine";

@@ -82,10 +82,31 @@ See [SCHEMA.md](./SCHEMA.md), [ONTOLOGY.md](./ONTOLOGY.md), [API_CONTRACTS.md](.
 - [ONTOLOGY.md](./ONTOLOGY.md)
 - [SCHEMA.md](./SCHEMA.md)
 - [API_CONTRACTS.md](./API_CONTRACTS.md)
+- [COMPATIBILITY_ENGINE.md](./COMPATIBILITY_ENGINE.md)
+- [CONSENT_AND_DISCLOSURE.md](./CONSENT_AND_DISCLOSURE.md)
+- [TRANSPORT_ADAPTER.md](./TRANSPORT_ADAPTER.md)
+- [CARE_ADAPTER.md](./CARE_ADAPTER.md)
+- [JOBS_ADAPTER.md](./JOBS_ADAPTER.md)
+- [MIGRATION.md](./MIGRATION.md)
+- [ACCESSIBILITY_ACCEPTANCE.md](./ACCESSIBILITY_ACCEPTANCE.md)
+- [ADR-001-access-infrastructure-core.md](./ADR-001-access-infrastructure-core.md)
 - [GOVERNANCE.md](./GOVERNANCE.md)
 - [../access-intelligence-next/README.md](../access-intelligence-next/README.md)
 - [../strategy/OPERATING_LANES.md](../strategy/OPERATING_LANES.md) (Lane 4 Infrastructure)
 - [../convergence-os/CONSTITUTION.md](../convergence-os/CONSTITUTION.md) (C-010 / C-011 / C-012)
+
+## Feature flags (defaults OFF)
+
+| Flag | Purpose |
+| --- | --- |
+| `MAPABLE_ACCESS_INFRASTRUCTURE_ENABLED` | Master switch |
+| `MAPABLE_ACCESS_PASSPORT_ENABLED` | Passport / requirements / disclosure writers |
+| `MAPABLE_ACCESS_COMPATIBILITY_ENGINE_ENABLED` | Compatibility evaluate/persist |
+| `MAPABLE_ACCESS_JOURNEY_ENGINE_ENABLED` | Whole-journey persistence |
+| `MAPABLE_ACCESS_TRANSPORT_COMPATIBILITY_ENABLED` | Transport vertical slice |
+| `MAPABLE_ACCESS_CARE_MATCHING_ENABLED` | Care adapter (Phase 3) |
+| `MAPABLE_ACCESS_JOBS_COMPATIBILITY_ENABLED` | Jobs adapter (Phase 4) |
+| Cross-vertical orchestration | Hard-off until Phase 5 |
 
 ## Australian policy anchors (citation only)
 

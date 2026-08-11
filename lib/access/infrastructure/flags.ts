@@ -1,6 +1,6 @@
 /**
  * Access Infrastructure feature flags.
- * All default off. Permanent deny flags live in intelligence-next.
+ * All default off. Cross-vertical orchestration is hard-off until Phase 5.
  */
 
 function envTruthy(key: string): boolean {
@@ -20,5 +20,18 @@ export const accessInfrastructureFlags = {
   },
   get journeyEngine() {
     return envTruthy("MAPABLE_ACCESS_JOURNEY_ENGINE_ENABLED");
+  },
+  get careMatching() {
+    return envTruthy("MAPABLE_ACCESS_CARE_MATCHING_ENABLED");
+  },
+  get transportCompatibility() {
+    return envTruthy("MAPABLE_ACCESS_TRANSPORT_COMPATIBILITY_ENABLED");
+  },
+  get jobsCompatibility() {
+    return envTruthy("MAPABLE_ACCESS_JOBS_COMPATIBILITY_ENABLED");
+  },
+  /** Permanently deferred until Care/Transport/Jobs slices are tested. */
+  get crossVerticalOrchestration() {
+    return false;
   },
 };

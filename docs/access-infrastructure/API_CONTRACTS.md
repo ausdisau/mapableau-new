@@ -20,12 +20,13 @@ GET  /api/access-infrastructure/ontology
 GET  /api/access-infrastructure/domains
 GET  /api/access-infrastructure/passport
 PATCH /api/access-infrastructure/passport
-GET  /api/access-infrastructure/places/{placeId}/capabilities
-GET  /api/access-infrastructure/entities/{entityType}/{entityId}/capabilities
+POST /api/access-infrastructure/requirements
+PATCH /api/access-infrastructure/requirements
+DELETE /api/access-infrastructure/requirements?id=
 POST /api/access-infrastructure/compatibility
-POST /api/access-infrastructure/journeys/evaluate
-GET  /api/access-infrastructure/evidence/{observationId}
-GET  /api/access-infrastructure/adjustments
+GET  /api/access-infrastructure/assessments/{id}
+POST /api/access-infrastructure/disclosures
+POST /api/access-infrastructure/transport/compatibility
 ```
 
 Partner-oriented Lane 4 aliases (future promotion):
