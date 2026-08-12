@@ -15,6 +15,7 @@ import {
   hardConstraintsSchema,
   rankingWeightsSchema,
   type HardConstraints,
+  type HardConstraintsInput,
   type MatchResult,
   type RankingWeights,
 } from "@/lib/ai/navigator/matching/types";
@@ -56,7 +57,7 @@ export type NavigatorProviderSearchTurnInput = {
   sessionId?: string;
   goalText?: string;
   structuredFilters?: NavigatorStructuredFilters;
-  hardConstraints: HardConstraints;
+  hardConstraints: HardConstraintsInput;
   rankingWeights?: RankingWeights;
   interpretationConfirmed: boolean;
   aiOptedOut?: boolean;

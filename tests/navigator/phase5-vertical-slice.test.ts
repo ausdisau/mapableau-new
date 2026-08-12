@@ -189,9 +189,9 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
 
     let envelopeSeq = 0;
     vi.mocked(prisma.governedActionEnvelope.create).mockImplementation(
-      async ({ data }: { data: { action: string; id: string } }) => {
+      (({ data }: { data: { action: string; id: string } }) => {
         envelopeSeq += 1;
-        return {
+        return Promise.resolve({
           id: data.id,
           tenantId: "t1",
           participantId: "p1",
@@ -216,8 +216,9 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
           expiresAt: new Date(Date.now() + 60_000),
           consumedAt: null,
           auditEventIds: [],
-        } as never;
-      },
+          updatedAt: new Date(),
+        });
+      }) as never,
     );
 
     vi.mocked(prisma.navigatorDecisionPassport.create).mockResolvedValue({
@@ -331,13 +332,14 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
       envelopeRow as never,
     );
     vi.mocked(prisma.governedActionEnvelope.update).mockImplementation(
-      async ({ data }) =>
-        ({
+      (({ data }: { data: Record<string, unknown> }) =>
+        Promise.resolve({
           ...envelopeRow,
           ...data,
           payloadJson: data.payloadJson ?? envelopeRow.payloadJson,
           payloadHash: data.payloadHash ?? envelopeRow.payloadHash,
-        }) as never,
+          updatedAt: new Date(),
+        })) as never,
     );
 
     const updated = await updateGovernedActionEnvelopeDraft({

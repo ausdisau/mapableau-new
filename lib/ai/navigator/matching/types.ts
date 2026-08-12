@@ -52,6 +52,8 @@ export const hardConstraintsSchema = z
   .strict();
 
 export type HardConstraints = z.infer<typeof hardConstraintsSchema>;
+/** Input shape before Zod defaults (e.g. nonNegotiableKeys) are applied. */
+export type HardConstraintsInput = z.input<typeof hardConstraintsSchema>;
 
 /**
  * Stage-2 ranking weights (0–1 each). Ranker normalises to sum to 1.
