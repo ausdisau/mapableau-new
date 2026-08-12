@@ -108,6 +108,21 @@ function mockActiveConsent() {
   ]);
 }
 
+/**
+ * Prisma model methods return a thenable client with relation getters
+ * (`participant`, `initiatingUser`). Plain Promise.resolve(row) is not
+ * assignable — attach compatible stubs so mocks type-check.
+ */
+function prismaEnvelopeResult<T extends object>(row: T) {
+  const result = Promise.resolve(row) as unknown as Promise<T> & {
+    participant: Promise<null>;
+    initiatingUser: Promise<null>;
+  };
+  result.participant = Promise.resolve(null);
+  result.initiatingUser = Promise.resolve(null);
+  return result;
+}
+
 describe("Navigator Phase 5 — vertical slice closure", () => {
   beforeEach(() => {
     clearFlags();
@@ -189,9 +204,10 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
 
     let envelopeSeq = 0;
     vi.mocked(prisma.governedActionEnvelope.create).mockImplementation(
-      (({ data }: { data: { action: string; id: string } }) => {
+      ((args: { data: { action: string; id: string } }) => {
+        const data = args.data;
         envelopeSeq += 1;
-        return Promise.resolve({
+        return prismaEnvelopeResult({
           id: data.id,
           tenantId: "t1",
           participantId: "p1",
@@ -218,7 +234,7 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
           auditEventIds: [],
           updatedAt: new Date(),
         });
-      }) as never,
+      }) as unknown as typeof prisma.governedActionEnvelope.create,
     );
 
     vi.mocked(prisma.navigatorDecisionPassport.create).mockResolvedValue({
@@ -332,14 +348,16 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
       envelopeRow as never,
     );
     vi.mocked(prisma.governedActionEnvelope.update).mockImplementation(
-      (({ data }: { data: Record<string, unknown> }) =>
-        Promise.resolve({
+      ((args: { data: Record<string, unknown> }) => {
+        const data = args.data;
+        return prismaEnvelopeResult({
           ...envelopeRow,
           ...data,
           payloadJson: data.payloadJson ?? envelopeRow.payloadJson,
           payloadHash: data.payloadHash ?? envelopeRow.payloadHash,
           updatedAt: new Date(),
-        })) as never,
+        });
+      }) as unknown as typeof prisma.governedActionEnvelope.update,
     );
 
     const updated = await updateGovernedActionEnvelopeDraft({
