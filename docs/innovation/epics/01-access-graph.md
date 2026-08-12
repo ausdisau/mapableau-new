@@ -199,9 +199,17 @@ Foundation Wave
 
 **In development**
 
+G3 technical proof (observation→store→read with provenance + freshness) landed behind `MAPABLE_ACCESS_INFRASTRUCTURE_ENABLED` + `MAPABLE_ACCESS_GRAPH_ENABLED`. See [E01_ACCESS_GRAPH_G3_STATUS.md](../E01_ACCESS_GRAPH_G3_STATUS.md). Not Verified live; no production claim.
+
 ## 42. Evidence required before claim-state promotion
 
-Promote to **Implemented, not independently verified** after G4 pilot with provenance on all pilot assertions. Promote to **Verified live** only after independent verification of regional coverage claims.
+Promote to **Implemented, not independently verified** after G4 pilot with provenance on all pilot assertions and dispute path exercised. Promote to **Verified live** only after independent verification of regional coverage claims.
+
+Engineering evidence already available for G3:
+
+- Unit tests: `tests/access/access-graph-provenance.test.ts`, `tests/access/access-graph-observation-service.test.ts`
+- APIs: `/api/access-infrastructure/observations`, `/api/access-infrastructure/graph/places/[placeId]`
+- Guard: AI-inferred cannot be stored as independently verified
 
 ---
 

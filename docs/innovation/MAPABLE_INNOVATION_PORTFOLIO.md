@@ -234,11 +234,20 @@ AI prohibited from abuse/reportability/restrictive practice decisions; emergency
 
 **E01 — MapAble Access Graph** (Priority 0). Immediately followed by E02 and E06 (with E09 for assessor credentials).
 
+**G3 status:** Engineering proof landed — see [E01_ACCESS_GRAPH_G3_STATUS.md](./E01_ACCESS_GRAPH_G3_STATUS.md). Enable with:
+
+```
+MAPABLE_ACCESS_INFRASTRUCTURE_ENABLED=true
+MAPABLE_ACCESS_GRAPH_ENABLED=true
+```
+
+Still required before pilot: formal G0/G1/G2 human gates; dispute workflow Feature; E06 verification promotion path.
+
 ## 17. Exact next Codex action
 
 1. Programme review of this portfolio with Product + DRO co-design sign-off for Foundation wave G1.  
-2. Authorise Azure DevOps import using `azure-devops-portfolio.json` and ProgrammeKey idempotent create.  
-3. Begin E01 G0 problem evidence collection and G3 technical proof: extend `AccessObservationRecord` provenance + freshness engine behind `MAPABLE_ACCESS_INFRASTRUCTURE_ENABLED`.  
+2. Authorise Azure DevOps import using `azure-devops-portfolio.json` and ProgrammeKey idempotent create (**still blocked** — ADO credentials unset).  
+3. **E01 G3 landed** (observation→store→read behind flags) — see [E01_ACCESS_GRAPH_G3_STATUS.md](./E01_ACCESS_GRAPH_G3_STATUS.md). Next engineering: G4 pilot runbook + dispute/correction Feature; do not promote claim state without G5.  
 4. Do **not** claim Verified live or production-ready until G5 evidence and ConvergenceOS claim gates pass.
 
 ---
