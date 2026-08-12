@@ -23,6 +23,7 @@ const PUBLIC_ROUTES = [
   "/transport/request",
   "/employment",
   "/accountability",
+  "/navigator/pilot/decision-passport",
 ] as const;
 
 const AUTH_ROUTES = [

@@ -21,6 +21,7 @@ export function DecisionPassportPanel({
 }: Props) {
   return (
     <section
+      data-testid="decision-passport-panel"
       aria-labelledby="decision-passport-heading"
       className="mx-auto max-w-3xl space-y-6 px-4 py-6"
     >
@@ -90,24 +91,28 @@ export function DecisionPassportPanel({
         className="flex flex-col gap-3 sm:flex-row sm:flex-wrap"
         role="group"
         aria-label="Participant controls"
+        data-testid="decision-passport-controls"
       >
         <button
           type="button"
-          className="rounded-md bg-stone-900 px-4 py-3 text-left text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"
+          data-testid="decision-passport-request-human"
+          className="min-h-11 rounded-md bg-stone-900 px-4 py-3 text-left text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"
           onClick={onRequestHumanReview}
         >
           Request a person
         </button>
         <button
           type="button"
-          className="rounded-md border border-stone-400 px-4 py-3 text-left text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"
+          data-testid="decision-passport-continue-non-ai"
+          className="min-h-11 rounded-md border border-stone-400 px-4 py-3 text-left text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"
           onClick={onContinueNonAi}
         >
           Continue without AI
         </button>
         <button
           type="button"
-          className="rounded-md border border-stone-400 px-4 py-3 text-left text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"
+          data-testid="decision-passport-withdraw-consent"
+          className="min-h-11 rounded-md border border-stone-400 px-4 py-3 text-left text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"
           onClick={onWithdrawConsent}
         >
           Withdraw consent

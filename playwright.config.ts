@@ -10,7 +10,7 @@ const skipAuth = process.env.A11Y_SKIP_AUTH_ROUTES === "1";
 const projects: Project[] = [
   {
     name: "public",
-    testMatch: /route-shells\.spec\.ts/,
+    testMatch: /(route-shells|decision-passport)\.spec\.ts/,
   },
   {
     name: "informational",

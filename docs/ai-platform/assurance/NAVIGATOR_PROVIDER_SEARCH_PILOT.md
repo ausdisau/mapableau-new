@@ -9,6 +9,20 @@
 
 Interpret provider-search requests, gather preferences, apply deterministic hard constraints, return an explainable editable shortlist, create a `CareRequest` **draft** envelope, transfer filters to Provider Finder, escalate to a human when unsafe/unsupported/uncertain.
 
+## Envelope execute path (flag-gated)
+
+Approved envelopes execute via `POST /api/navigator/action-envelopes/:id/execute` (`confirmed: true` + nonce):
+
+| Action | Deterministic effect |
+|--------|----------------------|
+| `create_care_request_draft` | `createCareRequest` with `status: draft` only |
+| `transfer_provider_finder_filters` | Returns relative Provider Finder URL (no booking) |
+| `open_human_escalation` | Creates tenant-scoped escalation case |
+
+Approve first: `POST /api/navigator/action-envelopes/:id/approve`.
+
+Synthetic a11y shell (no real participant data): `/navigator/pilot/decision-passport`.
+
 ## Permanent prohibitions (executable in tests)
 
 AI / pilot must not autonomously: book/cancel services; approve/pay; mutate participant records beyond draft+escalation; determine NDIS eligibility/funding; make clinical recommendations; authorise restrictive practices; suspend actors; allege fraud/abuse/misconduct; submit incident/regulatory reports; infer capacity.
