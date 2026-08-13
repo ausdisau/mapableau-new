@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsx realtime.ts",
-    "realtime": "tsx realtime.ts"
+    "realtime": "tsx realtime.ts",
+    "text": "tsx index.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,7 @@
     "@ai-sdk/gateway": "^4.0.0-canary.107",
     "@types/node": "^26.2.0",
     "@types/ws": "^8.18.1",
+    "ai": "^7.0.64",
     "dotenv": "^17.4.2",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2",
