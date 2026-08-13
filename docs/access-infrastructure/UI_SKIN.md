@@ -22,21 +22,29 @@ It is **not** the source of truth for compatibility, evidence, credentials, or A
 
 Movement · Communication · Vision · Hearing · Thinking & information · Sensory environment · Fatigue & stamina · Personal support · Transport · Toilets · Technology · Emergency access · Sharing · Service & admin
 
+Participant-facing titles use human labels from `lib/access/infrastructure/ui-copy.ts` (not raw ontology IDs). Importance and sharing options use plain phrases (e.g. “Must have”, “Share when I approve”). Default visibility is draft + **Save sharing** (not auto-saved on change). Remove requires an inline confirm. Empty passports offer a “Start with 3 common needs” checklist.
+
 ## Place result panel
 
-When flags allow, show:
+When flags allow, show (AT priority order):
 
-- What works for you
-- What may need adjustment
-- What we don't know
-- Known mismatches
-- Evidence / last checked
-- Alternatives & limitations
-- Report a change
-- Non-map browse link
+1. Status word + explanation (`Compatible` / `Needs adjustment` / `Unknown` / `Mismatch`) — `role="status"`
+2. Known mismatches
+3. What we don't know
+4. What may need adjustment
+5. What works for you
+6. Evidence / last checked
+7. Alternatives & limitations
+8. Report a change
+9. Non-map browse link
+10. Privacy line: opening My Access does not share needs with the place until the participant chooses
 
-Never rely on “Accessible ✅” alone.
+Concept IDs from the engine are resolved to human labels in the UI. Never rely on “Accessible ✅” alone.
 
 ## Accessibility baseline
 
-WCAG 2.2 AA for My Access and place compatibility surfaces: keyboard, visible focus, names/roles/states, reflow, plain-language errors, reduced motion, accessible dialogs for report actions.
+WCAG 2.2 AA for My Access and place compatibility surfaces: keyboard, visible focus, names/roles/states, reflow, plain-language errors, reduced motion, accessible dialogs for report actions (focus trap, Esc restores trigger focus).
+
+### Flag-on a11y testing
+
+CI Accessibility workflow enables AaI passport/capabilities/compatibility flags for Playwright only (production defaults remain off). Specs under `tests/a11y/my-access-passport.spec.ts` exercise `/my-access` axe + keyboard smoke when those flags are on.

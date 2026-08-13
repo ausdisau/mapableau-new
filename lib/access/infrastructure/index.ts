@@ -66,3 +66,18 @@ export {
 } from "./passport-service";
 export type { PassportPatchInput, PassportRequirementInput } from "./passport-service";
 export { ensureAaIDemoPlace, AAI_DEMO_PLACE_NAME } from "./demo-place-seed";
+export {
+  COMMON_ACCESS_CONCEPTS,
+  COMPATIBILITY_STATUS_DETAIL,
+  COMPATIBILITY_STATUS_WORDS,
+  CRITICALITY_LABELS,
+  DISCLOSURE_SCOPE_LABELS,
+  FIRST_RUN_CONCEPT_IDS,
+  PLACE_COMPAT_PRIVACY_CTA,
+  VISIBILITY_LABELS,
+  labelForConceptId,
+} from "./ui-copy";
+export type {
+  CommonAccessConcept,
+  PassportVisibilityDefault,
+} from "./ui-copy";

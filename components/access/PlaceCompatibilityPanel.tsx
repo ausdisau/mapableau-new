@@ -3,9 +3,16 @@
 import { useEffect, useState } from "react";
 
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
+import {
+  COMPATIBILITY_STATUS_DETAIL,
+  COMPATIBILITY_STATUS_WORDS,
+  PLACE_COMPAT_PRIVACY_CTA,
+  labelForConceptId,
+  type AccessCompatibilityState,
+} from "@/lib/access/infrastructure";
 
 type CompatibilityPayload = {
-  state: "compatible" | "compatible_with_adjustment" | "uncertain" | "incompatible";
+  state: AccessCompatibilityState;
   required: { met: string[]; unmet: string[]; uncertain: string[] };
   preferences: { met: string[]; unmet: string[]; uncertain: string[] };
   adjustments: Array<{ id: string; summary: string }>;
@@ -16,21 +23,16 @@ type CompatibilityPayload = {
   evaluatedAt: string;
 };
 
-const STATE_LABEL: Record<CompatibilityPayload["state"], string> = {
-  compatible: "Looks compatible with your stated needs",
-  compatible_with_adjustment: "May work with an adjustment",
-  uncertain: "We do not know enough yet",
-  incompatible: "Known mismatch with a required need",
-};
-
 function ConceptList({
   title,
   items,
   empty,
+  resolveLabels = true,
 }: {
   title: string;
   items: string[];
   empty: string;
+  resolveLabels?: boolean;
 }) {
   return (
     <section aria-label={title} className="space-y-1">
@@ -40,7 +42,7 @@ function ConceptList({
       ) : (
         <ul className="list-disc space-y-1 pl-5 text-sm">
           {items.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item}>{resolveLabels ? labelForConceptId(item) : item}</li>
           ))}
         </ul>
       )}
@@ -145,34 +147,40 @@ export function PlaceCompatibilityPanel({ placeId }: { placeId: string }) {
           </a>{" "}
           to see what works for you here.
         </p>
+        <p className="text-sm text-muted-foreground">{PLACE_COMPAT_PRIVACY_CTA}</p>
       </section>
     );
   }
 
+  const statusWord = COMPATIBILITY_STATUS_WORDS[compat.state];
+  const statusDetail = COMPATIBILITY_STATUS_DETAIL[compat.state];
+  const evidenceLine =
+    compat.evidenceRefs.length > 0
+      ? `${compat.evidenceRefs.length} evidence reference(s) used.`
+      : "No evidence references linked yet.";
+
   return (
     <section
       aria-labelledby="place-compat-heading"
+      data-testid="place-compatibility-panel"
       className="space-y-4 rounded-xl border border-border bg-card p-4"
     >
       <header className="space-y-1">
         <h2 id="place-compat-heading" className="text-lg font-semibold">
           Access for you
         </h2>
-        <p className="text-sm font-medium">{STATE_LABEL[compat.state]}</p>
+        <p role="status" className="text-sm font-medium">
+          <span className="font-semibold">{statusWord}.</span> {statusDetail}
+        </p>
         <p className="text-xs text-muted-foreground">
           Decision owner: {compat.decisionOwner}. MapAble proposes; you decide.
         </p>
       </header>
 
       <ConceptList
-        title="What works for you"
-        items={[...compat.required.met, ...compat.preferences.met]}
-        empty="No confirmed matches yet."
-      />
-      <ConceptList
-        title="What may need adjustment"
-        items={compat.adjustments.map((a) => a.summary)}
-        empty="No listed adjustments for your unmet needs."
+        title="Known mismatches"
+        items={compat.required.unmet}
+        empty="No known required mismatches."
       />
       <ConceptList
         title="What we don't know"
@@ -180,18 +188,20 @@ export function PlaceCompatibilityPanel({ placeId }: { placeId: string }) {
         empty="No open unknowns for your stated needs."
       />
       <ConceptList
-        title="Known mismatches"
-        items={compat.required.unmet}
-        empty="No known required mismatches."
+        title="What may need adjustment"
+        items={compat.adjustments.map((a) => a.summary)}
+        empty="No listed adjustments for your unmet needs."
+        resolveLabels={false}
+      />
+      <ConceptList
+        title="What works for you"
+        items={[...compat.required.met, ...compat.preferences.met]}
+        empty="No confirmed matches yet."
       />
 
       <section aria-label="Evidence" className="space-y-1">
         <h3 className="text-sm font-semibold">Evidence</h3>
-        <p className="text-sm text-muted-foreground">
-          {compat.evidenceRefs.length
-            ? `${compat.evidenceRefs.length} evidence reference(s) used.`
-            : "No evidence references linked yet."}
-        </p>
+        <p className="text-sm text-muted-foreground">{evidenceLine}</p>
         {capabilitiesNote ? (
           <p className="text-sm text-muted-foreground">{capabilitiesNote}</p>
         ) : null}
@@ -205,18 +215,20 @@ export function PlaceCompatibilityPanel({ placeId }: { placeId: string }) {
           title="Alternatives & limitations"
           items={compat.limitations}
           empty=""
+          resolveLabels={false}
         />
       ) : null}
 
       <div className="flex flex-wrap gap-3 pt-2">
         <ReportPlaceIssueButton placeId={placeId} />
-        <a href="/my-access" className="text-sm text-primary underline">
+        <a href="/my-access" className="min-h-11 text-sm text-primary underline">
           Edit My Access
         </a>
-        <a href="/access/places" className="text-sm text-primary underline">
+        <a href="/access/places" className="min-h-11 text-sm text-primary underline">
           Browse places list (non-map)
         </a>
       </div>
+      <p className="text-sm text-muted-foreground">{PLACE_COMPAT_PRIVACY_CTA}</p>
     </section>
   );
 }

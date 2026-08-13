@@ -13,7 +13,14 @@ import {
   ACCESS_DISCLOSURE_SCOPES,
   ACCESS_DOMAIN_LABELS,
   ACCESS_DOMAINS,
+  COMMON_ACCESS_CONCEPTS,
+  CRITICALITY_LABELS,
+  DISCLOSURE_SCOPE_LABELS,
+  FIRST_RUN_CONCEPT_IDS,
+  VISIBILITY_LABELS,
+  labelForConceptId,
   type AccessDomain,
+  type PassportVisibilityDefault,
 } from "@/lib/access/infrastructure";
 
 export type MyAccessRequirement = {
@@ -32,75 +39,6 @@ export type MyAccessRequirement = {
   userConfirmed: boolean;
   notes?: string;
 };
-
-const COMMON_CONCEPTS: Array<{
-  ontologyConceptId: string;
-  domain: AccessDomain;
-  attribute: string;
-  label: string;
-  defaultComparator?: "eq" | "gte";
-  defaultValue?: string | number | boolean;
-  unit?: string;
-}> = [
-  {
-    ontologyConceptId: "mobility_movement.step_free",
-    domain: "mobility_movement",
-    attribute: "step_free",
-    label: "Step-free access",
-    defaultValue: true,
-  },
-  {
-    ontologyConceptId: "mobility_movement.minimum_clear_width_mm",
-    domain: "mobility_movement",
-    attribute: "minimum_clear_width_mm",
-    label: "Minimum clear width (mm)",
-    defaultComparator: "gte",
-    defaultValue: 850,
-    unit: "mm",
-  },
-  {
-    ontologyConceptId: "hearing.hearing_augmentation",
-    domain: "hearing",
-    attribute: "hearing_augmentation",
-    label: "Hearing augmentation",
-    defaultValue: true,
-  },
-  {
-    ontologyConceptId: "self_care_continence.accessible_toilet",
-    domain: "self_care_continence",
-    attribute: "accessible_toilet",
-    label: "Accessible toilet",
-    defaultValue: true,
-  },
-  {
-    ontologyConceptId: "sensory_regulation.quiet_space",
-    domain: "sensory_regulation",
-    attribute: "quiet_space",
-    label: "Quiet space available",
-    defaultValue: true,
-  },
-  {
-    ontologyConceptId: "speech_communication.text_fallback",
-    domain: "speech_communication",
-    attribute: "text_fallback",
-    label: "Text communication option",
-    defaultValue: true,
-  },
-  {
-    ontologyConceptId: "transport.accessible_vehicle",
-    domain: "transport",
-    attribute: "accessible_vehicle",
-    label: "Accessible vehicle",
-    defaultValue: true,
-  },
-  {
-    ontologyConceptId: "emergency.accessible_exit_information",
-    domain: "emergency",
-    attribute: "accessible_exit_information",
-    label: "Accessible exit information",
-    defaultValue: true,
-  },
-];
 
 const UI_SECTIONS: Array<{ title: string; domains: AccessDomain[] }> = [
   { title: "Movement", domains: ["mobility_movement", "reach_strength_dexterity"] },
@@ -135,16 +73,21 @@ export function MyAccessForm({
   visibilityDefault,
 }: {
   initialRequirements: MyAccessRequirement[];
-  visibilityDefault: "private" | "request_scoped" | "approved_service";
+  visibilityDefault: PassportVisibilityDefault;
 }) {
   const router = useRouter();
   const [requirements, setRequirements] =
     useState<MyAccessRequirement[]>(initialRequirements);
-  const [visibility, setVisibility] = useState(visibilityDefault);
+  const [visibility, setVisibility] =
+    useState<PassportVisibilityDefault>(visibilityDefault);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [addError, setAddError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [addConceptId, setAddConceptId] = useState(COMMON_CONCEPTS[0]!.ontologyConceptId);
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [addConceptId, setAddConceptId] = useState(
+    COMMON_ACCESS_CONCEPTS[0]!.ontologyConceptId,
+  );
   const [addCriticality, setAddCriticality] =
     useState<(typeof ACCESS_CRITICALITIES)[number]>("required");
 
@@ -157,7 +100,19 @@ export function MyAccessForm({
     return map;
   }, [requirements]);
 
-  async function save(next: MyAccessRequirement[], nextVisibility = visibility) {
+  const firstRunConcepts = useMemo(
+    () =>
+      FIRST_RUN_CONCEPT_IDS.map((id) =>
+        COMMON_ACCESS_CONCEPTS.find((c) => c.ontologyConceptId === id),
+      ).filter((c): c is (typeof COMMON_ACCESS_CONCEPTS)[number] => Boolean(c)),
+    [],
+  );
+
+  async function save(
+    next: MyAccessRequirement[],
+    nextVisibility = visibility,
+    successMessage = "Saved. You control what is shared.",
+  ) {
     setLoading(true);
     setError("");
     setStatus("");
@@ -197,7 +152,7 @@ export function MyAccessForm({
           disclosureScopes: r.disclosureScopes ?? ["private"],
         })),
       );
-      setStatus("Saved. You control what is shared.");
+      setStatus(successMessage);
       router.refresh();
     } catch {
       setError("Could not save My Access. Check your connection and try again.");
@@ -206,9 +161,19 @@ export function MyAccessForm({
     }
   }
 
-  function addRequirement() {
-    const concept = COMMON_CONCEPTS.find((c) => c.ontologyConceptId === addConceptId);
-    if (!concept) return;
+  function addRequirementFromConcept(
+    conceptId: string,
+    criticality: (typeof ACCESS_CRITICALITIES)[number] = addCriticality,
+  ) {
+    setAddError("");
+    setError("");
+    const concept = COMMON_ACCESS_CONCEPTS.find(
+      (c) => c.ontologyConceptId === conceptId,
+    );
+    if (!concept) {
+      setAddError("Choose an access need to add.");
+      return;
+    }
     if (requirements.some((r) => r.ontologyConceptId === concept.ontologyConceptId)) {
       setError("That access need is already on your passport.");
       return;
@@ -221,7 +186,7 @@ export function MyAccessForm({
       comparator: concept.defaultComparator ?? "eq",
       value: concept.defaultValue,
       unit: concept.unit ?? null,
-      criticality: addCriticality,
+      criticality,
       contextScope: "always",
       timing: "permanent",
       assistance: "independent",
@@ -230,7 +195,11 @@ export function MyAccessForm({
     };
     const updated = [...requirements, next];
     setRequirements(updated);
-    void save(updated);
+    void save(updated, visibility, "Added. You control what is shared.");
+  }
+
+  function addRequirement() {
+    addRequirementFromConcept(addConceptId, addCriticality);
   }
 
   async function removeRequirement(id: string) {
@@ -238,6 +207,8 @@ export function MyAccessForm({
     if (!target) return;
     if (id.startsWith("tmp_")) {
       setRequirements((prev) => prev.filter((r) => r.id !== id));
+      setConfirmRemoveId(null);
+      setStatus("Removed.");
       return;
     }
     setLoading(true);
@@ -266,6 +237,7 @@ export function MyAccessForm({
         return;
       }
       setRequirements(data.passport.requirements);
+      setConfirmRemoveId(null);
       setStatus("Removed.");
       router.refresh();
     } catch {
@@ -282,7 +254,7 @@ export function MyAccessForm({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" aria-busy={loading || undefined}>
       <div
         role="status"
         aria-live="polite"
@@ -307,23 +279,75 @@ export function MyAccessForm({
           Functional access information only — not a medical assessment. You decide
           what to share with each service.
         </p>
-        <AccessibleFormField id="visibility-default" label="Default visibility">
+        <AccessibleFormField
+          id="visibility-default"
+          label="Default visibility"
+          hint="Changes apply only after you save sharing."
+        >
           <select
             id="visibility-default"
             className={formInputClass}
             value={visibility}
-            onChange={(e) => {
-              const v = e.target.value as typeof visibility;
-              setVisibility(v);
-              void save(requirements, v);
-            }}
+            disabled={loading}
+            onChange={(e) =>
+              setVisibility(e.target.value as PassportVisibilityDefault)
+            }
           >
-            <option value="private">Private (default)</option>
-            <option value="request_scoped">Share per request</option>
-            <option value="approved_service">Approved services</option>
+            {(Object.keys(VISIBILITY_LABELS) as PassportVisibilityDefault[]).map(
+              (key) => (
+                <option key={key} value={key}>
+                  {VISIBILITY_LABELS[key]}
+                </option>
+              ),
+            )}
           </select>
         </AccessibleFormField>
+        <Button
+          type="button"
+          onClick={() =>
+            void save(requirements, visibility, "Sharing saved. You control what is shared.")
+          }
+          disabled={loading}
+          className="min-h-11"
+        >
+          Save sharing
+        </Button>
       </section>
+
+      {requirements.length === 0 ? (
+        <section
+          aria-labelledby="my-access-first-run-heading"
+          className="space-y-3 rounded-xl border border-border bg-card p-4"
+        >
+          <h2
+            id="my-access-first-run-heading"
+            className="font-heading text-lg font-semibold"
+          >
+            Start with 3 common needs
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Add a few functional needs to get personalised place results. You can
+            change or remove them anytime.
+          </p>
+          <ul className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            {firstRunConcepts.map((concept) => (
+              <li key={concept.ontologyConceptId}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 w-full sm:w-auto"
+                  disabled={loading}
+                  onClick={() =>
+                    addRequirementFromConcept(concept.ontologyConceptId, "required")
+                  }
+                >
+                  Add {concept.label}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="my-access-add-heading"
@@ -333,14 +357,22 @@ export function MyAccessForm({
           Add an access need
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
-          <AccessibleFormField id="add-concept" label="Access need">
+          <AccessibleFormField
+            id="add-concept"
+            label="Access need"
+            error={addError || undefined}
+          >
             <select
               id="add-concept"
               className={formInputClass}
               value={addConceptId}
-              onChange={(e) => setAddConceptId(e.target.value)}
+              disabled={loading}
+              onChange={(e) => {
+                setAddConceptId(e.target.value);
+                setAddError("");
+              }}
             >
-              {COMMON_CONCEPTS.map((c) => (
+              {COMMON_ACCESS_CONCEPTS.map((c) => (
                 <option key={c.ontologyConceptId} value={c.ontologyConceptId}>
                   {c.label}
                 </option>
@@ -352,19 +384,25 @@ export function MyAccessForm({
               id="add-criticality"
               className={formInputClass}
               value={addCriticality}
+              disabled={loading}
               onChange={(e) =>
                 setAddCriticality(e.target.value as typeof addCriticality)
               }
             >
               {ACCESS_CRITICALITIES.map((c) => (
                 <option key={c} value={c}>
-                  {c.replace(/_/g, " ")}
+                  {CRITICALITY_LABELS[c]}
                 </option>
               ))}
             </select>
           </AccessibleFormField>
         </div>
-        <Button type="button" onClick={addRequirement} disabled={loading}>
+        <Button
+          type="button"
+          onClick={addRequirement}
+          disabled={loading}
+          className="min-h-11"
+        >
           Add to My Access
         </Button>
       </section>
@@ -394,20 +432,51 @@ export function MyAccessForm({
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <p className="font-medium">{req.ontologyConceptId}</p>
+                        <p className="font-medium">
+                          {labelForConceptId(req.ontologyConceptId)}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {ACCESS_DOMAIN_LABELS[req.domain]}
                         </p>
+                        <p className="text-xs text-muted-foreground">
+                          ID: {req.ontologyConceptId}
+                        </p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void removeRequirement(req.id)}
-                        disabled={loading}
-                      >
-                        Remove
-                      </Button>
+                      {confirmRemoveId === req.id ? (
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="min-h-11"
+                            disabled={loading}
+                            onClick={() => void removeRequirement(req.id)}
+                          >
+                            Confirm remove
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="min-h-11"
+                            disabled={loading}
+                            onClick={() => setConfirmRemoveId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="min-h-11"
+                          onClick={() => setConfirmRemoveId(req.id)}
+                          disabled={loading}
+                        >
+                          Remove
+                        </Button>
+                      )}
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <AccessibleFormField
@@ -418,6 +487,7 @@ export function MyAccessForm({
                           id={`${req.id}-criticality`}
                           className={formInputClass}
                           value={req.criticality}
+                          disabled={loading}
                           onChange={(e) =>
                             updateLocal(req.id, {
                               criticality: e.target
@@ -427,7 +497,7 @@ export function MyAccessForm({
                         >
                           {ACCESS_CRITICALITIES.map((c) => (
                             <option key={c} value={c}>
-                              {c.replace(/_/g, " ")}
+                              {CRITICALITY_LABELS[c]}
                             </option>
                           ))}
                         </select>
@@ -440,6 +510,7 @@ export function MyAccessForm({
                           id={`${req.id}-disclosure`}
                           className={formInputClass}
                           value={req.disclosureScopes[0] ?? "private"}
+                          disabled={loading}
                           onChange={(e) =>
                             updateLocal(req.id, {
                               disclosureScopes: [e.target.value],
@@ -448,7 +519,7 @@ export function MyAccessForm({
                         >
                           {ACCESS_DISCLOSURE_SCOPES.map((s) => (
                             <option key={s} value={s}>
-                              {s.replace(/_/g, " ")}
+                              {DISCLOSURE_SCOPE_LABELS[s]}
                             </option>
                           ))}
                         </select>
@@ -460,6 +531,7 @@ export function MyAccessForm({
                             type="number"
                             className={formInputClass}
                             value={req.value}
+                            disabled={loading}
                             onChange={(e) =>
                               updateLocal(req.id, {
                                 value: Number(e.target.value),
@@ -472,6 +544,7 @@ export function MyAccessForm({
                     <Button
                       type="button"
                       size="sm"
+                      className="min-h-11"
                       onClick={() => void save(requirements)}
                       disabled={loading}
                     >
