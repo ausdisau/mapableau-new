@@ -24,7 +24,9 @@ test.describe("My Access passport (flags on)", () => {
     page,
   }) => {
     expect(new URL(page.url()).pathname).toBe("/my-access");
-    await expect(page.getByRole("heading", { name: "My Access" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "My Access" }),
+    ).toBeVisible();
     await expectMainLandmark(page);
     await expectNoSeriousAxe(page, "/my-access");
   });
@@ -32,7 +34,9 @@ test.describe("My Access passport (flags on)", () => {
   test("keyboard: sharing save and first-run or add controls are reachable", async ({
     page,
   }) => {
-    await expect(page.getByRole("button", { name: "Save sharing" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Save sharing" }),
+    ).toBeVisible();
 
     const firstRun = page.getByRole("heading", {
       name: "Start with 3 common needs",
