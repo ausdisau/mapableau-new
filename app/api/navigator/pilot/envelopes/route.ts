@@ -1,8 +1,13 @@
 import { z } from "zod";
 
 import {
+  assertNavigatorPilotAccess,
+  navigatorAccessErrorCode,
+} from "@/lib/ai/navigator/access";
+import {
   createGovernedActionEnvelope,
   getGovernedActionEnvelope,
+  toPublicGovernedEnvelope,
 } from "@/lib/ai/navigator/envelopes/service";
 import {
   NAVIGATOR_CONSENT_PURPOSE,
@@ -71,6 +76,15 @@ export async function POST(req: Request) {
 
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
+
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
+  }
 
   const gate = await assertNavigatorCapability({
     capabilityKey: parsed.data.capabilityKey,
@@ -149,9 +163,13 @@ export async function GET(req: Request) {
   });
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  // Actor must be the participant (or later: authorised delegate — Phase 2 UI).
-  if (user.id !== parsed.data.participantId) {
-    return jsonError("FORBIDDEN", 403);
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
   const envelope = await getGovernedActionEnvelope({
@@ -163,15 +181,15 @@ export async function GET(req: Request) {
     return jsonError("NAVIGATOR_ENVELOPE_NOT_FOUND", 404);
   }
 
+  const publicEnvelope = toPublicGovernedEnvelope(envelope);
   return jsonOk({
     envelope: {
-      id: envelope.id,
-      status: envelope.status,
-      action: envelope.action,
-      expiresAt: envelope.expiresAt,
-      payloadHash: envelope.payloadHash,
+      id: publicEnvelope.id,
+      status: publicEnvelope.status,
+      action: publicEnvelope.action,
+      expiresAt: publicEnvelope.expiresAt,
+      payloadHash: publicEnvelope.payloadHash,
       draftOnly: true,
-      // Nonce intentionally omitted from client responses.
     },
   });
 }

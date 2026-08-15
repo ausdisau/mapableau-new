@@ -463,7 +463,6 @@ describe("Navigator Phase 1 — governed envelopes", () => {
         participantId: "p1",
         approverUserId: "p1",
         approverRole: "participant",
-        consentStillValid: true,
       }),
     ).rejects.toThrow("NAVIGATOR_ENVELOPE_EXPIRED");
 
@@ -481,8 +480,43 @@ describe("Navigator Phase 1 — governed envelopes", () => {
         participantId: "p1",
         approverUserId: "model",
         approverRole: "model",
-        consentStillValid: true,
       }),
     ).rejects.toThrow("NAVIGATOR_ENVELOPE_MODEL_CANNOT_APPROVE");
+
+    // Consumed envelope → replay blocked
+    vi.mocked(prisma.governedActionEnvelope.findFirst).mockResolvedValueOnce({
+      ...created,
+      payloadJson: created.payload,
+      status: "executed_draft",
+      expiresAt: new Date(Date.now() + 60_000),
+    } as never);
+    await expect(
+      approveGovernedActionEnvelope({
+        envelopeId: created.id,
+        tenantId: "t1",
+        participantId: "p1",
+        approverUserId: "p1",
+        approverRole: "participant",
+      }),
+    ).rejects.toThrow("NAVIGATOR_ENVELOPE_NOT_PROPOSED");
+
+    // Consent withdrawn between propose and approve
+    vi.mocked(prisma.governedActionEnvelope.findFirst).mockResolvedValueOnce({
+      ...created,
+      payloadJson: created.payload,
+      status: "proposed",
+      expiresAt: new Date(Date.now() + 60_000),
+    } as never);
+    vi.mocked(prisma.consentRecord.findMany).mockResolvedValueOnce([]);
+    await expect(
+      approveGovernedActionEnvelope({
+        envelopeId: created.id,
+        tenantId: "t1",
+        participantId: "p1",
+        approverUserId: "p1",
+        approverRole: "participant",
+        consentStillValid: true, // caller boolean must be ignored
+      }),
+    ).rejects.toThrow("NAVIGATOR_ENVELOPE_CONSENT_INVALID");
   });
 });

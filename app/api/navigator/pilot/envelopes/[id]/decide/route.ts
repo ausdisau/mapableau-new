@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 import {
+  assertNavigatorPilotAccess,
+  navigatorAccessErrorCode,
+} from "@/lib/ai/navigator/access";
+import {
   approveGovernedActionEnvelope,
   rejectGovernedActionEnvelope,
 } from "@/lib/ai/navigator/envelopes/service";
-import {
-  NAVIGATOR_CONSENT_PURPOSE,
-  verifyPurposeConsent,
-} from "@/lib/ai/navigator/consent-gate";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import {
@@ -33,7 +33,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * Approve (draft materialise) or reject a governed envelope.
- * Never books or pays. Revalidates consent and feature flags.
+ * Never books or pays. Consent is re-verified inside the envelope service.
  */
 export async function POST(req: Request, ctx: Ctx) {
   if (!isNavigatorEnvelopesEnabled()) {
@@ -66,8 +66,13 @@ export async function POST(req: Request, ctx: Ctx) {
   const parsed = decideSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  if (user.id !== parsed.data.participantId) {
-    return jsonError("FORBIDDEN", 403);
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
   if (parsed.data.decision === "reject") {
@@ -87,16 +92,6 @@ export async function POST(req: Request, ctx: Ctx) {
     }
   }
 
-  const consent = await verifyPurposeConsent({
-    tenantId: parsed.data.tenantId,
-    participantId: parsed.data.participantId,
-    actorUserId: user.id,
-    scope: "profile.read",
-    purpose: NAVIGATOR_CONSENT_PURPOSE,
-    action: "approve_draft_envelope",
-    delegationDomain: "navigator",
-  });
-
   try {
     const envelope = await approveGovernedActionEnvelope({
       envelopeId: id,
@@ -105,7 +100,6 @@ export async function POST(req: Request, ctx: Ctx) {
       approverUserId: user.id,
       approverRole: parsed.data.approverRole,
       reason: parsed.data.reason,
-      consentStillValid: consent.ok,
     });
     return jsonOk({
       envelope: {

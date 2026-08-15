@@ -402,6 +402,17 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
       },
       consumedAt: new Date(),
     } as never);
+    vi.mocked(prisma.consentRecord.findMany).mockResolvedValue([
+      {
+        id: "c-ok",
+        purpose: NAVIGATOR_CONSENT_PURPOSE,
+        status: "active",
+        expiryDate: new Date(Date.now() + 60_000),
+        dataScope: null,
+        sourceAction: null,
+        createdAt: new Date(),
+      } as never,
+    ]);
 
     const approved = await approveGovernedActionEnvelope({
       envelopeId: "env-transfer-1",
@@ -409,7 +420,6 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
       participantId: "p1",
       approverUserId: "p1",
       approverRole: "participant",
-      consentStillValid: true,
     });
 
     expect(approved.status).toBe("executed_draft");

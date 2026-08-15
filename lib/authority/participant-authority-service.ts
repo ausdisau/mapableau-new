@@ -92,6 +92,11 @@ export async function revokeParticipantAuthority(input: {
 export async function hasParticipantAuthority(input: {
   participantId: string;
   actorUserId: string;
+  /**
+   * Accepted for API compatibility. The grant table has no tenantId column —
+   * do not filter on a non-existent field. Tenant binding belongs at the
+   * Navigator pilot access layer (membership check).
+   */
   tenantId?: string;
   domain: string;
   action: string;
@@ -100,6 +105,9 @@ export async function hasParticipantAuthority(input: {
 }) {
   if (input.participantId === input.actorUserId) return true;
   const now = input.now ?? new Date();
+  // Canonical evaluator reads delegateId + domain + actions (lib/authority writer).
+  // tenantId is intentionally ignored: ParticipantAuthorityGrant has no such column.
+  void input.tenantId;
   const grant = await prisma.participantAuthorityGrant.findFirst({
     where: {
       participantId: input.participantId,
@@ -108,8 +116,7 @@ export async function hasParticipantAuthority(input: {
       actions: { has: input.action },
       revokedAt: null,
       expiresAt: { gt: now },
-      ...(input.tenantId ? { tenantId: input.tenantId } : {}),
-    } as any,
+    },
   });
   if (!grant) return false;
   return (input.consentScopes ?? []).every((scope) =>

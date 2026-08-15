@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type { ActHandoff } from "@prisma/client";
 
+import { isA2hHandoffEnabled } from "@/lib/act/flags";
 import {
   createActHandoffFromHitl,
   getActHandoffForTenant,
@@ -28,12 +29,17 @@ export type NavigatorEscalationReason =
 export const EMERGENCY_GUIDANCE_AU =
   "This may be an emergency.\n\nPlease call 000 now if anyone is in immediate danger.\n\nA MapAble team member will also be notified. If you can, move to a safer place and ask a trusted person nearby for help.\n\nFor crisis support you can also call Lifeline on 13 11 14.";
 
+export const EMERGENCY_GUIDANCE_AU_OPS_UNAVAILABLE =
+  "This may be an emergency.\n\nPlease call 000 now if anyone is in immediate danger.\n\nMapAble human review is temporarily unavailable in this environment — do not wait for an in-app response. If you can, move to a safer place and ask a trusted person nearby for help.\n\nFor crisis support you can also call Lifeline on 13 11 14.";
+
 export type NavigatorEscalationResult = {
   handoffId: string | null;
   status: string | null;
   reason: NavigatorEscalationReason;
   emergencyGuidance: string | null;
   message: string;
+  /** Whether a human reviewer was actually assigned via A2H. */
+  assignment: "assigned" | "unavailable";
 };
 
 function assertReason(
@@ -46,7 +52,28 @@ function assertReason(
   }
 }
 
-function escalationMessage(reason: NavigatorEscalationReason): string {
+function escalationMessage(
+  reason: NavigatorEscalationReason,
+  assignment: "assigned" | "unavailable",
+): string {
+  if (assignment === "unavailable") {
+    switch (reason) {
+      case "immediate_danger":
+        return "Emergency guidance provided. In-app human review is unavailable — use 000 / Lifeline now.";
+      case "unclear_consent":
+      case "participant_request":
+      case "no_safe_match":
+      case "model_failure":
+      case "safeguarding_language":
+      case "stale_data":
+        return "Human review could not be assigned right now. Your request was recorded; try again later or use Provider Finder.";
+      default: {
+        const _exhaustive: never = reason;
+        return _exhaustive;
+      }
+    }
+  }
+
   switch (reason) {
     case "unclear_consent":
       return "We could not confirm consent clearly. A human reviewer will follow up.";
@@ -70,7 +97,8 @@ function escalationMessage(reason: NavigatorEscalationReason): string {
 }
 
 function buildHitlDecision(reason: NavigatorEscalationReason): HarnessDecision {
-  const critical = reason === "immediate_danger" || reason === "safeguarding_language";
+  const critical =
+    reason === "immediate_danger" || reason === "safeguarding_language";
   const gamma = critical ? 90 : 60;
   return {
     outcome: "HITL_PENDING",
@@ -94,6 +122,7 @@ function buildHitlDecision(reason: NavigatorEscalationReason): HarnessDecision {
 /**
  * Create a Navigator escalation via ActHandoff (A2H).
  * Requires tenantId + participantId. Does not let the model adjudicate danger.
+ * When A2H flags are off, does not claim a reviewer was assigned.
  */
 export async function createNavigatorEscalation(input: {
   tenantId: string;
@@ -117,8 +146,51 @@ export async function createNavigatorEscalation(input: {
 
   assertReason(input.reason);
 
+  const a2hEnabled = isA2hHandoffEnabled();
   const emergencyGuidance =
-    input.reason === "immediate_danger" ? EMERGENCY_GUIDANCE_AU : null;
+    input.reason === "immediate_danger"
+      ? a2hEnabled
+        ? EMERGENCY_GUIDANCE_AU
+        : EMERGENCY_GUIDANCE_AU_OPS_UNAVAILABLE
+      : null;
+
+  if (!a2hEnabled) {
+    if (input.passportId) {
+      await prisma.navigatorDecisionPassport.updateMany({
+        where: {
+          id: input.passportId,
+          tenantId: input.tenantId,
+          participantId: input.participantId,
+        },
+        data: { status: "escalated" },
+      });
+    }
+
+    await createAuditEvent({
+      actorUserId: input.actorUserId,
+      participantId: input.participantId,
+      action: NAVIGATOR_AUDIT.escalationCreated,
+      entityType: "ActHandoff",
+      entityId: "unavailable",
+      metadata: {
+        tenantId: input.tenantId,
+        reason: input.reason,
+        emergencyGuidanceReturned: Boolean(emergencyGuidance),
+        handoffCreated: false,
+        assignment: "unavailable",
+        pendingOps: true,
+      },
+    });
+
+    return {
+      handoffId: null,
+      status: "pending_ops",
+      reason: input.reason,
+      emergencyGuidance,
+      message: escalationMessage(input.reason, "unavailable"),
+      assignment: "unavailable",
+    };
+  }
 
   const fingerprint = createHash("sha256")
     .update(
@@ -155,6 +227,10 @@ export async function createNavigatorEscalation(input: {
     participantId: input.participantId,
   });
 
+  const assignment: "assigned" | "unavailable" = handoff
+    ? "assigned"
+    : "unavailable";
+
   if (input.passportId) {
     await prisma.navigatorDecisionPassport.updateMany({
       where: {
@@ -177,15 +253,20 @@ export async function createNavigatorEscalation(input: {
       reason: input.reason,
       emergencyGuidanceReturned: Boolean(emergencyGuidance),
       handoffCreated: Boolean(handoff),
+      assignment,
     },
   });
 
   return {
     handoffId: handoff?.id ?? null,
-    status: handoff?.status ?? null,
+    status: handoff?.status ?? "pending_ops",
     reason: input.reason,
-    emergencyGuidance,
-    message: escalationMessage(input.reason),
+    emergencyGuidance:
+      input.reason === "immediate_danger" && assignment === "unavailable"
+        ? EMERGENCY_GUIDANCE_AU_OPS_UNAVAILABLE
+        : emergencyGuidance,
+    message: escalationMessage(input.reason, assignment),
+    assignment,
   };
 }
 
@@ -196,7 +277,13 @@ export async function getEscalationStatus(input: {
   actorUserId: string;
 }): Promise<Pick<
   ActHandoff,
-  "id" | "status" | "tenantId" | "participantId" | "reason" | "createdAt" | "resolvedAt"
+  | "id"
+  | "status"
+  | "tenantId"
+  | "participantId"
+  | "reason"
+  | "createdAt"
+  | "resolvedAt"
 > | null> {
   if (!input.tenantId?.trim()) {
     throw new Error("NAVIGATOR_ESCALATION_TENANT_REQUIRED");
