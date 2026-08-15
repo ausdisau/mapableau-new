@@ -70,6 +70,10 @@ const PROTECTED: Array<[method: string, path: string]> = [
   ["POST", "/api/ndis/sync-plan"],
   ["GET", "/api/ndis/price-guide"],
   ["POST", "/api/ndis/validate-rate"],
+  // participant SLA
+  ["GET", "/api/sla/modules"],
+  ["POST", "/api/sla/generate"],
+  ["POST", "/api/sla/1/accept"],
   // pricing-billing
   ["PATCH", "/api/invoices/1/status"],
   // geo (requireRole admin)

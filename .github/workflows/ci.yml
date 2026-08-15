@@ -60,6 +60,9 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Conflict rectifier
+        run: pnpm ci:rectify-conflicts
+
       - name: Prisma validate
         run: pnpm exec prisma validate
 

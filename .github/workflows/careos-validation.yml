@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      NODE_OPTIONS: --max-old-space-size=8192
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_test
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_test
       MAPABLE_AI_APPROVAL_SECRET: ci-only-careos-approval-secret-at-least-32-characters
