@@ -11,6 +11,10 @@ import {
   ACCESS_OBSERVATION_SOURCE_TYPES,
 } from "@/lib/access/infrastructure/provenance";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import {
+  UnsafePayloadError,
+  verifyObjectPayloadSafe,
+} from "@/lib/security/verify-payload-safe";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +100,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const safety = verifyObjectPayloadSafe(parsed.data);
+    if (!safety.ok) {
+      return NextResponse.json(
+        { error: safety.reason, code: safety.code },
+        { status: 422 },
+      );
+    }
+
     const observation = await createAccessObservation({
       ...parsed.data,
       observerUserId: session.user.id,
@@ -111,6 +123,12 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (err) {
+    if (err instanceof UnsafePayloadError) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: 422 },
+      );
+    }
     if (err instanceof AccessGraphError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }

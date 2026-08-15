@@ -5,6 +5,7 @@ import {
   sendMessage,
   userCanAccessConversation,
 } from "@/lib/messages/message-service";
+import { UnsafePayloadError } from "@/lib/security/verify-payload-safe";
 
 export async function POST(
   req: Request,
@@ -35,7 +36,10 @@ export async function POST(
       attachmentDocumentIds,
     });
     return jsonOk({ message }, 201);
-  } catch {
+  } catch (err) {
+    if (err instanceof UnsafePayloadError) {
+      return jsonError(err.message, 422);
+    }
     return jsonError("Message could not be sent", 400);
   }
 }

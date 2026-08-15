@@ -7,6 +7,10 @@ import { isAdminRole } from "@/lib/auth/roles";
 import { encryptNdisNumber, maskNdisNumber } from "@/lib/crypto/ndis";
 import { prisma } from "@/lib/prisma";
 import {
+  UnsafePayloadError,
+  verifyPayloadSafe,
+} from "@/lib/security/verify-payload-safe";
+import {
   adminParticipantUpdateSchema,
   participantProfileSchema,
 } from "@/lib/validation/participant";
@@ -73,6 +77,20 @@ export async function PATCH(req: Request) {
         adminNotes?: string | null;
       };
 
+    for (const [field, value] of [
+      ["participantNotes", data.participantNotes],
+      ["adminNotes", adminNotes],
+      ["displayName", data.displayName],
+      ["preferredName", data.preferredName],
+    ] as const) {
+      if (typeof value === "string" && value.length > 0) {
+        const check = verifyPayloadSafe(value, { field });
+        if (!check.ok) {
+          throw new UnsafePayloadError(check.reason);
+        }
+      }
+    }
+
     const profilePayload = {
       displayName: data.displayName ?? user.name,
       preferredName: data.preferredName,
@@ -114,6 +132,9 @@ export async function PATCH(req: Request) {
     });
   } catch (e) {
     if (e instanceof ZodError) return zodErrorResponse(e);
+    if (e instanceof UnsafePayloadError) {
+      return jsonError(e.message, 422);
+    }
     return jsonError("Update failed", 500);
   }
 }

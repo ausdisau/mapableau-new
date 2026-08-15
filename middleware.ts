@@ -19,10 +19,77 @@ import {
   resolveEmbedFrameAncestors,
 } from "@/lib/security/headers";
 import {
+  checkEdgeSlidingWindowRateLimit,
+  getEdgeClientIp,
+  isAiScraperUserAgent,
+  isProtectedFirewallPath,
+  isRateLimitExemptPath,
+  searchParamsContainPromptInjection,
+} from "@/lib/security/edge-ai-firewall";
+import {
   CORRELATION_ID_HEADER,
   REQUEST_ID_HEADER,
   resolveCorrelationId,
 } from "@/lib/security/request-correlation";
+
+/**
+ * Layer A — Edge AI firewall for /api, /admin, /dashboard:
+ * scraper UA block, prompt-injection query drop, process-local sliding window.
+ */
+function applyEdgeAiFirewall(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl;
+  if (!isProtectedFirewallPath(pathname)) {
+    return null;
+  }
+
+  if (isAiScraperUserAgent(request.headers.get("user-agent"))) {
+    return NextResponse.json(
+      { error: "Forbidden", code: "AI_SCRAPER_BLOCKED" },
+      {
+        status: 403,
+        headers: {
+          "Cache-Control": "no-store",
+          "X-Robots-Tag": "noindex, nofollow",
+        },
+      },
+    );
+  }
+
+  if (searchParamsContainPromptInjection(request.nextUrl.searchParams)) {
+    return NextResponse.json(
+      {
+        error: "Unprocessable Entity",
+        code: "PROMPT_INJECTION_QUERY_BLOCKED",
+      },
+      {
+        status: 422,
+        headers: {
+          "Cache-Control": "no-store",
+          "X-Robots-Tag": "noindex, nofollow",
+        },
+      },
+    );
+  }
+
+  if (!isRateLimitExemptPath(pathname)) {
+    const limit = checkEdgeSlidingWindowRateLimit(getEdgeClientIp(request));
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Too Many Requests", code: "EDGE_RATE_LIMITED" },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(limit.retryAfterSec),
+            "Cache-Control": "no-store",
+            "X-Robots-Tag": "noindex, nofollow",
+          },
+        },
+      );
+    }
+  }
+
+  return null;
+}
 
 /** Match NextAuth secure cookie naming on HTTPS (Vercel, production). */
 function usesSecureSessionCookies(request: NextRequest): boolean {
@@ -157,6 +224,16 @@ export default async function middleware(request: NextRequest) {
     request.headers.get(CORRELATION_ID_HEADER) ??
       request.headers.get(REQUEST_ID_HEADER),
   );
+
+  const firewallResponse = applyEdgeAiFirewall(request);
+  if (firewallResponse) {
+    return withCorrelationAndCsp(
+      firewallResponse,
+      correlationId,
+      enforcePolicy,
+      embedRoute,
+    );
+  }
 
   const requestHeaders = buildForwardRequestHeaders(
     request,
