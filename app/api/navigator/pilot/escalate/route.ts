@@ -5,9 +5,14 @@ import {
   navigatorAccessErrorCode,
 } from "@/lib/ai/navigator/access";
 import {
+  NAVIGATOR_CONSENT_PURPOSE,
+  verifyPurposeConsent,
+} from "@/lib/ai/navigator/consent-gate";
+import {
   createNavigatorEscalation,
   NAVIGATOR_ESCALATION_REASONS,
 } from "@/lib/ai/navigator/escalation/service";
+import { assertNavigatorCapability } from "@/lib/ai/navigator/gates";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import {
@@ -66,6 +71,29 @@ export async function POST(req: Request) {
   });
   if (!access.ok) {
     return jsonError(navigatorAccessErrorCode(access.reason), 403);
+  }
+
+  const gate = await assertNavigatorCapability({
+    capabilityKey: "navigator.provider_search.escalate",
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!gate.allowed) {
+    return jsonError(`NAVIGATOR_GATE_DENIED:${gate.reason}`, 403);
+  }
+
+  const consent = await verifyPurposeConsent({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+    scope: "profile.read",
+    purpose: NAVIGATOR_CONSENT_PURPOSE,
+    action: "escalate",
+    delegationDomain: "navigator",
+  });
+  if (!consent.ok) {
+    return jsonError(`NAVIGATOR_CONSENT_${consent.reason.toUpperCase()}`, 403);
   }
 
   try {

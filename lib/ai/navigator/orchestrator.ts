@@ -7,6 +7,7 @@ import {
   assertNavigatorActionAllowed,
   assertNavigatorCapability,
 } from "@/lib/ai/navigator/gates";
+import { applyMemoryToHardConstraints } from "@/lib/ai/navigator/memory/apply-to-constraints";
 import { applyHardConstraints } from "@/lib/ai/navigator/matching/hard-constraints";
 import { buildMatchResult } from "@/lib/ai/navigator/matching/rank";
 import { ndisProviderHardFilter } from "@/lib/ai/navigator/matching/search-tool";
@@ -19,7 +20,10 @@ import {
   type MatchResult,
   type RankingWeights,
 } from "@/lib/ai/navigator/matching/types";
-import { createDecisionPassport } from "@/lib/ai/navigator/passport/service";
+import {
+  createDecisionPassport,
+  hasActiveAiOptOut,
+} from "@/lib/ai/navigator/passport/service";
 import {
   isNavigatorMatchingEnabled,
   isNavigatorPassportEnabled,
@@ -219,6 +223,29 @@ export async function runNavigatorProviderSearchTurn(
   // Permanent prohibitions — never book/pay/dispatch from this path.
   assertNavigatorActionAllowed("search_providers");
 
+  // Passport-level AI opt-out (retained Decision Passport) blocks the assisted
+  // Navigator path. Body `aiOptedOut` only disables model assistance.
+  const passportOptedOut = await hasActiveAiOptOut({
+    tenantId: input.tenantId,
+    participantId: input.participantId,
+    sessionId: input.sessionId,
+  });
+
+  if (passportOptedOut) {
+    return {
+      status: "blocked",
+      interpretation: passthroughInterpretation({
+        ...input,
+        aiOptedOut: true,
+      }),
+      match: null,
+      draftEnvelopeId: null,
+      transferEnvelopeId: null,
+      passportId: null,
+      reason: "ai_opted_out",
+    };
+  }
+
   const consentAction =
     input.consentAction ??
     (input.interpretationConfirmed ? "match" : "interpret");
@@ -246,7 +273,11 @@ export async function runNavigatorProviderSearchTurn(
     };
   }
 
-  const constraints = hardConstraintsSchema.parse(input.hardConstraints);
+  const constraints = await applyMemoryToHardConstraints({
+    tenantId: input.tenantId,
+    participantId: input.participantId,
+    constraints: hardConstraintsSchema.parse(input.hardConstraints),
+  });
   const weights = rankingWeightsSchema.parse(
     input.rankingWeights ?? DEFAULT_RANKING_WEIGHTS,
   );

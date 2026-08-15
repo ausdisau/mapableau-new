@@ -33,10 +33,16 @@ export const hardConstraintsSchema = z.array(hardConstraintSchema).max(50);
 
 export const rankingWeightsSchema = z
   .object({
+    // Canonical matching keys (preferred).
+    continuity: z.number().min(0).max(1).optional(),
+    participantPreference: z.number().min(0).max(1).optional(),
+    verifiedAccessibility: z.number().min(0).max(1).optional(),
+    travelBurden: z.number().min(0).max(1).optional(),
+    availability: z.number().min(0).max(1).optional(),
+    communicationFit: z.number().min(0).max(1).optional(),
+    // Legacy passport aliases — mapped onto matching keys at rematch time.
     proximity: z.number().min(0).max(1).optional(),
     accessibilityFit: z.number().min(0).max(1).optional(),
-    availability: z.number().min(0).max(1).optional(),
-    participantPreference: z.number().min(0).max(1).optional(),
     other: z.record(z.string(), z.number().min(0).max(1)).optional(),
   })
   .strict();

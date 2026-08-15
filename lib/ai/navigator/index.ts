@@ -43,6 +43,7 @@ export {
   rejectSuggestion,
   setAiOptOut,
   projectDecisionPassport,
+  hasActiveAiOptOut,
 } from "@/lib/ai/navigator/passport/service";
 export {
   passportCreateSchema,

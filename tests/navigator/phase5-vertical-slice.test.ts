@@ -53,6 +53,10 @@ vi.mock("@/lib/prisma", () => ({
     },
     navigatorDecisionPassport: {
       create: vi.fn(),
+      findFirst: vi.fn(),
+    },
+    navigatorGovernedMemoryItem: {
+      findMany: vi.fn(),
     },
     $queryRaw: vi.fn(),
   },
@@ -134,6 +138,12 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
     vi.mocked(prisma.governedActionEnvelope.updateMany).mockReset();
     vi.mocked(prisma.governedActionEnvelope.findUniqueOrThrow).mockReset();
     vi.mocked(prisma.navigatorDecisionPassport.create).mockReset();
+    vi.mocked(prisma.navigatorDecisionPassport.findFirst).mockResolvedValue(
+      null,
+    );
+    vi.mocked(prisma.navigatorGovernedMemoryItem.findMany).mockResolvedValue(
+      [],
+    );
     vi.mocked(createAuditEvent).mockClear();
     mockActiveConsent();
   });
