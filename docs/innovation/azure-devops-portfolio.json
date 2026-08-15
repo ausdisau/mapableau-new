@@ -1,0 +1,1598 @@
+{
+  "meta": {
+    "programme": "MapAble Innovation Portfolio",
+    "organisation": "Australian Disability Ltd",
+    "generatedAt": "2026-08-15T08:51:09.994Z",
+    "azureDevOpsItemsCreated": false,
+    "publicClaimsAllowed": false,
+    "featureFreezeActive": true,
+    "firstVerticalSlice": [
+      "01",
+      "02",
+      "03",
+      "07",
+      "08-thin"
+    ],
+    "recommendedNextEpic": "01"
+  },
+  "sharedCoreMapping": [
+    {
+      "requested": "User",
+      "mapping": "User — REUSE `prisma` User + NextAuth"
+    },
+    {
+      "requested": "Organisation",
+      "mapping": "Organisation / OrganisationMember — REUSE"
+    },
+    {
+      "requested": "Role",
+      "mapping": "MapAbleUserRole + UserRoleAssignment — REUSE (no Role model)"
+    },
+    {
+      "requested": "Membership",
+      "mapping": "OrganisationMember / TenantMembership — REUSE"
+    },
+    {
+      "requested": "DelegateGrant",
+      "mapping": "ParticipantAuthorityGrant + DelegateInvitation — EXTEND (do not create DelegateGrant)"
+    },
+    {
+      "requested": "ParticipantProfile",
+      "mapping": "ParticipantProfile — REUSE"
+    },
+    {
+      "requested": "AccessibilityPreference",
+      "mapping": "AccessibilityProfile (presentation) vs AccessPassport (functional) — REUSE both; keep separation C-010"
+    },
+    {
+      "requested": "CommunicationPreference",
+      "mapping": "JSON on AccessibilityProfile + types — EXTEND if G1 requires first-class record"
+    },
+    {
+      "requested": "MobilityAid",
+      "mapping": "JSON / AccessRequirement domain equipment_at — EXTEND; optional AtEquipmentAsset for AT Continuity"
+    },
+    {
+      "requested": "ConsentRecord",
+      "mapping": "ConsentRecord — REUSE lib/consent"
+    },
+    {
+      "requested": "DataPurpose",
+      "mapping": "purpose string on consent/authority — EXTEND toward typed DataPurpose if needed"
+    },
+    {
+      "requested": "DisclosureReceipt",
+      "mapping": "ConsentReceipt — EXTEND (tenant, field list, expiry/supersession gaps)"
+    },
+    {
+      "requested": "Provider / Worker",
+      "mapping": "Provider / Worker / WorkerProfile — REUSE"
+    },
+    {
+      "requested": "Credential",
+      "mapping": "WorkerTrustCredential + TrainingCompletionRecord — EXTEND network"
+    },
+    {
+      "requested": "Place",
+      "mapping": "AccessPlace (C-011 sole place identity) — REUSE"
+    },
+    {
+      "requested": "AccessFeature",
+      "mapping": "AccessPlaceFeature / AccessCapabilityRecord — REUSE/EXTEND"
+    },
+    {
+      "requested": "AccessObservation",
+      "mapping": "AccessObservationRecord + AccessEvidenceEnvelopeRecord — REUSE/EXTEND"
+    },
+    {
+      "requested": "Verification",
+      "mapping": "AccessProvenanceStatus + change review — REUSE/EXTEND"
+    },
+    {
+      "requested": "AccreditationAssessment",
+      "mapping": "AccessAccreditation* + ProviderAccreditation* — REUSE"
+    },
+    {
+      "requested": "ServiceOffering / Availability / Care*",
+      "mapping": "lib/care CareRequest/CareShift — REUSE"
+    },
+    {
+      "requested": "Trip / Vehicle / Driver",
+      "mapping": "TransportTrip* + Vehicle/Driver — REUSE TransportTrip as SoT"
+    },
+    {
+      "requested": "Employer / Job / Application",
+      "mapping": "Job / JobApplication — REUSE"
+    },
+    {
+      "requested": "AdjustmentRequest",
+      "mapping": "InterviewAdjustmentRequest + AccessAdjustmentRecord — REUSE/EXTEND"
+    },
+    {
+      "requested": "MessageThread / Notification",
+      "mapping": "Conversation/Message — REUSE; notifications often stubbed — EXTEND"
+    },
+    {
+      "requested": "SupportTicket / Complaint / Incident",
+      "mapping": "Complaint / IncidentReport — REUSE"
+    },
+    {
+      "requested": "Funding / Quote / Invoice / Payment",
+      "mapping": "BillingInvoice / AbilityPay / Stripe — REUSE; live NDIA submit OFF"
+    },
+    {
+      "requested": "Document / EvidenceItem / AuditEvent / FeatureFlag",
+      "mapping": "existing evidence + AuditEvent + fail-closed flags — REUSE"
+    }
+  ],
+  "waves": {
+    "foundation": "Foundation Wave",
+    "experience": "Experience Wave",
+    "intelligence": "Controlled Intelligence Wave",
+    "participation": "Participation Wave",
+    "commercial": "Platform Commercialisation Wave",
+    "rd": "R&D Wave"
+  },
+  "epics": [
+    {
+      "key": "01",
+      "externalKey": "mapable.epic.01",
+      "title": "MapAble Access Graph",
+      "slug": "access-graph",
+      "priority": "P0",
+      "horizon": "Foundation — Priority 0",
+      "wave": "foundation",
+      "claimState": "In development",
+      "dependencies": [],
+      "owner": "Access Infrastructure / Living Access Fabric owners (lib/access/**)",
+      "features": [
+        {
+          "key": "01-f1",
+          "externalKey": "mapable.feature.01-f1",
+          "title": "Canonical accessibility taxonomy",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "lib/access/intelligence-next/ontology/",
+            "docs/access-infrastructure/ONTOLOGY.md"
+          ],
+          "acceptance": [
+            "Versioned concepts",
+            "No diagnosis concepts as matching keys"
+          ]
+        },
+        {
+          "key": "01-f2",
+          "externalKey": "mapable.feature.01-f2",
+          "title": "Place and feature schema",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "AccessPlace",
+            "AccessPlaceFeature",
+            "AccessCapabilityRecord"
+          ],
+          "acceptance": [
+            "C-011 preserved",
+            "Unknown ≠ inaccessible"
+          ]
+        },
+        {
+          "key": "01-f3",
+          "externalKey": "mapable.feature.01-f3",
+          "title": "Evidence provenance system",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessEvidenceEnvelopeRecord",
+            "lib/access/intelligence-next/evidence/"
+          ],
+          "acceptance": [
+            "source/timestamp/evidence type/verification/confidence/expiry/dispute fields"
+          ]
+        },
+        {
+          "key": "01-f4",
+          "externalKey": "mapable.feature.01-f4",
+          "title": "Observation workflow",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessObservationRecord"
+          ],
+          "acceptance": [
+            "AI defaults to AI inferred unverified",
+            "Community defaults to community_reported"
+          ]
+        },
+        {
+          "key": "01-f5",
+          "externalKey": "mapable.feature.01-f5",
+          "title": "Verification workflow",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessChangeReviewRecord",
+            "AccessProvenanceStatus"
+          ],
+          "acceptance": [
+            "No silent overwrite",
+            "Assessor identity recorded"
+          ]
+        },
+        {
+          "key": "01-f6",
+          "externalKey": "mapable.feature.01-f6",
+          "title": "Freshness and expiry engine",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "lib/access/intelligence-next/evidence/freshness-policy.ts"
+          ],
+          "acceptance": [
+            "Expired evidence cannot present as current verified"
+          ]
+        },
+        {
+          "key": "01-f7",
+          "externalKey": "mapable.feature.01-f7",
+          "title": "Correction and dispute workflow",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessPlaceReport",
+            "AccessChangeReviewRecord"
+          ],
+          "acceptance": [
+            "History retained",
+            "Complaint path linked"
+          ]
+        },
+        {
+          "key": "01-f8",
+          "externalKey": "mapable.feature.01-f8",
+          "title": "Access Graph internal API",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "docs/access-infrastructure/API_CONTRACTS.md",
+            "packages/contracts"
+          ],
+          "acceptance": [
+            "Zod boundaries",
+            "No passport leakage"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "02",
+      "externalKey": "mapable.epic.02",
+      "title": "Personal Access Passport",
+      "slug": "personal-access-passport",
+      "priority": "P0",
+      "horizon": "Foundation",
+      "wave": "foundation",
+      "claimState": "In development",
+      "dependencies": [
+        "01"
+      ],
+      "owner": "Access Infrastructure + Consent owners",
+      "features": [
+        {
+          "key": "02-f1",
+          "externalKey": "mapable.feature.02-f1",
+          "title": "Functional requirement editor",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessPassport",
+            "AccessRequirementRecord"
+          ],
+          "acceptance": [
+            "Criticality/context/timing/assistance fields",
+            "userConfirmed"
+          ]
+        },
+        {
+          "key": "02-f2",
+          "externalKey": "mapable.feature.02-f2",
+          "title": "Granular sharing controls",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "disclosureScopes",
+            "ConsentRecord"
+          ],
+          "acceptance": [
+            "Employer share default off",
+            "AI scope explicit"
+          ]
+        },
+        {
+          "key": "02-f3",
+          "externalKey": "mapable.feature.02-f3",
+          "title": "Purpose-bound consent and receipts",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "lib/consent/"
+          ],
+          "acceptance": [
+            "Purpose, fields, expiry, revocation"
+          ]
+        },
+        {
+          "key": "02-f4",
+          "externalKey": "mapable.feature.02-f4",
+          "title": "Expiry revocation and access log",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AuditEvent",
+            "ConsentReceipt"
+          ],
+          "acceptance": [
+            "Immediate revoke",
+            "Recipient read logged"
+          ]
+        },
+        {
+          "key": "02-f5",
+          "externalKey": "mapable.feature.02-f5",
+          "title": "Participant review experience",
+          "disposition": "NEW",
+          "reusePaths": [
+            "dashboard consent patterns"
+          ],
+          "acceptance": [
+            "Plain language",
+            "Easy Read path"
+          ]
+        },
+        {
+          "key": "02-f6",
+          "externalKey": "mapable.feature.02-f6",
+          "title": "AAC and Easy Read pathways",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "docs/co-design-protocol.md",
+            "MAPABLE_AAC_COMMUNICATION_ENABLED"
+          ],
+          "acceptance": [
+            "Voice-independent",
+            "AAC-compatible"
+          ]
+        },
+        {
+          "key": "02-f7",
+          "externalKey": "mapable.feature.02-f7",
+          "title": "Non-diagnosis matching contract",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "ACCESS_FRAMEWORK.md",
+            "containsDiagnosis flag"
+          ],
+          "acceptance": [
+            "Matching payloads exclude diagnosis"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "03",
+      "externalKey": "mapable.epic.03",
+      "title": "MapAble Navigate",
+      "slug": "navigate",
+      "priority": "P1",
+      "horizon": "Experience",
+      "wave": "experience",
+      "claimState": "In development",
+      "dependencies": [
+        "01",
+        "02"
+      ],
+      "owner": "Access + Transport routing owners",
+      "features": [
+        {
+          "key": "03-f1",
+          "externalKey": "mapable.feature.03-f1",
+          "title": "Suitability routing engine",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "lib/access/indoor/routing/",
+            "lib/transport-routing/"
+          ],
+          "acceptance": [
+            "Documented cost function",
+            "Advisory labels"
+          ]
+        },
+        {
+          "key": "03-f2",
+          "externalKey": "mapable.feature.03-f2",
+          "title": "Disruption and lift outage overlays",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "IndoorAccessibilityIncident",
+            "evidence freshness"
+          ],
+          "acceptance": [
+            "Outage demotes routes"
+          ]
+        },
+        {
+          "key": "03-f3",
+          "externalKey": "mapable.feature.03-f3",
+          "title": "Uncertainty and freshness UX",
+          "disposition": "NEW",
+          "reusePaths": [
+            "compatibility four-state"
+          ],
+          "acceptance": [
+            "Inferred ≠ verified"
+          ]
+        },
+        {
+          "key": "03-f4",
+          "externalKey": "mapable.feature.03-f4",
+          "title": "Passport-aware journey evaluate",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessJourney*",
+            "API_CONTRACTS"
+          ],
+          "acceptance": [
+            "participantDecisionRequired true"
+          ]
+        },
+        {
+          "key": "03-f5",
+          "externalKey": "mapable.feature.03-f5",
+          "title": "Map and list parity",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "docs/transport/PRODUCT_REQUIREMENTS.md"
+          ],
+          "acceptance": [
+            "No map-only critical info"
+          ]
+        },
+        {
+          "key": "03-f6",
+          "externalKey": "mapable.feature.03-f6",
+          "title": "Correction feedback loop",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Epic 01 dispute"
+          ],
+          "acceptance": [
+            "Linked correction ticket"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "04",
+      "externalKey": "mapable.epic.04",
+      "title": "Access Intelligence Vision",
+      "slug": "access-intelligence-vision",
+      "priority": "P3",
+      "horizon": "R&D",
+      "wave": "rd",
+      "claimState": "Exploratory",
+      "dependencies": [
+        "01",
+        "06"
+      ],
+      "owner": "Access Intelligence + AI platform",
+      "features": [
+        {
+          "key": "04-f1",
+          "externalKey": "mapable.feature.04-f1",
+          "title": "Vision proposal contracts",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "VisionAccess contracts #383"
+          ],
+          "acceptance": [
+            "AI inferred default"
+          ]
+        },
+        {
+          "key": "04-f2",
+          "externalKey": "mapable.feature.04-f2",
+          "title": "Shadow inference harness",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "access-intelligence-next evidence"
+          ],
+          "acceptance": [
+            "Flags off by default"
+          ]
+        },
+        {
+          "key": "04-f3",
+          "externalKey": "mapable.feature.04-f3",
+          "title": "Human verification bridge",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessChangeReviewRecord"
+          ],
+          "acceptance": [
+            "No auto-publish"
+          ]
+        },
+        {
+          "key": "04-f4",
+          "externalKey": "mapable.feature.04-f4",
+          "title": "Community confirmation workflow",
+          "disposition": "NEW",
+          "reusePaths": [
+            "community_reported status"
+          ],
+          "acceptance": [
+            "Cannot reach independently verified alone"
+          ]
+        },
+        {
+          "key": "04-f5",
+          "externalKey": "mapable.feature.04-f5",
+          "title": "Organisation correction",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "venue response services"
+          ],
+          "acceptance": [
+            "Audit trail"
+          ]
+        },
+        {
+          "key": "04-f6",
+          "externalKey": "mapable.feature.04-f6",
+          "title": "Assessor validation",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Epic 06"
+          ],
+          "acceptance": [
+            "Assessor identity required"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "05",
+      "externalKey": "mapable.epic.05",
+      "title": "Accessibility Digital Twins",
+      "slug": "accessibility-digital-twins",
+      "priority": "P3",
+      "horizon": "R&D",
+      "wave": "rd",
+      "claimState": "Exploratory",
+      "dependencies": [
+        "01",
+        "03"
+      ],
+      "owner": "Indoor accessibility owners",
+      "features": [
+        {
+          "key": "05-f1",
+          "externalKey": "mapable.feature.05-f1",
+          "title": "Floor plan authoring",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "lib/access/indoor/authoring/"
+          ],
+          "acceptance": [
+            "State machine"
+          ]
+        },
+        {
+          "key": "05-f2",
+          "externalKey": "mapable.feature.05-f2",
+          "title": "Checkpoint and route model",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "IndoorCheckpoint",
+            "route-planner"
+          ],
+          "acceptance": [
+            "Text alternative"
+          ]
+        },
+        {
+          "key": "05-f3",
+          "externalKey": "mapable.feature.05-f3",
+          "title": "Publication workflow",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "publication/state-machine.ts"
+          ],
+          "acceptance": [
+            "Restricted zones filtered"
+          ]
+        },
+        {
+          "key": "05-f4",
+          "externalKey": "mapable.feature.05-f4",
+          "title": "Passport indoor fit",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "indoor-fit-engine"
+          ],
+          "acceptance": [
+            "Four-state fit"
+          ]
+        },
+        {
+          "key": "05-f5",
+          "externalKey": "mapable.feature.05-f5",
+          "title": "Visit plan sharing",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "visit-plan-service"
+          ],
+          "acceptance": [
+            "Consented share"
+          ]
+        },
+        {
+          "key": "05-f6",
+          "externalKey": "mapable.feature.05-f6",
+          "title": "AR/VR preview research",
+          "disposition": "DEFER",
+          "reusePaths": [],
+          "acceptance": [
+            "No production flag"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "06",
+      "externalKey": "mapable.epic.06",
+      "title": "MapAble Accreditation OS",
+      "slug": "accreditation-os",
+      "priority": "P0",
+      "horizon": "Foundation",
+      "wave": "foundation",
+      "claimState": "Implemented, not independently verified",
+      "dependencies": [
+        "01",
+        "09"
+      ],
+      "owner": "Quality/Accreditation + Access Mark owners",
+      "features": [
+        {
+          "key": "06-f1",
+          "externalKey": "mapable.feature.06-f1",
+          "title": "Assessment case workflow",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "lib/access/accreditation*",
+            "lib/accreditation/"
+          ],
+          "acceptance": [
+            "Event history"
+          ]
+        },
+        {
+          "key": "06-f2",
+          "externalKey": "mapable.feature.06-f2",
+          "title": "Measurement and evidence packs",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessAccreditation* evidence"
+          ],
+          "acceptance": [
+            "Assessor identity"
+          ]
+        },
+        {
+          "key": "06-f3",
+          "externalKey": "mapable.feature.06-f3",
+          "title": "Scoring explanations",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessibilityAccreditationScore"
+          ],
+          "acceptance": [
+            "Not sole access decision"
+          ]
+        },
+        {
+          "key": "06-f4",
+          "externalKey": "mapable.feature.06-f4",
+          "title": "Human review and decision",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "compliance-boundaries.ts"
+          ],
+          "acceptance": [
+            "automaticAccreditationDecisionEnabled false"
+          ]
+        },
+        {
+          "key": "06-f5",
+          "externalKey": "mapable.feature.06-f5",
+          "title": "Remediation tracking",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "QMS CorrectiveAction"
+          ],
+          "acceptance": [
+            "Immutable history"
+          ]
+        },
+        {
+          "key": "06-f6",
+          "externalKey": "mapable.feature.06-f6",
+          "title": "Publish approved facts to Access Graph",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Epic 01 envelopes"
+          ],
+          "acceptance": [
+            "Assessor measured / independently verified statuses"
+          ]
+        },
+        {
+          "key": "06-f7",
+          "externalKey": "mapable.feature.06-f7",
+          "title": "Expiry reassessment and appeals",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Appeal records"
+          ],
+          "acceptance": [
+            "Expired ≠ approved"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "07",
+      "externalKey": "mapable.epic.07",
+      "title": "Participant Orchestration Agent",
+      "slug": "participant-orchestration-agent",
+      "priority": "P1",
+      "horizon": "Controlled Intelligence",
+      "wave": "intelligence",
+      "claimState": "In development",
+      "dependencies": [
+        "01",
+        "02",
+        "03",
+        "08"
+      ],
+      "owner": "AI platform / Navigator (W-AA-1)",
+      "features": [
+        {
+          "key": "07-f1",
+          "externalKey": "mapable.feature.07-f1",
+          "title": "Single Navigator orchestrator",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "lib/ai/navigator/"
+          ],
+          "acceptance": [
+            "Typed tools",
+            "Explicit state"
+          ]
+        },
+        {
+          "key": "07-f2",
+          "externalKey": "mapable.feature.07-f2",
+          "title": "Consent and authority gates",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "consent-gate.ts",
+            "gates.ts"
+          ],
+          "acceptance": [
+            "Delegate lack-of-authority eval"
+          ]
+        },
+        {
+          "key": "07-f3",
+          "externalKey": "mapable.feature.07-f3",
+          "title": "Approval envelopes",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "envelopes/"
+          ],
+          "acceptance": [
+            "No execute without approval"
+          ]
+        },
+        {
+          "key": "07-f4",
+          "externalKey": "mapable.feature.07-f4",
+          "title": "Cross-module typed tools",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "matching/search-tool.ts"
+          ],
+          "acceptance": [
+            "Constrained schemas"
+          ]
+        },
+        {
+          "key": "07-f5",
+          "externalKey": "mapable.feature.07-f5",
+          "title": "Human escalation",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "escalation/service.ts",
+            "Epic 08"
+          ],
+          "acceptance": [
+            "No phone-tree only"
+          ]
+        },
+        {
+          "key": "07-f6",
+          "externalKey": "mapable.feature.07-f6",
+          "title": "Eval and trace harness",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "lib/ai/platform/evaluations"
+          ],
+          "acceptance": [
+            "Forbidden action suite"
+          ]
+        },
+        {
+          "key": "07-f7",
+          "externalKey": "mapable.feature.07-f7",
+          "title": "Non-AI fallback journey UI",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "journey-planner routes"
+          ],
+          "acceptance": [
+            "Critical path without chat"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "08",
+      "externalKey": "mapable.epic.08",
+      "title": "Accessible Communications Fabric",
+      "slug": "accessible-communications-fabric",
+      "priority": "P1",
+      "horizon": "Foundation thin slice → Experience full fabric",
+      "wave": "experience",
+      "claimState": "Implemented, not independently verified",
+      "dependencies": [
+        "02"
+      ],
+      "owner": "Messaging + Mobile communication owners",
+      "features": [
+        {
+          "key": "08-f1",
+          "externalKey": "mapable.feature.08-f1",
+          "title": "In-app messaging core",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "lib/messages/"
+          ],
+          "acceptance": [
+            "Access policy enforced"
+          ]
+        },
+        {
+          "key": "08-f2",
+          "externalKey": "mapable.feature.08-f2",
+          "title": "Communication preferences",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessibilityProfile communicationPreferences"
+          ],
+          "acceptance": [
+            "Honoured in status flows"
+          ]
+        },
+        {
+          "key": "08-f3",
+          "externalKey": "mapable.feature.08-f3",
+          "title": "Service status explainer",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "transport status"
+          ],
+          "acceptance": [
+            "Estimate ≠ arrival"
+          ]
+        },
+        {
+          "key": "08-f4",
+          "externalKey": "mapable.feature.08-f4",
+          "title": "Human handoff",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "escalation patterns"
+          ],
+          "acceptance": [
+            "Not phone-tree only"
+          ]
+        },
+        {
+          "key": "08-f5",
+          "externalKey": "mapable.feature.08-f5",
+          "title": "SMS email voice adapters",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Twilio etc"
+          ],
+          "acceptance": [
+            "Flags; honest failure"
+          ]
+        },
+        {
+          "key": "08-f6",
+          "externalKey": "mapable.feature.08-f6",
+          "title": "AAC-friendly interfaces",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AAC flags"
+          ],
+          "acceptance": [
+            "Default off until co-designed"
+          ]
+        },
+        {
+          "key": "08-f7",
+          "externalKey": "mapable.feature.08-f7",
+          "title": "WhatsApp/RCS exploratory",
+          "disposition": "DEFER",
+          "reusePaths": [],
+          "acceptance": [
+            "Privacy review first"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "09",
+      "externalKey": "mapable.epic.09",
+      "title": "Trust & Credential Network",
+      "slug": "trust-credential-network",
+      "priority": "P0",
+      "horizon": "Foundation",
+      "wave": "foundation",
+      "claimState": "Implemented, not independently verified",
+      "dependencies": [],
+      "owner": "Workforce / Trust fabric owners",
+      "features": [
+        {
+          "key": "09-f1",
+          "externalKey": "mapable.feature.09-f1",
+          "title": "Shared credential model",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "WorkerTrustCredential"
+          ],
+          "acceptance": [
+            "Drivers/assessors/vehicles modelled"
+          ]
+        },
+        {
+          "key": "09-f2",
+          "externalKey": "mapable.feature.09-f2",
+          "title": "Verification and issuer evidence",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "WorkerCredentialEvidence"
+          ],
+          "acceptance": [
+            "verificationMethod honest"
+          ]
+        },
+        {
+          "key": "09-f3",
+          "externalKey": "mapable.feature.09-f3",
+          "title": "Expiry suspension supersession",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "credential status enums"
+          ],
+          "acceptance": [
+            "Expired blocks"
+          ]
+        },
+        {
+          "key": "09-f4",
+          "externalKey": "mapable.feature.09-f4",
+          "title": "Renewal reminders",
+          "disposition": "NEW",
+          "reusePaths": [
+            "notifications"
+          ],
+          "acceptance": [
+            "Human-approved notifications"
+          ]
+        },
+        {
+          "key": "09-f5",
+          "externalKey": "mapable.feature.09-f5",
+          "title": "Exception workflow",
+          "disposition": "NEW",
+          "reusePaths": [
+            "AuditEvent"
+          ],
+          "acceptance": [
+            "Never silent"
+          ]
+        },
+        {
+          "key": "09-f6",
+          "externalKey": "mapable.feature.09-f6",
+          "title": "Assignment eligibility bridge",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "workforce readiness",
+            "transport eligibility"
+          ],
+          "acceptance": [
+            "Fail closed"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "10",
+      "externalKey": "mapable.epic.10",
+      "title": "Funding & Payment Integrity Engine",
+      "slug": "funding-payment-integrity",
+      "priority": "P2",
+      "horizon": "Controlled Intelligence",
+      "wave": "intelligence",
+      "claimState": "In development",
+      "dependencies": [
+        "09"
+      ],
+      "owner": "Billing / AbilityPay owners",
+      "features": [
+        {
+          "key": "10-f1",
+          "externalKey": "mapable.feature.10-f1",
+          "title": "Invoice evidence and anomaly rules",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "BillingSafeguardAlert",
+            "lib/billing"
+          ],
+          "acceptance": [
+            "Rules versioned"
+          ]
+        },
+        {
+          "key": "10-f2",
+          "externalKey": "mapable.feature.10-f2",
+          "title": "Advisory explanation layer",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "billing copilots"
+          ],
+          "acceptance": [
+            "No definitive claimability"
+          ]
+        },
+        {
+          "key": "10-f3",
+          "externalKey": "mapable.feature.10-f3",
+          "title": "Quote comparison",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "transport quotes",
+            "billing"
+          ],
+          "acceptance": [
+            "Estimate labels"
+          ]
+        },
+        {
+          "key": "10-f4",
+          "externalKey": "mapable.feature.10-f4",
+          "title": "Participant review workflow",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "BillingInvoiceApproval"
+          ],
+          "acceptance": [
+            "Pending default"
+          ]
+        },
+        {
+          "key": "10-f5",
+          "externalKey": "mapable.feature.10-f5",
+          "title": "Reconciliation assistance",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AbilityPay"
+          ],
+          "acceptance": [
+            "Human finalize"
+          ]
+        },
+        {
+          "key": "10-f6",
+          "externalKey": "mapable.feature.10-f6",
+          "title": "Funding question drafts",
+          "disposition": "NEW",
+          "reusePaths": [
+            "AI platform"
+          ],
+          "acceptance": [
+            "Not determinations"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "11",
+      "externalKey": "mapable.epic.11",
+      "title": "Employment Accessibility Graph",
+      "slug": "employment-accessibility-graph",
+      "priority": "P2",
+      "horizon": "Participation",
+      "wave": "participation",
+      "claimState": "In development",
+      "dependencies": [
+        "01",
+        "02",
+        "03"
+      ],
+      "owner": "Jobs / employment owners",
+      "features": [
+        {
+          "key": "11-f1",
+          "externalKey": "mapable.feature.11-f1",
+          "title": "Workplace accessibility profiles",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "AccessPlace",
+            "AccessCapabilityRecord"
+          ],
+          "acceptance": [
+            "Linked to jobs"
+          ]
+        },
+        {
+          "key": "11-f2",
+          "externalKey": "mapable.feature.11-f2",
+          "title": "Candidate-controlled disclosure",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "JobApplication",
+            "ApplicationDisclosurePreview"
+          ],
+          "acceptance": [
+            "Preview before share"
+          ]
+        },
+        {
+          "key": "11-f3",
+          "externalKey": "mapable.feature.11-f3",
+          "title": "Interview adjustment requests",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "InterviewAdjustmentRequest"
+          ],
+          "acceptance": [
+            "No diagnosis required"
+          ]
+        },
+        {
+          "key": "11-f4",
+          "externalKey": "mapable.feature.11-f4",
+          "title": "Commute accessibility",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Epic 03",
+            "transportSupportNeeded"
+          ],
+          "acceptance": [
+            "Optional"
+          ]
+        },
+        {
+          "key": "11-f5",
+          "externalKey": "mapable.feature.11-f5",
+          "title": "Optional support coordination",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "careSupportNeeded"
+          ],
+          "acceptance": [
+            "Participant approval"
+          ]
+        },
+        {
+          "key": "11-f6",
+          "externalKey": "mapable.feature.11-f6",
+          "title": "Placement sustainability",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "employment outcomes"
+          ],
+          "acceptance": [
+            "No worthiness score"
+          ]
+        },
+        {
+          "key": "11-f7",
+          "externalKey": "mapable.feature.11-f7",
+          "title": "Employer access improvements",
+          "disposition": "NEW",
+          "reusePaths": [
+            "Epic 01 corrections"
+          ],
+          "acceptance": [
+            "Voluntary"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "12",
+      "externalKey": "mapable.epic.12",
+      "title": "Circular Assistive Technology Network",
+      "slug": "circular-assistive-technology",
+      "priority": "P3",
+      "horizon": "R&D",
+      "wave": "rd",
+      "claimState": "Exploratory",
+      "dependencies": [
+        "02",
+        "09"
+      ],
+      "owner": "AT Continuity / programmes owners",
+      "features": [
+        {
+          "key": "12-f1",
+          "externalKey": "mapable.feature.12-f1",
+          "title": "AT Continuity register",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "lib/platform/at-continuity"
+          ],
+          "acceptance": [
+            "Flag gated"
+          ]
+        },
+        {
+          "key": "12-f2",
+          "externalKey": "mapable.feature.12-f2",
+          "title": "Outage and backup plans",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "AtEquipmentOutage",
+            "AtBackupPlan"
+          ],
+          "acceptance": [
+            "Audited writes"
+          ]
+        },
+        {
+          "key": "12-f3",
+          "externalKey": "mapable.feature.12-f3",
+          "title": "Repair partner links",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "AtRepairPartnerRef"
+          ],
+          "acceptance": [
+            "No second directory"
+          ]
+        },
+        {
+          "key": "12-f4",
+          "externalKey": "mapable.feature.12-f4",
+          "title": "Operational dependency links",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "AtDependencyLink"
+          ],
+          "acceptance": [
+            "Typed targets"
+          ]
+        },
+        {
+          "key": "12-f5",
+          "externalKey": "mapable.feature.12-f5",
+          "title": "Equipment Passport",
+          "disposition": "DEFER",
+          "reusePaths": [],
+          "acceptance": [
+            "Not clinical"
+          ]
+        },
+        {
+          "key": "12-f6",
+          "externalKey": "mapable.feature.12-f6",
+          "title": "Circular marketplace",
+          "disposition": "DEFER",
+          "reusePaths": [
+            "marketplace hints only"
+          ],
+          "acceptance": [
+            "Listing ≠ suitable/fundable"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "13",
+      "externalKey": "mapable.epic.13",
+      "title": "MapAble Access API",
+      "slug": "access-api",
+      "priority": "P2",
+      "horizon": "Platform Commercialisation",
+      "wave": "commercial",
+      "claimState": "Proposed",
+      "dependencies": [
+        "01",
+        "06"
+      ],
+      "owner": "Developer platform + Access Infrastructure",
+      "features": [
+        {
+          "key": "13-f1",
+          "externalKey": "mapable.feature.13-f1",
+          "title": "Partner auth and scopes",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "PartnerApiClient",
+            "partner-api.md"
+          ],
+          "acceptance": [
+            "Hashed keys"
+          ]
+        },
+        {
+          "key": "13-f2",
+          "externalKey": "mapable.feature.13-f2",
+          "title": "Places and features resources",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "partner-dto.ts",
+            "API_CONTRACTS"
+          ],
+          "acceptance": [
+            "confidence/timestamps"
+          ]
+        },
+        {
+          "key": "13-f3",
+          "externalKey": "mapable.feature.13-f3",
+          "title": "Observations and verifications",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Epic 01"
+          ],
+          "acceptance": [
+            "Status honesty"
+          ]
+        },
+        {
+          "key": "13-f4",
+          "externalKey": "mapable.feature.13-f4",
+          "title": "Routes and venue-access",
+          "disposition": "NEW",
+          "reusePaths": [
+            "Epic 03"
+          ],
+          "acceptance": [
+            "No passport"
+          ]
+        },
+        {
+          "key": "13-f5",
+          "externalKey": "mapable.feature.13-f5",
+          "title": "Licensing versioning change history",
+          "disposition": "NEW",
+          "reusePaths": [
+            "developer platform"
+          ],
+          "acceptance": [
+            "Version header"
+          ]
+        },
+        {
+          "key": "13-f6",
+          "externalKey": "mapable.feature.13-f6",
+          "title": "Rate limiting and abuse controls",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "middleware rate limit plans"
+          ],
+          "acceptance": [
+            "429 behaviour"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "14",
+      "externalKey": "mapable.epic.14",
+      "title": "MapAble Access Observatory",
+      "slug": "access-observatory",
+      "priority": "P2",
+      "horizon": "Platform Commercialisation",
+      "wave": "commercial",
+      "claimState": "Proposed",
+      "dependencies": [
+        "01",
+        "11"
+      ],
+      "owner": "Analytics / research governance owners",
+      "features": [
+        {
+          "key": "14-f1",
+          "externalKey": "mapable.feature.14-f1",
+          "title": "Metric registry for access gaps",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "lib/platform/analytics/"
+          ],
+          "acceptance": [
+            "Registered definitions"
+          ]
+        },
+        {
+          "key": "14-f2",
+          "externalKey": "mapable.feature.14-f2",
+          "title": "Privacy-preserving snapshots",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "deidentification"
+          ],
+          "acceptance": [
+            "Small-cell"
+          ]
+        },
+        {
+          "key": "14-f3",
+          "externalKey": "mapable.feature.14-f3",
+          "title": "Infrastructure opportunity views",
+          "disposition": "NEW",
+          "reusePaths": [
+            "admin analytics"
+          ],
+          "acceptance": [
+            "No person drill-down"
+          ]
+        },
+        {
+          "key": "14-f4",
+          "externalKey": "mapable.feature.14-f4",
+          "title": "Employment cluster aggregates",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "Jobs aggregates"
+          ],
+          "acceptance": [
+            "K-anonymity thresholds"
+          ]
+        },
+        {
+          "key": "14-f5",
+          "externalKey": "mapable.feature.14-f5",
+          "title": "Research export governance",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "lib/research/"
+          ],
+          "acceptance": [
+            "Approval required"
+          ]
+        },
+        {
+          "key": "14-f6",
+          "externalKey": "mapable.feature.14-f6",
+          "title": "Feedback to Access Graph",
+          "disposition": "NEW",
+          "reusePaths": [
+            "Epic 01"
+          ],
+          "acceptance": [
+            "Not auto-facts"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "15",
+      "externalKey": "mapable.epic.15",
+      "title": "MapAble Academy + Capability Passport",
+      "slug": "academy-capability-passport",
+      "priority": "P2",
+      "horizon": "Participation",
+      "wave": "participation",
+      "claimState": "Implemented, not independently verified",
+      "dependencies": [
+        "09"
+      ],
+      "owner": "Provider academy / workforce passport owners",
+      "features": [
+        {
+          "key": "15-f1",
+          "externalKey": "mapable.feature.15-f1",
+          "title": "Course catalogue and enroll",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "/academy",
+            "provider_academy:enroll"
+          ],
+          "acceptance": [
+            "Permissioned"
+          ]
+        },
+        {
+          "key": "15-f2",
+          "externalKey": "mapable.feature.15-f2",
+          "title": "Completion records with expiry",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "TrainingCompletionRecord"
+          ],
+          "acceptance": [
+            "Expiry fields"
+          ]
+        },
+        {
+          "key": "15-f3",
+          "externalKey": "mapable.feature.15-f3",
+          "title": "Pending competency proposals",
+          "disposition": "REUSE",
+          "reusePaths": [
+            "AcademyCompetencyProposal"
+          ],
+          "acceptance": [
+            "Never auto-verified"
+          ]
+        },
+        {
+          "key": "15-f4",
+          "externalKey": "mapable.feature.15-f4",
+          "title": "Human competency verification",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "workforce passport adapter"
+          ],
+          "acceptance": [
+            "Human only"
+          ]
+        },
+        {
+          "key": "15-f5",
+          "externalKey": "mapable.feature.15-f5",
+          "title": "Capability passport view",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "workforce readiness"
+          ],
+          "acceptance": [
+            "Reason codes"
+          ]
+        },
+        {
+          "key": "15-f6",
+          "externalKey": "mapable.feature.15-f6",
+          "title": "Credential network integration",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "WorkerTrustCredential"
+          ],
+          "acceptance": [
+            "Supersession"
+          ]
+        },
+        {
+          "key": "15-f7",
+          "externalKey": "mapable.feature.15-f7",
+          "title": "Refresher and role requirements",
+          "disposition": "EXTEND",
+          "reusePaths": [
+            "TrainingRequirement"
+          ],
+          "acceptance": [
+            "Reminders"
+          ]
+        }
+      ]
+    }
+  ]
+}
