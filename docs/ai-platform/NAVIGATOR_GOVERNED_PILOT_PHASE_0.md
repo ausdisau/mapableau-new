@@ -361,6 +361,9 @@ Use synthetic fixtures only.
 | 3 Bounded Navigator      | Complete — interpret review, hard constraints, ranking, orchestrator                                                                                    |
 | 4 Assurance              | Complete — see [`NAVIGATOR_ASSURANCE.md`](./NAVIGATOR_ASSURANCE.md); production flags remain off                                                        |
 | 5 Vertical slice closure | Complete (code) — journey UI, Finder transfer materialisation, non-negotiables, draft edit API; lived-experience / ops / flag enablement still deferred |
+| 6a Enforcement holes     | Complete (code) — tenant membership access gate, envelope consent re-verify, nonce omission, A2H assignment honesty (`#481`)                            |
+| 6b Participant control   | Complete (code) — correction rematch, passport opt-out honour, memory expiry + Stage-1 merge                                                            |
+| 6c Assurance             | Docs refreshed; Playwright Navigator journey + lived-experience still deferred                                                                          |
 
 ---
 

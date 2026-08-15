@@ -1,9 +1,10 @@
-# MapAble Navigator — Phase 4 Assurance Record
+# MapAble Navigator — Phase 4+ Assurance Record
 
 **Branch programme:** Governed Navigator pilot under freeze waiver **W-AA-1**  
 **Production flags:** all `MAPABLE_NAVIGATOR_PILOT_*` remain default **false**  
 **Public claims:** `not_claimable` — do not describe as production-ready, NDIS-compliant, or accredited from this work  
-**Synthetic data only** in tests, evals, screenshots, and demos
+**Synthetic data only** in tests, evals, screenshots, and demos  
+**Phase 6 hardening tip:** `28a1ff75` (`cursor/navigator-phase6-hardening-94af`)
 
 ---
 
@@ -11,12 +12,15 @@
 
 | Phase                 | Exit gate                                                   | Status                                                                                                                                           |
 | --------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 0 Inspection          | Report reviewed; continue vs supersede #472 decided         | **Complete** — continue on `cursor/navigator-governed-pilot-fedd`                                                                                |
+| 0 Inspection          | Report reviewed; continue vs supersede #472 decided         | **Complete** — Phases 0–5 landed on `main` via #475/#476; Phase 0 re-inspection 2026-08-15                                                       |
 | 1 Enforcement         | Tenant/consent/purpose/tool isolation; flags default off    | **Complete** — `tests/navigator/phase1-foundation.test.ts`, A2H hardening                                                                        |
 | 2 Participant control | Keyboard/SR path for correct, refuse, opt-out, human help   | **Complete (code)** — lived-experience review still required                                                                                     |
 | 3 Bounded Navigator   | No autonomous booking/sensitive disclosure                  | **Complete (code)** — deterministic match + draft envelopes only                                                                                 |
 | 4 Assurance           | Owners approve synthetic/authorised pilot; flags off        | **This document** — checklist below; production enablement **out of scope**                                                                      |
 | 5 Vertical slice      | Journey UI + Finder transfer + non-negotiables + draft edit | **Complete (code)** — `NavigatorPilotJourney`, `finder-transfer.ts`, `tests/navigator/phase5-vertical-slice.test.ts`; human gates still deferred |
+| 6a Enforcement holes  | Tenant membership, envelope consent re-verify, A2H honesty   | **Complete (code)** — `access.ts`, `phase6a-hardening.test.ts`                                                                                   |
+| 6b Participant control| Correction rematch, passport opt-out, memory→Stage-1        | **Complete (code)** — `passport/rematch.ts`, `phase6b-participant-control.test.ts`                                                               |
+| 6c Assurance docs     | Doc honesty + remaining brief tests                         | **In progress** — Playwright Navigator journey still deferred; lived-experience `NOT_RUN`                                                        |
 
 ---
 
@@ -43,15 +47,19 @@
 
 - Server-side capability gate (`assertNavigatorCapability`) with flag + kill-switch recheck
 - Purpose consent verification before protected actions (`verifyPurposeConsent`)
-- Delegation distinguished from ownership
-- Envelope v2: nonce, expiry, replay protection; model cannot approve
-- A2H list/get/resolve tenant + assignee checks
+- Shared pilot access gate (`assertNavigatorPilotAccess`) — tenant membership + participant identity
+- Delegation distinguished from ownership (authority grant lookup no longer uses illegal `tenantId` filter)
+- Envelope v2: nonce, expiry, replay protection; model cannot approve; **consent re-verified server-side on approve**; nonce omitted from client responses
+- A2H list/get/resolve tenant + assignee checks; escalation does **not** claim a reviewer when A2H flags are off (`assignment: unavailable`)
 - Passport/memory/escalation IDOR checks (tenant + participant)
+- Correction rematch refreshes shortlist; passport `aiOptedOut` blocks assisted search server-side
+- Governed memory expiry enforced on list; exclusions merge into Stage-1 hard constraints
 - Matching never relaxes hard constraints; `NO_SAFE_MATCH` explicit
 - Sponsored placement labelled; never alters eligibility
 - Permanent prohibition list executable in tests
 - Prompt-injection-resistant listing sanitisation in search tool
 - Audit events on gate/consent/envelope/passport/memory/escalation paths
+- Pilot page rejects spoofed `?tenantId=` without membership
 
 ---
 
@@ -75,8 +83,10 @@ Residual risks (accepted for synthetic pilot only):
 
 1. Public Provider Finder chat remains ungated by design — governed surface is `/api/navigator/pilot/*` only.
 2. In-memory IP rate limits — not distributed; sensitive pilot mutations stay blocked until store approved.
-3. Dual `participant-authority` writers — programmes write path must stay frozen for Passport enablement.
+3. Dual `participant-authority` writers — programmes write path must stay frozen for Passport enablement; Navigator evaluates `delegateId` + `domain` + `actions` only.
 4. Vercel account / preview evidence may be unavailable — do not claim live preview proof.
+5. Playwright `/navigator/pilot` keyboard/SR journey is not yet in CI — lived-experience gate still required before any flag enablement.
+6. Kill switches are process-local `Set`s — not multi-instance.
 
 ---
 
