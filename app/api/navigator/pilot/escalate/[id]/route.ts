@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import {
+  assertNavigatorPilotAccess,
+  navigatorAccessErrorCode,
+} from "@/lib/ai/navigator/access";
 import { getEscalationStatus } from "@/lib/ai/navigator/escalation/service";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
@@ -27,6 +31,17 @@ export async function GET(req: Request, ctx: Ctx) {
     tenantId: url.searchParams.get("tenantId"),
   });
   if (!parsed.success) return zodErrorResponse(parsed.error);
+
+  // Membership-only check: query has tenantId only; IDOR is scoped via
+  // getActHandoffForTenant inside getEscalationStatus.
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: user.id,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
+  }
 
   try {
     const escalation = await getEscalationStatus({

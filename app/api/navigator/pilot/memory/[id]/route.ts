@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 import {
+  assertNavigatorPilotAccess,
+  navigatorAccessErrorCode,
+} from "@/lib/ai/navigator/access";
+import {
   correctMemoryItem,
   deleteMemoryItem,
   withdrawMemoryItem,
@@ -66,8 +70,13 @@ export async function PATCH(req: Request, ctx: Ctx) {
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  if (user.id !== parsed.data.participantId) {
-    return jsonError("FORBIDDEN", 403);
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
   try {
@@ -146,8 +155,13 @@ export async function DELETE(req: Request, ctx: Ctx) {
   const parsed = deleteSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  if (user.id !== parsed.data.participantId) {
-    return jsonError("FORBIDDEN", 403);
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
   try {

@@ -5,6 +5,7 @@ import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import { NavigatorPilotJourney } from "@/components/navigator/NavigatorPilotJourney";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { isNavigatorPilotEnabled } from "@/lib/config/navigator-pilot";
+import { userCanAccessTenant } from "@/lib/platform/multi-tenant-admin/tenant-service";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -23,6 +24,12 @@ export default async function NavigatorPilotPage({ searchParams }: PageProps) {
   const user = enabled ? await getCurrentUser() : null;
 
   let tenantId: string | null = params.tenantId?.trim() || null;
+  if (enabled && user && tenantId) {
+    const allowed = await userCanAccessTenant(user.id, tenantId);
+    if (!allowed) {
+      tenantId = null;
+    }
+  }
   if (enabled && user && !tenantId) {
     const membership = await prisma.tenantMembership.findFirst({
       where: { userId: user.id },

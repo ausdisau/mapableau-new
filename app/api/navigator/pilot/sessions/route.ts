@@ -2,6 +2,10 @@ import { randomBytes } from "node:crypto";
 
 import { z } from "zod";
 
+import {
+  assertNavigatorPilotAccess,
+  navigatorAccessErrorCode,
+} from "@/lib/ai/navigator/access";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import {
@@ -60,8 +64,13 @@ export async function POST(req: Request) {
   const parsed = createSessionSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
-  if (user.id !== parsed.data.participantId) {
-    return jsonError("FORBIDDEN", 403);
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
   const sessionId = createNavigatorSessionId();
