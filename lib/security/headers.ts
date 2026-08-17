@@ -39,6 +39,7 @@ export const CSP_EXTERNAL_ORIGINS = {
     "https://www.google-analytics.com",
     "https://*.google-analytics.com",
     "https://www.googletagmanager.com",
+    "https://*.supabase.co",
   ],
   frames: [
     "https://js.stripe.com",

@@ -3,6 +3,10 @@
     {
       "path": "/api/admin/ingest/ndis-providers",
       "schedule": "15 17 * * *"
+    },
+    {
+      "path": "/api/cron/storage-orphan-reconciliation",
+      "schedule": "20 4 * * *"
     }
   ],
   "headers": [

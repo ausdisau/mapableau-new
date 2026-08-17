@@ -27,8 +27,20 @@ export const accessInfrastructureFlags = {
   get graph() {
     return envTruthy("MAPABLE_ACCESS_GRAPH_ENABLED");
   },
+  /** Photo evidence uploads (requires object storage + graph flags). */
+  get evidenceUploads() {
+    return envTruthy("MAPABLE_ACCESS_EVIDENCE_UPLOADS_ENABLED");
+  },
   /** True when graph APIs may serve requests. */
   get graphApisEnabled() {
     return this.enabled && this.graph;
+  },
+  /** True when access-evidence photo upload APIs may serve requests. */
+  get evidenceUploadsEnabled() {
+    return (
+      this.graphApisEnabled &&
+      this.evidenceUploads &&
+      envTruthy("MAPABLE_OBJECT_STORAGE_ENABLED")
+    );
   },
 };

@@ -1,12 +1,18 @@
 import Link from "next/link";
 
+import { AccessEvidencePhotoContribute } from "@/components/access/AccessEvidencePhotoContribute";
 import { AccessMap } from "@/components/access/AccessMap";
+import { AccessObservationEvidenceList } from "@/components/access/AccessObservationEvidenceList";
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access/accreditation/accreditation-assessment-service";
+import { accessInfrastructureFlags } from "@/lib/access/infrastructure/flags";
+import { listAccessObservations } from "@/lib/access/infrastructure/observation-service";
 import { getPlaceById } from "@/lib/access/map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access/reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access/reviews/review-access-policy";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { getObjectStorageConfig } from "@/lib/config/object-storage";
 import { prisma } from "@/lib/prisma";
 
 export default async function AccessPlacePage({
@@ -46,6 +52,14 @@ export default async function AccessPlacePage({
   }));
 
   const accreditationDisplay = await getAccreditationDisplayForPlace(placeId);
+  const user = await getCurrentUser();
+  const graphEnabled = accessInfrastructureFlags.graphApisEnabled;
+  const uploadsEnabled =
+    Boolean(user) && accessInfrastructureFlags.evidenceUploadsEnabled;
+  const observations = graphEnabled
+    ? await listAccessObservations({ placeId, limit: 50 })
+    : [];
+  const storageConfig = getObjectStorageConfig();
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
@@ -97,6 +111,28 @@ export default async function AccessPlacePage({
             />
           </div>
         </section>
+      ) : null}
+
+      {graphEnabled ? (
+        <section aria-labelledby="place-observations-heading">
+          <h2 id="place-observations-heading" className="text-lg font-semibold">
+            Access observations
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Provenance is shown on every assertion. This is not a live national
+            registry and is not independently verified.
+          </p>
+          <div className="mt-3">
+            <AccessObservationEvidenceList observations={observations} />
+          </div>
+        </section>
+      ) : null}
+
+      {uploadsEnabled ? (
+        <AccessEvidencePhotoContribute
+          placeId={placeId}
+          maxUploadMb={storageConfig.evidenceMaxUploadMb}
+        />
       ) : null}
 
       <ReportPlaceIssueButton placeId={placeId} />

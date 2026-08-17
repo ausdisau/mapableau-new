@@ -8,6 +8,7 @@ import type { AccessProvenanceStatus, Prisma } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
+import { STORAGE_AUDIT_ACTIONS } from "@/lib/storage/audit-actions";
 
 import { ACCESS_ENTITY_TYPES, type AccessEntityType } from "./domains";
 import { accessInfrastructureFlags } from "./flags";
@@ -92,6 +93,11 @@ export type AccessObservationEnvelope = {
   entityType: string | null;
   entityId: string | null;
   observerUserId: string | null;
+  evidenceAssets: Array<{
+    id: string;
+    assetId: string;
+    evidenceKind: string;
+  }>;
   provenance: ProvenanceDisplay;
   freshness: FreshnessEvaluation;
   productionClaim: "none";
@@ -148,6 +154,11 @@ export function serializeObservationRow(
     entityType: string | null;
     entityId: string | null;
     observerUserId: string | null;
+    evidenceAssets?: Array<{
+      id: string;
+      assetId: string;
+      evidenceKind: string;
+    }>;
   },
   now: Date = new Date(),
 ): AccessObservationEnvelope {
@@ -185,6 +196,7 @@ export function serializeObservationRow(
     entityType: row.entityType,
     entityId: row.entityId,
     observerUserId: row.observerUserId,
+    evidenceAssets: row.evidenceAssets ?? [],
     provenance,
     freshness,
     productionClaim: "none",
@@ -325,6 +337,12 @@ export async function listAccessObservations(input: {
         ? { ontologyConceptId: input.ontologyConceptId }
         : {}),
     },
+    include: {
+      evidenceAssets: {
+        where: { asset: { status: "ready", deletedAt: null } },
+        select: { id: true, assetId: true, evidenceKind: true },
+      },
+    },
     orderBy: { observedAt: "desc" },
     take: limit,
   });
@@ -340,6 +358,12 @@ export async function getAccessObservation(
 
   const row = await prisma.accessObservationRecord.findUnique({
     where: { id },
+    include: {
+      evidenceAssets: {
+        where: { asset: { status: "ready", deletedAt: null } },
+        select: { id: true, assetId: true, evidenceKind: true },
+      },
+    },
   });
   if (!row) {
     throw new AccessGraphError(`Observation not found: ${id}`, 404);
@@ -378,4 +402,67 @@ export async function getPlaceAccessGraph(placeId: string): Promise<{
     claimState: "in_development",
     note: "Unknown ≠ inaccessible. AI-inferred and expired assertions are never presented as verified fact.",
   };
+}
+
+/**
+ * Marks an observation as disputed. Never promotes AI-inferred or community
+ * reports to independently verified.
+ */
+export async function disputeAccessObservation(input: {
+  id: string;
+  actorUserId: string;
+  notes?: string;
+}): Promise<AccessObservationEnvelope> {
+  assertAccessGraphEnabled();
+  const existing = await prisma.accessObservationRecord.findUnique({
+    where: { id: input.id },
+  });
+  if (!existing) {
+    throw new AccessGraphError(`Observation not found: ${input.id}`, 404);
+  }
+
+  const previousStatus = existing.verificationStatus;
+  const nextStatus =
+    previousStatus === "verified" ? "disputed" : previousStatus;
+
+  const updated = await prisma.accessObservationRecord.update({
+    where: { id: input.id },
+    data: {
+      disputed: true,
+      verificationStatus: nextStatus,
+    },
+    include: {
+      evidenceAssets: {
+        where: { asset: { status: "ready", deletedAt: null } },
+        select: { id: true, assetId: true, evidenceKind: true },
+      },
+    },
+  });
+
+  await createAuditEvent({
+    actorUserId: input.actorUserId,
+    action: STORAGE_AUDIT_ACTIONS.evidenceDisputed,
+    entityType: "AccessObservationRecord",
+    entityId: updated.id,
+    metadata: {
+      previousStatus,
+      verificationStatus: updated.verificationStatus,
+      notesPresent: Boolean(input.notes),
+    },
+  });
+
+  if (previousStatus !== updated.verificationStatus) {
+    await createAuditEvent({
+      actorUserId: input.actorUserId,
+      action: STORAGE_AUDIT_ACTIONS.evidenceVerificationChanged,
+      entityType: "AccessObservationRecord",
+      entityId: updated.id,
+      metadata: {
+        from: previousStatus,
+        to: updated.verificationStatus,
+      },
+    });
+  }
+
+  return serializeObservationRow(updated);
 }
