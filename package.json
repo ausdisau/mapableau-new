@@ -9,6 +9,7 @@
     "build": "node scripts/run-next-build.mjs",
     "start": "next start",
     "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint app components lib schemas scripts/ci --max-warnings 0",
+    "lint:changed": "tsx scripts/ci/lint-changed.ts",
     "lint:tests": "NODE_OPTIONS='--max-old-space-size=8192' eslint tests --max-warnings 0",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",

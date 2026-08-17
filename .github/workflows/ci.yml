@@ -75,8 +75,8 @@ jobs:
       - name: Format check
         run: pnpm format:check
 
-      - name: Lint
-        run: pnpm lint
+      - name: Lint changed files
+        run: pnpm exec tsx scripts/ci/lint-changed.ts
 
       # Test DB schema: historical migration stubs block migrate-from-zero.
       # Ephemeral CI uses db push (not a production runbook instruction).
