@@ -5,14 +5,14 @@ import {
   navigatorAccessErrorCode,
 } from "@/lib/ai/navigator/access";
 import {
+  NAVIGATOR_CONSENT_PURPOSE,
+  verifyPurposeConsent,
+} from "@/lib/ai/navigator/consent-gate";
+import {
   getGovernedActionEnvelope,
   toPublicGovernedEnvelope,
   updateGovernedActionEnvelopeDraft,
 } from "@/lib/ai/navigator/envelopes/service";
-import {
-  NAVIGATOR_CONSENT_PURPOSE,
-  verifyPurposeConsent,
-} from "@/lib/ai/navigator/consent-gate";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import {
