@@ -27,13 +27,13 @@ Domain modules call `getObjectStore()`. They must never call `getSupabaseAdmin()
 
 ## Responsibilities
 
-| Layer | Owns |
-| --- | --- |
-| `lib/storage/**` | ObjectStore, keys, policies, signed grants, StoredAsset metadata |
-| `lib/access/**` | Access observations, provenance, dispute, evidence join |
-| `lib/documents/**` | Care/participant Document records (still local-disk in Phase 2) |
-| Neon | Metadata, tenancy, audit, provenance |
-| Provider bucket | Bytes |
+| Layer              | Owns                                                             |
+| ------------------ | ---------------------------------------------------------------- |
+| `lib/storage/**`   | ObjectStore, keys, policies, signed grants, StoredAsset metadata |
+| `lib/access/**`    | Access observations, provenance, dispute, evidence join          |
+| `lib/documents/**` | Care/participant Document records (still local-disk in Phase 2)  |
+| Neon               | Metadata, tenancy, audit, provenance                             |
+| Provider bucket    | Bytes                                                            |
 
 ## Object key conventions
 
@@ -129,6 +129,10 @@ See `.env.example`:
 
 - `MAPABLE_OBJECT_STORAGE_ENABLED=false`
 - `MAPABLE_ACCESS_EVIDENCE_UPLOADS_ENABLED=false`
+- `MAPABLE_DOCUMENT_OBJECT_STORAGE_ENABLED=false`
+- `DOCUMENT_STORAGE_MODE=local` (use `object_store` only with the flags above)
+- `MAPABLE_STORAGE_REQUIRE_MALWARE_SCAN=false`
+- `MAPABLE_MALWARE_SCAN_URL` (optional HTTPS scanner)
 - `CLOUD_STORAGE_PROVIDER` (`supabase` when enabling; `recording` is invalid for ObjectStore)
 - `MAPABLE_STORAGE_PUBLIC_BUCKET` / `MAPABLE_STORAGE_PRIVATE_BUCKET` / `MAPABLE_STORAGE_EVIDENCE_BUCKET`
 - Existing `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`
@@ -139,7 +143,16 @@ Never commit real credentials.
 
 Flags stay off unless you are exercising the slice. With flags on, `CLOUD_STORAGE_PROVIDER=memory` is allowed outside production for tests. Local Supabase Storage requires a project URL, service-role key, and created buckets.
 
-Participant/care `Document` uploads still use local disk (`DOCUMENT_STORAGE_MODE=local`) and are **not** migrated in this change.
+Participant/care `Document` uploads default to local disk (`DOCUMENT_STORAGE_MODE=local`). An ObjectStore writer exists behind **three** fail-closed switches: `MAPABLE_OBJECT_STORAGE_ENABLED`, `MAPABLE_DOCUMENT_OBJECT_STORAGE_ENABLED`, and `DOCUMENT_STORAGE_MODE=object_store`. Enabling those flags does **not** make document uploads production-ready.
+
+Keys:
+
+- `documents/organisations/{organisationId}/{assetId}.{ext}`
+- `documents/participants/{participantId}/{assetId}.{ext}`
+
+Classification is `ORGANISATION_PRIVATE` or `PARTICIPANT_CONTROLLED`. Access Passport paths remain unused.
+
+Malware scanning: `getMalwareScanner()` calls `MAPABLE_MALWARE_SCAN_URL` when set (HTTPS, or http://localhost). EICAR test bytes are always rejected. Without a scanner URL, status is `unavailable` / `not_configured`. `MAPABLE_STORAGE_REQUIRE_MALWARE_SCAN=true` fail-closes ObjectStore document writes when the scanner is unavailable. This is not a production antivirus.
 
 ## Testing
 
@@ -157,9 +170,9 @@ Participant/care `Document` uploads still use local disk (`DOCUMENT_STORAGE_MODE
 
 ## Known limitations
 
-- Malware scanning is **not implemented** (`MalwareScanner` remains an unused interface). This is a production blocker for untrusted documents.
+- Malware scanning is **not a production antivirus**. The hook exists (`MalwareScanner` / optional HTTP URL + EICAR tripwire). Untrusted documents remain a production blocker until a real scanner is configured and `MAPABLE_STORAGE_REQUIRE_MALWARE_SCAN=true` is reviewed.
 - In-process rate limits and metrics are not multi-instance safe.
-- Care `Document` local disk is still the live writer.
+- Care `Document` local disk remains the **default** writer. ObjectStore document writes are triple-gated and off by default.
 - No Vercel Blob / AWS SDK / SeaweedFS / Garage / Azure adapter.
 - Complete workflow does not re-download remote bytes to sniff magic (size/MIME from provider metadata).
 - Feature flags default off; no production behaviour change from shipping this code.

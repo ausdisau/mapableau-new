@@ -15,6 +15,7 @@
 | Search interpret / autocomplete      | `checkIpRateLimit`          | Process-local (Sprint 4 Act)                        |
 | Register + NDIS provider search      | `checkIpRateLimit`          | Process-local (Sprint 4 Act)                        |
 | Act handoff resolve                  | `checkIpRateLimit`          | Process-local (Sprint 4 Act)                        |
+| Document + worker screening uploads  | `checkIpRateLimit`          | Process-local; **not** multi-instance               |
 
 ## Approved shared store scan (2026-07-21)
 

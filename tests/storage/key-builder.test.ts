@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { InvalidObjectKeyError } from "@/lib/storage/errors";
 import {
   buildAccessEvidencePhotoKey,
+  buildCareDocumentKey,
   validateObjectKey,
 } from "@/lib/storage/key-builder";
 
@@ -77,6 +78,36 @@ describe("object key builder", () => {
         assetId: "asset_111aaa",
         originalFilename: "a.jpg",
         contentType: "image/jpeg",
+      }),
+    ).toThrow(InvalidObjectKeyError);
+  });
+
+  it("builds organisation and participant care-document keys", () => {
+    expect(
+      buildCareDocumentKey({
+        organisationId: "org_abc12345",
+        assetId: "asset_doc_01",
+        originalFilename: "plan.pdf",
+        contentType: "application/pdf",
+      }),
+    ).toBe("documents/organisations/org_abc12345/asset_doc_01.pdf");
+
+    expect(
+      buildCareDocumentKey({
+        participantId: "user_abc12345",
+        assetId: "asset_doc_02",
+        originalFilename: "note.txt",
+        contentType: "text/plain",
+      }),
+    ).toBe("documents/participants/user_abc12345/asset_doc_02.txt");
+  });
+
+  it("rejects care-document keys without an owner", () => {
+    expect(() =>
+      buildCareDocumentKey({
+        assetId: "asset_doc_03",
+        originalFilename: "plan.pdf",
+        contentType: "application/pdf",
       }),
     ).toThrow(InvalidObjectKeyError);
   });

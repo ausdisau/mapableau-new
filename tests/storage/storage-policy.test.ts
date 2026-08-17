@@ -42,13 +42,46 @@ describe("storage policies", () => {
     ).toThrow(/under 1 MB/);
   });
 
-  it("rejects participant-controlled classification in this slice", () => {
+  it("rejects participant-controlled classification for access evidence", () => {
     expect(() =>
       assertClassificationAllowedForPurpose(
         "access_evidence_photo",
         "PARTICIPANT_CONTROLLED",
       ),
     ).toThrow(/Participant-controlled/);
+  });
+
+  it("allows participant-controlled or organisation-private for care documents", () => {
+    expect(() =>
+      assertClassificationAllowedForPurpose(
+        "care_document",
+        "PARTICIPANT_CONTROLLED",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertClassificationAllowedForPurpose(
+        "care_document",
+        "ORGANISATION_PRIVATE",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertClassificationAllowedForPurpose("care_document", "PUBLIC"),
+    ).toThrow(StoragePolicyError);
+  });
+
+  it("allows PDF for care documents and rejects it for access evidence", () => {
+    assertMimeAndSize({
+      purpose: "care_document",
+      contentType: "application/pdf",
+      sizeBytes: 2048,
+    });
+    expect(() =>
+      assertMimeAndSize({
+        purpose: "access_evidence_photo",
+        contentType: "application/pdf",
+        sizeBytes: 100,
+      }),
+    ).toThrow(StoragePolicyError);
   });
 
   it("allows PUBLIC or AUTHENTICATED for community photos", () => {
