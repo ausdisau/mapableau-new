@@ -1,0 +1,10 @@
+{
+  "name": "access-media",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ausdisau media/advocacy SoR (DisabilityFour+, AccessiBooks)",
+  "scripts": {
+    "dev:four": "npm --prefix apps/disabilityfour run dev",
+    "dev:books": "npm --prefix apps/accessibooks run dev"
+  }
+}
