@@ -1,3 +1,4 @@
+/** LEGACY REPLIT TWIN — do not add product features; see docs/operations/LEGACY_REPLIT_TWIN.md */
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
