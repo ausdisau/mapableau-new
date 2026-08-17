@@ -1,5 +1,7 @@
 import { requireApiSession } from "@/lib/api/auth-handler";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { StorageError } from "@/lib/storage/errors";
 import { submitWorkerScreeningCheck } from "@/lib/workers/worker-screening-service";
 
 /**
@@ -9,6 +11,16 @@ import { submitWorkerScreeningCheck } from "@/lib/workers/worker-screening-servi
 export async function POST(req: Request) {
   const user = await requireApiSession();
   if (user instanceof Response) return user;
+
+  const ip = getClientIp(req);
+  if (
+    !checkIpRateLimit(`worker-screening-upload:${user.id}:${ip}`, {
+      windowMs: 60_000,
+      max: 10,
+    })
+  ) {
+    return jsonError("Too many upload requests", 429);
+  }
 
   const form = await req.formData();
   const jurisdiction = String(form.get("jurisdiction") ?? "");
@@ -35,6 +47,9 @@ export async function POST(req: Request) {
     }
     if (message.startsWith("UPLOAD_INVALID:")) {
       return jsonError(message.replace("UPLOAD_INVALID:", ""), 400);
+    }
+    if (error instanceof StorageError) {
+      return jsonError(error.message, error.status);
     }
     throw error;
   }

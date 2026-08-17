@@ -6,7 +6,9 @@ import {
   logAdminDocumentAccess,
 } from "@/lib/documents/document-service";
 import { prisma } from "@/lib/prisma";
+import { deleteCareDocumentObject, parseObjectStoreDocumentAssetId } from "@/lib/storage/document-object-store";
 import { readDocumentFile } from "@/lib/storage/documents";
+import { StorageError } from "@/lib/storage/errors";
 
 export async function GET(
   _req: Request,
@@ -34,7 +36,15 @@ export async function GET(
     });
   }
 
-  const buffer = await readDocumentFile(doc.fileKey);
+  let buffer: Buffer;
+  try {
+    buffer = await readDocumentFile(doc.fileKey);
+  } catch (error) {
+    if (error instanceof StorageError) {
+      return jsonError(error.message, error.status);
+    }
+    throw error;
+  }
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": doc.mimeType,
@@ -60,5 +70,9 @@ export async function DELETE(
     where: { id: documentId },
     data: { deletedAt: new Date() },
   });
+  const assetId = parseObjectStoreDocumentAssetId(doc.fileKey);
+  if (assetId) {
+    await deleteCareDocumentObject(assetId, user.id);
+  }
   return jsonOk({ deleted: true });
 }

@@ -1,6 +1,7 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 import {
+  guessDocumentMime,
   storeDocumentFile,
   validateUpload,
 } from "@/lib/storage/documents";
@@ -43,9 +44,18 @@ export async function submitWorkerScreeningCheck(params: {
   if (!profile) throw new Error("WORKER_PROFILE_NOT_FOUND");
 
   const buffer = Buffer.from(await params.file.arrayBuffer());
-  const stored = await storeDocumentFile(buffer, params.file.name);
-  const validation = validateUpload(stored.mimeType, stored.fileSize);
+  const validation = validateUpload(
+    guessDocumentMime(params.file.name),
+    buffer.length,
+  );
   if (validation) throw new Error(`UPLOAD_INVALID:${validation}`);
+
+  const stored = await storeDocumentFile(buffer, params.file.name, {
+    uploadedById: params.userId,
+    organisationId: profile.organisationId,
+    participantId: params.userId,
+    visibility: "organisation_private",
+  });
 
   const description = JSON.stringify({
     kind: "ndis_worker_screening",
@@ -61,6 +71,8 @@ export async function submitWorkerScreeningCheck(params: {
       fileKey: stored.fileKey,
       mimeType: stored.mimeType,
       fileSize: stored.fileSize,
+      scanStatus: stored.scanStatus ?? "not_configured",
+      storedAssetId: stored.storedAssetId ?? null,
       uploadedById: params.userId,
       organisationId: profile.organisationId,
       description,

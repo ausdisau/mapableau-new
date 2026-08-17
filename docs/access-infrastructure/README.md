@@ -2,6 +2,7 @@
 
 **Status:** foundational framework / documentation / schema contracts  
 **Public claim:** none — not a live national registry, certification scheme, or universal accessibility score  
+**Photo evidence uploads:** in development, flag off (`MAPABLE_ACCESS_EVIDENCE_UPLOADS_ENABLED`), no production claim — see [object-storage.md](../architecture/object-storage.md)  
 **Programme home:** Living Access Fabric (`docs/access-intelligence-next/`) implements compilers and projections against this framework
 
 ## Proposition
@@ -62,6 +63,7 @@ See [SCHEMA.md](./SCHEMA.md), [ONTOLOGY.md](./ONTOLOGY.md), [API_CONTRACTS.md](.
 | Presentation preferences | `AccessibilityProfile` | UI / digital prefs — not functional matching SoT |
 | Functional requirements | `AccessPassport` | C-010 — participant-controlled |
 | Evidence provenance | `AccessEvidenceEnvelopeRecord` + `AccessObservation` | Append-only; no silent overwrite of places |
+| Object bytes | `StoredAsset` + `ObjectStore` (`lib/storage`) | Provider-neutral; not a second access registry |
 | Fit / proof / graph projection | Access Intelligence Next | Shadow / synthetic until promoted |
 | Accreditation scores | Presentation layer only | Useful for discovery; **not** access decisions |
 

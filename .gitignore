@@ -73,8 +73,8 @@ yarn.lock
 # Husky (uncomment if you don't want to commit husky hooks)
 # .husky/_/
 
-# Temporary files
-*.tmp
+# Local document blobs (DOCUMENT_STORAGE_MODE=local)
+.data/
 *.temp
 .cache/
 

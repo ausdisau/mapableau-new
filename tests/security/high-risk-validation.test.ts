@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  attachVaultItemSchema,
+  shareVaultItemSchema,
+} from "@/lib/privacy/participant-vault/schemas";
 import { HIGH_RISK_ROUTES } from "@/lib/security/high-risk-routes";
 import { dataVaultRequestSchema } from "@/lib/validation/data-vault";
 import { microConsentPostSchema } from "@/lib/validation/micro-consent";
@@ -45,5 +49,26 @@ describe("high-risk route Zod schemas", () => {
       (r) => r.path === "/api/billing/overview",
     );
     expect(overview?.tenantAssertRequired).toBe(true);
+  });
+
+  it("rejects unknown vault share fields and forbidden extra keys", () => {
+    expect(
+      shareVaultItemSchema.safeParse({
+        granteeUserId: "user_grantee",
+        purpose: "Share plan for intake",
+        expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+        objectKey: "nope",
+      }).success,
+    ).toBe(false);
+    expect(
+      attachVaultItemSchema.safeParse({
+        kind: "identity",
+        documentId: "document1",
+        bucket: "private",
+      }).success,
+    ).toBe(false);
+    expect(
+      HIGH_RISK_ROUTES.some((r) => r.path === "/api/participant-vault/items"),
+    ).toBe(true);
   });
 });

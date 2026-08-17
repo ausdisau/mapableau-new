@@ -55,7 +55,7 @@ Hyphenated top-level directories were nested under the umbrellas below. Leaf nam
 | `community/` | `mapable-peers` |
 | `contracts/` | `service-agreements` |
 | `workforce/` | `readiness` |
-| `privacy/` | `preserving-analytics` |
+| `privacy/` | `preserving-analytics`, `participant-vault` |
 
 ## Compatibility shims (temporary)
 

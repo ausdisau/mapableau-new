@@ -151,4 +151,34 @@ export async function canShareAccessibilityWithOrganisation(
   });
 }
 
+/**
+ * Read-only share gate: if any ConsentRecord exists for this pair, an active
+ * unexpired one is required. If none exist, sharing may proceed (first slice
+ * uses DocumentAccessGrant purpose + expiry). Does not write consent.
+ */
+export async function shareConsentStateForGrantee(params: {
+  subjectUserId: string;
+  grantedToUserId: string;
+}): Promise<"none" | "active" | "inactive"> {
+  const any = await prisma.consentRecord.count({
+    where: {
+      subjectUserId: params.subjectUserId,
+      grantedToUserId: params.grantedToUserId,
+    },
+  });
+  if (any === 0) return "none";
+  const now = new Date();
+  const active = await prisma.consentRecord.findFirst({
+    where: {
+      subjectUserId: params.subjectUserId,
+      grantedToUserId: params.grantedToUserId,
+      status: "active",
+      revokedAt: null,
+      OR: [{ expiryDate: null }, { expiryDate: { gt: now } }],
+    },
+    select: { id: true },
+  });
+  return active ? "active" : "inactive";
+}
+
 export type { PrismaConsentScope };

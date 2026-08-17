@@ -21,6 +21,7 @@ const SENSITIVE_PREFIXES = [
   "app/api/incidents",
   "app/api/participant-profile",
   "app/api/data-vault",
+  "app/api/participant-vault",
 ];
 
 const AUTH_IMPORT =

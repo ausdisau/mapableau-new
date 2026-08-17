@@ -56,6 +56,8 @@ model User {
   ticketsAssigned        SupportTicket[]    @relation("TicketAssignedAdmin")
   ticketComments         SupportTicketComment[]
   documentsUploaded      Document[]         @relation("DocumentUploadedBy")
+  participantVaultItems  ParticipantVaultItem[] @relation("VaultItemParticipant")
+  participantVaultItemsCreated ParticipantVaultItem[] @relation("VaultItemCreatedBy")
   fundingSources         ParticipantFundingSource[] @relation("ParticipantFundingSources")
   fundingSourcesCreated  ParticipantFundingSource[] @relation("FundingSourceCreatedBy")
   invoicesAsParticipant  Invoice[]          @relation("InvoiceParticipant")
@@ -270,6 +272,8 @@ model User {
   governedActionEnvelopesInitiated        GovernedActionEnvelope[]    @relation("GovernedEnvelopeInitiator")
   navigatorDecisionPassports              NavigatorDecisionPassport[] @relation("NavigatorPassportParticipant")
   navigatorGovernedMemoryItems            NavigatorGovernedMemoryItem[] @relation("NavigatorMemoryParticipant")
+  storedAssetsCreated                     StoredAsset[]                 @relation("StoredAssetCreatedBy")
+  storageUploadSessions                   StorageUploadSession[]        @relation("StorageUploadSessionActor")
 }
 
 model PasskeyCredential {
@@ -886,6 +890,8 @@ model Organisation {
   researchProjects ResearchProject[]
   trainingRequirements TrainingRequirement[]
   workplaceLocations WorkplaceLocation[]
+  storedAssets StoredAsset[]
+  storageUploadSessions StorageUploadSession[]
 }
 
 model OrganisationMember {
@@ -1373,6 +1379,8 @@ model Document {
   invoiceId       String?
   invoice         Invoice?           @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   description     String?
+  storedAssetId   String?
+  storedAsset     StoredAsset?       @relation(fields: [storedAssetId], references: [id], onDelete: SetNull)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   deletedAt       DateTime?
@@ -1380,8 +1388,39 @@ model Document {
   @@index([participantId])
   @@index([organisationId])
   @@index([bookingId])
+  @@index([storedAssetId])
   accessGrants DocumentAccessGrant[]
   versions DocumentVersion[]
+  vaultItems ParticipantVaultItem[]
+}
+
+enum ParticipantVaultItemKind {
+  identity
+  plan
+  agreement
+  note
+  other
+}
+
+/// Join from a participant vault collection to an existing Document. Not a blob SoT.
+model ParticipantVaultItem {
+  id            String                   @id @default(cuid())
+  participantId String
+  participant   User                     @relation("VaultItemParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  documentId    String
+  document      Document                 @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  kind          ParticipantVaultItemKind
+  label         String?
+  createdById   String
+  createdBy     User                     @relation("VaultItemCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@unique([participantId, documentId])
+  @@index([participantId, createdAt])
+  @@index([documentId])
+  @@index([createdById])
+  @@map("participant_vault_items")
 }
 
 model ParticipantFundingSource {
@@ -7642,6 +7681,7 @@ model AccessObservationRecord {
   updatedAt            DateTime               @updatedAt @map("updated_at")
 
   capabilities AccessCapabilityRecord[]
+  evidenceAssets AccessObservationEvidence[]
 
   @@index([placeId, ontologyConceptId])
   @@index([entityType, entityId])
@@ -7670,6 +7710,118 @@ model AccessCapabilityRecord {
   @@index([placeId, ontologyConceptId])
   @@index([ontologyConceptId, status])
   @@map("access_capability_records")
+}
+
+// ---------------------------------------------------------------------------
+// Provider-neutral object storage metadata (bytes live in ObjectStore).
+// Flag-gated. Not a second access registry and not a Document replacement.
+// ---------------------------------------------------------------------------
+
+enum StorageAccessClassification {
+  PUBLIC
+  AUTHENTICATED
+  PARTICIPANT_CONTROLLED
+  ORGANISATION_PRIVATE
+  SENSITIVE
+  SYSTEM_INTERNAL
+}
+
+enum StoredAssetStatus {
+  pending
+  ready
+  deleted
+}
+
+enum StorageUploadSessionStatus {
+  pending
+  completed
+  expired
+  orphaned
+}
+
+enum StorageRetentionClass {
+  standard
+  evidence
+  short_lived
+}
+
+/// Canonical blob metadata. Identity is provider + bucket + objectKey.
+model StoredAsset {
+  id                   String                       @id @default(cuid())
+  organisationId       String?                      @map("organisation_id")
+  organisation         Organisation?                @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  provider             String
+  bucket               String
+  objectKey            String                       @map("object_key")
+  originalFilename     String                       @map("original_filename")
+  contentType          String                       @map("content_type")
+  sizeBytes            Int                          @map("size_bytes")
+  sha256               String?
+  accessClassification StorageAccessClassification  @map("access_classification")
+  sourceType           String                       @map("source_type")
+  createdById          String                       @map("created_by_id")
+  createdBy            User                         @relation("StoredAssetCreatedBy", fields: [createdById], references: [id])
+  retentionClass       StorageRetentionClass        @default(standard) @map("retention_class")
+  status               StoredAssetStatus            @default(pending)
+  deletedAt            DateTime?                    @map("deleted_at")
+  createdAt            DateTime                     @default(now()) @map("created_at")
+  updatedAt            DateTime                     @updatedAt @map("updated_at")
+
+  uploadSessions StorageUploadSession[]
+  observationEvidence AccessObservationEvidence[]
+  documents Document[]
+
+  @@unique([provider, bucket, objectKey])
+  @@index([organisationId])
+  @@index([createdById])
+  @@index([status, createdAt])
+  @@map("stored_assets")
+}
+
+model StorageUploadSession {
+  id                   String                     @id @default(cuid())
+  assetId              String                     @map("asset_id")
+  asset                StoredAsset                @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  purpose              String
+  objectKey            String                     @map("object_key")
+  bucket               String
+  provider             String
+  contentType          String                     @map("content_type")
+  declaredSizeBytes    Int                        @map("declared_size_bytes")
+  accessClassification StorageAccessClassification @map("access_classification")
+  nonceHash            String                     @map("nonce_hash")
+  status               StorageUploadSessionStatus @default(pending)
+  expiresAt            DateTime                   @map("expires_at")
+  consumedAt           DateTime?                  @map("consumed_at")
+  actorUserId          String                     @map("actor_user_id")
+  actor                User                       @relation("StorageUploadSessionActor", fields: [actorUserId], references: [id])
+  organisationId       String?                    @map("organisation_id")
+  organisation         Organisation?              @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  placeId              String?                    @map("place_id")
+  observationId        String?                    @map("observation_id")
+  createdAt            DateTime                   @default(now()) @map("created_at")
+  updatedAt            DateTime                   @updatedAt @map("updated_at")
+
+  @@index([assetId])
+  @@index([actorUserId, status])
+  @@index([status, expiresAt])
+  @@map("storage_upload_sessions")
+}
+
+/// Join from Access Graph observations to stored photo/binary evidence.
+model AccessObservationEvidence {
+  id             String                   @id @default(cuid())
+  observationId  String                   @map("observation_id")
+  observation    AccessObservationRecord  @relation(fields: [observationId], references: [id], onDelete: Cascade)
+  assetId        String                   @map("asset_id")
+  asset          StoredAsset              @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  evidenceKind   String                   @map("evidence_kind")
+  notes          String?
+  createdAt      DateTime                 @default(now()) @map("created_at")
+
+  @@unique([observationId, assetId])
+  @@index([assetId])
+  @@map("access_observation_evidence")
 }
 
 model AccessAdjustmentRecord {
