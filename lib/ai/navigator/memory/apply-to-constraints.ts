@@ -1,9 +1,9 @@
-import { listMemoryItems } from "@/lib/ai/navigator/memory/service";
 import {
   hardConstraintsSchema,
   type HardConstraints,
   type HardConstraintsInput,
 } from "@/lib/ai/navigator/matching/types";
+import { listMemoryItems } from "@/lib/ai/navigator/memory/service";
 import { isNavigatorMemoryEnabled } from "@/lib/config/navigator-pilot";
 
 /**

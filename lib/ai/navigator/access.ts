@@ -1,7 +1,3 @@
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { hasParticipantAuthority } from "@/lib/authority/participant-authority-service";
-import { userCanAccessTenant } from "@/lib/platform/multi-tenant-admin/tenant-service";
-
 import {
   NAVIGATOR_CONSENT_PURPOSE,
   verifyPurposeConsent,
@@ -10,6 +6,10 @@ import {
   assertNavigatorCapability,
   NAVIGATOR_AUDIT,
 } from "@/lib/ai/navigator/gates";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { hasParticipantAuthority } from "@/lib/authority/participant-authority-service";
+import { userCanAccessTenant } from "@/lib/platform/multi-tenant-admin/tenant-service";
+
 
 export type NavigatorPilotAccessInput = {
   tenantId: string;

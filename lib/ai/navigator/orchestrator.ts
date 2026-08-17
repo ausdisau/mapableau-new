@@ -7,7 +7,6 @@ import {
   assertNavigatorActionAllowed,
   assertNavigatorCapability,
 } from "@/lib/ai/navigator/gates";
-import { applyMemoryToHardConstraints } from "@/lib/ai/navigator/memory/apply-to-constraints";
 import { applyHardConstraints } from "@/lib/ai/navigator/matching/hard-constraints";
 import { buildMatchResult } from "@/lib/ai/navigator/matching/rank";
 import { ndisProviderHardFilter } from "@/lib/ai/navigator/matching/search-tool";
@@ -20,6 +19,7 @@ import {
   type MatchResult,
   type RankingWeights,
 } from "@/lib/ai/navigator/matching/types";
+import { applyMemoryToHardConstraints } from "@/lib/ai/navigator/memory/apply-to-constraints";
 import {
   createDecisionPassport,
   hasActiveAiOptOut,
