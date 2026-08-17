@@ -20,7 +20,7 @@
 | 5 Vertical slice      | Journey UI + Finder transfer + non-negotiables + draft edit | **Complete (code)** — `NavigatorPilotJourney`, `finder-transfer.ts`, `tests/navigator/phase5-vertical-slice.test.ts`; human gates still deferred |
 | 6a Enforcement holes  | Tenant membership, envelope consent re-verify, A2H honesty   | **Complete (code)** — `access.ts`, `phase6a-hardening.test.ts`                                                                                   |
 | 6b Participant control| Correction rematch, passport opt-out, memory→Stage-1        | **Complete (code)** — `passport/rematch.ts`, `phase6b-participant-control.test.ts`                                                               |
-| 6c Assurance docs     | Doc honesty + remaining brief tests                         | **In progress** — Playwright Navigator journey still deferred; lived-experience `NOT_RUN`                                                        |
+| 6c Assurance docs     | Doc honesty + remaining brief tests                         | **Complete (code)** — HTTP + consent remaining reasons + Playwright disabled-shell; lived-experience `NOT_RUN`; flags stay false |
 
 ---
 
@@ -52,6 +52,7 @@
 - Envelope v2: nonce, expiry, replay protection; model cannot approve; **consent re-verified server-side on approve**; nonce omitted from client responses
 - A2H list/get/resolve tenant + assignee checks; escalation does **not** claim a reviewer when A2H flags are off (`assignment: unavailable`)
 - Passport/memory/escalation IDOR checks (tenant + participant)
+- Capability + purpose-consent gates on passport, memory, and escalate routes
 - Correction rematch refreshes shortlist; passport `aiOptedOut` blocks assisted search server-side
 - Governed memory expiry enforced on list; exclusions merge into Stage-1 hard constraints
 - Matching never relaxes hard constraints; `NO_SAFE_MATCH` explicit
@@ -70,7 +71,7 @@
 | WCAG 2.2 AA target                               | Repository convention retained                                          |
 | Keyboard / focus / live region on Passport panel | Implemented in UI shell                                                 |
 | Non-AI equivalent path                           | Opt-out → `/provider-finder`                                            |
-| Automated a11y                                   | Existing Playwright axe suite; Navigator-specific journey not yet in CI |
+| Automated a11y                                   | Playwright `/navigator/pilot` disabled-shell (keyboard + live region + axe); enabled journey still a human gate |
 | Lived-experience / switch / AAC                  | **Required before any flag enablement** — owner action                  |
 
 ---
@@ -85,8 +86,9 @@ Residual risks (accepted for synthetic pilot only):
 2. In-memory IP rate limits — not distributed; sensitive pilot mutations stay blocked until store approved.
 3. Dual `participant-authority` writers — programmes write path must stay frozen for Passport enablement; Navigator evaluates `delegateId` + `domain` + `actions` only.
 4. Vercel account / preview evidence may be unavailable — do not claim live preview proof.
-5. Playwright `/navigator/pilot` keyboard/SR journey is not yet in CI — lived-experience gate still required before any flag enablement.
+5. Playwright `/navigator/pilot` covers the **disabled** shell (flags stay false). Enabled-journey keyboard/SR and lived-experience remain required before any flag enablement.
 6. Kill switches are process-local `Set`s — not multi-instance.
+7. Model-assisted Navigator interpret/reply is **not** on the gateway allowlist (`SHARED_INTERPRETER_TASKS`) — fail-closed / N/A until intentionally wired.
 
 ---
 
@@ -176,6 +178,7 @@ pnpm test:ai-platform
 pnpm ai:evals
 pnpm type-check
 pnpm ci:production-claims
+pnpm test:a11y -- tests/a11y/navigator-pilot.spec.ts
 ```
 
 Navigator eval scenarios: tags `navigator` in `lib/ai/platform/evaluations/scenarios/catalog.ts`.

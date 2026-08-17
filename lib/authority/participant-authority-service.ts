@@ -119,6 +119,8 @@ export async function hasParticipantAuthority(input: {
     },
   });
   if (!grant) return false;
+  // Wildcard grants are overbroad — fail closed. Callers must name actions.
+  if (grant.actions.includes("*")) return false;
   return (input.consentScopes ?? []).every((scope) =>
     grant.consentScopes.includes(scope),
   );

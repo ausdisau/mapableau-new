@@ -76,7 +76,11 @@ export default async function NavigatorPilotPage({ searchParams }: PageProps) {
             >
               Navigator pilot is not enabled
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#334155]">
+            <p
+              role="status"
+              aria-live="polite"
+              className="mt-2 text-sm leading-relaxed text-[#334155]"
+            >
               This governed pilot surface is turned off in this environment. You
               can still find providers using the classic Provider Finder — no AI
               assistance required.

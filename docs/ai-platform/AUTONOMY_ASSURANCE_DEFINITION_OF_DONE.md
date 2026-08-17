@@ -24,7 +24,7 @@ The programme is **complete only when** every criterion below is met. Feature fl
 | 11 | Existing receipts, notices, attestations and audits are reused coherently | 7 | **Partial** — navigator.* audit chain; full choreography still open |
 | 12 | Participants can understand, challenge, correct and request human help | 7, 8 | **Partial on main / deepened in Phase 6** — rematch on correct; lived-experience gate open |
 | 13 | No clinical, legal, safeguarding, payment, claim, service-reduction or worker-discipline decision is delegated to AI | All | **Policy held** in docs/freezes; must remain true through every prompt |
-| 14 | Accessibility and security suites are green | 8 + CI | **Track per PR** — Navigator Playwright journey not yet in CI |
+| 14 | Accessibility and security suites are green | 8 + CI | **Track per PR** — Playwright `/navigator/pilot` disabled-shell added; enabled journey + lived-experience still open |
 | 15 | Migrate-from-zero is green for any additive schema | 2, 6, 7 as needed | **Track per schema PR** — Phase 6a/6b additive code only (no new tables) |
 | 16 | All feature flags remain default false | All | **Required throughout** |
 | 17 | Public claims remain internal or experimental | All | **Required throughout** |
