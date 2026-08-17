@@ -2,6 +2,11 @@
 
 Disability support platform — care, transport, bookings, billing, and participant-facing services. Built with Next.js (App Router), TypeScript, PostgreSQL, and Prisma.
 
+**Org amalgamation:** Family-based systems of record (platform / simulation / media) —
+see [docs/strategy/AUSDISAU_AMALGAMATION.md](docs/strategy/AUSDISAU_AMALGAMATION.md).
+Independence Suite Expo app: [`apps/independence`](apps/independence/). SoR seeds pending
+remote publish: [`amalgamation/`](amalgamation/).
+
 ## Getting started
 
 ### Prerequisites
