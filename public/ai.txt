@@ -1,0 +1,49 @@
+# AI / autonomous agent access policy for MapAble
+# See also: /robots.txt (Next.js app/robots.ts)
+
+User-Agent: *
+Disallow: /api/
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /provider
+Disallow: /worker
+Disallow: /driver
+Disallow: /messages
+Disallow: /my-access
+Disallow: /login
+Disallow: /register
+
+# Named AI crawlers — no indexing or training on transactional surfaces
+User-Agent: GPTBot
+Disallow: /
+
+User-Agent: ChatGPT-User
+Disallow: /
+
+User-Agent: anthropic-ai
+Disallow: /
+
+User-Agent: Claude-Web
+Disallow: /
+
+User-Agent: ClaudeBot
+Disallow: /
+
+User-Agent: Bytespider
+Disallow: /
+
+User-Agent: CCBot
+Disallow: /
+
+User-Agent: Google-Extended
+Disallow: /
+
+User-Agent: Amazonbot
+Disallow: /
+
+User-Agent: PerplexityBot
+Disallow: /
+
+# Contact: security via mapable.com.au privacy / contact channels
+# Purpose: protect participant data, bookings, and API contracts from
+# autonomous scraping, reward hacking, and unauthorized training use.

@@ -10,11 +10,13 @@
 | Item                                 | Evidence                    | Status                                              |
 | ------------------------------------ | --------------------------- | --------------------------------------------------- |
 | `lib/api/ip-rate-limit.ts`           | In-memory `Map` per process | `VERIFIED` (code)                                   |
+| `lib/security/edge-ai-firewall.ts` (middleware) | In-memory sliding window on `/api`, `/admin`, `/dashboard` | `VERIFIED` (code) — process-local only; **not** multi-instance safe |
 | Multi-instance / multi-region safety | None                        | `FAILED` for production-sensitive claims            |
 | Abuse protection for CSP report sink | Uses process-local helper   | Acceptable for Preview/CI; **not** production-grade |
 | Search interpret / autocomplete      | `checkIpRateLimit`          | Process-local (Sprint 4 Act)                        |
 | Register + NDIS provider search      | `checkIpRateLimit`          | Process-local (Sprint 4 Act)                        |
 | Act handoff resolve                  | `checkIpRateLimit`          | Process-local (Sprint 4 Act)                        |
+| Edge AI firewall (UA / injection / window) | `middleware.ts` + `edge-ai-firewall.ts` | Process-local; see also `public/ai.txt` |
 
 ## Approved shared store scan (2026-07-21)
 

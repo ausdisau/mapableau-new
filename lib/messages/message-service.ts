@@ -2,6 +2,10 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { recordBookingTimelineEvent } from "@/lib/bookings/timeline-service";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
+import {
+  UnsafePayloadError,
+  verifyPayloadSafe,
+} from "@/lib/security/verify-payload-safe";
 
 export async function userCanAccessConversation(
   userId: string,
@@ -41,15 +45,33 @@ export async function sendMessage(params: {
   plainLanguageSummary?: string;
   attachmentDocumentIds?: string[];
 }) {
-  const sanitized = params.body.trim().slice(0, 10000);
-  if (!sanitized) throw new Error("EMPTY_MESSAGE");
+  const bodyCheck = verifyPayloadSafe(params.body, {
+    maxLength: 10_000,
+    field: "body",
+  });
+  if (!bodyCheck.ok) {
+    throw new UnsafePayloadError(bodyCheck.reason);
+  }
+  if (!bodyCheck.sanitized) throw new Error("EMPTY_MESSAGE");
+
+  let plainLanguageSummary = params.plainLanguageSummary;
+  if (plainLanguageSummary != null && plainLanguageSummary !== "") {
+    const summaryCheck = verifyPayloadSafe(plainLanguageSummary, {
+      maxLength: 2000,
+      field: "plainLanguageSummary",
+    });
+    if (!summaryCheck.ok) {
+      throw new UnsafePayloadError(summaryCheck.reason);
+    }
+    plainLanguageSummary = summaryCheck.sanitized;
+  }
 
   const message = await prisma.message.create({
     data: {
       conversationId: params.conversationId,
       senderUserId: params.senderUserId,
-      body: sanitized,
-      plainLanguageSummary: params.plainLanguageSummary,
+      body: bodyCheck.sanitized,
+      plainLanguageSummary,
       attachmentDocumentIds: params.attachmentDocumentIds ?? [],
     },
   });
