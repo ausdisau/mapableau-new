@@ -2,4 +2,5 @@ packages:
   - "."
   - "apps/realtime-server"
   - "packages/*"
-  # apps/companion installs independently (Expo) — see apps/companion/README.md
+  # apps/companion and apps/independence install independently (Expo SDK drift) —
+  # see apps/companion/README.md and apps/independence/README.md

@@ -1,0 +1,147 @@
+import { Book } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Play } from "lucide-react";
+
+interface BookCardProps {
+  book: Book;
+  onPlayBook: (book: Book) => void;
+  compact?: boolean;
+  /** Optional index for staggered list animation */
+  index?: number;
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.04, duration: 0.3 },
+  }),
+};
+
+function handleCardKeyDown(e: React.KeyboardEvent, onActivate: () => void) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    onActivate();
+  }
+}
+
+export function BookCard({ book, onPlayBook, compact = false, index = 0 }: BookCardProps) {
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
+
+  const playLabel = `Play ${book.title} by ${book.author}`;
+
+  if (compact) {
+    return (
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        custom={index}
+        whileHover={{ y: -4, transition: { duration: 0.2 } }}
+        className="h-full"
+      >
+        <Card
+          className="overflow-hidden rounded-xl border border-border hover:border-primary/30 hover:shadow-lg transition-shadow cursor-pointer group bg-card h-full"
+          data-testid={`card-book-${book.id}`}
+          onClick={() => onPlayBook(book)}
+          tabIndex={0}
+          role="button"
+          aria-label={playLabel}
+          onKeyDown={(e) => handleCardKeyDown(e, () => onPlayBook(book))}
+        >
+        <CardContent className="p-0">
+          <div className="relative aspect-[3/4] overflow-hidden">
+            {book.coverImage ? (
+              <img
+                src={book.coverImage}
+                alt={`${book.title} book cover`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                data-testid={`img-cover-${book.id}`}
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <Play className="h-10 w-10 text-muted-foreground" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-primary/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="h-14 w-14 rounded-full bg-accent flex items-center justify-center shadow-lg">
+                <Play className="h-7 w-7 text-accent-foreground fill-accent-foreground ml-1" />
+              </div>
+            </div>
+          </div>
+          <div className="p-3">
+            <h3 className="font-display font-semibold text-sm line-clamp-2 mb-0.5" data-testid={`text-title-${book.id}`}>
+              {book.title}
+            </h3>
+            <p className="text-xs text-muted-foreground truncate" data-testid={`text-author-${book.id}`}>
+              {book.author}
+            </p>
+            <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+              {book.audioUrl && <span aria-label="Audiobook">🎧</span>}
+              {book.description && <span aria-label="Ebook">📖</span>}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      custom={index}
+      whileHover={{ y: -6, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
+      transition={{ duration: 0.2 }}
+      className="h-full"
+    >
+      <Card className="overflow-hidden rounded-xl border border-border hover:border-primary/30 hover:shadow-xl transition-shadow focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 bg-card h-full" data-testid={`card-book-${book.id}`}>
+      <CardContent className="p-0">
+        <div className="relative aspect-[3/4] overflow-hidden">
+          {book.coverImage ? (
+            <img
+              src={book.coverImage}
+              alt={`${book.title} book cover`}
+              className="w-full h-full object-cover"
+              data-testid={`img-cover-${book.id}`}
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <Play className="h-16 w-16 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        <div className="p-5">
+          <h3 className="font-display text-lg font-semibold mb-1" data-testid={`text-title-${book.id}`}>
+            {book.title}
+          </h3>
+          <p className="text-muted-foreground text-sm mb-2" data-testid={`text-author-${book.id}`}>
+            by {book.author}
+          </p>
+          <p className="text-sm text-muted-foreground mb-4" data-testid={`text-duration-${book.id}`}>
+            {formatDuration(book.duration)}
+          </p>
+          <Button
+            className="w-full rounded-lg bg-primary hover:bg-primary/90"
+            onClick={() => onPlayBook(book)}
+            data-testid={`button-play-${book.id}`}
+            aria-label={playLabel}
+          >
+            <Play className="h-4 w-4 mr-2" aria-hidden="true" />
+            Play
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+    </motion.div>
+  );
+}

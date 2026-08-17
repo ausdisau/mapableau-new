@@ -1,0 +1,11 @@
+{
+  "name": "disability-simulations",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ausdisau clinical education simulation SoR",
+  "scripts": {
+    "typecheck:kernel": "tsc -p packages/sim-kernel/tsconfig.json --noEmit",
+    "test:medical": "npm --prefix apps/medical-cases test"
+  },
+  "packageManager": "pnpm@10.12.1"
+}

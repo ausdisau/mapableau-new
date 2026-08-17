@@ -1,0 +1,7 @@
+{
+  "name": "@ausdisau/sim-content-schema",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "description": "Zod/JSON scenario contracts aligned with rohan-icu content lint"
+}

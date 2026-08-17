@@ -2,6 +2,12 @@
 
 Guides for pulling code from `@ausdisau1` Repls into `ausdisau/mapableau-new`.
 
+**Org context:** Replit imports belong to the **platform SoR** only. See the
+family amalgamation map at
+[docs/strategy/AUSDISAU_AMALGAMATION.md](../strategy/AUSDISAU_AMALGAMATION.md).
+After ports complete, the in-tree Express/Vite twin is read-only legacy —
+[LEGACY_REPLIT_TWIN.md](./LEGACY_REPLIT_TWIN.md).
+
 | Repl | Script | Ops doc |
 | --- | --- | --- |
 | [MapAble-for-Care](https://replit.com/@ausdisau1/MapAble-for-Care) | `scripts/import-replit-care.sh` | [replit-mapable-for-care-import.md](./replit-mapable-for-care-import.md) |

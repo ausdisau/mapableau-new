@@ -24,3 +24,14 @@ Use the unified repository and work in the relevant application directory:
 - `apps/mobile` — AdaptAble Home / Independence Suite Expo + React Native app
 
 See the unified repository's root README and `docs/repository-amalgamation.md` for the current layout and development commands.
+
+## Family amalgamation strategy (org-wide)
+
+This branch adds documentation and staging seeds for family-based amalgamation
+across `ausdisau` repositories (platform / simulation / media). See
+[docs/strategy/AUSDISAU_AMALGAMATION.md](docs/strategy/AUSDISAU_AMALGAMATION.md).
+
+Per the migration above, the **platform system of record** is `ausdisau/MapAble`
+(`apps/web`, `apps/mobile`). Branch additions such as `apps/independence/` and
+`amalgamation/` should be reconciled with the unified repository layout before
+continuing platform work on this remote.
