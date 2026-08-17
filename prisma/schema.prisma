@@ -56,6 +56,8 @@ model User {
   ticketsAssigned        SupportTicket[]    @relation("TicketAssignedAdmin")
   ticketComments         SupportTicketComment[]
   documentsUploaded      Document[]         @relation("DocumentUploadedBy")
+  participantVaultItems  ParticipantVaultItem[] @relation("VaultItemParticipant")
+  participantVaultItemsCreated ParticipantVaultItem[] @relation("VaultItemCreatedBy")
   fundingSources         ParticipantFundingSource[] @relation("ParticipantFundingSources")
   fundingSourcesCreated  ParticipantFundingSource[] @relation("FundingSourceCreatedBy")
   invoicesAsParticipant  Invoice[]          @relation("InvoiceParticipant")
@@ -1389,6 +1391,36 @@ model Document {
   @@index([storedAssetId])
   accessGrants DocumentAccessGrant[]
   versions DocumentVersion[]
+  vaultItems ParticipantVaultItem[]
+}
+
+enum ParticipantVaultItemKind {
+  identity
+  plan
+  agreement
+  note
+  other
+}
+
+/// Join from a participant vault collection to an existing Document. Not a blob SoT.
+model ParticipantVaultItem {
+  id            String                   @id @default(cuid())
+  participantId String
+  participant   User                     @relation("VaultItemParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  documentId    String
+  document      Document                 @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  kind          ParticipantVaultItemKind
+  label         String?
+  createdById   String
+  createdBy     User                     @relation("VaultItemCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@unique([participantId, documentId])
+  @@index([participantId, createdAt])
+  @@index([documentId])
+  @@index([createdById])
+  @@map("participant_vault_items")
 }
 
 model ParticipantFundingSource {

@@ -20,6 +20,8 @@
 | Organisations and tenancy   | Organisation membership services                         | **`Organisation.id`**                        | Server-derived tenant context; no client-selected authority                 |
 | Accessibility evidence      | Existing access modules under `lib/access*` / access map | Access registry (`AccessObservationRecord`)  | Object bytes are not a second registry — see Object storage                 |
 | Object storage              | `lib/storage/**`                                         | `StoredAsset` + `ObjectStore`                | Provider-neutral; Supabase adapter first. Domain must not call vendor SDKs. |
+| Participant information vault | `lib/privacy/participant-vault/**`                     | `ParticipantVaultItem` (join, not blobs)     | Collection/sharing only. Bytes stay `lib/storage/**`. Not Access Passport.  |
+| Participant data export (DSAR) | `lib/personal-data-vault/**`                           | `PersonalDataVaultRequest`                   | Export / portability / deletion review. Not a document locker.              |
 | Access place identity       | `lib/access/map/**`                                      | **`AccessPlace`**                            | Sole public place writer                                                    |
 | Access Intelligence Next    | `lib/access/intelligence-next/**`                        | Deterministic fit / proof / graph projection | Synthetic contracts only in foundation; must not become AccessPlace SoT     |
 | Public accountability       | `lib/governance/national-accountability/**`              | National accountability publications         | Evolve to governed pipeline (PR 11); no second portal                       |

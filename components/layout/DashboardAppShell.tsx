@@ -12,11 +12,13 @@ export function DashboardAppShell({
   userName,
   role,
   showCareOsNav = false,
+  showInformationVault = false,
 }: {
   children: ReactNode;
   userName: string;
   role: UserRole;
   showCareOsNav?: boolean;
+  showInformationVault?: boolean;
 }) {
   return (
     <MapAbleAppShell
@@ -29,6 +31,7 @@ export function DashboardAppShell({
           userName={userName}
           role={role}
           showCareOsNav={showCareOsNav}
+          showInformationVault={showInformationVault}
         />
       }
     >

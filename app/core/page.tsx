@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { CoreHubCard } from "@/components/core/CoreHubCard";
 import { CorePageHeader } from "@/components/core/CorePageHeader";
-import { CORE_HUB_SECTIONS } from "@/lib/platform/core-ui/navigation";
+import { getCoreHubSections } from "@/lib/platform/core-ui/navigation";
 
 export const metadata = {
   title: "MapAble Core",
@@ -10,6 +10,7 @@ export const metadata = {
 };
 
 export default function CoreHubPage() {
+  const sections = getCoreHubSections();
   return (
     <div className="mx-auto max-w-6xl space-y-12 px-4 py-10">
       <CorePageHeader
@@ -38,7 +39,7 @@ export default function CoreHubPage() {
         </div>
       </CorePageHeader>
 
-      {CORE_HUB_SECTIONS.map((section) => (
+      {sections.map((section) => (
         <section key={section.title} id={section.title === "Public accountability" ? "civic" : undefined}>
           <h2 className="font-heading text-xl font-semibold">{section.title}</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

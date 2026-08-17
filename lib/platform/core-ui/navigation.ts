@@ -1,3 +1,5 @@
+import { isParticipantInformationVaultEnabled } from "@/lib/privacy/participant-vault/flags";
+
 export type CoreNavLink = {
   href: string;
   label: string;
@@ -119,7 +121,11 @@ export const CORE_HUB_SECTIONS: {
         label: "MapAble Transport",
         description: "Accessible trips and operator search",
       },
-      { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
+      {
+        href: "/data-vault",
+        label: "Export and deletion",
+        description: "Platform export, portability and deletion requests",
+      },
     ],
   },
   {
@@ -152,3 +158,29 @@ export const CORE_HUB_SECTIONS: {
     ],
   },
 ];
+
+const INFORMATION_VAULT_LINK: CoreNavLink = {
+  href: "/vault",
+  label: "Information vault",
+  description: "Your identity documents, plans and sharing",
+};
+
+/**
+ * Hub sections with the information vault link only when the flag is on.
+ * Keep CORE_HUB_SECTIONS static so default production nav does not change.
+ */
+export function getCoreHubSections(
+  environment: NodeJS.ProcessEnv = process.env,
+): typeof CORE_HUB_SECTIONS {
+  if (!isParticipantInformationVaultEnabled(environment)) {
+    return CORE_HUB_SECTIONS;
+  }
+  return CORE_HUB_SECTIONS.map((section) => {
+    if (section.title !== "Your services") return section;
+    if (section.links.some((link) => link.href === "/vault")) return section;
+    return {
+      ...section,
+      links: [...section.links, INFORMATION_VAULT_LINK],
+    };
+  });
+}

@@ -7,6 +7,7 @@ import { caseManagementConfig } from "@/lib/config/case-management";
 import { isEngagementPlatformEnabled } from "@/lib/config/engagement";
 import { countOpenSubmissions } from "@/lib/engagement/engagement-submission-service";
 import { prisma } from "@/lib/prisma";
+import { isParticipantInformationVaultEnabled } from "@/lib/privacy/participant-vault/flags";
 
 export const metadata = { title: "Control panel | MapAble Core" };
 
@@ -144,6 +145,13 @@ export default async function DashboardPage() {
           description="Control who can see your information"
           href="/dashboard/consent"
         />
+        {isParticipantInformationVaultEnabled() ? (
+          <CoreHubCard
+            title="Information vault"
+            description="Keep and share identity documents, plans and agreements you own"
+            href="/vault"
+          />
+        ) : null}
         <CoreHubCard
           title="My CareOS"
           description="Coordinate care and transport with participant-controlled recommendations"

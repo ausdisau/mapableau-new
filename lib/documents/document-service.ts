@@ -9,6 +9,7 @@ export async function canAccessDocument(
   userId: string,
   role: UserRole,
   doc: {
+    id?: string;
     uploadedById: string;
     participantId: string | null;
     organisationId: string | null;
@@ -35,6 +36,19 @@ export async function canAccessDocument(
       where: { userId, organisationId: doc.organisationId },
     });
     return Boolean(member);
+  }
+
+  if (doc.id) {
+    const grant = await prisma.documentAccessGrant.findFirst({
+      where: {
+        documentId: doc.id,
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+    if (grant) return true;
   }
 
   return false;

@@ -4,6 +4,7 @@ import {
   CORE_CIVIC_LINKS,
   CORE_HUB_SECTIONS,
   CORE_PLATFORM_LINKS,
+  getCoreHubSections,
 } from "@/lib/platform/core-ui/navigation";
 import { PROVIDER_NAV_LINKS } from "@/lib/platform/core-ui/provider-nav";
 
@@ -32,6 +33,21 @@ describe("Core UI navigation", () => {
     expect(hrefs).toContain("/dashboard/jobs");
     expect(hrefs).not.toContain("/marketplace");
     expect(hrefs).not.toContain("/dashboard/care");
+    expect(hrefs).not.toContain("/vault");
+  });
+
+  it("adds the information vault only when the flag is on", () => {
+    expect(
+      getCoreHubSections({ ...process.env, MAPABLE_PARTICIPANT_INFORMATION_VAULT_ENABLED: "false" }).flatMap(
+        (s) => s.links.map((l) => l.href),
+      ),
+    ).not.toContain("/vault");
+    const hrefs = getCoreHubSections({
+      ...process.env,
+      MAPABLE_PARTICIPANT_INFORMATION_VAULT_ENABLED: "true",
+    }).flatMap((s) => s.links.map((l) => l.href));
+    expect(hrefs).toContain("/vault");
+    expect(hrefs).toContain("/data-vault");
   });
 
   it("provider nav includes consolidated section hubs", () => {
