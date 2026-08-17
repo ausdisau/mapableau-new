@@ -75,14 +75,10 @@ before merging.
 
 ## Platform intake details
 
-### Independence Suite (`ausdisau/MapAble`)
+### Independence Suite (`ausdisau/MapAble` `apps/mobile`)
 
-- Target path: [`apps/independence`](../../apps/independence/)
-- Align Expo SDK with [`apps/companion`](../../apps/companion/) before store release
-- Wire journey planning and Access preferences to existing MapAble APIs
-  (`/access`, transport, Communication Passport) — no duplicate backends
-- AccessiBooks player prototype in Independence Suite becomes a **deep link**
-  to the media SoR, not an in-monolith catalogue
+- Canonical path in unified repo: `apps/mobile` on `ausdisau/MapAble`
+- This branch also contains a copy at [`apps/independence`](../../apps/independence/) from pre-migration intake — reconcile or remove when porting to unified repo
 
 ### Replit twin quarantine
 
