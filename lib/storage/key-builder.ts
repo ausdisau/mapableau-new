@@ -4,6 +4,7 @@ import { OBJECT_KEY_NAMESPACES } from "./types";
 
 const OPAQUE_ID = /^[a-zA-Z0-9_-]{8,64}$/;
 const ALLOWED_IMAGE_EXT = new Set(["jpg", "jpeg", "png", "webp"]);
+const ALLOWED_DOCUMENT_EXT = new Set(["pdf", "png", "jpg", "jpeg", "txt"]);
 
 const EMAIL_LIKE = /@/;
 const PHONE_LIKE = /^\d{8,}$/;
@@ -30,6 +31,29 @@ function rejectPiiSegment(segment: string, label: string): void {
     throw new InvalidObjectKeyError(
       `${label} must not contain personal information`,
     );
+  }
+}
+
+function canonicalDocumentExt(
+  originalFilename: string,
+  contentType: string,
+): string {
+  const fromName = extensionFromFilename(originalFilename);
+  if (fromName === "jpeg") return "jpg";
+  if (ALLOWED_DOCUMENT_EXT.has(fromName)) {
+    return fromName === "jpeg" ? "jpg" : fromName;
+  }
+  switch (contentType) {
+    case "application/pdf":
+      return "pdf";
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "text/plain":
+      return "txt";
+    default:
+      throw new InvalidObjectKeyError("Unsupported file extension");
   }
 }
 
@@ -94,6 +118,45 @@ export function buildAccessEvidencePhotoKey(input: {
   return validateObjectKey(key);
 }
 
+export function buildCareDocumentKey(input: {
+  organisationId?: string | null;
+  participantId?: string | null;
+  assetId: string;
+  originalFilename: string;
+  contentType: string;
+}): string {
+  const assetId = assertOpaqueId(input.assetId, "assetId");
+  const ext = canonicalDocumentExt(input.originalFilename, input.contentType);
+  if (input.organisationId) {
+    const organisationId = assertOpaqueId(
+      input.organisationId,
+      "organisationId",
+    );
+    return validateObjectKey(
+      [
+        OBJECT_KEY_NAMESPACES.documents,
+        "organisations",
+        organisationId,
+        `${assetId}.${ext}`,
+      ].join("/"),
+    );
+  }
+  if (input.participantId) {
+    const participantId = assertOpaqueId(input.participantId, "participantId");
+    return validateObjectKey(
+      [
+        OBJECT_KEY_NAMESPACES.documents,
+        "participants",
+        participantId,
+        `${assetId}.${ext}`,
+      ].join("/"),
+    );
+  }
+  throw new InvalidObjectKeyError(
+    "Care document keys require organisationId or participantId",
+  );
+}
+
 /** Documented namespaces for future writers — not implemented here. */
 export const FUTURE_OBJECT_KEY_EXAMPLES = {
   accreditation: "accreditation/assessments/{assessmentId}/evidence/{criterionId}/{assetId}.{ext}",
@@ -101,5 +164,4 @@ export const FUTURE_OBJECT_KEY_EXAMPLES = {
   visionDerived: "vision/derived/{sourceAssetId}/{derivedAssetId}.json",
   navigate: "navigate/datasets/{datasetId}/{version}/...",
   observatory: "observatory/snapshots/{yyyy}/{mm}/...",
-  organisationDocuments: "documents/organisations/{organisationId}/...",
 } as const;

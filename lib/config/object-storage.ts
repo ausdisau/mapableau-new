@@ -1,7 +1,8 @@
 /**
  * Object storage feature flags and bucket configuration.
  * All product flags default OFF. Enabling code does not make storage
- * production-ready (no malware scanning, in-process rate limits).
+ * production-ready (malware scanning is opt-in and unset by default;
+ * rate limits are process-local).
  */
 
 function envTruthy(key: string, environment: NodeJS.ProcessEnv): boolean {
@@ -53,6 +54,15 @@ export function getObjectStorageConfig(
       "MAPABLE_ACCESS_EVIDENCE_UPLOADS_ENABLED",
       environment,
     ),
+    documentObjectStorageEnabled: envTruthy(
+      "MAPABLE_DOCUMENT_OBJECT_STORAGE_ENABLED",
+      environment,
+    ),
+    requireMalwareScan: envTruthy(
+      "MAPABLE_STORAGE_REQUIRE_MALWARE_SCAN",
+      environment,
+    ),
+    malwareScanUrl: optionalTrim(environment, "MAPABLE_MALWARE_SCAN_URL"),
     provider: parseCloudStorageProvider(environment.CLOUD_STORAGE_PROVIDER),
     publicBucket: optionalTrim(environment, "MAPABLE_STORAGE_PUBLIC_BUCKET"),
     privateBucket: optionalTrim(environment, "MAPABLE_STORAGE_PRIVATE_BUCKET"),
@@ -70,4 +80,22 @@ export function isObjectStorageEnabled(
   environment: NodeJS.ProcessEnv = process.env,
 ): boolean {
   return getObjectStorageConfig(environment).enabled;
+}
+
+/**
+ * Care Document bytes go to ObjectStore only when all three are set.
+ * Default remains local disk (`DOCUMENT_STORAGE_MODE=local`).
+ */
+export function isDocumentObjectStoreEnabled(
+  environment: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const mode = (environment.DOCUMENT_STORAGE_MODE ?? "local")
+    .trim()
+    .toLowerCase();
+  const config = getObjectStorageConfig(environment);
+  return (
+    mode === "object_store" &&
+    config.enabled &&
+    config.documentObjectStorageEnabled
+  );
 }

@@ -18,10 +18,13 @@ export {
   StorageReplayError,
   StorageGrantExpiredError,
   StorageProviderError,
+  MalwareDetectedError,
+  MalwareScanRequiredError,
   mapStorageError,
 } from "./errors";
 export {
   buildAccessEvidencePhotoKey,
+  buildCareDocumentKey,
   validateObjectKey,
   FUTURE_OBJECT_KEY_EXAMPLES,
 } from "./key-builder";
@@ -30,6 +33,7 @@ export {
   assertMimeAndSize,
   resolveBucketForPurpose,
   ACCESS_EVIDENCE_PHOTO_MIME_TYPES,
+  CARE_DOCUMENT_MIME_TYPES,
 } from "./policies";
 export type {
   StoredObject,
@@ -39,3 +43,9 @@ export type {
   StorageAccessClassification,
   StoragePurpose,
 } from "./types";
+export {
+  getMalwareScanner,
+  HttpMalwareScanner,
+  EICAR_TEST_SIGNATURE,
+} from "./malware-scanner";
+export type { MalwareScanner } from "./malware-scanner";

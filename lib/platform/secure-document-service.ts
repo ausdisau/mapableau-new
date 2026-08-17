@@ -1,13 +1,9 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import type { ObjectStorageProvider } from "@/lib/platform/cloud-providers";
 import { prisma } from "@/lib/prisma";
+import type { MalwareScanner } from "@/lib/storage/malware-scanner";
 
-export interface MalwareScanner {
-  scan(input: { data: Uint8Array; fileName: string }): Promise<{
-    status: "clean" | "infected" | "unavailable";
-    reference?: string;
-  }>;
-}
+export type { MalwareScanner };
 
 export async function createPrivateDocument(input: {
   storage: ObjectStorageProvider;

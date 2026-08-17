@@ -88,6 +88,24 @@ export class StorageProviderError extends StorageError {
   }
 }
 
+export class MalwareDetectedError extends StorageError {
+  constructor() {
+    super("File failed malware scanning", "MALWARE_DETECTED", 400);
+    this.name = "MalwareDetectedError";
+  }
+}
+
+export class MalwareScanRequiredError extends StorageError {
+  constructor() {
+    super(
+      "Malware scanning is required but no scanner is configured",
+      "MALWARE_SCAN_REQUIRED",
+      503,
+    );
+    this.name = "MalwareScanRequiredError";
+  }
+}
+
 export function mapStorageError(err: unknown): StorageError {
   if (err instanceof StorageError) return err;
   return new StorageProviderError("Object storage provider error");

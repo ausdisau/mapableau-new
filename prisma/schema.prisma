@@ -1377,6 +1377,8 @@ model Document {
   invoiceId       String?
   invoice         Invoice?           @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   description     String?
+  storedAssetId   String?
+  storedAsset     StoredAsset?       @relation(fields: [storedAssetId], references: [id], onDelete: SetNull)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   deletedAt       DateTime?
@@ -1384,6 +1386,7 @@ model Document {
   @@index([participantId])
   @@index([organisationId])
   @@index([bookingId])
+  @@index([storedAssetId])
   accessGrants DocumentAccessGrant[]
   versions DocumentVersion[]
 }
@@ -7734,6 +7737,7 @@ model StoredAsset {
 
   uploadSessions StorageUploadSession[]
   observationEvidence AccessObservationEvidence[]
+  documents Document[]
 
   @@unique([provider, bucket, objectKey])
   @@index([organisationId])

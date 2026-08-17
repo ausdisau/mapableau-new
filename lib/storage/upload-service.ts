@@ -75,6 +75,11 @@ export async function authoriseUpload(
   deps: { store?: ObjectStore } = {},
 ): Promise<AuthoriseUploadResult> {
   assertObjectStorageEnabled();
+  if (input.purpose !== "access_evidence_photo") {
+    throw new StoragePolicyError(
+      "This upload API only authorises access evidence photos",
+    );
+  }
   const policy = resolvePurposePolicy(input.purpose);
   const classification = input.classification ?? policy.classification;
   assertClassificationAllowedForPurpose(input.purpose, classification);

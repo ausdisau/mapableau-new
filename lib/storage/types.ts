@@ -10,7 +10,10 @@ export const STORAGE_ACCESS_CLASSIFICATIONS = [
 export type StorageAccessClassification =
   (typeof STORAGE_ACCESS_CLASSIFICATIONS)[number];
 
-export const STORAGE_PURPOSES = ["access_evidence_photo"] as const;
+export const STORAGE_PURPOSES = [
+  "access_evidence_photo",
+  "care_document",
+] as const;
 
 export type StoragePurpose = (typeof STORAGE_PURPOSES)[number];
 

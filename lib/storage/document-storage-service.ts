@@ -1,5 +1,8 @@
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { phase2Config } from "@/lib/config/phase2";
+import {
+  isDocumentObjectStoreEnabled,
+  parseCloudStorageProvider,
+} from "@/lib/config/object-storage";
 import {
   readDocumentFile,
   storeDocumentFile,
@@ -9,6 +12,12 @@ import {
 export type StorageBackend = "local" | "s3" | "supabase";
 
 export function getStorageBackend(): StorageBackend {
+  if (isDocumentObjectStoreEnabled()) {
+    const provider = parseCloudStorageProvider(
+      process.env.CLOUD_STORAGE_PROVIDER,
+    );
+    if (provider === "supabase" || provider === "s3") return provider;
+  }
   const mode = process.env.DOCUMENT_STORAGE_BACKEND ?? "local";
   if (mode === "s3" || mode === "supabase") return mode;
   return "local";
@@ -24,11 +33,11 @@ export async function storePrivateDocument(
     bucketHint?: string;
   }
 ) {
-  if (phase2Config.documentStorageMode !== "local" && getStorageBackend() === "local") {
-    // Phase 2 local mode
-  }
-
-  const stored = await storeDocumentFile(buffer, originalName);
+  const stored = await storeDocumentFile(buffer, originalName, {
+    uploadedById: context.uploadedById,
+    participantId: context.participantId,
+    organisationId: context.organisationId,
+  });
 
   await createAuditEvent({
     actorUserId: context.uploadedById,
