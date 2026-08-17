@@ -31,8 +31,9 @@ Prisma, MCP, scripts, intelligence, and more).
    TypeScript parser, current presets, jsx-a11y, `import/order`, and
    `--max-warnings 0`.
 2. **Keep `import/no-unresolved` at error** by resolving tsconfig path aliases
-   with `eslint-import-resolver-alias` (no TypeScript programme). Do not
-   re-enable `eslint-import-resolver-typescript` against `./tsconfig.json`.
+   with `eslint-local-path-alias-resolver.cjs` (prefix/exact map only; unmatched
+   imports fall through to the node resolver). Do not point
+   `eslint-import-resolver-typescript` at `./tsconfig.json`.
 3. **Shard** `pnpm lint` into `lint:app-api`, `lint:app-rest`, `lint:components`,
    `lint:lib`, `lint:schemas-ci` (4GB heap each, sequential).
 4. Add **`pnpm lint:careos`** (4GB) and wire `.github/workflows/careos-validation.yml`

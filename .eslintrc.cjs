@@ -6,10 +6,12 @@
  * rule requires typed parser services (extends recommended, not
  * recommended-type-checked). Full-project type safety remains `pnpm type-check`.
  *
- * Path aliases are resolved via eslint-import-resolver-alias (not the TypeScript
- * programme loader) so import/no-unresolved stays at error without reintroducing
- * heap cost.
+ * Path aliases are resolved via ./eslint-local-path-alias-resolver.cjs (not the
+ * TypeScript programme loader) so import/no-unresolved stays at error without
+ * reintroducing heap cost. Unmatched imports fall through to the node resolver.
  */
+const path = require("path");
+
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   extends: [
@@ -66,31 +68,10 @@ module.exports = {
     "react/prop-types": "off",
   },
   settings: {
+    // Prefer our alias resolver + node. Do not point the TypeScript import
+    // resolver at ./tsconfig.json (that reintroduces the programme / heap cost).
     "import/resolver": {
-      alias: {
-        map: [
-          ["@", "."],
-          ["@server", "./server"],
-          ["@mapable/contracts", "./packages/contracts/src/index.ts"],
-          [
-            "@mapable/intelligence-kernel",
-            "./packages/intelligence-kernel/src/index.ts",
-          ],
-          [
-            "@mapable/domain-transport",
-            "./packages/domain-transport/src/index.ts",
-          ],
-          [
-            "@mapable/domain-provider",
-            "./packages/domain-provider/src/index.ts",
-          ],
-          [
-            "@mapable/domain-workforce",
-            "./packages/domain-workforce/src/index.ts",
-          ],
-        ],
-        extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
-      },
+      [path.join(__dirname, "eslint-local-path-alias-resolver.cjs")]: {},
       node: {
         extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
