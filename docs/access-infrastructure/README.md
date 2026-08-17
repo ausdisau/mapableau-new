@@ -2,6 +2,7 @@
 
 **Status:** foundational framework / documentation / schema contracts  
 **Public claim:** none — not a live national registry, certification scheme, or universal accessibility score  
+**Photo evidence uploads:** in development, flag off (`MAPABLE_ACCESS_EVIDENCE_UPLOADS_ENABLED`), no production claim — see [object-storage.md](../architecture/object-storage.md)  
 **Programme home:** Living Access Fabric (`docs/access-intelligence-next/`) implements compilers and projections against this framework
 
 ## Proposition
