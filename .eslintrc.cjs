@@ -1,10 +1,15 @@
 /**
- * ESLint config. Set ESLINT_CI_LIGHT=1 to skip TypeScript program creation
- * (parserOptions.project + TS import resolver). Required on GitHub-hosted
- * runners (~7GB RAM): type-aware parsing alone can OOM even with path shards.
+ * ESLint config — intentionally without parserOptions.project.
+ *
+ * Evidence (PR #476/#477): sharding alone still OOM'd (~4GB, exit 134) because
+ * attaching the broad ./tsconfig.json programme multiplied memory. No enabled
+ * rule requires typed parser services (extends recommended, not
+ * recommended-type-checked). Full-project type safety remains `pnpm type-check`.
+ *
+ * Path aliases are resolved via eslint-import-resolver-alias (not the TypeScript
+ * programme loader) so import/no-unresolved stays at error without reintroducing
+ * heap cost.
  */
-const isCiLight = process.env.ESLINT_CI_LIGHT === "1";
-
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   extends: [
@@ -22,7 +27,6 @@ module.exports = {
     ecmaFeatures: {
       jsx: true,
     },
-    ...(isCiLight ? {} : { project: "./tsconfig.json" }),
   },
   plugins: ["@typescript-eslint", "import", "jsx-a11y"],
   rules: {
@@ -62,21 +66,35 @@ module.exports = {
     "react/prop-types": "off",
   },
   settings: {
-    "import/resolver": isCiLight
-      ? {
-          node: {
-            extensions: [".js", ".jsx", ".ts", ".tsx"],
-          },
-        }
-      : {
-          typescript: {
-            alwaysTryTypes: true,
-            project: "./tsconfig.json",
-          },
-          node: {
-            extensions: [".js", ".jsx", ".ts", ".tsx"],
-          },
-        },
+    "import/resolver": {
+      alias: {
+        map: [
+          ["@", "."],
+          ["@server", "./server"],
+          ["@mapable/contracts", "./packages/contracts/src/index.ts"],
+          [
+            "@mapable/intelligence-kernel",
+            "./packages/intelligence-kernel/src/index.ts",
+          ],
+          [
+            "@mapable/domain-transport",
+            "./packages/domain-transport/src/index.ts",
+          ],
+          [
+            "@mapable/domain-provider",
+            "./packages/domain-provider/src/index.ts",
+          ],
+          [
+            "@mapable/domain-workforce",
+            "./packages/domain-workforce/src/index.ts",
+          ],
+        ],
+        extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
+      },
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
+      },
+    },
   },
   ignorePatterns: [
     "node_modules/",
