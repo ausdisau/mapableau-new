@@ -1,257 +1,232 @@
-# EPIC 05 — Accessibility Digital Twins
+# Epic 05 — Accessibility Digital Twins
 
-| Field | Value |
-| --- | --- |
-| Epic ID / slug | `EPIC-05` / `accessibility-digital-twins` |
-| Priority | P3 |
-| Delivery horizon | R&D |
-| Wave | R&D Wave |
-| Current claim state | **Exploratory** |
-| Dependencies | EPIC-01, EPIC-03 |
-| Recommended owner | Indoor accessibility owners |
-
-> **Honesty:** Documentation and work items are not production evidence. Feature flags are not assurance. Public claims remain governed by `docs/convergence-os/PUBLIC_CLAIM_REGISTRY.md`. Implementation requires freeze waiver or freeze lift per `docs/remediation/FEATURE_FREEZE.md`.
-
-## 1. Epic title
-Accessibility Digital Twins
-
-## 2. Epic ID / proposed slug
-`EPIC-05` · `accessibility-digital-twins`
-
-## 3. Strategic outcome
-Structured spatial models for complex sites enabling future indoor navigation and passport fit — as R&D until evidence quality exists.
-
-## 4. Participant outcome
-Eventual ability to preview accessible indoor paths with honest confidence — not a claim that twins are live or personally safe today.
-
-## 5. Problem statement
-Large venues lack machine-readable spatial access models; AR/VR previews without evidence would mislead.
-
-## 6. Scope
-- Venues, stations, workplaces, campuses, hospitals, shopping centres, precincts, event sites
-- Later: indoor nav, route preview, evacuation support, AR/VR, passport checks
-
-## 7. Explicit non-goals
-- Production AR/VR claims
-- Evacuation system of record replacing building fire plans
-- Personal safety guarantees
-
-## 8. User groups
-- Venue authoring staff
-- Assessors
-- Participants (preview consumers later)
-- Emergency planners (advisory only)
-
-## 9. Example user journeys
-- Author publishes floor plan draft → review → restricted zones filtered for partners
-
-## 10. Functional capabilities
-- Floor plan authoring
-- Checkpoints
-- Visit plans
-- Fit engine
-- Publication state machine
-
-## 11. Shared Core dependencies
-- AccessPlace
-- Indoor* models
-- Partner API DTO filtering
-
-## 12. Cross-Epic dependencies
-- EPIC-01
-- EPIC-03
-
-## 13. Data entities
-- AccessFloorPlan
-- IndoorCheckpoint
-- VisitPlan
-- IndoorAccessibilityIncident
-
-## 14. APIs / events required
-- Indoor publication workflow
-- Partner floorplans:read
-
-## 15. Permission model
-Authoring by venue roles; published public plans exclude restricted zones.
-
-## 16. Consent requirements
-- Visit plans participant-owned
-
-## 17. Human approval gates
-- Publication approval
-- No auto 'safe route'
-
-## 18. Accessibility acceptance criteria
-- WCAG 2.2 AA as release criterion (designed toward; do not claim conformance without independent audit)
-- Semantic HTML, keyboard navigation, visible focus, zoom/reflow, contrast
-- Screen-reader labels and live regions for status changes
-- Reduced motion; non-drag alternatives; touch targets ≥44px
-- Switch access and voice-independent workflow
-- Plain-language and Easy Read pathways where appropriate; AAC-compatible interaction
-- Accessible authentication and accessible timeout/session behaviour
-- Manual assistive-technology testing required — automated axe/Playwright alone is insufficient (see docs/accessibility/ACCESSIBILITY_MANUAL_EVIDENCE_MATRIX.md — currently NOT_RUN)
-- 3D/AR off by default per indoor plan
-
-## 19. Privacy requirements
-- docs/indoor-accessibility/privacy-and-threat-model.md
-
-## 20. Safeguarding requirements
-- Evacuation support advisory only
-
-## 21. AI use, if any
-Optional assist for authoring proposals; human publish.
-
-## 22. AI prohibited decisions
-- claim.route_personally_safe
-- Auto-publish twins
-
-## 23. AI eval requirements
-- normal success
-- missing evidence
-- conflicting evidence
-- stale information
-- user refuses recommendation
-- user revokes consent
-- delegate lacks authority
-- required tool unavailable
-- unsafe requested action
-- disclosure attempt
-- hallucinated accessibility fact
-- incorrect funding claim
-- escalation required
-- accessibility fallback required
-
-## 24. Audit requirements
-- Publication state transitions
-
-## 25. Observability requirements
-- Draft vs published coverage
-
-## 26. Complaints / correction path
-Correction proposals on floor plans.
-
-## 27. Feature flags
-- lib/access/indoor/feature-flags.ts defaults false
-
-## 28. Failure and fallback behaviour
-2D list/checkpoint text alternatives; disable twin preview.
-
-## 29. Security requirements
-- Partner DTO filtering
-- No raw DB to clients
-
-## 30. Definition of Ready
-- Spatial evidence quality bar defined
-- Threat model reviewed
-
-## 31. Definition of Done
-- Publication workflow
-- Restricted zone filter
-- Honesty labels
-
-## 32. MVP acceptance criteria
-- One venue twin draft with checkpoint validation
-
-## 33. Pilot acceptance criteria
-- Limited venues; partner read-only
-
-## 34. Scale acceptance criteria
-- Only after evidence density + G5
-
-## 35. KPIs
-- Published twin coverage
-- Correction rate
-- Fit uncertain rate
-
-## 36. Risks
-- Overclaiming indoor readiness
-- Security of restricted zones
-
-## 37. Mitigations
-- Overclaiming indoor readiness → R&D horizon; public claims false
-- Security of restricted zones → DTO filter + auth scopes
-
-| Risk | Mitigation |
-| --- | --- |
-| Overclaiming indoor readiness | R&D horizon; public claims false |
-| Security of restricted zones | DTO filter + auth scopes |
-
-## 38. Dependencies
-- Epic 01
-- Indoor stack
-
-## 39. Recommended owner / team
-Indoor accessibility owners
-
-## 40. Delivery horizon
-R&D (R&D Wave)
-
-## 41. Current claim state
-**Exploratory** — grounded in repository inspection (Prisma/services/docs), not strategy documents.
-
-## 42. Evidence required before claim-state promotion
-- Rollout-status honest
-- Threat model sign-off
+> **Azure DevOps Epic key:** `mapable-epic-05-accessibility-digital-twins`  
+> **Priority:** P3 | **Horizon:** R&D Wave  
+> **Current claim state:** In development
 
 ---
 
-## Features (4–8)
+## 1. Epic title
 
-### 05-f1 — Floor plan authoring
-**Disposition:** REUSE  
-**Summary:** Structured spatial authoring.  
-**Reuse paths:** `lib/access/indoor/authoring/`  
-**Acceptance:**
-- State machine
+Accessibility Digital Twins
 
-### 05-f2 — Checkpoint and route model
-**Disposition:** REUSE  
-**Summary:** Indoor graph primitives.  
-**Reuse paths:** `IndoorCheckpoint`, `route-planner`  
-**Acceptance:**
-- Text alternative
+## 2. Epic ID / proposed slug
 
-### 05-f3 — Publication workflow
-**Disposition:** REUSE  
-**Summary:** Draft → review → publish.  
-**Reuse paths:** `publication/state-machine.ts`  
-**Acceptance:**
-- Restricted zones filtered
+`mapable-epic-05-accessibility-digital-twins`
 
-### 05-f4 — Passport indoor fit
-**Disposition:** EXTEND  
-**Summary:** Compatibility against twin capabilities.  
-**Reuse paths:** `indoor-fit-engine`  
-**Acceptance:**
-- Four-state fit
+## 3. Strategic outcome
 
-### 05-f5 — Visit plan sharing
-**Disposition:** REUSE  
-**Summary:** Participant visit plans.  
-**Reuse paths:** `visit-plan-service`  
-**Acceptance:**
-- Consented share
+Structured spatial models for venues, stations, workplaces, campuses, hospitals, precincts, events.
 
-### 05-f6 — AR/VR preview research
-**Disposition:** DEFER  
-**Summary:** Exploratory only.  
-**Reuse paths:** _none_  
-**Acceptance:**
-- No production flag
+## 4. Participant outcome
 
+Preview venue access and plan journeys when sufficient spatial evidence exists — not before.
+
+## 5. Problem statement
+
+Indoor and precinct access is invisible in outdoor-only maps.
+
+## 6. Scope
+
+Spatial models linked to evidence; publication workflow; future indoor nav, evacuation support, passport compatibility preview.
+
+## 7. Explicit non-goals
+
+Production indoor nav without evidence; AR/VR without G3 proof; duplicate place SoT.
+
+## 8. User groups
+
+Venue operators, assessors, participants (preview), planners.
+
+## 9. Example user journeys
+
+1. Assessor uploads floor plan evidence → twin draft.
+2. Participant previews entrance-to-room path with uncertainty.
+3. Venue plans remediation from twin gap analysis.
+
+## 10. Functional capabilities
+
+- Evidence-backed spatial schema
+- Twin publication workflow with review
+- Passport compatibility preview (deferred until E02+E01 ready)
+- Link to indoor routing when evidence sufficient
+
+## 11. Shared Core dependencies
+
+Place, AccessFeature, Document, EvidenceItem.
+
+## 12. Cross-Epic dependencies
+
+E01 spatial entities; E03 indoor stitch deferred; E06 assessments.
+
+## 13. Data entities
+
+AccessFloorPlan, IndoorAccessibilityIncident, spatial graph nodes/edges.
+
+## 14. APIs/events required
+
+Internal twin CRUD; partner preview API (deferred).
+
+## 15. Permission model
+
+Venue org admins edit own twins; public read published only.
+
+## 16. Consent requirements
+
+Floor plans may contain sensitive layout; access controlled.
+
+## 17. Human approval gates
+
+Public twin publication.
+
+## 18. Accessibility acceptance criteria
+
+- WCAG 2.2 AA on all user-facing surfaces
+- Semantic HTML; keyboard navigation; visible focus; skip links where applicable
+- Screen-reader labels on all interactive controls; live regions for dynamic updates
+- Zoom to 400%; reflow at 320px; contrast ≥ 4.5:1
+- Reduced motion; accessible errors; non-drag map alternatives; touch targets ≥ 44×44px
+- Switch access; voice-independent workflows; plain-language and Easy Read for consent/plans
+- AAC-compatible text interfaces; predictable focus; accessible auth and session timeout
+- Manual AT testing (NVDA/VoiceOver + keyboard) before G5 — automated alone insufficient
+
+## 19. Privacy requirements
+
+No participant tracking in twins; aggregate analytics only.
+
+## 20. Safeguarding requirements
+
+Evacuation info advisory only; human emergency services.
+
+## 21. AI use, if any
+
+None in R&D phase except optional layout assist (UNVERIFIED).
+
+## 22. AI prohibited decisions
+
+Evacuation routing without verified exits; compliance claims.
+
+## 23. AI eval requirements
+
+N/A until AI assist introduced.
+
+## 24. Audit requirements
+
+Twin version history; publisher identity.
+
+## 25. Observability requirements
+
+Twin coverage; evidence linkage completeness.
+
+## 26. Complaints/correction path
+
+Venue correction request path.
+
+## 27. Feature flags
+
+Indoor accessibility flags; default off.
+
+## 28. Failure and fallback behaviour
+
+Outdoor-only routing; venue static PDF access statement.
+
+## 29. Security requirements
+
+Authenticated venue admin; watermark draft twins.
+
+## 30. Definition of Ready
+
+G0–G2; spatial evidence standard defined.
+
+## 31. Definition of Done
+
+One venue twin with linked observations.
+
+## 32. MVP acceptance criteria
+
+1 campus twin pilot with publication workflow.
+
+## 33. Pilot acceptance criteria
+
+3 venues; passport preview deferred flag off.
+
+## 34. Scale acceptance criteria
+
+Evidence thresholds per venue type.
+
+## 35. KPIs
+
+Twins with ≥80% evidence-linked nodes.
+
+## 36. Risks
+
+R16 R&D promoted prematurely.
+
+## 37. Mitigations
+
+R&D wave; DEFER features.
+
+## 38. Dependencies
+
+E01, E06 evidence.
+
+## 39. Recommended owner/team
+
+Access R&D Team
+
+## 40. Delivery horizon
+
+R&D Wave
+
+## 41. Current claim state
+
+**In development**
+
+## 42. Evidence required before claim-state promotion
+
+AccessFloorPlan and indoor docs partial. Remains R&D until spatial evidence pipeline (E01/E06) supports twins.
+
+---
+
+## Azure DevOps Features
+
+### Stage-gate Features
+
+| Gate | Feature key | Pass summary |
+|------|-------------|--------------|
+| G0 | `mapable-epic-05-accessibility-digital-twins-gate-g0-problem-evidence` | Problem evidence from ≥3 sources |
+| G1 | `mapable-epic-05-accessibility-digital-twins-gate-g1-co-design` | DRO co-design per co-design-protocol.md |
+| G2 | `mapable-epic-05-accessibility-digital-twins-gate-g2-rights-review` | Rights, a11y, privacy, safeguarding review |
+| G3 | `mapable-epic-05-accessibility-digital-twins-gate-g3-technical-proof` | End-to-end proof behind feature flag |
+| G4 | `mapable-epic-05-accessibility-digital-twins-gate-g4-controlled-pilot` | Limited cohort; monitoring; rollback |
+| G5 | `mapable-epic-05-accessibility-digital-twins-gate-g5-evidence-to-scale` | KPI + manual AT evidence |
+| G6 | `mapable-epic-05-accessibility-digital-twins-gate-g6-continuous-assurance` | Ongoing monitoring active |
+
+### Product Features
+
+| # | Feature | Classification | Repo anchor |
+|---|---------|----------------|-------------|
+| 1 | Spatial venue model schema | EXTEND | `AccessFloorPlan` |
+| 2 | Evidence-backed twin ingestion | NEW | `spatial evidence required` |
+| 3 | Passport compatibility preview | DEFER | `E02+E01` |
+| 4 | Evacuation planning support | PROPOSED | `no runtime` |
+| 5 | AR/VR preview interface | EXPLORATORY | `—` |
+| 6 | Twin publication workflow | EXTEND | `indoor-accessibility/publication-workflow.md` |
+
+---
 
 ## Stage-gate pass/fail (Epic-specific)
 
-- **G0:** PASS if venue complexity blocks participation evidenced.
-- **G1:** PASS if co-design of preview honesty.
-- **G2:** PASS if threat model and no personal-safety claim.
-- **G3:** PASS if one twin draft→publish→fit evaluate.
-- **G4:** PASS if limited venue pilot.
-- **G5:** PASS if evidence density supports navigation claims.
-- **G6:** PASS if incident/correction monitoring.
+| Gate | Pass | Fail |
+|------|------|------|
+| G0 | Indoor access pain documented for pilot venues | Problem un evidenced |
+| G1 | Co-design sign-off recorded | Token consultation only |
+| G2 | Sharing/rights boundaries approved | Blanket collection approved |
+| G3 | Twin ingest→publish→read with evidence links | Duplicate SoT or unflagged code |
+| G4 | Pilot cohort + rollback tested | Broad enablement |
+| G5 | KPIs + manual AT met | Privacy/a11y incidents open |
+| G6 | Monitoring dashboards live | Unaddressed drift |
 
-See also: [PORTFOLIO_STAGE_GATES.md](../PORTFOLIO_STAGE_GATES.md).
+---
 
-## Minimum stage-gate Features (programme-linked)
-
-Link rather than rebuild: G0 Problem Evidence · G1 Disability-Led Co-design · G2 Rights/Accessibility/Risk Review · G3 Technical Proof · G4 Controlled Pilot · G5 Evidence to Scale · G6 Continuous Assurance.
+*Generated as part of MapAble Innovation Portfolio documentation. Not a production-ready claim.*

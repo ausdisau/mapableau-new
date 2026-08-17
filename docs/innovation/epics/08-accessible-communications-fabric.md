@@ -1,271 +1,234 @@
-# EPIC 08 — Accessible Communications Fabric
+# Epic 08 — Accessible Communications Fabric
 
-| Field | Value |
-| --- | --- |
-| Epic ID / slug | `EPIC-08` / `accessible-communications-fabric` |
-| Priority | P1 |
-| Delivery horizon | Foundation thin slice → Experience full fabric |
-| Wave | Experience Wave |
-| Current claim state | **Implemented, not independently verified** |
-| Dependencies | EPIC-02 |
-| Recommended owner | Messaging + Mobile communication owners |
-
-> **Honesty:** Documentation and work items are not production evidence. Feature flags are not assurance. Public claims remain governed by `docs/convergence-os/PUBLIC_CLAIM_REGISTRY.md`. Implementation requires freeze waiver or freeze lift per `docs/remediation/FEATURE_FREEZE.md`.
-
-## 1. Epic title
-Accessible Communications Fabric
-
-## 2. Epic ID / proposed slug
-`EPIC-08` · `accessible-communications-fabric`
-
-## 3. Strategic outcome
-Shared communication layer with preferences, no-voice paths, and human handoff across MapAble.
-
-## 4. Participant outcome
-Status and support without inaccessible telephone trees; AAC-friendly and plain-language options.
-
-## 5. Problem statement
-Status questions (e.g. where is my driver) force inaccessible channels; clinical/payment data risks leaking into chat agents.
-
-## 6. Scope
-- In-app messaging, SMS, voice, accessible web chat, WhatsApp/RCS where appropriate, email, AAC-friendly text
-- Preferences, preferred channel, no-voice option, plain-language, escalation, emergency boundaries, service-status messages
-
-## 7. Explicit non-goals
-- High-risk clinical data in general agent context
-- Payment-card data in chat
-- Emergency dispatch replacement
-
-## 8. User groups
-- Participants
-- Drivers/workers
-- Support staff
-- Ops
-
-## 9. Example user journeys
-- Where is my driver? → explain current info → next steps → escalate to person
-
-## 10. Functional capabilities
-- Thread messaging
-- Preference-aware routing
-- Status explainers
-- Human handoff
-- Channel adapters
-
-## 11. Shared Core dependencies
-- Conversation/Message
-- Communication preferences
-- Notifications
-- AuditEvent
-
-## 12. Cross-Epic dependencies
-- EPIC-02
-
-## 13. Data entities
-- Conversation
-- Message
-- MessageReadReceipt
-- notification stubs
-
-## 14. APIs / events required
-- message.created
-- escalation.opened
-- status.explained
-
-## 15. Permission model
-Thread ACLs via message-access-policy; no ambient admin.
-
-## 16. Consent requirements
-- Channel consent; marketing vs transactional separation
-
-## 17. Human approval gates
-- Escalation to human
-- Emergency boundary messaging
-
-## 18. Accessibility acceptance criteria
-- WCAG 2.2 AA as release criterion (designed toward; do not claim conformance without independent audit)
-- Semantic HTML, keyboard navigation, visible focus, zoom/reflow, contrast
-- Screen-reader labels and live regions for status changes
-- Reduced motion; non-drag alternatives; touch targets ≥44px
-- Switch access and voice-independent workflow
-- Plain-language and Easy Read pathways where appropriate; AAC-compatible interaction
-- Accessible authentication and accessible timeout/session behaviour
-- Manual assistive-technology testing required — automated axe/Playwright alone is insufficient (see docs/accessibility/ACCESSIBILITY_MANUAL_EVIDENCE_MATRIX.md — currently NOT_RUN)
-- No-voice-required option mandatory for status
-
-## 19. Privacy requirements
-- Keep clinical/PAN out of general agent contexts
-
-## 20. Safeguarding requirements
-- Emergency escalation boundaries; 000 for immediate danger
-
-## 21. AI use, if any
-Explain status / draft replies; not clinical advice.
-
-## 22. AI prohibited decisions
-- Clinical advice
-- Payment card handling
-- Safeguarding determinations
-
-## 23. AI eval requirements
-- normal success
-- missing evidence
-- conflicting evidence
-- stale information
-- user refuses recommendation
-- user revokes consent
-- delegate lacks authority
-- required tool unavailable
-- unsafe requested action
-- disclosure attempt
-- hallucinated accessibility fact
-- incorrect funding claim
-- escalation required
-- accessibility fallback required
-
-## 24. Audit requirements
-- Escalations
-- Preference changes
-
-## 25. Observability requirements
-- Channel success
-- Escalation time
-- a11y parity
-
-## 26. Complaints / correction path
-In-thread escalate + Complaint module.
-
-## 27. Feature flags
-- Push often stubbed — honest labels
-- MAPABLE_AAC_COMMUNICATION_ENABLED
-
-## 28. Failure and fallback behaviour
-In-app thread + human queue if SMS/voice fail.
-
-## 29. Security requirements
-- IDOR tests on threads
-- Sanitize message bodies
-- Rate-limit
-
-## 30. Definition of Ready
-- Preference model agreed
-- Emergency copy legal review
-
-## 31. Definition of Done
-- No-voice status path
-- Handoff SLA
-- No clinical/PAN in general agent
-
-## 32. MVP acceptance criteria
-- In-app status + human handoff for transport trip
-
-## 33. Pilot acceptance criteria
-- Limited cohort multi-channel
-
-## 34. Scale acceptance criteria
-- Channel SLAs; a11y parity
-
-## 35. KPIs
-- Status question resolution
-- Escalation precision
-- Voice-independent completion
-
-## 36. Risks
-- Inaccessible escalation
-- Data leakage into agents
-
-## 37. Mitigations
-- Inaccessible escalation → No-voice path; handoff required
-- Data leakage into agents → Context allowlists
-
-| Risk | Mitigation |
-| --- | --- |
-| Inaccessible escalation | No-voice path; handoff required |
-| Data leakage into agents | Context allowlists |
-
-## 38. Dependencies
-- Messaging SoT
-- Transport status evidence
-
-## 39. Recommended owner / team
-Messaging + Mobile communication owners
-
-## 40. Delivery horizon
-Foundation thin slice → Experience full fabric (Experience Wave)
-
-## 41. Current claim state
-**Implemented, not independently verified** — grounded in repository inspection (Prisma/services/docs), not strategy documents.
-
-## 42. Evidence required before claim-state promotion
-- Manual AT on messaging
-- IDOR suite
+> **Azure DevOps Epic key:** `mapable-epic-08-accessible-communications-fabric`  
+> **Priority:** P1 | **Horizon:** Experience Wave  
+> **Current claim state:** In development
 
 ---
 
-## Features (4–8)
+## 1. Epic title
 
-### 08-f1 — In-app messaging core
-**Disposition:** REUSE  
-**Summary:** Existing threads.  
-**Reuse paths:** `lib/messages/`  
-**Acceptance:**
-- Access policy enforced
+Accessible Communications Fabric
 
-### 08-f2 — Communication preferences
-**Disposition:** EXTEND  
-**Summary:** Preferred channel + no-voice.  
-**Reuse paths:** `AccessibilityProfile communicationPreferences`  
-**Acceptance:**
-- Honoured in status flows
+## 2. Epic ID / proposed slug
 
-### 08-f3 — Service status explainer
-**Disposition:** EXTEND  
-**Summary:** Where is my driver honest status.  
-**Reuse paths:** `transport status`  
-**Acceptance:**
-- Estimate ≠ arrival
+`mapable-epic-08-accessible-communications-fabric`
 
-### 08-f4 — Human handoff
-**Disposition:** EXTEND  
-**Summary:** Accessible escalation.  
-**Reuse paths:** `escalation patterns`  
-**Acceptance:**
-- Not phone-tree only
+## 3. Strategic outcome
 
-### 08-f5 — SMS email voice adapters
-**Disposition:** EXTEND  
-**Summary:** Channel adapters.  
-**Reuse paths:** `Twilio etc`  
-**Acceptance:**
-- Flags; honest failure
+Shared accessible communication layer across MapAble.
 
-### 08-f6 — AAC-friendly interfaces
-**Disposition:** EXTEND  
-**Summary:** Symbol/plain pathways.  
-**Reuse paths:** `AAC flags`  
-**Acceptance:**
-- Default off until co-designed
+## 4. Participant outcome
 
-### 08-f7 — WhatsApp/RCS exploratory
-**Disposition:** DEFER  
-**Summary:** Where appropriate.  
-**Reuse paths:** _none_  
-**Acceptance:**
-- Privacy review first
+Ask 'where is my driver?' and get plain-language status, next steps, and human help without a phone tree.
 
+## 5. Problem statement
+
+Status updates force voice calls, inaccessible chat, or fragmented SMS/email.
+
+## 6. Scope
+
+In-app, SMS, voice (optional), accessible web chat, WhatsApp/RCS where appropriate, email, AAC-friendly text. Preferences, no-voice-required, plain-language, escalation, emergency boundaries.
+
+## 7. Explicit non-goals
+
+Clinical or payment-card data in general agent context; inaccessible IVR as only path.
+
+## 8. User groups
+
+Participants, workers, drivers, support, providers.
+
+## 9. Example user journeys
+
+1. Participant prefers SMS + plain language; driver delay explained with ETA and escalation button.
+2. AAC user uses text-only chat; human handoff within SLA.
+3. Emergency boundary: system provides 000 guidance, not clinical advice.
+
+## 10. Functional capabilities
+
+- Communication preference SoT
+- Multi-channel adapter with preference routing
+- AAC-friendly and plain-language templates
+- Accessible escalation without required voice
+- Service-status explain + next steps
+
+## 11. Shared Core dependencies
+
+CommunicationPreference, MessageThread, Notification, User.
+
+## 12. Cross-Epic dependencies
+
+Enables E07 status updates; used by all verticals.
+
+## 13. Data entities
+
+Conversation, Message, Notification, communication prefs.
+
+## 14. APIs/events required
+
+/api/messages; /api/notifications; channel webhooks.
+
+## 15. Permission model
+
+Participants control channels; workers see job threads only.
+
+## 16. Consent requirements
+
+Channel opt-in; marketing separate from transactional.
+
+## 17. Human approval gates
+
+Emergency template changes; new channel enablement.
+
+## 18. Accessibility acceptance criteria
+
+- WCAG 2.2 AA on all user-facing surfaces
+- Semantic HTML; keyboard navigation; visible focus; skip links where applicable
+- Screen-reader labels on all interactive controls; live regions for dynamic updates
+- Zoom to 400%; reflow at 320px; contrast ≥ 4.5:1
+- Reduced motion; accessible errors; non-drag map alternatives; touch targets ≥ 44×44px
+- Switch access; voice-independent workflows; plain-language and Easy Read for consent/plans
+- AAC-compatible text interfaces; predictable focus; accessible auth and session timeout
+- Manual AT testing (NVDA/VoiceOver + keyboard) before G5 — automated alone insufficient
+
+## 19. Privacy requirements
+
+Message retention policy; no cross-thread leakage.
+
+## 20. Safeguarding requirements
+
+Emergency boundaries documented; mandatory escalation paths tested.
+
+## 21. AI use, if any
+
+Plain-language summarisation of status — no clinical/financial advice.
+
+## 22. AI prohibited decisions
+
+Clinical triage; payment card handling in general context.
+
+## 23. AI eval requirements
+
+Accessibility fallback required; escalation required.
+
+## 24. Audit requirements
+
+Escalation events logged; channel delivery receipts.
+
+## 25. Observability requirements
+
+Delivery success; escalation SLA; channel failure rates.
+
+## 26. Complaints/correction path
+
+SupportTicket + Complaint integration.
+
+## 27. Feature flags
+
+MAPABLE_COMMUNICATION_PASSPORT_ENABLED; mobile comm flags.
+
+## 28. Failure and fallback behaviour
+
+Email digest; in-app inbox always available.
+
+## 29. Security requirements
+
+Channel auth; spam rate limits.
+
+## 30. Definition of Ready
+
+G0–G2; preference model co-designed.
+
+## 31. Definition of Done
+
+No-voice path tested with AT; escalation SLA met.
+
+## 32. MVP acceptance criteria
+
+In-app + email status for transport pilot.
+
+## 33. Pilot acceptance criteria
+
+SMS + plain language; human handoff <4h.
+
+## 34. Scale acceptance criteria
+
+WhatsApp/RCS where policy allows.
+
+## 35. KPIs
+
+Escalation SLA; voice-independent completion rate.
+
+## 36. Risks
+
+R18 phone tree dependency.
+
+## 37. Mitigations
+
+No-voice-required default option.
+
+## 38. Dependencies
+
+Messaging REUSE; parallel to E03.
+
+## 39. Recommended owner/team
+
+Comms Platform Team
+
+## 40. Delivery horizon
+
+Experience Wave
+
+## 41. Current claim state
+
+**In development**
+
+## 42. Evidence required before claim-state promotion
+
+Messaging and Communication Passport flag exist; multi-channel AAC escalation incomplete.
+
+---
+
+## Azure DevOps Features
+
+### Stage-gate Features
+
+| Gate | Feature key | Pass summary |
+|------|-------------|--------------|
+| G0 | `mapable-epic-08-accessible-communications-fabric-gate-g0-problem-evidence` | Problem evidence from ≥3 sources |
+| G1 | `mapable-epic-08-accessible-communications-fabric-gate-g1-co-design` | DRO co-design per co-design-protocol.md |
+| G2 | `mapable-epic-08-accessible-communications-fabric-gate-g2-rights-review` | Rights, a11y, privacy, safeguarding review |
+| G3 | `mapable-epic-08-accessible-communications-fabric-gate-g3-technical-proof` | End-to-end proof behind feature flag |
+| G4 | `mapable-epic-08-accessible-communications-fabric-gate-g4-controlled-pilot` | Limited cohort; monitoring; rollback |
+| G5 | `mapable-epic-08-accessible-communications-fabric-gate-g5-evidence-to-scale` | KPI + manual AT evidence |
+| G6 | `mapable-epic-08-accessible-communications-fabric-gate-g6-continuous-assurance` | Ongoing monitoring active |
+
+### Product Features
+
+| # | Feature | Classification | Repo anchor |
+|---|---------|----------------|-------------|
+| 1 | Communication preference SoT | EXTEND | `lib/communication/*` |
+| 2 | Multi-channel adapter layer | NEW/EXTEND | `Message, SendGrid, SMS` |
+| 3 | AAC-friendly + plain-language | NEW | `Easy Read templates` |
+| 4 | No-voice-required escalation | NEW | `human handoff` |
+| 5 | Service-status explain | EXTEND | `transport/care status` |
+| 6 | Emergency escalation boundaries | NEW | `safeguarding docs` |
+| 7 | Clinical/payment data isolation | REUSE | `existing boundaries` |
+
+---
 
 ## Stage-gate pass/fail (Epic-specific)
 
-- **G0:** PASS if inaccessible status channels evidenced.
-- **G1:** PASS if AAC/Easy Read co-design for messaging.
-- **G2:** PASS if clinical/PAN boundary review.
-- **G3:** PASS if status→handoff on one vertical.
-- **G4:** PASS if pilot monitoring.
-- **G5:** PASS if resolution KPIs.
-- **G6:** PASS if continuous a11y/incident monitoring.
+| Gate | Pass | Fail |
+|------|------|------|
+| G0 | Support tickets cite inaccessible comms | Problem un evidenced |
+| G1 | Co-design sign-off recorded | Token consultation only |
+| G2 | Sharing/rights boundaries approved | Blanket collection approved |
+| G3 | Multi-channel status + escalation demo | Duplicate SoT or unflagged code |
+| G4 | Pilot cohort + rollback tested | Broad enablement |
+| G5 | KPIs + manual AT met | Privacy/a11y incidents open |
+| G6 | Monitoring dashboards live | Unaddressed drift |
 
-See also: [PORTFOLIO_STAGE_GATES.md](../PORTFOLIO_STAGE_GATES.md).
+---
 
-## Minimum stage-gate Features (programme-linked)
-
-Link rather than rebuild: G0 Problem Evidence · G1 Disability-Led Co-design · G2 Rights/Accessibility/Risk Review · G3 Technical Proof · G4 Controlled Pilot · G5 Evidence to Scale · G6 Continuous Assurance.
+*Generated as part of MapAble Innovation Portfolio documentation. Not a production-ready claim.*

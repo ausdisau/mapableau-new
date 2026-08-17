@@ -1,50 +1,139 @@
-# Azure DevOps Import Strategy
+# Azure DevOps Import Strategy — MapAble Innovation Portfolio
 
-## Status of this pass
+**Status:** Import-ready representation only — **no work items created in this pass**  
+**Reason:** `AZURE_DEVOPS_PAT` and `AZURE_DEVOPS_ORG` are unset in the agent environment.
 
-**Items deliberately not created** in Azure DevOps (or any work-item system):
-
-- No Epics
-- No Features
-- No PBIs/Tasks
-
-Reason: mission requires reviewable portfolio first; validate duplication, dependencies, scope, ownership, sequence. This repository has **no Azure DevOps pipelines or Boards config** (GitHub + Vercel). Azure AD OAuth ≠ Azure DevOps.
+---
 
 ## Hierarchy
 
 ```
-Epic
-  → Feature
-      → User Story / Product Backlog Item
-          → Task
-              → Test / Evidence
+Epic (15)
+ └── Feature (7 stage-gate + 4–8 product per Epic ≈ 180 Features total)
+      └── User Story / PBI (future — not generated in this pass)
+           └── Task (future)
+                └── Test / Evidence (future)
 ```
 
-For initial import create **Epics + Features only** (4–8 Features each). Do not explode Tasks.
+Structured source: [azure-devops-portfolio.json](./azure-devops-portfolio.json)
 
-## Idempotent create rules
+---
 
-1. Search existing work items by tag `mapable-innovation` and field `ExternalKey` / title prefix `EPIC-NN` / `EPIC-NN-F#`.  
-2. If found, update description from markdown; do not duplicate.  
-3. Keys:
-   - Epic: `mapable.epic.${NN}`
-   - Feature: `mapable.feature.${NN}.${featureKey}`
-4. Tags: `mapable`, `innovation`, `disability-led`, `epic-NN`, wave tag, claim-state tag.  
-5. Links: Predecessor/Successor from `PORTFOLIO_DEPENDENCY_MAP.md` and `azure-devops-portfolio.json`.  
-6. Custom field (recommended): `ClaimState`, `Disposition` on Features (REUSE/EXTEND/…).  
-7. Area Path / Iteration: set by programme after validation — do not invent org structure here.
+## Idempotent create strategy
 
-## Import sources
+### 1. Search before create
 
-- Human-readable: `docs/innovation/epics/*.md`
-- Machine: `docs/innovation/azure-devops-portfolio.json`
-- Process: CSV or Azure DevOps REST + idempotent script (to be written only after validation)
+For each Epic and Feature, query Azure DevOps before creation:
 
-## After validation (authorised write)
+```
+WIQL: SELECT [System.Id], [System.Title], [System.State]
+      FROM workitems
+      WHERE [System.TeamProject] = 'MapAble'
+        AND [System.WorkItemType] IN ('Epic','Feature')
+        AND [Custom.ProgrammeKey] = '{key}'
+```
 
-Record for each created item: work item ID, URL, parent, dependencies, state.  
-Commit an `AZURE_DEVOPS_CREATED.md` evidence ledger — still not a production claim.
+**Recommended custom field:** `ProgrammeKey` (or tag `mapable-portfolio-v1`) storing the stable key from JSON (e.g. `mapable-epic-01-access-graph`).
 
-## Security note for future automation
+If a match exists → **update** title/description/tags only; do **not** duplicate.
 
-Any import bot credentials must be least-privilege; do not embed PATs in the repo; do not allow agents to create work items without human validation flag.
+### 2. Creation order
+
+1. Create Epics in wave order (E01, E02, E09, E06, …)
+2. Create stage-gate Features G0→G6 under each Epic
+3. Create product Features under each Epic
+4. Add **Predecessor** links for cross-Epic dependencies from JSON `dependencies` array
+5. Chain gate Features sequentially within each Epic
+
+### 3. Field mapping
+
+| JSON field | Azure DevOps field |
+|------------|-------------------|
+| `key` | Custom.ProgrammeKey or Tag |
+| `title` | System.Title |
+| `priority` | Microsoft.VSTS.Common.Priority (P0=1, P1=2, P2=3, P3=4) |
+| `horizon` | Custom.DeliveryHorizon or Tag |
+| `dependencies[]` | Predecessor link to other Epic keys |
+| Feature `classification` | Custom.ReuseClassification |
+| Feature `type` | Tag `stage-gate` or `product` |
+
+### 4. Epic descriptions
+
+Link each Epic description to markdown spec:
+
+```
+docs/innovation/epics/{num}-{slug}.md
+```
+
+Use Azure DevOps description HTML with link to repo path.
+
+### 5. Tags (recommended)
+
+- `mapable-innovation-portfolio`
+- `wave-foundation` | `wave-experience` | `wave-intelligence` | `wave-participation` | `wave-commercialisation` | `wave-rd`
+- `claim-in-development` (update when claim state changes)
+
+---
+
+## Validation checklist (before ADO write)
+
+- [ ] No duplicate ProgrammeKey in project
+- [ ] All 15 Epics present with 7 gate Features each
+- [ ] Cross-Epic dependencies match [PORTFOLIO_DEPENDENCY_MAP.md](./PORTFOLIO_DEPENDENCY_MAP.md)
+- [ ] Ownership assigned (see Epic §39)
+- [ ] No Tasks/Stories bulk-created in this pass
+- [ ] Portfolio reviewed by Product + DRO representative for G1 readiness on Foundation wave
+
+---
+
+## Import options
+
+### Option A — Manual import
+
+1. Review markdown specs in `docs/innovation/epics/`
+2. Create Epics using JSON titles and keys
+3. Bulk-add Features from JSON `features` arrays
+
+### Option B — Azure DevOps CLI / REST script (future)
+
+```bash
+# Pseudocode — run only after credentials configured
+for epic in $(jq -r '.epics[].key' azure-devops-portfolio.json); do
+  az boards work-item show --id $(search-by-programme-key $epic) || \
+  az boards work-item create --type Epic --title "..." --fields ProgrammeKey=$epic
+done
+```
+
+### Option C — CSV import
+
+Export JSON to CSV with columns: Work Item Type, Title, ProgrammeKey, Parent Key, Classification, Horizon.
+
+---
+
+## Items deliberately NOT created
+
+| Item type | Count | Reason |
+|-----------|-------|--------|
+| Epic | 15 | Awaiting portfolio validation + ADO credentials |
+| Feature | ~180 | Same |
+| User Story / PBI | 0 | Out of scope for this pass |
+| Task | 0 | Out of scope per mission §6 |
+| Test work items | 0 | Linked at Story level later |
+
+---
+
+## After import — record template
+
+| ProgrammeKey | ADO ID | URL | State | Parent |
+|--------------|--------|-----|-------|--------|
+| mapable-epic-01-access-graph | TBD | TBD | New | — |
+
+Fill this table in a follow-up commit after authorised ADO creation.
+
+---
+
+## Related documents
+
+- [MAPABLE_INNOVATION_PORTFOLIO.md](./MAPABLE_INNOVATION_PORTFOLIO.md)
+- [PORTFOLIO_STAGE_GATES.md](./PORTFOLIO_STAGE_GATES.md)
+- [PORTFOLIO_ROADMAP.md](./PORTFOLIO_ROADMAP.md)

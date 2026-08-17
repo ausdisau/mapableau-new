@@ -1,268 +1,249 @@
-# EPIC 04 — Access Intelligence Vision
+# Epic 04 — Access Intelligence Vision
 
-| Field | Value |
-| --- | --- |
-| Epic ID / slug | `EPIC-04` / `access-intelligence-vision` |
-| Priority | P3 |
-| Delivery horizon | R&D |
-| Wave | R&D Wave |
-| Current claim state | **Exploratory** |
-| Dependencies | EPIC-01, EPIC-06 |
-| Recommended owner | Access Intelligence + AI platform |
-
-> **Honesty:** Documentation and work items are not production evidence. Feature flags are not assurance. Public claims remain governed by `docs/convergence-os/PUBLIC_CLAIM_REGISTRY.md`. Implementation requires freeze waiver or freeze lift per `docs/remediation/FEATURE_FREEZE.md`.
-
-## 1. Epic title
-Access Intelligence Vision
-
-## 2. Epic ID / proposed slug
-`EPIC-04` · `access-intelligence-vision`
-
-## 3. Strategic outcome
-Human-supervised computer-vision accessibility evidence assistant.
-
-## 4. Participant outcome
-Faster candidate observations that never silently become verified truth without humans.
-
-## 5. Problem statement
-Manual evidence capture is slow; ungoverned CV would invent accessibility facts and fake compliance.
-
-## 6. Scope
-- Propose entrances, door-width estimates, ramps, steps, kerb ramps, handrails, signage, accessible parking, toilet features, surfaces, hazards
-- All AI outputs initially AI INFERRED — UNVERIFIED
-- Verification via community, organisation correction, accredited assessor
-
-## 7. Explicit non-goals
-- CV-awarded accreditation or compliance
-- Production camera inference without freeze waiver
-- Biometric identification
-
-## 8. User groups
-- Assessors
-- Venue staff
-- Community contributors
-- MapAble evidence ops
-
-## 9. Example user journeys
-- Assessor uploads photo → model proposes ramp candidate → status AI inferred → assessor confirms measurement
-- Organisation disputes AI door-width estimate → correction workflow
-
-## 10. Functional capabilities
-- Synthetic/shadow lens contracts
-- Proposal envelopes
-- Human verification bridge to Epic 01/06
-
-## 11. Shared Core dependencies
-- AccessEvidenceEnvelopeRecord
-- AccessChangeReviewRecord
-- AI capability registry
-- Kill switches
-
-## 12. Cross-Epic dependencies
-- EPIC-01
-- EPIC-06
-
-## 13. Data entities
-- Evidence envelopes with evidenceClasses including vision
-- Change reviews
-
-## 14. APIs / events required
-- vision.proposal.created
-- vision.proposal.rejected
-- bridge to Living Access Fabric
-
-## 15. Permission model
-Only authorised assessors/venues upload; model cannot publish.
-
-## 16. Consent requirements
-- Image capture consent; no bystander face processing as identity
-
-## 17. Human approval gates
-- Mandatory human verification before verified status
-- Accreditation remains Epic 06 human decision
-
-## 18. Accessibility acceptance criteria
-- WCAG 2.2 AA as release criterion (designed toward; do not claim conformance without independent audit)
-- Semantic HTML, keyboard navigation, visible focus, zoom/reflow, contrast
-- Screen-reader labels and live regions for status changes
-- Reduced motion; non-drag alternatives; touch targets ≥44px
-- Switch access and voice-independent workflow
-- Plain-language and Easy Read pathways where appropriate; AAC-compatible interaction
-- Accessible authentication and accessible timeout/session behaviour
-- Manual assistive-technology testing required — automated axe/Playwright alone is insufficient (see docs/accessibility/ACCESSIBILITY_MANUAL_EVIDENCE_MATRIX.md — currently NOT_RUN)
-
-## 19. Privacy requirements
-- Minimize EXIF/location leakage
-- No face recognition for identity
-
-## 20. Safeguarding requirements
-- Hazard proposals are environmental candidates only
-
-## 21. AI use, if any
-Classification/extraction of accessibility candidates under shadow/synthetic until promoted.
-
-## 22. AI prohibited decisions
-- Accreditation
-- Compliance certification
-- Verified measurement from vision alone
-- Reward-hacking confidence inflation
-
-## 23. AI eval requirements
-- normal success
-- missing evidence
-- conflicting evidence
-- stale information
-- user refuses recommendation
-- user revokes consent
-- delegate lacks authority
-- required tool unavailable
-- unsafe requested action
-- disclosure attempt
-- hallucinated accessibility fact
-- incorrect funding claim
-- escalation required
-- accessibility fallback required
-- overconfident door-width estimate
-- missed step hazard
-
-## 24. Audit requirements
-- Model version, prompt/tool trace, human decision
-
-## 25. Observability requirements
-- Precision/recall on labelled sets
-- Human reject rate
-- Unsupported-claim rate
-
-## 26. Complaints / correction path
-Organisation correction + assessor appeal paths.
-
-## 27. Feature flags
-- W-VA-1 VisionAccess contracts; inference flags default false
-- MAPABLE_AI_PUBLIC_CLAIM_ENABLED=false
-
-## 28. Failure and fallback behaviour
-Manual measurement forms always available; disable vision flag.
-
-## 29. Security requirements
-- Upload malware scanning
-- Prompt-injection resistant captions
-- No autonomous publish
-
-## 30. Definition of Ready
-- Freeze waiver W-VA-1 respected
-- Eval harness cases defined
-- Co-design on honesty labels
-
-## 31. Definition of Done
-- Default AI INFERRED
-- Cannot set verified
-- Evals gate
-
-## 32. MVP acceptance criteria
-- Synthetic lens proposals into change review queue
-
-## 33. Pilot acceptance criteria
-- Assessor-only shadow mode; no public claim
-
-## 34. Scale acceptance criteria
-- Only after precision thresholds and G5 evidence
-
-## 35. KPIs
-- Human confirm rate
-- False proposal rate
-- Time-to-verified evidence
-
-## 36. Risks
-- CV treated as compliance
-- Privacy of bystanders
-
-## 37. Mitigations
-- CV treated as compliance → Hard block accreditation path
-- Privacy of bystanders → Capture policy; no face ID
-
-| Risk | Mitigation |
-| --- | --- |
-| CV treated as compliance | Hard block accreditation path |
-| Privacy of bystanders | Capture policy; no face ID |
-
-## 38. Dependencies
-- Epic 01
-- Epic 06
-- AI platform registry
-
-## 39. Recommended owner / team
-Access Intelligence + AI platform
-
-## 40. Delivery horizon
-R&D (R&D Wave)
-
-## 41. Current claim state
-**Exploratory** — grounded in repository inspection (Prisma/services/docs), not strategy documents.
-
-## 42. Evidence required before claim-state promotion
-- Eval report
-- Assessor acceptance study
-- No public claim until registry allows
+> **Azure DevOps Epic key:** `mapable-epic-04-access-intelligence-vision`  
+> **Priority:** P3 | **Horizon:** R&D Wave  
+> **Current claim state:** Exploratory
 
 ---
 
-## Features (4–8)
+## 1. Epic title
 
-### 04-f1 — Vision proposal contracts
-**Disposition:** REUSE  
-**Summary:** Shared schemas for CV candidates.  
-**Reuse paths:** `VisionAccess contracts #383`  
-**Acceptance:**
-- AI inferred default
+Access Intelligence Vision
 
-### 04-f2 — Shadow inference harness
-**Disposition:** EXTEND  
-**Summary:** Synthetic/shadow only until waiver.  
-**Reuse paths:** `access-intelligence-next evidence`  
-**Acceptance:**
-- Flags off by default
+## 2. Epic ID / proposed slug
 
-### 04-f3 — Human verification bridge
-**Disposition:** EXTEND  
-**Summary:** Proposals enter change review.  
-**Reuse paths:** `AccessChangeReviewRecord`  
-**Acceptance:**
-- No auto-publish
+`mapable-epic-04-access-intelligence-vision`
 
-### 04-f4 — Community confirmation workflow
-**Disposition:** NEW  
-**Summary:** Community can corroborate not verify alone.  
-**Reuse paths:** `community_reported status`  
-**Acceptance:**
-- Cannot reach independently verified alone
+## 3. Strategic outcome
 
-### 04-f5 — Organisation correction
-**Disposition:** EXTEND  
-**Summary:** Venue disputes AI candidates.  
-**Reuse paths:** `venue response services`  
-**Acceptance:**
-- Audit trail
+Human-supervised computer-vision accessibility evidence assistant.
 
-### 04-f6 — Assessor validation
-**Disposition:** EXTEND  
-**Summary:** Accredited measurement supersedes.  
-**Reuse paths:** `Epic 06`  
-**Acceptance:**
-- Assessor identity required
+## 4. Participant outcome
 
+Faster evidence collection with clear labelling that AI suggestions are unverified until confirmed.
+
+## 5. Problem statement
+
+Manual access surveys are slow; communities need assistive capture without AI overclaiming.
+
+## 6. Scope
+
+Entrances, door-width estimates, ramps, steps, kerb ramps, handrails, signage, accessible parking, toilet features, surfaces, hazards — all AI_INFERRED — UNVERIFIED initially.
+
+## 7. Explicit non-goals
+
+CV-only accreditation; compliance certification; auto-publish to verified graph.
+
+## 8. User groups
+
+Community reporters, assessors, moderators, venue operators (corrections).
+
+## 9. Example user journeys
+
+1. Photo uploaded; CV proposes ramp detection → moderation queue.
+2. Organisation corrects misidentified entrance.
+3. Assessor validates proposal → promoted via E06 workflow.
+
+## 10. Functional capabilities
+
+- CV proposal pipeline with mandatory unverified status
+- Human verification queues (community, org, assessor)
+- Integration to E01 observation ingestion
+- Eval harness for hallucinated feature detection
+
+## 11. Shared Core dependencies
+
+AccessObservation, Document, EvidenceItem, AuditEvent, FeatureFlag.
+
+## 12. Cross-Epic dependencies
+
+Feeds E01; requires E06 for assessor validation path.
+
+## 13. Data entities
+
+AccessObservationRecord with AI provenance; moderation queue items.
+
+## 14. APIs/events required
+
+POST /api/access/vision/propose (internal); events: VisionProposalCreated.
+
+## 15. Permission model
+
+Reporters submit; moderators/assessors verify; no auto-publish.
+
+## 16. Consent requirements
+
+Photo consent at capture; faces/plates blurring policy.
+
+## 17. Human approval gates
+
+Any promotion out of AI_INFERRED status.
+
+## 18. Accessibility acceptance criteria
+
+- WCAG 2.2 AA on all user-facing surfaces
+- Semantic HTML; keyboard navigation; visible focus; skip links where applicable
+- Screen-reader labels on all interactive controls; live regions for dynamic updates
+- Zoom to 400%; reflow at 320px; contrast ≥ 4.5:1
+- Reduced motion; accessible errors; non-drag map alternatives; touch targets ≥ 44×44px
+- Switch access; voice-independent workflows; plain-language and Easy Read for consent/plans
+- AAC-compatible text interfaces; predictable focus; accessible auth and session timeout
+- Manual AT testing (NVDA/VoiceOver + keyboard) before G5 — automated alone insufficient
+
+## 19. Privacy requirements
+
+PII scrubbing on images; retention limits.
+
+## 20. Safeguarding requirements
+
+ Hazard proposals prioritised in queue.
+
+## 21. AI use, if any
+
+Classification and detection proposals only.
+
+## 22. AI prohibited decisions
+
+Accreditation; independently_verified status; compliance claims.
+
+## 23. AI eval requirements
+
+| Case | Expected |
+|------|----------|
+| Normal success | Valid output within authority |
+| Missing evidence | States unknown; no fabricated facts |
+| Conflicting evidence | Surfaces conflict; asks participant |
+| Stale information | Shows freshness; warns user |
+| User refuses recommendation | Accepts; offers alternatives |
+| User revokes consent | Stops processing scoped data |
+| Delegate lacks authority | Blocks with accessible message |
+| Required tool unavailable | Non-AI fallback offered |
+| Unsafe requested action | Refuses; escalates |
+| Disclosure attempt | Blocks; logs audit event |
+| Hallucinated accessibility fact | Caught by eval; not shown as verified |
+| Incorrect funding claim | Advisory wording only |
+| Escalation required | Routes to human |
+| Accessibility fallback required | Non-AI path completes task |
+| Cohort disparity | Flagged in monitoring |
+
+## 24. Audit requirements
+
+Model version on each proposal; verifier identity logged.
+
+## 25. Observability requirements
+
+Proposal→verify latency; false positive rate.
+
+## 26. Complaints/correction path
+
+Incorrect AI tag → dispute path.
+
+## 27. Feature flags
+
+MAPABLE_ACCESS_VISION_ENABLED (proposed, default false).
+
+## 28. Failure and fallback behaviour
+
+Manual observation form without CV.
+
+## 29. Security requirements
+
+Sandboxed inference; no participant passport in CV context.
+
+## 30. Definition of Ready
+
+G0–G2; R&D sandbox approved.
+
+## 31. Definition of Done
+
+Eval suite pass; zero auto-verified CV outputs.
+
+## 32. MVP acceptance criteria
+
+3 feature types detected as proposals only.
+
+## 33. Pilot acceptance criteria
+
+50% assessor confirmation rate on proposals.
+
+## 34. Scale acceptance criteria
+
+Regional rollout with moderation staffing model.
+
+## 35. KPIs
+
+False positive rate; time-to-verify.
+
+## 36. Risks
+
+R01 CV as verified fact.
+
+## 37. Mitigations
+
+Hard UNVERIFIED enum; human gates.
+
+## 38. Dependencies
+
+E01 ingestion; E06 validation.
+
+## 39. Recommended owner/team
+
+AI Platform Team (Access)
+
+## 40. Delivery horizon
+
+R&D Wave
+
+## 41. Current claim state
+
+**Exploratory**
+
+## 42. Evidence required before claim-state promotion
+
+Explicitly deferred in docs/ai-platform/CURRENT_STATE.md. Promote to In development only after G3 CV pipeline with mandatory UNVERIFIED labelling.
+
+---
+
+## Azure DevOps Features
+
+### Stage-gate Features
+
+| Gate | Feature key | Pass summary |
+|------|-------------|--------------|
+| G0 | `mapable-epic-04-access-intelligence-vision-gate-g0-problem-evidence` | Problem evidence from ≥3 sources |
+| G1 | `mapable-epic-04-access-intelligence-vision-gate-g1-co-design` | DRO co-design per co-design-protocol.md |
+| G2 | `mapable-epic-04-access-intelligence-vision-gate-g2-rights-review` | Rights, a11y, privacy, safeguarding review |
+| G3 | `mapable-epic-04-access-intelligence-vision-gate-g3-technical-proof` | End-to-end proof behind feature flag |
+| G4 | `mapable-epic-04-access-intelligence-vision-gate-g4-controlled-pilot` | Limited cohort; monitoring; rollback |
+| G5 | `mapable-epic-04-access-intelligence-vision-gate-g5-evidence-to-scale` | KPI + manual AT evidence |
+| G6 | `mapable-epic-04-access-intelligence-vision-gate-g6-continuous-assurance` | Ongoing monitoring active |
+
+### Product Features
+
+| # | Feature | Classification | Repo anchor |
+|---|---------|----------------|-------------|
+| 1 | CV evidence proposal pipeline | NEW | `deferred in CURRENT_STATE.md` |
+| 2 | AI INFERRED — UNVERIFIED labelling | NEW | `provenance enum` |
+| 3 | Human verification queue | EXTEND | `moderation` |
+| 4 | Community confirmation | EXTEND | `AccessPlaceReview` |
+| 5 | Organisation correction | EXTEND | `venue admin` |
+| 6 | Assessor validation | EXTEND | `E06` |
+| 7 | Vision eval harness | NEW | `pnpm ai:evals` |
+
+---
 
 ## Stage-gate pass/fail (Epic-specific)
 
-- **G0:** PASS if evidence capture bottleneck evidenced.
-- **G1:** PASS if disability-led review of CV honesty risks.
-- **G2:** PASS if rights review bans compliance-from-CV.
-- **G3:** PASS if synthetic proposal → human reject/confirm loop.
-- **G4:** PASS if assessor-only pilot; kill switch tested.
-- **G5:** PASS if precision thresholds met.
-- **G6:** PASS if model-drift and unsupported-claim monitoring.
+| Gate | Pass | Fail |
+|------|------|------|
+| G0 | Evidence that manual capture is bottleneck | Problem un evidenced |
+| G1 | Co-design sign-off recorded | Token consultation only |
+| G2 | Sharing/rights boundaries approved | Blanket collection approved |
+| G3 | Photo→proposal→queue→reject/accept without auto-verify | Duplicate SoT or unflagged code |
+| G4 | Pilot cohort + rollback tested | Broad enablement |
+| G5 | KPIs + manual AT met | Privacy/a11y incidents open |
+| G6 | Monitoring dashboards live | Unaddressed drift |
 
-See also: [PORTFOLIO_STAGE_GATES.md](../PORTFOLIO_STAGE_GATES.md).
+---
 
-## Minimum stage-gate Features (programme-linked)
-
-Link rather than rebuild: G0 Problem Evidence · G1 Disability-Led Co-design · G2 Rights/Accessibility/Risk Review · G3 Technical Proof · G4 Controlled Pilot · G5 Evidence to Scale · G6 Continuous Assurance.
+*Generated as part of MapAble Innovation Portfolio documentation. Not a production-ready claim.*

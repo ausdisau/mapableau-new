@@ -1,1596 +1,1411 @@
 {
-  "meta": {
-    "programme": "MapAble Innovation Portfolio",
-    "organisation": "Australian Disability Ltd",
-    "generatedAt": "2026-08-15T08:51:09.994Z",
-    "azureDevOpsItemsCreated": false,
-    "publicClaimsAllowed": false,
-    "featureFreezeActive": true,
-    "firstVerticalSlice": [
-      "01",
-      "02",
-      "03",
-      "07",
-      "08-thin"
-    ],
-    "recommendedNextEpic": "01"
-  },
-  "sharedCoreMapping": [
-    {
-      "requested": "User",
-      "mapping": "User — REUSE `prisma` User + NextAuth"
-    },
-    {
-      "requested": "Organisation",
-      "mapping": "Organisation / OrganisationMember — REUSE"
-    },
-    {
-      "requested": "Role",
-      "mapping": "MapAbleUserRole + UserRoleAssignment — REUSE (no Role model)"
-    },
-    {
-      "requested": "Membership",
-      "mapping": "OrganisationMember / TenantMembership — REUSE"
-    },
-    {
-      "requested": "DelegateGrant",
-      "mapping": "ParticipantAuthorityGrant + DelegateInvitation — EXTEND (do not create DelegateGrant)"
-    },
-    {
-      "requested": "ParticipantProfile",
-      "mapping": "ParticipantProfile — REUSE"
-    },
-    {
-      "requested": "AccessibilityPreference",
-      "mapping": "AccessibilityProfile (presentation) vs AccessPassport (functional) — REUSE both; keep separation C-010"
-    },
-    {
-      "requested": "CommunicationPreference",
-      "mapping": "JSON on AccessibilityProfile + types — EXTEND if G1 requires first-class record"
-    },
-    {
-      "requested": "MobilityAid",
-      "mapping": "JSON / AccessRequirement domain equipment_at — EXTEND; optional AtEquipmentAsset for AT Continuity"
-    },
-    {
-      "requested": "ConsentRecord",
-      "mapping": "ConsentRecord — REUSE lib/consent"
-    },
-    {
-      "requested": "DataPurpose",
-      "mapping": "purpose string on consent/authority — EXTEND toward typed DataPurpose if needed"
-    },
-    {
-      "requested": "DisclosureReceipt",
-      "mapping": "ConsentReceipt — EXTEND (tenant, field list, expiry/supersession gaps)"
-    },
-    {
-      "requested": "Provider / Worker",
-      "mapping": "Provider / Worker / WorkerProfile — REUSE"
-    },
-    {
-      "requested": "Credential",
-      "mapping": "WorkerTrustCredential + TrainingCompletionRecord — EXTEND network"
-    },
-    {
-      "requested": "Place",
-      "mapping": "AccessPlace (C-011 sole place identity) — REUSE"
-    },
-    {
-      "requested": "AccessFeature",
-      "mapping": "AccessPlaceFeature / AccessCapabilityRecord — REUSE/EXTEND"
-    },
-    {
-      "requested": "AccessObservation",
-      "mapping": "AccessObservationRecord + AccessEvidenceEnvelopeRecord — REUSE/EXTEND"
-    },
-    {
-      "requested": "Verification",
-      "mapping": "AccessProvenanceStatus + change review — REUSE/EXTEND"
-    },
-    {
-      "requested": "AccreditationAssessment",
-      "mapping": "AccessAccreditation* + ProviderAccreditation* — REUSE"
-    },
-    {
-      "requested": "ServiceOffering / Availability / Care*",
-      "mapping": "lib/care CareRequest/CareShift — REUSE"
-    },
-    {
-      "requested": "Trip / Vehicle / Driver",
-      "mapping": "TransportTrip* + Vehicle/Driver — REUSE TransportTrip as SoT"
-    },
-    {
-      "requested": "Employer / Job / Application",
-      "mapping": "Job / JobApplication — REUSE"
-    },
-    {
-      "requested": "AdjustmentRequest",
-      "mapping": "InterviewAdjustmentRequest + AccessAdjustmentRecord — REUSE/EXTEND"
-    },
-    {
-      "requested": "MessageThread / Notification",
-      "mapping": "Conversation/Message — REUSE; notifications often stubbed — EXTEND"
-    },
-    {
-      "requested": "SupportTicket / Complaint / Incident",
-      "mapping": "Complaint / IncidentReport — REUSE"
-    },
-    {
-      "requested": "Funding / Quote / Invoice / Payment",
-      "mapping": "BillingInvoice / AbilityPay / Stripe — REUSE; live NDIA submit OFF"
-    },
-    {
-      "requested": "Document / EvidenceItem / AuditEvent / FeatureFlag",
-      "mapping": "existing evidence + AuditEvent + fail-closed flags — REUSE"
-    }
-  ],
-  "waves": {
-    "foundation": "Foundation Wave",
-    "experience": "Experience Wave",
-    "intelligence": "Controlled Intelligence Wave",
-    "participation": "Participation Wave",
-    "commercial": "Platform Commercialisation Wave",
-    "rd": "R&D Wave"
-  },
+  "version": "1.0.0",
+  "programme": "MapAble Innovation Portfolio",
+  "organisation": "Australian Disability Ltd",
+  "areaPath": "MapAble\\Innovation Portfolio",
+  "iterationPath": "MapAble\\Innovation",
+  "workItemTypeEpic": "Epic",
+  "workItemTypeFeature": "Feature",
   "epics": [
     {
-      "key": "01",
-      "externalKey": "mapable.epic.01",
+      "key": "mapable-epic-01-access-graph",
       "title": "MapAble Access Graph",
-      "slug": "access-graph",
       "priority": "P0",
-      "horizon": "Foundation — Priority 0",
-      "wave": "foundation",
-      "claimState": "In development",
+      "horizon": "Foundation Wave",
       "dependencies": [],
-      "owner": "Access Infrastructure / Living Access Fabric owners (lib/access/**)",
       "features": [
         {
-          "key": "01-f1",
-          "externalKey": "mapable.feature.01-f1",
+          "key": "mapable-epic-01-access-graph-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-01-access-graph-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-01-access-graph-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-01-access-graph-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-01-access-graph-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-01-access-graph-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-01-access-graph-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-01-access-graph-feat-canonical-accessibility-taxonomy",
           "title": "Canonical accessibility taxonomy",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "lib/access/intelligence-next/ontology/",
-            "docs/access-infrastructure/ONTOLOGY.md"
-          ],
-          "acceptance": [
-            "Versioned concepts",
-            "No diagnosis concepts as matching keys"
-          ]
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "01-f2",
-          "externalKey": "mapable.feature.01-f2",
+          "key": "mapable-epic-01-access-graph-feat-place-feature-schema",
           "title": "Place and feature schema",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "AccessPlace",
-            "AccessPlaceFeature",
-            "AccessCapabilityRecord"
-          ],
-          "acceptance": [
-            "C-011 preserved",
-            "Unknown ≠ inaccessible"
-          ]
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "01-f3",
-          "externalKey": "mapable.feature.01-f3",
+          "key": "mapable-epic-01-access-graph-feat-evidence-provenance-system",
           "title": "Evidence provenance system",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessEvidenceEnvelopeRecord",
-            "lib/access/intelligence-next/evidence/"
-          ],
-          "acceptance": [
-            "source/timestamp/evidence type/verification/confidence/expiry/dispute fields"
-          ]
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "01-f4",
-          "externalKey": "mapable.feature.01-f4",
+          "key": "mapable-epic-01-access-graph-feat-observation-workflow",
           "title": "Observation workflow",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessObservationRecord"
-          ],
-          "acceptance": [
-            "AI defaults to AI inferred unverified",
-            "Community defaults to community_reported"
-          ]
+          "type": "product",
+          "classification": "NEW/EXTEND"
         },
         {
-          "key": "01-f5",
-          "externalKey": "mapable.feature.01-f5",
+          "key": "mapable-epic-01-access-graph-feat-verification-workflow",
           "title": "Verification workflow",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessChangeReviewRecord",
-            "AccessProvenanceStatus"
-          ],
-          "acceptance": [
-            "No silent overwrite",
-            "Assessor identity recorded"
-          ]
+          "type": "product",
+          "classification": "NEW"
         },
         {
-          "key": "01-f6",
-          "externalKey": "mapable.feature.01-f6",
+          "key": "mapable-epic-01-access-graph-feat-freshness-expiry-engine",
           "title": "Freshness and expiry engine",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "lib/access/intelligence-next/evidence/freshness-policy.ts"
-          ],
-          "acceptance": [
-            "Expired evidence cannot present as current verified"
-          ]
+          "type": "product",
+          "classification": "NEW"
         },
         {
-          "key": "01-f7",
-          "externalKey": "mapable.feature.01-f7",
-          "title": "Correction and dispute workflow",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessPlaceReport",
-            "AccessChangeReviewRecord"
-          ],
-          "acceptance": [
-            "History retained",
-            "Complaint path linked"
-          ]
+          "key": "mapable-epic-01-access-graph-feat-correction-dispute-workflow",
+          "title": "Correction/dispute workflow",
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "01-f8",
-          "externalKey": "mapable.feature.01-f8",
-          "title": "Access Graph internal API",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "docs/access-infrastructure/API_CONTRACTS.md",
-            "packages/contracts"
-          ],
-          "acceptance": [
-            "Zod boundaries",
-            "No passport leakage"
-          ]
+          "key": "mapable-epic-01-access-graph-feat-access-graph-read-api",
+          "title": "Access Graph read API (internal)",
+          "type": "product",
+          "classification": "NEW"
         }
       ]
     },
     {
-      "key": "02",
-      "externalKey": "mapable.epic.02",
+      "key": "mapable-epic-02-personal-access-passport",
       "title": "Personal Access Passport",
-      "slug": "personal-access-passport",
       "priority": "P0",
-      "horizon": "Foundation",
-      "wave": "foundation",
-      "claimState": "In development",
+      "horizon": "Foundation Wave",
       "dependencies": [
-        "01"
+        "mapable-epic-01-access-graph"
       ],
-      "owner": "Access Infrastructure + Consent owners",
       "features": [
         {
-          "key": "02-f1",
-          "externalKey": "mapable.feature.02-f1",
-          "title": "Functional requirement editor",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessPassport",
-            "AccessRequirementRecord"
-          ],
-          "acceptance": [
-            "Criticality/context/timing/assistance fields",
-            "userConfirmed"
-          ]
+          "key": "mapable-epic-02-personal-access-passport-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "02-f2",
-          "externalKey": "mapable.feature.02-f2",
-          "title": "Granular sharing controls",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "disclosureScopes",
-            "ConsentRecord"
-          ],
-          "acceptance": [
-            "Employer share default off",
-            "AI scope explicit"
-          ]
+          "key": "mapable-epic-02-personal-access-passport-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "02-f3",
-          "externalKey": "mapable.feature.02-f3",
-          "title": "Purpose-bound consent and receipts",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "lib/consent/"
-          ],
-          "acceptance": [
-            "Purpose, fields, expiry, revocation"
-          ]
+          "key": "mapable-epic-02-personal-access-passport-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "02-f4",
-          "externalKey": "mapable.feature.02-f4",
-          "title": "Expiry revocation and access log",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AuditEvent",
-            "ConsentReceipt"
-          ],
-          "acceptance": [
-            "Immediate revoke",
-            "Recipient read logged"
-          ]
+          "key": "mapable-epic-02-personal-access-passport-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "02-f5",
-          "externalKey": "mapable.feature.02-f5",
-          "title": "Participant review experience",
-          "disposition": "NEW",
-          "reusePaths": [
-            "dashboard consent patterns"
-          ],
-          "acceptance": [
-            "Plain language",
-            "Easy Read path"
-          ]
+          "key": "mapable-epic-02-personal-access-passport-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "02-f6",
-          "externalKey": "mapable.feature.02-f6",
-          "title": "AAC and Easy Read pathways",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "docs/co-design-protocol.md",
-            "MAPABLE_AAC_COMMUNICATION_ENABLED"
-          ],
-          "acceptance": [
-            "Voice-independent",
-            "AAC-compatible"
-          ]
+          "key": "mapable-epic-02-personal-access-passport-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "02-f7",
-          "externalKey": "mapable.feature.02-f7",
-          "title": "Non-diagnosis matching contract",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "ACCESS_FRAMEWORK.md",
-            "containsDiagnosis flag"
-          ],
-          "acceptance": [
-            "Matching payloads exclude diagnosis"
-          ]
+          "key": "mapable-epic-02-personal-access-passport-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-02-personal-access-passport-feat-passport-crud-ontology",
+          "title": "Passport CRUD + requirement ontology",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-02-personal-access-passport-feat-granular-disclosure-scopes",
+          "title": "Granular disclosure scopes",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-02-personal-access-passport-feat-purpose-bound-consent",
+          "title": "Purpose-bound consent + receipts",
+          "type": "product",
+          "classification": "REUSE/EXTEND"
+        },
+        {
+          "key": "mapable-epic-02-personal-access-passport-feat-sharing-controls-recipient-type",
+          "title": "Sharing controls by recipient type",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-02-personal-access-passport-feat-access-log-participant-review",
+          "title": "Access log + participant review",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-02-personal-access-passport-feat-passport-compatibility-projection",
+          "title": "Passport compatibility projection",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-02-personal-access-passport-feat-non-disclosure-guardrails",
+          "title": "Non-disclosure guardrails",
+          "type": "product",
+          "classification": "NEW"
         }
       ]
     },
     {
-      "key": "03",
-      "externalKey": "mapable.epic.03",
+      "key": "mapable-epic-03-navigate",
       "title": "MapAble Navigate",
-      "slug": "navigate",
       "priority": "P1",
-      "horizon": "Experience",
-      "wave": "experience",
-      "claimState": "In development",
+      "horizon": "Experience Wave",
       "dependencies": [
-        "01",
-        "02"
+        "mapable-epic-01-access-graph",
+        "mapable-epic-02-personal-access-passport"
       ],
-      "owner": "Access + Transport routing owners",
       "features": [
         {
-          "key": "03-f1",
-          "externalKey": "mapable.feature.03-f1",
+          "key": "mapable-epic-03-navigate-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-03-navigate-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-03-navigate-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-03-navigate-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-03-navigate-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-03-navigate-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-03-navigate-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-03-navigate-feat-suitability-routing-engine",
           "title": "Suitability routing engine",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "lib/access/indoor/routing/",
-            "lib/transport-routing/"
-          ],
-          "acceptance": [
-            "Documented cost function",
-            "Advisory labels"
-          ]
+          "type": "product",
+          "classification": "NEW/EXTEND"
         },
         {
-          "key": "03-f2",
-          "externalKey": "mapable.feature.03-f2",
-          "title": "Disruption and lift outage overlays",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "IndoorAccessibilityIncident",
-            "evidence freshness"
-          ],
-          "acceptance": [
-            "Outage demotes routes"
-          ]
+          "key": "mapable-epic-03-navigate-feat-evidence-aware-route-segments",
+          "title": "Evidence-aware route segments",
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "03-f3",
-          "externalKey": "mapable.feature.03-f3",
-          "title": "Uncertainty and freshness UX",
-          "disposition": "NEW",
-          "reusePaths": [
-            "compatibility four-state"
-          ],
-          "acceptance": [
-            "Inferred ≠ verified"
-          ]
+          "key": "mapable-epic-03-navigate-feat-uncertainty-freshness-ui",
+          "title": "Uncertainty + freshness UI",
+          "type": "product",
+          "classification": "NEW"
         },
         {
-          "key": "03-f4",
-          "externalKey": "mapable.feature.03-f4",
-          "title": "Passport-aware journey evaluate",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessJourney*",
-            "API_CONTRACTS"
-          ],
-          "acceptance": [
-            "participantDecisionRequired true"
-          ]
+          "key": "mapable-epic-03-navigate-feat-rest-toilet-recharge-waypoints",
+          "title": "Rest/toilet/recharge waypoints",
+          "type": "product",
+          "classification": "NEW"
         },
         {
-          "key": "03-f5",
-          "externalKey": "mapable.feature.03-f5",
-          "title": "Map and list parity",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "docs/transport/PRODUCT_REQUIREMENTS.md"
-          ],
-          "acceptance": [
-            "No map-only critical info"
-          ]
+          "key": "mapable-epic-03-navigate-feat-temporary-barrier-ingestion",
+          "title": "Temporary barrier ingestion",
+          "type": "product",
+          "classification": "NEW/EXTEND"
         },
         {
-          "key": "03-f6",
-          "externalKey": "mapable.feature.03-f6",
-          "title": "Correction feedback loop",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Epic 01 dispute"
-          ],
-          "acceptance": [
-            "Linked correction ticket"
-          ]
+          "key": "mapable-epic-03-navigate-feat-indoor-outdoor-stitching",
+          "title": "Indoor/outdoor route stitching",
+          "type": "product",
+          "classification": "DEFER"
+        },
+        {
+          "key": "mapable-epic-03-navigate-feat-navigate-participant-ui",
+          "title": "Navigate participant UI",
+          "type": "product",
+          "classification": "NEW"
         }
       ]
     },
     {
-      "key": "04",
-      "externalKey": "mapable.epic.04",
+      "key": "mapable-epic-04-access-intelligence-vision",
       "title": "Access Intelligence Vision",
-      "slug": "access-intelligence-vision",
       "priority": "P3",
-      "horizon": "R&D",
-      "wave": "rd",
-      "claimState": "Exploratory",
+      "horizon": "R&D Wave",
       "dependencies": [
-        "01",
-        "06"
+        "mapable-epic-01-access-graph"
       ],
-      "owner": "Access Intelligence + AI platform",
       "features": [
         {
-          "key": "04-f1",
-          "externalKey": "mapable.feature.04-f1",
-          "title": "Vision proposal contracts",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "VisionAccess contracts #383"
-          ],
-          "acceptance": [
-            "AI inferred default"
-          ]
+          "key": "mapable-epic-04-access-intelligence-vision-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "04-f2",
-          "externalKey": "mapable.feature.04-f2",
-          "title": "Shadow inference harness",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "access-intelligence-next evidence"
-          ],
-          "acceptance": [
-            "Flags off by default"
-          ]
+          "key": "mapable-epic-04-access-intelligence-vision-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "04-f3",
-          "externalKey": "mapable.feature.04-f3",
-          "title": "Human verification bridge",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessChangeReviewRecord"
-          ],
-          "acceptance": [
-            "No auto-publish"
-          ]
+          "key": "mapable-epic-04-access-intelligence-vision-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "04-f4",
-          "externalKey": "mapable.feature.04-f4",
+          "key": "mapable-epic-04-access-intelligence-vision-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-feat-cv-evidence-pipeline",
+          "title": "CV evidence proposal pipeline",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-feat-ai-inferred-unverified-labelling",
+          "title": "AI INFERRED \u2014 UNVERIFIED labelling",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-feat-human-verification-queue",
+          "title": "Human verification queue",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-feat-community-confirmation",
           "title": "Community confirmation workflow",
-          "disposition": "NEW",
-          "reusePaths": [
-            "community_reported status"
-          ],
-          "acceptance": [
-            "Cannot reach independently verified alone"
-          ]
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "04-f5",
-          "externalKey": "mapable.feature.04-f5",
-          "title": "Organisation correction",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "venue response services"
-          ],
-          "acceptance": [
-            "Audit trail"
-          ]
+          "key": "mapable-epic-04-access-intelligence-vision-feat-organisation-correction",
+          "title": "Organisation correction workflow",
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "04-f6",
-          "externalKey": "mapable.feature.04-f6",
-          "title": "Assessor validation",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Epic 06"
-          ],
-          "acceptance": [
-            "Assessor identity required"
-          ]
+          "key": "mapable-epic-04-access-intelligence-vision-feat-assessor-validation",
+          "title": "Assessor validation workflow",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-04-access-intelligence-vision-feat-vision-eval-harness",
+          "title": "Vision eval harness",
+          "type": "product",
+          "classification": "NEW"
         }
       ]
     },
     {
-      "key": "05",
-      "externalKey": "mapable.epic.05",
+      "key": "mapable-epic-05-accessibility-digital-twins",
       "title": "Accessibility Digital Twins",
-      "slug": "accessibility-digital-twins",
       "priority": "P3",
-      "horizon": "R&D",
-      "wave": "rd",
-      "claimState": "Exploratory",
+      "horizon": "R&D Wave",
       "dependencies": [
-        "01",
-        "03"
+        "mapable-epic-01-access-graph"
       ],
-      "owner": "Indoor accessibility owners",
       "features": [
         {
-          "key": "05-f1",
-          "externalKey": "mapable.feature.05-f1",
-          "title": "Floor plan authoring",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "lib/access/indoor/authoring/"
-          ],
-          "acceptance": [
-            "State machine"
-          ]
+          "key": "mapable-epic-05-accessibility-digital-twins-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "05-f2",
-          "externalKey": "mapable.feature.05-f2",
-          "title": "Checkpoint and route model",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "IndoorCheckpoint",
-            "route-planner"
-          ],
-          "acceptance": [
-            "Text alternative"
-          ]
+          "key": "mapable-epic-05-accessibility-digital-twins-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "05-f3",
-          "externalKey": "mapable.feature.05-f3",
-          "title": "Publication workflow",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "publication/state-machine.ts"
-          ],
-          "acceptance": [
-            "Restricted zones filtered"
-          ]
+          "key": "mapable-epic-05-accessibility-digital-twins-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "05-f4",
-          "externalKey": "mapable.feature.05-f4",
-          "title": "Passport indoor fit",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "indoor-fit-engine"
-          ],
-          "acceptance": [
-            "Four-state fit"
-          ]
+          "key": "mapable-epic-05-accessibility-digital-twins-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "05-f5",
-          "externalKey": "mapable.feature.05-f5",
-          "title": "Visit plan sharing",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "visit-plan-service"
-          ],
-          "acceptance": [
-            "Consented share"
-          ]
+          "key": "mapable-epic-05-accessibility-digital-twins-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "05-f6",
-          "externalKey": "mapable.feature.05-f6",
-          "title": "AR/VR preview research",
-          "disposition": "DEFER",
-          "reusePaths": [],
-          "acceptance": [
-            "No production flag"
-          ]
+          "key": "mapable-epic-05-accessibility-digital-twins-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-05-accessibility-digital-twins-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-05-accessibility-digital-twins-feat-spatial-venue-model-schema",
+          "title": "Spatial venue model schema",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-05-accessibility-digital-twins-feat-evidence-backed-twin-ingestion",
+          "title": "Evidence-backed twin ingestion",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-05-accessibility-digital-twins-feat-passport-compatibility-preview",
+          "title": "Passport compatibility preview",
+          "type": "product",
+          "classification": "DEFER"
+        },
+        {
+          "key": "mapable-epic-05-accessibility-digital-twins-feat-evacuation-planning-support",
+          "title": "Evacuation planning support",
+          "type": "product",
+          "classification": "PROPOSED"
+        },
+        {
+          "key": "mapable-epic-05-accessibility-digital-twins-feat-ar-vr-preview",
+          "title": "AR/VR preview interface",
+          "type": "product",
+          "classification": "EXPLORATORY"
+        },
+        {
+          "key": "mapable-epic-05-accessibility-digital-twins-feat-twin-publication-workflow",
+          "title": "Twin publication workflow",
+          "type": "product",
+          "classification": "EXTEND"
         }
       ]
     },
     {
-      "key": "06",
-      "externalKey": "mapable.epic.06",
+      "key": "mapable-epic-06-accreditation-os",
       "title": "MapAble Accreditation OS",
-      "slug": "accreditation-os",
       "priority": "P0",
-      "horizon": "Foundation",
-      "wave": "foundation",
-      "claimState": "Implemented, not independently verified",
+      "horizon": "Foundation Wave",
       "dependencies": [
-        "01",
-        "09"
+        "mapable-epic-01-access-graph",
+        "mapable-epic-09-trust-credential-network"
       ],
-      "owner": "Quality/Accreditation + Access Mark owners",
       "features": [
         {
-          "key": "06-f1",
-          "externalKey": "mapable.feature.06-f1",
-          "title": "Assessment case workflow",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "lib/access/accreditation*",
-            "lib/accreditation/"
-          ],
-          "acceptance": [
-            "Event history"
-          ]
+          "key": "mapable-epic-06-accreditation-os-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "06-f2",
-          "externalKey": "mapable.feature.06-f2",
-          "title": "Measurement and evidence packs",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessAccreditation* evidence"
-          ],
-          "acceptance": [
-            "Assessor identity"
-          ]
+          "key": "mapable-epic-06-accreditation-os-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "06-f3",
-          "externalKey": "mapable.feature.06-f3",
-          "title": "Scoring explanations",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessibilityAccreditationScore"
-          ],
-          "acceptance": [
-            "Not sole access decision"
-          ]
+          "key": "mapable-epic-06-accreditation-os-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "06-f4",
-          "externalKey": "mapable.feature.06-f4",
-          "title": "Human review and decision",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "compliance-boundaries.ts"
-          ],
-          "acceptance": [
-            "automaticAccreditationDecisionEnabled false"
-          ]
+          "key": "mapable-epic-06-accreditation-os-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "06-f5",
-          "externalKey": "mapable.feature.06-f5",
+          "key": "mapable-epic-06-accreditation-os-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-feat-assessment-workflow-engine",
+          "title": "Assessment workflow engine",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-feat-assessor-assignment-identity",
+          "title": "Assessor assignment + identity",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-feat-measurement-evidence-capture",
+          "title": "Measurement + evidence capture",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-feat-scoring-human-review",
+          "title": "Scoring + human review",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-feat-remediation-tracking",
           "title": "Remediation tracking",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "QMS CorrectiveAction"
-          ],
-          "acceptance": [
-            "Immutable history"
-          ]
+          "type": "product",
+          "classification": "NEW/EXTEND"
         },
         {
-          "key": "06-f6",
-          "externalKey": "mapable.feature.06-f6",
-          "title": "Publish approved facts to Access Graph",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Epic 01 envelopes"
-          ],
-          "acceptance": [
-            "Assessor measured / independently verified statuses"
-          ]
+          "key": "mapable-epic-06-accreditation-os-feat-publish-facts-to-graph",
+          "title": "Publish approved facts to graph",
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "06-f7",
-          "externalKey": "mapable.feature.06-f7",
-          "title": "Expiry reassessment and appeals",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Appeal records"
-          ],
-          "acceptance": [
-            "Expired ≠ approved"
-          ]
+          "key": "mapable-epic-06-accreditation-os-feat-expiry-reassessment",
+          "title": "Expiry + reassessment",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-06-accreditation-os-feat-appeals-corrections",
+          "title": "Appeals/corrections",
+          "type": "product",
+          "classification": "EXTEND"
         }
       ]
     },
     {
-      "key": "07",
-      "externalKey": "mapable.epic.07",
+      "key": "mapable-epic-07-participant-orchestration-agent",
       "title": "Participant Orchestration Agent",
-      "slug": "participant-orchestration-agent",
-      "priority": "P1",
-      "horizon": "Controlled Intelligence",
-      "wave": "intelligence",
-      "claimState": "In development",
+      "priority": "P2",
+      "horizon": "Controlled Intelligence Wave",
       "dependencies": [
-        "01",
-        "02",
-        "03",
-        "08"
+        "mapable-epic-02-personal-access-passport",
+        "mapable-epic-03-navigate",
+        "mapable-epic-08-accessible-communications-fabric"
       ],
-      "owner": "AI platform / Navigator (W-AA-1)",
       "features": [
         {
-          "key": "07-f1",
-          "externalKey": "mapable.feature.07-f1",
-          "title": "Single Navigator orchestrator",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "lib/ai/navigator/"
-          ],
-          "acceptance": [
-            "Typed tools",
-            "Explicit state"
-          ]
+          "key": "mapable-epic-07-participant-orchestration-agent-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "07-f2",
-          "externalKey": "mapable.feature.07-f2",
-          "title": "Consent and authority gates",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "consent-gate.ts",
-            "gates.ts"
-          ],
-          "acceptance": [
-            "Delegate lack-of-authority eval"
-          ]
+          "key": "mapable-epic-07-participant-orchestration-agent-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "07-f3",
-          "externalKey": "mapable.feature.07-f3",
-          "title": "Approval envelopes",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "envelopes/"
-          ],
-          "acceptance": [
-            "No execute without approval"
-          ]
+          "key": "mapable-epic-07-participant-orchestration-agent-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "07-f4",
-          "externalKey": "mapable.feature.07-f4",
-          "title": "Cross-module typed tools",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "matching/search-tool.ts"
-          ],
-          "acceptance": [
-            "Constrained schemas"
-          ]
+          "key": "mapable-epic-07-participant-orchestration-agent-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "07-f5",
-          "externalKey": "mapable.feature.07-f5",
-          "title": "Human escalation",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "escalation/service.ts",
-            "Epic 08"
-          ],
-          "acceptance": [
-            "No phone-tree only"
-          ]
+          "key": "mapable-epic-07-participant-orchestration-agent-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "07-f6",
-          "externalKey": "mapable.feature.07-f6",
-          "title": "Eval and trace harness",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "lib/ai/platform/evaluations"
-          ],
-          "acceptance": [
-            "Forbidden action suite"
-          ]
+          "key": "mapable-epic-07-participant-orchestration-agent-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "07-f7",
-          "externalKey": "mapable.feature.07-f7",
-          "title": "Non-AI fallback journey UI",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "journey-planner routes"
-          ],
-          "acceptance": [
-            "Critical path without chat"
-          ]
+          "key": "mapable-epic-07-participant-orchestration-agent-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-07-participant-orchestration-agent-feat-orchestrator-agent-shell",
+          "title": "Single orchestrating agent shell",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-07-participant-orchestration-agent-feat-typed-tools-schemas",
+          "title": "Typed tools + constrained schemas",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-07-participant-orchestration-agent-feat-propose-validate-approve-execute",
+          "title": "Propose \u2192 validate \u2192 approve \u2192 execute",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-07-participant-orchestration-agent-feat-cross-module-read-aggregation",
+          "title": "Cross-module read aggregation",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-07-participant-orchestration-agent-feat-approval-gates-audit",
+          "title": "Approval gates + audit events",
+          "type": "product",
+          "classification": "REUSE"
+        },
+        {
+          "key": "mapable-epic-07-participant-orchestration-agent-feat-non-ai-fallback-planner",
+          "title": "Non-AI fallback planner",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-07-participant-orchestration-agent-feat-orchestration-eval-suite",
+          "title": "Orchestration eval suite",
+          "type": "product",
+          "classification": "EXTEND"
         }
       ]
     },
     {
-      "key": "08",
-      "externalKey": "mapable.epic.08",
+      "key": "mapable-epic-08-accessible-communications-fabric",
       "title": "Accessible Communications Fabric",
-      "slug": "accessible-communications-fabric",
       "priority": "P1",
-      "horizon": "Foundation thin slice → Experience full fabric",
-      "wave": "experience",
-      "claimState": "Implemented, not independently verified",
-      "dependencies": [
-        "02"
-      ],
-      "owner": "Messaging + Mobile communication owners",
-      "features": [
-        {
-          "key": "08-f1",
-          "externalKey": "mapable.feature.08-f1",
-          "title": "In-app messaging core",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "lib/messages/"
-          ],
-          "acceptance": [
-            "Access policy enforced"
-          ]
-        },
-        {
-          "key": "08-f2",
-          "externalKey": "mapable.feature.08-f2",
-          "title": "Communication preferences",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessibilityProfile communicationPreferences"
-          ],
-          "acceptance": [
-            "Honoured in status flows"
-          ]
-        },
-        {
-          "key": "08-f3",
-          "externalKey": "mapable.feature.08-f3",
-          "title": "Service status explainer",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "transport status"
-          ],
-          "acceptance": [
-            "Estimate ≠ arrival"
-          ]
-        },
-        {
-          "key": "08-f4",
-          "externalKey": "mapable.feature.08-f4",
-          "title": "Human handoff",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "escalation patterns"
-          ],
-          "acceptance": [
-            "Not phone-tree only"
-          ]
-        },
-        {
-          "key": "08-f5",
-          "externalKey": "mapable.feature.08-f5",
-          "title": "SMS email voice adapters",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Twilio etc"
-          ],
-          "acceptance": [
-            "Flags; honest failure"
-          ]
-        },
-        {
-          "key": "08-f6",
-          "externalKey": "mapable.feature.08-f6",
-          "title": "AAC-friendly interfaces",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AAC flags"
-          ],
-          "acceptance": [
-            "Default off until co-designed"
-          ]
-        },
-        {
-          "key": "08-f7",
-          "externalKey": "mapable.feature.08-f7",
-          "title": "WhatsApp/RCS exploratory",
-          "disposition": "DEFER",
-          "reusePaths": [],
-          "acceptance": [
-            "Privacy review first"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "09",
-      "externalKey": "mapable.epic.09",
-      "title": "Trust & Credential Network",
-      "slug": "trust-credential-network",
-      "priority": "P0",
-      "horizon": "Foundation",
-      "wave": "foundation",
-      "claimState": "Implemented, not independently verified",
+      "horizon": "Experience Wave",
       "dependencies": [],
-      "owner": "Workforce / Trust fabric owners",
       "features": [
         {
-          "key": "09-f1",
-          "externalKey": "mapable.feature.09-f1",
-          "title": "Shared credential model",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "WorkerTrustCredential"
-          ],
-          "acceptance": [
-            "Drivers/assessors/vehicles modelled"
-          ]
+          "key": "mapable-epic-08-accessible-communications-fabric-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "09-f2",
-          "externalKey": "mapable.feature.09-f2",
-          "title": "Verification and issuer evidence",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "WorkerCredentialEvidence"
-          ],
-          "acceptance": [
-            "verificationMethod honest"
-          ]
+          "key": "mapable-epic-08-accessible-communications-fabric-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "09-f3",
-          "externalKey": "mapable.feature.09-f3",
-          "title": "Expiry suspension supersession",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "credential status enums"
-          ],
-          "acceptance": [
-            "Expired blocks"
-          ]
+          "key": "mapable-epic-08-accessible-communications-fabric-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "09-f4",
-          "externalKey": "mapable.feature.09-f4",
-          "title": "Renewal reminders",
-          "disposition": "NEW",
-          "reusePaths": [
-            "notifications"
-          ],
-          "acceptance": [
-            "Human-approved notifications"
-          ]
+          "key": "mapable-epic-08-accessible-communications-fabric-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "09-f5",
-          "externalKey": "mapable.feature.09-f5",
-          "title": "Exception workflow",
-          "disposition": "NEW",
-          "reusePaths": [
-            "AuditEvent"
-          ],
-          "acceptance": [
-            "Never silent"
-          ]
+          "key": "mapable-epic-08-accessible-communications-fabric-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "09-f6",
-          "externalKey": "mapable.feature.09-f6",
-          "title": "Assignment eligibility bridge",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "workforce readiness",
-            "transport eligibility"
-          ],
-          "acceptance": [
-            "Fail closed"
-          ]
+          "key": "mapable-epic-08-accessible-communications-fabric-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-feat-communication-preference-sot",
+          "title": "Communication preference SoT",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-feat-multi-channel-adapter",
+          "title": "Multi-channel adapter layer",
+          "type": "product",
+          "classification": "NEW/EXTEND"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-feat-aac-plain-language",
+          "title": "AAC-friendly + plain-language interfaces",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-feat-no-voice-escalation",
+          "title": "No-voice-required escalation",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-feat-service-status-explain",
+          "title": "Service-status explain + next steps",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-feat-emergency-escalation-boundaries",
+          "title": "Emergency escalation boundaries",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-08-accessible-communications-fabric-feat-clinical-payment-isolation",
+          "title": "Clinical/payment data isolation",
+          "type": "product",
+          "classification": "REUSE"
         }
       ]
     },
     {
-      "key": "10",
-      "externalKey": "mapable.epic.10",
+      "key": "mapable-epic-09-trust-credential-network",
+      "title": "Trust & Credential Network",
+      "priority": "P0",
+      "horizon": "Foundation Wave",
+      "dependencies": [],
+      "features": [
+        {
+          "key": "mapable-epic-09-trust-credential-network-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-feat-credential-registry-lifecycle",
+          "title": "Credential registry + lifecycle",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-feat-expiry-suspension-fail-closed",
+          "title": "Expiry + suspension (never silent approve)",
+          "type": "product",
+          "classification": "NEW/EXTEND"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-feat-issuer-verification-evidence",
+          "title": "Issuer verification + evidence",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-feat-renewal-reminders-exceptions",
+          "title": "Renewal reminders + exception workflow",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-feat-vehicle-driver-assessor-types",
+          "title": "Vehicle/driver/assessor credential types",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-09-trust-credential-network-feat-credential-api-verticals",
+          "title": "Credential API for verticals",
+          "type": "product",
+          "classification": "EXTEND"
+        }
+      ]
+    },
+    {
+      "key": "mapable-epic-10-funding-payment-integrity",
       "title": "Funding & Payment Integrity Engine",
-      "slug": "funding-payment-integrity",
       "priority": "P2",
-      "horizon": "Controlled Intelligence",
-      "wave": "intelligence",
-      "claimState": "In development",
-      "dependencies": [
-        "09"
-      ],
-      "owner": "Billing / AbilityPay owners",
+      "horizon": "Controlled Intelligence Wave",
+      "dependencies": [],
       "features": [
         {
-          "key": "10-f1",
-          "externalKey": "mapable.feature.10-f1",
-          "title": "Invoice evidence and anomaly rules",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "BillingSafeguardAlert",
-            "lib/billing"
-          ],
-          "acceptance": [
-            "Rules versioned"
-          ]
+          "key": "mapable-epic-10-funding-payment-integrity-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "10-f2",
-          "externalKey": "mapable.feature.10-f2",
-          "title": "Advisory explanation layer",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "billing copilots"
-          ],
-          "acceptance": [
-            "No definitive claimability"
-          ]
+          "key": "mapable-epic-10-funding-payment-integrity-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "10-f3",
-          "externalKey": "mapable.feature.10-f3",
+          "key": "mapable-epic-10-funding-payment-integrity-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-feat-pricing-explanation",
+          "title": "Pricing explanation layer",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-feat-quote-comparison",
           "title": "Quote comparison",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "transport quotes",
-            "billing"
-          ],
-          "acceptance": [
-            "Estimate labels"
-          ]
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "10-f4",
-          "externalKey": "mapable.feature.10-f4",
-          "title": "Participant review workflow",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "BillingInvoiceApproval"
-          ],
-          "acceptance": [
-            "Pending default"
-          ]
+          "key": "mapable-epic-10-funding-payment-integrity-feat-invoice-anomaly-duplicate",
+          "title": "Invoice anomaly + duplicate detection",
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "10-f5",
-          "externalKey": "mapable.feature.10-f5",
+          "key": "mapable-epic-10-funding-payment-integrity-feat-advisory-funding-language",
+          "title": "Advisory funding pathway language",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-feat-participant-review-draft-questions",
+          "title": "Participant review + draft questions",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-10-funding-payment-integrity-feat-reconciliation-assistance",
           "title": "Reconciliation assistance",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AbilityPay"
-          ],
-          "acceptance": [
-            "Human finalize"
-          ]
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "10-f6",
-          "externalKey": "mapable.feature.10-f6",
-          "title": "Funding question drafts",
-          "disposition": "NEW",
-          "reusePaths": [
-            "AI platform"
-          ],
-          "acceptance": [
-            "Not determinations"
-          ]
+          "key": "mapable-epic-10-funding-payment-integrity-feat-funding-integrity-evals",
+          "title": "Funding integrity evals",
+          "type": "product",
+          "classification": "NEW"
         }
       ]
     },
     {
-      "key": "11",
-      "externalKey": "mapable.epic.11",
+      "key": "mapable-epic-11-employment-accessibility-graph",
       "title": "Employment Accessibility Graph",
-      "slug": "employment-accessibility-graph",
       "priority": "P2",
-      "horizon": "Participation",
-      "wave": "participation",
-      "claimState": "In development",
+      "horizon": "Participation Wave",
       "dependencies": [
-        "01",
-        "02",
-        "03"
+        "mapable-epic-01-access-graph",
+        "mapable-epic-02-personal-access-passport",
+        "mapable-epic-03-navigate"
       ],
-      "owner": "Jobs / employment owners",
       "features": [
         {
-          "key": "11-f1",
-          "externalKey": "mapable.feature.11-f1",
+          "key": "mapable-epic-11-employment-accessibility-graph-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-11-employment-accessibility-graph-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-11-employment-accessibility-graph-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-11-employment-accessibility-graph-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-11-employment-accessibility-graph-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-11-employment-accessibility-graph-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-11-employment-accessibility-graph-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-11-employment-accessibility-graph-feat-workplace-accessibility-profiles",
           "title": "Workplace accessibility profiles",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "AccessPlace",
-            "AccessCapabilityRecord"
-          ],
-          "acceptance": [
-            "Linked to jobs"
-          ]
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "11-f2",
-          "externalKey": "mapable.feature.11-f2",
-          "title": "Candidate-controlled disclosure",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "JobApplication",
-            "ApplicationDisclosurePreview"
-          ],
-          "acceptance": [
-            "Preview before share"
-          ]
+          "key": "mapable-epic-11-employment-accessibility-graph-feat-candidate-disclosure-gates",
+          "title": "Candidate-controlled disclosure gates",
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "11-f3",
-          "externalKey": "mapable.feature.11-f3",
-          "title": "Interview adjustment requests",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "InterviewAdjustmentRequest"
-          ],
-          "acceptance": [
-            "No diagnosis required"
-          ]
+          "key": "mapable-epic-11-employment-accessibility-graph-feat-job-access-transport-compatibility",
+          "title": "Job \u2194 access \u2194 transport compatibility",
+          "type": "product",
+          "classification": "NEW/EXTEND"
         },
         {
-          "key": "11-f4",
-          "externalKey": "mapable.feature.11-f4",
-          "title": "Commute accessibility",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Epic 03",
-            "transportSupportNeeded"
-          ],
-          "acceptance": [
-            "Optional"
-          ]
+          "key": "mapable-epic-11-employment-accessibility-graph-feat-adjustment-request-workflow",
+          "title": "Adjustment request workflow",
+          "type": "product",
+          "classification": "EXTEND"
         },
         {
-          "key": "11-f5",
-          "externalKey": "mapable.feature.11-f5",
-          "title": "Optional support coordination",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "careSupportNeeded"
-          ],
-          "acceptance": [
-            "Participant approval"
-          ]
+          "key": "mapable-epic-11-employment-accessibility-graph-feat-interview-accessibility-planning",
+          "title": "Interview accessibility planning",
+          "type": "product",
+          "classification": "NEW"
         },
         {
-          "key": "11-f6",
-          "externalKey": "mapable.feature.11-f6",
-          "title": "Placement sustainability",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "employment outcomes"
-          ],
-          "acceptance": [
-            "No worthiness score"
-          ]
+          "key": "mapable-epic-11-employment-accessibility-graph-feat-placement-sustainability",
+          "title": "Placement sustainability signals",
+          "type": "product",
+          "classification": "NEW"
         },
         {
-          "key": "11-f7",
-          "externalKey": "mapable.feature.11-f7",
-          "title": "Employer access improvements",
-          "disposition": "NEW",
-          "reusePaths": [
-            "Epic 01 corrections"
-          ],
-          "acceptance": [
-            "Voluntary"
-          ]
+          "key": "mapable-epic-11-employment-accessibility-graph-feat-employer-access-improvement-loop",
+          "title": "Employer access improvement loop",
+          "type": "product",
+          "classification": "NEW"
         }
       ]
     },
     {
-      "key": "12",
-      "externalKey": "mapable.epic.12",
+      "key": "mapable-epic-12-circular-assistive-technology",
       "title": "Circular Assistive Technology Network",
-      "slug": "circular-assistive-technology",
       "priority": "P3",
-      "horizon": "R&D",
-      "wave": "rd",
-      "claimState": "Exploratory",
+      "horizon": "R&D Wave",
       "dependencies": [
-        "02",
-        "09"
+        "mapable-epic-09-trust-credential-network"
       ],
-      "owner": "AT Continuity / programmes owners",
       "features": [
         {
-          "key": "12-f1",
-          "externalKey": "mapable.feature.12-f1",
-          "title": "AT Continuity register",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "lib/platform/at-continuity"
-          ],
-          "acceptance": [
-            "Flag gated"
-          ]
+          "key": "mapable-epic-12-circular-assistive-technology-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "12-f2",
-          "externalKey": "mapable.feature.12-f2",
-          "title": "Outage and backup plans",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "AtEquipmentOutage",
-            "AtBackupPlan"
-          ],
-          "acceptance": [
-            "Audited writes"
-          ]
+          "key": "mapable-epic-12-circular-assistive-technology-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "12-f3",
-          "externalKey": "mapable.feature.12-f3",
-          "title": "Repair partner links",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "AtRepairPartnerRef"
-          ],
-          "acceptance": [
-            "No second directory"
-          ]
+          "key": "mapable-epic-12-circular-assistive-technology-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "12-f4",
-          "externalKey": "mapable.feature.12-f4",
-          "title": "Operational dependency links",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "AtDependencyLink"
-          ],
-          "acceptance": [
-            "Typed targets"
-          ]
+          "key": "mapable-epic-12-circular-assistive-technology-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "12-f5",
-          "externalKey": "mapable.feature.12-f5",
-          "title": "Equipment Passport",
-          "disposition": "DEFER",
-          "reusePaths": [],
-          "acceptance": [
-            "Not clinical"
-          ]
+          "key": "mapable-epic-12-circular-assistive-technology-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "12-f6",
-          "externalKey": "mapable.feature.12-f6",
-          "title": "Circular marketplace",
-          "disposition": "DEFER",
-          "reusePaths": [
-            "marketplace hints only"
-          ],
-          "acceptance": [
-            "Listing ≠ suitable/fundable"
-          ]
+          "key": "mapable-epic-12-circular-assistive-technology-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-12-circular-assistive-technology-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-12-circular-assistive-technology-feat-equipment-passport-schema",
+          "title": "Equipment Passport schema",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-12-circular-assistive-technology-feat-trial-rental-reuse-listing",
+          "title": "Trial/rental/reuse listing",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-12-circular-assistive-technology-feat-recall-warranty-tracking",
+          "title": "Recall + warranty tracking",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-12-circular-assistive-technology-feat-compatibility-accessories",
+          "title": "Compatibility + accessories",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-12-circular-assistive-technology-feat-clinical-suitability-guardrails",
+          "title": "Clinical suitability guardrails",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-12-circular-assistive-technology-feat-servicing-collection-logistics",
+          "title": "Servicing + collection logistics",
+          "type": "product",
+          "classification": "DEFER"
         }
       ]
     },
     {
-      "key": "13",
-      "externalKey": "mapable.epic.13",
+      "key": "mapable-epic-13-access-api",
       "title": "MapAble Access API",
-      "slug": "access-api",
       "priority": "P2",
-      "horizon": "Platform Commercialisation",
-      "wave": "commercial",
-      "claimState": "Proposed",
+      "horizon": "Platform Commercialisation Wave",
       "dependencies": [
-        "01",
-        "06"
+        "mapable-epic-01-access-graph",
+        "mapable-epic-06-accreditation-os"
       ],
-      "owner": "Developer platform + Access Infrastructure",
       "features": [
         {
-          "key": "13-f1",
-          "externalKey": "mapable.feature.13-f1",
-          "title": "Partner auth and scopes",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "PartnerApiClient",
-            "partner-api.md"
-          ],
-          "acceptance": [
-            "Hashed keys"
-          ]
+          "key": "mapable-epic-13-access-api-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "13-f2",
-          "externalKey": "mapable.feature.13-f2",
-          "title": "Places and features resources",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "partner-dto.ts",
-            "API_CONTRACTS"
-          ],
-          "acceptance": [
-            "confidence/timestamps"
-          ]
+          "key": "mapable-epic-13-access-api-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "13-f3",
-          "externalKey": "mapable.feature.13-f3",
-          "title": "Observations and verifications",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Epic 01"
-          ],
-          "acceptance": [
-            "Status honesty"
-          ]
+          "key": "mapable-epic-13-access-api-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "13-f4",
-          "externalKey": "mapable.feature.13-f4",
-          "title": "Routes and venue-access",
-          "disposition": "NEW",
-          "reusePaths": [
-            "Epic 03"
-          ],
-          "acceptance": [
-            "No passport"
-          ]
+          "key": "mapable-epic-13-access-api-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "13-f5",
-          "externalKey": "mapable.feature.13-f5",
-          "title": "Licensing versioning change history",
-          "disposition": "NEW",
-          "reusePaths": [
-            "developer platform"
-          ],
-          "acceptance": [
-            "Version header"
-          ]
+          "key": "mapable-epic-13-access-api-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "13-f6",
-          "externalKey": "mapable.feature.13-f6",
-          "title": "Rate limiting and abuse controls",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "middleware rate limit plans"
-          ],
-          "acceptance": [
-            "429 behaviour"
-          ]
+          "key": "mapable-epic-13-access-api-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-13-access-api-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-13-access-api-feat-public-api-resource-model",
+          "title": "Public API resource model",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-13-access-api-feat-provenance-confidence-responses",
+          "title": "Provenance + confidence in responses",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-13-access-api-feat-rate-limiting-licensing",
+          "title": "Rate limiting + licensing",
+          "type": "product",
+          "classification": "NEW/EXTEND"
+        },
+        {
+          "key": "mapable-epic-13-access-api-feat-privacy-boundaries-no-passport",
+          "title": "Privacy boundaries (no Passport exposure)",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-13-access-api-feat-versioning-change-history",
+          "title": "Versioning + change history",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-13-access-api-feat-partner-onboarding",
+          "title": "Partner onboarding + access controls",
+          "type": "product",
+          "classification": "EXTEND"
         }
       ]
     },
     {
-      "key": "14",
-      "externalKey": "mapable.epic.14",
+      "key": "mapable-epic-14-access-observatory",
       "title": "MapAble Access Observatory",
-      "slug": "access-observatory",
       "priority": "P2",
-      "horizon": "Platform Commercialisation",
-      "wave": "commercial",
-      "claimState": "Proposed",
+      "horizon": "Platform Commercialisation Wave",
       "dependencies": [
-        "01",
-        "11"
+        "mapable-epic-01-access-graph",
+        "mapable-epic-03-navigate",
+        "mapable-epic-11-employment-accessibility-graph"
       ],
-      "owner": "Analytics / research governance owners",
       "features": [
         {
-          "key": "14-f1",
-          "externalKey": "mapable.feature.14-f1",
-          "title": "Metric registry for access gaps",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "lib/platform/analytics/"
-          ],
-          "acceptance": [
-            "Registered definitions"
-          ]
+          "key": "mapable-epic-14-access-observatory-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "14-f2",
-          "externalKey": "mapable.feature.14-f2",
-          "title": "Privacy-preserving snapshots",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "deidentification"
-          ],
-          "acceptance": [
-            "Small-cell"
-          ]
+          "key": "mapable-epic-14-access-observatory-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "14-f3",
-          "externalKey": "mapable.feature.14-f3",
-          "title": "Infrastructure opportunity views",
-          "disposition": "NEW",
-          "reusePaths": [
-            "admin analytics"
-          ],
-          "acceptance": [
-            "No person drill-down"
-          ]
+          "key": "mapable-epic-14-access-observatory-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "14-f4",
-          "externalKey": "mapable.feature.14-f4",
-          "title": "Employment cluster aggregates",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "Jobs aggregates"
-          ],
-          "acceptance": [
-            "K-anonymity thresholds"
-          ]
+          "key": "mapable-epic-14-access-observatory-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "14-f5",
-          "externalKey": "mapable.feature.14-f5",
-          "title": "Research export governance",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "lib/research/"
-          ],
-          "acceptance": [
-            "Approval required"
-          ]
+          "key": "mapable-epic-14-access-observatory-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "14-f6",
-          "externalKey": "mapable.feature.14-f6",
-          "title": "Feedback to Access Graph",
-          "disposition": "NEW",
-          "reusePaths": [
-            "Epic 01"
-          ],
-          "acceptance": [
-            "Not auto-facts"
-          ]
+          "key": "mapable-epic-14-access-observatory-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-14-access-observatory-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-14-access-observatory-feat-privacy-preserving-aggregation",
+          "title": "Privacy-preserving aggregation layer",
+          "type": "product",
+          "classification": "NEW/EXTEND"
+        },
+        {
+          "key": "mapable-epic-14-access-observatory-feat-gap-analysis-dashboards",
+          "title": "Gap analysis dashboards",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-14-access-observatory-feat-route-barrier-heatmaps",
+          "title": "Route barrier heatmaps",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-14-access-observatory-feat-employment-cluster-analysis",
+          "title": "Employment cluster analysis",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-14-access-observatory-feat-data-coverage-metrics",
+          "title": "Data coverage metrics",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-14-access-observatory-feat-no-identifiable-journeys",
+          "title": "No identifiable journey exposure",
+          "type": "product",
+          "classification": "NEW"
         }
       ]
     },
     {
-      "key": "15",
-      "externalKey": "mapable.epic.15",
+      "key": "mapable-epic-15-academy-capability-passport",
       "title": "MapAble Academy + Capability Passport",
-      "slug": "academy-capability-passport",
       "priority": "P2",
-      "horizon": "Participation",
-      "wave": "participation",
-      "claimState": "Implemented, not independently verified",
+      "horizon": "Participation Wave",
       "dependencies": [
-        "09"
+        "mapable-epic-09-trust-credential-network"
       ],
-      "owner": "Provider academy / workforce passport owners",
       "features": [
         {
-          "key": "15-f1",
-          "externalKey": "mapable.feature.15-f1",
-          "title": "Course catalogue and enroll",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "/academy",
-            "provider_academy:enroll"
-          ],
-          "acceptance": [
-            "Permissioned"
-          ]
+          "key": "mapable-epic-15-academy-capability-passport-gate-g0-problem-evidence",
+          "title": "G0 \u2014 Problem Evidence",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "15-f2",
-          "externalKey": "mapable.feature.15-f2",
-          "title": "Completion records with expiry",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "TrainingCompletionRecord"
-          ],
-          "acceptance": [
-            "Expiry fields"
-          ]
+          "key": "mapable-epic-15-academy-capability-passport-gate-g1-co-design",
+          "title": "G1 \u2014 Disability-Led Co-design",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "15-f3",
-          "externalKey": "mapable.feature.15-f3",
-          "title": "Pending competency proposals",
-          "disposition": "REUSE",
-          "reusePaths": [
-            "AcademyCompetencyProposal"
-          ],
-          "acceptance": [
-            "Never auto-verified"
-          ]
+          "key": "mapable-epic-15-academy-capability-passport-gate-g2-rights-review",
+          "title": "G2 \u2014 Rights, Accessibility & Risk Review",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "15-f4",
-          "externalKey": "mapable.feature.15-f4",
-          "title": "Human competency verification",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "workforce passport adapter"
-          ],
-          "acceptance": [
-            "Human only"
-          ]
+          "key": "mapable-epic-15-academy-capability-passport-gate-g3-technical-proof",
+          "title": "G3 \u2014 Technical Proof",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "15-f5",
-          "externalKey": "mapable.feature.15-f5",
-          "title": "Capability passport view",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "workforce readiness"
-          ],
-          "acceptance": [
-            "Reason codes"
-          ]
+          "key": "mapable-epic-15-academy-capability-passport-gate-g4-controlled-pilot",
+          "title": "G4 \u2014 Controlled Pilot",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "15-f6",
-          "externalKey": "mapable.feature.15-f6",
-          "title": "Credential network integration",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "WorkerTrustCredential"
-          ],
-          "acceptance": [
-            "Supersession"
-          ]
+          "key": "mapable-epic-15-academy-capability-passport-gate-g5-evidence-to-scale",
+          "title": "G5 \u2014 Evidence to Scale",
+          "type": "stage-gate",
+          "classification": "NEW"
         },
         {
-          "key": "15-f7",
-          "externalKey": "mapable.feature.15-f7",
-          "title": "Refresher and role requirements",
-          "disposition": "EXTEND",
-          "reusePaths": [
-            "TrainingRequirement"
-          ],
-          "acceptance": [
-            "Reminders"
-          ]
+          "key": "mapable-epic-15-academy-capability-passport-gate-g6-continuous-assurance",
+          "title": "G6 \u2014 Continuous Assurance",
+          "type": "stage-gate",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-15-academy-capability-passport-feat-course-competency-catalogue",
+          "title": "Course + competency catalogue",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-15-academy-capability-passport-feat-competency-assessment-workflow",
+          "title": "Competency assessment workflow",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-15-academy-capability-passport-feat-capability-passport",
+          "title": "Capability Passport (role requirements)",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-15-academy-capability-passport-feat-expiry-refresher-training",
+          "title": "Expiry + refresher training",
+          "type": "product",
+          "classification": "NEW"
+        },
+        {
+          "key": "mapable-epic-15-academy-capability-passport-feat-evidence-capture-assessments",
+          "title": "Evidence capture for assessments",
+          "type": "product",
+          "classification": "EXTEND"
+        },
+        {
+          "key": "mapable-epic-15-academy-capability-passport-feat-worker-readiness-integration",
+          "title": "Worker readiness integration",
+          "type": "product",
+          "classification": "EXTEND"
         }
       ]
     }

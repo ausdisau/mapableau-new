@@ -1,272 +1,250 @@
-# EPIC 03 — MapAble Navigate
+# Epic 03 — MapAble Navigate
 
-| Field | Value |
-| --- | --- |
-| Epic ID / slug | `EPIC-03` / `navigate` |
-| Priority | P1 |
-| Delivery horizon | Experience |
-| Wave | Experience Wave |
-| Current claim state | **In development** |
-| Dependencies | EPIC-01, EPIC-02 |
-| Recommended owner | Access + Transport routing owners |
-
-> **Honesty:** Documentation and work items are not production evidence. Feature flags are not assurance. Public claims remain governed by `docs/convergence-os/PUBLIC_CLAIM_REGISTRY.md`. Implementation requires freeze waiver or freeze lift per `docs/remediation/FEATURE_FREEZE.md`.
-
-## 1. Epic title
-MapAble Navigate
-
-## 2. Epic ID / proposed slug
-`EPIC-03` · `navigate`
-
-## 3. Strategic outcome
-Accessible routing that optimises suitability rather than shortest travel time.
-
-## 4. Participant outcome
-Participants receive route options scored against their requirements with uncertainty and evidence freshness communicated honestly.
-
-## 5. Problem statement
-Shortest-path routing ignores gradients, stairs, lift outages, sensory load, and rest needs — and often presents guesses as facts.
-
-## 6. Scope
-- Gradients, surfaces, narrow paths, stairs, kerb ramps, accessible crossings, lift availability/outages
-- Accessible toilets, rest, shade/shelter, lighting, sensory intensity, PT interchange, recharge, temporary barriers/construction
-- Uncertainty and freshness communication; inferred ≠ verified
-
-## 7. Explicit non-goals
-- Guaranteed personally safe routes
-- Emergency routing as 000 replacement
-- Indoor AR navigation production claims
-
-## 8. User groups
-- Participants
-- Support persons
-- Transport operators (status feeds)
-- Venue operators (lift outages)
-
-## 9. Example user journeys
-- Power wheelchair user gets step-free options with gradient confidence labels
-- Lift outage demotes a route; system shows evidence age
-- Missing kerb data → uncertain segment, not 'accessible'
-
-## 10. Functional capabilities
-- Suitability-first outdoor routing
-- Indoor route reuse where published
-- Uncertainty UX
-- Disruption overlays
-- Passport-aware fit
-
-## 11. Shared Core dependencies
-- Access Graph entities
-- AccessPassport
-- Transport routing adapters (advisory)
-- Indoor route-planner
-
-## 12. Cross-Epic dependencies
-- EPIC-01
-- EPIC-02
-
-## 13. Data entities
-- AccessJourneyRecord
-- AccessJourneySegmentRecord
-- Indoor routes
-- Transport route estimates (advisory)
-
-## 14. APIs / events required
-- journeys/evaluate
-- routing adapters advisory
-- disruption events
-
-## 15. Permission model
-Participant routes private by default; no identifiable journey publish to Observatory.
-
-## 16. Consent requirements
-- Passport read requires consent/scopes
-- Analytics aggregation separate and privacy-preserving (Epic 14)
-
-## 17. Human approval gates
-- Participant selects among options; system does not auto-book transport
-
-## 18. Accessibility acceptance criteria
-- WCAG 2.2 AA as release criterion (designed toward; do not claim conformance without independent audit)
-- Semantic HTML, keyboard navigation, visible focus, zoom/reflow, contrast
-- Screen-reader labels and live regions for status changes
-- Reduced motion; non-drag alternatives; touch targets ≥44px
-- Switch access and voice-independent workflow
-- Plain-language and Easy Read pathways where appropriate; AAC-compatible interaction
-- Accessible authentication and accessible timeout/session behaviour
-- Manual assistive-technology testing required — automated axe/Playwright alone is insufficient (see docs/accessibility/ACCESSIBILITY_MANUAL_EVIDENCE_MATRIX.md — currently NOT_RUN)
-- Map + equivalent list/form interaction (transport rule)
-
-## 19. Privacy requirements
-- No identifiable journey histories in public analytics
-- Exact addresses restricted per transport rules
-
-## 20. Safeguarding requirements
-- Not an emergency service; direct danger to 000
-- No personal safety score
-
-## 21. AI use, if any
-Optional explanation of trade-offs; not inventing missing access facts.
-
-## 22. AI prohibited decisions
-- Hallucinated lift availability
-- Claiming route personally safe
-- Auto-booking
-
-## 23. AI eval requirements
-- normal success
-- missing evidence
-- conflicting evidence
-- stale information
-- user refuses recommendation
-- user revokes consent
-- delegate lacks authority
-- required tool unavailable
-- unsafe requested action
-- disclosure attempt
-- hallucinated accessibility fact
-- incorrect funding claim
-- escalation required
-- accessibility fallback required
-
-## 24. Audit requirements
-- Route option generation inputs/versions
-- Participant selection
-
-## 25. Observability requirements
-- Accessible-route completion
-- Uncertainty presentation rate
-- Stale segment rate
-
-## 26. Complaints / correction path
-Correction path into Access Graph when route evidence wrong.
-
-## 27. Feature flags
-- Indoor flags
-- Transport routing sandbox flags
-- claim.route_personally_safe prohibited
-
-## 28. Failure and fallback behaviour
-If routing unavailable → manual list of known barriers + human escalation. Non-AI filters remain.
-
-## 29. Security requirements
-- Do not leak exact pickup in pre-assignment contexts
-- Sanitize location free-text
-
-## 30. Definition of Ready
-- Graph coverage for pilot geography
-- Passport fit engine available
-
-## 31. Definition of Done
-- Suitability objective documented
-- Uncertainty UX
-- Tests for stale/inferred handling
-
-## 32. MVP acceptance criteria
-- Passport-aware suitability ranking on a limited corridor using verified+uncertain segments
-
-## 33. Pilot acceptance criteria
-- Controlled cohort; compare completion vs shortest-path baseline
-
-## 34. Scale acceptance criteria
-- Freshness SLAs; completion KPI
-
-## 35. KPIs
-- Accessible-route completion
-- Stale evidence encounters
-- Participant override of recommended route
-
-## 36. Risks
-- Presenting inferred accessibility as verified
-- Privacy leak of journeys
-
-## 37. Mitigations
-- Presenting inferred accessibility as verified → Provenance labels mandatory in UI
-- Privacy leak of journeys → No identifiable export; aggregation Epic 14 only
-
-| Risk | Mitigation |
-| --- | --- |
-| Presenting inferred accessibility as verified | Provenance labels mandatory in UI |
-| Privacy leak of journeys | No identifiable export; aggregation Epic 14 only |
-
-## 38. Dependencies
-- Epic 01
-- Epic 02
-- Indoor/transport adapters
-
-## 39. Recommended owner / team
-Access + Transport routing owners
-
-## 40. Delivery horizon
-Experience (Experience Wave)
-
-## 41. Current claim state
-**In development** — grounded in repository inspection (Prisma/services/docs), not strategy documents.
-
-## 42. Evidence required before claim-state promotion
-- Pilot completion metrics
-- Manual AT on map/list parity
+> **Azure DevOps Epic key:** `mapable-epic-03-navigate`  
+> **Priority:** P1 | **Horizon:** Experience Wave  
+> **Current claim state:** In development
 
 ---
 
-## Features (4–8)
+## 1. Epic title
 
-### 03-f1 — Suitability routing engine
-**Disposition:** EXTEND  
-**Summary:** Optimise for passport fit not only ETA.  
-**Reuse paths:** `lib/access/indoor/routing/`, `lib/transport-routing/`  
-**Acceptance:**
-- Documented cost function
-- Advisory labels
+MapAble Navigate
 
-### 03-f2 — Disruption and lift outage overlays
-**Disposition:** EXTEND  
-**Summary:** Freshness-sensitive barriers.  
-**Reuse paths:** `IndoorAccessibilityIncident`, `evidence freshness`  
-**Acceptance:**
-- Outage demotes routes
+## 2. Epic ID / proposed slug
 
-### 03-f3 — Uncertainty and freshness UX
-**Disposition:** NEW  
-**Summary:** Honest labels for inferred/stale/unknown.  
-**Reuse paths:** `compatibility four-state`  
-**Acceptance:**
-- Inferred ≠ verified
+`mapable-epic-03-navigate`
 
-### 03-f4 — Passport-aware journey evaluate
-**Disposition:** EXTEND  
-**Summary:** End-to-end segment evaluation API.  
-**Reuse paths:** `AccessJourney*`, `API_CONTRACTS`  
-**Acceptance:**
-- participantDecisionRequired true
+## 3. Strategic outcome
 
-### 03-f5 — Map and list parity
-**Disposition:** EXTEND  
-**Summary:** Keyboard/SR equivalent to map.  
-**Reuse paths:** `docs/transport/PRODUCT_REQUIREMENTS.md`  
-**Acceptance:**
-- No map-only critical info
+Accessible routing optimising suitability, not shortest time alone.
 
-### 03-f6 — Correction feedback loop
-**Disposition:** EXTEND  
-**Summary:** Wrong barrier → graph dispute.  
-**Reuse paths:** `Epic 01 dispute`  
-**Acceptance:**
-- Linked correction ticket
+## 4. Participant outcome
 
+Journey options that respect my access requirements with honest uncertainty about evidence quality.
+
+## 5. Problem statement
+
+Maps optimise distance/time and hide stairs, gradients, surfaces, lift outages, and sensory intensity.
+
+## 6. Scope
+
+Gradients, surfaces, narrow paths, stairs, kerb ramps, crossings, lifts/outages, toilets, rest, shade, lighting, sensory intensity, PT interchange, recharge, temporary barriers, construction. Uncertainty and freshness visible.
+
+## 7. Explicit non-goals
+
+Presenting inferred access as verified; guaranteed accessible arrival; indoor routing at scale until E05 evidence.
+
+## 8. User groups
+
+Participants, support coordinators, drivers (read-only route context).
+
+## 9. Example user journeys
+
+1. Power wheelchair user requests route avoiding stairs and steep gradients; alternatives shown with evidence age.
+2. Lift outage reported; route recalculates with notification.
+3. Participant adds rest stop; route adjusts without penalty UX.
+
+## 10. Functional capabilities
+
+- Suitability-weighted routing using Access Graph + Passport
+- Segment-level provenance and freshness display
+- Rest/toilet/recharge waypoint insertion
+- Temporary barrier ingestion from community/graph
+- Non-AI manual step-by-step directions fallback
+
+## 11. Shared Core dependencies
+
+Place, AccessFeature, AccessObservation, RouteEstimate, Trip, AccessJourneyRecord, ParticipantProfile.
+
+## 12. Cross-Epic dependencies
+
+Requires E01, E02. Enables E07, E11 commute, E14 heatmaps.
+
+## 13. Data entities
+
+AccessJourneyRecord, RouteEstimate, TransportTrip (reuse), AccessCompatibility.
+
+## 14. APIs/events required
+
+/api/access/navigate/route; events: RouteComputed, BarrierReported, LiftOutageDetected.
+
+## 15. Permission model
+
+Participant routes own journeys; operators see assigned trip segments only.
+
+## 16. Consent requirements
+
+Passport scopes for routing; no sharing route history to employers without consent.
+
+## 17. Human approval gates
+
+Publishing default routes for public landmarks.
+
+## 18. Accessibility acceptance criteria
+
+- WCAG 2.2 AA on all user-facing surfaces
+- Semantic HTML; keyboard navigation; visible focus; skip links where applicable
+- Screen-reader labels on all interactive controls; live regions for dynamic updates
+- Zoom to 400%; reflow at 320px; contrast ≥ 4.5:1
+- Reduced motion; accessible errors; non-drag map alternatives; touch targets ≥ 44×44px
+- Switch access; voice-independent workflows; plain-language and Easy Read for consent/plans
+- AAC-compatible text interfaces; predictable focus; accessible auth and session timeout
+- Manual AT testing (NVDA/VoiceOver + keyboard) before G5 — automated alone insufficient
+
+## 19. Privacy requirements
+
+Journey history participant-controlled; aggregate only for Observatory.
+
+## 20. Safeguarding requirements
+
+Night routing warnings; escalation to human support.
+
+## 21. AI use, if any
+
+Optional natural-language route explanation — must cite evidence states.
+
+## 22. AI prohibited decisions
+
+Claiming verified access without provenance; hiding uncertainty.
+
+## 23. AI eval requirements
+
+| Case | Expected |
+|------|----------|
+| Normal success | Valid output within authority |
+| Missing evidence | States unknown; no fabricated facts |
+| Conflicting evidence | Surfaces conflict; asks participant |
+| Stale information | Shows freshness; warns user |
+| User refuses recommendation | Accepts; offers alternatives |
+| User revokes consent | Stops processing scoped data |
+| Delegate lacks authority | Blocks with accessible message |
+| Required tool unavailable | Non-AI fallback offered |
+| Unsafe requested action | Refuses; escalates |
+| Disclosure attempt | Blocks; logs audit event |
+| Hallucinated accessibility fact | Caught by eval; not shown as verified |
+| Incorrect funding claim | Advisory wording only |
+| Escalation required | Routes to human |
+| Accessibility fallback required | Non-AI path completes task |
+| Cohort disparity | Flagged in monitoring |
+
+## 24. Audit requirements
+
+Route requests logged; barrier reports auditable.
+
+## 25. Observability requirements
+
+Route completion rate; required-segment failure rate.
+
+## 26. Complaints/correction path
+
+Report incorrect segment; feeds E01 dispute.
+
+## 27. Feature flags
+
+New MAPABLE_NAVIGATE_ENABLED (proposed); transport routing flags.
+
+## 28. Failure and fallback behaviour
+
+Step-by-step list; static map with flagged segments; human phone/chat escalation via E08.
+
+## 29. Security requirements
+
+Rate limit route API; no precise home geo in logs without consent.
+
+## 30. Definition of Ready
+
+G0–G2; E01 pilot data available.
+
+## 31. Definition of Done
+
+Manual AT on route UI; uncertainty labels verified.
+
+## 32. MVP acceptance criteria
+
+50 pilot routes with provenance on every segment.
+
+## 33. Pilot acceptance criteria
+
+70% journey completion for required segments.
+
+## 34. Scale acceptance criteria
+
+Multi-city graph coverage thresholds.
+
+## 35. KPIs
+
+Accessible-route completion; false barrier reports.
+
+## 36. Risks
+
+R01 inferred as verified on routes.
+
+## 37. Mitigations
+
+Segment provenance badges; stale warnings.
+
+## 38. Dependencies
+
+E01, E02 required.
+
+## 39. Recommended owner/team
+
+Access Platform Team
+
+## 40. Delivery horizon
+
+Experience Wave
+
+## 41. Current claim state
+
+**In development**
+
+## 42. Evidence required before claim-state promotion
+
+Transport routing exists (mock/OSRM). Promote after G4 shows suitability routing with uncertainty UI on pilot journeys.
+
+---
+
+## Azure DevOps Features
+
+### Stage-gate Features
+
+| Gate | Feature key | Pass summary |
+|------|-------------|--------------|
+| G0 | `mapable-epic-03-navigate-gate-g0-problem-evidence` | Problem evidence from ≥3 sources |
+| G1 | `mapable-epic-03-navigate-gate-g1-co-design` | DRO co-design per co-design-protocol.md |
+| G2 | `mapable-epic-03-navigate-gate-g2-rights-review` | Rights, a11y, privacy, safeguarding review |
+| G3 | `mapable-epic-03-navigate-gate-g3-technical-proof` | End-to-end proof behind feature flag |
+| G4 | `mapable-epic-03-navigate-gate-g4-controlled-pilot` | Limited cohort; monitoring; rollback |
+| G5 | `mapable-epic-03-navigate-gate-g5-evidence-to-scale` | KPI + manual AT evidence |
+| G6 | `mapable-epic-03-navigate-gate-g6-continuous-assurance` | Ongoing monitoring active |
+
+### Product Features
+
+| # | Feature | Classification | Repo anchor |
+|---|---------|----------------|-------------|
+| 1 | Suitability routing engine | NEW/EXTEND | `lib/transport-routing/*` |
+| 2 | Evidence-aware route segments | EXTEND | `AccessJourneyRecord` |
+| 3 | Uncertainty + freshness UI | NEW | `provenance patterns` |
+| 4 | Rest/toilet/recharge waypoints | NEW | `graph features` |
+| 5 | Temporary barrier ingestion | NEW/EXTEND | `community reports` |
+| 6 | Indoor/outdoor route stitching | DEFER | `lib/access/indoor/*` |
+| 7 | Navigate participant UI | NEW | `WCAG 2.2 AA` |
+
+---
 
 ## Stage-gate pass/fail (Epic-specific)
 
-- **G0:** PASS if journey failures from unsuitable routes evidenced.
-- **G1:** PASS if co-design of uncertainty language.
-- **G2:** PASS if no personal-safety claim; privacy review of journeys.
-- **G3:** PASS if one corridor evaluates with uncertain segments.
-- **G4:** PASS if flagged pilot; rollback; support escalation.
-- **G5:** PASS if completion/ freshness KPIs justify scale.
-- **G6:** PASS if continuous stale-data and a11y monitoring.
+| Gate | Pass | Fail |
+|------|------|------|
+| G0 | Pilot data shows time-only routing failures for wheelchair users | Problem un evidenced |
+| G1 | Co-design sign-off recorded | Token consultation only |
+| G2 | Sharing/rights boundaries approved | Blanket collection approved |
+| G3 | Route with labelled uncertain segments end-to-end | Duplicate SoT or unflagged code |
+| G4 | Pilot cohort + rollback tested | Broad enablement |
+| G5 | KPIs + manual AT met | Privacy/a11y incidents open |
+| G6 | Monitoring dashboards live | Unaddressed drift |
 
-See also: [PORTFOLIO_STAGE_GATES.md](../PORTFOLIO_STAGE_GATES.md).
+---
 
-## Minimum stage-gate Features (programme-linked)
-
-Link rather than rebuild: G0 Problem Evidence · G1 Disability-Led Co-design · G2 Rights/Accessibility/Risk Review · G3 Technical Proof · G4 Controlled Pilot · G5 Evidence to Scale · G6 Continuous Assurance.
+*Generated as part of MapAble Innovation Portfolio documentation. Not a production-ready claim.*

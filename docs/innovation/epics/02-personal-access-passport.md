@@ -1,295 +1,250 @@
-# EPIC 02 — Personal Access Passport
+# Epic 02 — Personal Access Passport
 
-| Field | Value |
-| --- | --- |
-| Epic ID / slug | `EPIC-02` / `personal-access-passport` |
-| Priority | P0 |
-| Delivery horizon | Foundation |
-| Wave | Foundation Wave |
-| Current claim state | **In development** |
-| Dependencies | EPIC-01 |
-| Recommended owner | Access Infrastructure + Consent owners |
-
-> **Honesty:** Documentation and work items are not production evidence. Feature flags are not assurance. Public claims remain governed by `docs/convergence-os/PUBLIC_CLAIM_REGISTRY.md`. Implementation requires freeze waiver or freeze lift per `docs/remediation/FEATURE_FREEZE.md`.
-
-## 1. Epic title
-Personal Access Passport
-
-## 2. Epic ID / proposed slug
-`EPIC-02` · `personal-access-passport`
-
-## 3. Strategic outcome
-Participant-controlled reusable access-needs profile for matching — not a universal disability disclosure record.
-
-## 4. Participant outcome
-People control what access requirements exist, who sees them, for what purpose, and for how long — with receipts and revocation.
-
-## 5. Problem statement
-Participants repeatedly restate access needs; sharing is all-or-nothing; diagnosis is often wrongly treated as matching input.
-
-## 6. Scope
-- Wheelchair dimensions, step-free, doorway, transfer, communication/AAC, sensory, support-person, toilet, assistance animal, vehicle, fatigue/rest needs
-- Granular sharing: venues, workers, drivers, providers, employers, assessors, AI systems, emergency, analytics
-- Consent purpose, disclosure receipt, expiry, revocation, access log, participant review
-
-## 7. Explicit non-goals
-- Clinical dossier or diagnosis-required matching
-- Automatic disclosure to employers via Jobs
-- Public Access API exposure of passport attributes
-- Merging AccessibilityProfile (UI prefs) into functional passport SoT
-
-## 8. User groups
-- Participants
-- Delegates with ParticipantAuthorityGrant
-- Workers/drivers/providers receiving scoped disclosures
-- Assessors (scoped)
-
-## 9. Example user journeys
-- Participant builds functional requirements; default private
-- Shares minimum doorway + step-free with a venue for one visit; expiry set; receipt issued
-- Revokes employer share before interview; access log shows prior disclosure
-- Delegate with grant helps edit AAC prefs; cannot broaden disclosure beyond grant
-
-## 10. Functional capabilities
-- Functional requirement editor
-- Granular purpose-bound sharing
-- Disclosure receipts and access log
-- Expiry and revocation
-- Participant review and Easy Read/AAC pathways
-- Non-diagnosis matching contract
-
-## 11. Shared Core dependencies
-- AccessPassport (C-010)
-- AccessRequirementRecord
-- ConsentRecord/ConsentReceipt
-- ParticipantAuthorityGrant
-- AuditEvent
-
-## 12. Cross-Epic dependencies
-- EPIC-01
-
-## 13. Data entities
-- AccessPassport
-- AccessRequirementRecord
-- ConsentRecord
-- ConsentReceipt
-- AccessibilityProfile (presentation only)
-
-## 14. APIs / events required
-- GET/PATCH /api/access-infrastructure/passport (flag-gated)
-- Events: passport.requirement.updated, passport.disclosure.granted, passport.disclosure.revoked
-
-## 15. Permission model
-Owner participant full control. Delegates only within ParticipantAuthorityGrant. Recipients see only granted attributes for purpose/window.
-
-## 16. Consent requirements
-- Purpose-bound consent before any disclosure
-- Micro-consent for AI tool access to passport fields
-- Emergency context still purpose-scoped and audited
-
-## 17. Human approval gates
-- Broadening disclosure scopes beyond prior consent requires fresh consent
-- Delegate escalation when grant insufficient
-
-## 18. Accessibility acceptance criteria
-- WCAG 2.2 AA as release criterion (designed toward; do not claim conformance without independent audit)
-- Semantic HTML, keyboard navigation, visible focus, zoom/reflow, contrast
-- Screen-reader labels and live regions for status changes
-- Reduced motion; non-drag alternatives; touch targets ≥44px
-- Switch access and voice-independent workflow
-- Plain-language and Easy Read pathways where appropriate; AAC-compatible interaction
-- Accessible authentication and accessible timeout/session behaviour
-- Manual assistive-technology testing required — automated axe/Playwright alone is insufficient (see docs/accessibility/ACCESSIBILITY_MANUAL_EVIDENCE_MATRIX.md — currently NOT_RUN)
-
-## 19. Privacy requirements
-- Minimum-necessary attribute disclosure
-- No diagnosis in matching payloads
-- Retention aligned to purpose expiry
-
-## 20. Safeguarding requirements
-- Emergency disclosure boundaries documented; not a backdoor to full profile
-- Human review for contested delegate misuse
-
-## 21. AI use, if any
-May read only consented attributes for orchestration/search; never infer requirements from diagnosis.
-
-## 22. AI prohibited decisions
-- Infer requirements from diagnosis
-- Disclose passport to tools without consent gate
-- Silently expand disclosure scopes
-
-## 23. AI eval requirements
-- normal success
-- missing evidence
-- conflicting evidence
-- stale information
-- user refuses recommendation
-- user revokes consent
-- delegate lacks authority
-- required tool unavailable
-- unsafe requested action
-- disclosure attempt
-- hallucinated accessibility fact
-- incorrect funding claim
-- escalation required
-- accessibility fallback required
-
-## 24. Audit requirements
-- Disclosure grants/revocations
-- Access log of recipient reads
-- Delegate edits
-
-## 25. Observability requirements
-- Revocation success rate
-- Consent comprehension proxies
-- Unauthorised disclosure incidents (target zero)
-
-## 26. Complaints / correction path
-Participant correction path for wrong requirements; Complaint for unauthorised disclosure.
-
-## 27. Feature flags
-- Access infrastructure passport writers flag-gated
-- MAPABLE_AI_* consent gates for AI reads
-
-## 28. Failure and fallback behaviour
-If sharing service fails, default deny disclosure. Non-AI form editor always available.
-
-## 29. Security requirements
-- Server-side ownership checks
-- No client-supplied disclosureScopes elevation
-- Field-level redaction in logs
-
-## 30. Definition of Ready
-- Co-design of sharing model (G1)
-- Consent receipt field gaps identified for EXTEND
-- Freeze waiver if implementing
-
-## 31. Definition of Done
-- Granular scopes enforced server-side
-- Receipts include purpose/expiry
-- Diagnosis excluded from matching
-- Revocation immediate
-
-## 32. MVP acceptance criteria
-- Passport CRUD + private default + basic share to provider with receipt
-
-## 33. Pilot acceptance criteria
-- Limited participants; revocation tested; delegate path tested
-
-## 34. Scale acceptance criteria
-- Unauthorised disclosure = 0; comprehension/Easy Read available
-
-## 35. KPIs
-- Consent comprehension
-- Disclosure revocation success
-- Participant override rate
-- Unauthorised disclosure incidents
-
-## 36. Risks
-- Passport becomes universal disclosure record
-- ConsentReceipt missing expiry/supersession
-- Second consent SoT
-
-## 37. Mitigations
-- Passport becomes universal disclosure record → Attribute-level scopes; employer default false; public API ban
-- ConsentReceipt missing expiry/supersession → EXTEND ConsentReceipt before scale claims
-- Second consent SoT → Reuse lib/consent only
-
-| Risk | Mitigation |
-| --- | --- |
-| Passport becomes universal disclosure record | Attribute-level scopes; employer default false; public API ban |
-| ConsentReceipt missing expiry/supersession | EXTEND ConsentReceipt before scale claims |
-| Second consent SoT | Reuse lib/consent only |
-
-## 38. Dependencies
-- Epic 01 taxonomy for ontologyConceptId
-- Consent/authority services
-
-## 39. Recommended owner / team
-Access Infrastructure + Consent owners
-
-## 40. Delivery horizon
-Foundation (Foundation Wave)
-
-## 41. Current claim state
-**In development** — grounded in repository inspection (Prisma/services/docs), not strategy documents.
-
-## 42. Evidence required before claim-state promotion
-- Participant co-design sign-off
-- Unauthorised disclosure tests
-- Manual AT on passport editor
+> **Azure DevOps Epic key:** `mapable-epic-02-personal-access-passport`  
+> **Priority:** P0 | **Horizon:** Foundation Wave  
+> **Current claim state:** Implemented, not independently verified
 
 ---
 
-## Features (4–8)
+## 1. Epic title
 
-### 02-f1 — Functional requirement editor
-**Disposition:** EXTEND  
-**Summary:** Participant-owned AccessRequirement CRUD.  
-**Reuse paths:** `AccessPassport`, `AccessRequirementRecord`  
-**Acceptance:**
-- Criticality/context/timing/assistance fields
-- userConfirmed
+Personal Access Passport
 
-### 02-f2 — Granular sharing controls
-**Disposition:** EXTEND  
-**Summary:** Per-recipient-class attribute scopes.  
-**Reuse paths:** `disclosureScopes`, `ConsentRecord`  
-**Acceptance:**
-- Employer share default off
-- AI scope explicit
+## 2. Epic ID / proposed slug
 
-### 02-f3 — Purpose-bound consent and receipts
-**Disposition:** EXTEND  
-**Summary:** Consent purpose + ConsentReceipt EXTEND.  
-**Reuse paths:** `lib/consent/`  
-**Acceptance:**
-- Purpose, fields, expiry, revocation
+`mapable-epic-02-personal-access-passport`
 
-### 02-f4 — Expiry revocation and access log
-**Disposition:** EXTEND  
-**Summary:** Time-boxed shares and read audit.  
-**Reuse paths:** `AuditEvent`, `ConsentReceipt`  
-**Acceptance:**
-- Immediate revoke
-- Recipient read logged
+## 3. Strategic outcome
 
-### 02-f5 — Participant review experience
-**Disposition:** NEW  
-**Summary:** Who has what, for what purpose.  
-**Reuse paths:** `dashboard consent patterns`  
-**Acceptance:**
-- Plain language
-- Easy Read path
+Participant-controlled reusable access-needs profile without universal disability disclosure.
 
-### 02-f6 — AAC and Easy Read pathways
-**Disposition:** EXTEND  
-**Summary:** Accessible communication of passport content.  
-**Reuse paths:** `docs/co-design-protocol.md`, `MAPABLE_AAC_COMMUNICATION_ENABLED`  
-**Acceptance:**
-- Voice-independent
-- AAC-compatible
+## 4. Participant outcome
 
-### 02-f7 — Non-diagnosis matching contract
-**Disposition:** REUSE  
-**Summary:** Hard deny diagnosis as matching input.  
-**Reuse paths:** `ACCESS_FRAMEWORK.md`, `containsDiagnosis flag`  
-**Acceptance:**
-- Matching payloads exclude diagnosis
+Control sharing with venues, workers, drivers, providers, employers, assessors, AI, emergency, analytics — with receipts and revocation.
 
+## 5. Problem statement
+
+People repeat access needs or over-disclose diagnosis. Providers accumulate unnecessary sensitive data.
+
+## 6. Scope
+
+Wheelchair dimensions, step-free, doorways, transfer, AAC, sensory, support person, toilet, assistance animal, vehicle, fatigue/rest. Purpose-bound consent, disclosure receipt, expiry, revocation, access log, participant review.
+
+## 7. Explicit non-goals
+
+Universal disability record; diagnosis for matching; provider-owned passport; automatic employer disclosure.
+
+## 8. User groups
+
+Participants, delegates, workers, drivers, employers (scoped), assessors, AI (scoped).
+
+## 9. Example user journeys
+
+1. Share doorway minimum with driver for one trip; receive disclosure receipt.
+2. Revoke employer access after interview; caches invalidated.
+3. Delegate blocked from AI sharing without grant.
+
+## 10. Functional capabilities
+
+- CRUD access requirements on functional ontology (not diagnosis)
+- Recipient-type sharing matrix with purpose and expiry
+- Disclosure receipts and participant-visible access log
+- Revocation with sub-60-second enforcement target
+- Compatibility projection against Access Graph capabilities
+
+## 11. Shared Core dependencies
+
+ParticipantProfile, AccessPassport, ConsentRecord, DataPurpose, DisclosureReceipt, DelegateGrant, AuditEvent.
+
+## 12. Cross-Epic dependencies
+
+Soft: E01. Enables E03, E07, E11.
+
+## 13. Data entities
+
+AccessPassport, AccessRequirementRecord, ConsentRecord, ParticipantAccessReceipt.
+
+## 14. APIs/events required
+
+/api/access-infrastructure/passport; /api/consents; events: PassportShared, ConsentRevoked.
+
+## 15. Permission model
+
+Participant owner; delegate per grant; recipients read consented scopes only.
+
+## 16. Consent requirements
+
+Purpose-bound; time-bound; Easy Read summaries for consequential sharing.
+
+## 17. Human approval gates
+
+Emergency scope; analytics opt-in; delegate grants.
+
+## 18. Accessibility acceptance criteria
+
+- WCAG 2.2 AA on all user-facing surfaces
+- Semantic HTML; keyboard navigation; visible focus; skip links where applicable
+- Screen-reader labels on all interactive controls; live regions for dynamic updates
+- Zoom to 400%; reflow at 320px; contrast ≥ 4.5:1
+- Reduced motion; accessible errors; non-drag map alternatives; touch targets ≥ 44×44px
+- Switch access; voice-independent workflows; plain-language and Easy Read for consent/plans
+- AAC-compatible text interfaces; predictable focus; accessible auth and session timeout
+- Manual AT testing (NVDA/VoiceOver + keyboard) before G5 — automated alone insufficient
+
+## 19. Privacy requirements
+
+Minimum necessary; no diagnosis in matching payloads; participant access log.
+
+## 20. Safeguarding requirements
+
+Emergency scope narrow; break-glass audited separately.
+
+## 21. AI use, if any
+
+AI reads scoped requirements only with explicit AI disclosure consent.
+
+## 22. AI prohibited decisions
+
+Inferring diagnosis; employer sharing without scope; retention after revocation.
+
+## 23. AI eval requirements
+
+| Case | Expected |
+|------|----------|
+| Normal success | Valid output within authority |
+| Missing evidence | States unknown; no fabricated facts |
+| Conflicting evidence | Surfaces conflict; asks participant |
+| Stale information | Shows freshness; warns user |
+| User refuses recommendation | Accepts; offers alternatives |
+| User revokes consent | Stops processing scoped data |
+| Delegate lacks authority | Blocks with accessible message |
+| Required tool unavailable | Non-AI fallback offered |
+| Unsafe requested action | Refuses; escalates |
+| Disclosure attempt | Blocks; logs audit event |
+| Hallucinated accessibility fact | Caught by eval; not shown as verified |
+| Incorrect funding claim | Advisory wording only |
+| Escalation required | Routes to human |
+| Accessibility fallback required | Non-AI path completes task |
+| Cohort disparity | Flagged in monitoring |
+
+## 24. Audit requirements
+
+Every passport read logged with purpose and recipient.
+
+## 25. Observability requirements
+
+Revocation latency; unauthorised access alerts (target 0).
+
+## 26. Complaints/correction path
+
+Privacy complaints; participant self-correction with audit.
+
+## 27. Feature flags
+
+MAPABLE_ACCESS_INFRASTRUCTURE_ENABLED; MAPABLE_TRUST_FABRIC_*.
+
+## 28. Failure and fallback behaviour
+
+Per-journey manual requirements; export summary for offline use.
+
+## 29. Security requirements
+
+Encryption at rest; passkey for owner; session timeout.
+
+## 30. Definition of Ready
+
+G0–G2; sharing matrix co-designed.
+
+## 31. Definition of Done
+
+Revocation tested; receipts; G5 participant KPIs.
+
+## 32. MVP acceptance criteria
+
+Create passport; one-trip driver share; revoke; access log.
+
+## 33. Pilot acceptance criteria
+
+All recipient types; Easy Read consent; zero disclosure incidents.
+
+## 34. Scale acceptance criteria
+
+Delegates; emergency; analytics opt-in aggregation only.
+
+## 35. KPIs
+
+Consent comprehension; revocation success; unauthorised disclosure = 0.
+
+## 36. Risks
+
+R02 universal disclosure; R04 unauthorised sharing.
+
+## 37. Mitigations
+
+Scope matrix; receipts; employer default off.
+
+## 38. Dependencies
+
+E01 soft; blocks E03, E07, E11.
+
+## 39. Recommended owner/team
+
+Participant Experience Team
+
+## 40. Delivery horizon
+
+Foundation Wave
+
+## 41. Current claim state
+
+**Implemented, not independently verified**
+
+## 42. Evidence required before claim-state promotion
+
+Schema exists (AccessPassport). Promote after G4 proves recipient-type sharing, <60s revocation, and zero unauthorised disclosure in pilot.
+
+---
+
+## Azure DevOps Features
+
+### Stage-gate Features
+
+| Gate | Feature key | Pass summary |
+|------|-------------|--------------|
+| G0 | `mapable-epic-02-personal-access-passport-gate-g0-problem-evidence` | Problem evidence from ≥3 sources |
+| G1 | `mapable-epic-02-personal-access-passport-gate-g1-co-design` | DRO co-design per co-design-protocol.md |
+| G2 | `mapable-epic-02-personal-access-passport-gate-g2-rights-review` | Rights, a11y, privacy, safeguarding review |
+| G3 | `mapable-epic-02-personal-access-passport-gate-g3-technical-proof` | End-to-end proof behind feature flag |
+| G4 | `mapable-epic-02-personal-access-passport-gate-g4-controlled-pilot` | Limited cohort; monitoring; rollback |
+| G5 | `mapable-epic-02-personal-access-passport-gate-g5-evidence-to-scale` | KPI + manual AT evidence |
+| G6 | `mapable-epic-02-personal-access-passport-gate-g6-continuous-assurance` | Ongoing monitoring active |
+
+### Product Features
+
+| # | Feature | Classification | Repo anchor |
+|---|---------|----------------|-------------|
+| 1 | Passport CRUD + requirement ontology | EXTEND | `AccessPassport, lib/access/infrastructure/` |
+| 2 | Granular disclosure scopes | EXTEND | `ParticipantAccessReceipt` |
+| 3 | Purpose-bound consent + receipts | REUSE/EXTEND | `ConsentRecord, lib/consent/*` |
+| 4 | Sharing controls by recipient type | NEW | `venues/workers/drivers/employers/AI/emergency` |
+| 5 | Access log + participant review | EXTEND | `DataAccessLog, Trust Fabric` |
+| 6 | Passport compatibility projection | EXTEND | `lib/access/infrastructure/compatibility.ts` |
+| 7 | Non-disclosure guardrails | NEW | `containsDiagnosis=false enforced` |
+
+---
 
 ## Stage-gate pass/fail (Epic-specific)
 
-- **G0:** PASS if participants evidence repeated disclosure burden and oversharing harm.
-- **G1:** PASS if disability-led co-design of sharing labels and Easy Read; FAIL if designer-only.
-- **G2:** PASS if privacy/consent/dignity-of-risk review clears; FAIL if diagnosis required.
-- **G3:** PASS if create requirement → share scoped → revoke with receipt.
-- **G4:** PASS if limited cohort; zero unauthorised disclosure in pilot.
-- **G5:** PASS if revocation/comprehension KPIs met.
-- **G6:** PASS if continuous consent-failure monitoring.
+| Gate | Pass | Fail |
+|------|------|------|
+| G0 | Participant interviews document repeat disclosure burden | Problem un evidenced |
+| G1 | Co-design sign-off recorded | Token consultation only |
+| G2 | Sharing/rights boundaries approved | Blanket collection approved |
+| G3 | Share→receipt→revoke→block re-read demonstrated | Duplicate SoT or unflagged code |
+| G4 | Pilot cohort + rollback tested | Broad enablement |
+| G5 | KPIs + manual AT met | Privacy/a11y incidents open |
+| G6 | Monitoring dashboards live | Unaddressed drift |
 
-See also: [PORTFOLIO_STAGE_GATES.md](../PORTFOLIO_STAGE_GATES.md).
+---
 
-## Minimum stage-gate Features (programme-linked)
-
-Link rather than rebuild: G0 Problem Evidence · G1 Disability-Led Co-design · G2 Rights/Accessibility/Risk Review · G3 Technical Proof · G4 Controlled Pilot · G5 Evidence to Scale · G6 Continuous Assurance.
+*Generated as part of MapAble Innovation Portfolio documentation. Not a production-ready claim.*
