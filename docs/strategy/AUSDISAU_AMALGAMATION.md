@@ -2,7 +2,11 @@
 
 **Status:** Active doctrine  
 **Date:** 2026-08-17  
-**Canonical platform SoR:** [`ausdisau/mapableau-new`](https://github.com/ausdisau/mapableau-new) (this repository)
+**Canonical platform SoR:** [`ausdisau/MapAble`](https://github.com/ausdisau/MapAble) (`apps/web`, `apps/mobile`).
+
+This repository (`ausdisau/mapableau-new`) was migrated into the unified MapAble
+repository; it remains a historical reference. Strategy docs and seeds on this
+branch apply org-wide and should be ported to the canonical remote where noted below.
 
 This document is the system-of-record (SoR) map for amalgamating first-party
 GitHub repositories under the `ausdisau` organisation. It implements
@@ -21,7 +25,7 @@ Related:
 
 | SoR | Canonical remote | Owns | Does not own |
 | --- | --- | --- | --- |
-| **Platform** | `ausdisau/mapableau-new` | Care, transport, billing/NDIS, access map, CareOS, auth/consent, companion APIs, Academy courses, Independence Suite mobile | Clinical education narrative apps, SVOD, audiobook catalogue |
+| **Platform** | `ausdisau/MapAble` (`apps/web`, `apps/mobile`) | Care, transport, billing/NDIS, access map, CareOS, auth/consent, companion APIs, Academy courses, Independence Suite mobile | Clinical education narrative apps, SVOD, audiobook catalogue |
 | **Simulation** | `ausdisau/disability-simulations` | Shared clinical education kernel, MERT UI, medical training cases, Rohan ICU narrative | Live participant support actuation, MapAble Prisma |
 | **Media** | `ausdisau/access-media` | DisabilityFour+ SVOD, AccessiBooks audiobooks, shared a11y player/tokens | MapAble support workflows, NDIS claims |
 
@@ -35,8 +39,8 @@ families.
 
 | Repository | Family | Disposition |
 | --- | --- | --- |
-| `mapableau-new` | Platform | **Canonical platform SoR** — continue all support-platform work here |
-| `MapAble` | Platform | **Absorb** Independence Suite into `apps/independence` (or companion after Expo align) |
+| `mapableau-new` | Platform | **Historical** — subtree imported to `ausdisau/MapAble` `apps/web`; do not treat as canonical SoR |
+| `MapAble` | Platform | **Canonical unified repo** — `apps/web` + `apps/mobile` (Independence Suite) |
 | `MapAbleDcademy` | Platform | **Archive** — Academy lives at `app/academy/` |
 | In-tree Replit twin (`server/`, `client/`) | Platform | **Port-then-quarantine** — see gap analysis; stop new dual-stack features |
 | `MERT-Engine` | Simulation | **Seed** of `packages/sim-kernel` + `apps/mert` |
