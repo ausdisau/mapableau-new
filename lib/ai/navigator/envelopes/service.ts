@@ -52,6 +52,7 @@ export type GovernedActionEnvelopeRecord = {
 const DRAFT_ONLY_ACTIONS: GovernedEnvelopeAction[] = [
   "create_service_request_draft",
   "transfer_filters_to_finder",
+  "agents_sdk_run_pause",
 ];
 
 /**
