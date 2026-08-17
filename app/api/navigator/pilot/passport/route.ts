@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import {
+  assertNavigatorConsentAndCapability,
   assertNavigatorPilotAccess,
+  NAVIGATOR_MATCH_CAPABILITY,
   navigatorAccessErrorCode,
 } from "@/lib/ai/navigator/access";
 import {
@@ -93,6 +95,17 @@ export async function POST(req: Request) {
     return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
+  const surface = await assertNavigatorConsentAndCapability({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+    capabilityKey: NAVIGATOR_MATCH_CAPABILITY,
+    action: "match",
+  });
+  if (!surface.ok) {
+    return jsonError(surface.code, 403);
+  }
+
   try {
     const passport = await createDecisionPassport({
       ...parsed.data,
@@ -129,6 +142,17 @@ export async function GET(req: Request) {
   });
   if (!access.ok) {
     return jsonError(navigatorAccessErrorCode(access.reason), 403);
+  }
+
+  const surface = await assertNavigatorConsentAndCapability({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+    capabilityKey: NAVIGATOR_MATCH_CAPABILITY,
+    action: "match",
+  });
+  if (!surface.ok) {
+    return jsonError(surface.code, 403);
   }
 
   const passport = await getDecisionPassport({

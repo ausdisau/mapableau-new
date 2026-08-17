@@ -2,7 +2,14 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { hasParticipantAuthority } from "@/lib/authority/participant-authority-service";
 import { userCanAccessTenant } from "@/lib/platform/multi-tenant-admin/tenant-service";
 
-import { NAVIGATOR_AUDIT } from "@/lib/ai/navigator/gates";
+import {
+  NAVIGATOR_CONSENT_PURPOSE,
+  verifyPurposeConsent,
+} from "@/lib/ai/navigator/consent-gate";
+import {
+  assertNavigatorCapability,
+  NAVIGATOR_AUDIT,
+} from "@/lib/ai/navigator/gates";
 
 export type NavigatorPilotAccessInput = {
   tenantId: string;
@@ -121,4 +128,52 @@ export function navigatorAccessErrorCode(
       return String(_exhaustive);
     }
   }
+}
+
+export const NAVIGATOR_MATCH_CAPABILITY =
+  "navigator.provider_search.match" as const;
+
+/**
+ * Capability + purpose-consent gate for passport/memory/escalate surfaces.
+ * Tenant membership is asserted separately via assertNavigatorPilotAccess.
+ */
+export async function assertNavigatorConsentAndCapability(input: {
+  tenantId: string;
+  participantId: string;
+  actorUserId: string;
+  capabilityKey: string;
+  action: string;
+  permittedFields?: string[];
+  silent?: boolean;
+}): Promise<{ ok: true } | { ok: false; code: string }> {
+  const gate = await assertNavigatorCapability({
+    capabilityKey: input.capabilityKey,
+    tenantId: input.tenantId,
+    participantId: input.participantId,
+    actorUserId: input.actorUserId,
+    silent: input.silent,
+  });
+  if (!gate.allowed) {
+    return { ok: false, code: `NAVIGATOR_GATE_DENIED:${gate.reason}` };
+  }
+
+  const consent = await verifyPurposeConsent({
+    tenantId: input.tenantId,
+    participantId: input.participantId,
+    actorUserId: input.actorUserId,
+    scope: "profile.read",
+    purpose: NAVIGATOR_CONSENT_PURPOSE,
+    action: input.action,
+    permittedFields: input.permittedFields,
+    delegationDomain: "navigator",
+    silent: input.silent,
+  });
+  if (!consent.ok) {
+    return {
+      ok: false,
+      code: `NAVIGATOR_CONSENT_${consent.reason.toUpperCase()}`,
+    };
+  }
+
+  return { ok: true };
 }

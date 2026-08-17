@@ -7,7 +7,9 @@ export {
 } from "@/lib/ai/navigator/gates";
 export {
   assertNavigatorPilotAccess,
+  assertNavigatorConsentAndCapability,
   navigatorAccessErrorCode,
+  NAVIGATOR_MATCH_CAPABILITY,
 } from "@/lib/ai/navigator/access";
 export type {
   NavigatorPilotAccessInput,

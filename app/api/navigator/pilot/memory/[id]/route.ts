@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import {
+  assertNavigatorConsentAndCapability,
   assertNavigatorPilotAccess,
+  NAVIGATOR_MATCH_CAPABILITY,
   navigatorAccessErrorCode,
 } from "@/lib/ai/navigator/access";
 import {
@@ -77,6 +79,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
   });
   if (!access.ok) {
     return jsonError(navigatorAccessErrorCode(access.reason), 403);
+  }
+
+  const surface = await assertNavigatorConsentAndCapability({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+    capabilityKey: NAVIGATOR_MATCH_CAPABILITY,
+    action: "match",
+  });
+  if (!surface.ok) {
+    return jsonError(surface.code, 403);
   }
 
   try {
@@ -162,6 +175,17 @@ export async function DELETE(req: Request, ctx: Ctx) {
   });
   if (!access.ok) {
     return jsonError(navigatorAccessErrorCode(access.reason), 403);
+  }
+
+  const surface = await assertNavigatorConsentAndCapability({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+    capabilityKey: NAVIGATOR_MATCH_CAPABILITY,
+    action: "match",
+  });
+  if (!surface.ok) {
+    return jsonError(surface.code, 403);
   }
 
   try {
