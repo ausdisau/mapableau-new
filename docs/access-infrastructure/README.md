@@ -62,6 +62,7 @@ See [SCHEMA.md](./SCHEMA.md), [ONTOLOGY.md](./ONTOLOGY.md), [API_CONTRACTS.md](.
 | Presentation preferences | `AccessibilityProfile` | UI / digital prefs — not functional matching SoT |
 | Functional requirements | `AccessPassport` | C-010 — participant-controlled |
 | Evidence provenance | `AccessEvidenceEnvelopeRecord` + `AccessObservation` | Append-only; no silent overwrite of places |
+| Object bytes | `StoredAsset` + `ObjectStore` (`lib/storage`) | Provider-neutral; not a second access registry |
 | Fit / proof / graph projection | Access Intelligence Next | Shadow / synthetic until promoted |
 | Accreditation scores | Presentation layer only | Useful for discovery; **not** access decisions |
 

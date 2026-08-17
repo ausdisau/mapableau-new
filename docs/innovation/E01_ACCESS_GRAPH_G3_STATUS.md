@@ -39,6 +39,9 @@ End-to-end path behind flags:
 ```
 MAPABLE_ACCESS_INFRASTRUCTURE_ENABLED=true
 MAPABLE_ACCESS_GRAPH_ENABLED=true
+# Optional photo evidence (also requires MAPABLE_OBJECT_STORAGE_ENABLED) — default OFF, not production-ready
+# MAPABLE_ACCESS_EVIDENCE_UPLOADS_ENABLED=true
+# MAPABLE_OBJECT_STORAGE_ENABLED=true
 ```
 
 | Step | Implementation |
@@ -77,6 +80,7 @@ MAPABLE_ACCESS_GRAPH_ENABLED=true
 - `lib/access/infrastructure/freshness.ts`
 - `lib/access/infrastructure/observation-service.ts`
 - `app/api/access-infrastructure/observations/**`
+- `lib/storage/**` — provider-neutral ObjectStore; access-evidence photo uploads (flag-gated, not production-ready)
 - `app/api/access-infrastructure/graph/places/[placeId]/route.ts`
 
 ---

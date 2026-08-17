@@ -9,6 +9,7 @@ vi.mock("@/lib/prisma", () => ({
       create: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
@@ -17,14 +18,15 @@ vi.mock("@/lib/audit/audit-event-service", () => ({
   createAuditEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import {
   AccessGraphError,
   createAccessObservation,
+  disputeAccessObservation,
   getPlaceAccessGraph,
   listAccessObservations,
   serializeObservationRow,
 } from "@/lib/access/infrastructure/observation-service";
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 
 describe("Access Graph observation service (E01 G3)", () => {
@@ -224,5 +226,63 @@ describe("Access Graph observation service (E01 G3)", () => {
     vi.mocked(prisma.accessObservationRecord.findMany).mockResolvedValue([]);
     const rows = await listAccessObservations({ placeId: "place_1" });
     expect(rows).toEqual([]);
+  });
+
+  it("disputes an observation without promoting AI to verified", async () => {
+    const now = new Date("2026-08-12T10:00:00.000Z");
+    vi.mocked(prisma.accessObservationRecord.findUnique).mockResolvedValue({
+      id: "obs_ai",
+      featureKey: "entrance.ramp",
+      ontologyConceptId: "physical.step_free",
+      valueJson: true,
+      unit: null,
+      sourceType: "ai",
+      observedAt: now,
+      evidenceKinds: ["ai_inferred"],
+      verificationStatus: "observed",
+      confidence: null,
+      reviewDue: new Date("2026-12-01T00:00:00.000Z"),
+      disputed: false,
+      placeId: null,
+      entityType: null,
+      entityId: null,
+      evidenceEnvelopeId: null,
+      observerUserId: null,
+      createdAt: now,
+      updatedAt: now,
+    } as never);
+    vi.mocked(prisma.accessObservationRecord.update).mockResolvedValue({
+      id: "obs_ai",
+      featureKey: "entrance.ramp",
+      ontologyConceptId: "physical.step_free",
+      valueJson: true,
+      unit: null,
+      sourceType: "ai",
+      observedAt: now,
+      evidenceKinds: ["ai_inferred"],
+      verificationStatus: "observed",
+      confidence: null,
+      reviewDue: new Date("2026-12-01T00:00:00.000Z"),
+      disputed: true,
+      placeId: null,
+      entityType: null,
+      entityId: null,
+      evidenceEnvelopeId: null,
+      observerUserId: null,
+      createdAt: now,
+      updatedAt: now,
+      evidenceAssets: [],
+    } as never);
+
+    const result = await disputeAccessObservation({
+      id: "obs_ai",
+      actorUserId: "user_1",
+    });
+    expect(result.disputed).toBe(true);
+    expect(result.provenance.aiInferred).toBe(true);
+    expect(result.provenance.verificationStatus).not.toBe("verified");
+    expect(createAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "evidence.disputed" }),
+    );
   });
 });
