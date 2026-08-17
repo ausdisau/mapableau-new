@@ -57,7 +57,9 @@ test.describe("Navigator pilot (flags off)", () => {
       .toEqual([]);
   });
 
-  test("keyboard tab reaches Provider Finder continuation", async ({ page }) => {
+  test("keyboard tab reaches Provider Finder continuation", async ({
+    page,
+  }) => {
     await openDisabledPilot(page);
     await expect(
       page.getByRole("link", { name: /continue to provider finder/i }),
