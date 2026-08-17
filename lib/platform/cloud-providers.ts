@@ -1,3 +1,7 @@
+import { ObjectStorageProviderAdapter } from "@/lib/storage/compat/object-storage-provider";
+import { S3RestObjectStorageProvider } from "@/lib/storage/compat/s3-rest-storage-provider";
+import { SupabaseObjectStore } from "@/lib/storage/providers/supabase-object-store";
+
 export type StoredObject = {
   key: string;
   version: string;
@@ -139,155 +143,10 @@ export class RedisCacheProvider implements CacheProvider {
   }
 }
 
-/** Supabase Storage via existing @supabase/supabase-js admin client. */
-export class SupabaseStorageProvider implements ObjectStorageProvider {
-  private readonly bucket: string;
-
-  constructor(bucket = process.env.SUPABASE_STORAGE_BUCKET?.trim() ?? "careos") {
-    if (!bucket) throw new Error("SUPABASE_STORAGE_BUCKET is required");
-    this.bucket = bucket;
-  }
-
-  private async client() {
-    const { getSupabaseAdmin } = await import("@/lib/supabase/admin");
-    return getSupabaseAdmin();
-  }
-
-  async putObject(input: {
-    key: string;
-    data: Uint8Array;
-    contentType: string;
-  }): Promise<StoredObject> {
-    const supabase = await this.client();
-    const { error } = await supabase.storage
-      .from(this.bucket)
-      .upload(input.key, input.data, {
-        contentType: input.contentType,
-        upsert: true,
-      });
-    if (error) throw new Error(error.message);
-    return {
-      key: input.key,
-      version: "latest",
-      sizeBytes: input.data.byteLength,
-    };
-  }
-
-  async getObject(input: { key: string }): Promise<Uint8Array> {
-    const supabase = await this.client();
-    const { data, error } = await supabase.storage
-      .from(this.bucket)
-      .download(input.key);
-    if (error || !data) throw new Error(error?.message ?? "OBJECT_NOT_FOUND");
-    return new Uint8Array(await data.arrayBuffer());
-  }
-
-  async createSignedUrl(input: {
-    key: string;
-    expiresInSeconds: number;
-  }): Promise<string> {
-    const supabase = await this.client();
-    const { data, error } = await supabase.storage
-      .from(this.bucket)
-      .createSignedUrl(input.key, input.expiresInSeconds);
-    if (error || !data?.signedUrl) {
-      throw new Error(error?.message ?? "SIGNED_URL_FAILED");
-    }
-    return data.signedUrl;
-  }
-
-  async deleteObject(input: { key: string }): Promise<void> {
-    const supabase = await this.client();
-    const { error } = await supabase.storage.from(this.bucket).remove([input.key]);
-    if (error) throw new Error(error.message);
-  }
-}
-
 /**
- * Minimal S3-compatible adapter using fetch to a configured REST gateway
- * (e.g. R2/MinIO proxy). Avoids adding @aws-sdk as a direct dependency.
+ * Compatibility factory for the legacy ObjectStorageProvider contract.
+ * New domain code should call getObjectStore() from @/lib/storage.
  */
-export class S3ObjectStorageProvider implements ObjectStorageProvider {
-  private readonly baseUrl: string;
-  private readonly authHeader: string | undefined;
-
-  constructor(
-    baseUrl = process.env.S3_REST_BASE_URL?.trim(),
-    authHeader = process.env.S3_REST_AUTH_HEADER?.trim(),
-  ) {
-    if (!baseUrl) throw new Error("S3_REST_BASE_URL is required");
-    this.baseUrl = baseUrl.replace(/\/$/, "");
-    this.authHeader = authHeader;
-  }
-
-  private headers(contentType?: string): HeadersInit {
-    const headers: Record<string, string> = {};
-    if (contentType) headers["Content-Type"] = contentType;
-    if (this.authHeader) headers.Authorization = this.authHeader;
-    return headers;
-  }
-
-  async putObject(input: {
-    key: string;
-    data: Uint8Array;
-    contentType: string;
-  }): Promise<StoredObject> {
-    const response = await fetch(
-      `${this.baseUrl}/objects/${encodeURIComponent(input.key)}`,
-      {
-        method: "PUT",
-        headers: this.headers(input.contentType),
-        body: Buffer.from(input.data),
-      },
-    );
-    if (!response.ok) throw new Error(`S3_PUT_FAILED:${response.status}`);
-    const version =
-      response.headers.get("x-object-version") ??
-      response.headers.get("etag") ??
-      "latest";
-    return {
-      key: input.key,
-      version,
-      sizeBytes: input.data.byteLength,
-    };
-  }
-
-  async getObject(input: { key: string }): Promise<Uint8Array> {
-    const response = await fetch(
-      `${this.baseUrl}/objects/${encodeURIComponent(input.key)}`,
-      { headers: this.headers() },
-    );
-    if (!response.ok) throw new Error(`S3_GET_FAILED:${response.status}`);
-    return new Uint8Array(await response.arrayBuffer());
-  }
-
-  async createSignedUrl(input: {
-    key: string;
-    expiresInSeconds: number;
-  }): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/signed-url`, {
-      method: "POST",
-      headers: { ...this.headers("application/json") },
-      body: JSON.stringify({
-        key: input.key,
-        expiresInSeconds: input.expiresInSeconds,
-      }),
-    });
-    if (!response.ok) throw new Error(`S3_SIGNED_URL_FAILED:${response.status}`);
-    const body = (await response.json()) as { url?: string };
-    if (!body.url) throw new Error("S3_SIGNED_URL_MISSING");
-    return body.url;
-  }
-
-  async deleteObject(input: { key: string }): Promise<void> {
-    const response = await fetch(
-      `${this.baseUrl}/objects/${encodeURIComponent(input.key)}`,
-      { method: "DELETE", headers: this.headers() },
-    );
-    if (!response.ok) throw new Error(`S3_DELETE_FAILED:${response.status}`);
-  }
-}
-
 export function createObjectStorageProvider(
   environment: Record<string, string | undefined> = process.env,
 ): ObjectStorageProvider {
@@ -295,13 +154,20 @@ export function createObjectStorageProvider(
   switch (provider) {
     case "recording":
       throw new Error("Recording storage provider is not valid for production use");
-    case "supabase":
-      return new SupabaseStorageProvider(environment.SUPABASE_STORAGE_BUCKET);
+    case "supabase": {
+      const bucket =
+        environment.SUPABASE_STORAGE_BUCKET?.trim() ||
+        environment.MAPABLE_STORAGE_PRIVATE_BUCKET?.trim() ||
+        "careos";
+      return new ObjectStorageProviderAdapter(new SupabaseObjectStore(), bucket);
+    }
     case "s3":
-      return new S3ObjectStorageProvider(
+      return new S3RestObjectStorageProvider(
         environment.S3_REST_BASE_URL,
         environment.S3_REST_AUTH_HEADER,
       );
+    case "memory":
+      throw new Error("Memory storage is test-only; use getObjectStore()");
     default: {
       const exhaustive: never = provider as never;
       return exhaustive;
