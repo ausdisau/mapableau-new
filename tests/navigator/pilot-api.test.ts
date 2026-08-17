@@ -84,10 +84,14 @@ function jsonRequest(
   body: unknown,
   method = "POST",
 ): Request {
+  const payload = JSON.stringify(body);
   return new Request(url, {
     method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": String(new TextEncoder().encode(payload).length),
+    },
+    body: payload,
   });
 }
 

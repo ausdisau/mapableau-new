@@ -149,14 +149,13 @@ describe("Navigator Phase 6b — correction rematch", () => {
       count: 1,
     });
     vi.mocked(prisma.navigatorDecisionPassport.update).mockImplementation(
-      async ({ data }) =>
+      (async ({ data }: { data: Record<string, unknown> }) =>
         passportRow({
           status: "corrected",
-          shortlistJson: (data as { shortlistJson: unknown }).shortlistJson,
-          limitationsNotes: (data as { limitationsNotes: string[] })
-            .limitationsNotes,
-          nextStep: (data as { nextStep: string }).nextStep,
-        }) as never,
+          shortlistJson: data.shortlistJson,
+          limitationsNotes: data.limitationsNotes,
+          nextStep: data.nextStep,
+        })) as never,
     );
 
     const view = await correctDecisionPassport({
@@ -228,7 +227,9 @@ describe("Navigator Phase 6b — AI opt-out honour", () => {
       silent: true,
     });
     expect(result.status).toBe("blocked");
-    expect(result.reason).toBe("ai_opted_out");
+    if (result.status === "blocked") {
+      expect(result.reason).toBe("ai_opted_out");
+    }
     expect(searchNdisProviders).not.toHaveBeenCalled();
   });
 });
