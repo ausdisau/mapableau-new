@@ -4,6 +4,11 @@
 **Status:** Decision-ready — input for the port task  
 **Audience:** Technical leads and non-technical stakeholders
 
+**Org amalgamation:** Family-based SoR map (platform / simulation / media) lives in
+[docs/strategy/AUSDISAU_AMALGAMATION.md](./strategy/AUSDISAU_AMALGAMATION.md).
+This gap analysis covers only the in-tree Replit twin → platform SoR ports.
+Legacy twin quarantine: [docs/operations/LEGACY_REPLIT_TWIN.md](./operations/LEGACY_REPLIT_TWIN.md).
+
 ---
 
 ## Executive Summary

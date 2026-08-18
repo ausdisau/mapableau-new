@@ -1,0 +1,1965 @@
+import { type Book, type InsertBook, type User, type InsertUser, type UpsertUser, users, books, listeningHistory, userPreferences, type ListeningHistory, type InsertListeningHistory, type UserPreferences } from "@shared/schema";
+import { randomUUID } from "crypto";
+import session from "express-session";
+import createMemoryStore from "memorystore";
+import { db } from "./db";
+import { eq, desc, and, inArray } from "drizzle-orm";
+import { searchAmazonBooks as amazonPaApiSearch, getAmazonItem } from "./amazonPaApi";
+
+const MemoryStore = createMemoryStore(session);
+
+const EXTERNAL_API_BASE = "https://library-management-api-i6if.onrender.com/api";
+const LIBRIVOX_API_BASE = "https://librivox.org/api/feed/audiobooks";
+const GUTENDEX_API_BASE = "https://gutendex.com/books";
+const OPEN_LIBRARY_API_BASE = "https://openlibrary.org";
+const OPEN_LIBRARY_COVERS_BASE = "https://covers.openlibrary.org";
+const GOOGLE_BOOKS_API_BASE = "https://www.googleapis.com/books/v1";
+const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY || "";
+const INTERNET_ARCHIVE_API_BASE = "https://archive.org";
+const ITUNES_SEARCH_API_BASE = "https://itunes.apple.com";
+
+export interface IStorage {
+  getBooks(): Promise<Book[]>;
+  getBook(id: string): Promise<Book | undefined>;
+  createBook(book: InsertBook): Promise<Book>;
+  searchBooks(query: string): Promise<Book[]>;
+  
+  // User management
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Legacy user management (for external API compatibility)
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  authenticateExternalUser(username: string, password: string): Promise<User | null>;
+  
+  // Subscription management
+  updateUserSubscription(userId: string, subscription: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string | null;
+    subscriptionTier?: string;
+    subscriptionEndDate?: Date | null;
+  }): Promise<User | undefined>;
+  getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined>;
+  
+  // Listening history
+  getListeningHistory(userId: string, limit?: number): Promise<ListeningHistory[]>;
+  updateListeningProgress(userId: string, bookId: string, progress: {
+    currentTime: number;
+    bookTitle: string;
+    bookAuthor?: string;
+    bookCover?: string;
+    totalDuration?: number;
+  }): Promise<ListeningHistory>;
+  getContinueListening(userId: string, limit?: number): Promise<ListeningHistory[]>;
+  
+  // Chapters
+  getBookChapters(bookId: string): Promise<Chapter[]>;
+  
+  // Security
+  validateAudioUrl(url: string): boolean;
+
+  // Uploaded books (S3/GCS)
+  insertUploadedBook(insertBook: InsertBook): Promise<Book>;
+  deleteUploadedBook(id: string): Promise<boolean>;
+
+  // User preferences (hyper-contextual)
+  getUserPreferences(userId: string): Promise<{ defaultSpeed: number; preferredSections: string[] } | null>;
+  updateUserPreferences(userId: string, prefs: { defaultSpeed?: number; preferredSections?: string[] }): Promise<{ defaultSpeed: number; preferredSections: string[] }>;
+  
+  sessionStore: session.Store;
+}
+
+interface ExternalBook {
+  _id: string;
+  title: string;
+  author: string;
+  isbn?: string;
+  publishedYear?: number;
+  genre?: string;
+  description?: string;
+  coverImage?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Open Library API interfaces
+interface OpenLibraryBook {
+  key: string;
+  title: string;
+  author_name?: string[];
+  author_key?: string[];
+  first_publish_year?: number;
+  isbn?: string[];
+  cover_i?: number;
+  subject?: string[];
+  publisher?: string[];
+  language?: string[];
+  ia?: string[];
+  has_fulltext?: boolean;
+  public_scan_b?: boolean;
+  edition_count?: number;
+}
+
+interface OpenLibrarySearchResponse {
+  numFound: number;
+  start: number;
+  numFoundExact: boolean;
+  docs: OpenLibraryBook[];
+}
+
+// Google Books API interfaces
+interface GoogleBooksVolumeInfo {
+  title: string;
+  authors?: string[];
+  publisher?: string;
+  publishedDate?: string;
+  description?: string;
+  industryIdentifiers?: Array<{
+    type: string;
+    identifier: string;
+  }>;
+  pageCount?: number;
+  categories?: string[];
+  averageRating?: number;
+  ratingsCount?: number;
+  imageLinks?: {
+    thumbnail?: string;
+    smallThumbnail?: string;
+  };
+  language?: string;
+  previewLink?: string;
+  infoLink?: string;
+}
+
+interface GoogleBooksVolume {
+  kind: string;
+  id: string;
+  volumeInfo: GoogleBooksVolumeInfo;
+  saleInfo?: {
+    saleability?: string;
+    isEbook?: boolean;
+  };
+}
+
+interface GoogleBooksSearchResponse {
+  kind: string;
+  totalItems: number;
+  items?: GoogleBooksVolume[];
+}
+
+// iTunes Search API interfaces
+interface iTunesAudiobook {
+  wrapperType: string;
+  kind?: string;
+  artistId?: number;
+  collectionId: number;
+  trackId?: number;
+  artistName: string;
+  collectionName: string;
+  trackName?: string;
+  collectionCensoredName?: string;
+  trackCensoredName?: string;
+  artistViewUrl?: string;
+  collectionViewUrl: string;
+  trackViewUrl?: string;
+  previewUrl?: string;
+  artworkUrl30?: string;
+  artworkUrl60?: string;
+  artworkUrl100?: string;
+  collectionPrice?: number;
+  trackPrice?: number;
+  releaseDate?: string;
+  collectionExplicitness?: string;
+  trackExplicitness?: string;
+  discCount?: number;
+  discNumber?: number;
+  trackCount?: number;
+  trackNumber?: number;
+  trackTimeMillis?: number;
+  country?: string;
+  currency?: string;
+  primaryGenreName?: string;
+  description?: string;
+  shortDescription?: string;
+  longDescription?: string;
+}
+
+interface iTunesSearchResponse {
+  resultCount: number;
+  results: iTunesAudiobook[];
+}
+
+// Internet Archive API interfaces
+interface InternetArchiveDoc {
+  identifier: string;
+  title: string;
+  creator?: string | string[];
+  description?: string;
+  publisher?: string | string[];
+  date?: string;
+  year?: number;
+  subject?: string | string[];
+  language?: string | string[];
+  mediatype?: string;
+  format?: string[];
+  collection?: string[];
+}
+
+interface InternetArchiveSearchResponse {
+  response: {
+    numFound: number;
+    docs: InternetArchiveDoc[];
+  };
+  responseHeader: {
+    status: number;
+  };
+}
+
+// LibriVox API interfaces
+interface LibriVoxAuthor {
+  id: string;
+  first_name: string;
+  last_name: string;
+  dob?: string;
+  dod?: string;
+}
+
+interface LibriVoxSection {
+  id: string;
+  title: string;
+  listen_url: string;
+  playtime: string;
+  section_number: string;
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  audioUrl: string;
+  duration: string;
+  chapterNumber: number;
+}
+
+interface LibriVoxBook {
+  id: string;
+  title: string;
+  description: string;
+  url_zip_file: string;
+  totaltime: string;
+  totaltimesecs: number;
+  authors: LibriVoxAuthor[];
+  sections: LibriVoxSection[];
+  language: string;
+  copyright_year?: string;
+  genres?: string[];
+}
+
+// Project Gutenberg (Gutendex API)
+interface GutendexAuthor {
+  name: string;
+  birth_year: number | null;
+  death_year: number | null;
+}
+interface GutendexBook {
+  id: number;
+  title: string;
+  authors: GutendexAuthor[];
+  summaries?: string[];
+  subjects?: string[];
+  bookshelves?: string[];
+  languages: string[];
+  formats: Record<string, string>;
+  download_count?: number;
+}
+
+function transformGutendexBook(g: GutendexBook): Book {
+  const author = g.authors?.length ? g.authors.map((a) => a.name).join(", ") : "Unknown Author";
+  const coverImage = g.formats["image/jpeg"] ?? null;
+  const readUrl = `https://www.gutenberg.org/ebooks/${g.id}`;
+  return {
+    id: `gutenberg-${g.id}`,
+    title: g.title,
+    author,
+    narrator: null,
+    description: g.summaries?.[0] ?? null,
+    duration: 0,
+    coverImage,
+    audioUrl: readUrl,
+    genre: g.subjects?.[0] ?? g.bookshelves?.[0] ?? "Classic Literature",
+    publishedYear: null,
+    source: "gutenberg",
+    sourceId: String(g.id),
+    totalTime: null,
+    language: g.languages?.[0] ? g.languages[0] : "English",
+  };
+}
+
+// Amazon (PA-API) – detailPageUrl used as link to product (no streaming)
+function transformAmazonBook(item: { asin: string; title: string; author: string; detailPageUrl: string; imageUrl: string | null }): Book {
+  return {
+    id: `amazon-${item.asin}`,
+    title: item.title,
+    author: item.author,
+    narrator: null,
+    description: null,
+    duration: 0,
+    coverImage: item.imageUrl,
+    audioUrl: item.detailPageUrl,
+    genre: "Books",
+    publishedYear: null,
+    source: "amazon",
+    sourceId: item.asin,
+    totalTime: null,
+    language: "English",
+  };
+}
+
+interface ExternalUser {
+  _id: string;
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  profilePicture?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Transform external user data to our format (for OAuth compatibility)
+function transformExternalUser(externalUser: ExternalUser): User {
+  return {
+    id: externalUser._id,
+    email: externalUser.email,
+    firstName: externalUser.firstName || null,
+    lastName: externalUser.lastName || null,
+    profileImageUrl: externalUser.profilePicture || null,
+    passwordHash: null,
+    authProvider: "external",
+    providerId: externalUser._id,
+    subscriptionTier: "free",
+    stripeCustomerId: null,
+    stripeSubscriptionId: null,
+    subscriptionEndDate: null,
+    createdAt: externalUser.createdAt ? new Date(externalUser.createdAt) : new Date(),
+    updatedAt: externalUser.updatedAt ? new Date(externalUser.updatedAt) : new Date(),
+  };
+}
+
+// Function to transform external API data to our format
+function transformExternalBook(externalBook: ExternalBook): Book {
+  return {
+    id: externalBook._id,
+    title: externalBook.title,
+    author: externalBook.author,
+    narrator: null, // External API doesn't have narrator
+    description: externalBook.description || null,
+    duration: Math.floor(Math.random() * 30000) + 18000, // Random duration between 5-13 hours
+    coverImage: externalBook.coverImage || null,
+    audioUrl: `${EXTERNAL_API_BASE}/stream/${externalBook._id}`, // Mock audio URL
+    genre: externalBook.genre || null,
+    publishedYear: externalBook.publishedYear || null,
+    source: "library-api",
+    sourceId: externalBook._id,
+    totalTime: null,
+    language: "English",
+  };
+}
+
+// Function to transform Open Library API data to our format
+function transformOpenLibraryBook(openLibraryBook: OpenLibraryBook): Book {
+  const author = openLibraryBook.author_name ? openLibraryBook.author_name[0] : "Unknown Author";
+  const coverImage = openLibraryBook.cover_i 
+    ? `${OPEN_LIBRARY_COVERS_BASE}/b/id/${openLibraryBook.cover_i}-M.jpg`
+    : null;
+  
+  // Extract ID from key (e.g., "/works/OL27448W" -> "OL27448W")
+  const olid = openLibraryBook.key.split('/').pop() || openLibraryBook.key;
+  
+  return {
+    id: `openlibrary-${olid}`,
+    title: openLibraryBook.title,
+    author: author,
+    narrator: null, // Open Library doesn't have narrator info
+    description: null, // Basic search doesn't include description
+    duration: 0, // Open Library is for ebooks, not audiobooks
+    coverImage: coverImage,
+    audioUrl: "", // Open Library doesn't provide audio files
+    genre: openLibraryBook.subject ? openLibraryBook.subject[0] : null,
+    publishedYear: openLibraryBook.first_publish_year || null,
+    source: "open-library",
+    sourceId: olid,
+    totalTime: "0:00:00",
+    language: openLibraryBook.language ? openLibraryBook.language[0] : "English",
+  };
+}
+
+// Function to transform Google Books API data to our format
+function transformGoogleBooksVolume(volume: GoogleBooksVolume): Book {
+  const volumeInfo = volume.volumeInfo;
+  const author = volumeInfo.authors ? volumeInfo.authors[0] : "Unknown Author";
+  
+  // Get high-quality cover image (prefer regular thumbnail over small)
+  const coverImage = volumeInfo.imageLinks?.thumbnail 
+    ? volumeInfo.imageLinks.thumbnail.replace('http://', 'https://')
+    : volumeInfo.imageLinks?.smallThumbnail?.replace('http://', 'https://') || null;
+  
+  // Extract ISBN if available
+  const isbn = volumeInfo.industryIdentifiers?.find(id => 
+    id.type === 'ISBN_13' || id.type === 'ISBN_10'
+  )?.identifier;
+  
+  // Parse year from publishedDate (could be YYYY, YYYY-MM, or YYYY-MM-DD)
+  const publishedYear = volumeInfo.publishedDate 
+    ? parseInt(volumeInfo.publishedDate.split('-')[0]) 
+    : null;
+  
+  const readUrl = volumeInfo.previewLink || volumeInfo.infoLink || `https://books.google.com/books?id=${volume.id}`;
+  return {
+    id: `googlebooks-${volume.id}`,
+    title: volumeInfo.title,
+    author: author,
+    narrator: null,
+    description: volumeInfo.description || null,
+    duration: 0,
+    coverImage: coverImage,
+    audioUrl: readUrl.startsWith("http") ? readUrl : `https://books.google.com/books?id=${volume.id}`,
+    genre: volumeInfo.categories ? volumeInfo.categories[0] : null,
+    publishedYear: publishedYear,
+    source: "google-books",
+    sourceId: volume.id,
+    totalTime: "0:00:00",
+    language: volumeInfo.language || "en",
+  };
+}
+
+// Function to transform iTunes Search API data to our format
+function transformiTunesAudiobook(itunes: iTunesAudiobook): Book {
+  const author = itunes.artistName || "Unknown Author";
+  
+  // iTunes provides high-quality artwork
+  const coverImage = itunes.artworkUrl100?.replace('100x100', '600x600') || itunes.artworkUrl100 || null;
+  
+  // Parse year from releaseDate (ISO format: YYYY-MM-DD)
+  const publishedYear = itunes.releaseDate 
+    ? parseInt(itunes.releaseDate.split('-')[0]) 
+    : null;
+  
+  // Convert trackTimeMillis to duration in seconds (if available)
+  const duration = itunes.trackTimeMillis ? Math.floor(itunes.trackTimeMillis / 1000) : 0;
+  
+  // Format duration as HH:MM:SS
+  const hours = Math.floor(duration / 3600);
+  const minutes = Math.floor((duration % 3600) / 60);
+  const seconds = duration % 60;
+  const totalTime = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  
+  // Use description fields (prefer longDescription > description > shortDescription)
+  const description = itunes.longDescription || itunes.description || itunes.shortDescription || null;
+  
+  return {
+    id: `itunes-${itunes.collectionId}`,
+    title: itunes.collectionName,
+    author: author,
+    narrator: null, // iTunes API doesn't provide narrator information
+    description: description,
+    duration: duration,
+    coverImage: coverImage,
+    audioUrl: itunes.previewUrl || "", // iTunes provides preview URLs
+    genre: itunes.primaryGenreName || null,
+    publishedYear: publishedYear,
+    source: "itunes",
+    sourceId: itunes.collectionId.toString(),
+    totalTime: totalTime,
+    language: "en", // iTunes API doesn't always provide language info
+  };
+}
+
+// Function to transform Internet Archive API data to our format
+function transformInternetArchiveDoc(doc: InternetArchiveDoc): Book {
+  const author = Array.isArray(doc.creator) 
+    ? doc.creator[0] 
+    : doc.creator || "Unknown Author";
+  
+  // Internet Archive cover images
+  const coverImage = `https://archive.org/services/img/${doc.identifier}`;
+  
+  // Extract subject/genre
+  const subject = Array.isArray(doc.subject) 
+    ? doc.subject[0] 
+    : doc.subject;
+  
+  // Extract language
+  const language = Array.isArray(doc.language)
+    ? doc.language[0]
+    : doc.language || "en";
+  
+  // Internet Archive items are texts/ebooks, not audiobooks in this integration
+  // (We already get audiobooks from LibriVox which uses Internet Archive for hosting)
+  const isAudiobook = false;
+  
+  return {
+    id: `internetarchive-${doc.identifier}`,
+    title: doc.title,
+    author: author,
+    narrator: null, // These are ebook texts, not audiobooks
+    description: doc.description || null,
+    duration: 0, // Ebooks don't have duration
+    coverImage: coverImage,
+    audioUrl: "", // These are ebook texts, not audiobooks
+    genre: subject || null,
+    publishedYear: doc.year || (doc.date ? parseInt(doc.date.split('-')[0]) : null),
+    source: "internet-archive",
+    sourceId: doc.identifier,
+    totalTime: "0:00:00",
+    language: language,
+  };
+}
+
+// Function to transform LibriVox API data to our format
+function transformLibriVoxBook(libriVoxBook: LibriVoxBook): Book {
+  const authorNames = libriVoxBook.authors.map(author => 
+    `${author.first_name} ${author.last_name}`.trim()
+  ).join(", ");
+  
+  // Prefer first MP3 section over ZIP file for better streaming compatibility
+  const audioUrl = libriVoxBook.sections.length > 0 
+    ? libriVoxBook.sections[0].listen_url 
+    : libriVoxBook.url_zip_file;
+  
+  // Ensure duration is always a number (LibriVox sometimes returns string)
+  const duration = typeof libriVoxBook.totaltimesecs === 'string' 
+    ? parseInt(libriVoxBook.totaltimesecs) || 0
+    : libriVoxBook.totaltimesecs || 0;
+  
+  return {
+    id: `librivox-${libriVoxBook.id}`,
+    title: libriVoxBook.title,
+    author: authorNames || "Unknown Author",
+    narrator: "LibriVox Volunteers", // LibriVox uses volunteer narrators
+    description: libriVoxBook.description || null,
+    duration: duration,
+    coverImage: `https://archive.org/services/img/${libriVoxBook.id}`, // LibriVox cover images
+    audioUrl: audioUrl,
+    genre: libriVoxBook.genres ? libriVoxBook.genres.join(", ") : "Classic Literature",
+    publishedYear: libriVoxBook.copyright_year ? parseInt(libriVoxBook.copyright_year) : null,
+    source: "librivox",
+    sourceId: libriVoxBook.id,
+    totalTime: libriVoxBook.totaltime,
+    language: libriVoxBook.language || "English",
+  };
+}
+
+async function fetchWithTimeout(url: string, timeout = 5000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
+// Simple in-memory cache with TTL
+interface CacheEntry<T> {
+  data: T;
+  expires: number;
+}
+
+export class ExternalAPIStorage implements IStorage {
+  private fallbackBooks: Map<string, Book>;
+  private localUsers: Map<string, User>; // For session management
+  public sessionStore: session.Store;
+  private cache: Map<string, CacheEntry<any>> = new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  
+  // Security: Allowed domains for audio streaming and covers (path-only = same-origin)
+  private readonly ALLOWED_AUDIO_DOMAINS = [
+    'librivox.org',
+    'archive.org',
+    'www.archive.org',
+    'www.gutenberg.org',
+    'books.google.com',
+    'books.googleusercontent.com',
+    'www.amazon.com',
+    'amazon.com',
+    'www.audible.com',
+    'audible.com',
+    'library-management-api-i6if.onrender.com',
+    'covers.openlibrary.org',
+    'audio-ssl.itunes.apple.com',
+    'mzstatic.com'
+  ];
+
+  constructor() {
+    this.fallbackBooks = new Map();
+    this.localUsers = new Map();
+    this.initializeFallbackData();
+    
+    // Initialize session store
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
+  }
+
+  private initializeFallbackData() {
+    const sampleBooks: Omit<Book, 'id'>[] = [
+      {
+        title: "The Great Gatsby",
+        author: "F. Scott Fitzgerald",
+        narrator: "Jake Gyllenhaal",
+        description: "The Great Gatsby, F. Scott Fitzgerald's third book, stands as the supreme achievement of his career. This exemplary novel of the Jazz Age has been acclaimed by generations of readers.",
+        duration: 19992, // 5h 33m 12s
+        coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600",
+        audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav", // Sample audio for demo
+        genre: "Classic Literature",
+        publishedYear: 1925,
+        source: "local",
+        sourceId: null,
+        totalTime: "5:33:12",
+        language: "English",
+      },
+      {
+        title: "Dune",
+        author: "Frank Herbert",
+        narrator: "Scott Brick",
+        description: "Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, heir to a noble family tasked with ruling an inhospitable world.",
+        duration: 75720, // 21h 2m
+        coverImage: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600",
+        audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+        genre: "Science Fiction",
+        publishedYear: 1965,
+        source: "local",
+        sourceId: null,
+        totalTime: "21:02:00",
+        language: "English",
+      },
+      {
+        title: "The Girl with the Dragon Tattoo",
+        author: "Stieg Larsson",
+        narrator: "Simon Vance",
+        description: "Harriet Vanger, a scion of one of Sweden's wealthiest families disappeared over forty years ago. All these years later, her aged uncle continues to seek the truth.",
+        duration: 65640, // 18h 14m
+        coverImage: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600",
+        audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+        genre: "Mystery/Thriller",
+        publishedYear: 2005,
+        source: "local",
+        sourceId: null,
+        totalTime: "18:14:00",
+        language: "English",
+      },
+      {
+        title: "Atomic Habits",
+        author: "James Clear",
+        narrator: "James Clear",
+        description: "No matter your goals, Atomic Habits offers a proven framework for improving--every day. James Clear reveals practical strategies that will teach you exactly how to form good habits.",
+        duration: 20100, // 5h 35m
+        coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600",
+        audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+        genre: "Self-Help",
+        publishedYear: 2018,
+        source: "local",
+        sourceId: null,
+        totalTime: "5:35:00",
+        language: "English",
+      },
+      {
+        title: "The Book Thief",
+        author: "Markus Zusak",
+        narrator: "Allan Corduner",
+        description: "It is 1939. Nazi Germany. The country is holding its breath. Death has never been busier, and will become busier still.",
+        duration: 50160, // 13h 56m
+        coverImage: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600",
+        audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+        genre: "Historical Fiction",
+        publishedYear: 2005,
+        source: "local",
+        sourceId: null,
+        totalTime: "13:56:00",
+        language: "English",
+      },
+      {
+        title: "Where the Crawdads Sing",
+        author: "Delia Owens",
+        narrator: "Cassandra Campbell",
+        description: "For years, rumors of the 'Marsh Girl' have haunted Barkley Cove, a quiet town on the North Carolina coast.",
+        duration: 43920, // 12h 12m
+        coverImage: "https://images.unsplash.com/photo-1532012197267-da84d127e765?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600",
+        audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+        genre: "Fiction",
+        publishedYear: 2018,
+        source: "local",
+        sourceId: null,
+        totalTime: "12:12:00",
+        language: "English",
+      },
+    ];
+
+    sampleBooks.forEach(book => {
+      const id = randomUUID();
+      this.fallbackBooks.set(id, { ...book, id });
+    });
+  }
+
+  async getBooks(): Promise<Book[]> {
+    // Check cache first
+    const cached = this.getCached<Book[]>('all_books');
+    if (cached) {
+      console.log('Returning cached books');
+      return cached;
+    }
+    
+    const allBooks: Book[] = [];
+    
+    // Source repositories: LibriVox, Project Gutenberg, Google Books (optional), Amazon (optional)
+    const fetchPromises: Promise<Book[]>[] = [
+      this.fetchLibriVoxBooks(50, 0).then(books => {
+        const transformed = books.map(transformLibriVoxBook);
+        console.log(`Fetched ${transformed.length} books from LibriVox`);
+        return transformed;
+      }).catch(error => {
+        console.warn('LibriVox fetch failed:', error instanceof Error ? error.message : 'Unknown error');
+        return [];
+      }),
+      this.fetchGutenbergBooks(40).then(books => {
+        const transformed = books.map(transformGutendexBook);
+        console.log(`Fetched ${transformed.length} books from Project Gutenberg`);
+        return transformed;
+      }).catch(error => {
+        console.warn('Project Gutenberg fetch failed:', error instanceof Error ? error.message : 'Unknown error');
+        return [];
+      }),
+    ];
+    if (GOOGLE_BOOKS_API_KEY) {
+      fetchPromises.push(
+        this.fetchGoogleBooks(25).then(volumes => {
+          const transformed = volumes.map(transformGoogleBooksVolume);
+          console.log(`Fetched ${transformed.length} books from Google Books`);
+          return transformed;
+        }).catch(error => {
+          console.warn('Google Books fetch failed:', error instanceof Error ? error.message : 'Unknown error');
+          return [];
+        })
+      );
+    }
+    fetchPromises.push(
+      this.fetchAmazonBooks(20).then(books => {
+        if (books.length > 0) console.log(`Fetched ${books.length} books from Amazon`);
+        return books;
+      }).catch(() => [])
+    );
+
+    // Wait for all API calls to complete
+    const results = await Promise.all(fetchPromises);
+    
+    // Combine all results
+    results.forEach((apiBooks: Book[]) => allBooks.push(...apiBooks));
+
+    // Include S3/GCS uploaded books from DB
+    const dbBooks = await this.getBooksFromDB();
+    allBooks.push(...dbBooks);
+    
+    // Add fallback books if we don't have many results
+    if (allBooks.length < 10) {
+      const fallbackBooks = Array.from(this.fallbackBooks.values());
+      allBooks.push(...fallbackBooks);
+      console.log(`Added ${fallbackBooks.length} fallback books`);
+    }
+    
+    // Cache the result
+    this.setCached('all_books', allBooks);
+    
+    console.log(`Total books available: ${allBooks.length}`);
+    return allBooks;
+  }
+  
+  private async fetchExternalAPIBooks(): Promise<Book[]> {
+    console.log('Fetching books from external API...');
+    const response = await fetchWithTimeout(`${EXTERNAL_API_BASE}/books`);
+    
+    if (response.ok) {
+      const responseData = await response.json();
+      console.log(`External API summary: ${JSON.stringify({ status: 'success', count: responseData?.books?.length || responseData?.length || 0 })}`);
+      
+      let externalBooks: ExternalBook[] = [];
+      if (Array.isArray(responseData)) {
+        externalBooks = responseData;
+      } else if (responseData.books && Array.isArray(responseData.books)) {
+        externalBooks = responseData.books;
+      } else if (responseData.data && Array.isArray(responseData.data)) {
+        externalBooks = responseData.data;
+      } else {
+        console.warn('Unexpected response format from external API');
+        return [];
+      }
+      
+      return externalBooks.map(transformExternalBook);
+    }
+    
+    return [];
+  }
+
+  async getBook(id: string): Promise<Book | undefined> {
+    // Check if this is a LibriVox book
+    if (id.startsWith('librivox-')) {
+      try {
+        console.log(`Fetching LibriVox book: ${id}`);
+        const libriVoxBook = await this.getLibriVoxBook(id);
+        if (libriVoxBook) {
+          return transformLibriVoxBook(libriVoxBook);
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch LibriVox book ${id}:`, error);
+      }
+    }
+    
+    // Check if this is an Open Library book
+    if (id.startsWith('openlibrary-')) {
+      try {
+        console.log(`Fetching Open Library book: ${id}`);
+        const openLibraryBook = await this.getOpenLibraryBook(id);
+        if (openLibraryBook) {
+          return transformOpenLibraryBook(openLibraryBook);
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch Open Library book ${id}:`, error);
+      }
+    }
+    
+    // Check if this is a Google Books volume
+    if (id.startsWith('googlebooks-')) {
+      try {
+        console.log(`Fetching Google Books volume: ${id}`);
+        const volumeId = id.replace('googlebooks-', '');
+        const googleBook = await this.getGoogleBook(volumeId);
+        if (googleBook) {
+          return transformGoogleBooksVolume(googleBook);
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch Google Books volume ${id}:`, error);
+      }
+    }
+    
+    // Check if this is a Project Gutenberg book
+    if (id.startsWith('gutenberg-')) {
+      try {
+        console.log(`Fetching Project Gutenberg book: ${id}`);
+        const gutenbergBook = await this.getGutenbergBook(id);
+        if (gutenbergBook) return transformGutendexBook(gutenbergBook);
+      } catch (error) {
+        console.warn(`Failed to fetch Gutenberg book ${id}:`, error);
+      }
+    }
+
+    // Check if this is an Amazon book
+    if (id.startsWith('amazon-')) {
+      try {
+        const asin = id.replace('amazon-', '');
+        const item = await getAmazonItem(asin);
+        if (item) return transformAmazonBook(item);
+      } catch (error) {
+        console.warn(`Failed to fetch Amazon book ${id}:`, error);
+      }
+    }
+
+    // Check if this is an iTunes audiobook
+    if (id.startsWith('itunes-')) {
+      try {
+        console.log(`Fetching iTunes audiobook: ${id}`);
+        const collectionId = parseInt(id.replace('itunes-', ''));
+        const itunesBook = await this.getiTunesAudiobook(collectionId);
+        if (itunesBook) {
+          return transformiTunesAudiobook(itunesBook);
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch iTunes audiobook ${id}:`, error);
+      }
+    }
+
+    // DB-backed uploaded books (S3/GCS)
+    const dbBook = await this.getBookFromDB(id);
+    if (dbBook) return dbBook;
+    
+    // Try external API
+    try {
+      console.log(`Fetching book ${id} from external API...`);
+      const response = await fetchWithTimeout(`${EXTERNAL_API_BASE}/books/${id}`);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(`External API book response for ${id}:`, JSON.stringify(responseData, null, 2));
+        
+        // Handle different response formats  
+        let externalBook: ExternalBook;
+        if (responseData._id || responseData.id) {
+          externalBook = responseData;
+        } else if (responseData.book) {
+          externalBook = responseData.book;
+        } else if (responseData.data) {
+          externalBook = responseData.data;
+        } else {
+          console.warn('Unexpected book response format from external API:', responseData);
+          return this.fallbackBooks.get(id);
+        }
+        
+        console.log(`Fetched book ${id} from external API`);
+        return transformExternalBook(externalBook);
+      } else {
+        console.warn(`External API returned error for book ${id}, using fallback data`);
+        return this.fallbackBooks.get(id);
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch book ${id} from external API, using fallback data:`, error);
+      return this.fallbackBooks.get(id);
+    }
+  }
+
+  async createBook(insertBook: InsertBook): Promise<Book> {
+    // For now, we'll add to fallback storage since external API might require authentication
+    const id = randomUUID();
+    const book: Book = { 
+      ...insertBook, 
+      id,
+      narrator: insertBook.narrator ?? null,
+      description: insertBook.description ?? null,
+      coverImage: insertBook.coverImage ?? null,
+      genre: insertBook.genre ?? null,
+      publishedYear: insertBook.publishedYear ?? null,
+      source: insertBook.source ?? "local",
+      sourceId: insertBook.sourceId ?? null,
+      totalTime: insertBook.totalTime ?? null,
+      language: insertBook.language ?? "English",
+    };
+    this.fallbackBooks.set(id, book);
+    return book;
+  }
+
+  async searchBooks(query: string): Promise<Book[]> {
+    const allBooks: Book[] = [];
+    const searchPromises: Promise<Book[]>[] = [
+      this.searchLibriVoxBooks(query, 20).then(books => books.map(transformLibriVoxBook)).catch(() => []),
+      this.searchGutenbergBooks(query, 20).then(books => books.map(transformGutendexBook)).catch(() => []),
+    ];
+    if (GOOGLE_BOOKS_API_KEY) {
+      searchPromises.push(
+        this.searchGoogleBooks(query, 15).then(volumes => volumes.map(transformGoogleBooksVolume)).catch(() => [])
+      );
+    }
+    searchPromises.push(this.searchAmazonBooks(query, 10).catch(() => []));
+    const searchResults = await Promise.all(searchPromises);
+    searchResults.forEach(results => allBooks.push(...results));
+    
+    // Add fallback search if we don't have many results
+    if (allBooks.length < 5) {
+      const fallbackResults = this.searchFallbackBooks(query);
+      allBooks.push(...fallbackResults);
+      console.log(`Added ${fallbackResults.length} books from fallback search`);
+    }
+    
+    // Basic deduplication by title + author
+    const deduped = this.deduplicateBooks(allBooks);
+    
+    console.log(`Search for "${query}" returned ${deduped.length} results`);
+    return deduped;
+  }
+  
+  private async searchExternalAPI(query: string): Promise<Book[]> {
+    try {
+      console.log(`Searching external API for: ${query}`);
+      const response = await fetchWithTimeout(`${EXTERNAL_API_BASE}/books?search=${encodeURIComponent(query)}`);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(`External API search summary: ${JSON.stringify({ status: 'success', count: responseData?.books?.length || responseData?.length || 0 })}`);
+        
+        let externalBooks: ExternalBook[] = [];
+        if (Array.isArray(responseData)) {
+          externalBooks = responseData;
+        } else if (responseData.books && Array.isArray(responseData.books)) {
+          externalBooks = responseData.books;
+        } else if (responseData.data && Array.isArray(responseData.data)) {
+          externalBooks = responseData.data;
+        }
+        
+        return externalBooks.map(transformExternalBook);
+      }
+      return [];
+    } catch (error) {
+      console.warn('External API search error:', error instanceof Error ? error.message : 'Unknown error');
+      return [];
+    }
+  }
+  
+  private deduplicateBooks(books: Book[]): Book[] {
+    const seen = new Set<string>();
+    return books.filter(book => {
+      const key = `${book.title.toLowerCase().trim()}-${book.author.toLowerCase().trim()}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
+  
+  // Cache management methods
+  private getCached<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (entry && entry.expires > Date.now()) {
+      return entry.data;
+    }
+    if (entry) {
+      this.cache.delete(key); // Remove expired entry
+    }
+    return null;
+  }
+  
+  private setCached<T>(key: string, data: T): void {
+    this.cache.set(key, {
+      data,
+      expires: Date.now() + this.CACHE_TTL
+    });
+  }
+  
+  // Security: Validate audio URL against allowed domains (public method for routes)
+  validateAudioUrl(url: string): boolean {
+    try {
+      // Same-origin path (e.g. /api/stream/:id for S3/GCS books)
+      if (url.startsWith("/")) return true;
+
+      const parsedUrl = new URL(url);
+      const isAllowed = this.ALLOWED_AUDIO_DOMAINS.some(domain =>
+        parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain)
+      );
+      if (isAllowed) return true;
+
+      const archiveCDNPattern = /^ia\d+\.us\.archive\.org$/;
+      if (archiveCDNPattern.test(parsedUrl.hostname)) return true;
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Books from DB with source s3 or gcs (uploaded). */
+  private async getBooksFromDB(): Promise<Book[]> {
+    try {
+      const rows = await db.select().from(books).where(inArray(books.source, ["s3", "gcs"]));
+      return rows.map((row) => this.dbRowToBook(row));
+    } catch {
+      return [];
+    }
+  }
+
+  private dbRowToBook(row: typeof books.$inferSelect): Book {
+    const streamPath = `/api/stream/${row.id}`;
+    return {
+      id: row.id,
+      title: row.title,
+      author: row.author,
+      narrator: row.narrator ?? null,
+      description: row.description ?? null,
+      duration: row.duration,
+      coverImage: row.coverImage ?? null,
+      audioUrl: streamPath,
+      genre: row.genre ?? null,
+      publishedYear: row.publishedYear ?? null,
+      source: row.source,
+      sourceId: row.sourceId ?? null,
+      totalTime: row.totalTime ?? null,
+      language: row.language ?? "English",
+    };
+  }
+
+  /** Get book from DB by id (for S3/GCS or any DB-backed book). */
+  async getBookFromDB(id: string): Promise<Book | undefined> {
+    try {
+      const [row] = await db.select().from(books).where(eq(books.id, id));
+      if (!row) return undefined;
+      return this.dbRowToBook(row);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Insert uploaded book (S3/GCS) into DB. Returns the created Book. */
+  async insertUploadedBook(insertBook: InsertBook): Promise<Book> {
+    const [row] = await db.insert(books).values(insertBook).returning();
+    return this.dbRowToBook(row);
+  }
+
+  /** Delete uploaded book from DB by id. */
+  async deleteUploadedBook(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(books).where(eq(books.id, id)).returning({ id: books.id });
+      return result.length > 0;
+    } catch {
+      return false;
+    }
+  }
+  
+  private searchFallbackBooks(query: string): Book[] {
+    const books = Array.from(this.fallbackBooks.values());
+    const lowercaseQuery = query.toLowerCase();
+    
+    return books.filter(book => 
+      book.title.toLowerCase().includes(lowercaseQuery) ||
+      book.author.toLowerCase().includes(lowercaseQuery) ||
+      (book.genre && book.genre.toLowerCase().includes(lowercaseQuery))
+    );
+  }
+
+  // User management methods integrating with external API
+  async getUser(id: string): Promise<User | undefined> {
+    try {
+      console.log(`Fetching user ${id} from database...`);
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error(`Error fetching user ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    try {
+      console.log(`Upserting user ${userData.id || 'new'} (${userData.email})`);
+      const [user] = await db
+        .insert(users)
+        .values(userData)
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            profileImageUrl: userData.profileImageUrl,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      console.log(`Successfully upserted user ${user.id}`);
+      return user;
+    } catch (error) {
+      console.error('Error upserting user:', error);
+      throw error;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    // This method is deprecated - use getUserByEmail instead
+    // For OAuth-based auth, we don't have usernames
+    // Removed console.log for production - use proper logging in production
+    return this.getUserByEmail(username);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    // Check local cache first
+    const localUser = Array.from(this.localUsers.values()).find(user => user.email === email);
+    if (localUser) {
+      return localUser;
+    }
+
+    try {
+      const response = await fetchWithTimeout(`${EXTERNAL_API_BASE}/users`);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        let externalUsers: ExternalUser[];
+        
+        if (Array.isArray(responseData)) {
+          externalUsers = responseData;
+        } else if (responseData.users && Array.isArray(responseData.users)) {
+          externalUsers = responseData.users;
+        } else if (responseData.data && Array.isArray(responseData.data)) {
+          externalUsers = responseData.data;
+        } else {
+          return undefined;
+        }
+        
+        const externalUser = externalUsers.find(user => user.email === email);
+        if (externalUser) {
+          const user = transformExternalUser(externalUser);
+          this.localUsers.set(user.id, user);
+          return user;
+        }
+      }
+    } catch (error) {
+      console.warn(`Failed to search for user by email ${email}:`, error);
+    }
+    
+    return undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    try {
+      console.log('Creating user in database...', { email: insertUser.email });
+      
+      // Create user in PostgreSQL database
+      const [user] = await db
+        .insert(users)
+        .values({
+          email: insertUser.email,
+          firstName: insertUser.firstName,
+          lastName: insertUser.lastName,
+          passwordHash: insertUser.passwordHash,
+          authProvider: insertUser.authProvider || "local",
+          providerId: insertUser.providerId,
+          profileImageUrl: insertUser.profileImageUrl,
+        })
+        .returning();
+      
+      console.log('User created successfully:', user.id);
+      this.localUsers.set(user.id, user);
+      return user;
+    } catch (error) {
+      console.error('Failed to create user:', error);
+      throw error;
+    }
+  }
+  
+  async authenticateExternalUser(email: string, password: string): Promise<User | null> {
+    // This method is deprecated - use local auth via multiAuth.ts instead
+    console.log('authenticateExternalUser is deprecated - use local auth instead');
+    return null;
+  }
+  
+  private async getOpenLibraryBook(id: string): Promise<OpenLibraryBook | null> {
+    try {
+      const olid = id.replace('openlibrary-', '');
+      console.log(`Fetching Open Library work: ${olid}`);
+      
+      const url = `${OPEN_LIBRARY_API_BASE}/works/${olid}.json`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(`Open Library work response for ${olid}:`, JSON.stringify(responseData, null, 2));
+        
+        // Transform the work data to our search format
+        const openLibraryBook: OpenLibraryBook = {
+          key: responseData.key || `/works/${olid}`,
+          title: responseData.title,
+          author_name: responseData.authors?.map((author: any) => author.name || 'Unknown Author'),
+          first_publish_year: responseData.first_publish_date ? new Date(responseData.first_publish_date).getFullYear() : undefined,
+          subject: responseData.subjects?.slice(0, 3) || undefined,
+          cover_i: responseData.covers?.[0],
+          language: responseData.languages?.map((lang: any) => lang.key?.replace('/languages/', '')) || ['eng'],
+        };
+        
+        return openLibraryBook;
+      } else {
+        console.warn(`Open Library API returned status ${response.status} for ${olid}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching Open Library work:', error);
+      return null;
+    }
+  }
+  
+  // Open Library API methods
+  private async fetchOpenLibraryBooks(limit: number = 20): Promise<OpenLibraryBook[]> {
+    try {
+      console.log(`Fetching Open Library books (limit: ${limit})...`);
+      
+      // Get popular/recent books using a general query
+      const url = `${OPEN_LIBRARY_API_BASE}/search.json?q=*&limit=${limit}&sort=new`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: OpenLibrarySearchResponse = await response.json();
+        console.log(`Open Library API response: ${responseData.docs.length} books`);
+        return responseData.docs || [];
+      } else {
+        console.warn(`Open Library API returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching Open Library books:', error);
+      return [];
+    }
+  }
+  
+  // Google Books API methods
+  private async fetchGoogleBooks(limit: number = 20): Promise<GoogleBooksVolume[]> {
+    if (!GOOGLE_BOOKS_API_KEY) {
+      console.warn('Google Books API key not configured');
+      return [];
+    }
+    
+    try {
+      console.log(`Fetching Google Books (limit: ${limit})...`);
+      
+      // Get popular/interesting books using a broad query
+      const url = `${GOOGLE_BOOKS_API_BASE}/volumes?q=subject:fiction&orderBy=relevance&maxResults=${Math.min(limit, 40)}&key=${GOOGLE_BOOKS_API_KEY}`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: GoogleBooksSearchResponse = await response.json();
+        console.log(`Google Books API response: ${responseData.items?.length || 0} books`);
+        return responseData.items || [];
+      } else {
+        console.warn(`Google Books API returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching Google Books:', error);
+      return [];
+    }
+  }
+  
+  private async searchGoogleBooks(query: string, limit: number = 10): Promise<GoogleBooksVolume[]> {
+    if (!GOOGLE_BOOKS_API_KEY) {
+      console.warn('Google Books API key not configured');
+      return [];
+    }
+    
+    try {
+      console.log(`Searching Google Books for: ${query}`);
+      
+      const url = `${GOOGLE_BOOKS_API_BASE}/volumes?q=${encodeURIComponent(query)}&maxResults=${Math.min(limit, 40)}&key=${GOOGLE_BOOKS_API_KEY}`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: GoogleBooksSearchResponse = await response.json();
+        console.log(`Google Books search: ${responseData.items?.length || 0} results`);
+        return responseData.items || [];
+      } else {
+        console.warn(`Google Books search returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error searching Google Books:', error);
+      return [];
+    }
+  }
+  
+  private async getGoogleBook(volumeId: string): Promise<GoogleBooksVolume | null> {
+    if (!GOOGLE_BOOKS_API_KEY) {
+      console.warn('Google Books API key not configured');
+      return null;
+    }
+    
+    try {
+      console.log(`Fetching Google Books volume: ${volumeId}`);
+      
+      const url = `${GOOGLE_BOOKS_API_BASE}/volumes/${volumeId}?key=${GOOGLE_BOOKS_API_KEY}`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const volume: GoogleBooksVolume = await response.json();
+        console.log(`Google Books volume found: ${volume.volumeInfo.title}`);
+        return volume;
+      } else {
+        console.warn(`Google Books API returned status ${response.status} for volume ${volumeId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error fetching Google Books volume ${volumeId}:`, error);
+      return null;
+    }
+  }
+  
+  // iTunes Search API methods
+  private async fetchiTunesAudiobooks(limit: number = 20): Promise<iTunesAudiobook[]> {
+    try {
+      console.log(`Fetching iTunes audiobooks (limit: ${limit})...`);
+      
+      // Search for popular audiobooks (using a broad term)
+      const url = `${ITUNES_SEARCH_API_BASE}/search?term=bestseller&entity=audiobook&limit=${limit}&country=us`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: iTunesSearchResponse = await response.json();
+        console.log(`iTunes API response: ${responseData.results.length} audiobooks`);
+        return responseData.results || [];
+      } else {
+        console.warn(`iTunes API returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching iTunes audiobooks:', error);
+      return [];
+    }
+  }
+  
+  private async searchiTunesAudiobooks(query: string, limit: number = 10): Promise<iTunesAudiobook[]> {
+    try {
+      console.log(`Searching iTunes for: ${query}`);
+      
+      const url = `${ITUNES_SEARCH_API_BASE}/search?term=${encodeURIComponent(query)}&entity=audiobook&limit=${limit}&country=us`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: iTunesSearchResponse = await response.json();
+        console.log(`iTunes search: ${responseData.results.length} results`);
+        return responseData.results || [];
+      } else {
+        console.warn(`iTunes search returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error searching iTunes:', error);
+      return [];
+    }
+  }
+  
+  private async getiTunesAudiobook(collectionId: number): Promise<iTunesAudiobook | null> {
+    try {
+      console.log(`Fetching iTunes audiobook: ${collectionId}`);
+      
+      const url = `${ITUNES_SEARCH_API_BASE}/lookup?id=${collectionId}&entity=audiobook`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: iTunesSearchResponse = await response.json();
+        if (responseData.results && responseData.results.length > 0) {
+          console.log(`iTunes audiobook found: ${responseData.results[0].collectionName}`);
+          return responseData.results[0];
+        }
+      }
+      
+      console.warn(`iTunes audiobook not found: ${collectionId}`);
+      return null;
+    } catch (error) {
+      console.error(`Error fetching iTunes audiobook ${collectionId}:`, error);
+      return null;
+    }
+  }
+  
+  // Search iTunes by ISBN
+  private async searchiTunesByISBN(isbn: string): Promise<iTunesAudiobook[]> {
+    try {
+      console.log(`Searching iTunes by ISBN: ${isbn}`);
+      
+      const url = `${ITUNES_SEARCH_API_BASE}/search?term=${isbn}&entity=audiobook&limit=5&country=us`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: iTunesSearchResponse = await response.json();
+        console.log(`iTunes ISBN search: ${responseData.results.length} results`);
+        return responseData.results || [];
+      } else {
+        console.warn(`iTunes ISBN search returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error(`Error searching iTunes by ISBN ${isbn}:`, error);
+      return [];
+    }
+  }
+  
+  // Internet Archive API methods
+  private async fetchInternetArchiveBooks(limit: number = 15): Promise<InternetArchiveDoc[]> {
+    try {
+      console.log(`Fetching Internet Archive books (limit: ${limit})...`);
+      
+      // Search for public domain texts in English
+      const query = 'mediatype:texts AND language:eng AND collection:opensource';
+      const url = `${INTERNET_ARCHIVE_API_BASE}/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier,title,creator,description,year,date,subject,language,mediatype&rows=${limit}&output=json`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: InternetArchiveSearchResponse = await response.json();
+        console.log(`Internet Archive API response: ${responseData.response.docs.length} books`);
+        return responseData.response.docs || [];
+      } else {
+        console.warn(`Internet Archive API returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching Internet Archive books:', error);
+      return [];
+    }
+  }
+  
+  private async searchInternetArchiveBooks(query: string, limit: number = 10): Promise<InternetArchiveDoc[]> {
+    try {
+      console.log(`Searching Internet Archive for: ${query}`);
+      
+      // Search in title and creator fields, limit to texts
+      const searchQuery = `(title:(${query}) OR creator:(${query})) AND mediatype:texts`;
+      const url = `${INTERNET_ARCHIVE_API_BASE}/advancedsearch.php?q=${encodeURIComponent(searchQuery)}&fl[]=identifier,title,creator,description,year,date,subject,language,mediatype,format&rows=${limit}&output=json`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData: InternetArchiveSearchResponse = await response.json();
+        console.log(`Internet Archive search: ${responseData.response.docs.length} results`);
+        return responseData.response.docs || [];
+      } else {
+        console.warn(`Internet Archive search returned status ${response.status}`);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error searching Internet Archive:', error);
+      return [];
+    }
+  }
+  
+  private async getInternetArchiveBook(identifier: string): Promise<InternetArchiveDoc | null> {
+    try {
+      console.log(`Fetching Internet Archive item: ${identifier}`);
+      
+      const url = `${INTERNET_ARCHIVE_API_BASE}/metadata/${identifier}`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const metadata = await response.json();
+        
+        // Transform metadata response to match our doc interface
+        const doc: InternetArchiveDoc = {
+          identifier: metadata.metadata.identifier || identifier,
+          title: metadata.metadata.title || "Untitled",
+          creator: metadata.metadata.creator,
+          description: metadata.metadata.description,
+          date: metadata.metadata.date,
+          year: metadata.metadata.year,
+          subject: metadata.metadata.subject,
+          language: metadata.metadata.language,
+          mediatype: metadata.metadata.mediatype,
+          format: metadata.files?.map((f: any) => f.format),
+        };
+        
+        console.log(`Internet Archive item found: ${doc.title}`);
+        return doc;
+      } else {
+        console.warn(`Internet Archive API returned status ${response.status} for item ${identifier}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error fetching Internet Archive item ${identifier}:`, error);
+      return null;
+    }
+  }
+  
+  private async searchOpenLibraryBooks(query: string, limit: number = 10): Promise<OpenLibraryBook[]> {
+    try {
+      console.log(`Searching Open Library for: ${query}`);
+      
+      // Try title search first
+      const titleUrl = `${OPEN_LIBRARY_API_BASE}/search.json?title=${encodeURIComponent(query)}&limit=${limit}`;
+      
+      const response = await fetchWithTimeout(titleUrl, 10000);
+      
+      if (response.ok) {
+        const responseData: OpenLibrarySearchResponse = await response.json();
+        console.log(`Open Library title search: ${responseData.docs.length} results`);
+        
+        if (responseData.docs.length > 0) {
+          return responseData.docs;
+        }
+      }
+      
+      // If title search doesn't yield results, try general search
+      const generalUrl = `${OPEN_LIBRARY_API_BASE}/search.json?q=${encodeURIComponent(query)}&limit=${limit}`;
+      
+      const generalResponse = await fetchWithTimeout(generalUrl, 10000);
+      
+      if (generalResponse.ok) {
+        const generalData: OpenLibrarySearchResponse = await generalResponse.json();
+        console.log(`Open Library general search: ${generalData.docs.length} results`);
+        return generalData.docs || [];
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error searching Open Library books:', error);
+      return [];
+    }
+  }
+
+  // LibriVox API integration methods
+  private async fetchLibriVoxBooks(limit = 50, offset = 0): Promise<LibriVoxBook[]> {
+    try {
+      console.log(`Fetching LibriVox books (limit: ${limit}, offset: ${offset})...`);
+      const url = `${LIBRIVOX_API_BASE}?format=json&extended=1&limit=${limit}&offset=${offset}`;
+      
+      const response = await fetchWithTimeout(url, 10000); // 10 second timeout for LibriVox
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(`LibriVox API response: ${responseData.books?.length || 0} books`);
+        
+        if (responseData.books && Array.isArray(responseData.books)) {
+          return responseData.books;
+        }
+        return [];
+      } else {
+        console.warn('LibriVox API returned error:', response.status);
+        return [];
+      }
+    } catch (error) {
+      console.warn('Failed to fetch from LibriVox API:', error);
+      return [];
+    }
+  }
+  
+  private async searchLibriVoxBooks(query: string, limit = 20): Promise<LibriVoxBook[]> {
+    try {
+      console.log(`Searching LibriVox for: "${query}"`);
+      
+      // Correct LibriVox API URL format with query parameters
+      const titleUrl = `${LIBRIVOX_API_BASE}?title=^${encodeURIComponent(query)}&format=json&extended=1&limit=${limit}`;
+      
+      const response = await fetchWithTimeout(titleUrl, 10000);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(`LibriVox title search returned: ${responseData.books?.length || 0} books`);
+        
+        if (responseData.books && Array.isArray(responseData.books) && responseData.books.length > 0) {
+          return responseData.books;
+        }
+      }
+      
+      // If title search doesn't yield results, try author search
+      const authorUrl = `${LIBRIVOX_API_BASE}?author=^${encodeURIComponent(query)}&format=json&extended=1&limit=${limit}`;
+      
+      const authorResponse = await fetchWithTimeout(authorUrl, 10000);
+      
+      if (authorResponse.ok) {
+        const authorData = await authorResponse.json();
+        console.log(`LibriVox author search returned: ${authorData.books?.length || 0} books`);
+        
+        if (authorData.books && Array.isArray(authorData.books)) {
+          return authorData.books;
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      console.warn('Failed to search LibriVox API:', error);
+      return [];
+    }
+  }
+  
+  private async getLibriVoxBook(id: string): Promise<LibriVoxBook | null> {
+    try {
+      // Extract LibriVox ID from our prefixed ID
+      const librivoxId = id.startsWith('librivox-') ? id.replace('librivox-', '') : id;
+      console.log(`Fetching LibriVox book: ${librivoxId}`);
+      
+      const url = `${LIBRIVOX_API_BASE}?id=${librivoxId}&format=json&extended=1`;
+      
+      const response = await fetchWithTimeout(url, 10000);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        
+        if (responseData.books && Array.isArray(responseData.books) && responseData.books.length > 0) {
+          return responseData.books[0];
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn(`Failed to fetch LibriVox book ${id}:`, error);
+      return null;
+    }
+  }
+
+  private async fetchGutenbergBooks(limit = 40): Promise<GutendexBook[]> {
+    try {
+      console.log(`Fetching Project Gutenberg books (limit: ${limit})...`);
+      const url = `${GUTENDEX_API_BASE}/?page=1`;
+      const response = await fetchWithTimeout(url, 10000);
+      if (!response.ok) return [];
+      const data = await response.json();
+      const results = data.results ?? [];
+      const slice = results.slice(0, limit) as GutendexBook[];
+      console.log(`Fetched ${slice.length} books from Project Gutenberg`);
+      return slice;
+    } catch (error) {
+      console.warn('Failed to fetch from Project Gutenberg:', error instanceof Error ? error.message : 'Unknown error');
+      return [];
+    }
+  }
+
+  private async getGutenbergBook(id: string): Promise<GutendexBook | null> {
+    try {
+      const gid = id.startsWith('gutenberg-') ? id.replace('gutenberg-', '') : id;
+      console.log(`Fetching Project Gutenberg book: ${gid}`);
+      const url = `${GUTENDEX_API_BASE}/${gid}`;
+      const response = await fetchWithTimeout(url, 8000);
+      if (!response.ok) return null;
+      const book = await response.json() as GutendexBook;
+      return book;
+    } catch (error) {
+      console.warn(`Failed to fetch Gutenberg book ${id}:`, error);
+      return null;
+    }
+  }
+
+  private async searchGutenbergBooks(query: string, limit = 15): Promise<GutendexBook[]> {
+    try {
+      console.log(`Searching Project Gutenberg for: "${query}"`);
+      const url = `${GUTENDEX_API_BASE}/?search=${encodeURIComponent(query)}`;
+      const response = await fetchWithTimeout(url, 8000);
+      if (!response.ok) return [];
+      const data = await response.json();
+      const results = (data.results ?? []).slice(0, limit) as GutendexBook[];
+      console.log(`Gutenberg search returned: ${results.length} books`);
+      return results;
+    } catch (error) {
+      console.warn('Failed to search Project Gutenberg:', error);
+      return [];
+    }
+  }
+
+  /** Amazon Books via PA-API 5.0 (optional; requires env credentials). */
+  private async fetchAmazonBooks(limit = 20): Promise<Book[]> {
+    try {
+      const [a, b] = await Promise.all([
+        amazonPaApiSearch("bestseller books", 10),
+        amazonPaApiSearch("audiobooks", 10),
+      ]);
+      const seen = new Set<string>();
+      const merged: typeof a = [];
+      for (const item of [...a, ...b]) {
+        if (merged.length >= limit) break;
+        if (seen.has(item.asin)) continue;
+        seen.add(item.asin);
+        merged.push(item);
+      }
+      return merged.map(transformAmazonBook);
+    } catch {
+      return [];
+    }
+  }
+
+  private async searchAmazonBooks(query: string, limit = 10): Promise<Book[]> {
+    const items = await amazonPaApiSearch(query, Math.min(limit, 10));
+    return items.map(transformAmazonBook);
+  }
+
+  async updateUserSubscription(userId: string, subscription: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string | null;
+    subscriptionTier?: string;
+    subscriptionEndDate?: Date | null;
+  }): Promise<User | undefined> {
+    try {
+      console.log(`Updating subscription for user ${userId}:`, subscription);
+      
+      const updateData: Partial<typeof users.$inferInsert> = {
+        updatedAt: new Date(),
+      };
+      
+      if (subscription.stripeCustomerId !== undefined) {
+        updateData.stripeCustomerId = subscription.stripeCustomerId;
+      }
+      if (subscription.stripeSubscriptionId !== undefined) {
+        updateData.stripeSubscriptionId = subscription.stripeSubscriptionId;
+      }
+      if (subscription.subscriptionTier !== undefined) {
+        updateData.subscriptionTier = subscription.subscriptionTier;
+      }
+      if (subscription.subscriptionEndDate !== undefined) {
+        updateData.subscriptionEndDate = subscription.subscriptionEndDate;
+      }
+      
+      const [updatedUser] = await db
+        .update(users)
+        .set(updateData)
+        .where(eq(users.id, userId))
+        .returning();
+      
+      console.log(`Successfully updated subscription for user ${updatedUser?.id}`);
+      return updatedUser;
+    } catch (error) {
+      console.error(`Error updating subscription for user ${userId}:`, error);
+      return undefined;
+    }
+  }
+
+  async getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined> {
+    try {
+      console.log(`Looking up user by Stripe customer ID: ${stripeCustomerId}`);
+      const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, stripeCustomerId));
+      return user;
+    } catch (error) {
+      console.error(`Error looking up user by Stripe customer ID:`, error);
+      return undefined;
+    }
+  }
+
+  // Listening history methods
+  async getListeningHistory(userId: string, limit: number = 50): Promise<ListeningHistory[]> {
+    try {
+      const history = await db
+        .select()
+        .from(listeningHistory)
+        .where(eq(listeningHistory.userId, userId))
+        .orderBy(desc(listeningHistory.lastPlayedAt))
+        .limit(limit);
+      return history;
+    } catch (error) {
+      console.error(`Error getting listening history for user ${userId}:`, error);
+      return [];
+    }
+  }
+
+  async updateListeningProgress(userId: string, bookId: string, progress: {
+    currentTime: number;
+    bookTitle: string;
+    bookAuthor?: string;
+    bookCover?: string;
+    totalDuration?: number;
+  }): Promise<ListeningHistory> {
+    try {
+      // Check if entry already exists
+      const [existing] = await db
+        .select()
+        .from(listeningHistory)
+        .where(and(
+          eq(listeningHistory.userId, userId),
+          eq(listeningHistory.bookId, bookId)
+        ));
+
+      if (existing) {
+        // Update existing entry
+        const isCompleted = progress.totalDuration && progress.currentTime >= progress.totalDuration * 0.95;
+        const [updated] = await db
+          .update(listeningHistory)
+          .set({
+            currentTime: progress.currentTime,
+            lastPlayedAt: new Date(),
+            playCount: existing.playCount + 1,
+            completedAt: isCompleted && !existing.completedAt ? new Date() : existing.completedAt,
+            totalDuration: progress.totalDuration || existing.totalDuration,
+          })
+          .where(eq(listeningHistory.id, existing.id))
+          .returning();
+        return updated;
+      } else {
+        // Create new entry
+        const [created] = await db
+          .insert(listeningHistory)
+          .values({
+            userId,
+            bookId,
+            bookTitle: progress.bookTitle,
+            bookAuthor: progress.bookAuthor,
+            bookCover: progress.bookCover,
+            currentTime: progress.currentTime,
+            totalDuration: progress.totalDuration,
+          })
+          .returning();
+        return created;
+      }
+    } catch (error) {
+      console.error(`Error updating listening progress:`, error);
+      throw error;
+    }
+  }
+
+  async getContinueListening(userId: string, limit: number = 10): Promise<ListeningHistory[]> {
+    try {
+      // Get books that are in progress (started but not completed)
+      const history = await db
+        .select()
+        .from(listeningHistory)
+        .where(and(
+          eq(listeningHistory.userId, userId)
+        ))
+        .orderBy(desc(listeningHistory.lastPlayedAt))
+        .limit(limit);
+      
+      // Filter to only in-progress books (currentTime > 0 and not completed)
+      return history.filter(h => 
+        h.currentTime > 0 && 
+        (!h.completedAt || (h.totalDuration && h.currentTime < h.totalDuration * 0.95))
+      );
+    } catch (error) {
+      console.error(`Error getting continue listening for user ${userId}:`, error);
+      return [];
+    }
+  }
+
+  async getUserPreferences(userId: string): Promise<{ defaultSpeed: number; preferredSections: string[] } | null> {
+    try {
+      const [row] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+      if (!row) return null;
+      return {
+        defaultSpeed: row.defaultSpeed ?? 1,
+        preferredSections: Array.isArray(row.preferredSections) ? row.preferredSections : [],
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async updateUserPreferences(userId: string, prefs: { defaultSpeed?: number; preferredSections?: string[] }): Promise<{ defaultSpeed: number; preferredSections: string[] }> {
+    const existing = await this.getUserPreferences(userId);
+    const defaultSpeed = prefs.defaultSpeed ?? existing?.defaultSpeed ?? 1;
+    const preferredSections = prefs.preferredSections ?? existing?.preferredSections ?? [];
+    await db
+      .insert(userPreferences)
+      .values({ userId, defaultSpeed, preferredSections })
+      .onConflictDoUpdate({
+        target: userPreferences.userId,
+        set: { defaultSpeed, preferredSections, updatedAt: new Date() },
+      });
+    return { defaultSpeed, preferredSections };
+  }
+
+  async getBookChapters(bookId: string): Promise<Chapter[]> {
+    try {
+      // Only LibriVox books have chapters
+      if (!bookId.startsWith("librivox-")) {
+        return [];
+      }
+
+      const librivoxId = bookId.replace("librivox-", "");
+      console.log(`Fetching chapters for LibriVox book: ${librivoxId}`);
+
+      const url = `${LIBRIVOX_API_BASE}?id=${librivoxId}&format=json&extended=1`;
+      const response = await fetchWithTimeout(url, 10000);
+
+      if (response.ok) {
+        const responseData = await response.json();
+        
+        if (responseData.books && Array.isArray(responseData.books) && responseData.books.length > 0) {
+          const book = responseData.books[0] as LibriVoxBook;
+          
+          if (book.sections && Array.isArray(book.sections)) {
+            return book.sections.map((section: LibriVoxSection) => ({
+              id: section.id,
+              title: section.title || `Chapter ${section.section_number}`,
+              audioUrl: section.listen_url,
+              duration: section.playtime,
+              chapterNumber: parseInt(section.section_number, 10) || 0,
+            }));
+          }
+        }
+      }
+
+      return [];
+    } catch (error) {
+      console.error(`Error fetching chapters for book ${bookId}:`, error);
+      return [];
+    }
+  }
+}
+
+export const storage = new ExternalAPIStorage();

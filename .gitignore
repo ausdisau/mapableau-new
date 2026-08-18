@@ -105,3 +105,9 @@ client/node_modules
 # Local open-weight model checkouts (serve via GPT_OSS_BASE_URL)
 /gpt-oss-120b/
 /gpt-oss-20b/
+
+# Amalgamation SoR seeds (install independently when publishing remotes)
+amalgamation/**/node_modules/
+amalgamation/**/dist/
+amalgamation/**/.next/
+

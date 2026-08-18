@@ -63,6 +63,15 @@
       "owner": "platform-security",
       "compensatingControl": "Await Next/postcss upstream; Navigator IDs use crypto randomUUID/cuid patterns for envelopes.",
       "expiry": "2026-09-11"
+    },
+    {
+      "advisoryId": "GHSA-GGR8-5VV4-36MX",
+      "package": "deepmerge-ts",
+      "path": ".>@prisma/client>prisma>@prisma/config>deepmerge-ts",
+      "rationale": "Transitive via Prisma CLI/config toolchain only; not a runtime HTTP surface.",
+      "owner": "platform-security",
+      "compensatingControl": "Prisma runs at build/migrate time; production app uses generated client only.",
+      "expiry": "2026-09-11"
     }
   ]
 }

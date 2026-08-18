@@ -1,3 +1,12 @@
+/**
+ * LEGACY REPLIT TWIN — READ-ONLY FOR NEW PRODUCT FEATURES
+ *
+ * Canonical runtime is Next.js App Router + Prisma at the repository root.
+ * Do not add new product features here. Port work: docs/mapable-merge-gap-analysis.md
+ * Quarantine doctrine: docs/operations/LEGACY_REPLIT_TWIN.md
+ * Org amalgamation: docs/strategy/AUSDISAU_AMALGAMATION.md
+ */
+
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";

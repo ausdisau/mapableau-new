@@ -64,7 +64,10 @@ export {
   patchAccessPassport,
   toPassportApiResponse,
 } from "./passport-service";
-export type { PassportPatchInput, PassportRequirementInput } from "./passport-service";
+export type {
+  PassportPatchInput,
+  PassportRequirementInput,
+} from "./passport-service";
 export { ensureAaIDemoPlace, AAI_DEMO_PLACE_NAME } from "./demo-place-seed";
 export {
   COMMON_ACCESS_CONCEPTS,
@@ -81,3 +84,35 @@ export type {
   CommonAccessConcept,
   PassportVisibilityDefault,
 } from "./ui-copy";
+export {
+  evaluateObservationFreshness,
+  computeExpiryFromObservedAt,
+  freshnessPolicyForConcept,
+} from "./freshness";
+export type { FreshnessEvaluation, FreshnessState } from "./freshness";
+export {
+  ACCESS_OBSERVATION_SOURCE_TYPES,
+  ACCESS_SOURCE_CLASSES,
+  assertAiCannotBeVerified,
+  buildProvenanceDisplay,
+  resolveCreateVerificationStatus,
+  sourceTypeToSourceClass,
+} from "./provenance";
+export type {
+  AccessObservationSourceType,
+  AccessSourceClass,
+  ProvenanceDisplay,
+} from "./provenance";
+export {
+  AccessGraphError,
+  assertAccessGraphEnabled,
+  createAccessObservation,
+  getAccessObservation,
+  getPlaceAccessGraph,
+  listAccessObservations,
+  serializeObservationRow,
+} from "./observation-service";
+export type {
+  AccessObservationEnvelope,
+  CreateAccessObservationInput,
+} from "./observation-service";
