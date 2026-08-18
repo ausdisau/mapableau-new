@@ -14,6 +14,7 @@ Related: [PR390_VERCEL_PREVIEW_MEMORY.md](./PR390_VERCEL_PREVIEW_MEMORY.md), [HE
 | GitHub CI / Accessibility / type-check | Green on that SHA                                                      | `VERIFIED` (disposable_ci)                  |
 | Vercel project                         | `mapableau-new` (`prj_iAhQk0b6IhigXw58PFiYfiHSATmW`), team `mapableau` | `VERIFIED` (GitHub deployment URLs)         |
 | Latest Production attempts             | `dpl_5n1c8siPdMpGRLa6ur4ZTGDb235g`, `dpl_FTUnv4g98KpXGJq1LL8nNRGhyNTB` | `FAILED`                                    |
+| This-PR Preview (`0ce316ad`)           | `dpl_xUzP5cDJkd7zQmwZ9wvmFKuUU93k` (skip-tsc + 6144 heap)              | `FAILED`                                    |
 | Last Production **success**            | 2026-07-29, SHA `3e665317dad6226c338ee4de2bbe5f4d1b8779e1`             | `VERIFIED` (GitHub deployment `5654705646`) |
 | Failures since                         | Every Production web deploy from 2026-08-11 (`#470` onward)            | `FAILED`                                    |
 | Live apex `GET /api/health/live`       | `{"status":"ok"}` — stale last-good deploy, not the failed tip         | Public edge `VERIFIED`; tip `FAILED`        |
@@ -23,6 +24,7 @@ Inspectors (login-gated):
 
 - https://vercel.com/mapableau/mapableau-new/5n1c8siPdMpGRLa6ur4ZTGDb235g
 - https://vercel.com/mapableau/mapableau-new/FTUnv4g98KpXGJq1LL8nNRGhyNTB
+- https://vercel.com/mapableau/mapableau-new/xUzP5cDJkd7zQmwZ9wvmFKuUU93k
 
 ## Why CI green does not prove Production
 
@@ -38,6 +40,8 @@ Two failure modes, distinguishable only from build logs:
 
 1. **Seconds:** `MapAble production environment validation failed (fail-closed)` → owner Production env.
 2. **Minutes / SIGKILL / JS heap OOM** during types or SSG → builder memory. This change skips duplicate in-build `tsc` on Vercel (CI remains the type gate) and restores heap **5120 → 6144**. Do **not** raise to 7168 on the default 8 GB machine.
+
+This PR’s Preview `dpl_xUzP5cDJkd7zQmwZ9wvmFKuUU93k` is still `FAILED`. Draft #488 already observed **5120 + skip-tsc = SSG OOM** (`dpl_BEcDYZqqo…`) and **6144 + skip-tsc still not READY**. The remaining Preview/Production memory path is therefore **owner build-machine upgrade**, not another heap bump on the default 8 GB builder. Root-cause text is still unreadable from this agent (Vercel MCP 404 / needsAuth).
 
 No commit between `3e665317` and `88a59d50` changed `next.config.ts`, `scripts/run-next-build.mjs`, or `lib/env/assert-deployed-production-env.ts`. The first post-gap failure coincides with `#470` (Access ontology graph growth).
 
@@ -65,7 +69,7 @@ pnpm audit:https-gate
 ```
 
 5. If the log is the env-gate error, this code change is complete; remaining work is owner env.
-6. If the log is SIGKILL / heap OOM after this change, upgrade the Vercel build machine. Do not set heap to 7168 on the default builder.
+6. If the log is SIGKILL / heap OOM after this change (Preview `dpl_xUzP5cDJkd7zQmwZ9wvmFKuUU93k` already `FAILED`), upgrade the Vercel build machine. Do not set heap to 7168 on the default builder.
 7. `www.mapable.com.au` TLS renewal remains `OWNER_ACTION_REQUIRED` (separate from this build).
 
 Draft PR #488 proposed the same memory half. This change supersedes it; do not merge both.
