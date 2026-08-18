@@ -8,7 +8,7 @@ import {
 } from "@/lib/resources/access-guides-data";
 
 export const metadata = {
-  title: "Local Access Guides | MapAble",
+  title: "Local Access Guides",
   description:
     "MapAble Local Access Guides for Australian capital cities and regional locations — practical accessibility planning for visitors and locals.",
   alternates: canonicalAlternate("/guides"),
