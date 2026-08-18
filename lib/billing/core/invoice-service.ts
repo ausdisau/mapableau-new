@@ -1,9 +1,12 @@
 import type { BillingInvoiceStatus } from "@prisma/client";
 import type { z } from "zod";
 
+import { getUserOrganisationIds } from "@/lib/api/organisation-scope";
+import type { CurrentUser } from "@/lib/auth/current-user";
 import { writeBillingAuditLog } from "@/lib/billing/core/audit";
 import { calculateInvoiceTotals } from "@/lib/billing/core/calculations";
 import type { createInvoiceSchema } from "@/lib/billing/core/schemas";
+import { hasBillingPermission } from "@/lib/billing/permissions";
 import { prisma } from "@/lib/prisma";
 
 type CreateInput = z.infer<typeof createInvoiceSchema>;
@@ -107,6 +110,33 @@ export async function listInvoicesForUser(userId: string) {
     orderBy: { createdAt: "desc" },
     take: 100,
   });
+}
+
+export async function listAccessibleBillingInvoices(user: CurrentUser) {
+  if (hasBillingPermission(user.primaryRole, "billing:view_all")) {
+    return prisma.billingInvoice.findMany({
+      include: { fundingSource: true },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+  }
+
+  if (hasBillingPermission(user.primaryRole, "billing:view_provider")) {
+    const orgIds = await getUserOrganisationIds(user.id);
+    return prisma.billingInvoice.findMany({
+      where: {
+        OR: [
+          { userId: user.id },
+          ...(orgIds.length ? [{ providerId: { in: orgIds } }] : []),
+        ],
+      },
+      include: { fundingSource: true },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+  }
+
+  return listInvoicesForUser(user.id);
 }
 
 export async function updateInvoiceStatus(

@@ -9,7 +9,7 @@ import {
   mapableNavLinkClass,
 } from "@/lib/brand/styles";
 
-import { BILLING_NAV_LINKS } from "./billing-nav";
+import { BILLING_NAV_LINKS, type BillingNavLink } from "./billing-nav";
 
 function isActive(pathname: string, href: string, exact?: boolean) {
   if (exact) return pathname === href;
@@ -18,8 +18,10 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 
 export function BillingSidebar({
   className,
+  links = BILLING_NAV_LINKS,
 }: {
   className?: string;
+  links?: BillingNavLink[];
 }) {
   const pathname = usePathname();
 
@@ -35,7 +37,7 @@ export function BillingSidebar({
         Workspaces
       </p>
       <ul className="flex flex-col gap-0.5">
-        {BILLING_NAV_LINKS.map((link) => {
+        {links.map((link) => {
           const active = isActive(pathname, link.href, link.exact);
           return (
             <li key={link.href}>

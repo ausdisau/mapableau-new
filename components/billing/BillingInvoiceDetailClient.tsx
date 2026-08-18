@@ -1,5 +1,6 @@
 "use client";
 
+import type { BillingFundingSourceType } from "@prisma/client";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useState } from "react";
@@ -7,6 +8,7 @@ import { useState } from "react";
 import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { isInvoicePayable } from "@/lib/billing/portal-gating";
 
 type InvoiceDetail = {
   id: string;
@@ -39,9 +41,10 @@ export function BillingInvoiceDetailClient({ invoice }: { invoice: InvoiceDetail
   const [message, setMessage] = useState<string | null>(null);
 
   const planManaged = invoice.fundingSource?.type === "ndis_plan_managed";
-  const canPay =
-    !planManaged &&
-    ["draft", "issued", "pending_payment", "failed"].includes(invoice.status);
+  const canPay = isInvoicePayable(
+    invoice.status,
+    invoice.fundingSource?.type as BillingFundingSourceType | null
+  );
 
   async function payNow() {
     setBusy(true);

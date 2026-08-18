@@ -2,7 +2,7 @@
 
 Participant-safe financial operations layer for Care, Transport, Jobs, Foods, Moves, Marketplace, Academy, provider subscriptions, commissions, and private-pay services.
 
-Canonical UI: **`/billing`** (legacy `/dashboard/billing` redirects here).
+Canonical UI: **`/billing`** (legacy `/dashboard/billing` redirects here). Participants use this as the payments and invoices portal (pay, history, payment methods). Providers can also issue, send, and void invoices from invoice detail.
 
 ## Architecture
 
@@ -41,7 +41,7 @@ Check status: `pnpm db:migrate:status`
 1. Apply migrations: `pnpm db:migrate:deploy`
 2. Generate client: `pnpm db:generate`
 3. Seed demo scenarios (simulated): `pnpm seed:billing-centre`
-4. Configure Stripe / Xero env vars (see `.env.example`)
+4. Configure Stripe / Xero env vars (see `.env.example`). Optional: `STRIPE_BILLING_PORTAL_CONFIGURATION_ID` to reuse a Dashboard Billing Portal configuration; otherwise MapAble creates one with invoice history, payment-method update, and subscription management.
 
 ### Live integrations (authenticated environments only)
 

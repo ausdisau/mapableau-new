@@ -3,14 +3,14 @@ import { jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { isResponse } from "@/lib/billing/api-helpers";
 import {
   createDraftInvoice,
-  listInvoicesForUser,
+  listAccessibleBillingInvoices,
 } from "@/lib/billing/core/invoice-service";
 import { createInvoiceSchema } from "@/lib/billing/core/schemas";
 
 export async function GET() {
   const user = await requireApiSession();
   if (isResponse(user)) return user;
-  const invoices = await listInvoicesForUser(user.id);
+  const invoices = await listAccessibleBillingInvoices(user);
   return jsonOk({ invoices });
 }
 

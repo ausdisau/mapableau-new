@@ -4,6 +4,10 @@ import type Stripe from "stripe";
 import { payoutPolicyDefaults } from "@/lib/payouts/config";
 import { getStripeClient } from "@/lib/stripe/client";
 import { stripeConfig } from "@/lib/stripe/config";
+import {
+  billingInvoiceCheckoutReturnUrls,
+  checkoutIntegrationIdentifier,
+} from "@/lib/stripe/integration-identifier";
 import { billingCheckoutMetadata, legacyInvoiceMetadata } from "@/lib/stripe/metadata";
 
 export type PaymentCheckoutParams = {
@@ -17,6 +21,7 @@ export type PaymentCheckoutParams = {
   applicationFeeAmount?: number;
   transferDestination?: string;
   paymentIntentData?: Stripe.Checkout.SessionCreateParams["payment_intent_data"];
+  integrationLabel?: string;
 };
 
 export async function createStripePaymentCheckoutSession(
@@ -40,6 +45,9 @@ export async function createStripePaymentCheckoutSession(
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     metadata: params.metadata,
+    integration_identifier: checkoutIntegrationIdentifier(
+      params.integrationLabel ?? "mapable-invoice-pay"
+    ),
   };
 
   if (params.customerId) {
@@ -74,6 +82,9 @@ export async function createStripeSubscriptionCheckoutSession(params: {
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     metadata: params.metadata,
+    integration_identifier: checkoutIntegrationIdentifier(
+      "mapable-subscription"
+    ),
   });
 }
 
@@ -127,13 +138,18 @@ export function buildBillingPaymentCheckout(params: {
     };
   }
 
+  const returns = billingInvoiceCheckoutReturnUrls(
+    stripeConfig.appUrl,
+    params.invoiceId
+  );
+
   return createStripePaymentCheckoutSession({
     amountCents: params.totalCents,
     currency: params.currency,
     customerId: params.customerId,
     productName: params.productLabel,
-    successUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=success&invoiceId=${params.invoiceId}`,
-    cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/invoices?checkout=cancelled&invoiceId=${params.invoiceId}`,
+    successUrl: returns.successUrl,
+    cancelUrl: returns.cancelUrl,
     metadata,
     paymentIntentData,
     applicationFeeAmount: undefined,
@@ -161,5 +177,6 @@ export function buildLegacyInvoiceCheckout(params: {
     successUrl: `${stripeConfig.appUrl}/dashboard/billing/legacy/${params.invoiceId}?checkout=success`,
     cancelUrl: `${stripeConfig.appUrl}/dashboard/billing/legacy/${params.invoiceId}?checkout=cancelled`,
     metadata,
+    integrationLabel: "mapable-legacy-invoice",
   });
 }

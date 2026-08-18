@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { BillingStatusBadge } from "@/components/billing/BillingStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { isInvoicePayable } from "@/lib/billing/portal-gating";
 
 type InvoiceWithFunding = BillingInvoice & {
   fundingSource: BillingFundingSource | null;
@@ -34,9 +35,7 @@ export function BillingInvoiceCard({
   busy?: boolean;
 }) {
   const planManaged = invoice.fundingSource?.type === "ndis_plan_managed";
-  const canPay =
-    !planManaged &&
-    ["draft", "issued", "pending_payment", "failed"].includes(invoice.status);
+  const canPay = isInvoicePayable(invoice.status, invoice.fundingSource?.type);
 
   return (
     <Card

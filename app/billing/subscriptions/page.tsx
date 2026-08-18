@@ -1,7 +1,12 @@
 import { AccessibleDataTable } from "@/components/billing/AccessibleDataTable";
 import { BillingPageHeader } from "@/components/billing/BillingPageChrome";
+import { ManagePaymentMethodsButton } from "@/components/billing/portal/ManagePaymentMethodsButton";
 import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
+
+function stripeSubscriptionId(value: string | null): string | undefined {
+  return value?.startsWith("sub_") ? value : undefined;
+}
 
 export default async function BillingSubscriptionsPage() {
   const user = await requireAuth();
@@ -17,6 +22,7 @@ export default async function BillingSubscriptionsPage() {
         status: true,
         createdAt: true,
         currentPeriodEnd: true,
+        stripeSubscriptionId: true,
       },
     })
     .catch(() => []);
@@ -26,7 +32,9 @@ export default async function BillingSubscriptionsPage() {
       <BillingPageHeader
         title="Subscriptions"
         description="Recurring MapAble and related subscription plans on your account."
-      />
+      >
+        <ManagePaymentMethodsButton label="Manage billing details" />
+      </BillingPageHeader>
 
       <AccessibleDataTable
         caption="Subscriptions"
@@ -62,6 +70,22 @@ export default async function BillingSubscriptionsPage() {
               row.createdAt.toLocaleDateString("en-AU", {
                 dateStyle: "medium",
               }),
+          },
+          {
+            id: "manage",
+            header: "Manage",
+            cell: (row) => {
+              const subscriptionId = stripeSubscriptionId(
+                row.stripeSubscriptionId
+              );
+              return (
+                <ManagePaymentMethodsButton
+                  label="Manage subscription"
+                  flow={subscriptionId ? "subscription_update" : undefined}
+                  subscriptionId={subscriptionId}
+                />
+              );
+            },
           },
         ]}
       />

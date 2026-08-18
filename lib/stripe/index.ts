@@ -24,7 +24,17 @@ export {
   createExpressConnectAccount,
   createConnectOnboardingLink,
 } from "@/lib/stripe/connect";
-export { createBillingPortalSession } from "@/lib/stripe/portal";
+export {
+  createBillingPortalSession,
+  getOrCreateBillingPortalConfiguration,
+  billingPortalReturnUrl,
+  resetBillingPortalConfigCache,
+  type BillingPortalFlow,
+} from "@/lib/stripe/portal";
+export {
+  checkoutIntegrationIdentifier,
+  billingInvoiceCheckoutReturnUrls,
+} from "@/lib/stripe/integration-identifier";
 export {
   constructStripeWebhookEvent,
   processStripeWebhookEvent,

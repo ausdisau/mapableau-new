@@ -2,12 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { billingNavLinksForRole } from "@/components/billing/billing-nav";
 import { BillingShell } from "@/components/billing/BillingShell";
 import { InvoiceToolsOrb } from "@/components/billing/InvoiceToolsOrb";
 import { AuthenticatedRoleAppShell } from "@/components/layout/AuthenticatedRoleAppShell";
 import { requireAuth } from "@/lib/auth/guards";
+import { isCustomerBillingNavRole } from "@/lib/billing/core/billing-role";
 import { canAccessBillingCentre } from "@/lib/billing/permissions";
 import { mapableRoleNavBarClass } from "@/lib/brand/styles";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +62,15 @@ export default async function BillingCentreLayout({
     redirect("/dashboard");
   }
 
+  const customerNav = isCustomerBillingNavRole(user.primaryRole);
+  const subscriptionCount = customerNav
+    ? await prisma.billingSubscription.count({ where: { userId: user.id } })
+    : 0;
+  const navLinks = billingNavLinksForRole({
+    customerNav,
+    includeSubscriptions: !customerNav || subscriptionCount > 0,
+  });
+
   return (
     <AuthenticatedRoleAppShell
       user={user}
@@ -66,7 +78,7 @@ export default async function BillingCentreLayout({
       logoHref="/billing/overview"
       secondaryNav={<BillingSecondaryNav />}
     >
-      <BillingShell>{children}</BillingShell>
+      <BillingShell navLinks={navLinks}>{children}</BillingShell>
       <InvoiceToolsOrb />
     </AuthenticatedRoleAppShell>
   );

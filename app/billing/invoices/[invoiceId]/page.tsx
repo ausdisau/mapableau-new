@@ -2,14 +2,25 @@ import { notFound } from "next/navigation";
 
 import { ApprovalTimeline } from "@/components/billing/ApprovalTimeline";
 import { BillingCopilotPanel } from "@/components/billing/BillingCopilotPanel";
-import {
-  BillingPageHeader,
-} from "@/components/billing/BillingPageChrome";
+import { BillingPageHeader } from "@/components/billing/BillingPageChrome";
 import { EvidenceDrawer } from "@/components/billing/EvidenceDrawer";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
 import { PolicyValidationPanel } from "@/components/billing/PolicyValidationPanel";
+import { InvoiceLifecycleActions } from "@/components/billing/portal/InvoiceLifecycleActions";
+import { PayNowButton } from "@/components/billing/portal/PayNowButton";
 import { requireAuth } from "@/lib/auth/guards";
+import {
+  assertCanViewBillingInvoice,
+  BillingAccessError,
+} from "@/lib/billing/access";
 import { formatAud } from "@/lib/billing/money";
+import { hasBillingPermission } from "@/lib/billing/permissions";
+import {
+  canIssueInvoiceFromStatus,
+  canSendInvoiceFromStatus,
+  canVoidInvoiceFromStatus,
+  isInvoicePayable,
+} from "@/lib/billing/portal-gating";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
 import { prisma } from "@/lib/prisma";
 import type { BillingInvoiceState } from "@/types/billing";
@@ -22,15 +33,21 @@ export default async function BillingInvoiceDetailPage({
   const user = await requireAuth();
   const { invoiceId } = await params;
 
-  const invoice = await prisma.billingInvoice
-    .findFirst({
-      where: { id: invoiceId, userId: user.id },
-      include: {
-        lineItems: { take: 20 },
-        approvals: { orderBy: { createdAt: "asc" } },
-      },
-    })
-    .catch(() => null);
+  try {
+    await assertCanViewBillingInvoice(user, invoiceId);
+  } catch (error) {
+    if (error instanceof BillingAccessError) notFound();
+    throw error;
+  }
+
+  const invoice = await prisma.billingInvoice.findFirst({
+    where: { id: invoiceId },
+    include: {
+      lineItems: { take: 20 },
+      approvals: { orderBy: { createdAt: "asc" } },
+      fundingSource: true,
+    },
+  });
 
   if (!invoice) notFound();
 
@@ -43,6 +60,18 @@ export default async function BillingInvoiceDetailPage({
       : formatAud(line.totalCents),
   }));
 
+  const planManaged = invoice.fundingSource?.type === "ndis_plan_managed";
+  const showPay = isInvoicePayable(invoice.status, invoice.fundingSource?.type);
+  const canIssue =
+    hasBillingPermission(user.primaryRole, "billing:issue_invoice") &&
+    canIssueInvoiceFromStatus(invoice.status);
+  const canSend =
+    hasBillingPermission(user.primaryRole, "billing:issue_invoice") &&
+    canSendInvoiceFromStatus(invoice.status);
+  const canVoid =
+    hasBillingPermission(user.primaryRole, "billing:void_invoice") &&
+    canVoidInvoiceFromStatus(invoice.status);
+
   return (
     <div className="space-y-6">
       <BillingPageHeader
@@ -51,6 +80,9 @@ export default async function BillingInvoiceDetailPage({
       >
         <InvoiceStatusBadge status={invoice.status as BillingInvoiceState} />
         <div className="flex flex-wrap gap-2">
+          {showPay || planManaged ? (
+            <PayNowButton invoiceId={invoice.id} planManaged={planManaged} />
+          ) : null}
           <a
             className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-[#005B7F] hover:bg-[#F6FBFC] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40"
             href={`/api/billing/invoices/${invoice.id}/document?format=html`}
@@ -65,6 +97,14 @@ export default async function BillingInvoiceDetailPage({
           </a>
         </div>
       </BillingPageHeader>
+
+      <InvoiceLifecycleActions
+        invoiceId={invoice.id}
+        canIssue={canIssue}
+        canSend={canSend}
+        canVoid={canVoid}
+        defaultRecipient={user.email}
+      />
 
       <section
         aria-labelledby="invoice-totals-heading"
