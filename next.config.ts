@@ -58,8 +58,11 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     // CI already ran `pnpm type-check`. Skip duplicate tsc inside `next build`
-    // on GHA only (Vercel still typechecks at build; local builds typecheck).
-    ignoreBuildErrors: process.env.GITHUB_ACTIONS === "true",
+    // on GHA and Vercel — preview builders OOM during lint+tsc (see
+    // docs/remediation/PR390_VERCEL_PREVIEW_MEMORY.md). Local builds still
+    // typecheck when VERCEL/GITHUB_ACTIONS are unset.
+    ignoreBuildErrors:
+      process.env.GITHUB_ACTIONS === "true" || process.env.VERCEL === "1",
   },
 };
 
