@@ -21,7 +21,7 @@ export const mapablePublicMutedCardClass =
   "rounded-[1.5rem] border border-slate-200 bg-mapable-surface p-5";
 
 export const mapablePublicPrimaryButtonClass =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-mapable-brand px-6 text-sm font-black text-white shadow-sm transition hover:bg-mapable-brand-dark focus:outline-none focus:ring-4 focus:ring-mapable-gold/40";
+  "inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-mapable-primary px-6 text-sm font-black text-white shadow-sm transition hover:bg-mapable-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-mapable-primary";
 
 export const mapablePublicSecondaryButtonClass =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 border-mapable-navy px-6 text-sm font-black text-mapable-navy transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-mapable-gold/40";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 border-mapable-primary bg-white px-6 text-sm font-black text-mapable-primary transition hover:bg-mapable-surface-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-mapable-primary";

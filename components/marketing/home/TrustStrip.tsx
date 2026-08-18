@@ -20,11 +20,11 @@ export function TrustStrip() {
   return (
     <ul
       aria-label="MapAble trust highlights"
-      className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold text-slate-600"
+      className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold text-mapable-text-muted"
     >
       {homepageTrustStripItems.map((item) => (
         <li key={item} className="inline-flex min-h-11 items-center gap-2">
-          <span className="text-[#005B7F]">
+          <span className="text-mapable-primary">
             <CheckIcon />
           </span>
           <span>{item}</span>

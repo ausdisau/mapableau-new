@@ -10,35 +10,38 @@ export function CompetitorContrastStrip() {
   return (
     <section
       aria-labelledby="contrast-heading"
-      className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16"
+      className="mx-auto max-w-7xl px-5 py-14 lg:px-8 lg:py-16"
     >
-      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+      <p className="text-sm font-black uppercase tracking-[0.18em] text-mapable-primary">
         Why MapAble
       </p>
       <h2
         id="contrast-heading"
-        className="mt-3 max-w-3xl text-3xl font-black tracking-[-0.04em] text-[#0C1833] md:text-4xl"
+        className="mt-3 max-w-3xl font-heading text-3xl font-black tracking-[-0.04em] text-mapable-text md:text-5xl"
       >
         Accessibility proof, not another directory.
       </h2>
-      <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+      <p className="mt-4 max-w-2xl text-lg leading-[1.65] text-mapable-text-muted">
         MapAble publishes access detail, confidence, and practical next steps so
         participants and providers can plan with clearer evidence.
       </p>
-      <ol className="mt-10 divide-y divide-slate-200 border-y border-slate-200">
+      <ol className="mt-10 divide-y divide-mapable-border border-y border-mapable-border">
         {competitorContrastCards.map((card, index) => (
           <li
             key={card.title}
-            className="grid gap-3 py-6 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-8"
+            className="grid gap-3 py-6 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8"
           >
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#005B7F]">
-              {String(index + 1).padStart(2, "0")} · {card.badge}
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-mapable-primary">
+              {String(index + 1).padStart(2, "0")}
             </p>
             <div>
-              <h3 className="text-xl font-black text-[#0C1833]">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-mapable-text-muted">
+                {card.badge}
+              </p>
+              <h3 className="mt-2 font-heading text-xl font-black text-mapable-text md:text-2xl">
                 {card.title}
               </h3>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              <p className="mt-2 max-w-2xl text-base leading-[1.65] text-mapable-text-muted">
                 {card.body}
               </p>
             </div>

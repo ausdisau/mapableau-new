@@ -38,12 +38,58 @@
   --input: 215 20% 90%;
   --ring: 215 100% 35%;
 
-  /* MapAble marketing palette (combined homepage + public pages) */
-  --mapable-brand: 196 100% 25%;
-  --mapable-brand-dark: 196 100% 20%;
-  --mapable-navy: 222 56% 12%;
-  --mapable-gold: 45 94% 54%;
-  --mapable-surface: 195 50% 98%;
+  /* MapAble marketing palette (2026 identity). Do not change --primary here. */
+  --mapable-blue-700: #1e5a8a;
+  --mapable-blue-800: #174a73;
+  --mapable-blue-900: #103a5d;
+  --mapable-violet-600: #72549d;
+  --mapable-orange-500: #f47a2a;
+  --mapable-gold-400: #f1b51c;
+  --mapable-navy-950: #10233a;
+  --mapable-slate-700: #435466;
+  --mapable-slate-500: #66788a;
+  --mapable-surface: #f7fafc;
+  --mapable-surface-blue: #f1f7fb;
+  --mapable-white: #ffffff;
+  --mapable-border: #dde7ee;
+  --mapable-tagline: #9a4a12;
+
+  --mapable-primary: var(--mapable-blue-700);
+  --mapable-primary-hover: var(--mapable-blue-800);
+  --mapable-primary-strong: var(--mapable-blue-900);
+  --mapable-violet: var(--mapable-violet-600);
+  --mapable-orange: var(--mapable-orange-500);
+  --mapable-gold: var(--mapable-gold-400);
+  --mapable-text: var(--mapable-navy-950);
+  --mapable-text-muted: var(--mapable-slate-700);
+  --mapable-focus: var(--mapable-blue-700);
+
+  --mapable-gradient-brand: linear-gradient(
+    90deg,
+    #1e5a8a 0%,
+    #72549d 36%,
+    #f47a2a 70%,
+    #f1b51c 100%
+  );
+  --mapable-gradient-cool: linear-gradient(
+    90deg,
+    #103a5d 0%,
+    #1e5a8a 50%,
+    #72549d 100%
+  );
+  --mapable-gradient-warm: linear-gradient(
+    90deg,
+    #72549d 0%,
+    #f47a2a 55%,
+    #f1b51c 100%
+  );
+
+  /* HSL aliases for existing Tailwind `mapable.brand` utilities */
+  --mapable-brand: 207 64% 33%;
+  --mapable-brand-dark: 207 67% 27%;
+  --mapable-navy: 213 57% 15%;
+  --mapable-gold-hsl: 43 88% 53%;
+  --mapable-surface-hsl: 204 45% 98%;
 }
 
 .dark {

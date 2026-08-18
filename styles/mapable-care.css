@@ -1,3 +1,15 @@
+.mapable-brand-gradient {
+  background-image: var(--mapable-gradient-brand);
+}
+
+.mapable-cool-gradient {
+  background-image: var(--mapable-gradient-cool);
+}
+
+.mapable-warm-gradient {
+  background-image: var(--mapable-gradient-warm);
+}
+
 .mapable-display {
   font-family: ui-rounded, "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
   letter-spacing: -0.045em;

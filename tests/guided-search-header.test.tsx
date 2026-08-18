@@ -35,9 +35,13 @@ describe("MapAbleCareMarketingHeader", () => {
     render(<MapAbleCareMarketingHeader />);
 
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Explore" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Care" }).getAttribute("href")).toBe(
+      "/care",
+    );
     expect(
-      screen.getByRole("link", { name: "Pre-register" }).getAttribute("href"),
-    ).toBe("#pre-register");
+      screen.getByRole("link", { name: "Transport" }).getAttribute("href"),
+    ).toBe("/transport");
     expect(screen.queryByLabelText("Search MapAble")).toBeNull();
   });
 
@@ -52,12 +56,19 @@ describe("MapAbleCareMarketingHeader", () => {
     ).toBe("/register");
   });
 
-  it("renders donate link to Australian Disability", () => {
+  it("exposes a mobile menu control with aria-expanded", () => {
     render(<MapAbleCareMarketingHeader />);
 
-    const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
-    expect(donate.getAttribute("target")).toBe("_blank");
-    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+    const menu = screen.getByRole("button", { name: "Menu" });
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    expect(menu.getAttribute("aria-controls")).toBe(
+      "marketing-primary-nav-mobile",
+    );
+  });
+
+  it("does not render a header Donate button", () => {
+    render(<MapAbleCareMarketingHeader />);
+
+    expect(screen.queryByRole("link", { name: "Donate" })).toBeNull();
   });
 });
