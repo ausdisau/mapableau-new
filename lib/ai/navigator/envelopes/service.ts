@@ -1,6 +1,10 @@
 import type { Prisma } from "@prisma/client";
 
 import {
+  NAVIGATOR_CONSENT_PURPOSE,
+  verifyPurposeConsent,
+} from "@/lib/ai/navigator/consent-gate";
+import {
   createEnvelopeNonce,
   createOpaqueEnvelopeId,
   governedEnvelopeCreateSchema,
@@ -48,6 +52,16 @@ export type GovernedActionEnvelopeRecord = {
   consumedAt: Date | null;
   auditEventIds: string[];
 };
+
+/** Client-safe envelope projection — never includes the single-use nonce. */
+export type PublicGovernedEnvelope = Omit<GovernedActionEnvelopeRecord, "nonce">;
+
+export function toPublicGovernedEnvelope(
+  envelope: GovernedActionEnvelopeRecord,
+): PublicGovernedEnvelope {
+  const { nonce: _nonce, ...rest } = envelope;
+  return rest;
+}
 
 const DRAFT_ONLY_ACTIONS: GovernedEnvelopeAction[] = [
   "create_service_request_draft",
@@ -135,10 +149,12 @@ export async function createGovernedActionEnvelope(
 }
 
 /**
- * Revalidate identity, role, consent linkage, feature flag and policy
+ * Revalidate identity, role, consent, feature flag and policy
  * immediately before draft "execution" (materialising a draft only).
- * Model cannot approve its own action — approver must differ from initiating user
- * unless the participant is self-approving their own draft.
+ * Model cannot approve its own action.
+ *
+ * Consent is always re-verified server-side. Any `consentStillValid`
+ * argument from callers is ignored.
  */
 export async function approveGovernedActionEnvelope(input: {
   envelopeId: string;
@@ -147,7 +163,10 @@ export async function approveGovernedActionEnvelope(input: {
   approverUserId: string;
   approverRole: string;
   reason?: string;
-  consentStillValid: boolean;
+  /**
+   * @deprecated Ignored. Consent is re-verified via verifyPurposeConsent.
+   */
+  consentStillValid?: boolean;
 }): Promise<GovernedActionEnvelopeRecord> {
   if (!isNavigatorEnvelopesEnabled()) {
     throw new Error("NAVIGATOR_ENVELOPES_DISABLED");
@@ -191,10 +210,6 @@ export async function approveGovernedActionEnvelope(input: {
     throw new Error("NAVIGATOR_ENVELOPE_EXPIRED");
   }
 
-  if (!input.consentStillValid) {
-    throw new Error("NAVIGATOR_ENVELOPE_CONSENT_INVALID");
-  }
-
   // Model must never approve its own action.
   if (input.approverUserId === "model" || input.approverRole === "model") {
     throw new Error("NAVIGATOR_ENVELOPE_MODEL_CANNOT_APPROVE");
@@ -212,6 +227,20 @@ export async function approveGovernedActionEnvelope(input: {
   });
   if (!gate.allowed) {
     throw new Error(`NAVIGATOR_GATE_DENIED:${gate.reason}`);
+  }
+
+  // Re-verify consent immediately before draft execution (ignore caller boolean).
+  const consent = await verifyPurposeConsent({
+    tenantId: input.tenantId,
+    participantId: input.participantId,
+    actorUserId: input.approverUserId,
+    scope: "profile.read",
+    purpose: NAVIGATOR_CONSENT_PURPOSE,
+    action: existing.action,
+    delegationDomain: "navigator",
+  });
+  if (!consent.ok) {
+    throw new Error("NAVIGATOR_ENVELOPE_CONSENT_INVALID");
   }
 
   let executionResult: Record<string, unknown> = {

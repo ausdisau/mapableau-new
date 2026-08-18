@@ -6,6 +6,16 @@ export {
   NAVIGATOR_PILOT_PROHIBITED_ACTIONS,
 } from "@/lib/ai/navigator/gates";
 export {
+  assertNavigatorPilotAccess,
+  assertNavigatorConsentAndCapability,
+  navigatorAccessErrorCode,
+  NAVIGATOR_MATCH_CAPABILITY,
+} from "@/lib/ai/navigator/access";
+export type {
+  NavigatorPilotAccessInput,
+  NavigatorPilotAccessResult,
+} from "@/lib/ai/navigator/access";
+export {
   verifyPurposeConsent,
   NAVIGATOR_CONSENT_PURPOSE,
 } from "@/lib/ai/navigator/consent-gate";
@@ -15,7 +25,9 @@ export {
   rejectGovernedActionEnvelope,
   getGovernedActionEnvelope,
   updateGovernedActionEnvelopeDraft,
+  toPublicGovernedEnvelope,
 } from "@/lib/ai/navigator/envelopes/service";
+export type { PublicGovernedEnvelope } from "@/lib/ai/navigator/envelopes/service";
 export {
   materialiseFinderTransfer,
   isTransferFiltersAction,
@@ -33,6 +45,7 @@ export {
   rejectSuggestion,
   setAiOptOut,
   projectDecisionPassport,
+  hasActiveAiOptOut,
 } from "@/lib/ai/navigator/passport/service";
 export {
   passportCreateSchema,

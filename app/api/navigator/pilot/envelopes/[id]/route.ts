@@ -1,11 +1,16 @@
 import { z } from "zod";
 
 import {
+  assertNavigatorPilotAccess,
+  navigatorAccessErrorCode,
+} from "@/lib/ai/navigator/access";
+import {
   NAVIGATOR_CONSENT_PURPOSE,
   verifyPurposeConsent,
 } from "@/lib/ai/navigator/consent-gate";
 import {
   getGovernedActionEnvelope,
+  toPublicGovernedEnvelope,
   updateGovernedActionEnvelopeDraft,
 } from "@/lib/ai/navigator/envelopes/service";
 import { requireApiSession } from "@/lib/api/auth-handler";
@@ -36,7 +41,7 @@ const patchSchema = z
 
 type Ctx = { params: Promise<{ id: string }> };
 
-/** Tenant-safe get of a draft envelope. */
+/** Tenant-safe get of a draft envelope. Nonce never returned to clients. */
 export async function GET(req: Request, ctx: Ctx) {
   if (!isNavigatorEnvelopesEnabled()) {
     return jsonError("NAVIGATOR_ENVELOPES_DISABLED", 403);
@@ -52,8 +57,14 @@ export async function GET(req: Request, ctx: Ctx) {
     participantId: url.searchParams.get("participantId"),
   });
   if (!parsed.success) return zodErrorResponse(parsed.error);
-  if (user.id !== parsed.data.participantId) {
-    return jsonError("FORBIDDEN", 403);
+
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
   const envelope = await getGovernedActionEnvelope({
@@ -62,7 +73,7 @@ export async function GET(req: Request, ctx: Ctx) {
     participantId: parsed.data.participantId,
   });
   if (!envelope) return jsonError("NAVIGATOR_ENVELOPE_NOT_FOUND", 404);
-  return jsonOk({ envelope });
+  return jsonOk({ envelope: toPublicGovernedEnvelope(envelope) });
 }
 
 /** Edit proposed draft payload before approval. */
@@ -95,8 +106,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
-  if (user.id !== parsed.data.participantId) {
-    return jsonError("FORBIDDEN", 403);
+
+  const access = await assertNavigatorPilotAccess({
+    tenantId: parsed.data.tenantId,
+    participantId: parsed.data.participantId,
+    actorUserId: user.id,
+  });
+  if (!access.ok) {
+    return jsonError(navigatorAccessErrorCode(access.reason), 403);
   }
 
   const consent = await verifyPurposeConsent({

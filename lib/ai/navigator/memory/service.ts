@@ -259,6 +259,7 @@ export async function listMemoryItems(input: {
   }
 
   const take = Math.max(1, Math.min(input.take ?? 50, 100));
+  const now = new Date();
   const rows = await prisma.navigatorGovernedMemoryItem.findMany({
     where: {
       tenantId: input.tenantId,
@@ -266,6 +267,7 @@ export async function listMemoryItems(input: {
       deletedAt: null,
       ...(input.includeWithdrawn ? {} : { withdrawnAt: null }),
       ...(input.category ? { category: input.category } : {}),
+      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
     },
     orderBy: { createdAt: "desc" },
     take,

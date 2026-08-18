@@ -92,6 +92,8 @@ function clearPilotEnv() {
   delete process.env.MAPABLE_NAVIGATOR_PILOT_ENVELOPES;
   delete process.env.MAPABLE_NAVIGATOR_PILOT_MODEL_ASSISTED;
   delete process.env.MAPABLE_NAVIGATOR_PILOT_MATCHING;
+  delete process.env.MAPABLE_A2H_HANDOFF_ENABLED;
+  delete process.env.MAPABLE_AURA_HARNESS_ENABLED;
 }
 
 describe("Navigator Phase 2 — flags default false", () => {
@@ -410,6 +412,8 @@ describe("Navigator Phase 2 — escalation", () => {
   });
 
   it("returns emergency guidance for immediate_danger and creates handoff", async () => {
+    process.env.MAPABLE_A2H_HANDOFF_ENABLED = "true";
+    process.env.MAPABLE_AURA_HARNESS_ENABLED = "true";
     vi.mocked(createActHandoffFromHitl).mockResolvedValue({
       id: "handoff-1",
       status: "pending",
@@ -426,6 +430,7 @@ describe("Navigator Phase 2 — escalation", () => {
     expect(result.emergencyGuidance).toBe(EMERGENCY_GUIDANCE_AU);
     expect(result.emergencyGuidance).toContain("000");
     expect(result.handoffId).toBe("handoff-1");
+    expect(result.assignment).toBe("assigned");
     expect(createActHandoffFromHitl).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "tenant-1",
@@ -438,8 +443,29 @@ describe("Navigator Phase 2 — escalation", () => {
         action: "navigator.escalation.created",
         metadata: expect.objectContaining({
           emergencyGuidanceReturned: true,
+          assignment: "assigned",
         }),
       }),
     );
+  });
+
+  it("does not claim a reviewer when A2H flags are off", async () => {
+    delete process.env.MAPABLE_A2H_HANDOFF_ENABLED;
+    delete process.env.MAPABLE_AURA_HARNESS_ENABLED;
+
+    const result = await createNavigatorEscalation({
+      tenantId: "tenant-1",
+      participantId: "p1",
+      actorUserId: "p1",
+      reason: "immediate_danger",
+    });
+
+    expect(result.assignment).toBe("unavailable");
+    expect(result.handoffId).toBeNull();
+    expect(result.status).toBe("pending_ops");
+    expect(result.emergencyGuidance).toContain("000");
+    expect(result.emergencyGuidance).toContain("unavailable");
+    expect(result.message).not.toContain("has been notified");
+    expect(createActHandoffFromHitl).not.toHaveBeenCalled();
   });
 });

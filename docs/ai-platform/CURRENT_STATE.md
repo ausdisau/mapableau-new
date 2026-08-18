@@ -38,6 +38,8 @@ Positioning: *An evidence-aware, participant-controlled copilot for complete dis
 
 Navigator pilot surfaces (Decision Passport, governed memory, matching) also require
 `MAPABLE_NAVIGATOR_PILOT_PASSPORT` / `_MEMORY` / `_MATCHING` (all default false).
+Phase 6 hardening binds tenant membership, re-verifies consent on envelope approve,
+rematches on passport correction, and gates passport/memory/escalate. Flags stay off.
 See [NAVIGATOR_ASSURANCE.md](./NAVIGATOR_ASSURANCE.md).
 ## Advanced AI Expansion train (≤ 3)
 

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { NAVIGATOR_AUDIT } from "@/lib/ai/navigator/gates";
+import { rematchAfterPassportCorrection } from "@/lib/ai/navigator/passport/rematch";
 import {
   hardConstraintsSchema,
   passportCreateSchema,
@@ -203,6 +204,9 @@ export async function correctDecisionPassport(input: {
   hardConstraints?: HardConstraint[];
   rankingWeights?: RankingWeights;
   note?: string;
+  /** When false, skip rematch even if matching is enabled. Default true. */
+  rematch?: boolean;
+  silent?: boolean;
 }): Promise<DecisionPassportView> {
   if (!isNavigatorPassportEnabled()) {
     throw new Error("NAVIGATOR_PASSPORT_DISABLED");
@@ -219,6 +223,10 @@ export async function correctDecisionPassport(input: {
     throw new Error("NAVIGATOR_PASSPORT_NOT_FOUND");
   }
 
+  if (existing.aiOptedOut) {
+    throw new Error("NAVIGATOR_PASSPORT_AI_OPTED_OUT");
+  }
+
   const nextInterpretation = passportInterpretationSchema.parse({
     ...parseInterpretation(existing.interpretationJson),
     ...(input.interpretation ?? {}),
@@ -231,12 +239,48 @@ export async function correctDecisionPassport(input: {
     ? rankingWeightsSchema.parse(input.rankingWeights)
     : parseRankingWeights(existing.rankingWeightsJson);
 
+  let nextShortlist = parseShortlist(existing.shortlistJson);
+  let nextLimitations = existing.limitationsNotes;
+  let nextStep = existing.nextStep;
+
+  const shouldRematch = input.rematch !== false;
+  if (shouldRematch) {
+    const match = await rematchAfterPassportCorrection({
+      tenantId: input.tenantId,
+      participantId: input.participantId,
+      actorUserId: input.actorUserId,
+      hardConstraints: nextConstraints,
+      rankingWeights: nextWeights,
+      query:
+        nextInterpretation.summary ??
+        nextInterpretation.serviceType ??
+        existing.goalSummary,
+      silent: input.silent,
+    });
+    if (match) {
+      nextShortlist = match.shortlist.map((entry) => ({
+        id: entry.provider.id,
+        label: entry.provider.name,
+        factors: entry.materialFactors,
+        score: entry.score,
+      }));
+      nextLimitations = match.limitations;
+      nextStep =
+        match.status === "NO_SAFE_MATCH"
+          ? "No safe match after correction — refine constraints or request human help"
+          : "Review updated shortlist after your correction";
+    }
+  }
+
   const row = await prisma.navigatorDecisionPassport.update({
     where: { id: existing.id },
     data: {
       interpretationJson: nextInterpretation as Prisma.InputJsonValue,
       hardConstraintsJson: nextConstraints as Prisma.InputJsonValue,
       rankingWeightsJson: nextWeights as Prisma.InputJsonValue,
+      shortlistJson: nextShortlist as Prisma.InputJsonValue,
+      limitationsNotes: nextLimitations,
+      nextStep,
       status: "corrected",
     },
   });
@@ -250,6 +294,8 @@ export async function correctDecisionPassport(input: {
     metadata: {
       tenantId: input.tenantId,
       note: input.note ?? null,
+      rematched: shouldRematch,
+      shortlistCount: nextShortlist.length,
     },
   });
 
@@ -420,4 +466,31 @@ export async function setAiOptOut(input: {
   });
 
   return projectDecisionPassport(row as PassportRow);
+}
+
+/**
+ * True when any retained passport for this tenant/participant (optionally
+ * session) has aiOptedOut. Server-side honour — clients cannot bypass by
+ * omitting aiOptedOut on the search body.
+ */
+export async function hasActiveAiOptOut(input: {
+  tenantId: string;
+  participantId: string;
+  sessionId?: string;
+}): Promise<boolean> {
+  if (!isNavigatorPassportEnabled()) {
+    return false;
+  }
+  const row = await prisma.navigatorDecisionPassport.findFirst({
+    where: {
+      tenantId: input.tenantId,
+      participantId: input.participantId,
+      aiOptedOut: true,
+      ...(input.sessionId ? { sessionId: input.sessionId } : {}),
+    },
+    select: { id: true, aiOptedOut: true },
+  });
+  // Require the flag on the row — mocked findFirst callers that ignore `where`
+  // must still return aiOptedOut: true to count as an opt-out.
+  return row?.aiOptedOut === true;
 }

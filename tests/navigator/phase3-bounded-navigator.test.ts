@@ -51,6 +51,13 @@ vi.mock("@/lib/prisma", () => ({
       update: vi.fn(),
       updateMany: vi.fn(),
     },
+    navigatorDecisionPassport: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
+    navigatorGovernedMemoryItem: {
+      findMany: vi.fn(),
+    },
     $queryRaw: vi.fn(),
   },
 }));
@@ -108,6 +115,8 @@ function clearMatchingFlags() {
   delete process.env.MAPABLE_NAVIGATOR_PILOT_MATCHING;
   delete process.env.MAPABLE_NAVIGATOR_PILOT_MODEL_ASSISTED;
   delete process.env.MAPABLE_NAVIGATOR_PILOT_ENVELOPES;
+  delete process.env.MAPABLE_NAVIGATOR_PILOT_PASSPORT;
+  delete process.env.MAPABLE_NAVIGATOR_PILOT_MEMORY;
 }
 
 function mockActiveConsent() {
@@ -322,6 +331,12 @@ describe("Navigator Phase 3 — orchestrator", () => {
     clearMatchingFlags();
     vi.mocked(searchNdisProviders).mockReset();
     vi.mocked(interpretSearchQuery).mockClear();
+    vi.mocked(prisma.navigatorDecisionPassport.findFirst).mockResolvedValue(
+      null,
+    );
+    vi.mocked(prisma.navigatorGovernedMemoryItem.findMany).mockResolvedValue(
+      [],
+    );
     mockActiveConsent();
   });
 

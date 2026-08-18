@@ -13,6 +13,10 @@ const projects: Project[] = [
     testMatch: /route-shells\.spec\.ts/,
   },
   {
+    name: "navigator-pilot",
+    testMatch: /navigator-pilot\.spec\.ts/,
+  },
+  {
     name: "informational",
     testMatch: /informational-routes\.spec\.ts/,
   },

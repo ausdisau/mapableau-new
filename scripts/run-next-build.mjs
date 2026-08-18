@@ -12,18 +12,21 @@ import { spawnSync } from "node:child_process";
 
 function resolveHeapMb() {
   const override = process.env.MAPABLE_BUILD_HEAP_MB;
-  if (override && Number.isFinite(Number(override))) {
-    return Number(override);
-  }
   if (process.env.VERCEL === "1") {
     // History on default ~8 GB Vercel builders (PR #390 / #413):
     // - 7168 → SIGKILL (RSS)
     // - 5632 → JS heap OOM during lint+tsc when eslint ran in-build
-    // - 6144 → still SIGKILL with eslint in-build (dpl_9cgbYumEJum…)
-    // With eslint.ignoreDuringBuilds on Vercel only (CI still lints), keep
-    // headroom under the container RSS limit for tsc + SSG.
-    // If SIGKILL persists: OWNER_ACTION_REQUIRED — larger Vercel build machine.
-    return 5120;
+    // - 6144 → still SIGKILL with eslint in-build (dpl_9cgbYumEJ…)
+    // With eslint/tsc skipped in-build on Vercel (CI gates both), cap heap
+    // below container RSS even when MAPABLE_BUILD_HEAP_MB is set in project env.
+    const vercelCap = 4608;
+    if (override && Number.isFinite(Number(override))) {
+      return Math.min(Number(override), vercelCap);
+    }
+    return vercelCap;
+  }
+  if (override && Number.isFinite(Number(override))) {
+    return Number(override);
   }
   if (process.env.GITHUB_ACTIONS === "true") {
     // Codebase growth after lib nesting / CareOS waves needs more SSG headroom

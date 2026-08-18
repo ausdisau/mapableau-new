@@ -19,6 +19,11 @@ export type PurposeConsentVerificationInput = {
   permittedFields?: string[];
   /** Action the caller intends to perform. */
   action: string;
+  /**
+   * When set, this specific ConsentRecord must still be the newest active
+   * matching consent. An older id fails with consent_superseded.
+   */
+  consentRecordId?: string;
   /** When actor ≠ participant, require a scoped authority grant. */
   delegationDomain?: string;
   now?: Date;
@@ -102,10 +107,25 @@ export async function verifyPurposeConsent(
     return fail(input, "purpose_mismatch");
   }
 
-  const current = matching[0];
-  if (matching.length > 1) {
-    // Older rows exist — current is superseding; reject if somehow not newest active.
-    void matching;
+  const requestedId = input.consentRecordId?.trim();
+  const current = requestedId
+    ? matching.find((row) => row.id === requestedId)
+    : matching[0];
+  if (!current) {
+    return fail(input, "consent_missing");
+  }
+
+  // Supersession: a newer active matching consent exists (typical when the
+  // caller re-binds an older stored receipt/record id).
+  const newerActive = matching.find(
+    (row) =>
+      row.id !== current.id &&
+      row.createdAt > current.createdAt &&
+      row.status === "active" &&
+      (!row.expiryDate || row.expiryDate > now),
+  );
+  if (newerActive) {
+    return fail(input, "consent_superseded");
   }
 
   if (current.status === "revoked") {
@@ -119,19 +139,6 @@ export async function verifyPurposeConsent(
   }
   if (current.expiryDate && current.expiryDate <= now) {
     return fail(input, "consent_expired");
-  }
-
-  // Supersession: a newer active consent with same scope+purpose already won
-  // via orderBy desc; if current is not the first active among matching, block.
-  const newerActive = matching.find(
-    (row) =>
-      row.id !== current.id &&
-      row.createdAt > current.createdAt &&
-      row.status === "active" &&
-      (!row.expiryDate || row.expiryDate > now),
-  );
-  if (newerActive) {
-    return fail(input, "consent_superseded");
   }
 
   const dataScope = normalizeDataScope(current.dataScope);

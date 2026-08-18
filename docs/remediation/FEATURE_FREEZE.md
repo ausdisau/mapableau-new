@@ -3,7 +3,7 @@
 Temporary stabilisation policy for the MapAble remediation programme.
 
 **Status:** active from PR 1 merge until programme Definition of Done (see remediation plan) or explicit executive lift.  
-**Last verified:** 2026-07-27 (`main` @ `dd5ff9fc`)
+**Last verified:** 2026-08-15 (`main` @ `4f76d962`; Navigator Phase 6 hardening on `cursor/navigator-phase6-hardening-94af` @ `28a1ff75`)
 
 ## Frozen (not permitted)
 

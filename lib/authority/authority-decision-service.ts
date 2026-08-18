@@ -88,6 +88,7 @@ export async function evaluateAuthorityDecision(input: {
 
   let grantId: string | undefined;
   if (allowed && input.participantId !== input.actorUserId) {
+    // Grant table has no tenantId — do not filter a non-existent column.
     const grant = await prisma.participantAuthorityGrant.findFirst({
       where: {
         participantId: input.participantId,
@@ -96,7 +97,6 @@ export async function evaluateAuthorityDecision(input: {
         actions: { has: input.action },
         revokedAt: null,
         expiresAt: { gt: input.now ?? new Date() },
-        ...(input.tenantId ? { tenantId: input.tenantId } : {}),
       },
       select: { id: true },
     });

@@ -194,6 +194,15 @@ function materialFactorsFor(
     factors.push("Sponsored listing — labelled, not used for eligibility");
   }
 
+  if (candidate.evidenceStatus === "stale") {
+    factors.push(
+      "Stale directory evidence — listing details may be out of date",
+    );
+  }
+  if (candidate.evidenceStatus === "disputed") {
+    factors.push("Disputed evidence — do not treat as verified");
+  }
+
   return factors;
 }
 
@@ -293,6 +302,12 @@ export function buildMatchResult(input: {
     shortlistLimit: input.shortlistLimit,
     now: input.now,
   });
+
+  if (shortlist.some((entry) => entry.provider.evidenceStatus === "stale")) {
+    limitations.push(
+      "One or more shortlist entries have stale directory evidence.",
+    );
+  }
 
   return {
     status: "eligible_shortlist",

@@ -53,6 +53,10 @@ vi.mock("@/lib/prisma", () => ({
     },
     navigatorDecisionPassport: {
       create: vi.fn(),
+      findFirst: vi.fn(),
+    },
+    navigatorGovernedMemoryItem: {
+      findMany: vi.fn(),
     },
     $queryRaw: vi.fn(),
   },
@@ -134,6 +138,12 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
     vi.mocked(prisma.governedActionEnvelope.updateMany).mockReset();
     vi.mocked(prisma.governedActionEnvelope.findUniqueOrThrow).mockReset();
     vi.mocked(prisma.navigatorDecisionPassport.create).mockReset();
+    vi.mocked(prisma.navigatorDecisionPassport.findFirst).mockResolvedValue(
+      null,
+    );
+    vi.mocked(prisma.navigatorGovernedMemoryItem.findMany).mockResolvedValue(
+      [],
+    );
     vi.mocked(createAuditEvent).mockClear();
     mockActiveConsent();
   });
@@ -402,6 +412,17 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
       },
       consumedAt: new Date(),
     } as never);
+    vi.mocked(prisma.consentRecord.findMany).mockResolvedValue([
+      {
+        id: "c-ok",
+        purpose: NAVIGATOR_CONSENT_PURPOSE,
+        status: "active",
+        expiryDate: new Date(Date.now() + 60_000),
+        dataScope: null,
+        sourceAction: null,
+        createdAt: new Date(),
+      } as never,
+    ]);
 
     const approved = await approveGovernedActionEnvelope({
       envelopeId: "env-transfer-1",
@@ -409,7 +430,6 @@ describe("Navigator Phase 5 — vertical slice closure", () => {
       participantId: "p1",
       approverUserId: "p1",
       approverRole: "participant",
-      consentStillValid: true,
     });
 
     expect(approved.status).toBe("executed_draft");
