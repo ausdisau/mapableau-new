@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import { PostServiceCsatPrompt } from "@/components/engagement/PostServiceCsatPrompt";
 import { formInputClass } from "@/components/forms/AccessibleFormField";
 import { Button } from "@/components/ui/button";
+import { useAccessibilityAnnouncement, useMotionPreferencesSafe } from "@/lib/accessibility/use-accessibility";
 import type { TransportNextAction } from "@/types/transport";
 
 type DialogKind = "cancel" | "dispute" | null;
@@ -26,6 +27,12 @@ export function TransportTripActionDialogs({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { announcerRef, announce } = useAccessibilityAnnouncement();
+  const motion = useMotionPreferencesSafe();
+
+  const cancelRef = useRef<HTMLDivElement | null>(null);
+  const disputeRef = useRef<HTMLDivElement | null>(null);
+
   const participantActions = actions.filter((a) =>
     ["cancel", "confirm", "dispute"].includes(a.action)
   );
@@ -42,11 +49,9 @@ export function TransportTripActionDialogs({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(
-          typeof data.error === "string"
-            ? data.error
-            : "That action could not be completed."
-        );
+        const msg = typeof data.error === "string" ? data.error : "That action could not be completed.";
+        announce(msg, { priority: "assertive" });
+        setError(msg);
         return;
       }
       setDialog(null);
@@ -55,13 +60,29 @@ export function TransportTripActionDialogs({
         setShowCsat(true);
         return;
       }
+      announce("Action completed", { priority: "polite" });
       onComplete();
     } catch {
-      setError("Something went wrong. Please try again.");
+      const msg = "Something went wrong. Please try again.";
+      announce(msg, { priority: "assertive" });
+      setError(msg);
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (dialog === "cancel" && cancelRef.current) {
+      const btn = cancelRef.current.querySelector("button");
+      const delay = motion && motion.transitionDuration ? Math.round(parseFloat(motion.transitionDuration.replace("s", "")) * 1000) : 0;
+      setTimeout(() => btn?.focus(), delay);
+    }
+    if (dialog === "dispute" && disputeRef.current) {
+      const btn = disputeRef.current.querySelector("button");
+      const delay = motion && motion.transitionDuration ? Math.round(parseFloat(motion.transitionDuration.replace("s", "")) * 1000) : 0;
+      setTimeout(() => btn?.focus(), delay);
+    }
+  }, [dialog, motion]);
 
   if (participantActions.length === 0) return null;
 
@@ -79,6 +100,7 @@ export function TransportTripActionDialogs({
 
   return (
     <section className="space-y-3" aria-labelledby={`trip-actions-${tripId}`}>
+      <div ref={announcerRef} className="sr-only" aria-live="polite" aria-atomic="true" />
       <h2 id={`trip-actions-${tripId}`} className="font-semibold">
         Actions
       </h2>
@@ -90,6 +112,7 @@ export function TransportTripActionDialogs({
 
       {dialog === "cancel" ? (
         <div
+          ref={cancelRef}
           role="dialog"
           aria-labelledby={`cancel-title-${tripId}`}
           className="rounded-xl border border-border bg-card p-4 space-y-3"
@@ -136,6 +159,7 @@ export function TransportTripActionDialogs({
 
       {dialog === "dispute" ? (
         <div
+          ref={disputeRef}
           role="dialog"
           aria-labelledby={`dispute-title-${tripId}`}
           className="rounded-xl border border-border bg-card p-4 space-y-3"

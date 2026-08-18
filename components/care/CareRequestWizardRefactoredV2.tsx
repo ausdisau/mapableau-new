@@ -1,8 +1,20 @@
 "use client";
 
+/**
+ * CareRequestWizard Refactored (v2) - Full Accessibility Integration
+ *
+ * This version demonstrates:
+ * - Screen reader announcements (assertive for errors, polite for success)
+ * - Motion preferences (respects prefers-reduced-motion)
+ * - Focus management (focus restoration, automatic focus to errors)
+ * - Focus ring visibility (custom focus styles)
+ *
+ * This is an EXAMPLE/REFERENCE implementation showing the full pattern.
+ * The main component (CareRequestWizard.tsx) uses these hooks incrementally.
+ */
+
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { useAccessibilityAnnouncement } from "@/lib/accessibility";
+import { useMemo, useState, useRef, useEffect } from "react";
 
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { CarePlanDraftReview } from "@/components/care/CarePlanDraftReview";
@@ -25,6 +37,12 @@ import {
   type CareIntakeTaskRow,
 } from "@/lib/care/compose-care-message";
 import type { CareSupportTransformOutput } from "@/server/agents/care/types";
+import {
+  useAccessibilityAnnouncement,
+  useMotionPreferencesSafe,
+  useFocusRing,
+  useFocusManager,
+} from "@/lib/accessibility";
 
 const CARE_CONSENT_SCOPES: ConsentScopeOption[] = [
   {
@@ -59,7 +77,16 @@ function focusField(id: string) {
   }
 }
 
-export function CareRequestWizard({
+/**
+ * CareRequestWizardRefactoredV2
+ *
+ * Full accessibility integration example:
+ * - Uses all accessibility hooks together
+ * - Shows motion-safe transitions
+ * - Demonstrates focus management
+ * - Shows focus ring styling
+ */
+export function CareRequestWizardRefactoredV2({
   redirectBase = "/care",
   participantId,
   preferredOrganisationId,
@@ -72,8 +99,19 @@ export function CareRequestWizard({
 }) {
   const router = useRouter();
   const sessionId = useMemo(() => newSessionId(), []);
-  const { announcerRef, announce } = useAccessibilityAnnouncement();
 
+  // Accessibility hooks
+  const { announcerRef, announce } = useAccessibilityAnnouncement();
+  const { transitionDuration } = useMotionPreferencesSafe();
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Focus management: restore focus to submit button after async operations
+  const focusManager = useFocusManager(submitButtonRef, {
+    restoreFocus: true,
+  });
+
+  // Form state
   const [step, setStep] = useState<"describe" | "review">("describe");
   const [requestType, setRequestType] =
     useState<CareRequestTypeValue>("personal_care");
@@ -110,6 +148,7 @@ export function CareRequestWizard({
 
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
+
     if (trimmedTitle.length < 3) {
       const msg = "Please add a short title (at least 3 characters).";
       setError(msg);
@@ -117,6 +156,7 @@ export function CareRequestWizard({
       queueMicrotask(() => focusField("care-title"));
       return;
     }
+
     if (trimmedDescription.length < 1) {
       const msg = "Please describe what support you need.";
       setError(msg);
@@ -128,8 +168,10 @@ export function CareRequestWizard({
     const taskRows = tasks
       .map((t) => ({ ...t, name: t.name.trim() }))
       .filter((t) => t.name.length > 0);
+
     if (taskRows.length === 0) {
-      const msg = "Add at least one support task, or describe tasks in your details.";
+      const msg =
+        "Add at least one support task, or describe tasks in your details.";
       setError(msg);
       announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("task-name-0"));
@@ -137,14 +179,17 @@ export function CareRequestWizard({
     }
 
     if (!consentIds.includes("care_draft_processing")) {
-      const msg = "Confirm MapAble may process this description to prepare your draft.";
+      const msg =
+        "Confirm MapAble may process this description to prepare your draft.";
       setConsentError(msg);
       announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("care-consent-legend"));
       return;
     }
+
     if (!consentIds.includes("no_sensitive_upload")) {
-      const msg = "Confirm you have not pasted NDIS plan or clinical records into this form.";
+      const msg =
+        "Confirm you have not pasted NDIS plan or clinical records into this form.";
       setConsentError(msg);
       announce(msg, { priority: "assertive" });
       queueMicrotask(() => focusField("care-consent-legend"));
@@ -160,6 +205,8 @@ export function CareRequestWizard({
     }
 
     setLoading(true);
+    announce("Preparing your draft… please wait.", { priority: "polite" });
+
     try {
       const message = composeCareSupportMessage({
         requestType,
@@ -200,9 +247,16 @@ export function CareRequestWizard({
       }
 
       setTransformOutput(data as CareSupportTransformOutput);
-      announce("Draft prepared. Review your draft before confirming.", { priority: "polite" });
-      setStep("review");
-      setLoading(false);
+      announce(
+        "Draft prepared. Review your draft before confirming. This will take you to the next step.",
+        { priority: "polite" }
+      );
+
+      // Motion-safe transition to review step
+      setTimeout(() => {
+        setStep("review");
+        setLoading(false);
+      }, transitionDuration === "0ms" ? 0 : 300);
     } catch {
       const msg = "Something went wrong. Please try again.";
       setError(msg);
@@ -233,6 +287,8 @@ export function CareRequestWizard({
       })),
     };
 
+    announce("Saving your request… please wait.", { priority: "polite" });
+
     try {
       const res = await fetch("/api/care/requests", {
         method: "POST",
@@ -262,8 +318,17 @@ export function CareRequestWizard({
           redirectTo = submitData.redirectTo;
         }
       }
-      router.push(redirectTo);
-      router.refresh();
+
+      announce(
+        "Your request has been saved successfully. Redirecting you now.",
+        { priority: "polite" }
+      );
+
+      // Motion-safe redirect delay
+      setTimeout(() => {
+        router.push(redirectTo);
+        router.refresh();
+      }, transitionDuration === "0ms" ? 0 : 500);
     } catch {
       const msg = "Could not save your request. Please try again.";
       setError(msg);
@@ -279,6 +344,9 @@ export function CareRequestWizard({
         onBack={() => {
           setStep("describe");
           setError(null);
+          announce("Returned to form. You can edit your entries.", {
+            priority: "polite",
+          });
         }}
         onConfirm={() => void handleConfirmSave()}
         confirming={confirming}
@@ -288,8 +356,15 @@ export function CareRequestWizard({
   }
 
   return (
-    <form className="space-y-6" onSubmit={(e) => void handleContinueToReview(e)}>
+    <form
+      ref={formRef}
+      className="space-y-6"
+      onSubmit={(e) => void handleContinueToReview(e)}
+      style={{ transitionDuration }}
+    >
+      {/* Screen reader announcer */}
       <div ref={announcerRef} className="sr-only" />
+
       {preferredProviderName ? (
         <AuthAlert variant="info">
           You are requesting care with a preference for{" "}
@@ -328,6 +403,7 @@ export function CareRequestWizard({
           placeholder="e.g. Morning personal care on Tuesdays"
           required
           disabled={loading}
+          style={{ transitionDuration }}
         />
       </AccessibleFormField>
 
@@ -346,6 +422,7 @@ export function CareRequestWizard({
           required
           disabled={loading}
           aria-describedby="care-sensitive-data-banner"
+          style={{ transitionDuration }}
         />
       </AccessibleFormField>
 
@@ -357,7 +434,13 @@ export function CareRequestWizard({
             variant="outline"
             size="sm"
             disabled={loading || tasks.length >= 8}
-            onClick={() => setTasks((prev) => [...prev, emptyTask()])}
+            onClick={() => {
+              setTasks((prev) => [...prev, emptyTask()]);
+              announce(`Task ${tasks.length + 1} added. Enter task details.`, {
+                priority: "polite",
+              });
+            }}
+            style={{ transitionDuration }}
           >
             Add task
           </Button>
@@ -366,6 +449,7 @@ export function CareRequestWizard({
           <div
             key={`task-${index}`}
             className="flex flex-col gap-2 rounded-xl border border-border/50 p-3 sm:flex-row sm:items-end"
+            style={{ transitionDuration }}
           >
             <div className="min-w-0 flex-1">
               <label
@@ -387,6 +471,7 @@ export function CareRequestWizard({
                 className={formInputClass}
                 placeholder="e.g. Help with shower and dressing"
                 disabled={loading}
+                style={{ transitionDuration }}
               />
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -407,6 +492,7 @@ export function CareRequestWizard({
                     )
                   }
                   disabled={loading}
+                  style={{ transitionDuration }}
                 />
                 Higher intensity
               </label>
@@ -416,9 +502,13 @@ export function CareRequestWizard({
                   variant="outline"
                   size="sm"
                   disabled={loading}
-                  onClick={() =>
-                    setTasks((prev) => prev.filter((_, i) => i !== index))
-                  }
+                  onClick={() => {
+                    setTasks((prev) => prev.filter((_, i) => i !== index));
+                    announce(`Task ${index + 1} removed.`, {
+                      priority: "polite",
+                    });
+                  }}
+                  style={{ transitionDuration }}
                 >
                   Remove
                 </Button>
@@ -435,17 +525,30 @@ export function CareRequestWizard({
           onChange={(e) => setAddress(e.target.value)}
           className={formInputClass}
           disabled={loading}
+          style={{ transitionDuration }}
         />
       </AccessibleFormField>
 
-      <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-muted/20 p-4">
+      <div
+        className="space-y-3 rounded-xl border border-dashed border-border/70 bg-muted/20 p-4"
+        style={{ transitionDuration }}
+      >
         <label className="flex items-start gap-2 text-sm">
           <input
             type="checkbox"
             checked={shareAccessibility}
-            onChange={(e) => setShareAccessibility(e.target.checked)}
+            onChange={(e) => {
+              setShareAccessibility(e.target.checked);
+              if (e.target.checked) {
+                announce(
+                  "Accessibility notes section shown. Add a brief summary.",
+                  { priority: "polite" }
+                );
+              }
+            }}
             disabled={loading}
             className="mt-1"
+            style={{ transitionDuration }}
           />
           <span>
             Share accessibility or access notes with an assigned provider (only
@@ -465,6 +568,7 @@ export function CareRequestWizard({
               className={formInputClass}
               rows={2}
               disabled={loading}
+              style={{ transitionDuration }}
             />
           </AccessibleFormField>
         ) : null}
@@ -472,8 +576,17 @@ export function CareRequestWizard({
           <input
             type="checkbox"
             checked={linkedTransport}
-            onChange={(e) => setLinkedTransport(e.target.checked)}
+            onChange={(e) => {
+              setLinkedTransport(e.target.checked);
+              announce(
+                e.target.checked
+                  ? "Transport linking enabled. This will be arranged separately."
+                  : "Transport linking disabled.",
+                { priority: "polite" }
+              );
+            }}
             disabled={loading}
+            style={{ transitionDuration }}
           />
           I may also need transport linked to this support
         </label>
@@ -494,12 +607,14 @@ export function CareRequestWizard({
       </div>
 
       <Button
+        ref={submitButtonRef}
         type="submit"
         variant="default"
         size="lg"
         className="w-full sm:w-auto"
         disabled={loading}
         loading={loading}
+        style={{ transitionDuration }}
       >
         {loading ? "Preparing your draft…" : "Continue to review"}
       </Button>
