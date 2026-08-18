@@ -8,7 +8,10 @@ import {
   mapablePublicPrimaryButtonClass,
 } from "@/lib/marketing/public-page-styles";
 import type { AccessGuide } from "@/lib/resources/access-guides-data";
-import { accessGuideDownloads } from "@/lib/resources/access-guides-data";
+import {
+  accessGuideDownloads,
+  accessGuideStatusLabel,
+} from "@/lib/resources/access-guides-data";
 
 type AccessGuidesSectionProps = {
   capitalGuides: AccessGuide[];
@@ -16,21 +19,6 @@ type AccessGuidesSectionProps = {
   title?: string;
   id?: string;
 };
-
-function statusLabel(guide: AccessGuide): string {
-  switch (guide.statusKey) {
-    case "drafted":
-      return "Starter guide drafted";
-    case "needs_verification":
-      return "Needs local verification";
-    case "planned":
-      return "Planned";
-    default: {
-      const _exhaustive: never = guide.statusKey;
-      return _exhaustive;
-    }
-  }
-}
 
 export function AccessGuidesSection({
   capitalGuides,
@@ -105,7 +93,7 @@ export function AccessGuidesSection({
                 {guide.city}
               </h4>
               <p className="mt-2 text-xs font-semibold text-slate-500">
-                {statusLabel(guide)}
+                {accessGuideStatusLabel(guide)}
               </p>
               <p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-700">
                 {guide.launchAngle}

@@ -2,16 +2,20 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 
+import { getLocalAccessHrefForCity } from "@/lib/demo/local-access-pages";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
   mapablePublicLeadClass,
   mapablePublicPageContainerClass,
   mapablePublicPrimaryButtonClass,
+  mapablePublicSecondaryButtonClass,
   mapablePublicTitleClass,
 } from "@/lib/marketing/public-page-styles";
 import {
   accessGuideDownloads,
+  accessGuideStatusLabel,
   accessGuides,
   getAccessGuideBySlug,
 } from "@/lib/resources/access-guides-data";
@@ -46,19 +50,27 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
     notFound();
   }
 
+  const localHref = getLocalAccessHrefForCity(guide.city);
+
   return (
     <div className="bg-white text-[#0C1833]">
       <section className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
-        <div className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F8C51C]/25 blur-3xl"
+        />
+        <div
+          className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}
+        >
           <p className={mapablePublicEyebrowClass}>
-            {guide.state} · {guide.guideType} · {guide.priorityTier}
+            Local Access Guides · {guide.state} · {guide.guideType}
           </p>
           <h1 className={`${mapablePublicTitleClass} mt-3`}>
             {guide.city} Accessibility Guide
           </h1>
           <p className={mapablePublicLeadClass}>{guide.launchAngle}</p>
           <p className="mt-4 text-sm font-semibold text-slate-600">
-            Status: {guide.status}
+            Status: {accessGuideStatusLabel(guide)}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a
@@ -68,17 +80,19 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
             >
               Download Australia guides pack (PDF)
             </a>
-            <Link
-              href="/resources#access-guides"
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-            >
-              Resource hub
+            {localHref ? (
+              <Link href={localHref} className={mapablePublicSecondaryButtonClass}>
+                Local access page
+              </Link>
+            ) : null}
+            <Link href="/guides" className={mapablePublicSecondaryButtonClass}>
+              All Local Access Guides
             </Link>
             <Link
-              href="/guides"
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+              href="/accessibility-map"
+              className={mapablePublicSecondaryButtonClass}
             >
-              All guides
+              Open accessibility map
             </Link>
           </div>
         </div>
@@ -108,14 +122,14 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
               <a
                 href={accessGuideDownloads.pdf}
                 download
-                className="font-medium text-primary hover:underline"
+                className={`font-medium text-[#005B7F] underline ${mapableCareFocusRing}`}
               >
                 PDF
               </a>
               <a
                 href={accessGuideDownloads.docx}
                 download
-                className="font-medium text-primary hover:underline"
+                className={`font-medium text-[#005B7F] underline ${mapableCareFocusRing}`}
               >
                 Word
               </a>
@@ -124,12 +138,22 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
           <article className={mapablePublicCardClass}>
             <h2 className="text-lg font-black text-[#0C1833]">Related</h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
+              {localHref ? (
+                <li>
+                  <Link
+                    href={localHref}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    {guide.city} local access page
+                  </Link>
+                </li>
+              ) : null}
               <li>
                 <Link
-                  href="/access"
+                  href="/accessibility-map"
                   className="font-medium text-primary hover:underline"
                 >
-                  MapAble Access
+                  Accessibility map
                 </Link>
               </li>
               <li>
@@ -151,6 +175,10 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
             </ul>
           </article>
         </div>
+
+        <p className="mt-8 text-sm text-slate-600" role="note">
+          Access information changes and should be confirmed before travelling.
+        </p>
       </section>
     </div>
   );

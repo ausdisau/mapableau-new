@@ -17,6 +17,7 @@ const publicRouteFiles = [
   "app/(marketing)/telehealth/page.tsx",
   "app/(marketing)/providers/page.tsx",
   "app/(marketing)/resources/page.tsx",
+  "app/(marketing)/guides/page.tsx",
   "app/(marketing)/help/page.tsx",
   "app/(marketing)/privacy/page.tsx",
   "app/(marketing)/terms/page.tsx",
@@ -83,6 +84,7 @@ describe("Phase 0 public route contract", () => {
       "app/care/page.tsx",
       "app/(marketing)/about/page.tsx",
       "app/(marketing)/privacy/page.tsx",
+      "app/(marketing)/guides/page.tsx",
     ]) {
       const source = readFileSync(join(process.cwd(), pageFile), "utf8");
       expect(source).not.toContain("requirePermission");

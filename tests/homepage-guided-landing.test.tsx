@@ -58,6 +58,7 @@ describe("homepage marketing splash", () => {
     expect(nav.querySelector('a[href="/accessibility-map"]')?.textContent).toBe(
       "Places",
     );
+    expect(nav.querySelector('a[href="/guides"]')?.textContent).toBe("Guides");
     expect(nav.querySelector('a[href="/providers"]')?.textContent).toBe(
       "Providers",
     );
