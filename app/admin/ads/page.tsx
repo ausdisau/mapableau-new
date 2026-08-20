@@ -38,10 +38,11 @@ export default async function AdminAdsPage() {
           <li>Internal: {String(adsFlagsConfig.isInternalEnabled())}</li>
           <li>Google: {String(adsFlagsConfig.isGoogleEnabled())}</li>
           <li>EthicalAds: {String(adsFlagsConfig.isEthicalAdsEnabled())}</li>
+          <li>Ad Manager: {String(adsFlagsConfig.isManagerEnabled())}</li>
         </ul>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm text-muted-foreground">Advertisers</p>
           <p className="text-2xl font-bold">{advertiserCount}</p>
@@ -70,6 +71,16 @@ export default async function AdminAdsPage() {
             className="text-sm text-primary underline"
           >
             Review
+          </Link>
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm text-muted-foreground">Review queue</p>
+          <p className="text-2xl font-bold">Vet</p>
+          <Link
+            href="/admin/ads/reviews"
+            className="text-sm text-primary underline"
+          >
+            Open queue
           </Link>
         </div>
       </section>

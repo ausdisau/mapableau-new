@@ -39,6 +39,14 @@ export const adsFlagsConfig = {
       this.isEnabled(env) && envFlag("MAPABLE_ADS_MEASUREMENT_ENABLED", env)
     );
   },
+  /**
+   * Ad Manager (pre-register + draft) — independent of serving flags.
+   * Does not require MAPABLE_ADS_ENABLED.
+   */
+  isManagerEnabled(env: AdsFlagEnv = process.env): boolean {
+    if (envFlag("MAPABLE_ADS_GLOBAL_KILL_SWITCH", env)) return false;
+    return envFlag("MAPABLE_ADS_MANAGER_ENABLED", env);
+  },
   isGlobalKillSwitch(env: AdsFlagEnv = process.env): boolean {
     return envFlag("MAPABLE_ADS_GLOBAL_KILL_SWITCH", env);
   },

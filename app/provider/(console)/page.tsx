@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CoreHubCard } from "@/components/core/CoreHubCard";
+import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { requireAuth, requirePermission } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { roleLabel } from "@/lib/auth/roles";
@@ -267,6 +268,13 @@ export default async function ProviderControlPanelPage() {
             description="Benchmarks, reports and capacity"
             href="/provider/insights"
           />
+          {adsFlagsConfig.isManagerEnabled() ? (
+            <CoreHubCard
+              title="Ad Manager"
+              description="Pre-register advertisers and submit creatives for MapAble review"
+              href="/provider/ads"
+            />
+          ) : null}
         </div>
       </section>
     </div>

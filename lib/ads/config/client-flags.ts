@@ -7,6 +7,7 @@ export type ClientAdsEnv = {
   NEXT_PUBLIC_MAPABLE_ADS_ENABLED?: string;
   NEXT_PUBLIC_MAPABLE_ADS_ACCESS_ENABLED?: string;
   NEXT_PUBLIC_MAPABLE_ADS_PROVIDER_FINDER_ENABLED?: string;
+  NEXT_PUBLIC_MAPABLE_ADS_MANAGER_ENABLED?: string;
 };
 
 export function isClientAdsAccessEnabled(
@@ -35,4 +36,14 @@ export function isClientAdsProviderFinderEnabled(
     env.NEXT_PUBLIC_MAPABLE_ADS_ENABLED === "true" &&
     env.NEXT_PUBLIC_MAPABLE_ADS_PROVIDER_FINDER_ENABLED === "true"
   );
+}
+
+/** Ad Manager portal — independent of serving flags. */
+export function isClientAdsManagerEnabled(
+  env: ClientAdsEnv = {
+    NEXT_PUBLIC_MAPABLE_ADS_MANAGER_ENABLED:
+      process.env.NEXT_PUBLIC_MAPABLE_ADS_MANAGER_ENABLED,
+  },
+): boolean {
+  return env.NEXT_PUBLIC_MAPABLE_ADS_MANAGER_ENABLED === "true";
 }
