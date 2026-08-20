@@ -10,7 +10,9 @@
 export const CSP_EXTERNAL_ORIGINS = {
   scripts: [
     "https://pagead2.googlesyndication.com",
+    "https://securepubads.g.doubleclick.net",
     "https://www.googletagmanager.com",
+    "https://media.ethicalads.io",
     "https://js.stripe.com",
     "https://va.vercel-scripts.com",
   ],
@@ -22,6 +24,7 @@ export const CSP_EXTERNAL_ORIGINS = {
     "https://api.maptiler.com",
     "https://pagead2.googlesyndication.com",
     "https://*.googlesyndication.com",
+    "https://media.ethicalads.io",
     "https://www.google-analytics.com",
     "https://*.google-analytics.com",
     "data:",
@@ -36,6 +39,10 @@ export const CSP_EXTERNAL_ORIGINS = {
     "https://vitals.vercel-insights.com",
     "https://pagead2.googlesyndication.com",
     "https://*.googlesyndication.com",
+    "https://securepubads.g.doubleclick.net",
+    "https://*.doubleclick.net",
+    "https://server.ethicalads.io",
+    "https://media.ethicalads.io",
     "https://www.google-analytics.com",
     "https://*.google-analytics.com",
     "https://www.googletagmanager.com",

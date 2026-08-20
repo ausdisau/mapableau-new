@@ -886,6 +886,7 @@ model Organisation {
   researchProjects ResearchProject[]
   trainingRequirements TrainingRequirement[]
   workplaceLocations WorkplaceLocation[]
+  adAdvertisers      AdAdvertiser[]
 }
 
 model OrganisationMember {
@@ -15068,4 +15069,247 @@ model WorkplaceLocation {
 
   @@index([organisationId])
   @@map("workplace_locations")
+}
+
+// ---------------------------------------------------------------------------
+// MapAble Ads foundation — separate from accessibility / provider ranking SoT
+// ---------------------------------------------------------------------------
+
+enum AdEntityStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  ACTIVE
+  PAUSED
+  ENDED
+  REJECTED
+  DISABLED
+}
+
+enum AdProviderKind {
+  mapable_internal
+  google_ad_manager
+  ethicalads
+}
+
+enum AdDecisionOutcome {
+  FILL_INTERNAL
+  FILL_EXTERNAL
+  NO_FILL
+  BLOCKED
+}
+
+model AdAdvertiser {
+  id             String         @id @default(cuid())
+  organisationId String?
+  organisation   Organisation?  @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  name           String
+  status         AdEntityStatus @default(DRAFT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  campaigns AdCampaign[]
+
+  @@index([organisationId])
+  @@index([status])
+  @@map("ad_advertisers")
+}
+
+model AdCampaign {
+  id                 String         @id @default(cuid())
+  advertiserId       String
+  advertiser         AdAdvertiser   @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  name               String
+  status             AdEntityStatus @default(DRAFT)
+  startAt            DateTime?
+  endAt              DateTime?
+  budgetType         String?
+  budgetAmount       Decimal?       @db.Decimal(12, 2)
+  providerPreference AdProviderKind @default(mapable_internal)
+  priority           Int            @default(0)
+  isHouse            Boolean        @default(false)
+  placementCodes     String[]       @default([])
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  creatives   AdCreative[]
+  targets     AdCampaignTarget[]
+  decisions   AdDecision[]
+  impressions AdImpression[]
+  clicks      AdClick[]
+
+  @@index([advertiserId])
+  @@index([status])
+  @@index([startAt, endAt])
+  @@map("ad_campaigns")
+}
+
+model AdCreative {
+  id             String         @id @default(cuid())
+  campaignId     String
+  campaign       AdCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  format         String
+  headline       String
+  body           String
+  imageUrl       String?
+  altText        String?
+  destinationUrl String
+  businessName   String?
+  latitude       Float?
+  longitude      Float?
+  status         AdEntityStatus @default(DRAFT)
+  claimFlags     String[]       @default([])
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  policyReviews AdPolicyReview[]
+
+  @@index([campaignId])
+  @@index([status])
+  @@map("ad_creatives")
+}
+
+model AdPlacement {
+  id        String         @id @default(cuid())
+  code      String         @unique
+  surface   String
+  format    String
+  maxItems  Int            @default(1)
+  status    AdEntityStatus @default(ACTIVE)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  rules AdPlacementRule[]
+
+  @@index([surface])
+  @@map("ad_placements")
+}
+
+model AdPlacementRule {
+  id          String      @id @default(cuid())
+  placementId String
+  placement   AdPlacement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  ruleKey     String
+  ruleValue   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([placementId])
+  @@map("ad_placement_rules")
+}
+
+model AdCampaignTarget {
+  id         String     @id @default(cuid())
+  campaignId String
+  campaign   AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  region     String?
+  category   String?
+  /// GeoJSON or { type: "NATIONAL" } / Point+radiusKm — evaluated in app code (no PostGIS)
+  geometry   Json?
+  startsAt   DateTime?
+  endsAt     DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([campaignId])
+  @@index([region])
+  @@index([category])
+  @@map("ad_campaign_targets")
+}
+
+model AdProviderConfig {
+  id        String         @id @default(cuid())
+  provider  AdProviderKind @unique
+  enabled   Boolean        @default(false)
+  config    Json?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("ad_provider_configs")
+}
+
+model AdDecision {
+  id            String             @id @default(cuid())
+  requestId     String
+  placementCode String
+  provider      AdProviderKind?
+  campaignId    String?
+  campaign      AdCampaign?        @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  decision      AdDecisionOutcome
+  reasonCode    String?
+  createdAt     DateTime           @default(now())
+
+  impressions AdImpression[]
+
+  @@index([requestId])
+  @@index([placementCode])
+  @@index([campaignId])
+  @@index([createdAt])
+  @@map("ad_decisions")
+}
+
+model AdImpression {
+  id                  String         @id @default(cuid())
+  decisionId          String
+  decision            AdDecision     @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  campaignId          String?
+  campaign            AdCampaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  placementCode       String
+  provider            AdProviderKind
+  anonymousSessionRef String?
+  createdAt           DateTime       @default(now())
+
+  clicks AdClick[]
+
+  @@index([decisionId])
+  @@index([campaignId])
+  @@index([placementCode])
+  @@index([createdAt])
+  @@map("ad_impressions")
+}
+
+model AdClick {
+  id           String         @id @default(cuid())
+  impressionId String
+  impression   AdImpression   @relation(fields: [impressionId], references: [id], onDelete: Cascade)
+  campaignId   String?
+  campaign     AdCampaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  provider     AdProviderKind
+  createdAt    DateTime       @default(now())
+
+  conversions AdConversion[]
+
+  @@index([impressionId])
+  @@index([campaignId])
+  @@index([createdAt])
+  @@map("ad_clicks")
+}
+
+model AdConversion {
+  id        String   @id @default(cuid())
+  clickId   String
+  click     AdClick  @relation(fields: [clickId], references: [id], onDelete: Cascade)
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@index([clickId])
+  @@map("ad_conversions")
+}
+
+model AdPolicyReview {
+  id         String         @id @default(cuid())
+  creativeId String
+  creative   AdCreative     @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+  status     AdEntityStatus
+  notes      String?
+  reviewerId String?
+  claimFlags String[]       @default([])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([creativeId])
+  @@index([status])
+  @@map("ad_policy_reviews")
 }
