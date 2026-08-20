@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { AdPlacement } from "@/components/ads/mapable/AdPlacement";
 import { AccessFilterPanel } from "@/components/access/AccessFilterPanel";
 import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceList } from "@/components/access/AccessPlaceList";
 import { AccessSearchBar } from "@/components/access/AccessSearchBar";
 import { MobileAccessMapShell } from "@/components/access/MobileAccessMapShell";
+import { useSponsoredMapMarkers } from "@/hooks/ads/useSponsoredMapMarkers";
 import { ACCESS_DISCLAIMER } from "@/lib/access/map/copy";
+import { isClientAdsAccessEnabled } from "@/lib/ads/config/client-flags";
 
 export type AccessPlaceView = {
   id: string;
@@ -73,6 +76,12 @@ export function MapAbleAccessShell({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- category filter only
   }, [category]);
 
+  const adsEnabled = isClientAdsAccessEnabled();
+  const { markers: sponsoredMarkers } = useSponsoredMapMarkers({
+    enabled: adsEnabled && view === "map",
+    regionCode: "sydney",
+  });
+
   const mapPlaces = places
     .filter((p) => p.latitude != null && p.longitude != null)
     .map((p) => ({
@@ -121,12 +130,30 @@ export function MapAbleAccessShell({
             </div>
 
             {view === "map" ? (
-              <AccessMap
-                places={mapPlaces}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-              />
+              <>
+                <AccessMap
+                  places={mapPlaces}
+                  selectedId={selectedId}
+                  onSelect={setSelectedId}
+                  sponsoredMarkers={sponsoredMarkers}
+                />
+                <AdPlacement
+                  placement="access.map.sponsored-card"
+                  surface="access"
+                  regionCode="sydney"
+                  category={category || undefined}
+                  enabled={adsEnabled}
+                />
+              </>
             ) : null}
+
+            <AdPlacement
+              placement="access.results.inline"
+              surface="access"
+              regionCode="sydney"
+              category={category || undefined}
+              enabled={adsEnabled}
+            />
 
             <AccessPlaceList places={places} />
           </div>

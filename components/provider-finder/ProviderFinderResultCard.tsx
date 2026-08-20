@@ -54,8 +54,6 @@ export function ProviderFinderResultCard({
   const rating = Math.max(0, Math.min(5, provider.rating));
   const showDistance =
     provider.distanceKm > 0 && provider.suburb !== "Remote";
-  const featured = provider.rating >= 4.7 && provider.reviewCount >= 50;
-
   return (
     <article
       className={cn(
@@ -71,11 +69,6 @@ export function ProviderFinderResultCard({
           >
             <ShieldCheck className="mr-1 h-3.5 w-3.5" aria-hidden />
             Verified profile
-          </Badge>
-        ) : null}
-        {featured ? (
-          <Badge variant="outline" className="border-secondary/30 bg-secondary/5 text-secondary">
-            Featured partner
           </Badge>
         ) : null}
         <div className="ml-auto flex items-center gap-1 text-sm">

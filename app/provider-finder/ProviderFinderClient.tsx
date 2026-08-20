@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { AdPlacement } from "@/components/ads/mapable/AdPlacement";
 import { MapErrorBoundary } from "@/components/error/MapErrorBoundary";
 import {
   LazyMapPanel,
@@ -24,6 +25,7 @@ import {
   SearchResultGridSkeleton,
 } from "@/components/ui/skeleton";
 import { trackProductEvent } from "@/lib/analytics/product-analytics";
+import { isClientAdsProviderFinderEnabled } from "@/lib/ads/config/client-flags";
 import { getProviderFinderMapSourceClient } from "@/lib/config/provider-finder-map";
 import {
   distanceKm,
@@ -321,6 +323,8 @@ export default function ProviderFinderClient({
     const start = (currentPage - 1) * pageSize;
     return filteredSorted.slice(start, start + pageSize);
   }, [currentPage, filteredSorted]);
+
+  const adsEnabled = isClientAdsProviderFinderEnabled();
 
   const outletMapPins = useMemo((): MapLibreProvider[] => {
     let list = filteredSorted;
@@ -653,6 +657,12 @@ export default function ProviderFinderClient({
                   setPage(1);
                 }}
               />
+              <AdPlacement
+                placement="provider-finder.sidebar"
+                surface="provider_finder"
+                enabled={adsEnabled}
+                className="mt-4"
+              />
             </div>
 
             <div className="min-w-0 flex-1 space-y-6">
@@ -733,6 +743,15 @@ export default function ProviderFinderClient({
                     </Card>
                   ) : (
                     <ul className="space-y-4">
+                      {adsEnabled ? (
+                        <li>
+                          <AdPlacement
+                            placement="provider-finder.results.inline"
+                            surface="provider_finder"
+                            enabled={adsEnabled}
+                          />
+                        </li>
+                      ) : null}
                       {visible.map((p) => (
                         <li key={p.id}>
                           <ProviderFinderResultCard

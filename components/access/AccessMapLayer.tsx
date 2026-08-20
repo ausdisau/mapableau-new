@@ -3,16 +3,24 @@
 import { useMemo } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 
+import { SponsoredMapMarker } from "@/components/ads/mapable/SponsoredMapMarker";
 import { useMapConfig } from "@/components/map/MapProvider";
+import type { AdCreativePayload } from "@/lib/ads/types";
 
 export function AccessMapLayer({
   places,
   selectedId,
   onSelect,
+  sponsoredMarkers = [],
 }: {
   places: { id: string; name: string; latitude: number; longitude: number }[];
   selectedId?: string;
   onSelect?: (id: string) => void;
+  sponsoredMarkers?: Array<{
+    creative: AdCreativePayload;
+    clickPath: string;
+    decisionId: string;
+  }>;
 }) {
   const { styleUrl, attribution, defaultCenter } = useMapConfig();
 
@@ -65,6 +73,13 @@ export function AccessMapLayer({
             {p.name.slice(0, 24)}
           </button>
         </Marker>
+      ))}
+      {sponsoredMarkers.map((m) => (
+        <SponsoredMapMarker
+          key={m.decisionId}
+          creative={m.creative}
+          clickHref={m.clickPath}
+        />
       ))}
       <p className="sr-only">{attribution}</p>
     </Map>
