@@ -142,7 +142,7 @@ CREATE INDEX "go_route_plans_user_id_created_at_idx" ON "go_route_plans"("user_i
 
 -- AddForeignKey
 ALTER TABLE "access_mobility_routing_preferences" ADD CONSTRAINT "access_mobility_routing_preferences_passport_id_fkey" FOREIGN KEY ("passport_id") REFERENCES "access_passports"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "access_temporary_barriers" ADD CONSTRAINT "access_temporary_barriers_reporter_user_id_fkey" FOREIGN KEY ("reporter_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "go_location_sessions" ADD CONSTRAINT "go_location_sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "go_route_plans" ADD CONSTRAINT "go_route_plans_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "access_temporary_barriers" ADD CONSTRAINT "access_temporary_barriers_reporter_user_id_fkey" FOREIGN KEY ("reporter_user_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "go_location_sessions" ADD CONSTRAINT "go_location_sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "go_route_plans" ADD CONSTRAINT "go_route_plans_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "go_route_plans" ADD CONSTRAINT "go_route_plans_destination_place_id_fkey" FOREIGN KEY ("destination_place_id") REFERENCES "access_places"("id") ON DELETE SET NULL ON UPDATE CASCADE;
