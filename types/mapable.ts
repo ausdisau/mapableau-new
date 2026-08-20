@@ -62,7 +62,10 @@ export type ConsentScope =
   | "care.accessibility_share"
   | "support_profile.read"
   | "engagement.read_delegate"
-  | "engagement.submit_delegate";
+  | "engagement.submit_delegate"
+  | "go.current_location"
+  | "go.route_history"
+  | "go.barrier_report";
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 

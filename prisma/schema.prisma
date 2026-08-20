@@ -132,6 +132,10 @@ model User {
   transportTripEvents       TransportTripEvent[]   @relation("TransportTripEventActor")
   transportQuotes           TransportQuote[]       @relation("TransportQuoteParticipant")
 
+  goBarrierReports          AccessTemporaryBarrier[] @relation("GoBarrierReporter")
+  goLocationSessions        GoLocationSession[]    @relation("GoLocationSessions")
+  goRoutePlans              GoRoutePlan[]          @relation("GoRoutePlans")
+
   // AI-enabled case management
   caseManagementOwned       Case[]                 @relation("CaseAssignedToUser")
   caseManagementCreated     Case[]                 @relation("CaseCreatedByUser")
@@ -695,6 +699,9 @@ enum ConsentScope {
   support_profile_read
   engagement_read_delegate
   engagement_submit_delegate
+  go_current_location
+  go_route_history
+  go_barrier_report
 }
 
 enum ConsentStatus {
@@ -7394,6 +7401,7 @@ model AccessPlace {
   accessObservations AccessObservationRecord[]
   accessAdjustments AccessAdjustmentRecord[]
   accessJourneySegments AccessJourneySegmentRecord[]
+  goRoutePlans       GoRoutePlan[]
 
   @@index([status])
   @@index([suburb, stateOrRegion])
@@ -7589,6 +7597,7 @@ model AccessPassport {
   requirements    AccessRequirementRecord[]
   compatibilities AccessCompatibilityRecord[]
   journeys        AccessJourneyRecord[]
+  mobilityRoutingPreference AccessMobilityRoutingPreference?
 
   @@map("access_passports")
 }
@@ -15068,4 +15077,161 @@ model WorkplaceLocation {
 
   @@index([organisationId])
   @@map("workplace_locations")
+}
+
+// =============================================================================
+// MapAble Go — participant mobility & navigation (slice 1, flag-gated)
+// =============================================================================
+
+enum GoLocationPurpose {
+  current_location
+  route_history
+  barrier_report
+}
+
+enum GoLocationPrecision {
+  coarse
+  precise
+}
+
+enum AccessTemporaryBarrierType {
+  blocked_path
+  lift_outage
+  construction
+  poor_surface
+  missing_curb_ramp
+  narrow_path
+  unsafe_crossing
+  other
+}
+
+model AccessMobilityRoutingPreference {
+  id                             String         @id @default(cuid())
+  passportId                     String         @unique @map("passport_id")
+  passport                       AccessPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  mobilityAidType                String?        @map("mobility_aid_type")
+  chairWidthMm                   Int?           @map("chair_width_mm")
+  chairLengthMm                  Int?           @map("chair_length_mm")
+  minimumPreferredPathWidthMm    Int?           @map("minimum_preferred_path_width_mm")
+  preferredMaximumSlopePercent   Float?         @map("preferred_maximum_slope_percent")
+  absoluteMaximumSlopePercent    Float?         @map("absolute_maximum_slope_percent")
+  preferredMaximumCrossSlopePercent Float?      @map("preferred_maximum_cross_slope_percent")
+  curbRampRequired               Boolean        @default(true) @map("curb_ramp_required")
+  stairsAllowed                  Boolean        @default(false) @map("stairs_allowed")
+  preferredSurfaceTypes          String[]       @default([]) @map("preferred_surface_types")
+  avoidedSurfaceTypes            String[]       @default([]) @map("avoided_surface_types")
+  roughSurfaceTolerance          String?        @map("rough_surface_tolerance")
+  unknownSegmentPolicy           String         @default("allow_with_warning") @map("unknown_segment_policy")
+  lowConfidencePolicy            String         @default("allow_with_warning") @map("low_confidence_policy")
+  liftRequirement                Boolean        @default(false) @map("lift_requirement")
+  accessibleToiletPreference     Boolean        @default(false) @map("accessible_toilet_preference")
+  restStopPreference             Boolean        @default(false) @map("rest_stop_preference")
+  createdAt                      DateTime       @default(now()) @map("created_at")
+  updatedAt                      DateTime       @updatedAt @map("updated_at")
+
+  @@map("access_mobility_routing_preferences")
+}
+
+model AccessPathNode {
+  id        String   @id @default(cuid())
+  graphId   String   @map("graph_id")
+  externalId String  @map("external_id")
+  label     String
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([graphId, externalId])
+  @@index([graphId])
+  @@map("access_path_nodes")
+}
+
+model AccessPathSegment {
+  id                         String   @id @default(cuid())
+  graphId                    String   @map("graph_id")
+  externalId                 String   @map("external_id")
+  fromExternalNodeId         String   @map("from_external_node_id")
+  toExternalNodeId           String   @map("to_external_node_id")
+  bidirectional              Boolean  @default(true)
+  lengthMetres               Float    @map("length_metres")
+  widthMm                    Int?     @map("width_mm")
+  longitudinalSlopePercent   Float    @map("longitudinal_slope_percent")
+  crossSlopePercent          Float    @default(0) @map("cross_slope_percent")
+  surfaceType                String   @map("surface_type")
+  surfaceCondition           String   @default("unknown") @map("surface_condition")
+  curbCut                    Boolean  @default(false) @map("curb_cut")
+  curbCutWidthMm             Int?     @map("curb_cut_width_mm")
+  stairs                     Int      @default(0)
+  crossingType               String   @default("none") @map("crossing_type")
+  confidence                 Float    @default(0.5)
+  sourceClass                String   @map("source_class")
+  lastObservedAt             DateTime? @map("last_observed_at")
+  lastHumanVerifiedAt        DateTime? @map("last_human_verified_at")
+  accessibilityEvidenceIds   String[] @default([]) @map("accessibility_evidence_ids")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  @@unique([graphId, externalId])
+  @@index([graphId])
+  @@map("access_path_segments")
+}
+
+model AccessTemporaryBarrier {
+  id                 String                     @id @default(cuid())
+  segmentExternalId  String                     @map("segment_external_id")
+  graphId            String                     @map("graph_id")
+  type               AccessTemporaryBarrierType
+  reportedAt         DateTime                   @default(now()) @map("reported_at")
+  expiresAt          DateTime?                  @map("expires_at")
+  source             String                     @default("community")
+  confidence         Float                      @default(0.5)
+  verificationState  String                     @default("community_reported") @map("verification_state")
+  description        String?
+  reporterUserId     String?                    @map("reporter_user_id")
+  reporter           User?                      @relation("GoBarrierReporter", fields: [reporterUserId], references: [id])
+  latitude           Float?
+  longitude          Float?
+  createdAt          DateTime                   @default(now()) @map("created_at")
+  updatedAt          DateTime                   @updatedAt @map("updated_at")
+
+  @@index([graphId, segmentExternalId])
+  @@index([expiresAt])
+  @@map("access_temporary_barriers")
+}
+
+model GoLocationSession {
+  id            String              @id @default(cuid())
+  userId        String              @map("user_id")
+  user          User                @relation("GoLocationSessions", fields: [userId], references: [id], onDelete: Cascade)
+  purpose       GoLocationPurpose
+  precision     GoLocationPrecision @default(coarse)
+  consentRecordId String?           @map("consent_record_id")
+  expiresAt     DateTime            @map("expires_at")
+  revokedAt     DateTime?           @map("revoked_at")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
+  @@map("go_location_sessions")
+}
+
+model GoRoutePlan {
+  id                  String   @id @default(cuid())
+  userId              String   @map("user_id")
+  user                User     @relation("GoRoutePlans", fields: [userId], references: [id], onDelete: Cascade)
+  passportId          String?  @map("passport_id")
+  destinationPlaceId  String?  @map("destination_place_id")
+  destinationPlace    AccessPlace? @relation(fields: [destinationPlaceId], references: [id], onDelete: SetNull)
+  selectedRouteId     String?  @map("selected_route_id")
+  status              String   @default("planned")
+  graphSource         String   @map("graph_source")
+  isLiveEvidence      Boolean  @default(false) @map("is_live_evidence")
+  routePayload        Json     @map("route_payload")
+  journeyRecordId     String?  @map("journey_record_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("go_route_plans")
 }
