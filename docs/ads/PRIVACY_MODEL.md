@@ -21,3 +21,11 @@ External providers that require consent are gated. MapAble disables personalised
 ## Measurement
 
 First-party impressions/clicks store privacy-minimised fields only (placement, provider, campaign id, anonymous session ref). No persistent advertising identity on user accounts.
+
+## Auction & billing privacy
+
+`AdAuctionResult` must **not** store diagnosis, disability profile, NDIS data, raw search query, or participant identity.
+
+Bidding / willingness-to-pay must never cause disclosure of additional participant context. Paid bid affects sponsored inventory only — never accessibility evidence or provider suitability.
+
+CTR prediction uses **aggregate** campaign/placement/creative/context statistics only — never an individual person's behaviour.

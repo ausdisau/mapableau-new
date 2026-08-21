@@ -15275,7 +15275,9 @@ model AdAdvertiser {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  campaigns AdCampaign[]
+  campaigns     AdCampaign[]
+  wallets       AdWallet[]
+  billingEvents AdBillingEvent[]
 
   @@index([organisationId])
   @@index([status])
@@ -15283,30 +15285,45 @@ model AdAdvertiser {
 }
 
 model AdCampaign {
-  id                 String         @id @default(cuid())
-  advertiserId       String
-  advertiser         AdAdvertiser   @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
-  name               String
-  status             AdEntityStatus @default(DRAFT)
-  startAt            DateTime?
-  endAt              DateTime?
-  budgetType         String?
-  budgetAmount       Decimal?       @db.Decimal(12, 2)
-  providerPreference AdProviderKind @default(mapable_internal)
-  priority           Int            @default(0)
-  isHouse            Boolean        @default(false)
-  placementCodes     String[]       @default([])
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  id                   String         @id @default(cuid())
+  advertiserId         String
+  advertiser           AdAdvertiser   @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  name                 String
+  status               AdEntityStatus @default(DRAFT)
+  startAt              DateTime?
+  endAt                DateTime?
+  budgetType           String?
+  budgetAmount         Decimal?       @db.Decimal(12, 2)
+  /// CPM | CPC | HOUSE — commercial bid model (additive; isHouse remains for legacy house flags)
+  bidModel             AdBidModel     @default(CPM)
+  /// Max CPM micros (CPM) or max CPC micros (CPC). Unused for HOUSE.
+  maxBidMicros         BigInt?
+  dailyBudgetMicros    BigInt?
+  lifetimeBudgetMicros BigInt?
+  /// Cached spend counters (ledger is source of truth for money)
+  todaySpendMicros     BigInt         @default(0)
+  lifetimeSpendMicros  BigInt         @default(0)
+  spendDayKey          String?
+  lifetimeImpressions  BigInt         @default(0)
+  lifetimeClicks       BigInt         @default(0)
+  providerPreference   AdProviderKind @default(mapable_internal)
+  priority             Int            @default(0)
+  isHouse              Boolean        @default(false)
+  placementCodes       String[]       @default([])
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
-  creatives   AdCreative[]
-  targets     AdCampaignTarget[]
-  decisions   AdDecision[]
-  impressions AdImpression[]
-  clicks      AdClick[]
+  creatives      AdCreative[]
+  targets        AdCampaignTarget[]
+  decisions      AdDecision[]
+  impressions    AdImpression[]
+  clicks         AdClick[]
+  auctionResults AdAuctionResult[]
+  billingEvents  AdBillingEvent[]
 
   @@index([advertiserId])
   @@index([status])
+  @@index([bidModel])
   @@index([startAt, endAt])
   @@map("ad_campaigns")
 }
@@ -15479,4 +15496,159 @@ model AdPolicyReview {
   @@index([creativeId])
   @@index([status])
   @@map("ad_policy_reviews")
+}
+
+// ─── MapAble Ads auction & prepaid billing (additive) ───────────────────────
+
+enum AdBidModel {
+  CPM
+  CPC
+  HOUSE
+}
+
+enum AdWalletStatus {
+  ACTIVE
+  FROZEN
+  CLOSED
+}
+
+enum AdWalletLedgerType {
+  TOP_UP
+  IMPRESSION_CHARGE
+  CLICK_CHARGE
+  REFUND
+  DISPUTE
+  MANUAL_CREDIT
+  MANUAL_DEBIT
+  ADJUSTMENT_REVERSAL
+}
+
+enum AdWalletTopUpStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum AdBillingEventStatus {
+  PENDING
+  CHARGED
+  WAIVED
+  REFUNDED
+  FAILED
+}
+
+/// Prepaid advertiser wallet — separate from participant/NDIS balances.
+model AdWallet {
+  id               String         @id @default(cuid())
+  advertiserId     String
+  advertiser       AdAdvertiser   @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  /// Ads domain currency only (initial: AUD). Not global MapAble billing currency.
+  currency         String         @default("AUD")
+  availableMicros  BigInt         @default(0)
+  status           AdWalletStatus @default(ACTIVE)
+  stripeCustomerId String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  ledgerEntries AdWalletLedgerEntry[]
+  topUps        AdWalletTopUp[]
+  billingEvents AdBillingEvent[]
+
+  @@unique([advertiserId, currency])
+  @@index([status])
+  @@index([stripeCustomerId])
+  @@map("ad_wallets")
+}
+
+/// Append-only financial ledger. Corrections = compensating entries only.
+model AdWalletLedgerEntry {
+  id                 String             @id @default(cuid())
+  walletId           String
+  wallet             AdWallet           @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type               AdWalletLedgerType
+  /// Signed: credits positive, debits negative
+  amountMicros       BigInt
+  balanceAfterMicros BigInt?
+  sourceType         String
+  sourceId           String?
+  idempotencyKey     String             @unique
+  stripeEventId      String?
+  metadataJson       Json?
+  createdAt          DateTime           @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([type])
+  @@index([stripeEventId])
+  @@map("ad_wallet_ledger_entries")
+}
+
+model AdWalletTopUp {
+  id                      String              @id @default(cuid())
+  walletId                String
+  wallet                  AdWallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  amountCents             Int
+  amountMicros            BigInt
+  currency                String              @default("AUD")
+  status                  AdWalletTopUpStatus @default(PENDING)
+  stripeCheckoutSessionId String?             @unique
+  stripePaymentIntentId   String?
+  stripeEventId           String?
+  createdAt               DateTime            @default(now())
+  completedAt             DateTime?
+
+  @@index([walletId])
+  @@index([status])
+  @@map("ad_wallet_top_ups")
+}
+
+/// Immutable auction audit record — no participant/clinical/NDIS fields.
+model AdAuctionResult {
+  id                      String      @id @default(cuid())
+  decisionId              String      @unique
+  placementCode           String
+  winnerCampaignId        String?
+  winnerCampaign          AdCampaign? @relation(fields: [winnerCampaignId], references: [id], onDelete: SetNull)
+  winnerBidModel          AdBidModel?
+  winnerMaxBidMicros      BigInt?
+  winnerRawEcpmMicros     BigInt?
+  winnerQualityScoreMilli Int?
+  runnerUpEffectiveScore  BigInt?
+  reservePriceMicros      BigInt
+  clearingEcpmMicros      BigInt?
+  clearingUnitPriceMicros BigInt?
+  algorithmVersion        String
+  createdAt               DateTime    @default(now())
+
+  @@index([placementCode])
+  @@index([winnerCampaignId])
+  @@index([createdAt])
+  @@map("ad_auction_results")
+}
+
+model AdBillingEvent {
+  id                  String               @id @default(cuid())
+  decisionId          String
+  impressionId        String?
+  clickId             String?
+  campaignId          String
+  campaign            AdCampaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  advertiserId        String
+  advertiser          AdAdvertiser         @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  walletId            String
+  wallet              AdWallet             @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  bidModel            AdBidModel
+  clearingPriceMicros BigInt
+  chargedMicros       BigInt
+  status              AdBillingEventStatus @default(PENDING)
+  idempotencyKey      String               @unique
+  createdAt           DateTime             @default(now())
+
+  @@index([decisionId])
+  @@index([campaignId])
+  @@index([walletId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("ad_billing_events")
 }

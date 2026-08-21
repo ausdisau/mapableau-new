@@ -10,23 +10,44 @@ import { prisma } from "@/lib/prisma";
  */
 export async function loadInternalInventory(): Promise<InternalInventory> {
   try {
-    const campaigns = await prisma.adCampaign.findMany({
-      where: {
-        status: { in: ["ACTIVE", "APPROVED"] },
-        advertiser: { status: "ACTIVE" },
-      },
-      include: {
-        advertiser: true,
-        creatives: {
-          where: { status: { in: ["APPROVED", "ACTIVE"] } },
-          take: 1,
+    const [campaigns, floorRules] = await Promise.all([
+      prisma.adCampaign.findMany({
+        where: {
+          status: { in: ["ACTIVE", "APPROVED"] },
+          advertiser: { status: "ACTIVE" },
         },
-        targets: { take: 1 },
-      },
-    });
+        include: {
+          advertiser: {
+            include: {
+              wallets: {
+                where: { currency: "AUD" },
+                take: 1,
+              },
+            },
+          },
+          creatives: {
+            where: { status: { in: ["APPROVED", "ACTIVE"] } },
+            take: 1,
+          },
+          targets: { take: 1 },
+        },
+      }),
+      prisma.adPlacementRule.findMany({
+        where: { ruleKey: "floor_cpm_micros" },
+        include: { placement: true },
+      }),
+    ]);
+
+    const placementFloorRules: Record<string, string> = {};
+    for (const rule of floorRules) {
+      placementFloorRules[rule.placement.code] = rule.ruleValue;
+    }
 
     if (campaigns.length === 0) {
-      return getSyntheticInternalInventory();
+      return {
+        ...getSyntheticInternalInventory(),
+        placementFloorRules,
+      };
     }
 
     const rankable: RankableCampaign[] = [];
@@ -36,11 +57,12 @@ export async function loadInternalInventory(): Promise<InternalInventory> {
       const creative = c.creatives[0];
       if (!creative) continue;
       const target = c.targets[0];
+      const wallet = c.advertiser.wallets[0];
       rankable.push({
         id: c.id,
         status: c.status,
         priority: c.priority,
-        isHouse: c.isHouse,
+        isHouse: c.isHouse || c.bidModel === "HOUSE",
         placementCodes: c.placementCodes,
         region: target?.region,
         category: target?.category,
@@ -49,6 +71,18 @@ export async function loadInternalInventory(): Promise<InternalInventory> {
         endAt: c.endAt,
         advertiserStatus: c.advertiser.status,
         creativeApproved: true,
+        advertiserId: c.advertiserId,
+        bidModel: c.bidModel,
+        maxBidMicros: c.maxBidMicros,
+        dailyBudgetMicros: c.dailyBudgetMicros,
+        lifetimeBudgetMicros: c.lifetimeBudgetMicros,
+        todaySpendMicros: c.todaySpendMicros,
+        lifetimeSpendMicros: c.lifetimeSpendMicros,
+        spendDayKey: c.spendDayKey,
+        lifetimeImpressions: Number(c.lifetimeImpressions),
+        lifetimeClicks: Number(c.lifetimeClicks),
+        walletStatus: wallet?.status ?? (c.isHouse ? "ACTIVE" : null),
+        walletAvailableMicros: wallet?.availableMicros ?? 0n,
       });
       creativesByCampaignId[c.id] = {
         id: creative.id,
@@ -66,10 +100,13 @@ export async function loadInternalInventory(): Promise<InternalInventory> {
     }
 
     if (rankable.length === 0) {
-      return getSyntheticInternalInventory();
+      return {
+        ...getSyntheticInternalInventory(),
+        placementFloorRules,
+      };
     }
 
-    return { campaigns: rankable, creativesByCampaignId };
+    return { campaigns: rankable, creativesByCampaignId, placementFloorRules };
   } catch {
     return getSyntheticInternalInventory();
   }

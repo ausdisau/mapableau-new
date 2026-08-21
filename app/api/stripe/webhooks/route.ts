@@ -20,8 +20,12 @@ export async function POST(req: Request) {
 
   return jsonOk({
     received: true,
-    duplicate: result.billing.duplicate || result.legacy.duplicate,
+    duplicate:
+      result.billing.duplicate ||
+      result.legacy.duplicate ||
+      result.ads.duplicate,
     billing: result.billing,
     legacy: result.legacy,
+    ads: result.ads,
   });
 }

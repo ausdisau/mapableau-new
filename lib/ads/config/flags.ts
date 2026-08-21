@@ -39,6 +39,29 @@ export const adsFlagsConfig = {
       this.isEnabled(env) && envFlag("MAPABLE_ADS_MEASUREMENT_ENABLED", env)
     );
   },
+  /** Quality-adjusted second-price auction for internal inventory. */
+  isAuctionEnabled(env: AdsFlagEnv = process.env): boolean {
+    return this.isEnabled(env) && envFlag("MAPABLE_ADS_AUCTION_ENABLED", env);
+  },
+  /** Prepaid wallet charge on viewable impressions / valid clicks. */
+  isBillingEnabled(env: AdsFlagEnv = process.env): boolean {
+    return this.isEnabled(env) && envFlag("MAPABLE_ADS_BILLING_ENABLED", env);
+  },
+  /** Stripe Checkout top-ups for Ads wallets. */
+  isStripeTopupsEnabled(env: AdsFlagEnv = process.env): boolean {
+    return (
+      this.isEnabled(env) &&
+      envFlag("MAPABLE_ADS_STRIPE_TOPUPS_ENABLED", env)
+    );
+  },
+  /**
+   * Alias for payments enablement checks in advertiser APIs.
+   * Defaults false; webhook reconciliation may still run when delivery is off
+   * if billing handlers are invoked from Stripe dispatcher.
+   */
+  isPaymentsEnabled(env: AdsFlagEnv = process.env): boolean {
+    return this.isStripeTopupsEnabled(env);
+  },
   isGlobalKillSwitch(env: AdsFlagEnv = process.env): boolean {
     return envFlag("MAPABLE_ADS_GLOBAL_KILL_SWITCH", env);
   },
