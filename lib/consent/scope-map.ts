@@ -17,6 +17,9 @@ const TO_PRISMA: Record<ConsentScope, PrismaConsentScope> = {
   "support_profile.read": "support_profile_read",
   "engagement.read_delegate": "engagement_read_delegate",
   "engagement.submit_delegate": "engagement_submit_delegate",
+  "go.current_location": "go_current_location",
+  "go.route_history": "go_route_history",
+  "go.barrier_report": "go_barrier_report",
 };
 
 const FROM_PRISMA: Record<PrismaConsentScope, ConsentScope> = Object.fromEntries(

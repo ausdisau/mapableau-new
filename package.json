@@ -41,6 +41,8 @@
     "ci:readiness-evidence": "tsx scripts/ci/check-readiness-evidence-consistency.ts",
     "ci:controlled-pilot-baseline": "tsx scripts/ci/check-controlled-pilot-baseline.ts",
     "ci:prod-audit": "tsx scripts/ci/check-prod-audit.ts",
+    "ci:mapable-go-security": "tsx scripts/ci/check-mapable-go-security.ts",
+    "ci:essential-eight": "tsx scripts/ci/check-mapable-go-security.ts",
     "audit:https-gate": "node scripts/ci/verify-public-https-gate-readonly.mjs",
     "audit:branch-protection": "node scripts/ci/audit-branch-protection-readonly.mjs",
     "audit:deploy-evidence": "node scripts/ci/capture-deployment-evidence-readonly.mjs",
