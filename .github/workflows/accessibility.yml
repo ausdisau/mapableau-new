@@ -46,7 +46,7 @@ jobs:
       # Exercise first-party panel in a11y CI; production default remains off
       NEXT_PUBLIC_MAPABLE_FIRST_PARTY_A11Y_PANEL: "true"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
         with:
