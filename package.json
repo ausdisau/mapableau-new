@@ -171,7 +171,7 @@
     "lint-staged": "^16.2.4",
     "postcss": "^8.5.22",
     "prettier": "^3.6.2",
-    "prettier-eslint": "^16.4.2",
+    "prettier-eslint": "^17.1.1",
     "prisma": "6.19.2",
     "tsx": "^4.22.3",
     "typescript": "^5.0.0",
