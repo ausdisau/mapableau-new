@@ -16,6 +16,9 @@ export const mapableGaisFlags = {
   get compatibilityEnabled() {
     return envTrue("MAPABLE_GAIS_COMPATIBILITY_ENABLED");
   },
+  get queryEnabled() {
+    return envTrue("MAPABLE_GAIS_QUERY_ENABLED");
+  },
   /** Public read endpoints may serve when true. */
   get readEnabled() {
     return this.enabled && this.publicApiEnabled;

@@ -94,6 +94,14 @@ Compares **known environmental facts** with **user-configured requirements** (no
 
 Rules: never `ASSUME_PASS`; feature tags (e.g. `step_free_entry`) do not establish physical facts; optional adapter maps MapAble Go `MobilityRoutingProfile` → `AccessRequirements` without fabricating device limits.
 
+### Structured geographic query
+
+- `POST /api/gais/query` — deterministic structured queries (not free-form AI)
+- Compiles to Access Intelligence Next `AccessQueryAst` for ontology validation via `validateAccessQuery`
+- Response scopes: `MATCHED_KNOWN_FACTS`, `KNOWN_CONFLICTS`, `UNKNOWN`
+- Supports bounds, location+radius, feature types, evidence requirements, compatibility requirements, active events
+- No implicit "most accessible" ranking — `meta.rankingApplied: false`
+
 ## 6. Deferred
 
 - PostGIS / vector tiles / PMTiles
