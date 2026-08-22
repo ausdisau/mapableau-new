@@ -13,6 +13,7 @@ import {
   PanToSelectedControl,
   PanToUserLocationControl,
 } from "@/components/accessibility-map/FitBoundsControl";
+import { GaisLeafletLayer } from "@/components/gais/GaisLeafletLayer";
 import { MapLegend } from "@/components/accessibility-map/MapLegend";
 import { UserLocationControl } from "@/components/accessibility-map/UserLocationControl";
 import type { UserLocationResult } from "@/hooks/useUserLocation";
@@ -24,6 +25,7 @@ import {
 } from "@/lib/map/accessibilityMapUtils";
 import type { LatLngTuple } from "@/lib/map/accessibilityMapUtils";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 type OpenStreetMapViewInnerProps = {
   mappable: DemoAccessPlace[];
@@ -41,6 +43,10 @@ type OpenStreetMapViewInnerProps = {
   onTileError: () => void;
   initialCenter: LatLngTuple;
   initialZoom?: number;
+  gaisLayerEnabled?: boolean;
+  gaisSelectedId?: string;
+  onGaisSelect?: (id: string | undefined) => void;
+  onGaisFeaturesChange?: (features: GaisGeoJsonFeature[]) => void;
 };
 
 export function OpenStreetMapViewInner({
@@ -59,6 +65,10 @@ export function OpenStreetMapViewInner({
   onTileError,
   initialCenter,
   initialZoom,
+  gaisLayerEnabled = false,
+  gaisSelectedId,
+  onGaisSelect,
+  onGaisFeaturesChange,
 }: OpenStreetMapViewInnerProps) {
   const userLocationIcon = createUserLocationIcon();
 
@@ -106,6 +116,15 @@ export function OpenStreetMapViewInner({
           </Popup>
         </AccessibilityMapMarker>
       ))}
+
+      {gaisLayerEnabled ? (
+        <GaisLeafletLayer
+          enabled={gaisLayerEnabled}
+          selectedId={gaisSelectedId}
+          onSelect={onGaisSelect}
+          onFeaturesChange={onGaisFeaturesChange}
+        />
+      ) : null}
 
       {userLocationCoords ? (
         <Marker position={userLocationCoords} icon={userLocationIcon}>

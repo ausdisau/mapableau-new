@@ -9,9 +9,13 @@ import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceList } from "@/components/access/AccessPlaceList";
 import { AccessSearchBar } from "@/components/access/AccessSearchBar";
 import { MobileAccessMapShell } from "@/components/access/MobileAccessMapShell";
+import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
+import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
 import { useSponsoredMapMarkers } from "@/hooks/ads/useSponsoredMapMarkers";
 import { ACCESS_DISCLAIMER } from "@/lib/access/map/copy";
 import { isClientAdsAccessEnabled } from "@/lib/ads/config/client-flags";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
+import { isClientGaisLayerEnabled } from "@/lib/gais/client/flags";
 
 export type AccessPlaceView = {
   id: string;
@@ -33,6 +37,10 @@ export function MapAbleAccessShell({
   const [places, setPlaces] = useState(initialPlaces);
   const [view, setView] = useState<"list" | "map">("list");
   const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [gaisLayerOn, setGaisLayerOn] = useState(false);
+  const [gaisSelectedId, setGaisSelectedId] = useState<string | undefined>();
+  const [gaisFeatures, setGaisFeatures] = useState<GaisGeoJsonFeature[]>([]);
+  const gaisClientEnabled = isClientGaisLayerEnabled();
   const search = useCallback(async () => {
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
@@ -129,6 +137,10 @@ export function MapAbleAccessShell({
               </button>
             </div>
 
+            {gaisClientEnabled ? (
+              <GaisLayerToggle enabled={gaisLayerOn} onChange={setGaisLayerOn} />
+            ) : null}
+
             {view === "map" ? (
               <>
                 <AccessMap
@@ -136,6 +148,10 @@ export function MapAbleAccessShell({
                   selectedId={selectedId}
                   onSelect={setSelectedId}
                   sponsoredMarkers={sponsoredMarkers}
+                  gaisLayerEnabled={gaisLayerOn}
+                  gaisSelectedId={gaisSelectedId}
+                  onGaisSelect={setGaisSelectedId}
+                  onGaisFeaturesChange={setGaisFeatures}
                 />
                 <AdPlacement
                   placement="access.map.sponsored-card"
@@ -145,6 +161,14 @@ export function MapAbleAccessShell({
                   enabled={adsEnabled}
                 />
               </>
+            ) : null}
+
+            {gaisLayerOn ? (
+              <GaisFeatureListPanel
+                features={gaisFeatures}
+                selectedId={gaisSelectedId}
+                onSelect={setGaisSelectedId}
+              />
             ) : null}
 
             <AdPlacement

@@ -1,17 +1,24 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
+import type { MapRef } from "react-map-gl/maplibre";
 
 import { SponsoredMapMarker } from "@/components/ads/mapable/SponsoredMapMarker";
+import { GaisMapLibreLayer } from "@/components/gais/GaisMapLibreLayer";
 import { useMapConfig } from "@/components/map/MapProvider";
 import type { AdCreativePayload } from "@/lib/ads/types";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 export function AccessMapLayer({
   places,
   selectedId,
   onSelect,
   sponsoredMarkers = [],
+  gaisLayerEnabled = false,
+  gaisSelectedId,
+  onGaisSelect,
+  onGaisFeaturesChange,
 }: {
   places: { id: string; name: string; latitude: number; longitude: number }[];
   selectedId?: string;
@@ -21,8 +28,13 @@ export function AccessMapLayer({
     clickPath: string;
     decisionId: string;
   }>;
+  gaisLayerEnabled?: boolean;
+  gaisSelectedId?: string;
+  onGaisSelect?: (id: string | undefined) => void;
+  onGaisFeaturesChange?: (features: GaisGeoJsonFeature[]) => void;
 }) {
   const { styleUrl, attribution, defaultCenter } = useMapConfig();
+  const mapRef = useRef<MapRef>(null);
 
   const center = useMemo(() => {
     if (!places.length) {
@@ -40,6 +52,7 @@ export function AccessMapLayer({
 
   return (
     <Map
+      ref={mapRef}
       initialViewState={{
         latitude: center.latitude,
         longitude: center.longitude,
@@ -74,6 +87,15 @@ export function AccessMapLayer({
           </button>
         </Marker>
       ))}
+      {gaisLayerEnabled ? (
+        <GaisMapLibreLayer
+          mapRef={mapRef}
+          enabled={gaisLayerEnabled}
+          selectedId={gaisSelectedId}
+          onSelect={onGaisSelect}
+          onFeaturesChange={onGaisFeaturesChange}
+        />
+      ) : null}
       {sponsoredMarkers.map((m) => (
         <SponsoredMapMarker
           key={m.decisionId}
