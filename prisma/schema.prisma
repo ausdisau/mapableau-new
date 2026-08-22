@@ -135,6 +135,7 @@ model User {
   goBarrierReports          AccessTemporaryBarrier[] @relation("GoBarrierReporter")
   goLocationSessions        GoLocationSession[]    @relation("GoLocationSessions")
   goRoutePlans              GoRoutePlan[]          @relation("GoRoutePlans")
+  lifeIntents               LifeIntent[]           @relation("LifeIntents")
 
   // AI-enabled case management
   caseManagementOwned       Case[]                 @relation("CaseAssignedToUser")
@@ -15236,6 +15237,34 @@ model GoRoutePlan {
 
   @@index([userId, createdAt])
   @@map("go_route_plans")
+}
+
+// ---------------------------------------------------------------------------
+// Personal Agency Infrastructure — LifeIntent (participant words preserved)
+// ---------------------------------------------------------------------------
+
+enum LifeIntentStatus {
+  EXPLORING
+  PLANNING
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+model LifeIntent {
+  id                 String           @id @default(cuid())
+  principalId        String           @map("principal_id")
+  principal          User             @relation("LifeIntents", fields: [principalId], references: [id], onDelete: Cascade)
+  originalExpression String           @map("original_expression")
+  status             LifeIntentStatus @default(EXPLORING)
+  desiredOutcomes    String[]         @default([]) @map("desired_outcomes")
+  notes              String?
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  @@index([principalId, status])
+  @@index([principalId, createdAt])
+  @@map("life_intents")
 }
 
 // ---------------------------------------------------------------------------
