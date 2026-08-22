@@ -156,9 +156,9 @@ export function LocalAccessGuidesDirectory({
           Filter {capitalGuides.length} capital starter guides and{" "}
           {regionalCount} regional guides by city or state.
         </p>
-        <form
+        <div
+          role="search"
           className="mt-5 grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_12rem]"
-          onSubmit={(event) => event.preventDefault()}
           aria-label="Guide filters"
         >
           <div>
@@ -192,7 +192,7 @@ export function LocalAccessGuidesDirectory({
               ))}
             </select>
           </div>
-        </form>
+        </div>
         <p className="mt-3 text-sm text-slate-600" role="status">
           Showing {filtered.length} guide{filtered.length === 1 ? "" : "s"}
         </p>

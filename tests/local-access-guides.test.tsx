@@ -122,6 +122,18 @@ describe("LocalAccessGuidesDirectory", () => {
     expect(screen.queryByRole("heading", { name: "Capital Access Guides" })).toBeNull();
     expect(screen.getByText(/Showing 1 guide/)).toBeTruthy();
   });
+
+  it("does not render form elements (informational boundary contract)", () => {
+    const { container } = render(
+      <LocalAccessGuidesDirectory
+        guides={accessGuides}
+        capitalGuides={getCapitalAccessGuides()}
+      />,
+    );
+
+    expect(container.querySelectorAll("form")).toHaveLength(0);
+    expect(screen.getByRole("search", { name: "Guide filters" })).toBeTruthy();
+  });
 });
 
 describe("guides public page contract", () => {
