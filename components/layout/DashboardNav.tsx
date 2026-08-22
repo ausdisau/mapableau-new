@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { MapAbleRoleNav } from "@/components/layout/MapAbleRoleNav";
+import { personalAgencyFlags } from "@/lib/config/personal-agency";
 import type { UserRole } from "@/types/mapable";
 
 const BASE_LINKS = [
-  { href: "/dashboard", label: "Control panel", exact: true },
+  { href: "/dashboard", label: "Control panel", exact: true as const },
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/accessibility", label: "Accessibility" },
   { href: "/dashboard/consent", label: "Consent" },
@@ -57,9 +58,15 @@ export function DashboardNav({
 }) {
   const pathname = usePathname();
   const links = [
-    BASE_LINKS[0]!,
+    ...(personalAgencyFlags.uiEnabled
+      ? [{ href: "/my", label: "My MapAble", exact: true as const }]
+      : [{ href: "/dashboard", label: "Control panel", exact: true as const }]),
     ...(showCareOsNav ? CAREOS_LINKS : []),
-    ...BASE_LINKS.slice(1),
+    ...BASE_LINKS.filter(
+      (link) =>
+        !("exact" in link && link.exact && link.href === "/dashboard") &&
+        !(personalAgencyFlags.uiEnabled && link.href === "/dashboard"),
+    ),
     ...(role === "mapable_admin" ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
