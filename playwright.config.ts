@@ -20,6 +20,10 @@ const projects: Project[] = [
     name: "informational-boundary",
     testMatch: /informational-boundary\.spec\.ts/,
   },
+  {
+    name: "my-mapable",
+    testMatch: /my-mapable\.spec\.ts/,
+  },
 ];
 
 if (!skipAuth) {
