@@ -26,32 +26,22 @@
 - `GuidedSearchDialogue` for assistant shell (read-only routing, no autonomous execution)
 - Access provenance labels from `lib/access/infrastructure/provenance.ts`
 
-## MISSING
-
-- `/my/*` route namespace
-- `LifeIntent` model and APIs
-- Participant-first home (intent / today / what matters)
-- Agency indicator, privacy & control as primary destination under `/my`
-- First-run progressive setup flow
-- Reusable `AgencyConfirmation`, `EvidenceDrawer` PAI components
-- Unified My MapAble navigation shell
-
-## THIS PR WILL ADD
-
-- Feature flags: `MAPABLE_PERSONAL_AGENCY_*` (fail-closed)
-- Additive `LifeIntent` Prisma model + migration
-- `/my` authenticated shell (desktop + mobile nav)
-- `/my` home redesign (intent-led, real data or empty states)
-- `/my/life`, `/my/control`, `/my/control/activity`, `/my/people`, `/my/devices`, `/my/setup`
-- Public `/personal-agency` explainer + homepage section
-- Agency indicator, evidence drawer, agency confirmation primitives
-- Assistant shell linking to guided search (no consequential execution)
-- Tests: auth gates, life intent isolation, a11y shell
-
-## DEFERRED
+## MISSING (deferred beyond this slice)
 
 - Full PAI orchestration, autonomous agents, MCP actuation
 - Financial execution, provider auto-contact, device telemetry/control
 - Canonical redirect from `/dashboard` to `/my`
-- PostGIS / national routing, Care/Transport/Jobs as live general services
-- Persisted `ParticipantAccessProfile` for density adaptation
+- Persisted information density adaptation UI (STANDARD/SIMPLER/DETAILED)
+- PostGIS / national routing; Care/Transport/Jobs as live general services
+
+## DELIVERED IN THIS PR
+
+- Feature flags: `MAPABLE_PERSONAL_AGENCY_*` (fail-closed, default OFF)
+- Additive `LifeIntent` Prisma model + migration
+- `/my` authenticated shell (desktop + mobile nav)
+- `/my` home redesign (intent-led, real bookings or empty states)
+- `/my/life`, `/my/control`, `/my/control/activity`, `/my/people`, `/my/devices`, `/my/setup`, `/my/ask`
+- Public `/personal-agency` explainer + homepage section
+- Agency indicator, evidence drawer, agency confirmation primitives
+- Assistant shell linking to guided search (no consequential execution)
+- Tests: auth gates, life intent isolation, Playwright public surfaces
