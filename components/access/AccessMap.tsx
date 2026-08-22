@@ -5,6 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import dynamic from "next/dynamic";
 
 import type { AdCreativePayload } from "@/lib/ads/types";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 const AccessMapLayer = dynamic(
   () => import("@/components/access/AccessMapLayer").then((m) => m.AccessMapLayer),
@@ -16,6 +17,10 @@ export function AccessMap({
   selectedId,
   onSelect,
   sponsoredMarkers,
+  gaisLayerEnabled,
+  gaisSelectedId,
+  onGaisSelect,
+  onGaisFeaturesChange,
 }: {
   places: { id: string; name: string; latitude: number; longitude: number }[];
   selectedId?: string;
@@ -25,6 +30,10 @@ export function AccessMap({
     clickPath: string;
     decisionId: string;
   }>;
+  gaisLayerEnabled?: boolean;
+  gaisSelectedId?: string;
+  onGaisSelect?: (id: string | undefined) => void;
+  onGaisFeaturesChange?: (features: GaisGeoJsonFeature[]) => void;
 }) {
   return (
     <div
@@ -37,6 +46,10 @@ export function AccessMap({
         selectedId={selectedId}
         onSelect={onSelect}
         sponsoredMarkers={sponsoredMarkers}
+        gaisLayerEnabled={gaisLayerEnabled}
+        gaisSelectedId={gaisSelectedId}
+        onGaisSelect={onGaisSelect}
+        onGaisFeaturesChange={onGaisFeaturesChange}
       />
     </div>
   );

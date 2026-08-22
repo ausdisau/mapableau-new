@@ -6,6 +6,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { LiveRegion } from "@/components/a11y/LiveRegion";
 import { AccessNeedsTogglePanel } from "@/components/access-fit/AccessNeedsTogglePanel";
+import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
+import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
 import { VenueListCard } from "@/components/accessibility-map/VenueListCard";
 import { MapErrorBoundary } from "@/components/error/MapErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +26,8 @@ import {
 } from "@/lib/marketing/mapable-care-tokens";
 import { toPublicVenueSpec } from "@/lib/offline/public-venue-dto";
 import { saveVenueSearchCache } from "@/lib/offline/venue-search-cache";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
+import { isClientGaisLayerEnabled } from "@/lib/gais/client/flags";
 
 const VIEW_STORAGE_KEY = "mapable-accessibility-map-view";
 const RESULTS_PANEL_ID = "access-map-results-panel";
@@ -71,7 +75,11 @@ export function AccessibilityMapLanding({
   const [useDemoNeeds, setUseDemoNeeds] = useState(false);
   const [mapPinStatus, setMapPinStatus] = useState("");
   const [listLimit, setListLimit] = useState(LIST_PAGE_SIZE);
+  const [gaisLayerOn, setGaisLayerOn] = useState(false);
+  const [gaisSelectedId, setGaisSelectedId] = useState<string | undefined>();
+  const [gaisFeatures, setGaisFeatures] = useState<GaisGeoJsonFeature[]>([]);
   const cardRefs = useRef<Record<string, HTMLElement | null>>({});
+  const gaisClientEnabled = isClientGaisLayerEnabled();
   const online = useOnlineStatus();
 
   useEffect(() => {
@@ -425,6 +433,10 @@ export function AccessibilityMapLanding({
             </div>
           </div>
 
+          {gaisClientEnabled ? (
+            <GaisLayerToggle enabled={gaisLayerOn} onChange={setGaisLayerOn} />
+          ) : null}
+
           <LiveRegion message={mapPinStatus} id="access-map-view-live" />
 
           {/* Stable min-height avoids CLS when map scripts load/fail or view toggles */}
@@ -462,7 +474,18 @@ export function AccessibilityMapLanding({
                   onSelect={handleSelectPlace}
                   activeNeeds={activeNeeds}
                   onSwitchToList={() => handleViewChange("list")}
+                  gaisLayerEnabled={gaisLayerOn}
+                  gaisSelectedId={gaisSelectedId}
+                  onGaisSelect={setGaisSelectedId}
+                  onGaisFeaturesChange={setGaisFeatures}
                 />
+                {gaisLayerOn ? (
+                  <GaisFeatureListPanel
+                    features={gaisFeatures}
+                    selectedId={gaisSelectedId}
+                    onSelect={setGaisSelectedId}
+                  />
+                ) : null}
               </MapErrorBoundary>
             ) : null}
 
@@ -501,7 +524,22 @@ export function AccessibilityMapLanding({
                     remaining)
                   </button>
                 ) : null}
+                {gaisLayerOn ? (
+                  <GaisFeatureListPanel
+                    features={gaisFeatures}
+                    selectedId={gaisSelectedId}
+                    onSelect={setGaisSelectedId}
+                  />
+                ) : null}
               </div>
+            ) : null}
+
+            {gaisLayerOn && view === "list" ? (
+              <GaisFeatureListPanel
+                features={gaisFeatures}
+                selectedId={gaisSelectedId}
+                onSelect={setGaisSelectedId}
+              />
             ) : null}
           </div>
 

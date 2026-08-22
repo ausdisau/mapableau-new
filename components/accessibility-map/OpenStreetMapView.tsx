@@ -15,6 +15,7 @@ import {
   partitionPlacesByCoordinates,
 } from "@/lib/map/accessibilityMapUtils";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 const OpenStreetMapViewInner = dynamic(
   () =>
@@ -41,6 +42,10 @@ type OpenStreetMapViewProps = {
   onSelect: (id: string | undefined) => void;
   activeNeeds: AccessNeed;
   onSwitchToList?: () => void;
+  gaisLayerEnabled?: boolean;
+  gaisSelectedId?: string;
+  onGaisSelect?: (id: string | undefined) => void;
+  onGaisFeaturesChange?: (features: GaisGeoJsonFeature[]) => void;
 };
 
 export function OpenStreetMapView({
@@ -49,6 +54,10 @@ export function OpenStreetMapView({
   onSelect,
   activeNeeds,
   onSwitchToList,
+  gaisLayerEnabled,
+  gaisSelectedId,
+  onGaisSelect,
+  onGaisFeaturesChange,
 }: OpenStreetMapViewProps) {
   const { mappable, missingCoordinates } = useMemo(
     () => partitionPlacesByCoordinates(places),
@@ -187,6 +196,10 @@ export function OpenStreetMapView({
             initialZoom={
               markerCoordinates.length > 0 ? undefined : AUSTRALIA_FALLBACK_ZOOM
             }
+            gaisLayerEnabled={gaisLayerEnabled}
+            gaisSelectedId={gaisSelectedId}
+            onGaisSelect={onGaisSelect}
+            onGaisFeaturesChange={onGaisFeaturesChange}
           />
         </MapErrorBoundary>
       </div>
