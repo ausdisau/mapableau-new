@@ -49,20 +49,16 @@ describe("homepage marketing splash", () => {
     render(<MapAbleCareCombinedHomepage />);
   });
 
-  it("renders primary nav with pre-register and places links", () => {
+  it("renders primary nav with ecosystem links", () => {
     const nav = screen.getByRole("navigation", { name: "Primary" });
     expect(nav).toBeTruthy();
-    expect(nav.querySelector('a[href="#pre-register"]')?.textContent).toBe(
-      "Pre-register",
-    );
-    expect(nav.querySelector('a[href="/accessibility-map"]')?.textContent).toBe(
-      "Places",
+    expect(nav.querySelector("button")?.textContent).toBe("Explore");
+    expect(nav.querySelector('a[href="/care"]')?.textContent).toBe("Care");
+    expect(nav.querySelector('a[href="/transport"]')?.textContent).toBe(
+      "Transport",
     );
     expect(nav.querySelector('a[href="/providers"]')?.textContent).toBe(
       "Providers",
-    );
-    expect(nav.querySelector('a[href="/ask"]')?.textContent).toBe(
-      "NDIS Guidance",
     );
   });
 
@@ -71,23 +67,21 @@ describe("homepage marketing splash", () => {
       level: 1,
       name: homepageHeroCopy.headline,
     });
-    expect(h1.getAttribute("aria-label")).toBe(homepageHeroCopy.headline);
+    expect(h1).toBeTruthy();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
   it("renders hero CTAs for splash destinations", () => {
+    expect(
+      screen
+        .getByRole("link", { name: homepageHeroCopy.primaryCta })
+        .getAttribute("href"),
+    ).toBe("/accessibility-map");
     const preRegLinks = screen.getAllByRole("link", {
       name: /Pre-register interest/i,
     });
     expect(preRegLinks[0]?.getAttribute("href")).toBe("#pre-register");
-    expect(
-      screen
-        .getByRole("link", { name: homepageHeroCopy.secondaryCta })
-        .getAttribute("href"),
-    ).toBe("/accessibility-map");
-    expect(
-      screen.queryByRole("link", { name: /^Request support$/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("link", { name: /^Request support$/i })).toBeNull();
   });
 
   it("hides coming-soon progress signals and guided search panel", () => {

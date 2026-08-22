@@ -11,7 +11,11 @@ import {
   formInputClass,
 } from "@/components/forms/AccessibleFormField";
 import { SensitiveDataBanner } from "@/components/forms/SensitiveDataBanner";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import {
+  mapableCareCtaClass,
+  mapableCareFocusRing,
+  mapableCareOutlineCtaClass,
+} from "@/lib/marketing/mapable-care-tokens";
 import {
   PRE_REGISTRATION_ROLES,
   preRegistrationRoleLabels,
@@ -140,37 +144,33 @@ export function PreRegistrationSection() {
     <section
       id="pre-register"
       aria-labelledby="pre-register-heading"
-      className="relative overflow-hidden border-y border-slate-200 bg-[#F6FBFC]"
+      className="relative overflow-hidden border-y border-mapable-border bg-mapable-surface"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-24 top-0 h-64 w-64 rounded-full bg-[#005B7F]/10 blur-3xl motion-reduce:blur-none"
-      />
       <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:px-8 lg:py-16">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-mapable-primary">
             Early access
           </p>
           <h2
             id="pre-register-heading"
-            className="mt-3 max-w-xl text-3xl font-black tracking-[-0.04em] text-[#0C1833] md:text-4xl"
+            className="mt-3 max-w-xl font-heading text-3xl font-black tracking-[-0.04em] text-mapable-text md:text-4xl"
           >
             Pre-register for the MapAble pilot
           </h2>
-          <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
+          <p className="mt-4 max-w-xl text-lg leading-[1.65] text-mapable-text-muted">
             Tell us whether you are joining as a participant or a provider. This
             is interest registration only — not an account, booking, or NDIS
             claim pathway.
           </p>
-          <ul className="mt-6 space-y-3 text-sm font-semibold text-slate-700">
+          <ul className="mt-6 space-y-3 text-sm font-semibold text-mapable-text-muted">
             <li className="flex gap-2">
-              <span className="text-[#005B7F]" aria-hidden="true">
+              <span className="text-mapable-primary" aria-hidden="true">
                 •
               </span>
               Participants and carers: accessibility maps and support discovery
             </li>
             <li className="flex gap-2">
-              <span className="text-[#005B7F]" aria-hidden="true">
+              <span className="text-mapable-primary" aria-hidden="true">
                 •
               </span>
               Providers: list interest for verified access-ready profiles
@@ -178,17 +178,17 @@ export function PreRegistrationSection() {
           </ul>
         </div>
 
-        <div className="rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="rounded-[1.5rem] border border-mapable-border bg-white p-6 shadow-sm sm:p-8">
           {status === "success" ? (
             <div
               role="status"
-              className="rounded-2xl border border-[#00A979]/30 bg-[#00A979]/10 p-5 text-sm leading-6 text-[#0C1833]"
+              className="rounded-2xl border border-emerald-700/30 bg-emerald-50 p-5 text-sm leading-6 text-mapable-text"
             >
               <p className="font-black">You are on the list</p>
               <p className="mt-2">{successMessage}</p>
               <button
                 type="button"
-                className={`mt-4 inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black ${mapableCareFocusRing}`}
+                className={`mt-4 ${mapableCareOutlineCtaClass}`}
                 onClick={() => setStatus("idle")}
               >
                 Submit another registration
@@ -199,15 +199,18 @@ export function PreRegistrationSection() {
               ref={formRef}
               onSubmit={handleSubmit}
               noValidate
-              className="space-y-5"
+              className="space-y-8"
             >
               <fieldset>
                 <legend
                   id="prereg-role-legend"
                   tabIndex={-1}
-                  className="text-sm font-black text-[#0C1833]"
+                  className="text-lg font-black text-mapable-text"
                 >
-                  I am joining as
+                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-mapable-primary">
+                    Step 1 of 3
+                  </span>
+                  Who are you joining as?
                 </legend>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {PRE_REGISTRATION_ROLES.map((option) => {
@@ -219,8 +222,8 @@ export function PreRegistrationSection() {
                         htmlFor={inputId}
                         className={`flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border-2 px-4 text-center text-sm font-black transition ${
                           selected
-                            ? "border-[#005B7F] bg-[#005B7F] text-white"
-                            : "border-slate-200 bg-[#F6FBFC] text-[#0C1833] hover:border-[#005B7F]/40"
+                            ? "border-mapable-primary bg-mapable-primary text-white"
+                            : "border-mapable-border bg-mapable-surface text-mapable-text hover:border-mapable-primary/40"
                         } ${mapableCareFocusRing}`}
                       >
                         <input
@@ -244,74 +247,84 @@ export function PreRegistrationSection() {
                 ) : null}
               </fieldset>
 
-              <AccessibleFormField
-                id="prereg-name"
-                label="Full name"
-                error={errors.name}
-                required
-              >
-                <input
-                  id="prereg-name"
-                  name="name"
-                  autoComplete="name"
-                  className={formInputClass}
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                />
-              </AccessibleFormField>
-
-              <AccessibleFormField
-                id="prereg-email"
-                label="Email"
-                error={errors.email}
-                required
-              >
-                <input
-                  id="prereg-email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  className={formInputClass}
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </AccessibleFormField>
-
-              {role === "provider" ? (
-                <AccessibleFormField
-                  id="prereg-organisation"
-                  label="Organisation (optional)"
-                >
-                  <input
-                    id="prereg-organisation"
-                    name="organisation"
-                    autoComplete="organization"
-                    className={formInputClass}
-                    value={organisation}
-                    onChange={(event) => setOrganisation(event.target.value)}
-                  />
-                </AccessibleFormField>
-              ) : null}
-
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label
-                    htmlFor="prereg-notes"
-                    className="block text-sm font-medium"
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-mapable-primary">
+                  Step 2 of 3
+                </p>
+                <p className="mt-2 text-lg font-black text-mapable-text">
+                  Basic details
+                </p>
+                <div className="mt-4 space-y-5">
+                  <AccessibleFormField
+                    id="prereg-name"
+                    label="Full name"
+                    error={errors.name}
+                    required
                   >
-                    What are you hoping to use MapAble for? (optional)
-                  </label>
-                  <SensitiveDataBanner id="prereg-sensitive-tip" />
+                    <input
+                      id="prereg-name"
+                      name="name"
+                      autoComplete="name"
+                      className={formInputClass}
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                    />
+                  </AccessibleFormField>
+
+                  <AccessibleFormField
+                    id="prereg-email"
+                    label="Email"
+                    error={errors.email}
+                    required
+                  >
+                    <input
+                      id="prereg-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      className={formInputClass}
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                    />
+                  </AccessibleFormField>
+
+                  {role === "provider" ? (
+                    <AccessibleFormField
+                      id="prereg-organisation"
+                      label="Organisation (optional)"
+                    >
+                      <input
+                        id="prereg-organisation"
+                        name="organisation"
+                        autoComplete="organization"
+                        className={formInputClass}
+                        value={organisation}
+                        onChange={(event) => setOrganisation(event.target.value)}
+                      />
+                    </AccessibleFormField>
+                  ) : null}
+
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <label
+                        htmlFor="prereg-notes"
+                        className="block text-sm font-medium"
+                      >
+                        What are you hoping to use MapAble for? (optional)
+                      </label>
+                      <SensitiveDataBanner id="prereg-sensitive-tip" />
+                    </div>
+                    <textarea
+                      id="prereg-notes"
+                      name="notes"
+                      rows={3}
+                      className={formInputClass}
+                      value={notes}
+                      onChange={(event) => setNotes(event.target.value)}
+                      aria-describedby="prereg-sensitive-tip prereg-sensitive-warning"
+                    />
+                  </div>
                 </div>
-                <textarea
-                  id="prereg-notes"
-                  name="notes"
-                  rows={3}
-                  className={formInputClass}
-                  value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
-                  aria-describedby="prereg-sensitive-tip"
-                />
               </div>
 
               {/* Honeypot */}
@@ -330,15 +343,30 @@ export function PreRegistrationSection() {
                 />
               </div>
 
-              <div id="prereg-consent-legend" tabIndex={-1}>
-                <ConsentScopeCheckbox
-                  scopes={PRE_REG_CONSENT_SCOPES}
-                  checkedIds={consentIds}
-                  onChange={setConsentIds}
-                  legend="Consent for pre-registration"
-                  error={errors.consent}
-                  requiredScopeIds={["prereg_contact", "no_sensitive_upload"]}
-                />
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-mapable-primary">
+                  Step 3 of 3
+                </p>
+                <p className="mt-2 text-lg font-black text-mapable-text">
+                  Consent and confirmation
+                </p>
+                <p
+                  id="prereg-sensitive-warning"
+                  className="mt-3 rounded-2xl border border-mapable-orange/40 bg-orange-50 px-4 py-3 text-sm font-semibold leading-6 text-mapable-text"
+                >
+                  Do not paste NDIS plans, medical records or clinical documents
+                  into this form.
+                </p>
+                <div id="prereg-consent-legend" tabIndex={-1} className="mt-4">
+                  <ConsentScopeCheckbox
+                    scopes={PRE_REG_CONSENT_SCOPES}
+                    checkedIds={consentIds}
+                    onChange={setConsentIds}
+                    legend="Consent for pre-registration"
+                    error={errors.consent}
+                    requiredScopeIds={["prereg_contact", "no_sensitive_upload"]}
+                  />
+                </div>
               </div>
 
               {errors.form ? (
@@ -350,7 +378,7 @@ export function PreRegistrationSection() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className={`inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#005B7F] px-5 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] disabled:opacity-60 sm:w-auto ${mapableCareFocusRing}`}
+                className={`${mapableCareCtaClass} w-full disabled:opacity-60 sm:w-auto`}
               >
                 {status === "loading" ? "Submitting…" : "Pre-register interest"}
               </button>

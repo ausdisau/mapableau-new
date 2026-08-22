@@ -31,7 +31,7 @@ afterEach(() => {
 });
 
 describe("MapAbleBrandLockup", () => {
-  it("centers the wordmark and a width-fitted tagline pill", () => {
+  it("centers the wordmark and tagline without a navy capsule", () => {
     const { container } = render(<MapAbleBrandLockup href="/" size="header" />);
 
     const link = screen.getByRole("link", {
@@ -44,8 +44,8 @@ describe("MapAbleBrandLockup", () => {
     expect(img?.getAttribute("src")).toBe(MAPABLE_LOGO_WORDMARK_SRC);
     expect(img?.className).toMatch(/object-center/);
 
-    const pill = screen.getByText(MAPABLE_BRAND_TAGLINE);
-    expect(pill.className).toMatch(/w-fit/);
-    expect(pill.className).toMatch(/rounded-full/);
+    const tagline = screen.getByText(MAPABLE_BRAND_TAGLINE);
+    expect(tagline.className).not.toMatch(/rounded-full/);
+    expect(tagline.className).not.toMatch(/bg-\[#0C1833\]/);
   });
 });

@@ -11,7 +11,7 @@ import { ArrowIcon, ChevronDown, SearchIcon } from "@/components/marketing/mapab
 import {
   MAPABLE_LOGO_ALT,
   MAPABLE_LOGO_MARK_SRC,
-  MAPABLE_LOGO_SRC,
+  MAPABLE_LOGO_WORDMARK_SRC,
 } from "@/lib/brand/constants";
 import {
   getFilteredResults,
@@ -114,14 +114,14 @@ export function LogoMark({
 
   return (
     <img
-      src={MAPABLE_LOGO_SRC}
-      alt={MAPABLE_LOGO_ALT}
-      width={754}
-      height={1008}
-      className={
-        className ??
-        "block h-14 w-auto max-h-[4.5rem] shrink-0 bg-transparent object-contain object-left sm:h-16"
-      }
+        src={MAPABLE_LOGO_WORDMARK_SRC}
+        alt={MAPABLE_LOGO_ALT}
+        width={280}
+        height={248}
+        className={
+          className ??
+          "block h-14 w-auto max-h-[4.5rem] shrink-0 bg-transparent object-contain object-left sm:h-16"
+        }
       decoding="async"
       fetchPriority="high"
     />
@@ -502,7 +502,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
 
 export function MapAbleCareMarketingHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-mapable-border bg-white/95 backdrop-blur">
       <div className="relative mx-auto max-w-7xl px-5 py-4 lg:px-8">
         <MarketingPrimaryNav />
       </div>

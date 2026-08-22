@@ -3,10 +3,14 @@
 import React from "react";
 
 import { BoundaryNotice } from "@/components/canvas/BoundaryNotice";
+import { AccessibilityMapProof } from "@/components/marketing/home/AccessibilityMapProof";
+import { AudiencePathways } from "@/components/marketing/home/AudiencePathways";
 import { CompetitorContrastStrip } from "@/components/marketing/home/CompetitorContrastStrip";
+import { ConnectedJourney } from "@/components/marketing/home/ConnectedJourney";
+import { EcosystemNavigator } from "@/components/marketing/home/EcosystemNavigator";
 import { HeroSection } from "@/components/marketing/home/HeroSection";
-import { HomepageExploreStrip } from "@/components/marketing/home/HomepageExploreStrip";
 import { HomepageFinalCta } from "@/components/marketing/home/HomepageFinalCta";
+import { ParentBrandTrust } from "@/components/marketing/home/ParentBrandTrust";
 import { PreRegistrationSection } from "@/components/marketing/home/PreRegistrationSection";
 import { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 import { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
@@ -16,14 +20,18 @@ export { MapAbleCareMarketingTypography } from "@/components/marketing/MapAbleCa
 export { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 export { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 
-/** Marketing proof splash: hero → explore → why MapAble → pre-register → CTA. */
+/** Marketing proof splash: hero → ecosystem → map proof → journey → trust → conversion. */
 export function MapAbleCareCombinedHomepageSections() {
   return (
     <>
       <HeroSection />
-      <HomepageExploreStrip />
+      <EcosystemNavigator />
+      <AccessibilityMapProof />
+      <ConnectedJourney />
       <CompetitorContrastStrip />
+      <AudiencePathways />
       <PreRegistrationSection />
+      <ParentBrandTrust />
       <HomepageFinalCta />
       <BoundaryNotice />
       <noscript>
@@ -41,7 +49,7 @@ export default function MapAbleCareCombinedHomepage() {
   return (
     <main
       id="main-content"
-      className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]"
+      className="mapable-soft flex min-h-screen flex-col bg-white text-mapable-text"
     >
       <MapAbleCareMarketingHeader />
       <MapAbleCareCombinedHomepageSections />

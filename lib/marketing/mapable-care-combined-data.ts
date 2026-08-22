@@ -114,18 +114,20 @@ export const logoMenuItems: MenuItem[] = [
 ];
 
 export const homepageHeroCopy = {
+  eyebrow: "Empowering Independence",
   headline: "Accessibility you can plan around.",
   subheading:
-    "Use MapAble’s public accessibility map and programme explainers today, then pre-register for the controlled pilot as a participant or provider.",
-  primaryCta: "Pre-register interest",
-  secondaryCta: "Explore accessible places",
+    "Explore evidence-based accessibility information today, and register interest in MapAble's Care, Transport and Employment programmes.",
+  primaryCta: "Explore the accessibility map",
+  secondaryCta: "Pre-register interest",
+  tertiaryCta: "How MapAble works",
 };
 
 /** Informational-release CTAs — splash page anchors + public informational destinations. */
 export const homepageHeroCtas = [
+  { label: "Explore the accessibility map", href: "/accessibility-map" },
   { label: "Pre-register interest", href: "#pre-register" },
-  { label: "Explore accessible places", href: "/accessibility-map" },
-  { label: "About MapAble", href: "/about" },
+  { label: "How MapAble works", href: "/about" },
 ] as const;
 
 export const homepageCategoryChips = [
@@ -186,6 +188,140 @@ export const homepageExploreFeatures = [
   },
 ] as const;
 
+export type EcosystemStatusKind = "live" | "pilot";
+
+export type EcosystemPathway = {
+  id: "access" | "care" | "transport" | "jobs";
+  title: string;
+  kicker: string;
+  body: string;
+  status: string;
+  statusKind: EcosystemStatusKind;
+  href: string;
+  linkLabel: string;
+};
+
+export const homepageEcosystemPathways: EcosystemPathway[] = [
+  {
+    id: "access",
+    title: "Access",
+    kicker: "Know before you go.",
+    body: "Explore evidence-based accessibility information for places — measurements, confidence, and sources you can plan around.",
+    status: "Available now",
+    statusKind: "live",
+    href: "/accessibility-map",
+    linkLabel: "Open the accessibility map",
+  },
+  {
+    id: "care",
+    title: "Care",
+    kicker: "Understand support pathways.",
+    body: "Read how consent-aware care coordination is intended to work. Public pages explain the programme; bookings stay separately governed.",
+    status: "Programme information / controlled pilot",
+    statusKind: "pilot",
+    href: "/care",
+    linkLabel: "Care programme information",
+  },
+  {
+    id: "transport",
+    title: "Transport",
+    kicker: "Plan accessible journeys.",
+    body: "Learn how accessible journey planning is designed. Live matching and trip booking are not generally available on this site.",
+    status: "Programme information / controlled pilot",
+    statusKind: "pilot",
+    href: "/transport",
+    linkLabel: "Transport programme information",
+  },
+  {
+    id: "jobs",
+    title: "Jobs",
+    kicker: "Explore inclusive employment.",
+    body: "Explore inclusive employment programme information and workplace adjustment pathways MapAble is building with partners.",
+    status: "Programme information / controlled pilot",
+    statusKind: "pilot",
+    href: "/employment",
+    linkLabel: "Employment programme information",
+  },
+];
+
+export const homepageMapProofExample = {
+  label: "Example accessibility record",
+  name: "Harbour Community Centre",
+  confidence: "High",
+  lastChecked: "12 Aug 2026",
+  features: [
+    "Step-free entrance",
+    "Accessible toilet",
+    "Accessible parking",
+    "Quiet area",
+    "Assistance animals welcome",
+  ],
+  doorClearWidth: "910 mm",
+  evidence: "Community review + verified measurement",
+  accreditationExample: "Silver — Highly Accessible (example tier only)",
+} as const;
+
+export type AudiencePathwayGroup = {
+  heading: string;
+  items: { title: string; href: string; description: string }[];
+};
+
+export const homepageAudiencePathways: AudiencePathwayGroup[] = [
+  {
+    heading: "If you are looking for information or support",
+    items: [
+      {
+        title: "I'm looking for accessibility information",
+        href: "/accessibility-map",
+        description: "Explore places with access notes, measurements, and sources.",
+      },
+      {
+        title: "I'm looking for support",
+        href: "/care",
+        description:
+          "Read Care programme information, then pre-register interest for the controlled pilot.",
+      },
+      {
+        title: "I'm planning accessible transport",
+        href: "/transport",
+        description:
+          "Understand how accessible journeys are intended to work. Matching is not generally available here.",
+      },
+      {
+        title: "I'm exploring inclusive work",
+        href: "/employment",
+        description: "Explore employment programme information and workplace adjustment pathways.",
+      },
+    ],
+  },
+  {
+    heading: "If you coordinate, provide, or hire",
+    items: [
+      {
+        title: "I'm a support coordinator",
+        href: "/ask",
+        description: "Use NDIS-aware guidance and public discovery tools. You remain the decision partner.",
+      },
+      {
+        title: "I'm a provider",
+        href: "/for-providers",
+        description: "Explore listing interest and programme explainers. Marketplace checkout is not generally available.",
+      },
+      {
+        title: "I'm an employer",
+        href: "/employment",
+        description: "Explore inclusive hiring pathways and workplace adjustment information.",
+      },
+    ],
+  },
+];
+
+export const parentBrandTrustCopy = {
+  eyebrow: "Australian Disability Ltd",
+  headline: "An Australian Disability Ltd initiative",
+  body: "We're for a fair, dignified and equal society for all people with disabilities. MapAble is the product identity; Australian Disability Ltd is the parent organisation and trust anchor.",
+};
+
 /** @deprecated Hidden from homepage splash — retained for legacy imports/tests. */
 export const homepageProofMetrics: TrustMetric[] = [
   { value: "Pilot target", label: "Places mapped" },
@@ -196,24 +332,24 @@ export const homepageProofMetrics: TrustMetric[] = [
 
 export const competitorContrastCards: DifferenceCard[] = [
   {
-    title: "More than a directory",
-    body: "Discover places and providers with access-readiness context and practical next steps — not listings alone.",
-    badge: "Beyond listings",
+    title: "Evidence before assumption",
+    body: "See measurements, confidence, last checked dates, and evidence sources — not a colour-only rating or a guess.",
+    badge: "Evidence, not guesswork",
   },
   {
-    title: "More detailed than traffic-light ratings",
-    body: "See measurements, confidence, last checked dates, and evidence sources on the accessibility map — not only a colour.",
-    badge: "Evidence-based",
+    title: "Access across the journey",
+    body: "MapAble connects place access with Care, Transport, and Employment programme information so people can plan a visit, not only read a listing.",
+    badge: "Connected journeys",
   },
   {
-    title: "More practical than static place reviews",
-    body: "Use access notes to plan visits today, then pre-register for the controlled pilot when you want deeper programme access.",
-    badge: "Journey-ready",
+    title: "Designed around participant choice",
+    body: "MapAble suggests, compares, and explains. People review options and confirm what happens next — MapAble does not assign support or make clinical decisions.",
+    badge: "Participant decision ownership",
   },
   {
-    title: "Built around care, transport, and jobs",
-    body: "Year-one modules cover core access, Care, Transport, and Employment as programme explainers — with transactional delivery still separately gated.",
-    badge: "Connected support",
+    title: "Built to connect, not control",
+    body: "Public pages share evidence and programme explainers. Bookings, matching, and NDIS claims stay separately governed in controlled pilots.",
+    badge: "Built with lived experience",
   },
 ];
 
@@ -231,33 +367,33 @@ export const homepageMapPreviewFilters = [
 export const homepageSupportJourneySteps: JourneyStep[] = [
   {
     number: "01",
-    title: "Search place",
-    body: "Find venues and services with access notes that matter to you.",
+    title: "Find a place",
+    body: "Search venues and services with access notes that matter to you.",
   },
   {
     number: "02",
     title: "Check access",
-    body: "Review measurements, confidence, and what still needs confirming.",
+    body: "Review measurements, confidence, sources, and what still needs confirming.",
   },
   {
     number: "03",
-    title: "Plan route",
-    body: "See transport assumptions, buffers, and meeting options.",
+    title: "Understand support",
+    body: "Explore Care programme information and compare options. MapAble does not assign providers.",
   },
   {
     number: "04",
-    title: "Enquire about support",
-    body: "Contact MapAble about pilot interest — bookings and matching are not offered as a general public service on this informational site.",
+    title: "Plan accessible transport",
+    body: "Read how accessible journeys are intended to work. Live matching is not generally available here.",
   },
   {
     number: "05",
-    title: "Confirm visit",
-    body: "Share access notes with your coordinator, driver, or carer.",
+    title: "Attend appointment, activity or work",
+    body: "Share access notes with the people you choose — coordinator, driver, carer, or employer.",
   },
   {
     number: "06",
-    title: "Update access info",
-    body: "Report changes so the next person has better information.",
+    title: "Share updated access information",
+    body: "Report changes so the next person has better evidence. You stay in control of what is shared.",
   },
 ];
 
@@ -544,12 +680,8 @@ export const mapAbleCareCombinedDesignTests = [
     expectedRegistrationDetails: companyRegistrationDetails,
   },
   {
-    name: "typography uses static wavy display treatment without animation",
-    expectedTypography: "mapable-display + static WavyText",
-  },
-  {
-    name: "wavy typography keeps clear spacing between words",
-    expectedWordSpacing: "0.34em",
+    name: "typography uses stable accessible brand typography",
+    expectedTypography: "font-heading extra-bold without WavyText",
   },
   {
     name: "design includes clearly labelled sponsored partner placements",
@@ -569,9 +701,13 @@ export const mapAbleCareCombinedDesignTests = [
     name: "guided landing includes primary homepage sections",
     expectedSections: [
       "HeroSection",
-      "HomepageExploreStrip",
+      "EcosystemNavigator",
+      "AccessibilityMapProof",
+      "ConnectedJourney",
       "CompetitorContrastStrip",
+      "AudiencePathways",
       "PreRegistrationSection",
+      "ParentBrandTrust",
       "HomepageFinalCta",
       "BoundaryNotice",
     ],

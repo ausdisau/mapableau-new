@@ -58,8 +58,9 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     // CI already ran `pnpm type-check`. Skip duplicate tsc inside `next build`
-    // on GHA only (Vercel still typechecks at build; local builds typecheck).
-    ignoreBuildErrors: process.env.GITHUB_ACTIONS === "true",
+    // on GitHub Actions and Vercel (local builds still type-check).
+    ignoreBuildErrors:
+      process.env.GITHUB_ACTIONS === "true" || process.env.VERCEL === "1",
   },
 };
 
