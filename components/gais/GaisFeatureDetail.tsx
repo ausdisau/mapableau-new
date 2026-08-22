@@ -1,10 +1,12 @@
 "use client";
 
 import { GAIS_EVIDENCE_STATE_LABELS } from "@/lib/gais/contracts/evidence";
+import type { AccessRequirements } from "@/lib/gais/compatibility";
 import type { GaisFeatureType } from "@/lib/gais/contracts/feature-types";
 import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 import { humanizeGaisFeatureType } from "@/lib/gais/service/feature-mapper";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import { GaisCompatibilityPanel } from "@/components/gais/GaisCompatibilityPanel";
 
 function formatDate(iso?: string): string {
   if (!iso) return "Unknown";
@@ -22,9 +24,13 @@ function formatDate(iso?: string): string {
 export function GaisFeatureDetail({
   feature,
   onClose,
+  compatibilityRequirements,
+  useStoredProfile = false,
 }: {
   feature: GaisGeoJsonFeature;
   onClose?: () => void;
+  compatibilityRequirements?: AccessRequirements;
+  useStoredProfile?: boolean;
 }) {
   const props = feature.properties;
   const title =
@@ -113,6 +119,13 @@ export function GaisFeatureDetail({
           </p>
         </section>
       ) : null}
+
+      <GaisCompatibilityPanel
+        featureId={props.gaisFeatureId}
+        placeId={props.placeId}
+        requirements={compatibilityRequirements}
+        useStoredProfile={useStoredProfile}
+      />
 
       <p className="mt-3 text-xs text-slate-500" role="note">
         MapAble shows environmental facts and evidence — not a universal accessible/not

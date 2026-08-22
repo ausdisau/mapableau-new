@@ -61,6 +61,22 @@ GAIS represents **environmental facts + evidence + time + optional requirements*
 - `GET /api/gais/features`, `/places/[id]`, `/events` — flag-gated public read
 - Optional **accessibility information layer** on existing Leaflet + MapLibre maps
 - List view parity for map layer data
+- `lib/gais/compatibility/` — deterministic environmental compatibility (facts vs user requirements)
+- `POST /api/gais/compatibility` — flag-gated; auth required for stored participant profiles
+
+## Environmental compatibility (device-neutral)
+
+Compares **known environmental facts** with **user-configured requirements** (not clinical limits):
+
+| Outcome | Meaning |
+|---------|---------|
+| `COMPATIBLE_WITH_KNOWN_FACTS` | Recorded fact meets stated requirement |
+| `POTENTIAL_DIFFICULTY` | Recorded fact exceeds a *preferred* threshold |
+| `KNOWN_CONFLICT` | Recorded fact conflicts with requirement |
+| `UNKNOWN` | Required environmental fact not recorded |
+| `REQUIRES_MORE_INFORMATION` | No requirements supplied |
+
+Rules: never `ASSUME_PASS`; feature tags (e.g. `step_free_entry`) do not establish physical facts; optional adapter maps MapAble Go `MobilityRoutingProfile` → `AccessRequirements` without fabricating device limits.
 
 ## 6. Deferred
 
