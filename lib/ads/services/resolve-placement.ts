@@ -33,8 +33,9 @@ export async function resolveAdPlacement(
 
   const requestId = randomUUID();
   const inventory = await loadInternalInventory();
+  const internalAdapter = new MapAbleInternalAdsAdapter(inventory);
   const adapters = {
-    mapable_internal: new MapAbleInternalAdsAdapter(inventory),
+    mapable_internal: internalAdapter,
     google_ad_manager: new GoogleAdManagerAdapter(),
     ethicalads: new EthicalAdsAdapter(),
   };
@@ -56,9 +57,11 @@ export async function resolveAdPlacement(
   // Persist decision when measurement enabled (best-effort)
   if (adsFlagsConfig.isMeasurementEnabled()) {
     try {
+      const decisionId =
+        fill.kind === "no_fill" ? `dec_${requestId}` : fill.decisionId;
       await prisma.adDecision.create({
         data: {
-          id: fill.kind === "no_fill" ? `dec_${requestId}` : fill.decisionId,
+          id: decisionId,
           requestId,
           placementCode: input.placement,
           provider:
@@ -77,7 +80,57 @@ export async function resolveAdPlacement(
           reasonCode: fill.kind === "no_fill" ? fill.reasonCode : undefined,
         },
       });
-    } catch (err) {
+
+      const auctionMeta = internalAdapter.lastAuctionMeta?.outcome;
+      if (
+        auctionMeta &&
+        adsFlagsConfig.isAuctionEnabled() &&
+        fill.kind === "internal"
+      ) {
+        await prisma.adAuctionResult.create({
+          data: {
+            decisionId,
+            placementCode: input.placement,
+            winnerCampaignId:
+              auctionMeta.fill === "no_eligible_internal_bid"
+                ? undefined
+                : auctionMeta.winnerCampaignId,
+            winnerBidModel:
+              auctionMeta.fill === "paid"
+                ? auctionMeta.winnerBidModel
+                : auctionMeta.fill === "house"
+                  ? "HOUSE"
+                  : undefined,
+            winnerMaxBidMicros:
+              auctionMeta.fill === "paid"
+                ? auctionMeta.winnerMaxBidMicros
+                : undefined,
+            winnerRawEcpmMicros:
+              auctionMeta.fill === "paid"
+                ? auctionMeta.winnerRawEcpmMicros
+                : undefined,
+            winnerQualityScoreMilli:
+              auctionMeta.fill === "paid"
+                ? auctionMeta.winnerQualityMilli
+                : undefined,
+            runnerUpEffectiveScore:
+              auctionMeta.fill === "paid"
+                ? auctionMeta.runnerUpEffectiveScore
+                : undefined,
+            reservePriceMicros: auctionMeta.reservePriceMicros,
+            clearingEcpmMicros:
+              auctionMeta.fill === "paid"
+                ? auctionMeta.clearingEcpmMicros
+                : undefined,
+            clearingUnitPriceMicros:
+              auctionMeta.fill === "paid"
+                ? auctionMeta.clearingUnitPriceMicros
+                : undefined,
+            algorithmVersion: auctionMeta.algorithmVersion,
+          },
+        });
+      }
+    } catch {
       emitAdsEvent({
         event: "ads.provider_error",
         reasonCode: "decision_persist_failed",

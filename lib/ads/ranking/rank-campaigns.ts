@@ -23,6 +23,19 @@ export type RankableCampaign = {
   endAt?: Date | null;
   advertiserStatus: string;
   creativeApproved: boolean;
+  /** Optional commercial fields (auction path). */
+  advertiserId?: string;
+  bidModel?: "CPM" | "CPC" | "HOUSE";
+  maxBidMicros?: bigint | null;
+  dailyBudgetMicros?: bigint | null;
+  lifetimeBudgetMicros?: bigint | null;
+  todaySpendMicros?: bigint;
+  lifetimeSpendMicros?: bigint;
+  spendDayKey?: string | null;
+  lifetimeImpressions?: number;
+  lifetimeClicks?: number;
+  walletStatus?: "ACTIVE" | "FROZEN" | "CLOSED" | null;
+  walletAvailableMicros?: bigint;
 };
 
 /**

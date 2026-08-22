@@ -10,6 +10,9 @@ MAPABLE_ADS_INTERNAL_ENABLED=false
 MAPABLE_ADS_GOOGLE_ENABLED=false
 MAPABLE_ADS_ETHICALADS_ENABLED=false
 MAPABLE_ADS_MEASUREMENT_ENABLED=false
+MAPABLE_ADS_AUCTION_ENABLED=false
+MAPABLE_ADS_BILLING_ENABLED=false
+MAPABLE_ADS_STRIPE_TOPUPS_ENABLED=false
 MAPABLE_ADS_GLOBAL_KILL_SWITCH=false
 NEXT_PUBLIC_MAPABLE_ADS_ENABLED=false
 NEXT_PUBLIC_MAPABLE_ADS_ACCESS_ENABLED=false
@@ -28,6 +31,11 @@ ETHICALADS_PUBLISHER_ID=
 | Provider | env flag + `AdProviderConfig.enabled` |
 | Campaign / advertiser | status `PAUSED` / `DISABLED` |
 | Placement / surface | surface flags + `AdPlacement.status` |
+| Auction delivery | `MAPABLE_ADS_AUCTION_ENABLED` (also blocked by global kill) |
+| Billing charges | `MAPABLE_ADS_BILLING_ENABLED` |
+| Stripe top-ups | `MAPABLE_ADS_STRIPE_TOPUPS_ENABLED` |
+
+Webhook reconciliation for Ads top-ups may still settle when delivery flags are off.
 
 ## Seed
 
@@ -39,7 +47,15 @@ Synthetic fixtures only — no real provider or participant data.
 
 ## Admin
 
-`/admin/ads` — flag status, advertisers, campaigns, creatives.
+`/admin/ads` — flags, advertisers, campaigns, creatives, **Auction**, **Pricing**, **Payments**, **Wallets**, **Ledger**.
+
+Advertiser UI: `/provider/ads` (org-scoped).
+
+## Financial ops notes
+
+- Prepaid deposits ≠ recognized ad revenue until accounting review.
+- Manual wallet adjustments require reason + audit event.
+- Disputes / over-refunds freeze wallets and pause paid campaigns.
 
 ## CSP additions (documented)
 

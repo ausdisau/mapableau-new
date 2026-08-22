@@ -1,6 +1,10 @@
 import type Stripe from "stripe";
 
 import {
+  handleAdsStripeEvent,
+  isAdsWalletTopUpEvent,
+} from "@/lib/ads/billing/stripe-webhook";
+import {
   handleStripeBillingEvent,
   markWebhookProcessed,
   storeWebhookEventIdempotent,
@@ -30,6 +34,8 @@ export function constructStripeWebhookEvent(
 }
 
 function shouldHandleBillingCore(event: Stripe.Event): boolean {
+  if (isAdsWalletTopUpEvent(event)) return false;
+
   const alwaysBilling = [
     "checkout.session.completed",
     "checkout.session.async_payment_failed",
@@ -63,6 +69,8 @@ function shouldHandleBillingCore(event: Stripe.Event): boolean {
 }
 
 function shouldHandleLegacy(event: Stripe.Event): boolean {
+  if (isAdsWalletTopUpEvent(event)) return false;
+
   const obj = event.data.object as { metadata?: Stripe.Metadata | null };
   const invoiceId = legacyInvoiceIdFromMetadata(obj.metadata);
   if (invoiceId) return true;
@@ -73,17 +81,41 @@ function shouldHandleLegacy(event: Stripe.Event): boolean {
   return false;
 }
 
+function shouldHandleAds(event: Stripe.Event): boolean {
+  return isAdsWalletTopUpEvent(event);
+}
+
 /**
- * Dispatch verified webhook to billing-core and/or legacy Invoice handlers.
+ * Dispatch verified webhook to billing-core, Ads wallet, and/or legacy Invoice handlers.
  */
 export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
   billing: { duplicate: boolean; processed: boolean };
   legacy: { duplicate: boolean; processed: boolean };
+  ads: { duplicate: boolean; processed: boolean };
 }> {
   const result = {
     billing: { duplicate: false, processed: false },
     legacy: { duplicate: false, processed: false },
+    ads: { duplicate: false, processed: false },
   };
+
+  if (shouldHandleAds(event)) {
+    const stored = await storeWebhookEventIdempotent(
+      `ads:${event.id}`,
+      event.type,
+      event as unknown as object
+    );
+    result.ads.duplicate = stored.duplicate;
+    if (!stored.duplicate) {
+      try {
+        await handleAdsStripeEvent(event);
+      } catch (err) {
+        console.error("Stripe Ads webhook handler error", err);
+      }
+      await markWebhookProcessed(stored.eventRowId);
+      result.ads.processed = true;
+    }
+  }
 
   if (shouldHandleBillingCore(event)) {
     const stored = await storeWebhookEventIdempotent(
@@ -128,7 +160,12 @@ export async function parseAndProcessWebhookRequest(
   rawBody: string,
   signature: string | null
 ): Promise<
-  | { ok: true; billing: { duplicate: boolean }; legacy: { duplicate: boolean } }
+  | {
+      ok: true;
+      billing: { duplicate: boolean };
+      legacy: { duplicate: boolean };
+      ads: { duplicate: boolean };
+    }
   | { ok: false; status: number; message: string }
 > {
   if (!isStripeSdkAvailable()) {
@@ -136,6 +173,7 @@ export async function parseAndProcessWebhookRequest(
       ok: true,
       billing: { duplicate: false },
       legacy: { duplicate: false },
+      ads: { duplicate: false },
     };
   }
   if (!signature) {
@@ -154,6 +192,7 @@ export async function parseAndProcessWebhookRequest(
     ok: true,
     billing: { duplicate: dispatched.billing.duplicate },
     legacy: { duplicate: dispatched.legacy.duplicate },
+    ads: { duplicate: dispatched.ads.duplicate },
   };
 }
 
@@ -161,7 +200,13 @@ export async function parseAndProcessWebhookRequest(
 export async function processStripeWebhookEvent(event: Stripe.Event) {
   const r = await dispatchStripeWebhook(event);
   return {
-    duplicate: r.billing.duplicate || r.legacy.duplicate,
-    handled: r.billing.processed ? "billing" : r.legacy.processed ? "legacy" : "none",
+    duplicate: r.billing.duplicate || r.legacy.duplicate || r.ads.duplicate,
+    handled: r.ads.processed
+      ? "ads"
+      : r.billing.processed
+        ? "billing"
+        : r.legacy.processed
+          ? "legacy"
+          : "none",
   };
 }

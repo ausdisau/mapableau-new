@@ -22,9 +22,22 @@ MapAble remains the **decision authority** for advertising. External networks su
 ## Module layout
 
 - `lib/ads/` — placement registry, policy, ranking, mediation, privacy, measurement
+- `lib/ads/auction/` — eCPM, CTR, quality, reserves, pacing, second-price auction
+- `lib/ads/billing/` — prepaid wallet, ledger charge, Stripe top-up + webhook handlers
+- `lib/ads/money/` — AUD micros helpers (Ads domain only)
 - `lib/ads/providers/` — adapter implementations (internal, GAM, EthicalAds)
 - `components/ads/mapable/` — Access/Finder sponsored UI (separate from marketing AdSense)
 - `components/ads/` (root) — existing marketing footer AdSense path (coexists; unchanged)
+
+## Commercial path (flag-gated)
+
+```text
+request → policy → eligibility → budget → pacing
+       → quality × eCPM auction → reserve → AdAuctionResult
+       → fill → view/click → billable event → ledger debit
+```
+
+MapAble Ads uses **prepaid funds**. Stripe handles advertiser funding. MapAble's internal ledger handles high-frequency ad charges. Bidding affects sponsored placements only. Accessibility and provider suitability cannot be purchased.
 
 ## Hard invariant
 

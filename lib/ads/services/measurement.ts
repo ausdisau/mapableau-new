@@ -1,7 +1,8 @@
+import { billValidClick } from "@/lib/ads/billing/charge-events";
+import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { validateAdDestination } from "@/lib/ads/destination/validate-url";
 import { shouldRecordFirstPartyImpression } from "@/lib/ads/measurement/impressions";
 import { emitAdsEvent } from "@/lib/ads/observability/events";
-import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { prisma } from "@/lib/prisma";
 import type { AdProviderKind } from "@prisma/client";
 
@@ -112,6 +113,18 @@ export async function recordAdClickAndResolveDestination(input: {
     campaignId: impression.campaignId ?? undefined,
     provider: impression.provider,
   });
+
+  // CPC billing — server calculates charge from auction result
+  if (adsFlagsConfig.isBillingEnabled() && impression.campaignId) {
+    try {
+      await billValidClick({
+        clickId: click.id,
+        impressionId: impression.id,
+      });
+    } catch {
+      // best-effort; click redirect must not fail on billing errors
+    }
+  }
 
   return { ok: true, redirectUrl: validated.href, clickId: click.id };
 }

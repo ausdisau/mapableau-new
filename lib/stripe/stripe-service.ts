@@ -43,6 +43,9 @@ export async function processStripeWebhookEvent(
 
   const result = await dispatchStripeWebhook(event);
   return {
-    duplicate: result.billing.duplicate || result.legacy.duplicate,
+    duplicate:
+      result.billing.duplicate ||
+      result.legacy.duplicate ||
+      result.ads.duplicate,
   };
 }
