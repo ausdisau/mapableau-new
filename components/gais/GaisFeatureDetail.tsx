@@ -103,7 +103,11 @@ export function GaisFeatureDetail({
 
       {isBarrier ? (
         <section className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-950">
-          <p>
+          <p className="font-semibold">Current access condition</p>
+          <p className="mt-1">
+            Community-reported temporary condition — not a route safety verdict.
+          </p>
+          <p className="mt-1">
             <span className="font-semibold">Reported:</span> {formatDate(props.observedAt)}
           </p>
           {props.validUntil ? (

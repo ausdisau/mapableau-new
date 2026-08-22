@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { LiveRegion } from "@/components/a11y/LiveRegion";
 import { AccessNeedsTogglePanel } from "@/components/access-fit/AccessNeedsTogglePanel";
 import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
+import { AccessConditionsSection } from "@/components/gais/AccessConditionsSection";
 import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
 import { VenueListCard } from "@/components/accessibility-map/VenueListCard";
 import { MapErrorBoundary } from "@/components/error/MapErrorBoundary";
@@ -480,11 +481,14 @@ export function AccessibilityMapLanding({
                   onGaisFeaturesChange={setGaisFeatures}
                 />
                 {gaisLayerOn ? (
-                  <GaisFeatureListPanel
-                    features={gaisFeatures}
-                    selectedId={gaisSelectedId}
-                    onSelect={setGaisSelectedId}
-                  />
+                  <>
+                    <AccessConditionsSection enabled={gaisLayerOn} />
+                    <GaisFeatureListPanel
+                      features={gaisFeatures}
+                      selectedId={gaisSelectedId}
+                      onSelect={setGaisSelectedId}
+                    />
+                  </>
                 ) : null}
               </MapErrorBoundary>
             ) : null}
@@ -525,21 +529,27 @@ export function AccessibilityMapLanding({
                   </button>
                 ) : null}
                 {gaisLayerOn ? (
-                  <GaisFeatureListPanel
-                    features={gaisFeatures}
-                    selectedId={gaisSelectedId}
-                    onSelect={setGaisSelectedId}
-                  />
+                  <>
+                    <AccessConditionsSection enabled={gaisLayerOn} />
+                    <GaisFeatureListPanel
+                      features={gaisFeatures}
+                      selectedId={gaisSelectedId}
+                      onSelect={setGaisSelectedId}
+                    />
+                  </>
                 ) : null}
               </div>
             ) : null}
 
             {gaisLayerOn && view === "list" ? (
-              <GaisFeatureListPanel
-                features={gaisFeatures}
-                selectedId={gaisSelectedId}
-                onSelect={setGaisSelectedId}
-              />
+              <>
+                <AccessConditionsSection enabled={gaisLayerOn} />
+                <GaisFeatureListPanel
+                  features={gaisFeatures}
+                  selectedId={gaisSelectedId}
+                  onSelect={setGaisSelectedId}
+                />
+              </>
             ) : null}
           </div>
 

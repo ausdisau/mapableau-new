@@ -63,8 +63,24 @@ GAIS represents **environmental facts + evidence + time + optional requirements*
 - List view parity for map layer data
 - `lib/gais/compatibility/` — deterministic environmental compatibility (facts vs user requirements)
 - `POST /api/gais/compatibility` — flag-gated; auth required for stored participant profiles
+- `lib/gais/conditions/` — **Access Conditions** (GAIS Temporal Accessibility Events); factual, time-aware; no forecasting
 
-## Environmental compatibility (device-neutral)
+### Access Conditions (public name)
+
+Internal concept: GAIS Temporal Accessibility Events. Sources: `AccessTemporaryBarrier` + accepted temporary `AccessChangeReviewRecord` from Intelligence Next.
+
+| Event type | Typical source |
+|------------|----------------|
+| `OBSTRUCTION` | Point obstruction without segment |
+| `PATH_CLOSURE` | Segment-linked `blocked_path` |
+| `LIFT_OUTAGE` | `lift_outage` barrier or lift operational change review |
+| `CONSTRUCTION` | `construction` barrier |
+| `SURFACE_ISSUE` | `poor_surface` barrier |
+| `OTHER` | Remaining barrier types |
+
+`GET /api/gais/events` supports `bbox`, `activeAt` (default now), `placeId`, `graphId`. Shared temporal filter in `lib/gais/conditions/temporal.ts` — reused by Go barrier queries.
+
+### Environmental compatibility (device-neutral)
 
 Compares **known environmental facts** with **user-configured requirements** (not clinical limits):
 

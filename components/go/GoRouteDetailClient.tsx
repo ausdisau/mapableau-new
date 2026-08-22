@@ -3,6 +3,7 @@
 import type { AccessConfidenceLevel } from "@prisma/client";
 import { useCallback, useEffect, useState } from "react";
 
+import { GoAccessConditions } from "@/components/go/GoAccessConditions";
 import {
   GoAccessibilitySummary,
   GoAssistancePanel,
@@ -133,6 +134,7 @@ export function GoRouteDetailClient({
         <div className="space-y-4">
           <GoConfidencePanel route={route} />
           <GoAccessibilitySummary route={route} />
+          <GoAccessConditions />
           <GoDestinationAccess destination={destination} />
           <GoAssistancePanel />
         </div>

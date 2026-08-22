@@ -64,8 +64,11 @@ export function GaisFeatureListPanel({
       {barriers.length ? (
         <div className="mt-4">
           <h3 className="text-sm font-bold uppercase tracking-wide text-amber-900">
-            Temporary conditions
+            Current access conditions
           </h3>
+          <p className="mt-1 text-xs text-slate-600">
+            From map layer data — see Access Conditions API for full temporal events.
+          </p>
           <ul className="mt-2 space-y-2" aria-label="Temporary accessibility conditions">
             {barriers.map((feature) => (
               <GaisListItem

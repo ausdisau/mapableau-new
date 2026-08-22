@@ -11,6 +11,9 @@ import type {
   GaisPlaceSummary,
 } from "@/lib/gais/contracts/feature";
 import {
+  listAccessConditions,
+} from "@/lib/gais/conditions";
+import {
   barrierToGaisFeature,
   mergeEnvelopeEvidence,
   mergeObservationEvidence,
@@ -18,8 +21,6 @@ import {
   placeToGaisFeature,
   stripPrivateFields,
 } from "@/lib/gais/service/adapters";
-import { barrierVerificationToGaisEvidenceState } from "@/lib/gais/service/evidence-mapper";
-import { humanizeBarrierType } from "@/lib/gais/service/feature-mapper";
 import { prisma } from "@/lib/prisma";
 
 const DEFAULT_LIMIT = 200;
@@ -153,41 +154,9 @@ export async function listGaisFeaturesInBounds(
 
 export async function listActiveAccessibilityEvents(
   bounds?: GaisBounds,
+  activeAt?: Date,
 ): Promise<GaisAccessibilityEvent[]> {
-  const now = new Date();
-  const where = bounds
-    ? {
-        latitude: { gte: bounds.minLat, lte: bounds.maxLat },
-        longitude: { gte: bounds.minLng, lte: bounds.maxLng },
-        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-      }
-    : {
-        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-      };
-
-  const barriers = await prisma.accessTemporaryBarrier.findMany({
-    where,
-    take: bounds?.limit ?? 100,
-    orderBy: { reportedAt: "desc" },
-  });
-
-  return barriers
-    .filter((b) => b.latitude != null && b.longitude != null)
-    .map((b) => ({
-      id: b.id,
-      type: "TEMPORARY_BARRIER" as const,
-      barrierType: b.type,
-      label: humanizeBarrierType(b.type),
-      geometry: {
-        type: "Point" as const,
-        coordinates: [b.longitude!, b.latitude!],
-      },
-      reportedAt: b.reportedAt.toISOString(),
-      expiresAt: b.expiresAt?.toISOString(),
-      evidenceState: barrierVerificationToGaisEvidenceState(b.verificationState),
-      description: b.description ?? undefined,
-      graphId: b.graphId,
-    }));
+  return listAccessConditions({ bounds, activeAt });
 }
 
 export async function getGaisEvidenceForFeature(
