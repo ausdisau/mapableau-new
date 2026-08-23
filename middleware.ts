@@ -8,6 +8,7 @@ import {
   redirectLegacySquarePath,
   shouldRunAuthMiddleware,
 } from "@/lib/community/mapable-peers/peer-middleware";
+import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
 import {
   CSP_ENFORCE_HEADER,
   createScriptNonce,
@@ -183,6 +184,33 @@ export default async function middleware(request: NextRequest) {
       enforcePolicy,
       embedRoute,
     );
+  }
+
+  // labs.mapable.com.au is a public experimental surface backed by the same
+  // Next.js codebase. Host-based rewrites keep experimental UI isolated from
+  // production MapAble routes without duplicating application infrastructure.
+  const labsHost = process.env.MAPABLE_LABS_HOST ?? "labs.mapable.com.au";
+  if (
+    isLabsHost(
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+      labsHost,
+    )
+  ) {
+    const rewritePath = labsRewritePath(request.nextUrl.pathname);
+    if (rewritePath) {
+      const url = request.nextUrl.clone();
+      url.pathname = rewritePath;
+      const response = NextResponse.rewrite(url, {
+        request: { headers: requestHeaders },
+      });
+      return withCorrelationAndCsp(
+        response,
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
   }
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {
