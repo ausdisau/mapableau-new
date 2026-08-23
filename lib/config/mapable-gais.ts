@@ -22,6 +22,9 @@ export const mapableGaisFlags = {
   get destinationEnabled() {
     return envTrue("MAPABLE_GAIS_DESTINATION_ENABLED");
   },
+  get telemetryEnabled() {
+    return envTrue("MAPABLE_GAIS_TELEMETRY_ENABLED");
+  },
   /** Public read endpoints may serve when true. */
   get readEnabled() {
     return this.enabled && this.publicApiEnabled;

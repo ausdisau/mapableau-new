@@ -113,6 +113,20 @@ Technically honest accessibility-aware geocoding over published `AccessPlace` re
 - No new geographic sub-feature schema yet: `AccessPlaceFeature` has tags + notes only, and no UI path currently stores entrance coordinates with provenance
 - Place UI **Arrival** section shows recorded arrival features; "Show on map" only when geometry is known
 
+### Accessibility telemetry foundation (pilot)
+
+Observation-only — **no mobility device control / actuation**:
+
+- Contract: `AccessibilityObservation` (`lib/gais/telemetry/`)
+- Allowed types: `TEMPORARY_OBSTRUCTION`, `PATH_WIDTH_ESTIMATE`, `SURFACE_CHANGE`, `DOORWAY_ESTIMATE`
+- Ingest verification state: `SENSOR_OBSERVED` only — never auto-`VERIFIED`
+- Promotion: `received → validated → candidate_evidence → moderation → published|rejected`
+- `POST /api/gais/telemetry/ingest` — authenticated, rate-limited, schema + timestamp validation
+- `POST /api/gais/telemetry/promote` — manual workflow steps
+- `POST /api/gais/telemetry/simulate` — development-only synthetic data (`SYNTHETIC TEST DATA`)
+- Actuation commands (`steer`, `drive`, `accelerate`, `brake`, `moveJoint`, `changeDriveProfile`) rejected by invariant
+- Pilot store is process-local (not durable); participant identity stripped from public projections
+
 ## 6. Deferred
 
 - PostGIS / vector tiles / PMTiles
