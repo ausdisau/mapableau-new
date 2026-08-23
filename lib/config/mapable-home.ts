@@ -33,6 +33,13 @@ export const mapableHomeFlags = {
   get alexaEnabled() {
     return envTrue("MAPABLE_HOME_ENV_ALEXA_ENABLED");
   },
+  /**
+   * Alexa ↔ Auth0 account linking surfaces (status API / unlink metadata).
+   * Does not grant Home authority by itself.
+   */
+  get alexaAccountLinkingEnabled() {
+    return envTrue("MAPABLE_HOME_ENV_ALEXA_ACCOUNT_LINKING_ENABLED");
+  },
   /** Matter adapter scaffolding (no real fabric / CHIP controller). */
   get matterEnabled() {
     return envTrue("MAPABLE_HOME_ENV_MATTER_ENABLED");

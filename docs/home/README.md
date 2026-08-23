@@ -41,5 +41,6 @@ Use `MAPABLE_HOME_ENV_*` only. Do **not** collide with the NDIS programme flag `
 - [security-boundaries.md](./security-boundaries.md)
 - [google-home-native-integration.md](./google-home-native-integration.md)
 - [alexa-integration.md](./alexa-integration.md)
+- [alexa-account-linking.md](./alexa-account-linking.md)
 - [matter-edge-integration.md](./matter-edge-integration.md)
 - [labs-simulator.md](./labs-simulator.md)

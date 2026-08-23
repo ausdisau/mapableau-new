@@ -154,6 +154,17 @@ const integrationRules: IntegrationEnvRule[] = [
     enabledWhen: () => envTrue("SOCKETIO_ENABLED"),
     requiredVars: ["SOCKETIO_SERVER_URL"],
   },
+  {
+    key: "auth0_alexa_account_linking",
+    enabledWhen: () =>
+      envTrue("MAPABLE_HOME_ENV_ALEXA_ACCOUNT_LINKING_ENABLED"),
+    requiredVars: [
+      "AUTH0_ALEXA_CLIENT_ID",
+      "AUTH0_ALEXA_CLIENT_SECRET",
+      "AUTH0_ALEXA_ISSUER",
+      "AUTH0_ALEXA_AUDIENCE",
+    ],
+  },
 ];
 
 export type EnvValidationIssue = {
