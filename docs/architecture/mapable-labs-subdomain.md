@@ -70,14 +70,20 @@ Implemented in this slice:
 - explicit experiment-status and simulation boundaries
 - host-based `labs.mapable.com.au` routing
 - routing unit tests
+- **Experiment Runtime** (contracts, deterministic reducer, Mobility Futures interactive journey)
+- reusable Labs UI: ExperimentShell, ScenarioPlayer, ChoicePanel, AgencyTimeline, ReplayControls, FeedbackPrompt
+- STANDARD VISUAL / SIMPLIFIED 2D / TEXT presentation modes
+- Agency Timeline + replay comparison (client-side)
+- simulation boundary tests (no GAIS evidence writes)
 
 Deferred:
 
-- interactive simulation runtime
 - study sessions and consent
-- behavioural event logging
+- behavioural event logging persistence
 - research dashboards
 - 3D/WebXR environments
-- GAIS synthetic-world adapters
-- participant-authority experiment engine
+- GAIS synthetic-world adapters (read-only fixtures only today)
 - formal research governance workflow
+- durable research data storage
+
+See also: `docs/architecture/mapable-labs-experiment-runtime.md`.
