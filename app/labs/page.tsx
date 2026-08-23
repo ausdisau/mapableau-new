@@ -10,6 +10,14 @@ const streams = [
     available: true,
   },
   {
+    title: "Vision Probe",
+    description:
+      "Optional Hugging Face Router demo: stream a short description of an image. Not used for Mobility Futures decisions.",
+    href: "/labs/vision-probe",
+    status: "HF vision demonstration",
+    available: true,
+  },
+  {
     title: "Access Intelligence Lab",
     description:
       "Explore how accessibility evidence, uncertainty and route information could be presented and compared.",
@@ -65,7 +73,7 @@ export default function LabsHomePage() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+        <div className="mt-8 grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
           {streams.map((stream) => (
             <article
               key={stream.title}
