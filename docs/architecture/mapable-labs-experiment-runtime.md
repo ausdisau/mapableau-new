@@ -25,6 +25,7 @@ Reusable **Experiment Runtime** inside the existing Next.js app — not a second
 - Deterministic reducer under `lib/labs/runtime/`
 - One experiment: Mobility Futures synthetic journey
 - Shared UI components under `components/labs/`
+- Optional HF Vision Probe demo (separate from Mobility Futures decisions)
 
 ## Explicit non-reuse
 
@@ -34,8 +35,16 @@ Reusable **Experiment Runtime** inside the existing Next.js app — not a second
 - No physical device / actuation schemas
 - No behavioural tracking persistence (feedback client-side only)
 - No 3D / WebXR / camera / LiDAR
+- Hugging Face Vision Probe (`lib/labs/hf`, `/labs/vision-probe`) is optional demo infra only — **never** drives Mobility Futures autonomy decisions
 
 ## Simulation boundary invariant
 
 All Labs runtime outputs carry `LABS_SIMULATION_DATA: true`.  
-Static analysis / unit tests assert Labs runtime modules do not import production GAIS write services.
+Static analysis / unit tests assert Labs runtime modules do not import production GAIS write modules.
+
+## Optional HF Vision Probe
+
+- Client: `lib/labs/hf/` (HF Router `https://router.huggingface.co/v1`, OpenAI-compatible chat.completions)
+- API: `POST /api/labs/vision/describe` (streams plain text tokens)
+- UI: `/labs/vision-probe`
+- Env: `HF_TOKEN` (required to call), `LABS_HF_VISION_MODEL` (optional; default `meta-models/Muse-Glimmer-30B:preferred`)
