@@ -2,15 +2,21 @@ import type { BillingAccountRole, BillingSubscriptionPlanCode } from "@prisma/cl
 
 import { getOrCreateBillingAccount } from "@/lib/billing/core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing/core/audit";
+import { billingAccountRoleForUserRole } from "@/lib/billing/core/billing-role";
 import {
   billingCoreConfig,
   isBillingStripeConfigured,
   priceIdForPlan,
 } from "@/lib/billing/core/config";
+import { pickBillingAccountForPortal } from "@/lib/billing/core/portal-account";
 import { prisma } from "@/lib/prisma";
 import { createStripeSubscriptionCheckoutSession } from "@/lib/stripe/checkout";
 import { getStripeClient } from "@/lib/stripe/client";
-import { createBillingPortalSession } from "@/lib/stripe/portal";
+import {
+  createBillingPortalSession,
+  type BillingPortalFlow,
+} from "@/lib/stripe/portal";
+import type { UserRole } from "@/types/mapable";
 
 function roleForPlan(planCode: BillingSubscriptionPlanCode): BillingAccountRole {
   if (planCode === "employer_pro") return "employer";
@@ -79,19 +85,35 @@ export async function createSubscriptionCheckout(
   return { ok: true as const, checkoutUrl: session.url, sessionId: session.id };
 }
 
-export async function createCustomerPortalSession(userId: string) {
+export async function createCustomerPortalSession(
+  userId: string,
+  options?: {
+    preferredRole?: BillingAccountRole;
+    flow?: BillingPortalFlow;
+  }
+) {
   if (!isBillingStripeConfigured()) {
     return { ok: false as const, error: "Stripe is not configured" };
   }
 
-  const account = await prisma.billingAccount.findFirst({
+  const accounts = await prisma.billingAccount.findMany({
     where: { userId, stripeCustomerId: { not: null } },
+    orderBy: { updatedAt: "desc" },
   });
+  const account = pickBillingAccountForPortal(accounts, options?.preferredRole);
   if (!account?.stripeCustomerId) {
     return { ok: false as const, error: "No billing customer on file" };
   }
 
-  const session = await createBillingPortalSession(account.stripeCustomerId);
+  const session = await createBillingPortalSession(account.stripeCustomerId, {
+    flow: options?.flow,
+  });
 
   return { ok: true as const, portalUrl: session.url };
+}
+
+export function preferredPortalRoleForUserRole(
+  role: UserRole
+): BillingAccountRole {
+  return billingAccountRoleForUserRole(role);
 }

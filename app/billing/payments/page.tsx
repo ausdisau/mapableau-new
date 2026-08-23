@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { AccessibleDataTable } from "@/components/billing/AccessibleDataTable";
 import { BillingPageHeader } from "@/components/billing/BillingPageChrome";
 import { requireAuth } from "@/lib/auth/guards";
@@ -31,6 +33,7 @@ export default async function BillingPaymentsPage() {
     amountCents: p.amountCents,
     paidAt: p.paidAt,
     createdAt: p.createdAt,
+    invoiceId: p.invoice.id,
     invoiceLabel: p.invoice.invoiceNumber ?? p.invoice.id.slice(0, 8),
   }));
 
@@ -49,7 +52,14 @@ export default async function BillingPaymentsPage() {
           {
             id: "invoice",
             header: "Invoice",
-            cell: (row) => row.invoiceLabel,
+            cell: (row) => (
+              <Link
+                href={`/billing/invoices/${row.invoiceId}`}
+                className="font-semibold text-[#005B7F] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40"
+              >
+                {row.invoiceLabel}
+              </Link>
+            ),
           },
           {
             id: "status",

@@ -25,6 +25,14 @@ export {
   listBillingPermissions,
   canAccessBillingCentre,
 } from "@/lib/billing/permissions";
+export { isCustomerBillingNavRole } from "@/lib/billing/core/billing-role";
+export {
+  isInvoicePayable,
+  isInvoiceSettled,
+  canIssueInvoiceFromStatus,
+  canSendInvoiceFromStatus,
+  canVoidInvoiceFromStatus,
+} from "@/lib/billing/portal-gating";
 
 // Audit
 export {

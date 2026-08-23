@@ -9,6 +9,8 @@ export const stripeConfig = {
   connectClientId: process.env.STRIPE_CONNECT_CLIENT_ID,
   providerProPriceId: process.env.STRIPE_PROVIDER_PRO_PRICE_ID,
   employerProPriceId: process.env.STRIPE_EMPLOYER_PRO_PRICE_ID,
+  billingPortalConfigurationId:
+    process.env.STRIPE_BILLING_PORTAL_CONFIGURATION_ID,
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   defaultCurrency: (process.env.STRIPE_DEFAULT_CURRENCY ?? "AUD").toLowerCase(),
 };

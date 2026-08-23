@@ -184,7 +184,7 @@ export function BillingInvoicesClient() {
                 onStatus={() => viewStatus(inv)}
               />
               <Link
-                href={`/dashboard/billing/invoices/${inv.id}`}
+                href={`/billing/invoices/${inv.id}`}
                 className="text-sm font-medium text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
               >
                 View full invoice details →

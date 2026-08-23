@@ -2,20 +2,49 @@ import {
   BillingEmptyState,
   BillingPageHeader,
 } from "@/components/billing/BillingPageChrome";
+import { CheckoutReturnBanner } from "@/components/billing/portal/CheckoutReturnBanner";
+import { ManagePaymentMethodsButton } from "@/components/billing/portal/ManagePaymentMethodsButton";
 import { requireAuth } from "@/lib/auth/guards";
 import { listBillingPermissions } from "@/lib/billing/permissions";
 import { mapableSectionCardClass } from "@/lib/brand/styles";
 
-export default async function BillingSettingsPage() {
+export default async function BillingSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ portal?: string }>;
+}) {
   const user = await requireAuth();
+  const { portal } = await searchParams;
   const permissions = listBillingPermissions(user.primaryRole);
 
   return (
     <div className="space-y-6">
       <BillingPageHeader
         title="Billing settings"
-        description="Preferences and access for your Billing Centre role."
+        description="Manage payment methods and billing details in Stripe. Card numbers never touch MapAble."
       />
+
+      <CheckoutReturnBanner checkout={portal} />
+
+      <section
+        aria-labelledby="payment-methods-heading"
+        className={`${mapableSectionCardClass} space-y-4 p-5`}
+      >
+        <h2
+          id="payment-methods-heading"
+          className="text-lg font-black text-[#0C1833]"
+        >
+          Payment methods and billing details
+        </h2>
+        <p className="text-sm text-slate-600">
+          Update cards, billing email, and address in the Stripe customer
+          portal. You return here when you are done.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <ManagePaymentMethodsButton flow="payment_method_update" />
+          <ManagePaymentMethodsButton label="Update billing details" />
+        </div>
+      </section>
 
       <section
         aria-labelledby="access-heading"

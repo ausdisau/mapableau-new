@@ -6,6 +6,7 @@ import {
   mapablePageContainerClass,
 } from "@/lib/brand/styles";
 
+import type { BillingNavLink } from "./billing-nav";
 import { BillingSidebar } from "./BillingSidebar";
 
 /**
@@ -15,15 +16,17 @@ import { BillingSidebar } from "./BillingSidebar";
 export function BillingShell({
   children,
   className,
+  navLinks,
 }: {
   children: ReactNode;
   className?: string;
+  navLinks?: BillingNavLink[];
 }) {
   return (
     <div className={cn(mapablePageContainerClass, "py-6", className)}>
       <SkipToContent />
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        <BillingSidebar />
+        <BillingSidebar links={navLinks} />
         <div
           id="main-content"
           tabIndex={-1}

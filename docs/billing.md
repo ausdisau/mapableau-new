@@ -12,7 +12,7 @@ Server-only Stripe Node SDK (pinned API version in `lib/stripe/client.ts`):
 | `checkout.ts` | Payment & subscription Checkout sessions |
 | `payment-intents.ts` | Legacy `Invoice` payment intents |
 | `connect.ts` | Express Connect accounts & onboarding links |
-| `portal.ts` | Customer Billing Portal |
+| `portal.ts` | Customer Billing Portal (configuration + sessions) |
 | `webhooks.ts` | Signature verification + billing-core & legacy dispatch |
 | `index.ts` | Public exports |
 
@@ -63,7 +63,7 @@ When the provider has `stripeConnectedAccountId`, Checkout uses a destination ch
 | POST | `/api/billing/connect/create-account` | Express Connect account + onboarding link |
 | POST | `/api/billing/connect/onboarding-link` | Refresh onboarding |
 | POST | `/api/billing/subscriptions/checkout` | Provider Pro / Employer Pro subscription Checkout |
-| POST | `/api/billing/customer-portal` | Stripe Billing Portal URL |
+| POST | `/api/billing/customer-portal` | Stripe Billing Portal URL (optional `flow` / `subscriptionId`) |
 | POST | `/api/billing/invoices/export` | CSV / plan-manager JSON / Xero scaffold |
 | POST | `/api/webhooks/stripe` | Signed webhook (raw body) |
 | GET | `/api/admin/billing/invoices` | Admin search + flagged list |
@@ -77,6 +77,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 STRIPE_CONNECT_CLIENT_ID=
 STRIPE_PROVIDER_PRO_PRICE_ID=
 STRIPE_EMPLOYER_PRO_PRICE_ID=
+STRIPE_BILLING_PORTAL_CONFIGURATION_ID=
 BILLING_PLATFORM_FEE_BPS=1000
 BILLING_GST_BPS=1000
 ```
@@ -99,7 +100,7 @@ stripe trigger checkout.session.completed
 
 ## UI
 
-- `/billing` — **Billing & Invoicing Centre** (canonical): overview, invoices, service records, claims, approvals, payments, reconciliation, provider payouts, subscriptions, disputes, credit notes, reports, policy, integrations, settings. See [billing-centre.md](./billing-centre.md).
+- `/billing` — **Payments & invoices portal** (canonical Billing Centre): pay outstanding invoices, view history, manage payment methods via Stripe Billing Portal, plus ops workspaces for providers. See [billing-centre.md](./billing-centre.md).
 - `/dashboard/billing` — redirects to `/billing/overview` (compatibility)
 - `/dashboard/billing/funding` — billing-core funding sources
 - `/dashboard/billing/legacy` — Phase 2 `Invoice` drafts
