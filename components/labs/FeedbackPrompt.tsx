@@ -1,4 +1,4 @@
-import { FEEDBACK_QUESTIONS } from "@/lib/labs/experiments/mobility-futures";
+import { FEEDBACK_PROMPTS } from "@/lib/labs/experiments/mobility-futures";
 
 export function FeedbackPrompt({
   decisionPointId,
@@ -21,12 +21,12 @@ export function FeedbackPrompt({
         Optional. Kept on this device only — not research data storage.
       </p>
       <ul className="mt-4 space-y-4">
-        {FEEDBACK_QUESTIONS.map((question) => (
+        {FEEDBACK_PROMPTS.map(({ question, answers }) => (
           <li key={question}>
             <fieldset disabled={disabled}>
               <legend className="text-sm font-bold text-white/90">{question}</legend>
               <div className="mt-2 flex flex-wrap gap-2">
-                {["Yes", "No", "Not sure"].map((answer) => (
+                {answers.map((answer) => (
                   <button
                     key={answer}
                     type="button"

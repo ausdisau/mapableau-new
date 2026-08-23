@@ -99,8 +99,20 @@ export const mobilityFuturesScenario: LabScenario = {
   },
 };
 
-export const FEEDBACK_QUESTIONS = [
-  "Was that what you expected?",
-  "Who should have decided?",
-  "Would you allow this in the real world?",
+export const FEEDBACK_PROMPTS = [
+  {
+    question: "Was that what you expected?",
+    answers: ["Yes", "No", "Not sure"],
+  },
+  {
+    question: "Who should have decided?",
+    answers: ["Me", "The system", "Shared", "A support person", "Not sure"],
+  },
+  {
+    question: "Would you allow this in the real world?",
+    answers: ["Yes", "No", "Not sure"],
+  },
 ] as const;
+
+/** @deprecated Prefer FEEDBACK_PROMPTS */
+export const FEEDBACK_QUESTIONS = FEEDBACK_PROMPTS.map((p) => p.question);

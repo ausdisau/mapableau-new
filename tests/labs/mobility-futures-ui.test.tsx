@@ -55,8 +55,31 @@ describe("Mobility Futures UI accessibility", () => {
     const user = userEvent.setup();
     render(<MobilityFuturesExperiment />);
     await user.click(screen.getByRole("radio", { name: "Text" }));
+    expect(screen.getByRole("radio", { name: "Text" }).getAttribute("aria-checked")).toBe(
+      "true",
+    );
     await user.click(screen.getByRole("button", { name: /Start simulated journey/i }));
     expect(screen.getByText(/Starting point/i)).toBeTruthy();
+    expect(document.querySelector("canvas")).toBeNull();
+  });
+
+  it("feedback offers actor choices for who should have decided", async () => {
+    const user = userEvent.setup();
+    render(<MobilityFuturesExperiment />);
+    await user.click(screen.getByRole("button", { name: /Start simulated journey/i }));
+    const continueBtn = screen.getByRole("button", { name: /^Continue$/i });
+    if (!continueBtn.hasAttribute("disabled")) {
+      await user.click(continueBtn);
+    }
+    await screen.findByRole("heading", { name: /Decision required/i });
+    const options = screen.getAllByRole("button", {
+      name: /Wait and reassess|Ask for another route|Continue with caution|I decide fully/i,
+    });
+    await user.click(options[0]!);
+    expect(screen.getByText("Who should have decided?")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Me" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "The system" })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Yes" }).length).toBeGreaterThan(0);
   });
 
   it("reduced motion preference is toggleable", async () => {

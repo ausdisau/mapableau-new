@@ -119,6 +119,16 @@ export function MobilityFuturesExperiment() {
             </h2>
             <p className="mt-2 text-sm text-white/65">
               Choose how the simulated system should behave before you start.
+              {state.phase !== "IDLE" ? (
+                <>
+                  {" "}
+                  Active run:{" "}
+                  <span className="font-bold text-[#F8C51C]">
+                    {AUTONOMY_MODE_LABELS[state.autonomyMode]}
+                  </span>
+                  .
+                </>
+              ) : null}
             </p>
             <div
               className="mt-4 grid gap-3 sm:grid-cols-2"
@@ -209,19 +219,22 @@ export function MobilityFuturesExperiment() {
                   type="button"
                   role="radio"
                   aria-checked={state.presentationMode === mode}
+                  data-presentation-mode={mode}
                   className={`min-h-11 rounded-lg border px-3 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40 ${
                     state.presentationMode === mode
                       ? "border-[#F8C51C] bg-[#F8C51C]/15"
                       : "border-white/15"
                   }`}
                   onClick={() =>
-                    dispatch({ type: "SET_PRESENTATION", mode: mode as PresentationMode })
+                    dispatch({
+                      type: "SET_PRESENTATION",
+                      mode: mode as PresentationMode,
+                    })
                   }
                 >
                   {label}
                 </button>
-              ))}
-            </div>
+              ))}            </div>
             <label className="mt-4 flex min-h-11 items-center gap-3 text-sm">
               <input
                 type="checkbox"
