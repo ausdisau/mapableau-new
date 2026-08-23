@@ -102,6 +102,17 @@ Rules: never `ASSUME_PASS`; feature tags (e.g. `step_free_entry`) do not establi
 - Supports bounds, location+radius, feature types, evidence requirements, compatibility requirements, active events
 - No implicit "most accessible" ranking — `meta.rankingApplied: false`
 
+### Access Destination Resolution
+
+Technically honest accessibility-aware geocoding over published `AccessPlace` records:
+
+- `POST /api/gais/destination` — `{ placeId }` or `{ query }`
+- `GET /api/gais/destination/[placeId]`
+- Returns `place`, `centrePoint`, `knownEntrances`, `knownDropOffPoints`, `evidence`, `unknowns`
+- **Never invents** entrance/drop-off coordinates, door widths, or indoor paths
+- No new geographic sub-feature schema yet: `AccessPlaceFeature` has tags + notes only, and no UI path currently stores entrance coordinates with provenance
+- Place UI **Arrival** section shows recorded arrival features; "Show on map" only when geometry is known
+
 ## 6. Deferred
 
 - PostGIS / vector tiles / PMTiles
