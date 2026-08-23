@@ -121,3 +121,11 @@ export const LOCAL_ACCESS_LOCATIONS: LocalAccessPage[] = [
 export function getLocalAccessPage(slug: string): LocalAccessPage | undefined {
   return LOCAL_ACCESS_LOCATIONS.find((page) => page.slug === slug);
 }
+
+/** Public `/access/{slug}` href when a local access page exists for this city name. */
+export function getLocalAccessHrefForCity(city: string): string | undefined {
+  const match = LOCAL_ACCESS_LOCATIONS.find(
+    (page) => page.location.toLowerCase() === city.trim().toLowerCase(),
+  );
+  return match ? `/access/${match.slug}` : undefined;
+}

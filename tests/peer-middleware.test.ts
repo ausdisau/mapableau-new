@@ -43,4 +43,12 @@ describe("shouldRunAuthMiddleware", () => {
     expect(shouldRunAuthMiddleware("/providers")).toBe(false);
     expect(shouldRunAuthMiddleware("/login")).toBe(false);
   });
+
+  it("keeps Local Access Guides outside the auth gate", () => {
+    expect(shouldRunAuthMiddleware("/guides")).toBe(false);
+    expect(
+      shouldRunAuthMiddleware("/guides/nsw/sydney-accessibility-guide"),
+    ).toBe(false);
+    expect(shouldRunAuthMiddleware("/access/sydney")).toBe(false);
+  });
 });

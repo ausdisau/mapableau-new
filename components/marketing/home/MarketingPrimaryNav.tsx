@@ -94,6 +94,7 @@ export function MarketingPrimaryNav() {
       href: isHome ? "#pre-register" : "/#pre-register",
     },
     { label: "Places", href: "/accessibility-map" },
+    { label: "Guides", href: "/guides" },
     { label: "Transport", href: "/transport" },
     { label: "Providers", href: "/providers" },
     { label: "NDIS Guidance", href: marketingFeatureRoutes.ask },

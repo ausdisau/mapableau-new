@@ -971,3 +971,22 @@ export function getAccessGuideBySlug(
 export function getAccessGuidesByTier(tier: string): AccessGuide[] {
   return accessGuides.filter((g) => g.priorityTier === tier);
 }
+
+export function accessGuideStatusLabel(guide: AccessGuide): string {
+  switch (guide.statusKey) {
+    case "drafted":
+      return "Starter guide drafted";
+    case "needs_verification":
+      return "Needs local verification";
+    case "planned":
+      return "Planned";
+    default: {
+      const _exhaustive: never = guide.statusKey;
+      return _exhaustive;
+    }
+  }
+}
+
+export function getAccessGuideStates(): string[] {
+  return [...new Set(accessGuides.map((guide) => guide.state))];
+}
