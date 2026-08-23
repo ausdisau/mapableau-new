@@ -6,6 +6,8 @@ import { z } from "zod";
 export const governedEnvelopeActionSchema = z.enum([
   "create_service_request_draft",
   "transfer_filters_to_finder",
+  /** Encrypted SDK RunState pause — server-side only; opaque id in UI. */
+  "agents_sdk_run_pause",
 ]);
 export type GovernedEnvelopeAction = z.infer<typeof governedEnvelopeActionSchema>;
 
@@ -36,6 +38,12 @@ export const transferFiltersPayloadSchema = z.object({
   appliedFilters: z.record(z.string(), z.unknown()).optional(),
 });
 
+export const agentsSdkRunPausePayloadSchema = z.object({
+  encryptedRunState: z.string().min(1).max(500_000),
+  interruptionCount: z.number().int().nonnegative().max(100),
+  purpose: z.string().min(1).max(200),
+});
+
 export function validateGovernedEnvelopePayload(
   action: GovernedEnvelopeAction,
   payload: unknown,
@@ -43,7 +51,9 @@ export function validateGovernedEnvelopePayload(
   const parsed =
     action === "create_service_request_draft"
       ? serviceRequestDraftPayloadSchema.parse(payload)
-      : transferFiltersPayloadSchema.parse(payload);
+      : action === "transfer_filters_to_finder"
+        ? transferFiltersPayloadSchema.parse(payload)
+        : agentsSdkRunPausePayloadSchema.parse(payload);
   return parsed as Record<string, unknown>;
 }
 

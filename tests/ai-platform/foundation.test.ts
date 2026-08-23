@@ -50,6 +50,7 @@ describe("AI platform capability registry", () => {
         "navigator.provider_search.match",
         "navigator.provider_search.draft_service_request",
         "navigator.provider_search.escalate",
+        "navigator.agents_sdk.manager",
       ])
     );
   });
