@@ -229,10 +229,7 @@ describe("Alexa authority isolation", () => {
       authorizedAt: new Date().toISOString(),
       adapterId: adapter.id,
     });
-    expect(["NOT_SUPPORTED", "NOT_SUPPORTED", "DENIED", "FAILED"]).toContain(
-      // allow either naming for unsupported execute
-      String(receipt.result ?? receipt.status ?? receipt.outcome),
-    );
+    expect(receipt.result).toBe("NOT_SUPPORTED");
   });
 
   it("maps going-to-bed utterance to a proposal, not device execute", () => {
