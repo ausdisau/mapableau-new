@@ -245,5 +245,8 @@ export function compileMissionPlan(input: {
     traceId: input.request.traceId,
     createdAt: now,
     updatedAt: now,
+    planVersion: 1,
+    basedOnVersion: null,
+    changeReason: "Initial plan",
   };
 }
