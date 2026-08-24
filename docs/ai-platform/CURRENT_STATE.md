@@ -108,6 +108,21 @@ See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
 | Action Kernel proposal prep on select | Integrated (no auto-execute) |
 | Durable event/version persistence | Deferred (in-memory; Prompt 03A if required) |
 
+
+## Context Fabric + Temporal Event Bus (Prompt 04 — not production-live)
+
+Provenance-aware operational context perception when
+`MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Implementation: `lib/ai/platform/context-fabric/`.
+See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+
+| Surface | Status |
+|---------|--------|
+| Context record + domain event bus | Implemented, flag-gated |
+| Mission context query + selective routing | Implemented, flag-gated |
+| Mission Runtime / Recovery light wiring | Implemented when flags on |
+| Durable context/event persistence | Deferred (in-memory; Prompt 04A if required) |
+| Authority expansion | None |
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

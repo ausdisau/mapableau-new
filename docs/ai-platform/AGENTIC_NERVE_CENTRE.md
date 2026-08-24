@@ -214,3 +214,10 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
 - `/admin/ai/agents` — WCAG-oriented governance table.
+
+## Context Fabric (Prompt 04)
+
+Perception layer for authorised operational context. Agents and Mission Runtime may
+`queryMissionContext` when `MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Domain events route
+selectively; not every event reaches every agent. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+

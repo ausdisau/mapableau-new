@@ -203,3 +203,23 @@ export type {
   ReassessmentTrigger,
   DependencyImpact,
 } from "./recovery";
+
+export {
+  publishDomainEvent,
+  queryMissionContext,
+  clearContextFabricStore,
+  evaluateFreshness,
+  evaluateSourceGate,
+  routeDomainEvent,
+  formatContextForParticipant,
+  CONTEXT_TYPES,
+  SOURCE_TRUST_CLASSES,
+  DOMAIN_EVENT_TYPES,
+} from "./context-fabric";
+export type {
+  MapAbleContextRecord,
+  MapAbleDomainEvent,
+  MissionContextQuery,
+  MissionContextQueryResult,
+} from "./context-fabric";
+

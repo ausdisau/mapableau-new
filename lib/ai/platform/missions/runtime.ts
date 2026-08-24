@@ -6,7 +6,10 @@ import {
 } from "@/lib/ai/platform/agents";
 import type { MapAbleAgentActivationEntry } from "@/lib/ai/platform/agents/types";
 import { evaluateSafeguardingGate } from "@/lib/ai/platform/policies/safeguarding-gate";
+import { mergeFabricContextIntoEvidence } from "@/lib/ai/platform/context-fabric/mission-bridge";
+import { ensureMissionRecoveryTracking } from "@/lib/ai/platform/recovery/planner";
 import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
+import { isAdaptiveRecoveryEnabled } from "@/lib/config/adaptive-recovery";
 
 import { compileMissionPlan } from "./compiler";
 import { analyseMissionContinuity } from "./continuity";
@@ -15,8 +18,6 @@ import { buildMissionGraph } from "./graph";
 import { routeMissionDomains } from "./router";
 import { saveMissionPlan, getMissionPlan } from "./store";
 import { captureMissionTelemetry } from "./telemetry";
-import { ensureMissionRecoveryTracking } from "@/lib/ai/platform/recovery/planner";
-import { isAdaptiveRecoveryEnabled } from "@/lib/config/adaptive-recovery";
 import type {
   MapAbleMissionPlan,
   MapAbleMissionRequest,
@@ -163,7 +164,13 @@ export function planMission(input: Omit<MapAbleMissionRequest, "missionId" | "tr
   context.routing = routing;
   context.domains = routing.allowedDomains;
 
-  const evidence = buildMissionEvidenceBundle(request);
+  const evidence = mergeFabricContextIntoEvidence({
+    missionId,
+    participantId: request.participantId,
+    actorId: request.actorId,
+    consentScopes: request.consentScopes,
+    evidence: buildMissionEvidenceBundle(request),
+  });
   captureMissionTelemetry({
     kind: evidence.missing.length ? "evidence_missing" : "evidence_loaded",
     missionId,
