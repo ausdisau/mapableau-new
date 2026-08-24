@@ -115,6 +115,24 @@ Reliability + observability + cost control when `MAPABLE_AI_CONTROL_PLANE_ENABLE
 Implementation: `lib/ai/platform/control-plane/`. Admin: `/admin/ai/control-plane`.
 Observes system health only — never scores participants. See [CONTROL_PLANE.md](./CONTROL_PLANE.md).
 
+## Release Governance (Prompt 12 — gates only; pilot not enabled)
+
+Deterministic release readiness, cohort controls, and public-claim gates when
+`MAPABLE_RELEASE_GOVERNANCE_ENABLED=true`. Implementation:
+`lib/ai/platform/release-governance/`. Admin (read-only):
+`/admin/ai/release-readiness`. Does **not** enable pilots or production releases.
+Approvals remain null until real human sign-off. See
+[RELEASE_GOVERNANCE.md](./RELEASE_GOVERNANCE.md).
+
+| Surface | Status |
+|---------|--------|
+| Release manifests (code-defined) | Implemented — experimental/internal_test, approvals null |
+| Readiness GO/NO-GO (`READY_FOR_REVIEW` / `NOT_READY` / `BLOCKED`) | Implemented |
+| Server-side cohort store | Implemented (in-memory; revocable) |
+| Public claim mismatch rejection | Implemented |
+| Pilot / production flags | **Remain off** |
+| Authority expansion | **None** |
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

@@ -214,3 +214,10 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
 - `/admin/ai/agents` — WCAG-oriented governance table.
+
+## Release governance (Prompt 12)
+
+Release readiness gates live in `lib/ai/platform/release-governance/`.
+They do **not** enable controlled pilot or production. Admin readiness view:
+`/admin/ai/release-readiness` (flag-gated, read-only). See
+[RELEASE_GOVERNANCE.md](./RELEASE_GOVERNANCE.md).
