@@ -1,4 +1,4 @@
-import type { TokenSet } from "next-auth";
+import type { Profile, TokenSet } from "next-auth";
 import type { OAuthConfig } from "next-auth/providers/oauth";
 
 export const WORKOS_AUTHKIT_PROVIDER_ID = "workos-authkit";
@@ -226,7 +226,12 @@ export function buildWorkOSAuthKitProvider(): OAuthConfig<WorkOSAuthKitProfile> 
         if (!isWorkOSProfile(profile)) {
           throw new Error("WorkOS AuthKit profile is missing.");
         }
-        return profile;
+        // NextAuth's generic Profile uses `undefined` for an absent name,
+        // while the WorkOS API uses JSON `null`.
+        return {
+          ...profile,
+          name: profile.name ?? undefined,
+        } as Profile;
       },
     },
     profile(profile) {
