@@ -41,6 +41,10 @@ jobs:
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_a11y?schema=public
       # Password credentials must work for Playwright seeds
       TWILIO_2FA_ENABLED: "false"
+      # Render the hosted AuthKit option for axe; tests never follow the external redirect.
+      WORKOS_AUTHKIT_ENABLED: "true"
+      WORKOS_CLIENT_ID: "client_ci_accessibility_placeholder"
+      WORKOS_API_KEY: "ci-accessibility-placeholder-not-a-secret"
       # Auth routes execute with seeded storage-state fixtures
       A11Y_SKIP_AUTH_ROUTES: "0"
       # Exercise first-party panel in a11y CI; production default remains off
