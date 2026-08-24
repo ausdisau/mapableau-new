@@ -7,6 +7,7 @@ import {
   priorAppliedFromSession,
   touchProviderFinderSession,
 } from "@/lib/ai/agent-sessions/provider-finder-session";
+import { assertProviderFinderChatAllowed } from "@/lib/ai/relational/gates";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { isSearchInterpreterConfigured } from "@/lib/config/search-interpreter";
 import { runProviderFinderAskTurn } from "@/lib/provider/finder/ask-bridge";
@@ -68,6 +69,14 @@ export async function POST(request: Request) {
   try {
     touchProviderFinderSession(sessionId);
     const existing = getProviderFinderSession(sessionId);
+
+    const gate = await assertProviderFinderChatAllowed({
+      tenantId: "anonymous-provider-finder",
+      participantId: `finder-session:${sessionId}`,
+      actorUserId: `finder-anon:${ip}`,
+      silent: false,
+    });
+
     const priorApplied = priorAppliedFromSession(sessionId, formSession);
 
     const turn = await runProviderFinderAskTurn(userText, formSession, {
@@ -88,7 +97,10 @@ export async function POST(request: Request) {
 
     const stream = createFinderChatResponseStream({
       turn,
-      useLlmStream: isSearchInterpreterConfigured(),
+      useLlmStream:
+        gate.allowed &&
+        gate.useModelStream &&
+        isSearchInterpreterConfigured(),
     });
 
     return createUIMessageStreamResponse({ stream });

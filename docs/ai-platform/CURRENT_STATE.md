@@ -36,6 +36,22 @@ Positioning: *An evidence-aware, participant-controlled copilot for complete dis
 | navigator.provider_search.draft_service_request | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENVELOPES off |
 | navigator.provider_search.escalate | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENABLED off |
 
+### Relational Intelligence (registered, not live)
+
+All relational keys default **false**. Production enablement remains blocked until Phase 08 GO.
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| relational.interpret | hybrid | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.clarify | model_backed | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_MODEL_ASSISTED off |
+| relational.explain | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.draft | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_DRAFT off |
+| access.search.read | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ACCESS_SEARCH off |
+| human.help.request | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_HUMAN_HELP off |
+
+Communication Passport SoT for relational UX: `lib/support/communication-passport` (see `lib/ai/relational/communication-passport.ts`).
+Provider Finder chat now routes through `assertProviderFinderChatAllowed` (deterministic fallback when `SEARCH_AGENT_ENABLED` off).
+
 Navigator pilot surfaces (Decision Passport, governed memory, matching) also require
 `MAPABLE_NAVIGATOR_PILOT_PASSPORT` / `_MEMORY` / `_MATCHING` (all default false).
 See [NAVIGATOR_ASSURANCE.md](./NAVIGATOR_ASSURANCE.md).

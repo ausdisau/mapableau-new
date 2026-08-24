@@ -133,4 +133,27 @@ describe("Navigator Phase 4 — assurance", () => {
       expect(result.estimatedCostUsd).toBe(0);
     }
   });
+
+  it("passes synthetic relational eval scenarios", () => {
+    const relationalScenarios = EVAL_SCENARIOS.filter((s) =>
+      s.tags.includes("relational"),
+    );
+    expect(relationalScenarios.length).toBeGreaterThanOrEqual(4);
+    for (const scenario of relationalScenarios) {
+      const result = runEvalScenario(scenario);
+      expect(result.passed, scenario.id).toBe(true);
+    }
+  });
+
+  it("registers relational capabilities with bounded authority ceilings", () => {
+    expect(requireAiCapability("relational.interpret").authorityCeiling).toBe(
+      "READ_ONLY_EXPLAIN",
+    );
+    expect(requireAiCapability("relational.draft").authorityCeiling).toBe(
+      "DRAFT_ONLY",
+    );
+    expect(requireAiCapability("human.help.request").humanReviewRequired).toBe(
+      true,
+    );
+  });
 });

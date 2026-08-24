@@ -50,6 +50,12 @@ describe("AI platform capability registry", () => {
         "navigator.provider_search.match",
         "navigator.provider_search.draft_service_request",
         "navigator.provider_search.escalate",
+        "relational.interpret",
+        "relational.clarify",
+        "relational.explain",
+        "relational.draft",
+        "access.search.read",
+        "human.help.request",
       ])
     );
   });

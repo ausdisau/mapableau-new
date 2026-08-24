@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useId, useState } from "react";
 
 import { DecisionPassportPanel } from "@/components/navigator/DecisionPassportPanel";
+import type { AssistanceMode } from "@/lib/ai/relational/types";
+import { RELATIONAL_DISCLOSABLE_FIELD_KEYS } from "@/lib/ai/relational/communication-passport";
 import type { HardConstraintKey } from "@/lib/ai/navigator/matching/types";
 
 export type NavigatorPilotJourneyProps = {
@@ -53,12 +55,15 @@ type SearchResult = {
   reason?: string;
 };
 
-const PERMITTED_FIELD_OPTIONS = [
-  { id: "location", label: "Location" },
-  { id: "serviceType", label: "Service type" },
-  { id: "accessibility", label: "Accessibility needs" },
-  { id: "communication", label: "Communication needs" },
-] as const;
+const PERMITTED_FIELD_OPTIONS = RELATIONAL_DISCLOSABLE_FIELD_KEYS.map(
+  (id) => ({
+    id,
+    label:
+      id === "serviceType"
+        ? "Service type"
+        : id.charAt(0).toUpperCase() + id.slice(1),
+  }),
+);
 
 const NON_NEGOTIABLE_OPTIONS: Array<{
   id: HardConstraintKey;
@@ -92,6 +97,9 @@ export function NavigatorPilotJourney({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [goalText, setGoalText] = useState("");
   const [aiOptedOut, setAiOptedOut] = useState(false);
+  const [assistanceMode, setAssistanceMode] =
+    useState<AssistanceMode>("guided_with_confirm");
+  const [humanHelpRequested, setHumanHelpRequested] = useState(false);
   const [interpretation, setInterpretation] =
     useState<ReviewedInterpretation | null>(null);
   const [serviceType, setServiceType] = useState("");
@@ -226,6 +234,8 @@ export function NavigatorPilotJourney({
           goalText: goalText.trim(),
           interpretationConfirmed: true,
           aiOptedOut,
+          assistanceMode,
+          humanHelpRequested,
           permittedFields,
           transferFilters,
           saveDraft,
@@ -518,10 +528,41 @@ export function NavigatorPilotJourney({
               <input
                 type="checkbox"
                 checked={aiOptedOut}
-                onChange={(e) => setAiOptedOut(e.target.checked)}
+                onChange={(e) => {
+                  setAiOptedOut(e.target.checked);
+                  if (e.target.checked) {
+                    setAssistanceMode("opt_out_ai");
+                  } else {
+                    setAssistanceMode("guided_with_confirm");
+                  }
+                }}
               />
               Prefer no AI assistance (rules-only interpretation)
             </label>
+            <div>
+              <label
+                htmlFor={`${baseId}-assistance-mode`}
+                className="block text-sm font-medium text-[#0C1833]"
+              >
+                Assistance mode
+              </label>
+              <select
+                id={`${baseId}-assistance-mode`}
+                value={assistanceMode}
+                disabled={aiOptedOut}
+                onChange={(e) =>
+                  setAssistanceMode(e.target.value as AssistanceMode)
+                }
+                className="mt-1 w-full rounded-md border border-[#C5D5E0] px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B4F72]"
+              >
+                <option value="guided_with_confirm">
+                  Guided — confirm before search
+                </option>
+                <option value="participant_led">Participant-led</option>
+                <option value="draft_only">Draft only — no auto actions</option>
+                <option value="human_only">Human help only</option>
+              </select>
+            </div>
             <button
               type="button"
               className={primaryClass}
