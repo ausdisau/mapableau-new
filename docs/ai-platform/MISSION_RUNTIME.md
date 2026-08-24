@@ -170,3 +170,11 @@ and via agent manifests. Employer disability disclosure requires explicit consen
 | Global AI kill switch | Deterministic routing/compile still works |
 | Safeguarding indicator | Human review path; no AI substantiation |
 | Missing consent | `consent_required` / `not_authorised` — never coerced to `missing` |
+
+## Agency Memory personalisation (Prompt 05)
+
+When enabled, Mission Runtime may receive **confirmed** Agency Memory via Context
+Fabric scoped retrieval. Proposed, revoked, expired, or purpose-mismatched items
+are excluded. Pause personalisation / disable AI still allow manual preference
+management. See [AGENCY_MEMORY.md](./AGENCY_MEMORY.md).
+

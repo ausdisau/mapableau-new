@@ -214,3 +214,11 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
 - `/admin/ai/agents` — WCAG-oriented governance table.
+
+## Participant Agency Memory (Prompt 05)
+
+Canonical long-term preference/decision graph: `lib/ai/platform/agency-memory/`.
+Only participant-supplied or participant-confirmed items may personalise missions.
+Model inference cannot auto-confirm. Scoped Context Fabric retrieval only —
+never inject the full graph. See [AGENCY_MEMORY.md](./AGENCY_MEMORY.md).
+
