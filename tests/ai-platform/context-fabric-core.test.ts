@@ -69,7 +69,8 @@ describe("Context Fabric core", () => {
   it("retains provenance fields on publish", () => {
     const result = publishDomainEvent(baseEvent());
     expect(result.error).toBeNull();
-    expect(result.record).not.toBeNull();
+    expect(result.record).toBeTruthy();
+    expect(result.record!.sourceType).toBe("verified_system_record");
     const prov = preserveProvenanceFields(result.record!);
     expect(prov.sourceType).toBe("verified_system_record");
     expect(prov.sourceRef).toBe("obs-1");

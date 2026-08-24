@@ -42,7 +42,7 @@ export function normaliseToContextRecord(
   input: NormaliseInput,
 ): { record: MapAbleContextRecord | null; error: string | null } {
   const gate = evaluateSourceGate({
-    sourceType: input.sourceType,
+    sourceType: input.sourceTrust,
     sourceRef: input.sourceRef,
     sourceAuthority: input.sourceAuthority,
     producer: input.producer,
@@ -63,7 +63,7 @@ export function normaliseToContextRecord(
     "feature_state";
 
   if (
-    input.sourceType === "model_inference" &&
+    input.sourceTrust === "model_inference" &&
     !INFERENCE_ALLOWED_TYPES.has(contextType)
   ) {
     return {
@@ -75,7 +75,7 @@ export function normaliseToContextRecord(
   const now = new Date().toISOString();
   const observedAt = input.occurredAt ?? now;
   const verificationStatus =
-    gate.effectiveVerification ?? verificationForSourceTrust(input.sourceType);
+    gate.effectiveVerification ?? verificationForSourceTrust(input.sourceTrust);
 
   const record: MapAbleContextRecord = {
     contextId: randomUUID(),
@@ -86,7 +86,7 @@ export function normaliseToContextRecord(
         : [{ kind: "organisation", id: input.tenantId }],
     domain: input.domain,
     tenantId: input.tenantId,
-    sourceType: input.sourceType,
+    sourceType: input.sourceTrust,
     sourceRef: input.sourceRef,
     sourceAuthority: input.sourceAuthority,
     observedAt,

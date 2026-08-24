@@ -61,11 +61,18 @@ export function queryMissionContext(
   const unknownTypes: ContextType[] = [];
 
   for (const t of requestedSet) {
+    const authorisedUnknown = records.some(
+      (r) => r.contextType === t && r.freshnessStatus === "unknown",
+    );
+    if (authorisedUnknown) {
+      unknownTypes.push(t);
+      continue;
+    }
     if (presentTypes.has(t)) continue;
-    const hadUnknownAge = candidates.some(
+    const candidateUnknown = candidates.some(
       (c) => c.contextType === t && c.freshnessStatus === "unknown",
     );
-    if (hadUnknownAge) {
+    if (candidateUnknown) {
       unknownTypes.push(t);
     } else {
       missingTypes.push(t);
