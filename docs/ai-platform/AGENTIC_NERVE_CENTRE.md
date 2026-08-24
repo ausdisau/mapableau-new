@@ -167,6 +167,20 @@ New call sites should use `selectMapAbleAgents` directly.
 - Jobs-specific capability keys for `work_participation` (currently shares read-only retrieval).
 - Optional retirement of CareOS legacy agent ids once all callers migrate.
 
+## Mission Runtime (Prompt 01)
+
+Cross-domain participant mission planning is implemented in `lib/ai/platform/missions/`.
+See [MISSION_RUNTIME.md](./MISSION_RUNTIME.md).
+
+```
+My MapAble → Mission Runtime → selectMapAbleAgents → evidence + graph + continuity → MissionPlan
+```
+
+- APIs: `POST /api/ai/missions/plan`, `GET /api/ai/missions/:missionId/preview`, `POST .../replan`
+- Feature flag: `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED` (default **false**)
+- No autonomous execute endpoint; action proposals remain approval-gated
+- In-memory plan store until Prompt 02 evaluates durable persistence
+
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).

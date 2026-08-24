@@ -133,3 +133,25 @@ export {
   safeguardingGateMayDecideReportability,
   safeguardingGateMaySubstantiateAllegation,
 } from "./policies/safeguarding-gate";
+export {
+  planMission,
+  replanMission,
+  previewMissionPlan,
+  routeMissionDomains,
+  compileMissionPlan,
+  buildMissionEvidenceBundle,
+  buildMissionGraph,
+  analyseMissionContinuity,
+  formatMissionPlanForParticipant,
+} from "./missions";
+export type {
+  MapAbleMissionRequest,
+  MapAbleMissionPlan,
+  MapAbleMissionRuntimeContext,
+  MissionRoutingResult,
+  EvidenceBundle,
+  ContinuityAlert,
+  MissionGraphNode,
+  MissionRecommendation,
+  MissionActionProposal,
+} from "./missions";

@@ -69,6 +69,19 @@ or change public production claims. See [AGENTIC_NERVE_CENTRE.md](./AGENTIC_NERV
 Admin: `/admin/ai/agents`. APIs (admin): `GET /api/ai/agents`, `GET /api/ai/agents/:id`,
 `POST /api/ai/agents/activation-preview` (read-only preview).
 
+## Mission Runtime (Prompt 01 — not production-live)
+
+Participant-facing cross-domain mission planning when `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED=true`.
+Implementation: `lib/ai/platform/missions/`. My MapAble integration via Life Intent **Build mission**.
+See [MISSION_RUNTIME.md](./MISSION_RUNTIME.md).
+
+| Surface | Status |
+|---------|--------|
+| Mission APIs | Implemented, flag-gated |
+| My MapAble Mission View | Implemented, flag-gated |
+| Durable mission persistence | Deferred (in-memory store; Prompt 02) |
+| Action proposal execution | Not in Prompt 01 |
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { AssistantShell } from "@/components/personal-agency/AssistantShell";
 import { EvidenceDrawer } from "@/components/personal-agency/EvidenceDrawer";
+import { MissionView } from "@/components/personal-agency/MissionView";
 
 const EXPLORATION_AREAS = [
   "Accessibility",
@@ -25,17 +26,20 @@ const STATUS_OPTIONS: LifeIntentStatus[] = [
 
 export function LifeIntentDetailClient({
   intent,
+  nerveCentreEnabled = false,
 }: {
   intent: {
     id: string;
     originalExpression: string;
     status: LifeIntentStatus;
   };
+  nerveCentreEnabled?: boolean;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(intent.status);
   const [savedLabel, setSavedLabel] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [showMission, setShowMission] = useState(false);
 
   async function saveExploration(label: string) {
     setPending(true);
@@ -139,6 +143,39 @@ export function LifeIntentDetailClient({
           </p>
         ) : null}
       </section>
+
+      {nerveCentreEnabled ? (
+        <section aria-labelledby="mission-plan-heading">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="mission-plan-heading" className="text-xl font-bold">
+              Mission plan
+            </h2>
+            {!showMission ? (
+              <button
+                type="button"
+                className="min-h-11 rounded-lg bg-[#005B7F] px-4 py-2 text-sm font-semibold text-white"
+                onClick={() => setShowMission(true)}
+              >
+                Build mission
+              </button>
+            ) : null}
+          </div>
+          {showMission ? (
+            <div className="mt-4">
+              <MissionView
+                lifeIntentId={intent.id}
+                initialObjective={intent.originalExpression}
+                onClose={() => setShowMission(false)}
+              />
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-slate-600">
+              Plan how MapAble can help across care, transport, access, and work —
+              without booking or sending anything automatically.
+            </p>
+          )}
+        </section>
+      ) : null}
 
       <section aria-labelledby="assistant-section">
         <h2 id="assistant-section" className="sr-only">
