@@ -1,8 +1,8 @@
+import { clearTestConnectorAdapters } from "./adapters";
 import {
   clearConnectorAudit,
   clearConnectorIdempotency,
 } from "./audit";
-import { clearTestConnectorAdapters } from "./adapters";
 import { clearCircuitBreakers } from "./circuit-breaker";
 import { clearCredentialHandles } from "./credentials";
 import { clearConnectorHealth } from "./health";

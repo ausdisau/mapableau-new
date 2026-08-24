@@ -30,7 +30,7 @@ export const approvedActionEnvelopeSchema = z.object({
   payloadHash: z.string().min(16),
   actionKey: z.string().min(1),
   participantId: z.string().min(1),
-  approvedPayload: z.record(z.unknown()),
+  approvedPayload: z.record(z.string(), z.unknown()),
 });
 
 export const connectorReadRequestSchema = z.object({
@@ -40,7 +40,7 @@ export const connectorReadRequestSchema = z.object({
   actor: connectorActorSchema,
   tenant: connectorTenantSchema,
   consentScopes: z.array(z.string()),
-  scope: z.record(z.unknown()),
+  scope: z.record(z.string(), z.unknown()),
   provenanceClass: z.string().optional(),
 });
 
@@ -60,7 +60,7 @@ export const connectorCanonicalRecordSchema = z.object({
   tenantId: z.string().min(1),
   dataClass: z.enum(DATA_CLASSES),
   contentKind: z.literal("data"),
-  payload: z.record(z.unknown()),
+  payload: z.record(z.string(), z.unknown()),
   provenance: z.object({
     sourceSystem: z.string(),
     sourceTrustClass: z.enum([

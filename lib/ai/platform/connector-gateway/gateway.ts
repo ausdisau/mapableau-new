@@ -2,13 +2,13 @@ import { randomUUID } from "node:crypto";
 
 import { isConnectorGatewayOperational } from "@/lib/config/connector-gateway";
 
+import { getConnectorAdapter } from "./adapters";
 import {
   appendConnectorAudit,
   claimConnectorIdempotency,
   completeConnectorIdempotency,
   getConnectorIdempotency,
 } from "./audit";
-import { getConnectorAdapter } from "./adapters";
 import {
   isCircuitAllowingCalls,
   recordCircuitFailure,
