@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { EVIDENCE_STATES, HARD_CONSTRAINT_KINDS, OPTIONS_DOMAINS, RANKING_DIMENSIONS, VERIFICATION_STATES } from "./types";
 
 export const optionsDomainSchema = z.enum(OPTIONS_DOMAINS);

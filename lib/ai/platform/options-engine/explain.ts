@@ -1,4 +1,5 @@
 import { isOptionsModelExplanationEnabled } from "@/lib/config/options-engine";
+
 import type { DimensionScores, EligibilityResult, OptionCandidate, OptionExplanation, OptionsDomain } from "./types";
 
 const DOMAIN_NEXT_STEP: Record<OptionsDomain, string> = {

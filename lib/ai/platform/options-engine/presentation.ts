@@ -1,5 +1,5 @@
-import type { OptionsSession, RankedOption } from "./types";
 import { describePriorities } from "./ranking";
+import type { OptionsSession, RankedOption } from "./types";
 
 export type OptionsPresentation = {
   heading: string; summary: string; rankingLabels: string[]; limitations: string[];

@@ -1,8 +1,8 @@
-import type { OptionsDomain } from "./types";
 import { accessDomainNotes } from "./domains/access";
 import { careDomainNotes } from "./domains/care";
 import { jobsDomainNotes } from "./domains/jobs";
 import { transportDomainNotes } from "./domains/transport";
+import type { OptionsDomain } from "./types";
 
 export const CONSOLIDATED_MATCHING_SOURCES = [
   { key: "matching.care_rules", algorithmRegisterRef: "alg.care_matching_rules", domain: "care" as OptionsDomain, role: "deterministic_filter", notes: "Canonical care hard-filter + explainable factors; Options Engine facade." },

@@ -1,12 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
+
 import { isOptionsEngineEnabled, isOptionsModelExplanationEnabled } from "@/lib/config/options-engine";
+
 import { applyHardConstraints } from "./constraints";
 import { scrubEmployerFacingPayload } from "./domains/jobs";
 import { evaluateEvidenceEligibility, findEligibility } from "./eligibility";
 import { explainOption } from "./explain";
 import { assertFairRanking, sanitizeCandidatesForFairness } from "./fairness";
-import { algorithmRegisterRefForDomain, domainLimitations } from "./registry";
 import { normalizeRankingPriorities, rankCandidates } from "./ranking";
+import { algorithmRegisterRefForDomain, domainLimitations } from "./registry";
 import { optionsRequestSchema } from "./schemas";
 import { getOptionsSession, saveOptionsSession, updateOptionsSession } from "./store";
 import type { ChooseOptionInput, ChooseOptionResult, OptionsRequest, OptionsSession, RankedOption, RankingPriorities } from "./types";
