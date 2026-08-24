@@ -26,8 +26,8 @@ export function generateOptions(raw: OptionsRequest): OptionsSession {
   const traceId = input.traceId ?? randomUUID();
   const priorities = normalizeRankingPriorities(input.rankingPriorities);
   const tenantCandidates = input.candidates.filter((c) => c.tenantId === input.tenantId);
+  const fairness = assertFairRanking({ priorities, requirements: input.requirements, candidates: tenantCandidates });
   const sanitized = sanitizeCandidatesForFairness(tenantCandidates);
-  const fairness = assertFairRanking({ priorities, requirements: input.requirements, candidates: sanitized });
   const safeRequirements = input.requirements.filter((r) => !/diagnos|icd-?10|dsm-?5|medical.?condition/i.test(r.label + r.value));
   const { eligible, eliminated } = applyHardConstraints({
     domain: input.domain, candidates: sanitized, requirements: safeRequirements,

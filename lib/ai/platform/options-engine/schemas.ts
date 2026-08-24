@@ -32,7 +32,7 @@ export const optionCandidateSchema = z.object({
   disclosureRequired: z.boolean().optional(),
   vehicleSuitability: z.object({ wheelchairAccessible: z.boolean(), hoistAvailable: z.boolean(), verified: z.boolean() }).optional(),
   accessProfile: z.object({ claimedAccessible: z.boolean(), barrierAbsenceOnly: z.boolean(), source: z.string().max(200).optional(), freshnessLabel: z.string().max(120).optional() }).optional(),
-  metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
 }).strict();
 
 export const rankingPrioritiesSchema = z.object({
