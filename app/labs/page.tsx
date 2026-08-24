@@ -10,6 +10,14 @@ const streams = [
     available: true,
   },
   {
+    title: "MapAble-native intelligence",
+    description:
+      "Explore a MapAble-owned model portfolio, local/open-weight routes, and governed retrieval — experimental only, not production-supported.",
+    href: "/labs/native-intelligence",
+    status: "Experimental R&D",
+    available: true,
+  },
+  {
     title: "Access Intelligence Lab",
     description:
       "Explore how accessibility evidence, uncertainty and route information could be presented and compared.",

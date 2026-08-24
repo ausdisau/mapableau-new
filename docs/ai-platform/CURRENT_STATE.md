@@ -115,6 +115,31 @@ Reliability + observability + cost control when `MAPABLE_AI_CONTROL_PLANE_ENABLE
 Implementation: `lib/ai/platform/control-plane/`. Admin: `/admin/ai/control-plane`.
 Observes system health only — never scores participants. See [CONTROL_PLANE.md](./CONTROL_PLANE.md).
 
+## MapAble-Native Intelligence R&D (Prompt 13 — experimental / Labs only)
+
+MapAble-owned model portfolio + routing + local/open-weight adapters + governed
+retrieval policy + training-proposal templates. Does **not** replace the production
+gateway. Does **not** auto-promote models. Does **not** expand authority.
+
+| Flag | Default |
+|---|---|
+| `MAPABLE_NATIVE_INTELLIGENCE_RND_ENABLED` | false |
+| `MAPABLE_LOCAL_MODEL_ROUTING_ENABLED` | false |
+
+Implementation: `lib/ai/platform/native-intelligence/` (extends
+`lib/ai/platform/models/registry.ts`). Labs: `/labs/native-intelligence`.
+See [NATIVE_INTELLIGENCE_RND.md](./NATIVE_INTELLIGENCE_RND.md).
+
+| Surface | Status |
+|---------|--------|
+| Portfolio metadata on canonical registry | Implemented |
+| Task router (fail-closed) | Implemented, flag-gated |
+| Local/OSS adapter | Experimental stub, Labs/eval gated |
+| Governed retrieval seeds | In-memory, provenance required |
+| Training proposals | Template + governance gates only |
+| Production gateway replacement | **None** |
+| Authority expansion | **None** |
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)
