@@ -108,6 +108,21 @@ See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
 | Action Kernel proposal prep on select | Integrated (no auto-execute) |
 | Durable event/version persistence | Deferred (in-memory; Prompt 03A if required) |
 
+## Mission Watch (Prompt 06 — not production-live)
+
+Proactive notice → reassess → explain → recommend when
+`MAPABLE_MISSION_WATCH_ENABLED=true`. Implementation: `lib/ai/platform/mission-watch/`.
+See [MISSION_WATCH.md](./MISSION_WATCH.md). Feeds Prompt 03 Recovery; never executes actions.
+
+| Surface | Status |
+|---------|--------|
+| Watch / tick / snooze / disable APIs | Implemented, flag-gated |
+| My MapAble watch sections | Implemented, flag-gated |
+| In-app alerts only | Enforced (no email/SMS writes) |
+| Durable watch persistence | Deferred (in-memory; Prompt 06A if required) |
+| Authority expansion | None |
+
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

@@ -56,3 +56,9 @@ not faked for production claims.
 
 `lib/ai/platform/recovery/` — types, events, triggers, impact, materiality, planner,
 alternatives, temporal, policy, presentation, store, index.
+
+## Upstream: Mission Watch (Prompt 06)
+
+Proactive Mission Watch may ingest system-derived recovery events after
+deterministic evaluation. Watch never selects alternatives or executes actions.
+See [MISSION_WATCH.md](./MISSION_WATCH.md).
