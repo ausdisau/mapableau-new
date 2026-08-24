@@ -5,11 +5,11 @@ import {
   selectMapAbleAgents,
 } from "@/lib/ai/platform/agents";
 import type { MapAbleAgentActivationEntry } from "@/lib/ai/platform/agents/types";
-import { evaluateSafeguardingGate } from "@/lib/ai/platform/policies/safeguarding-gate";
 import { mergeFabricContextIntoEvidence } from "@/lib/ai/platform/context-fabric/mission-bridge";
+import { evaluateSafeguardingGate } from "@/lib/ai/platform/policies/safeguarding-gate";
 import { ensureMissionRecoveryTracking } from "@/lib/ai/platform/recovery/planner";
-import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
 import { isAdaptiveRecoveryEnabled } from "@/lib/config/adaptive-recovery";
+import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
 
 import { compileMissionPlan } from "./compiler";
 import { analyseMissionContinuity } from "./continuity";

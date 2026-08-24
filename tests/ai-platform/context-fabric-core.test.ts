@@ -11,7 +11,6 @@ import {
   preserveProvenanceFields,
   publishDomainEvent,
   queryMissionContext,
-  routeDomainEvent,
   saveContextRecord,
   verificationForSourceTrust,
 } from "@/lib/ai/platform/context-fabric";
