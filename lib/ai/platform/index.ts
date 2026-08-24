@@ -96,3 +96,40 @@ export type {
   DeviceCapabilitySnapshot,
   EdgeBrokerResult,
 } from "./edge";
+export {
+  MAPABLE_OPERATIONAL_AGENT_IDS,
+  MAPABLE_AGENT_MANIFESTS,
+  listMapAbleAgents,
+  getMapAbleAgent,
+  requireMapAbleAgent,
+  listMapAbleAgentIds,
+  selectMapAbleAgents,
+  validateMapAbleAgentRegistry,
+  assertMapAbleAgentRegistryValid,
+  assertParticipantApprovalBinding,
+  assertHandoffPreservesHumanOnly,
+  isHumanOnlyWorkflow,
+  authorityCeilingToCareOsDisplayLabel,
+  compareAuthorityCeiling,
+  minAuthority,
+  effectiveHandoffAuthority,
+  assertHandoffDoesNotRaiseAuthority,
+  createMapAbleMissionContext,
+  createMapAbleAgentHandoff,
+  projectMissionContextForAgent,
+} from "./agents";
+export type {
+  MapAbleAgentId,
+  MapAbleAgentManifest,
+  MapAbleMissionContext,
+  MapAbleAgentHandoff,
+  MapAbleAgentActivationEntry,
+  SelectMapAbleAgentsInput,
+  SelectMapAbleAgentsResult,
+  MapAbleHumanReviewItem,
+} from "./agents";
+export {
+  evaluateSafeguardingGate,
+  safeguardingGateMayDecideReportability,
+  safeguardingGateMaySubstantiateAllegation,
+} from "./policies/safeguarding-gate";

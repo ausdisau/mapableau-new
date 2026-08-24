@@ -39,6 +39,20 @@ Positioning: *An evidence-aware, participant-controlled copilot for complete dis
 Navigator pilot surfaces (Decision Passport, governed memory, matching) also require
 `MAPABLE_NAVIGATOR_PILOT_PASSPORT` / `_MEMORY` / `_MATCHING` (all default false).
 See [NAVIGATOR_ASSURANCE.md](./NAVIGATOR_ASSURANCE.md).
+
+## Agentic Nerve Centre (foundation consolidation)
+
+Canonical operational agent registry: `lib/ai/platform/agents/` (exactly eight operational
+agents). CareOS `selectCareOSAgentNetwork` is a deprecated compatibility adapter.
+Safeguarding is a human escalation gate (not an operational agent). Robotics remains
+research-only and is excluded from the operational registry.
+
+This consolidation does **not** expand AI operational authority, enable autonomous writes,
+or change public production claims. See [AGENTIC_NERVE_CENTRE.md](./AGENTIC_NERVE_CENTRE.md).
+
+Admin: `/admin/ai/agents`. APIs (admin): `GET /api/ai/agents`, `GET /api/ai/agents/:id`,
+`POST /api/ai/agents/activation-preview` (read-only preview).
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)
