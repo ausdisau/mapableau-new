@@ -155,3 +155,28 @@ export type {
   MissionRecommendation,
   MissionActionProposal,
 } from "./missions";
+export {
+  MAPABLE_ACTION_KEYS,
+  listMapAbleActionDefinitions,
+  getMapAbleActionDefinition,
+  createActionProposal,
+  approveActionProposal,
+  rejectActionProposal,
+  executeApprovedAction,
+  prepareKernelProposalFromMission,
+  evaluateActionPolicy,
+  hashActionPayload,
+  getActionProposal,
+  listMissionActionResults,
+  clearActionStore,
+  clearReplayStore,
+  clearMissionActionResults,
+} from "./actions";
+export type {
+  MapAbleActionKey,
+  MapAbleActionDefinition,
+  MapAbleActionProposal,
+  ApprovalBinding,
+  MapAbleActionResult,
+  ActionPolicyDecision,
+} from "./actions";

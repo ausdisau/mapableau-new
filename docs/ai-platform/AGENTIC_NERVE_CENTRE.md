@@ -178,8 +178,21 @@ My MapAble → Mission Runtime → selectMapAbleAgents → evidence + graph + co
 
 - APIs: `POST /api/ai/missions/plan`, `GET /api/ai/missions/:missionId/preview`, `POST .../replan`
 - Feature flag: `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED` (default **false**)
-- No autonomous execute endpoint; action proposals remain approval-gated
-- In-memory plan store until Prompt 02 evaluates durable persistence
+- Action proposals remain approval-gated; execution via Governed Action Kernel
+- In-memory plan store until Prompt 02A evaluates durable persistence
+
+## Governed Action Kernel (Prompt 02)
+
+Approval-bound deterministic execution for Phase 02 request/communication/preference actions.
+See [GOVERNED_ACTION_KERNEL.md](./GOVERNED_ACTION_KERNEL.md).
+
+```
+Mission proposal → Action Kernel proposal → approve (payloadHash+nonce) → execute → audit
+```
+
+- APIs: `POST /api/ai/actions/proposals`, `.../approve`, `.../reject`, `.../execute`
+- Flags: `MAPABLE_ACTION_KERNEL_ENABLED` + per-action flags + kill switch (all default **false**)
+- No authority expansion; no worker assign / confirm transport / pay / disclose
 
 ## Admin surfaces
 

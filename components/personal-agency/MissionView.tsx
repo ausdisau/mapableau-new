@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { MapAbleMissionPlan } from "@/lib/ai/platform/missions/types";
+import { ActionReview } from "@/components/personal-agency/ActionReview";
+import type { MapAbleActionProposal } from "@/lib/ai/platform/actions";
+import type {
+  MapAbleMissionPlan,
+  MissionActionProposal,
+} from "@/lib/ai/platform/missions/types";
 
 type MissionPresentation = {
   heading: string;
@@ -33,6 +38,7 @@ export function MissionView({
   const [presentation, setPresentation] = useState<MissionPresentation | null>(
     null,
   );
+  const [actionFeedback, setActionFeedback] = useState<string[]>([]);
 
   async function buildMission() {
     setBusy(true);
@@ -62,6 +68,7 @@ export function MissionView({
       }
       setPlan(data.plan);
       setPresentation(data.presentation ?? null);
+      setActionFeedback([]);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -200,6 +207,45 @@ export function MissionView({
             </ul>
           </div>
 
+          {plan.actionProposals.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold">Proposed actions</h3>
+              <p className="text-sm text-slate-600">
+                Each action needs your explicit review and approval. Nothing is
+                booked, paid, or assigned automatically.
+              </p>
+              {plan.actionProposals.map((ap) => (
+                <ActionReview
+                  key={ap.id}
+                  missionId={plan.missionId}
+                  missionProposalId={ap.id}
+                  actionKey={missionActionToKernelKey(ap.action)}
+                  purpose={ap.purpose}
+                  informationToShare={ap.informationToShare}
+                  consentScopes={consentScopesForMissionAction(ap.action)}
+                  payload={kernelPayloadFromMissionProposal(ap)}
+                  onComplete={(result) => {
+                    setActionFeedback((prev) => [
+                      ...prev,
+                      result.missionFeedback,
+                    ]);
+                  }}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {actionFeedback.length > 0 ? (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <h3 className="text-sm font-bold">Action results</h3>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                {actionFeedback.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           <p className="text-sm">
             <Link href={plan.nonAiPath.href} className="font-semibold text-[#005B7F] underline">
               {plan.nonAiPath.label}
@@ -211,4 +257,86 @@ export function MissionView({
       )}
     </section>
   );
+}
+
+function missionActionToKernelKey(
+  action: MissionActionProposal["action"],
+): MapAbleActionProposal["actionKey"] {
+  switch (action) {
+    case "prepare_transport_request":
+      return "submit_transport_request";
+    case "prepare_care_request":
+      return "submit_care_request";
+    case "prepare_provider_message":
+      return "send_provider_message";
+    case "request_human_coordination":
+      return "request_human_coordination";
+    case "prepare_adjustment_request":
+      return "save_participant_preference";
+    default: {
+      const _never: never = action;
+      void _never;
+      return "request_human_coordination";
+    }
+  }
+}
+
+function consentScopesForMissionAction(
+  action: MissionActionProposal["action"],
+): string[] {
+  switch (action) {
+    case "prepare_care_request":
+      return ["care.manage"];
+    case "prepare_transport_request":
+      return ["transport.manage"];
+    case "prepare_provider_message":
+      return ["messages.send"];
+    case "prepare_adjustment_request":
+      return ["profile.write"];
+    case "request_human_coordination":
+      return [];
+    default: {
+      const _never: never = action;
+      void _never;
+      return [];
+    }
+  }
+}
+
+function kernelPayloadFromMissionProposal(
+  ap: MissionActionProposal,
+): Record<string, unknown> {
+  const key = missionActionToKernelKey(ap.action);
+  if (key === "submit_care_request") {
+    return {
+      requestType: "employment_support",
+      title: "Support for mission goal",
+      description: String(
+        ap.payload.objective ??
+          ap.payload.supportPurpose ??
+          "Support request from mission plan",
+      ),
+    };
+  }
+  if (key === "submit_transport_request") {
+    return {
+      pickupAddress: "To be confirmed by participant",
+      dropoffAddress: "To be confirmed by participant",
+      scheduledStart: new Date(Date.now() + 86_400_000).toISOString(),
+      mobilityRequirements: {
+        requiresWheelchairAccessible:
+          ap.payload.mobilityRequirement ===
+          "requires_wheelchair_accessible_vehicle",
+      },
+    };
+  }
+  if (key === "request_human_coordination") {
+    return {
+      category: "general_coordination",
+      title: "Mission coordination request",
+      summary: String(ap.purpose),
+      priority: "attention",
+    };
+  }
+  return ap.payload;
 }

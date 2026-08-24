@@ -97,7 +97,7 @@ Structured proposals only (no execute endpoint in Prompt 01):
 - `prepare_transport_request`, `prepare_care_request`, `prepare_provider_message`, `prepare_adjustment_request`, `request_human_coordination`
 
 Each includes payload hash, required consent/approvals, expiry, and information-to-share boundaries.
-Reuse existing approval contracts when wiring execution in a future prompt.
+Execution is handled by the Governed Action Kernel (Prompt 02) — see [GOVERNED_ACTION_KERNEL.md](./GOVERNED_ACTION_KERNEL.md).
 
 ## API
 
@@ -107,12 +107,14 @@ Reuse existing approval contracts when wiring execution in a future prompt.
 | GET | `/api/ai/missions/:missionId/preview` | Preview stored plan |
 | POST | `/api/ai/missions/:missionId/replan` | Replan after participant changes |
 
-No `/execute`, `/autorun`, `/autobook`, or `/autoassign` endpoints.
+Mission APIs do not execute operational actions. Use `/api/ai/actions/proposals/*` for
+approval-bound execution (Prompt 02). No `/autorun`, `/autobook`, or `/autoassign` endpoints.
 
 ## Persistence
 
-Prompt 01 uses an in-memory plan store (`lib/ai/platform/missions/store.ts`). Durable
-persistence via a new Prisma model is deferred to Prompt 02 if required.
+Prompt 01 uses an in-memory plan store (`lib/ai/platform/missions/store.ts`). Prompt 02
+uses in-memory action proposal/approval/replay stores. Durable secure replay requires
+Prompt 02A (Prisma models) if mandated for production multi-instance deployments.
 
 LifeIntent and audit infrastructure remain the canonical durable records for participant goals.
 
@@ -122,8 +124,10 @@ LifeIntent and audit infrastructure remain the canonical durable records for par
 |------|---------|--------|
 | `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED` | `false` | Master switch; OFF = unchanged My MapAble |
 | `MAPABLE_AGENTIC_NERVE_CENTRE_MODEL_ASSISTED` | `false` | Optional model-assisted routing hints only |
+| `MAPABLE_ACTION_KERNEL_ENABLED` | `false` | Governed Action Kernel master switch |
 
 Respects `MAPABLE_AI_GLOBAL_KILL_SWITCH`: deterministic planning remains available when models are killed.
+Action kernel also respects `MAPABLE_ACTION_KERNEL_KILL_SWITCH`.
 
 ## Telemetry
 
