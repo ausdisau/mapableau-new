@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  clearMissionPlanStore,
-  planMission,
-} from "@/lib/ai/platform/missions";
-import {
   clearMissionWatchStore,
   createMissionWatch,
   disableOptionalWatch,
@@ -19,6 +15,10 @@ import {
   listWatches,
   listActiveAlerts,
 } from "@/lib/ai/platform/mission-watch";
+import {
+  clearMissionPlanStore,
+  planMission,
+} from "@/lib/ai/platform/missions";
 import { clearRecoveryStore, getMissionEvents } from "@/lib/ai/platform/recovery";
 
 function enableFlags() {

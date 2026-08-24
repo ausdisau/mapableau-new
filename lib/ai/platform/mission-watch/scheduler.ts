@@ -117,7 +117,7 @@ export function buildEvaluationContext(input: {
         pendingHumanReviewNodeIds.push(node.id);
       }
     }
-    for (const item of plan.evidenceBundle?.stale ?? []) {
+    for (const item of plan.evidenceSummary?.stale ?? []) {
       evidenceStaleNodeIds.push(item.id);
     }
   }

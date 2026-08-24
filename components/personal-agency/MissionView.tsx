@@ -6,6 +6,10 @@ import { useState } from "react";
 import { ActionReview } from "@/components/personal-agency/ActionReview";
 import type { MapAbleActionProposal } from "@/lib/ai/platform/actions";
 import type {
+  MissionWatchPresentation,
+  ParticipantWatchAction,
+} from "@/lib/ai/platform/mission-watch/types";
+import type {
   MapAbleMissionPlan,
   MissionActionProposal,
 } from "@/lib/ai/platform/missions/types";
@@ -13,10 +17,6 @@ import type {
   MapAbleRecoveryAlternative,
   MapAbleRecoveryState,
 } from "@/lib/ai/platform/recovery/types";
-import type {
-  MissionWatchPresentation,
-  ParticipantWatchAction,
-} from "@/lib/ai/platform/mission-watch/types";
 
 type MissionPresentation = {
   heading: string;
@@ -114,6 +114,68 @@ export function MissionView({
       setRecoveryPresentation(data.presentation ?? null);
     } catch {
       /* optional when flag off */
+    }
+  }
+
+
+  async function loadWatches(missionId: string) {
+    try {
+      const res = await fetch(`/api/ai/missions/${missionId}/watches`);
+      if (!res.ok) return;
+      const data = (await res.json().catch(() => ({}))) as {
+        presentation?: WatchPresentation;
+      };
+      setWatchPresentation(data.presentation ?? null);
+    } catch {
+      /* optional when flag off */
+    }
+  }
+
+  async function runWatchTick(missionId: string) {
+    try {
+      await fetch(`/api/ai/missions/${missionId}/watches/tick`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      await loadWatches(missionId);
+    } catch {
+      /* optional */
+    }
+  }
+
+  async function applyWatchAction(
+    watchId: string,
+    action: ParticipantWatchAction,
+  ) {
+    if (!plan) return;
+    setBusy(true);
+    setError(null);
+    setWatchFeedback(null);
+    try {
+      const res = await fetch(
+        `/api/ai/missions/${plan.missionId}/watches/${watchId}/action`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        },
+      );
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        setError(data.error ?? "Could not update watch.");
+        return;
+      }
+      setWatchFeedback(data.message ?? "Watch updated.");
+      await loadWatches(plan.missionId);
+      if (action === "reassess_now") {
+        void loadRecovery(plan.missionId);
+      }
+    } finally {
+      setBusy(false);
     }
   }
 
