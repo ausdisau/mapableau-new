@@ -240,6 +240,9 @@ export type MapAbleMissionPlan = {
   traceId: string;
   createdAt: string;
   updatedAt: string;
+  planVersion?: number;
+  basedOnVersion?: number | null;
+  changeReason?: string | null;
 };
 
 export type MissionTelemetryKind =

@@ -15,6 +15,8 @@ import { buildMissionGraph } from "./graph";
 import { routeMissionDomains } from "./router";
 import { saveMissionPlan, getMissionPlan } from "./store";
 import { captureMissionTelemetry } from "./telemetry";
+import { ensureMissionRecoveryTracking } from "@/lib/ai/platform/recovery/planner";
+import { isAdaptiveRecoveryEnabled } from "@/lib/config/adaptive-recovery";
 import type {
   MapAbleMissionPlan,
   MapAbleMissionRequest,
@@ -206,6 +208,9 @@ export function planMission(input: Omit<MapAbleMissionRequest, "missionId" | "tr
   }
 
   saveMissionPlan(plan);
+  if (isAdaptiveRecoveryEnabled()) {
+    ensureMissionRecoveryTracking(plan);
+  }
   return plan;
 }
 

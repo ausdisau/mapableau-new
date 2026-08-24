@@ -95,6 +95,19 @@ My MapAble Action Review via Mission View. See [GOVERNED_ACTION_KERNEL.md](./GOV
 | Domain adapters (care, transport, messaging, preference, coordination) | Implemented |
 | Authority expansion | None |
 
+## Adaptive Recovery Engine (Prompt 03 — not production-live)
+
+Automatic reassessment without automatic redecision when
+`MAPABLE_ADAPTIVE_RECOVERY_ENABLED=true`. Implementation: `lib/ai/platform/recovery/`.
+See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
+
+| Surface | Status |
+|---------|--------|
+| Event / reassess / recovery APIs | Implemented, flag-gated |
+| My MapAble recovery sections | Implemented, flag-gated |
+| Action Kernel proposal prep on select | Integrated (no auto-execute) |
+| Durable event/version persistence | Deferred (in-memory; Prompt 03A if required) |
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

@@ -194,6 +194,22 @@ Mission proposal → Action Kernel proposal → approve (payloadHash+nonce) → 
 - Flags: `MAPABLE_ACTION_KERNEL_ENABLED` + per-action flags + kill switch (all default **false**)
 - No authority expansion; no worker assign / confirm transport / pay / disclose
 
+## Adaptive Recovery Engine (Prompt 03)
+
+Automatic reassessment without automatic redecision. See
+[ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
+
+```
+Mission events → triggers → impact → materiality → candidate plan → participant options
+                                                              │
+                                                              ▼
+                                              Action Kernel prepare (Prompt 02)
+```
+
+- APIs: `POST .../events`, `POST .../reassess`, `GET .../recovery`, `POST .../recovery/:id/select`
+- Flags: `MAPABLE_ADAPTIVE_RECOVERY_ENABLED` (+ proactive / model-assist / kill switch), all default **false**
+- Selecting an alternative updates candidate plan and may prepare Action Kernel proposals; never auto-executes
+
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).

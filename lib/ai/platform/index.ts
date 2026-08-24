@@ -180,3 +180,26 @@ export type {
   MapAbleActionResult,
   ActionPolicyDecision,
 } from "./actions";
+
+export {
+  ingestMissionEvent,
+  reassessMission,
+  selectRecoveryAlternative,
+  getRecoverySnapshot,
+  formatRecoveryForParticipant,
+  evaluateReassessmentTrigger,
+  evaluateMaterialityGate,
+  analyseDependencyImpact,
+  generateRecoveryAlternatives,
+  assertRecoveryAuthority,
+  clearRecoveryStore,
+  ensureMissionRecoveryTracking,
+} from "./recovery";
+export type {
+  MapAbleMissionEvent,
+  MapAbleRecoveryState,
+  MapAbleRecoveryAlternative,
+  MaterialityGate,
+  ReassessmentTrigger,
+  DependencyImpact,
+} from "./recovery";
