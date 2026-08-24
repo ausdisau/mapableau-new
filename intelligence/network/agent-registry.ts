@@ -1,4 +1,17 @@
+/**
+ * @deprecated Compatibility adapter over the canonical MapAble Agentic Nerve Centre.
+ * Prefer `selectMapAbleAgents` from `@/lib/ai/platform/agents`.
+ * This module preserves the CareOS activation response shape for incremental migration.
+ * Do not add new CareOS-only agent IDs or a second authority taxonomy here.
+ */
+import {
+  authorityCeilingToCareOsDisplayLabel,
+  selectMapAbleAgents,
+  type MapAbleAgentId,
+} from "@/lib/ai/platform/agents";
+
 import type { MapAbleModule } from "../types";
+
 
 import type {
   CareOSAgentActivation,
@@ -11,9 +24,12 @@ type CareOSAgentDefinition = {
   name: string;
   purpose: string;
   modules: MapAbleModule[];
+  /** Display label only — derived historically; not an independent policy source. */
   maximumAuthorityLevel: CareOSAuthorityLevel;
   capabilities: string[];
   defaultStatus: CareOSAgentActivation["status"];
+  /** Canonical agent this legacy id projects from (null = gate / research-only). */
+  canonicalAgentId: MapAbleAgentId | null;
 };
 
 const DEFINITIONS: CareOSAgentDefinition[] = [
@@ -30,6 +46,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "surface uncertainty and manual pathways",
     ],
     defaultStatus: "active",
+    canonicalAgentId: "mission_orchestrator",
   },
   {
     id: "participant_advocate",
@@ -43,6 +60,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "preserve edit, reject and non-AI pathways",
     ],
     defaultStatus: "active",
+    canonicalAgentId: "participant_authority",
   },
   {
     id: "care_coordination",
@@ -56,6 +74,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "prepare support coordination recommendations",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "support_participation",
   },
   {
     id: "transport_coordination",
@@ -69,6 +88,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "route to the governed journey planner",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "access_mobility",
   },
   {
     id: "access_evidence",
@@ -82,6 +102,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "identify when human verification is required",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "access_mobility",
   },
   {
     id: "continuity",
@@ -95,6 +116,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "prepare recovery actions",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "continuity_assurance",
   },
   {
     id: "worker_support",
@@ -108,6 +130,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "draft handover prompts",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "support_participation",
   },
   {
     id: "provider_capacity",
@@ -121,6 +144,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "request human verification of availability",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "support_participation",
   },
   {
     id: "rights",
@@ -134,6 +158,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "route complaints to independent human processes",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "participant_authority",
   },
   {
     id: "safeguarding",
@@ -147,6 +172,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "prevent autonomous incident conclusions",
     ],
     defaultStatus: "human_only",
+    canonicalAgentId: null,
   },
   {
     id: "finance",
@@ -160,6 +186,7 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "prepare questions for providers or plan managers",
     ],
     defaultStatus: "available",
+    canonicalAgentId: "finance_administration",
   },
   {
     id: "robotics",
@@ -173,9 +200,104 @@ const DEFINITIONS: CareOSAgentDefinition[] = [
       "route physical actions through an independent safety controller",
     ],
     defaultStatus: "research_only",
+    canonicalAgentId: null,
   },
 ];
 
+function mapCanonicalStatusToCareOs(input: {
+  definition: CareOSAgentDefinition;
+  canonicalStatus: string | undefined;
+  relevant: boolean;
+  moduleEnabled: boolean;
+  includeContinuityAnalysis: boolean;
+}): { status: CareOSAgentActivation["status"]; reason: string } {
+  const { definition } = input;
+
+  if (definition.defaultStatus === "research_only") {
+    return {
+      status: "research_only",
+      reason:
+        "Robotics remains simulation-only and is not connected to physical actuation.",
+    };
+  }
+
+  if (definition.defaultStatus === "human_only") {
+    return {
+      status: "human_only",
+      reason: "Safeguarding conclusions and actions remain with authorised humans.",
+    };
+  }
+
+  if (definition.id === "continuity" && !input.includeContinuityAnalysis) {
+    return {
+      status: "disabled",
+      reason: "Continuity analysis was not selected for this request.",
+    };
+  }
+
+  if (!input.relevant) {
+    return {
+      status: "disabled",
+      reason: "Its MapAble module was not selected for this request.",
+    };
+  }
+
+  if (!input.moduleEnabled) {
+    return {
+      status: "disabled",
+      reason: "The required MapAble intelligence module is disabled.",
+    };
+  }
+
+  if (
+    input.canonicalStatus === "unavailable" ||
+    input.canonicalStatus === "disabled"
+  ) {
+    return {
+      status: "disabled",
+      reason:
+        input.canonicalStatus === "unavailable"
+          ? "Canonical agent unavailable (flags, kill switches, or safeguarding halt)."
+          : "Canonical agent disabled for this mission.",
+    };
+  }
+
+  if (
+    definition.id === "manager" ||
+    definition.id === "participant_advocate"
+  ) {
+    return {
+      status: "active",
+      reason:
+        "Always active to coordinate the mission and protect participant authority.",
+    };
+  }
+
+  if (input.canonicalStatus === "degraded") {
+    return {
+      status: "active",
+      reason:
+        "Active via canonical agent with degraded model-backed capabilities; non-AI fallback remains.",
+    };
+  }
+
+  if (input.canonicalStatus === "active" || input.canonicalStatus === "available") {
+    return {
+      status: "active",
+      reason: "Available within the selected CareOS mission.",
+    };
+  }
+
+  return {
+    status: "active",
+    reason: "Available within the selected CareOS mission.",
+  };
+}
+
+/**
+ * @deprecated Use `selectMapAbleAgents` for new call sites.
+ * Preserves CareOS response shape by projecting the canonical registry.
+ */
 export function selectCareOSAgentNetwork(params: {
   modules: MapAbleModule[];
   enabledModules: Record<MapAbleModule, boolean>;
@@ -183,41 +305,54 @@ export function selectCareOSAgentNetwork(params: {
 }): CareOSAgentActivation[] {
   const selected = new Set<MapAbleModule>(["core", ...params.modules]);
 
+  const canonical = selectMapAbleAgents({
+    objective: "CareOS network activation",
+    domains: params.modules,
+    actor: { actorId: "careos-network", actorType: "system" },
+    consentScopes: [],
+    includeContinuityAnalysis: params.includeContinuityAnalysis,
+    enabledModules: params.enabledModules,
+    // Preserve historical CareOS module-gated activation; capability flags degrade only.
+    relaxCapabilityFlags: true,
+  });
+
+  const byCanonical = new Map(
+    [...canonical.activeAgents, ...canonical.unavailableAgents].map((a) => [
+      a.id,
+      a,
+    ])
+  );
+
   return DEFINITIONS.map((definition) => {
     const relevant = definition.modules.some((module) => selected.has(module));
     const moduleEnabled = definition.modules.some(
       (module) => selected.has(module) && params.enabledModules[module]
     );
 
-    let status: CareOSAgentActivation["status"] = definition.defaultStatus;
-    let reason = "Available within the selected CareOS mission.";
+    const canonicalEntry = definition.canonicalAgentId
+      ? byCanonical.get(definition.canonicalAgentId)
+      : undefined;
 
-    if (definition.id === "continuity" && !params.includeContinuityAnalysis) {
-      status = "disabled";
-      reason = "Continuity analysis was not selected for this request.";
-    } else if (!relevant) {
-      status = "disabled";
-      reason = "Its MapAble module was not selected for this request.";
-    } else if (!moduleEnabled && definition.defaultStatus !== "research_only") {
-      status = "disabled";
-      reason = "The required MapAble intelligence module is disabled.";
-    } else if (definition.defaultStatus === "research_only") {
-      reason = "Robotics remains simulation-only and is not connected to physical actuation.";
-    } else if (definition.defaultStatus === "human_only") {
-      reason = "Safeguarding conclusions and actions remain with authorised humans.";
-    } else if (definition.id === "manager" || definition.id === "participant_advocate") {
-      status = "active";
-      reason = "Always active to coordinate the mission and protect participant authority.";
-    } else {
-      status = "active";
-    }
+    const { status, reason } = mapCanonicalStatusToCareOs({
+      definition,
+      canonicalStatus: canonicalEntry?.status,
+      relevant,
+      moduleEnabled,
+      includeContinuityAnalysis: params.includeContinuityAnalysis,
+    });
+
+    // Display label stays on the legacy CareOS definition (not inverted from labels).
+    // When a canonical ceiling exists, display label remains the historical CareOS level
+    // unless we need to prove derivation — keep legacy L* for API compatibility.
+    void authorityCeilingToCareOsDisplayLabel;
+    const maximumAuthorityLevel = definition.maximumAuthorityLevel;
 
     return {
       id: definition.id,
       name: definition.name,
       purpose: definition.purpose,
       status,
-      maximumAuthorityLevel: definition.maximumAuthorityLevel,
+      maximumAuthorityLevel,
       capabilities: definition.capabilities,
       reason,
     };
