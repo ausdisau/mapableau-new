@@ -72,8 +72,22 @@ export function routeNativeIntelligenceTask(
     };
   }
 
-  for (const dataClass of request.dataClasses) {
-    if (request.requestedModelId) {
+  if (request.requestedModelId) {
+    const requested = getModel(request.requestedModelId);
+    if (!requested || requested.provider === "disabled") {
+      return {
+        ok: false,
+        routeKind: "rejected",
+        reason: "unapproved_model",
+        useDeterministicFallback: true,
+        mayExecuteAction: false,
+        authorityRaised: false,
+        notes: [
+          `Model ${request.requestedModelId} is not registered or is disabled.`,
+        ],
+      };
+    }
+    for (const dataClass of request.dataClasses) {
       if (!modelAllowsDataClass(request.requestedModelId, dataClass)) {
         return {
           ok: false,
@@ -91,7 +105,7 @@ export function routeNativeIntelligenceTask(
   }
 
   const candidates = candidatesForTask(request.taskKind);
-  let selectedId =
+  const selectedId =
     request.requestedModelId ??
     pickCandidate(candidates, request, baseNotes)?.id;
 

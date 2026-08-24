@@ -1,11 +1,11 @@
-import type { DataClass } from "@/lib/ai/platform/types/classification";
-import type { AuthorityCeiling } from "@/lib/ai/platform/types/authority";
 import type {
   CostClass,
   LatencyClass,
   ModelEvaluationStatus,
   NativeIntelligenceTaskKind,
 } from "@/lib/ai/platform/models/registry";
+import type { AuthorityCeiling } from "@/lib/ai/platform/types/authority";
+import type { DataClass } from "@/lib/ai/platform/types/classification";
 
 /**
  * Types for the MapAble-owned model layer (R&D).
