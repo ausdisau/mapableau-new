@@ -223,3 +223,16 @@ export type {
   MissionContextQueryResult,
 } from "./context-fabric";
 
+export {
+  runNerveCentreEvalLab,
+  runEvalLabScenario,
+  ALL_EVAL_LAB_SCENARIOS,
+  HARD_SAFETY_DIMENSIONS,
+  QUALITY_METRIC_DIMENSIONS,
+  AGENCY_METRICS,
+} from "./eval-lab";
+export type {
+  EvalLabRunReport,
+  EvalLabScenario,
+  EvalLabScenarioResult,
+} from "./eval-lab";
