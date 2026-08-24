@@ -1,5 +1,5 @@
-import type { AdversarialKind, EvalLabScenario } from "./types";
 import { SYNTHETIC_MISSIONS } from "./missions";
+import type { AdversarialKind, EvalLabScenario } from "./types";
 
 const BASE_CLOCK = "2026-08-24T10:00:00.000Z";
 

@@ -1,14 +1,14 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  clearTestActionAdapters,
+  registerTestActionAdapter,
+} from "@/lib/ai/platform/actions/adapters";
+import {
   approveActionProposal,
   createActionProposal,
   rejectActionProposal,
 } from "@/lib/ai/platform/actions/approvals";
-import {
-  clearTestActionAdapters,
-  registerTestActionAdapter,
-} from "@/lib/ai/platform/actions/adapters";
 import { executeApprovedAction } from "@/lib/ai/platform/actions/executor";
 import {
   evaluateActionPolicy,
