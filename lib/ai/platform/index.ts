@@ -32,8 +32,32 @@ export {
   isProposalApproved,
   assertApprovalBindingComplete,
   HUMAN_REVIEW_STATES,
+  HUMAN_REVIEW_CATEGORIES,
+  isHumanOnlyReviewCategory,
 } from "./human-review/contracts";
-export type { HumanReviewState, ProposalApprovalBinding } from "./human-review/contracts";
+export type {
+  HumanReviewState,
+  HumanReviewCategory,
+  ProposalApprovalBinding,
+} from "./human-review/contracts";
+export {
+  enqueueHumanOpsReview,
+  ingestMissionHumanReviewItems,
+  listHumanOpsQueue,
+  getHumanOpsReview,
+  resolveHumanOpsReview,
+  filterQueueForOperator,
+  formatReviewForParticipant,
+  formatReviewForOperator,
+  clearHumanOpsQueue,
+  clearHumanOpsAudit,
+  HUMAN_OPS_A11Y,
+} from "./human-operations";
+export type {
+  HumanOpsReviewItem,
+  HumanOpsOperatorContext,
+  ParticipantReviewVisibility,
+} from "./human-operations";
 export {
   separateConflictingAccounts,
 } from "./context/envelope";

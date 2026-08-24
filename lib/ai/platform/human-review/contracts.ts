@@ -12,6 +12,27 @@ export const HUMAN_REVIEW_STATES = [
 
 export type HumanReviewState = (typeof HUMAN_REVIEW_STATES)[number];
 
+
+/**
+ * Canonical human-review category taxonomy (Prompt 08).
+ * Shared by MapAbleHumanReviewItem.category and Human Operations queue.
+ * Safeguarding remains human-only — see policies/safeguarding-gate.ts.
+ */
+export const HUMAN_REVIEW_CATEGORIES = [
+  "care_coordination",
+  "transport_continuity",
+  "access_evidence",
+  "authority_review",
+  "financial_review",
+  "credential_exception",
+  "employment_disclosure_review",
+  "safeguarding",
+  "general_coordination",
+] as const;
+
+export type HumanReviewCategory = (typeof HUMAN_REVIEW_CATEGORIES)[number];
+
+
 export type ProposalApprovalBinding = {
   proposalHash: string;
   actorId: string;
@@ -42,3 +63,11 @@ export function assertApprovalBindingComplete(
       binding.revision >= 1
   );
 }
+
+/** Safeguarding category is never AI-decidable. */
+export function isHumanOnlyReviewCategory(
+  category: string,
+): category is "safeguarding" {
+  return category === "safeguarding";
+}
+

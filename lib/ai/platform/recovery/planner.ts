@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { prepareKernelProposalFromMission } from "@/lib/ai/platform/actions/executor";
+import { enqueueHumanOpsReview } from "@/lib/ai/platform/human-operations";
 import {
   getMissionPlan,
   saveMissionPlan,
@@ -9,6 +10,7 @@ import type { MapAbleMissionPlan } from "@/lib/ai/platform/missions/types";
 import { isActionKernelOperational } from "@/lib/config/action-kernel";
 import { adaptiveRecoveryConfig } from "@/lib/config/adaptive-recovery";
 import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
+import { isHumanOperationsConsoleEnabled } from "@/lib/config/human-operations";
 
 import { generateRecoveryAlternatives } from "./alternatives";
 import { createMissionEvent, type IngestEventInput } from "./events";
@@ -205,6 +207,32 @@ export function reassessMission(input: {
     appendActivity(input.missionId, {
       id: randomUUID(), timestamp: new Date().toISOString(), kind: "participant_decision_required",
       summary: "Participant decision required before continuing", eventId: null,
+    });
+  }
+  if (isHumanOperationsConsoleEnabled() && status === "human_review") {
+    const participantId = input.participantId ?? input.missionId;
+    enqueueHumanOpsReview({
+      participantId,
+      tenantId: participantId,
+      missionId: input.missionId,
+      category: impacts.some((i) => i.reason.toLowerCase().includes("safeguard"))
+        ? "safeguarding"
+        : "general_coordination",
+      priority: impacts.some((i) => i.reason.toLowerCase().includes("safeguard"))
+        ? "critical"
+        : "urgent",
+      reasonCodes: [
+        `recovery_materiality:${materialityGate}`,
+        ...impacts
+          .filter((i) => i.currentState === "human_review")
+          .map((i) => i.reason),
+      ],
+      evidenceRefs: impacts.map((i) => `node:${i.nodeId}`),
+      requestedBy: input.actorId ?? "recovery_engine",
+      source: "recovery_engine",
+      sourceReviewItemId: `recovery-${input.missionId}-${state.lastReassessedAt}`,
+      participantFacingReason:
+        "A change in your mission needs a human reviewer before MapAble continues automated planning.",
     });
   }
   return state;

@@ -214,3 +214,18 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
 - `/admin/ai/agents` — WCAG-oriented governance table.
+
+## Human Operations + Escalation Console (Prompt 08)
+
+Operator control plane for human review items. See [HUMAN_OPERATIONS.md](./HUMAN_OPERATIONS.md).
+
+```
+Missions / Recovery / Action Kernel / Safeguarding → Human Ops queue → Operator Console
+```
+
+- APIs: `GET /api/ai/human-ops/queue`, `GET/PATCH .../reviews/:id`, assign / request-info / resolve
+- Admin UI: `/admin/ai/human-ops`
+- Flag: `MAPABLE_HUMAN_OPERATIONS_CONSOLE_ENABLED` (default **false**)
+- Extends `lib/ai/platform/human-review/` — no parallel review system
+- No authority expansion; safeguarding remains human-only
+

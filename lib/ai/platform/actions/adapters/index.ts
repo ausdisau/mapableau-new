@@ -5,11 +5,13 @@ import type { z } from "zod";
 import {
   upsertCareOSPreference,
 } from "@/intelligence/preferences/preference-service";
+import { enqueueHumanOpsReview } from "@/lib/ai/platform/human-operations";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import {
   createCareRequest,
   submitCareRequest,
 } from "@/lib/care/care-request-service";
+import { isHumanOperationsConsoleEnabled } from "@/lib/config/human-operations";
 import { sendMessage } from "@/lib/messages/message-service";
 import { createTransportTrip } from "@/lib/transport/transport-trip-service";
 import { createCareRequestSchema } from "@/lib/validation/care";
@@ -53,9 +55,31 @@ export async function executeSaveParticipantPreference(
 
 export async function executeRequestHumanCoordination(
   payload: z.infer<typeof requestHumanCoordinationPayloadSchema>,
-  _ctx: AdapterContext,
+  ctx: AdapterContext,
 ): Promise<AdapterResult> {
   const coordinationId = randomUUID();
+
+  if (isHumanOperationsConsoleEnabled()) {
+    enqueueHumanOpsReview({
+      participantId: ctx.participantId,
+      tenantId: ctx.participantId,
+      missionId: payload.missionId ?? null,
+      category: payload.category,
+      priority:
+        payload.priority === "urgent"
+          ? "urgent"
+          : payload.priority === "information"
+            ? "routine"
+            : "attention",
+      reasonCodes: [payload.title, payload.summary],
+      evidenceRefs: [`coordination:${coordinationId}`],
+      requestedBy: ctx.actorId,
+      source: "action_kernel",
+      sourceReviewItemId: coordinationId,
+      participantFacingReason: payload.summary,
+    });
+  }
+
   return {
     entityType: "HumanCoordinationRequest",
     entityId: coordinationId,

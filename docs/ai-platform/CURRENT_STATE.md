@@ -95,6 +95,19 @@ My MapAble Action Review via Mission View. See [GOVERNED_ACTION_KERNEL.md](./GOV
 | Domain adapters (care, transport, messaging, preference, coordination) | Implemented |
 | Authority expansion | None |
 
+## Human Operations Console (Prompt 08 — not production-live)
+
+Operator escalation console when `MAPABLE_HUMAN_OPERATIONS_CONSOLE_ENABLED=true`.
+Implementation: `lib/ai/platform/human-operations/`. See [HUMAN_OPERATIONS.md](./HUMAN_OPERATIONS.md).
+
+| Surface | Status |
+|---------|--------|
+| Queue / assign / resolve APIs | Implemented, flag-gated |
+| Operator Console `/admin/ai/human-ops` | Implemented, flag-gated |
+| Participant visibility via mission presentation | Implemented, flag-gated |
+| Durable review persistence | Deferred (in-memory; Prompt 08A if required) |
+| Authority expansion | None |
+
 ## Adaptive Recovery Engine (Prompt 03 — not production-live)
 
 Automatic reassessment without automatic redecision when
