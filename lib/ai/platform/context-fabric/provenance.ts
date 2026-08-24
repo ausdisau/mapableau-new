@@ -137,10 +137,11 @@ export function validateProvenanceIntegrity(
   if (!record.sourceRef || !record.sourceAuthority) {
     return { valid: false, error: "sourceRef and sourceAuthority are required" };
   }
-  return assertInferenceCannotMasquerade(
+  const check = assertInferenceCannotMasquerade(
     record.sourceType,
     record.verificationStatus,
   );
+  return { valid: check.ok, error: check.error };
 }
 
 export function isParticipantReported(sourceType: SourceTrustClass): boolean {

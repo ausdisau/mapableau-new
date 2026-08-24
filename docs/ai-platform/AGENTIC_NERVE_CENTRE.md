@@ -227,6 +227,20 @@ Requirements → Hard constraints → Evidence eligibility → Rules candidates
 - My MapAble: `OptionsComparison` (adjustable ranking → prepare draft)
 - Persistence: in-memory (Prompt 07A if durable store required)
 
+## Governed Connector Gateway (Prompt 09)
+
+Single boundary for external reads/writes. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
+```
+Agent/Mission → Action Proposal → Action Kernel → Connector Gateway → External
+External Source → Connector Gateway → Context Fabric–compatible records
+```
+
+- Implementation: `lib/ai/platform/connector-gateway/`
+- Flags: `MAPABLE_CONNECTOR_GATEWAY_ENABLED` + per-connector flags + kill switches (all default **false**)
+- Agents never receive raw credentials; writes require Prompt 02 approved envelopes
+- External content is DATA only (prompt-injection quarantined)
+
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).

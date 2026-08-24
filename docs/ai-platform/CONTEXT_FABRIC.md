@@ -92,3 +92,7 @@ observation date, verification state, why used, and a correction route (WCAG 2.2
 ## Authority
 
 **None expanded.** Perception and selective routing only.
+
+## Connector Gateway (Prompt 09)
+
+External reads enter via the Governed Connector Gateway and return Context Fabric–compatible canonical records with provenance. Agents must not call externals directly. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).

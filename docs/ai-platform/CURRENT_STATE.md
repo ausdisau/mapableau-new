@@ -54,6 +54,22 @@ All relational keys default **false**. Production enablement remains blocked unt
 Communication Passport SoT for relational UX: `lib/support/communication-passport` (see `lib/ai/relational/communication-passport.ts`).
 Provider Finder chat now routes through `assertProviderFinderChatAllowed` (deterministic fallback when `SEARCH_AGENT_ENABLED` off).
 
+### Relational Intelligence (registered, not live)
+
+All relational keys default **false**. Production enablement remains blocked until Phase 08 GO.
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| relational.interpret | hybrid | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.clarify | model_backed | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_MODEL_ASSISTED off |
+| relational.explain | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.draft | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_DRAFT off |
+| access.search.read | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ACCESS_SEARCH off |
+| human.help.request | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_HUMAN_HELP off |
+
+Communication Passport SoT for relational UX: `lib/support/communication-passport` (see `lib/ai/relational/communication-passport.ts`).
+Provider Finder chat now routes through `assertProviderFinderChatAllowed` (deterministic fallback when `SEARCH_AGENT_ENABLED` off).
+
 Navigator pilot surfaces (Decision Passport, governed memory, matching) also require
 `MAPABLE_NAVIGATOR_PILOT_PASSPORT` / `_MEMORY` / `_MATCHING` (all default false).
 See [NAVIGATOR_ASSURANCE.md](./NAVIGATOR_ASSURANCE.md).
@@ -138,6 +154,20 @@ Implementation: `lib/ai/platform/options-engine/`. See [OPTIONS_ENGINE.md](./OPT
 | Action Kernel proposal on choose | Prepare only (Prompt 02) |
 | Durable session persistence | Deferred (in-memory; Prompt 07A if required) |
 | Authority expansion | None |
+
+## Governed Connector Gateway (Prompt 09 — not production-live)
+
+Governed boundary for external systems when
+`MAPABLE_CONNECTOR_GATEWAY_ENABLED=true`. Implementation:
+`lib/ai/platform/connector-gateway/`. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
+| Surface | Status |
+|---------|--------|
+| Read/write policy + opaque credentials | Implemented, flag-gated |
+| Adapters (Stripe, email, messaging, maps, GAIS, calendar, NDIA) | Thin wrappers / stubs; honest maturity labels |
+| Injection quarantine + bounded retry / circuit breaker | Implemented (in-memory) |
+| Durable health/idempotency store | Deferred (Prompt 09A if required) |
+| Authority expansion / production flags | None |
 
 ## Advanced AI Expansion train (≤ 3)
 
