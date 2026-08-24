@@ -62,3 +62,11 @@ alternatives, temporal, policy, presentation, store, index.
 Proactive Mission Watch may ingest system-derived recovery events after
 deterministic evaluation. Watch never selects alternatives or executes actions.
 See [MISSION_WATCH.md](./MISSION_WATCH.md).
+
+## Context Fabric event routing (Prompt 04)
+
+When `MAPABLE_CONTEXT_FABRIC_ENABLED` and `MAPABLE_CONTEXT_EVENT_ROUTING_ENABLED` are true,
+mission-linked domain events may be mapped into `ingestMissionEvent`. Model-inference
+sources never assert verified recovery failures. Irrelevant missions do not receive events.
+See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+
