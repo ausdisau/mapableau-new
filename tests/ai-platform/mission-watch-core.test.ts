@@ -297,28 +297,33 @@ describe("Mission Watch", () => {
     expect(utc.toISOString()).toBe("2026-08-24T04:00:00.000Z");
 
     const plan = planFor("p1");
+    // 3 hours ahead in Sydney — within 180m warn window, outside default lead+buffer impossible band
     const deadlineLocalAsUtc = zonedLocalToUtc({
-      year: 2026, month: 8, day: 24, hour: 15, minute: 0, timeZone: "Australia/Sydney",
+      year: 2026, month: 8, day: 24, hour: 17, minute: 0, timeZone: "Australia/Sydney",
     });
     const ref = zonedLocalToUtc({
       year: 2026, month: 8, day: 24, hour: 14, minute: 0, timeZone: "Australia/Sydney",
     });
-    createMissionWatch({
+    const watch = createMissionWatch({
       missionId: plan.missionId,
       createdBy: "p1",
       watchType: "deadline",
       timeZone: "Australia/Sydney",
       condition: {
         deadlineIso: deadlineLocalAsUtc.toISOString(),
-        warnBeforeMinutes: 120,
+        warnBeforeMinutes: 180,
+        bufferMinutes: 0,
+        leadTimeMinutes: 0,
       },
     });
+    expect(watch.timeZone).toBe("Australia/Sydney");
     const tick = tickMissionWatches({
       missionId: plan.missionId,
       participantId: "p1",
       referenceTime: ref,
     });
-    expect(tick.fired.some((f) => f.explanation.includes("Australia/Sydney"))).toBe(true);
+    expect(tick.fired.length).toBe(1);
+    expect(tick.fired[0]?.explanation.includes("Australia/Sydney")).toBe(true);
   });
 
   it("has no clinical monitoring category", () => {
