@@ -26,6 +26,10 @@ import {
   sanitizeControlPlaneDetail,
   startTraceSpan,
 } from "@/lib/ai/platform/control-plane";
+import {
+  clearCapabilityKillSwitch,
+  engageCapabilityKillSwitch,
+} from "@/lib/ai/platform/policies/kill-switches";
 
 describe("AI control plane", () => {
   beforeEach(() => {
@@ -234,15 +238,19 @@ describe("AI control plane", () => {
   });
 
   it("kill switch forces manual fallback", () => {
-    process.env.MAPABLE_AI_GLOBAL_KILL_SWITCH = "true";
-    const decision = authorizeModelSpend({
-      capabilityKey: "search.nl_interpreter",
-      estimatedTokens: 5,
-    });
-    expect(decision.allowed).toBe(false);
-    if (!decision.allowed) {
-      expect(decision.reason).toBe("kill_switch");
-      expect(decision.fallback).toBe("manual");
+    engageCapabilityKillSwitch("search.nl_interpreter");
+    try {
+      const decision = authorizeModelSpend({
+        capabilityKey: "search.nl_interpreter",
+        estimatedTokens: 5,
+      });
+      expect(decision.allowed).toBe(false);
+      if (!decision.allowed) {
+        expect(decision.reason).toBe("kill_switch");
+        expect(decision.fallback).toBe("manual");
+      }
+    } finally {
+      clearCapabilityKillSwitch("search.nl_interpreter");
     }
   });
 

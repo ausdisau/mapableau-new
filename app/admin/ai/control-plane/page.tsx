@@ -1,6 +1,6 @@
+import { buildControlPlaneDashboard } from "@/lib/ai/platform/control-plane";
 import { requireAdmin } from "@/lib/auth/guards";
 import { isAiControlPlaneEnabled } from "@/lib/config/ai-control-plane";
-import { buildControlPlaneDashboard } from "@/lib/ai/platform/control-plane";
 
 export default async function AdminAiControlPlanePage() {
   await requireAdmin();

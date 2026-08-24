@@ -1,11 +1,11 @@
 import { actionKernelConfig } from "@/lib/config/action-kernel";
 import { adaptiveRecoveryConfig } from "@/lib/config/adaptive-recovery";
+import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
 import {
   aiControlPlaneConfig,
   isAiControlPlaneEnabled,
 } from "@/lib/config/ai-control-plane";
 import { aiPlatformConfig } from "@/lib/config/ai-platform";
-import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
 
 import { listControlPlaneAlerts } from "./alerts";
 import { listBudgets } from "./budgets";
