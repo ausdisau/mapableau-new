@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+
 import type { EventSource, MapAbleMissionEvent, MissionEventType } from "./types";
 import { TRUSTED_EXTERNAL_SOURCES } from "./types";
 

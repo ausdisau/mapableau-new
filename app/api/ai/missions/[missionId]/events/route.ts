@@ -1,13 +1,14 @@
 import { z } from "zod";
-import { ingestMissionEvent, MISSION_EVENT_TYPES, EVENT_SOURCES } from "@/lib/ai/platform/recovery";
+
 import { getMissionPlan } from "@/lib/ai/platform/missions";
+import { ingestMissionEvent, MISSION_EVENT_TYPES, EVENT_SOURCES } from "@/lib/ai/platform/recovery";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { jsonBodyErrorResponse, parseJsonRequestBody } from "@/lib/api/request-body";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
-import { isAgenticNerveCentreEnabled } from "@/lib/config/agentic-nerve-centre";
-import { isAdaptiveRecoveryEnabled } from "@/lib/config/adaptive-recovery";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { isAdaptiveRecoveryEnabled } from "@/lib/config/adaptive-recovery";
+import { isAgenticNerveCentreEnabled } from "@/lib/config/agentic-nerve-centre";
 
 export const runtime = "nodejs";
 const eventBodySchema = z.object({
@@ -15,7 +16,7 @@ const eventBodySchema = z.object({
   reportedBy: z.string().optional(), systemRecordId: z.string().optional(),
   verificationState: z.enum(["verified","supported","partial","uncertain","unknown"]).optional(),
   limitations: z.array(z.string()).optional(), occurredAt: z.string().optional(),
-  affectedNodeIds: z.array(z.string()).optional(), payload: z.record(z.unknown()).optional(),
+  affectedNodeIds: z.array(z.string()).optional(), payload: z.record(z.string(), z.unknown()).optional(),
   idempotencyKey: z.string().optional(),
 });
 type RouteContext = { params: Promise<{ missionId: string }> };

@@ -1,4 +1,5 @@
 import type { MissionGraph, MissionNodeStatus } from "@/lib/ai/platform/missions/types";
+
 import type { DependencyImpact, DependencyState, MapAbleMissionEvent } from "./types";
 
 export function mapNodeStatusToDependencyState(status: MissionNodeStatus, eventFailed = false): DependencyState {

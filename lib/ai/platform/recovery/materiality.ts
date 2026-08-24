@@ -1,4 +1,5 @@
 import type { ProposalApprovalBinding } from "@/lib/ai/platform/human-review/contracts";
+
 import type { ApprovalImpact, ApprovalPreservation, DependencyImpact, MapAbleMissionEvent, MaterialityGate, ReassessmentTrigger } from "./types";
 
 export function evaluateMaterialityGate(input: {

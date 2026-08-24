@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
+
 import type { MapAbleMissionPlan } from "@/lib/ai/platform/missions/types";
+
 import { getAtRiskNodeIds, getPreservedNodeIds } from "./impact";
 import type { DependencyImpact, MapAbleRecoveryAlternative, MaterialityGate, RecoveryConfidence } from "./types";
 
