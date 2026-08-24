@@ -223,3 +223,34 @@ export type {
   MissionContextQueryResult,
 } from "./context-fabric";
 
+
+export {
+  generateOptions,
+  generateOptionsRulesOnly,
+  reRankOptions,
+  chooseOption,
+  getOptionsSnapshot,
+  clearOptionsStore,
+  formatOptionsForParticipant,
+  applyHardConstraints,
+  assertFairRanking,
+  OPTIONS_ENGINE_CAPABILITY_KEY,
+  CONSOLIDATED_MATCHING_SOURCES,
+  toCareOptionCandidate,
+  toTransportOptionCandidate,
+  toJobsOptionCandidate,
+  toAccessOptionCandidate,
+  transportWheelchairRequirement,
+  jobsDisclosureBoundaryConstraint,
+  OptionsEngineError,
+} from "./options-engine";
+export type {
+  OptionsDomain,
+  OptionsSession,
+  OptionsRequest,
+  RankedOption,
+  HardConstraint,
+  RankingPriorities,
+  ChooseOptionResult,
+  OptionCandidate,
+} from "./options-engine";

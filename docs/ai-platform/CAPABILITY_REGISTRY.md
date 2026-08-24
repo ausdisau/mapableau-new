@@ -11,3 +11,5 @@ Design-time ARC assessments live in `lib/ai/platform/capabilities/arc-sidecar.ts
 A feature must not be publicly described as model-backed AI unless a real model is invoked.
 
 Navigator pilot keys (`navigator.provider_search.*`) and AURA keys (`agent.aura_harness`, `agent.aura_recognise`) are registered with flags default **false**. Runtime enforcement for Navigator uses `lib/ai/navigator/gates.ts`.
+
+Options Engine keys (`matching.options_engine`, `matching.options_model_explanation`) are registered experimental with flags default **false**. Algorithm register refs: `alg.options_engine` (+ per-domain `alg.options_engine_*`). See [OPTIONS_ENGINE.md](./OPTIONS_ENGINE.md).

@@ -210,6 +210,23 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 - Flags: `MAPABLE_ADAPTIVE_RECOVERY_ENABLED` (+ proactive / model-assist / kill switch), all default **false**
 - Selecting an alternative updates candidate plan and may prepare Action Kernel proposals; never auto-executes
 
+## Explainable Options Engine (Prompt 07)
+
+Participant-directed options across Care, Transport, Jobs, Access. Generates **options
+only** — never assigns, books, discloses, or decides. See [OPTIONS_ENGINE.md](./OPTIONS_ENGINE.md).
+
+```
+Requirements → Hard constraints → Evidence eligibility → Rules candidates
+  → Optional model explanation → Participant ranking → Choice → Action Kernel prepare
+```
+
+- Implementation: `lib/ai/platform/options-engine/`
+- APIs: `POST /api/ai/options/generate`, `GET/POST .../:sessionId`, `.../rank`, `.../choose`
+- Flags: `MAPABLE_OPTIONS_ENGINE_ENABLED` + model-explanation + kill switch (all default **false**)
+- Consolidation facade over care / navigator / transport / jobs / access matching — **not** a parallel SoR
+- My MapAble: `OptionsComparison` (adjustable ranking → prepare draft)
+- Persistence: in-memory (Prompt 07A if durable store required)
+
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
