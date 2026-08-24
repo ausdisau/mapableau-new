@@ -224,6 +224,33 @@ export type {
 } from "./context-fabric";
 
 export {
+  MAPABLE_CONNECTOR_KEYS,
+  listMapAbleConnectors,
+  getMapAbleConnector,
+  listConnectorInventory,
+  readViaConnector,
+  writeViaConnector,
+  evaluateReadPolicy,
+  evaluateWritePolicy,
+  issueCredentialHandle,
+  agentCannotAccessSecret,
+  sanitiseExternalContent,
+  refuseExternalAsToolInstruction,
+  clearConnectorGatewayState,
+  forceOpenCircuit,
+  decideRetry,
+} from "./connector-gateway";
+export type {
+  MapAbleConnectorKey,
+  MapAbleConnector,
+  ConnectorReadRequest,
+  ConnectorWriteRequest,
+  ConnectorCanonicalRecord,
+  ApprovedActionEnvelope,
+  ConnectorInvokeResult,
+} from "./connector-gateway";
+
+export {
   runNerveCentreEvalLab,
   runEvalLabScenario,
   ALL_EVAL_LAB_SCENARIOS,
