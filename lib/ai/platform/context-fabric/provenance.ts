@@ -1,10 +1,10 @@
-import { assertInferenceCannotMasquerade } from "./freshness";
 import type {
   MapAbleContextRecord,
   ProvenanceDisplay,
   SourceTrustClass,
   VerificationStatus,
 } from "./types";
+import { assertInferenceCannotMasquerade } from "./freshness";
 
 const SOURCE_LABELS: Record<SourceTrustClass, string> = {
   participant_declared: "You reported this",

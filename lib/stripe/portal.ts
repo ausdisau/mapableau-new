@@ -5,6 +5,23 @@ import { stripeConfig } from "@/lib/stripe/config";
 
 const MAPABLE_PORTAL_META = "billing_portal_v1";
 
+type PortalConfigurationCreateParams = Parameters<
+  Stripe["billingPortal"]["configurations"]["create"]
+>[0];
+type PortalConfigurationFeatures =
+  NonNullable<PortalConfigurationCreateParams>["features"];
+type PortalSubscriptionUpdateParams =
+  NonNullable<PortalConfigurationFeatures["subscription_update"]>;
+type PortalSubscriptionProducts = Extract<
+  PortalSubscriptionUpdateParams["products"],
+  Array<unknown>
+>;
+type PortalSubscriptionProduct = PortalSubscriptionProducts[number];
+type PortalSessionCreateParams = Parameters<
+  Stripe["billingPortal"]["sessions"]["create"]
+>[0];
+type PortalFlowData = NonNullable<NonNullable<PortalSessionCreateParams>["flow_data"]>;
+
 let cachedConfigurationId: string | null = null;
 
 export type BillingPortalFlow =
@@ -22,14 +39,13 @@ export function billingPortalReturnUrl(appUrl = stripeConfig.appUrl): string {
 
 async function portalSubscriptionProducts(
   stripe: Stripe
-): Promise<Stripe.BillingPortal.ConfigurationCreateParams.Features.SubscriptionUpdate.Product[]> {
+): Promise<PortalSubscriptionProduct[]> {
   const priceIds = [
     stripeConfig.providerProPriceId,
     stripeConfig.employerProPriceId,
   ].filter((id): id is string => Boolean(id));
 
-  const products: Stripe.BillingPortal.ConfigurationCreateParams.Features.SubscriptionUpdate.Product[] =
-    [];
+  const products: PortalSubscriptionProduct[] = [];
 
   for (const priceId of priceIds) {
     try {
@@ -114,7 +130,7 @@ async function resolvePortalConfigurationId(): Promise<string | undefined> {
 
 function toFlowData(
   flow: BillingPortalFlow
-): Stripe.BillingPortal.SessionCreateParams.FlowData {
+): PortalFlowData {
   switch (flow.type) {
     case "payment_method_update":
       return { type: "payment_method_update" };

@@ -1,10 +1,10 @@
-import { RECOVERY_RELEVANT_EVENT_TYPES } from "./registry";
-import { scopesOverlap } from "./scope";
 import type {
   EventRouteDecision,
   EventRouteTarget,
   MapAbleDomainEvent,
 } from "./types";
+import { RECOVERY_RELEVANT_EVENT_TYPES } from "./registry";
+import { scopesOverlap } from "./scope";
 
 /**
  * Deterministic selective event routing.

@@ -1,4 +1,3 @@
-import { getFreshnessPolicy } from "./registry";
 import type {
   FreshnessStatus,
   MapAbleContextRecord,
@@ -6,6 +5,7 @@ import type {
   VerificationStatus,
 } from "./types";
 import { VERIFIED_TRUST_CLASSES } from "./types";
+import { getFreshnessPolicy } from "./registry";
 
 /**
  * Deterministic freshness evaluation per context type.
