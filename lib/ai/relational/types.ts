@@ -1,9 +1,19 @@
 import { z } from "zod";
 
 import {
+  DEFAULT_RANKING_WEIGHTS,
   hardConstraintsSchema,
   rankingWeightsSchema,
 } from "@/lib/ai/navigator/matching/types";
+
+const DEFAULT_HARD_CONSTRAINTS = {
+  requiredServices: [] as string[],
+  exclusions: [] as string[],
+  communicationRequirements: [] as string[],
+  accessibilityRequirements: [] as string[],
+  credentialRequirements: [] as string[],
+  nonNegotiableKeys: [] as [],
+};
 
 /**
  * Participant-controlled assistance mode — aligned with Decision Passport
@@ -32,8 +42,12 @@ export const participantControlSchema = z
     interpretationConfirmed: z.boolean().default(false),
     permittedFields: z.array(z.string().max(80)).max(20).default([]),
     nonNegotiableKeys: z.array(z.string().max(80)).max(20).default([]),
-    hardConstraints: hardConstraintsSchema.default([]),
-    rankingWeights: rankingWeightsSchema.default({}),
+    hardConstraints: hardConstraintsSchema.default(
+      () => ({ ...DEFAULT_HARD_CONSTRAINTS }),
+    ),
+    rankingWeights: rankingWeightsSchema.default(
+      () => ({ ...DEFAULT_RANKING_WEIGHTS }),
+    ),
     /** Participant may request human help without model adjudication. */
     humanHelpRequested: z.boolean().default(false),
     /** Communication preferences source-of-truth key (support passport). */
@@ -45,6 +59,18 @@ export const participantControlSchema = z
 
 export type ParticipantControl = z.infer<typeof participantControlSchema>;
 
+const DEFAULT_PARTICIPANT_CONTROL = {
+  assistanceMode: "guided_with_confirm" as const,
+  aiOptedOut: false,
+  interpretationConfirmed: false,
+  permittedFields: [] as string[],
+  nonNegotiableKeys: [] as string[],
+  hardConstraints: { ...DEFAULT_HARD_CONSTRAINTS },
+  rankingWeights: { ...DEFAULT_RANKING_WEIGHTS },
+  humanHelpRequested: false,
+  communicationPassportSource: "support.communication_passport" as const,
+};
+
 export const relationalTurnInputSchema = z
   .object({
     tenantId: z.string().min(1),
@@ -52,7 +78,9 @@ export const relationalTurnInputSchema = z
     actorUserId: z.string().min(1),
     sessionId: z.string().min(1).optional(),
     goalText: z.string().max(2000).optional(),
-    control: participantControlSchema.default({}),
+    control: participantControlSchema.default(
+      () => ({ ...DEFAULT_PARTICIPANT_CONTROL }),
+    ),
     capabilityKey: z.string().min(1),
     silent: z.boolean().optional(),
   })
