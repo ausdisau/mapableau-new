@@ -210,10 +210,33 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 - Flags: `MAPABLE_ADAPTIVE_RECOVERY_ENABLED` (+ proactive / model-assist / kill switch), all default **false**
 - Selecting an alternative updates candidate plan and may prepare Action Kernel proposals; never auto-executes
 
+
+
+## Governed Connector Gateway (Prompt 09)
+
+Single boundary for external reads/writes. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
+```
+Agent/Mission → Action Proposal → Action Kernel → Connector Gateway → External
+External Source → Connector Gateway → Context Fabric–compatible records
+```
+
+- Implementation: `lib/ai/platform/connector-gateway/`
+- Flags: `MAPABLE_CONNECTOR_GATEWAY_ENABLED` + per-connector flags + kill switches (all default **false**)
+- Agents never receive raw credentials; writes require Prompt 02 approved envelopes
+- External content is DATA only (prompt-injection quarantined)
+
+
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
 - `/admin/ai/agents` — WCAG-oriented governance table.
+
+## Context Fabric (Prompt 04)
+
+Perception layer for authorised operational context. Agents and Mission Runtime may
+`queryMissionContext` when `MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Domain events route
+selectively; not every event reaches every agent. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
 
 ## Human Operations + Escalation Console (Prompt 08)
 
@@ -228,4 +251,5 @@ Missions / Recovery / Action Kernel / Safeguarding → Human Ops queue → Opera
 - Flag: `MAPABLE_HUMAN_OPERATIONS_CONSOLE_ENABLED` (default **false**)
 - Extends `lib/ai/platform/human-review/` — no parallel review system
 - No authority expansion; safeguarding remains human-only
+
 

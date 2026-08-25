@@ -5,6 +5,7 @@ import {
   selectMapAbleAgents,
 } from "@/lib/ai/platform/agents";
 import type { MapAbleAgentActivationEntry } from "@/lib/ai/platform/agents/types";
+import { mergeFabricContextIntoEvidence } from "@/lib/ai/platform/context-fabric/mission-bridge";
 import { ingestMissionHumanReviewItems } from "@/lib/ai/platform/human-operations";
 import { evaluateSafeguardingGate } from "@/lib/ai/platform/policies/safeguarding-gate";
 import { ensureMissionRecoveryTracking } from "@/lib/ai/platform/recovery/planner";
@@ -165,7 +166,13 @@ export function planMission(input: Omit<MapAbleMissionRequest, "missionId" | "tr
   context.routing = routing;
   context.domains = routing.allowedDomains;
 
-  const evidence = buildMissionEvidenceBundle(request);
+  const evidence = mergeFabricContextIntoEvidence({
+    missionId,
+    participantId: request.participantId,
+    actorId: request.actorId,
+    consentScopes: request.consentScopes,
+    evidence: buildMissionEvidenceBundle(request),
+  });
   captureMissionTelemetry({
     kind: evidence.missing.length ? "evidence_missing" : "evidence_loaded",
     missionId,

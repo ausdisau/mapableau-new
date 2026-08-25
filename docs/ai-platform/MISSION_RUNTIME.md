@@ -170,3 +170,11 @@ and via agent manifests. Employer disability disclosure requires explicit consen
 | Global AI kill switch | Deterministic routing/compile still works |
 | Safeguarding indicator | Human review path; no AI substantiation |
 | Missing consent | `consent_required` / `not_authorised` — never coerced to `missing` |
+
+
+## Context Fabric integration (Prompt 04)
+
+When `MAPABLE_CONTEXT_FABRIC_ENABLED=true`, mission planning merges authorised fabric
+context into the evidence bundle via `mergeFabricContextIntoEvidence`. Inference remains
+in the inferred lane; provenance is preserved. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+

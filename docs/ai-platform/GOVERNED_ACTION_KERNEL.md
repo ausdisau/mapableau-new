@@ -18,3 +18,14 @@ Adaptive Recovery prepares Action Kernel proposals via
 Recovery never bypasses the kernel for operational writes.
 
 See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
+
+
+## Connector Gateway integration (Prompt 09)
+
+External writes that leave MapAble must pass:
+
+`Action Kernel approved envelope → Connector Gateway → scoped adapter`
+
+Agents must not call external APIs directly or receive connector credentials.
+See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
