@@ -201,7 +201,7 @@ const careServiceLogListInclude = {
       organisation: { select: { name: true } },
     },
   },
-  careShift: { select: { startAt: true, endAt: true } },
+  careShift: { select: { id: true, startAt: true, endAt: true } },
 } satisfies Prisma.CareServiceLogInclude;
 
 export async function listServiceLogsForUser(user: CurrentUser) {
