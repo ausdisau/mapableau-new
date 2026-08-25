@@ -65,7 +65,7 @@ export const createCareServiceLogSchema = z.object({
 });
 
 export const disputeCareServiceLogSchema = z.object({
-  disputeReason: z.string().min(3).max(2000),
+  disputeReason: z.string().trim().min(3).max(2000),
 });
 
 export const createCareIncidentSchema = z.object({
