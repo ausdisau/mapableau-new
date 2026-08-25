@@ -250,3 +250,20 @@ export type {
   ConnectorInvokeResult,
 } from "./connector-gateway";
 
+buildControlPlaneDashboard,
+  observeControlPlaneEvent,
+  authorizeModelSpend,
+  resetControlPlaneState,
+  startTraceSpan,
+  endTraceSpan,
+  createControlPlaneTraceId,
+  listSloCandidates,
+  configureSloTarget,
+} from "./control-plane";
+export type {
+  ControlPlaneDashboard,
+  ControlPlaneTraceContext,
+  SloCandidate,
+  BudgetDecision,
+} from "./control-plane";
+

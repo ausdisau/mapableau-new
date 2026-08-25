@@ -138,6 +138,12 @@ Governed boundary for external systems when
 | Durable health/idempotency store | Deferred (Prompt 09A if required) |
 | Authority expansion / production flags | None |
 
+## AI Control Plane (Prompt 11 — not production-live)
+
+Reliability + observability + cost control when `MAPABLE_AI_CONTROL_PLANE_ENABLED=true`.
+Implementation: `lib/ai/platform/control-plane/`. Admin: `/admin/ai/control-plane`.
+Observes system health only — never scores participants. See [CONTROL_PLANE.md](./CONTROL_PLANE.md).
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)
