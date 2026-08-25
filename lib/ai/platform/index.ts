@@ -249,4 +249,3 @@ export type {
   ApprovedActionEnvelope,
   ConnectorInvokeResult,
 } from "./connector-gateway";
-
