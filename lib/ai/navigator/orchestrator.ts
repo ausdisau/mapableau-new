@@ -244,7 +244,7 @@ export async function runNavigatorProviderSearchTurn(
       interpretationConfirmed: input.interpretationConfirmed,
       permittedFields: input.permittedFields ?? [],
       nonNegotiableKeys: input.hardConstraints.nonNegotiableKeys ?? [],
-      hardConstraints: input.hardConstraints,
+      hardConstraints: hardConstraintsSchema.parse(input.hardConstraints),
       humanHelpRequested: input.humanHelpRequested ?? false,
     },
   });
