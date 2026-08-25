@@ -5,12 +5,16 @@ import { usePathname } from "next/navigation";
 
 import { MapAbleRoleNav } from "@/components/layout/MapAbleRoleNav";
 import { mapableGoFlags } from "@/lib/config/mapable-go";
+import { mapableHomeFlags } from "@/lib/config/mapable-home";
 
 const DESKTOP_LINKS = [
   { href: "/my", label: "Home", exact: true },
   { href: "/my/life", label: "My life", matchPrefix: "/my/life" },
   ...(mapableGoFlags.enabled
     ? [{ href: "/go", label: "Go", matchPrefix: "/go" }]
+    : []),
+  ...(mapableHomeFlags.enabled && mapableHomeFlags.simulatorEnabled
+    ? [{ href: "/my/home", label: "My home", matchPrefix: "/my/home" }]
     : []),
   {
     href: "/dashboard/find-support",

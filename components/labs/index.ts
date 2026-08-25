@@ -6,3 +6,4 @@ export { AgencyTimeline } from "./AgencyTimeline";
 export { ReplayControls } from "./ReplayControls";
 export { FeedbackPrompt } from "./FeedbackPrompt";
 export { MobilityFuturesExperiment } from "./MobilityFuturesExperiment";
+export { HomeExperiment } from "./HomeExperiment";
