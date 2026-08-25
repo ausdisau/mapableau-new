@@ -20,6 +20,8 @@ export const createCareRequestSchema = z.object({
   preferredDate: z.string().datetime().optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
+  recurrencePlaceholder: z.boolean().optional(),
+  communicationNotes: z.string().max(1000).optional(),
   address: z.string().optional(),
   suburb: z.string().optional(),
   state: z.string().optional(),
