@@ -1,8 +1,20 @@
 # MapAble Access Infrastructure
 
-**Status:** foundational framework / documentation / schema contracts  
+**Status:** foundational framework + passport/compatibility/UI slice (flag-gated, default OFF)  
 **Public claim:** none — not a live national registry, certification scheme, or universal accessibility score  
 **Programme home:** Living Access Fabric (`docs/access-intelligence-next/`) implements compilers and projections against this framework
+
+## What ships (current)
+
+| Capability | Status |
+| --- | --- |
+| Domains, ontology v2, Prisma foundation | On main (#470) |
+| `GET/PATCH /api/access-infrastructure/passport` | Flag-gated |
+| Deterministic compatibility engine | Flag-gated |
+| `GET .../places/{id}/capabilities` | Flag-gated |
+| `/my-access` UI + place compatibility panel | Flag-gated |
+| Omni Intelligence / Care / Transport / Jobs adapters | Deferred |
+| Journey engine | Schema only; flag unused |
 
 ## Proposition
 
@@ -82,6 +94,10 @@ See [SCHEMA.md](./SCHEMA.md), [ONTOLOGY.md](./ONTOLOGY.md), [API_CONTRACTS.md](.
 - [ONTOLOGY.md](./ONTOLOGY.md)
 - [SCHEMA.md](./SCHEMA.md)
 - [API_CONTRACTS.md](./API_CONTRACTS.md)
+- [COMPATIBILITY.md](./COMPATIBILITY.md)
+- [UI_SKIN.md](./UI_SKIN.md)
+- [CONSENT.md](./CONSENT.md)
+- [ADR-001-access-as-infrastructure.md](./ADR-001-access-as-infrastructure.md)
 - [GOVERNANCE.md](./GOVERNANCE.md)
 - [../access-intelligence-next/README.md](../access-intelligence-next/README.md)
 - [../strategy/OPERATING_LANES.md](../strategy/OPERATING_LANES.md) (Lane 4 Infrastructure)

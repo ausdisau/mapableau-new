@@ -44,6 +44,12 @@ if (!skipAuth) {
       use: { storageState: "tests/a11y/.auth/participant.json" },
     },
     {
+      name: "my-access-passport",
+      testMatch: /my-access-passport\.spec\.ts/,
+      dependencies: ["setup"],
+      use: { storageState: "tests/a11y/.auth/participant.json" },
+    },
+    {
       name: "provider",
       testMatch: /authenticated-provider\.spec\.ts/,
       dependencies: ["setup"],

@@ -39,7 +39,51 @@ export type {
 } from "./types";
 
 export { isDecisiveCompatibility, mapConclusionToCompatibility } from "./compatibility";
+export {
+  evaluateCompatibility,
+  toCompatibilityApiResponse,
+} from "./compatibility-engine";
+export type {
+  CompatibilityEngineInput,
+  CompatibilityEngineResult,
+  RequirementNeedResult,
+} from "./compatibility-engine";
+export {
+  evaluateEntityCompatibility,
+  evaluatePlaceCompatibilityForUser,
+} from "./compatibility-service";
+export {
+  listEntityCapabilities,
+  listPlaceCapabilities,
+  PLACE_FEATURE_TO_ONTOLOGY,
+} from "./capabilities-service";
 export { accessInfrastructureFlags } from "./flags";
+export {
+  getAccessPassportForUser,
+  getOrCreateAccessPassport,
+  patchAccessPassport,
+  toPassportApiResponse,
+} from "./passport-service";
+export type {
+  PassportPatchInput,
+  PassportRequirementInput,
+} from "./passport-service";
+export { ensureAaIDemoPlace, AAI_DEMO_PLACE_NAME } from "./demo-place-seed";
+export {
+  COMMON_ACCESS_CONCEPTS,
+  COMPATIBILITY_STATUS_DETAIL,
+  COMPATIBILITY_STATUS_WORDS,
+  CRITICALITY_LABELS,
+  DISCLOSURE_SCOPE_LABELS,
+  FIRST_RUN_CONCEPT_IDS,
+  PLACE_COMPAT_PRIVACY_CTA,
+  VISIBILITY_LABELS,
+  labelForConceptId,
+} from "./ui-copy";
+export type {
+  CommonAccessConcept,
+  PassportVisibilityDefault,
+} from "./ui-copy";
 export {
   evaluateObservationFreshness,
   computeExpiryFromObservedAt,

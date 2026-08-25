@@ -135,8 +135,13 @@ export default async function DashboardPage() {
           href="/dashboard/profile"
         />
         <CoreHubCard
+          title="My Access"
+          description="Functional access needs you control — used for place and service compatibility"
+          href="/my-access"
+        />
+        <CoreHubCard
           title="Accessibility"
-          description="Your access needs travel with you across MapAble services"
+          description="Presentation preferences (fonts, contrast) and legacy access prefs"
           href="/dashboard/accessibility"
         />
         <CoreHubCard

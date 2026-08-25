@@ -337,18 +337,45 @@ export const accessCompatibilitySchema = z.object({
   evidenceRefs: z.array(opaqueIdSchema).default([]),
   limitations: z.array(z.string()).default([]),
   participantDecisionRequired: z.boolean(),
+  /** System proposes; the participant decides. Never omit. */
+  decisionOwner: z.literal("PARTICIPANT"),
   evaluatedAt: z.string().datetime(),
 }).strict();
 
 export const accessCompatibilityRequestSchema = z.object({
   schemaVersion: contractVersionSchema,
-  passportId: opaqueIdSchema,
+  passportId: opaqueIdSchema.optional(),
   entityType: accessEntityTypeSchema,
   entityId: opaqueIdSchema,
   context: z.object({
     activity: z.string().nullable().optional(),
     journeyId: opaqueIdSchema.nullable().optional(),
   }).default({}),
+}).strict();
+
+/** PATCH body for Access Passport (owner-only). */
+export const accessInfrastructurePassportPatchSchema = z.object({
+  schemaVersion: contractVersionSchema,
+  visibilityDefault: z.enum(["private", "request_scoped", "approved_service"]).optional(),
+  requirements: z.array(z.object({
+    id: opaqueIdSchema.optional(),
+    ontologyConceptId: z.string().min(1),
+    domain: accessDomainSchema,
+    attribute: z.string().min(1),
+    comparator: z.enum(["eq", "neq", "gte", "lte", "gt", "lt", "includes"]).optional(),
+    value: z.union([z.string(), z.number(), z.boolean()]).optional(),
+    unit: z.string().nullable().optional(),
+    criticality: accessCriticalitySchema,
+    contextScope: accessContextScopeSchema.default("always"),
+    timing: accessTimingSchema.default("permanent"),
+    assistance: accessAssistanceModeSchema.default("independent"),
+    disclosureScopes: z.array(accessDisclosureScopeSchema).default(["private"]),
+    userConfirmed: z.boolean().default(true),
+    acceptableAdjustmentIds: z.array(opaqueIdSchema).optional(),
+    notes: z.string().max(2000).optional(),
+    /** When true, removes an existing requirement by id. */
+    _delete: z.boolean().optional(),
+  })).optional(),
 }).strict();
 
 /** Full Access Passport for Access Infrastructure (distinct from programme projection schema). */
@@ -370,6 +397,9 @@ export type AccessObservationContract = z.infer<typeof accessObservationSchema>;
 export type AccessAdjustmentContract = z.infer<typeof accessAdjustmentSchema>;
 export type AccessCompatibilityContract = z.infer<typeof accessCompatibilitySchema>;
 export type AccessInfrastructurePassport = z.infer<typeof accessInfrastructurePassportSchema>;
+export type AccessInfrastructurePassportPatch = z.infer<
+  typeof accessInfrastructurePassportPatchSchema
+>;
 
 export const commonsContributionPreferenceSchema = z.object({
   schemaVersion: contractVersionSchema,

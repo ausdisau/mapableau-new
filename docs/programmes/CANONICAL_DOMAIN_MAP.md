@@ -21,7 +21,7 @@ Authoritative source: **repository code on current `main`**, not closed PR descr
 | Tenancy                    | `Organisation` + `OrganisationMember` | available on main          | Server-derived tenant only                                              |
 | Participant profile        | `ParticipantProfile`                  | available on main          | Demographics                                                            |
 | Presentation prefs         | `AccessibilityProfile`                | available on main          | Operational UI/access prefs                                             |
-| Functional access passport | `AccessPassport`                      | **closed/unmerged** (#273) | **Adapter-backed** via Communication Passport over AccessibilityProfile |
+| Functional access passport | `AccessPassport`                      | **Landed** (#470 schema; passport flag-gated writers) | Prefer `AccessPassport` when `MAPABLE_ACCESS_PASSPORT_ENABLED`; else Communication Passport over AccessibilityProfile |
 | Communication Passport     | TS projection                         | available on main          | `lib/support/communication-passport/` — not a second SoT                        |
 | Consent                    | `ConsentRecord`                       | available on main          | Extend via services; no parallel ledger                                 |
 | Scoped delegation          | `ParticipantAuthorityGrant`           | **this PR**                | Purpose/field/action/expiry grants                                      |
