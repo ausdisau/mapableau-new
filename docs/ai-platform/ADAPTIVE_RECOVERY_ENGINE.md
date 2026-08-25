@@ -57,6 +57,7 @@ not faked for production claims.
 `lib/ai/platform/recovery/` — types, events, triggers, impact, materiality, planner,
 alternatives, temporal, policy, presentation, store, index.
 
+
 ## Context Fabric event routing (Prompt 04)
 
 When `MAPABLE_CONTEXT_FABRIC_ENABLED` and `MAPABLE_CONTEXT_EVENT_ROUTING_ENABLED` are true,

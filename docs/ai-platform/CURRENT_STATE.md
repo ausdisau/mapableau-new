@@ -95,6 +95,7 @@ My MapAble Action Review via Mission View. See [GOVERNED_ACTION_KERNEL.md](./GOV
 | Domain adapters (care, transport, messaging, preference, coordination) | Implemented |
 | Authority expansion | None |
 
+
 ## Adaptive Recovery Engine (Prompt 03 — not production-live)
 
 Automatic reassessment without automatic redecision when
@@ -107,6 +108,7 @@ See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
 | My MapAble recovery sections | Implemented, flag-gated |
 | Action Kernel proposal prep on select | Integrated (no auto-execute) |
 | Durable event/version persistence | Deferred (in-memory; Prompt 03A if required) |
+
 
 
 ## Context Fabric + Temporal Event Bus (Prompt 04 — not production-live)
@@ -123,6 +125,18 @@ See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
 | Durable context/event persistence | Deferred (in-memory; Prompt 04A if required) |
 | Authority expansion | None |
 
+## Human Operations Console (Prompt 08 — not production-live)
+
+Operator escalation console when `MAPABLE_HUMAN_OPERATIONS_CONSOLE_ENABLED=true`.
+Implementation: `lib/ai/platform/human-operations/`. See [HUMAN_OPERATIONS.md](./HUMAN_OPERATIONS.md).
+
+| Surface | Status |
+|---------|--------|
+| Queue / assign / resolve APIs | Implemented, flag-gated |
+| Operator Console `/admin/ai/human-ops` | Implemented, flag-gated |
+| Participant visibility via mission presentation | Implemented, flag-gated |
+| Durable review persistence | Deferred (in-memory; Prompt 08A if required) |
+| Authority expansion | None |
 
 ## Governed Connector Gateway (Prompt 09 — not production-live)
 
@@ -137,6 +151,7 @@ Governed boundary for external systems when
 | Injection quarantine + bounded retry / circuit breaker | Implemented (in-memory) |
 | Durable health/idempotency store | Deferred (Prompt 09A if required) |
 | Authority expansion / production flags | None |
+
 
 ## Advanced AI Expansion train (≤ 3)
 

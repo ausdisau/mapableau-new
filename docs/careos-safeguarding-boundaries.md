@@ -21,7 +21,8 @@ Safeguarding decisions are **human-only**. CareOS may assist coordination; it mu
 ## Integration
 
 - Incident service: `lib/incidents/incident-service.ts` remains canonical
-- Admin safeguarding surfaces: `/admin/safeguarding`
+- Admin safeguarding surfaces: `/admin/safeguarding` and Human Operations Console `/admin/ai/human-ops` (restricted category; flag-gated)
+- Human Ops queue: `lib/ai/platform/human-operations/` — AI may organise factual records only; must not decide substantiation, reportability, sanction, restrictive practice, or incident closure (see [docs/ai-platform/HUMAN_OPERATIONS.md](./ai-platform/HUMAN_OPERATIONS.md))
 - Emergency access: human admin approval only (`docs/careos/identity-and-authority.md`)
 
 ## Worker cancellation and continuity

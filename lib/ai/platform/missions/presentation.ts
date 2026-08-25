@@ -1,3 +1,9 @@
+import {
+  formatReviewForParticipant,
+  listHumanOpsQueue,
+} from "@/lib/ai/platform/human-operations";
+import { isHumanOperationsConsoleEnabled } from "@/lib/config/human-operations";
+
 import type { MapAbleMissionPlan } from "./types";
 
 export function formatMissionPlanForParticipant(plan: MapAbleMissionPlan): {
@@ -18,6 +24,20 @@ export function formatMissionPlanForParticipant(plan: MapAbleMissionPlan): {
           : plan.status === "human_review_required"
             ? "Human review required"
             : "Blocked — use non-AI path or contact support";
+
+  const opsVisibility = isHumanOperationsConsoleEnabled()
+    ? listHumanOpsQueue({ missionId: plan.missionId }).map((r) =>
+        formatReviewForParticipant(r),
+      )
+    : [];
+
+  const humanSupportItems = [
+    ...plan.humanReviewItems.map((h) => h.continuationMessage),
+    ...opsVisibility.map(
+      (v) =>
+        `${v.categoryLabel}: ${v.whyNeeded} — Status: ${v.status}. Handled by ${v.handlingTeam}. Next: ${v.whatHappensNext}`,
+    ),
+  ];
 
   return {
     heading: "Your MapAble mission plan",
@@ -71,10 +91,10 @@ export function formatMissionPlanForParticipant(plan: MapAbleMissionPlan): {
       },
       {
         title: "Human support",
-        body: plan.humanReviewItems.length
+        body: humanSupportItems.length
           ? "A human reviewer may need to continue this workflow."
           : "No human review required right now.",
-        items: plan.humanReviewItems.map((h) => h.continuationMessage),
+        items: humanSupportItems,
       },
       {
         title: "Non-AI route",

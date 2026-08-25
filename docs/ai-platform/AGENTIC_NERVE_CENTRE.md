@@ -211,6 +211,7 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 - Selecting an alternative updates candidate plan and may prepare Action Kernel proposals; never auto-executes
 
 
+
 ## Governed Connector Gateway (Prompt 09)
 
 Single boundary for external reads/writes. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
@@ -225,6 +226,7 @@ External Source → Connector Gateway → Context Fabric–compatible records
 - Agents never receive raw credentials; writes require Prompt 02 approved envelopes
 - External content is DATA only (prompt-injection quarantined)
 
+
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
@@ -235,4 +237,19 @@ External Source → Connector Gateway → Context Fabric–compatible records
 Perception layer for authorised operational context. Agents and Mission Runtime may
 `queryMissionContext` when `MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Domain events route
 selectively; not every event reaches every agent. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+
+## Human Operations + Escalation Console (Prompt 08)
+
+Operator control plane for human review items. See [HUMAN_OPERATIONS.md](./HUMAN_OPERATIONS.md).
+
+```
+Missions / Recovery / Action Kernel / Safeguarding → Human Ops queue → Operator Console
+```
+
+- APIs: `GET /api/ai/human-ops/queue`, `GET/PATCH .../reviews/:id`, assign / request-info / resolve
+- Admin UI: `/admin/ai/human-ops`
+- Flag: `MAPABLE_HUMAN_OPERATIONS_CONSOLE_ENABLED` (default **false**)
+- Extends `lib/ai/platform/human-review/` — no parallel review system
+- No authority expansion; safeguarding remains human-only
+
 

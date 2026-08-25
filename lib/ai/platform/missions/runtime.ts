@@ -5,18 +5,20 @@ import {
   selectMapAbleAgents,
 } from "@/lib/ai/platform/agents";
 import type { MapAbleAgentActivationEntry } from "@/lib/ai/platform/agents/types";
-import { evaluateSafeguardingGate } from "@/lib/ai/platform/policies/safeguarding-gate";
 import { mergeFabricContextIntoEvidence } from "@/lib/ai/platform/context-fabric/mission-bridge";
+import { ingestMissionHumanReviewItems } from "@/lib/ai/platform/human-operations";
+import { evaluateSafeguardingGate } from "@/lib/ai/platform/policies/safeguarding-gate";
 import { ensureMissionRecoveryTracking } from "@/lib/ai/platform/recovery/planner";
-import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
 import { isAdaptiveRecoveryEnabled } from "@/lib/config/adaptive-recovery";
+import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
+import { isHumanOperationsConsoleEnabled } from "@/lib/config/human-operations";
 
 import { compileMissionPlan } from "./compiler";
 import { analyseMissionContinuity } from "./continuity";
 import { buildMissionEvidenceBundle } from "./evidence";
 import { buildMissionGraph } from "./graph";
 import { routeMissionDomains } from "./router";
-import { saveMissionPlan, getMissionPlan } from "./store";
+import { getMissionPlan, saveMissionPlan } from "./store";
 import { captureMissionTelemetry } from "./telemetry";
 import type {
   MapAbleMissionPlan,
@@ -217,6 +219,19 @@ export function planMission(input: Omit<MapAbleMissionRequest, "missionId" | "tr
   saveMissionPlan(plan);
   if (isAdaptiveRecoveryEnabled()) {
     ensureMissionRecoveryTracking(plan);
+  }
+  if (
+    isHumanOperationsConsoleEnabled() &&
+    plan.humanReviewItems.length > 0
+  ) {
+    ingestMissionHumanReviewItems({
+      missionId: plan.missionId,
+      participantId: request.participantId,
+      tenantId: request.participantId,
+      requestedBy: request.actorId,
+      items: plan.humanReviewItems,
+      source: safeguarding.halted ? "safeguarding_gate" : "mission_runtime",
+    });
   }
   return plan;
 }

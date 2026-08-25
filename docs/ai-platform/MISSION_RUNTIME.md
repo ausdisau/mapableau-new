@@ -171,6 +171,7 @@ and via agent manifests. Employer disability disclosure requires explicit consen
 | Safeguarding indicator | Human review path; no AI substantiation |
 | Missing consent | `consent_required` / `not_authorised` — never coerced to `missing` |
 
+
 ## Context Fabric integration (Prompt 04)
 
 When `MAPABLE_CONTEXT_FABRIC_ENABLED=true`, mission planning merges authorised fabric
