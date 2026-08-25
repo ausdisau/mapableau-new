@@ -11,6 +11,7 @@ import {
   RELATIONAL_BENCHMARK_SCENARIOS,
 } from "@/lib/ai/relational/benchmark";
 import { handleRelationalTurn } from "@/lib/ai/relational/handlers";
+import { DEFAULT_RANKING_WEIGHTS } from "@/lib/ai/navigator/matching/types";
 import {
   clearCapabilityKillSwitch,
   engageCapabilityKillSwitch,
@@ -176,7 +177,9 @@ describe("Relational Intelligence governance", () => {
           credentialRequirements: [],
           nonNegotiableKeys: [],
         },
+        rankingWeights: { ...DEFAULT_RANKING_WEIGHTS },
         humanHelpRequested: false,
+        communicationPassportSource: "support.communication_passport",
       },
     });
     expect(result.status).toBe("allowed");
