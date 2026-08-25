@@ -106,9 +106,14 @@ Execution is handled by the Governed Action Kernel (Prompt 02) — see [GOVERNED
 | POST | `/api/ai/missions/plan` | Create mission plan |
 | GET | `/api/ai/missions/:missionId/preview` | Preview stored plan |
 | POST | `/api/ai/missions/:missionId/replan` | Replan after participant changes |
+| POST | `/api/ai/missions/:missionId/events` | Ingest recovery event (Prompt 03) |
+| POST | `/api/ai/missions/:missionId/reassess` | Manual reassessment (Prompt 03) |
+| GET | `/api/ai/missions/:missionId/recovery` | Recovery snapshot (Prompt 03) |
+| POST | `/api/ai/missions/:missionId/recovery/:id/select` | Select recovery alternative (Prompt 03) |
 
 Mission APIs do not execute operational actions. Use `/api/ai/actions/proposals/*` for
-approval-bound execution (Prompt 02). No `/autorun`, `/autobook`, or `/autoassign` endpoints.
+approval-bound execution (Prompt 02). Recovery select prepares kernel proposals only.
+No `/autorun`, `/autobook`, or `/autoassign` endpoints.
 
 ## Persistence
 
@@ -125,6 +130,10 @@ LifeIntent and audit infrastructure remain the canonical durable records for par
 | `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED` | `false` | Master switch; OFF = unchanged My MapAble |
 | `MAPABLE_AGENTIC_NERVE_CENTRE_MODEL_ASSISTED` | `false` | Optional model-assisted routing hints only |
 | `MAPABLE_ACTION_KERNEL_ENABLED` | `false` | Governed Action Kernel master switch |
+| `MAPABLE_ADAPTIVE_RECOVERY_ENABLED` | `false` | Adaptive recovery surfaces |
+| `MAPABLE_PROACTIVE_REASSESSMENT_ENABLED` | `false` | Auto-reassess on event ingest |
+| `MAPABLE_RECOVERY_MODEL_ASSIST_ENABLED` | `false` | Model phrasing only |
+| `MAPABLE_RECOVERY_KILL_SWITCH` | `false` | Disables auto reassessment |
 
 Respects `MAPABLE_AI_GLOBAL_KILL_SWITCH`: deterministic planning remains available when models are killed.
 Action kernel also respects `MAPABLE_ACTION_KERNEL_KILL_SWITCH`.
@@ -161,3 +170,10 @@ and via agent manifests. Employer disability disclosure requires explicit consen
 | Global AI kill switch | Deterministic routing/compile still works |
 | Safeguarding indicator | Human review path; no AI substantiation |
 | Missing consent | `consent_required` / `not_authorised` — never coerced to `missing` |
+
+## Context Fabric integration (Prompt 04)
+
+When `MAPABLE_CONTEXT_FABRIC_ENABLED=true`, mission planning merges authorised fabric
+context into the evidence bundle via `mergeFabricContextIntoEvidence`. Inference remains
+in the inferred lane; provenance is preserved. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+

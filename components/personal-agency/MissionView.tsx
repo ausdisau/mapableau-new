@@ -9,12 +9,22 @@ import type {
   MapAbleMissionPlan,
   MissionActionProposal,
 } from "@/lib/ai/platform/missions/types";
+import type {
+  MapAbleRecoveryAlternative,
+  MapAbleRecoveryState,
+} from "@/lib/ai/platform/recovery/types";
 
 type MissionPresentation = {
   heading: string;
   summary: string;
   readiness: string;
   servicesInvolved: string[];
+  sections: Array<{ title: string; body: string; items?: string[] }>;
+};
+
+type RecoveryPresentation = {
+  heading: string;
+  status: string;
   sections: Array<{ title: string; body: string; items?: string[] }>;
 };
 
@@ -39,6 +49,10 @@ export function MissionView({
     null,
   );
   const [actionFeedback, setActionFeedback] = useState<string[]>([]);
+  const [recoveryState, setRecoveryState] =
+    useState<MapAbleRecoveryState | null>(null);
+  const [recoveryPresentation, setRecoveryPresentation] =
+    useState<RecoveryPresentation | null>(null);
 
   async function buildMission() {
     setBusy(true);
@@ -69,8 +83,83 @@ export function MissionView({
       setPlan(data.plan);
       setPresentation(data.presentation ?? null);
       setActionFeedback([]);
+      void loadRecovery(data.plan.missionId);
     } catch {
       setError("Network error. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function loadRecovery(missionId: string) {
+    try {
+      const res = await fetch(`/api/ai/missions/${missionId}/recovery`);
+      if (!res.ok) return;
+      const data = (await res.json().catch(() => ({}))) as {
+        state?: MapAbleRecoveryState | null;
+        presentation?: RecoveryPresentation;
+      };
+      setRecoveryState(data.state ?? null);
+      setRecoveryPresentation(data.presentation ?? null);
+    } catch {
+      /* optional when flag off */
+    }
+  }
+
+  async function selectAlternative(alt: MapAbleRecoveryAlternative) {
+    if (!plan) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/ai/missions/${plan.missionId}/recovery/${alt.alternativeId}/select`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        },
+      );
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        state?: MapAbleRecoveryState;
+        candidatePlan?: MapAbleMissionPlan;
+        planPresentation?: MissionPresentation;
+        recoveryPresentation?: RecoveryPresentation;
+      };
+      if (!res.ok) {
+        setError(data.error ?? "Could not select option.");
+        return;
+      }
+      if (data.candidatePlan) {
+        setPlan(data.candidatePlan);
+        setPresentation(data.planPresentation ?? null);
+      }
+      setRecoveryState(data.state ?? null);
+      setRecoveryPresentation(data.recoveryPresentation ?? null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reassess() {
+    if (!plan) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ai/missions/${plan.missionId}/reassess`, {
+        method: "POST",
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        state?: MapAbleRecoveryState;
+        presentation?: RecoveryPresentation;
+      };
+      if (!res.ok) {
+        setError(data.error ?? "Could not reassess mission.");
+        return;
+      }
+      setRecoveryState(data.state ?? null);
+      setRecoveryPresentation(data.presentation ?? null);
     } finally {
       setBusy(false);
     }
@@ -244,6 +333,80 @@ export function MissionView({
                 ))}
               </ul>
             </div>
+          ) : null}
+
+          {recoveryState ? (
+            <section
+              aria-labelledby="recovery-heading"
+              className="rounded-lg border border-amber-200 bg-amber-50/50 p-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3
+                  id="recovery-heading"
+                  className="text-sm font-bold uppercase tracking-wide text-[#005B7F]"
+                >
+                  Mission recovery
+                </h3>
+                <button
+                  type="button"
+                  className={buttonClass}
+                  disabled={busy}
+                  onClick={() => void reassess()}
+                >
+                  Review changes
+                </button>
+              </div>
+              <p role="status" className="mt-2 text-sm font-semibold">
+                {recoveryPresentation?.status ?? recoveryState.status}
+              </p>
+              {recoveryPresentation?.sections.map((section) => (
+                <div key={section.title} className="mt-4">
+                  <h4 className="text-sm font-bold">{section.title}</h4>
+                  <p className="mt-1 text-sm text-slate-700">{section.body}</p>
+                  {section.items?.length ? (
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                      {section.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))}
+              {recoveryState.alternatives.length > 0 ? (
+                <div className="mt-4 space-y-2">
+                  <h4 className="text-sm font-bold">Choose an option</h4>
+                  <p className="text-sm text-slate-600">
+                    Selecting an option updates your candidate plan and may prepare
+                    Action Kernel proposals for your review. Nothing is booked automatically.
+                  </p>
+                  <ul className="space-y-2">
+                    {recoveryState.alternatives.map((alt) => (
+                      <li
+                        key={alt.alternativeId}
+                        className="rounded-lg border border-slate-200 bg-white p-3 text-sm"
+                      >
+                        <p className="font-semibold">{alt.label}</p>
+                        <p className="mt-1 text-slate-600">{alt.summary}</p>
+                        <button
+                          type="button"
+                          className={`${buttonClass} mt-2`}
+                          disabled={busy}
+                          onClick={() => void selectAlternative(alt)}
+                        >
+                          Choose this option
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          {error ? (
+            <p role="alert" className="text-sm text-red-700">
+              {error}
+            </p>
           ) : null}
 
           <p className="text-sm">
