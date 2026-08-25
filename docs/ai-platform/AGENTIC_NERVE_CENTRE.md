@@ -167,7 +167,71 @@ New call sites should use `selectMapAbleAgents` directly.
 - Jobs-specific capability keys for `work_participation` (currently shares read-only retrieval).
 - Optional retirement of CareOS legacy agent ids once all callers migrate.
 
+## Mission Runtime (Prompt 01)
+
+Cross-domain participant mission planning is implemented in `lib/ai/platform/missions/`.
+See [MISSION_RUNTIME.md](./MISSION_RUNTIME.md).
+
+```
+My MapAble → Mission Runtime → selectMapAbleAgents → evidence + graph + continuity → MissionPlan
+```
+
+- APIs: `POST /api/ai/missions/plan`, `GET /api/ai/missions/:missionId/preview`, `POST .../replan`
+- Feature flag: `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED` (default **false**)
+- Action proposals remain approval-gated; execution via Governed Action Kernel
+- In-memory plan store until Prompt 02A evaluates durable persistence
+
+## Governed Action Kernel (Prompt 02)
+
+Approval-bound deterministic execution for Phase 02 request/communication/preference actions.
+See [GOVERNED_ACTION_KERNEL.md](./GOVERNED_ACTION_KERNEL.md).
+
+```
+Mission proposal → Action Kernel proposal → approve (payloadHash+nonce) → execute → audit
+```
+
+- APIs: `POST /api/ai/actions/proposals`, `.../approve`, `.../reject`, `.../execute`
+- Flags: `MAPABLE_ACTION_KERNEL_ENABLED` + per-action flags + kill switch (all default **false**)
+- No authority expansion; no worker assign / confirm transport / pay / disclose
+
+## Adaptive Recovery Engine (Prompt 03)
+
+Automatic reassessment without automatic redecision. See
+[ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
+
+```
+Mission events → triggers → impact → materiality → candidate plan → participant options
+                                                              │
+                                                              ▼
+                                              Action Kernel prepare (Prompt 02)
+```
+
+- APIs: `POST .../events`, `POST .../reassess`, `GET .../recovery`, `POST .../recovery/:id/select`
+- Flags: `MAPABLE_ADAPTIVE_RECOVERY_ENABLED` (+ proactive / model-assist / kill switch), all default **false**
+- Selecting an alternative updates candidate plan and may prepare Action Kernel proposals; never auto-executes
+
+
+## Governed Connector Gateway (Prompt 09)
+
+Single boundary for external reads/writes. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
+```
+Agent/Mission → Action Proposal → Action Kernel → Connector Gateway → External
+External Source → Connector Gateway → Context Fabric–compatible records
+```
+
+- Implementation: `lib/ai/platform/connector-gateway/`
+- Flags: `MAPABLE_CONNECTOR_GATEWAY_ENABLED` + per-connector flags + kill switches (all default **false**)
+- Agents never receive raw credentials; writes require Prompt 02 approved envelopes
+- External content is DATA only (prompt-injection quarantined)
+
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
 - `/admin/ai/agents` — WCAG-oriented governance table.
+
+## Context Fabric (Prompt 04)
+
+Perception layer for authorised operational context. Agents and Mission Runtime may
+`queryMissionContext` when `MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Domain events route
+selectively; not every event reaches every agent. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).

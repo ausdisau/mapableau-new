@@ -69,6 +69,75 @@ or change public production claims. See [AGENTIC_NERVE_CENTRE.md](./AGENTIC_NERV
 Admin: `/admin/ai/agents`. APIs (admin): `GET /api/ai/agents`, `GET /api/ai/agents/:id`,
 `POST /api/ai/agents/activation-preview` (read-only preview).
 
+## Mission Runtime (Prompt 01 — not production-live)
+
+Participant-facing cross-domain mission planning when `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED=true`.
+Implementation: `lib/ai/platform/missions/`. My MapAble integration via Life Intent **Build mission**.
+See [MISSION_RUNTIME.md](./MISSION_RUNTIME.md).
+
+| Surface | Status |
+|---------|--------|
+| Mission APIs | Implemented, flag-gated |
+| My MapAble Mission View | Implemented, flag-gated |
+| Durable mission persistence | Deferred (in-memory store; Prompt 02A if required) |
+| Action proposal execution | Prompt 02 Governed Action Kernel (flag-gated) |
+
+## Governed Action Kernel (Prompt 02 — not production-live)
+
+Approval-bound execution for Phase 02 request/communication/preference actions when
+`MAPABLE_ACTION_KERNEL_ENABLED=true`. Implementation: `lib/ai/platform/actions/`.
+My MapAble Action Review via Mission View. See [GOVERNED_ACTION_KERNEL.md](./GOVERNED_ACTION_KERNEL.md).
+
+| Surface | Status |
+|---------|--------|
+| Action proposal / approve / reject / execute APIs | Implemented, flag-gated |
+| Approval binding + replay/idempotency | Implemented (in-memory; Prompt 02A for durable) |
+| Domain adapters (care, transport, messaging, preference, coordination) | Implemented |
+| Authority expansion | None |
+
+## Adaptive Recovery Engine (Prompt 03 — not production-live)
+
+Automatic reassessment without automatic redecision when
+`MAPABLE_ADAPTIVE_RECOVERY_ENABLED=true`. Implementation: `lib/ai/platform/recovery/`.
+See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
+
+| Surface | Status |
+|---------|--------|
+| Event / reassess / recovery APIs | Implemented, flag-gated |
+| My MapAble recovery sections | Implemented, flag-gated |
+| Action Kernel proposal prep on select | Integrated (no auto-execute) |
+| Durable event/version persistence | Deferred (in-memory; Prompt 03A if required) |
+
+
+## Context Fabric + Temporal Event Bus (Prompt 04 — not production-live)
+
+Provenance-aware operational context perception when
+`MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Implementation: `lib/ai/platform/context-fabric/`.
+See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+
+| Surface | Status |
+|---------|--------|
+| Context record + domain event bus | Implemented, flag-gated |
+| Mission context query + selective routing | Implemented, flag-gated |
+| Mission Runtime / Recovery light wiring | Implemented when flags on |
+| Durable context/event persistence | Deferred (in-memory; Prompt 04A if required) |
+| Authority expansion | None |
+
+
+## Governed Connector Gateway (Prompt 09 — not production-live)
+
+Governed boundary for external systems when
+`MAPABLE_CONNECTOR_GATEWAY_ENABLED=true`. Implementation:
+`lib/ai/platform/connector-gateway/`. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
+| Surface | Status |
+|---------|--------|
+| Read/write policy + opaque credentials | Implemented, flag-gated |
+| Adapters (Stripe, email, messaging, maps, GAIS, calendar, NDIA) | Thin wrappers / stubs; honest maturity labels |
+| Injection quarantine + bounded retry / circuit breaker | Implemented (in-memory) |
+| Durable health/idempotency store | Deferred (Prompt 09A if required) |
+| Authority expansion / production flags | None |
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

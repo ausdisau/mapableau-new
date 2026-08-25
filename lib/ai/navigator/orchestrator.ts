@@ -244,11 +244,8 @@ export async function runNavigatorProviderSearchTurn(
       interpretationConfirmed: input.interpretationConfirmed,
       permittedFields: input.permittedFields ?? [],
       nonNegotiableKeys: input.hardConstraints.nonNegotiableKeys ?? [],
-      // Normalize Input→Output so optional arrays become required defaults.
-      hardConstraints: hardConstraintsSchema.parse(input.hardConstraints),
-      rankingWeights: input.rankingWeights ?? DEFAULT_RANKING_WEIGHTS,
+      hardConstraints: input.hardConstraints,
       humanHelpRequested: input.humanHelpRequested ?? false,
-      communicationPassportSource: "support.communication_passport",
     },
   });
 

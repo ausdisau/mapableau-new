@@ -133,3 +133,119 @@ export {
   safeguardingGateMayDecideReportability,
   safeguardingGateMaySubstantiateAllegation,
 } from "./policies/safeguarding-gate";
+export {
+  planMission,
+  replanMission,
+  previewMissionPlan,
+  routeMissionDomains,
+  compileMissionPlan,
+  buildMissionEvidenceBundle,
+  buildMissionGraph,
+  analyseMissionContinuity,
+  formatMissionPlanForParticipant,
+} from "./missions";
+export type {
+  MapAbleMissionRequest,
+  MapAbleMissionPlan,
+  MapAbleMissionRuntimeContext,
+  MissionRoutingResult,
+  EvidenceBundle,
+  ContinuityAlert,
+  MissionGraphNode,
+  MissionRecommendation,
+  MissionActionProposal,
+} from "./missions";
+export {
+  MAPABLE_ACTION_KEYS,
+  listMapAbleActionDefinitions,
+  getMapAbleActionDefinition,
+  createActionProposal,
+  approveActionProposal,
+  rejectActionProposal,
+  executeApprovedAction,
+  prepareKernelProposalFromMission,
+  evaluateActionPolicy,
+  hashActionPayload,
+  getActionProposal,
+  listMissionActionResults,
+  clearActionStore,
+  clearReplayStore,
+  clearMissionActionResults,
+} from "./actions";
+export type {
+  MapAbleActionKey,
+  MapAbleActionDefinition,
+  MapAbleActionProposal,
+  ApprovalBinding,
+  MapAbleActionResult,
+  ActionPolicyDecision,
+} from "./actions";
+
+export {
+  ingestMissionEvent,
+  reassessMission,
+  selectRecoveryAlternative,
+  getRecoverySnapshot,
+  formatRecoveryForParticipant,
+  evaluateReassessmentTrigger,
+  evaluateMaterialityGate,
+  analyseDependencyImpact,
+  generateRecoveryAlternatives,
+  assertRecoveryAuthority,
+  clearRecoveryStore,
+  ensureMissionRecoveryTracking,
+} from "./recovery";
+export type {
+  MapAbleMissionEvent,
+  MapAbleRecoveryState,
+  MapAbleRecoveryAlternative,
+  MaterialityGate,
+  ReassessmentTrigger,
+  DependencyImpact,
+} from "./recovery";
+
+export {
+  publishDomainEvent,
+  queryMissionContext,
+  clearContextFabricStore,
+  evaluateFreshness,
+  evaluateSourceGate,
+  routeDomainEvent,
+  formatContextForParticipant,
+  CONTEXT_TYPES,
+  SOURCE_TRUST_CLASSES,
+  DOMAIN_EVENT_TYPES,
+} from "./context-fabric";
+export type {
+  MapAbleContextRecord,
+  MapAbleDomainEvent,
+  MissionContextQuery,
+  MissionContextQueryResult,
+} from "./context-fabric";
+
+export {
+  MAPABLE_CONNECTOR_KEYS,
+  listMapAbleConnectors,
+  getMapAbleConnector,
+  listConnectorInventory,
+  readViaConnector,
+  writeViaConnector,
+  evaluateReadPolicy,
+  evaluateWritePolicy,
+  issueCredentialHandle,
+  agentCannotAccessSecret,
+  sanitiseExternalContent,
+  refuseExternalAsToolInstruction,
+  clearConnectorGatewayState,
+  forceOpenCircuit,
+  decideRetry,
+} from "./connector-gateway";
+export type {
+  MapAbleConnectorKey,
+  MapAbleConnector,
+  ConnectorReadRequest,
+  ConnectorWriteRequest,
+  ConnectorCanonicalRecord,
+  ApprovedActionEnvelope,
+  ConnectorInvokeResult,
+} from "./connector-gateway";
