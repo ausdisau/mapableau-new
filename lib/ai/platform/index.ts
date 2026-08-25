@@ -205,7 +205,52 @@ export type {
 } from "./recovery";
 
 export {
-  buildControlPlaneDashboard,
+  publishDomainEvent,
+  queryMissionContext,
+  clearContextFabricStore,
+  evaluateFreshness,
+  evaluateSourceGate,
+  routeDomainEvent,
+  formatContextForParticipant,
+  CONTEXT_TYPES,
+  SOURCE_TRUST_CLASSES,
+  DOMAIN_EVENT_TYPES,
+} from "./context-fabric";
+export type {
+  MapAbleContextRecord,
+  MapAbleDomainEvent,
+  MissionContextQuery,
+  MissionContextQueryResult,
+} from "./context-fabric";
+
+export {
+  MAPABLE_CONNECTOR_KEYS,
+  listMapAbleConnectors,
+  getMapAbleConnector,
+  listConnectorInventory,
+  readViaConnector,
+  writeViaConnector,
+  evaluateReadPolicy,
+  evaluateWritePolicy,
+  issueCredentialHandle,
+  agentCannotAccessSecret,
+  sanitiseExternalContent,
+  refuseExternalAsToolInstruction,
+  clearConnectorGatewayState,
+  forceOpenCircuit,
+  decideRetry,
+} from "./connector-gateway";
+export type {
+  MapAbleConnectorKey,
+  MapAbleConnector,
+  ConnectorReadRequest,
+  ConnectorWriteRequest,
+  ConnectorCanonicalRecord,
+  ApprovedActionEnvelope,
+  ConnectorInvokeResult,
+} from "./connector-gateway";
+
+buildControlPlaneDashboard,
   observeControlPlaneEvent,
   authorizeModelSpend,
   resetControlPlaneState,
