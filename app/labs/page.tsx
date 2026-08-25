@@ -10,6 +10,14 @@ const streams = [
     available: true,
   },
   {
+    title: "MapAble Home Lab",
+    description:
+      "Explore how a synthetic home should report, recommend, ask or run bounded actions when you prepare to leave. Simulation only — no physical device control.",
+    href: "/labs/home",
+    status: "Public experiment · synthetic home data",
+    available: true,
+  },
+  {
     title: "Access Intelligence Lab",
     description:
       "Explore how accessibility evidence, uncertainty and route information could be presented and compared.",

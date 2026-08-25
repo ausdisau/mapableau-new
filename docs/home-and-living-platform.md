@@ -23,3 +23,12 @@ funding eligibility or infer living preference from diagnosis.
 Property marketing claims remain unverified until supported by separately
 recorded accessibility evidence with source, observation date and verification
 status.
+
+
+## MapAble Home discovery
+
+Public discovery, compare, shortlist and evidence display live under MapAble Home
+(`/home`, `/home/find`, `/home/properties/[id]`, `/home/compare`).
+
+See `docs/home/accessispace-absorption.md` for AccessiSpace prototype absorption
+notes. Homes are not Marketplace products. Feature flags default off.
