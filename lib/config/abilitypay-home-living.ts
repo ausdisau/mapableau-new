@@ -17,6 +17,14 @@ export const homeLivingConfig = {
   highIntensityGovernanceEnabled: enabled(
     "MAPABLE_HIGH_INTENSITY_GOVERNANCE_ENABLED",
   ),
+  /** Public MapAble Home discovery (/home) — fail-closed. */
+  discoveryEnabled: enabled("MAPABLE_HOME_DISCOVERY_ENABLED"),
+  compareEnabled: enabled("MAPABLE_HOME_COMPARE_ENABLED"),
+  enquiriesEnabled: enabled("MAPABLE_HOME_ENQUIRIES_ENABLED"),
+  providerListingsEnabled: enabled("MAPABLE_HOME_PROVIDER_LISTINGS_ENABLED"),
+  capabilityProfileEnabled: enabled(
+    "MAPABLE_HOME_CAPABILITY_PROFILE_ENABLED",
+  ),
   clinicalAiDecisionsEnabled: false,
   automaticSafeguardingDecisionsEnabled: false,
   restrictivePracticeAiEnabled: false,

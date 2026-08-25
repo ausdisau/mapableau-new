@@ -36,9 +36,108 @@ Positioning: *An evidence-aware, participant-controlled copilot for complete dis
 | navigator.provider_search.draft_service_request | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENVELOPES off |
 | navigator.provider_search.escalate | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENABLED off |
 
+### Relational Intelligence (registered, not live)
+
+All relational keys default **false**. Production enablement remains blocked until Phase 08 GO.
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| relational.interpret | hybrid | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.clarify | model_backed | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_MODEL_ASSISTED off |
+| relational.explain | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.draft | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_DRAFT off |
+| access.search.read | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ACCESS_SEARCH off |
+| human.help.request | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_HUMAN_HELP off |
+
+Communication Passport SoT for relational UX: `lib/support/communication-passport` (see `lib/ai/relational/communication-passport.ts`).
+Provider Finder chat now routes through `assertProviderFinderChatAllowed` (deterministic fallback when `SEARCH_AGENT_ENABLED` off).
+
 Navigator pilot surfaces (Decision Passport, governed memory, matching) also require
 `MAPABLE_NAVIGATOR_PILOT_PASSPORT` / `_MEMORY` / `_MATCHING` (all default false).
 See [NAVIGATOR_ASSURANCE.md](./NAVIGATOR_ASSURANCE.md).
+
+## Agentic Nerve Centre (foundation consolidation)
+
+Canonical operational agent registry: `lib/ai/platform/agents/` (exactly eight operational
+agents). CareOS `selectCareOSAgentNetwork` is a deprecated compatibility adapter.
+Safeguarding is a human escalation gate (not an operational agent). Robotics remains
+research-only and is excluded from the operational registry.
+
+This consolidation does **not** expand AI operational authority, enable autonomous writes,
+or change public production claims. See [AGENTIC_NERVE_CENTRE.md](./AGENTIC_NERVE_CENTRE.md).
+
+Admin: `/admin/ai/agents`. APIs (admin): `GET /api/ai/agents`, `GET /api/ai/agents/:id`,
+`POST /api/ai/agents/activation-preview` (read-only preview).
+
+## Mission Runtime (Prompt 01 — not production-live)
+
+Participant-facing cross-domain mission planning when `MAPABLE_AGENTIC_NERVE_CENTRE_ENABLED=true`.
+Implementation: `lib/ai/platform/missions/`. My MapAble integration via Life Intent **Build mission**.
+See [MISSION_RUNTIME.md](./MISSION_RUNTIME.md).
+
+| Surface | Status |
+|---------|--------|
+| Mission APIs | Implemented, flag-gated |
+| My MapAble Mission View | Implemented, flag-gated |
+| Durable mission persistence | Deferred (in-memory store; Prompt 02A if required) |
+| Action proposal execution | Prompt 02 Governed Action Kernel (flag-gated) |
+
+## Governed Action Kernel (Prompt 02 — not production-live)
+
+Approval-bound execution for Phase 02 request/communication/preference actions when
+`MAPABLE_ACTION_KERNEL_ENABLED=true`. Implementation: `lib/ai/platform/actions/`.
+My MapAble Action Review via Mission View. See [GOVERNED_ACTION_KERNEL.md](./GOVERNED_ACTION_KERNEL.md).
+
+| Surface | Status |
+|---------|--------|
+| Action proposal / approve / reject / execute APIs | Implemented, flag-gated |
+| Approval binding + replay/idempotency | Implemented (in-memory; Prompt 02A for durable) |
+| Domain adapters (care, transport, messaging, preference, coordination) | Implemented |
+| Authority expansion | None |
+
+## Adaptive Recovery Engine (Prompt 03 — not production-live)
+
+Automatic reassessment without automatic redecision when
+`MAPABLE_ADAPTIVE_RECOVERY_ENABLED=true`. Implementation: `lib/ai/platform/recovery/`.
+See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
+
+| Surface | Status |
+|---------|--------|
+| Event / reassess / recovery APIs | Implemented, flag-gated |
+| My MapAble recovery sections | Implemented, flag-gated |
+| Action Kernel proposal prep on select | Integrated (no auto-execute) |
+| Durable event/version persistence | Deferred (in-memory; Prompt 03A if required) |
+
+
+## Context Fabric + Temporal Event Bus (Prompt 04 — not production-live)
+
+Provenance-aware operational context perception when
+`MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Implementation: `lib/ai/platform/context-fabric/`.
+See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+
+| Surface | Status |
+|---------|--------|
+| Context record + domain event bus | Implemented, flag-gated |
+| Mission context query + selective routing | Implemented, flag-gated |
+| Mission Runtime / Recovery light wiring | Implemented when flags on |
+| Durable context/event persistence | Deferred (in-memory; Prompt 04A if required) |
+| Authority expansion | None |
+
+
+## Governed Connector Gateway (Prompt 09 — not production-live)
+
+Governed boundary for external systems when
+`MAPABLE_CONNECTOR_GATEWAY_ENABLED=true`. Implementation:
+`lib/ai/platform/connector-gateway/`. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
+| Surface | Status |
+|---------|--------|
+| Read/write policy + opaque credentials | Implemented, flag-gated |
+| Adapters (Stripe, email, messaging, maps, GAIS, calendar, NDIA) | Thin wrappers / stubs; honest maturity labels |
+| Injection quarantine + bounded retry / circuit breaker | Implemented (in-memory) |
+| Durable health/idempotency store | Deferred (Prompt 09A if required) |
+| Authority expansion / production flags | None |
+
 ## Advanced AI Expansion train (≤ 3)
 
 1. Evidence Intake contracts (`lib/ai/platform/intake/`)

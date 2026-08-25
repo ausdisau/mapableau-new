@@ -104,6 +104,7 @@ export { runFoundationTrainRehearsal } from "@/lib/platform/convergence-os/rehea
 export {
   createAgentPreflightContract,
   evaluateStopConditions,
+  evaluateAgentRegistryPreflight,
   renderContractMarkdown,
   createPostImplementationReview,
 } from "@/lib/platform/convergence-os/agent/preflight";

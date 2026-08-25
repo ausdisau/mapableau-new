@@ -20,6 +20,9 @@ import {
   type RankingWeights,
 } from "@/lib/ai/navigator/matching/types";
 import { createDecisionPassport } from "@/lib/ai/navigator/passport/service";
+import { createNavigatorEscalation } from "@/lib/ai/navigator/escalation/service";
+import { handleRelationalTurn } from "@/lib/ai/relational/handlers";
+import type { AssistanceMode } from "@/lib/ai/relational/types";
 import {
   isNavigatorMatchingEnabled,
   isNavigatorPassportEnabled,
@@ -69,6 +72,10 @@ export type NavigatorProviderSearchTurnInput = {
   /** When true, create a transfer_filters_to_finder envelope after match. */
   transferFilters?: boolean;
   saveDraft?: boolean;
+  /** Relational assistance mode (single orchestration owner). */
+  assistanceMode?: AssistanceMode;
+  /** Participant requested human help — routes through relational handler. */
+  humanHelpRequested?: boolean;
   silent?: boolean;
   now?: Date;
 };
@@ -218,6 +225,67 @@ export async function runNavigatorProviderSearchTurn(
 ): Promise<NavigatorProviderSearchTurnResult> {
   // Permanent prohibitions — never book/pay/dispatch from this path.
   assertNavigatorActionAllowed("search_providers");
+
+  const assistanceMode: AssistanceMode = input.assistanceMode ?? (
+    input.aiOptedOut ? "opt_out_ai" : "guided_with_confirm"
+  );
+
+  const relational = await handleRelationalTurn({
+    tenantId: input.tenantId,
+    participantId: input.participantId,
+    actorUserId: input.actorUserId,
+    sessionId: input.sessionId,
+    goalText: input.goalText,
+    capabilityKey: "relational.interpret",
+    silent: input.silent,
+    control: {
+      assistanceMode,
+      aiOptedOut: input.aiOptedOut ?? false,
+      interpretationConfirmed: input.interpretationConfirmed,
+      permittedFields: input.permittedFields ?? [],
+      nonNegotiableKeys: input.hardConstraints.nonNegotiableKeys ?? [],
+      hardConstraints: input.hardConstraints,
+      humanHelpRequested: input.humanHelpRequested ?? false,
+    },
+  });
+
+  if (relational.status === "escalate") {
+    if (input.sessionId && input.humanHelpRequested) {
+      try {
+        await createNavigatorEscalation({
+          tenantId: input.tenantId,
+          participantId: input.participantId,
+          actorUserId: input.actorUserId,
+          sessionId: input.sessionId,
+          reason: "participant_request",
+          note: (input.goalText ?? "Human help requested").slice(0, 500),
+        });
+      } catch {
+        // Navigator pilot may be disabled in some environments.
+      }
+    }
+    return {
+      status: "blocked",
+      interpretation: passthroughInterpretation(input),
+      match: null,
+      draftEnvelopeId: null,
+      transferEnvelopeId: null,
+      passportId: null,
+      reason: relational.reason,
+    };
+  }
+
+  if (relational.status === "blocked" && input.humanHelpRequested) {
+    return {
+      status: "blocked",
+      interpretation: passthroughInterpretation(input),
+      match: null,
+      draftEnvelopeId: null,
+      transferEnvelopeId: null,
+      passportId: null,
+      reason: relational.reason,
+    };
+  }
 
   const consentAction =
     input.consentAction ??

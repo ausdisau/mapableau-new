@@ -48,6 +48,16 @@ const searchBodySchema = z
     rankingWeights: rankingWeightsSchema.optional(),
     interpretationConfirmed: z.boolean(),
     aiOptedOut: z.boolean().optional(),
+    assistanceMode: z
+      .enum([
+        "participant_led",
+        "guided_with_confirm",
+        "draft_only",
+        "human_only",
+        "opt_out_ai",
+      ])
+      .optional(),
+    humanHelpRequested: z.boolean().optional(),
     permittedFields: z.array(z.string().min(1).max(80)).max(40).optional(),
     saveDraft: z.boolean().optional(),
     transferFilters: z.boolean().optional(),
@@ -125,6 +135,8 @@ export async function POST(req: Request) {
       rankingWeights: parsed.data.rankingWeights,
       interpretationConfirmed: parsed.data.interpretationConfirmed,
       aiOptedOut: parsed.data.aiOptedOut,
+      assistanceMode: parsed.data.assistanceMode,
+      humanHelpRequested: parsed.data.humanHelpRequested,
       saveDraft: parsed.data.saveDraft,
       sessionId: parsed.data.sessionId,
       permittedFields: parsed.data.permittedFields,

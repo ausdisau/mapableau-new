@@ -7,6 +7,7 @@ import {
 import { PROHIBITED_AUTONOMOUS_ACTIONS } from "@/lib/ai/platform/types/authority";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { navigatorPilotConfig } from "@/lib/config/navigator-pilot";
+import { relationalIntelligenceConfig } from "@/lib/config/relational-intelligence";
 
 export const NAVIGATOR_AUDIT = {
   gateAllowed: "navigator.gate.allowed",
@@ -62,6 +63,22 @@ function isFeatureFlagEnabled(flagName: string): boolean {
   }
   if (flagName === "MAPABLE_NAVIGATOR_PILOT_MATCHING") {
     return navigatorPilotConfig.matchingEnabled;
+  }
+  // Relational intelligence flags (Phase 01 routing).
+  if (flagName === "MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED") {
+    return relationalIntelligenceConfig.enabled;
+  }
+  if (flagName === "MAPABLE_RELATIONAL_INTELLIGENCE_MODEL_ASSISTED") {
+    return relationalIntelligenceConfig.modelAssistedEnabled;
+  }
+  if (flagName === "MAPABLE_RELATIONAL_INTELLIGENCE_DRAFT") {
+    return relationalIntelligenceConfig.draftEnabled;
+  }
+  if (flagName === "MAPABLE_RELATIONAL_INTELLIGENCE_ACCESS_SEARCH") {
+    return relationalIntelligenceConfig.accessSearchEnabled;
+  }
+  if (flagName === "MAPABLE_RELATIONAL_INTELLIGENCE_HUMAN_HELP") {
+    return relationalIntelligenceConfig.humanHelpEnabled;
   }
   // Unknown / other flags: fail closed unless explicitly "true".
   return process.env[flagName] === "true";
