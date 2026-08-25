@@ -21,6 +21,10 @@ const careBookingsSource = readFileSync(
   join(process.cwd(), "app/care/bookings/page.tsx"),
   "utf8"
 );
+const bookingJourneySource = readFileSync(
+  join(process.cwd(), "components/care/BookingJourneyOverview.tsx"),
+  "utf8"
+);
 const supportRecordsSource = readFileSync(
   join(process.cwd(), "app/care/service-logs/page.tsx"),
   "utf8"
@@ -85,11 +89,12 @@ describe("Care UI patterns — participant-owned booking journey", () => {
   });
 
   it("keeps consequential booking decisions confirmation-gated", () => {
-    expect(careBookingsSource).toMatch(
+    expect(careBookingsSource).toContain("BookingJourneyOverview");
+    expect(bookingJourneySource).toMatch(
       /nothing is booked or assigned until the\s+required confirmation is complete/i
     );
-    expect(careBookingsSource).toMatch(
-      /You can review any proposed provider before the booking is confirmed/i
+    expect(bookingJourneySource).toMatch(
+      /Review any proposed provider and price before a booking is confirmed/i
     );
   });
 });
