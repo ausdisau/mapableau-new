@@ -24,6 +24,8 @@ export function ServiceLogConfirmDispute({
   >(null);
   const [showCsat, setShowCsat] = useState(false);
   const feedbackContextId = careShiftId ?? logId;
+  const reasonId = `disputeReason-${logId}`;
+  const reasonHintId = `${reasonId}-hint`;
 
   async function approveRecord() {
     setMsg(null);
@@ -50,7 +52,7 @@ export function ServiceLogConfirmDispute({
     setMsg(null);
     if (trimmedReason.length < 3) {
       setMsg("Tell us what needs correcting so the team can review the record.");
-      document.getElementById("disputeReason")?.focus();
+      document.getElementById(reasonId)?.focus();
       return;
     }
 
@@ -151,22 +153,22 @@ export function ServiceLogConfirmDispute({
       </Button>
 
       <div className="border-t border-border/70 pt-4">
-        <label htmlFor="disputeReason" className="text-sm font-semibold">
+        <label htmlFor={reasonId} className="text-sm font-semibold">
           Something needs correcting
         </label>
-        <p id="disputeReasonHint" className="mt-1 text-sm text-muted-foreground">
+        <p id={reasonHintId} className="mt-1 text-sm text-muted-foreground">
           Describe what is missing or incorrect. A person will review your
           concern.
         </p>
         <textarea
-          id="disputeReason"
+          id={reasonId}
           className={`${formInputClass} mt-2`}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           rows={3}
           minLength={3}
           maxLength={2000}
-          aria-describedby="disputeReasonHint"
+          aria-describedby={reasonHintId}
           disabled={pendingAction !== null}
         />
         <Button
