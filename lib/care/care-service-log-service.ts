@@ -127,6 +127,7 @@ export async function confirmCareServiceLog(
 ) {
   const log = await prisma.careServiceLog.findUnique({ where: { id: logId } });
   if (!log) throw new Error("NOT_FOUND");
+  if (log.status !== "submitted") throw new Error("INVALID_STATUS");
   assertParticipantOwnsBooking(actorUser, {
     participantId: log.participantId,
   });
@@ -160,6 +161,7 @@ export async function disputeCareServiceLog(
 ) {
   const log = await prisma.careServiceLog.findUnique({ where: { id: logId } });
   if (!log) throw new Error("NOT_FOUND");
+  if (log.status !== "submitted") throw new Error("INVALID_STATUS");
   assertParticipantOwnsBooking(actorUser, {
     participantId: log.participantId,
   });
