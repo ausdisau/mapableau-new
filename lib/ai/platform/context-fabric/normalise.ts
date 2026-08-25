@@ -40,7 +40,7 @@ export type NormaliseInput = IngestDomainEventInput & {
  */
 export function normaliseToContextRecord(
   input: NormaliseInput,
-): { record: MapAbleContextRecord; error: string | null } {
+): { record: MapAbleContextRecord | null; error: string | null } {
   const gate = evaluateSourceGate({
     sourceType: input.sourceTrust,
     sourceRef: input.sourceRef,
@@ -54,7 +54,7 @@ export function normaliseToContextRecord(
   });
 
   if (!gate.allowed) {
-    return { record: null as unknown as MapAbleContextRecord, error: gate.error };
+    return { record: null, error: gate.error };
   }
 
   const contextType =
@@ -67,7 +67,7 @@ export function normaliseToContextRecord(
     !INFERENCE_ALLOWED_TYPES.has(contextType)
   ) {
     return {
-      record: null as unknown as MapAbleContextRecord,
+      record: null,
       error: `model_inference not allowed for context type ${contextType}`,
     };
   }

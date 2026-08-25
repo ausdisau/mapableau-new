@@ -1,10 +1,10 @@
-import { RECOVERY_RELEVANT_EVENT_TYPES } from "./registry";
-import { scopesOverlap } from "./scope";
 import type {
   EventRouteDecision,
   EventRouteTarget,
   MapAbleDomainEvent,
 } from "./types";
+import { RECOVERY_RELEVANT_EVENT_TYPES } from "./registry";
+import { scopesOverlap } from "./scope";
 
 /**
  * Deterministic selective event routing.
@@ -28,7 +28,6 @@ export function routeDomainEvent(input: {
   const targets: EventRouteTarget[] = [];
   const reasons: string[] = [];
 
-  // Always audit internal domain events (metadata only via audit target).
   targets.push("audit");
   reasons.push("domain_event_audit");
 
@@ -72,7 +71,6 @@ export function routeDomainEvent(input: {
     reasons.push("recovery_relevant_mission_event");
   }
 
-  // Model inference never routes as verified recovery assertions.
   if (event.sourceTrust === "model_inference" && targets.includes("recovery_engine")) {
     const filtered = targets.filter((t) => t !== "recovery_engine");
     return {

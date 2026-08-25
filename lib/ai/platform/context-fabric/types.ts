@@ -93,10 +93,7 @@ export type SubjectRef = {
   id: string;
 };
 
-/**
- * Canonical provenance-aware context record.
- * Provenance fields must never be stripped.
- */
+/** Canonical provenance-aware context record. Provenance must never be stripped. */
 export type MapAbleContextRecord = {
   contextId: string;
   contextType: ContextType;
@@ -115,10 +112,8 @@ export type MapAbleContextRecord = {
   evidenceRefs: string[];
   dataClasses: ContextDataClass[];
   consentScopes: string[];
-  /** Bounded operational payload — never a complete participant profile dump. */
   payload: Record<string, unknown>;
   traceId: string;
-  /** Soft-revocation marker — record retained for audit, excluded from model queries. */
   consentRevokedAt?: string | null;
   missionIds?: string[];
 };
@@ -156,10 +151,7 @@ export const EVENT_PRODUCERS = [
 ] as const;
 export type EventProducer = (typeof EVENT_PRODUCERS)[number];
 
-/**
- * Temporal Event Bus envelope — typed, versioned, idempotent, provenance-aware.
- * Not a replacement for MapAbleMissionEvent; feeds selective routing into recovery.
- */
+/** Temporal Event Bus envelope — feeds selective routing into recovery; does not replace MapAbleMissionEvent. */
 export type MapAbleDomainEvent = {
   eventId: string;
   eventType: DomainEventType;
@@ -176,7 +168,6 @@ export type MapAbleDomainEvent = {
   consentScopes: string[];
   subjectRefs: SubjectRef[];
   missionIds: string[];
-  /** Bounded typed payload — no unrestricted arbitrary dumps. */
   payload: Record<string, unknown>;
   traceId: string;
   idempotencyKey: string | null;
@@ -237,7 +228,6 @@ export type FreshnessPolicy = {
   currentMaxHours: number;
   agingMaxHours: number;
   staleMaxHours: number;
-  /** null = no hard expiry (unknown age stays unknown, not missing) */
   expireAfterHours: number | null;
 };
 

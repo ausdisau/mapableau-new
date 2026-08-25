@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-
+import { ingestMissionEvent } from "@/lib/ai/platform/recovery/planner";
 import { captureAiPlatformTelemetry } from "@/lib/ai/platform/telemetry/adapter";
 import { adaptiveRecoveryConfig } from "@/lib/config/adaptive-recovery";
 import { agenticNerveCentreConfig } from "@/lib/config/agentic-nerve-centre";
@@ -84,11 +83,10 @@ export function publishDomainEvent(
     applyConsentRevocation(input);
   } else {
     const normalised = normaliseToContextRecord(input);
-    if (normalised.error) {
+    if (normalised.error || !normalised.record) {
       error = normalised.error;
     } else {
       record = normalised.record;
-      // Apply any previously revoked scopes before exposing.
       for (const scope of record.consentScopes) {
         const participantId =
           record.subjectRefs.find((s) => s.kind === "participant")?.id ?? null;
@@ -119,9 +117,9 @@ export function publishDomainEvent(
     captureAiPlatformTelemetry({
       kind: "context_fabric.domain_event",
       capabilityKey: "context.fabric",
-      reason: `${event.eventType}:${event.domain}`,
+      reason: event.eventType,
       tenantScoped: true,
-      success: !error,
+      success: true,
     });
   }
 
@@ -153,8 +151,9 @@ function applyConsentRevocation(input: IngestDomainEventInput): void {
       (s) => s.kind === "participant" && s.id === participantId,
     );
     if (!linked) continue;
-    const hitsScope = record.consentScopes.some((s) => scopes.includes(s));
-    if (!hitsScope && scopes.length > 0) continue;
+    const hitsScope =
+      scopes.length === 0 || record.consentScopes.some((s) => scopes.includes(s));
+    if (!hitsScope) continue;
     updateContextRecord(redactPayloadForRevocation(record));
   }
 }
@@ -167,20 +166,6 @@ function tryRouteToRecovery(event: MapAbleDomainEvent): boolean {
 
   const missionEventType = mapDomainEventToMissionEventType(event.eventType);
   if (!missionEventType) return false;
-
-  // Lazy require to avoid circular imports at module load.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- documented circular-avoidance with recovery planner
-  const { ingestMissionEvent } = require("@/lib/ai/platform/recovery/planner") as {
-    ingestMissionEvent: (input: {
-      missionId: string;
-      type: string;
-      source: string;
-      reportedBy?: string | null;
-      systemRecordId?: string | null;
-      payload?: Record<string, unknown>;
-      idempotencyKey?: string | null;
-    }) => { duplicate: boolean };
-  };
 
   let any = false;
   for (const missionId of event.missionIds) {
@@ -216,8 +201,4 @@ function tryRouteToRecovery(event: MapAbleDomainEvent): boolean {
 
 export function getFabricContext(contextId: string): MapAbleContextRecord | null {
   return getContextRecord(contextId);
-}
-
-export function createTraceId(): string {
-  return randomUUID();
 }

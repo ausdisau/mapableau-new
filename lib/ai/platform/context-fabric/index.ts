@@ -1,7 +1,3 @@
-/**
- * Context Fabric + Temporal Event Bus (Prompt 04) with Agency Memory bridge (Prompt 05).
- */
-
 export type {
   ContextType,
   SourceTrustClass,
@@ -38,25 +34,88 @@ export {
 } from "./types";
 
 export {
-  clearContextFabricStore,
+  mapAbleContextRecordSchema,
+  mapAbleDomainEventSchema,
+  ingestDomainEventInputSchema,
+  missionContextQuerySchema,
+  type IngestDomainEventInput,
+} from "./schemas";
+
+export {
+  getFreshnessPolicy,
+  listContextTypePolicies,
+  INFERENCE_ALLOWED_TYPES,
+  RECOVERY_RELEVANT_EVENT_TYPES,
+} from "./registry";
+
+export {
+  evaluateFreshness,
+  refreshRecordFreshness,
+  isStaleOrWorse,
+  verificationForSourceTrust,
+  assertInferenceCannotMasquerade,
+} from "./freshness";
+
+export {
+  redactPayloadForRevocation,
+  preserveProvenanceFields,
+  buildProvenanceDisplay,
+  validateProvenanceIntegrity,
+  isParticipantReported,
+  isVerifiedEvidence,
+} from "./provenance";
+
+export {
+  isSensitiveDataClass,
+  recordRequiresConsent,
+  evaluateRecordAuthorisation,
+  actorMayPublishEvents,
+  scopesOverlap,
+} from "./scope";
+
+export { evaluateSourceGate } from "./sources";
+
+export {
+  normaliseToContextRecord,
+  createDomainEventFromInput,
+} from "./normalise";
+
+export {
+  saveContextRecord,
   getContextRecord,
   listContextRecordsForTenant,
-  saveContextRecord,
+  updateContextRecord,
   saveDomainEvent,
   getDomainEvent,
   listDomainEvents,
   markConsentRevoked,
   isConsentRevoked,
+  clearContextFabricStore,
 } from "./store";
 
-export { evaluateFreshness, assertInferenceCannotMasquerade } from "./freshness";
-export { evaluateSourceGate } from "./sources";
-export { evaluateRecordAuthorisation } from "./scope";
-export { routeDomainEvent, mapDomainEventToMissionEventType } from "./routing";
-export { publishDomainEvent } from "./events";
-export { normaliseToContextRecord } from "./normalise";
-export { buildProvenanceDisplay, validateProvenanceIntegrity } from "./provenance";
-export { getFreshnessPolicy, INFERENCE_ALLOWED_TYPES } from "./registry";
+export {
+  routeDomainEvent,
+  eventRelevantToMission,
+  mapDomainEventToMissionEventType,
+  mapSourceTrustToEventSource,
+} from "./routing";
+
+export {
+  publishDomainEvent,
+  getFabricContext,
+  type PublishDomainEventResult,
+} from "./events";
+
+export { queryMissionContext } from "./query";
+
+export {
+  formatContextForParticipant,
+  formatContextListForParticipant,
+  type ContextProvenanceViewModel,
+} from "./presentation";
+
+export { mergeFabricContextIntoEvidence } from "./mission-bridge";
+
 
 export {
   agencyMemoryToContextRecords,

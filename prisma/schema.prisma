@@ -221,6 +221,8 @@ model User {
   expectedCostContexts ExpectedCostContext[]
   healthDeviceImports HealthDeviceImport[] @relation("HealthDeviceImportParticipant")
   homeLivingProfiles HomeLivingProfile[]
+  homeShortlistItems HomeShortlistItem[]
+  homeEnquiries      HomeEnquiry[]
   improvementActionHistory ImprovementActionHistory[] @relation("ImprovementActionHistoryActor")
   jobMatchExplanations JobMatchExplanation[] @relation("JobMatchExplanationParticipant")
   loginAuditEvents LoginAuditEvent[]
@@ -12487,18 +12489,126 @@ model AccessibleProperty {
   providerOrganisation Organisation @relation(fields: [providerOrganisationId], references: [id], onDelete: Cascade)
   title                String
   addressSummary       String
+  /// Public location display; exact street may stay withheld.
+  suburb               String?
+  state                String?
+  /// SUBURB_ONLY | APPROXIMATE | STREET | FULL_ADDRESS
+  locationPrecision    String       @default("SUBURB_ONLY")
   propertyType         String
+  bedroomCount         Int?
+  bathroomCount        Int?
+  /// Optional SDA category metadata — never an eligibility decision.
+  sdaCategory          String?
+  rentDisplay          String?
+  virtualTourUrl       String?
+  /// Optional link to GAIS AccessPlace.id for surrounding context.
+  gaisPlaceId          String?
+  /// draft | published | archived
+  listingStatus        String       @default("draft")
+  publishedAt          DateTime?
   availabilityStatus   String       @default("unknown")
   availableFrom        DateTime?
   tenancyTermsSummary  String?
   supportProviderIndependent Boolean @default(true)
+  /// Optional related support org — never auto-bundled as a requirement.
+  relatedSupportOrganisationId String?
+  relatedSupportOrganisationNote String?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
   deletedAt            DateTime?
   evidence             PropertyAccessibilityEvidence[]
+  vacancies            PropertyVacancy[]
+  media                PropertyListingMedia[]
+  shortlistItems       HomeShortlistItem[]
+  enquiries            HomeEnquiry[]
+  capabilityProfile    HomeCapabilityProfile?
 
   @@index([providerOrganisationId, availabilityStatus, availableFrom])
+  @@index([listingStatus, suburb, propertyType])
+  @@index([listingStatus, publishedAt])
   @@map("accessible_properties")
+}
+
+/// Time-sensitive availability for an AccessibleProperty (P0 without PropertyUnit).
+model PropertyVacancy {
+  id              String             @id @default(cuid())
+  propertyId      String
+  property        AccessibleProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  label           String?
+  /// open | filled | withdrawn | upcoming
+  status          String             @default("open")
+  availableFrom   DateTime?
+  availableTo     DateTime?
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([propertyId, status, availableFrom])
+  @@map("property_vacancies")
+}
+
+model PropertyListingMedia {
+  id           String             @id @default(cuid())
+  propertyId   String
+  property     AccessibleProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  /// image | virtual_tour | panorama | document
+  kind         String
+  url          String
+  altText      String?
+  caption      String?
+  sortOrder    Int                @default(0)
+  createdAt    DateTime           @default(now())
+
+  @@index([propertyId, kind, sortOrder])
+  @@map("property_listing_media")
+}
+
+model HomeShortlistItem {
+  id            String             @id @default(cuid())
+  participantId String
+  participant   User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  propertyId    String
+  property      AccessibleProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt     DateTime           @default(now())
+
+  @@unique([participantId, propertyId])
+  @@index([participantId, createdAt])
+  @@map("home_shortlist_items")
+}
+
+/// Housing enquiry context; messages live on Conversation.
+model HomeEnquiry {
+  id              String             @id @default(cuid())
+  propertyId      String
+  property        AccessibleProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  participantId   String
+  participant     User               @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  organisationId  String
+  conversationId  String             @unique
+  /// basic | inspection | accessibility_question
+  enquiryKind     String             @default("basic")
+  /// Requirements keys explicitly shared (never full profile by default).
+  sharedRequirementKeys String[]     @default([])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([participantId, createdAt])
+  @@index([organisationId, createdAt])
+  @@index([propertyId])
+  @@map("home_enquiries")
+}
+
+/// Descriptive home technology metadata only — not device control.
+model HomeCapabilityProfile {
+  id         String             @id @default(cuid())
+  propertyId String             @unique
+  property   AccessibleProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  /// JSON map of capabilityKey -> { value, source, verificationStatus, observedAt? }
+  capabilitiesJson Json         @default("{}")
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@map("home_capability_profiles")
 }
 
 model AnalyticsEvent {
