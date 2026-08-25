@@ -17,6 +17,18 @@ const careRequestWizardSource = readFileSync(
   join(process.cwd(), "components/care/CareRequestWizard.tsx"),
   "utf8"
 );
+const careBookingsSource = readFileSync(
+  join(process.cwd(), "app/care/bookings/page.tsx"),
+  "utf8"
+);
+const supportRecordsSource = readFileSync(
+  join(process.cwd(), "app/care/service-logs/page.tsx"),
+  "utf8"
+);
+const serviceLogActionsSource = readFileSync(
+  join(process.cwd(), "components/care/ServiceLogConfirmDispute.tsx"),
+  "utf8"
+);
 
 describe("Care UI patterns — support type chips", () => {
   it("exposes human labels for all care request types (not raw enum strings)", () => {
@@ -58,5 +70,43 @@ describe("Care UI patterns — draft review confirmation", () => {
       /nothing is booked and no worker is assigned until you confirm/i
     );
     expect(carePlanDraftReviewSource).toContain("Confirm and save request");
+  });
+});
+
+
+describe("Care UI patterns — participant-owned booking journey", () => {
+  it("collects timing, recurrence and communication preferences", () => {
+    expect(careRequestWizardSource).toContain("care-preferred-date");
+    expect(careRequestWizardSource).toContain("recurrencePlaceholder");
+    expect(careRequestWizardSource).toContain("communicationNotes");
+    expect(careRequestWizardSource).toMatch(
+      /No repeating schedule will be created until\s+I agree to the pattern/i
+    );
+  });
+
+  it("keeps consequential booking decisions confirmation-gated", () => {
+    expect(careBookingsSource).toMatch(
+      /nothing is booked or assigned until the\s+required confirmation is complete/i
+    );
+    expect(careBookingsSource).toMatch(
+      /You can review any proposed provider before the booking is confirmed/i
+    );
+  });
+});
+
+describe("Care UI patterns — support record review", () => {
+  it("provides an actionable empty state", () => {
+    expect(supportRecordsSource).toContain("No support records yet");
+    expect(supportRecordsSource).toContain("View your bookings");
+    expect(supportRecordsSource).toContain("Request support");
+  });
+
+  it("uses plain-language approval and dispute controls", () => {
+    expect(serviceLogActionsSource).toContain("Approve record");
+    expect(serviceLogActionsSource).toContain("Raise a concern");
+    expect(serviceLogActionsSource).toMatch(
+      /does not approve NDIS funding, payment or a future booking/i
+    );
+    expect(serviceLogActionsSource).toContain('aria-live="polite"');
   });
 });
