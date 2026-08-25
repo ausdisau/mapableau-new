@@ -38,7 +38,6 @@ function runToFirstDecision(mode: (typeof AUTONOMY_MODES)[number]) {
   while (
     state.phase === "RUNNING" &&
     !state.pendingDecision &&
-    state.phase !== "COMPLETED" &&
     guard < 20
   ) {
     state = reduceScenario(

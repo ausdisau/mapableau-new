@@ -56,3 +56,11 @@ not faked for production claims.
 
 `lib/ai/platform/recovery/` — types, events, triggers, impact, materiality, planner,
 alternatives, temporal, policy, presentation, store, index.
+
+
+## Context Fabric event routing (Prompt 04)
+
+When `MAPABLE_CONTEXT_FABRIC_ENABLED` and `MAPABLE_CONTEXT_EVENT_ROUTING_ENABLED` are true,
+mission-linked domain events may be mapped into `ingestMissionEvent`. Model-inference
+sources never assert verified recovery failures. Irrelevant missions do not receive events.
+See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
