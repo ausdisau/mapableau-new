@@ -10,6 +10,14 @@ const streams = [
     available: true,
   },
   {
+    title: "MapAble Home Lab",
+    description:
+      "Explore how a synthetic home should report, recommend, ask or run bounded actions when you prepare to leave. Simulation only — no physical device control.",
+    href: "/labs/home",
+    status: "Public experiment · synthetic home data",
+    available: true,
+  },
+  {
     title: "MapAble-native intelligence",
     description:
       "Explore a MapAble-owned model portfolio, local/open-weight routes, and governed retrieval — experimental only, not production-supported.",
