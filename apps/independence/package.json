@@ -1,8 +1,8 @@
 {
   "name": "@mapable/independence",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "MapAble Independence Suite (AdaptAble Home) — platform SoR Expo app",
+  "description": "MapAble mobile super-app foundation — Access, Care, Transport and Jobs over the MapAble platform SoR",
   "main": "index.js",
   "scripts": {
     "start": "expo start",

@@ -1,0 +1,42 @@
+name: Mobile
+
+on:
+  pull_request:
+    paths:
+      - "apps/independence/**"
+      - "app/api/mobile/**"
+      - "lib/platform/redis/mobile-keyspace.ts"
+      - "tests/platform/mobile-redis-keyspace.test.ts"
+      - "docs/architecture/mapable-mobile.md"
+      - ".github/workflows/mobile.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/independence/**"
+      - "app/api/mobile/**"
+      - "lib/platform/redis/mobile-keyspace.ts"
+      - "tests/platform/mobile-redis-keyspace.test.ts"
+      - "docs/architecture/mapable-mobile.md"
+      - ".github/workflows/mobile.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  expo-typecheck:
+    name: Expo typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/independence
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # The Expo app currently installs independently from the root pnpm
+      # workspace. Ignore lifecycle scripts in CI; this job only needs the
+      # declared JS/TS packages to run the TypeScript compiler.
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npm run typecheck

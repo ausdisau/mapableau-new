@@ -1,17 +1,18 @@
 {
   "expo": {
-    "name": "MapAble + AdaptAble Home",
-    "slug": "mapable-adaptable-home",
-    "version": "0.2.0",
-    "orientation": "portrait",
+    "name": "MapAble",
+    "slug": "mapable-mobile",
+    "scheme": "mapable",
+    "version": "0.3.0",
+    "orientation": "default",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ausdisau.mapable.prototype"
+      "bundleIdentifier": "com.ausdisau.mapable"
     },
     "android": {
-      "package": "com.ausdisau.mapable.prototype"
+      "package": "com.ausdisau.mapable"
     },
     "web": {
       "bundler": "metro"
