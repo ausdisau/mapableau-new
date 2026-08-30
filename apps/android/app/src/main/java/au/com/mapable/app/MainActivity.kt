@@ -21,7 +21,9 @@ import au.com.mapable.feature.care.CareScreen
 import au.com.mapable.feature.inbox.InboxScreen
 import au.com.mapable.feature.jobs.JobsScreen
 import au.com.mapable.feature.settings.SettingsScreen
+import au.com.mapable.feature.today.TodayItem
 import au.com.mapable.feature.today.TodayScreen
+import au.com.mapable.feature.today.TodayTone
 import au.com.mapable.feature.travel.TravelScreen
 
 class MainActivity : ComponentActivity() {
@@ -32,6 +34,40 @@ class MainActivity : ComponentActivity() {
             MapAbleTheme {
                 var tab by remember { mutableStateOf(0) }
                 val tabs = listOf("Today", "Access", "Care", "Travel", "Jobs", "Inbox", "Settings")
+                val previewItems = if (BuildConfig.DEBUG) {
+                    listOf(
+                        TodayItem(
+                            id = "care-preview",
+                            service = "Care",
+                            time = "8:00 am",
+                            title = "Support with your chosen worker",
+                            supportingText = "Preview only — live care bookings stay behind native account access.",
+                            status = "Preview",
+                            tone = TodayTone.CARE,
+                        ),
+                        TodayItem(
+                            id = "travel-preview",
+                            service = "Travel",
+                            time = "8:45 am",
+                            title = "Accessible trip",
+                            supportingText = "Preview only — access-fit and trip status will come from authorised MapAble data.",
+                            status = "Preview",
+                            tone = TodayTone.TRAVEL,
+                        ),
+                        TodayItem(
+                            id = "jobs-preview",
+                            service = "Jobs",
+                            time = "10:00 am",
+                            title = "Work and study",
+                            supportingText = "Preview only — employment information remains participant-controlled.",
+                            status = "Preview",
+                            tone = TodayTone.JOBS,
+                        ),
+                    )
+                } else {
+                    emptyList()
+                }
+
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -52,10 +88,16 @@ class MainActivity : ComponentActivity() {
                     val mod = Modifier.padding(padding)
                     when (tab) {
                         0 -> TodayScreen(
-                            lines = listOfNotNull(
-                                "MapAble native backbone",
-                                deepLink?.let { "Opened from App Link: $it" },
-                            ),
+                            greeting = "Welcome to MapAble",
+                            scheduleItems = previewItems,
+                            previewNotice = if (BuildConfig.DEBUG) {
+                                listOfNotNull(
+                                    "Design preview — synthetic data only.",
+                                    deepLink?.let { "Opened from App Link: $it" },
+                                ).joinToString(" ")
+                            } else {
+                                null
+                            },
                             modifier = mod,
                         )
                         1 -> AccessScreen(
