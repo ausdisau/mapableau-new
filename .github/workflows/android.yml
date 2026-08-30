@@ -41,6 +41,9 @@ jobs:
       - name: Unit tests
         run: ./gradlew :core:common:test :core:notifications:test --no-daemon
 
+      - name: Compile Today accessibility tests
+        run: ./gradlew :feature:today:compileDebugAndroidTestKotlin --no-daemon
+
       - name: Assemble debug
         run: ./gradlew :app:assembleDebug --no-daemon
 
