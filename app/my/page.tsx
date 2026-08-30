@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import {
+  ParticipantActionLink,
+  ParticipantEyebrow,
+  ParticipantMarker,
+  ParticipantPanel,
+  ParticipantServiceShortcut,
+  ParticipantStatus,
+  type ParticipantTone,
+} from "@/components/mapable-ui/ParticipantUi";
 import { LifeIntentCard } from "@/components/personal-agency/LifeIntentCard";
 import { MyMapAbleAskPrompt } from "@/components/personal-agency/MyMapAbleAskPrompt";
 import { personalAgencyFlags } from "@/lib/config/personal-agency";
@@ -17,33 +26,22 @@ function greetingForHour(hour: number): string {
   return "Good evening";
 }
 
-function bookingPresentation(bookingType: string) {
+function bookingPresentation(bookingType: string): {
+  service: string;
+  marker: string;
+  tone: ParticipantTone;
+} {
   const normalised = bookingType.toLowerCase();
   if (normalised.includes("transport") || normalised.includes("travel")) {
-    return {
-      service: "Transport",
-      marker: "T",
-      markerClass: "bg-blue-50 text-blue-700",
-      labelClass: "text-blue-700",
-      statusClass: "border-blue-200 bg-blue-50 text-blue-800",
-    };
+    return { service: "Transport", marker: "T", tone: "travel" };
   }
   if (normalised.includes("care") || normalised.includes("support")) {
-    return {
-      service: "Care",
-      marker: "C",
-      markerClass: "bg-purple-50 text-purple-700",
-      labelClass: "text-purple-700",
-      statusClass: "border-purple-200 bg-purple-50 text-purple-800",
-    };
+    return { service: "Care", marker: "C", tone: "care" };
   }
-  return {
-    service: "MapAble",
-    marker: "M",
-    markerClass: "bg-cyan-50 text-[#005B7F]",
-    labelClass: "text-[#005B7F]",
-    statusClass: "border-cyan-200 bg-cyan-50 text-[#005B7F]",
-  };
+  if (normalised.includes("job") || normalised.includes("employment")) {
+    return { service: "Jobs", marker: "J", tone: "jobs" };
+  }
+  return { service: "MapAble", marker: "M", tone: "access" };
 }
 
 const serviceShortcuts = [
@@ -51,24 +49,21 @@ const serviceShortcuts = [
     href: "/care",
     label: "Care",
     marker: "C",
-    markerClass: "bg-purple-50 text-purple-700",
-    buttonClass: "bg-purple-700 text-white hover:bg-purple-800",
+    tone: "care" as const,
     description: "Review care options and authorised bookings.",
   },
   {
     href: "/dashboard/transport",
     label: "Transport",
     marker: "T",
-    markerClass: "bg-blue-50 text-blue-700",
-    buttonClass: "bg-blue-700 text-white hover:bg-blue-800",
+    tone: "travel" as const,
     description: "Review trips and accessible transport information.",
   },
   {
     href: "/dashboard/jobs",
     label: "Jobs",
     marker: "J",
-    markerClass: "bg-orange-50 text-orange-700",
-    buttonClass: "bg-orange-600 text-white hover:bg-orange-700",
+    tone: "jobs" as const,
     description: "Explore work and study without automatic disclosure.",
   },
 ] as const;
@@ -135,10 +130,7 @@ export default async function MyHomePage() {
         <div className="min-w-0 space-y-8">
           <MyMapAbleAskPrompt />
 
-          <section
-            aria-labelledby="today-heading"
-            className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
-          >
+          <ParticipantPanel labelledBy="today-heading">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2
@@ -151,12 +143,9 @@ export default async function MyHomePage() {
                   Each service stays distinct so you can review its status and information separately.
                 </p>
               </div>
-              <Link
-                href="/dashboard/calendar"
-                className="inline-flex min-h-12 items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-              >
+              <ParticipantActionLink href="/dashboard/calendar">
                 View calendar
-              </Link>
+              </ParticipantActionLink>
             </div>
 
             {todayBookings.length ? (
@@ -169,19 +158,15 @@ export default async function MyHomePage() {
                       key={booking.id}
                       className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
                     >
-                      <span
-                        aria-hidden="true"
-                        className={`flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-black ${presentation.markerClass}`}
-                      >
-                        {presentation.marker}
-                      </span>
+                      <ParticipantMarker
+                        label={presentation.marker}
+                        tone={presentation.tone}
+                      />
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <p
-                            className={`text-xs font-black uppercase tracking-[0.12em] ${presentation.labelClass}`}
-                          >
+                          <ParticipantEyebrow tone={presentation.tone}>
                             {presentation.service}
-                          </p>
+                          </ParticipantEyebrow>
                           <p className="text-sm font-semibold text-slate-500">
                             {new Intl.DateTimeFormat("en-AU", {
                               hour: "2-digit",
@@ -193,11 +178,10 @@ export default async function MyHomePage() {
                           {title}
                         </p>
                       </div>
-                      <span
-                        className={`w-fit rounded-full border px-3 py-2 text-xs font-black capitalize ${presentation.statusClass}`}
-                      >
-                        {booking.status.replace(/_/g, " ")}
-                      </span>
+                      <ParticipantStatus
+                        label={booking.status.replace(/_/g, " ")}
+                        tone={presentation.tone}
+                      />
                     </li>
                   );
                 })}
@@ -211,7 +195,7 @@ export default async function MyHomePage() {
                 </p>
               </div>
             )}
-          </section>
+          </ParticipantPanel>
 
           <section aria-labelledby="services-heading">
             <div>
@@ -227,31 +211,8 @@ export default async function MyHomePage() {
             </div>
             <ul className="mt-4 grid gap-4 md:grid-cols-3">
               {serviceShortcuts.map((service) => (
-                <li
-                  key={service.href}
-                  className="flex rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="flex w-full flex-col">
-                    <div className="flex items-center gap-3">
-                      <span
-                        aria-hidden="true"
-                        className={`flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-black ${service.markerClass}`}
-                      >
-                        {service.marker}
-                      </span>
-                      <h3 className="text-lg font-bold text-[#0C1833]">{service.label}</h3>
-                    </div>
-                    <p className="mt-4 flex-1 text-sm leading-6 text-slate-600">
-                      {service.description}
-                    </p>
-                    <Link
-                      href={service.href}
-                      className={`mt-5 inline-flex min-h-12 items-center justify-between rounded-xl px-4 py-3 text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40 ${service.buttonClass}`}
-                    >
-                      View {service.label.toLowerCase()}
-                      <span aria-hidden="true">→</span>
-                    </Link>
-                  </div>
+                <li key={service.href}>
+                  <ParticipantServiceShortcut {...service} />
                 </li>
               ))}
             </ul>
@@ -271,12 +232,9 @@ export default async function MyHomePage() {
                 </p>
               </div>
               {personalAgencyFlags.lifeIntentsEnabled ? (
-                <Link
-                  href="/my/life/new"
-                  className="inline-flex min-h-12 items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-[#005B7F] hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-                >
+                <ParticipantActionLink href="/my/life/new">
                   Add something
-                </Link>
+                </ParticipantActionLink>
               ) : null}
             </div>
             {lifeIntents.length ? (
@@ -298,12 +256,14 @@ export default async function MyHomePage() {
                   What would you like to do, change, explore or work towards?
                 </p>
                 {personalAgencyFlags.lifeIntentsEnabled ? (
-                  <Link
+                  <ParticipantActionLink
                     href="/my/life/new"
-                    className="mt-4 inline-flex min-h-12 items-center rounded-xl bg-[#005B7F] px-4 py-3 text-sm font-black text-white hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                    tone="access"
+                    variant="solid"
+                    className="mt-4"
                   >
                     Add something that matters
-                  </Link>
+                  </ParticipantActionLink>
                 ) : (
                   <p className="mt-3 text-xs text-slate-500">
                     Life intents are in development behind feature flags.
@@ -318,13 +278,8 @@ export default async function MyHomePage() {
           aria-label="Participant controls"
           className="space-y-4 xl:sticky xl:top-6 xl:self-start"
         >
-          <section
-            className="rounded-[1.5rem] border border-blue-100 bg-white p-5 shadow-sm"
-            aria-labelledby="access-panel-heading"
-          >
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-blue-700">
-              Your information
-            </p>
+          <ParticipantPanel labelledBy="access-panel-heading" tone="access">
+            <ParticipantEyebrow tone="access">Your information</ParticipantEyebrow>
             <h2 id="access-panel-heading" className="mt-2 text-xl font-bold text-[#0C1833]">
               My Access
             </h2>
@@ -333,28 +288,21 @@ export default async function MyHomePage() {
               separate controls.
             </p>
             <div className="mt-4 grid gap-2">
-              <Link
+              <ParticipantActionLink
                 href="/dashboard/accessibility"
-                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-blue-300 px-4 py-3 text-sm font-black text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                tone="access"
+                fullWidth
               >
                 Accessibility preferences
-              </Link>
-              <Link
-                href="/dashboard/consent"
-                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-black text-[#0C1833] hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-              >
+              </ParticipantActionLink>
+              <ParticipantActionLink href="/dashboard/consent" fullWidth>
                 Review sharing
-              </Link>
+              </ParticipantActionLink>
             </div>
-          </section>
+          </ParticipantPanel>
 
-          <section
-            className="rounded-[1.5rem] border border-purple-200 bg-purple-50 p-5"
-            aria-labelledby="help-panel-heading"
-          >
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-purple-700">
-              Human support
-            </p>
+          <ParticipantPanel labelledBy="help-panel-heading" tone="support">
+            <ParticipantEyebrow tone="support">Human support</ParticipantEyebrow>
             <h2 id="help-panel-heading" className="mt-2 text-xl font-bold text-[#0C1833]">
               Need help?
             </h2>
@@ -362,18 +310,17 @@ export default async function MyHomePage() {
               Talk to a person when you want help understanding options, fixing a problem or
               escalating a concern.
             </p>
-            <Link
+            <ParticipantActionLink
               href="/dashboard/safety"
-              className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-purple-400 bg-white px-4 py-3 text-sm font-black text-purple-800 hover:bg-purple-100 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+              tone="support"
+              fullWidth
+              className="mt-4"
             >
               Get human support
-            </Link>
-          </section>
+            </ParticipantActionLink>
+          </ParticipantPanel>
 
-          <section
-            className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"
-            aria-labelledby="choices-panel-heading"
-          >
+          <ParticipantPanel labelledBy="choices-panel-heading">
             <h2 id="choices-panel-heading" className="text-lg font-bold text-[#0C1833]">
               Your choices
             </h2>
@@ -382,13 +329,10 @@ export default async function MyHomePage() {
               <li>Service information is not silently shared across modules.</li>
               <li>You can review consent and ask for a person at any time.</li>
             </ul>
-            <Link
-              href="/my/control"
-              className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-black text-[#005B7F] hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-            >
+            <ParticipantActionLink href="/my/control" fullWidth className="mt-4">
               Review controls
-            </Link>
-          </section>
+            </ParticipantActionLink>
+          </ParticipantPanel>
         </aside>
       </div>
 
@@ -411,7 +355,7 @@ export default async function MyHomePage() {
             <li key={action.href}>
               <Link
                 href={action.href}
-                className="flex min-h-12 items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-[#005B7F] shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                className="flex min-h-12 items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-[#005B7F] shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40"
               >
                 {action.label}
               </Link>
