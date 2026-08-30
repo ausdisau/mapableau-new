@@ -8,13 +8,6 @@ import {
 } from "./helpers/auth-a11y";
 
 test.describe("unified participant UI", () => {
-  test.skip(
-    !process.env.A11Y_PARTICIPANT_STORAGE,
-    "Requires seeded participant storage state",
-  );
-
-  test.use({ storageState: process.env.A11Y_PARTICIPANT_STORAGE });
-
   test("participant controls are explicit and axe-clean", async ({ page }) => {
     await page.goto("/my", { waitUntil: "domcontentloaded" });
     await settle(page);
