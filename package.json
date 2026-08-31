@@ -169,7 +169,7 @@
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^16.2.4",
-    "postcss": "^8.5.22",
+    "postcss": "^8.5.23",
     "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
     "prisma": "6.19.2",
