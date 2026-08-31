@@ -1,0 +1,21 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "au.com.mapable.app",
+      "sha256_cert_fingerprints": [
+        "REPLACE_WITH_UPLOAD_KEY_SHA256",
+        "REPLACE_WITH_DEBUG_KEY_SHA256"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "au.com.mapable.app.debug",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_DEBUG_KEY_SHA256"]
+    }
+  }
+]
