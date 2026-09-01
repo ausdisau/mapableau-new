@@ -1,0 +1,12 @@
+# MapAble Android — do not commit machine-local SDK paths
+local.properties
+.gradle/
+**/build/
+*.iml
+.idea/
+captures/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
