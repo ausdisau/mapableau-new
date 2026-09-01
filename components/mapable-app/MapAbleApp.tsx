@@ -41,7 +41,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 type Tab = "map" | "care" | "transport" | "jobs" | "profile";
 type TextSize = "normal" | "large" | "xlarge";
@@ -681,7 +681,505 @@ export function MapAbleApp() {
         <SettingsDrawer
           highContrast={highContrast}
           onClose={() => setShowSettings(false)}
-          setHighContrast={s…5182 tokens truncated…        : "border-[#d6e2dc] bg-white shadow-[0_8px_24px_rgba(32,75,62,0.05)]",
+          setHighContrast={setHighContrast}
+          setTextSize={setTextSize}
+          textSize={textSize}
+        />
+      )}
+
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+function LogoMark({ compact = false }: { compact?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cx(
+        "grid place-items-center rounded-2xl bg-[#173f36] font-heading font-extrabold text-white",
+        compact ? "h-9 w-9 text-sm" : "h-10 w-10 text-base",
+      )}
+    >
+      M
+    </span>
+  );
+}
+
+function IconButton({
+  children,
+  highContrast,
+  label,
+  onClick,
+  pressed,
+}: {
+  children: React.ReactNode;
+  highContrast: boolean;
+  label: string;
+  onClick: () => void;
+  pressed?: boolean;
+}) {
+  return (
+    <button
+      aria-label={label}
+      aria-pressed={pressed}
+      className={cx(
+        "relative grid h-11 w-11 place-items-center rounded-full transition",
+        highContrast
+          ? "text-white hover:bg-white/10"
+          : "text-[#173f36] hover:bg-[#e7f0eb]",
+        pressed && (highContrast ? "bg-white/15" : "bg-[#e7f0eb]"),
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+function NavButton({
+  active,
+  highContrast,
+  item,
+  onClick,
+}: {
+  active: boolean;
+  highContrast: boolean;
+  item: { id: Tab; label: string; icon: LucideIcon };
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-current={active ? "page" : undefined}
+      className={cx(
+        "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-extrabold transition",
+        active
+          ? highContrast
+            ? "bg-white/15 text-[#84f1ca]"
+            : "bg-[#e7f5ef] text-[#126f59]"
+          : "opacity-60 hover:opacity-100",
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      <item.icon size={18} strokeWidth={active ? 2.6 : 2} />
+      {item.label}
+    </button>
+  );
+}
+
+function ScreenHeader({
+  body,
+  eyebrow,
+  title,
+}: {
+  body: string;
+  eyebrow: string;
+  title: string;
+}) {
+  return (
+    <header className="mb-5">
+      <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#d66035]">
+        {eyebrow}
+      </p>
+      <h1 className="mt-1 font-heading text-2xl font-extrabold tracking-[-0.03em]">
+        {title}
+      </h1>
+      <p className="mt-1.5 max-w-2xl text-sm font-medium leading-relaxed opacity-55">
+        {body}
+      </p>
+    </header>
+  );
+}
+
+function NotificationsPanel({
+  highContrast,
+  onClose,
+}: {
+  highContrast: boolean;
+  onClose: () => void;
+}) {
+  useEscape(onClose);
+  const items = [
+    {
+      title: "Ride arriving soon",
+      body: "Your accessible sedan is 6 minutes away.",
+      time: "Now",
+    },
+    {
+      title: "Care booking confirmed",
+      body: "Amara T. is booked for Thursday at 10:00 am.",
+      time: "2h",
+    },
+    {
+      title: "New matching job",
+      body: "Library Assistant at City of Parramatta is 87% match.",
+      time: "Yesterday",
+    },
+  ];
+
+  return (
+    <div
+      className={cx(
+        "absolute inset-x-0 top-[4.5rem] z-40 mx-auto w-[calc(100%-1.5rem)] max-w-md overflow-hidden rounded-[24px] border shadow-2xl",
+        highContrast
+          ? "border-white/25 bg-black text-white"
+          : "border-[#d6e2dc] bg-white text-[#173f36]",
+      )}
+      role="dialog"
+      aria-label="Notifications"
+    >
+      <div className="flex items-center justify-between border-b border-current/10 px-4 py-3">
+        <p className="text-sm font-extrabold">Notifications</p>
+        <IconButton
+          highContrast={highContrast}
+          label="Close notifications"
+          onClick={onClose}
+        >
+          <X size={16} />
+        </IconButton>
+      </div>
+      <ul className="divide-y divide-current/10">
+        {items.map((item) => (
+          <li className="px-4 py-3" key={item.title}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-extrabold">{item.title}</p>
+                <p className="mt-0.5 text-xs font-medium opacity-55">
+                  {item.body}
+                </p>
+              </div>
+              <span className="shrink-0 text-[10px] font-bold opacity-40">
+                {item.time}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function MapScreen({
+  highContrast,
+  onSelectVenue,
+  onToast,
+  query,
+}: {
+  highContrast: boolean;
+  onSelectVenue: (venue: Venue) => void;
+  onToast: (message: string) => void;
+  query: string;
+}) {
+  const venues = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return VENUES;
+    return VENUES.filter(
+      (venue) =>
+        venue.name.toLowerCase().includes(q) ||
+        venue.category.toLowerCase().includes(q) ||
+        venue.tags.some((tag) => tag.toLowerCase().includes(q)),
+    );
+  }, [query]);
+
+  return (
+    <div className="mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
+      <ScreenHeader
+        body="Find accessible places near you — cafes, parks, libraries, and health centres."
+        eyebrow="Explore"
+        title="Accessible places nearby"
+      />
+      <div
+        className={cx(
+          "relative mb-5 overflow-hidden rounded-[28px] border",
+          highContrast
+            ? "border-white/25 bg-white/5"
+            : "border-[#d6e2dc] bg-white",
+        )}
+      >
+        <div
+          aria-hidden="true"
+          className={cx(
+            "relative h-56 w-full sm:h-72",
+            highContrast
+              ? "bg-[radial-gradient(circle_at_30%_40%,rgba(132,241,202,0.25),transparent_45%),linear-gradient(135deg,#0b1f1a,#12332b)]"
+              : "bg-[radial-gradient(circle_at_30%_40%,rgba(39,125,104,0.18),transparent_45%),linear-gradient(135deg,#e8f4ef,#f7faf8)]",
+          )}
+        >
+          {venues.map((venue) => (
+            <button
+              aria-label={`${venue.name}, ${venue.access} access`}
+              className="absolute grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white bg-[#173f36] text-white shadow-md transition hover:scale-110"
+              key={venue.id}
+              onClick={() => onSelectVenue(venue)}
+              style={{
+                left: `${venue.position[0]}%`,
+                top: `${venue.position[1]}%`,
+              }}
+              type="button"
+            >
+              <venue.icon size={16} />
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-current/10 px-4 py-3">
+          <p className="flex items-center gap-2 text-xs font-bold opacity-60">
+            <MapPin size={14} /> {venues.length} places match your search
+          </p>
+          <button
+            className="flex min-h-9 items-center gap-1.5 rounded-full border border-current/20 px-3 text-xs font-extrabold"
+            onClick={() => onToast("Filters opened")}
+            type="button"
+          >
+            <Filter size={13} /> Filters
+          </button>
+        </div>
+      </div>
+
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {venues.map((venue) => (
+          <li key={venue.id}>
+            <button
+              className={cx(
+                "flex w-full items-start gap-3 rounded-[24px] border p-4 text-left transition hover:-translate-y-0.5",
+                highContrast
+                  ? "border-white/25 bg-white/5"
+                  : "border-[#d6e2dc] bg-white shadow-[0_8px_24px_rgba(32,75,62,0.05)]",
+              )}
+              onClick={() => onSelectVenue(venue)}
+              type="button"
+            >
+              <span
+                className={cx(
+                  "grid h-11 w-11 shrink-0 place-items-center rounded-2xl",
+                  highContrast
+                    ? "bg-white/15"
+                    : "bg-[#e5f3ec] text-[#17634f]",
+                )}
+              >
+                <venue.icon size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h2 className="font-heading text-sm font-extrabold">
+                      {venue.name}
+                    </h2>
+                    <p className="mt-0.5 text-xs font-semibold opacity-45">
+                      {venue.category} · {venue.distance}
+                    </p>
+                  </div>
+                  <Badge
+                    highContrast={highContrast}
+                    tone={venue.access === "Full" ? "green" : "amber"}
+                  >
+                    {venue.access}
+                  </Badge>
+                </div>
+                <div className="mt-2">
+                  <StarRating rating={venue.rating} reviews={venue.reviews} />
+                </div>
+              </div>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CareScreen({
+  highContrast,
+  onBook,
+}: {
+  highContrast: boolean;
+  onBook: (item: CareProvider) => void;
+}) {
+  return (
+    <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+      <ScreenHeader
+        body="Browse verified support workers matched to your access preferences."
+        eyebrow="Care"
+        title="Support near you"
+      />
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Badge highContrast={highContrast} tone="green">
+          NDIS registered
+        </Badge>
+        <Badge highContrast={highContrast} tone="blue">
+          <Clock3 className="mr-1 inline" size={11} /> Available this week
+        </Badge>
+      </div>
+      <ul className="space-y-3">
+        {CARE_PROVIDERS.map((provider) => (
+          <li
+            className={cx(
+              "rounded-[24px] border p-4",
+              highContrast
+                ? "border-white/25 bg-white/5"
+                : "border-[#d6e2dc] bg-white shadow-[0_8px_24px_rgba(32,75,62,0.05)]",
+            )}
+            key={provider.id}
+          >
+            <div className="flex items-start gap-3">
+              <span
+                className={cx(
+                  "grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-heading text-sm font-extrabold text-white",
+                  provider.colour,
+                )}
+              >
+                {provider.initials}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h2 className="font-heading text-sm font-extrabold">
+                      {provider.name}
+                    </h2>
+                    <p className="mt-0.5 text-xs font-semibold opacity-45">
+                      {provider.role}
+                    </p>
+                  </div>
+                  <p className="text-sm font-extrabold">{provider.rate}</p>
+                </div>
+                <div className="mt-2">
+                  <StarRating
+                    rating={provider.rating}
+                    reviews={provider.reviews}
+                  />
+                </div>
+                <div className="my-3 flex flex-wrap gap-1.5">
+                  {provider.tags.map((tag) => (
+                    <Badge highContrast={highContrast} key={tag}>
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                <PrimaryButton onClick={() => onBook(provider)}>
+                  Book support
+                </PrimaryButton>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function TransportScreen({
+  highContrast,
+  onBook,
+}: {
+  highContrast: boolean;
+  onBook: (item: TransportOption) => void;
+}) {
+  return (
+    <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+      <ScreenHeader
+        body="Choose an accessible ride that matches your mobility needs."
+        eyebrow="Transport"
+        title="Accessible rides"
+      />
+      <div
+        className={cx(
+          "mb-4 flex items-center gap-3 rounded-[24px] border p-4",
+          highContrast
+            ? "border-white/25 bg-white/5"
+            : "border-[#d6e2dc] bg-white",
+        )}
+      >
+        <Navigation className="text-[#d66035]" size={20} />
+        <div>
+          <p className="text-sm font-extrabold">
+            Current location → Destination
+          </p>
+          <p className="text-xs font-semibold opacity-45">
+            Share access needs before confirming a ride
+          </p>
+        </div>
+      </div>
+      <ul className="space-y-3">
+        {TRANSPORT_OPTIONS.map((option) => (
+          <li
+            className={cx(
+              "rounded-[24px] border p-4",
+              highContrast
+                ? "border-white/25 bg-white/5"
+                : "border-[#d6e2dc] bg-white shadow-[0_8px_24px_rgba(32,75,62,0.05)]",
+            )}
+            key={option.id}
+          >
+            <div className="flex items-start gap-3">
+              <span
+                className={cx(
+                  "grid h-11 w-11 shrink-0 place-items-center rounded-2xl",
+                  highContrast
+                    ? "bg-white/15"
+                    : "bg-[#e5f3ec] text-[#17634f]",
+                )}
+              >
+                <option.icon size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h2 className="font-heading text-sm font-extrabold">
+                      {option.type}
+                    </h2>
+                    <p className="mt-0.5 text-xs font-semibold opacity-45">
+                      {option.capacity}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-extrabold">{option.price}</p>
+                    <p className="text-xs font-bold text-[#267862]">
+                      {option.eta}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <PrimaryButton onClick={() => onBook(option)}>
+                    Book this ride
+                  </PrimaryButton>
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function JobsScreen({
+  highContrast,
+  onApply,
+  onToast,
+}: {
+  highContrast: boolean;
+  onApply: (item: Job) => void;
+  onToast: (message: string) => void;
+}) {
+  return (
+    <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+      <ScreenHeader
+        body="Roles that respect accessibility needs and flexible working."
+        eyebrow="Work"
+        title="Jobs matched to you"
+      />
+      <div className="mb-4 flex items-center gap-2 text-xs font-bold opacity-55">
+        <Plus size={14} /> {JOBS.length} roles ready to explore
+      </div>
+      <div className="space-y-3">
+        {JOBS.map((job) => (
+          <div
+            className={cx(
+              "rounded-[24px] border p-4",
+              highContrast
+                ? "border-white/25 bg-white/5"
+                : "border-[#d6e2dc] bg-white shadow-[0_8px_24px_rgba(32,75,62,0.05)]",
             )}
             key={job.id}
           >
@@ -728,6 +1226,7 @@ export function MapAbleApp() {
 }
 
 function ProfileScreen({
+
   highContrast,
   onToast,
 }: {
