@@ -1,17 +1,18 @@
 import type { LivingAccessGraphSnapshot } from "./types";
+import {
+  projectEdgeProvenance,
+  projectNodeProvenance,
+  type AccessGraphEdgeListItemWithProvenance,
+  type AccessGraphListItemWithProvenance,
+} from "./provenance-projection";
 
-export type AccessGraphListItem = {
-  id: string;
-  kind: string;
-  label: string;
-  summary: string;
-  temporalState: string;
-  evidenceClass: string;
-  canonicalRef: string | null;
-};
+export type AccessGraphListItem = AccessGraphListItemWithProvenance;
+export type AccessGraphEdgeListItem = AccessGraphEdgeListItemWithProvenance;
 
 /** Accessible list alternative to any graph visualisation. */
-export function projectGraphToList(graph: LivingAccessGraphSnapshot): AccessGraphListItem[] {
+export function projectGraphToList(
+  graph: LivingAccessGraphSnapshot,
+): AccessGraphListItem[] {
   return graph.nodes.map((n) => ({
     id: n.id,
     kind: n.kind,
@@ -20,19 +21,13 @@ export function projectGraphToList(graph: LivingAccessGraphSnapshot): AccessGrap
     temporalState: n.temporalState,
     evidenceClass: n.evidenceClass,
     canonicalRef: n.canonicalRef,
+    provenance: projectNodeProvenance(n),
   }));
 }
 
-export type AccessGraphEdgeListItem = {
-  id: string;
-  from: string;
-  to: string;
-  kind: string;
-  label: string;
-  temporalState: string;
-};
-
-export function projectEdgesToList(graph: LivingAccessGraphSnapshot): AccessGraphEdgeListItem[] {
+export function projectEdgesToList(
+  graph: LivingAccessGraphSnapshot,
+): AccessGraphEdgeListItem[] {
   return graph.edges.map((e) => ({
     id: e.id,
     from: e.from,
@@ -40,5 +35,6 @@ export function projectEdgesToList(graph: LivingAccessGraphSnapshot): AccessGrap
     kind: e.kind,
     label: e.label,
     temporalState: e.temporalState,
+    provenance: projectEdgeProvenance(e, graph.generatedAt),
   }));
 }

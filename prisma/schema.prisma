@@ -7644,6 +7644,8 @@ model AccessObservationRecord {
   verificationStatus   AccessProvenanceStatus @default(unknown) @map("verification_status")
   confidence           Float?
   reviewDue            DateTime?              @map("review_due")
+  expiresAt            DateTime?              @map("expires_at")
+  disputeHistory       Json?                  @map("dispute_history")
   disputed             Boolean                @default(false)
   placeId              String?                @map("place_id")
   place                AccessPlace?           @relation(fields: [placeId], references: [id], onDelete: SetNull)
