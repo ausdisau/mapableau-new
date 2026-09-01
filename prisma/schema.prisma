@@ -277,6 +277,7 @@ model User {
   governedActionEnvelopesInitiated        GovernedActionEnvelope[]    @relation("GovernedEnvelopeInitiator")
   navigatorDecisionPassports              NavigatorDecisionPassport[] @relation("NavigatorPassportParticipant")
   navigatorGovernedMemoryItems            NavigatorGovernedMemoryItem[] @relation("NavigatorMemoryParticipant")
+  externalAccountLinks                 ExternalAccountLink[]
 }
 
 model PasskeyCredential {
@@ -6799,6 +6800,27 @@ model IdentityProviderLink {
   @@unique([provider, externalSubjectId])
   @@index([userId])
 }
+
+
+model ExternalAccountLink {
+  id                   String    @id @default(cuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider             String
+  /// SHA-256 hash of provider:subject — never store raw OAuth tokens.
+  externalSubjectHash  String
+  status               String    @default("LINKED")
+  linkedAt             DateTime  @default(now())
+  lastVerifiedAt       DateTime?
+  revokedAt            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([provider, externalSubjectHash])
+  @@index([userId, provider])
+  @@map("external_account_links")
+}
+
 
 model AuthIdentityLink {
   id           String   @id @default(cuid())

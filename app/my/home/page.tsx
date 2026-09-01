@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AlexaAccountLinkCard } from "@/components/home/AlexaAccountLinkCard";
 import { mapableHomeFlags } from "@/lib/config/mapable-home";
 import { requirePersonalAgencyGate } from "@/lib/personal-agency/gates";
+import {
+  getAlexaAccountLinkingPublicStatus,
+  isAlexaAccountLinkingConfigured,
+} from "@/lib/home/adapters/alexa/account-linking-config";
+import { getAlexaLinkStatusForUser } from "@/lib/home/adapters/alexa/account-link-service";
 import {
   getHomeEnvironmentSnapshot,
   listSimulatorRoutines,
@@ -15,7 +21,7 @@ export const metadata = {
 };
 
 export default async function MyHomePage() {
-  await requirePersonalAgencyGate();
+  const user = await requirePersonalAgencyGate();
 
   if (!mapableHomeFlags.enabled || !mapableHomeFlags.simulatorEnabled) {
     redirect("/my");
@@ -23,6 +29,10 @@ export default async function MyHomePage() {
 
   const snapshot = await getHomeEnvironmentSnapshot();
   const routines = listSimulatorRoutines();
+  const alexaLink = await getAlexaLinkStatusForUser(user.id);
+  const alexaConfigured = isAlexaAccountLinkingConfigured();
+  // Touch public status helper so operators never see secrets in UI paths.
+  void getAlexaAccountLinkingPublicStatus();
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
@@ -130,6 +140,12 @@ export default async function MyHomePage() {
             through the Home APIs.
           </p>
         </section>
+
+        <AlexaAccountLinkCard
+          link={alexaLink}
+          configured={alexaConfigured}
+          linkingEnabled={mapableHomeFlags.alexaAccountLinkingEnabled}
+        />
 
         <section
           className="rounded-2xl border border-slate-200 bg-white p-5"
