@@ -8,6 +8,16 @@ import { requirePersonalAgencyGate } from "@/lib/personal-agency/gates";
 import { listLifeIntentsForPrincipal } from "@/lib/personal-agency/life-intent-service";
 import { needsFirstRunSetup } from "@/lib/personal-agency/setup-service";
 import { prisma } from "@/lib/prisma";
+import {
+  AppGrid,
+  BookingRow,
+  EmptyState,
+  ModuleCard,
+  PageHeader,
+  Section,
+  Timeline,
+  type TimelineItem,
+} from "@mapable/ui";
 
 export const metadata = { title: "My MapAble" };
 
@@ -15,6 +25,35 @@ function greetingForHour(hour: number): string {
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   return "Good evening";
+}
+
+function formatTime(date: Date): string {
+  return new Intl.DateTimeFormat("en-AU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-AU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}
+
+function summarizeAccessProfile(
+  mobilityNeeds: unknown,
+  communicationPreferences: unknown,
+): string {
+  const mobility = Array.isArray(mobilityNeeds) ? mobilityNeeds.length : 0;
+  const comm = Array.isArray(communicationPreferences)
+    ? communicationPreferences.length
+    : 0;
+  const parts: string[] = [];
+  if (mobility > 0) parts.push(`${mobility} mobility need${mobility === 1 ? "" : "s"}`);
+  if (comm > 0) parts.push(`${comm} communication preference${comm === 1 ? "" : "s"}`);
+  return parts.length ? parts.join(" · ") : "Add your access needs so providers can support you well.";
 }
 
 export default async function MyHomePage() {
@@ -35,7 +74,14 @@ export default async function MyHomePage() {
   const endOfDay = new Date(now);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const [todayBookings, lifeIntents] = await Promise.all([
+  const [
+    todayBookings,
+    lifeIntents,
+    accessibilityProfile,
+    supportProfile,
+    activeCareRequests,
+    upcomingTransport,
+  ] = await Promise.all([
     prisma.booking.findMany({
       where: {
         participantId: user.id,
@@ -43,7 +89,7 @@ export default async function MyHomePage() {
         status: { notIn: ["cancelled"] },
       },
       orderBy: { requestedStart: "asc" },
-      take: 5,
+      take: 8,
       select: {
         id: true,
         bookingType: true,
@@ -55,79 +101,155 @@ export default async function MyHomePage() {
     personalAgencyFlags.lifeIntentsEnabled
       ? listLifeIntentsForPrincipal(user.id).catch(() => [])
       : Promise.resolve([]),
+    prisma.accessibilityProfile.findUnique({
+      where: { userId: user.id },
+      select: {
+        mobilityNeeds: true,
+        communicationPreferences: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.supportProfile.findUnique({
+      where: { participantId: user.id },
+      select: { publishedAt: true, updatedAt: true },
+    }),
+    prisma.careRequest.count({
+      where: {
+        participantId: user.id,
+        status: {
+          in: [
+            "submitted",
+            "awaiting_admin_review",
+            "awaiting_provider_response",
+            "matched",
+            "confirmed",
+            "in_progress",
+          ],
+        },
+      },
+    }),
+    prisma.transportTripRequest.findMany({
+      where: {
+        participantId: user.id,
+        scheduledStart: { gte: startOfDay },
+        status: { notIn: ["cancelled", "completed"] },
+      },
+      orderBy: { scheduledStart: "asc" },
+      take: 3,
+      select: {
+        id: true,
+        pickupSuburb: true,
+        dropoffSuburb: true,
+        scheduledStart: true,
+        status: true,
+      },
+    }),
   ]);
 
   const firstName = user.name.split(/\s+/)[0] ?? user.name;
   const greeting = greetingForHour(now.getHours());
 
+  const timelineItems: TimelineItem[] = todayBookings.map((booking) => ({
+    id: booking.id,
+    time: formatTime(booking.requestedStart),
+    title: (booking.careLocation ??
+      booking.bookingType.replace(/_/g, " ")) as string,
+    status: booking.status.replace(/_/g, " "),
+  }));
+
+  const accessSummary = accessibilityProfile
+    ? summarizeAccessProfile(
+        accessibilityProfile.mobilityNeeds,
+        accessibilityProfile.communicationPreferences,
+      )
+    : "Set up your accessibility profile so support matches your needs.";
+
+  const supportMeta = supportProfile?.publishedAt
+    ? "Support profile published"
+    : supportProfile
+      ? "Support profile draft"
+      : undefined;
+
   return (
     <div className="space-y-10">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#005B7F]">
-          My MapAble
-        </p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0C1833]">
-          {greeting}, {firstName}
-        </h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          Tell MapAble what matters to you. MapAble can help assemble your options. You stay
-          in control of what happens next.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="My MapAble"
+        title={`${greeting}, ${firstName}`}
+        description={`${formatDate(now)} — Tell MapAble what matters to you. You stay in control of what happens next.`}
+      />
 
       <MyMapAbleAskPrompt />
 
-      <section aria-labelledby="today-heading">
-        <h2 id="today-heading" className="text-xl font-bold">
-          Today
-        </h2>
-        {todayBookings.length ? (
-          <ul className="mt-4 space-y-3">
-            {todayBookings.map((booking) => (
-              <li
-                key={booking.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3"
-              >
-                <div>
-                  <p className="font-semibold capitalize">
-                    {booking.careLocation ?? booking.bookingType.replace(/_/g, " ")}
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    {new Intl.DateTimeFormat("en-AU", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }).format(booking.requestedStart)}
-                  </p>
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-[#005B7F]">
-                  {booking.status.replace(/_/g, " ")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
-            Nothing scheduled for today. When you have bookings, they will appear here.
-          </p>
-        )}
-      </section>
+      <Section title="Today" titleId="today-heading">
+        <Timeline
+          items={timelineItems}
+          emptyMessage="Nothing scheduled for today. When you have bookings, they will appear here."
+          renderItem={(item) => (
+            <BookingRow
+              title={item.title}
+              time={item.time ?? ""}
+              status={item.status ?? ""}
+            />
+          )}
+        />
+      </Section>
 
-      <section aria-labelledby="matters-heading">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 id="matters-heading" className="text-xl font-bold">
-            What matters to me
-          </h2>
-          {personalAgencyFlags.lifeIntentsEnabled ? (
+      <Section title="Your modules" titleId="modules-heading">
+        <AppGrid columns={3}>
+          <ModuleCard
+            title="Access snapshot"
+            eyebrow="Accessibility"
+            description={accessSummary}
+            meta={supportMeta}
+            href="/dashboard/accessibility"
+            linkComponent={Link}
+          />
+          <ModuleCard
+            title="Care"
+            eyebrow="Support"
+            description={
+              activeCareRequests > 0
+                ? `${activeCareRequests} active care request${activeCareRequests === 1 ? "" : "s"}`
+                : "Request or manage care support."
+            }
+            href="/care"
+            linkComponent={Link}
+          />
+          <ModuleCard
+            title="Transport"
+            eyebrow="Trips"
+            description={
+              upcomingTransport.length > 0
+                ? `Next: ${upcomingTransport[0].pickupSuburb ?? "pickup"} → ${upcomingTransport[0].dropoffSuburb ?? "dropoff"}`
+                : "Plan and track accessible transport."
+            }
+            meta={
+              upcomingTransport[0]
+                ? formatTime(upcomingTransport[0].scheduledStart)
+                : undefined
+            }
+            href="/dashboard/transport"
+            linkComponent={Link}
+          />
+        </AppGrid>
+      </Section>
+
+      <Section
+        title="What matters to me"
+        titleId="matters-heading"
+        action={
+          personalAgencyFlags.lifeIntentsEnabled ? (
             <Link
               href="/my/life/new"
               className="text-sm font-semibold text-[#005B7F] hover:underline"
             >
               + Add something
             </Link>
-          ) : null}
-        </div>
+          ) : undefined
+        }
+      >
         {lifeIntents.length ? (
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+          <ul className="grid gap-4 sm:grid-cols-2">
             {lifeIntents.slice(0, 4).map((intent) => (
               <li key={intent.id}>
                 <LifeIntentCard
@@ -139,32 +261,24 @@ export default async function MyHomePage() {
             ))}
           </ul>
         ) : (
-          <div className="mt-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
-            <p className="text-sm text-slate-700">Nothing here yet.</p>
-            <p className="mt-2 text-sm text-slate-600">
-              What would you like to do, change, explore or work towards?
-            </p>
-            {personalAgencyFlags.lifeIntentsEnabled ? (
-              <Link
-                href="/my/life/new"
-                className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-[#005B7F] px-4 py-2 text-sm font-semibold text-white"
-              >
-                Add something that matters
-              </Link>
-            ) : (
-              <p className="mt-3 text-xs text-slate-500">
-                Life intents are in development behind feature flags.
-              </p>
-            )}
-          </div>
+          <EmptyState
+            title="Nothing here yet."
+            description="What would you like to do, change, explore or work towards?"
+            actionLabel={
+              personalAgencyFlags.lifeIntentsEnabled
+                ? "Add something that matters"
+                : undefined
+            }
+            actionHref={
+              personalAgencyFlags.lifeIntentsEnabled ? "/my/life/new" : undefined
+            }
+            linkComponent={Link}
+          />
         )}
-      </section>
+      </Section>
 
-      <section aria-labelledby="quick-actions-heading">
-        <h2 id="quick-actions-heading" className="text-xl font-bold">
-          Quick actions
-        </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <Section title="Quick actions" titleId="quick-actions-heading">
+        <AppGrid columns={3}>
           {[
             { href: "/go", label: "Go somewhere" },
             { href: "/dashboard/find-support", label: "Find support" },
@@ -173,17 +287,15 @@ export default async function MyHomePage() {
             { href: "/my/people", label: "My people" },
             { href: "/my/devices", label: "My devices" },
           ].map((action) => (
-            <li key={action.href}>
-              <Link
-                href={action.href}
-                className="flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#005B7F] hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-              >
-                {action.label}
-              </Link>
-            </li>
+            <ModuleCard
+              key={action.href}
+              title={action.label}
+              href={action.href}
+              linkComponent={Link}
+            />
           ))}
-        </ul>
-      </section>
+        </AppGrid>
+      </Section>
     </div>
   );
 }
