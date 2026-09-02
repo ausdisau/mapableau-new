@@ -48,6 +48,7 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
+  "data-testid"?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -60,6 +61,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       loading = false,
       children,
       disabled,
+      "data-testid": dataTestId,
       ...props
     },
     ref,
@@ -70,7 +72,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || loading}
-        data-testid={props["data-testid"] ?? "mapable-button"}
+        data-testid={dataTestId ?? "mapable-button"}
         {...props}
       >
         {loading ? (

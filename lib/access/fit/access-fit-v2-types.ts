@@ -210,7 +210,9 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
     id: "low_sensory",
     label: "Quiet or low-sensory option",
     isSelected: (p) =>
-      p.lowSensoryNeeded || p.quietAreaPreferred || p.lowStimulusPreferred,
+      Boolean(
+        p.lowSensoryNeeded || p.quietAreaPreferred || p.lowStimulusPreferred,
+      ),
     evaluate: (_p, place) =>
       boolFit(
         place.lowSensoryOption,
@@ -237,7 +239,9 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
     id: "communication_support",
     label: "Staff communication support",
     isSelected: (p) =>
-      p.AuslanNeeded || p.AACFriendlyNeeded || p.textCommunicationPreferred,
+      Boolean(
+        p.AuslanNeeded || p.AACFriendlyNeeded || p.textCommunicationPreferred,
+      ),
     evaluate: (_p, place) =>
       boolFit(
         place.staffTraining,
