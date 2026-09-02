@@ -152,3 +152,11 @@ export async function canShareAccessibilityWithOrganisation(
 }
 
 export type { PrismaConsentScope };
+
+/**
+ * Service-lane consent (ConsentRecord) is orthogonal to research-lane consent
+ * (ResearchConsentRecord). Granting one never implies the other.
+ */
+export function isServiceLaneConsentScope(_scope: ConsentScope): true {
+  return true;
+}

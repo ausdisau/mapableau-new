@@ -23,6 +23,12 @@ export default async function ResearchHubPage() {
       <ResearchGovernanceNotice />
 
       <nav className="flex gap-4 text-sm">
+        <Link href="/admin/research" className="underline">
+          Co-design governance
+        </Link>
+        <Link href="/research/participation" className="underline">
+          Participant participation
+        </Link>
         <Link href="/admin/analytics" className="underline">
           Analytics cloud
         </Link>
