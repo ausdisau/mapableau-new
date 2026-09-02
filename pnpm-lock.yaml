@@ -312,6 +312,12 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  packages/research:
+    dependencies:
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+
   packages/ui:
     dependencies:
       '@radix-ui/react-slot':
