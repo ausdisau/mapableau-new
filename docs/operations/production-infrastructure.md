@@ -36,6 +36,32 @@ production deployment URL is verified with the smoke checks below.
 | `GPT_OSS_BASE_URL` / `GPT_OSS_API_KEY`                 | Optional                      | Self-hosted OpenAI-compatible override only. **Not required** for `mapable.com.au` — use AI Gateway + `openai/gpt-oss-120b`.                 |
 | `POSTHOG_API_KEY` / `POSTHOG_HOST`                     | If analytics enabled          | Required for LLM analytics capture.                                                                                                           |
 
+## Vercel Build & Output Settings (Next.js)
+
+Repo `vercel.json` sets `"framework": "nextjs"` and **must not** set
+`outputDirectory`. Next.js on Vercel uses the framework builder (`.next` /
+Build Output API), not a CRA-style static `build/` folder.
+
+If Project Settings → Build & Output Settings → **Output Directory** is set to
+`build` (or any static path), production deploys fail after a successful Next
+compile with:
+
+`No Output Directory named "build" found after the Build completed.`
+
+**Required dashboard fix (cannot be cleared by git alone):**
+
+1. Open Vercel → team **mapableau** → project **mapableau**.
+2. Settings → Build & Output Settings.
+3. Framework Preset: **Next.js** (or leave Override OFF so `vercel.json` wins).
+4. Output Directory: clear the value / set Override to **OFF** (leave blank).
+5. Save, then Redeploy the latest `main` deployment (or push an empty commit).
+
+CLI equivalent when authenticated against the project:
+
+```bash
+vercel project update mapableau --scope mapableau --framework nextjs --auto-detect output-directory
+```
+
 ## Deployment sequence
 
 1. Confirm the Vercel team subscription is active.

@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
-import { MAPABLE_DONATION_URL } from "@/lib/brand/constants";
+import { PayPalDonateButton } from "@/components/paypal/PayPalDonateButton";
 import { marketingFeatureRoutes } from "@/lib/marketing/mapable-care-routes";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
@@ -39,23 +39,6 @@ function useDismissOnOutsideAndEscape(
 }
 
 const navLinkClass = `inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-black text-[#0C1833] transition hover:bg-slate-50 ${mapableCareFocusRing}`;
-
-function DonateHeaderLink({ compact = false }: { compact?: boolean }) {
-  const className = compact
-    ? `inline-flex min-h-11 items-center justify-center rounded-xl bg-[#F8C51C] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] ${mapableCareFocusRing}`
-    : `inline-flex min-h-11 items-center rounded-xl bg-[#F8C51C] px-4 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] md:px-5 ${mapableCareFocusRing}`;
-
-  return (
-    <a
-      href={MAPABLE_DONATION_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-    >
-      Donate
-    </a>
-  );
-}
 
 function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
   const className = compact ? "flex flex-col gap-2" : "flex items-center gap-3";
@@ -125,7 +108,7 @@ export function MarketingPrimaryNav() {
         <div className="hidden md:block">
           <AccessibilityPanelTrigger />
         </div>
-        <DonateHeaderLink />
+        <PayPalDonateButton />
         <div className="hidden md:flex">
           <MarketingAuthLinks />
         </div>
