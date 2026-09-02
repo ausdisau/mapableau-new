@@ -26,6 +26,7 @@
       "@mapable/domain-transport": ["packages/domain-transport/src/index.ts"],
       "@mapable/domain-provider": ["packages/domain-provider/src/index.ts"],
       "@mapable/domain-workforce": ["packages/domain-workforce/src/index.ts"],
+      "@mapable/research": ["packages/research/src/index.ts"],
       "@mapable/ui": ["packages/ui/src/index.ts"]
     },
     "target": "ES2021"
