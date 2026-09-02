@@ -5,6 +5,7 @@ import {
   isClinicalDomain,
   isFinancialDomain,
 } from "@/lib/config/identity-authority";
+import { validateDelegateConsentScopes } from "@/lib/passport";
 import { prisma } from "@/lib/prisma";
 
 const FORBIDDEN_INHERITED_ACTIONS = [
@@ -63,6 +64,11 @@ export async function inviteDelegate(input: {
     domain: input.proposedDomain,
     actions: input.proposedActions,
   });
+
+  await validateDelegateConsentScopes(
+    input.participantId,
+    input.proposedConsentScopes,
+  );
 
   const invitee = await prisma.user.findUnique({
     where: { email: input.inviteeEmail.toLowerCase() },
@@ -149,6 +155,11 @@ export async function respondToDelegateInvitation(input: {
     domain: invitation.proposedDomain,
     actions: invitation.proposedActions,
   });
+
+  await validateDelegateConsentScopes(
+    invitation.participantId,
+    invitation.proposedConsentScopes,
+  );
 
   const grant = await grantParticipantAuthority({
     participantId: invitation.participantId,
