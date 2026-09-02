@@ -95,6 +95,7 @@ Every Epic is designed around:
 - [implementation-roadmap.md](./implementation-roadmap.md) — sequenced PR programme
 - [research-translation-model.md](./research-translation-model.md) — MRFF-informed sequencing rationale
 - [Superpowers phase plans](../superpowers/plans/README.md) — executable prompt series
+- [co-design-governance.md](./co-design-governance.md) — disability-led research governance (Prompt 01)
 - [PORTFOLIO_DEPENDENCY_MAP.md](./PORTFOLIO_DEPENDENCY_MAP.md)
 - [PORTFOLIO_STAGE_GATES.md](./PORTFOLIO_STAGE_GATES.md)
 - [PORTFOLIO_KPIS.md](./PORTFOLIO_KPIS.md)

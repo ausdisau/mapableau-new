@@ -38,6 +38,10 @@ export default defineConfig({
         __dirname,
         "packages/domain-workforce/src/index.ts"
       ),
+      "@mapable/research": path.resolve(
+        __dirname,
+        "packages/research/src/index.ts"
+      ),
       "@mapable/ui": path.resolve(__dirname, "packages/ui/src/index.ts"),
     },
   },

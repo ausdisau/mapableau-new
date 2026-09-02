@@ -172,7 +172,11 @@ export async function listResearchProjects(limit = 20) {
     take: limit,
     include: {
       ethicsApprovals: { where: { status: "approved" }, take: 1 },
-      _count: { select: { consents: true, cohorts: true } },
+      coDesignProgrammes: {
+        select: { id: true, title: true, status: true },
+        orderBy: { createdAt: "desc" },
+      },
+      _count: { select: { consents: true, cohorts: true, coDesignProgrammes: true } },
     },
   });
 
@@ -190,6 +194,12 @@ export async function getResearchProject(projectId: string) {
       cohorts: true,
       publications: true,
       withdrawals: true,
+      coDesignProgrammes: {
+        include: {
+          participants: { select: { id: true, role: true, status: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }
