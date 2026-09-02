@@ -19,6 +19,7 @@ Recovery never bypasses the kernel for operational writes.
 
 See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
 
+
 ## Connector Gateway integration (Prompt 09)
 
 External writes that leave MapAble must pass:
@@ -27,4 +28,3 @@ External writes that leave MapAble must pass:
 
 Agents must not call external APIs directly or receive connector credentials.
 See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
-

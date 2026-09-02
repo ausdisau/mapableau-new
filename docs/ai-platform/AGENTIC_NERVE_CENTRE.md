@@ -211,6 +211,7 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 - Selecting an alternative updates candidate plan and may prepare Action Kernel proposals; never auto-executes
 
 
+
 ## Governed Connector Gateway (Prompt 09)
 
 Single boundary for external reads/writes. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
@@ -224,11 +225,17 @@ External Source → Connector Gateway → Context Fabric–compatible records
 - Flags: `MAPABLE_CONNECTOR_GATEWAY_ENABLED` + per-connector flags + kill switches (all default **false**)
 - Agents never receive raw credentials; writes require Prompt 02 approved envelopes
 - External content is DATA only (prompt-injection quarantined)
-
 ## Admin surfaces
 
 - `GET /api/ai/agents`, `GET /api/ai/agents/:id`, `POST /api/ai/agents/activation-preview` (admin, read-only preview).
 - `/admin/ai/agents` — WCAG-oriented governance table.
+
+## Release governance (Prompt 12)
+
+Release readiness gates live in `lib/ai/platform/release-governance/`.
+They do **not** enable controlled pilot or production. Admin readiness view:
+`/admin/ai/release-readiness` (flag-gated, read-only). See
+[RELEASE_GOVERNANCE.md](./RELEASE_GOVERNANCE.md).
 
 ## Context Fabric (Prompt 04)
 

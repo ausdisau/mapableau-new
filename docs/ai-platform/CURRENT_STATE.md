@@ -109,6 +109,30 @@ See [ADAPTIVE_RECOVERY_ENGINE.md](./ADAPTIVE_RECOVERY_ENGINE.md).
 | Durable event/version persistence | Deferred (in-memory; Prompt 03A if required) |
 
 
+## AI Control Plane (Prompt 11 — not production-live)
+
+Reliability + observability + cost control when `MAPABLE_AI_CONTROL_PLANE_ENABLED=true`.
+Implementation: `lib/ai/platform/control-plane/`. Admin: `/admin/ai/control-plane`.
+Observes system health only — never scores participants. See [CONTROL_PLANE.md](./CONTROL_PLANE.md).
+
+## Release Governance (Prompt 12 — gates only; pilot not enabled)
+
+Deterministic release readiness, cohort controls, and public-claim gates when
+`MAPABLE_RELEASE_GOVERNANCE_ENABLED=true`. Implementation:
+`lib/ai/platform/release-governance/`. Admin (read-only):
+`/admin/ai/release-readiness`. Does **not** enable pilots or production releases.
+Approvals remain null until real human sign-off. See
+[RELEASE_GOVERNANCE.md](./RELEASE_GOVERNANCE.md).
+
+| Surface | Status |
+|---------|--------|
+| Release manifests (code-defined) | Implemented — experimental/internal_test, approvals null |
+| Readiness GO/NO-GO (`READY_FOR_REVIEW` / `NOT_READY` / `BLOCKED`) | Implemented |
+| Server-side cohort store | Implemented (in-memory; revocable) |
+| Public claim mismatch rejection | Implemented |
+| Pilot / production flags | **Remain off** |
+| Authority expansion | **None** |
+
 ## Context Fabric + Temporal Event Bus (Prompt 04 — not production-live)
 
 Provenance-aware operational context perception when
