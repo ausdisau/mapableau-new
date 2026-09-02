@@ -35,6 +35,24 @@ Positioning: *An evidence-aware, participant-controlled copilot for complete dis
 | navigator.provider_search.match | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENABLED (+ MATCHING) off |
 | navigator.provider_search.draft_service_request | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENVELOPES off |
 | navigator.provider_search.escalate | deterministic | experimental | MAPABLE_NAVIGATOR_PILOT_ENABLED off |
+| matching.options_engine | deterministic | experimental | MAPABLE_OPTIONS_ENGINE_ENABLED off |
+| matching.options_model_explanation | deterministic | experimental | MAPABLE_OPTIONS_MODEL_EXPLANATION_ENABLED off |
+
+### Relational Intelligence (registered, not live)
+
+All relational keys default **false**. Production enablement remains blocked until Phase 08 GO.
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| relational.interpret | hybrid | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.clarify | model_backed | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_MODEL_ASSISTED off |
+| relational.explain | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ENABLED off |
+| relational.draft | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_DRAFT off |
+| access.search.read | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_ACCESS_SEARCH off |
+| human.help.request | deterministic | experimental | MAPABLE_RELATIONAL_INTELLIGENCE_HUMAN_HELP off |
+
+Communication Passport SoT for relational UX: `lib/support/communication-passport` (see `lib/ai/relational/communication-passport.ts`).
+Provider Finder chat now routes through `assertProviderFinderChatAllowed` (deterministic fallback when `SEARCH_AGENT_ENABLED` off).
 
 ### Relational Intelligence (registered, not live)
 
@@ -123,6 +141,19 @@ See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
 | Durable context/event persistence | Deferred (in-memory; Prompt 04A if required) |
 | Authority expansion | None |
 
+## Explainable Options Engine (Prompt 07 — not production-live)
+
+Participant-directed explainable options when `MAPABLE_OPTIONS_ENGINE_ENABLED=true`.
+Implementation: `lib/ai/platform/options-engine/`. See [OPTIONS_ENGINE.md](./OPTIONS_ENGINE.md).
+
+| Surface | Status |
+|---------|--------|
+| Generate / rank / choose APIs | Implemented, flag-gated |
+| My MapAble OptionsComparison | Implemented, flag-gated |
+| Consolidation over care / navigator / transport / jobs / access matching | Facade only — existing SoRs retained |
+| Action Kernel proposal on choose | Prepare only (Prompt 02) |
+| Durable session persistence | Deferred (in-memory; Prompt 07A if required) |
+| Authority expansion | None |
 
 ## Governed Connector Gateway (Prompt 09 — not production-live)
 

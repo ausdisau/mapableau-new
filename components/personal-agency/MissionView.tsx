@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { ActionReview } from "@/components/personal-agency/ActionReview";
+import { OptionsComparison } from "@/components/personal-agency/OptionsComparison";
 import type { MapAbleActionProposal } from "@/lib/ai/platform/actions";
 import type {
   MapAbleMissionPlan,
@@ -334,6 +335,21 @@ export function MissionView({
               </ul>
             </div>
           ) : null}
+
+          <OptionsComparison
+            domain={
+              plan.domains.includes("transport")
+                ? "transport"
+                : plan.domains.includes("jobs")
+                  ? "jobs"
+                  : plan.domains.includes("access")
+                    ? "access"
+                    : "care"
+            }
+            missionId={plan.missionId}
+            candidatesPayload={[]}
+            requirementsPayload={[]}
+          />
 
           {recoveryState ? (
             <section

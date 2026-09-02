@@ -35,8 +35,6 @@ export async function GET(req: Request, context: RouteContext) {
 
   const url = new URL(req.url);
   const tenantId = url.searchParams.get("tenantId") ?? "default";
-  const participantId =
-    url.searchParams.get("participantId") ?? user.id;
   const consentScopes = (url.searchParams.get("consentScopes") ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -44,12 +42,12 @@ export async function GET(req: Request, context: RouteContext) {
 
   const result = queryMissionContext({
     missionId,
-    participantId,
+    participantId: plan.participantId,
     tenantId,
     consentScopes,
     actor: {
       actorId: user.id,
-      role: user.id === participantId ? "participant" : "admin",
+      role: user.id === plan.participantId ? "participant" : "admin",
       tenantId,
     },
   });
