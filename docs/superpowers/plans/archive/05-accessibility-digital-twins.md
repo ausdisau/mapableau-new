@@ -1,4 +1,6 @@
-# Prompt 05 — Accessibility Digital Twins
+> **Archived:** 2026-09-02 — Deferred post-demonstrator; evidence-backed twins only. Not on critical path.
+
+# Prompt 05 — Accessibility Digital Twins (archived)
 
 ## Objective
 

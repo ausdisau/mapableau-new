@@ -13,9 +13,10 @@ Implement production AI evidence architecture: AI proposes; deterministic geospa
 
 ## Prerequisites
 
-- Prompt 01 merged (graph ingestion)
+- Prompt 03 merged (provenance and ingestion pipeline)
 - Prompt 08 merged (privacy lanes)
-- Portfolio epic: [E04 Access Intelligence Vision](../innovation/epics/04-access-intelligence-vision.md)
+- Supersedes archived [04-access-intelligence-vision.md](./archive/04-access-intelligence-vision.md) for production AI path
+- Portfolio epic: [E04 Access Intelligence Vision](../../innovation/epics/04-access-intelligence-vision.md) (superseded in production path)
 
 ## Architecture
 

@@ -1,4 +1,6 @@
-# Prompt 03 — Accessible Navigation (False-Safe Routing)
+> **Archived:** 2026-09-02 — Superseded by [04-personalised-accessible-routing.md](../04-personalised-accessible-routing.md) (Prompt 04 in series v2).
+
+# Prompt 03 — Accessible Navigation (False-Safe Routing) (archived)
 
 ## Objective
 

@@ -1,4 +1,6 @@
-# Prompt 02 — Personal Access Passport
+> **Archived:** 2026-09-02 — Absorbed into [04-personalised-accessible-routing.md](../04-personalised-accessible-routing.md) and [08-mobility-data-purpose-separation.md](../08-mobility-data-purpose-separation.md).
+
+# Prompt 02 — Personal Access Passport (archived)
 
 ## Objective
 

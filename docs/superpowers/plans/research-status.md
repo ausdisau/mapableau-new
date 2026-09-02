@@ -1,5 +1,7 @@
 # Deep research status
 
+**Plan series:** v2 (MRFF-informed sequencing) — merged 2026-09-02. See [README.md](./README.md) and [implementation-roadmap.md](../../innovation/implementation-roadmap.md).
+
 ## parallel-cli setup
 
 - **Installed:** `parallel-cli` v0.9.3 via `https://parallel.ai/install.sh`
@@ -51,13 +53,15 @@ When research completes, update plans 08, 12, and 14 if the executive summary co
 
 Plans were validated against repository state without external research output:
 
-| Topic | Repo alignment | Plan adjustment |
-|-------|----------------|-----------------|
-| Evidence vocabulary | Three parallel vocabularies (`model_candidate`, `AI_INFERRED`, `ai_inference`) | Plan 01 + 09 mandate `packages/contracts` canonical type |
+| Topic | Repo alignment | Plan adjustment (series v2) |
+|-------|----------------|---------------------------|
+| Evidence vocabulary | Three parallel vocabularies (`model_candidate`, `AI_INFERRED`, `ai_inference`) | Plan 02 + 09 mandate `packages/contracts` canonical type |
+| Co-design governance | Policy in `co-design-protocol.md`; no technical domain | Plan 01 creates `packages/research/` entities |
 | Enterprise API path | Existing `/api/v1/access` not `/api/v1/accessibility/*` | Plan 11 extends/migrates rather than duplicates |
 | MapAble+ SKU | No product name in repo | Plan 12 creates `lib/commercial/mapable-plus/` wired to existing partner billing |
 | Research journey | No `ResearchJourney` model | Plan 10 defines new protocol aligned with `lib/research/` governance |
 | Sydney pilot | NSW/Sydney hours in controlled pilot charter | Plan 14 preserves decision with scorecard rationale requirement |
 | Privacy lanes | No four-lane enum | Plan 08 introduces `DataPurpose` atop existing `ConsentScope` |
 | PostHog | LLM-only, no consent gate | Plan 08 adds sanitizer + consent middleware |
+| Archived plans | Epic-aligned v1 plans | Moved to [archive/](./archive/) — salvage content, do not execute |
 | Deep research | Blocked on API key | No conflicts detected; re-run when `PARALLEL_API_KEY` available |

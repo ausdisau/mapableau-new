@@ -12,9 +12,10 @@ Create versioned MapAble enterprise accessibility intelligence API for councils,
 
 ## Prerequisites
 
-- Prompt 01 + 06 merged (verified graph pipeline)
+- Prompt 02 + 03 merged (verified graph + provenance pipeline)
 - Prompt 08 merged (privacy lanes)
-- Portfolio epic: [E13 Access API](../innovation/epics/13-access-api.md)
+- Parallel track: [archive/06-accreditation-os.md](./archive/06-accreditation-os.md) (assessor publication)
+- Portfolio epic: [E13 Access API](../../innovation/epics/13-access-api.md)
 
 ## API surface
 

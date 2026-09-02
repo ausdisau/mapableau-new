@@ -12,8 +12,8 @@ Extend offline navigation with accessible UI patterns and resilience tests: netw
 
 ## Prerequisites
 
-- Prompt 03 merged (routing foundations)
-- Existing: `lib/accesscast/offline-store-contract.ts`, `mobile-contracts/schemas/accesscast-offline.ts`
+- Prompt 04 merged (evidence-aware personalised routing)
+- Existing: `lib/accesscast/offline-store-contract.ts`, `mobile-contracts/schemas/accesscast-offline.ts`, `apps/android/`
 
 ## Files to create / modify
 

@@ -12,6 +12,7 @@ Build technical foundation for MapAble health-access research pilot measuring wh
 
 ## Prerequisites
 
+- Prompt 01 merged (disability-led research governance)
 - Prompt 08 merged (RESEARCH data lane + separate consent)
 - Existing: `lib/research/research-project-service.ts`, `MAPABLE_RESEARCH_GOVERNANCE_ENABLED`
 
