@@ -1,4 +1,6 @@
-# Prompt 04 — Access Intelligence Vision (R&D Scaffold)
+> **Archived:** 2026-09-02 — Superseded by [09-governed-ai-evidence-pipeline.md](../09-governed-ai-evidence-pipeline.md) (Prompt 09 in series v2).
+
+# Prompt 04 — Access Intelligence Vision (R&D Scaffold) (archived)
 
 ## Objective
 

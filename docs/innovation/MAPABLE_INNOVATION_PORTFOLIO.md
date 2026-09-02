@@ -90,6 +90,11 @@ Every Epic is designed around:
 
 ### Programme documents
 
+- [architecture-baseline.md](./architecture-baseline.md) — as-built snapshot (Prompt 00)
+- [gap-analysis.md](./gap-analysis.md) — gaps vs target architecture
+- [implementation-roadmap.md](./implementation-roadmap.md) — sequenced PR programme
+- [research-translation-model.md](./research-translation-model.md) — MRFF-informed sequencing rationale
+- [Superpowers phase plans](../superpowers/plans/README.md) — executable prompt series
 - [PORTFOLIO_DEPENDENCY_MAP.md](./PORTFOLIO_DEPENDENCY_MAP.md)
 - [PORTFOLIO_STAGE_GATES.md](./PORTFOLIO_STAGE_GATES.md)
 - [PORTFOLIO_KPIS.md](./PORTFOLIO_KPIS.md)

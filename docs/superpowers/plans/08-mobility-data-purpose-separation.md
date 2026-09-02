@@ -13,6 +13,7 @@ Implement four-lane privacy architecture separating PUBLIC ACCESSIBILITY DATA, P
 ## Prerequisites
 
 - Prompt 07 merged
+- Prompt 01 merged (research consent lane)
 - Existing: `lib/consent/*`, `lib/platform/privacy/*`, `lib/trust/fabric/*`, `lib/ads/privacy/*`
 
 ## Architecture

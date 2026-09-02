@@ -1,4 +1,6 @@
-# Prompt 06 — Accreditation OS → Graph Publication
+> **Archived:** 2026-09-02 — Parallel track (not on critical path). Feeds graph via publication pipeline; see Prompts 02 and 11.
+
+# Prompt 06 — Accreditation OS → Graph Publication (archived)
 
 ## Objective
 

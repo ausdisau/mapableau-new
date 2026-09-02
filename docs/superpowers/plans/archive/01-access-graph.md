@@ -1,4 +1,6 @@
-# Prompt 01 — Access Evidence Graph
+> **Archived:** 2026-09-02 — Superseded by [02-accessibility-evidence-graph.md](../02-accessibility-evidence-graph.md) (Prompt 02 in series v2). Salvage provenance and test references from this file.
+
+# Prompt 01 — Access Evidence Graph (archived)
 
 ## Objective
 
