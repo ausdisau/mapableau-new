@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import { Atkinson_Hyperlegible, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import { headers } from "next/headers";
 
 import { AccessiBeWidget } from "@/components/accessibility/AccessiBeWidget";
@@ -41,7 +41,14 @@ const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
-  // Heading font loads on first h1/logo; avoid unused preload console warnings.
+  preload: false,
+});
+
+const atkinsonHyperlegible = Atkinson_Hyperlegible({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-readable",
+  display: "swap",
   preload: false,
 });
 
@@ -115,7 +122,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en-AU"
-      className={`${plusJakarta.variable} ${outfit.variable}`}
+      className={`${plusJakarta.variable} ${outfit.variable} ${atkinsonHyperlegible.variable}`}
     >
       <head>
         <meta

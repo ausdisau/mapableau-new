@@ -2,7 +2,7 @@ import Link from "next/link";
 import React from "react";
 
 import { homepageExploreFeatures } from "@/lib/marketing/mapable-care-combined-data";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import { AppGrid, ModuleCard } from "@mapable/ui";
 
 /**
  * Public discovery links grounded in live informational routes / explainers.
@@ -29,26 +29,19 @@ export function HomepageExploreStrip() {
           tools. Care bookings, live transport matching, and NDIS claims stay
           separately governed and are not generally available here.
         </p>
-        <ul className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+        <AppGrid columns={3} className="mt-8 gap-x-8 gap-y-6">
           {homepageExploreFeatures.map((feature) => (
-            <li key={feature.href} className="border-t border-slate-200 pt-5">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#005B7F]">
-                {feature.eyebrow}
-              </p>
-              <h3 className="mt-2 text-xl font-black text-[#0C1833]">
-                <Link
-                  href={feature.href}
-                  className={`underline-offset-4 hover:underline ${mapableCareFocusRing}`}
-                >
-                  {feature.title}
-                </Link>
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {feature.body}
-              </p>
-            </li>
+            <ModuleCard
+              key={feature.href}
+              eyebrow={feature.eyebrow}
+              title={feature.title}
+              description={feature.body}
+              href={feature.href}
+              linkComponent={Link}
+              className="border-t border-slate-200 bg-white pt-5 shadow-none hover:shadow-sm"
+            />
           ))}
-        </ul>
+        </AppGrid>
       </div>
     </section>
   );

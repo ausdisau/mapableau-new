@@ -26,6 +26,10 @@ export const personalAgencyFlags = {
   get routesEnabled() {
     return this.uiEnabled;
   },
+  /** Unified sidebar shell for /my (desktop sidebar + mobile tabs). */
+  get unifiedShellEnabled() {
+    return envTrue("NEXT_PUBLIC_UNIFIED_SHELL");
+  },
 };
 
 export function personalAgencyDisabledResponse(feature: string): Response {

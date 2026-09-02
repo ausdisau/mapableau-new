@@ -108,6 +108,7 @@
     "@mapable/domain-provider": "workspace:*",
     "@mapable/domain-transport": "workspace:*",
     "@mapable/domain-workforce": "workspace:*",
+    "@mapable/ui": "workspace:*",
     "@openai/agents": "^0.13.2",
     "@paypal/paypal-server-sdk": "^1.1.0",
     "@prisma/client": "6.19.2",

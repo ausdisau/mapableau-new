@@ -8,7 +8,9 @@ import {
   homepageHeroCopy,
   homepageHeroCtas,
 } from "@/lib/marketing/mapable-care-combined-data";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import { Button, Eyebrow } from "@mapable/ui";
+
+const ctaVariants = ["brandYellow", "brand", "brandOutline"] as const;
 
 export function HeroSection() {
   return (
@@ -26,6 +28,9 @@ export function HeroSection() {
         className="absolute bottom-[-12rem] left-[-8rem] h-[30rem] w-[30rem] animate-[pulse_11s_ease-in-out_infinite] rounded-full bg-[#005B7F]/16 blur-3xl motion-reduce:animate-none motion-reduce:blur-none"
       />
       <div className="relative mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-24">
+        <Eyebrow className="mb-4 border-none bg-transparent px-0 text-sm tracking-[0.18em]">
+          MapAble Australia
+        </Eyebrow>
         <h1
           aria-label={homepageHeroCopy.headline}
           className="max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-[#0C1833] md:text-6xl lg:text-7xl"
@@ -37,20 +42,17 @@ export function HeroSection() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           {homepageHeroCtas.map((cta, index) => (
-            <Link
+            <Button
               key={cta.href}
-              href={cta.href}
-              className={
-                index === 0
-                  ? `inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#F8C51C] px-6 py-4 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b019] ${mapableCareFocusRing}`
-                  : index === 1
-                    ? `inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#005B7F] px-6 py-4 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`
-                    : `inline-flex min-h-12 items-center justify-center rounded-2xl border-2 border-[#0C1833] bg-white/70 px-6 py-4 text-center text-sm font-black text-[#0C1833] transition hover:bg-white ${mapableCareFocusRing}`
-              }
+              variant={ctaVariants[index] ?? "brandOutline"}
+              size="lg"
+              asChild
             >
-              {cta.label}
-              {index === 0 ? <ArrowIcon /> : null}
-            </Link>
+              <Link href={cta.href}>
+                {cta.label}
+                {index === 0 ? <ArrowIcon /> : null}
+              </Link>
+            </Button>
           ))}
         </div>
         <TrustStrip />
