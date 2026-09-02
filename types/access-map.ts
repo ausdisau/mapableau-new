@@ -78,6 +78,21 @@ export const reportPlaceSchema = z.object({
   details: z.string().max(2000).optional(),
 });
 
+export const quickObservationSchema = z.object({
+  observationType: z.enum([
+    "lift_unavailable",
+    "ramp_blocked",
+    "entrance_step_added",
+    "door_blocked",
+    "accessible_toilet_unavailable",
+    "construction",
+    "step_free_entrance",
+    "other",
+  ]),
+  value: z.enum(["yes", "no", "not_sure"]).optional(),
+  note: z.string().max(2000).optional(),
+});
+
 export const accessSearchQuerySchema = z.object({
   q: z.string().optional(),
   category: accessPlaceCategorySchema.optional(),

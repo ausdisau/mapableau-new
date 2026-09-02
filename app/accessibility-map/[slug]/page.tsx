@@ -6,14 +6,11 @@ import {
   AccessDataSourceMarker,
   resolveAccessDataSourceKind,
 } from "@/components/access/AccessDataSourceMarker";
-import { AccessFitBreakdown } from "@/components/access-fit/AccessFitBreakdown";
-import { WhatToConfirmList } from "@/components/access-fit/WhatToConfirmList";
+import { AccessFitDetailSection } from "@/components/accessibility-map/AccessFitDetailSection";
 import { ViewFloorPlanButton } from "@/components/accessibility-map/floor-plan/ViewFloorPlanButton";
 import { VenueAccessDetails } from "@/components/accessibility-map/VenueAccessDetails";
 import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { calculateAccessFit } from "@/lib/access/fit/calculate-access-fit";
-import { DEMO_ACCESS_NEEDS } from "@/lib/access/fit/types";
 import { getAccessMapPlaceBySlug } from "@/lib/access/map/access-map-places";
 import { ACCESS_DISCLAIMER } from "@/lib/access/map/copy";
 import { buildPlaceAccessibilityJsonLd } from "@/lib/access/place-json-ld";
@@ -41,7 +38,6 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
   const place = await getAccessMapPlaceBySlug(slug);
   if (!place) notFound();
 
-  const fit = calculateAccessFit(DEMO_ACCESS_NEEDS, place.profile);
   const unknownDomains = place.domains.filter((domain) => domain.status !== "known");
   const sourceKind = resolveAccessDataSourceKind({
     isDemo: place.isDemo,
@@ -106,12 +102,11 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
 
         <VenueAccessDetails place={place} sourceKind={sourceKind} />
 
-        <AccessFitBreakdown result={fit} />
-        <WhatToConfirmList
-          questions={[
-            ...fit.recommendedQuestions,
-            ...unknownDomains.map((domain) => `Confirm: ${domain.name}`),
-          ]}
+        <AccessFitDetailSection
+          place={place}
+          unknownDomainQuestions={unknownDomains.map(
+            (domain) => `Confirm: ${domain.name}`,
+          )}
         />
 
         <section
