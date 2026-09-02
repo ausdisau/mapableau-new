@@ -14,6 +14,8 @@ export const CSP_EXTERNAL_ORIGINS = {
     "https://www.googletagmanager.com",
     "https://media.ethicalads.io",
     "https://js.stripe.com",
+    "https://www.paypal.com",
+    "https://www.sandbox.paypal.com",
     "https://va.vercel-scripts.com",
   ],
   styles: ["https://fonts.googleapis.com"],
@@ -33,6 +35,9 @@ export const CSP_EXTERNAL_ORIGINS = {
   connect: [
     "https://*.mapable.com.au",
     "https://api.stripe.com",
+    "https://*.paypal.com",
+    "https://www.paypal.com",
+    "https://www.sandbox.paypal.com",
     "https://*.googleapis.com",
     "https://*.tile.openstreetmap.org",
     "https://api.maptiler.com",
@@ -50,6 +55,9 @@ export const CSP_EXTERNAL_ORIGINS = {
   frames: [
     "https://js.stripe.com",
     "https://hooks.stripe.com",
+    "https://www.paypal.com",
+    "https://www.sandbox.paypal.com",
+    "https://*.paypal.com",
     "https://googleads.g.doubleclick.net",
     "https://tpc.googlesyndication.com",
     "https://www.google.com",
