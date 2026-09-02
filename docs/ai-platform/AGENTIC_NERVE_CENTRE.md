@@ -194,6 +194,11 @@ Mission proposal → Action Kernel proposal → approve (payloadHash+nonce) → 
 - Flags: `MAPABLE_ACTION_KERNEL_ENABLED` + per-action flags + kill switch (all default **false**)
 - No authority expansion; no worker assign / confirm transport / pay / disclose
 
+## Mission Watch (Prompt 06)
+
+Deterministic proactive watches feed recovery events and in-app alerts.
+Never auto-executes. See [MISSION_WATCH.md](./MISSION_WATCH.md).
+
 ## Adaptive Recovery Engine (Prompt 03)
 
 Automatic reassessment without automatic redecision. See

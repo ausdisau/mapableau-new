@@ -6,6 +6,10 @@ import { useState } from "react";
 import { ActionReview } from "@/components/personal-agency/ActionReview";
 import type { MapAbleActionProposal } from "@/lib/ai/platform/actions";
 import type {
+  MissionWatchPresentation,
+  ParticipantWatchAction,
+} from "@/lib/ai/platform/mission-watch/types";
+import type {
   MapAbleMissionPlan,
   MissionActionProposal,
 } from "@/lib/ai/platform/missions/types";
@@ -27,6 +31,8 @@ type RecoveryPresentation = {
   status: string;
   sections: Array<{ title: string; body: string; items?: string[] }>;
 };
+
+type WatchPresentation = MissionWatchPresentation;
 
 export type MissionViewProps = {
   lifeIntentId?: string;
@@ -53,6 +59,9 @@ export function MissionView({
     useState<MapAbleRecoveryState | null>(null);
   const [recoveryPresentation, setRecoveryPresentation] =
     useState<RecoveryPresentation | null>(null);
+  const [watchPresentation, setWatchPresentation] =
+    useState<WatchPresentation | null>(null);
+  const [watchFeedback, setWatchFeedback] = useState<string | null>(null);
 
   async function buildMission() {
     setBusy(true);
@@ -83,7 +92,9 @@ export function MissionView({
       setPlan(data.plan);
       setPresentation(data.presentation ?? null);
       setActionFeedback([]);
+      setWatchFeedback(null);
       void loadRecovery(data.plan.missionId);
+      void loadWatches(data.plan.missionId);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -103,6 +114,68 @@ export function MissionView({
       setRecoveryPresentation(data.presentation ?? null);
     } catch {
       /* optional when flag off */
+    }
+  }
+
+
+  async function loadWatches(missionId: string) {
+    try {
+      const res = await fetch(`/api/ai/missions/${missionId}/watches`);
+      if (!res.ok) return;
+      const data = (await res.json().catch(() => ({}))) as {
+        presentation?: WatchPresentation;
+      };
+      setWatchPresentation(data.presentation ?? null);
+    } catch {
+      /* optional when flag off */
+    }
+  }
+
+  async function runWatchTick(missionId: string) {
+    try {
+      await fetch(`/api/ai/missions/${missionId}/watches/tick`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      await loadWatches(missionId);
+    } catch {
+      /* optional */
+    }
+  }
+
+  async function applyWatchAction(
+    watchId: string,
+    action: ParticipantWatchAction,
+  ) {
+    if (!plan) return;
+    setBusy(true);
+    setError(null);
+    setWatchFeedback(null);
+    try {
+      const res = await fetch(
+        `/api/ai/missions/${plan.missionId}/watches/${watchId}/action`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        },
+      );
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        setError(data.error ?? "Could not update watch.");
+        return;
+      }
+      setWatchFeedback(data.message ?? "Watch updated.");
+      await loadWatches(plan.missionId);
+      if (action === "reassess_now") {
+        void loadRecovery(plan.missionId);
+      }
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -335,6 +408,74 @@ export function MissionView({
             </div>
           ) : null}
 
+          {watchPresentation ? (
+            <section
+              aria-labelledby="mission-watch-heading"
+              className="rounded-lg border border-slate-200 bg-slate-50/80 p-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3
+                  id="mission-watch-heading"
+                  className="text-sm font-bold uppercase tracking-wide text-[#005B7F]"
+                >
+                  {watchPresentation.heading}
+                </h3>
+                <button
+                  type="button"
+                  className={buttonClass}
+                  disabled={busy || !plan}
+                  onClick={() => plan && void runWatchTick(plan.missionId)}
+                >
+                  Check watches now
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-slate-700">{watchPresentation.summary}</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Watches notice and recommend. They never book, pay, or message for you.
+              </p>
+              {watchFeedback ? (
+                <p role="status" className="mt-2 text-sm font-semibold text-[#0C1833]">
+                  {watchFeedback}
+                </p>
+              ) : null}
+              {watchPresentation.sections.map((section) => (
+                <div key={section.id} className="mt-4">
+                  <h4 className="text-sm font-bold">{section.title}</h4>
+                  <p className="mt-1 text-sm text-slate-700">{section.body}</p>
+                  {section.items.length === 0 ? (
+                    <p className="mt-2 text-sm text-slate-500">Nothing here right now.</p>
+                  ) : (
+                    <ul className="mt-2 space-y-2">
+                      {section.items.map((item) => (
+                        <li
+                          key={`${section.id}-${item.alertId}`}
+                          className="rounded-lg border border-slate-200 bg-white p-3 text-sm"
+                        >
+                          <p className="font-semibold">{item.title}</p>
+                          <p className="mt-1 text-slate-700">{item.body}</p>
+                          <p className="mt-1 text-slate-600">{item.recommendation}</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {item.actions.map((action) => (
+                              <button
+                                key={`${item.alertId}-${action}`}
+                                type="button"
+                                className={buttonClass}
+                                disabled={busy}
+                                onClick={() => void applyWatchAction(item.watchId, action)}
+                              >
+                                {watchActionLabel(action)}
+                              </button>
+                            ))}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </section>
+          ) : null}
+
           {recoveryState ? (
             <section
               aria-labelledby="recovery-heading"
@@ -420,6 +561,27 @@ export function MissionView({
       )}
     </section>
   );
+}
+
+function watchActionLabel(action: ParticipantWatchAction): string {
+  switch (action) {
+    case "snooze":
+      return "Snooze";
+    case "disable_optional":
+      return "Disable this watch";
+    case "request_human_help":
+      return "Request human help";
+    case "reassess_now":
+      return "Reassess now";
+    case "open_evidence":
+      return "Open evidence";
+    case "take_no_action":
+      return "Take no action";
+    default: {
+      const _never: never = action;
+      return _never;
+    }
+  }
 }
 
 function missionActionToKernelKey(

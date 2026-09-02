@@ -109,6 +109,7 @@ Execution is handled by the Governed Action Kernel (Prompt 02) — see [GOVERNED
 | POST | `/api/ai/missions/:missionId/events` | Ingest recovery event (Prompt 03) |
 | POST | `/api/ai/missions/:missionId/reassess` | Manual reassessment (Prompt 03) |
 | GET | `/api/ai/missions/:missionId/recovery` | Recovery snapshot (Prompt 03) |
+| GET / POST | `/api/ai/missions/:missionId/watches` | Mission Watch (Prompt 06) |
 | POST | `/api/ai/missions/:missionId/recovery/:id/select` | Select recovery alternative (Prompt 03) |
 
 Mission APIs do not execute operational actions. Use `/api/ai/actions/proposals/*` for
