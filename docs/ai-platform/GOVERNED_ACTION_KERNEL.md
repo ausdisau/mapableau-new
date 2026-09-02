@@ -27,4 +27,3 @@ External writes that leave MapAble must pass:
 
 Agents must not call external APIs directly or receive connector credentials.
 See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
-

@@ -63,4 +63,3 @@ When `MAPABLE_CONTEXT_FABRIC_ENABLED` and `MAPABLE_CONTEXT_EVENT_ROUTING_ENABLED
 mission-linked domain events may be mapped into `ingestMissionEvent`. Model-inference
 sources never assert verified recovery failures. Irrelevant missions do not receive events.
 See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
-

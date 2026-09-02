@@ -20,7 +20,26 @@ export {
   resolveModelForCapability,
   guardStructuredInput,
 } from "./models/gateway";
-export { listModels, getModel, isModelAllowedForTask } from "./models/registry";
+export {
+  listModels,
+  getModel,
+  isModelAllowedForTask,
+  listPortfolioModels,
+  isRndOnlyModel,
+  modelAllowsDataClass,
+  NATIVE_INTELLIGENCE_TASK_KINDS,
+} from "./models/registry";
+export type {
+  ModelRegistration,
+  ModelProvider,
+  ModelDeploymentType,
+  ModelEvaluationStatus,
+  NativeIntelligenceTaskKind,
+  LatencyClass,
+  CostClass,
+  ModelModality,
+  DataResidencyClass,
+} from "./models/registry";
 export { listPrompts, getPrompt, isPromptPubliclyExposable } from "./prompts/registry";
 export {
   assertModelCallAllowed,
@@ -249,3 +268,52 @@ export type {
   ApprovedActionEnvelope,
   ConnectorInvokeResult,
 } from "./connector-gateway";
+
+export {
+  buildControlPlaneDashboard,
+  observeControlPlaneEvent,
+  authorizeModelSpend,
+  resetControlPlaneState,
+  startTraceSpan,
+  endTraceSpan,
+  createControlPlaneTraceId,
+  listSloCandidates,
+  configureSloTarget,
+} from "./control-plane";
+export type {
+  ControlPlaneDashboard,
+  ControlPlaneTraceContext,
+  SloCandidate,
+  BudgetDecision,
+} from "./control-plane";
+
+export {
+  routeNativeIntelligenceTask,
+  assertNativeModelCannotExecuteAction,
+  assertMustUseCanonicalGateway,
+  runLocalInference,
+  retrieveGovernedKnowledge,
+  assertProvenancePresent,
+  listApprovedKnowledgeSeeds,
+  createTrainingProposal,
+  trainingProposalTemplate,
+  buildLabsNativeIntelligenceView,
+  labsPortfolioBlurb,
+  summarisePortfolio,
+  candidatesForTask,
+  resolveFallbackChain,
+  taskRequiresDeterministicPolicy,
+  canAutoPromoteModel,
+  NATIVE_INTELLIGENCE_EVAL_REQUIREMENTS,
+  DETERMINISTIC_ONLY_TASKS,
+  ALLOWED_RETRIEVAL_SOURCE_TYPES,
+} from "./native-intelligence";
+export type {
+  NativeRouteRequest,
+  NativeRouteDecision,
+  LocalInferenceResult,
+  GovernedRetrievalHit,
+  TrainingProposal,
+  LabsNativeIntelligenceView,
+  NativeIntelligenceEvalRequirement,
+} from "./native-intelligence";

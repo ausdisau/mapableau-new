@@ -176,4 +176,3 @@ and via agent manifests. Employer disability disclosure requires explicit consen
 When `MAPABLE_CONTEXT_FABRIC_ENABLED=true`, mission planning merges authorised fabric
 context into the evidence bundle via `mergeFabricContextIntoEvidence`. Inference remains
 in the inferred lane; provenance is preserved. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
-

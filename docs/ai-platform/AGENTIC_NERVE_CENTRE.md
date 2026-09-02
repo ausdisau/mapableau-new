@@ -210,7 +210,6 @@ Mission events → triggers → impact → materiality → candidate plan → pa
 - Flags: `MAPABLE_ADAPTIVE_RECOVERY_ENABLED` (+ proactive / model-assist / kill switch), all default **false**
 - Selecting an alternative updates candidate plan and may prepare Action Kernel proposals; never auto-executes
 
-
 ## Governed Connector Gateway (Prompt 09)
 
 Single boundary for external reads/writes. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
