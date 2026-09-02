@@ -196,7 +196,7 @@ export async function getResearchProject(projectId: string) {
       withdrawals: true,
       coDesignProgrammes: {
         include: {
-          participants: { select: { id: true, role: true, status: true } },
+          participants: { select: { id: true, role: true, withdrawnAt: true } },
         },
         orderBy: { createdAt: "desc" },
       },
