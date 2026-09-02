@@ -488,3 +488,4 @@ export const proposedPlanSchema = z.object({
 }).strict();
 export type ProposedAction = z.infer<typeof proposedActionSchema>;
 export type ActionDecision = z.infer<typeof actionDecisionSchema>;
+export * from "./evidence-provenance";

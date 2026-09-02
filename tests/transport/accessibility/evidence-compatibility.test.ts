@@ -18,6 +18,7 @@ vi.mock("@/lib/prisma", () => {
 });
 
 import { assessVehicleCompatibility } from "@/lib/transport/accessibility/evidence-service";
+import { provenanceToRoutingCompatibility } from "@mapable/contracts";
 import { prisma } from "@/lib/prisma";
 
 describe("evidence-based vehicle compatibility", () => {
@@ -101,5 +102,13 @@ describe("evidence-based vehicle compatibility", () => {
 
     expect(result.compatible).toBe(true);
     expect(result.evidenceBased).toBe(true);
+  });
+
+  it("treats stale or unknown evidence as uncertain for routing decisions", () => {
+    expect(provenanceToRoutingCompatibility("stale")).toBe("uncertain");
+    expect(provenanceToRoutingCompatibility("unknown")).toBe("uncertain");
+    expect(provenanceToRoutingCompatibility("verified", true)).toBe(
+      "incompatible",
+    );
   });
 });
