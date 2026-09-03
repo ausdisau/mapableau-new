@@ -2,7 +2,7 @@
 
 ## Status
 
-**In development / default off.** This frame establishes MapAble's worker-screening domain and jurisdiction adapter boundary. It does not provide public worker-clearance lookup and does not enable live government API calls.
+**In development / default off.** This frame establishes MapAble's worker-screening domain, jurisdiction adapter boundary, admin-only query API, and accessible review UI. It does not provide a public worker-clearance lookup and does not enable live government API calls.
 
 ## Purpose
 
@@ -29,6 +29,21 @@ MapAble normalises authoritative evidence into:
 
 Only a current `clearance` from an authoritative NDIS Worker Screening Database or State/Territory Worker Screening Unit source may satisfy the worker-screening gate.
 
+## Current authoritative workflow
+
+The NDIS Commission states that State/Territory Worker Screening Units assess applications and are the main point of contact for application status and current check details. Once a worker is linked to an authorised provider or participant, the NDIS Worker Screening Database provides the current worker status.
+
+Current NWSD statuses used by MapAble are:
+
+- Clearance
+- Pending
+- Interim bar
+- Exclusion
+- Suspension
+- No valid clearance
+
+A linked worker's clearance can expire or change, so a previously observed clearance must not be treated as permanently valid.
+
 ## Architecture
 
 ```text
@@ -36,6 +51,9 @@ Minimal or detailed query
         |
         v
 WorkerScreeningQuery
+        |
+        v
+Admin-only query service/API
         |
         v
 Jurisdiction registry
@@ -50,18 +68,57 @@ WorkerScreeningEvidence
         v
 assessWorkerScreening()
         |
-        +---- clearance -> eligible screening evidence
+        +---- authoritative current clearance -> cleared evidence
         |
         +---- any other/unknown -> fail closed + human review
 ```
 
 The provider layer is intentionally independent from UI and Prisma so future authenticated connectors can be added without rewriting the participant/provider experience.
 
+## Admin query frame
+
+The first MapAble query surface is intentionally restricted to administrators:
+
+- UI: `/admin/workforce-screening`
+- API: `POST /api/admin/workforce/screening/query`
+
+The query accepts as little or as much information as is available:
+
+- worker name
+- Worker Screening ID or application ID
+- date of birth
+- jurisdiction
+- employer/provider name
+- employer ABN
+
+The API does not echo DOB or raw worker identifiers in its report. It returns a status assessment, reason codes, connector readiness, official verification pathway, and checked time.
+
+If a connector is unavailable or not configured, the result is `unable_to_verify`; the service never guesses.
+
+## Official State/Territory pathways
+
+MapAble maintains a current routing table derived from the NDIS Commission worker-screening guidance:
+
+| Jurisdiction | Worker Screening Unit | Official pathway |
+|---|---|---|
+| ACT | Access Canberra | `https://www.accesscanberra.act.gov.au/business-and-work/working-with-vulnerable-people` |
+| NSW | Office of the Children's Guardian | `https://ocg.nsw.gov.au/ndiswc` |
+| NT | SAFE NT | `https://forms.pfes.nt.gov.au/safent/` |
+| QLD | Disability Worker Screening Queensland | `https://www.workerscreening.qld.gov.au/` |
+| SA | Department of Human Services Screening Unit | `https://www.sa.gov.au/topics/rights-and-law/rights-and-responsibilities/screening-checks` |
+| TAS | Department of Justice - Registration to Work with Vulnerable People | `https://www.justice.tas.gov.au/rwvp` |
+| VIC | Department of Justice and Community Safety | `https://www.vic.gov.au/ndis-worker-screening-check` |
+| WA | Department of Communities | `https://www.wa.gov.au/organisation/department-of-communities/ndis-worker-screening-check` |
+
+National guidance: `https://www.ndiscommission.gov.au/workforce/worker-screening`.
+
 ## Victoria
 
-Victoria publishes a **Worker Screening Status API v1.0.0** in the Victorian developer catalogue for single or bulk status checks.
+Victoria publishes a **Worker Screening Status API v1.0.0** in the Victorian developer catalogue for singular and bulk status checks.
 
-The public API catalogue page identifies the API but does not expose enough authenticated contract detail to safely hard-code the transport, endpoint paths, request fields, response schema or credential mechanism.
+Catalogue ID: `5091ad27-e7df-48b1-98d3-7947dbb95bde`.
+
+The public API catalogue/tester confirms that the API is published and REST-based, but it does not expose enough contract detail to safely hard-code the live host, base path, request fields, response schema, or authentication mechanism.
 
 The current MapAble adapter therefore:
 
@@ -92,6 +149,10 @@ The API key name is a MapAble configuration placeholder only. Confirm the actual
 Add adapters behind the same `WorkerScreeningProvider` interface for NSW, QLD, SA, WA, TAS, ACT and NT when an authorised machine interface or formal integration pathway is available.
 
 Where no API exists, retain a `pathway_only` state and direct users/operators to the relevant State/Territory Worker Screening Unit or authorised NDIS Worker Screening Database workflow.
+
+## Work-on-application caution
+
+Current NDIS Commission guidance distinguishes jurisdictions that may permit work on application in defined circumstances from jurisdictions that do not. Do not infer eligibility to work from `pending` alone. The canonical worker-screening assessment remains fail-closed; any exception workflow must be separately modelled, evidenced, jurisdiction-aware, and human-reviewed.
 
 ## Provider registration and enforcement
 
@@ -132,24 +193,28 @@ The existing generic `evaluateWorkforceEvidence()` remains useful for qualificat
 
 ## Accessibility and rights
 
-Any future UI must:
+The admin UI:
 
-- state what is verified and what is unknown;
-- avoid colour-only status meaning;
-- expose source and checked date in text;
-- provide a human verification pathway;
-- not publish DOB, screening identifiers or other private worker data;
-- not make automated allegations or adverse employment decisions from ambiguous/public-only evidence.
+- works without a map;
+- uses labelled native form controls;
+- exposes status in text rather than colour alone;
+- exposes source/pathway and checked date in text;
+- provides a human verification pathway;
+- does not display DOB in the result;
+- does not make automated allegations or adverse employment decisions from ambiguous/public-only evidence.
+
+Future participant/provider-facing UI must maintain these boundaries and meet WCAG 2.2 AA.
 
 ## Next implementation slice
 
 After the authenticated Victorian API contract is available:
 
 1. capture the exact Swagger/OpenAPI contract;
-2. add Zod request/response schemas;
-3. implement server-only authentication;
-4. add response mapping tests from fixtures;
-5. add audit events without logging sensitive identifiers;
-6. add rate limits/timeouts/retries;
-7. keep provider registration and public enforcement searches separate;
-8. expose the result only through an authenticated, permission-gated MapAble service/API.
+2. replace placeholder transport configuration with the documented authentication scheme;
+3. add Zod request/response schemas;
+4. implement server-only transport with timeout and bounded retry policy;
+5. add response mapping tests from de-identified fixtures;
+6. add audit events without logging sensitive identifiers;
+7. add rate limiting and abuse controls;
+8. keep provider registration and public enforcement searches separate;
+9. enable the Victoria connector only after privacy/security and integration review.
