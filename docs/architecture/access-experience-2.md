@@ -56,6 +56,27 @@ These projects do not endorse MapAble. No source code or proprietary assets are 
 - Accessible place detail improvements
 - Feature flags, tests, documentation
 
+## CONVERGENCE BOUNDARY (Access mapping)
+
+Canonical discovery for Access Experience V2 is **`/access`** behind
+`MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED` / `NEXT_PUBLIC_MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED`
+(default off, fail-closed):
+
+| Concern | Owner |
+|---------|-------|
+| Place identity | `AccessPlace` |
+| Public exploration projection | `AccessExplorationDto` (no Prisma / diagnosis / PII) |
+| Evidence read | GAIS adapters (best-effort enrichment) |
+| Compatibility | AccessFit V2 (`MEETS` \| `DOES_NOT_MATCH` \| `UNKNOWN`) |
+| Mapping engine | MapLibre on `/access` |
+| Journey execution | MapAble Go sandbox handoff (mobility prefs only) |
+
+**Deprecated for production exploration:** `DemoAccessPlace` and Leaflet
+`/accessibility-map` demo adapters. Keep `/accessibility-map` until parity is
+proven; do not expand demo models. Temporary bridges live in
+`lib/access/experience/demo-access-place-adapter.ts` and
+`buildExplorationResultIdsFromDemoPlaces`.
+
 ## PHASE 2 — Around Me + Accessibility Compass (design only)
 
 Target queries: "What's around me?", "What's ahead?", "Nearest step-free entrance", "Describe this crossing", "Where is the lift?"

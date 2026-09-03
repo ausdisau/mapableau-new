@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 
 import { QUICK_OBSERVATION_OPTIONS } from "@/lib/access/experience/quick-observation-types";
-import type { DemoAccessPlace } from "@/lib/demo/accessibility-places";
 import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 type Step = "select" | "note" | "review" | "submitting";
@@ -13,7 +12,7 @@ export function QuickObservationDialog({
   onClose,
   onSubmitted,
 }: {
-  place: DemoAccessPlace;
+  place: { id: string; name: string };
   onClose: () => void;
   onSubmitted: () => void;
 }) {

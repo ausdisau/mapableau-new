@@ -16,11 +16,36 @@ type PlaceResult = {
   longitude?: number;
 };
 
-export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[] }) {
+export type GoAccessHandoff = {
+  destinationPlaceId?: string;
+  destinationName?: string;
+  stepFreeRequired?: boolean;
+  maxGradientPercent?: number;
+  minPathWidthMm?: number;
+  journeyOverride?: boolean;
+  sandbox?: boolean;
+};
+
+export function GoRoutePlanner({
+  initialPlaces,
+  accessHandoff,
+}: {
+  initialPlaces: PlaceResult[];
+  accessHandoff?: GoAccessHandoff | null;
+}) {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(accessHandoff?.destinationName ?? "");
   const [places] = useState(initialPlaces);
-  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(() => {
+    if (!accessHandoff?.destinationPlaceId) return null;
+    return (
+      initialPlaces.find((p) => p.id === accessHandoff.destinationPlaceId) ?? {
+        id: accessHandoff.destinationPlaceId,
+        name: accessHandoff.destinationName ?? "Selected place",
+        suburb: null,
+      }
+    );
+  });
   const [origin, setOrigin] = useState({ lat: -33.883, lng: 151.205 });
   const [routes, setRoutes] = useState<RouteOption[]>([]);
   const [planId, setPlanId] = useState<string | null>(null);
@@ -28,6 +53,7 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationSessionId, setLocationSessionId] = useState<string | null>(null);
+  const [prefsConfirmed, setPrefsConfirmed] = useState(!accessHandoff?.destinationPlaceId);
 
   const filteredPlaces = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -115,6 +141,48 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
 
   return (
     <div className="space-y-8">
+      {accessHandoff?.sandbox || accessHandoff?.destinationPlaceId ? (
+        <div
+          className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+          role="status"
+        >
+          <p className="font-semibold">Pilot sandbox routing</p>
+          <p className="mt-1">
+            MapAble Go uses a pilot sandbox graph. It is not live national accessibility
+            routing. Routes are not guaranteed accessible, and this is not a &quot;safe&quot; or
+            &quot;verified accessible&quot; journey.
+          </p>
+          {(accessHandoff?.stepFreeRequired ||
+            accessHandoff?.maxGradientPercent != null ||
+            accessHandoff?.minPathWidthMm != null ||
+            accessHandoff?.journeyOverride) && (
+            <fieldset className="mt-3 space-y-2">
+              <legend className="font-medium">Review routing preferences from Access</legend>
+              <ul className="list-disc pl-5">
+                {accessHandoff?.stepFreeRequired ? <li>Step-free preferred</li> : null}
+                {accessHandoff?.maxGradientPercent != null ? (
+                  <li>Max gradient {accessHandoff.maxGradientPercent}%</li>
+                ) : null}
+                {accessHandoff?.minPathWidthMm != null ? (
+                  <li>Min path width {accessHandoff.minPathWidthMm} mm</li>
+                ) : null}
+                {accessHandoff?.journeyOverride ? (
+                  <li>Journey override was active on Access</li>
+                ) : null}
+              </ul>
+              <label className="flex min-h-11 items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={prefsConfirmed}
+                  onChange={(e) => setPrefsConfirmed(e.target.checked)}
+                />
+                I have reviewed these routing preferences before planning
+              </label>
+            </fieldset>
+          )}
+        </div>
+      ) : null}
+
       <GoSearch query={query} onQueryChange={setQuery} onSearch={() => undefined} />
 
       <section aria-labelledby="go-places-heading">
@@ -176,10 +244,10 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
       <button
         type="button"
         className="min-h-11 rounded-lg bg-primary px-6 text-primary-foreground disabled:opacity-50"
-        disabled={loading || !selectedPlace}
+        disabled={loading || !selectedPlace || !prefsConfirmed}
         onClick={planRoutes}
       >
-        {loading ? "Planning routes…" : "Plan accessible routes"}
+        {loading ? "Planning routes…" : "Plan routes (sandbox)"}
       </button>
 
       {error && (

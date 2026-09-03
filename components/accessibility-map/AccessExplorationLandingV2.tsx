@@ -15,7 +15,7 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import {
   LIST_PAGE_PRESENTATION_SIZE,
   MAP_MARKER_PRESENTATION_LIMIT,
-  buildExplorationResultIds,
+  buildExplorationResultIdsFromDemoPlaces,
   listPresentationIds,
   mapPresentationIds,
   orderPlacesByResultIds,
@@ -127,7 +127,7 @@ export function AccessExplorationLandingV2({
 
   const resultIds = useMemo(
     () =>
-      buildExplorationResultIds(
+      buildExplorationResultIdsFromDemoPlaces(
         filteredPlaces,
         activeRequirements,
         exploration.unknownHandling,

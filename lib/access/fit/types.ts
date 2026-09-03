@@ -29,6 +29,19 @@ export type PlaceAccessProfile = {
   transportBookable: boolean | null;
   lastVerified: string | null;
   confidence: "high" | "medium" | "low" | "unknown";
+  /** Extended capability facts — null means UNKNOWN (never fabricate). */
+  pathWidthMm?: number | null;
+  maxGradientPercent?: number | null;
+  kerbRampPresent?: boolean | null;
+  liftPresent?: boolean | null;
+  changingPlacesPresent?: boolean | null;
+  captioningAvailable?: boolean | null;
+  highContrastSignage?: boolean | null;
+  tactileCues?: boolean | null;
+  quietArea?: boolean | null;
+  lowStimulusEnvironment?: boolean | null;
+  textAacCommunication?: boolean | null;
+  surfaceFirmness?: "smooth" | "firm" | "uneven" | "unknown" | null;
 };
 
 export type AccessFitLabel =
