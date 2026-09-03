@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AdPlacement } from "@/components/ads/mapable/AdPlacement";
+import { AccessExplorationShellV2 } from "@/components/access/AccessExplorationShellV2";
 import { AccessFilterPanel } from "@/components/access/AccessFilterPanel";
 import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceList } from "@/components/access/AccessPlaceList";
@@ -12,6 +13,7 @@ import { MobileAccessMapShell } from "@/components/access/MobileAccessMapShell";
 import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
 import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
 import { useSponsoredMapMarkers } from "@/hooks/ads/useSponsoredMapMarkers";
+import { isClientAccessExperienceV2Enabled } from "@/lib/access/experience/flags";
 import { ACCESS_DISCLAIMER } from "@/lib/access/map/copy";
 import { isClientAdsAccessEnabled } from "@/lib/ads/config/client-flags";
 import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
@@ -22,12 +24,36 @@ export type AccessPlaceView = {
   name: string;
   category: string;
   suburb?: string | null;
+  stateOrRegion?: string | null;
+  addressText?: string | null;
+  confidence?: string | null;
+  sourceType?: string | null;
+  updatedAt?: string | null;
   reviewCount?: number;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  features?: { type: string }[];
 };
 
 export function MapAbleAccessShell({
+  initialPlaces,
+  experienceV2 = false,
+}: {
+  initialPlaces: AccessPlaceView[];
+  /** Server-side Access Experience V2 flag — also requires client public flag. */
+  experienceV2?: boolean;
+}) {
+  const v2Enabled = experienceV2 && isClientAccessExperienceV2Enabled();
+
+  if (v2Enabled) {
+    return <AccessExplorationShellV2 initialPlaces={initialPlaces} />;
+  }
+
+  return <MapAbleAccessShellLegacy initialPlaces={initialPlaces} />;
+}
+
+/** Legacy shell — preserved for flag-off / fail-closed path. */
+function MapAbleAccessShellLegacy({
   initialPlaces,
 }: {
   initialPlaces: AccessPlaceView[];
@@ -68,8 +94,8 @@ export function MapAbleAccessShell({
           reviewCount: r.place.reviewCount,
           latitude: r.place.latitude,
           longitude: r.place.longitude,
-        })
-      )
+        }),
+      ),
     );
   }, [query, category]);
 
@@ -80,7 +106,6 @@ export function MapAbleAccessShell({
       return;
     }
     void search();
-    // Re-run when category changes; query updates use the search bar submit handler.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- category filter only
   }, [category]);
 
@@ -179,7 +204,16 @@ export function MapAbleAccessShell({
               enabled={adsEnabled}
             />
 
-            <AccessPlaceList places={places} />
+            <AccessPlaceList
+              places={places.map((p) => ({
+                id: p.id,
+                name: p.name,
+                category: p.category,
+                suburb: p.suburb,
+                reviewCount: p.reviewCount,
+                confidence: p.confidence ?? undefined,
+              }))}
+            />
           </div>
         </div>
 

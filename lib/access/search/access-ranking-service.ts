@@ -15,9 +15,13 @@ type PlaceRow = {
   name: string;
   category: string;
   suburb: string | null;
+  stateOrRegion?: string | null;
+  addressText?: string | null;
+  sourceType?: string | null;
   updatedAt: Date;
   confidence: string;
   location: { latitude: number; longitude: number } | null;
+  features?: { type: string }[];
   ratingSummaries: { avgScore: number | null; sampleCount: number }[];
   accreditationAssessments: { tier: string | null }[];
   _count: { reviews: number };

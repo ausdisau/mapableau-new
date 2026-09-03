@@ -3,17 +3,22 @@
 import React, { useState } from "react";
 
 import { QUICK_OBSERVATION_OPTIONS } from "@/lib/access/experience/quick-observation-types";
-import type { DemoAccessPlace } from "@/lib/demo/accessibility-places";
 import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 type Step = "select" | "note" | "review" | "submitting";
+
+/** Minimal place identity — works for AccessPlace and DemoAccessPlace. */
+export type QuickObservationPlaceRef = {
+  id: string;
+  name: string;
+};
 
 export function QuickObservationDialog({
   place,
   onClose,
   onSubmitted,
 }: {
-  place: DemoAccessPlace;
+  place: QuickObservationPlaceRef;
   onClose: () => void;
   onSubmitted: () => void;
 }) {
