@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { AccessConfidenceBadge } from "@/components/access/AccessConfidenceBadge";
 import { AccessFeatureBadges } from "@/components/access/AccessFeatureBadges";
+import { AccessPlaceConditions } from "@/components/access/AccessPlaceConditions";
 import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityDisclaimerPanel";
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
 import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
@@ -73,6 +74,8 @@ export function AccessPlaceProfile({
           <AccessFeatureBadges features={place.features} />
         </div>
       </section>
+
+      <AccessPlaceConditions placeId={place.id} />
 
       <section aria-labelledby="community-reviews-heading">
         <h2 id="community-reviews-heading" className="text-lg font-semibold">

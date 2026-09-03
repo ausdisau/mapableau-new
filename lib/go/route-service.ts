@@ -7,6 +7,7 @@ import {
 } from "@/lib/access/navigate";
 import type { RouteObjective } from "@/lib/access/navigate/types";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { buildActiveAtPrismaFilter } from "@/lib/gais/conditions/temporal";
 import type {
   MobilityRoutingProfile,
   PlanRouteRequest,
@@ -18,11 +19,11 @@ import { prisma } from "@/lib/prisma";
 import { profileToConstraints } from "./profile-service";
 
 export async function loadActiveBarriers(graphId: string) {
-  const now = new Date();
+  const activeAt = new Date();
   const rows = await prisma.accessTemporaryBarrier.findMany({
     where: {
       graphId,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      ...buildActiveAtPrismaFilter(activeAt),
     },
   });
   return rows.map((b) => ({

@@ -11,6 +11,7 @@ import { AccessSearchBar } from "@/components/access/AccessSearchBar";
 import { MobileAccessMapShell } from "@/components/access/MobileAccessMapShell";
 import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
 import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
+import { AccessConditionsSection } from "@/components/gais/AccessConditionsSection";
 import { useSponsoredMapMarkers } from "@/hooks/ads/useSponsoredMapMarkers";
 import { ACCESS_DISCLAIMER } from "@/lib/access/map/copy";
 import { isClientAdsAccessEnabled } from "@/lib/ads/config/client-flags";
@@ -164,11 +165,14 @@ export function MapAbleAccessShell({
             ) : null}
 
             {gaisLayerOn ? (
-              <GaisFeatureListPanel
-                features={gaisFeatures}
-                selectedId={gaisSelectedId}
-                onSelect={setGaisSelectedId}
-              />
+              <>
+                <AccessConditionsSection enabled={gaisLayerOn} />
+                <GaisFeatureListPanel
+                  features={gaisFeatures}
+                  selectedId={gaisSelectedId}
+                  onSelect={setGaisSelectedId}
+                />
+              </>
             ) : null}
 
             <AdPlacement

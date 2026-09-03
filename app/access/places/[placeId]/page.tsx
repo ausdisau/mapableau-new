@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AccessMap } from "@/components/access/AccessMap";
+import { AccessPlaceArrivalSection } from "@/components/access/AccessPlaceArrivalSection";
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access/accreditation/accreditation-assessment-service";
@@ -74,6 +75,8 @@ export default async function AccessPlacePage({
             : null
         }
       />
+
+      <AccessPlaceArrivalSection placeId={place.id} />
 
       {place.location ? (
         <section aria-label="Location map">

@@ -2,17 +2,18 @@ import type { AccessTemporaryBarrierType } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { mapableGoFlags } from "@/lib/config/mapable-go";
+import { buildActiveAtPrismaFilter } from "@/lib/gais/conditions/temporal";
 import { prisma } from "@/lib/prisma";
 
 const GRAPH_ID = "sandbox-sydney-cbd-pilot";
 const DEFAULT_BARRIER_TTL_HOURS = 72;
 
 export async function listActiveBarriers(graphId = GRAPH_ID) {
-  const now = new Date();
+  const activeAt = new Date();
   return prisma.accessTemporaryBarrier.findMany({
     where: {
       graphId,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      ...buildActiveAtPrismaFilter(activeAt),
     },
     orderBy: { reportedAt: "desc" },
     take: 100,

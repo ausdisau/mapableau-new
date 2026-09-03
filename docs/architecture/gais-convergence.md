@@ -61,6 +61,71 @@ GAIS represents **environmental facts + evidence + time + optional requirements*
 - `GET /api/gais/features`, `/places/[id]`, `/events` — flag-gated public read
 - Optional **accessibility information layer** on existing Leaflet + MapLibre maps
 - List view parity for map layer data
+- `lib/gais/compatibility/` — deterministic environmental compatibility (facts vs user requirements)
+- `POST /api/gais/compatibility` — flag-gated; auth required for stored participant profiles
+- `lib/gais/conditions/` — **Access Conditions** (GAIS Temporal Accessibility Events); factual, time-aware; no forecasting
+
+### Access Conditions (public name)
+
+Internal concept: GAIS Temporal Accessibility Events. Sources: `AccessTemporaryBarrier` + accepted temporary `AccessChangeReviewRecord` from Intelligence Next.
+
+| Event type | Typical source |
+|------------|----------------|
+| `OBSTRUCTION` | Point obstruction without segment |
+| `PATH_CLOSURE` | Segment-linked `blocked_path` |
+| `LIFT_OUTAGE` | `lift_outage` barrier or lift operational change review |
+| `CONSTRUCTION` | `construction` barrier |
+| `SURFACE_ISSUE` | `poor_surface` barrier |
+| `OTHER` | Remaining barrier types |
+
+`GET /api/gais/events` supports `bbox`, `activeAt` (default now), `placeId`, `graphId`. Shared temporal filter in `lib/gais/conditions/temporal.ts` — reused by Go barrier queries.
+
+### Environmental compatibility (device-neutral)
+
+Compares **known environmental facts** with **user-configured requirements** (not clinical limits):
+
+| Outcome | Meaning |
+|---------|---------|
+| `COMPATIBLE_WITH_KNOWN_FACTS` | Recorded fact meets stated requirement |
+| `POTENTIAL_DIFFICULTY` | Recorded fact exceeds a *preferred* threshold |
+| `KNOWN_CONFLICT` | Recorded fact conflicts with requirement |
+| `UNKNOWN` | Required environmental fact not recorded |
+| `REQUIRES_MORE_INFORMATION` | No requirements supplied |
+
+Rules: never `ASSUME_PASS`; feature tags (e.g. `step_free_entry`) do not establish physical facts; optional adapter maps MapAble Go `MobilityRoutingProfile` → `AccessRequirements` without fabricating device limits.
+
+### Structured geographic query
+
+- `POST /api/gais/query` — deterministic structured queries (not free-form AI)
+- Compiles to Access Intelligence Next `AccessQueryAst` for ontology validation via `validateAccessQuery`
+- Response scopes: `MATCHED_KNOWN_FACTS`, `KNOWN_CONFLICTS`, `UNKNOWN`
+- Supports bounds, location+radius, feature types, evidence requirements, compatibility requirements, active events
+- No implicit "most accessible" ranking — `meta.rankingApplied: false`
+
+### Access Destination Resolution
+
+Technically honest accessibility-aware geocoding over published `AccessPlace` records:
+
+- `POST /api/gais/destination` — `{ placeId }` or `{ query }`
+- `GET /api/gais/destination/[placeId]`
+- Returns `place`, `centrePoint`, `knownEntrances`, `knownDropOffPoints`, `evidence`, `unknowns`
+- **Never invents** entrance/drop-off coordinates, door widths, or indoor paths
+- No new geographic sub-feature schema yet: `AccessPlaceFeature` has tags + notes only, and no UI path currently stores entrance coordinates with provenance
+- Place UI **Arrival** section shows recorded arrival features; "Show on map" only when geometry is known
+
+### Accessibility telemetry foundation (pilot)
+
+Observation-only — **no mobility device control / actuation**:
+
+- Contract: `AccessibilityObservation` (`lib/gais/telemetry/`)
+- Allowed types: `TEMPORARY_OBSTRUCTION`, `PATH_WIDTH_ESTIMATE`, `SURFACE_CHANGE`, `DOORWAY_ESTIMATE`
+- Ingest verification state: `SENSOR_OBSERVED` only — never auto-`VERIFIED`
+- Promotion: `received → validated → candidate_evidence → moderation → published|rejected`
+- `POST /api/gais/telemetry/ingest` — authenticated, rate-limited, schema + timestamp validation
+- `POST /api/gais/telemetry/promote` — manual workflow steps
+- `POST /api/gais/telemetry/simulate` — development-only synthetic data (`SYNTHETIC TEST DATA`)
+- Actuation commands (`steer`, `drive`, `accelerate`, `brake`, `moveJoint`, `changeDriveProfile`) rejected by invariant
+- Pilot store is process-local (not durable); participant identity stripped from public projections
 
 ## 6. Deferred
 

@@ -3,6 +3,8 @@ import type { GaisFeatureType } from "./feature-types";
 import type { GaisGeometry } from "./geometry";
 import type { GaisFeatureProperties } from "./properties";
 
+export type { GaisAccessConditionEvent as GaisAccessibilityEvent } from "@/lib/gais/conditions/types";
+
 export type GaisFeature = {
   id: string;
   type: GaisFeatureType;
@@ -23,17 +25,4 @@ export type GaisPlaceSummary = {
   geometry: GaisGeometry;
   features: GaisFeature[];
   evidenceScope: string;
-};
-
-export type GaisAccessibilityEvent = {
-  id: string;
-  type: "TEMPORARY_BARRIER";
-  barrierType: string;
-  label: string;
-  geometry: GaisGeometry;
-  reportedAt: string;
-  expiresAt?: string;
-  evidenceState: GaisEvidenceRef["sourceType"];
-  description?: string;
-  graphId: string;
 };
