@@ -14,14 +14,14 @@ export type WorkerScreeningProviderHealth = {
   jurisdiction?: WorkerScreeningJurisdiction;
   configured: boolean;
   liveTransportEnabled: boolean;
-  capabilities: WorkerScreeningProviderCapability[];
+  capabilities: readonly WorkerScreeningProviderCapability[];
   notes: string[];
 };
 
 export interface WorkerScreeningProvider {
   readonly providerId: string;
   readonly jurisdiction?: WorkerScreeningJurisdiction;
-  readonly capabilities: WorkerScreeningProviderCapability[];
+  readonly capabilities: readonly WorkerScreeningProviderCapability[];
 
   healthCheck(): Promise<WorkerScreeningProviderHealth>;
 
