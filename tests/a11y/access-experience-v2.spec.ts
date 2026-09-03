@@ -16,17 +16,25 @@ async function runAxeCriticalFree(page: import("@playwright/test").Page) {
 }
 
 test.describe("access experience v2 /access", () => {
-  test("list discovery works without requiring map interaction", async ({ page }) => {
+  test("list discovery works without requiring map interaction", async ({
+    page,
+  }) => {
     await page.goto("/access");
-    await expect(page.getByRole("heading", { name: /MapAble Access/i })).toBeVisible();
-    const list = page.getByRole("list", { name: /place list|accessible places/i });
+    await expect(
+      page.getByRole("heading", { name: /MapAble Access/i }),
+    ).toBeVisible();
+    const list = page.getByRole("list", {
+      name: /place list|accessible places/i,
+    });
     // Empty DB is OK — status message still present
     const listOrStatus = list.or(page.getByRole("status"));
     await expect(listOrStatus.first()).toBeVisible();
     await runAxeCriticalFree(page);
   });
 
-  test("keyboard can reach list/map presentation controls", async ({ page }) => {
+  test("keyboard can reach list/map presentation controls", async ({
+    page,
+  }) => {
     await page.goto("/access");
     const listBtn = page.getByRole("button", { name: /list/i }).first();
     await listBtn.focus();
@@ -34,7 +42,9 @@ test.describe("access experience v2 /access", () => {
     await page.keyboard.press("Tab");
   });
 
-  test("map view toggle does not remove list-capable discovery", async ({ page }) => {
+  test("map view toggle does not remove list-capable discovery", async ({
+    page,
+  }) => {
     await page.goto("/access");
     const mapBtn = page.getByRole("button", { name: /map/i }).first();
     if (await mapBtn.isVisible()) {
