@@ -23,6 +23,7 @@ Safeguarding decisions are **human-only**. CareOS may assist coordination; it mu
 - Incident service: `lib/incidents/incident-service.ts` remains canonical
 - Admin safeguarding surfaces: `/admin/safeguarding`
 - Emergency access: human admin approval only (`docs/careos/identity-and-authority.md`)
+- Unified Care & Support Guardian (`lib/ai/platform/guardian/`) may route to human review / incident / complaint paths; it must not decide reportability or substantiate allegations. See `docs/ai-platform/guardian/SAFEGUARDING_BOUNDARY.md`.
 
 ## Worker cancellation and continuity
 

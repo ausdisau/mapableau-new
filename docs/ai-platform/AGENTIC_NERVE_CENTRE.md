@@ -42,11 +42,13 @@ selectMapAbleAgents (deterministic)
 | Kill switches | `lib/ai/platform/policies/kill-switches.ts` |
 | Human review | `lib/ai/platform/human-review/` |
 | Safeguarding | `lib/ai/platform/policies/safeguarding-gate.ts` (gate, not agent) |
+| Unified Care & Support Guardian | `lib/ai/platform/guardian/` (privacy/purpose/zone router — not an agent; flags off) |
 | Mission graph | existing `lib/ai/platform/graph/` + CareOS `intelligence/network/mission-graph.ts` |
 | CareOS activation | `intelligence/network/agent-registry.ts` (adapter) |
 
 Do **not** create a second model registry, tool registry, prompt registry, approval
 mechanism, authority taxonomy, mission graph, or kill-switch implementation.
+Guardian reuses those planes; see [UNIFIED_GUARDIAN.md](./UNIFIED_GUARDIAN.md).
 
 ## Eight canonical operational agents
 
