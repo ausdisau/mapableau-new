@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AccessConfidenceBadge } from "@/components/access/AccessConfidenceBadge";
 import { AccessFeatureBadges } from "@/components/access/AccessFeatureBadges";
 import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityDisclaimerPanel";
+import { AccessPlaceExperienceV2Panel } from "@/components/access/AccessPlaceExperienceV2Panel";
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
 import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
 import { ACCESS_LABELS } from "@/lib/access/map/copy";
@@ -15,6 +16,7 @@ export function AccessPlaceProfile({
   place,
   reviews,
   accreditation,
+  experienceV2 = false,
 }: {
   place: {
     id: string;
@@ -27,6 +29,7 @@ export function AccessPlaceProfile({
     confidence: AccessConfidenceLevel;
     features: string[];
     sourceType: string;
+    updatedAt?: string | null;
   };
   reviews: {
     id: string;
@@ -40,6 +43,7 @@ export function AccessPlaceProfile({
     totalScore: number;
     expired?: boolean;
   } | null;
+  experienceV2?: boolean;
 }) {
   return (
     <div className="space-y-8">
@@ -64,6 +68,24 @@ export function AccessPlaceProfile({
           />
         </div>
       </header>
+
+      {experienceV2 ? (
+        <AccessPlaceExperienceV2Panel
+          place={{
+            id: place.id,
+            name: place.name,
+            category: place.category,
+            description: place.description,
+            addressText: place.addressText,
+            suburb: place.suburb,
+            stateOrRegion: place.stateOrRegion,
+            confidence: place.confidence,
+            sourceType: place.sourceType,
+            updatedAt: place.updatedAt,
+            features: place.features,
+          }}
+        />
+      ) : null}
 
       <section aria-labelledby="access-features-heading">
         <h2 id="access-features-heading" className="text-lg font-semibold">
@@ -113,12 +135,14 @@ export function AccessPlaceProfile({
         >
           Claim as venue owner
         </Link>
-        <Link
-          href="/journey-planner"
-          className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
-        >
-          Plan accessible trip
-        </Link>
+        {!experienceV2 ? (
+          <Link
+            href="/journey-planner"
+            className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
+          >
+            Plan accessible trip
+          </Link>
+        ) : null}
         <Link
           href="/transport"
           className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
@@ -131,12 +155,14 @@ export function AccessPlaceProfile({
         >
           Request support worker
         </Link>
-        <Link
-          href="/add-access-info"
-          className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
-        >
-          Report outdated info
-        </Link>
+        {!experienceV2 ? (
+          <Link
+            href="/add-access-info"
+            className="min-h-11 inline-flex items-center rounded-lg border border-border px-4"
+          >
+            Report outdated info
+          </Link>
+        ) : null}
       </div>
 
       <p className="text-sm text-muted-foreground" role="note">

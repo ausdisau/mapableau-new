@@ -1,11 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { GoRouteOptions } from "@/components/go/GoRouteOptions";
 import { GoSearch } from "@/components/go/GoSearch";
-import type { RouteOption } from "@/lib/go/contracts/route-contracts";
+import { GO_SANDBOX_DISCLAIMER } from "@/lib/access/experience/go-handoff";
+import type {
+  MobilityRoutingProfile,
+  RouteOption,
+} from "@/lib/go/contracts/route-contracts";
 import { defaultPowerWheelchairProfile } from "@/lib/go/profile-service";
 
 type PlaceResult = {
@@ -16,8 +20,35 @@ type PlaceResult = {
   longitude?: number;
 };
 
+function profileFromSearchParams(
+  params: URLSearchParams,
+): MobilityRoutingProfile {
+  const base = defaultPowerWheelchairProfile();
+  const aid = params.get("mobilityAidType");
+  if (
+    aid === "manual_wheelchair" ||
+    aid === "power_wheelchair" ||
+    aid === "mobility_scooter" ||
+    aid === "other"
+  ) {
+    base.mobilityAidType = aid;
+  }
+  const pathWidth = params.get("minimumPreferredPathWidthMm");
+  if (pathWidth) base.minimumPreferredPathWidthMm = Number(pathWidth);
+  const slope = params.get("preferredMaximumSlopePercent");
+  if (slope) base.preferredMaximumSlopePercent = Number(slope);
+  if (params.get("curbRampRequired") === "1") base.curbRampRequired = true;
+  if (params.get("liftRequirement") === "1") base.liftRequirement = true;
+  if (params.get("accessibleToiletPreference") === "1") {
+    base.accessibleToiletPreference = true;
+  }
+  if (params.get("stairsAllowed") === "0") base.stairsAllowed = false;
+  return base;
+}
+
 export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[] }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [places] = useState(initialPlaces);
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
@@ -28,6 +59,26 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationSessionId, setLocationSessionId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<MobilityRoutingProfile>(() =>
+    defaultPowerWheelchairProfile(),
+  );
+  const [prefsReviewed, setPrefsReviewed] = useState(false);
+
+  const sandboxHandoff =
+    searchParams.get("sandbox") === "1" ||
+    searchParams.get("reviewPreferences") === "1" ||
+    Boolean(searchParams.get("destinationPlaceId"));
+
+  useEffect(() => {
+    const destinationId = searchParams.get("destinationPlaceId");
+    if (destinationId) {
+      const match = places.find((p) => p.id === destinationId);
+      if (match) setSelectedPlace(match);
+    }
+    if (sandboxHandoff) {
+      setProfile(profileFromSearchParams(searchParams));
+    }
+  }, [places, searchParams, sandboxHandoff]);
 
   const filteredPlaces = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -68,6 +119,10 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
       setError("Selected place needs a published location.");
       return;
     }
+    if (sandboxHandoff && !prefsReviewed) {
+      setError("Review your mobility preferences before planning a route.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -82,7 +137,7 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
           destinationPlaceId: selectedPlace.id,
           destinationLat: selectedPlace.latitude,
           destinationLng: selectedPlace.longitude,
-          profile: defaultPowerWheelchairProfile(),
+          profile,
         }),
       });
 
@@ -115,6 +170,16 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
 
   return (
     <div className="space-y-8">
+      {sandboxHandoff ? (
+        <div
+          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
+          role="note"
+        >
+          <p className="font-semibold">Sandbox journey handoff</p>
+          <p className="mt-1">{GO_SANDBOX_DISCLAIMER}</p>
+        </div>
+      ) : null}
+
       <GoSearch query={query} onQueryChange={setQuery} onSearch={() => undefined} />
 
       <section aria-labelledby="go-places-heading">
@@ -140,6 +205,63 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
           ))}
         </ul>
       </section>
+
+      {sandboxHandoff ? (
+        <section
+          aria-labelledby="go-prefs-heading"
+          className="rounded-xl border border-border p-4"
+        >
+          <h2 id="go-prefs-heading" className="text-lg font-semibold">
+            Review mobility preferences
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Routing-relevant preferences only — no health or diagnosis data is
+            shared. Confirm before planning.
+          </p>
+          <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="font-semibold">Mobility aid</dt>
+              <dd>{profile.mobilityAidType ?? "not set"}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Preferred path width</dt>
+              <dd>
+                {profile.minimumPreferredPathWidthMm != null
+                  ? `${profile.minimumPreferredPathWidthMm} mm`
+                  : "not set"}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Preferred max slope</dt>
+              <dd>
+                {profile.preferredMaximumSlopePercent != null
+                  ? `${profile.preferredMaximumSlopePercent}%`
+                  : "not set"}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Kerb ramp</dt>
+              <dd>{profile.curbRampRequired ? "Required" : "Not required"}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Lift</dt>
+              <dd>{profile.liftRequirement ? "Preferred" : "Not required"}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Stairs</dt>
+              <dd>{profile.stairsAllowed === false ? "Avoid" : "Allowed"}</dd>
+            </div>
+          </dl>
+          <label className="mt-4 flex min-h-11 items-center gap-2 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={prefsReviewed}
+              onChange={(e) => setPrefsReviewed(e.target.checked)}
+            />
+            I have reviewed these preferences for this journey
+          </label>
+        </section>
+      ) : null}
 
       <section aria-labelledby="go-origin-heading">
         <h2 id="go-origin-heading" className="text-lg font-semibold">
@@ -176,7 +298,7 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
       <button
         type="button"
         className="min-h-11 rounded-lg bg-primary px-6 text-primary-foreground disabled:opacity-50"
-        disabled={loading || !selectedPlace}
+        disabled={loading || !selectedPlace || (sandboxHandoff && !prefsReviewed)}
         onClick={planRoutes}
       >
         {loading ? "Planning routes…" : "Plan accessible routes"}

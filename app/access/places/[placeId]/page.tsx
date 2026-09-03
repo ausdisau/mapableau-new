@@ -4,6 +4,7 @@ import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access/accreditation/accreditation-assessment-service";
+import { accessExperienceFlags } from "@/lib/access/experience/flags";
 import { getPlaceById } from "@/lib/access/map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access/reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access/reviews/review-access-policy";
@@ -46,10 +47,12 @@ export default async function AccessPlacePage({
   }));
 
   const accreditationDisplay = await getAccreditationDisplayForPlace(placeId);
+  const experienceV2 = accessExperienceFlags.enabled;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
       <AccessPlaceProfile
+        experienceV2={experienceV2}
         place={{
           id: place.id,
           name: place.name,
@@ -61,6 +64,7 @@ export default async function AccessPlacePage({
           confidence: place.confidence,
           features: place.features.map((f) => f.type),
           sourceType: place.sourceType,
+          updatedAt: place.updatedAt.toISOString(),
         }}
         reviews={reviews}
         accreditation={
@@ -99,7 +103,7 @@ export default async function AccessPlacePage({
         </section>
       ) : null}
 
-      <ReportPlaceIssueButton placeId={placeId} />
+      {!experienceV2 ? <ReportPlaceIssueButton placeId={placeId} /> : null}
     </div>
   );
 }

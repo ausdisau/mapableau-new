@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { GoRoutePlanner } from "@/components/go/GoRoutePlanner";
 import { mapableGoFlags } from "@/lib/config/mapable-go";
 import { listPublishedPlaces } from "@/lib/access/map/access-place-service";
@@ -22,6 +24,13 @@ export default async function GoPage() {
   }
 
   const places = await listPublishedPlaces(200);
+  const placeInputs = places.map((p) => ({
+    id: p.id,
+    name: p.name,
+    suburb: p.suburb,
+    latitude: p.location?.latitude,
+    longitude: p.location?.longitude,
+  }));
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -35,15 +44,10 @@ export default async function GoPage() {
           Claim state: IN_DEVELOPMENT. Pilot sandbox graph — not live national path evidence.
         </p>
       </header>
-      <GoRoutePlanner
-        initialPlaces={places.map((p) => ({
-          id: p.id,
-          name: p.name,
-          suburb: p.suburb,
-          latitude: p.location?.latitude,
-          longitude: p.location?.longitude,
-        }))}
-      />
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading planner…</p>}>
+        <GoRoutePlanner initialPlaces={placeInputs} />
+      </Suspense>
     </main>
   );
 }
+
