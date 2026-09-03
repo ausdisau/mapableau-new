@@ -23,7 +23,7 @@ function oauthErrorMessage(code: string | null): string | null {
   switch (code) {
     case "OAuthSignin":
     case "OAuthCallback":
-      return "Social sign-in failed. Please try again.";
+      return "Secure sign-in failed. Try again or use another sign-in method.";
     case "OAuthAccountNotLinked":
       return "This email is already registered with a different sign-in method. Use email and password, or contact support.";
     case "AccessDenied":
