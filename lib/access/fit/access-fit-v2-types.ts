@@ -275,6 +275,180 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
         place,
       ),
   },
+  {
+    id: "path_width",
+    label: "Path width",
+    isSelected: (p) =>
+      p.minimumPathWidthMm != null || p.wheelchairUser || p.powerchairUser,
+    evaluate: (p, place) => {
+      const min =
+        p.minimumPathWidthMm ??
+        (p.powerchairUser ? 1200 : p.wheelchairUser ? 900 : 900);
+      if (place.pathWidthMm == null) {
+        return {
+          state: "UNKNOWN",
+          explanation: "Path width unknown",
+          evidenceRefs: [
+            { sourceType: "UNKNOWN", sourceLabel: "Path width unknown" },
+          ],
+        };
+      }
+      const meets = place.pathWidthMm >= min;
+      return {
+        state: meets ? "MEETS" : "DOES_NOT_MATCH",
+        explanation: meets
+          ? `Path width ${place.pathWidthMm} mm meets your ${min} mm preference`
+          : `Path width ${place.pathWidthMm} mm may not meet your ${min} mm preference`,
+        evidenceRefs: evidenceFromPlace(
+          place,
+          `Path width ${place.pathWidthMm} mm`,
+        ),
+      };
+    },
+  },
+  {
+    id: "max_gradient",
+    label: "Preferred maximum gradient",
+    isSelected: (p) => p.maximumPreferredGradientPercent != null,
+    evaluate: (p, place) => {
+      const max = p.maximumPreferredGradientPercent!;
+      if (place.maxGradientPercent == null) {
+        return {
+          state: "UNKNOWN",
+          explanation: "Gradient unknown",
+          evidenceRefs: [
+            { sourceType: "UNKNOWN", sourceLabel: "Gradient unknown" },
+          ],
+        };
+      }
+      const meets = place.maxGradientPercent <= max;
+      return {
+        state: meets ? "MEETS" : "DOES_NOT_MATCH",
+        explanation: meets
+          ? `Reported gradient ${place.maxGradientPercent}% within your ${max}% preference`
+          : `Reported gradient ${place.maxGradientPercent}% exceeds your ${max}% preference`,
+        evidenceRefs: evidenceFromPlace(
+          place,
+          `Gradient ${place.maxGradientPercent}%`,
+        ),
+      };
+    },
+  },
+  {
+    id: "kerb_ramp",
+    label: "Kerb ramp",
+    isSelected: (p) => Boolean(p.kerbRampRequired),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.kerbRamp ?? null,
+        "Kerb ramp / ramp access reported",
+        "No kerb ramp reported",
+        "Kerb ramp unknown",
+        place,
+      ),
+  },
+  {
+    id: "lift",
+    label: "Lift access",
+    isSelected: (p) => Boolean(p.liftRequired),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.lift ?? null,
+        "Lift access reported",
+        "No lift reported",
+        "Lift access unknown",
+        place,
+      ),
+  },
+  {
+    id: "changing_places",
+    label: "Changing Places facility",
+    isSelected: (p) => Boolean(p.changingPlacesPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.changingPlaces ?? null,
+        "Changing Places facility reported",
+        "No Changing Places facility reported",
+        "Changing Places availability unknown",
+        place,
+      ),
+  },
+  {
+    id: "captioning",
+    label: "Captioning",
+    isSelected: (p) => Boolean(p.captioningPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.captioning ?? null,
+        "Captioning reported",
+        "Captioning not reported",
+        "Captioning unknown",
+        place,
+      ),
+  },
+  {
+    id: "high_contrast_signage",
+    label: "High-contrast signage",
+    isSelected: (p) => Boolean(p.highContrastSignagePreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.highContrastSignage ?? null,
+        "High-contrast signage reported",
+        "High-contrast signage not reported",
+        "Signage contrast unknown",
+        place,
+      ),
+  },
+  {
+    id: "tactile_cues",
+    label: "Tactile cues / braille signage",
+    isSelected: (p) => Boolean(p.tactileCuesPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.tactileCues ?? null,
+        "Tactile / braille cues reported",
+        "Tactile cues not reported",
+        "Tactile cues unknown",
+        place,
+      ),
+  },
+  {
+    id: "surface_tolerance",
+    label: "Surface quality",
+    isSelected: (p) =>
+      p.surfaceTolerance === "smooth_only" || p.surfaceTolerance === "firm_ok",
+    evaluate: (p, place) => {
+      const surface = place.surfaceQuality ?? null;
+      if (surface == null) {
+        return {
+          state: "UNKNOWN",
+          explanation: "Surface quality unknown",
+          evidenceRefs: [
+            { sourceType: "UNKNOWN", sourceLabel: "Surface quality unknown" },
+          ],
+        };
+      }
+      if (p.surfaceTolerance === "smooth_only") {
+        const meets = surface === "smooth";
+        return {
+          state: meets ? "MEETS" : "DOES_NOT_MATCH",
+          explanation: meets
+            ? "Smooth surface reported"
+            : `Surface reported as ${surface}; smooth preferred`,
+          evidenceRefs: evidenceFromPlace(place, `Surface: ${surface}`),
+        };
+      }
+      // firm_ok
+      const meets = surface === "smooth" || surface === "firm";
+      return {
+        state: meets ? "MEETS" : "DOES_NOT_MATCH",
+        explanation: meets
+          ? `Surface (${surface}) within firm/smooth preference`
+          : `Surface reported as ${surface}; may exceed firm preference`,
+        evidenceRefs: evidenceFromPlace(place, `Surface: ${surface}`),
+      };
+    },
+  },
 ];
 
 export function buildEvidenceSummary(
