@@ -2,9 +2,13 @@ import { test, expect } from "@playwright/test";
 
 test("Ask MapAble page and guest launcher behaviour", async ({ page }) => {
   await page.goto("/ask");
-  await expect(page.getByRole("heading", { name: "Ask MapAble" })).toBeVisible();
   await expect(
-    page.getByText(/Accessible information, planning and support across MapAble/i),
+    page.getByRole("heading", { name: "Ask MapAble" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      /Accessible information, planning and support across MapAble/i,
+    ),
   ).toBeVisible();
   await page.screenshot({
     path: "/opt/cursor/artifacts/ask-mapable-page.png",
@@ -23,7 +27,9 @@ test("Ask MapAble page and guest launcher behaviour", async ({ page }) => {
   });
 
   await page.goto("/");
-  await expect(page.locator('[data-testid="ask-mapable-launcher"]')).toHaveCount(0);
+  await expect(
+    page.locator('[data-testid="ask-mapable-launcher"]'),
+  ).toHaveCount(0);
   await page.screenshot({
     path: "/opt/cursor/artifacts/ask-mapable-home-no-launcher.png",
     fullPage: false,
