@@ -61,8 +61,10 @@ const DEFAULT_SEARCH_TERMS = [
   "shampoo",
 ];
 
-const WOOLWORTHS_PUBLIC_API_KEY = "KaGOqzzJ3ZTjswc62prswRLXCqJ4oepSqtI2P8iM";
-const COLES_PUBLIC_API_KEY = "dd6ae58532d743978508555a59a199ac";
+function groceryEnv(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value && value.length > 0 ? value : undefined;
+}
 
 export class SupplierFetchError extends Error {
   constructor(
@@ -374,8 +376,9 @@ export class WoolworthsAdapter implements GrocerySupplierAdapter {
   readonly name = "woolworths";
 
   async fetchProducts({ limit }: { limit: number }): Promise<SupplierProductInput[]> {
-    if (process.env.WOOLWORTHS_API_KEY) return this.fetchOfficial(limit);
-    return this.fetchPublicStorefront(limit);
+    if (groceryEnv("WOOLWORTHS_API_KEY")) return this.fetchOfficial(limit);
+    if (groceryEnv("WOOLWORTHS_PUBLIC_API_KEY")) return this.fetchPublicStorefront(limit);
+    return [];
   }
 
   private async fetchOfficial(limit: number): Promise<SupplierProductInput[]> {
@@ -415,6 +418,8 @@ export class WoolworthsAdapter implements GrocerySupplierAdapter {
   }
 
   private async fetchPublicStorefront(limit: number): Promise<SupplierProductInput[]> {
+    const publicKey = groceryEnv("WOOLWORTHS_PUBLIC_API_KEY");
+    if (!publicKey) return [];
     const location = getEffectiveSupplierLocation(this.name);
     try {
       return await fetchSearchProducts({
@@ -427,7 +432,7 @@ export class WoolworthsAdapter implements GrocerySupplierAdapter {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-Api-Key": WOOLWORTHS_PUBLIC_API_KEY,
+              "X-Api-Key": publicKey,
               "Request-Source": "MapAble",
             },
             body: JSON.stringify({
@@ -453,6 +458,8 @@ export class ColesAdapter implements GrocerySupplierAdapter {
   readonly name = "coles";
 
   async fetchProducts({ limit }: { limit: number }): Promise<SupplierProductInput[]> {
+    const colesKey = groceryEnv("COLES_API_KEY");
+    if (!colesKey) return [];
     const baseUrl = process.env.COLES_API_BASE_URL || "https://apigw.coles.com.au/digital/colesappbff";
     const location = getEffectiveSupplierLocation(this.name);
     const storeId = location.storeId || "0584";
@@ -470,7 +477,7 @@ export class ColesAdapter implements GrocerySupplierAdapter {
           return {
             url: url.toString(),
             tags: [term],
-            init: { headers: { "X-Api-Key": process.env.COLES_API_KEY || COLES_PUBLIC_API_KEY } },
+            init: { headers: { "X-Api-Key": colesKey } },
           };
         },
       });
