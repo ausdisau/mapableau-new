@@ -62,6 +62,7 @@ vi.mock("@/lib/support/communication-passport/service", () => ({
 import {
   challengeAccessReceipt,
   listParticipantAccessHistory,
+  recordDisclosureReceipt,
   recordPurposeBoundAccessReceipt,
   TrustFabricError,
 } from "@/lib/trust/fabric/receipt-service";
@@ -126,6 +127,32 @@ describe("purpose-bound access receipts", () => {
         outcome: "disclosed",
       }),
     ).rejects.toBeInstanceOf(TrustFabricError);
+  });
+
+  it("recordDisclosureReceipt writes consent-scoped disclosure with categories", async () => {
+    const result = await recordDisclosureReceipt({
+      actorUserId: "participant-1",
+      participantId: "taylor-1",
+      organisationId: "org-employer",
+      purpose: "workplace adjustments",
+      fieldCategories: ["mobility_needs", "communication_preferences"],
+      consentRecordId: "consent-1",
+    });
+
+    expect(result?.id).toBe("receipt-1");
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          participantId: "taylor-1",
+          organisationId: "org-employer",
+          purpose: "workplace adjustments",
+          fieldCategories: ["mobility_needs", "communication_preferences"],
+          authoritySource: "consent",
+          consentRecordId: "consent-1",
+          outcome: "disclosed",
+        }),
+      }),
+    );
   });
 });
 
