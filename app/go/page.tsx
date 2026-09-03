@@ -8,7 +8,17 @@ export const metadata = {
     "Plan power-wheelchair accessible routes with evidence, uncertainty labels, and participant control.",
 };
 
-export default async function GoPage() {
+function parseOptionalNumber(value: string | string[] | undefined): number | undefined {
+  if (typeof value !== "string" || value.trim() === "") return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+export default async function GoPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   if (!mapableGoFlags.enabled) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-12">
@@ -20,6 +30,24 @@ export default async function GoPage() {
       </main>
     );
   }
+
+  const params = await searchParams;
+  const destinationPlaceId =
+    typeof params.destinationPlaceId === "string" ? params.destinationPlaceId : undefined;
+  const destinationName =
+    typeof params.destinationName === "string" ? params.destinationName : undefined;
+
+  const accessHandoff = destinationPlaceId
+    ? {
+        destinationPlaceId,
+        destinationName,
+        stepFreeRequired: params.stepFreeRequired === "1",
+        maxGradientPercent: parseOptionalNumber(params.maxGradientPercent),
+        minPathWidthMm: parseOptionalNumber(params.minPathWidthMm),
+        journeyOverride: params.journeyOverride === "1",
+        sandbox: params.sandbox === "1" || true,
+      }
+    : null;
 
   const places = await listPublishedPlaces(200);
 
@@ -36,6 +64,7 @@ export default async function GoPage() {
         </p>
       </header>
       <GoRoutePlanner
+        accessHandoff={accessHandoff}
         initialPlaces={places.map((p) => ({
           id: p.id,
           name: p.name,

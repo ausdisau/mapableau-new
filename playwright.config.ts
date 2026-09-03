@@ -25,6 +25,10 @@ const projects: Project[] = [
     testMatch: /accessibility-panel\.spec\.ts/,
   },
   {
+    name: "access-experience-v2",
+    testMatch: /access-experience-v2\.spec\.ts/,
+  },
+  {
     name: "unified-shell",
     testMatch: /unified-shell\.spec\.ts/,
     dependencies: skipAuth ? undefined : ["setup"],

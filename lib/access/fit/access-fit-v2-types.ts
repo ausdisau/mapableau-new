@@ -275,6 +275,203 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
         place,
       ),
   },
+  {
+    id: "path_width",
+    label: "Minimum path width",
+    isSelected: (p) => p.minimumPathWidthMm != null,
+    evaluate: (p, place) => {
+      const min = p.minimumPathWidthMm!;
+      const value = place.pathWidthMm ?? null;
+      if (value == null) {
+        return {
+          state: "UNKNOWN",
+          explanation: "Path width unknown",
+          evidenceRefs: [{ sourceType: "UNKNOWN", sourceLabel: "Path width unknown" }],
+        };
+      }
+      const meets = value >= min;
+      return {
+        state: meets ? "MEETS" : "DOES_NOT_MATCH",
+        explanation: meets
+          ? `Path width ${value} mm meets your ${min} mm preference`
+          : `Path width ${value} mm may not meet your ${min} mm preference`,
+        evidenceRefs: evidenceFromPlace(place, `Path width ${value} mm`),
+      };
+    },
+  },
+  {
+    id: "gradient",
+    label: "Maximum preferred gradient",
+    isSelected: (p) => p.maximumPreferredGradientPercent != null,
+    evaluate: (p, place) => {
+      const max = p.maximumPreferredGradientPercent!;
+      const value = place.maxGradientPercent ?? null;
+      if (value == null) {
+        return {
+          state: "UNKNOWN",
+          explanation: "Gradient unknown",
+          evidenceRefs: [{ sourceType: "UNKNOWN", sourceLabel: "Gradient unknown" }],
+        };
+      }
+      const meets = value <= max;
+      return {
+        state: meets ? "MEETS" : "DOES_NOT_MATCH",
+        explanation: meets
+          ? `Gradient ${value}% within your ${max}% preference`
+          : `Gradient ${value}% exceeds your ${max}% preference`,
+        evidenceRefs: evidenceFromPlace(place, `Gradient ${value}%`),
+      };
+    },
+  },
+  {
+    id: "kerb_ramp",
+    label: "Kerb ramp",
+    isSelected: (p) => Boolean(p.kerbRampRequired),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.kerbRampPresent ?? null,
+        "Kerb ramp reported",
+        "No kerb ramp reported",
+        "Kerb ramp unknown",
+        place,
+      ),
+  },
+  {
+    id: "lift",
+    label: "Lift",
+    isSelected: (p) => Boolean(p.liftRequired),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.liftPresent ?? null,
+        "Lift reported",
+        "No lift reported",
+        "Lift unknown",
+        place,
+      ),
+  },
+  {
+    id: "changing_places",
+    label: "Changing Places",
+    isSelected: (p) => Boolean(p.changingPlacesPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.changingPlacesPresent ?? null,
+        "Changing Places facility reported",
+        "No Changing Places facility reported",
+        "Changing Places availability unknown",
+        place,
+      ),
+  },
+  {
+    id: "captioning",
+    label: "Captioning",
+    isSelected: (p) => Boolean(p.captioningPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.captioningAvailable ?? null,
+        "Captioning reported",
+        "Captioning not reported",
+        "Captioning unknown",
+        place,
+      ),
+  },
+  {
+    id: "high_contrast_signage",
+    label: "High-contrast signage",
+    isSelected: (p) => Boolean(p.highContrastSignagePreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.highContrastSignage ?? null,
+        "High-contrast signage reported",
+        "High-contrast signage not reported",
+        "High-contrast signage unknown",
+        place,
+      ),
+  },
+  {
+    id: "tactile_cues",
+    label: "Tactile cues",
+    isSelected: (p) => Boolean(p.tactileCuesPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.tactileCues ?? null,
+        "Tactile cues reported",
+        "Tactile cues not reported",
+        "Tactile cues unknown",
+        place,
+      ),
+  },
+  {
+    id: "quiet_area",
+    label: "Quiet area",
+    isSelected: (p) => Boolean(p.quietAreaPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.quietArea ?? place.lowSensoryOption,
+        "Quiet area reported",
+        "Quiet area not reported",
+        "Quiet area unknown",
+        place,
+      ),
+  },
+  {
+    id: "low_stimulus",
+    label: "Low-stimulus environment",
+    isSelected: (p) => Boolean(p.lowStimulusPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.lowStimulusEnvironment ?? place.lowSensoryOption,
+        "Low-stimulus environment reported",
+        "Low-stimulus environment not reported",
+        "Low-stimulus environment unknown",
+        place,
+      ),
+  },
+  {
+    id: "text_aac_communication",
+    label: "Text / AAC communication",
+    isSelected: (p) =>
+      Boolean(p.textCommunicationPreferred || p.AACFriendlyNeeded),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.textAacCommunication ?? place.staffTraining,
+        "Text / AAC communication support reported",
+        "Text / AAC communication support not confirmed",
+        "Text / AAC communication support unknown",
+        place,
+      ),
+  },
+  {
+    id: "surface_tolerance",
+    label: "Surface tolerance",
+    isSelected: (p) => p.surfaceTolerance != null && p.surfaceTolerance !== "any",
+    evaluate: (p, place) => {
+      const surface = place.surfaceFirmness ?? null;
+      if (surface == null || surface === "unknown") {
+        return {
+          state: "UNKNOWN",
+          explanation: "Surface conditions unknown",
+          evidenceRefs: [
+            { sourceType: "UNKNOWN", sourceLabel: "Surface conditions unknown" },
+          ],
+        };
+      }
+      const tolerance = p.surfaceTolerance;
+      const meets =
+        tolerance === "smooth_only"
+          ? surface === "smooth"
+          : tolerance === "firm_ok"
+            ? surface === "smooth" || surface === "firm"
+            : true;
+      return {
+        state: meets ? "MEETS" : "DOES_NOT_MATCH",
+        explanation: meets
+          ? `Surface (${surface}) fits your preference`
+          : `Surface (${surface}) may not fit your preference`,
+        evidenceRefs: evidenceFromPlace(place, `Surface ${surface}`),
+      };
+    },
+  },
 ];
 
 export function buildEvidenceSummary(
