@@ -29,6 +29,16 @@ export type PlaceAccessProfile = {
   transportBookable: boolean | null;
   lastVerified: string | null;
   confidence: "high" | "medium" | "low" | "unknown";
+  /** Extended capability facts — null means UNKNOWN (never fabricate). */
+  pathWidthMm?: number | null;
+  maxGradientPercent?: number | null;
+  kerbRamp?: boolean | null;
+  lift?: boolean | null;
+  changingPlaces?: boolean | null;
+  captioning?: boolean | null;
+  highContrastSignage?: boolean | null;
+  tactileCues?: boolean | null;
+  surfaceQuality?: "smooth" | "firm" | "uneven" | null;
 };
 
 export type AccessFitLabel =

@@ -1,16 +1,32 @@
-import type { UnknownHandling , AccessRequirementProfile } from "@/lib/access/experience/types";
+import type { AccessExplorationPlace } from "@/lib/access/experience/access-exploration-dto";
+import type {
+  AccessRequirementProfile,
+  UnknownHandling,
+} from "@/lib/access/experience/types";
 import {
   calculateAccessFitV2,
   shouldIncludePlaceForUnknownHandling,
 } from "@/lib/access/fit/calculate-access-fit-v2";
-import type { DemoAccessPlace } from "@/lib/demo/accessibility-places";
+import type { PlaceAccessProfile } from "@/lib/access/fit/types";
+
+/**
+ * Minimal carrier for MAP/LIST shared result IDs.
+ * DemoAccessPlace already matches; AccessExplorationPlace maps via helper.
+ */
+export type ExplorationProfileCarrier = {
+  id: string;
+  profile: PlaceAccessProfile;
+};
 
 /**
  * Shared exploration result IDs — MAP and LIST must derive from this ordered set.
  * Map presentation may show a prefix (marker cap); list may paginate — same order.
+ *
+ * Canonical V2 path: AccessExplorationPlace (AccessPlace + GAIS).
+ * DemoAccessPlace remains supported for `/accessibility-map` legacy + tests only.
  */
 export function buildExplorationResultIds(
-  places: DemoAccessPlace[],
+  places: ExplorationProfileCarrier[],
   requirements: AccessRequirementProfile,
   unknownHandling: UnknownHandling = "SHOW",
 ): string[] {
@@ -22,14 +38,47 @@ export function buildExplorationResultIds(
     .map((place) => place.id);
 }
 
-export function orderPlacesByResultIds(
-  places: DemoAccessPlace[],
+/** Project AccessExplorationPlace → carrier used by result ID helpers. */
+export function toExplorationProfileCarrier(
+  place: AccessExplorationPlace,
+): ExplorationProfileCarrier {
+  return {
+    id: place.placeId,
+    profile: place.accessProfile,
+  };
+}
+
+export function buildExplorationResultIdsFromAccessPlaces(
+  places: AccessExplorationPlace[],
+  requirements: AccessRequirementProfile,
+  unknownHandling: UnknownHandling = "SHOW",
+): string[] {
+  return buildExplorationResultIds(
+    places.map(toExplorationProfileCarrier),
+    requirements,
+    unknownHandling,
+  );
+}
+
+export function orderPlacesByResultIds<T extends { id: string }>(
+  places: T[],
   resultIds: string[],
-): DemoAccessPlace[] {
+): T[] {
   const byId = new Map(places.map((p) => [p.id, p]));
   return resultIds
     .map((id) => byId.get(id))
-    .filter((p): p is DemoAccessPlace => Boolean(p));
+    .filter((p): p is T => Boolean(p));
+}
+
+/** Order AccessExplorationPlace by shared result IDs (uses placeId). */
+export function orderAccessExplorationPlacesByResultIds(
+  places: AccessExplorationPlace[],
+  resultIds: string[],
+): AccessExplorationPlace[] {
+  const byId = new Map(places.map((p) => [p.placeId, p]));
+  return resultIds
+    .map((id) => byId.get(id))
+    .filter((p): p is AccessExplorationPlace => Boolean(p));
 }
 
 /** MAP marker soft limit — documented presentation cap, not a second query. */
