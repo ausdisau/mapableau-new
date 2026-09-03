@@ -83,6 +83,10 @@
     "test:access-intelligence-next": "vitest run tests/access-intelligence-next",
     "test:trust-fabric": "vitest run tests/trust-fabric",
     "ai:evals": "tsx scripts/ai-platform/run-evals.ts",
+    "ai:evals:care": "tsx scripts/ai-platform/run-agentic-care-evals.ts",
+    "ai:evals:care:validate": "tsx scripts/ai-platform/validate-agentic-care-dataset.ts",
+    "ai:evals:care:upload": "tsx scripts/ai-platform/upload-agentic-care-evals.ts",
+    "ai:evals:care:hosted": "tsx scripts/ai-platform/run-agentic-care-openai-evals.ts",
     "test:ai-platform": "vitest run tests/ai-platform"
   },
   "lint-staged": {
@@ -152,7 +156,7 @@
     "@playwright/test": "^1.61.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
+    "@testing-library/user-event": "^14.6.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
