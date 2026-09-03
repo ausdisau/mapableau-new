@@ -1,19 +1,27 @@
 import { describe, expect, it } from "vitest";
 
+import { toAccessExplorationPlace } from "@/lib/access/experience/to-access-exploration-place";
+import { accessPlaceToPlaceAccessProfile } from "@/lib/access/experience/access-place-profile-adapter";
+import {
+  buildExplorationResultIds,
+  buildExplorationResultIdsFromAccessPlaces,
+  listPresentationIds,
+  mapPresentationIds,
+  orderAccessExplorationPlacesByResultIds,
+  orderPlacesByResultIds,
+} from "@/lib/access/experience/exploration-results";
 import {
   applyJourneyOverride,
+  createDefaultExplorationState,
   resolveActiveRequirements,
   setSavedRequirements,
 } from "@/lib/access/experience/exploration-state";
-import {
-  buildExplorationResultIds,
-  listPresentationIds,
-  mapPresentationIds,
-  orderPlacesByResultIds,
-} from "@/lib/access/experience/exploration-results";
 import { accessExperienceFlags } from "@/lib/access/experience/flags";
+import {
+  buildGoHandoffHref,
+  requirementsToMobilityRoutingProfile,
+} from "@/lib/access/experience/go-handoff";
 import { accessibilityProfileToRequirements } from "@/lib/access/experience/requirement-profile";
-import { createDefaultExplorationState } from "@/lib/access/experience/exploration-state";
 import { DEFAULT_ACCESS_REQUIREMENT_PROFILE } from "@/lib/access/experience/types";
 import {
   calculateAccessFitV2,
@@ -106,6 +114,63 @@ describe("calculateAccessFitV2", () => {
     expect(result.metCount).toBeGreaterThan(0);
     expect(result.unmetCount).toBeGreaterThan(0);
   });
+
+  it("maps extended measurement requirements with UNKNOWN when missing", () => {
+    const result = calculateAccessFitV2(
+      {
+        ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
+        minimumPathWidthMm: 1000,
+        maximumPreferredGradientPercent: 5,
+        kerbRampRequired: true,
+        liftRequired: true,
+        changingPlacesPreferred: true,
+        captioningPreferred: true,
+        highContrastSignagePreferred: true,
+        tactileCuesPreferred: true,
+        surfaceTolerance: "smooth_only",
+      },
+      {
+        ...strong,
+        pathWidthMm: null,
+        maxGradientPercent: null,
+        kerbRamp: null,
+        lift: null,
+        changingPlaces: null,
+        captioning: null,
+        highContrastSignage: null,
+        tactileCues: null,
+        surfaceQuality: null,
+      },
+    );
+    for (const id of [
+      "path_width",
+      "max_gradient",
+      "kerb_ramp",
+      "lift",
+      "changing_places",
+      "captioning",
+      "high_contrast_signage",
+      "tactile_cues",
+      "surface_tolerance",
+    ]) {
+      expect(result.requirements.find((r) => r.requirementId === id)?.state).toBe(
+        "UNKNOWN",
+      );
+    }
+  });
+
+  it("evaluates path width when evidence exists", () => {
+    const result = calculateAccessFitV2(
+      {
+        ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
+        minimumPathWidthMm: 1000,
+      },
+      { ...strong, pathWidthMm: 1200 },
+    );
+    expect(result.requirements.find((r) => r.requirementId === "path_width")?.state).toBe(
+      "MEETS",
+    );
+  });
 });
 
 describe("MAP/LIST parity", () => {
@@ -140,5 +205,114 @@ describe("MAP/LIST parity", () => {
     expect(
       shouldIncludePlaceForUnknownHandling(unknownHeavy, "AVOID_WHEN_POSSIBLE"),
     ).toBe(false);
+  });
+});
+
+describe("AccessExplorationPlace projection", () => {
+  it("projects AccessPlace features without inventing false evidence", () => {
+    const place = toAccessExplorationPlace({
+      id: "place-1",
+      name: "Library",
+      category: "library",
+      confidence: "mapable_verified",
+      sourceType: "mapable_assessed",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      location: { latitude: -33.8, longitude: 151.0 },
+      features: [{ type: "step_free_entry" }, { type: "accessible_toilet" }],
+      _count: { reviews: 2 },
+    });
+
+    expect(place.placeId).toBe("place-1");
+    expect(place.hasCoordinates).toBe(true);
+    expect(place.accessProfile.stepFreeEntry).toBe(true);
+    expect(place.accessProfile.accessibleToilet).toBe(true);
+    expect(place.accessProfile.hearingLoop).toBeNull();
+    expect(place.accessProfile.pathWidthMm).toBeNull();
+    expect(place.accessProfile.doorWidthMm).toBeNull();
+    expect(JSON.stringify(place)).not.toMatch(/diagnosis/i);
+  });
+
+  it("keeps places without coordinates list-visible", () => {
+    const place = toAccessExplorationPlace({
+      id: "no-coords",
+      name: "Hall",
+      category: "community_centre",
+      features: [],
+    });
+    expect(place.hasCoordinates).toBe(false);
+    expect(place.latitude).toBeNull();
+  });
+
+  it("shares result IDs between AccessExplorationPlace map/list helpers", () => {
+    const places = [
+      toAccessExplorationPlace({
+        id: "a",
+        name: "A",
+        category: "library",
+        features: [{ type: "step_free_entry" }],
+        location: { latitude: 1, longitude: 2 },
+      }),
+      toAccessExplorationPlace({
+        id: "b",
+        name: "B",
+        category: "library",
+        features: [],
+      }),
+    ];
+    const ids = buildExplorationResultIdsFromAccessPlaces(
+      places,
+      { ...DEFAULT_ACCESS_REQUIREMENT_PROFILE, stepFreeRequired: true },
+      "SHOW",
+    );
+    const ordered = orderAccessExplorationPlacesByResultIds(places, ids);
+    expect(ordered.map((p) => p.placeId)).toEqual(ids);
+    expect(mapPresentationIds(ids)[0]).toBe(ids[0]);
+  });
+
+  it("maps confidence levels without fabricating measurements", () => {
+    const profile = accessPlaceToPlaceAccessProfile({
+      id: "x",
+      name: "X",
+      category: "shop",
+      confidence: "user_reported",
+      features: [{ type: "wide_paths" }, { type: "wide_doorways" }],
+    });
+    expect(profile.confidence).toBe("low");
+    expect(profile.pathWidthMm).toBeNull();
+    expect(profile.doorWidthMm).toBeNull();
+  });
+});
+
+describe("Go handoff", () => {
+  it("builds destination handoff without diagnosis fields", () => {
+    const href = buildGoHandoffHref({
+      destinationPlaceId: "place-99",
+      requirements: {
+        ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
+        wheelchairUser: true,
+        stepFreeRequired: true,
+        kerbRampRequired: true,
+        minimumPathWidthMm: 1100,
+      },
+    });
+    expect(href).toContain("destinationPlaceId=place-99");
+    expect(href).toContain("sandbox=1");
+    expect(href).toContain("reviewPreferences=1");
+    expect(href).toContain("mobilityAidType=manual_wheelchair");
+    expect(href).toContain("curbRampRequired=1");
+    expect(href).not.toMatch(/diagnosis/i);
+  });
+
+  it("maps only routing-relevant mobility constraints", () => {
+    const profile = requirementsToMobilityRoutingProfile({
+      ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
+      powerchairUser: true,
+      liftRequired: true,
+      accessibleToiletRequired: true,
+    });
+    expect(profile.mobilityAidType).toBe("power_wheelchair");
+    expect(profile.liftRequirement).toBe(true);
+    expect(profile.accessibleToiletPreference).toBe(true);
+    expect(profile).not.toHaveProperty("diagnosis");
   });
 });
