@@ -28,8 +28,13 @@ export default function AskPage() {
         Ask MapAble
       </h1>
       <p className="mt-3 text-lg leading-8 text-slate-600">
-        Friendly guidance on the surface. Participant records, consent checks, and evidence
-        underneath.
+        Accessible information, planning and support across MapAble. AI-assisted guidance with
+        participant records, consent checks, and evidence underneath — hard access requirements
+        stay hard requirements.
+      </p>
+      <p className="mt-2 text-base text-slate-600">
+        What would you like help with? You can ask about accessibility, transport, support,
+        MapAble services, NDIS information, jobs or your existing MapAble account information.
       </p>
       <div className="mt-8">
         <Suspense fallback={<p className="text-slate-600">Loading Ask MapAble…</p>}>

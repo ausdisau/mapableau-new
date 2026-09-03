@@ -7,6 +7,29 @@ type Props = {
   onAction?: (type: CopilotActionType) => void;
 };
 
+function ActionBody({
+  action,
+  onAction,
+}: {
+  action: CopilotAction;
+  onAction?: (type: CopilotActionType) => void;
+}) {
+  return (
+    <>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">{action.label}</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        {action.requiresConfirmation
+          ? "Requires your confirmation"
+          : onAction
+            ? "Tap to continue"
+            : "Information only"}
+      </CardContent>
+    </>
+  );
+}
+
 export function CopilotActionCards({
   actions,
   blockedActions = [],
@@ -20,40 +43,42 @@ export function CopilotActionCards({
         Suggested next steps
       </h3>
       <ul className="grid gap-3 sm:grid-cols-2">
-        {actions.map((action) => (
-          <li key={action.type}>
-            <Card
-              variant="interactive"
-              className="h-full"
-              role={onAction ? "button" : undefined}
-              tabIndex={onAction ? 0 : undefined}
-              onClick={
-                onAction
-                  ? () => onAction(action.type)
-                  : undefined
-              }
-              onKeyDown={
-                onAction
-                  ? (e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        onAction(action.type);
+        {actions.map((action, index) => (
+          <li key={`${action.type}-${index}`}>
+            {action.href && !onAction ? (
+              <a
+                href={action.href}
+                className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Card variant="interactive" className="h-full">
+                  <ActionBody action={action} />
+                </Card>
+              </a>
+            ) : (
+              <Card
+                variant="interactive"
+                className="h-full"
+                role={onAction ? "button" : undefined}
+                tabIndex={onAction ? 0 : undefined}
+                onClick={
+                  onAction
+                    ? () => onAction(action.type)
+                    : undefined
+                }
+                onKeyDown={
+                  onAction
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onAction(action.type);
+                        }
                       }
-                    }
-                  : undefined
-              }
-            >
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{action.label}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {action.requiresConfirmation
-                  ? "Requires your confirmation"
-                  : onAction
-                    ? "Tap to continue"
-                    : "Information only"}
-              </CardContent>
-            </Card>
+                    : undefined
+                }
+              >
+                <ActionBody action={action} onAction={onAction} />
+              </Card>
+            )}
           </li>
         ))}
       </ul>

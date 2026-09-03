@@ -1,128 +1,98 @@
-# MapAble Chatbot Widget — Integration Guide
+# Ask MapAble embedded assistant — Integration Guide
 
 ## Purpose
 
-The chatbot widget is a site-wide, accessibility-first floating assistant that
-sits over every page of the MapAble app once the user is signed in. It exposes
-three tabs (Chat, Actions, History), reuses the existing `/api/chat/*` endpoints
-without modification, and is structured so future NLP, voice, matching,
-contracts, and attestation services can be plugged in without UI changes.
+**Ask MapAble** is the participant-facing, AI-assisted guide embedded across the
+production MapAble Next.js application (mapable.com.au). It reuses the existing
+copilot API and Intelligence Fabric specialists. It is **not** a second chatbot
+stack and does **not** call OpenAI from the browser.
 
-## Component structure
+## Authoritative production path
 
-All widget code lives under `client/src/components/chatbot-widget/`:
-
-| File | Role |
+| Layer | Location |
 | --- | --- |
-| `ChatbotWidget.tsx` | Top-level entry. Mounts launcher + panel, wires state, sources history. |
-| `ChatbotLauncher.tsx` | Floating round button (bottom-right). |
-| `ChatbotPanel.tsx` | Sheet wrapper — right side on desktop, bottom sheet on mobile. |
-| `WidgetTabs.tsx` | Tablist using shadcn `Tabs`, conditional on `config.tabs`. |
-| `ChatTab.tsx` | Embedded chat experience (uses existing chat API). |
-| `ActionsTab.tsx` | Five accessible action cards. |
-| `HistoryTab.tsx` | Recent conversations / drafts / pending actions. |
-| `useWidgetState.ts` | Open/tab/session state, persisted in `sessionStorage`. |
-| `useWidgetConfig.ts` | Loads `/api/widget-config`, falls back to defaults. |
-| `types.ts` | Public types and `DEFAULT_WIDGET_CONFIG`. |
-| `index.ts` | Lazy-loadable default export. |
+| Site widget | `components/ask-mapable/*` (mounted from `components/providers.tsx`) |
+| Full page | `/ask` → `components/copilot/CopilotPanel.tsx` |
+| API | `POST /api/mapable/ask` |
+| Manager enrichment | `lib/ask-mapable/*` |
+| Intent / drafts / guardrails | `lib/copilot/*` |
+| CareOS specialists (`@openai/agents`) | `intelligence/orchestrator.ts` + `intelligence/agents/*` |
 
-## Tab behaviour
+## Legacy Replit twin (not production SoR)
 
-- **Chat** — embeds the existing chat session/message/send flow against
-  `/api/chat/sessions` and `/api/chat/send`. The tab includes a voice input
-  affordance backed by the browser's Web Speech API. The transcript is shown
-  for review and edit; nothing is auto-sent. If permission is denied or voice
-  is unsupported, a clear fallback message is shown and the user can type
-  instead. Voice UI is hidden when `featureFlags.voiceEnabled` is false.
-- **Actions** — five accessible cards: create support request, book accessible
-  transport, create job post, ask about NDIS funding, contact support. Each
-  fires `onActionSelect(actionKey)`. The default handler either switches to
-  Chat with a seeded prompt or routes via `wouter` to the relevant page.
-- **History** — driven by props. Recent conversations are populated from
-  `/api/chat/sessions`. Saved drafts and pending actions accept empty arrays
-  by default; pass props to surface real data when available.
+The floating widget under `client/src/components/chatbot-widget/` and Express
+routes `/api/chat/sessions` + `/api/chat/send` remain for the Replit twin /
+compatibility tree. Do **not** extend them as the Vercel production source of
+truth. UX patterns (Chat / Actions / History, voice edit-before-send, a11y)
+were ported into the Next.js Ask MapAble widget.
 
-Open state and selected tab are persisted in `sessionStorage` under
-`mapable.widget.open` and `mapable.widget.tab`, and the active chat session
-under `mapable.widget.activeSessionId`. Route changes do not unmount the widget.
+See also: `docs/architecture/ask-mapable-convergence.md`.
 
-## Config loading
+## Feature flags
 
-`useWidgetConfig` calls `/api/widget-config` via React Query. On any error or
-non-OK response it returns the hardcoded `DEFAULT_WIDGET_CONFIG`, so the
-widget always renders something safe. Returned config is shallow-merged on top
-of the default so partial backend responses still work.
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `NEXT_PUBLIC_ASK_MAPABLE_EMBEDDED_ENABLED` | off | Mounts the site-wide widget when `"true"` |
+| `ASK_MAPABLE_EMBEDDED_ENABLED` | follows public | Optional server kill-switch |
+| `SEARCH_INTERPRETER_ENABLED` + AI Gateway keys | existing | LLM interpretation where already configured |
 
-The Express route in `server/routes.ts` (`GET /api/widget-config`) returns the
-canonical default. Tabs, default tab, feature flags, endpoints, launcher
-label, and panel title/subtitle are all configurable from the backend.
+When the embedded flag is off: core MapAble and `/ask` remain available; no
+widget chrome is shown; no broken controls remain.
 
-## Service layer
+## Authentication
 
-Typed wrappers under `client/src/lib/widget-services/` expose stub APIs for
-future capabilities. They take a `ServiceContext` with the endpoint injected
-from config and return a normalized `ServiceResult<T>`:
+Phase 1: the embedded widget is **authenticated only** (NextAuth session).
+`POST /api/mapable/ask` remains authenticated for default context. Guest
+provider-finder context is unchanged and limited. The client never supplies an
+authoritative `userId` — the server session does.
 
-- `nlp.ts` — `analyze({ text, locale })`
-- `voice.ts` — `transcribe(audio)`, `intake({ transcript, sessionId })`
-- `matching.ts` — `findMatches({ serviceType, filters })`
-- `contracts.ts` — `create(...)`, `sign(...)`
-- `attestations.ts` — `issue(...)`, `verify(...)`
+## Tabs
 
-UI components do not contain any direct fetch/business logic for these
-domains — they go through the wrappers, which makes it trivial to swap the
-backend implementation later without touching the widget UI.
+- **Chat** — calls `POST /api/mapable/ask` with typed `pageContext` and recent
+  messages. Local session history is stored in `sessionStorage` for the widget
+  (not a second server memory database).
+- **Actions** — support draft seed, transport, jobs, NDIS explanation, Talk to a
+  person (`/contact`).
+- **History** — recent local conversations; New conversation clears the active id.
+
+## Human pathway
+
+Talk to a person is always available. Requests matching human-help language
+record an `AgentRun` with `humanReviewRequired` via
+`lib/ask-mapable/human-handoff.ts` and point to `/contact` and
+`/dashboard/safety`. Ask MapAble must not trap someone in an AI-only loop.
+
+## Evidence and constraints
+
+Hard access requirements (AND) are preserved — never silently relaxed to OR.
+Evidence vocabulary: `KNOWN` / `UNKNOWN` / `CONFLICTING` / `NOT_APPLICABLE` with
+provenance labels. Provider claims and AI inference are never presented as
+MapAble verification or accreditation.
 
 ## Accessibility
 
-- Launcher is a real `<button>` with `aria-label`, `aria-expanded`, and
-  `aria-haspopup="dialog"`, large 56×56 px touch target.
-- Panel uses shadcn `Sheet` (Radix Dialog) — focus is trapped inside while
-  open, Escape closes, and focus is returned to the launcher on close.
-- Tabs use the shadcn `Tabs` primitive (Radix Tabs) — proper tablist/tab/
-  tabpanel roles and arrow-key navigation.
-- All clickable controls meet a 44 px minimum touch target.
-- Chat message log uses `role="log"` with `aria-live="polite"`.
-- Voice transcript review surface and voice errors are announced via
-  `role="status"`.
-- All buttons and inputs have visible focus rings.
+- Launcher: 56×56, `aria-label`, `aria-expanded`, `aria-haspopup="dialog"`
+- Panel: `role="dialog"`, Escape closes, focus returns to launcher
+- Tabs: keyboard arrows; chat log `role="log"` with polite live region
+- Pending text: “Ask MapAble is checking…” (not spinner-only)
+- `prefers-reduced-motion` respected via Tailwind `motion-safe` / `motion-reduce`
+- Typed input always works; voice remains optional and never auto-sends
 
-## Integration
+## Model configuration
 
-The widget is mounted once near the root of `AppLayout` in
-`client/src/App.tsx`, lazy-loaded via `React.lazy` + `Suspense`:
+Do not hard-code models in UI. Ask uses the existing AI Gateway /
+search-interpreter configuration. CareOS fabric uses existing `OPENAI_API_KEY`
+paths. No additional Ask-only API key is introduced.
 
-```tsx
-const ChatbotWidget = lazy(() => import("@/components/chatbot-widget"));
-// ...
-<Suspense fallback={null}>
-  <ChatbotWidget />
-</Suspense>
-```
+## Testing
 
-The widget hides itself when the user is unauthenticated or when
-`config.enabled` is false. Set `enabled: false` in the `/api/widget-config`
-response (or override the default) to disable the widget entirely.
+- `tests/ask-mapable.test.ts` — constraints, evidence, routing, planner
+- `tests/ask-mapable-widget.test.tsx` — launcher / Escape / empty state
+- Existing `tests/copilot-intent.test.ts`, `tests/provider-finder-ask.test.ts`
+- AI evals: `ask_mapable.*` scenarios in `lib/ai/platform/evaluations`
 
-## Future extension points
+## Rollback
 
-- Add new tabs by extending `WidgetTabKey` in `types.ts`, including the key
-  in `config.tabs`, and rendering a new `TabsContent` in `WidgetTabs.tsx`.
-- Swap the chat backend by changing `config.endpoints.chat` /
-  `config.endpoints.sessions`.
-- Add new service wrappers under `client/src/lib/widget-services/` — keep
-  them fetch-based and free of UI imports so they remain reusable.
-- Add per-route customisation by reading `useLocation()` inside
-  `ChatbotWidget` and adjusting tab visibility or seed messages.
-
-## Local development
-
-The widget runs as part of `npm run dev`. To verify:
-
-1. Sign in (e.g. as `alex_m` / `hashed_password`).
-2. The blue assistant button appears bottom-right on every page.
-3. Click to open — desktop shows a right-side panel, mobile shows a bottom
-   sheet.
-4. Switch tabs and reload — the previously open tab is restored.
-5. With voice enabled, click the mic; on browsers without Web Speech API
-   you'll see a fallback message instead.
+1. Unset / set `NEXT_PUBLIC_ASK_MAPABLE_EMBEDDED_ENABLED` to false — widget gone.
+2. Revert the Ask MapAble PR if API behaviour regresses.
+3. Do not re-enable Express `/api/chat/*` on Vercel as production SoR.
