@@ -53,6 +53,15 @@ export function classifyIntent(
     };
   }
 
+  if (mode === "Places") {
+    return {
+      type: "places",
+      confidence: 0.9,
+      filters,
+      reason: "Places mode selected",
+    };
+  }
+
   if (INCIDENT.test(q)) {
     return {
       type: "incident",
