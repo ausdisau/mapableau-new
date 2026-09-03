@@ -115,3 +115,9 @@ export {
 } from "./presentation";
 
 export { mergeFabricContextIntoEvidence } from "./mission-bridge";
+
+
+export {
+  agencyMemoryToContextRecords,
+  buildAgencyMemoryContextSlice,
+} from "./agency-memory";

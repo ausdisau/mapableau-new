@@ -240,3 +240,10 @@ External Source → Connector Gateway → Context Fabric–compatible records
 Perception layer for authorised operational context. Agents and Mission Runtime may
 `queryMissionContext` when `MAPABLE_CONTEXT_FABRIC_ENABLED=true`. Domain events route
 selectively; not every event reaches every agent. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+
+## Participant Agency Memory (Prompt 05)
+
+Canonical long-term preference/decision graph: `lib/ai/platform/agency-memory/`.
+Only participant-supplied or participant-confirmed items may personalise missions.
+Model inference cannot auto-confirm. Scoped Context Fabric retrieval only —
+never inject the full graph. See [AGENCY_MEMORY.md](./AGENCY_MEMORY.md).

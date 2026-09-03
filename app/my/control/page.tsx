@@ -106,6 +106,23 @@ export default async function MyControlPage() {
         </Link>
       </section>
 
+      <section aria-labelledby="agency-memory-link">
+        <h2 id="agency-memory-link" className="text-lg font-bold">
+          My Preferences
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">
+          See what MapAble remembers, why, where it is used, and who can see it.
+          You can edit, revoke, delete, export, pause personalisation, or disable
+          AI use.
+        </p>
+        <Link
+          href="/my/control/preferences"
+          className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-[#005B7F] px-4 py-2 text-sm font-semibold text-white"
+        >
+          Open Agency Memory
+        </Link>
+      </section>
+
       <p className="text-sm text-slate-600">
         Full consent history is also available at{" "}
         <Link href="/dashboard/consent" className="font-semibold text-[#005B7F]">

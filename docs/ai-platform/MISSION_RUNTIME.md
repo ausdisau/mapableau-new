@@ -178,3 +178,9 @@ When `MAPABLE_CONTEXT_FABRIC_ENABLED=true`, mission planning merges authorised f
 context into the evidence bundle via `mergeFabricContextIntoEvidence`. Inference remains
 in the inferred lane; provenance is preserved. See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
 
+## Agency Memory personalisation (Prompt 05)
+
+When enabled, Mission Runtime may receive **confirmed** Agency Memory via Context
+Fabric scoped retrieval. Proposed, revoked, expired, or purpose-mismatched items
+are excluded. Pause personalisation / disable AI still allow manual preference
+management. See [AGENCY_MEMORY.md](./AGENCY_MEMORY.md).
