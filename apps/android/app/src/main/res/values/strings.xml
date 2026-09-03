@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MapAble</string>
+    <string name="nav_today">Today</string>
+    <string name="nav_access">Access</string>
+    <string name="nav_care">Care</string>
+    <string name="nav_travel">Travel</string>
+    <string name="nav_jobs">Jobs</string>
+    <string name="nav_inbox">Inbox</string>
+    <string name="nav_settings">Settings</string>
+    <string name="a11y_min_touch_target">48dp touch targets required</string>
+</resources>

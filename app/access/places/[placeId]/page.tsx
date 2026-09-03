@@ -1,9 +1,12 @@
 import Link from "next/link";
 
 import { AccessMap } from "@/components/access/AccessMap";
+import { AccessPlaceDetailV2 } from "@/components/access/AccessPlaceDetailV2";
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access/accreditation/accreditation-assessment-service";
+import { isClientAccessExperienceV2Enabled } from "@/lib/access/experience/flags";
+import { getAccessExplorationDto } from "@/lib/access/experience/load-access-exploration";
 import { getPlaceById } from "@/lib/access/map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access/reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access/reviews/review-access-policy";
@@ -15,6 +18,22 @@ export default async function AccessPlacePage({
   params: Promise<{ placeId: string }>;
 }) {
   const { placeId } = await params;
+
+  if (isClientAccessExperienceV2Enabled()) {
+    const exploration = await getAccessExplorationDto(placeId);
+    if (!exploration) {
+      return (
+        <div className="mx-auto max-w-3xl px-4 py-12">
+          <p>Place not found.</p>
+          <Link href="/access" className="underline">
+            Back to Access
+          </Link>
+        </div>
+      );
+    }
+    return <AccessPlaceDetailV2 place={exploration} />;
+  }
+
   const place = await getPlaceById(placeId, true);
   if (!place) {
     return (

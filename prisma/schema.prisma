@@ -254,6 +254,10 @@ model User {
   researchExportsRequested ResearchExport[] @relation("ResearchExportRequester")
   researchExportsApproved ResearchExport[] @relation("ResearchExportApprover")
   researchWithdrawals ResearchWithdrawal[] @relation("ResearchWithdrawalParticipant")
+  coDesignParticipants CoDesignParticipant[] @relation("CoDesignParticipantUser")
+  researchConsentRecords ResearchConsentRecord[] @relation("ResearchConsentRecordParticipant")
+  researchContributions ResearchContribution[] @relation("ResearchContributionParticipant")
+  contributionPayments ContributionPayment[] @relation("ContributionPaymentParticipant")
   restoreDrillsConducted RestoreDrillRecord[] @relation("RestoreDrillConductor")
   shiftOffersAsParticipant ShiftOffer[] @relation("ShiftOfferParticipant")
   stepUpChallenges StepUpChallenge[]
@@ -894,6 +898,7 @@ model Organisation {
   qualityAuditPlans QualityAuditPlan[]
   regionalOrganisations RegionalOrganisation[]
   researchProjects ResearchProject[]
+  coDesignProgrammes CoDesignProgramme[]
   trainingRequirements TrainingRequirement[]
   workplaceLocations WorkplaceLocation[]
   adAdvertisers      AdAdvertiser[]
@@ -7644,6 +7649,8 @@ model AccessObservationRecord {
   verificationStatus   AccessProvenanceStatus @default(unknown) @map("verification_status")
   confidence           Float?
   reviewDue            DateTime?              @map("review_due")
+  expiresAt            DateTime?              @map("expires_at")
+  disputeHistory       Json?                  @map("dispute_history")
   disputed             Boolean                @default(false)
   placeId              String?                @map("place_id")
   place                AccessPlace?           @relation(fields: [placeId], references: [id], onDelete: SetNull)
@@ -12334,6 +12341,81 @@ enum ResearchConsentStatus {
   withdrawn
 }
 
+enum CoDesignProgrammeStatus {
+  draft
+  recruiting
+  active
+  paused
+  completed
+  archived
+}
+
+enum ResearchParticipationRole {
+  co_investigator
+  paid_researcher
+  field_validator
+  design_reviewer
+  governance_member
+  research_participant
+}
+
+enum ResearchConsentPurpose {
+  data_collection
+  interviews
+  usability_testing
+  field_validation
+  governance_participation
+  payment_processing
+}
+
+enum ResearchConsentRecordStatus {
+  pending
+  granted
+  declined
+  withdrawn
+}
+
+enum ResearchContributionStatus {
+  draft
+  submitted
+  accepted
+  rejected
+}
+
+enum ContributionPaymentStatus {
+  pending
+  approved
+  paid
+  cancelled
+}
+
+enum ResearchDecisionStatus {
+  draft
+  published
+  superseded
+}
+
+enum CommunityReviewStatus {
+  open
+  in_progress
+  closed
+}
+
+enum AccessibilityFindingSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum AccessibilityFindingStatus {
+  open
+  triaged
+  in_progress
+  resolved
+  wont_fix
+}
+
 enum ResearchExportStatus {
   draft
   pending_approval
@@ -14607,10 +14689,202 @@ model ResearchProject {
   exports             ResearchExport[]
   withdrawals         ResearchWithdrawal[]
   publications        PublicationRecord[]
+  coDesignProgrammes  CoDesignProgramme[]
+  researchConsentRecords ResearchConsentRecord[]
+  researchContributions  ResearchContribution[]
+  researchDecisions      ResearchDecision[]
+  communityReviews       CommunityReview[]
+  accessibilityFindings  AccessibilityFinding[]
 
   @@index([status])
   @@index([organisationId])
   @@map("research_projects")
+}
+
+model CoDesignProgramme {
+  id                   String                  @id @default(cuid())
+  title                String
+  description          String?
+  plainLanguageSummary String?
+  status               CoDesignProgrammeStatus @default(draft)
+  researchProjectId    String?
+  researchProject      ResearchProject?        @relation(fields: [researchProjectId], references: [id], onDelete: SetNull)
+  organisationId       String?
+  organisation         Organisation?           @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  participants         CoDesignParticipant[]
+  consentRecords       ResearchConsentRecord[]
+  contributions        ResearchContribution[]
+  decisions            ResearchDecision[]
+  communityReviews     CommunityReview[]
+  accessibilityFindings AccessibilityFinding[]
+
+  @@index([status])
+  @@index([researchProjectId])
+  @@index([organisationId])
+  @@map("co_design_programmes")
+}
+
+model CoDesignParticipant {
+  id                     String                    @id @default(cuid())
+  programmeId            String
+  programme              CoDesignProgramme         @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  userId                 String
+  user                   User                      @relation("CoDesignParticipantUser", fields: [userId], references: [id], onDelete: Cascade)
+  role                   ResearchParticipationRole
+  functionalAccessNotes  String?
+  enrolledAt             DateTime                  @default(now())
+  withdrawnAt            DateTime?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  @@unique([programmeId, userId])
+  @@index([userId])
+  @@index([programmeId, role])
+  @@map("co_design_participants")
+}
+
+model ResearchConsentRecord {
+  id                   String                      @id @default(cuid())
+  participantId        String
+  participant          User                        @relation("ResearchConsentRecordParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  programmeId          String?
+  programme            CoDesignProgramme?          @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  projectId            String?
+  project              ResearchProject?            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  purpose              ResearchConsentPurpose
+  status               ResearchConsentRecordStatus @default(pending)
+  plainLanguageSummary String?
+  grantedAt            DateTime?
+  withdrawnAt          DateTime?
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+
+  @@unique([participantId, programmeId, purpose])
+  @@index([participantId, status])
+  @@index([projectId])
+  @@map("research_consent_records")
+}
+
+model ResearchContribution {
+  id                  String                     @id @default(cuid())
+  participantId       String
+  participant         User                       @relation("ResearchContributionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  programmeId         String
+  programme           CoDesignProgramme          @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  projectId           String?
+  project             ResearchProject?           @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  status              ResearchContributionStatus @default(draft)
+  contributionType    String
+  structuredPayload   Json?
+  plainLanguageNotes  String?
+  observedAt          DateTime?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  payments            ContributionPayment[]
+  accessibilityFindings AccessibilityFinding[]
+
+  @@index([programmeId, status])
+  @@index([participantId])
+  @@map("research_contributions")
+}
+
+model ContributionPayment {
+  id             String                    @id @default(cuid())
+  contributionId String?
+  contribution   ResearchContribution?     @relation(fields: [contributionId], references: [id], onDelete: SetNull)
+  participantId  String
+  participant    User                      @relation("ContributionPaymentParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  currency       String                    @default("AUD")
+  status         ContributionPaymentStatus @default(pending)
+  reference      String?
+  paidAt         DateTime?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([participantId, status])
+  @@index([contributionId])
+  @@map("contribution_payments")
+}
+
+model ResearchDecision {
+  id          String                 @id @default(cuid())
+  programmeId String
+  programme   CoDesignProgramme      @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     ResearchProject?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  title       String
+  status      ResearchDecisionStatus @default(draft)
+  decidedAt   DateTime?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  rationales  DecisionRationale[]
+
+  @@index([programmeId, status])
+  @@map("research_decisions")
+}
+
+model DecisionRationale {
+  id                   String           @id @default(cuid())
+  decisionId           String
+  decision             ResearchDecision @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  plainLanguageSummary String
+  technicalNotes       String?
+  participantVisible   Boolean          @default(true)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([decisionId])
+  @@map("decision_rationales")
+}
+
+model CommunityReview {
+  id                 String                @id @default(cuid())
+  programmeId        String
+  programme          CoDesignProgramme     @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  projectId          String?
+  project            ResearchProject?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  title              String
+  status             CommunityReviewStatus @default(open)
+  featureScope       String?
+  plainLanguageBrief String?
+  opensAt            DateTime?
+  closesAt           DateTime?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  findings           AccessibilityFinding[]
+
+  @@index([programmeId, status])
+  @@map("community_reviews")
+}
+
+model AccessibilityFinding {
+  id                     String                     @id @default(cuid())
+  programmeId            String
+  programme              CoDesignProgramme          @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  projectId              String?
+  project                ResearchProject?           @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  reviewId               String?
+  review                 CommunityReview?           @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  contributionId         String?
+  contribution           ResearchContribution?      @relation(fields: [contributionId], references: [id], onDelete: SetNull)
+  severity               AccessibilityFindingSeverity
+  status                 AccessibilityFindingStatus @default(open)
+  title                  String
+  plainLanguageDescription String
+  functionalAccessTags   String[]                   @default([])
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+
+  @@index([programmeId, status])
+  @@index([reviewId])
+  @@map("accessibility_findings")
 }
 
 model ResearchWithdrawal {

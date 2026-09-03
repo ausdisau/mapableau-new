@@ -207,11 +207,12 @@ describe("MapAbleCareCombinedHomepage", () => {
     expect(screen.queryByText("Coming soon")).toBeNull();
   });
 
-  it("renders a header donate link to Australian Disability", () => {
-    const donate = screen.getByRole("link", { name: "Donate" });
-    expect(donate.getAttribute("href")).toBe("https://paypal.me/ausdisau");
-    expect(donate.getAttribute("target")).toBe("_blank");
-    expect(donate.getAttribute("rel")).toBe("noopener noreferrer");
+  it("renders a header PayPal control to Australian Disability", () => {
+    const paypal = screen.getByRole("link", { name: "Donate with PayPal" });
+    expect(paypal.getAttribute("href")).toBe("https://paypal.me/ausdisau");
+    expect(paypal.getAttribute("target")).toBe("_blank");
+    expect(paypal.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(screen.queryByRole("link", { name: "Donate" })).toBeNull();
   });
 
   it("renders pre-registration and marketing proof sections", () => {

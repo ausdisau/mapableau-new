@@ -1,4 +1,10 @@
 import type { AccessConfidenceLevel, AccessProvenanceStatus } from "@prisma/client";
+import {
+  gaisStateToEvidenceProvenance,
+  sourceClassToEvidenceProvenance,
+  storageStatusToEvidenceProvenance,
+  type EvidenceProvenance,
+} from "@mapable/contracts";
 
 import type { AccessSourceClass } from "@/lib/access/infrastructure/provenance";
 import type { GaisEvidenceState } from "@/lib/gais/contracts/evidence";
@@ -87,4 +93,24 @@ export function gaisEvidenceStateLabel(state: GaisEvidenceState): string {
     UNKNOWN: "Unknown",
   };
   return labels[state];
+}
+
+/** Map any layer to canonical EvidenceProvenance for API responses. */
+export function toCanonicalEvidenceProvenance(input: {
+  storageStatus?: AccessProvenanceStatus | string | null;
+  sourceClass?: AccessSourceClass | string | null;
+  gaisState?: GaisEvidenceState | string | null;
+  freshnessExpired?: boolean;
+}): EvidenceProvenance {
+  if (input.gaisState) {
+    return gaisStateToEvidenceProvenance(input.gaisState);
+  }
+  if (input.sourceClass) {
+    return sourceClassToEvidenceProvenance(input.sourceClass, {
+      freshnessExpired: input.freshnessExpired,
+    });
+  }
+  return storageStatusToEvidenceProvenance(input.storageStatus, {
+    freshnessExpired: input.freshnessExpired,
+  });
 }

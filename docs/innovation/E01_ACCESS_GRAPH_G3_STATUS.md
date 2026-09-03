@@ -48,9 +48,10 @@ MAPABLE_ACCESS_GRAPH_ENABLED=true
 | Freshness / expiry | `reviewDue` from feature policy; evaluated on read |
 | Read with labels | `GET /api/access-infrastructure/observations` |
 | Place graph | `GET /api/access-infrastructure/graph/places/[placeId]` |
+| Living Access Graph (synthetic) | `GET /api/access-intelligence-next/graph` — list projection includes canonical `provenance` |
 | AI guard | AI-inferred cannot be stored as `verified` |
 | Audit | `access_graph.observation_created` AuditEvent |
-| Tests | `tests/access/access-graph-*.test.ts` (14 passing) |
+| Tests | `tests/access/access-graph-*.test.ts`, `tests/access-graph/*.test.ts` |
 
 ### Provenance rules enforced
 
@@ -74,6 +75,8 @@ MAPABLE_ACCESS_GRAPH_ENABLED=true
 
 - `lib/access/infrastructure/flags.ts` — `graph` / `graphApisEnabled`
 - `lib/access/infrastructure/provenance.ts`
+- `packages/contracts/src/evidence-provenance.ts` — canonical `EvidenceProvenance` enum
+- `lib/access/intelligence-next/graph/provenance-projection.ts`
 - `lib/access/infrastructure/freshness.ts`
 - `lib/access/infrastructure/observation-service.ts`
 - `app/api/access-infrastructure/observations/**`

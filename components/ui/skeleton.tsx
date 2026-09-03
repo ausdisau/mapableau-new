@@ -1,24 +1,10 @@
+export { Skeleton } from "@mapable/ui";
+
 import type { HTMLAttributes } from "react";
 
-import { cn } from "@/app/lib/utils";
+import { Skeleton } from "@mapable/ui";
 
 /** Non-interactive placeholder for loading grids — avoids layout shift. */
-export function Skeleton({
-  className,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn(
-        "animate-pulse rounded-xl bg-slate-200/80 motion-reduce:animate-none",
-        className,
-      )}
-      aria-hidden="true"
-      {...props}
-    />
-  );
-}
-
 export function SearchResultCardSkeleton() {
   return (
     <div

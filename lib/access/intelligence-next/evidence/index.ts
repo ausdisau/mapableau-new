@@ -20,3 +20,4 @@ export type {
   PersistedEvidenceEnvelope,
 } from "./persist";
 export { HARBOUR_PILOT, HARBOUR_PILOT_FEATURES } from "./harbour-pilot";
+export { projectEvidenceClassToProvenance } from "./provenance-projection";

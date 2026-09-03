@@ -4,8 +4,15 @@ import type { ConsentScope as PrismaConsentScope ,
 } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { createConsentReceipt } from "@/lib/consent/consent-receipt-service";
 import { consentScopeFromPrisma, consentScopeToPrisma } from "@/lib/consent/scope-map";
+import {
+  fieldCategoriesForConsentScope,
+  filterFieldCategoriesForRecipient,
+  invalidatePassportProjectionCache,
+} from "@/lib/passport";
 import { prisma } from "@/lib/prisma";
+import { recordDisclosureReceipt } from "@/lib/trust/fabric/receipt-service";
 import type { ConsentScope, ConsentStatus } from "@/types/mapable";
 
 
@@ -50,6 +57,32 @@ export async function grantConsent(input: GrantConsentInput) {
     metadata: { scope: input.scope },
   });
 
+  await createConsentReceipt({
+    consentRecordId: record.id,
+    participantId: input.subjectUserId,
+    actorUserId: input.createdById,
+    scope: input.scope,
+    purpose: input.purpose,
+    recipientType: input.recipientType,
+    recipientId: input.grantedToUserId ?? input.grantedToOrganisationId,
+    action: "granted",
+  });
+
+  const fieldCategories = filterFieldCategoriesForRecipient(
+    fieldCategoriesForConsentScope(input.scope),
+    input.recipientType,
+  );
+
+  await recordDisclosureReceipt({
+    actorUserId: input.createdById,
+    participantId: input.subjectUserId,
+    organisationId: input.grantedToOrganisationId,
+    purpose: input.purpose,
+    fieldCategories,
+    consentRecordId: record.id,
+    expiresAt: input.expiryDate ?? null,
+  });
+
   return record;
 }
 
@@ -72,6 +105,30 @@ export async function revokeConsent(
     entityType: "ConsentRecord",
     entityId: record.id,
     participantId: record.subjectUserId,
+  });
+
+  const scope = consentScopeFromPrisma(record.scope);
+
+  invalidatePassportProjectionCache(record.subjectUserId);
+
+  await createConsentReceipt({
+    consentRecordId: record.id,
+    participantId: record.subjectUserId,
+    actorUserId: revokedById,
+    scope,
+    purpose: record.purpose,
+    recipientType: record.recipientType ?? undefined,
+    recipientId: record.grantedToUserId ?? record.grantedToOrganisationId ?? undefined,
+    action: "revoked",
+  });
+
+  await recordDisclosureReceipt({
+    actorUserId: revokedById,
+    participantId: record.subjectUserId,
+    organisationId: record.grantedToOrganisationId ?? undefined,
+    purpose: `revoked:${record.purpose}`,
+    fieldCategories: fieldCategoriesForConsentScope(scope),
+    consentRecordId: record.id,
   });
 
   return record;
@@ -152,3 +209,11 @@ export async function canShareAccessibilityWithOrganisation(
 }
 
 export type { PrismaConsentScope };
+
+/**
+ * Service-lane consent (ConsentRecord) is orthogonal to research-lane consent
+ * (ResearchConsentRecord). Granting one never implies the other.
+ */
+export function isServiceLaneConsentScope(_scope: ConsentScope): true {
+  return true;
+}

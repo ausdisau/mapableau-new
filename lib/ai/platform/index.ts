@@ -205,6 +205,29 @@ export type {
 } from "./recovery";
 
 export {
+  createMissionWatch,
+  tickMissionWatches,
+  snoozeWatch,
+  disableOptionalWatch,
+  applyParticipantWatchAction,
+  getMissionWatchSnapshot,
+  formatMissionWatchForParticipant,
+  clearMissionWatchStore,
+  MISSION_WATCH_TYPES,
+  FORBIDDEN_WATCH_TYPES,
+  NOTIFICATION_BOUNDARY,
+  watchMayCreateOperationalAction,
+  assertWatchAuthority,
+} from "./mission-watch";
+export type {
+  MapAbleMissionWatch,
+  MissionWatchTickResult,
+  InAppWatchAlert,
+  MissionWatchPresentation,
+  MissionWatchType,
+} from "./mission-watch";
+
+export {
   publishDomainEvent,
   queryMissionContext,
   clearContextFabricStore,
@@ -249,4 +272,3 @@ export type {
   ApprovedActionEnvelope,
   ConnectorInvokeResult,
 } from "./connector-gateway";
-

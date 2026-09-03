@@ -5,6 +5,11 @@
  */
 
 import type { AccessProvenanceStatus, Prisma } from "@prisma/client";
+import {
+  buildAssertionProvenance,
+  storageStatusToEvidenceProvenance,
+  type AccessGraphAssertionProvenance,
+} from "@mapable/contracts";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
@@ -93,6 +98,7 @@ export type AccessObservationEnvelope = {
   entityId: string | null;
   observerUserId: string | null;
   provenance: ProvenanceDisplay;
+  canonicalProvenance: AccessGraphAssertionProvenance;
   freshness: FreshnessEvaluation;
   productionClaim: "none";
   claimState: "in_development";
@@ -143,6 +149,8 @@ export function serializeObservationRow(
     verificationStatus: AccessProvenanceStatus;
     confidence: number | null;
     reviewDue: Date | null;
+    expiresAt?: Date | null;
+    disputeHistory?: Prisma.JsonValue | null;
     disputed: boolean;
     placeId: string | null;
     entityType: string | null;
@@ -170,6 +178,26 @@ export function serializeObservationRow(
     freshnessExpired: freshness.expired,
   });
 
+  const canonicalState = storageStatusToEvidenceProvenance(
+    row.verificationStatus,
+    { freshnessExpired: freshness.expired },
+  );
+  const canonicalProvenance = buildAssertionProvenance({
+    provenance: row.disputed ? "unknown" : canonicalState,
+    source: provenance.sourceClass,
+    timestamp: row.observedAt.toISOString(),
+    evidenceType: row.featureKey,
+    confidence: row.confidence,
+    expiryAt:
+      row.expiresAt?.toISOString() ??
+      freshness.expiresAt ??
+      row.reviewDue?.toISOString() ??
+      null,
+    disputeHistory: Array.isArray(row.disputeHistory)
+      ? (row.disputeHistory as AccessGraphAssertionProvenance["disputeHistory"])
+      : [],
+  });
+
   return {
     id: row.id,
     featureKey: row.featureKey,
@@ -186,6 +214,7 @@ export function serializeObservationRow(
     entityId: row.entityId,
     observerUserId: row.observerUserId,
     provenance,
+    canonicalProvenance,
     freshness,
     productionClaim: "none",
     claimState: "in_development",
@@ -284,6 +313,7 @@ export async function createAccessObservation(
       verificationStatus,
       confidence: input.confidence ?? null,
       reviewDue,
+      expiresAt: reviewDue,
       disputed: input.disputed ?? false,
       placeId: input.placeId ?? null,
       entityType: parseEntityType(input.entityType),

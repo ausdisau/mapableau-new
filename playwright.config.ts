@@ -21,8 +21,20 @@ const projects: Project[] = [
     testMatch: /informational-boundary\.spec\.ts/,
   },
   {
-    name: "my-mapable",
-    testMatch: /my-mapable\.spec\.ts/,
+    name: "accessibility-panel",
+    testMatch: /accessibility-panel\.spec\.ts/,
+  },
+  {
+    name: "access-experience-v2",
+    testMatch: /access-experience-v2\.spec\.ts/,
+  },
+  {
+    name: "unified-shell",
+    testMatch: /unified-shell\.spec\.ts/,
+    dependencies: skipAuth ? undefined : ["setup"],
+    use: skipAuth
+      ? undefined
+      : { storageState: "tests/a11y/.auth/participant.json" },
   },
 ];
 

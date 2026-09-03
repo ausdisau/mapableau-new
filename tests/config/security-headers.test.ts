@@ -26,6 +26,7 @@ describe("baseline security headers", () => {
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("'unsafe-eval'");
+    expect(csp).toContain("https://www.paypal.com");
     expect(csp).toContain("report-uri /api/security/csp-report");
     expect(csp).not.toMatch(/script-src[^;]*\*/);
     expect(csp).not.toContain("script-src *");

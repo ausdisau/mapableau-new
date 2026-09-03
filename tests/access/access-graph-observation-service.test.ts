@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -30,8 +30,14 @@ import { prisma } from "@/lib/prisma";
 describe("Access Graph observation service (E01 G3)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-12T10:00:00.000Z"));
     process.env.MAPABLE_ACCESS_INFRASTRUCTURE_ENABLED = "true";
     process.env.MAPABLE_ACCESS_GRAPH_ENABLED = "true";
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("returns 404-style error when graph flags are off", async () => {
@@ -94,6 +100,7 @@ describe("Access Graph observation service (E01 G3)", () => {
     expect(result.provenance.sourceClass).toBe("community_reported");
     expect(result.provenance.unverified).toBe(true);
     expect(result.freshness.expired).toBe(false);
+    expect(result.canonicalProvenance.provenance).toBe("community_confirmed");
     expect(result.productionClaim).toBe("none");
     expect(createAuditEvent).toHaveBeenCalled();
   });
@@ -145,6 +152,7 @@ describe("Access Graph observation service (E01 G3)", () => {
     expect(result.provenance.sourceClass).toBe("ai_inferred");
     expect(result.provenance.displayLabel).toMatch(/AI inferred/i);
     expect(result.provenance.verificationStatus).toBe("observed");
+    expect(result.canonicalProvenance.provenance).toBe("inferred");
     expect(result.evidenceKinds).toContain("ai_inferred");
     expect(prisma.accessObservationRecord.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -183,6 +191,7 @@ describe("Access Graph observation service (E01 G3)", () => {
     expect(envelope.freshness.expired).toBe(true);
     expect(envelope.provenance.sourceClass).toBe("expired");
     expect(envelope.provenance.verificationStatus).toBe("outdated");
+    expect(envelope.canonicalProvenance.provenance).toBe("stale");
   });
 
   it("reads place graph with counts", async () => {

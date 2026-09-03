@@ -3,11 +3,12 @@ import {
   assertRelationalCapability,
   RELATIONAL_AUDIT,
 } from "@/lib/ai/relational/gates";
-import type {
-  AssistanceMode,
-  ParticipantControl,
-  RelationalTurnInput,
-  RelationalTurnResult,
+import {
+  relationalTurnInputSchema,
+  type AssistanceMode,
+  type ParticipantControl,
+  type RelationalTurnInput,
+  type RelationalTurnResult,
 } from "@/lib/ai/relational/types";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { isRelationalIntelligenceEnabled } from "@/lib/config/relational-intelligence";
@@ -29,8 +30,9 @@ function resolveCapabilityForMode(
  * Single relational handler entry — routes through capability gate before orchestrator work.
  */
 export async function handleRelationalTurn(
-  input: RelationalTurnInput,
+  raw: RelationalTurnInput,
 ): Promise<RelationalTurnResult> {
+  const input = relationalTurnInputSchema.parse(raw);
   const control: ParticipantControl = input.control;
 
   // Gap-closure: when relational pilot is off, defer to existing Navigator gates.
