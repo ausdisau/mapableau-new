@@ -1,8 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const unifiedShellEnabled =
-  process.env.NEXT_PUBLIC_UNIFIED_SHELL === "true";
+const unifiedShellEnabled = process.env.NEXT_PUBLIC_UNIFIED_SHELL === "true";
 
 test.describe("Unified participant shell", () => {
   test.skip(!unifiedShellEnabled, "Requires NEXT_PUBLIC_UNIFIED_SHELL=true");
@@ -14,7 +13,9 @@ test.describe("Unified participant shell", () => {
     await expect(page.getByTestId("unified-participant-shell")).toBeVisible();
     await expect(page.getByTestId("mapable-sidebar")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /open accessibility settings/i }).first(),
+      page
+        .getByRole("button", { name: /open accessibility settings/i })
+        .first(),
     ).toBeVisible();
 
     const results = await new AxeBuilder({ page })

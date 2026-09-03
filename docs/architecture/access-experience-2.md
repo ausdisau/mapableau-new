@@ -56,29 +56,26 @@ These projects do not endorse MapAble. No source code or proprietary assets are 
 - Accessible place detail improvements
 - Feature flags, tests, documentation
 
-## CONVERGENCE — canonical `/access` path (bounded vertical slice)
+## CONVERGENCE BOUNDARY (Access mapping)
 
-Canonical Access Experience V2 discovery lives on **`/access`** (Prisma `AccessPlace` + MapLibre + GAIS read layer), not on `/accessibility-map`.
+Canonical discovery for Access Experience V2 is **`/access`** behind
+`MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED` / `NEXT_PUBLIC_MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED`
+(default off, fail-closed):
 
-| Path | Data | Map | Role |
-|------|------|-----|------|
-| `/access` | `AccessPlace` → `AccessExplorationPlace` DTO | MapLibre | **Canonical** product path (flag-gated V2 UX) |
-| `/accessibility-map` | `DemoAccessPlace` (demo + ADL JSON) | Leaflet | Legacy / competitor landing until parity criteria are met |
+| Concern | Owner |
+|---------|-------|
+| Place identity | `AccessPlace` |
+| Public exploration projection | `AccessExplorationDto` (no Prisma / diagnosis / PII) |
+| Evidence read | GAIS adapters (best-effort enrichment) |
+| Compatibility | AccessFit V2 (`MEETS` \| `DOES_NOT_MATCH` \| `UNKNOWN`) |
+| Mapping engine | MapLibre on `/access` |
+| Journey execution | MapAble Go sandbox handoff (mobility prefs only) |
 
-**Deprecation boundary:** `DemoAccessPlace` is **test/demo and `/accessibility-map` only**. The canonical V2 exploration path must project `AccessPlace` (+ optional GAIS summary) through `toAccessExplorationPlace` / `accessPlaceToPlaceAccessProfile`. Do not expand Leaflet for `/access`. Do not delete `/accessibility-map` in this slice.
-
-Flags stay fail-closed (`MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED` + `NEXT_PUBLIC_MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED`, default off). Navigate/Go handoff remains sandbox (`isLiveEvidence: false`) — never claim safe/guaranteed accessible routes.
-
-### Manual a11y checklist status (cloud agent)
-
-| Check | Status |
-|-------|--------|
-| NVDA + Chrome/Firefox | **Not run** in cloud |
-| VoiceOver + Safari | **Not run** in cloud |
-| Keyboard only | Covered by Playwright where feasible |
-| 400% zoom | **Not run** in cloud |
-| Forced colours / High Contrast | **Not run** in cloud |
-| List-only / map-unavailable | Covered by Playwright + unit parity tests |
+**Deprecated for production exploration:** `DemoAccessPlace` and Leaflet
+`/accessibility-map` demo adapters. Keep `/accessibility-map` until parity is
+proven; do not expand demo models. Temporary bridges live in
+`lib/access/experience/demo-access-place-adapter.ts` and
+`buildExplorationResultIdsFromDemoPlaces`.
 
 ## PHASE 2 — Around Me + Accessibility Compass (design only)
 

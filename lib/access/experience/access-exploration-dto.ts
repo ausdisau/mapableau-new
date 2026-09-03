@@ -1,85 +1,84 @@
-/**
- * Client-safe exploration place projection for Access Experience V2.
- * Canonical path: AccessPlace (+ optional GAIS summary) → this DTO.
- * Never expose full Prisma rows or participant PII.
- */
-
 import type { PlaceAccessProfile } from "@/lib/access/fit/types";
-import type { GaisEvidenceState } from "@/lib/gais/contracts/evidence";
+import type { GaisEvidenceRef, GaisEvidenceState } from "@/lib/gais/contracts/evidence";
 
-export type AccessExplorationEvidenceRef = {
-  sourceType: GaisEvidenceState;
-  sourceLabel?: string;
-  observedAt?: string;
-  verifiedAt?: string;
-  confidence?: number;
+/**
+ * Public accessibility-discovery projection for Access Experience V2.
+ * Never includes Prisma models, diagnosis fields, or participant PII.
+ */
+export type AccessExplorationCapabilityFacts = {
+  pathWidthMm: number | null;
+  doorWidthMm: number | null;
+  maxGradientPercent: number | null;
+  kerbRampPresent: boolean | null;
+  liftPresent: boolean | null;
+  changingPlacesPresent: boolean | null;
+  captioningAvailable: boolean | null;
+  highContrastSignage: boolean | null;
+  tactileCues: boolean | null;
+  quietArea: boolean | null;
+  lowStimulusEnvironment: boolean | null;
+  textAacCommunication: boolean | null;
+  surfaceFirmness: "smooth" | "firm" | "uneven" | "unknown" | null;
 };
 
-export type AccessExplorationCapability = {
-  key: string;
-  label: string;
-  /** null = UNKNOWN — never coerce missing evidence to false/true. */
-  value: boolean | number | string | null;
-  unit?: string;
-  evidenceRefs: AccessExplorationEvidenceRef[];
-};
-
-export type AccessExplorationPlace = {
-  placeId: string;
-  name: string;
-  category: string;
-  addressText?: string | null;
-  suburb?: string | null;
-  stateOrRegion?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  /** True when both lat/lng are finite numbers. */
-  hasCoordinates: boolean;
-  reviewCount?: number;
-  confidence: PlaceAccessProfile["confidence"];
-  lastVerified?: string | null;
-  /** AccessFit-ready profile projected from AccessPlace / GAIS facts. */
-  accessProfile: PlaceAccessProfile;
-  capabilities: AccessExplorationCapability[];
-  provenanceSummary?: string;
-  freshnessLabel?: string;
+export type AccessExplorationEvidenceSummary = {
+  dominantState: GaisEvidenceState;
+  freshnessLabel: string;
+  lastObservedAt: string | null;
+  confidenceLabel: "high" | "medium" | "low" | "unknown";
   disputed: boolean;
-  unknownCapabilityCount: number;
-  accreditationSummary?: {
-    tier: string;
-    disclaimer: string;
-  } | null;
-  sourceType?: string;
+  refs: GaisEvidenceRef[];
 };
 
-export type AccessPlaceFeatureLike = {
-  type: string;
-  notes?: string | null;
+export type AccessExplorationAccreditationSummary = {
+  tier: string | null;
+  disclaimer: string;
 };
 
-export type AccessPlaceLike = {
-  id: string;
+export type AccessExplorationDto = {
+  accessPlaceId: string;
   name: string;
   category: string;
-  description?: string | null;
-  addressText?: string | null;
-  suburb?: string | null;
-  stateOrRegion?: string | null;
-  confidence?: string | null;
-  sourceType?: string | null;
-  updatedAt?: Date | string | null;
-  location?: {
-    latitude?: number | null;
-    longitude?: number | null;
-  } | null;
-  features?: AccessPlaceFeatureLike[];
-  _count?: { reviews?: number };
+  suburb: string | null;
+  stateOrRegion: string | null;
+  addressText: string | null;
+  /** False when coordinates are missing — place remains list-eligible. */
+  hasCoordinates: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  reviewCount: number;
+  /** Fit-facing profile (nullable facts → UNKNOWN in AccessFit V2). */
+  placeProfile: PlaceAccessProfile;
+  /** Typed capability facts preferred over synthetic demo booleans. */
+  capabilityFacts: AccessExplorationCapabilityFacts;
+  evidence: AccessExplorationEvidenceSummary;
+  accreditation: AccessExplorationAccreditationSummary | null;
 };
 
-export type GaisPlaceSummaryLike = {
-  evidenceStates?: GaisEvidenceState[];
-  disputed?: boolean;
-  provenanceLabel?: string;
-  freshnessLabel?: string;
-  capabilities?: AccessExplorationCapability[];
+/** Minimal view consumed by exploration-results / AccessFit. */
+export type AccessExplorationFitView = {
+  id: string;
+  profile: PlaceAccessProfile;
+};
+
+export function toAccessExplorationFitView(
+  dto: AccessExplorationDto,
+): AccessExplorationFitView {
+  return { id: dto.accessPlaceId, profile: dto.placeProfile };
+}
+
+export const EMPTY_CAPABILITY_FACTS: AccessExplorationCapabilityFacts = {
+  pathWidthMm: null,
+  doorWidthMm: null,
+  maxGradientPercent: null,
+  kerbRampPresent: null,
+  liftPresent: null,
+  changingPlacesPresent: null,
+  captioningAvailable: null,
+  highContrastSignage: null,
+  tactileCues: null,
+  quietArea: null,
+  lowStimulusEnvironment: null,
+  textAacCommunication: null,
+  surfaceFirmness: null,
 };

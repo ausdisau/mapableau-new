@@ -7,18 +7,12 @@ import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens
 
 type Step = "select" | "note" | "review" | "submitting";
 
-/** Minimal place identity — works for AccessPlace and DemoAccessPlace. */
-export type QuickObservationPlaceRef = {
-  id: string;
-  name: string;
-};
-
 export function QuickObservationDialog({
   place,
   onClose,
   onSubmitted,
 }: {
-  place: QuickObservationPlaceRef;
+  place: { id: string; name: string };
   onClose: () => void;
   onSubmitted: () => void;
 }) {

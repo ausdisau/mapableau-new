@@ -109,16 +109,7 @@ export function countSelectedRequirements(
   if (profile.liftRequired) count += 1;
   if (profile.kerbRampRequired) count += 1;
   if (profile.changingPlacesPreferred) count += 1;
-  if (profile.captioningPreferred) count += 1;
-  if (profile.highContrastSignagePreferred) count += 1;
-  if (profile.tactileCuesPreferred) count += 1;
-  if (profile.quietAreaPreferred) count += 1;
-  if (profile.lowStimulusPreferred) count += 1;
-  if (profile.textCommunicationPreferred) count += 1;
   if (profile.minimumDoorWidthMm != null) count += 1;
-  if (profile.minimumPathWidthMm != null) count += 1;
-  if (profile.maximumPreferredGradientPercent != null) count += 1;
-  if (profile.surfaceTolerance != null) count += 1;
   return count;
 }
 
@@ -136,10 +127,5 @@ export function requirementsSummaryLabels(
   if (profile.assistanceAnimal) labels.push("Assistance animal");
   if (profile.liftRequired) labels.push("Lift");
   if (profile.kerbRampRequired) labels.push("Kerb ramp");
-  if (profile.changingPlacesPreferred) labels.push("Changing Places");
-  if (profile.minimumPathWidthMm != null) {
-    labels.push(`Path ≥ ${profile.minimumPathWidthMm} mm`);
-  }
-  if (profile.surfaceTolerance === "smooth_only") labels.push("Smooth surface");
   return labels.slice(0, 5);
 }

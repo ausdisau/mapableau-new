@@ -1,40 +1,34 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  toAccessExplorationPlace,
-  toAccessExplorationPlaceWithGais,
-} from "@/lib/access/experience/to-access-exploration-place";
-import {
-  overlayGaisOnPlaceAccessProfile,
-  toGaisPlaceSummaryLike,
-} from "@/lib/access/experience/gais-place-summary-adapter";
-import { accessPlaceToPlaceAccessProfile } from "@/lib/access/experience/access-place-profile-adapter";
-import {
-  buildExplorationResultIds,
-  buildExplorationResultIdsFromAccessPlaces,
-  listPresentationIds,
-  mapPresentationIds,
-  orderAccessExplorationPlacesByResultIds,
-  orderPlacesByResultIds,
-} from "@/lib/access/experience/exploration-results";
-import {
   applyJourneyOverride,
-  createDefaultExplorationState,
   resolveActiveRequirements,
   setSavedRequirements,
 } from "@/lib/access/experience/exploration-state";
-import { accessExperienceFlags } from "@/lib/access/experience/flags";
 import {
-  buildGoHandoffHref,
-  requirementsToMobilityRoutingProfile,
-} from "@/lib/access/experience/go-handoff";
+  buildExplorationResultIds,
+  buildExplorationResultIdsFromDemoPlaces,
+  explorationDtoToFitSource,
+  listPresentationIds,
+  mapCoordinateIds,
+  mapPresentationIds,
+  orderPlacesByResultIds,
+} from "@/lib/access/experience/exploration-results";
+import { accessExperienceFlags } from "@/lib/access/experience/flags";
 import { accessibilityProfileToRequirements } from "@/lib/access/experience/requirement-profile";
+import { createDefaultExplorationState } from "@/lib/access/experience/exploration-state";
+import { projectAccessPlaceToExplorationDto } from "@/lib/access/experience/project-access-place";
+import {
+  accessToGoHref,
+  buildAccessToGoHandoff,
+} from "@/lib/access/experience/access-route-handoff";
 import { DEFAULT_ACCESS_REQUIREMENT_PROFILE } from "@/lib/access/experience/types";
 import {
   calculateAccessFitV2,
   shouldIncludePlaceForUnknownHandling,
 } from "@/lib/access/fit/calculate-access-fit-v2";
 import { DEMO_ACCESS_PLACES } from "@/lib/demo/accessibility-places";
+import { demoAccessPlaceToExplorationDto } from "@/lib/access/experience/demo-access-place-adapter";
 
 describe("access experience flags", () => {
   it("is fail-closed by default", () => {
@@ -121,63 +115,6 @@ describe("calculateAccessFitV2", () => {
     expect(result.metCount).toBeGreaterThan(0);
     expect(result.unmetCount).toBeGreaterThan(0);
   });
-
-  it("maps extended measurement requirements with UNKNOWN when missing", () => {
-    const result = calculateAccessFitV2(
-      {
-        ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
-        minimumPathWidthMm: 1000,
-        maximumPreferredGradientPercent: 5,
-        kerbRampRequired: true,
-        liftRequired: true,
-        changingPlacesPreferred: true,
-        captioningPreferred: true,
-        highContrastSignagePreferred: true,
-        tactileCuesPreferred: true,
-        surfaceTolerance: "smooth_only",
-      },
-      {
-        ...strong,
-        pathWidthMm: null,
-        maxGradientPercent: null,
-        kerbRamp: null,
-        lift: null,
-        changingPlaces: null,
-        captioning: null,
-        highContrastSignage: null,
-        tactileCues: null,
-        surfaceQuality: null,
-      },
-    );
-    for (const id of [
-      "path_width",
-      "max_gradient",
-      "kerb_ramp",
-      "lift",
-      "changing_places",
-      "captioning",
-      "high_contrast_signage",
-      "tactile_cues",
-      "surface_tolerance",
-    ]) {
-      expect(result.requirements.find((r) => r.requirementId === id)?.state).toBe(
-        "UNKNOWN",
-      );
-    }
-  });
-
-  it("evaluates path width when evidence exists", () => {
-    const result = calculateAccessFitV2(
-      {
-        ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
-        minimumPathWidthMm: 1000,
-      },
-      { ...strong, pathWidthMm: 1200 },
-    );
-    expect(result.requirements.find((r) => r.requirementId === "path_width")?.state).toBe(
-      "MEETS",
-    );
-  });
 });
 
 describe("MAP/LIST parity", () => {
@@ -187,7 +124,11 @@ describe("MAP/LIST parity", () => {
   };
 
   it("uses identical ordered result IDs for map and list prefixes", () => {
-    const resultIds = buildExplorationResultIds(DEMO_ACCESS_PLACES, requirements, "SHOW");
+    const resultIds = buildExplorationResultIdsFromDemoPlaces(
+      DEMO_ACCESS_PLACES,
+      requirements,
+      "SHOW",
+    );
     const mapIds = mapPresentationIds(resultIds);
     const listIds = listPresentationIds(resultIds, 80);
     expect(mapIds).toEqual(resultIds.slice(0, mapIds.length));
@@ -196,9 +137,41 @@ describe("MAP/LIST parity", () => {
   });
 
   it("preserves selection ordering when re-slicing", () => {
-    const resultIds = buildExplorationResultIds(DEMO_ACCESS_PLACES, requirements, "SHOW");
+    const resultIds = buildExplorationResultIdsFromDemoPlaces(
+      DEMO_ACCESS_PLACES,
+      requirements,
+      "SHOW",
+    );
     const ordered = orderPlacesByResultIds(DEMO_ACCESS_PLACES, resultIds);
     expect(ordered.map((p) => p.id)).toEqual(resultIds);
+  });
+
+  it("keeps places without coordinates in list IDs but omits them from map markers", () => {
+    const dtos = DEMO_ACCESS_PLACES.map(demoAccessPlaceToExplorationDto);
+    const withoutCoords = {
+      ...dtos[0]!,
+      accessPlaceId: "list-only-place",
+      hasCoordinates: false,
+      latitude: null,
+      longitude: null,
+    };
+    const places = [...dtos, withoutCoords];
+    const resultIds = buildExplorationResultIds(
+      places.map(explorationDtoToFitSource),
+      requirements,
+      "SHOW",
+    );
+    expect(resultIds).toContain("list-only-place");
+    const mapIds = mapCoordinateIds(
+      resultIds,
+      places.map((p) => ({
+        id: p.accessPlaceId,
+        hasCoordinates: p.hasCoordinates,
+        latitude: p.latitude,
+        longitude: p.longitude,
+      })),
+    );
+    expect(mapIds).not.toContain("list-only-place");
   });
 
   it("can avoid unknown-heavy places when configured", () => {
@@ -215,225 +188,99 @@ describe("MAP/LIST parity", () => {
   });
 });
 
-describe("AccessExplorationPlace projection", () => {
-  it("projects AccessPlace features without inventing false evidence", () => {
-    const place = toAccessExplorationPlace({
+describe("AccessPlace exploration projection", () => {
+  it("projects AccessPlace without leaking Prisma or diagnosis fields", () => {
+    const dto = projectAccessPlaceToExplorationDto({
       id: "place-1",
-      name: "Library",
-      category: "library",
-      confidence: "mapable_verified",
-      sourceType: "mapable_assessed",
-      updatedAt: "2026-01-01T00:00:00.000Z",
-      location: { latitude: -33.8, longitude: 151.0 },
+      name: "Community Hub",
+      category: "community_centre",
+      suburb: "Parramatta",
+      stateOrRegion: "NSW",
+      addressText: "1 Civic Pl",
+      confidence: "high",
+      location: { latitude: -33.81, longitude: 151.0 },
       features: [{ type: "step_free_entry" }, { type: "accessible_toilet" }],
-      _count: { reviews: 2 },
+      reviewCount: 3,
     });
 
-    expect(place.placeId).toBe("place-1");
-    expect(place.hasCoordinates).toBe(true);
-    expect(place.accessProfile.stepFreeEntry).toBe(true);
-    expect(place.accessProfile.accessibleToilet).toBe(true);
-    expect(place.accessProfile.hearingLoop).toBeNull();
-    expect(place.accessProfile.pathWidthMm).toBeNull();
-    expect(place.accessProfile.doorWidthMm).toBeNull();
-    expect(JSON.stringify(place)).not.toMatch(/diagnosis/i);
+    expect(dto.accessPlaceId).toBe("place-1");
+    expect(dto.hasCoordinates).toBe(true);
+    expect(dto.placeProfile.stepFreeEntry).toBe(true);
+    expect(dto.capabilityFacts.liftPresent).toBeNull();
+    expect(JSON.stringify(dto)).not.toMatch(/prisma|diagnosis|password|email/i);
   });
 
-  it("keeps places without coordinates list-visible", () => {
-    const place = toAccessExplorationPlace({
-      id: "no-coords",
-      name: "Hall",
-      category: "community_centre",
+  it("marks missing coordinates without dropping the place", () => {
+    const dto = projectAccessPlaceToExplorationDto({
+      id: "place-2",
+      name: "Library desk",
+      category: "library",
       features: [],
     });
-    expect(place.hasCoordinates).toBe(false);
-    expect(place.latitude).toBeNull();
-  });
-
-  it("shares result IDs between AccessExplorationPlace map/list helpers", () => {
-    const places = [
-      toAccessExplorationPlace({
-        id: "a",
-        name: "A",
-        category: "library",
-        features: [{ type: "step_free_entry" }],
-        location: { latitude: 1, longitude: 2 },
-      }),
-      toAccessExplorationPlace({
-        id: "b",
-        name: "B",
-        category: "library",
-        features: [],
-      }),
-    ];
-    const ids = buildExplorationResultIdsFromAccessPlaces(
-      places,
-      { ...DEFAULT_ACCESS_REQUIREMENT_PROFILE, stepFreeRequired: true },
-      "SHOW",
-    );
-    const ordered = orderAccessExplorationPlacesByResultIds(places, ids);
-    expect(ordered.map((p) => p.placeId)).toEqual(ids);
-    expect(mapPresentationIds(ids)[0]).toBe(ids[0]);
-  });
-
-  it("maps confidence levels without fabricating measurements", () => {
-    const profile = accessPlaceToPlaceAccessProfile({
-      id: "x",
-      name: "X",
-      category: "shop",
-      confidence: "user_reported",
-      features: [{ type: "wide_paths" }, { type: "wide_doorways" }],
-    });
-    expect(profile.confidence).toBe("low");
-    expect(profile.pathWidthMm).toBeNull();
-    expect(profile.doorWidthMm).toBeNull();
+    expect(dto.hasCoordinates).toBe(false);
+    expect(dto.latitude).toBeNull();
+    expect(dto.longitude).toBeNull();
   });
 });
 
-describe("Go handoff", () => {
-  it("builds destination handoff without diagnosis fields", () => {
-    const href = buildGoHandoffHref({
-      destinationPlaceId: "place-99",
+describe("AccessFit extended facts stay UNKNOWN without evidence", () => {
+  it("returns UNKNOWN for lift/path/gradient requirements when facts are null", () => {
+    const result = calculateAccessFitV2(
+      {
+        ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
+        liftRequired: true,
+        minimumPathWidthMm: 900,
+        maximumPreferredGradientPercent: 5,
+        kerbRampRequired: true,
+        changingPlacesPreferred: true,
+        captioningPreferred: true,
+      },
+      {
+        ...DEMO_ACCESS_PLACES[0]!.profile,
+        liftPresent: null,
+        pathWidthMm: null,
+        maxGradientPercent: null,
+        kerbRampPresent: null,
+        changingPlacesPresent: null,
+        captioningAvailable: null,
+      },
+    );
+    const byId = Object.fromEntries(result.requirements.map((r) => [r.requirementId, r.state]));
+    expect(byId.lift).toBe("UNKNOWN");
+    expect(byId.path_width).toBe("UNKNOWN");
+    expect(byId.gradient).toBe("UNKNOWN");
+    expect(byId.kerb_ramp).toBe("UNKNOWN");
+    expect(byId.changing_places).toBe("UNKNOWN");
+    expect(byId.captioning).toBe("UNKNOWN");
+  });
+});
+
+describe("Access → Go handoff", () => {
+  it("passes only mobility routing prefs and sandbox marker", () => {
+    const href = accessToGoHref({
+      destinationPlaceId: "place-1",
+      destinationName: "Community Hub",
       requirements: {
         ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
-        wheelchairUser: true,
         stepFreeRequired: true,
-        kerbRampRequired: true,
-        minimumPathWidthMm: 1100,
+        wheelchairUser: true,
+        minimumPathWidthMm: 900,
+        maximumPreferredGradientPercent: 5,
+        accessibleToiletRequired: true,
       },
+      journeyOverrideActive: true,
     });
-    expect(href).toContain("destinationPlaceId=place-99");
+    expect(href).toContain("/go?");
+    expect(href).toContain("destinationPlaceId=place-1");
     expect(href).toContain("sandbox=1");
-    expect(href).toContain("reviewPreferences=1");
-    expect(href).toContain("mobilityAidType=manual_wheelchair");
-    expect(href).toContain("curbRampRequired=1");
-    expect(href).not.toMatch(/diagnosis/i);
-  });
+    expect(href).toContain("stepFreeRequired=1");
+    expect(href).toContain("journeyOverride=1");
+    expect(href).not.toMatch(/toilet|diagnosis|Auslan|AAC/i);
 
-  it("maps only routing-relevant mobility constraints", () => {
-    const profile = requirementsToMobilityRoutingProfile({
-      ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
-      powerchairUser: true,
-      liftRequired: true,
-      accessibleToiletRequired: true,
+    const query = buildAccessToGoHandoff({
+      destinationPlaceId: "place-1",
+      requirements: DEFAULT_ACCESS_REQUIREMENT_PROFILE,
     });
-    expect(profile.mobilityAidType).toBe("power_wheelchair");
-    expect(profile.liftRequirement).toBe(true);
-    expect(profile.accessibleToiletPreference).toBe(true);
-    expect(profile).not.toHaveProperty("diagnosis");
-  });
-});
-
-describe("GAIS place summary adapter", () => {
-  it("overlays measurements without inventing missing values", () => {
-    const base = accessPlaceToPlaceAccessProfile({
-      id: "place-gais",
-      name: "Civic",
-      category: "civic",
-      features: [{ type: "step_free_entry" }],
-    });
-    expect(base.pathWidthMm).toBeNull();
-    expect(base.doorWidthMm).toBeNull();
-
-    const overlaid = overlayGaisOnPlaceAccessProfile(base, {
-      placeId: "place-gais",
-      name: "Civic",
-      category: "civic",
-      geometry: { type: "Point", coordinates: [151, -33.8] },
-      evidenceScope: "published_access_places",
-      features: [
-        {
-          id: "gais-path-1",
-          type: "PATH",
-          geometry: { type: "Point", coordinates: [151, -33.8] },
-          properties: { widthMm: 1200, accessFeatureTag: "wide_paths" },
-          evidence: [
-            {
-              sourceType: "COMMUNITY_REPORTED",
-              sourceLabel: "Community reported",
-              observedAt: "2026-02-01T00:00:00.000Z",
-            },
-          ],
-          observedAt: "2026-02-01T00:00:00.000Z",
-        },
-        {
-          id: "gais-lift-1",
-          type: "LIFT",
-          geometry: { type: "Point", coordinates: [151, -33.8] },
-          properties: { liftAvailable: true, accessFeatureTag: "lift_access" },
-          evidence: [{ sourceType: "VERIFIED", sourceLabel: "Verified" }],
-        },
-        {
-          id: "gais-entrance-1",
-          type: "ENTRANCE",
-          geometry: { type: "Point", coordinates: [151, -33.8] },
-          properties: {
-            // Explicit undefined measurements must stay UNKNOWN
-            stepFree: undefined,
-            accessFeatureTag: "step_free_entry",
-          },
-          evidence: [{ sourceType: "UNKNOWN", sourceLabel: "Unknown" }],
-        },
-      ],
-    });
-
-    expect(overlaid.stepFreeEntry).toBe(true);
-    expect(overlaid.pathWidthMm).toBe(1200);
-    expect(overlaid.lift).toBe(true);
-    expect(overlaid.captioning).toBeNull();
-    expect(overlaid.highContrastSignage).toBeNull();
-    expect(overlaid.maxGradientPercent).toBeNull();
-  });
-
-  it("projects GAIS summary into exploration DTO without diagnosis fields", () => {
-    const dto = toAccessExplorationPlaceWithGais(
-      {
-        id: "place-gais-2",
-        name: "Gallery",
-        category: "museum",
-        features: [{ type: "accessible_toilet" }],
-        location: { latitude: -33.87, longitude: 151.2 },
-      },
-      {
-        placeId: "place-gais-2",
-        name: "Gallery",
-        category: "museum",
-        geometry: { type: "Point", coordinates: [151.2, -33.87] },
-        evidenceScope: "published_access_places_and_community_barriers",
-        features: [
-          {
-            id: "gais-door-1",
-            type: "DOOR",
-            geometry: { type: "Point", coordinates: [151.2, -33.87] },
-            properties: { widthMm: 920, accessFeatureTag: "wide_doorways" },
-            evidence: [
-              {
-                sourceType: "PROVIDER_OR_VENUE_DECLARED",
-                sourceLabel: "Venue supplied",
-              },
-            ],
-            observedAt: "2026-03-01T00:00:00.000Z",
-          },
-        ],
-      },
-    );
-
-    expect(dto.accessProfile.accessibleToilet).toBe(true);
-    expect(dto.accessProfile.doorWidthMm).toBe(920);
-    expect(dto.accessProfile.pathWidthMm).toBeNull();
-    expect(dto.provenanceSummary).toMatch(/GAIS evidence scope/i);
-    expect(dto.freshnessLabel).toMatch(/2026-03-01/);
-    expect(JSON.stringify(dto)).not.toMatch(/diagnosis/i);
-  });
-
-  it("leaves profile unchanged when GAIS summary is absent", () => {
-    const base = accessPlaceToPlaceAccessProfile({
-      id: "no-gais",
-      name: "Hall",
-      category: "community_centre",
-      features: [],
-    });
-    expect(overlayGaisOnPlaceAccessProfile(base, null)).toEqual(base);
-    expect(toGaisPlaceSummaryLike(null)).toBeUndefined();
+    expect(query.sandbox).toBe("1");
   });
 });

@@ -1,15 +1,11 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { GoRouteOptions } from "@/components/go/GoRouteOptions";
 import { GoSearch } from "@/components/go/GoSearch";
-import { GO_SANDBOX_DISCLAIMER } from "@/lib/access/experience/go-handoff";
-import type {
-  MobilityRoutingProfile,
-  RouteOption,
-} from "@/lib/go/contracts/route-contracts";
+import type { RouteOption } from "@/lib/go/contracts/route-contracts";
 import { defaultPowerWheelchairProfile } from "@/lib/go/profile-service";
 
 type PlaceResult = {
@@ -20,38 +16,36 @@ type PlaceResult = {
   longitude?: number;
 };
 
-function profileFromSearchParams(
-  params: URLSearchParams,
-): MobilityRoutingProfile {
-  const base = defaultPowerWheelchairProfile();
-  const aid = params.get("mobilityAidType");
-  if (
-    aid === "manual_wheelchair" ||
-    aid === "power_wheelchair" ||
-    aid === "mobility_scooter" ||
-    aid === "other"
-  ) {
-    base.mobilityAidType = aid;
-  }
-  const pathWidth = params.get("minimumPreferredPathWidthMm");
-  if (pathWidth) base.minimumPreferredPathWidthMm = Number(pathWidth);
-  const slope = params.get("preferredMaximumSlopePercent");
-  if (slope) base.preferredMaximumSlopePercent = Number(slope);
-  if (params.get("curbRampRequired") === "1") base.curbRampRequired = true;
-  if (params.get("liftRequirement") === "1") base.liftRequirement = true;
-  if (params.get("accessibleToiletPreference") === "1") {
-    base.accessibleToiletPreference = true;
-  }
-  if (params.get("stairsAllowed") === "0") base.stairsAllowed = false;
-  return base;
-}
+export type GoAccessHandoff = {
+  destinationPlaceId?: string;
+  destinationName?: string;
+  stepFreeRequired?: boolean;
+  maxGradientPercent?: number;
+  minPathWidthMm?: number;
+  journeyOverride?: boolean;
+  sandbox?: boolean;
+};
 
-export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[] }) {
+export function GoRoutePlanner({
+  initialPlaces,
+  accessHandoff,
+}: {
+  initialPlaces: PlaceResult[];
+  accessHandoff?: GoAccessHandoff | null;
+}) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(accessHandoff?.destinationName ?? "");
   const [places] = useState(initialPlaces);
-  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(() => {
+    if (!accessHandoff?.destinationPlaceId) return null;
+    return (
+      initialPlaces.find((p) => p.id === accessHandoff.destinationPlaceId) ?? {
+        id: accessHandoff.destinationPlaceId,
+        name: accessHandoff.destinationName ?? "Selected place",
+        suburb: null,
+      }
+    );
+  });
   const [origin, setOrigin] = useState({ lat: -33.883, lng: 151.205 });
   const [routes, setRoutes] = useState<RouteOption[]>([]);
   const [planId, setPlanId] = useState<string | null>(null);
@@ -59,26 +53,7 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationSessionId, setLocationSessionId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<MobilityRoutingProfile>(() =>
-    defaultPowerWheelchairProfile(),
-  );
-  const [prefsReviewed, setPrefsReviewed] = useState(false);
-
-  const sandboxHandoff =
-    searchParams.get("sandbox") === "1" ||
-    searchParams.get("reviewPreferences") === "1" ||
-    Boolean(searchParams.get("destinationPlaceId"));
-
-  useEffect(() => {
-    const destinationId = searchParams.get("destinationPlaceId");
-    if (destinationId) {
-      const match = places.find((p) => p.id === destinationId);
-      if (match) setSelectedPlace(match);
-    }
-    if (sandboxHandoff) {
-      setProfile(profileFromSearchParams(searchParams));
-    }
-  }, [places, searchParams, sandboxHandoff]);
+  const [prefsConfirmed, setPrefsConfirmed] = useState(!accessHandoff?.destinationPlaceId);
 
   const filteredPlaces = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -119,10 +94,6 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
       setError("Selected place needs a published location.");
       return;
     }
-    if (sandboxHandoff && !prefsReviewed) {
-      setError("Review your mobility preferences before planning a route.");
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
@@ -137,7 +108,7 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
           destinationPlaceId: selectedPlace.id,
           destinationLat: selectedPlace.latitude,
           destinationLng: selectedPlace.longitude,
-          profile,
+          profile: defaultPowerWheelchairProfile(),
         }),
       });
 
@@ -170,13 +141,45 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
 
   return (
     <div className="space-y-8">
-      {sandboxHandoff ? (
+      {accessHandoff?.sandbox || accessHandoff?.destinationPlaceId ? (
         <div
-          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
-          role="note"
+          className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+          role="status"
         >
-          <p className="font-semibold">Sandbox journey handoff</p>
-          <p className="mt-1">{GO_SANDBOX_DISCLAIMER}</p>
+          <p className="font-semibold">Pilot sandbox routing</p>
+          <p className="mt-1">
+            MapAble Go uses a pilot sandbox graph. It is not live national accessibility
+            routing. Routes are not guaranteed accessible, and this is not a &quot;safe&quot; or
+            &quot;verified accessible&quot; journey.
+          </p>
+          {(accessHandoff?.stepFreeRequired ||
+            accessHandoff?.maxGradientPercent != null ||
+            accessHandoff?.minPathWidthMm != null ||
+            accessHandoff?.journeyOverride) && (
+            <fieldset className="mt-3 space-y-2">
+              <legend className="font-medium">Review routing preferences from Access</legend>
+              <ul className="list-disc pl-5">
+                {accessHandoff?.stepFreeRequired ? <li>Step-free preferred</li> : null}
+                {accessHandoff?.maxGradientPercent != null ? (
+                  <li>Max gradient {accessHandoff.maxGradientPercent}%</li>
+                ) : null}
+                {accessHandoff?.minPathWidthMm != null ? (
+                  <li>Min path width {accessHandoff.minPathWidthMm} mm</li>
+                ) : null}
+                {accessHandoff?.journeyOverride ? (
+                  <li>Journey override was active on Access</li>
+                ) : null}
+              </ul>
+              <label className="flex min-h-11 items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={prefsConfirmed}
+                  onChange={(e) => setPrefsConfirmed(e.target.checked)}
+                />
+                I have reviewed these routing preferences before planning
+              </label>
+            </fieldset>
+          )}
         </div>
       ) : null}
 
@@ -205,63 +208,6 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
           ))}
         </ul>
       </section>
-
-      {sandboxHandoff ? (
-        <section
-          aria-labelledby="go-prefs-heading"
-          className="rounded-xl border border-border p-4"
-        >
-          <h2 id="go-prefs-heading" className="text-lg font-semibold">
-            Review mobility preferences
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Routing-relevant preferences only — no health or diagnosis data is
-            shared. Confirm before planning.
-          </p>
-          <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="font-semibold">Mobility aid</dt>
-              <dd>{profile.mobilityAidType ?? "not set"}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Preferred path width</dt>
-              <dd>
-                {profile.minimumPreferredPathWidthMm != null
-                  ? `${profile.minimumPreferredPathWidthMm} mm`
-                  : "not set"}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Preferred max slope</dt>
-              <dd>
-                {profile.preferredMaximumSlopePercent != null
-                  ? `${profile.preferredMaximumSlopePercent}%`
-                  : "not set"}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Kerb ramp</dt>
-              <dd>{profile.curbRampRequired ? "Required" : "Not required"}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Lift</dt>
-              <dd>{profile.liftRequirement ? "Preferred" : "Not required"}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Stairs</dt>
-              <dd>{profile.stairsAllowed === false ? "Avoid" : "Allowed"}</dd>
-            </div>
-          </dl>
-          <label className="mt-4 flex min-h-11 items-center gap-2 text-sm font-semibold">
-            <input
-              type="checkbox"
-              checked={prefsReviewed}
-              onChange={(e) => setPrefsReviewed(e.target.checked)}
-            />
-            I have reviewed these preferences for this journey
-          </label>
-        </section>
-      ) : null}
 
       <section aria-labelledby="go-origin-heading">
         <h2 id="go-origin-heading" className="text-lg font-semibold">
@@ -298,10 +244,10 @@ export function GoRoutePlanner({ initialPlaces }: { initialPlaces: PlaceResult[]
       <button
         type="button"
         className="min-h-11 rounded-lg bg-primary px-6 text-primary-foreground disabled:opacity-50"
-        disabled={loading || !selectedPlace || (sandboxHandoff && !prefsReviewed)}
+        disabled={loading || !selectedPlace || !prefsConfirmed}
         onClick={planRoutes}
       >
-        {loading ? "Planning routes…" : "Plan accessible routes"}
+        {loading ? "Planning routes…" : "Plan routes (sandbox)"}
       </button>
 
       {error && (

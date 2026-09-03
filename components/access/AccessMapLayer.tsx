@@ -77,10 +77,9 @@ export function AccessMapLayer({
           <button
             type="button"
             aria-label={`${p.name}${selectedId === p.id ? ", selected" : ""}`}
-            aria-pressed={selectedId === p.id}
-            className={`rounded px-2 py-1 text-xs font-semibold shadow outline-none ${
+            className={`rounded px-2 py-1 text-xs font-semibold shadow ${
               selectedId === p.id
-                ? "bg-primary text-primary-foreground ring-2 ring-offset-2 ring-[#0C1833]"
+                ? "bg-primary text-primary-foreground"
                 : "bg-background text-foreground border border-border"
             }`}
           >

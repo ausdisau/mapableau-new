@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-
 import { GoRoutePlanner } from "@/components/go/GoRoutePlanner";
 import { mapableGoFlags } from "@/lib/config/mapable-go";
 import { listPublishedPlaces } from "@/lib/access/map/access-place-service";
@@ -10,7 +8,17 @@ export const metadata = {
     "Plan power-wheelchair accessible routes with evidence, uncertainty labels, and participant control.",
 };
 
-export default async function GoPage() {
+function parseOptionalNumber(value: string | string[] | undefined): number | undefined {
+  if (typeof value !== "string" || value.trim() === "") return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+export default async function GoPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   if (!mapableGoFlags.enabled) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-12">
@@ -23,14 +31,25 @@ export default async function GoPage() {
     );
   }
 
+  const params = await searchParams;
+  const destinationPlaceId =
+    typeof params.destinationPlaceId === "string" ? params.destinationPlaceId : undefined;
+  const destinationName =
+    typeof params.destinationName === "string" ? params.destinationName : undefined;
+
+  const accessHandoff = destinationPlaceId
+    ? {
+        destinationPlaceId,
+        destinationName,
+        stepFreeRequired: params.stepFreeRequired === "1",
+        maxGradientPercent: parseOptionalNumber(params.maxGradientPercent),
+        minPathWidthMm: parseOptionalNumber(params.minPathWidthMm),
+        journeyOverride: params.journeyOverride === "1",
+        sandbox: params.sandbox === "1" || true,
+      }
+    : null;
+
   const places = await listPublishedPlaces(200);
-  const placeInputs = places.map((p) => ({
-    id: p.id,
-    name: p.name,
-    suburb: p.suburb,
-    latitude: p.location?.latitude,
-    longitude: p.location?.longitude,
-  }));
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -44,10 +63,16 @@ export default async function GoPage() {
           Claim state: IN_DEVELOPMENT. Pilot sandbox graph — not live national path evidence.
         </p>
       </header>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading planner…</p>}>
-        <GoRoutePlanner initialPlaces={placeInputs} />
-      </Suspense>
+      <GoRoutePlanner
+        accessHandoff={accessHandoff}
+        initialPlaces={places.map((p) => ({
+          id: p.id,
+          name: p.name,
+          suburb: p.suburb,
+          latitude: p.location?.latitude,
+          longitude: p.location?.longitude,
+        }))}
+      />
     </main>
   );
 }
-

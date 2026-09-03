@@ -277,60 +277,49 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
   },
   {
     id: "path_width",
-    label: "Path width",
-    isSelected: (p) =>
-      p.minimumPathWidthMm != null || p.wheelchairUser || p.powerchairUser,
+    label: "Minimum path width",
+    isSelected: (p) => p.minimumPathWidthMm != null,
     evaluate: (p, place) => {
-      const min =
-        p.minimumPathWidthMm ??
-        (p.powerchairUser ? 1200 : p.wheelchairUser ? 900 : 900);
-      if (place.pathWidthMm == null) {
+      const min = p.minimumPathWidthMm!;
+      const value = place.pathWidthMm ?? null;
+      if (value == null) {
         return {
           state: "UNKNOWN",
           explanation: "Path width unknown",
-          evidenceRefs: [
-            { sourceType: "UNKNOWN", sourceLabel: "Path width unknown" },
-          ],
+          evidenceRefs: [{ sourceType: "UNKNOWN", sourceLabel: "Path width unknown" }],
         };
       }
-      const meets = place.pathWidthMm >= min;
+      const meets = value >= min;
       return {
         state: meets ? "MEETS" : "DOES_NOT_MATCH",
         explanation: meets
-          ? `Path width ${place.pathWidthMm} mm meets your ${min} mm preference`
-          : `Path width ${place.pathWidthMm} mm may not meet your ${min} mm preference`,
-        evidenceRefs: evidenceFromPlace(
-          place,
-          `Path width ${place.pathWidthMm} mm`,
-        ),
+          ? `Path width ${value} mm meets your ${min} mm preference`
+          : `Path width ${value} mm may not meet your ${min} mm preference`,
+        evidenceRefs: evidenceFromPlace(place, `Path width ${value} mm`),
       };
     },
   },
   {
-    id: "max_gradient",
-    label: "Preferred maximum gradient",
+    id: "gradient",
+    label: "Maximum preferred gradient",
     isSelected: (p) => p.maximumPreferredGradientPercent != null,
     evaluate: (p, place) => {
       const max = p.maximumPreferredGradientPercent!;
-      if (place.maxGradientPercent == null) {
+      const value = place.maxGradientPercent ?? null;
+      if (value == null) {
         return {
           state: "UNKNOWN",
           explanation: "Gradient unknown",
-          evidenceRefs: [
-            { sourceType: "UNKNOWN", sourceLabel: "Gradient unknown" },
-          ],
+          evidenceRefs: [{ sourceType: "UNKNOWN", sourceLabel: "Gradient unknown" }],
         };
       }
-      const meets = place.maxGradientPercent <= max;
+      const meets = value <= max;
       return {
         state: meets ? "MEETS" : "DOES_NOT_MATCH",
         explanation: meets
-          ? `Reported gradient ${place.maxGradientPercent}% within your ${max}% preference`
-          : `Reported gradient ${place.maxGradientPercent}% exceeds your ${max}% preference`,
-        evidenceRefs: evidenceFromPlace(
-          place,
-          `Gradient ${place.maxGradientPercent}%`,
-        ),
+          ? `Gradient ${value}% within your ${max}% preference`
+          : `Gradient ${value}% exceeds your ${max}% preference`,
+        evidenceRefs: evidenceFromPlace(place, `Gradient ${value}%`),
       };
     },
   },
@@ -340,8 +329,8 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
     isSelected: (p) => Boolean(p.kerbRampRequired),
     evaluate: (_p, place) =>
       boolFit(
-        place.kerbRamp ?? null,
-        "Kerb ramp / ramp access reported",
+        place.kerbRampPresent ?? null,
+        "Kerb ramp reported",
         "No kerb ramp reported",
         "Kerb ramp unknown",
         place,
@@ -349,24 +338,24 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
   },
   {
     id: "lift",
-    label: "Lift access",
+    label: "Lift",
     isSelected: (p) => Boolean(p.liftRequired),
     evaluate: (_p, place) =>
       boolFit(
-        place.lift ?? null,
-        "Lift access reported",
+        place.liftPresent ?? null,
+        "Lift reported",
         "No lift reported",
-        "Lift access unknown",
+        "Lift unknown",
         place,
       ),
   },
   {
     id: "changing_places",
-    label: "Changing Places facility",
+    label: "Changing Places",
     isSelected: (p) => Boolean(p.changingPlacesPreferred),
     evaluate: (_p, place) =>
       boolFit(
-        place.changingPlaces ?? null,
+        place.changingPlacesPresent ?? null,
         "Changing Places facility reported",
         "No Changing Places facility reported",
         "Changing Places availability unknown",
@@ -379,7 +368,7 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
     isSelected: (p) => Boolean(p.captioningPreferred),
     evaluate: (_p, place) =>
       boolFit(
-        place.captioning ?? null,
+        place.captioningAvailable ?? null,
         "Captioning reported",
         "Captioning not reported",
         "Captioning unknown",
@@ -395,57 +384,91 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
         place.highContrastSignage ?? null,
         "High-contrast signage reported",
         "High-contrast signage not reported",
-        "Signage contrast unknown",
+        "High-contrast signage unknown",
         place,
       ),
   },
   {
     id: "tactile_cues",
-    label: "Tactile cues / braille signage",
+    label: "Tactile cues",
     isSelected: (p) => Boolean(p.tactileCuesPreferred),
     evaluate: (_p, place) =>
       boolFit(
         place.tactileCues ?? null,
-        "Tactile / braille cues reported",
+        "Tactile cues reported",
         "Tactile cues not reported",
         "Tactile cues unknown",
         place,
       ),
   },
   {
-    id: "surface_tolerance",
-    label: "Surface quality",
+    id: "quiet_area",
+    label: "Quiet area",
+    isSelected: (p) => Boolean(p.quietAreaPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.quietArea ?? place.lowSensoryOption,
+        "Quiet area reported",
+        "Quiet area not reported",
+        "Quiet area unknown",
+        place,
+      ),
+  },
+  {
+    id: "low_stimulus",
+    label: "Low-stimulus environment",
+    isSelected: (p) => Boolean(p.lowStimulusPreferred),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.lowStimulusEnvironment ?? place.lowSensoryOption,
+        "Low-stimulus environment reported",
+        "Low-stimulus environment not reported",
+        "Low-stimulus environment unknown",
+        place,
+      ),
+  },
+  {
+    id: "text_aac_communication",
+    label: "Text / AAC communication",
     isSelected: (p) =>
-      p.surfaceTolerance === "smooth_only" || p.surfaceTolerance === "firm_ok",
+      Boolean(p.textCommunicationPreferred || p.AACFriendlyNeeded),
+    evaluate: (_p, place) =>
+      boolFit(
+        place.textAacCommunication ?? place.staffTraining,
+        "Text / AAC communication support reported",
+        "Text / AAC communication support not confirmed",
+        "Text / AAC communication support unknown",
+        place,
+      ),
+  },
+  {
+    id: "surface_tolerance",
+    label: "Surface tolerance",
+    isSelected: (p) => p.surfaceTolerance != null && p.surfaceTolerance !== "any",
     evaluate: (p, place) => {
-      const surface = place.surfaceQuality ?? null;
-      if (surface == null) {
+      const surface = place.surfaceFirmness ?? null;
+      if (surface == null || surface === "unknown") {
         return {
           state: "UNKNOWN",
-          explanation: "Surface quality unknown",
+          explanation: "Surface conditions unknown",
           evidenceRefs: [
-            { sourceType: "UNKNOWN", sourceLabel: "Surface quality unknown" },
+            { sourceType: "UNKNOWN", sourceLabel: "Surface conditions unknown" },
           ],
         };
       }
-      if (p.surfaceTolerance === "smooth_only") {
-        const meets = surface === "smooth";
-        return {
-          state: meets ? "MEETS" : "DOES_NOT_MATCH",
-          explanation: meets
-            ? "Smooth surface reported"
-            : `Surface reported as ${surface}; smooth preferred`,
-          evidenceRefs: evidenceFromPlace(place, `Surface: ${surface}`),
-        };
-      }
-      // firm_ok
-      const meets = surface === "smooth" || surface === "firm";
+      const tolerance = p.surfaceTolerance;
+      const meets =
+        tolerance === "smooth_only"
+          ? surface === "smooth"
+          : tolerance === "firm_ok"
+            ? surface === "smooth" || surface === "firm"
+            : true;
       return {
         state: meets ? "MEETS" : "DOES_NOT_MATCH",
         explanation: meets
-          ? `Surface (${surface}) within firm/smooth preference`
-          : `Surface reported as ${surface}; may exceed firm preference`,
-        evidenceRefs: evidenceFromPlace(place, `Surface: ${surface}`),
+          ? `Surface (${surface}) fits your preference`
+          : `Surface (${surface}) may not fit your preference`,
+        evidenceRefs: evidenceFromPlace(place, `Surface ${surface}`),
       };
     },
   },
