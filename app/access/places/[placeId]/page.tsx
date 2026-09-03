@@ -4,10 +4,14 @@ import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceProfile } from "@/components/access/AccessPlaceProfile";
 import { ReportPlaceIssueButton } from "@/components/access/ReportPlaceIssueButton";
 import { getAccreditationDisplayForPlace } from "@/lib/access/accreditation/accreditation-assessment-service";
+import type { AccessExplorationPlace } from "@/lib/access/experience/access-exploration-dto";
 import { accessExperienceFlags } from "@/lib/access/experience/flags";
+import { toAccessExplorationPlaceWithGais } from "@/lib/access/experience/to-access-exploration-place";
 import { getPlaceById } from "@/lib/access/map/access-place-service";
 import { listPublishedReviewsForPlace } from "@/lib/access/reviews/access-review-service";
 import { publicReviewerDisplayName } from "@/lib/access/reviews/review-access-policy";
+import { mapableGaisFlags } from "@/lib/config/mapable-gais";
+import { getGaisPlace } from "@/lib/gais/service";
 import { prisma } from "@/lib/prisma";
 
 export default async function AccessPlacePage({
@@ -49,10 +53,40 @@ export default async function AccessPlacePage({
   const accreditationDisplay = await getAccreditationDisplayForPlace(placeId);
   const experienceV2 = accessExperienceFlags.enabled;
 
+  let explorationPlace: AccessExplorationPlace | undefined;
+  if (experienceV2) {
+    const gais =
+      mapableGaisFlags.enabled ? await getGaisPlace(placeId).catch(() => null) : null;
+    explorationPlace = toAccessExplorationPlaceWithGais(
+      {
+        id: place.id,
+        name: place.name,
+        category: place.category,
+        description: place.description,
+        addressText: place.addressText,
+        suburb: place.suburb,
+        stateOrRegion: place.stateOrRegion,
+        confidence: place.confidence,
+        sourceType: place.sourceType,
+        updatedAt: place.updatedAt.toISOString(),
+        location: place.location
+          ? {
+              latitude: place.location.latitude,
+              longitude: place.location.longitude,
+            }
+          : null,
+        features: place.features.map((feature) => ({ type: feature.type })),
+        _count: { reviews: reviews.length },
+      },
+      gais,
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
       <AccessPlaceProfile
         experienceV2={experienceV2}
+        explorationPlace={explorationPlace}
         place={{
           id: place.id,
           name: place.name,

@@ -5,10 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
 import { QuickObservationDialog } from "@/components/accessibility-map/QuickObservationDialog";
-import { toAccessExplorationPlace } from "@/lib/access/experience/to-access-exploration-place";
-import {
-  loadExplorationSession,
-} from "@/lib/access/experience/session-storage";
+import type { AccessExplorationPlace } from "@/lib/access/experience/access-exploration-dto";
 import {
   resolveActiveRequirements,
 } from "@/lib/access/experience/exploration-state";
@@ -16,11 +13,16 @@ import {
   buildGoHandoffHref,
   GO_SANDBOX_DISCLAIMER,
 } from "@/lib/access/experience/go-handoff";
+import {
+  loadExplorationSession,
+} from "@/lib/access/experience/session-storage";
+import { toAccessExplorationPlace } from "@/lib/access/experience/to-access-exploration-place";
 import { calculateAccessFitV2 } from "@/lib/access/fit/calculate-access-fit-v2";
 import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export function AccessPlaceExperienceV2Panel({
   place,
+  explorationPlace: explorationFromServer,
 }: {
   place: {
     id: string;
@@ -35,6 +37,8 @@ export function AccessPlaceExperienceV2Panel({
     updatedAt?: string | null;
     features: string[];
   };
+  /** Server-projected DTO (AccessPlace + optional GAIS overlay). */
+  explorationPlace?: AccessExplorationPlace;
 }) {
   const [observationOpen, setObservationOpen] = useState(false);
   const [requirements, setRequirements] = useState(() =>
@@ -45,23 +49,22 @@ export function AccessPlaceExperienceV2Panel({
     setRequirements(resolveActiveRequirements(loadExplorationSession()));
   }, []);
 
-  const explorationPlace = useMemo(
-    () =>
-      toAccessExplorationPlace({
-        id: place.id,
-        name: place.name,
-        category: place.category,
-        description: place.description,
-        addressText: place.addressText,
-        suburb: place.suburb,
-        stateOrRegion: place.stateOrRegion,
-        confidence: place.confidence,
-        sourceType: place.sourceType,
-        updatedAt: place.updatedAt,
-        features: place.features.map((type) => ({ type })),
-      }),
-    [place],
-  );
+  const explorationPlace = useMemo(() => {
+    if (explorationFromServer) return explorationFromServer;
+    return toAccessExplorationPlace({
+      id: place.id,
+      name: place.name,
+      category: place.category,
+      description: place.description,
+      addressText: place.addressText,
+      suburb: place.suburb,
+      stateOrRegion: place.stateOrRegion,
+      confidence: place.confidence,
+      sourceType: place.sourceType,
+      updatedAt: place.updatedAt,
+      features: place.features.map((type) => ({ type })),
+    });
+  }, [explorationFromServer, place]);
 
   const fit = calculateAccessFitV2(requirements, explorationPlace.accessProfile);
   const goHref = buildGoHandoffHref({
@@ -101,6 +104,15 @@ export function AccessPlaceExperienceV2Panel({
               >
                 <span className="font-semibold">{cap.label}</span>
                 <span className="ml-2 text-slate-600">
+                  {cap.value == null
+                    ? "· UNKNOWN"
+                    : typeof cap.value === "boolean"
+                      ? cap.value
+                        ? "· present"
+                        : "· not present"
+                      : `· ${cap.value}${cap.unit ? ` ${cap.unit}` : ""}`}
+                </span>
+                <span className="ml-2 text-slate-600">
                   {cap.evidenceRefs[0]?.sourceType
                     ? `· ${cap.evidenceRefs[0].sourceType.replace(/_/g, " ")}`
                     : ""}
@@ -116,6 +128,16 @@ export function AccessPlaceExperienceV2Panel({
         {explorationPlace.provenanceSummary ? (
           <p className="mt-1 text-xs text-slate-600">
             {explorationPlace.provenanceSummary}
+          </p>
+        ) : null}
+        {explorationPlace.freshnessLabel ? (
+          <p className="mt-1 text-xs text-slate-600">
+            {explorationPlace.freshnessLabel}
+          </p>
+        ) : null}
+        {explorationPlace.disputed ? (
+          <p className="mt-1 text-xs font-semibold text-amber-800">
+            Some evidence is disputed — treat as UNKNOWN until reviewed.
           </p>
         ) : null}
       </section>

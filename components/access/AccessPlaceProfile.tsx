@@ -10,6 +10,7 @@ import { AccessibilityDisclaimerPanel } from "@/components/access/AccessibilityD
 import { AccessPlaceExperienceV2Panel } from "@/components/access/AccessPlaceExperienceV2Panel";
 import { AccreditationSummaryPanel } from "@/components/access-accreditation/AccreditationSummaryPanel";
 import { CommunityReviewPreview } from "@/components/access-reviews/CommunityReviewPreview";
+import type { AccessExplorationPlace } from "@/lib/access/experience/access-exploration-dto";
 import { ACCESS_LABELS } from "@/lib/access/map/copy";
 
 export function AccessPlaceProfile({
@@ -17,6 +18,7 @@ export function AccessPlaceProfile({
   reviews,
   accreditation,
   experienceV2 = false,
+  explorationPlace,
 }: {
   place: {
     id: string;
@@ -44,6 +46,7 @@ export function AccessPlaceProfile({
     expired?: boolean;
   } | null;
   experienceV2?: boolean;
+  explorationPlace?: AccessExplorationPlace;
 }) {
   return (
     <div className="space-y-8">
@@ -71,6 +74,7 @@ export function AccessPlaceProfile({
 
       {experienceV2 ? (
         <AccessPlaceExperienceV2Panel
+          explorationPlace={explorationPlace}
           place={{
             id: place.id,
             name: place.name,

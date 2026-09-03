@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { toAccessExplorationPlace } from "@/lib/access/experience/to-access-exploration-place";
+import {
+  toAccessExplorationPlace,
+  toAccessExplorationPlaceWithGais,
+} from "@/lib/access/experience/to-access-exploration-place";
+import {
+  overlayGaisOnPlaceAccessProfile,
+  toGaisPlaceSummaryLike,
+} from "@/lib/access/experience/gais-place-summary-adapter";
 import { accessPlaceToPlaceAccessProfile } from "@/lib/access/experience/access-place-profile-adapter";
 import {
   buildExplorationResultIds,
@@ -314,5 +321,119 @@ describe("Go handoff", () => {
     expect(profile.liftRequirement).toBe(true);
     expect(profile.accessibleToiletPreference).toBe(true);
     expect(profile).not.toHaveProperty("diagnosis");
+  });
+});
+
+describe("GAIS place summary adapter", () => {
+  it("overlays measurements without inventing missing values", () => {
+    const base = accessPlaceToPlaceAccessProfile({
+      id: "place-gais",
+      name: "Civic",
+      category: "civic",
+      features: [{ type: "step_free_entry" }],
+    });
+    expect(base.pathWidthMm).toBeNull();
+    expect(base.doorWidthMm).toBeNull();
+
+    const overlaid = overlayGaisOnPlaceAccessProfile(base, {
+      placeId: "place-gais",
+      name: "Civic",
+      category: "civic",
+      geometry: { type: "Point", coordinates: [151, -33.8] },
+      evidenceScope: "published_access_places",
+      features: [
+        {
+          id: "gais-path-1",
+          type: "PATH",
+          geometry: { type: "Point", coordinates: [151, -33.8] },
+          properties: { widthMm: 1200, accessFeatureTag: "wide_paths" },
+          evidence: [
+            {
+              sourceType: "COMMUNITY_REPORTED",
+              sourceLabel: "Community reported",
+              observedAt: "2026-02-01T00:00:00.000Z",
+            },
+          ],
+          observedAt: "2026-02-01T00:00:00.000Z",
+        },
+        {
+          id: "gais-lift-1",
+          type: "LIFT",
+          geometry: { type: "Point", coordinates: [151, -33.8] },
+          properties: { liftAvailable: true, accessFeatureTag: "lift_access" },
+          evidence: [{ sourceType: "VERIFIED", sourceLabel: "Verified" }],
+        },
+        {
+          id: "gais-entrance-1",
+          type: "ENTRANCE",
+          geometry: { type: "Point", coordinates: [151, -33.8] },
+          properties: {
+            // Explicit undefined measurements must stay UNKNOWN
+            stepFree: undefined,
+            accessFeatureTag: "step_free_entry",
+          },
+          evidence: [{ sourceType: "UNKNOWN", sourceLabel: "Unknown" }],
+        },
+      ],
+    });
+
+    expect(overlaid.stepFreeEntry).toBe(true);
+    expect(overlaid.pathWidthMm).toBe(1200);
+    expect(overlaid.lift).toBe(true);
+    expect(overlaid.captioning).toBeNull();
+    expect(overlaid.highContrastSignage).toBeNull();
+    expect(overlaid.maxGradientPercent).toBeNull();
+  });
+
+  it("projects GAIS summary into exploration DTO without diagnosis fields", () => {
+    const dto = toAccessExplorationPlaceWithGais(
+      {
+        id: "place-gais-2",
+        name: "Gallery",
+        category: "museum",
+        features: [{ type: "accessible_toilet" }],
+        location: { latitude: -33.87, longitude: 151.2 },
+      },
+      {
+        placeId: "place-gais-2",
+        name: "Gallery",
+        category: "museum",
+        geometry: { type: "Point", coordinates: [151.2, -33.87] },
+        evidenceScope: "published_access_places_and_community_barriers",
+        features: [
+          {
+            id: "gais-door-1",
+            type: "DOOR",
+            geometry: { type: "Point", coordinates: [151.2, -33.87] },
+            properties: { widthMm: 920, accessFeatureTag: "wide_doorways" },
+            evidence: [
+              {
+                sourceType: "PROVIDER_OR_VENUE_DECLARED",
+                sourceLabel: "Venue supplied",
+              },
+            ],
+            observedAt: "2026-03-01T00:00:00.000Z",
+          },
+        ],
+      },
+    );
+
+    expect(dto.accessProfile.accessibleToilet).toBe(true);
+    expect(dto.accessProfile.doorWidthMm).toBe(920);
+    expect(dto.accessProfile.pathWidthMm).toBeNull();
+    expect(dto.provenanceSummary).toMatch(/GAIS evidence scope/i);
+    expect(dto.freshnessLabel).toMatch(/2026-03-01/);
+    expect(JSON.stringify(dto)).not.toMatch(/diagnosis/i);
+  });
+
+  it("leaves profile unchanged when GAIS summary is absent", () => {
+    const base = accessPlaceToPlaceAccessProfile({
+      id: "no-gais",
+      name: "Hall",
+      category: "community_centre",
+      features: [],
+    });
+    expect(overlayGaisOnPlaceAccessProfile(base, null)).toEqual(base);
+    expect(toGaisPlaceSummaryLike(null)).toBeUndefined();
   });
 });

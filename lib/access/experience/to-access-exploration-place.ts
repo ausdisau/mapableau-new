@@ -10,7 +10,12 @@ import type {
   GaisPlaceSummaryLike,
 } from "@/lib/access/experience/access-exploration-dto";
 import { accessPlaceToPlaceAccessProfile } from "@/lib/access/experience/access-place-profile-adapter";
+import {
+  overlayGaisOnPlaceAccessProfile,
+  toGaisPlaceSummaryLike,
+} from "@/lib/access/experience/gais-place-summary-adapter";
 import type { PlaceAccessProfile } from "@/lib/access/fit/types";
+import type { GaisPlaceSummary } from "@/lib/gais/contracts/feature";
 
 const FEATURE_LABELS: Record<string, string> = {
   step_free_entry: "Step-free entry",
@@ -91,6 +96,7 @@ function countUnknownCapabilities(profile: PlaceAccessProfile): number {
 export function toAccessExplorationPlace(
   place: AccessPlaceLike,
   gaisSummary?: GaisPlaceSummaryLike | null,
+  options?: { accessProfile?: PlaceAccessProfile },
 ): AccessExplorationPlace {
   const lat = place.location?.latitude ?? null;
   const lng = place.location?.longitude ?? null;
@@ -100,7 +106,8 @@ export function toAccessExplorationPlace(
     typeof lng === "number" &&
     Number.isFinite(lng);
 
-  const accessProfile = accessPlaceToPlaceAccessProfile(place);
+  const accessProfile =
+    options?.accessProfile ?? accessPlaceToPlaceAccessProfile(place);
   const lastVerified = accessProfile.lastVerified;
   const confidence = accessProfile.confidence;
 
@@ -110,7 +117,15 @@ export function toAccessExplorationPlace(
     lastVerified,
   );
   const gaisCapabilities = gaisSummary?.capabilities ?? [];
-  const capabilities = [...baseCapabilities, ...gaisCapabilities];
+  const seen = new Set(baseCapabilities.map((capability) => capability.key));
+  const capabilities = [
+    ...baseCapabilities,
+    ...gaisCapabilities.filter((capability) => {
+      if (seen.has(capability.key)) return false;
+      seen.add(capability.key);
+      return true;
+    }),
+  ];
 
   return {
     placeId: place.id,
@@ -138,6 +153,21 @@ export function toAccessExplorationPlace(
     accreditationSummary: null,
     sourceType: place.sourceType ?? undefined,
   };
+}
+
+/**
+ * AccessPlace + live GAIS summary → exploration DTO with UNKNOWN-preserving overlay.
+ * Bulk list discovery should keep using AccessPlace-only projection.
+ */
+export function toAccessExplorationPlaceWithGais(
+  place: AccessPlaceLike,
+  gais: GaisPlaceSummary | null | undefined,
+): AccessExplorationPlace {
+  const baseProfile = accessPlaceToPlaceAccessProfile(place);
+  const accessProfile = overlayGaisOnPlaceAccessProfile(baseProfile, gais);
+  return toAccessExplorationPlace(place, toGaisPlaceSummaryLike(gais), {
+    accessProfile,
+  });
 }
 
 export function toAccessExplorationPlaces(
