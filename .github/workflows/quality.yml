@@ -31,7 +31,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_quality?schema=public
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_quality?schema=public
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.1
