@@ -1,9 +1,16 @@
 /**
- * ESLint config. Set ESLINT_CI_LIGHT=1 to skip TypeScript program creation
- * (parserOptions.project + TS import resolver). Required on GitHub-hosted
- * runners (~7GB RAM): type-aware parsing alone can OOM even with path shards.
+ * ESLint config — intentionally without parserOptions.project.
+ *
+ * Evidence (PR #476/#477): sharding alone still OOM'd (~4GB, exit 134) because
+ * attaching the broad ./tsconfig.json programme multiplied memory. No enabled
+ * rule requires typed parser services (extends recommended, not
+ * recommended-type-checked). Full-project type safety remains `pnpm type-check`.
+ *
+ * Path aliases are resolved via ./eslint-local-path-alias-resolver.cjs (not the
+ * TypeScript programme loader) so import/no-unresolved stays at error without
+ * reintroducing heap cost. Unmatched imports fall through to the node resolver.
  */
-const isCiLight = process.env.ESLINT_CI_LIGHT === "1";
+const path = require("path");
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
@@ -22,7 +29,6 @@ module.exports = {
     ecmaFeatures: {
       jsx: true,
     },
-    ...(isCiLight ? {} : { project: "./tsconfig.json" }),
   },
   plugins: ["@typescript-eslint", "import", "jsx-a11y"],
   rules: {
@@ -62,21 +68,14 @@ module.exports = {
     "react/prop-types": "off",
   },
   settings: {
-    "import/resolver": isCiLight
-      ? {
-          node: {
-            extensions: [".js", ".jsx", ".ts", ".tsx"],
-          },
-        }
-      : {
-          typescript: {
-            alwaysTryTypes: true,
-            project: "./tsconfig.json",
-          },
-          node: {
-            extensions: [".js", ".jsx", ".ts", ".tsx"],
-          },
-        },
+    // Prefer our alias resolver + node. Do not point the TypeScript import
+    // resolver at ./tsconfig.json (that reintroduces the programme / heap cost).
+    "import/resolver": {
+      [path.join(__dirname, "eslint-local-path-alias-resolver.cjs")]: {},
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
+      },
+    },
   },
   ignorePatterns: [
     "node_modules/",
