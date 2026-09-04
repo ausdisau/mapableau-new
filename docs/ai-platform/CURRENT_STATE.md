@@ -161,6 +161,13 @@ Governed boundary for external systems when
 
 See [ADVANCED_MERGE_TRAIN.md](./ADVANCED_MERGE_TRAIN.md) and [INTAKE.md](./INTAKE.md).
 
+## Unified Care & Support Guardian (Phase 0–2 — flags off)
+
+Deterministic privacy / purpose / processing-zone control plane at
+`lib/ai/platform/guardian/`. Distinct from deferred AURA Agent OS “Guardian”.
+See [UNIFIED_GUARDIAN.md](./UNIFIED_GUARDIAN.md). All `MAPABLE_GUARDIAN_*` default false.
+Not production ready; no claim of NDIS/APP/ISO compliance.
+
 ## Still deferred (follow-on checkpoint)
 
 AURA Agent OS mega-branches (`lib/aura/`), VisionAccess multimodal, Quality & Safeguards Copilot, Continuity Copilot, live OCR, embeddings, computer-use.

@@ -272,3 +272,29 @@ export type {
   ApprovedActionEnvelope,
   ConnectorInvokeResult,
 } from "./connector-gateway";
+export {
+  evaluateGuardian,
+  evaluateGuardianPolicy,
+  evaluatePurposePolicy,
+  evaluatePrivacyGate,
+  routeProcessing,
+  maxSensitivity,
+  sensitivityForDataClass,
+  guardianMayDecideReportability,
+  guardianMaySubstantiateAllegation,
+  guardianMayAuthoriseRestrictivePractice,
+  guardianMayCloseIncidentOrComplaint,
+  listProcessingProviders,
+  GUARDIAN_POLICY_VERSION,
+  PROCESSING_SENSITIVITIES,
+  PROCESSING_ZONES,
+  GUARDIAN_DECISION_TYPES,
+} from "./guardian";
+export type {
+  GuardianDecision,
+  GuardianModelSignal,
+  GuardianEvaluateRequest,
+  ProcessingSensitivity,
+  ProcessingZone,
+  GuardianDecisionType,
+} from "./guardian";
