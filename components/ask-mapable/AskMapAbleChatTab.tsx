@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AskMapAbleChoiceChips } from "@/components/ask-mapable/AskMapAbleChoiceChips";
+import { AskMapAbleResponseActions } from "@/components/ask-mapable/AskMapAbleResponseActions";
 import { Button } from "@/components/ui/button";
 import {
   ASK_MAPABLE_EMPTY_STATE,
@@ -12,7 +13,7 @@ import {
   resolveMapAbleModule,
   startersForPageContext,
 } from "@/lib/ask-mapable";
-import type { CopilotAskResponse } from "@/lib/copilot/types";
+import type { CopilotAction, CopilotAskResponse } from "@/lib/copilot/types";
 
 import type { AskChatMessage } from "./types";
 
@@ -41,6 +42,8 @@ export function AskMapAbleChatTab({
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [responseActions, setResponseActions] = useState<CopilotAction[]>([]);
+  const [blockedActions, setBlockedActions] = useState<CopilotAction[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -101,6 +104,8 @@ export function AskMapAbleChatTab({
       setPending(true);
       setStatus(ASK_MAPABLE_PENDING);
       setError(null);
+      setResponseActions([]);
+      setBlockedActions([]);
 
       try {
         const history = [...messages, userMsg]
@@ -143,6 +148,8 @@ export function AskMapAbleChatTab({
         }
 
         const answer = data.answer || data.summary || ASK_MAPABLE_SAFE_FAILURE;
+        setResponseActions(data.actions ?? []);
+        setBlockedActions(data.blockedActions ?? []);
         onAppend(sid, [
           {
             id: `a-${Date.now()}`,
@@ -243,6 +250,11 @@ export function AskMapAbleChatTab({
           </p>
         ) : null}
       </div>
+
+      <AskMapAbleResponseActions
+        actions={responseActions}
+        blockedActions={blockedActions}
+      />
 
       {error ? (
         <p className="text-sm text-destructive" role="alert">
