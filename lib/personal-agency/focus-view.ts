@@ -12,8 +12,9 @@ export type FocusViewItem = {
 };
 
 export type FocusViewProjection = {
-  now: FocusViewItem | null;
-  next: FocusViewItem | null;
+  primary: FocusViewItem | null;
+  primaryState: "active" | "upcoming" | null;
+  secondary: FocusViewItem | null;
   later: FocusViewItem[];
 };
 
@@ -32,31 +33,37 @@ export function projectFocusView(
   const activeIndex = ordered.findIndex((item) =>
     item.status ? ACTIVE_STATUSES.has(item.status) : false,
   );
-  const currentIndex =
+  const primaryIndex =
     activeIndex >= 0
       ? activeIndex
       : ordered.findIndex((item) => item.at.getTime() >= now.getTime());
 
-  if (currentIndex < 0) {
-    return { now: null, next: null, later: [] };
+  if (primaryIndex < 0) {
+    return {
+      primary: null,
+      primaryState: null,
+      secondary: null,
+      later: [],
+    };
   }
 
   return {
-    now: ordered[currentIndex] ?? null,
-    next: ordered[currentIndex + 1] ?? null,
-    later: ordered.slice(currentIndex + 2),
+    primary: ordered[primaryIndex] ?? null,
+    primaryState: activeIndex >= 0 ? "active" : "upcoming",
+    secondary: ordered[primaryIndex + 1] ?? null,
+    later: ordered.slice(primaryIndex + 2),
   };
 }
 
 export function visibleFocusSections(density: FocusViewDensity): {
-  showNext: boolean;
+  showSecondary: boolean;
   showLater: boolean;
 } {
   if (density === "simpler") {
-    return { showNext: false, showLater: false };
+    return { showSecondary: false, showLater: false };
   }
   if (density === "detailed") {
-    return { showNext: true, showLater: true };
+    return { showSecondary: true, showLater: true };
   }
-  return { showNext: true, showLater: false };
+  return { showSecondary: true, showLater: false };
 }
