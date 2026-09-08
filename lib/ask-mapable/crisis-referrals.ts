@@ -268,18 +268,18 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
-    id: "vic-mental-health-triage",
-    name: "Victoria Mental Health Triage",
+    id: "vic-suicideline",
+    name: "SuicideLine Victoria",
     description:
-      "Victorian public mental health triage pathway listed by Healthdirect.",
+      "Free 24/7 professional phone and online counselling for Victorians at risk of suicide, affected by suicide, or experiencing mental health concerns.",
     audience: "People in Victoria",
     availability: "24/7",
     phone: "1300 651 251",
     href: "tel:1300651251",
-    channels: ["phone", "relay"],
-    urgency: "clinical_triage",
+    channels: ["phone", "chat", "video", "relay"],
+    urgency: "crisis",
     jurisdiction: "VIC",
-    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
+    officialSource: "https://www.health.vic.gov.au/mental-health-services/telephone-and-online-services",
   },
 ];
 
@@ -346,7 +346,7 @@ export function highPriorityCrisisActions(): CopilotAction[] {
     },
     {
       type: "GUIDANCE_ONLY",
-      label: "State mental health triage",
+      label: "State/territory crisis support",
       requiresConfirmation: false,
       href: "/help/crisis#state-triage",
     },
