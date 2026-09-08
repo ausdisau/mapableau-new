@@ -34,11 +34,13 @@ function parseInformationDensity(value: unknown): AskInformationDensity {
  * authority. If Personal Agency preferences are unavailable, Ask MapAble falls
  * back to the standard presentation.
  */
-export function useAskInteractionPreferences() {
+export function useAskInteractionPreferences(shouldLoad = true) {
   const [informationDensity, setInformationDensity] =
     useState<AskInformationDensity>(DEFAULT_DENSITY);
 
   useEffect(() => {
+    if (!shouldLoad) return;
+
     let active = true;
 
     void (async () => {
@@ -66,7 +68,7 @@ export function useAskInteractionPreferences() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [shouldLoad]);
 
   const maxVisibleChoices = useMemo(
     () => choiceLimitForInformationDensity(informationDensity),
