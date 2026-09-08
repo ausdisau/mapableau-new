@@ -7,13 +7,49 @@ type Props = {
   blockedActions?: CopilotAction[];
 };
 
+function isExternalOrProtocolHref(href: string): boolean {
+  return /^(https?:|tel:|sms:|mailto:)/i.test(href);
+}
+
+function ActionLink({ action }: { action: CopilotAction }) {
+  const href = action.href!;
+  const className =
+    "flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+  if (isExternalOrProtocolHref(href)) {
+    const isWeb = /^https?:/i.test(href);
+    return (
+      <a
+        href={href}
+        className={className}
+        target={isWeb ? "_blank" : undefined}
+        rel={isWeb ? "noreferrer" : undefined}
+      >
+        <span>{action.label}</span>
+        <span className="text-xs font-normal text-muted-foreground">
+          {href.startsWith("tel:") ? "Call" : isWeb ? "Open service" : "Open"}
+        </span>
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={className}>
+      <span>{action.label}</span>
+      <span className="text-xs font-normal text-muted-foreground">Open</span>
+    </Link>
+  );
+}
+
 /**
  * Participant-facing projection of structured Copilot actions.
  *
- * This component never executes consequential actions. A structured action is
- * directly navigable only when it has an href and does not require
+ * This component never executes consequential MapAble actions. A structured
+ * action is directly navigable only when it has an href and does not require
  * confirmation. Confirmation-bound and blocked actions remain visible as
  * information so the participant can understand what would need review.
+ * Telephone/external crisis links are user-initiated navigation, not evidence
+ * that an external service accepted a referral.
  */
 export function AskMapAbleResponseActions({
   actions,
@@ -37,15 +73,7 @@ export function AskMapAbleResponseActions({
           return (
             <li key={key}>
               {canNavigate && action.href ? (
-                <Link
-                  href={action.href}
-                  className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <span>{action.label}</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    Open
-                  </span>
-                </Link>
+                <ActionLink action={action} />
               ) : (
                 <div className="rounded-lg border border-border px-3 py-2 text-sm">
                   <p className="font-semibold">{action.label}</p>

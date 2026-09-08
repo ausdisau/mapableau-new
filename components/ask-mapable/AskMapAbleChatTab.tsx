@@ -27,6 +27,11 @@ type Props = {
   maxVisibleChoices?: number;
 };
 
+type CrisisPreflightResponse = {
+  intercepted?: boolean;
+  response?: CopilotAskResponse | null;
+};
+
 export function AskMapAbleChatTab({
   sessionId,
   onEnsureSession,
@@ -111,6 +116,41 @@ export function AskMapAbleChatTab({
         const history = [...messages, userMsg]
           .slice(-8)
           .map((m) => ({ role: m.role, content: m.content }));
+
+        // Deterministic, no-model crisis preflight. Failure here deliberately
+        // falls through to the existing Ask MapAble guardrail stack.
+        try {
+          const safetyRes = await fetch("/api/mapable/crisis", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ query, messages: history }),
+          });
+
+          if (safetyRes.ok) {
+            const safety = (await safetyRes.json()) as CrisisPreflightResponse;
+            if (safety.intercepted && safety.response) {
+              const safetyResponse = safety.response;
+              setResponseActions(safetyResponse.actions ?? []);
+              setBlockedActions(safetyResponse.blockedActions ?? []);
+              onAppend(sid, [
+                {
+                  id: `a-${Date.now()}`,
+                  role: "assistant",
+                  content:
+                    safetyResponse.answer ||
+                    safetyResponse.summary ||
+                    ASK_MAPABLE_SAFE_FAILURE,
+                  createdAt: new Date().toISOString(),
+                },
+              ]);
+              return;
+            }
+          }
+        } catch {
+          // Safety preflight is additive. The existing server guardrails remain
+          // the fallback if this endpoint is unavailable.
+        }
 
         const res = await fetch("/api/mapable/ask", {
           method: "POST",

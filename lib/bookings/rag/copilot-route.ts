@@ -1,3 +1,4 @@
+import { assessMentalHealthSafety } from "@/lib/ask-mapable";
 import { isBookingServicesAgentConfigured } from "@/lib/config/booking-services-agent";
 
 const BOOKING_LOOKUP =
@@ -8,5 +9,13 @@ export function isBookingLookupQuery(query: string): boolean {
 }
 
 export function shouldRouteToBookingAgent(query: string): boolean {
+  const safety = assessMentalHealthSafety(query);
+  if (
+    safety.state === "suicidal_concern" ||
+    safety.state === "immediate_danger"
+  ) {
+    return false;
+  }
+
   return isBookingServicesAgentConfigured() && isBookingLookupQuery(query);
 }
