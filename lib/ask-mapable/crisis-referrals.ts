@@ -25,6 +25,14 @@ export type CrisisReferral = {
   officialSource: string;
 };
 
+export type CrisisReferralPlan = {
+  referral: CrisisReferral;
+  mode: "present_only" | "user_initiated" | "human_assisted";
+  consentRequiredBeforeSharing: true;
+  externalAcceptanceConfirmed: false;
+  notes: string[];
+};
+
 /**
  * Current Australian crisis pathways. Keep this directory provenance-led and
  * review against official sources on a scheduled basis. MapAble may present a
@@ -130,7 +138,7 @@ export const NATIONAL_CRISIS_REFERRALS: CrisisReferral[] = [
     description:
       "Anonymous LGBTIQA+ peer support and referrals by phone and webchat.",
     audience: "LGBTIQA+ people and people wanting to talk about sexuality or gender",
-    availability: "3 pm to 9 pm daily",
+    availability: "3 pm to 9 pm daily, local time",
     phone: "1800 184 527",
     href: "https://www.qlife.org.au/",
     channels: ["phone", "chat", "relay"],
@@ -179,7 +187,7 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "QLD",
-    officialSource: "https://www.healthdirect.gov.au/mental-health-crisis-support",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
     id: "sa-mental-health-triage",
@@ -192,7 +200,7 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "SA",
-    officialSource: "https://www.healthdirect.gov.au/mental-health-crisis-support",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
     id: "tas-mental-health-services-helpline",
@@ -205,7 +213,7 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "TAS",
-    officialSource: "https://www.healthdirect.gov.au/mental-health-crisis-support",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
     id: "nt-mental-health-line",
@@ -218,7 +226,7 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "NT",
-    officialSource: "https://www.healthdirect.gov.au/mental-health-crisis-support",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
     id: "act-access-mental-health",
@@ -231,7 +239,7 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "ACT",
-    officialSource: "https://www.healthdirect.gov.au/mental-health-crisis-support",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
     id: "wa-mental-health-emergency-metro",
@@ -244,7 +252,7 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "WA",
-    officialSource: "https://www.healthdirect.gov.au/mental-health-crisis-support",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
     id: "wa-mental-health-emergency-peel",
@@ -257,20 +265,21 @@ export const STATE_MENTAL_HEALTH_TRIAGE: CrisisReferral[] = [
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "WA",
-    officialSource: "https://www.healthdirect.gov.au/mental-health-crisis-support",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
   {
-    id: "vic-area-mental-health-triage",
-    name: "Victoria local Mental Health and Wellbeing triage",
+    id: "vic-mental-health-triage",
+    name: "Victoria Mental Health Triage",
     description:
-      "Victoria uses area-based 24/7 mental health triage services rather than one statewide crisis number. Use the official service directory to find the local service.",
+      "Victorian public mental health triage pathway listed by Healthdirect.",
     audience: "People in Victoria",
-    availability: "24/7 through area services",
-    href: "https://www.health.vic.gov.au/mental-health-services/mental-health-triage-service",
+    availability: "24/7",
+    phone: "1300 651 251",
+    href: "tel:1300651251",
     channels: ["phone", "relay"],
     urgency: "clinical_triage",
     jurisdiction: "VIC",
-    officialSource: "https://www.health.vic.gov.au/mental-health-services/mental-health-triage-service",
+    officialSource: "https://www.healthdirect.gov.au/australian-mental-health-services",
   },
 ];
 
@@ -284,6 +293,29 @@ export function crisisReferralsForJurisdiction(
       (referral) => referral.jurisdiction === jurisdiction,
     ),
   ];
+}
+
+/**
+ * Plan a warm route without pretending MapAble has transferred care.
+ * External crisis services generally expose human phone/text/chat entry points,
+ * not a MapAble referral API. Any sharing of participant details therefore
+ * remains an explicit, purpose-bound user or human-assisted step.
+ */
+export function planCrisisReferral(
+  referral: CrisisReferral,
+  mode: CrisisReferralPlan["mode"] = "present_only",
+): CrisisReferralPlan {
+  return {
+    referral,
+    mode,
+    consentRequiredBeforeSharing: true,
+    externalAcceptanceConfirmed: false,
+    notes: [
+      "MapAble may present or open this verified pathway.",
+      "MapAble must not claim the external service accepted a referral unless that service confirms it.",
+      "Do not share conversation content, disability information, location or contacts without a separate lawful basis and purpose-bound consent, except where an authorised emergency process applies.",
+    ],
+  };
 }
 
 export function highPriorityCrisisActions(): CopilotAction[] {
