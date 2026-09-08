@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { FocusView } from "@/components/personal-agency/FocusView";
 import { LifeIntentCard } from "@/components/personal-agency/LifeIntentCard";
 import { MyMapAbleAskPrompt } from "@/components/personal-agency/MyMapAbleAskPrompt";
 import { personalAgencyFlags } from "@/lib/config/personal-agency";
+import {
+  projectFocusView,
+  type FocusViewDensity,
+  type FocusViewItem,
+} from "@/lib/personal-agency/focus-view";
 import { requirePersonalAgencyGate } from "@/lib/personal-agency/gates";
 import { listLifeIntentsForPrincipal } from "@/lib/personal-agency/life-intent-service";
-import { needsFirstRunSetup } from "@/lib/personal-agency/setup-service";
+import {
+  getPaiSetupPreferences,
+  needsFirstRunSetup,
+} from "@/lib/personal-agency/setup-service";
 import { prisma } from "@/lib/prisma";
 import {
   AppGrid,
@@ -56,6 +65,10 @@ function summarizeAccessProfile(
   return parts.length ? parts.join(" · ") : "Add your access needs so providers can support you well.";
 }
 
+function resolveFocusDensity(value: unknown): FocusViewDensity {
+  return value === "simpler" || value === "detailed" ? value : "standard";
+}
+
 export default async function MyHomePage() {
   const user = await requirePersonalAgencyGate();
 
@@ -81,6 +94,7 @@ export default async function MyHomePage() {
     supportProfile,
     activeCareRequests,
     upcomingTransport,
+    setupPreferences,
   ] = await Promise.all([
     prisma.booking.findMany({
       where: {
@@ -144,6 +158,7 @@ export default async function MyHomePage() {
         status: true,
       },
     }),
+    getPaiSetupPreferences(user.id).catch(() => null),
   ]);
 
   const firstName = user.name.split(/\s+/)[0] ?? user.name;
@@ -156,6 +171,28 @@ export default async function MyHomePage() {
       booking.bookingType.replace(/_/g, " ")) as string,
     status: booking.status.replace(/_/g, " "),
   }));
+
+  const focusItems: FocusViewItem[] = [
+    ...todayBookings.map((booking) => ({
+      id: booking.id,
+      source: "schedule" as const,
+      title: (booking.careLocation ?? booking.bookingType.replace(/_/g, " ")) as string,
+      at: booking.requestedStart,
+      status: booking.status,
+    })),
+    ...upcomingTransport
+      .filter((trip) => trip.scheduledStart <= endOfDay)
+      .map((trip) => ({
+        id: trip.id,
+        source: "transport" as const,
+        title: `${trip.pickupSuburb ?? "Pickup"} → ${trip.dropoffSuburb ?? "destination"}`,
+        at: trip.scheduledStart,
+        status: trip.status,
+        href: "/dashboard/transport",
+      })),
+  ];
+  const focusProjection = projectFocusView(focusItems, now);
+  const focusDensity = resolveFocusDensity(setupPreferences?.informationDensity);
 
   const accessSummary = accessibilityProfile
     ? summarizeAccessProfile(
@@ -177,6 +214,8 @@ export default async function MyHomePage() {
         title={`${greeting}, ${firstName}`}
         description={`${formatDate(now)} — Tell MapAble what matters to you. You stay in control of what happens next.`}
       />
+
+      <FocusView projection={focusProjection} density={focusDensity} />
 
       <MyMapAbleAskPrompt />
 

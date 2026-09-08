@@ -10,6 +10,7 @@ import { AskMapAbleChatTab } from "./AskMapAbleChatTab";
 import { AskMapAbleHistoryTab } from "./AskMapAbleHistoryTab";
 import { AskMapAbleLauncher } from "./AskMapAbleLauncher";
 import { AskMapAblePanel } from "./AskMapAblePanel";
+import { useAskInteractionPreferences } from "./useAskInteractionPreferences";
 import { useAskLocalSessions } from "./useAskLocalSessions";
 import { useAskWidgetState } from "./useAskWidgetState";
 
@@ -33,6 +34,9 @@ export function AskMapAbleWidget() {
   } = useAskWidgetState("chat");
   const { sessions, ensureSession, appendMessages, activeSession } =
     useAskLocalSessions(activeSessionId);
+  const canReadPreferences =
+    enabled && hydrated && status === "authenticated" && Boolean(session?.user);
+  const { maxVisibleChoices } = useAskInteractionPreferences(canReadPreferences);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
 
   const onEnsureSession = useCallback(
@@ -64,6 +68,7 @@ export function AskMapAbleWidget() {
             onAppend={appendMessages}
             seedMessage={seedMessage}
             onSeedConsumed={() => setSeedMessage(null)}
+            maxVisibleChoices={maxVisibleChoices}
           />
         }
         actions={

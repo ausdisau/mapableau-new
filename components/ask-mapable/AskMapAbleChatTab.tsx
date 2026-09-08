@@ -3,6 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AskMapAbleChoiceChips } from "@/components/ask-mapable/AskMapAbleChoiceChips";
+import { AskMapAbleResponseActions } from "@/components/ask-mapable/AskMapAbleResponseActions";
 import { Button } from "@/components/ui/button";
 import {
   ASK_MAPABLE_EMPTY_STATE,
@@ -11,7 +13,7 @@ import {
   resolveMapAbleModule,
   startersForPageContext,
 } from "@/lib/ask-mapable";
-import type { CopilotAskResponse } from "@/lib/copilot/types";
+import type { CopilotAction, CopilotAskResponse } from "@/lib/copilot/types";
 
 import type { AskChatMessage } from "./types";
 
@@ -22,6 +24,7 @@ type Props = {
   onAppend: (sessionId: string, messages: AskChatMessage[], title?: string) => void;
   seedMessage?: string | null;
   onSeedConsumed?: () => void;
+  maxVisibleChoices?: number;
 };
 
 export function AskMapAbleChatTab({
@@ -31,6 +34,7 @@ export function AskMapAbleChatTab({
   onAppend,
   seedMessage,
   onSeedConsumed,
+  maxVisibleChoices = 3,
 }: Props) {
   const pathname = usePathname() || "/";
   const router = useRouter();
@@ -38,6 +42,8 @@ export function AskMapAbleChatTab({
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [responseActions, setResponseActions] = useState<CopilotAction[]>([]);
+  const [blockedActions, setBlockedActions] = useState<CopilotAction[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -51,6 +57,17 @@ export function AskMapAbleChatTab({
   const starters = useMemo(
     () => startersForPageContext(pageContext),
     [pageContext],
+  );
+  const humanHelpStarter = useMemo(
+    () => starters.find((starter) => starter.id === "talk-person"),
+    [starters],
+  );
+  const starterChoices = useMemo(
+    () =>
+      starters
+        .filter((starter) => starter.id !== "talk-person")
+        .map((starter) => ({ id: starter.id, label: starter.label })),
+    [starters],
   );
 
   useEffect(() => {
@@ -87,6 +104,8 @@ export function AskMapAbleChatTab({
       setPending(true);
       setStatus(ASK_MAPABLE_PENDING);
       setError(null);
+      setResponseActions([]);
+      setBlockedActions([]);
 
       try {
         const history = [...messages, userMsg]
@@ -128,10 +147,9 @@ export function AskMapAbleChatTab({
           return;
         }
 
-        const answer =
-          data.answer ||
-          data.summary ||
-          ASK_MAPABLE_SAFE_FAILURE;
+        const answer = data.answer || data.summary || ASK_MAPABLE_SAFE_FAILURE;
+        setResponseActions(data.actions ?? []);
+        setBlockedActions(data.blockedActions ?? []);
         onAppend(sid, [
           {
             id: `a-${Date.now()}`,
@@ -173,33 +191,33 @@ export function AskMapAbleChatTab({
           <p className="text-sm text-muted-foreground">
             {ASK_MAPABLE_EMPTY_STATE.body}
           </p>
-          <ul className="grid gap-2">
-            {starters.map((starter) => (
-              <li key={starter.id}>
-                <button
-                  type="button"
-                  className="min-h-11 w-full rounded-lg border border-border bg-card px-3 py-2 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={() => {
-                    if (starter.href && starter.id === "talk-person") {
-                      router.push(starter.href);
-                      return;
-                    }
-                    if (starter.href && starter.id === "report-barrier") {
-                      router.push(starter.href);
-                      return;
-                    }
-                    if (starter.href && starter.id === "find-provider") {
-                      router.push(starter.href);
-                      return;
-                    }
-                    void send(starter.prompt);
-                  }}
-                >
-                  {starter.label}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <AskMapAbleChoiceChips
+            choices={starterChoices}
+            ariaLabel="Suggested ways to start"
+            maxVisible={maxVisibleChoices}
+            disabled={pending}
+            onSelect={(choice) => {
+              const starter = starters.find((item) => item.id === choice.id);
+              if (!starter) return;
+              if (starter.href) {
+                router.push(starter.href);
+                return;
+              }
+              void send(starter.prompt);
+            }}
+          />
+          {humanHelpStarter?.href ? (
+            <button
+              type="button"
+              className="min-h-11 rounded-lg border border-border bg-card px-4 py-2 text-left text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={() => router.push(humanHelpStarter.href!)}
+            >
+              {humanHelpStarter.label}
+            </button>
+          ) : null}
+          <p className="text-xs text-muted-foreground">
+            Or type your own question below. Suggested choices never limit what you can ask.
+          </p>
         </div>
       ) : null}
 
@@ -232,6 +250,11 @@ export function AskMapAbleChatTab({
           </p>
         ) : null}
       </div>
+
+      <AskMapAbleResponseActions
+        actions={responseActions}
+        blockedActions={blockedActions}
+      />
 
       {error ? (
         <p className="text-sm text-destructive" role="alert">
