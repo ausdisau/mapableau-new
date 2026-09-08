@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export * from "./worker-screening";
+
 export const workforceEvidenceSchema = z.object({
   credentialType: z.string().min(1),
   verificationStatus: z.enum(["verified", "pending_review", "unverified", "revoked", "expired"]),
