@@ -18,7 +18,7 @@ function FocusItem({
   item,
 }: {
   label: string;
-  item: NonNullable<FocusViewProjection["now"]>;
+  item: NonNullable<FocusViewProjection["primary"]>;
 }) {
   const content = (
     <>
@@ -60,7 +60,7 @@ export function FocusView({
 }) {
   const visibility = visibleFocusSections(density);
 
-  if (!projection.now) {
+  if (!projection.primary) {
     return (
       <section
         aria-labelledby="focus-view-heading"
@@ -79,6 +79,9 @@ export function FocusView({
     );
   }
 
+  const primaryLabel = projection.primaryState === "active" ? "Now" : "Next";
+  const secondaryLabel = projection.primaryState === "active" ? "Next" : "After that";
+
   return (
     <section
       aria-labelledby="focus-view-heading"
@@ -96,10 +99,10 @@ export function FocusView({
         </p>
       </div>
 
-      <FocusItem label="Now" item={projection.now} />
+      <FocusItem label={primaryLabel} item={projection.primary} />
 
-      {visibility.showNext && projection.next ? (
-        <FocusItem label="Next" item={projection.next} />
+      {visibility.showSecondary && projection.secondary ? (
+        <FocusItem label={secondaryLabel} item={projection.secondary} />
       ) : null}
 
       {visibility.showLater && projection.later.length > 0 ? (
@@ -121,13 +124,13 @@ export function FocusView({
       <div className="flex flex-wrap gap-2 pt-1">
         <Link
           href="/my/ask?q=Help%20me%20plan%20my%20day"
-          className="min-h-11 rounded-lg bg-[#F8C51C] px-4 py-2 text-sm font-bold text-[#0C1833] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#005B7F]/30"
+          className="inline-flex min-h-11 items-center rounded-lg bg-[#F8C51C] px-4 py-2 text-sm font-bold text-[#0C1833] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#005B7F]/30"
         >
           Plan or change something
         </Link>
         <Link
           href="/contact"
-          className="min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-[#005B7F] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40"
+          className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-[#005B7F] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40"
         >
           Talk to a person
         </Link>
