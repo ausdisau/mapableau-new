@@ -13,6 +13,11 @@ export type MentalHealthSafetyAssessment = {
   requiresEmergencyAdvice: boolean;
 };
 
+export type MentalHealthConversationMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 const DISTRESS_PATTERNS = [
   /\b(i(?:'m| am) hopeless|i feel hopeless|nothing matters|can't cope|cannot cope|overwhelmed|i'm not okay|i am not okay|i feel broken|life feels pointless)\b/i,
 ] as const;
@@ -27,23 +32,51 @@ const IMMEDIATE_DANGER_PATTERNS = [
   /\b(i already hurt myself|i have already hurt myself|i took .* pills|i overdosed|i'm bleeding|i am bleeding)\b/i,
 ] as const;
 
+const SAFETY_QUESTION_CONTEXT =
+  /\b(immediate danger|hurting yourself right now|already hurt yourself|stay safe)\b/i;
+const AFFIRMATIVE_DANGER_REPLY =
+  /^\s*(yes|yeah|yep|i am|i might|maybe|i think so|not safe|i can't stay safe|i cannot stay safe)\b/i;
+const UNCERTAIN_DANGER_REPLY =
+  /^\s*(i(?:'m| am) not sure|not sure|unsure|i don't know|i do not know)\b/i;
+const NEGATIVE_DANGER_REPLY =
+  /^\s*(no|nope|not right now|i'm safe|i am safe|i can stay safe)\b/i;
+
 function matchesAny(text: string, patterns: readonly RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(text));
 }
 
+function previousAssistantAskedSafetyQuestion(
+  messages: MentalHealthConversationMessage[] | undefined,
+): boolean {
+  const lastAssistant = [...(messages ?? [])]
+    .reverse()
+    .find((message) => message.role === "assistant");
+  return Boolean(lastAssistant?.content && SAFETY_QUESTION_CONTEXT.test(lastAssistant.content));
+}
+
 export function assessMentalHealthSafety(
   text: string,
+  messages?: MentalHealthConversationMessage[],
 ): MentalHealthSafetyAssessment {
   const matchedSignals: string[] = [];
   const suicidal = matchesAny(text, SUICIDAL_PATTERNS);
   const immediate = suicidal && matchesAny(text, IMMEDIATE_DANGER_PATTERNS);
   const distress = matchesAny(text, DISTRESS_PATTERNS);
+  const answeringSafetyQuestion = previousAssistantAskedSafetyQuestion(messages);
+  const contextualImmediate =
+    answeringSafetyQuestion &&
+    (AFFIRMATIVE_DANGER_REPLY.test(text) || UNCERTAIN_DANGER_REPLY.test(text));
+  const contextualNegative =
+    answeringSafetyQuestion && NEGATIVE_DANGER_REPLY.test(text);
 
   if (suicidal) matchedSignals.push("explicit_suicidal_or_self_harm_language");
-  if (immediate) matchedSignals.push("possible_immediate_danger");
+  if (immediate || contextualImmediate) {
+    matchedSignals.push("possible_immediate_danger");
+  }
   if (distress) matchedSignals.push("explicit_distress_language");
+  if (contextualNegative) matchedSignals.push("denied_immediate_danger");
 
-  if (immediate) {
+  if (immediate || contextualImmediate) {
     return {
       state: "immediate_danger",
       matchedSignals,
@@ -52,7 +85,7 @@ export function assessMentalHealthSafety(
     };
   }
 
-  if (suicidal) {
+  if (suicidal || contextualNegative) {
     return {
       state: "suicidal_concern",
       matchedSignals,
@@ -168,7 +201,8 @@ export function buildMentalHealthSafetyResponse(
       askMeta: {
         brand: "Ask MapAble",
         specialistPrimary: "safeguarding",
-        specialistReason: "Explicit language indicated possible immediate self-harm or suicide danger.",
+        specialistReason:
+          "Explicit language or a contextual safety reply indicated possible immediate self-harm or suicide danger.",
       },
     };
   }
@@ -207,7 +241,8 @@ export function buildMentalHealthSafetyResponse(
     askMeta: {
       brand: "Ask MapAble",
       specialistPrimary: "safeguarding",
-      specialistReason: "Explicit suicidal or self-harm language requires a human safety pathway.",
+      specialistReason:
+        "Explicit suicidal or self-harm language requires a human safety pathway.",
     },
   };
 }
