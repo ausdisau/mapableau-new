@@ -55,8 +55,15 @@ export function AskMapAbleChatTab({
     () => startersForPageContext(pageContext),
     [pageContext],
   );
+  const humanHelpStarter = useMemo(
+    () => starters.find((starter) => starter.id === "talk-person"),
+    [starters],
+  );
   const starterChoices = useMemo(
-    () => starters.map((starter) => ({ id: starter.id, label: starter.label })),
+    () =>
+      starters
+        .filter((starter) => starter.id !== "talk-person")
+        .map((starter) => ({ id: starter.id, label: starter.label })),
     [starters],
   );
 
@@ -192,6 +199,15 @@ export function AskMapAbleChatTab({
               void send(starter.prompt);
             }}
           />
+          {humanHelpStarter?.href ? (
+            <button
+              type="button"
+              className="min-h-11 rounded-lg border border-border bg-card px-4 py-2 text-left text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={() => router.push(humanHelpStarter.href!)}
+            >
+              {humanHelpStarter.label}
+            </button>
+          ) : null}
           <p className="text-xs text-muted-foreground">
             Or type your own question below. Suggested choices never limit what you can ask.
           </p>
