@@ -33,11 +33,12 @@ describe("projectFocusView", () => {
     },
   ];
 
-  it("projects the next upcoming item as now without inventing duration", () => {
+  it("projects the next upcoming item without labelling it active", () => {
     const projection = projectFocusView(items, now);
 
-    expect(projection.now?.id).toBe("next");
-    expect(projection.next?.id).toBe("later");
+    expect(projection.primary?.id).toBe("next");
+    expect(projection.primaryState).toBe("upcoming");
+    expect(projection.secondary?.id).toBe("later");
     expect(projection.later).toHaveLength(0);
   });
 
@@ -56,11 +57,12 @@ describe("projectFocusView", () => {
       now,
     );
 
-    expect(projection.now?.id).toBe("active");
-    expect(projection.next?.id).toBe("next");
+    expect(projection.primary?.id).toBe("active");
+    expect(projection.primaryState).toBe("active");
+    expect(projection.secondary?.id).toBe("next");
   });
 
-  it("returns no current item when the day is complete", () => {
+  it("returns no primary item when the day is complete", () => {
     const projection = projectFocusView(
       [
         {
@@ -74,25 +76,30 @@ describe("projectFocusView", () => {
       now,
     );
 
-    expect(projection).toEqual({ now: null, next: null, later: [] });
+    expect(projection).toEqual({
+      primary: null,
+      primaryState: null,
+      secondary: null,
+      later: [],
+    });
   });
 });
 
 describe("visibleFocusSections", () => {
   it("keeps simpler mode to one item", () => {
     expect(visibleFocusSections("simpler")).toEqual({
-      showNext: false,
+      showSecondary: false,
       showLater: false,
     });
   });
 
-  it("shows next in standard mode and later in detailed mode", () => {
+  it("shows a second item in standard mode and later items in detailed mode", () => {
     expect(visibleFocusSections("standard")).toEqual({
-      showNext: true,
+      showSecondary: true,
       showLater: false,
     });
     expect(visibleFocusSections("detailed")).toEqual({
-      showNext: true,
+      showSecondary: true,
       showLater: true,
     });
   });
