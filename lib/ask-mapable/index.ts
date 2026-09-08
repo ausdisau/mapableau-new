@@ -39,6 +39,15 @@ export {
   unnecessarilyRequestsDiagnosis,
 } from "./persona";
 export {
+  RELATIONAL_BOUNDARY_MESSAGE,
+  RELATIONAL_SAFETY_VERSION,
+  addConnectionSupportActions,
+  buildConnectionSupportNote,
+  containsProhibitedRelationalOutput,
+  enforceRelationalOutputBoundary,
+  explicitlyRequestsConnectionSupport,
+} from "./relational-safety";
+export {
   HUMAN_HELP_HREF,
   SAFETY_HELP_HREF,
   buildHumanHelpAskResponse,
