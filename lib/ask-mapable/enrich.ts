@@ -3,8 +3,11 @@
  */
 
 import {
+  addConnectionSupportActions,
   buildAskPersonaAnswerEnvelope,
+  buildConnectionSupportNote,
   buildConstraintPreservationNote,
+  enforceRelationalOutputBoundary,
   extractHardAccessConstraints,
   formatEvidenceLabel,
   preservesHardConstraints,
@@ -43,8 +46,9 @@ export function enrichAskMapAblePlan(input: {
   const constraints = extractHardAccessConstraints(input.query);
   const route = routeSpecialists(input.intent, input.query);
   const constraintsNote = buildConstraintPreservationNote(constraints);
+  const connectionSupportNote = buildConnectionSupportNote(input.query);
 
-  let answer = input.planned.plainLanguageAnswer;
+  let answer = enforceRelationalOutputBoundary(input.planned.plainLanguageAnswer);
   const evidenceNotes: string[] = [];
 
   if (input.intent === "places" || constraints.length > 0) {
@@ -62,6 +66,10 @@ export function enrichAskMapAblePlan(input: {
     answer = `${answer}\n\nI will keep all of your hard access requirements (${constraints
       .map((c) => c.label)
       .join("; ")}). If no verified result meets every requirement, I will say so rather than relax them.`;
+  }
+
+  if (connectionSupportNote) {
+    answer = `${answer}\n\n${connectionSupportNote}`;
   }
 
   answer = buildAskPersonaAnswerEnvelope({
@@ -94,13 +102,16 @@ export function enrichAskMapAblePlan(input: {
       specialist: route,
       hardAccessConstraints: constraints.map((c) => c.id),
       pageModule: input.pageContext?.mapableModule,
+      connectionSupport: Boolean(connectionSupportNote),
     },
   };
 
   return {
     ...input.planned,
     plainLanguageAnswer: answer,
-    actions: ensureHumanAction(input.planned.actions),
+    actions: ensureHumanAction(
+      addConnectionSupportActions(input.planned.actions, input.query),
+    ),
     warnings,
     filters,
     toolsCalled: [
