@@ -4,6 +4,11 @@ import {
 } from "@/lib/ask-mapable/crisis-referrals";
 import type { CopilotAskResponse } from "@/lib/copilot/types";
 
+export type MentalHealthConversationMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export type MentalHealthSafetyState =
   | "none"
   | "distress"
@@ -42,7 +47,7 @@ function matchesAny(text: string, patterns: readonly RegExp[]): boolean {
 }
 
 function priorAssistantAskedSafetyQuestion(
-  messages?: { role: "user" | "assistant"; content: string }[],
+  messages?: MentalHealthConversationMessage[],
 ): boolean {
   if (!messages?.length) return false;
   const lastAssistant = [...messages]
@@ -55,7 +60,7 @@ function priorAssistantAskedSafetyQuestion(
 
 export function assessMentalHealthSafety(
   text: string,
-  messages?: { role: "user" | "assistant"; content: string }[],
+  messages?: MentalHealthConversationMessage[],
 ): MentalHealthSafetyAssessment {
   const matchedSignals: string[] = [];
   const suicidal = matchesAny(text, SUICIDAL_PATTERNS);
