@@ -23,6 +23,7 @@ type Props = {
   onAppend: (sessionId: string, messages: AskChatMessage[], title?: string) => void;
   seedMessage?: string | null;
   onSeedConsumed?: () => void;
+  maxVisibleChoices?: number;
 };
 
 export function AskMapAbleChatTab({
@@ -32,6 +33,7 @@ export function AskMapAbleChatTab({
   onAppend,
   seedMessage,
   onSeedConsumed,
+  maxVisibleChoices = 3,
 }: Props) {
   const pathname = usePathname() || "/";
   const router = useRouter();
@@ -178,7 +180,7 @@ export function AskMapAbleChatTab({
           <AskMapAbleChoiceChips
             choices={starterChoices}
             ariaLabel="Suggested ways to start"
-            maxVisible={3}
+            maxVisible={maxVisibleChoices}
             disabled={pending}
             onSelect={(choice) => {
               const starter = starters.find((item) => item.id === choice.id);
