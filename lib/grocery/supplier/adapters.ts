@@ -299,8 +299,11 @@ export function describeSupplierLocation(location: SupplierLocation): string | n
 // Adapter implementations
 // ---------------------------------------------------------------------------
 
-const WOOLWORTHS_PUBLIC_API_KEY = "KaGOqzzJ3ZTjswc62prswRLXCqJ4oepSqtI2P8iM";
-const COLES_PUBLIC_API_KEY = "dd6ae58532d743978508555a59a199ac";
+import {
+  getColesApiKey,
+  getWoolworthsOfficialApiKey,
+  getWoolworthsPublicApiKey,
+} from "./api-keys";
 
 export class OpenFoodFactsAdapter implements GrocerySupplierAdapter {
   readonly name = "openfoodfacts";
@@ -335,8 +338,9 @@ export class OpenFoodFactsAdapter implements GrocerySupplierAdapter {
 export class WoolworthsAdapter implements GrocerySupplierAdapter {
   readonly name = "woolworths";
   async fetchProducts({ limit }: { limit: number }): Promise<SupplierProductInput[]> {
-    if (process.env.WOOLWORTHS_API_KEY) return this._fetchOfficial(limit);
-    return this._fetchPublic(limit);
+    if (getWoolworthsOfficialApiKey()) return this._fetchOfficial(limit);
+    if (getWoolworthsPublicApiKey()) return this._fetchPublic(limit);
+    return [];
   }
   private async _fetchOfficial(limit: number): Promise<SupplierProductInput[]> {
     const baseUrl = process.env.WOOLWORTHS_API_BASE_URL || "https://apiportal.woolworths.com.au";
@@ -344,7 +348,7 @@ export class WoolworthsAdapter implements GrocerySupplierAdapter {
     const searchParam = process.env.WOOLWORTHS_API_SEARCH_PARAM || "searchTerm";
     const limitParam = process.env.WOOLWORTHS_API_LIMIT_PARAM || "pageSize";
     const storeParam = process.env.WOOLWORTHS_API_STORE_PARAM || "storeId";
-    const key = process.env.WOOLWORTHS_API_KEY!;
+    const key = getWoolworthsOfficialApiKey()!;
     const location = getEffectiveSupplierLocation(this.name);
     return fetchSearchProducts({
       supplier: this.name, limit,
@@ -359,6 +363,8 @@ export class WoolworthsAdapter implements GrocerySupplierAdapter {
     });
   }
   private async _fetchPublic(limit: number): Promise<SupplierProductInput[]> {
+    const publicKey = getWoolworthsPublicApiKey();
+    if (!publicKey) return [];
     const location = getEffectiveSupplierLocation(this.name);
     return fetchSearchProducts({
       supplier: this.name, limit,
@@ -366,7 +372,7 @@ export class WoolworthsAdapter implements GrocerySupplierAdapter {
         url: "https://www.woolworths.com.au/apis/ui/Search/products", tags: [term],
         init: {
           method: "POST", headers: { "Content-Type": "application/json",
-            "X-Api-Key": WOOLWORTHS_PUBLIC_API_KEY, "Request-Source": "MapAble" },
+            "X-Api-Key": publicKey, "Request-Source": "MapAble" },
           body: JSON.stringify({
             SearchTerm: term, PageNumber: 1, PageSize: perTermLimit,
             SortType: "TraderRelevance", Filters: [],
@@ -382,6 +388,8 @@ export class WoolworthsAdapter implements GrocerySupplierAdapter {
 export class ColesAdapter implements GrocerySupplierAdapter {
   readonly name = "coles";
   async fetchProducts({ limit }: { limit: number }): Promise<SupplierProductInput[]> {
+    const colesKey = getColesApiKey();
+    if (!colesKey) return [];
     const baseUrl = process.env.COLES_API_BASE_URL || "https://apigw.coles.com.au/digital/colesappbff";
     const location = getEffectiveSupplierLocation(this.name);
     const storeId = location.storeId || "0584";
@@ -395,7 +403,7 @@ export class ColesAdapter implements GrocerySupplierAdapter {
         url.searchParams.set("start", "0");
         url.searchParams.set("limit", String(perTermLimit));
         return { url: url.toString(), tags: [term],
-          init: { headers: { "X-Api-Key": process.env.COLES_API_KEY || COLES_PUBLIC_API_KEY } } };
+          init: { headers: { "X-Api-Key": colesKey } } };
       },
     });
   }
