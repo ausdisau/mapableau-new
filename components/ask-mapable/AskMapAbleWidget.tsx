@@ -34,7 +34,9 @@ export function AskMapAbleWidget() {
   } = useAskWidgetState("chat");
   const { sessions, ensureSession, appendMessages, activeSession } =
     useAskLocalSessions(activeSessionId);
-  const { maxVisibleChoices } = useAskInteractionPreferences();
+  const canReadPreferences =
+    enabled && hydrated && status === "authenticated" && Boolean(session?.user);
+  const { maxVisibleChoices } = useAskInteractionPreferences(canReadPreferences);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
 
   const onEnsureSession = useCallback(
