@@ -6,7 +6,7 @@ import {
 export const metadata = {
   title: "Crisis support | MapAble",
   description:
-    "Verified Australian crisis, suicide prevention, mental health triage and accessible communication pathways.",
+    "Verified Australian crisis, suicide prevention, mental health and accessible communication pathways.",
 };
 
 function ReferralCard({
@@ -137,12 +137,12 @@ export default function CrisisSupportPage() {
       <section id="state-triage" aria-labelledby="state-triage-heading" className="space-y-4 scroll-mt-24">
         <div>
           <h2 id="state-triage-heading" className="text-2xl font-bold">
-            State and territory mental health triage
+            State and territory crisis and mental health pathways
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Public mental health services can assess needs and connect people to
-            local clinical care. Availability is generally 24/7; service scope
-            varies by jurisdiction.
+            These services provide crisis counselling, clinical triage, mental
+            health assessment or referral depending on the jurisdiction and
+            service. Most listed pathways operate 24/7.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
