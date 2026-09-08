@@ -1,4 +1,7 @@
-import type { PaiSetupPreferences } from "@/lib/personal-agency/setup-service";
+export type MapAblePersonaSetupPreferences = {
+  interfaceMethods?: string[];
+  informationDensity?: "standard" | "simpler" | "detailed";
+};
 
 export type MapAblePersonaProfile = {
   identity: {
@@ -32,7 +35,7 @@ export type MapAblePersonaProfile = {
  * capacity, relationship quality or safety state from interaction style.
  */
 export function buildMapAblePersonaProfile(
-  setup: PaiSetupPreferences | null,
+  setup: MapAblePersonaSetupPreferences | null,
 ): MapAblePersonaProfile {
   return {
     identity: {
