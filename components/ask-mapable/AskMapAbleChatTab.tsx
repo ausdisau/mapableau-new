@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AskMapAbleChoiceChips } from "@/components/ask-mapable/AskMapAbleChoiceChips";
 import { Button } from "@/components/ui/button";
 import {
   ASK_MAPABLE_EMPTY_STATE,
@@ -51,6 +52,10 @@ export function AskMapAbleChatTab({
   const starters = useMemo(
     () => startersForPageContext(pageContext),
     [pageContext],
+  );
+  const starterChoices = useMemo(
+    () => starters.map((starter) => ({ id: starter.id, label: starter.label })),
+    [starters],
   );
 
   useEffect(() => {
@@ -128,10 +133,7 @@ export function AskMapAbleChatTab({
           return;
         }
 
-        const answer =
-          data.answer ||
-          data.summary ||
-          ASK_MAPABLE_SAFE_FAILURE;
+        const answer = data.answer || data.summary || ASK_MAPABLE_SAFE_FAILURE;
         onAppend(sid, [
           {
             id: `a-${Date.now()}`,
@@ -173,33 +175,24 @@ export function AskMapAbleChatTab({
           <p className="text-sm text-muted-foreground">
             {ASK_MAPABLE_EMPTY_STATE.body}
           </p>
-          <ul className="grid gap-2">
-            {starters.map((starter) => (
-              <li key={starter.id}>
-                <button
-                  type="button"
-                  className="min-h-11 w-full rounded-lg border border-border bg-card px-3 py-2 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={() => {
-                    if (starter.href && starter.id === "talk-person") {
-                      router.push(starter.href);
-                      return;
-                    }
-                    if (starter.href && starter.id === "report-barrier") {
-                      router.push(starter.href);
-                      return;
-                    }
-                    if (starter.href && starter.id === "find-provider") {
-                      router.push(starter.href);
-                      return;
-                    }
-                    void send(starter.prompt);
-                  }}
-                >
-                  {starter.label}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <AskMapAbleChoiceChips
+            choices={starterChoices}
+            ariaLabel="Suggested ways to start"
+            maxVisible={3}
+            disabled={pending}
+            onSelect={(choice) => {
+              const starter = starters.find((item) => item.id === choice.id);
+              if (!starter) return;
+              if (starter.href) {
+                router.push(starter.href);
+                return;
+              }
+              void send(starter.prompt);
+            }}
+          />
+          <p className="text-xs text-muted-foreground">
+            Or type your own question below. Suggested choices never limit what you can ask.
+          </p>
         </div>
       ) : null}
 
