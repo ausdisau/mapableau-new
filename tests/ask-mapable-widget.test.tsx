@@ -34,26 +34,64 @@ describe("AskMapAbleWidget", () => {
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
   });
 
-  it("exposes an accessible launcher and opens the panel", async () => {
+  it("exposes MapAble Companion as an accessible tabbed agent", async () => {
     const user = userEvent.setup();
     render(<AskMapAbleWidget />);
 
     const launcher = screen.getByTestId("ask-mapable-launcher");
     expect(launcher.getAttribute("aria-expanded")).toBe("false");
     expect(launcher.getAttribute("aria-label")?.toLowerCase()).toContain(
-      "open ask mapable",
+      "open mapable companion",
     );
 
     await user.click(launcher);
     expect(screen.getByTestId("ask-mapable-panel")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: /ask mapable/i })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: /mapable companion/i }),
+    ).toBeTruthy();
     expect(
       screen.getByRole("tab", { name: /chat/i }).getAttribute("aria-selected"),
     ).toBe("true");
+    expect(screen.getByRole("tab", { name: /actions/i })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /history/i })).toBeTruthy();
     expect(screen.getByText(/what would you like help with/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /talk to a person/i })).toBeTruthy();
+    expect(screen.getByText(/you stay in control/i)).toBeTruthy();
+  });
+
+  it("surfaces participant-chosen interaction preferences without implying ability", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            preferences: {
+              informationDensity: "simpler",
+              interfaceMethods: ["AAC", "keyboard"],
+            },
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      ),
+    );
+
+    const user = userEvent.setup();
+    render(<AskMapAbleWidget />);
+    await user.click(screen.getByTestId("ask-mapable-launcher"));
+
+    expect(
+      await screen.findByText(/using your chosen interaction preferences/i),
+    ).toBeTruthy();
+    expect(screen.getByText(/one thing at a time/i)).toBeTruthy();
+    expect(screen.getByText(/aac/i)).toBeTruthy();
+    expect(screen.getByText(/keyboard/i)).toBeTruthy();
+    expect(screen.getByText(/interface preferences only/i)).toBeTruthy();
   });
 
   it("closes on Escape and returns focus pathway to launcher control", async () => {
