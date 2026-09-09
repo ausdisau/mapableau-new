@@ -1,20 +1,25 @@
 /**
- * Ask MapAble persona + safe failure copy.
+ * MapAble Companion persona + safe failure copy.
+ *
+ * Compatibility note: existing ASK_MAPABLE_* export names remain stable so
+ * routes, evaluations and integrations do not need to fork. The participant-
+ * facing identity is MapAble Companion.
+ *
  * The language model is not the system of record.
  */
 
-export const ASK_MAPABLE_NAME = "Ask MapAble";
+export const ASK_MAPABLE_NAME = "MapAble Companion";
 
 export const ASK_MAPABLE_SUBTITLE =
-  "Accessible information, planning and support across MapAble.";
+  "Your accessible assistant for planning, support and action across MapAble.";
 
 export const ASK_MAPABLE_AI_DISCLOSURE =
-  "Ask MapAble is AI-assisted. It explains MapAble information and prepares drafts — it does not approve NDIS claims, decide eligibility, or change your preferences without confirmation.";
+  "MapAble Companion is AI-assisted. You stay in control. It can explain MapAble information, help plan and prepare actions, but consequential changes still require confirmation.";
 
 export const ASK_MAPABLE_SAFE_FAILURE =
-  "Ask MapAble couldn't complete that response. You can try again, use the standard MapAble controls, or ask to speak with a person.";
+  "MapAble Companion couldn't complete that response. You can try again, use the standard MapAble controls, or ask to speak with a person.";
 
-export const ASK_MAPABLE_PENDING = "Ask MapAble is checking…";
+export const ASK_MAPABLE_PENDING = "MapAble Companion is checking…";
 
 export const ASK_MAPABLE_HUMAN_HELP_PATTERNS =
   /\b(talk to (a )?(person|human|someone|staff|support)|speak (to|with) (a )?(person|human|someone|staff)|real person|human (help|support)|contact (mapable )?support|escalate)\b/i;
