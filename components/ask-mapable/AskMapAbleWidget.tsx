@@ -15,9 +15,11 @@ import { useAskLocalSessions } from "./useAskLocalSessions";
 import { useAskWidgetState } from "./useAskWidgetState";
 
 /**
- * Site-wide Ask MapAble embedded widget.
+ * Site-wide MapAble Companion embedded widget.
  * Fail-closed behind NEXT_PUBLIC_ASK_MAPABLE_EMBEDDED_ENABLED.
  * Authenticated-only for Phase 1 (does not weaken /api/mapable/ask auth).
+ *
+ * ASK_MAPABLE naming is retained internally for API/storage compatibility.
  */
 export function AskMapAbleWidget() {
   const enabled = isAskMapAbleEmbeddedEnabled();
@@ -36,7 +38,8 @@ export function AskMapAbleWidget() {
     useAskLocalSessions(activeSessionId);
   const canReadPreferences =
     enabled && hydrated && status === "authenticated" && Boolean(session?.user);
-  const { maxVisibleChoices } = useAskInteractionPreferences(canReadPreferences);
+  const { maxVisibleChoices, interactionSummary } =
+    useAskInteractionPreferences(canReadPreferences);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
 
   const onEnsureSession = useCallback(
@@ -60,6 +63,7 @@ export function AskMapAbleWidget() {
         onClose={() => setOpen(false)}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        interactionSummary={interactionSummary}
         chat={
           <AskMapAbleChatTab
             sessionId={activeSessionId}
