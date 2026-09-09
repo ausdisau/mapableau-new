@@ -4,6 +4,7 @@ import { useEffect, useId, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
+  ASK_MAPABLE_AI_DISCLOSURE,
   ASK_MAPABLE_NAME,
   ASK_MAPABLE_SUBTITLE,
 } from "@/lib/ask-mapable";
@@ -15,6 +16,7 @@ type Props = {
   onClose: () => void;
   activeTab: AskWidgetTab;
   onTabChange: (tab: AskWidgetTab) => void;
+  interactionSummary?: string | null;
   chat: React.ReactNode;
   actions: React.ReactNode;
   history: React.ReactNode;
@@ -31,6 +33,7 @@ export function AskMapAblePanel({
   onClose,
   activeTab,
   onTabChange,
+  interactionSummary,
   chat,
   actions,
   history,
@@ -82,8 +85,16 @@ export function AskMapAblePanel({
             </h2>
             <p className="text-sm text-muted-foreground">{ASK_MAPABLE_SUBTITLE}</p>
             <p className="mt-1 text-xs text-muted-foreground" role="note">
-              AI-assisted. MapAble remains usable without Ask MapAble.
+              {ASK_MAPABLE_AI_DISCLOSURE}
             </p>
+            {interactionSummary ? (
+              <p
+                className="mt-2 rounded-md border border-border bg-muted/40 px-2 py-1.5 text-xs text-muted-foreground"
+                role="note"
+              >
+                {interactionSummary}
+              </p>
+            ) : null}
           </div>
           <Button
             ref={closeRef}
@@ -91,7 +102,7 @@ export function AskMapAblePanel({
             variant="outline"
             size="default"
             className="min-h-11 min-w-11"
-            aria-label="Close Ask MapAble"
+            aria-label={`Close ${ASK_MAPABLE_NAME}`}
             onClick={onClose}
           >
             Close
@@ -100,7 +111,7 @@ export function AskMapAblePanel({
 
         <div
           role="tablist"
-          aria-label="Ask MapAble sections"
+          aria-label={`${ASK_MAPABLE_NAME} sections`}
           className="flex gap-1 border-b border-border px-2 py-2"
         >
           {TABS.map((tab) => (
