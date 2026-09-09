@@ -1,0 +1,126 @@
+model MacoResearchSource {
+  id                String   @id
+  title             String
+  doi               String?  @unique
+  pmid              String?  @unique
+  arxivId           String?  @unique
+  canonicalUrl      String?
+  publicationStatus String
+  publishedAt       DateTime?
+  retrievedAt       DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  evidence MacoConsciousnessEvidence[]
+}
+
+model MacoConsciousnessTheory {
+  id                         String   @id @default(cuid())
+  theoryKey                  String
+  version                    Int
+  name                       String
+  theoryFamily               String
+  summary                    String
+  computationalApplicability String
+  sourceIds                  String[]
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@unique([theoryKey, version])
+  @@index([theoryKey])
+}
+
+model MacoConsciousnessIndicator {
+  id                    String   @id @default(cuid())
+  indicatorKey          String
+  version               Int
+  theoryIds             String[]
+  name                  String
+  operationalDefinition String
+  evidenceRequired      String[]
+  knownConfounds        String[]
+  status                String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([indicatorKey, version])
+  @@index([indicatorKey])
+}
+
+model MacoConsciousnessEvidence {
+  id                      String   @id
+  sourceId                String
+  indicatorIds            String[]
+  direction               String
+  publicationStatus       String
+  methodSummary           String
+  alternativeExplanations String[]
+  replicationStatus       String
+  evidenceStrength        String
+  assessedAt              DateTime
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  source MacoResearchSource @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@index([sourceId])
+  @@index([direction])
+  @@index([assessedAt])
+}
+
+model MacoSystemIndicatorAssessment {
+  id                      String   @id @default(cuid())
+  systemId                String
+  systemVersion           String
+  indicatorId             String
+  architectureEvidenceIds String[]
+  experimentEvidenceIds   String[]
+  observedStatus          String
+  mimicryRisk             String
+  confidence              String
+  limitations             String[]
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([systemId, systemVersion, indicatorId])
+  @@index([indicatorId])
+}
+
+model MacoConsciousnessResearchAssessment {
+  id                             String   @id
+  systemId                       String
+  systemVersion                  String
+  theoryCoverage                 String[]
+  positiveIndicatorIds           String[]
+  negativeIndicatorIds           String[]
+  uncertainIndicatorIds          String[]
+  functionalSelfModelEvidence    String[]
+  metacognitionEvidence          String[]
+  introspectionEvidence          String[]
+  agencyEvidence                 String[]
+  embodimentEvidence             String[]
+  phenomenalConsciousnessEvidence String[]
+  supportingSourceIds            String[]
+  counterSourceIds               String[]
+  overallUncertainty             String
+  personhoodReviewRecommended    Boolean
+  rationale                      String
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+
+  @@index([systemId, systemVersion])
+}
+
+model MacoHumanAttributionAssessment {
+  id                           String   @id @default(cuid())
+  systemId                     String
+  systemVersion                String
+  anthropomorphicCues          String[]
+  dependencyRisks              String[]
+  misleadingSelfPresentationRisks String[]
+  relationalSafetyControls     String[]
+  humanReviewRequired          Boolean
+  createdAt                    DateTime @default(now())
+
+  @@index([systemId, systemVersion])
+}
