@@ -42,7 +42,7 @@ const evaluateBodySchema = z
     capabilityKey: z.string().min(1).max(200).optional(),
     dataRefs: z.array(z.string().max(200)).max(50).optional(),
     dataClasses: z.array(dataClassSchema).min(1).max(20),
-    structuredPayload: z.record(z.unknown()).optional(),
+    structuredPayload: z.record(z.string(), z.unknown()).optional(),
     requestedOperation: z.string().max(200).optional(),
     objectiveText: z.string().max(4000).optional(),
     consentScopesPresent: z.array(z.string().max(100)).max(30).optional(),
