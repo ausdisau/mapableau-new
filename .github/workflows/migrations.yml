@@ -70,12 +70,12 @@ jobs:
         run: |
           if ! pnpm exec prisma migrate diff \
             --from-url "$DATABASE_URL" \
-            --to-schema-datamodel prisma/schema.prisma \
+            --to-schema-datamodel prisma \
             --exit-code; then
-            echo "Schema drift between ephemeral DB and schema.prisma"
+            echo "Schema drift between ephemeral DB and configured Prisma schema directory"
             pnpm exec prisma migrate diff \
               --from-url "$DATABASE_URL" \
-              --to-schema-datamodel prisma/schema.prisma
+              --to-schema-datamodel prisma
             exit 1
           fi
 
