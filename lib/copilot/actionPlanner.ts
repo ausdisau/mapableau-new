@@ -1,3 +1,9 @@
+import {
+  buildConstraintPreservationNote,
+  buildHumanHelpAskResponse,
+  extractHardAccessConstraints,
+  isHumanHelpRequest,
+} from "@/lib/ask-mapable";
 import { planProviderFinderCopilotActions } from "@/lib/copilot/plan-provider-finder";
 import type { CopilotActionPlan, CopilotPlanningInput } from "@/lib/copilot/types";
 import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
@@ -33,6 +39,26 @@ export async function planCopilotActions(
   const { intent, query, context, participantId } = input;
   const pid = participantId ?? context?.participantId ?? MOCK_PARTICIPANT_ID;
   const filters = { ...intent.filters };
+
+  if (isHumanHelpRequest(query)) {
+    const human = buildHumanHelpAskResponse();
+    return {
+      summary: human.summary,
+      plainLanguageAnswer: human.plainLanguageAnswer,
+      filters: { ...filters, humanHelp: true },
+      actions: human.actions,
+      draftRecords: [],
+      requiredConfirmations: [],
+      warnings: [
+        {
+          level: "info",
+          message:
+            "You can leave Ask MapAble at any time and talk to a person. AI is optional.",
+        },
+      ],
+      toolsCalled: ["escalate_to_human"],
+    };
+  }
 
   switch (intent.type) {
     case "provider_finder":
@@ -228,7 +254,7 @@ export async function planCopilotActions(
       return {
         summary: "Employment support",
         plainLanguageAnswer:
-          "I can draft employment support records and suggest transport for interviews if needed.",
+          "I can draft employment support records and suggest transport for interviews if needed. I will not infer capability or employability from disability, speech, or communication style.",
         filters,
         actions: [
           {
@@ -253,6 +279,43 @@ export async function planCopilotActions(
         warnings: [],
       };
 
+    case "places": {
+      const constraints = extractHardAccessConstraints(query);
+      const note = buildConstraintPreservationNote(constraints);
+      return {
+        summary: "Accessible places guidance",
+        plainLanguageAnswer: note
+          ? `I can help you look for accessible places using functional requirements. ${note} If no verified result meets every hard requirement, I will say so. Missing evidence is UNKNOWN — not “not accessible”. Provider claims are not MapAble verification.`
+          : "I can help you look for accessible places using functional requirements (for example step-free access or accessible toilets). Prefer describing what you need rather than a diagnosis. Missing evidence is UNKNOWN — not “not accessible”.",
+        filters: {
+          ...filters,
+          hardAccessConstraints: constraints.map((c) => c.id),
+        },
+        actions: [
+          {
+            type: "OPEN_PROVIDER_SEARCH",
+            label: "Open Access map",
+            requiresConfirmation: false,
+            href: "/access",
+          },
+          {
+            type: "GUIDANCE_ONLY",
+            label: "Explain evidence labels",
+            requiresConfirmation: false,
+          },
+        ],
+        draftRecords: [],
+        requiredConfirmations: [],
+        warnings: [
+          {
+            level: "info",
+            message:
+              "MapAble Accreditation is voluntary accessibility verification — not DDA legal certification.",
+          },
+        ],
+      };
+    }
+
     case "transport":
     case "support":
       return {
@@ -261,7 +324,7 @@ export async function planCopilotActions(
             ? "Accessible transport request"
             : "Support worker request",
         plainLanguageAnswer:
-          "I can draft a service request for your review. Tell me the date and time if you have not already.",
+          "I can draft a service request for your review. Tell me the date and time if you have not already. Nothing is booked until you confirm through MapAble’s normal workflow.",
         filters,
         actions: [
           {
@@ -288,15 +351,22 @@ export async function planCopilotActions(
 
     default:
       return {
-        summary: "Guidance request",
+        summary: "Ask MapAble guidance",
         plainLanguageAnswer:
-          "I can explain options and suggest next steps. Sign in to save drafts to your participant record.",
+          "I can explain MapAble options and suggest next steps in plain language. Sign in to save drafts to your participant record. I will not ask for a diagnosis when functional access needs are enough.",
         filters,
         actions: [
           {
             type: "GUIDANCE_ONLY",
             label: "Browse help topics",
             requiresConfirmation: false,
+            href: "/help",
+          },
+          {
+            type: "SAFETY_ESCALATION",
+            label: "Talk to a person",
+            requiresConfirmation: false,
+            href: "/contact",
           },
         ],
         draftRecords: [],

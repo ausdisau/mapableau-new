@@ -9,6 +9,14 @@ import {
 } from "@/lib/api/disability-agent-api-contract";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { getOptionalApiUser } from "@/lib/api/optional-session";
+import {
+  ASK_MAPABLE_SAFE_FAILURE,
+  attachAskMeta,
+  enrichAskMapAblePlan,
+  isHumanHelpRequest,
+  parseAskPageContext,
+  recordAskHumanHandoff,
+} from "@/lib/ask-mapable";
 import { apiForbidden } from "@/lib/auth/guards";
 import { shouldRouteToBookingAgent } from "@/lib/bookings/rag/copilot-route";
 import { planCopilotActions } from "@/lib/copilot/actionPlanner";
@@ -266,6 +274,7 @@ export async function POST(request: Request) {
       typeof body.providerSlug === "string" ? body.providerSlug : undefined;
     const providerName =
       typeof body.providerName === "string" ? body.providerName : undefined;
+    const pageContext = parseAskPageContext(body.pageContext);
 
     const finderOptions = {
       providerSlug,
@@ -292,7 +301,7 @@ export async function POST(request: Request) {
 
     if (context === "care_transport_map") {
       return disabilityAgentJsonOk(OPERATION, {
-        ...buildCareTransportMapAskResponse(query),
+        ...attachAskMeta(buildCareTransportMapAskResponse(query)),
         operationId: OPERATION,
       });
     }
@@ -306,7 +315,7 @@ export async function POST(request: Request) {
         finderOptions,
       );
       return disabilityAgentJsonOk(OPERATION, {
-        ...response,
+        ...attachAskMeta(response),
         operationId: OPERATION,
       });
     }
@@ -330,6 +339,48 @@ export async function POST(request: Request) {
         return apiForbidden(e.message);
       }
       throw e;
+    }
+
+    if (isHumanHelpRequest(query)) {
+      await recordAskHumanHandoff({
+        userId: user.id,
+        participantId: effectiveParticipantId,
+        reason: query,
+        sessionId,
+        pathname: pageContext?.pathname,
+      });
+      const plannedHuman = await planCopilotActions({
+        query,
+        mode,
+        intent: classifyIntent(query, mode),
+        context: null,
+        sessionId,
+        participantId: effectiveParticipantId,
+      });
+      const humanResponse: CopilotAskResponse = {
+        source: "mapable-copilot",
+        intent: "incident",
+        confidence: 1,
+        summary: plannedHuman.summary,
+        answer: plannedHuman.plainLanguageAnswer,
+        filters: plannedHuman.filters,
+        actions: plannedHuman.actions,
+        draftRecords: [],
+        requiredConfirmations: [],
+        warnings: plannedHuman.warnings,
+        blockedActions: [],
+        suggestedPrompts: ["I need urgent help", "Open Contact support"],
+        askMeta: {
+          brand: "Ask MapAble",
+          specialistPrimary: "safeguarding",
+          specialistReason: "Participant requested a human pathway.",
+          pageModule: pageContext?.mapableModule,
+        },
+      };
+      return disabilityAgentJsonOk(OPERATION, {
+        ...attachAskMeta(humanResponse),
+        operationId: OPERATION,
+      });
     }
 
     if (shouldRouteToBookingAgent(query)) {
@@ -380,13 +431,13 @@ export async function POST(request: Request) {
         };
 
         return disabilityAgentJsonOk(OPERATION, {
-          ...bookingResponse,
+          ...attachAskMeta(bookingResponse),
           operationId: OPERATION,
         });
       } catch (err) {
         console.error("[mapable-ask-booking-agent]", err);
         return disabilityAgentJsonError(OPERATION, 502, {
-          error: "Booking agent turn failed.",
+          error: ASK_MAPABLE_SAFE_FAILURE,
           code: "UPSTREAM_ERROR",
           retryable: true,
         });
@@ -416,8 +467,15 @@ export async function POST(request: Request) {
       },
     );
 
-    const guarded = await applyGuardrails({
+    const enriched = enrichAskMapAblePlan({
       planned,
+      intent: intent.type,
+      query,
+      pageContext,
+    });
+
+    const guarded = await applyGuardrails({
+      planned: enriched,
       context: copilotContext,
       participantId: effectiveParticipantId,
     });
@@ -465,12 +523,12 @@ export async function POST(request: Request) {
     }
 
     return disabilityAgentJsonOk(OPERATION, {
-      ...response,
+      ...attachAskMeta(response),
       operationId: OPERATION,
     });
   } catch {
     return disabilityAgentJsonError(OPERATION, 500, {
-      error: "Something went wrong. Please try again in a moment.",
+      error: ASK_MAPABLE_SAFE_FAILURE,
       code: "UPSTREAM_ERROR",
       retryable: true,
     });

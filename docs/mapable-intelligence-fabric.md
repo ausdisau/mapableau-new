@@ -9,6 +9,31 @@ The platform retrofit has two implemented surfaces:
 1. a governed, read-only MapAble Core brief spanning selected modules; and
 2. an accessible journey workflow that prepares a transport request and requires explicit participant confirmation before the existing transport service writes anything.
 
+## Ask MapAble (participant-facing web)
+
+Production Ask MapAble converges on:
+
+```text
+Ask MapAble widget | /ask CopilotPanel
+        |
+        v
+POST /api/mapable/ask
+        |
+        v
+lib/ask-mapable (persona, constraints, evidence, specialist routing hints, human handoff)
+        |
+        v
+lib/copilot (intent → action plan → guardrails)
+        |
+        +--> deterministic MapAble services / drafts / confirmations
+        +--> Intelligence Fabric specialists when CareOS / MAPABLE_AI paths are enabled
+```
+
+The language model is not the system of record. Hard participant accessibility
+requirements must not be silently relaxed. Evidence states remain explicit.
+Human handoff stays visible. See `docs/architecture/ask-mapable-convergence.md`
+and `docs/chatbot-widget-integration.md`.
+
 ## Existing architecture retained
 
 - Next.js App Router and existing `/ask` experience
