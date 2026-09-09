@@ -8,6 +8,7 @@ import { AskMapAbleResponseActions } from "@/components/ask-mapable/AskMapAbleRe
 import { Button } from "@/components/ui/button";
 import {
   ASK_MAPABLE_EMPTY_STATE,
+  ASK_MAPABLE_NAME,
   ASK_MAPABLE_PENDING,
   ASK_MAPABLE_SAFE_FAILURE,
   resolveMapAbleModule,
@@ -118,7 +119,7 @@ export function AskMapAbleChatTab({
           .map((m) => ({ role: m.role, content: m.content }));
 
         // Deterministic, no-model crisis preflight. Failure here deliberately
-        // falls through to the existing Ask MapAble guardrail stack.
+        // falls through to the existing MapAble Companion guardrail stack.
         try {
           const safetyRes = await fetch("/api/mapable/crisis", {
             method: "POST",
@@ -148,8 +149,8 @@ export function AskMapAbleChatTab({
             }
           }
         } catch {
-          // Safety preflight is additive. The existing server guardrails remain
-          // the fallback if this endpoint is unavailable.
+          // Safety preflight is additive. Existing server guardrails remain the
+          // fallback if this endpoint is unavailable.
         }
 
         const res = await fetch("/api/mapable/ask", {
@@ -173,7 +174,7 @@ export function AskMapAbleChatTab({
           const msg =
             data.error ||
             (res.status === 401
-              ? "Sign in to use Ask MapAble."
+              ? `Sign in to use ${ASK_MAPABLE_NAME}.`
               : ASK_MAPABLE_SAFE_FAILURE);
           setError(msg);
           onAppend(sid, [
@@ -266,7 +267,7 @@ export function AskMapAbleChatTab({
         role="log"
         aria-live="polite"
         aria-relevant="additions"
-        aria-label="Ask MapAble conversation"
+        aria-label={`${ASK_MAPABLE_NAME} conversation`}
         className="min-h-[12rem] flex-1 space-y-3 overflow-y-auto rounded-lg border border-border bg-muted/30 p-3"
       >
         {messages.map((m) => (
@@ -279,7 +280,7 @@ export function AskMapAbleChatTab({
             }`}
           >
             <p className="sr-only">
-              {m.role === "user" ? "You" : "Ask MapAble"}
+              {m.role === "user" ? "You" : ASK_MAPABLE_NAME}
             </p>
             <p className="whitespace-pre-wrap">{m.content}</p>
           </div>
@@ -304,7 +305,7 @@ export function AskMapAbleChatTab({
 
       <div className="flex gap-2">
         <label className="sr-only" htmlFor="ask-mapable-composer">
-          Message Ask MapAble
+          Message {ASK_MAPABLE_NAME}
         </label>
         <textarea
           id="ask-mapable-composer"

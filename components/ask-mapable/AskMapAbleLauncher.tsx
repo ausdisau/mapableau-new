@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+import { ASK_MAPABLE_NAME } from "@/lib/ask-mapable";
+
 type Props = {
   open: boolean;
   onToggle: () => void;
@@ -23,14 +25,14 @@ export function AskMapAbleLauncher({ open, onToggle }: Props) {
       type="button"
       data-testid="ask-mapable-launcher"
       className="fixed bottom-4 right-4 z-[45] flex size-14 min-h-14 min-w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-safe:transition-transform motion-safe:hover:scale-105"
-      aria-label={open ? "Close Ask MapAble" : "Open Ask MapAble"}
+      aria-label={open ? `Close ${ASK_MAPABLE_NAME}` : `Open ${ASK_MAPABLE_NAME}`}
       aria-expanded={open}
       aria-haspopup="dialog"
       aria-controls="ask-mapable-panel"
       onClick={onToggle}
     >
       <span className="font-heading text-sm font-semibold" aria-hidden>
-        Ask
+        MA
       </span>
     </button>
   );
