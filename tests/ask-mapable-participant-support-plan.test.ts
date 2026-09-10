@@ -49,6 +49,10 @@ describe("participant-authored support plan", () => {
       selectedFields: ["thingsICanTry", "communicationAccess"],
     });
 
+    if (!summary) {
+      throw new Error("Expected a support summary for selected non-empty fields");
+    }
+
     expect(summary.selectedFields).toEqual([
       "thingsICanTry",
       "communicationAccess",
