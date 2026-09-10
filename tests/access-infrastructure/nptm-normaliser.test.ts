@@ -182,8 +182,8 @@ describe("National Public Toilet Map normalisation", () => {
     expect(concept?.definition).toMatch(/documentation differs/i);
     expect(concept?.prohibitedInference).toEqual(
       expect.arrayContaining([
-        "infer_mlak_is_required_after_hours",
-        "infer_mlak_is_optional_after_hours",
+        "unverified_mlak_after_hours_required_inference",
+        "unverified_mlak_after_hours_optional_inference",
       ]),
     );
   });
