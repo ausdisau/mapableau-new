@@ -16,16 +16,16 @@ export {
 } from "./seed-v2";
 export { NPTM_ONTOLOGY_CONCEPTS, getNptmOntologyConcept } from "./nptm-extension";
 
+import {
+  NPTM_ONTOLOGY_CONCEPTS,
+  getNptmOntologyConcept,
+} from "./nptm-extension";
 import { ONTOLOGY_CONCEPTS_V1 } from "./seed-v1";
 import {
   ACCESS_ONTOLOGY_V2,
   ONTOLOGY_CONCEPTS_V2,
   getOntologyConceptV2,
 } from "./seed-v2";
-import {
-  NPTM_ONTOLOGY_CONCEPTS,
-  getNptmOntologyConcept,
-} from "./nptm-extension";
 import type { AccessOntologyConcept } from "./types";
 
 const nptmOverrideIds = new Set(NPTM_ONTOLOGY_CONCEPTS.map((item) => item.id));
