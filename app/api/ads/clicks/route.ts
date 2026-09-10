@@ -1,8 +1,8 @@
 import { z } from "zod";
 
+import { recordAdClickAndResolveDestination } from "@/lib/ads/services/measurement";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
-import { recordAdClickAndResolveDestination } from "@/lib/ads/services/measurement";
 
 const bodySchema = z.object({
   impressionId: z.string().min(1).max(128),
