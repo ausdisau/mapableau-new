@@ -69,6 +69,11 @@ jobs:
           s = p.read_text()
           s = s.replace('const [humanHelpRequested, setHumanHelpRequested] = useState(false);', 'const [humanHelpRequested] = useState(false);')
           p.write_text(s)
+
+          p = Path('components/labs/ChoicePanel.tsx')
+          s = p.read_text()
+          s = s.replace('<ul className="mt-4 grid gap-3" role="list">', '<ul className="mt-4 grid gap-3">')
+          p.write_text(s)
           PY
 
       - name: Verify exact component slice
