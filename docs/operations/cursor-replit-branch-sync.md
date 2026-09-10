@@ -187,6 +187,7 @@ Never auto-merge into production `main` from this workflow.
 
 ## Related docs
 
+- [cursor-chatgpt-branch-sync.md](./cursor-chatgpt-branch-sync.md) — Cursor ↔ ChatGPT/Codex via GitHub (same Next surface; PR bridge)
 - [replit-imports.md](./replit-imports.md) — Repl zip/git import scripts
 - [replit-mapable-unified-import.md](./replit-mapable-unified-import.md) — Unified shell merge checklist
 - [design/imports/replit-mapable-integration-map.html](../../design/imports/replit-mapable-integration-map.html) — UI asset map
