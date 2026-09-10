@@ -33,6 +33,7 @@ import {
 
 const MAX_NPTM_CSV_BYTES = 25 * 1024 * 1024;
 const MAX_NPTM_RECORDS = 30_000;
+const WITHDRAWABLE_POSITIVE_ONLY_FIELDS = ["Accessible", "MLAKAfterHours"] as const;
 
 export class NptmIngestionDisabledError extends Error {
   constructor() {
@@ -63,6 +64,7 @@ export type NptmIngestionSummary = {
   duplicates: number;
   superseded: number;
   conflicts: number;
+  withdrawnToUnknown: number;
   sourceSnapshotAt: string;
   productionClaim: "none";
   claimState: "in_development";
@@ -131,6 +133,79 @@ function appendHistory(
 ): Prisma.InputJsonValue {
   const history = Array.isArray(current) ? current : [];
   return json([...history, entry]);
+}
+
+function isFalseToken(value: string | undefined): boolean {
+  if (!value) return false;
+  return ["FALSE", "F", "NO", "N", "0"].includes(value.trim().toUpperCase());
+}
+
+function withdrawnPositiveOnlyFields(
+  facility: NptmNormalisedFacility,
+): readonly string[] {
+  return WITHDRAWABLE_POSITIVE_ONLY_FIELDS.filter((field) =>
+    isFalseToken(facility.canonicalRecord[field]),
+  );
+}
+
+async function retireWithdrawnPositiveAssertions(input: {
+  facility: NptmNormalisedFacility;
+  placeId: string;
+  retrievedAt: string;
+}): Promise<number> {
+  const withdrawnFields = withdrawnPositiveOnlyFields(input.facility);
+  if (!withdrawnFields.length) return 0;
+
+  const rows = (await prisma.accessObservationRecord.findMany({
+    where: {
+      placeId: input.placeId,
+      sourceType: "operator",
+    },
+    select: {
+      id: true,
+      featureKey: true,
+      ontologyConceptId: true,
+      valueJson: true,
+      sourceType: true,
+      evidenceKinds: true,
+      disputeHistory: true,
+    },
+  })) as ExistingObservationRow[];
+
+  let retired = 0;
+  for (const row of rows) {
+    if (!row.evidenceKinds.includes("national_public_toilet_map")) continue;
+
+    const sourceMarker = row.evidenceKinds.find((kind) =>
+      kind.startsWith("nptm_source_record:"),
+    );
+    if (!sourceMarker) continue;
+
+    const shouldRetire = withdrawnFields.some(
+      (field) =>
+        sourceMarker ===
+        `nptm_source_record:${input.facility.sourceRecordId}:${field}`,
+    );
+    if (!shouldRetire) continue;
+
+    await prisma.accessObservationRecord.update({
+      where: { id: row.id },
+      data: {
+        verificationStatus: "outdated",
+        disputeHistory: appendHistory(row.disputeHistory, {
+          type: "source_positive_assertion_withdrawn_to_unknown",
+          dataSourceId: NPTM_DATA_SOURCE_ID,
+          sourceRecordId: input.facility.sourceRecordId,
+          sourceSnapshotAt: input.facility.sourceSnapshotAt,
+          recordedAt: input.retrievedAt,
+          note: "Later positive-evidence-only source field is FALSE; MapAble treats this as withdrawal to unknown, not negative evidence.",
+        }),
+      },
+    });
+    retired += 1;
+  }
+
+  return retired;
 }
 
 async function markSuperseded(input: {
@@ -339,6 +414,7 @@ export async function ingestNationalPublicToiletMapCsv(input: {
     duplicates: 0,
     superseded: 0,
     conflicts: 0,
+    withdrawnToUnknown: 0,
     sourceSnapshotAt: input.sourceSnapshotAt,
     productionClaim: "none",
     claimState: "in_development",
@@ -546,6 +622,12 @@ export async function ingestNationalPublicToiletMapCsv(input: {
           itemHasConflict = true;
         }
       }
+
+      summary.withdrawnToUnknown += await retireWithdrawnPositiveAssertions({
+        facility,
+        placeId: place.id,
+        retrievedAt: input.retrievedAt,
+      });
 
       summary.acceptedFacilities += 1;
       await prisma.accessImportItem.update({
