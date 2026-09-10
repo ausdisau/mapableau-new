@@ -70,6 +70,43 @@ export type NptmIngestionSummary = {
   claimState: "in_development";
 };
 
+export type NptmJobMetadata = {
+  dataSourceId: typeof NPTM_DATA_SOURCE_ID;
+  datasetId: typeof NPTM_DATASET_ID;
+  resourceId: typeof NPTM_RESOURCE_ID;
+  datasetContentHash: string;
+  retrievedAt: string;
+  sourceSnapshotAt: string;
+  licenceId: string;
+  attributionText: string | null;
+  summary: NptmIngestionSummary;
+  productionClaim: "none";
+  claimState: "in_development";
+};
+
+export function buildNptmJobMetadata(input: {
+  datasetContentHash: string;
+  retrievedAt: string;
+  sourceSnapshotAt: string;
+  licenceId: string;
+  attributionText: string | null;
+  summary: NptmIngestionSummary;
+}): NptmJobMetadata {
+  return {
+    dataSourceId: NPTM_DATA_SOURCE_ID,
+    datasetId: NPTM_DATASET_ID,
+    resourceId: NPTM_RESOURCE_ID,
+    datasetContentHash: input.datasetContentHash,
+    retrievedAt: input.retrievedAt,
+    sourceSnapshotAt: input.sourceSnapshotAt,
+    licenceId: input.licenceId,
+    attributionText: input.attributionText,
+    summary: input.summary,
+    productionClaim: "none",
+    claimState: "in_development",
+  };
+}
+
 type ExistingObservationRow = {
   id: string;
   featureKey: string;
@@ -385,6 +422,7 @@ export async function ingestNationalPublicToiletMapCsv(input: {
   if (!licenceId) {
     throw new NptmIngestionError("NPTM licence metadata is missing");
   }
+  const attributionText = source.licence?.attributionText ?? null;
 
   const rows = parseNationalPublicToiletMapCsv(input.csv);
   if (rows.length > MAX_NPTM_RECORDS) {
@@ -420,21 +458,21 @@ export async function ingestNationalPublicToiletMapCsv(input: {
     claimState: "in_development",
   };
 
+  const jobMetadata = () =>
+    buildNptmJobMetadata({
+      datasetContentHash,
+      retrievedAt: input.retrievedAt,
+      sourceSnapshotAt: input.sourceSnapshotAt,
+      licenceId,
+      attributionText,
+      summary,
+    });
+
   await prisma.accessImportJob.update({
     where: { id: job.id },
     data: {
       status: "parsing",
-      metadata: json({
-        dataSourceId: NPTM_DATA_SOURCE_ID,
-        datasetId: NPTM_DATASET_ID,
-        resourceId: NPTM_RESOURCE_ID,
-        datasetContentHash,
-        retrievedAt: input.retrievedAt,
-        sourceSnapshotAt: input.sourceSnapshotAt,
-        licenceId,
-        attributionText: source.licence?.attributionText ?? null,
-        productionClaim: "none",
-      }),
+      metadata: json(jobMetadata()),
     },
   });
 
@@ -592,7 +630,7 @@ export async function ingestNationalPublicToiletMapCsv(input: {
             sourceSnapshotAt: input.sourceSnapshotAt,
             retrievedAt: input.retrievedAt,
             licenceId,
-            attributionText: source.licence?.attributionText ?? null,
+            attributionText,
             limitations: facility.limitations,
           }),
         },
@@ -640,7 +678,7 @@ export async function ingestNationalPublicToiletMapCsv(input: {
       where: { id: job.id },
       data: {
         status: "completed",
-        metadata: json(summary),
+        metadata: json(jobMetadata()),
       },
     });
     return summary;
@@ -650,7 +688,7 @@ export async function ingestNationalPublicToiletMapCsv(input: {
       data: {
         status: "failed",
         errorMessage: error instanceof Error ? error.message : "NPTM ingestion failed",
-        metadata: json(summary),
+        metadata: json(jobMetadata()),
       },
     });
     throw error;
