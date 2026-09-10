@@ -6,11 +6,18 @@ import {
   getDataSource,
   type ObservationFingerprint,
 } from "@/lib/access/data-sources/registry";
-import { createAccessObservation } from "@/lib/access/infrastructure/observation-service";
-import { findDuplicatePlaceCandidates } from "@/lib/access/import/import-deduplication-service";
 import { createImportJob } from "@/lib/access/import/access-import-job-service";
+import { findDuplicatePlaceCandidates } from "@/lib/access/import/import-deduplication-service";
+import { createAccessObservation } from "@/lib/access/infrastructure/observation-service";
 import { createAccessPlace } from "@/lib/access/map/access-place-service";
 import { prisma } from "@/lib/prisma";
+
+import {
+  buildNptmObservationEvidenceKinds,
+  buildNptmObservationFingerprint,
+  extractNptmFingerprintFromEvidenceKinds,
+  fingerprintNonNptmObservation,
+} from "./observation-fingerprint";
 
 import {
   NPTM_CURRENT_RESOURCE_URL,
@@ -24,12 +31,6 @@ import {
   type NptmNormalisedFacility,
   type NptmNormalisedObservation,
 } from "./index";
-import {
-  buildNptmObservationEvidenceKinds,
-  buildNptmObservationFingerprint,
-  extractNptmFingerprintFromEvidenceKinds,
-  fingerprintNonNptmObservation,
-} from "./observation-fingerprint";
 
 const MAX_NPTM_CSV_BYTES = 25 * 1024 * 1024;
 const MAX_NPTM_RECORDS = 30_000;
