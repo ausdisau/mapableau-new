@@ -32,23 +32,45 @@ A formal validated screener is separately feature-gated by `MAPABLE_MENTAL_HEALT
 
 A negative screen must never be represented as proof that a person is safe. A positive screen must never be represented as a prediction that a person will attempt suicide.
 
-## Referral states
+## Referral and handoff states
 
 MapAble must distinguish:
 
 - `PRESENTED` — a verified service option was shown;
-- `USER_INITIATED` — the participant opened/called/texted a service themselves;
-- `HUMAN_ASSISTED` — a MapAble worker helped the participant initiate contact with consent;
+- `USER_INITIATED` — the participant opened/called/texted a service themselves or explicitly requested MapAble assistance;
+- `HUMAN_ASSISTANCE_REQUESTED` — MapAble recorded a request for a MapAble worker to review; this is not acceptance;
+- `HUMAN_ASSISTED` — a MapAble worker actually helped the participant initiate contact with consent;
 - `EXTERNAL_ACCEPTED` — the external service explicitly confirmed acceptance or connection;
 - `EMERGENCY_HANDOFF` — an authorised emergency process was used because immediate safety required it.
 
-Do not collapse `PRESENTED` or `USER_INITIATED` into `EXTERNAL_ACCEPTED`.
+Do not collapse `PRESENTED`, `USER_INITIATED` or `HUMAN_ASSISTANCE_REQUESTED` into `EXTERNAL_ACCEPTED`.
+
+## Warm human handoff contract
+
+The first MapAble warm-handoff slice is intentionally narrow:
+
+1. The participant chooses **Request MapAble human review**.
+2. MapAble records only fixed purpose metadata and optional allow-listed communication-access preferences.
+3. The crisis conversation, disability narrative, location and contacts are not copied into the AgentRun handoff record.
+4. The record is marked for human review with `externalAcceptanceConfirmed: false`.
+5. The UI tells the participant that the request being recorded does not mean a MapAble person or external crisis service has accepted it.
+6. Emergency and external crisis pathways remain visible and independently usable.
+
+A later human-assisted sharing step must obtain purpose-bound consent for each disclosure. It must be possible to share a participant-authored or participant-approved summary without sharing the full conversation.
 
 ## Consent and privacy
 
 Emotional disclosure is sensitive information. MapAble should minimise collection and must not silently send conversation transcripts, disability information, health details, location, contacts or support-worker details to a crisis service.
 
 Before a non-emergency human-assisted handoff, obtain purpose-bound consent for the minimum information needed. Let the participant choose what MapAble prepares or shares.
+
+The crisis handoff audit record should prefer fixed metadata such as:
+
+- referral state;
+- handoff state;
+- communication-access flags selected by the participant;
+- whether free text was stored;
+- whether external acceptance has been confirmed.
 
 Do not use crisis disclosures, loneliness statements, screening results or referral choices for advertising, behavioural targeting, engagement optimisation or cross-module marketing.
 
@@ -119,7 +141,14 @@ Current implementation:
 - `app/api/mapable/crisis/route.ts` — no-model, no-persistence preflight endpoint;
 - `app/help/crisis/page.tsx` — accessible public crisis directory;
 - `components/ask-mapable/AskMapAbleResponseActions.tsx` — safe telephone/external link rendering;
+- `lib/ask-mapable/crisis-handoff.ts` — minimal-metadata MapAble human-review request recorder;
+- `app/api/mapable/crisis/handoff/route.ts` — authenticated participant-controlled request endpoint;
+- `components/crisis/CrisisHumanAssistanceCard.tsx` — accessible participant-facing handoff control;
 - formal clinical screening remains OFF.
+
+## Ethical decision for this slice
+
+**ALLOW_WITH_SAFEGUARDS.** A participant-requested warm handoff can improve access to human support, but only if it remains voluntary, transparent, privacy-minimising, communication-accessible and explicit about its operational limits. Silence, distress, communication disability or use of AAC do not authorize disclosure or escalation by themselves.
 
 ## Required next review
 
@@ -129,3 +158,13 @@ Before pilot activation, require review by:
 2. disability lived-experience reviewers including AAC/communication-access users;
 3. privacy/safeguarding owner;
 4. operational owner responsible for human escalation and after-hours limitations.
+
+Before claiming a production-quality warm handoff, also verify:
+
+- who receives the MapAble human-review request;
+- staffed hours and response expectations;
+- what happens if no staff member accepts the request;
+- how `HUMAN_ASSISTANCE_REQUESTED` becomes `HUMAN_ASSISTED`;
+- how external acceptance is recorded without inference;
+- retention/deletion rules for handoff metadata;
+- accessibility across keyboard, screen reader, switch, eye-gaze and AAC workflows.
