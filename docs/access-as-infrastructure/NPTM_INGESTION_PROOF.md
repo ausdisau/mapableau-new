@@ -46,7 +46,7 @@ New places are created as `pending_moderation`, never automatically published.
 | `AdultChange` | `self_care_continence.adult_change` |
 | `ChangingPlaces` | `self_care_continence.changing_places` |
 | `MLAK24` | `self_care_continence.mlak_required_24h` |
-| `MLAKAfterHours` | `self_care_continence.mlak_required_after_hours` |
+| `MLAKAfterHours` | `self_care_continence.mlak_after_hours_access` |
 | `OpeningHours` | `self_care_continence.opening_hours` |
 | access/opening/toilet/adult-change/address notes | `self_care_continence.access_information` |
 | `Latitude`, `Longitude` | `AccessPlaceLocation` |
@@ -54,6 +54,12 @@ New places are created as `pending_moderation`, never automatically published.
 ### Adult change is not Changing Places
 
 `AdultChange` and `ChangingPlaces` are deliberately separate concepts. MapAble must not infer Changing Places certification or registration from a generic adult-change feature.
+
+### MLAK after-hours semantics are source-ambiguous
+
+Two official NPTM documents describe `MLAKAfterHours` differently: the v5 release notes describe MLAK as required after hours, while the field explanatory notes describe an MLAK key as usable after scheduled hours. The adapter therefore stores a positive `MLAKAfterHours` flag as an after-hours MLAK access condition and does not infer whether the key is mandatory or optional.
+
+`MLAK24` is separate and is represented as the source assertion that MLAK is required to access the facility at any time.
 
 ### Positive-evidence-only v5 flags
 
@@ -121,6 +127,8 @@ It:
 - marks the conflicting evidence as disputed;
 - records a conflict for moderation/resolution; and
 - leaves the Access Graph capable of showing uncertainty to the participant.
+
+Consistent observations from different sources remain separate evidence records, allowing downstream access-fit logic to recognise corroboration without erasing provenance.
 
 ## Place identity conflicts
 
