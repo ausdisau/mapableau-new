@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { SupportPlanShareEnvelopeCard } from "@/components/crisis/SupportPlanShareEnvelopeCard";
 import {
   PARTICIPANT_SUPPORT_PLAN_FIELDS,
   buildConsentedSupportSummary,
@@ -202,6 +203,8 @@ export function ParticipantSupportPlanCard() {
           Choose at least one section that contains your text before making a preview.
         </p>
       ) : null}
+
+      {preview ? <SupportPlanShareEnvelopeCard summary={preview} /> : null}
     </section>
   );
 }
