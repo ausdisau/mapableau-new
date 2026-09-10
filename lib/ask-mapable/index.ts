@@ -59,6 +59,15 @@ export {
   type CrisisReferralPlan,
 } from "./crisis-referrals";
 export {
+  CRISIS_COMMUNICATION_ACCESS,
+  buildCrisisHandoffAuditSummary,
+  normaliseCrisisCommunicationAccess,
+  recordCrisisHumanAssistanceRequest,
+  type CrisisCommunicationAccess,
+  type CrisisHumanHandoffResult,
+  type CrisisHumanHandoffState,
+} from "./crisis-handoff";
+export {
   assessMentalHealthSafety,
   buildMentalHealthSafetyResponse,
   type MentalHealthConversationMessage,
