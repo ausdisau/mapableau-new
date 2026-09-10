@@ -163,16 +163,25 @@ function addBooleanObservation(
   }
   if (parsed.value === null) return;
 
+  const limitations = [
+    "Government dataset assertion; not independently inspected by MapAble.",
+  ];
+  let confidence = parsed.value ? 0.8 : 0.7;
+  if (mapping.field === "MLAKAfterHours") {
+    confidence = Math.min(confidence, 0.6);
+    limitations.push(
+      "Official NPTM documentation differs on whether MLAKAfterHours means MLAK is required after hours or can be used after scheduled hours; MapAble preserves the positive flag without choosing either interpretation.",
+    );
+  }
+
   observations.push({
     featureKey: mapping.featureKey,
     ontologyConceptId: mapping.ontologyConceptId,
     value: parsed.value,
     unit: null,
     sourceField: mapping.field,
-    confidence: parsed.value ? 0.8 : 0.7,
-    limitations: [
-      "Government dataset assertion; not independently inspected by MapAble.",
-    ],
+    confidence,
+    limitations,
   });
 }
 
@@ -258,7 +267,7 @@ export function normalizeNationalPublicToiletRecord(
     ["AdultChange", "toilet.adult_change", "self_care_continence.adult_change"],
     ["ChangingPlaces", "toilet.changing_places", "self_care_continence.changing_places"],
     ["MLAK24", "toilet.mlak.required_24h", "self_care_continence.mlak_required_24h"],
-    ["MLAKAfterHours", "toilet.mlak.required_after_hours", "self_care_continence.mlak_required_after_hours"],
+    ["MLAKAfterHours", "toilet.mlak.after_hours", "self_care_continence.mlak_after_hours_access"],
   ] as const;
   for (const [sourceField, featureKey, ontologyConceptId] of mappings) {
     addBooleanObservation(
