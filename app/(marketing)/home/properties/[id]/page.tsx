@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { canonicalAlternate } from "@/lib/config/canonical-url";
 import { homeLivingConfig } from "@/lib/config/abilitypay-home-living";
+import { canonicalAlternate } from "@/lib/config/canonical-url";
 import {
   getPublishedPropertyDetail,
   HomeDiscoveryDisabledError,
