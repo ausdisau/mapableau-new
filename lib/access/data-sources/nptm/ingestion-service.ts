@@ -522,6 +522,7 @@ export async function ingestNationalPublicToiletMapCsv(input: {
         },
       });
 
+      let itemHasConflict = false;
       for (const observation of facility.observations) {
         const action = await persistObservation({
           facility,
@@ -533,20 +534,23 @@ export async function ingestNationalPublicToiletMapCsv(input: {
           licenceId,
           retrievedAt: input.retrievedAt,
         });
-        if (action === "DUPLICATE") summary.duplicates += 1;
-        else {
-          summary.observationsCreated += 1;
-          if (action === "SUPERSEDE") summary.superseded += 1;
-          if (action === "CONFLICT") summary.conflicts += 1;
+        if (action === "DUPLICATE") {
+          summary.duplicates += 1;
+          continue;
+        }
+
+        summary.observationsCreated += 1;
+        if (action === "SUPERSEDE") summary.superseded += 1;
+        if (action === "CONFLICT") {
+          summary.conflicts += 1;
+          itemHasConflict = true;
         }
       }
 
       summary.acceptedFacilities += 1;
       await prisma.accessImportItem.update({
         where: { id: importItem.id },
-        data: {
-          status: summary.conflicts > 0 ? "conflict" : "accepted",
-        },
+        data: { status: itemHasConflict ? "conflict" : "accepted" },
       });
     }
 
