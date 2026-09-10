@@ -27,10 +27,6 @@ vi.mock("@/lib/access/infrastructure/observation-service", () => ({
   createAccessObservation: vi.fn(),
 }));
 
-import { createAccessObservation } from "@/lib/access/infrastructure/observation-service";
-import { findDuplicatePlaceCandidates } from "@/lib/access/import/import-deduplication-service";
-import { createImportJob } from "@/lib/access/import/access-import-job-service";
-import { createAccessPlace } from "@/lib/access/map/access-place-service";
 import {
   buildNptmObservationFingerprint,
   normalizeNationalPublicToiletRecord,
@@ -39,6 +35,10 @@ import {
   NptmIngestionDisabledError,
   ingestNationalPublicToiletMapCsv,
 } from "@/lib/access/data-sources/nptm/ingestion-service";
+import { createImportJob } from "@/lib/access/import/access-import-job-service";
+import { findDuplicatePlaceCandidates } from "@/lib/access/import/import-deduplication-service";
+import { createAccessObservation } from "@/lib/access/infrastructure/observation-service";
+import { createAccessPlace } from "@/lib/access/map/access-place-service";
 import { prisma } from "@/lib/prisma";
 
 const MINIMAL_CSV = [
