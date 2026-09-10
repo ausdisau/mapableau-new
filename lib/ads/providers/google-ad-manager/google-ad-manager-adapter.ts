@@ -1,8 +1,8 @@
 import type { AdsFlagEnv } from "@/lib/ads/config/flags";
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { getPlacement } from "@/lib/ads/placement-registry";
-import type { AdProviderAdapter } from "@/lib/ads/providers/adapter";
 import { sanitizeExternalAdContext } from "@/lib/ads/privacy/sanitize-external-context";
+import type { AdProviderAdapter } from "@/lib/ads/providers/adapter";
 import type {
   AdPlacementRequest,
   AdProviderCapabilities,

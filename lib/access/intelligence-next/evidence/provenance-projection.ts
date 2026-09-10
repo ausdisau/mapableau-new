@@ -4,8 +4,9 @@ import {
   type AccessGraphAssertionProvenance,
 } from "@mapable/contracts";
 
-import type { AccessEvidenceClass } from "./classes";
 import type { TemporalAccessState } from "../temporal/vocabulary";
+
+import type { AccessEvidenceClass } from "./classes";
 
 export function projectEvidenceClassToProvenance(input: {
   evidenceClass: AccessEvidenceClass;

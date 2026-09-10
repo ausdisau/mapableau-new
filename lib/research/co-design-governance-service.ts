@@ -1,18 +1,19 @@
 import type { Prisma } from "@prisma/client";
-import type {
-  ResearchConsentPurpose,
-  ResearchParticipationRole,
-} from "@mapable/research";
-import {
-  assertResearchConsentForCollection,
-  canCollectResearchData,
-  isResearchConsentActive,
-} from "@mapable/research";
+
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { ensureResearchGovernanceEnabled } from "@/lib/config/analytics-research";
 import { checkConsent } from "@/lib/consent/consent-service";
 import { prisma } from "@/lib/prisma";
+import {
+  assertResearchConsentForCollection,
+  canCollectResearchData,
+  isResearchConsentActive,
+} from "@mapable/research";
+import type {
+  ResearchConsentPurpose,
+  ResearchParticipationRole,
+} from "@mapable/research";
 
 export async function createCoDesignProgramme(params: {
   title: string;
