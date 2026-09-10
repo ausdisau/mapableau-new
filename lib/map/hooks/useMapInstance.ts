@@ -1,6 +1,6 @@
 "use client";
 
-import maplibregl from "maplibre-gl";
+import { Map as MapLibreMap, NavigationControl } from "maplibre-gl";
 import { useEffect, useState, type RefObject } from "react";
 
 export type MapInstanceConfig = {
@@ -14,13 +14,13 @@ export type MapInstanceConfig = {
 export function useMapInstance(
   containerRef: RefObject<HTMLDivElement | null>,
   config: MapInstanceConfig,
-): maplibregl.Map | null {
-  const [map, setMap] = useState<maplibregl.Map | null>(null);
+): MapLibreMap | null {
+  const [map, setMap] = useState<MapLibreMap | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const instance = new maplibregl.Map({
+    const instance = new MapLibreMap({
       container: containerRef.current,
       style: config.styleUrl,
       center: [config.center.lng, config.center.lat],
@@ -28,7 +28,7 @@ export function useMapInstance(
       attributionControl: {},
     });
 
-    instance.addControl(new maplibregl.NavigationControl(), "top-left");
+    instance.addControl(new NavigationControl(), "top-left");
     setMap(instance);
 
     return () => {
