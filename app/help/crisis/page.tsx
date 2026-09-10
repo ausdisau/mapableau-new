@@ -1,8 +1,14 @@
 import { CrisisHumanAssistanceCard } from "@/components/crisis/CrisisHumanAssistanceCard";
+import { ParticipantSupportPlanCard } from "@/components/crisis/ParticipantSupportPlanCard";
 import {
   NATIONAL_CRISIS_REFERRALS,
   STATE_MENTAL_HEALTH_TRIAGE,
 } from "@/lib/ask-mapable/crisis-referrals";
+import {
+  MENTAL_HEALTH_STEP_DOWN_REFERRALS,
+  specialisedSafeguardingReferrals,
+  type StepDownReferral,
+} from "@/lib/ask-mapable/step-down-referrals";
 
 export const metadata = {
   title: "Crisis support | MapAble",
@@ -65,7 +71,55 @@ function ReferralCard({
   );
 }
 
+function StepDownReferralCard({ referral }: { referral: StepDownReferral }) {
+  return (
+    <article className="rounded-xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-bold">{referral.name}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {referral.availability}
+          </p>
+        </div>
+        <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+          non-crisis
+        </span>
+      </div>
+      <p className="mt-3 text-sm leading-6">{referral.description}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {referral.phone ? (
+          <a
+            href={`tel:${referral.phone.replace(/\s/g, "")}`}
+            className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Call {referral.phone}
+          </a>
+        ) : null}
+        {referral.text ? (
+          <span className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 text-sm">
+            Text {referral.text}
+          </span>
+        ) : null}
+        <a
+          href={referral.href}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Official service
+        </a>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Showing this option does not mean the service has accepted a referral.
+        Verified {referral.verifiedAt}.
+      </p>
+    </article>
+  );
+}
+
 export default function CrisisSupportPage() {
+  const safeguardingReferrals = specialisedSafeguardingReferrals();
+
   return (
     <main className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
       <header className="space-y-3">
@@ -137,6 +191,8 @@ export default function CrisisSupportPage() {
 
       <CrisisHumanAssistanceCard />
 
+      <ParticipantSupportPlanCard />
+
       <section id="state-triage" aria-labelledby="state-triage-heading" className="space-y-4 scroll-mt-24">
         <div>
           <h2 id="state-triage-heading" className="text-2xl font-bold">
@@ -155,12 +211,56 @@ export default function CrisisSupportPage() {
         </div>
       </section>
 
+      <section
+        id="follow-on-support"
+        aria-labelledby="follow-on-support-heading"
+        className="space-y-4 scroll-mt-24"
+      >
+        <div>
+          <h2 id="follow-on-support-heading" className="text-2xl font-bold">
+            Follow-on and non-crisis support
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            These pathways can help with health or mental-health navigation when
+            you are not relying on them as an emergency response. If there is
+            immediate danger, use 000 or a crisis pathway above instead.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {MENTAL_HEALTH_STEP_DOWN_REFERRALS.map((referral) => (
+            <StepDownReferralCard key={referral.id} referral={referral} />
+          ))}
+        </div>
+      </section>
+
+      <section
+        id="violence-abuse-support"
+        aria-labelledby="violence-abuse-support-heading"
+        className="space-y-4 scroll-mt-24"
+      >
+        <div>
+          <h2 id="violence-abuse-support-heading" className="text-2xl font-bold">
+            Domestic, family or sexual violence support
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This specialised pathway is shown separately. MapAble should not
+            infer abuse from general distress or force this option on someone.
+          </p>
+        </div>
+        <div className="grid gap-4">
+          {safeguardingReferrals.map((referral) => (
+            <StepDownReferralCard key={referral.id} referral={referral} />
+          ))}
+        </div>
+      </section>
+
       <section className="rounded-xl border border-border bg-card p-5">
         <h2 className="text-xl font-bold">What MapAble will and will not do</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6">
           <li>It can show verified pathways and help you choose a communication channel.</li>
           <li>It can record a participant-requested MapAble human-review request without copying crisis free text into the handoff record.</li>
-          <li>It can help prepare a short message describing what you want a service to know, but sending or sharing remains a separate participant-controlled step.</li>
+          <li>It can help you write a support plan locally and prepare a preview containing only sections you select.</li>
+          <li>It will not automatically save or send the local support-plan draft.</li>
           <li>It will not claim an external service accepted a referral unless that service confirms it.</li>
           <li>It will not silently send your conversation, disability information, location or contacts to another service.</li>
           <li>It will not use a suicide-risk score as a substitute for human clinical assessment.</li>
@@ -168,10 +268,10 @@ export default function CrisisSupportPage() {
       </section>
 
       <p className="text-xs text-muted-foreground">
-        Crisis contact information is maintained from official Australian service
-        sources and should be re-verified regularly. If a listed pathway appears
-        unavailable, use 000 for immediate danger or another national crisis
-        service above.
+        Crisis and referral contact information is maintained from official
+        Australian service sources and should be re-verified regularly. If a
+        listed pathway appears unavailable, use 000 for immediate danger or
+        another national crisis service above.
       </p>
     </main>
   );

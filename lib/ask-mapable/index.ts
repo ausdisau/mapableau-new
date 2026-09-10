@@ -68,6 +68,21 @@ export {
   type CrisisHumanHandoffState,
 } from "./crisis-handoff";
 export {
+  PARTICIPANT_SUPPORT_PLAN_FIELDS,
+  buildConsentedSupportSummary,
+  createEmptyParticipantSupportPlan,
+  normaliseParticipantSupportPlan,
+  type ConsentedSupportSummary,
+  type ParticipantSupportPlan,
+  type ParticipantSupportPlanField,
+} from "./participant-support-plan";
+export {
+  MENTAL_HEALTH_STEP_DOWN_REFERRALS,
+  specialisedSafeguardingReferrals,
+  type StepDownReferral,
+  type StepDownReferralCategory,
+} from "./step-down-referrals";
+export {
   assessMentalHealthSafety,
   buildMentalHealthSafetyResponse,
   type MentalHealthConversationMessage,
