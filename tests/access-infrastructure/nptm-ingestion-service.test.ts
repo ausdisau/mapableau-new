@@ -265,4 +265,43 @@ describe("National Public Toilet Map ingestion service", () => {
       }),
     );
   });
+
+  it("withdraws an earlier positive-only NPTM assertion to unknown when a later source row is FALSE", async () => {
+    vi.mocked(prisma.accessPlace.findFirst).mockResolvedValue({ id: "place_1" } as never);
+    vi.mocked(prisma.accessObservationRecord.findMany).mockResolvedValue([
+      {
+        id: "nptm_accessible_old",
+        featureKey: "toilet.accessible",
+        ontologyConceptId: "self_care_continence.accessible_toilet",
+        valueJson: true,
+        sourceType: "operator",
+        evidenceKinds: [
+          "government_open_data",
+          "national_public_toilet_map",
+          "nptm_source_record:123:Accessible",
+          "nptm_observation_hash:sha256:old",
+        ],
+        disputeHistory: null,
+      },
+    ] as never);
+
+    const result = await ingestNationalPublicToiletMapCsv({
+      csv: "FacilityID,URL,Name,Latitude,Longitude,Accessible\n123,https://toiletmap.gov.au/facility/123,Example Park Toilets,-33.8708,151.2073,FALSE",
+      actorId: "admin_1",
+      retrievedAt: "2026-09-11T00:00:00.000Z",
+      sourceSnapshotAt: "2026-09-01T00:00:00.000Z",
+    });
+
+    expect(result.observationsCreated).toBe(0);
+    expect(createAccessObservation).not.toHaveBeenCalled();
+    expect(prisma.accessObservationRecord.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "nptm_accessible_old" },
+        data: expect.objectContaining({
+          verificationStatus: "outdated",
+          disputeHistory: expect.anything(),
+        }),
+      }),
+    );
+  });
 });
