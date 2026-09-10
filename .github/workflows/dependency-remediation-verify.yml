@@ -1,0 +1,65 @@
+name: Dependency remediation verification
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - pnpm-lock.yaml
+      - .github/workflows/dependency-remediation-verify.yml
+  workflow_dispatch:
+
+concurrency:
+  group: dependency-remediation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Dependency security and compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      MAPABLE_BUILD_HEAP_MB: "6144"
+      NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production-use-32chars
+      NEXTAUTH_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Frozen install
+        run: pnpm install --frozen-lockfile
+
+      - name: Production dependency audit
+        run: pnpm ci:prod-audit
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate
+
+      - name: Prisma generate
+        run: pnpm exec prisma generate
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: MapLibre regression
+        run: pnpm exec vitest run tests/map-colors.test.ts
+
+      - name: OpenAI agent platform regression
+        run: pnpm test:ai-platform
+
+      - name: Production build
+        run: pnpm build
