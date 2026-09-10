@@ -1,0 +1,112 @@
+name: Lint component exact-file autofix
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/lint-components-autofix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  autofix:
+    if: github.head_ref == 'fix/repository-lint-hygiene'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply ESLint fixes only to the frozen component baseline
+        env:
+          ESLINT_CI_LIGHT: "1"
+          NODE_OPTIONS: --max-old-space-size=4096
+        shell: bash
+        run: |
+          pnpm exec eslint --fix \
+            components/access/AccessMapLayer.tsx \
+            components/access/MapAbleAccessShell.tsx \
+            components/accessibility-map/AccessibilityMapLanding.tsx \
+            components/accessibility-map/OpenStreetMapView.tsx \
+            components/accessibility-map/OpenStreetMapViewInner.tsx \
+            components/ads/mapable/GoogleAdSlot.tsx \
+            components/labs/ChoicePanel.tsx \
+            components/layout/UnifiedParticipantShell.tsx \
+            components/navigator/NavigatorPilotJourney.tsx \
+            components/ui/skeleton.tsx || true
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('components/access/AccessMapLayer.tsx')
+          s = p.read_text()
+          s = s.replace('import { useMemo, useRef, useState } from "react";', 'import { useMemo, useRef } from "react";')
+          p.write_text(s)
+
+          p = Path('components/ui/skeleton.tsx')
+          s = p.read_text()
+          s = s.replace('import type { HTMLAttributes } from "react";\n\n', '')
+          p.write_text(s)
+
+          p = Path('components/navigator/NavigatorPilotJourney.tsx')
+          s = p.read_text()
+          s = s.replace('const [humanHelpRequested, setHumanHelpRequested] = useState(false);', 'const [humanHelpRequested] = useState(false);')
+          p.write_text(s)
+          PY
+
+      - name: Verify exact component slice
+        env:
+          ESLINT_CI_LIGHT: "1"
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: >-
+          pnpm exec eslint --max-warnings 0
+          components/access/AccessMapLayer.tsx
+          components/access/MapAbleAccessShell.tsx
+          components/accessibility-map/AccessibilityMapLanding.tsx
+          components/accessibility-map/OpenStreetMapView.tsx
+          components/accessibility-map/OpenStreetMapViewInner.tsx
+          components/ads/mapable/GoogleAdSlot.tsx
+          components/labs/ChoicePanel.tsx
+          components/layout/UnifiedParticipantShell.tsx
+          components/navigator/NavigatorPilotJourney.tsx
+          components/ui/skeleton.tsx
+
+      - name: Commit exact-file fixes
+        shell: bash
+        run: |
+          if git diff --quiet -- components; then
+            echo "No component fixes required"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            components/access/AccessMapLayer.tsx \
+            components/access/MapAbleAccessShell.tsx \
+            components/accessibility-map/AccessibilityMapLanding.tsx \
+            components/accessibility-map/OpenStreetMapView.tsx \
+            components/accessibility-map/OpenStreetMapViewInner.tsx \
+            components/ads/mapable/GoogleAdSlot.tsx \
+            components/labs/ChoicePanel.tsx \
+            components/layout/UnifiedParticipantShell.tsx \
+            components/navigator/NavigatorPilotJourney.tsx \
+            components/ui/skeleton.tsx
+          git commit -m "fix(lint): clean component lint baseline"
+          git push origin HEAD:${{ github.head_ref }}
