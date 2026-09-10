@@ -64,6 +64,8 @@ jobs:
         run: pnpm type-check
 
       - name: Lint NPTM slice
+        env:
+          ESLINT_CI_LIGHT: "1"
         run: >-
           pnpm exec eslint
           lib/access/data-sources/nptm.ts
