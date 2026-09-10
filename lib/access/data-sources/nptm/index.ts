@@ -59,11 +59,10 @@ export type NptmObservationChangePlan = {
 };
 
 /**
- * Fields introduced as new flags in Toilet Map v5 are positive-evidence-only.
- * The publisher's October 2021 release notes say new flags were initially set
- * FALSE and should only be relied on when TRUE until information providers had
- * supplied sufficient updates. A FALSE in these fields is therefore omitted,
- * not converted into evidence that the feature is absent.
+ * NPTM v5 release notes say newly introduced flags were initially FALSE and
+ * should only be relied on when TRUE until information providers update them.
+ * A FALSE in these fields is therefore unknown/no assertion, not proof of
+ * absence. This is deliberately field-level rather than a generic CSV rule.
  */
 const POSITIVE_EVIDENCE_ONLY_BOOLEAN_FIELDS = new Set([
   "MLAKAfterHours",
@@ -82,9 +81,7 @@ function sha256(value: string): string {
 }
 
 function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value);
-  }
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) {
     return `[${value.map((item) => stableStringify(item)).join(",")}]`;
   }
@@ -106,11 +103,8 @@ function canonicalRecord(
   );
 }
 
-function text(
-  input: NationalPublicToiletMapRecord,
-  key: string,
-): string | null {
-  const value = input[key]?.trim();
+function text(record: NationalPublicToiletMapRecord, key: string): string | null {
+  const value = record[key]?.trim();
   return value ? value : null;
 }
 
@@ -123,33 +117,23 @@ function parseBooleanToken(value: string | null): boolean | null {
 }
 
 function sourceBoolean(
-  input: NationalPublicToiletMapRecord,
+  record: NationalPublicToiletMapRecord,
   field: string,
 ): { value: boolean | null; positiveOnlyFalse: boolean } {
-  const parsed = parseBooleanToken(text(input, field));
-  if (
-    parsed === false &&
-    POSITIVE_EVIDENCE_ONLY_BOOLEAN_FIELDS.has(field)
-  ) {
+  const parsed = parseBooleanToken(text(record, field));
+  if (parsed === false && POSITIVE_EVIDENCE_ONLY_BOOLEAN_FIELDS.has(field)) {
     return { value: null, positiveOnlyFalse: true };
   }
   return { value: parsed, positiveOnlyFalse: false };
 }
 
-function parseCoordinate(
-  raw: string | null,
-  min: number,
-  max: number,
-): number | null {
+function parseCoordinate(raw: string | null, min: number, max: number): number | null {
   if (!raw) return null;
   const value = Number(raw);
-  if (!Number.isFinite(value) || value < min || value > max) return null;
-  return value;
+  return Number.isFinite(value) && value >= min && value <= max ? value : null;
 }
 
-function buildAccessInformation(
-  record: NationalPublicToiletMapRecord,
-): string | null {
+function buildAccessInformation(record: NationalPublicToiletMapRecord): string | null {
   const parts = [
     ["Access", text(record, "AccessNote")],
     ["Opening hours", text(record, "OpeningHoursNote")],
@@ -158,38 +142,33 @@ function buildAccessInformation(
     ["Address", text(record, "AddressNote")],
   ] as const;
 
-  const populated = parts
-    .filter((item): item is readonly [string, string] => item[1] !== null)
-    .map(([label, value]) => `${label}: ${value}`);
-
+  const populated = parts.flatMap(([label, value]) =>
+    value === null ? [] : [`${label}: ${value}`],
+  );
   return populated.length ? populated.join(" | ") : null;
 }
 
 function addBooleanObservation(
-  target: NptmNormalisedObservation[],
+  observations: NptmNormalisedObservation[],
   record: NationalPublicToiletMapRecord,
-  input: {
-    field: string;
-    featureKey: string;
-    ontologyConceptId: string;
-  },
+  mapping: { field: string; featureKey: string; ontologyConceptId: string },
   facilityLimitations: string[],
 ): void {
-  const parsed = sourceBoolean(record, input.field);
+  const parsed = sourceBoolean(record, mapping.field);
   if (parsed.positiveOnlyFalse) {
     facilityLimitations.push(
-      `${input.field}=FALSE is not treated as negative evidence because the NPTM v5 release notes say newly introduced flags should only be relied on when TRUE until source providers have updated them.`,
+      `${mapping.field}=FALSE is not treated as negative evidence; this NPTM v5 flag is positive-evidence-only until source providers have updated it.`,
     );
     return;
   }
   if (parsed.value === null) return;
 
-  target.push({
-    featureKey: input.featureKey,
-    ontologyConceptId: input.ontologyConceptId,
+  observations.push({
+    featureKey: mapping.featureKey,
+    ontologyConceptId: mapping.ontologyConceptId,
     value: parsed.value,
     unit: null,
-    sourceField: input.field,
+    sourceField: mapping.field,
     confidence: parsed.value ? 0.8 : 0.7,
     limitations: [
       "Government dataset assertion; not independently inspected by MapAble.",
@@ -201,10 +180,7 @@ export function fingerprintNptmDataset(csv: string): string {
   return sha256(csv);
 }
 
-/**
- * RFC-4180-style CSV parser sufficient for the NPTM export: quoted commas,
- * doubled quote escapes, CRLF/LF line endings, and embedded newlines.
- */
+/** RFC-4180 style parser supporting quoted commas/newlines and doubled quotes. */
 export function parseNationalPublicToiletMapCsv(
   csv: string,
 ): NationalPublicToiletMapRecord[] {
@@ -232,23 +208,16 @@ export function parseNationalPublicToiletMapCsv(
       } else {
         quoted = !quoted;
       }
-      continue;
-    }
-
-    if (!quoted && char === ",") {
+    } else if (!quoted && char === ",") {
       pushField();
-      continue;
-    }
-
-    if (!quoted && (char === "\n" || char === "\r")) {
+    } else if (!quoted && (char === "\n" || char === "\r")) {
       if (char === "\r" && csv[index + 1] === "\n") index += 1;
       pushRow();
-      continue;
+    } else {
+      field += char;
     }
-
-    field += char;
   }
-
+  if (quoted) throw new Error("NPTM_CSV_UNTERMINATED_QUOTED_FIELD");
   if (field.length > 0 || row.length > 0) pushRow();
   if (!rows.length) return [];
 
@@ -260,9 +229,7 @@ export function parseNationalPublicToiletMapCsv(
   }
 
   return rows.slice(1).map((values) =>
-    Object.fromEntries(
-      headers.map((header, index) => [header, values[index] ?? ""]),
-    ),
+    Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""])),
   );
 }
 
@@ -273,98 +240,34 @@ export function normalizeNationalPublicToiletRecord(
   const sourceRecordId = text(record, "FacilityID");
   if (!sourceRecordId) throw new Error("NPTM_RECORD_MISSING_FACILITY_ID");
 
-  const name = text(record, "Name") ?? `Public toilet ${sourceRecordId}`;
   const latitude = parseCoordinate(text(record, "Latitude"), -90, 90);
   const longitude = parseCoordinate(text(record, "Longitude"), -180, 180);
-  const limitations: string[] = [
+  const limitations = [
     "NPTM source snapshot date is not a MapAble on-site inspection date.",
   ];
-
   if (latitude === null || longitude === null) {
     limitations.push("Source record has missing or invalid coordinates.");
   }
 
   const observations: NptmNormalisedObservation[] = [];
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "Accessible",
-      featureKey: "toilet.accessible",
-      ontologyConceptId: "self_care_continence.accessible_toilet",
-    },
-    limitations,
-  );
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "Ambulant",
-      featureKey: "toilet.ambulant",
-      ontologyConceptId: "self_care_continence.ambulant_toilet",
-    },
-    limitations,
-  );
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "LHTransfer",
-      featureKey: "toilet.transfer.left",
-      ontologyConceptId: "self_care_continence.left_hand_transfer",
-    },
-    limitations,
-  );
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "RHTransfer",
-      featureKey: "toilet.transfer.right",
-      ontologyConceptId: "self_care_continence.right_hand_transfer",
-    },
-    limitations,
-  );
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "AdultChange",
-      featureKey: "toilet.adult_change",
-      ontologyConceptId: "self_care_continence.adult_change",
-    },
-    limitations,
-  );
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "ChangingPlaces",
-      featureKey: "toilet.changing_places",
-      ontologyConceptId: "self_care_continence.changing_places",
-    },
-    limitations,
-  );
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "MLAK24",
-      featureKey: "toilet.mlak.required_24h",
-      ontologyConceptId: "self_care_continence.mlak_required_24h",
-    },
-    limitations,
-  );
-  addBooleanObservation(
-    observations,
-    record,
-    {
-      field: "MLAKAfterHours",
-      featureKey: "toilet.mlak.required_after_hours",
-      ontologyConceptId: "self_care_continence.mlak_required_after_hours",
-    },
-    limitations,
-  );
+  const mappings = [
+    ["Accessible", "toilet.accessible", "self_care_continence.accessible_toilet"],
+    ["Ambulant", "toilet.ambulant", "self_care_continence.ambulant_toilet"],
+    ["LHTransfer", "toilet.transfer.left", "self_care_continence.left_hand_transfer"],
+    ["RHTransfer", "toilet.transfer.right", "self_care_continence.right_hand_transfer"],
+    ["AdultChange", "toilet.adult_change", "self_care_continence.adult_change"],
+    ["ChangingPlaces", "toilet.changing_places", "self_care_continence.changing_places"],
+    ["MLAK24", "toilet.mlak.required_24h", "self_care_continence.mlak_required_24h"],
+    ["MLAKAfterHours", "toilet.mlak.required_after_hours", "self_care_continence.mlak_required_after_hours"],
+  ] as const;
+  for (const [sourceField, featureKey, ontologyConceptId] of mappings) {
+    addBooleanObservation(
+      observations,
+      record,
+      { field: sourceField, featureKey, ontologyConceptId },
+      limitations,
+    );
+  }
 
   const openingHours = text(record, "OpeningHours");
   if (openingHours) {
@@ -376,7 +279,7 @@ export function normalizeNationalPublicToiletRecord(
       sourceField: "OpeningHours",
       confidence: 0.7,
       limitations: [
-        "Publisher-supplied schedule; current opening must still pass freshness checks.",
+        "Publisher-supplied schedule; current opening must pass freshness checks.",
       ],
     });
   }
@@ -391,33 +294,26 @@ export function normalizeNationalPublicToiletRecord(
       sourceField: "AccessNote+OpeningHoursNote+ToiletNote+AdultChangeNote+AddressNote",
       confidence: 0.65,
       limitations: [
-        "Free-text source information is displayed as evidence, not converted into an accessibility guarantee.",
+        "Free-text source information is evidence, not an accessibility guarantee.",
       ],
     });
   }
 
   const canonical = canonicalRecord(record);
-  const sourceUri =
-    text(record, "URL") ??
-    `https://toiletmap.gov.au/facility/${encodeURIComponent(sourceRecordId)}`;
-  const addressText = [
-    text(record, "Address1"),
-    text(record, "Town"),
-    text(record, "State"),
-  ]
+  const addressText = [text(record, "Address1"), text(record, "Town"), text(record, "State")]
     .filter((value): value is string => value !== null)
     .join(", ");
 
   return {
     sourceRecordId,
-    sourceUri,
-    name,
+    sourceUri:
+      text(record, "URL") ??
+      `https://toiletmap.gov.au/facility/${encodeURIComponent(sourceRecordId)}`,
+    name: text(record, "Name") ?? `Public toilet ${sourceRecordId}`,
     facilityType: text(record, "FacilityType"),
     addressText: addressText || null,
     location:
-      latitude === null || longitude === null
-        ? null
-        : { latitude, longitude },
+      latitude === null || longitude === null ? null : { latitude, longitude },
     observations,
     limitations: [...new Set(limitations)],
     canonicalRecord: canonical,
@@ -436,14 +332,14 @@ export function buildNptmProvenance(input: {
 }): NptmProvenanceEnvelope {
   const source = getDataSource(NPTM_DATA_SOURCE_ID);
   const canonical = canonicalRecord(input.canonicalRecord);
-  const recordUrl = text(canonical, "URL");
+  const sourceUri =
+    text(canonical, "URL") ??
+    `https://toiletmap.gov.au/facility/${encodeURIComponent(input.sourceRecordId)}`;
 
   const envelope: NptmProvenanceEnvelope = {
     dataSourceId: NPTM_DATA_SOURCE_ID,
     sourceRecordId: input.sourceRecordId,
-    sourceUri:
-      recordUrl ??
-      `https://toiletmap.gov.au/facility/${encodeURIComponent(input.sourceRecordId)}`,
+    sourceUri,
     retrievedAt: input.retrievedAt,
     observedAt: input.sourceSnapshotAt,
     contentHash: sha256(stableStringify(canonical)),
@@ -457,7 +353,6 @@ export function buildNptmProvenance(input: {
     confidence: 0.8,
     machineDerived: false,
   };
-
   validateProvenanceEnvelope(envelope);
   return envelope;
 }
@@ -472,22 +367,18 @@ export function planNptmObservationChange(input: {
       return { action, preserveExisting: true, conflicting: [] };
     }
   }
-
   for (const existing of input.existing) {
     const action = classifyObservationChange({ existing, incoming: input.incoming });
     if (action === "SUPERSEDE") {
       return { action, preserveExisting: true, conflicting: [existing] };
     }
   }
-
   const conflicting = input.existing.filter(
     (existing) =>
-      classifyObservationChange({ existing, incoming: input.incoming }) ===
-      "CONFLICT",
+      classifyObservationChange({ existing, incoming: input.incoming }) === "CONFLICT",
   );
   if (conflicting.length) {
     return { action: "CONFLICT", preserveExisting: true, conflicting };
   }
-
   return { action: "CREATE", preserveExisting: false, conflicting: [] };
 }
