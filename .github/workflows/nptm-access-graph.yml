@@ -33,6 +33,8 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=4096
       NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production-use-32chars
       NEXTAUTH_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
 
     steps:
       - name: Checkout
