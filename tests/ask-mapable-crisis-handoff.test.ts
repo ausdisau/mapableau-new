@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const createAgentRun = vi.fn();
+const mocks = vi.hoisted(() => ({
+  createAgentRun: vi.fn(),
+}));
 
 vi.mock("@/lib/ai/agent-ops/agent-run-service", () => ({
-  createAgentRun,
+  createAgentRun: mocks.createAgentRun,
 }));
 
 import {
@@ -14,8 +16,8 @@ import {
 
 describe("MapAble crisis human handoff", () => {
   beforeEach(() => {
-    createAgentRun.mockReset();
-    createAgentRun.mockResolvedValue({ id: "run-123" });
+    mocks.createAgentRun.mockReset();
+    mocks.createAgentRun.mockResolvedValue({ id: "run-123" });
   });
 
   it("keeps only allow-listed communication access values", () => {
@@ -55,7 +57,7 @@ describe("MapAble crisis human handoff", () => {
       communicationAccess: ["aac_or_typed"],
     });
 
-    expect(createAgentRun).toHaveBeenCalledWith(
+    expect(mocks.createAgentRun).toHaveBeenCalledWith(
       expect.objectContaining({
         agentType: "safeguarding_triage",
         riskTier: "high",
@@ -77,7 +79,7 @@ describe("MapAble crisis human handoff", () => {
   });
 
   it("does not pretend persistence succeeded when AgentRun is disabled", async () => {
-    createAgentRun.mockResolvedValue({ id: null, skipped: true });
+    mocks.createAgentRun.mockResolvedValue({ id: null, skipped: true });
 
     const result = await recordCrisisHumanAssistanceRequest({
       userId: "user-1",
