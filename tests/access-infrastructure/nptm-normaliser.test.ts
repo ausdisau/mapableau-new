@@ -129,31 +129,63 @@ describe("National Public Toilet Map normalisation", () => {
   });
 
   it("does not turn an untrusted FALSE for a new source flag into negative evidence", () => {
-    const row = {
-      FacilityID: "456",
-      URL: "https://toiletmap.gov.au/facility/456",
-      Name: "Example Toilets",
-      FacilityType: "Other",
-      Address1: "2 Example St",
-      Town: "Sydney",
-      State: "NSW",
-      AddressNote: "",
-      Latitude: "-33.87",
-      Longitude: "151.20",
-      MLAKAfterHours: "FALSE",
-    };
-
-    const facility = normalizeNationalPublicToiletRecord(row, {
-      retrievedAt: "2026-09-11T00:00:00.000Z",
-      sourceSnapshotAt: "2026-04-01T00:00:00.000Z",
-    });
+    const facility = normalizeNationalPublicToiletRecord(
+      {
+        FacilityID: "456",
+        URL: "https://toiletmap.gov.au/facility/456",
+        Name: "Example Toilets",
+        FacilityType: "Other",
+        Address1: "2 Example St",
+        Town: "Sydney",
+        State: "NSW",
+        Latitude: "-33.87",
+        Longitude: "151.20",
+        MLAKAfterHours: "FALSE",
+      },
+      {
+        retrievedAt: "2026-09-11T00:00:00.000Z",
+        sourceSnapshotAt: "2026-04-01T00:00:00.000Z",
+      },
+    );
 
     expect(
       facility.observations.some(
-        (o) => o.ontologyConceptId === "self_care_continence.mlak_required_after_hours",
+        (o) => o.ontologyConceptId === "self_care_continence.mlak_after_hours_access",
       ),
     ).toBe(false);
-    expect(facility.limitations.join(" ")).toMatch(/false.*not.*negative|positive evidence/i);
+    expect(facility.limitations.join(" ")).toMatch(/false.*not.*negative|positive-evidence/i);
+  });
+
+  it("preserves the official MLAKAfterHours documentation ambiguity", () => {
+    const facility = normalizeNationalPublicToiletRecord(
+      {
+        FacilityID: "457",
+        URL: "https://toiletmap.gov.au/facility/457",
+        Name: "Example Toilets",
+        Latitude: "-33.87",
+        Longitude: "151.20",
+        MLAKAfterHours: "TRUE",
+      },
+      {
+        retrievedAt: "2026-09-11T00:00:00.000Z",
+        sourceSnapshotAt: "2026-04-01T00:00:00.000Z",
+      },
+    );
+
+    const observation = facility.observations.find(
+      (o) => o.ontologyConceptId === "self_care_continence.mlak_after_hours_access",
+    );
+    expect(observation?.value).toBe(true);
+    expect(observation?.limitations.join(" ")).toMatch(/differs|required|can be used/i);
+
+    const concept = getOntologyConcept("self_care_continence.mlak_after_hours_access");
+    expect(concept?.definition).toMatch(/documentation differs/i);
+    expect(concept?.prohibitedInference).toEqual(
+      expect.arrayContaining([
+        "infer_mlak_is_required_after_hours",
+        "infer_mlak_is_optional_after_hours",
+      ]),
+    );
   });
 
   it("keeps adult change separate from Changing Places certification", () => {
