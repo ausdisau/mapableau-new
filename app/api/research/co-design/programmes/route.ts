@@ -22,7 +22,8 @@ export async function POST(req: Request) {
   try {
     body = await parseJsonRequestBody(req);
   } catch (e) {
-    return jsonBodyErrorResponse(e);
+    const error = jsonBodyErrorResponse(e);
+    return jsonError(error.message, error.status);
   }
 
   const parsed = createCoDesignProgrammeInputSchema.safeParse(body);
