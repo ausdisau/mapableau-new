@@ -1,3 +1,4 @@
+import { CrisisHumanAssistanceCard } from "@/components/crisis/CrisisHumanAssistanceCard";
 import {
   NATIONAL_CRISIS_REFERRALS,
   STATE_MENTAL_HEALTH_TRIAGE,
@@ -134,6 +135,8 @@ export default function CrisisSupportPage() {
         </p>
       </section>
 
+      <CrisisHumanAssistanceCard />
+
       <section id="state-triage" aria-labelledby="state-triage-heading" className="space-y-4 scroll-mt-24">
         <div>
           <h2 id="state-triage-heading" className="text-2xl font-bold">
@@ -156,7 +159,8 @@ export default function CrisisSupportPage() {
         <h2 className="text-xl font-bold">What MapAble will and will not do</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6">
           <li>It can show verified pathways and help you choose a communication channel.</li>
-          <li>It can help prepare a short message describing what you want a service to know.</li>
+          <li>It can record a participant-requested MapAble human-review request without copying crisis free text into the handoff record.</li>
+          <li>It can help prepare a short message describing what you want a service to know, but sending or sharing remains a separate participant-controlled step.</li>
           <li>It will not claim an external service accepted a referral unless that service confirms it.</li>
           <li>It will not silently send your conversation, disability information, location or contacts to another service.</li>
           <li>It will not use a suicide-risk score as a substitute for human clinical assessment.</li>
