@@ -31,6 +31,29 @@ export const HardConstraintSchema = BaseRuleSchema.extend({
   formula: z.string(),
 });
 
-export const RuleSchema = z.union([WeightedRuleSchema, HardConstraintSchema, BaseRuleSchema]);
+const DefeasibleDefaultRuleSchema = BaseRuleSchema.extend({
+  type: z.literal("defeasible_default"),
+});
+
+const EvidenceRequirementRuleSchema = BaseRuleSchema.extend({
+  type: z.literal("evidence_requirement"),
+});
+
+const AuthorityRuleSchema = BaseRuleSchema.extend({
+  type: z.literal("authority_rule"),
+});
+
+const ContradictionRuleSchema = BaseRuleSchema.extend({
+  type: z.literal("contradiction_rule"),
+});
+
+export const RuleSchema = z.discriminatedUnion("type", [
+  WeightedRuleSchema,
+  HardConstraintSchema,
+  DefeasibleDefaultRuleSchema,
+  EvidenceRequirementRuleSchema,
+  AuthorityRuleSchema,
+  ContradictionRuleSchema,
+]);
 
 export type Rule = z.infer<typeof RuleSchema>;

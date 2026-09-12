@@ -28,7 +28,7 @@ export const FactSchema = z.object({
   tenantId: z.string(),
   subject: z.string(),
   predicate: z.string(),
-  object: z.any(),
+  object: z.any().nonoptional(),
   source: z.string().optional(),
   timestamp: z.string().optional(),
   state: FactState,

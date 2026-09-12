@@ -1,5 +1,4 @@
 import { PredicateSchema, type Predicate } from "../contracts/predicate";
-import { z } from "zod";
 
 export class PredicateRegistry {
   private byName: Map<string, Predicate> = new Map();
@@ -23,6 +22,10 @@ export class PredicateRegistry {
 
   list(): Predicate[] {
     return Array.from(this.byName.values());
+  }
+
+  clear(): void {
+    this.byName.clear();
   }
 }
 
