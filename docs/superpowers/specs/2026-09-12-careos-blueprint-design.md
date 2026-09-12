@@ -141,7 +141,7 @@ CareOS authority is subordinate to participant authority.
 CareOS Authority < Participant Authority
 ```
 
-AI execution authority is zero unless a narrow deterministic capability has been explicitly delegated through a purpose-bound, scoped, time-bounded, revocable authority path.
+AI execution authority remains zero. Separately, a narrow deterministic capability may execute only through an explicit purpose-bound, scoped, time-bounded and revocable authority path.
 
 The normal consequence path is:
 
@@ -373,7 +373,7 @@ Accessibility evidence is shared infrastructure across Care, Move, Work, Home, S
 
 ## 4.1 Navigation principle
 
-> **Navigation reflects what the person is trying to do, not how MapAble's repository is organised.**
+> **Navigation reflects what the person is trying to accomplish, not how MapAble's repository is organised.**
 
 The participant should not need to know whether an action belongs to Care, Transport, Jobs, Marketplace, AbilityPay or Access before starting.
 
