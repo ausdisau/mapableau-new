@@ -1,4 +1,8 @@
-import { buildSupportPlanShareAuthorisationConsent, type SupportPlanShareAuthorisationInput, type SupportPlanShareAuthorisationIssue } from "@/lib/ask-mapable/support-plan-share-authorisation";
+import {
+  buildSupportPlanShareAuthorisationConsent,
+  type SupportPlanShareAuthorisationInput,
+  type SupportPlanShareAuthorisationIssue,
+} from "@/lib/ask-mapable/support-plan-share-authorisation";
 import { grantConsent } from "@/lib/consent/consent-service";
 
 export type AuthoriseSupportPlanShareInput = {
@@ -28,12 +32,13 @@ export type AuthoriseSupportPlanShareResult =
 
 /**
  * Persists only the authority metadata needed for a future disclosure. The
- * participant-authored support-plan narrative is deliberately not accepted by
- * this service and is never copied into the ConsentRecord or audit metadata.
+ * participant-authored support-plan narrative may exist in the in-memory
+ * envelope so its prepared/revoked state can be verified, but it is never
+ * copied into the ConsentRecord or audit metadata.
  *
- * The envelope id is bound into sourceAction so a later transmission service
- * can prove that the consent presented belongs to this exact prepared envelope.
- * Creating this record does not send, disclose or imply receipt of any content.
+ * The envelope id is already bound into sourceAction by the authorisation
+ * builder. Creating this record does not send, disclose or imply receipt of any
+ * support-plan content.
  */
 export async function authoriseSupportPlanShare(
   input: AuthoriseSupportPlanShareInput,
@@ -54,7 +59,7 @@ export async function authoriseSupportPlanShare(
     shareMode: consent.shareMode,
     recipientType: consent.recipientType,
     dataScope: [...consent.dataScope],
-    sourceAction: `${consent.sourceAction}:${authorisation.envelopeId}`,
+    sourceAction: consent.sourceAction,
     expiryDate: consent.expiryDate,
     recordDisclosureOnGrant: consent.recordDisclosureOnGrant,
   });
