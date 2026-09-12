@@ -28,6 +28,12 @@ export interface GrantConsentInput {
   recipientType?: ConsentRecipientType;
   dataScope?: string[];
   sourceAction?: string;
+  /**
+   * Existing sharing flows default to recording a disclosure receipt when the
+   * consent is granted. Set false only when consent is being created as
+   * authority for a later, separately audited disclosure event.
+   */
+  recordDisclosureOnGrant?: boolean;
 }
 
 export async function grantConsent(input: GrantConsentInput) {
@@ -68,20 +74,22 @@ export async function grantConsent(input: GrantConsentInput) {
     action: "granted",
   });
 
-  const fieldCategories = filterFieldCategoriesForRecipient(
-    fieldCategoriesForConsentScope(input.scope),
-    input.recipientType,
-  );
+  if (input.recordDisclosureOnGrant !== false) {
+    const fieldCategories = filterFieldCategoriesForRecipient(
+      fieldCategoriesForConsentScope(input.scope),
+      input.recipientType,
+    );
 
-  await recordDisclosureReceipt({
-    actorUserId: input.createdById,
-    participantId: input.subjectUserId,
-    organisationId: input.grantedToOrganisationId,
-    purpose: input.purpose,
-    fieldCategories,
-    consentRecordId: record.id,
-    expiresAt: input.expiryDate ?? null,
-  });
+    await recordDisclosureReceipt({
+      actorUserId: input.createdById,
+      participantId: input.subjectUserId,
+      organisationId: input.grantedToOrganisationId,
+      purpose: input.purpose,
+      fieldCategories,
+      consentRecordId: record.id,
+      expiresAt: input.expiryDate ?? null,
+    });
+  }
 
   return record;
 }
