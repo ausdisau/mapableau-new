@@ -1,4 +1,3 @@
-import { buildMediationPolicy } from "@/lib/ads/config/mediation";
 import type { AdsFlagEnv } from "@/lib/ads/config/flags";
 import { adsFlagsConfig, isAdsSurfaceEnabled } from "@/lib/ads/config/flags";
 import {
@@ -6,11 +5,12 @@ import {
   isKilled,
   type KillSwitchState,
 } from "@/lib/ads/config/kill-switches";
+import { buildMediationPolicy } from "@/lib/ads/config/mediation";
 import { emitAdsEvent } from "@/lib/ads/observability/events";
 import { getPlacement } from "@/lib/ads/placement-registry";
 import { evaluateAdPolicy } from "@/lib/ads/policy/policy-engine";
-import type { AdProviderAdapter } from "@/lib/ads/providers/adapter";
 import { sanitizeExternalAdContext } from "@/lib/ads/privacy/sanitize-external-context";
+import type { AdProviderAdapter } from "@/lib/ads/providers/adapter";
 import type {
   AdPlacementFill,
   AdPlacementRequest,

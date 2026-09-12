@@ -5,14 +5,15 @@ import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { LiveRegion } from "@/components/a11y/LiveRegion";
-import { AccessExplorationLandingV2 } from "@/components/accessibility-map/AccessExplorationLandingV2";
 import { AccessNeedsTogglePanel } from "@/components/access-fit/AccessNeedsTogglePanel";
-import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
-import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
+import { AccessExplorationLandingV2 } from "@/components/accessibility-map/AccessExplorationLandingV2";
 import { VenueListCard } from "@/components/accessibility-map/VenueListCard";
 import { MapErrorBoundary } from "@/components/error/MapErrorBoundary";
+import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
+import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { isClientAccessExperienceV2Enabled } from "@/lib/access/experience/flags";
 import { DEMO_ACCESS_NEEDS, EMPTY_ACCESS_NEEDS } from "@/lib/access/fit/types";
 import { ACCESS_DISCLAIMER } from "@/lib/access/map/copy";
 import {
@@ -21,15 +22,14 @@ import {
   filterDemoPlaces,
   type DemoAccessPlace,
 } from "@/lib/demo/accessibility-places";
+import { isClientGaisLayerEnabled } from "@/lib/gais/client/flags";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 import {
   mapableCareFocusRing,
   mapableInteractiveFocusRing,
 } from "@/lib/marketing/mapable-care-tokens";
 import { toPublicVenueSpec } from "@/lib/offline/public-venue-dto";
 import { saveVenueSearchCache } from "@/lib/offline/venue-search-cache";
-import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
-import { isClientGaisLayerEnabled } from "@/lib/gais/client/flags";
-import { isClientAccessExperienceV2Enabled } from "@/lib/access/experience/flags";
 
 const VIEW_STORAGE_KEY = "mapable-accessibility-map-view";
 const RESULTS_PANEL_ID = "access-map-results-panel";

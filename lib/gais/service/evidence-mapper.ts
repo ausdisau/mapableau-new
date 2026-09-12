@@ -1,13 +1,14 @@
 import type { AccessConfidenceLevel, AccessProvenanceStatus } from "@prisma/client";
+
+
+import type { AccessSourceClass } from "@/lib/access/infrastructure/provenance";
+import type { GaisEvidenceState } from "@/lib/gais/contracts/evidence";
 import {
   gaisStateToEvidenceProvenance,
   sourceClassToEvidenceProvenance,
   storageStatusToEvidenceProvenance,
   type EvidenceProvenance,
 } from "@mapable/contracts";
-
-import type { AccessSourceClass } from "@/lib/access/infrastructure/provenance";
-import type { GaisEvidenceState } from "@/lib/gais/contracts/evidence";
 
 export function provenanceStatusToGaisEvidenceState(
   status: AccessProvenanceStatus | string | null | undefined,

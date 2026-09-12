@@ -62,6 +62,10 @@ module.exports = {
     "react/prop-types": "off",
   },
   settings: {
+    // `server-only` is a framework boundary marker resolved by Next.js/TypeScript.
+    // CI-light intentionally uses only the Node resolver, so declare only this
+    // framework marker as a core module instead of weakening import/no-unresolved.
+    "import/core-modules": ["server-only"],
     "import/resolver": isCiLight
       ? {
           node: {

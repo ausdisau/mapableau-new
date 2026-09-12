@@ -3,8 +3,8 @@
  * Reserve floors are defaults; operator overrides live in AdPlacementRule.
  */
 
-import type { PlacementCode } from "@/lib/ads/types";
 import { MICROS_PER_AUD, type AdsMicros } from "@/lib/ads/money/micros";
+import type { PlacementCode } from "@/lib/ads/types";
 
 /** Algorithm version recorded on AdAuctionResult. */
 export const AUCTION_ALGORITHM_VERSION = "mapable-qa-second-price-v1";

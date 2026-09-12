@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import type { AccessNeed } from "@/lib/access/fit/types";
 import type { DemoAccessPlace } from "@/lib/demo/accessibility-places";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 import {
   AUSTRALIA_FALLBACK_CENTER,
   AUSTRALIA_FALLBACK_ZOOM,
@@ -15,7 +16,6 @@ import {
   partitionPlacesByCoordinates,
 } from "@/lib/map/accessibilityMapUtils";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
-import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 const OpenStreetMapViewInner = dynamic(
   () =>

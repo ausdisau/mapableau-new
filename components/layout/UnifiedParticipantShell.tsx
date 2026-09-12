@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { SkipToContent } from "@/components/core/SkipToContent";
 import { MapAbleUserBar } from "@/components/layout/MapAbleUserBar";
 import {
   UnifiedParticipantMobileNav,
@@ -10,9 +11,8 @@ import {
 import { MapAbleAppCompactHeader } from "@/components/marketing/MapAbleAppCompactHeader";
 import { MapAbleCareSlimFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 import { AgencyIndicator } from "@/components/personal-agency/AgencyIndicator";
-import { SkipToContent } from "@/components/core/SkipToContent";
-import { SidebarLayout } from "@mapable/ui";
 import type { UserRole } from "@/types/mapable";
+import { SidebarLayout } from "@mapable/ui";
 
 export function UnifiedParticipantShell({
   children,

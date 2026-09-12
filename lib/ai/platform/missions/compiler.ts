@@ -1,8 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import type { MapAbleModule } from "@/intelligence/types";
-import type { MapAbleAgentActivationEntry } from "@/lib/ai/platform/agents/types";
-import type { MapAbleHumanReviewItem } from "@/lib/ai/platform/agents/types";
+import type { MapAbleAgentActivationEntry , MapAbleHumanReviewItem } from "@/lib/ai/platform/agents/types";
 
 import type {
   ContinuityAlert,

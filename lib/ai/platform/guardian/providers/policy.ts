@@ -1,6 +1,7 @@
 import type { DataClass } from "@/lib/ai/platform/types/classification";
 
 import type { ProcessingSensitivity, ProcessingZone } from "../contracts";
+
 import type { ProcessingProviderRecord } from "./contracts";
 import { listApprovedProcessingProviders } from "./registry";
 

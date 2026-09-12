@@ -1,12 +1,12 @@
 import type { DataClass } from "@/lib/ai/platform/types/classification";
 
 import type { ProcessingSensitivity } from "./contracts";
+import { maxSensitivity } from "./processing-sensitivity";
 import {
   requiredConsentScopesForPurpose,
   type GuardianPurpose,
 } from "./purpose-policy";
 import type { GuardianReasonCode } from "./reason-codes";
-import { maxSensitivity } from "./processing-sensitivity";
 
 export type PrivacyGateInput = {
   purpose: GuardianPurpose;

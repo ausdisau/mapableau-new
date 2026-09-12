@@ -1,6 +1,6 @@
-import { assertRelationalCapability, RELATIONAL_AUDIT } from "@/lib/ai/relational/gates";
 import { ndisProviderHardFilter } from "@/lib/ai/navigator/matching/search-tool";
 import type { HardConstraintsInput } from "@/lib/ai/navigator/matching/types";
+import { assertRelationalCapability, RELATIONAL_AUDIT } from "@/lib/ai/relational/gates";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { relationalIntelligenceConfig } from "@/lib/config/relational-intelligence";
 

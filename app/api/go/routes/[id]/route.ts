@@ -1,9 +1,12 @@
-import { mapableGoFlags, goFeatureDisabledResponse } from "@/lib/config/mapable-go";
-import { getRoutePlanForUser, selectRouteOption } from "@/lib/go/route-service";
 import { getPlaceById } from "@/lib/access/map/access-place-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import {
+  goFeatureDisabledResponse,
+  mapableGoFlags,
+} from "@/lib/config/mapable-go";
 import type { PlanRouteResponse } from "@/lib/go/contracts/route-contracts";
+import { getRoutePlanForUser, selectRouteOption } from "@/lib/go/route-service";
 
 export async function GET(
   _req: Request,

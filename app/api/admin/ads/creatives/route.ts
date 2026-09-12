@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import { validateAdDestination } from "@/lib/ads/destination/validate-url";
+import { flagCreativeClaims } from "@/lib/ads/moderation/creative-review";
 import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
-import { flagCreativeClaims } from "@/lib/ads/moderation/creative-review";
-import { validateAdDestination } from "@/lib/ads/destination/validate-url";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {

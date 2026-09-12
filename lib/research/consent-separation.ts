@@ -1,3 +1,9 @@
+
+import { checkConsent } from "@/lib/consent/consent-service";
+import {
+  getResearchPurposeConsent,
+  hasActiveResearchPurposeConsent,
+} from "@/lib/research/co-design-governance-service";
 import {
   coreNavigationRequiresResearchEnrolment,
   governanceRecordRetainsMinimumAuditFields,
@@ -5,12 +11,6 @@ import {
   researchConsentImpliesServiceConsent,
   serviceConsentImpliesResearchConsent,
 } from "@mapable/research";
-
-import { checkConsent } from "@/lib/consent/consent-service";
-import {
-  getResearchPurposeConsent,
-  hasActiveResearchPurposeConsent,
-} from "@/lib/research/co-design-governance-service";
 
 /** Lane separation constants — research and service consent are orthogonal. */
 export const CONSENT_LANE = {

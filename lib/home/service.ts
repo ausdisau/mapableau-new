@@ -2,19 +2,19 @@ import { randomUUID } from "crypto";
 
 import { mapableHomeFlags } from "@/lib/config/mapable-home";
 import { createSimulatorHomeAdapter } from "@/lib/home/adapters/simulator/simulator-adapter";
-import { HomeActionBroker } from "@/lib/home/core/action-broker";
-import { listHomeCapabilities } from "@/lib/home/core/capability-registry";
-import {
-  evaluateHomeRoutine,
-  listHomeRoutines,
-} from "@/lib/home/core/routine-engine";
 import type { HomeActionRequest } from "@/lib/home/contracts/action";
 import type {
   HomeAutonomyLevel,
   HomeCapabilityKind,
 } from "@/lib/home/contracts/capability";
 import type { HomeRoutineId } from "@/lib/home/contracts/routine";
+import { HomeActionBroker } from "@/lib/home/core/action-broker";
 import type { AuthorityEvaluatorContext } from "@/lib/home/core/authority-evaluator";
+import { listHomeCapabilities } from "@/lib/home/core/capability-registry";
+import {
+  evaluateHomeRoutine,
+  listHomeRoutines,
+} from "@/lib/home/core/routine-engine";
 
 let simulator = createSimulatorHomeAdapter();
 let broker = new HomeActionBroker(

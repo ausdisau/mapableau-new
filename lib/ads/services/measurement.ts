@@ -1,10 +1,11 @@
+import type { AdProviderKind } from "@prisma/client";
+
 import { billValidClick } from "@/lib/ads/billing/charge-events";
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { validateAdDestination } from "@/lib/ads/destination/validate-url";
 import { shouldRecordFirstPartyImpression } from "@/lib/ads/measurement/impressions";
 import { emitAdsEvent } from "@/lib/ads/observability/events";
 import { prisma } from "@/lib/prisma";
-import type { AdProviderKind } from "@prisma/client";
 
 export async function recordAdImpression(input: {
   decisionId: string;

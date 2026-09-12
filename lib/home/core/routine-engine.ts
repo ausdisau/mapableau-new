@@ -1,10 +1,10 @@
-import type { CapabilityState } from "../contracts/state";
 import type {
   HomeRoutine,
   HomeRoutineEvaluation,
   HomeRoutineId,
   HomeRoutineOutcome,
 } from "../contracts/routine";
+import type { CapabilityState } from "../contracts/state";
 
 export const HOME_ROUTINES: HomeRoutine[] = [
   {

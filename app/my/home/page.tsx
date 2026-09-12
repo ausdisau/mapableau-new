@@ -2,11 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { mapableHomeFlags } from "@/lib/config/mapable-home";
-import { requirePersonalAgencyGate } from "@/lib/personal-agency/gates";
 import {
   getHomeEnvironmentSnapshot,
   listSimulatorRoutines,
 } from "@/lib/home/service";
+import { requirePersonalAgencyGate } from "@/lib/personal-agency/gates";
 
 export const dynamic = "force-dynamic";
 

@@ -1,8 +1,9 @@
+import type { AdWalletLedgerType, AdWalletStatus, Prisma } from "@prisma/client";
+
 import { ADS_WALLET_CURRENCY } from "@/lib/ads/auction/config";
 import type { AdsMicros } from "@/lib/ads/money/micros";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
-import type { AdWalletLedgerType, AdWalletStatus, Prisma } from "@prisma/client";
 
 export async function getOrCreateAdWallet(input: {
   advertiserId: string;

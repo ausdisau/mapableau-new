@@ -1,6 +1,7 @@
 import type { AccessGraphAssertionProvenance } from "@mapable/contracts";
 
 import { projectEvidenceClassToProvenance } from "../evidence/provenance-projection";
+
 import type { AccessGraphEdge, AccessGraphNode } from "./types";
 
 export type AccessGraphListItemWithProvenance = {
