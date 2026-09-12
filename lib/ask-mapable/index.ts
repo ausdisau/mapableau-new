@@ -77,6 +77,17 @@ export {
   type ParticipantSupportPlanField,
 } from "./participant-support-plan";
 export {
+  buildSupportPlanShareAuthorisationConsent,
+  type SupportPlanShareAuthorisationInput,
+  type SupportPlanShareAuthorisationIssue,
+  type SupportPlanShareAuthorisationResult,
+} from "./support-plan-share-authorisation";
+export {
+  authoriseSupportPlanShare,
+  type AuthoriseSupportPlanShareInput,
+  type AuthoriseSupportPlanShareResult,
+} from "./authorise-support-plan-share";
+export {
   MENTAL_HEALTH_STEP_DOWN_REFERRALS,
   specialisedSafeguardingReferrals,
   type StepDownReferral,
