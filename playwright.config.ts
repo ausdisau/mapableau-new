@@ -13,6 +13,13 @@ const projects: Project[] = [
     testMatch: /route-shells\.spec\.ts/,
   },
   {
+    name: "ask-mapable",
+    testMatch: /ask-mapable-smoke\.spec\.ts/,
+    use: {
+      channel: "chrome",
+    },
+  },
+  {
     name: "informational",
     testMatch: /informational-routes\.spec\.ts/,
   },

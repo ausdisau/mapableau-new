@@ -1,3 +1,4 @@
+import { assessMentalHealthSafety } from "@/lib/ask-mapable";
 import type { CopilotIntent, CopilotIntentType } from "@/lib/copilot/types";
 
 const COMBINED_CARE =
@@ -50,6 +51,36 @@ export function classifyIntent(
       confidence: 0,
       filters,
       reason: "Empty query",
+    };
+  }
+
+  // Explicit suicide/self-harm language outranks product/service intents.
+  // This classifies for routing only; it does not diagnose or predict suicide.
+  const mentalHealthSafety = assessMentalHealthSafety(q);
+  if (
+    mentalHealthSafety.state === "suicidal_concern" ||
+    mentalHealthSafety.state === "immediate_danger"
+  ) {
+    return {
+      type: "health",
+      confidence: 1,
+      filters: {
+        ...filters,
+        mentalHealthSafety: {
+          state: mentalHealthSafety.state,
+          prediction: false,
+        },
+      },
+      reason: "Explicit mental-health safety language requires safety-first routing",
+    };
+  }
+
+  if (mode === "Places") {
+    return {
+      type: "places",
+      confidence: 0.9,
+      filters,
+      reason: "Places mode selected",
     };
   }
 

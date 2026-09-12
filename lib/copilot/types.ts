@@ -116,6 +116,19 @@ export type CopilotAction = {
   type: CopilotActionType;
   label: string;
   requiresConfirmation: boolean;
+  /** Optional navigation target for guidance / escalation actions. */
+  href?: string;
+};
+
+/** Ask MapAble enrichment attached by the manager layer (not a second API). */
+export type AskMapAbleMeta = {
+  brand: "Ask MapAble";
+  specialistPrimary?: string;
+  specialistSupporting?: string[];
+  specialistReason?: string;
+  hardAccessConstraints?: string[];
+  evidenceNotes?: string[];
+  pageModule?: string;
 };
 
 export type ConfirmationGateType =
@@ -216,4 +229,6 @@ export type CopilotAskResponse = {
   results?: CopilotProviderResult[];
   suggestedPrompts?: string[];
   agent?: CopilotAgentMeta;
+  /** Ask MapAble manager enrichment (constraints, specialist routing, brand). */
+  askMeta?: AskMapAbleMeta;
 };

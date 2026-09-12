@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ASK_MAPABLE_SAFE_FAILURE } from "@/lib/ask-mapable";
 import { intentLabel } from "@/lib/copilot/intentRouter";
 import type { CopilotAskResponse } from "@/lib/copilot/types";
 import { MOCK_PARTICIPANT_ID } from "@/lib/prms/mockPrmsData";
@@ -54,13 +55,13 @@ export function CopilotPanel({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Request failed");
-        setResponse(null);
-        return;
-      }
+      setError(data.error ?? ASK_MAPABLE_SAFE_FAILURE);
+      setResponse(null);
+      return;
+    }
       setResponse(data as CopilotAskResponse);
     } catch {
-      setError("Could not reach MapAble. Check your connection and try again.");
+      setError(ASK_MAPABLE_SAFE_FAILURE);
       setResponse(null);
     } finally {
       setLoading(false);
@@ -78,7 +79,7 @@ export function CopilotPanel({
             id="ask-query"
             rows={3}
             className="w-full rounded-lg border border-input bg-background px-4 py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder="e.g. I need a support worker and wheelchair transport to physio next Tuesday morning"
+            placeholder="What would you like help with? e.g. step-free entrance, accessible toilet, and power-wheelchair access near me"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

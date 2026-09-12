@@ -36,12 +36,34 @@ const TRAVEL_MODES = [
   "It changes",
 ] as const;
 
+const INFORMATION_DENSITY = [
+  {
+    value: "simpler",
+    label: "One thing at a time",
+    description: "Show fewer choices and keep each step short.",
+  },
+  {
+    value: "standard",
+    label: "A few choices",
+    description: "Show the main options without too much detail.",
+  },
+  {
+    value: "detailed",
+    label: "Show me more",
+    description: "Show more choices, explanation and supporting detail.",
+  },
+] as const;
+
+type InformationDensity = (typeof INFORMATION_DENSITY)[number]["value"];
+
 export function FirstRunSetup() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [helpAreas, setHelpAreas] = useState<string[]>([]);
   const [interfaceMethods, setInterfaceMethods] = useState<string[]>([]);
   const [travelMode, setTravelMode] = useState("");
+  const [informationDensity, setInformationDensity] =
+    useState<InformationDensity>("standard");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -62,7 +84,12 @@ export function FirstRunSetup() {
       const res = await fetch("/api/my/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ helpAreas, interfaceMethods, travelMode }),
+        body: JSON.stringify({
+          helpAreas,
+          interfaceMethods,
+          travelMode,
+          informationDensity,
+        }),
       });
       if (!res.ok) {
         setError("Could not save setup. You can continue to My MapAble.");
@@ -80,7 +107,7 @@ export function FirstRunSetup() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <p className="text-sm text-slate-600" aria-live="polite">
-        Step {step} of 4
+        Step {step} of 5
       </p>
 
       {step === 1 ? (
@@ -132,6 +159,39 @@ export function FirstRunSetup() {
       {step === 3 ? (
         <section aria-labelledby="setup-step-3">
           <h2 id="setup-step-3" className="text-2xl font-bold">
+            How much information would you like at once?
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            This is an interface preference, not a judgement about your ability.
+            You can change it later.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {INFORMATION_DENSITY.map((option) => (
+              <li key={option.value}>
+                <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
+                  <input
+                    className="mt-1"
+                    type="radio"
+                    name="informationDensity"
+                    checked={informationDensity === option.value}
+                    onChange={() => setInformationDensity(option.value)}
+                  />
+                  <span>
+                    <span className="block font-semibold">{option.label}</span>
+                    <span className="mt-1 block text-sm text-slate-600">
+                      {option.description}
+                    </span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {step === 4 ? (
+        <section aria-labelledby="setup-step-4">
+          <h2 id="setup-step-4" className="text-2xl font-bold">
             How are you travelling today?
           </h2>
           <ul className="mt-4 space-y-2">
@@ -152,9 +212,9 @@ export function FirstRunSetup() {
         </section>
       ) : null}
 
-      {step === 4 ? (
-        <section aria-labelledby="setup-step-4">
-          <h2 id="setup-step-4" className="text-2xl font-bold">
+      {step === 5 ? (
+        <section aria-labelledby="setup-step-5">
+          <h2 id="setup-step-5" className="text-2xl font-bold">
             MapAble agency
           </h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -199,7 +259,7 @@ export function FirstRunSetup() {
             Back
           </button>
         ) : null}
-        {step < 4 ? (
+        {step < 5 ? (
           <button
             type="button"
             onClick={() => setStep((s) => s + 1)}
