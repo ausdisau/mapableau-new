@@ -1,6 +1,6 @@
 "use client";
 
-import type maplibregl from "maplibre-gl";
+import type { Map as MapLibreMap } from "maplibre-gl";
 import { useMemo } from "react";
 
 import { useGeoJsonSource } from "@/lib/map/hooks/useGeoJsonSource";
@@ -13,7 +13,7 @@ function emptyCollection(): MapFeatureCollection {
 }
 
 type Props = {
-  map: maplibregl.Map | null;
+  map: MapLibreMap | null;
   data: MapFeatureCollection;
   visible: boolean;
 };
