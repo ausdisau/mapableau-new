@@ -1,10 +1,10 @@
 # Provider Finder 2.0 Convergence Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to execute this plan. Use TDD for every implementation task, run the named verification commands, and stop at the review gates. Do not merge or deploy unless separately authorised.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the production Provider Finder's synthetic/demo-provider dependency with an evidence-backed projection of the official NDIS Provider Finder registry, render it through the approved accessible MapAble experience, and prove deterministic matching, provenance, source-failure safety, list/map parity and Care handoff without changing Worker Screening yet.
 
-**Architecture:** Add typed provider-search contracts to `@mapable/domain-provider`; map `ProviderOutletRegistry` rows into a source-specific `ProviderSearchProjection`; execute matching in deterministic domain/application services; expose personalised search through `POST /api/providers/search`; and render the same projection in the public legacy-compatible Provider Finder and canonical `/support/providers` entry. The official NDIS Provider Finder source establishes that a listed provider is a registered provider; it does **not** establish provider quality, accessibility, availability, worker competence or current Commission enforcement status. Unsupported fields remain `unknown` rather than being inferred.
+**Architecture:** Add typed provider-search contracts to `@mapable/domain-provider`; map `ProviderOutletRegistry` rows into a source-specific `ProviderSearchProjection`; execute matching in deterministic domain/application services; expose personalised search through `POST /api/providers/search`; and render the same projection in the public legacy-compatible Provider Finder and canonical `/support/providers` entry. The official NDIS Provider Finder source establishes that a listed provider is a registered-provider record; it does **not** establish provider quality, accessibility, availability, worker competence or current Commission enforcement status. Unsupported fields remain `unknown` rather than being inferred.
 
 **Tech Stack:** Next.js 15 App Router, React 18, TypeScript, Zod 4, Prisma 6 / PostgreSQL (Neon), pnpm workspaces, `@mapable/domain-provider`, React Query where still useful, MapLibre, Vitest, Playwright + axe, Tailwind CSS.
 
@@ -18,47 +18,47 @@
 - Do not merge, promote, deploy to production, retire the duplicate Vercel project, or change the custom domain without separate explicit authorisation.
 - Keep Provider Finder V2 behind a default-off feature flag until preview verification is complete.
 - `ProviderOutletRegistry` is the canonical official registry source for this slice. Do not make `app/provider-finder/providers.ts` or other demo fixtures a production system of record.
-- The official NDIS Provider Finder is a directory of **registered providers**. Represent that source fact as `registered`, not as a provider-quality or accessibility badge. Commission status such as suspended/revoked belongs to a later dedicated Provider Register adapter unless current source evidence explicitly supplies it.
+- The official NDIS Provider Finder source proves only the source fact supported by that directory: the result is a registered-provider listing. Do not turn it into a provider-quality, accessibility or worker-suitability claim.
 - Unknown accessibility, communication and availability information must remain `unknown`. Do not infer wheelchair access from `In-person`, infer response times from review counts, or infer availability from registration.
 - No percentage quality score. User-visible match classes are `strong_match`, `possible_match`, and `needs_confirmation` only.
-- Sponsored content/ads may render in clearly separated placements but must never change organic candidate acquisition, filtering, match class or sorting.
+- Sponsored content may render in clearly separated placements but must never change organic candidate acquisition, filtering, match class or sorting.
 - Personalised access/communication requirements must be sent in a request body, not encoded into public URLs or analytics payloads.
 - Preserve a complete non-AI and non-map path. Ask MapAble may translate user language into an editable typed request but does not decide regulatory facts or matching policy.
 - WCAG 2.2 AA is a release gate. Automated axe checks are necessary but not sufficient; the final gate includes keyboard, screen-reader, 200% zoom/reflow and map-independent manual checks.
 - Do not require diagnosis when functional access/communication requirements are enough.
-- Do not touch Worker Screening canonical states in this plan. That is the next independent implementation programme.
-
-## Current-State File Map
-
-| Area | Current files | Planned role |
-|---|---|---|
-| Legacy Provider Finder | `app/provider-finder/page.tsx`, `app/provider-finder/ProviderFinderClient.tsx` | Compatibility entry; V2 behind flag |
-| Demo provider model/data | `app/provider-finder/providers.ts` | Retain only transitional type surface if needed; remove production demo records |
-| Official registry | `ProviderOutletRegistry` / `provider_outlets`, `prisma/seed-ndis-provider-outlets.ts` | Canonical official source for V2 |
-| Registry docs | `docs/data/ndis-provider-registry-prisma.md` | Update after cutover |
-| Official raw loader | `lib/ndis/list-providers-source.ts` | Preserve as ingestion source |
-| Legacy public JSON hook | `lib/provider/finder/provider-outlets.ts`, `use-provider-outlets.ts` | Legacy compatibility only; not V2 source |
-| NDIS registration groups | `app/provider-finder/regGroupOptions.ts` | Move pure taxonomy out of app layer |
-| Outlet/Prisma mapping | `lib/ndis/map-provider-outlet-prisma.ts`, `lib/map/mappers/provider-outlet.ts` | Remove touched app-layer dependency |
-| Existing evidence domain | `packages/domain-provider/src/index.ts` | Re-export V2 contracts/matcher |
-| Existing result UI | `components/provider-finder/ProviderFinderResultCard.tsx` | Keep legacy; add V2 evidence card |
-| Care linkage | `lib/provider/platform-org-resolver.ts`, `lib/provider/use-platform-care-link.ts` | Reuse with narrow identifiers |
-| Unified shell | `components/layout/UnifiedParticipantNav.tsx`, `UnifiedParticipantShell.tsx` | Add participant entry without duplicating domain logic |
-| SEO | `app/provider-finder/[suburb]/[service]/page.tsx`, `lib/seo/local-landing.ts`, `app/sitemap.ts` | Remove synthetic provider claims |
-| Tests | `tests/intelligence/provider-workforce.test.ts`, `tests/a11y/*` | Extend with domain/API/a11y coverage |
+- Do not touch Worker Screening canonical states in this plan. That is a separate implementation programme.
 
 ---
 
-## Task 1: Add Provider Search Contracts and Deterministic Matching
+## File Structure
+
+| Responsibility | Files |
+|---|---|
+| Domain contracts + matching | `packages/domain-provider/src/provider-search.ts`, `packages/domain-provider/src/ndis-registration-groups.ts`, `packages/domain-provider/src/index.ts` |
+| Official registry identifiers/mapping | `lib/ndis/provider-outlet-identifiers.ts`, `lib/ndis/map-provider-outlet-prisma.ts`, compatibility wrappers under `app/provider-finder/` |
+| Registry read/projection/search | `lib/provider/finder/provider-registry-repository.ts`, `provider-registry-projection.ts`, `provider-search-service.ts` |
+| API + browser client + flags | `app/api/providers/search/route.ts`, `lib/provider/finder/provider-search-client.ts`, `lib/config/provider-finder-v2.ts`, `.env.example` |
+| V2 presentation | `components/provider-finder/v2/*` |
+| Routes and unified navigation | `app/support/providers/page.tsx`, `app/provider-finder/page.tsx`, `components/layout/UnifiedParticipantNav.tsx` |
+| Production demo-data retirement | `app/provider-finder/providers.ts`, `lib/seo/local-landing.ts`, `app/provider-finder/[suburb]/[service]/page.tsx`, `app/sitemap.ts`, test fixtures |
+| Verification | `tests/provider/*`, `tests/a11y/provider-finder-v2.spec.ts`, `playwright.config.ts`, release checklist |
+
+---
+
+### Task 1: Add Provider Search Contracts and Deterministic Matching
 
 **Files:**
 - Create: `packages/domain-provider/src/provider-search.ts`
 - Modify: `packages/domain-provider/src/index.ts`
-- Create: `tests/provider/provider-search-domain.test.ts`
+- Test: `tests/provider/provider-search-domain.test.ts`
 
-### Step 1: Write the failing domain tests
+**Interfaces:**
+- Consumes: no infrastructure; only plain typed values.
+- Produces: `providerSearchRequestSchema`, `ProviderSearchRequest`, `ProviderSearchCandidate`, `ProviderSearchProjection`, `ProviderMatchClassification`, `evaluateProviderSearchCandidate(request, candidate)`, `rankProviderSearchResults(request, candidates)`.
 
-Create tests for these invariants before implementation:
+- [ ] **Step 1: Write the failing domain tests**
+
+Create `tests/provider/provider-search-domain.test.ts` with at least these cases:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -69,65 +69,98 @@ import {
   type ProviderSearchRequest,
 } from "@mapable/domain-provider";
 
+function candidate(
+  patch: Partial<ProviderSearchCandidate> = {},
+): ProviderSearchCandidate {
+  return {
+    id: "provider-a",
+    displayName: "Alpha Care",
+    legalName: null,
+    abn: "12345678901",
+    slug: "alpha-care",
+    outletKey: "alpha-1",
+    location: { suburb: "St Ives", state: "NSW", postcode: "2075" },
+    services: ["Support Coordination"],
+    registration: {
+      status: "registered",
+      source: "official_ndis_provider_finder",
+      sourceDate: "2026-09-11",
+      checkedAt: "2026-09-13T00:00:00.000Z",
+      registrationGroups: ["Support Coordination"],
+    },
+    evidence: [],
+    availability: {
+      key: "availability",
+      value: null,
+      state: "unknown",
+      sourceLabel: "Not assessed",
+    },
+    ...patch,
+  };
+}
+
 const baseRequest: ProviderSearchRequest = {
   services: ["Support Coordination"],
   fundingManagement: "ndia_managed",
   requirements: [],
+  limit: 25,
 };
 
-it("excludes a known hard mismatch", () => {
-  const result = evaluateProviderSearchCandidate(baseRequest, candidate({
-    services: ["Therapeutic Supports"],
-  }));
-  expect(result.include).toBe(false);
-  expect(result.conflicts).toContain("service:Support Coordination");
-});
+describe("provider search matching", () => {
+  it("excludes a known service mismatch", () => {
+    const result = evaluateProviderSearchCandidate(
+      baseRequest,
+      candidate({ services: ["Therapeutic Supports"] }),
+    );
+    expect(result.include).toBe(false);
+    expect(result.conflicts).toContain("service:Support Coordination");
+  });
 
-it("keeps required unknown evidence as needs confirmation", () => {
-  const request: ProviderSearchRequest = {
-    ...baseRequest,
-    requirements: [{ key: "aac_support", level: "required", value: true }],
-  };
-  const result = evaluateProviderSearchCandidate(request, candidate({ evidence: [] }));
-  expect(result.include).toBe(true);
-  expect(result.classification).toBe("needs_confirmation");
-  expect(result.unknownRequirements).toContain("aac_support");
-});
+  it("keeps required unknown evidence as needs confirmation", () => {
+    const request: ProviderSearchRequest = {
+      ...baseRequest,
+      requirements: [{ key: "aac_support", level: "required", value: true }],
+    };
+    const result = evaluateProviderSearchCandidate(request, candidate());
+    expect(result.include).toBe(true);
+    expect(result.classification).toBe("needs_confirmation");
+    expect(result.unknownRequirements).toContain("aac_support");
+  });
 
-it("does not convert registration into accessibility evidence", () => {
-  const request: ProviderSearchRequest = {
-    ...baseRequest,
-    requirements: [{ key: "step_free_entrance", level: "required", value: true }],
-  };
-  const result = evaluateProviderSearchCandidate(request, candidate({
-    registration: { status: "registered", source: "official_ndis_provider_finder" },
-    evidence: [],
-  }));
-  expect(result.classification).toBe("needs_confirmation");
-});
+  it("does not convert registration into accessibility evidence", () => {
+    const request: ProviderSearchRequest = {
+      ...baseRequest,
+      requirements: [
+        { key: "step_free_entrance", level: "required", value: true },
+      ],
+    };
+    expect(evaluateProviderSearchCandidate(request, candidate()).classification)
+      .toBe("needs_confirmation");
+  });
 
-it("uses a stable deterministic tie-breaker", () => {
-  const ranked = rankProviderSearchResults(baseRequest, [
-    candidate({ id: "b", displayName: "Zulu Care" }),
-    candidate({ id: "a", displayName: "Alpha Care" }),
-  ]);
-  expect(ranked.map((r) => r.provider.id)).toEqual(["a", "b"]);
+  it("uses a stable deterministic tie-breaker", () => {
+    const ranked = rankProviderSearchResults(baseRequest, [
+      candidate({ id: "b", displayName: "Zulu Care" }),
+      candidate({ id: "a", displayName: "Alpha Care" }),
+    ]);
+    expect(ranked.map((result) => result.provider.id)).toEqual(["a", "b"]);
+  });
 });
 ```
 
-The local `candidate()` test helper must set official registration to `registered`, a matching service and a matching geography by default. Do not hide unknown access evidence in the helper.
+- [ ] **Step 2: Run the test and verify it fails**
 
-### Step 2: Run the targeted test and confirm failure
+Run:
 
 ```bash
 pnpm exec vitest run tests/provider/provider-search-domain.test.ts
 ```
 
-Expected: fail because the V2 contracts/evaluator do not exist.
+Expected: FAIL because the V2 contracts/evaluator do not exist yet.
 
-### Step 3: Implement the minimum domain contract
+- [ ] **Step 3: Implement the minimum domain contract**
 
-`packages/domain-provider/src/provider-search.ts` should contain Zod schemas/types similar to:
+Create `packages/domain-provider/src/provider-search.ts` with the following public shapes and pure functions:
 
 ```ts
 import { z } from "zod";
@@ -144,13 +177,11 @@ export const providerSearchRequestSchema = z.object({
   fundingManagement: z
     .enum(["ndia_managed", "plan_managed", "self_managed", "private", "unknown"])
     .default("unknown"),
-  location: z
-    .object({
-      suburb: z.string().trim().max(120).optional(),
-      postcode: z.string().trim().max(16).optional(),
-      state: z.string().trim().max(8).optional(),
-    })
-    .optional(),
+  location: z.object({
+    suburb: z.string().trim().max(120).optional(),
+    postcode: z.string().trim().max(16).optional(),
+    state: z.string().trim().max(8).optional(),
+  }).optional(),
   requirements: z.array(providerRequirementSchema).max(40).default([]),
   limit: z.number().int().min(1).max(100).default(25),
 });
@@ -168,20 +199,20 @@ export type ProviderEvidenceState =
   | "disputed"
   | "source_unavailable";
 
-export type ProviderRegistrationProjection = {
-  status: "registered" | "ambiguous" | "source_unavailable";
-  source: "official_ndis_provider_finder";
-  sourceDate?: string | null;
-  checkedAt?: string | null;
-  registrationGroups: string[];
-};
-
 export type ProviderEvidenceFact = {
   key: string;
   value: boolean | string | string[] | null;
   state: ProviderEvidenceState;
   sourceLabel: string;
   checkedAt?: string | null;
+};
+
+export type ProviderRegistrationProjection = {
+  status: "registered" | "ambiguous" | "source_unavailable";
+  source: "official_ndis_provider_finder";
+  sourceDate?: string | null;
+  checkedAt?: string | null;
+  registrationGroups: string[];
 };
 
 export type ProviderSearchCandidate = {
@@ -210,13 +241,11 @@ export type ProviderMatchClassification =
   | "needs_confirmation";
 ```
 
-Implement `evaluateProviderSearchCandidate()` and `rankProviderSearchResults()` as pure deterministic functions. Required known conflicts exclude. Required unknowns stay visible with `needs_confirmation`. Preferred unknowns/mismatches downgrade to `possible_match` but do not exclude. Do not calculate a universal percentage score.
+`evaluateProviderSearchCandidate()` must exclude known hard conflicts, keep required unknowns as `needs_confirmation`, downgrade preferred unknowns/mismatches to `possible_match`, and never calculate a universal percentage. `rankProviderSearchResults()` must sort by deterministic fit dimensions then stable provider ID/name tie-breakers.
 
-For this first registered-provider-only source, NDIA-managed requests require `registration.status === "registered"`. Plan-managed/self-managed/private requests do not gain or lose rank from registration because all candidates in this official source are already registered; a later MapAble listing source can add unregistered candidates under separate evidence.
+- [ ] **Step 4: Re-export and run focused tests**
 
-### Step 4: Re-export and run tests
-
-Modify `packages/domain-provider/src/index.ts`:
+Add to `packages/domain-provider/src/index.ts`:
 
 ```ts
 export * from "./provider-search";
@@ -228,20 +257,20 @@ Run:
 pnpm exec vitest run tests/provider/provider-search-domain.test.ts tests/intelligence/provider-workforce.test.ts
 ```
 
-Expected: pass with existing provider/workforce evidence tests unchanged.
+Expected: PASS.
 
-### Step 5: Commit
+- [ ] **Step 5: Commit**
 
 ```bash
 git add packages/domain-provider/src/provider-search.ts packages/domain-provider/src/index.ts tests/provider/provider-search-domain.test.ts
 git commit -m "feat(provider-finder): add deterministic search contracts"
 ```
 
-**Review gate:** Confirm the matcher does not read Prisma, React, Next.js or environment variables.
+**Review gate:** `provider-search.ts` must not import Prisma, React, Next.js or environment variables.
 
 ---
 
-## Task 2: Remove Registration-Group and Identifier Logic from the App Layer
+### Task 2: Isolate NDIS Registration-Group and Provider-Outlet Identifier Logic
 
 **Files:**
 - Create: `packages/domain-provider/src/ndis-registration-groups.ts`
@@ -250,40 +279,45 @@ git commit -m "feat(provider-finder): add deterministic search contracts"
 - Create: `lib/ndis/provider-outlet-identifiers.ts`
 - Modify: `app/provider-finder/outletToProvider.ts`
 - Modify: `lib/ndis/map-provider-outlet-prisma.ts`
-- Modify/Create tests: `tests/map-mappers.test.ts`, `tests/provider/provider-outlet-identifiers.test.ts`
+- Test: `tests/provider/provider-outlet-identifiers.test.ts`
+- Test: `tests/map-mappers.test.ts`
 
-### Step 1: Write failing tests for stable registration-group mapping and outlet identifiers
+**Interfaces:**
+- Consumes: `ProviderOutlet` from `data/provider-outlets.types.ts`.
+- Produces: `NDIS_REGISTRATION_GROUPS`, `regGroupIndicesToCategories(indices)`, and `buildProviderOutletIdentifiers(outlet, index)` returning `{ id, slug, outletKey, abn }`.
 
-Cover:
+- [ ] **Step 1: Write failing mapping tests**
 
 ```ts
-expect(regGroupIndicesToCategories([34, 29])).toEqual([
-  "Support Coordination",
-  "Therapeutic Supports",
-]);
+import { describe, expect, it } from "vitest";
+import { regGroupIndicesToCategories } from "@mapable/domain-provider";
+import { buildProviderOutletIdentifiers } from "@/lib/ndis/provider-outlet-identifiers";
 
-expect(buildProviderOutletIdentifiers(outlet, 0)).toMatchObject({
-  abn: "12345678901",
-  slug: expect.any(String),
-  id: expect.any(String),
+it("maps official registration-group indexes", () => {
+  expect(regGroupIndicesToCategories([34, 29])).toEqual([
+    "Support Coordination",
+    "Therapeutic Supports",
+  ]);
+});
+
+it("builds stable outlet identifiers", () => {
+  const first = buildProviderOutletIdentifiers(TEST_OUTLET, 0);
+  const second = buildProviderOutletIdentifiers(TEST_OUTLET, 0);
+  expect(first).toEqual(second);
+  expect(first.abn).toBe("12345678901");
+  expect(first.id).toBeTruthy();
 });
 ```
 
-Also test that identical source records produce identical identifiers across calls.
-
-Run:
+- [ ] **Step 2: Run focused tests and confirm failure**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-outlet-identifiers.test.ts tests/map-mappers.test.ts
 ```
 
-Expected: fail before the pure helpers exist.
+- [ ] **Step 3: Move the taxonomy to the domain package**
 
-### Step 2: Move the registration-group taxonomy into the provider domain package
-
-Put the existing 1–36 NDIS registration-group lookup and `regGroupIndicesToCategories()` in `packages/domain-provider/src/ndis-registration-groups.ts`. Re-export it from `packages/domain-provider/src/index.ts`.
-
-Keep `app/provider-finder/regGroupOptions.ts` as a temporary compatibility re-export only:
+Move the existing 1–36 registration-group table and mapping function to `packages/domain-provider/src/ndis-registration-groups.ts`; export it from `index.ts`. Convert `app/provider-finder/regGroupOptions.ts` into a compatibility re-export:
 
 ```ts
 export {
@@ -292,95 +326,92 @@ export {
 } from "@mapable/domain-provider";
 ```
 
-Do not keep two independently editable copies of the taxonomy.
+- [ ] **Step 4: Extract provider-outlet identifier generation**
 
-### Step 3: Extract stable outlet identifiers
+Create `lib/ndis/provider-outlet-identifiers.ts` with the stable ID/slug/outlet-key logic currently embedded in legacy mapping. Update both `outletToProvider.ts` and `map-provider-outlet-prisma.ts` to consume it.
 
-Create `lib/ndis/provider-outlet-identifiers.ts` with pure functions that produce the existing outlet `id`, `slug` and `outletKey` semantics from `ProviderOutlet` without constructing a legacy UI `Provider` object.
-
-Update `app/provider-finder/outletToProvider.ts` to consume the helper for legacy compatibility. Update `lib/ndis/map-provider-outlet-prisma.ts` to use the helper directly instead of calling `mapOutletToProvider()`.
-
-The dependency direction after this task should be:
+Required dependency direction:
 
 ```text
-app/provider-finder -> lib/ndis helpers -> domain-provider
+app/provider-finder -> lib/ndis -> domain-provider
 lib/ndis            -> domain-provider
 ```
 
-not `lib/ndis -> app/provider-finder`.
+`lib/ndis` must no longer import `app/provider-finder`.
 
-### Step 4: Run tests and type-check
+- [ ] **Step 5: Run tests and type-check**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-outlet-identifiers.test.ts tests/map-mappers.test.ts
 pnpm type-check
 ```
 
-### Step 5: Commit
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add packages/domain-provider/src app/provider-finder/regGroupOptions.ts app/provider-finder/outletToProvider.ts lib/ndis/provider-outlet-identifiers.ts lib/ndis/map-provider-outlet-prisma.ts tests/provider/provider-outlet-identifiers.test.ts tests/map-mappers.test.ts
+git add packages/domain-provider/src/ndis-registration-groups.ts packages/domain-provider/src/index.ts app/provider-finder/regGroupOptions.ts app/provider-finder/outletToProvider.ts lib/ndis/provider-outlet-identifiers.ts lib/ndis/map-provider-outlet-prisma.ts tests/provider/provider-outlet-identifiers.test.ts tests/map-mappers.test.ts
 git commit -m "refactor(provider-finder): isolate NDIS provider mapping"
 ```
 
-**Review gate:** No new import under `lib/` or `packages/` may depend on `@/app/provider-finder/*`.
+**Review gate:** repository search shows no touched `lib/ndis/*` file importing `@/app/provider-finder/*`.
 
 ---
 
-## Task 3: Build the ProviderOutletRegistry Reader and Provenance-Aware Projection
+### Task 3: Build the ProviderOutletRegistry Reader and Provenance-Aware Projection
 
 **Files:**
 - Create: `lib/provider/finder/provider-registry-repository.ts`
 - Create: `lib/provider/finder/provider-registry-projection.ts`
 - Create: `lib/provider/finder/provider-search-service.ts`
-- Create: `tests/provider/provider-registry-projection.test.ts`
-- Create: `tests/provider/provider-search-service.test.ts`
+- Test: `tests/provider/provider-registry-projection.test.ts`
+- Test: `tests/provider/provider-search-service.test.ts`
 
-### Step 1: Write failing projection tests
+**Interfaces:**
+- Consumes: Task 1 domain contracts; Prisma `ProviderOutletRegistry` only inside the production repository adapter.
+- Produces: `ProviderRegistryReader`, `prismaProviderRegistryReader`, `projectRegistryRow(row, snapshot)`, `ProviderSearchResponse`, `searchProviderRegistry(input, deps)`.
 
-Use plain row fixtures rather than a real database. Cover:
+- [ ] **Step 1: Write failing projection tests**
 
-- active official registry row maps to `registration.status === "registered"`;
-- `sourceDate` and import/check time are preserved;
-- registration groups become service labels;
-- accessibility and availability are `unknown` unless a separate evidence overlay supplies them;
-- registration never creates an accessibility fact;
-- missing coordinates remain null, not fabricated.
-
-Example:
+Cover registered-source status, source date, registration groups, null coordinates, unknown accessibility and unknown availability:
 
 ```ts
-const projection = projectRegistryRow({
-  id: "outlet-1",
-  abn: "12345678901",
-  name: "Example Supports",
-  active: true,
-  state: "NSW",
-  postcode: "2075",
-  regGroup: [34],
-  sourceDate: "2026-09-11",
-  importedAt: new Date("2026-09-13T00:00:00Z"),
-  updatedAt: new Date("2026-09-13T00:00:00Z"),
-  latitude: null,
-  longitude: null,
-  // remaining selected fields...
-});
+const projection = projectRegistryRow(
+  {
+    id: "outlet-1",
+    abn: "12345678901",
+    name: "Example Supports",
+    slug: "example-supports",
+    outletKey: "example-1",
+    outletName: "Example Supports St Ives",
+    active: true,
+    state: "NSW",
+    postcode: "2075",
+    latitude: null,
+    longitude: null,
+    regGroup: [34],
+    sourceDate: "2026-09-11",
+    importedAt: new Date("2026-09-13T00:00:00Z"),
+    updatedAt: new Date("2026-09-13T00:00:00Z"),
+  },
+  { sourceDate: "2026-09-11", importedAt: new Date("2026-09-13T00:00:00Z") },
+);
 
 expect(projection.registration.status).toBe("registered");
 expect(projection.services).toContain("Support Coordination");
 expect(projection.availability.state).toBe("unknown");
-expect(projection.evidence.find((e) => e.key === "step_free_entrance")).toBeUndefined();
+expect(projection.evidence.find((fact) => fact.key === "step_free_entrance"))
+  .toBeUndefined();
 ```
 
-### Step 2: Run the projection test and confirm failure
+- [ ] **Step 2: Run and verify failure**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-registry-projection.test.ts
 ```
 
-### Step 3: Implement the repository boundary
-
-Define a narrow reader interface in `provider-registry-repository.ts`:
+- [ ] **Step 3: Implement the repository interface**
 
 ```ts
 export type ProviderRegistryQuery = {
@@ -405,13 +436,9 @@ export interface ProviderRegistryReader {
 }
 ```
 
-Implement the production reader with `prisma.providerOutletRegistry`. Determine the current materialised snapshot by the most recently imported row. When a non-null latest `sourceDate` exists, constrain V2 search to that same `sourceDate`; this prevents rows absent from a newer official export from silently remaining in V2 results merely because an old materialised row is still `active=true`.
+Implement `prismaProviderRegistryReader` with `prisma.providerOutletRegistry`. When the newest rows have a non-null `sourceDate`, constrain V2 searches to that latest `sourceDate`; this prevents records missing from a newer export from remaining visible merely because older materialised rows still exist.
 
-Repository filters may include official directory facts only: provider name/ABN, state, postcode and registration-group indexes. Do not query accessibility from free text.
-
-### Step 4: Implement `provider-search-service.ts` using dependency injection
-
-The service signature should allow a fake reader in tests:
+- [ ] **Step 4: Implement the projection and search service**
 
 ```ts
 export async function searchProviderRegistry(
@@ -420,89 +447,56 @@ export async function searchProviderRegistry(
 ): Promise<ProviderSearchResponse>;
 ```
 
-`ProviderSearchResponse` contains:
+`ProviderSearchResponse` must contain the interpreted typed request, ranked results, match-class counts, source state, and `rulesVersion: "provider-finder-v2.1"`.
 
-```ts
-{
-  interpretation: ProviderSearchRequest;
-  results: ProviderSearchProjection[];
-  resultSummary: {
-    total: number;
-    strongMatches: number;
-    possibleMatches: number;
-    needsConfirmation: number;
-  };
-  sourceState: {
-    source: "official_ndis_provider_finder";
-    sourceDate: string | null;
-    importedAt: string | null;
-    sourceUnavailable: boolean;
-  };
-  rulesVersion: "provider-finder-v2.1";
-}
-```
+A repository failure must result in a typed `SOURCE_UNAVAILABLE` error/outcome, never an empty result set that looks like “no providers”.
 
-If the repository throws, the service must not return zero results as if there are no providers. It should throw/return a typed `SOURCE_UNAVAILABLE` outcome for the API layer.
+- [ ] **Step 5: Write and run service tests**
 
-### Step 5: Test matching and source outage
-
-`tests/provider/provider-search-service.test.ts` must prove:
-
-- query results use only the latest source date when available;
-- source failure maps to `SOURCE_UNAVAILABLE`, not `not_found`;
-- required unknown access evidence yields `needs_confirmation`;
-- ordering is deterministic across repeated runs;
-- no review/rating field exists in the V2 projection.
-
-Run:
+Test latest-snapshot filtering, source-unavailable behavior, deterministic ordering and absence of synthetic rating/review fields.
 
 ```bash
 pnpm exec vitest run tests/provider/provider-registry-projection.test.ts tests/provider/provider-search-service.test.ts
 ```
 
-### Step 6: Commit
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add lib/provider/finder/provider-registry-repository.ts lib/provider/finder/provider-registry-projection.ts lib/provider/finder/provider-search-service.ts tests/provider/provider-registry-projection.test.ts tests/provider/provider-search-service.test.ts
 git commit -m "feat(provider-finder): project official registry with provenance"
 ```
 
-**Review gate:** The application service must be testable without Prisma and must not infer unsupported accessibility/availability facts.
+**Review gate:** service tests run with a fake `ProviderRegistryReader`; no test requires a real database.
 
 ---
 
-## Task 4: Add the V2 Search API, Funding Semantics and Default-Off Feature Flag
+### Task 4: Add the V2 Search API, Funding Semantics and Default-Off Flags
 
 **Files:**
 - Create: `lib/config/provider-finder-v2.ts`
 - Create: `app/api/providers/search/route.ts`
 - Create: `lib/provider/finder/provider-search-client.ts`
-- Create: `tests/provider/provider-search-api.test.ts`
-- Modify: `.env.example` or the repository's established environment documentation file if `.env.example` exists
+- Modify: `.env.example`
 - Modify: `docs/data/ndis-provider-registry-prisma.md`
+- Test: `tests/provider/provider-search-api.test.ts`
 
-### Step 1: Write API contract tests first
+**Interfaces:**
+- Consumes: `providerSearchRequestSchema`, `searchProviderRegistry`, existing IP-rate-limit and JSON-response utilities.
+- Produces: `POST /api/providers/search`, `searchProvidersV2(request)`, flags `MAPABLE_PROVIDER_FINDER_V2_ENABLED` and `NEXT_PUBLIC_MAPABLE_PROVIDER_FINDER_V2_ENABLED` defaulting false.
 
-Test `providerSearchRequestSchema` validation through the route/service boundary for:
+- [ ] **Step 1: Write failing route/API tests**
 
-- valid POST body;
-- invalid/malformed body -> 400;
-- over-limit arrays -> 400;
-- repository outage -> 503 with `code: "SOURCE_UNAVAILABLE"`;
-- no matches -> 200 with `results: []` and `sourceUnavailable: false`;
-- raw functional requirements are not echoed to logs/analytics by route code.
+Cover valid body, invalid body -> 400, repository source failure -> 503 with `SOURCE_UNAVAILABLE`, and valid zero results -> 200 with `results: []`.
 
-Run:
+- [ ] **Step 2: Run the test and confirm failure**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-search-api.test.ts
 ```
 
-Expected: fail before the route exists.
-
-### Step 2: Add feature flags
-
-`lib/config/provider-finder-v2.ts`:
+- [ ] **Step 3: Add default-off feature flags**
 
 ```ts
 export const providerFinderV2Config = {
@@ -512,85 +506,47 @@ export const providerFinderV2Config = {
 };
 ```
 
-Both default to false. The client flag is only a presentation/routing hint; server policy must not trust it.
+Add both values as `false` in `.env.example`.
 
-### Step 3: Implement `POST /api/providers/search`
+- [ ] **Step 4: Implement `POST /api/providers/search`**
 
-Use:
+Parse JSON with `providerSearchRequestSchema`, apply the existing public IP rate-limit pattern, call `searchProviderRegistry`, and map typed source failure to 503.
 
-- Zod parse of JSON body;
-- existing IP-rate-limit utility for anonymous public use;
-- `searchProviderRegistry()`;
-- a public-safe error envelope.
+Do not place functional access/communication requirements in query parameters.
 
-Conceptual route:
+- [ ] **Step 5: Encode conservative funding semantics**
 
-```ts
-export async function POST(request: Request) {
-  if (!providerFinderV2Config.serverEnabled) {
-    return Response.json(
-      { error: "Provider Finder V2 is not enabled.", code: "FEATURE_DISABLED" },
-      { status: 404 },
-    );
-  }
+For this first official-registry-only slice:
 
-  const parsed = providerSearchRequestSchema.safeParse(await request.json());
-  if (!parsed.success) return zodErrorResponse(parsed.error);
+- `ndia_managed`: only `registration.status === "registered"` may pass the registration constraint;
+- `plan_managed`, `self_managed`, `private`, `unknown`: keep registered candidates, while UI notes that this source does not enumerate every possible unregistered-provider option;
+- do not implement specialist unregistered-provider exception rules until an unregistered-provider source is added and current policy is separately reviewed.
 
-  try {
-    const result = await searchProviderRegistry(parsed.data, {
-      registry: prismaProviderRegistryReader,
-    });
-    return jsonOk(result);
-  } catch (error) {
-    if (isProviderSourceUnavailable(error)) {
-      return Response.json(
-        { error: "Provider registry is temporarily unavailable.", code: "SOURCE_UNAVAILABLE" },
-        { status: 503 },
-      );
-    }
-    throw error;
-  }
-}
-```
+- [ ] **Step 6: Implement browser client and documentation**
 
-Do not put access/communication requirements into query parameters.
+`searchProvidersV2(request)` POSTs the typed JSON body and distinguishes `SOURCE_UNAVAILABLE` from a valid empty result set. Update `docs/data/ndis-provider-registry-prisma.md` to identify `ProviderOutletRegistry` as the V2 UI source while keeping `ndis_providers` compatibility/agent surfaces separate.
 
-### Step 4: Encode current funding semantics conservatively
-
-Current official NDIS guidance checked when this plan was authored states that NDIA-managed funding requires registered providers, while self-managed/plan-managed participants can usually use registered or unregistered providers with service-specific exceptions. This first slice searches the official NDIS Provider Finder, so **every candidate is a registered-provider candidate**. Therefore:
-
-- `ndia_managed`: require `registered` within this source;
-- `plan_managed`, `self_managed`, `private`, `unknown`: do not exclude official registered candidates merely because the user may also have unregistered-provider options;
-- UI/source notes must say that this source is the official registered-provider directory and is not a complete directory of unregistered options.
-
-Do not hard-code the specialist-exception matrix in this first slice. Add that only when MapAble adds an unregistered-provider source and the current policy adapter is separately reviewed.
-
-### Step 5: Implement typed browser client
-
-`provider-search-client.ts` should POST only the validated typed request and return `ProviderSearchResponse`. It must surface the `SOURCE_UNAVAILABLE` code distinctly from an empty result set.
-
-### Step 6: Run tests and type-check
+- [ ] **Step 7: Run focused tests and type-check**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-search-api.test.ts tests/provider/provider-search-service.test.ts
 pnpm type-check
 ```
 
-### Step 7: Commit
+Expected: PASS.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add lib/config/provider-finder-v2.ts app/api/providers/search/route.ts lib/provider/finder/provider-search-client.ts tests/provider/provider-search-api.test.ts docs/data/ndis-provider-registry-prisma.md .env.example
 git commit -m "feat(provider-finder): add provenance-aware search API"
 ```
 
-If `.env.example` does not exist, omit it from the commit and document the flags in the repository's existing environment reference instead; do not create a second competing environment-documentation convention.
-
-**Review gate:** Verify that anonymous search does not persist raw free-text or functional access requirements by default.
+**Review gate:** route/client code must not persist raw search text or access/communication requirements by default.
 
 ---
 
-## Task 5: Build Evidence-First Provider Result Components
+### Task 5: Build Evidence-First Provider Result Components
 
 **Files:**
 - Create: `components/provider-finder/v2/ProviderEvidenceLabel.tsx`
@@ -598,44 +554,50 @@ If `.env.example` does not exist, omit it from the commit and document the flags
 - Create: `components/provider-finder/v2/ProviderFinderResultCardV2.tsx`
 - Create: `components/provider-finder/v2/ProviderSourceNotice.tsx`
 - Modify: `lib/provider/use-platform-care-link.ts`
-- Create: `tests/provider/provider-finder-result-card.test.tsx` if the repository's Vitest environment supports React component tests; otherwise cover rendering in the Playwright task and keep pure label-format tests in Vitest.
+- Test: `tests/provider/provider-result-copy.test.ts`
 
-### Step 1: Write failing presentation tests
+**Interfaces:**
+- Consumes: `ProviderSearchProjection` from Task 1; existing `/api/care/platform-org` resolver through the care-link hook.
+- Produces: accessible evidence/match labels, `ProviderFinderResultCardV2`, and `PlatformCareLinkProviderRef` with only `{ abn, slug, outletKey, name }`.
 
-Verify the card text semantics:
+- [ ] **Step 1: Write failing copy-format tests**
 
-- `registered` renders as `Official NDIS provider record` / `Registered provider`, not `Verified provider`;
-- `unknown` accessibility renders `Not assessed` or `Needs confirmation`;
-- no stars, review count, inferred response time or inferred availability appear;
-- checked/source date appears when present;
-- match classification has visible text independent of colour.
+Test pure formatter functions or exported label helpers:
 
-### Step 2: Implement evidence/status components
-
-Use semantic text first, styling second. Example output:
-
-```text
-Northern Supports
-Support Coordination · NSW 2075
-
-Possible match
-
-NDIS provider registration
-Registered provider · Official NDIS Provider Finder
-Source dated 11 Sep 2026
-
-AAC/text communication
-Not assessed
-
-Current availability
-Unknown
+```ts
+expect(formatRegistrationLabel({ status: "registered" }))
+  .toBe("Registered provider");
+expect(formatEvidenceState("unknown")).toBe("Not assessed");
+expect(formatMatchClass("needs_confirmation")).toBe("Needs confirmation");
 ```
 
-Do not use a universal green `Verified` badge.
+Also assert no formatter returns `Verified provider`, star ratings, response-time claims or inferred availability.
 
-### Step 3: Narrow the Care-link hook input
+- [ ] **Step 2: Run and verify failure**
 
-Change `usePlatformCareLink()` from the legacy `Provider` type to a minimal identifier contract:
+```bash
+pnpm exec vitest run tests/provider/provider-result-copy.test.ts
+```
+
+- [ ] **Step 3: Implement semantic evidence labels and V2 card**
+
+The default card must visibly separate:
+
+```text
+Provider name
+Service / location
+Match class
+NDIS provider registration — Registered provider — Official NDIS Provider Finder — source date
+Accessibility/communication evidence — exact state
+Availability — Unknown unless separately evidenced
+Actions — View / Compare / Save / Ask / Request support as available
+```
+
+Match/evidence meaning must remain textual and cannot rely on colour alone.
+
+- [ ] **Step 4: Narrow the Care-link hook input**
+
+Replace the legacy `Provider` dependency in `lib/provider/use-platform-care-link.ts` with:
 
 ```ts
 export type PlatformCareLinkProviderRef = {
@@ -646,29 +608,25 @@ export type PlatformCareLinkProviderRef = {
 };
 ```
 
-This allows both legacy and V2 cards to reuse the existing ABN/registry resolver without importing `app/provider-finder/providers.ts` into `lib/provider`.
-
-### Step 4: Run tests
+- [ ] **Step 5: Run tests and type-check**
 
 ```bash
-pnpm exec vitest run tests/provider/provider-finder-result-card.test.tsx
+pnpm exec vitest run tests/provider/provider-result-copy.test.ts
 pnpm type-check
 ```
 
-If component-test infrastructure is not configured, replace the first command with a pure label-format test and leave full card assertions to Task 9 Playwright; do not install a new React testing stack solely for this task.
-
-### Step 5: Commit
+- [ ] **Step 6: Commit**
 
 ```bash
-git add components/provider-finder/v2 lib/provider/use-platform-care-link.ts tests/provider
+git add components/provider-finder/v2/ProviderEvidenceLabel.tsx components/provider-finder/v2/ProviderMatchLabel.tsx components/provider-finder/v2/ProviderFinderResultCardV2.tsx components/provider-finder/v2/ProviderSourceNotice.tsx lib/provider/use-platform-care-link.ts tests/provider/provider-result-copy.test.ts
 git commit -m "feat(provider-finder): add evidence-first result cards"
 ```
 
-**Review gate:** Search the new V2 component directory for `rating`, `reviewCount`, `responseTime`, `verified profile`, and inferred accessibility language; none should be present.
+**Review gate:** repository search within `components/provider-finder/v2` finds no `rating`, `reviewCount`, inferred `responseTime`, or generic `Verified provider` presentation.
 
 ---
 
-## Task 6: Build the V2 Search Experience with List-First, Optional Map and Comparison
+### Task 6: Build the List-First V2 Search, Comparison, Optional Map and Human Help
 
 **Files:**
 - Create: `components/provider-finder/v2/ProviderFinderV2.tsx`
@@ -677,23 +635,25 @@ git commit -m "feat(provider-finder): add evidence-first result cards"
 - Create: `components/provider-finder/v2/ProviderFinderCompareV2.tsx`
 - Create: `components/provider-finder/v2/ProviderFinderMapV2.tsx`
 - Create: `components/provider-finder/v2/ProviderFinderHumanHelp.tsx`
-- Reuse where safe: `components/provider-finder/ProviderFinderAskPanel.tsx`, existing lazy map infrastructure
-- Create: `tests/provider/provider-finder-view-model.test.ts`
+- Test: `tests/provider/provider-finder-view-model.test.ts`
 
-### Step 1: Write failing view-model tests
+**Interfaces:**
+- Consumes: `searchProvidersV2`, `ProviderSearchRequest`, `ProviderSearchProjection`, existing map primitives where compatible, existing Ask/guided-search surface only as optional interpreter.
+- Produces: complete public V2 search experience that remains functional when map and AI are unavailable.
 
-Extract any non-trivial UI derivation into pure helpers and test:
+- [ ] **Step 1: Write failing view-model tests**
 
-- result counts by match class;
-- comparison limited to 2–4 providers;
-- map point list includes only results with real coordinates;
-- list results remain complete when no coordinates exist;
-- source outage produces an outage state, not an empty state;
-- empty valid search produces a no-match state with requirement explanations.
+Cover result counts by match class, compare selection limited to 2–4, map points only for real coordinates, complete list when coordinates are absent, source outage distinct from no results, and valid no-result state.
 
-### Step 2: Implement list-first V2 composition
+- [ ] **Step 2: Run and verify failure**
 
-Required structure:
+```bash
+pnpm exec vitest run tests/provider/provider-finder-view-model.test.ts
+```
+
+- [ ] **Step 3: Implement the semantic list-first composition**
+
+Required skeleton:
 
 ```tsx
 <main id="main-content">
@@ -706,11 +666,11 @@ Required structure:
 </main>
 ```
 
-The results collection uses semantic articles/list items. The map is an optional complementary region and must not be required to inspect, save, compare or request support.
+Provider results use semantic list/article markup. The map is complementary and optional.
 
-### Step 3: Implement required/preferred filters
+- [ ] **Step 4: Implement required/preferred functional filters**
 
-The UI must explicitly allow a user to mark a functional requirement as `Required` or `Preferred`. Initial supported keys should be bounded to the approved functional set and may render as unknown when no MapAble evidence overlay exists:
+Initial filter keys are bounded to:
 
 - home visit;
 - telehealth;
@@ -721,93 +681,94 @@ The UI must explicitly allow a user to mark a functional requirement as `Require
 - quiet/low-sensory setting;
 - assistance animals.
 
-Do not keyword-search provider names/categories to fabricate these facts.
+If the current official registry does not contain evidence for one of these fields, render `unknown`; never keyword-infer it.
 
-### Step 4: Integrate Ask MapAble as an optional interpreter
+- [ ] **Step 5: Integrate Ask MapAble only as an editable interpreter**
 
-Reuse the existing Ask/guided-search surface only to produce/edit the same `ProviderSearchRequest`. Show the interpreted fields before or alongside search results. If Ask is disabled/unavailable, structured search remains complete.
+Reuse the existing Ask/guided-search surface to populate the same typed request. Show the interpreted constraints to the user. Structured search must remain complete with Ask disabled.
 
-### Step 5: Implement comparison and map synchronisation
+- [ ] **Step 6: Implement comparison and map synchronisation**
 
-Comparison exposes evidence dimensions and unknowns without an overall score. Map/list selection may synchronise visually, but selecting a marker must not steal focus from a screen-reader user's active result card.
+Comparison uses evidence rows and unknowns without an overall score. Map selection may highlight the corresponding list result, but marker selection must not unexpectedly move keyboard/screen-reader focus.
 
-### Step 6: Implement human-help panel
+- [ ] **Step 7: Implement human help**
 
-At minimum provide accessible links/actions for:
+Link only to already-existing MapAble help/contact/complaint routes discovered in the repository. Do not invent a new live support endpoint in this plan.
 
-- get help from a person;
-- report incorrect provider information;
-- make a complaint/safety escalation through existing MapAble support pathways where those routes already exist.
-
-Do not create fake support endpoints. Link only to routes verified in the repository; otherwise show the existing contact/help route.
-
-### Step 7: Test and commit
+- [ ] **Step 8: Run tests, type-check and lint**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-finder-view-model.test.ts
 pnpm type-check
 pnpm lint
+```
 
+- [ ] **Step 9: Commit**
+
+```bash
 git add components/provider-finder/v2 tests/provider/provider-finder-view-model.test.ts
 git commit -m "feat(provider-finder): build accessible V2 search experience"
 ```
 
-**Review gate:** Complete the search and provider inspection flow with the map component removed/disabled in a test render.
+**Review gate:** disable/remove the V2 map component during review and verify search, filtering, inspection, comparison and human help still work.
 
 ---
 
-## Task 7: Wire Canonical and Legacy-Compatible Routes Without a Big-Bang Cutover
+### Task 7: Wire Canonical and Legacy-Compatible Routes
 
 **Files:**
 - Create: `app/support/providers/page.tsx`
-- Create: `app/support/providers/ProviderFinderV2Client.tsx` only if a route-local client boundary is needed; otherwise import the shared component directly
 - Modify: `app/provider-finder/page.tsx`
-- Modify: `app/provider-finder/ProviderFinderClient.tsx` only for compatibility switch or leave untouched behind the old branch
 - Modify: `components/layout/UnifiedParticipantNav.tsx`
-- Create/Modify: tests under `tests/provider/provider-finder-routing.test.ts` and `tests/a11y/unified-shell.spec.ts`
+- Test: `tests/provider/provider-finder-routing.test.ts`
+- Modify: `tests/a11y/unified-shell.spec.ts`
 
-### Step 1: Write failing routing/flag tests
+**Interfaces:**
+- Consumes: `providerFinderV2Config`, `ProviderFinderV2`, existing legacy `ProviderFinderClient`.
+- Produces: canonical public `/support/providers`; feature-flagged compatibility behavior for `/provider-finder`; participant navigation entry that only points to the canonical route when V2 client flag is enabled.
 
-Verify:
+- [ ] **Step 1: Write failing flag/routing tests**
 
-- with V2 flag off, `/provider-finder` continues to use the existing legacy path;
-- with V2 flag on, `/provider-finder` and `/support/providers` render the same V2 search component/data contract;
-- participant navigation points to `/support/providers` only when the V2 client-facing flag is enabled;
-- no redirect loop exists;
-- canonical metadata for the new route is correct.
+Test V2 off -> legacy behavior, V2 on -> shared V2 component on both routes, no redirect loop, and canonical metadata for `/support/providers`.
 
-### Step 2: Add `/support/providers`
+- [ ] **Step 2: Run and verify failure**
 
-This becomes the target route. Keep it publicly usable. Do not force authentication merely to search the official public provider directory.
+```bash
+pnpm exec vitest run tests/provider/provider-finder-routing.test.ts
+```
 
-When a signed-in participant enters through My MapAble, preserve their participant navigation context using existing shell conventions rather than duplicating a second Provider Finder implementation. If the current routing architecture cannot wrap an optional-auth public route in `UnifiedParticipantShell` without creating auth regressions, prefer shared V2 content plus consistent MapAble visual primitives in this slice and defer shell-wrapper refactoring to a separate bounded task; do not make public provider discovery auth-only.
+- [ ] **Step 3: Add `/support/providers` as a public route**
 
-### Step 3: Switch legacy page under the server flag
+Keep provider discovery accessible without authentication. Do not wrap the public route in a participant-only auth guard.
 
-`app/provider-finder/page.tsx` chooses V2 only when the server flag is enabled; otherwise it renders the existing `ProviderFinderClient`.
+- [ ] **Step 4: Switch `/provider-finder` by server flag**
 
-The legacy URL remains valid throughout rollout.
+When V2 is disabled, render the existing legacy `ProviderFinderClient`. When enabled, render the shared V2 experience. Keep the URL operational for rollback and existing links.
 
-### Step 4: Update participant navigation under the public flag
+- [ ] **Step 5: Update unified participant navigation safely**
 
-Use the existing navigation configuration pattern. Do not hard cut all users to `/support/providers` while the server-side V2 flag is off.
+Only point `Find support`/`People & Services` toward `/support/providers` when the public V2 flag is enabled. Do not make public provider discovery depend on `UnifiedParticipantShell` authentication.
 
-### Step 5: Run tests and commit
+- [ ] **Step 6: Run route tests, type-check and lint**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-finder-routing.test.ts
 pnpm type-check
 pnpm lint
+```
 
-git add app/support/providers app/provider-finder/page.tsx app/provider-finder/ProviderFinderClient.tsx components/layout/UnifiedParticipantNav.tsx tests/provider/provider-finder-routing.test.ts tests/a11y/unified-shell.spec.ts
+- [ ] **Step 7: Commit**
+
+```bash
+git add app/support/providers/page.tsx app/provider-finder/page.tsx components/layout/UnifiedParticipantNav.tsx tests/provider/provider-finder-routing.test.ts tests/a11y/unified-shell.spec.ts
 git commit -m "feat(provider-finder): wire V2 routes behind feature flag"
 ```
 
-**Review gate:** Both legacy-off and V2-on route states must build successfully before proceeding.
+**Review gate:** build both flag-off and flag-on configurations before proceeding.
 
 ---
 
-## Task 8: Remove Demo Provider Data from Production SEO and Discovery Paths
+### Task 8: Remove Demo Provider Data from Production Discovery and SEO Paths
 
 **Files:**
 - Modify: `app/provider-finder/providers.ts`
@@ -815,93 +776,109 @@ git commit -m "feat(provider-finder): wire V2 routes behind feature flag"
 - Modify: `lib/seo/local-landing.ts`
 - Modify: `app/provider-finder/[suburb]/[service]/page.tsx`
 - Modify: `app/sitemap.ts`
-- Modify as needed: `lib/seo/provider-profile-json-ld.ts`, `components/DirectoryView.tsx`, map helpers that only import the legacy *type*
-- Create: `tests/provider/provider-demo-data-boundary.test.ts`
-- Modify/Create: `tests/seo/local-landing.test.ts`
+- Modify if touched: `lib/seo/provider-profile-json-ld.ts`, legacy map/directory components that import only the old type
+- Test: `tests/provider/provider-demo-data-boundary.test.ts`
+- Test: `tests/seo/local-landing.test.ts`
 
-### Step 1: Write a failing production-boundary test
+**Interfaces:**
+- Consumes: registry-backed provider search/projection from Tasks 3–4; current local SEO taxonomy.
+- Produces: production code with no import/use of a synthetic `PROVIDERS` data array; test fixtures remain available for deterministic tests.
 
-The test should scan production TypeScript/TSX source and fail if `PROVIDERS` from `app/provider-finder/providers.ts` is imported outside tests/fixtures.
+- [ ] **Step 1: Write a failing production-boundary test**
 
-The boundary test must distinguish the generic word `Providers` from the exact demo constant/import path. A simple file scan is sufficient:
+Scan production TS/TSX source for the exact demo-provider import/constant and assert only test/demo-only locations remain:
 
 ```ts
-expect(offendingFiles).toEqual([]);
+expect(offendingProductionFiles).toEqual([]);
 ```
 
-### Step 2: Move synthetic records to test fixtures
+The scan must target the exact import path/constant and not the generic word `Providers`.
 
-Move the 12 synthetic/demo records to `tests/fixtures/provider-finder/providers.ts` under a name such as `PROVIDER_FIXTURES`.
+- [ ] **Step 2: Run and verify failure**
 
-`app/provider-finder/providers.ts` may temporarily retain only legacy type definitions required by untouched compatibility components. Mark the type surface deprecated and point new code to `@mapable/domain-provider` V2 contracts.
+```bash
+pnpm exec vitest run tests/provider/provider-demo-data-boundary.test.ts
+```
 
-Do not leave a production-exported synthetic `PROVIDERS` array.
+- [ ] **Step 3: Move synthetic records to test fixtures**
 
-### Step 3: Make local SEO source-driven
+Move the synthetic provider records into `tests/fixtures/provider-finder/providers.ts` as `PROVIDER_FIXTURES`. `app/provider-finder/providers.ts` may temporarily retain legacy type definitions required by untouched compatibility code but must not export production demo data.
 
-Refactor `lib/seo/local-landing.ts` so matching helpers accept explicit provider projections/registry candidates and never default to demo data. Keep the service taxonomy and curated seed suburbs if still useful.
+- [ ] **Step 4: Refactor local SEO to explicit source data**
 
-`app/provider-finder/[suburb]/[service]/page.tsx` must query the official registry-backed service for actual results. If no official result is available, render an honest empty/related-search state; do **not** fall back to fictional neighbouring providers.
+`lib/seo/local-landing.ts` must accept explicit registry/projection inputs and never default to demo data. Remove the “soft expand to neighbouring demo providers” fallback.
 
-Do not emit synthetic rating/review structured data. Do not infer wheelchair accessibility from `In-person`. `LocalBusinessSchema` receives only source-supported properties.
+- [ ] **Step 5: Make dynamic local landing pages source-backed**
 
-### Step 4: Remove demo provider entries from sitemap generation
+`app/provider-finder/[suburb]/[service]/page.tsx` queries the official registry-backed service. If there is no source-supported result, render an honest empty/related-search state. Remove synthetic rating/review structured data and remove the inference `In-person => wheelchair accessible`.
 
-`app/sitemap.ts` must stop importing `PROVIDERS`. Keep curated local landing paths only if they are legitimate route inventory, or generate only registry-backed paths using a bounded server-side source. Do not generate provider profile URLs for fictional records.
+- [ ] **Step 6: Remove demo-provider sitemap generation**
 
-### Step 5: Keep compatibility types without creating a second truth source
+`app/sitemap.ts` must stop importing the synthetic provider list. Curated route inventory may remain, or registry-backed route entries may be generated if bounded and build-safe; never emit fictional provider/profile URLs.
 
-Files such as old map/profile components may continue importing a legacy `Provider` type during staged migration, but no production route may receive synthetic records from that module. If a touched helper can be converted cheaply to the V2 projection, do so; otherwise leave a documented compatibility boundary for a later migration.
-
-### Step 6: Test and commit
+- [ ] **Step 7: Run boundary/SEO tests, type-check and lint**
 
 ```bash
 pnpm exec vitest run tests/provider/provider-demo-data-boundary.test.ts tests/seo/local-landing.test.ts
 pnpm type-check
 pnpm lint
+```
 
-git add app/provider-finder/providers.ts tests/fixtures/provider-finder/providers.ts lib/seo/local-landing.ts app/provider-finder/[suburb]/[service]/page.tsx app/sitemap.ts lib/seo/provider-profile-json-ld.ts components/DirectoryView.tsx tests/provider/provider-demo-data-boundary.test.ts tests/seo/local-landing.test.ts
+- [ ] **Step 8: Commit**
+
+```bash
+git add app/provider-finder/providers.ts tests/fixtures/provider-finder/providers.ts lib/seo/local-landing.ts app/provider-finder/[suburb]/[service]/page.tsx app/sitemap.ts tests/provider/provider-demo-data-boundary.test.ts tests/seo/local-landing.test.ts
 git commit -m "refactor(provider-finder): remove demo data from production paths"
 ```
 
-Only add files to the commit that actually changed.
+Add any additional touched compatibility files to this commit only if required by the type-check.
 
-**Review gate:** Run repository search for the exact import path/constant and confirm remaining demo-provider usages are test fixtures or explicitly demo-only modules.
+**Review gate:** repository search confirms no production route imports a synthetic `PROVIDERS` array.
 
 ---
 
-## Task 9: Add Accessibility, Failure-Mode and Commercial-Separation E2E Coverage
+### Task 9: Add Accessibility, Failure-Mode and Commercial-Separation E2E Coverage
 
 **Files:**
 - Create: `tests/a11y/provider-finder-v2.spec.ts`
 - Modify: `playwright.config.ts`
-- Create/Modify: `tests/provider/provider-finder-commercial-separation.test.ts`
-- Modify if required: provider V2 components for discovered accessibility defects
+- Create: `tests/provider/provider-finder-commercial-separation.test.ts`
+- Modify only for defects discovered: `components/provider-finder/v2/*`
 
-### Step 1: Add the Playwright project/test before fixing UI defects
+**Interfaces:**
+- Consumes: public V2 route, deterministic ranker, existing Playwright/axe configuration.
+- Produces: automated proof for critical Provider Finder accessibility and ranking-isolation requirements.
 
-Add a `provider-finder-v2` Playwright project or include the spec in the existing public project. Gate it with `NEXT_PUBLIC_MAPABLE_PROVIDER_FINDER_V2_ENABLED=true` and server flag in the test web server environment.
+- [ ] **Step 1: Add the failing Playwright V2 test/project**
 
-The E2E suite must cover:
+Cover:
 
-1. page has one clear H1 and a main landmark;
-2. keyboard-only search submission;
-3. result-count update announced through `role=status`/live region;
-4. provider result cards expose visible evidence text;
-5. no colour-only match status;
-6. a search can be completed and provider details inspected without opening the map;
-7. selecting a list result does not unexpectedly move focus into the map;
-8. source-unavailable state is distinguishable from zero results;
-9. human-help action is keyboard reachable;
-10. axe serious/critical violations are zero for the tested state.
+```text
+one clear H1 + main landmark
+keyboard-only search submission
+result count announced via status/live region
+visible evidence text
+no colour-only match state
+provider inspection without map
+list focus remains stable when map changes
+source-unavailable != zero results
+human-help action keyboard reachable
+zero serious/critical axe findings in tested state
+```
 
-### Step 2: Add commercial-separation invariant tests
+- [ ] **Step 2: Add commercial-separation invariant tests**
 
-Create a pure test proving that adding sponsored placement metadata does not change the result of `rankProviderSearchResults()`. Organic ranking must receive only organic candidates/evidence and must not consume ad bid, sponsorship or campaign fields.
+Write a pure Vitest test proving sponsorship/ad metadata cannot alter `rankProviderSearchResults()` output. The organic matcher must not accept bid, campaign or sponsored fields as scoring inputs.
 
-### Step 3: Run targeted browser tests
+- [ ] **Step 3: Run the pure invariant test**
 
-Example local verification:
+```bash
+pnpm exec vitest run tests/provider/provider-finder-commercial-separation.test.ts
+```
+
+Expected: PASS after any minimal type boundary adjustment.
+
+- [ ] **Step 4: Run the targeted browser suite**
 
 ```bash
 MAPABLE_PROVIDER_FINDER_V2_ENABLED=true \
@@ -909,42 +886,37 @@ NEXT_PUBLIC_MAPABLE_PROVIDER_FINDER_V2_ENABLED=true \
 pnpm exec playwright test tests/a11y/provider-finder-v2.spec.ts --project=provider-finder-v2
 ```
 
-If the route requires a seeded database, use the repository's established test database/seed process. Do not point Playwright at production data.
+Use the repository's established synthetic/test database setup. Never point the suite at real participant data.
 
-### Step 4: Manual accessibility gate
+- [ ] **Step 5: Perform the manual accessibility gate**
 
-Record evidence in the PR description or verification note for:
+Record evidence in the PR/review notes for keyboard-only completion, screen-reader spot check, 200% zoom/reflow, reduced motion, map-independent completion, and text/AAC-compatible completion without a phone-only action.
 
-- keyboard-only critical flow;
-- screen-reader spot check (NVDA/VoiceOver/TalkBack as locally available);
-- 200% browser zoom/reflow;
-- reduced-motion behaviour;
-- map-independent completion;
-- text/AAC-compatible path (no phone-only action).
-
-Automated axe success alone is not sufficient.
-
-### Step 5: Commit
+- [ ] **Step 6: Commit**
 
 ```bash
 git add tests/a11y/provider-finder-v2.spec.ts playwright.config.ts tests/provider/provider-finder-commercial-separation.test.ts components/provider-finder/v2
 git commit -m "test(provider-finder): verify accessibility and ranking isolation"
 ```
 
-**Review gate:** A sponsored-result component may appear visually, but no test or production matcher accepts sponsorship as a scoring input.
+**Review gate:** axe success alone is insufficient; manual AT evidence must be recorded before release-readiness is claimed.
 
 ---
 
-## Task 10: Final Verification, Documentation and Preview-Ready Gate
+### Task 10: Final Verification, Documentation and Preview-Ready Gate
 
 **Files:**
 - Modify: `docs/data/ndis-provider-registry-prisma.md`
 - Create: `docs/provider-finder/provider-finder-v2-release-checklist.md`
-- Modify only if required by verified findings: code/tests from Tasks 1–9
+- Modify code/tests only for verified defects found during this task
 
-### Step 1: Document the final source architecture
+**Interfaces:**
+- Consumes: Tasks 1–9 and the approved architecture spec.
+- Produces: review-ready implementation branch with explicit rollback, release evidence and no production mutation.
 
-Update registry documentation to state clearly:
+- [ ] **Step 1: Document the final source architecture**
+
+Document exactly:
 
 ```text
 Official NDIS Provider Finder export
@@ -956,35 +928,28 @@ Official NDIS Provider Finder export
   -> Provider Finder V2 UI
 ```
 
-Document the distinction between:
+Also document the separate evidence states: official registry, MapAble verified, provider declared, and unknown/not assessed. State that `/api/providers/ndis/search` and `ndis_providers` remain compatibility/agent surfaces for now and are not the canonical V2 UI source.
 
-- official registered-provider evidence;
-- MapAble verified evidence;
-- provider-declared evidence;
-- unknown/not assessed information.
+- [ ] **Step 2: Create the release/rollback checklist**
 
-Also document that `/api/providers/ndis/search` and the separate `ndis_providers` ingestion remain compatibility/agent surfaces for now and are **not** the canonical V2 UI source.
+`docs/provider-finder/provider-finder-v2-release-checklist.md` must contain these explicit gates:
 
-### Step 2: Create release checklist
+```text
+[ ] V2 feature flags default false
+[ ] official registry snapshot is populated in target environment
+[ ] source date/freshness is visible
+[ ] no demo-provider production dependency
+[ ] no synthetic rating/review claims
+[ ] source-outage behavior tested
+[ ] list-only flow tested
+[ ] manual accessibility evidence recorded
+[ ] Vercel preview green
+[ ] preview runtime errors reviewed
+[ ] rollback = disable V2 flags and use legacy route
+[ ] no production enablement without explicit authorization
+```
 
-`docs/provider-finder/provider-finder-v2-release-checklist.md` must contain concrete gates:
-
-- feature flags default off;
-- production registry populated from an official-source snapshot;
-- source date visible;
-- no demo-provider production dependency;
-- no synthetic ratings/reviews;
-- source outage tested;
-- list-only flow tested;
-- accessibility manual evidence recorded;
-- Vercel preview green;
-- runtime error scan clean for preview;
-- rollback = disable V2 flags / restore legacy route;
-- no production enablement without explicit authorisation.
-
-### Step 3: Run full verification
-
-Run from a clean install/worktree appropriate to the implementation environment:
+- [ ] **Step 3: Run repository-wide verification**
 
 ```bash
 pnpm type-check
@@ -998,7 +963,9 @@ pnpm ci:feature-dependencies
 pnpm build
 ```
 
-Then targeted V2 browser suite:
+Document pre-existing failures separately from introduced failures. Do not waive an introduced failure.
+
+- [ ] **Step 4: Re-run the V2 browser suite**
 
 ```bash
 MAPABLE_PROVIDER_FINDER_V2_ENABLED=true \
@@ -1006,62 +973,46 @@ NEXT_PUBLIC_MAPABLE_PROVIDER_FINDER_V2_ENABLED=true \
 pnpm exec playwright test tests/a11y/provider-finder-v2.spec.ts --project=provider-finder-v2
 ```
 
-Document any **pre-existing** failure separately from an introduced failure. Do not waive an introduced failure.
+- [ ] **Step 5: Verify production remains untouched**
 
-### Step 4: Verify production is untouched
+Record that no Vercel production promotion, production environment mutation, production DB migration, duplicate-project retirement or custom-domain change was performed. Confirm V2 flags remain default off and `/provider-finder` retains rollback compatibility.
 
-Before declaring the implementation branch ready for review, confirm:
-
-- no Vercel production promotion was performed;
-- no production environment value was changed;
-- no DB migration was applied to production by this plan (none should be required for the first slice unless the implementation uncovers a proven blocker and the plan is formally revised);
-- V2 flags remain default off;
-- legacy `/provider-finder` path still has rollback compatibility.
-
-### Step 5: Commit documentation
+- [ ] **Step 6: Commit release documentation**
 
 ```bash
 git add docs/data/ndis-provider-registry-prisma.md docs/provider-finder/provider-finder-v2-release-checklist.md
 git commit -m "docs(provider-finder): add V2 release and rollback gates"
 ```
 
-### Step 6: Independent whole-branch review
+- [ ] **Step 7: Run an independent whole-branch review**
 
-Before opening or updating a PR, run an independent review of the complete branch against:
-
-- the approved architecture spec;
-- this implementation plan;
-- Provider Finder evidence/source rules;
-- WCAG 2.2 AA critical-flow requirements;
-- privacy and commercial-separation invariants.
-
-Resolve blockers before calling the branch implementation-complete.
+Review the complete branch against the approved architecture spec, this plan, provenance rules, WCAG 2.2 AA critical-flow requirements, privacy constraints and commercial-separation invariants. Resolve all blockers before calling the branch implementation-complete.
 
 ---
 
-## Planned PR / Review Shape
+## Planned PR Shape
 
-This plan is intentionally suitable for one focused Provider Finder convergence branch, but execution should still create small task commits. If review size becomes excessive, split after Task 4 into two stacked PRs:
+The plan can be executed on one focused Provider Finder branch with task-level commits. If review size becomes excessive, split after Task 4 into two stacked PRs:
 
-1. **Provider Finder V2 foundation:** Tasks 1–4 (contracts, registry projection, service, API, flags).
-2. **Provider Finder V2 experience:** Tasks 5–10 (evidence UI, route convergence, demo-data retirement, accessibility, release gates).
+1. **Provider Finder V2 foundation:** Tasks 1–4 — contracts, mapping, registry projection, service, API and flags.
+2. **Provider Finder V2 experience:** Tasks 5–10 — evidence UI, routes, production demo-data retirement, accessibility and release gates.
 
-Do not split the official source projection from its provenance/failure semantics, and do not merge the UI PR before the foundation it consumes is approved.
+Do not merge the experience PR before its foundation is approved.
 
 ## Stop Conditions
 
-Stop implementation and ask for a decision if any of the following occurs:
+Stop implementation and request a decision when any of these becomes true:
 
-- current repository state has materially diverged from base SHA and changes the Provider Finder source model;
-- official NDIS Provider Finder semantics no longer support the statement that its listings are registered providers;
-- the provider registry in the intended environment is missing or materially incomplete;
-- implementing V2 would require production secrets or direct production mutation;
-- a schema migration becomes necessary despite this plan's migration-free first slice;
-- a requested accessibility requirement can only be satisfied by inventing provider evidence;
-- a commercial/ads component attempts to feed sponsorship into organic ranking;
+- repository state materially diverges from the inspected base in a way that changes Provider Finder's source model;
+- official NDIS Provider Finder semantics no longer support the registered-provider-listing interpretation;
+- the target environment lacks a materially complete `ProviderOutletRegistry`;
+- the work requires production secrets or direct production mutation;
+- a schema migration becomes necessary despite this migration-free first slice;
+- an accessibility requirement can only be satisfied by inventing provider evidence;
+- sponsorship/ads would influence organic matching;
 - a test requires real participant data;
-- an implementation choice would silently broaden this plan into Worker Screening, direct service booking, payments, AccessXR or autonomous AI execution.
+- the change expands into Worker Screening, direct service booking, payments, AccessXR or autonomous high-impact AI execution.
 
-## Definition of Done for This Implementation Programme
+## Definition of Done
 
-Provider Finder 2.0 is implementation-complete for review when the V2 feature-flagged path reads official `ProviderOutletRegistry` data, returns typed provenance-aware projections, applies deterministic matching, never substitutes unknown evidence with inference, works without map or AI, no longer uses synthetic provider records in production discovery/SEO paths, preserves Care handoff through explicit identifiers, passes targeted and repository-wide verification, and has a tested flag-based rollback path. Production enablement remains a separate decision.
+Provider Finder 2.0 is implementation-complete for review when the feature-flagged V2 path reads official `ProviderOutletRegistry` data, returns typed provenance-aware projections, applies deterministic matching, never substitutes unknown evidence with inference, works without map or AI, no longer uses synthetic provider records in production discovery/SEO paths, preserves Care handoff through explicit identifiers, passes targeted and repository-wide verification, and has a tested flag-based rollback path. Production enablement remains a separate decision.
