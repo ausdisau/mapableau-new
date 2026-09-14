@@ -10,6 +10,8 @@ import {
 } from "@mapable/contracts";
 import { z } from "zod";
 
+import { evaluateAutonomyPolicyConstraint } from "./autonomy-policy";
+
 export const kernelStateSchema = z.enum([
   "RECEIVE",
   "VALIDATE",
@@ -171,6 +173,16 @@ export function decideProposedAction(params: {
   if (!params.authority.permittedActions.includes(params.action.operation)) {
     return { decision: "DENY_NO_AUTHORITY", reasonCodes: ["ACTION_NOT_GRANTED"] };
   }
+
+  const autonomyRestriction = evaluateAutonomyPolicyConstraint({
+    action: params.action,
+    authority: params.authority,
+    now,
+  });
+  if (autonomyRestriction) {
+    return autonomyRestriction;
+  }
+
   return {
     decision: params.action.confirmationRequired
       ? "REQUIRE_PARTICIPANT_CONFIRMATION"
