@@ -1,9 +1,9 @@
 import { mapConclusionToCompatibility } from "@/lib/access/infrastructure/compatibility";
+import type { AccessCompatibilityState } from "@/lib/access/infrastructure/domains";
 import type {
   AccessCapability,
   AccessRequirement,
 } from "@/lib/access/infrastructure/types";
-import type { AccessCompatibilityState } from "@/lib/access/infrastructure/domains";
 import type { AccessConclusionState } from "@/lib/access/intelligence-next/results/states";
 
 export type PassportCompatibilityGap = {

@@ -1,6 +1,6 @@
 import { GoRoutePlanner } from "@/components/go/GoRoutePlanner";
-import { mapableGoFlags } from "@/lib/config/mapable-go";
 import { listPublishedPlaces } from "@/lib/access/map/access-place-service";
+import { mapableGoFlags } from "@/lib/config/mapable-go";
 
 export const metadata = {
   title: "MapAble Go | Accessible journey planner",

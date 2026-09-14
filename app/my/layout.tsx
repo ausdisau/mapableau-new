@@ -1,5 +1,5 @@
-import { MyMapAbleAppShell } from "@/components/personal-agency/MyMapAbleAppShell";
 import { UnifiedParticipantShell } from "@/components/layout/UnifiedParticipantShell";
+import { MyMapAbleAppShell } from "@/components/personal-agency/MyMapAbleAppShell";
 import { personalAgencyFlags } from "@/lib/config/personal-agency";
 import { requirePersonalAgencyGate } from "@/lib/personal-agency/gates";
 import type { UserRole } from "@/types/mapable";

@@ -1,8 +1,11 @@
-import { mapableGoFlags, goFeatureDisabledResponse } from "@/lib/config/mapable-go";
-import { barrierReportSchema } from "@/lib/go/contracts/route-contracts";
-import { listActiveBarriers, reportBarrier } from "@/lib/go/barrier-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonOk, zodErrorResponse } from "@/lib/api/response";
+import {
+  goFeatureDisabledResponse,
+  mapableGoFlags,
+} from "@/lib/config/mapable-go";
+import { listActiveBarriers, reportBarrier } from "@/lib/go/barrier-service";
+import { barrierReportSchema } from "@/lib/go/contracts/route-contracts";
 
 export async function GET() {
   if (!mapableGoFlags.enabled) {
