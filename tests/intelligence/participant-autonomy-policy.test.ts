@@ -162,7 +162,11 @@ describe("participant autonomy policy v1", () => {
 
   it.each([
     ["amount", { amountMinorUnits: 7501, currency: "AUD" }, "AUTONOMY_AMOUNT_TOLERANCE_EXCEEDED"],
-    ["schedule", { scheduleShiftMinutes: 21 }, "AUTONOMY_SCHEDULE_TOLERANCE_EXCEEDED"],
+    [
+      "schedule",
+      { amountMinorUnits: 6500, currency: "AUD", scheduleShiftMinutes: 21 },
+      "AUTONOMY_SCHEDULE_TOLERANCE_EXCEEDED",
+    ],
   ])("requires confirmation when %s leaves the participant-approved tolerance", (_label, change, reasonCode) => {
     const authority = makeAuthority(standingPolicy());
     const action = makeAction({
