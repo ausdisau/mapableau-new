@@ -4,9 +4,9 @@
 
 ## Why this refinement is required
 
-`FullLifeHarnessInput` currently carries canonical evidence references, participant priorities, resource state, commercial influence and optional AURA output. Opaque evidence references are sufficient for provenance but are not sufficient for a pure deterministic evaluator to decide whether authority is active, consent is revoked, a hard accessibility constraint is unmet, evidence is stale or a cross-domain continuity dependency has broken.
+`FullLifeHarnessInput` currently carries canonical evidence references, participant priorities, resource state, commercial influence and optional AURA output. Opaque evidence references are sufficient for provenance but are not sufficient for a pure deterministic evaluator to decide whether authority is active, consent is revoked, a participant has rejected a proposal, a supporter answer still awaits participant confirmation, an accessibility barrier is being misclassified as participant unsuitability, a hard accessibility constraint is unmet, evidence is stale, a duplicate financial transaction is detected, or a cross-domain continuity dependency has broken.
 
-The implementation therefore adds a **derived, ephemeral assurance snapshot** plus explicit candidate-option metadata. Neither is a new system of record. Both are built from the current canonical mission, authority, consent, accessibility, evidence, continuity and participant-priority state immediately before evaluation.
+The implementation therefore adds a **derived, ephemeral assurance snapshot** plus explicit candidate-option metadata. Neither is a new system of record. Both are built from the current canonical mission, authority, consent, accessibility, evidence, continuity, financial and participant-priority state immediately before evaluation.
 
 ## Additive contracts
 
@@ -33,6 +33,12 @@ export const FULL_LIFE_CONSENT_STATES = [
 export type FullLifeConsentState =
   (typeof FULL_LIFE_CONSENT_STATES)[number];
 
+export interface FullLifeAgencySnapshot {
+  participantGoalActive: boolean;
+  participantRejectedProposalIds: string[];
+  supporterInputAwaitingParticipantConfirmation: boolean;
+}
+
 export interface FullLifeAuthoritySnapshot {
   state: FullLifeAuthorityState;
   requiredScope: string | null;
@@ -58,6 +64,11 @@ export interface FullLifeAccessibilitySnapshot {
   evidenceRefs: string[];
 }
 
+export interface FullLifeEqualitySnapshot {
+  diagnosisOnlyExclusion: boolean;
+  accessBarrierMisclassifiedAsParticipantUnsuitability: boolean;
+}
+
 export interface FullLifeEvidenceSnapshot {
   unknownRefs: string[];
   staleRefs: string[];
@@ -80,6 +91,12 @@ export interface FullLifeDisclosureSnapshot {
   minimumNecessary: boolean;
 }
 
+export interface FullLifeFinancialSnapshot {
+  fundingAuthority: "CONFIRMED" | "UNKNOWN" | "NOT_AUTHORISED";
+  duplicateTransactionRefs: string[];
+  priceMismatchRefs: string[];
+}
+
 export interface FullLifeSafeguardingSnapshot {
   state:
     | "NONE"
@@ -97,12 +114,15 @@ export interface FullLifeResilienceSnapshot {
 }
 
 export interface FullLifeAssuranceSnapshot {
+  agency: FullLifeAgencySnapshot;
   authority: FullLifeAuthoritySnapshot;
   consent: FullLifeConsentSnapshot;
   accessibility: FullLifeAccessibilitySnapshot;
+  equality: FullLifeEqualitySnapshot;
   evidence: FullLifeEvidenceSnapshot;
   continuity: FullLifeContinuitySnapshot;
   disclosure: FullLifeDisclosureSnapshot;
+  financial: FullLifeFinancialSnapshot;
   safeguarding: FullLifeSafeguardingSnapshot;
   resilience: FullLifeResilienceSnapshot;
 }
@@ -141,19 +161,25 @@ This is required so the harness can distinguish “the record contains an unknow
 - Before any later consequential execution, the existing Governed Action Kernel must re-check live authority and consent. A prior Full Life result is not an authorisation token.
 - Snapshot and candidate-option data may appear inside synthetic test fixtures and audit evidence, but must not become independently editable participant records.
 - Candidate-option conflicts must reference participant-confirmed priorities / hard constraints; model-inferred preferences cannot silently become constraints.
+- Financial snapshot fields are read-only integrity signals. They do not create payment, claim or funding authority.
 
 ## Decision consequences
 
 The evaluator can now make deterministic assertions such as:
 
+- a proposal listed in `participantRejectedProposalIds` → block that proposal and preserve the participant's changed decision;
+- `supporterInputAwaitingParticipantConfirmation === true` → do not silently treat supporter input as participant preference;
 - `authority.state === "OUT_OF_SCOPE"` → block the affected proposal;
 - `consent.state === "REVOKED"` → block disclosure / action requiring that consent;
 - an option whose `conflictsWithPriorityIds` includes a participant-confirmed `HARD_CONSTRAINT` → do not permit that option even if it is cheaper or commercially preferred;
 - `unmetHardConstraintIds.length > 0` → do not prefer or permit the incompatible option;
 - `inaccessibleSoleChannel === true` → degrade to an accessible/manual pathway;
 - participant response time greater than an interface deadline must not be treated as refusal when communication access requires extended time;
+- `diagnosisOnlyExclusion === true` or `accessBarrierMisclassifiedAsParticipantUnsuitability === true` → equality / discrimination finding rather than abandonment of the participant's goal;
 - stale / conflicting / inflated evidence → preserve uncertainty and require review as appropriate;
 - broken cross-domain continuity with no recovery → review / manual escalation;
+- `financial.fundingAuthority === "UNKNOWN"` → preserve funding uncertainty and require review rather than claim eligibility;
+- any `duplicateTransactionRefs` → block the affected financial proposal without executing or simulating a real payment engine;
 - `restrictiveDefaultProposed === true` without a lawful constraint → dignity-of-risk finding;
 - `assumedAvailableTypes` containing a resource whose state is `UNKNOWN`, `DECLINED`, `NOT_AUTHORISED` or `UNAVAILABLE` → do not treat that resource as usable;
 - absent non-AI and human fallback → resilience / remedy failure.
