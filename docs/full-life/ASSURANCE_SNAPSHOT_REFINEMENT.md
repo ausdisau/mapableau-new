@@ -6,7 +6,7 @@
 
 `FullLifeHarnessInput` currently carries canonical evidence references, participant priorities, resource state, commercial influence and optional AURA output. Opaque evidence references are sufficient for provenance but are not sufficient for a pure deterministic evaluator to decide whether authority is active, consent is revoked, a hard accessibility constraint is unmet, evidence is stale or a cross-domain continuity dependency has broken.
 
-The implementation therefore adds a **derived, ephemeral assurance snapshot**. It is not a new system of record and must never be persisted as an independent source of truth. The snapshot is built from the current canonical mission, authority, consent, accessibility, evidence and continuity state immediately before evaluation.
+The implementation therefore adds a **derived, ephemeral assurance snapshot** plus explicit candidate-option metadata. Neither is a new system of record. Both are built from the current canonical mission, authority, consent, accessibility, evidence, continuity and participant-priority state immediately before evaluation.
 
 ## Additive contracts
 
@@ -106,21 +106,41 @@ export interface FullLifeAssuranceSnapshot {
   safeguarding: FullLifeSafeguardingSnapshot;
   resilience: FullLifeResilienceSnapshot;
 }
+
+export interface FullLifeCandidateOption {
+  optionRef: string;
+  proposalIds: string[];
+  satisfiesPriorityIds: string[];
+  conflictsWithPriorityIds: string[];
+  requiredResourceTypes: FullLifeResourceType[];
+  evidenceRefs: string[];
+  commercialInfluenceRefs: string[];
+}
 ```
 
-`FullLifeHarnessInput` gains one field:
+`FullLifeHarnessInput` gains two fields:
 
 ```ts
 assurance: FullLifeAssuranceSnapshot;
+candidateOptions: FullLifeCandidateOption[];
 ```
+
+`FullLifeResourceEnvelope` also gains a structured list of resource types that the proposed plan currently assumes are available:
+
+```ts
+assumedAvailableTypes: FullLifeResourceType[];
+```
+
+This is required so the harness can distinguish “the record contains an unknown informal-support state” from “the plan is actively relying on unknown informal support.”
 
 ## Ownership and lifecycle
 
-- The snapshot is built at evaluation time from existing canonical records and the current `MapAbleMissionPlan`.
-- It is immutable for the duration of one evaluation.
+- The snapshot and candidate-option metadata are built at evaluation time from existing canonical records and the current `MapAbleMissionPlan`.
+- They are immutable for the duration of one evaluation.
 - A harness result is bound to the mission-plan hash / version and snapshot-derived evidence references.
 - Before any later consequential execution, the existing Governed Action Kernel must re-check live authority and consent. A prior Full Life result is not an authorisation token.
-- The snapshot may appear inside synthetic test fixtures and audit evidence, but it must not become an independently editable participant record.
+- Snapshot and candidate-option data may appear inside synthetic test fixtures and audit evidence, but must not become independently editable participant records.
+- Candidate-option conflicts must reference participant-confirmed priorities / hard constraints; model-inferred preferences cannot silently become constraints.
 
 ## Decision consequences
 
@@ -128,11 +148,14 @@ The evaluator can now make deterministic assertions such as:
 
 - `authority.state === "OUT_OF_SCOPE"` → block the affected proposal;
 - `consent.state === "REVOKED"` → block disclosure / action requiring that consent;
+- an option whose `conflictsWithPriorityIds` includes a participant-confirmed `HARD_CONSTRAINT` → do not permit that option even if it is cheaper or commercially preferred;
 - `unmetHardConstraintIds.length > 0` → do not prefer or permit the incompatible option;
 - `inaccessibleSoleChannel === true` → degrade to an accessible/manual pathway;
+- participant response time greater than an interface deadline must not be treated as refusal when communication access requires extended time;
 - stale / conflicting / inflated evidence → preserve uncertainty and require review as appropriate;
 - broken cross-domain continuity with no recovery → review / manual escalation;
 - `restrictiveDefaultProposed === true` without a lawful constraint → dignity-of-risk finding;
+- `assumedAvailableTypes` containing a resource whose state is `UNKNOWN`, `DECLINED`, `NOT_AUTHORISED` or `UNAVAILABLE` → do not treat that resource as usable;
 - absent non-AI and human fallback → resilience / remedy failure.
 
 This refinement does not change the Full Life constitutional purpose or system ownership boundaries. It makes the approved pure-function harness architecture executable.
