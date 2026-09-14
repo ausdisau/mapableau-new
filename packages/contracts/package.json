@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/public.ts"
+    ".": "./src/public.ts",
+    "./autonomy-policy": "./src/autonomy-policy.ts"
   },
   "dependencies": {
     "zod": "^4.3.6"
