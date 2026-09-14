@@ -20,7 +20,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "."),
       "@mapable/contracts": path.resolve(
         __dirname,
-        "packages/contracts/src/index.ts"
+        "packages/contracts/src/public.ts"
       ),
       "@mapable/intelligence-kernel": path.resolve(
         __dirname,
