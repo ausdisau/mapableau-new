@@ -1,8 +1,5 @@
-import {
-  participantAutonomyPolicyConstraintV1Schema,
-  type AuthorityGrant,
-  type ProposedAction,
-} from "@mapable/contracts";
+import type { AuthorityGrant, ProposedAction } from "@mapable/contracts";
+import { participantAutonomyPolicyConstraintV1Schema } from "@mapable/contracts/autonomy-policy";
 
 export type AutonomyPolicyRestriction = {
   decision: "REQUIRE_PARTICIPANT_CONFIRMATION" | "REQUIRE_HUMAN_REVIEW";
