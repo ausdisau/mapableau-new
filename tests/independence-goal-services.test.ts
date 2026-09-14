@@ -17,6 +17,18 @@ describe("buildGoalPlanDraft", () => {
     );
   });
 
+  it("gives every suggestion a conversational yes-no-not-sure question", () => {
+    const draft = buildGoalPlanDraft(
+      "I want to work at a library and arrange accessible transport there",
+    );
+
+    expect(draft.serviceCandidates.length).toBeGreaterThan(0);
+    for (const candidate of draft.serviceCandidates) {
+      expect(candidate.question.length).toBeGreaterThan(0);
+      expect(candidate.allowedDecisions).toEqual(["yes", "no", "not_sure"]);
+    }
+  });
+
   it("suggests Access when the goal explicitly asks about accessibility", () => {
     const draft = buildGoalPlanDraft(
       "I want to find a cafe with step-free entry and an accessible toilet near work",
@@ -42,6 +54,7 @@ describe("buildGoalPlanDraft", () => {
     expect(care).toBeDefined();
     expect(care?.requiresExplicitChoice).toBe(true);
     expect(care?.decision).toBe("undecided");
+    expect(care?.question.toLowerCase()).toContain("support");
   });
 
   it("never creates default disclosure permissions", () => {
