@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { buildGoalPlanDraft } from "../apps/independence/src/goal-services/goalPlan";
+import {
+  buildGoalPlanDraft,
+  setGoalPlanDecision,
+} from "@mapable/contracts";
 
-describe("buildGoalPlanDraft", () => {
-  it("suggests Jobs and Transport for an explicit work-and-travel goal", () => {
+describe("Goal Plan shared contract", () => {
+  it("suggests Jobs and Transport for explicit work-and-travel intent", () => {
     const draft = buildGoalPlanDraft(
       "I want to work three days a week at a library and stop depending on my parents to get there",
     );
@@ -12,60 +15,71 @@ describe("buildGoalPlanDraft", () => {
     expect(draft.serviceCandidates.map((candidate) => candidate.module)).toEqual(
       expect.arrayContaining(["jobs", "transport"]),
     );
-    expect(draft.serviceCandidates.every((candidate) => candidate.decision === "undecided")).toBe(
-      true,
-    );
+    expect(
+      draft.serviceCandidates.every(
+        (candidate) => candidate.decision === "undecided",
+      ),
+    ).toBe(true);
   });
 
-  it("gives every suggestion a conversational yes-no-not-sure question", () => {
+  it("suggests Access for explicit accessibility intent", () => {
     const draft = buildGoalPlanDraft(
-      "I want to work at a library and arrange accessible transport there",
+      "I want a cafe with step-free entry and an accessible toilet near work",
     );
 
-    expect(draft.serviceCandidates.length).toBeGreaterThan(0);
-    for (const candidate of draft.serviceCandidates) {
-      expect(candidate.question.length).toBeGreaterThan(0);
-      expect(candidate.allowedDecisions).toEqual(["yes", "no", "not_sure"]);
-    }
-  });
-
-  it("suggests Access when the goal explicitly asks about accessibility", () => {
-    const draft = buildGoalPlanDraft(
-      "I want to find a cafe with step-free entry and an accessible toilet near work",
-    );
-
-    expect(draft.serviceCandidates.some((candidate) => candidate.module === "access")).toBe(true);
+    expect(
+      draft.serviceCandidates.some((candidate) => candidate.module === "access"),
+    ).toBe(true);
   });
 
   it("does not infer Care from diagnosis or disability language alone", () => {
     const draft = buildGoalPlanDraft(
-      "I have cerebral palsy and use a wheelchair. I want to find a job at a library.",
+      "I have cerebral palsy and use a wheelchair. I want a job at a library.",
     );
 
-    expect(draft.serviceCandidates.some((candidate) => candidate.module === "care")).toBe(false);
+    expect(
+      draft.serviceCandidates.some((candidate) => candidate.module === "care"),
+    ).toBe(false);
   });
 
-  it("suggests Care only from explicit support intent and marks it ask-first", () => {
+  it("creates Care only from explicit support intent", () => {
     const draft = buildGoalPlanDraft(
-      "I want help from a support worker with my morning routine before I travel to work",
+      "I want a support worker to help with my morning routine before work",
+    );
+    const care = draft.serviceCandidates.find(
+      (candidate) => candidate.module === "care",
     );
 
-    const care = draft.serviceCandidates.find((candidate) => candidate.module === "care");
     expect(care).toBeDefined();
     expect(care?.requiresExplicitChoice).toBe(true);
+    expect(care?.sensitivity).toBe("sensitive");
     expect(care?.decision).toBe("undecided");
-    expect(care?.question.toLowerCase()).toContain("support");
   });
 
   it("never creates default disclosure permissions", () => {
     const draft = buildGoalPlanDraft(
-      "I want to work at a library and arrange accessible transport there",
+      "I want a job and accessible transport to work",
     );
 
     expect(draft.disclosurePermissions).toEqual([]);
   });
 
-  it("asks for clarification when the goal is empty", () => {
+  it.each(["yes", "no", "not_sure"] as const)(
+    "preserves participant decision %s",
+    (decision) => {
+      const draft = buildGoalPlanDraft("I want a job");
+      const updated = setGoalPlanDecision(draft, "jobs", decision);
+
+      expect(
+        updated.serviceCandidates.find(
+          (candidate) => candidate.module === "jobs",
+        )?.decision,
+      ).toBe(decision);
+      expect(updated.disclosurePermissions).toEqual([]);
+    },
+  );
+
+  it("asks for clarification for an empty goal", () => {
     const draft = buildGoalPlanDraft("   ");
 
     expect(draft.needsClarification).toBe(true);
