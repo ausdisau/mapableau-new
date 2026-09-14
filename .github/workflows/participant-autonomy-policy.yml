@@ -1,0 +1,33 @@
+name: Participant autonomy policy
+
+on:
+  pull_request:
+    paths:
+      - "packages/contracts/**"
+      - "packages/intelligence-kernel/**"
+      - "tests/intelligence/participant-autonomy-policy.test.ts"
+      - "tests/intelligence/evaluation-harness.test.ts"
+      - ".github/workflows/participant-autonomy-policy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run participant autonomy policy and kernel regression slice
+        run: >-
+          pnpm exec vitest run
+          tests/intelligence/participant-autonomy-policy.test.ts
+          tests/intelligence/evaluation-harness.test.ts
