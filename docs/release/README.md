@@ -24,7 +24,7 @@ Phase 15 release pipeline for national platform deployments. **Production deploy
 | ------ | ------- |
 | `scripts/release/check-migrations.sh` | Validate pending migrations |
 | `scripts/release/smoke-tests.sh` | Post-deploy smoke checks |
-| `scripts/release/post-deploy-health.sh` | Health endpoint verification |
+| `scripts/release/post-deploy-health.sh` | Requires `/api/health/live` + `/api/health/ready` JSON 200 (`HEALTH_CHECK_BASE_URL`) |
 | `scripts/release/rollback.sh` | Rollback guidance stub |
 
 ## Flags
