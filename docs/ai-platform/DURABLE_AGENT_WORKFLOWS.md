@@ -33,7 +33,7 @@ runMapAbleAgentMissionStep           "use step"
 DurableMissionResult
 ```
 
-The workflow function only orchestrates. The step owns network/model/database side effects and is independently retryable.
+The workflow function only orchestrates. The step owns model/network side effects and is independently retryable. This first slice deliberately avoids database writes inside the retryable step until an idempotency key is bound to the workflow run.
 
 ## Safety properties
 
@@ -43,6 +43,7 @@ The workflow function only orchestrates. The step owns network/model/database si
 - No participant record retrieval is performed by the workflow.
 - No agent tool can book, pay, claim, assign, disclose, diagnose, decide safeguarding, or contact emergency services.
 - Human-review and missing-consent results from the deterministic activation plane cannot be removed by model output.
+- Safeguarding cues halt the model path and return the existing authorised-human safeguarding gate.
 - `MAPABLE_AGENT_WORKFLOW_ENABLED` fails closed unless explicitly set to `true`.
 - `MAPABLE_AI_ENABLED=false` or a missing `OPENAI_API_KEY` uses the deterministic fallback.
 - Existing non-AI paths remain available.
@@ -81,7 +82,7 @@ Keep the workflow feature flag false until dependency lockfile, typecheck, tests
 
 ## Next increments
 
-1. Bind workflow runs to existing mission persistence instead of adding a parallel store.
+1. Bind workflow runs to existing mission persistence and add idempotent AgentRun/AuditEvent recording keyed by workflow run ID.
 2. Add a read-only status/stream route using the Workflow run ID.
 3. Connect existing governed typed tools one capability at a time.
 4. Use the existing Governed Action Kernel for participant/human approval; do not add a second approval mechanism.
