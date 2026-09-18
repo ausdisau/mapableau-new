@@ -19,7 +19,7 @@ export OPENAI_API_KEY="your-project-api-key"
 export OPENAI_PROJECT_ID="proj_aRYSx2ldlGChWX1AGcPdwfv0"
 ```
 
-The API key must be authorized for that OpenAI project and for the Agents API/model being used.
+The API key must be authorized for that OpenAI project and for the Agents API/model being used. Current OpenAI guidance requires `api.agents.read`, `api.agents.write`, and `api.responses.write` permissions for this flow. The runner also sends the required `OpenAI-Beta: agents=v1` header on every Agents API request.
 
 ## Run
 
