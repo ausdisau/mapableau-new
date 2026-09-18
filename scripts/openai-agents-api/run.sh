@@ -17,6 +17,7 @@ auth=(-H "Authorization: Bearer $OPENAI_API_KEY" -H "OpenAI-Project: $PROJECT_ID
 json=(-H "Content-Type: application/json")
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
+session_id=""
 
 api_json() {
   local method="$1" url="$2" data="${3:-}" out="$tmp/body.json" code
@@ -38,13 +39,9 @@ agent="$(api_json POST "$API_BASE/agents" "$(cat "$AGENT_FILE")")"
 agent_id="$(jq -er '.id' <<<"$agent")"
 printf 'Agent ID: %s\n' "$agent_id"
 
-session_payload="$(jq -nc --arg agent_id "$agent_id" --arg input "$INITIAL_MESSAGE"   '{agent_id:$agent_id,environment:{type:"none"},input:$input,stream:false,metadata:{app:"mapable-agents-api-curl"}}')"
-session="$(api_json POST "$API_BASE/agents/sessions" "$session_payload")"
-session_id="$(jq -er '.id' <<<"$session")"
-printf 'Session ID: %s\n\n' "$session_id"
-
 submit_tool_result() {
   local action="$1" turn_id call_id name result payload
+  [[ -n "$session_id" ]] || die "cannot submit a tool result before the session ID is known"
   turn_id="$(jq -er '.turn_id' <<<"$action")"
   call_id="$(jq -er '.call_id' <<<"$action")"
   name="$(jq -r '.name // "unknown"' <<<"$action")"
@@ -62,6 +59,10 @@ handle_event_json() {
   local event="$1" type
   type="$(jq -r '.type // empty' <<<"$event")"
   case "$type" in
+    agent.session.created)
+      session_id="$(jq -er '.session.id' <<<"$event")"
+      printf 'Session ID: %s\n\n' "$session_id" >&2
+      ;;
     agent.session.turn.output_text.delta)
       jq -jr '.delta // empty' <<<"$event"
       ;;
@@ -77,8 +78,11 @@ handle_event_json() {
   esac
 }
 
-printf 'Streaming session events...\n'
-# SSE records are "event:" / "data:" lines. Each data payload is a JSON session event.
+session_payload="$(jq -nc --arg agent_id "$agent_id" --arg input "$INITIAL_MESSAGE"   '{agent_id:$agent_id,environment:{type:"none"},input:$input,stream:true,metadata:{app:"mapable-agents-api-curl"}}')"
+
+printf 'Starting and streaming session...\n'
+# Creating a session with stream:true returns Server-Sent Events immediately, which
+# avoids racing a second GET /events request against a fast first turn.
 while IFS= read -r line; do
   case "$line" in
     data: *)
@@ -91,7 +95,11 @@ while IFS= read -r line; do
       fi
       ;;
   esac
-done < <(curl -sS -N "${auth[@]}" -H "Accept: text/event-stream" "$API_BASE/agents/sessions/$session_id/events")
+done < <(
+  curl --fail-with-body -sS -N     -X POST     "${auth[@]}"     "${json[@]}"     -H "Accept: text/event-stream"     --data "$session_payload"     "$API_BASE/agents/sessions"
+)
+
+[[ -n "$session_id" ]] || die "stream ended before an agent.session.created event was received"
 
 printf '\n\nSession complete. Inspect items with:\n'
 printf 'curl -sS -H "Authorization: Bearer $OPENAI_API_KEY" -H "OpenAI-Project: %s" "%s/agents/sessions/%s/items" | jq .\n' "$PROJECT_ID" "$API_BASE" "$session_id"
