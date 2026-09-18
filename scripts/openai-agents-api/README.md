@@ -48,9 +48,9 @@ The script:
 
 ## Agent configuration
 
-`agent.json` preserves the requested name, `gpt-6-astra`, medium reasoning, automatic reasoning summary, text output, and medium verbosity. The previously empty instructions field is completed with a narrow MapAble development role that emphasizes accessibility, evidence, participant autonomy, privacy, consent, and human review.
+`agent.json` preserves the requested name, `gpt-6-astra`, medium reasoning, automatic reasoning summary, text output, and medium verbosity. The reusable definition preserves the supplied empty `instructions` field exactly. MapAble-specific context belongs in the session input (or can be added later as a deliberate agent-version change).
 
-No tools are enabled yet. When adding a function tool, add an explicit allowlisted implementation to `submit_tool_result`; do not turn arbitrary model-provided commands into shell execution.
+No tools are enabled in the supplied reusable definition. When adding a function tool, add an explicit allowlisted implementation to `submit_tool_result`; do not turn arbitrary model-provided commands into shell execution.
 
 ## Troubleshooting
 
