@@ -78,7 +78,7 @@ MAPABLE_AGENT_WORKFLOW_ENABLED=false
 MAPABLE_OPENAI_AGENT_MODEL=gpt-6-astra
 ```
 
-Keep the workflow feature flag false until dependency lockfile, typecheck, tests, preview deployment, and workflow run observability are verified.
+Use a project-scoped OpenAI key and set `OPENAI_PROJECT_ID` to the MapAble OpenAI project. Keep the workflow feature flag false until dependency lockfile, typecheck, tests, preview deployment, and workflow run observability are verified.
 
 ## Next increments
 
