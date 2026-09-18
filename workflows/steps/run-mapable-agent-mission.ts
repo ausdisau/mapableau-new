@@ -1,4 +1,3 @@
-import { createAgentRun } from "@/lib/ai/agent-ops/agent-run-service";
 import {
   runDurableMapAbleMission,
   type DurableMissionInput,
@@ -10,28 +9,9 @@ export async function runMapAbleAgentMissionStep(
 ): Promise<DurableMissionResult> {
   "use step";
 
-  const result = await runDurableMapAbleMission(input);
-
-  await createAgentRun({
-    agentType: "intake",
-    actorUserId:
-      input.actor.actorType === "system" ? undefined : input.actor.actorId,
-    inputSummary: {
-      missionId: input.missionId,
-      domains: input.domains,
-      objectiveLength: input.objective.length,
-    },
-    outputSummary: {
-      source: result.source,
-      activeAgentIds: result.activeAgentIds,
-      authorityCeiling: result.authorityCeiling,
-    },
-    toolsCalled: [],
-    guardrailsTriggered: result.humanReviewReasons,
-    riskTier: result.requiresHumanReview ? "medium" : "low",
-    humanReviewRequired: result.requiresHumanReview,
-    participantConfirmationRequired: false,
-  });
-
-  return result;
+  // Keep this first durable slice idempotent: the step performs governed
+  // reasoning only. AgentRun/AuditEvent persistence will be added once it can
+  // bind a workflow run ID to an idempotency key rather than duplicating audit
+  // rows on automatic retry.
+  return runDurableMapAbleMission(input);
 }
