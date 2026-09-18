@@ -13,7 +13,7 @@ command -v jq >/dev/null || die "jq is required"
 [[ -n "${OPENAI_API_KEY:-}" ]] || die "OPENAI_API_KEY is not set"
 [[ -r "$AGENT_FILE" ]] || die "agent definition not found: $AGENT_FILE"
 
-auth=(-H "Authorization: Bearer $OPENAI_API_KEY" -H "OpenAI-Project: $PROJECT_ID")
+auth=(-H "Authorization: Bearer $OPENAI_API_KEY" -H "OpenAI-Project: $PROJECT_ID" -H "OpenAI-Beta: agents=v1")
 json=(-H "Content-Type: application/json")
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
