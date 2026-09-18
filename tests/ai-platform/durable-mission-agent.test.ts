@@ -60,4 +60,24 @@ describe("durable MapAble mission runtime", () => {
     expect(result.authorityCeiling).not.toBe("DETERMINISTIC_EXECUTE_VIA_SERVICE");
     expect(result.summary).toContain("No consequential action was executed");
   });
+  it("halts model processing for safeguarding cues", async () => {
+    process.env.MAPABLE_AGENT_WORKFLOW_ENABLED = "true";
+    process.env.MAPABLE_AI_ENABLED = "true";
+
+    const result = await runDurableMapAbleMission({
+      missionId: "mission-test-3",
+      objective: "I need help reporting abuse by a support worker.",
+      domains: ["care"],
+      actor: {
+        actorId: "user-test",
+        actorType: "participant",
+      },
+      consentScopes: [],
+    });
+
+    expect(result.source).toBe("deterministic_fallback");
+    expect(result.requiresHumanReview).toBe(true);
+    expect(result.humanReviewReasons.join(" ")).toContain("safeguarding");
+    expect(result.recommendedNextStep).toContain("human safeguarding workflow");
+  });
 });
