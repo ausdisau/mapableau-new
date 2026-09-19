@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   semgrep:
-    name: Semgrep
+    name: Security / semgrep
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep
@@ -25,41 +25,122 @@ jobs:
       - name: Semgrep CI
         run: semgrep ci
 
-  security-gates:
-    name: Security
+  dependency-audit:
+    name: Security / dependency-audit
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     env:
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.1
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-
       - name: Install
         run: pnpm install --frozen-lockfile
-
       - name: Dependency audit (prod high+)
         run: pnpm ci:prod-audit
 
+  secrets:
+    name: Security / secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
       - name: Secret pattern scanning
         run: pnpm exec tsx scripts/ci/check-secret-patterns.ts
 
+  environment:
+    name: Security / environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
       - name: Unsafe environment fallbacks
         run: pnpm exec tsx scripts/ci/check-unsafe-env-fallbacks.ts
 
+  authentication:
+    name: Security / authentication
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
       - name: Route authentication smoke
         run: pnpm exec tsx scripts/ci/check-route-auth-smoke.ts
 
+  upload-validation:
+    name: Security / upload-validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
       - name: File upload validation
         run: pnpm exec tsx scripts/ci/check-file-upload-validation.ts
 
+  public-api-exposure:
+    name: Security / public-api-exposure
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
       - name: Public API data-exposure
         run: pnpm exec tsx scripts/ci/check-public-api-exposure.ts

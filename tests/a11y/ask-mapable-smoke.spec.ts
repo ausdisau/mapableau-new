@@ -20,7 +20,9 @@ test("Ask MapAble page and guest launcher behaviour", async ({ page }) => {
     "Find a place with step-free entrance and accessible toilet and power-wheelchair access",
   );
   await page.getByRole("button", { name: "Ask", exact: true }).click();
-  await expect(page.getByRole("alert")).toBeVisible({ timeout: 10_000 });
+  await expect(
+    page.locator('[role="alert"]:not(#__next-route-announcer__)').first(),
+  ).toBeVisible({ timeout: 10_000 });
   await page.screenshot({
     path: "/opt/cursor/artifacts/ask-mapable-ask-result.png",
     fullPage: false,
