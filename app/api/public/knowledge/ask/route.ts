@@ -26,7 +26,10 @@ export async function POST(request: Request) {
     );
   }
 
-  if (process.env.MAPABLE_PUBLIC_KNOWLEDGE_ENABLED !== "true") {
+  if (
+    process.env.MAPABLE_PUBLIC_KNOWLEDGE_ENABLED !== "true" ||
+    process.env.MAPABLE_PUBLIC_RATE_LIMIT_VERIFIED !== "true"
+  ) {
     return Response.json(
       { error: "The public knowledge guide is not available right now." },
       { status: 503 },
