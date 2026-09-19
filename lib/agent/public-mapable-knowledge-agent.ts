@@ -6,7 +6,6 @@ import {
   readPublicBucketText,
 } from "@/lib/agent/hf-public-bucket";
 
-const PUBLIC_PREFIX = "public/";
 
 const publicSourceSchema = z.object({
   key: z.string(),
