@@ -125,11 +125,16 @@ function matchesAny(goal: string, patterns: RegExp[]): boolean {
 }
 
 function toCandidate(definition: CandidateDefinition): GoalServiceCandidate {
-  const { matches: _matches, ...candidate } = definition;
-
   return {
-    ...candidate,
+    module: definition.module,
+    reasonSuggested: definition.reasonSuggested,
+    participantBenefit: definition.participantBenefit,
+    question: definition.question,
     decision: "undecided",
+    confidence: definition.confidence,
+    sensitivity: definition.sensitivity,
+    askConversationally: definition.askConversationally,
+    requiresExplicitChoice: definition.requiresExplicitChoice,
     requirements: [],
     nonNegotiables: [],
     uncertainties: [],
