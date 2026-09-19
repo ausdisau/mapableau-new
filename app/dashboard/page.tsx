@@ -15,6 +15,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { SpeechifyReadAloudButton } from "@/components/accessibility/SpeechifyReadAloudButton";
 import { adaptParticipantDashboard } from "@/lib/access/adaptive";
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
@@ -23,6 +24,7 @@ import { caseManagementConfig } from "@/lib/config/case-management";
 import { isEngagementPlatformEnabled } from "@/lib/config/engagement";
 import { countOpenSubmissions } from "@/lib/engagement/engagement-submission-service";
 import { prisma } from "@/lib/prisma";
+import { isSpeechifyConfigured } from "@/lib/speechify/tts";
 
 export const metadata = { title: "Control panel | MapAble Core" };
 
@@ -147,6 +149,9 @@ export default async function DashboardPage() {
   const firstName = user.name.split(/\s+/)[0] || user.name;
   const safetyCount = incidentCount + openSupportCount;
   const engagementEnabled = isEngagementPlatformEnabled();
+  const speechifyEnabled = isSpeechifyConfigured();
+  const readAloudText =
+    "Welcome to MapAble Core. Coordinate access, care, transport, work and support from one place. You remain in control of consent, choices and approvals.";
 
   return (
     <div
@@ -178,6 +183,9 @@ export default async function DashboardPage() {
             >
               <Sparkles size={19} aria-hidden="true" /> Ask MapAble
             </Link>
+            {speechifyEnabled ? (
+              <SpeechifyReadAloudButton text={readAloudText} label="Listen" />
+            ) : null}
             <Link
               href="/provider-finder"
               className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/50 bg-white/10 px-5 py-3 font-bold text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#F8C51C] motion-reduce:transition-none"
