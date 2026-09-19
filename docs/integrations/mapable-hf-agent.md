@@ -95,3 +95,58 @@ The model cannot:
 
 Output writes are performed deterministically after the agent run and only under the
 `agent-output/` prefix.
+
+
+## Public web publishing boundary
+
+The operator agent above and the public web surface use different storage paths.
+
+### Operator/local workflow
+
+The AWS CLI `hf` profile remains useful for controlled local ingestion and artifact output.
+It may access the wider bucket according to the operator's Hugging Face S3 credentials.
+
+### Public web workflow
+
+`mapable.com.au/knowledge` uses a separate Vercel-safe HTTPS adapter:
+
+- `lib/agent/hf-public-bucket.ts`
+- `lib/agent/public-mapable-knowledge-agent.ts`
+- `POST /api/public/knowledge/ask`
+
+That adapter is hard-coded to the `ausdisau/MapAble-hg` bucket and permits reads only from
+the `public/` prefix. It cannot write, delete, select another bucket, or invoke the AWS CLI.
+
+A server-side `HF_TOKEN` may be configured when the bucket requires authenticated reads.
+The token must never use a `NEXT_PUBLIC_` prefix and should have the minimum read permissions
+needed for the curated public material.
+
+### Feature flags
+
+```bash
+MAPABLE_PUBLIC_KNOWLEDGE_ENABLED=false
+MAPABLE_PUBLIC_TTS_ENABLED=false
+```
+
+The public page is intentionally discoverable while these runtime capabilities fail closed.
+
+Do not enable anonymous model or Speechify execution in production until:
+
+1. every object under `public/` has been reviewed for publication;
+2. the production Hugging Face read path has been verified;
+3. server-side OpenAI and optional Speechify credentials are configured;
+4. a distributed/shared rate limit or an equivalent verified edge control is in place;
+5. accessibility, privacy and abuse tests have passed.
+
+The repository's current `checkIpRateLimit` helper is process-local and is not sufficient by
+itself for a multi-instance Vercel production deployment.
+
+## Public frontend surfaces
+
+- `/explore` is the public index for MapAble information, discovery, programme and governance pages.
+- `/knowledge` is the curated public knowledge guide.
+- `/api/public/knowledge/ask` is the gated public knowledge API.
+- `/api/public/speechify/tts` is the separately gated public read-aloud API.
+
+Authenticated `/ask`, participant records, bookings, payments, claims, audit/admin surfaces,
+the wider bucket and `agent-output/` remain outside the anonymous public boundary.
