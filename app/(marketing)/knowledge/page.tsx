@@ -8,7 +8,15 @@ export const metadata = {
   alternates: canonicalAlternate("/knowledge"),
 };
 
-export default function PublicKnowledgePage() {
+export default async function PublicKnowledgePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const rawQuestion = Array.isArray(params.q) ? params.q[0] : params.q;
+  const initialQuestion = rawQuestion?.trim().slice(0, 1200) ?? "";
+
   const enabled = process.env.MAPABLE_PUBLIC_KNOWLEDGE_ENABLED === "true";
   const ttsEnabled =
     enabled &&
@@ -27,7 +35,11 @@ export default function PublicKnowledgePage() {
         payments or administrative systems.
       </p>
       <div className="mt-8">
-        <PublicKnowledgeClient enabled={enabled} ttsEnabled={ttsEnabled} />
+        <PublicKnowledgeClient
+          enabled={enabled}
+          ttsEnabled={ttsEnabled}
+          initialQuestion={initialQuestion}
+        />
       </div>
     </div>
   );
