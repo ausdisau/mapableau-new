@@ -36,20 +36,12 @@ Configure these check names to match the workflow job names exactly:
 | CI                | `.github/workflows/ci.yml`                | Install, Prisma, type-check, format, lint, test, build, ownership/migration collision          |
 | Migrations        | `.github/workflows/migrations.yml`        | Ephemeral schema coherence + integrity                                                         |
 | Migrate from zero | `.github/workflows/migrations.yml`        | Hard-fail `prisma migrate deploy` on empty DB — **green on `main` after #381**; still required |
-| Security / semgrep             | `.github/workflows/security.yml`          | Static analysis                                                                                  |
-| Security / dependency-audit    | `.github/workflows/security.yml`          | Production high/critical dependency audit                                                        |
-| Security / secrets             | `.github/workflows/security.yml`          | Secret-pattern scanning                                                                           |
-| Security / environment         | `.github/workflows/security.yml`          | Unsafe environment fallback detection                                                             |
-| Security / authentication      | `.github/workflows/security.yml`          | Route-authentication smoke                                                                         |
-| Security / upload-validation   | `.github/workflows/security.yml`          | File-upload validation                                                                             |
-| Security / public-api-exposure | `.github/workflows/security.yml`          | Public API data-exposure checks                                                                    |
+| Security          | `.github/workflows/security.yml`          | Semgrep + prod audit gate + secret/fallback/route checks                                       |
 | Accessibility     | `.github/workflows/accessibility.yml`     | Playwright + axe smoke                                                                         |
 | Production claims | `.github/workflows/production-claims.yml` | Public claim / db push / certification language gates                                          |
 | Vercel Preview    | Vercel GitHub integration                 | Preview deployment                                                                             |
 
-All seven `Security / ...` checks are independent and should be required once the workflow is merged; one failing control must not suppress evidence from the others.
-
-Until Vercel is connected and reliable, mark Vercel Preview as required only when the integration is active (`needs_runtime_verification`).
+Until Vercel is connected, mark Vercel Preview as required only when the integration is active (`needs_runtime_verification`).
 
 ## CODEOWNERS (immediate vs longer-term)
 
