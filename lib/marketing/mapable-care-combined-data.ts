@@ -464,7 +464,7 @@ export const marketplaceCards: MarketplaceCard[] = [
     eyebrow: "Plain-language guidance",
     body: "Understand funding, provider choices, invoices and next steps without jargon fog.",
     icon: "🧭",
-    href: "/ask",
+    href: "/knowledge",
   },
   {
     title: "Jobs",
