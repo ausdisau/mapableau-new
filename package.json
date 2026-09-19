@@ -83,7 +83,8 @@
     "test:access-intelligence-next": "vitest run tests/access-intelligence-next",
     "test:trust-fabric": "vitest run tests/trust-fabric",
     "ai:evals": "tsx scripts/ai-platform/run-evals.ts",
-    "test:ai-platform": "vitest run tests/ai-platform"
+    "test:ai-platform": "vitest run tests/ai-platform",
+    "agent:mapable-hf": "tsx scripts/mapable-hf-agent.ts"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
