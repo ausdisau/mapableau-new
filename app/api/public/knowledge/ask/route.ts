@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { runPublicMapAbleKnowledgeAgent } from "@/lib/agent/public-mapable-knowledge-agent";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { createPublicSpeechToken } from "@/lib/speechify/public-read-aloud";
 
 export const runtime = "nodejs";
 
@@ -39,7 +40,15 @@ export async function POST(request: Request) {
   try {
     const parsed = requestSchema.parse(await request.json());
     const result = await runPublicMapAbleKnowledgeAgent(parsed.question);
-    return Response.json(result, {
+    const speechText = result.answer.slice(0, 800);
+    const speechToken =
+      process.env.MAPABLE_PUBLIC_TTS_ENABLED === "true" &&
+      process.env.SPEECHIFY_API_KEY?.trim() &&
+      process.env.MAPABLE_PUBLIC_TTS_SIGNING_SECRET?.trim()
+        ? createPublicSpeechToken(speechText)
+        : undefined;
+
+    return Response.json({ ...result, speechToken }, {
       headers: {
         "Cache-Control": "private, no-store",
       },
