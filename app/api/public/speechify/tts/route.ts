@@ -2,6 +2,10 @@ import { z } from "zod";
 
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import {
+  PublicTtsSigningNotConfiguredError,
+  verifyPublicSpeechToken,
+} from "@/lib/speechify/public-read-aloud";
+import {
   SpeechifyNotConfiguredError,
   synthesiseSpeech,
 } from "@/lib/speechify/tts";
@@ -10,6 +14,7 @@ export const runtime = "nodejs";
 
 const requestSchema = z.object({
   text: z.string().trim().min(1).max(800),
+  speechToken: z.string().min(20).max(256),
 });
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -40,7 +45,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { text } = requestSchema.parse(await request.json());
+    const { text, speechToken } = requestSchema.parse(await request.json());
+    if (!verifyPublicSpeechToken(text, speechToken)) {
+      return Response.json(
+        { error: "This read-aloud request is invalid or has expired." },
+        { status: 403 },
+      );
+    }
+
     const audio = await synthesiseSpeech({
       text,
       voiceId: "geffen_32",
@@ -61,7 +73,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (error instanceof SpeechifyNotConfiguredError) {
+    if (
+      error instanceof SpeechifyNotConfiguredError ||
+      error instanceof PublicTtsSigningNotConfiguredError
+    ) {
       return Response.json(
         { error: "Public read aloud is not configured." },
         { status: 503 },
