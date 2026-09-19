@@ -1,6 +1,10 @@
 "use client";
 
-import type maplibregl from "maplibre-gl";
+import type {
+  CircleLayerSpecification,
+  GeoJSONSource,
+  Map as MapLibreMap,
+} from "maplibre-gl";
 import { useEffect } from "react";
 
 import { getProviderCirclePaint } from "@/lib/map/map-colors";
@@ -10,19 +14,19 @@ import type { MapFeatureCollection } from "@/lib/map/types";
  * Add or update a GeoJSON source on a loaded MapLibre map.
  */
 export function useGeoJsonSource(
-  map: maplibregl.Map | null,
+  map: MapLibreMap | null,
   sourceId: string,
   data: MapFeatureCollection | GeoJSON.FeatureCollection<GeoJSON.Point>,
   layer?: {
     layerId: string;
-    paint?: maplibregl.CircleLayerSpecification["paint"];
+    paint?: CircleLayerSpecification["paint"];
   },
 ) {
   useEffect(() => {
     if (!map) return;
 
     const apply = () => {
-      const existing = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
+      const existing = map.getSource(sourceId) as GeoJSONSource | undefined;
       if (existing) {
         existing.setData(data);
         return;
