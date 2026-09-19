@@ -17,7 +17,11 @@ export default async function PublicKnowledgePage({
   const rawQuestion = Array.isArray(params.q) ? params.q[0] : params.q;
   const initialQuestion = rawQuestion?.trim().slice(0, 1200) ?? "";
 
-  const enabled = process.env.MAPABLE_PUBLIC_KNOWLEDGE_ENABLED === "true";
+  const rateLimitVerified =
+    process.env.MAPABLE_PUBLIC_RATE_LIMIT_VERIFIED === "true";
+  const enabled =
+    rateLimitVerified &&
+    process.env.MAPABLE_PUBLIC_KNOWLEDGE_ENABLED === "true";
   const ttsEnabled =
     enabled &&
     process.env.MAPABLE_PUBLIC_TTS_ENABLED === "true" &&
@@ -30,9 +34,16 @@ export default async function PublicKnowledgePage({
         Ask what MapAble has published.
       </h1>
       <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-        This guide answers from material deliberately published under MapAble’s public knowledge namespace.
-        It does not expose participant records, private project files, credentials, internal prompts, bookings,
-        payments or administrative systems.
+        This guide answers from material deliberately published under MapAble’s
+        public knowledge namespace. It does not expose participant records,
+        private project files, credentials, internal prompts, bookings, payments
+        or administrative systems.
+      </p>
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+        Do not enter personal, health, NDIS-plan, financial or identity
+        information here. Questions use MapAble’s configured AI service. If you
+        choose Listen, the displayed answer text is sent to Speechify to generate
+        audio.
       </p>
       <div className="mt-8">
         <PublicKnowledgeClient
