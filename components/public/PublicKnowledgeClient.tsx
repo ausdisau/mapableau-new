@@ -81,7 +81,7 @@ export function PublicKnowledgeClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: result.answer.slice(0, 800),
+          text: result.answer.trim().slice(0, 800),
           speechToken: result.speechToken,
         }),
       });
