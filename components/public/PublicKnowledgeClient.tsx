@@ -7,6 +7,7 @@ type PublicKnowledgeAnswer = {
   answer: string;
   sources: Array<{ key: string; reason: string }>;
   uncertainty: string[];
+  speechToken?: string;
 };
 
 export function PublicKnowledgeClient({
@@ -60,7 +61,7 @@ export function PublicKnowledgeClient({
   }
 
   async function readAloud() {
-    if (!result?.answer || !ttsEnabled) return;
+    if (!result?.answer || !result.speechToken || !ttsEnabled) return;
 
     if (audioState === "playing") {
       audioRef.current?.pause();
@@ -79,7 +80,10 @@ export function PublicKnowledgeClient({
       const response = await fetch("/api/public/speechify/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: result.answer.slice(0, 800) }),
+        body: JSON.stringify({
+          text: result.answer.slice(0, 800),
+          speechToken: result.speechToken,
+        }),
       });
       if (!response.ok) throw new Error("Read aloud unavailable");
 
@@ -144,7 +148,7 @@ export function PublicKnowledgeClient({
         <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm" aria-live="polite">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <h2 className="mapable-display text-2xl font-black text-[#0C1833]">MapAble answer</h2>
-            {ttsEnabled ? (
+            {ttsEnabled && result.speechToken ? (
               <button
                 type="button"
                 onClick={readAloud}
