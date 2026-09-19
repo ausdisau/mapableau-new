@@ -2,10 +2,9 @@ import { Agent, run, tool } from "@openai/agents";
 import { z } from "zod";
 
 import {
-  listMapAbleBucket,
-  readMapAbleTextObject,
-  validateHfObjectKey,
-} from "@/lib/agent/hf-mapable-bucket";
+  listPublicBucketFiles,
+  readPublicBucketText,
+} from "@/lib/agent/hf-public-bucket";
 
 const PUBLIC_PREFIX = "public/";
 
@@ -22,14 +21,6 @@ const publicKnowledgeOutputSchema = z.object({
 
 export type PublicKnowledgeOutput = z.infer<typeof publicKnowledgeOutputSchema>;
 
-function assertPublicKey(key: string): string {
-  const safe = validateHfObjectKey(key);
-  if (!safe.startsWith(PUBLIC_PREFIX)) {
-    throw new Error("Public knowledge reads are restricted to the public/ prefix");
-  }
-  return safe;
-}
-
 const listPublicKnowledge = tool({
   name: "list_public_mapable_knowledge",
   description:
@@ -39,11 +30,7 @@ const listPublicKnowledge = tool({
     limit: z.number().int().min(1).max(50).default(25),
   }),
   async execute({ prefix, limit }) {
-    const suffix = prefix.trim().replace(/^\/+/, "");
-    const resolvedPrefix = suffix.startsWith(PUBLIC_PREFIX)
-      ? suffix
-      : `${PUBLIC_PREFIX}${suffix}`;
-    return listMapAbleBucket({ prefix: resolvedPrefix, limit });
+    return listPublicBucketFiles({ prefix, limit });
   },
 });
 
@@ -55,7 +42,7 @@ const readPublicKnowledge = tool({
     key: z.string().min(1).max(512),
   }),
   async execute({ key }) {
-    return readMapAbleTextObject(assertPublicKey(key));
+    return readPublicBucketText(key);
   },
 });
 
