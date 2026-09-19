@@ -1,5 +1,5 @@
-import type { AssistanceMode } from "@/lib/ai/relational/types";
 import { PROHIBITED_AUTONOMOUS_ACTIONS } from "@/lib/ai/platform/types/authority";
+import type { AssistanceMode } from "@/lib/ai/relational/types";
 
 /** Relational Constitution v0.1 — normative rules for the Relational Response Layer. */
 export const RELATIONAL_CONSTITUTION_VERSION = "0.1.0" as const;

@@ -13,7 +13,6 @@ import { normalizeCapabilityState } from "../../core/state-normalizer";
 import {
   SIMULATOR_ADAPTER_ID,
   createInitialCapabilityStates,
-  createSyntheticEndpoints,
   createSyntheticEnvironment,
 } from "../../fixtures/synthetic-home";
 

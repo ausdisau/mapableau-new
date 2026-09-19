@@ -1,9 +1,10 @@
 import { randomUUID } from "crypto";
 
-import type { AuthorityDecision, DelegatedAuthority } from "../contracts/authority";
 import type { HomeActionRequest } from "../contracts/action";
+import type { AuthorityDecision, DelegatedAuthority } from "../contracts/authority";
 import type { HomeAutonomyLevel } from "../contracts/capability";
 import type { HomePrivacyZone } from "../contracts/privacy";
+
 import { getHomeCapability, isSafetyCriticalKind } from "./capability-registry";
 
 export const CONFIRMATION_TTL_MS = 5 * 60 * 1000;

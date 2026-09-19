@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useId, useState } from "react";
 
 import { DecisionPassportPanel } from "@/components/navigator/DecisionPassportPanel";
-import type { AssistanceMode } from "@/lib/ai/relational/types";
-import { RELATIONAL_DISCLOSABLE_FIELD_KEYS } from "@/lib/ai/relational/communication-passport";
 import type { HardConstraintKey } from "@/lib/ai/navigator/matching/types";
+import { RELATIONAL_DISCLOSABLE_FIELD_KEYS } from "@/lib/ai/relational/communication-passport";
+import type { AssistanceMode } from "@/lib/ai/relational/types";
 
 export type NavigatorPilotJourneyProps = {
   tenantId: string;
@@ -99,7 +99,7 @@ export function NavigatorPilotJourney({
   const [aiOptedOut, setAiOptedOut] = useState(false);
   const [assistanceMode, setAssistanceMode] =
     useState<AssistanceMode>("guided_with_confirm");
-  const [humanHelpRequested, setHumanHelpRequested] = useState(false);
+  const [humanHelpRequested] = useState(false);
   const [interpretation, setInterpretation] =
     useState<ReviewedInterpretation | null>(null);
   const [serviceType, setServiceType] = useState("");

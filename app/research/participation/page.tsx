@@ -2,8 +2,8 @@ import Link from "next/link";
 
 import { ResearchGovernanceNotice } from "@/components/analytics/ResearchGovernanceNotice";
 import { requireAuth } from "@/lib/auth/guards";
-import { listParticipantProgrammes } from "@/lib/research/co-design-governance-service";
 import { analyticsResearchConfig } from "@/lib/config/analytics-research";
+import { listParticipantProgrammes } from "@/lib/research/co-design-governance-service";
 
 export const metadata = {
   title: "Research participation | MapAble",
