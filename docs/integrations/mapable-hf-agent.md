@@ -127,6 +127,7 @@ needed for the curated public material.
 MAPABLE_PUBLIC_RATE_LIMIT_VERIFIED=false
 MAPABLE_PUBLIC_KNOWLEDGE_ENABLED=false
 MAPABLE_PUBLIC_TTS_ENABLED=false
+MAPABLE_PUBLIC_TTS_SIGNING_SECRET=<server-only random secret>
 ```
 
 The public page is intentionally discoverable while these runtime capabilities fail closed.
@@ -148,6 +149,8 @@ itself for a multi-instance Vercel production deployment.
 - `/knowledge` is the curated public knowledge guide.
 - `/api/public/knowledge/ask` is the gated public knowledge API.
 - `/api/public/speechify/tts` is the separately gated public read-aloud API.
+  It accepts only answer text carrying a valid short-lived HMAC grant issued by the public
+  knowledge endpoint; it is not a general anonymous text-to-speech proxy.
 
 Authenticated `/ask`, participant records, bookings, payments, claims, audit/admin surfaces,
 the wider bucket and `agent-output/` remain outside the anonymous public boundary.
