@@ -42,6 +42,10 @@ export default defineConfig({
         __dirname,
         "packages/research/src/index.ts"
       ),
+      "@mapable/ui/tokens": path.resolve(
+        __dirname,
+        "packages/ui/src/tokens/index.ts"
+      ),
       "@mapable/ui": path.resolve(__dirname, "packages/ui/src/index.ts"),
     },
   },
