@@ -8,6 +8,9 @@ on:
       - .github/workflows/dependency-remediation-verify.yml
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: dependency-remediation-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
