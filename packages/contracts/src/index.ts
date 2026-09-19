@@ -489,3 +489,6 @@ export const proposedPlanSchema = z.object({
 export type ProposedAction = z.infer<typeof proposedActionSchema>;
 export type ActionDecision = z.infer<typeof actionDecisionSchema>;
 export * from "./evidence-provenance";
+
+export * from "./goal-plan";
+export * from "./goal-plan-resolver";
