@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   try {
     const parsed = requestSchema.parse(await request.json());
     const result = await runPublicMapAbleKnowledgeAgent(parsed.question);
-    const speechText = result.answer.slice(0, 800);
+    const speechText = result.answer.trim().slice(0, 800);
     const speechToken =
       process.env.MAPABLE_PUBLIC_TTS_ENABLED === "true" &&
       process.env.SPEECHIFY_API_KEY?.trim() &&
