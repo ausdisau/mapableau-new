@@ -124,6 +124,7 @@ needed for the curated public material.
 ### Feature flags
 
 ```bash
+MAPABLE_PUBLIC_RATE_LIMIT_VERIFIED=false
 MAPABLE_PUBLIC_KNOWLEDGE_ENABLED=false
 MAPABLE_PUBLIC_TTS_ENABLED=false
 ```
