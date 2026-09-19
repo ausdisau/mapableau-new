@@ -1,5 +1,5 @@
-import type { AdsMicros } from "@/lib/ads/money/micros";
 import { utcDayKey } from "@/lib/ads/auction/pacing";
+import type { AdsMicros } from "@/lib/ads/money/micros";
 
 export type BudgetGateReason =
   | "OK"

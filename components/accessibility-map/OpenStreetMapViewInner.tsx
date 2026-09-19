@@ -13,19 +13,19 @@ import {
   PanToSelectedControl,
   PanToUserLocationControl,
 } from "@/components/accessibility-map/FitBoundsControl";
-import { GaisLeafletLayer } from "@/components/gais/GaisLeafletLayer";
 import { MapLegend } from "@/components/accessibility-map/MapLegend";
 import { UserLocationControl } from "@/components/accessibility-map/UserLocationControl";
+import { GaisLeafletLayer } from "@/components/gais/GaisLeafletLayer";
 import type { UserLocationResult } from "@/hooks/useUserLocation";
 import type { AccessNeed } from "@/lib/access/fit/types";
 import type { DemoAccessPlace } from "@/lib/demo/accessibility-places";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 import {
   AUSTRALIA_FALLBACK_ZOOM,
   SINGLE_MARKER_ZOOM,
 } from "@/lib/map/accessibilityMapUtils";
 import type { LatLngTuple } from "@/lib/map/accessibilityMapUtils";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
-import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 type OpenStreetMapViewInnerProps = {
   mappable: DemoAccessPlace[];

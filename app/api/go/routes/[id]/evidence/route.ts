@@ -1,9 +1,15 @@
-import { mapableGoFlags, goFeatureDisabledResponse } from "@/lib/config/mapable-go";
-import { getRoutePlanForUser } from "@/lib/go/route-service";
 import { getSandboxGraph } from "@/lib/access/navigate";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
-import type { PlanRouteResponse, RouteOption } from "@/lib/go/contracts/route-contracts";
+import {
+  goFeatureDisabledResponse,
+  mapableGoFlags,
+} from "@/lib/config/mapable-go";
+import type {
+  PlanRouteResponse,
+  RouteOption,
+} from "@/lib/go/contracts/route-contracts";
+import { getRoutePlanForUser } from "@/lib/go/route-service";
 
 export async function GET(
   req: Request,
