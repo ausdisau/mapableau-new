@@ -107,6 +107,16 @@ export const logoMenuItems: MenuItem[] = [
       "Join MapAble as a support worker, provider or transport partner.",
   },
   {
+    label: "Public knowledge",
+    href: "/knowledge",
+    description: "Ask questions grounded only in deliberately published MapAble material.",
+  },
+  {
+    label: "Explore MapAble",
+    href: "/explore",
+    description: "Browse the complete public information and discovery surface.",
+  },
+  {
     label: "Help Centre",
     href: "/help",
     description: "Support for pilot interest, privacy and access requests.",
@@ -131,7 +141,7 @@ export const homepageHeroCtas = [
 export const homepageCategoryChips = [
   { label: "Care", href: "/provider-finder?area=Care" },
   { label: "Transport", href: "/provider-finder?area=Transport" },
-  { label: "NDIS Guidance", href: "/ask" },
+  { label: "Public knowledge", href: "/knowledge" },
   { label: "Jobs", href: "/provider-finder?area=Jobs" },
   { label: "Access", href: "/accessibility-map" },
 ];
@@ -182,7 +192,7 @@ export const homepageExploreFeatures = [
     eyebrow: "Guidance",
     title: "NDIS guidance",
     body: "Ask MapAble for practical NDIS-aware guidance. This is informational support — not NDIA claim submission.",
-    href: "/ask",
+    href: "/knowledge",
   },
 ] as const;
 
@@ -408,7 +418,7 @@ export const sampleResults: SearchResult[] = [
     description:
       "Plain-language guidance on using transport funding, service agreements, invoices and plan-manager notes.",
     action: "Read guide",
-    href: "/ask?q=NDIS+transport+funding",
+    href: "/knowledge",
   },
   {
     title: "Inclusive jobs and work support",
@@ -482,6 +492,8 @@ export const footerPlatformLinks: FooterLink[] = [
 ];
 
 export const footerResourceLinks: FooterLink[] = [
+  { label: "Explore MapAble", href: "/explore" },
+  { label: "Public knowledge", href: "/knowledge" },
   { label: "Resources", href: "/resources" },
   { label: "Local Access Guides", href: "/guides" },
   { label: "Help Centre", href: "/help" },
@@ -506,7 +518,7 @@ export const sponsoredPlacements: SponsoredPlacement[] = [
     description:
       "Connect with a MapAble-aligned support coordination partner who can help you understand services, funding and next steps.",
     cta: "View partner",
-    href: "/ask?q=support+coordination",
+    href: "/knowledge",
     contextAreas: ["All", "Care", "NDIS Help"],
     placement: "primary",
   },
