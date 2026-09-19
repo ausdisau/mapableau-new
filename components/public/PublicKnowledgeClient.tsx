@@ -12,11 +12,13 @@ type PublicKnowledgeAnswer = {
 export function PublicKnowledgeClient({
   enabled,
   ttsEnabled,
+  initialQuestion = "",
 }: {
   enabled: boolean;
   ttsEnabled: boolean;
+  initialQuestion?: string;
 }) {
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState(initialQuestion.slice(0, 1200));
   const [result, setResult] = useState<PublicKnowledgeAnswer | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
