@@ -52,7 +52,7 @@ export async function listPublicBucketFiles(params: {
   const resolvedPrefix = suffix.startsWith(PUBLIC_PREFIX)
     ? suffix
     : `${PUBLIC_PREFIX}${suffix}`;
-  const encodedPrefix = encodeURIComponent(resolvedPrefix);
+  const encodedPrefix = resolvedPrefix.split("/").map(encodeURIComponent).join("/");
   const url = new URL(
     `${HF_HUB_ORIGIN}/api/buckets/${BUCKET_ID}/tree/${encodedPrefix}`,
   );
