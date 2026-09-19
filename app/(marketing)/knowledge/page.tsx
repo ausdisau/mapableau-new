@@ -25,7 +25,8 @@ export default async function PublicKnowledgePage({
   const ttsEnabled =
     enabled &&
     process.env.MAPABLE_PUBLIC_TTS_ENABLED === "true" &&
-    Boolean(process.env.SPEECHIFY_API_KEY?.trim());
+    Boolean(process.env.SPEECHIFY_API_KEY?.trim()) &&
+    Boolean(process.env.MAPABLE_PUBLIC_TTS_SIGNING_SECRET?.trim());
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-12 lg:px-8">
