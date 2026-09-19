@@ -16,7 +16,10 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 8;
 
 export async function POST(request: Request) {
-  if (process.env.MAPABLE_PUBLIC_TTS_ENABLED !== "true") {
+  if (
+    process.env.MAPABLE_PUBLIC_TTS_ENABLED !== "true" ||
+    process.env.MAPABLE_PUBLIC_RATE_LIMIT_VERIFIED !== "true"
+  ) {
     return Response.json(
       { error: "Public read aloud is not available right now." },
       { status: 503 },
