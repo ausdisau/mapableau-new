@@ -106,7 +106,7 @@ export function MapAbleCareCombinedSections() {
           </ol>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Button variant="default" asChild size="lg">
-              <Link href="/ask">Ask MapAble</Link>
+              <Link href="/knowledge">Public knowledge</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link href="/provider-finder">Find support</Link>
