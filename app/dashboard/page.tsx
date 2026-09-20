@@ -1,5 +1,3 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
 import {
   Bell,
   BriefcaseBusiness,
@@ -14,6 +12,8 @@ import {
   UserRound,
   WalletCards,
 } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { SpeechifyReadAloudButton } from "@/components/accessibility/SpeechifyReadAloudButton";
 import { adaptParticipantDashboard } from "@/lib/access/adaptive";
