@@ -6,7 +6,7 @@ export const supportAreaLandingRoutes: Record<SupportArea, string> = {
   All: "/provider-finder",
   Care: "/provider-finder?area=Care",
   Transport: "/provider-finder?area=Transport",
-  "NDIS Help": "/ask",
+  "NDIS Help": "/knowledge",
   Jobs: "/provider-finder?area=Jobs",
   Places: "/accessibility-map",
 };
@@ -32,7 +32,7 @@ export function buildGuidedSearchUrl(query: string, area: SupportArea): string {
     const params = new URLSearchParams();
     if (trimmed) params.set("q", trimmed);
     const qs = params.toString();
-    return qs ? `/ask?${qs}` : "/ask";
+    return qs ? `/knowledge?${qs}` : "/knowledge";
   }
 
   const params = new URLSearchParams();
@@ -57,7 +57,7 @@ export function getSearchResultHref(category: ResultCategory): string {
     case "Places":
       return supportAreaLandingRoutes.Places;
     case "Support":
-      return "/ask";
+      return "/knowledge";
     default:
       return "/provider-finder";
   }
@@ -68,6 +68,8 @@ export const marketingFeatureRoutes = {
   home: "/",
   providerFinder: "/provider-finder",
   ask: "/ask",
+  publicKnowledge: "/knowledge",
+  explore: "/explore",
   access: "/access",
   register: "/register",
   login: "/login",

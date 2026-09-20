@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { PUBLIC_DISCOVERY_ROUTES } from "@/lib/public/discovery-routes";
+
 const criticalPublicRoutes = [
   "app/(marketing)/page.tsx",
   "app/care/page.tsx",
@@ -27,9 +29,10 @@ const criticalPublicRoutes = [
 describe("competitor-upgrade public route health", () => {
   it("has page files for critical public routes", () => {
     for (const routeFile of criticalPublicRoutes) {
-      expect(existsSync(join(process.cwd(), routeFile)), `${routeFile} should exist`).toBe(
-        true,
-      );
+      expect(
+        existsSync(join(process.cwd(), routeFile)),
+        `${routeFile} should exist`,
+      ).toBe(true);
     }
   });
 
@@ -50,8 +53,16 @@ describe("competitor-upgrade public route health", () => {
     expect(source).toContain("ProviderDirectory");
   });
 
-  it("includes new competitor routes in the sitemap", () => {
-    const source = readFileSync(join(process.cwd(), "app/sitemap.ts"), "utf8");
+  it("includes new competitor routes in the sitemap inventory", () => {
+    const sitemapSource = readFileSync(
+      join(process.cwd(), "app/sitemap.ts"),
+      "utf8",
+    );
+    expect(sitemapSource).toContain("publicDiscoverySitemapPaths");
+
+    const sitemapPaths = new Set(
+      PUBLIC_DISCOVERY_ROUTES.map((route) => route.path),
+    );
     for (const route of [
       "/accessibility-map",
       "/journey-planner",
@@ -63,7 +74,7 @@ describe("competitor-upgrade public route health", () => {
       "/access-intelligence",
       "/access-pass",
     ]) {
-      expect(source).toContain(`"${route}"`);
+      expect(sitemapPaths).toContain(route);
     }
   });
 
