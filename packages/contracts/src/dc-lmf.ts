@@ -77,7 +77,16 @@ export const dclmfMemoryWriteSchema = z
     validUntil: z.string().datetime().nullable().optional(),
     consentRecordId: z.string().min(1).nullable().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.payload == null && !value.payloadRef) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["payload"],
+        message: "Provide payload or payloadRef",
+      });
+    }
+  });
 
 export const dclmfProjectionRequestSchema = z
   .object({
