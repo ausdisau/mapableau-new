@@ -11,7 +11,7 @@ import type { CopilotAction } from "@/lib/copilot/types";
 export const RELATIONAL_SAFETY_VERSION = "0.1" as const;
 
 const EXPLICIT_CONNECTION_NEED =
-  /\b(i(?:'m| am) lonely|i feel lonely|feeling lonely|i(?:'m| am) isolated|feeling isolated|i feel alone|feeling alone|no one to talk to|need someone to talk to|want someone to talk to|need company|want company|keep me company|i feel disconnected|feeling disconnected)\b/i;
+  /\b(i(?:'m| am) lonely|i feel lonely|feeling lonely|i(?:'m| am) isolated|i feel isolated|feeling isolated|i feel alone|feeling alone|no one to talk to|need someone to talk to|want someone to talk to|need company|want company|keep me company|i feel disconnected|feeling disconnected)\b/i;
 
 const PROHIBITED_RELATIONAL_OUTPUT_PATTERNS = [
   /\byou (?:only )?need me\b/i,

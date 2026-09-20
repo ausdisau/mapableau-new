@@ -168,7 +168,10 @@ export function FirstRunSetup() {
           <ul className="mt-4 space-y-3">
             {INFORMATION_DENSITY.map((option) => (
               <li key={option.value}>
-                <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
+                <label
+                  aria-label={`${option.label}. ${option.description}`}
+                  className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border border-slate-200 px-3 py-3"
+                >
                   <input
                     className="mt-1"
                     type="radio"

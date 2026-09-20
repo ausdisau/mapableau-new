@@ -1,6 +1,4 @@
 import { PredicateSchema, type Predicate } from "../contracts/predicate";
-import { z } from "zod";
-
 export class PredicateRegistry {
   private byName: Map<string, Predicate> = new Map();
 

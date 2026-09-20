@@ -1,17 +1,18 @@
+import { randomUUID } from "crypto";
+
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import {
   buildPlacementRequest,
   routePlacementRequest,
 } from "@/lib/ads/mediation/provider-router";
 import { emitAdsEvent } from "@/lib/ads/observability/events";
+import { isPlacementCode } from "@/lib/ads/placement-registry";
 import { EthicalAdsAdapter } from "@/lib/ads/providers/ethicalads/ethicalads-adapter";
 import { GoogleAdManagerAdapter } from "@/lib/ads/providers/google-ad-manager/google-ad-manager-adapter";
 import { MapAbleInternalAdsAdapter } from "@/lib/ads/providers/internal/mapable-internal-adapter";
 import { loadInternalInventory } from "@/lib/ads/services/load-inventory";
 import type { AdPlacementFill, PlacementCode } from "@/lib/ads/types";
-import { isPlacementCode } from "@/lib/ads/placement-registry";
 import { prisma } from "@/lib/prisma";
-import { randomUUID } from "crypto";
 
 export type ResolvePlacementInput = {
   placement: string;
