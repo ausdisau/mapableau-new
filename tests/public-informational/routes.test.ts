@@ -4,6 +4,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  PUBLIC_DISCOVERY_ROUTES,
+  publicDiscoverySitemapPaths,
+} from "@/lib/public/discovery-routes";
+import {
   EXCLUDED_TRANSACTIONAL_PATH_PREFIXES,
   INFORMATIONAL_SAFE_CTAS,
   informationalRoutePaths,
@@ -38,6 +42,7 @@ describe("public informational route allowlist (canonical)", () => {
       "utf8",
     );
     expect(sitemapSrc).toMatch(/informationalSitemapPaths/);
+    expect(sitemapSrc).toMatch(/publicDiscoverySitemapPaths/);
     for (const path of informationalSitemapPaths()) {
       if (path === "") continue;
       // Inventory paths must remain representable; additional routes may exist.
@@ -47,6 +52,18 @@ describe("public informational route allowlist (canonical)", () => {
           .includes(path),
       ).toBe(true);
     }
+  });
+
+  it("keeps every public discovery route in the sitemap catalogue", () => {
+    expect(publicDiscoverySitemapPaths()).toEqual(
+      PUBLIC_DISCOVERY_ROUTES.map((route) => route.path),
+    );
+
+    const exploreSrc = readFileSync(
+      join(process.cwd(), "app/(marketing)/explore/page.tsx"),
+      "utf8",
+    );
+    expect(exploreSrc).toMatch(/publicDiscoveryRoutesByGroup/);
   });
 
   it("keeps homepage hero CTAs inside the informational-safe set", () => {
