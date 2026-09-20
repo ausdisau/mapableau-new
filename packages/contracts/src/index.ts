@@ -492,3 +492,5 @@ export * from "./evidence-provenance";
 
 export * from "./goal-plan";
 export * from "./goal-plan-resolver";
+
+export * from "./dc-lmf";
