@@ -4,40 +4,16 @@ import { PROVIDERS } from "@/app/provider-finder/providers";
 import { getCanonicalPublicOrigin } from "@/lib/config/canonical-url";
 import { DEMO_ACCESS_PLACES } from "@/lib/demo/accessibility-places";
 import { LOCAL_ACCESS_LOCATIONS } from "@/lib/demo/local-access-pages";
+import { publicDiscoverySitemapPaths } from "@/lib/public/discovery-routes";
 import { informationalSitemapPaths } from "@/lib/public/informational/routes";
 import { buildLocalLandingSitemapParams } from "@/lib/seo/local-landing";
 
 const baseUrl = getCanonicalPublicOrigin();
 
-/**
- * Additional public marketing URLs beyond the informational GO-gate allowlist.
- * Informational allowlist paths are always sourced from
- * `lib/public/informational/routes.ts` so the release boundary cannot drift.
- */
-const additionalPublicRoutes = [
-  "/access",
-  "/accessibility-map",
-  "/providers",
-  "/provider-finder",
-  "/pricing",
-  "/for-providers",
-  "/journey-planner",
-  "/compare",
-  "/mapping-days",
-  "/add-access-info",
-  "/verify-my-venue",
-  "/provider-growth",
-  "/access-intelligence",
-  "/access-pass",
-  "/peer",
-  "/telehealth",
-  // Programme explainers also come from INFORMATIONAL_RELEASE_ROUTES;
-  // listed here only if needed beyond that inventory.
-];
-
 function uniqueSitemapPaths(): string[] {
   const fromInventory = informationalSitemapPaths();
-  const merged = new Set<string>([...fromInventory, ...additionalPublicRoutes]);
+  const discovery = publicDiscoverySitemapPaths();
+  const merged = new Set<string>([...fromInventory, ...discovery]);
   return [...merged];
 }
 

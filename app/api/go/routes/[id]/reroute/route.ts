@@ -1,10 +1,13 @@
 import { z } from "zod";
 
-import { mapableGoFlags, goFeatureDisabledResponse } from "@/lib/config/mapable-go";
-import { getMobilityRoutingProfile } from "@/lib/go/profile-service";
-import { reroutePlan } from "@/lib/go/route-service";
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
+import {
+  goFeatureDisabledResponse,
+  mapableGoFlags,
+} from "@/lib/config/mapable-go";
+import { getMobilityRoutingProfile } from "@/lib/go/profile-service";
+import { reroutePlan } from "@/lib/go/route-service";
 
 const rerouteSchema = z.object({
   originLat: z.number(),

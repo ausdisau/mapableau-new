@@ -37,6 +37,9 @@ vi.mock("@/lib/prisma", () => ({
     participantAuthorityGrant: {
       create: vi.fn(),
     },
+    consentRecord: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -57,7 +60,7 @@ const baseInviteInput = {
   roleType: "family_member" as const,
   proposedDomain: "scheduling",
   proposedActions: ["view_schedule"],
-  proposedConsentScopes: ["read"],
+  proposedConsentScopes: ["profile.read"],
   expiresAt: futureExpiry,
 };
 
@@ -67,6 +70,9 @@ describe("delegate invitations", () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: "delegate-1",
     } as never);
+    vi.mocked(prisma.consentRecord.findMany).mockResolvedValue([
+      { scope: "profile_read" },
+    ] as never);
   });
 
   it("rejects invitations for financial domains", async () => {
@@ -122,7 +128,7 @@ describe("delegate invitations", () => {
       participantId: "participant-1",
       proposedDomain: "scheduling",
       proposedActions: ["view_schedule"],
-      proposedConsentScopes: ["read"],
+      proposedConsentScopes: ["profile.read"],
       roleType: "family_member",
       expiresAt: futureExpiry,
       status: "pending",
@@ -166,7 +172,7 @@ describe("delegate invitations", () => {
       participantId: "participant-1",
       proposedDomain: "scheduling",
       proposedActions: ["view_schedule"],
-      proposedConsentScopes: ["read"],
+      proposedConsentScopes: ["profile.read"],
       roleType: "family_member",
       expiresAt: futureExpiry,
       status: "pending",

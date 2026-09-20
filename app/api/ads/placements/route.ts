@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
-import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { isPlacementCode } from "@/lib/ads/placement-registry";
 import { resolveAdPlacement } from "@/lib/ads/services/resolve-placement";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 
 const querySchema = z.object({
   surface: z.enum(["access", "provider_finder"]),

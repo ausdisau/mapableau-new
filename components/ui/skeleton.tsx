@@ -1,7 +1,5 @@
 export { Skeleton } from "@mapable/ui";
 
-import type { HTMLAttributes } from "react";
-
 import { Skeleton } from "@mapable/ui";
 
 /** Non-interactive placeholder for loading grids — avoids layout shift. */
