@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import sitemap from "@/app/sitemap";
+
 const criticalPublicRoutes = [
   "app/(marketing)/page.tsx",
   "app/care/page.tsx",
@@ -51,7 +53,10 @@ describe("competitor-upgrade public route health", () => {
   });
 
   it("includes new competitor routes in the sitemap", () => {
-    const source = readFileSync(join(process.cwd(), "app/sitemap.ts"), "utf8");
+    const paths = new Set(
+      sitemap().map((entry) => new URL(entry.url).pathname),
+    );
+
     for (const route of [
       "/accessibility-map",
       "/journey-planner",
@@ -63,7 +68,9 @@ describe("competitor-upgrade public route health", () => {
       "/access-intelligence",
       "/access-pass",
     ]) {
-      expect(source).toContain(`"${route}"`);
+      expect(paths.has(route), `${route} should be in the generated sitemap`).toBe(
+        true,
+      );
     }
   });
 
