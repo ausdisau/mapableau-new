@@ -44,6 +44,8 @@ All default OFF:
 
 - `GET /api/dc-lmf/memory` — participant reads their own memory ledger.
 - `POST /api/dc-lmf/memory` — participant writes their own bounded memory record.
+- `PATCH /api/dc-lmf/memory/:id` — participant corrects or contests a record.
+- `DELETE /api/dc-lmf/memory/:id` — participant revokes a record from future use while preserving audit history.
 - `POST /api/dc-lmf/projection` — self-only v1 projection endpoint.
 
 Cross-user and organisation projections are internal adapters, so assignment, organisation, consent and authority checks remain in the owning service flow.
