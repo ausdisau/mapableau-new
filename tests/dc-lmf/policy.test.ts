@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { dclmfMemoryWriteSchema } from "@mapable/contracts";
+
 import {
   assertPersistableMemory,
   compareMemoryAuthority,
@@ -65,6 +67,19 @@ describe("DC-LMF policy", () => {
         scope: "persistent",
       }),
     ).toThrow("DC_LMF_MODEL_INFERENCE_NOT_PERSISTENT_AUTHORITY");
+  });
+
+  it("rejects memory records that contain neither inline data nor a governed reference", () => {
+    expect(
+      dclmfMemoryWriteSchema.safeParse({
+        participantId: "p1",
+        category: "preference",
+        sourceType: "self_report",
+        confidence: "authoritative",
+        scope: "persistent",
+        dataClass: "person_private",
+      }).success,
+    ).toBe(false);
   });
 
   it("enforces maximum disclosure data class", () => {
