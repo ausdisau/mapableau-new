@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { StreetAddressAutocomplete } from "@/components/addresses/StreetAddressAutocomplete";
 import {
   AccessibleFormField,
   formInputClass,
 } from "@/components/forms/AccessibleFormField";
 import { MobilityRequirementsForm } from "@/components/transport/MobilityRequirementsForm";
 import { Button } from "@/components/ui/button";
+import type { ResolvedStreetAddress } from "@/lib/addresses/resolve-street-address";
 import type { MobilityRequirements } from "@/lib/transport/mobility-schema";
 
 export function NewTransportTripForm() {
@@ -19,6 +21,14 @@ export function NewTransportTripForm() {
   const [prefillFromProfile, setPrefillFromProfile] = useState(true);
   const [mobility, setMobility] = useState<MobilityRequirements>({});
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupSuburb, setPickupSuburb] = useState("");
+  const [pickupLat, setPickupLat] = useState<number | undefined>();
+  const [pickupLng, setPickupLng] = useState<number | undefined>();
+  const [dropoffAddress, setDropoffAddress] = useState("");
+  const [dropoffSuburb, setDropoffSuburb] = useState("");
+  const [dropoffLat, setDropoffLat] = useState<number | undefined>();
+  const [dropoffLng, setDropoffLng] = useState<number | undefined>();
 
   useEffect(() => {
     if (!prefillFromProfile) return;
@@ -35,6 +45,20 @@ export function NewTransportTripForm() {
       })
       .catch(() => {});
   }, [prefillFromProfile]);
+
+  function applyPickupResolved(address: ResolvedStreetAddress) {
+    setPickupAddress(address.formattedAddress);
+    if (address.suburb) setPickupSuburb(address.suburb);
+    setPickupLat(address.lat);
+    setPickupLng(address.lng);
+  }
+
+  function applyDropoffResolved(address: ResolvedStreetAddress) {
+    setDropoffAddress(address.formattedAddress);
+    if (address.suburb) setDropoffSuburb(address.suburb);
+    setDropoffLat(address.lat);
+    setDropoffLng(address.lng);
+  }
 
   return (
     <form
@@ -55,10 +79,14 @@ export function NewTransportTripForm() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            pickupAddress: fd.get("pickupAddress"),
-            pickupSuburb: fd.get("pickupSuburb") || undefined,
-            dropoffAddress: fd.get("dropoffAddress"),
-            dropoffSuburb: fd.get("dropoffSuburb") || undefined,
+            pickupAddress,
+            pickupSuburb: pickupSuburb || undefined,
+            pickupLat,
+            pickupLng,
+            dropoffAddress,
+            dropoffSuburb: dropoffSuburb || undefined,
+            dropoffLat,
+            dropoffLng,
             scheduledStart,
             scheduledEnd,
             accessNotes: fd.get("accessNotes") || undefined,
@@ -105,27 +133,49 @@ export function NewTransportTripForm() {
 
       <MobilityRequirementsForm values={mobility} onChange={setMobility} />
 
-      <AccessibleFormField id="pickupAddress" label="Pickup address" required>
-        <input
-          id="pickupAddress"
-          name="pickupAddress"
-          className={formInputClass}
-          required
-        />
-      </AccessibleFormField>
+      <StreetAddressAutocomplete
+        id="pickupAddress"
+        label="Pickup address"
+        context="transport_request"
+        value={pickupAddress}
+        onChange={(next) => {
+          setPickupAddress(next);
+          setPickupLat(undefined);
+          setPickupLng(undefined);
+        }}
+        onResolved={applyPickupResolved}
+        required
+      />
       <AccessibleFormField id="pickupSuburb" label="Pickup suburb">
-        <input id="pickupSuburb" name="pickupSuburb" className={formInputClass} />
-      </AccessibleFormField>
-      <AccessibleFormField id="dropoffAddress" label="Drop-off address" required>
         <input
-          id="dropoffAddress"
-          name="dropoffAddress"
+          id="pickupSuburb"
+          name="pickupSuburb"
           className={formInputClass}
-          required
+          value={pickupSuburb}
+          onChange={(e) => setPickupSuburb(e.target.value)}
         />
       </AccessibleFormField>
+      <StreetAddressAutocomplete
+        id="dropoffAddress"
+        label="Drop-off address"
+        context="transport_request"
+        value={dropoffAddress}
+        onChange={(next) => {
+          setDropoffAddress(next);
+          setDropoffLat(undefined);
+          setDropoffLng(undefined);
+        }}
+        onResolved={applyDropoffResolved}
+        required
+      />
       <AccessibleFormField id="dropoffSuburb" label="Drop-off suburb">
-        <input id="dropoffSuburb" name="dropoffSuburb" className={formInputClass} />
+        <input
+          id="dropoffSuburb"
+          name="dropoffSuburb"
+          className={formInputClass}
+          value={dropoffSuburb}
+          onChange={(e) => setDropoffSuburb(e.target.value)}
+        />
       </AccessibleFormField>
       <AccessibleFormField id="scheduledStart" label="Scheduled start" required>
         <input

@@ -20,7 +20,13 @@ const signalsSchema = z
 export const autocompleteQuerySchema = z
   .object({
     q: z.string().trim().max(120).optional().default(""),
-    context: z.enum(["homepage", "provider_finder"]),
+    context: z.enum([
+      "homepage",
+      "provider_finder",
+      "booking",
+      "transport_request",
+      "care_request",
+    ]),
     field: fieldSchema,
     mode: z.enum(["proactive", "reactive"]).optional().default("reactive"),
     signals: signalsSchema,
