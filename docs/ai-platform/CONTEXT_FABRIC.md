@@ -96,3 +96,27 @@ observation date, verification state, why used, and a correction route (WCAG 2.2
 ## Connector Gateway (Prompt 09)
 
 External reads enter via the Governed Connector Gateway and return Context Fabric–compatible canonical records with provenance. Agents must not call externals directly. See [CONNECTOR_GATEWAY.md](./CONNECTOR_GATEWAY.md).
+
+## Agency Memory bridge
+
+```ts
+import { buildAgencyMemoryContextSlice } from "@/lib/ai/platform/context-fabric";
+
+const slice = buildAgencyMemoryContextSlice({
+  participantId,
+  tenantId,
+  missionId,
+  purposes: ["job_application_acme"],
+  maxItems: 8,
+});
+```
+
+Requires:
+
+- `MAPABLE_CONTEXT_FABRIC_ENABLED=true`
+- `MAPABLE_AGENCY_MEMORY_ENABLED=true`
+- `MAPABLE_AGENCY_MEMORY_MODEL_CONTEXT_ENABLED=true`
+
+Fail-closed otherwise.
+
+See [AGENCY_MEMORY.md](./AGENCY_MEMORY.md).

@@ -137,6 +137,21 @@ See [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
 | Durable context/event persistence | Deferred (in-memory; Prompt 04A if required) |
 | Authority expansion | None |
 
+## Participant Agency Memory (Prompt 05 — not production-live)
+
+Long-term participant-controlled preferences and decisions when
+`MAPABLE_AGENCY_MEMORY_ENABLED=true`. Implementation: `lib/ai/platform/agency-memory/`.
+Context Fabric scoped injection requires `MAPABLE_AGENCY_MEMORY_MODEL_CONTEXT_ENABLED`.
+See [AGENCY_MEMORY.md](./AGENCY_MEMORY.md) and [CONTEXT_FABRIC.md](./CONTEXT_FABRIC.md).
+
+| Surface | Status |
+|---------|--------|
+| Agency Memory APIs | Implemented, flag-gated |
+| My MapAble Preferences UI | Implemented, flag-gated |
+| Preference / decision graph | Explicit edges only (in-memory) |
+| Action Kernel preference bridge | Dual-writes CareOS + Agency Memory |
+| Durable Prisma persistence | Deferred (Prompt 05A if required) |
+| Authority expansion | None |
 
 ## Governed Connector Gateway (Prompt 09 — not production-live)
 
@@ -151,7 +166,6 @@ Governed boundary for external systems when
 | Injection quarantine + bounded retry / circuit breaker | Implemented (in-memory) |
 | Durable health/idempotency store | Deferred (Prompt 09A if required) |
 | Authority expansion / production flags | None |
-
 
 ## Advanced AI Expansion train (≤ 3)
 
