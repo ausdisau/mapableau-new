@@ -15,15 +15,41 @@ describe("getConfiguredOAuthProviders", () => {
       GOOGLE_CLIENT_SECRET: "",
       AZURE_AD_CLIENT_ID: "",
       AZURE_AD_CLIENT_SECRET: "",
+      WORKOS_AUTHKIT_ENABLED: "false",
+      WORKOS_CLIENT_ID: "",
+      WORKOS_API_KEY: "",
     };
     const { getConfiguredOAuthProviders } =
       await import("@/lib/auth/oauth-providers");
     expect(getConfiguredOAuthProviders()).toEqual({
+      workosAuthKit: false,
       auth0: false,
       google: false,
       microsoft: false,
       facebook: false,
       apple: false,
+    });
+  });
+
+  it("registers WorkOS AuthKit only when its flag and credentials are set", async () => {
+    process.env = {
+      ...env,
+      WORKOS_AUTHKIT_ENABLED: "true",
+      WORKOS_CLIENT_ID: "client_test",
+      WORKOS_API_KEY: "sk_test",
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+    };
+    const { getConfiguredOAuthProviders, buildOAuthProviders } =
+      await import("@/lib/auth/oauth-providers");
+    expect(getConfiguredOAuthProviders().workosAuthKit).toBe(true);
+    const provider = buildOAuthProviders().find(
+      (candidate) => candidate.id === "workos-authkit",
+    );
+    expect(provider).toMatchObject({
+      id: "workos-authkit",
+      name: "MapAble secure sign-in",
+      checks: ["pkce", "state"],
     });
   });
 

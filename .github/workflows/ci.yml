@@ -71,6 +71,14 @@ jobs:
       - name: Prisma generate
         run: pnpm exec prisma generate
 
+      - name: WorkOS AuthKit focused tests
+        run: >-
+          pnpm exec vitest run
+          tests/workos-authkit-provider.test.ts
+          tests/workos-session-privacy.test.ts
+          tests/oauth-providers.test.ts
+          tests/login-oauth-buttons.test.ts
+
       - name: Type-check
         run: pnpm type-check
 

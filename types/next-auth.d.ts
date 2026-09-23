@@ -26,5 +26,10 @@ declare module "next-auth/jwt" {
     role?: string;
     mfaVerified?: boolean;
     mfaVerifiedAt?: number;
+    /** Server-only WorkOS credentials. Never merge these into Session. */
+    workosAccessToken?: string;
+    workosRefreshToken?: string;
+    workosAccessTokenExpiresAt?: number;
+    workosTokenError?: "refresh_failed";
   }
 }
