@@ -24,6 +24,8 @@ This document records live repository and public-edge inspection. CI green is **
 
 ## Live production edge (curl, 2026-07-22)
 
+Later tip (2026-08-18): Production deploys of `mapableau-new` remain `FAILED`; see [VERCEL_PRODUCTION_2026-08-18.md](./VERCEL_PRODUCTION_2026-08-18.md). Do not treat this July snapshot as the current Production tip.
+
 | Check                                   | Result                                                                                                         | Status                                                                  |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | Apex `https://mapable.com.au/`          | HTTP 200; allowlisted informational routes 200                                                                 | `VERIFIED`                                                              |
