@@ -29,6 +29,14 @@ const PATTERNS: Array<{ re: RegExp; label: string }> = [
     re: /sk_live_[A-Za-z0-9]{20,}/,
     label: "Stripe live secret",
   },
+  {
+    re: /KaGOqzzJ3ZTjswc62prswRLXCqJ4oepSqtI2P8iM/,
+    label: "hardcoded Woolworths public API key",
+  },
+  {
+    re: /dd6ae58532d743978508555a59a199ac/,
+    label: "hardcoded Coles public API key",
+  },
 ];
 
 const ALLOW_PATH_SNIPPETS = [
