@@ -19,6 +19,8 @@ export async function createCareRequest(params: {
   preferredDate?: Date;
   startTime?: string;
   endTime?: string;
+  recurrencePlaceholder?: boolean;
+  communicationNotes?: string;
   address?: string;
   suburb?: string;
   state?: string;
@@ -53,6 +55,8 @@ export async function createCareRequest(params: {
       preferredDate: params.preferredDate,
       startTime: params.startTime,
       endTime: params.endTime,
+      recurrencePlaceholder: params.recurrencePlaceholder ?? false,
+      communicationNotes: params.communicationNotes,
       address: params.address,
       suburb: params.suburb,
       state: params.state,

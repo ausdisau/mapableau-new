@@ -20,6 +20,8 @@ export const createCareRequestSchema = z.object({
   preferredDate: z.string().datetime().optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
+  recurrencePlaceholder: z.boolean().optional(),
+  communicationNotes: z.string().max(1000).optional(),
   address: z.string().optional(),
   suburb: z.string().optional(),
   state: z.string().optional(),
@@ -63,7 +65,7 @@ export const createCareServiceLogSchema = z.object({
 });
 
 export const disputeCareServiceLogSchema = z.object({
-  disputeReason: z.string().min(3).max(2000),
+  disputeReason: z.string().trim().min(3).max(2000),
 });
 
 export const createCareIncidentSchema = z.object({
