@@ -57,9 +57,11 @@ const nextConfig: NextConfig = {
     dirs: ["app", "components", "lib", "schemas", "scripts/ci"],
   },
   typescript: {
-    // CI already ran `pnpm type-check`. Skip duplicate tsc inside `next build`
-    // on GHA only (Vercel still typechecks at build; local builds typecheck).
-    ignoreBuildErrors: process.env.GITHUB_ACTIONS === "true",
+    // CI / Quality workflow already run `pnpm type-check`. Skip duplicate tsc
+    // inside `next build` on memory-constrained hosts (Vercel ~8 GB, GHA ~7 GB).
+    // Local `pnpm build` still typechecks unless VERCEL/GITHUB_ACTIONS is set.
+    ignoreBuildErrors:
+      process.env.VERCEL === "1" || process.env.GITHUB_ACTIONS === "true",
   },
 };
 
