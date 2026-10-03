@@ -15,29 +15,35 @@ import { BookingAccessError } from "@/lib/bookings/booking-access-policy";
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ bookingId: string }> }
 ) {
   const { user, error } = await requireBookingSession();
   if (error) return error;
 
-  const { id: bookingId } = await params;
+  const { bookingId } = await params;
 
   try {
     const booking = await getBookingForUser(user!, bookingId);
     return bookingOk({ booking });
   } catch (e) {
+    if (e instanceof BookingAccessError && e.code === "BOOKING_NOT_FOUND") {
+      return handleBookingRouteError(e);
+    }
+    if (e instanceof BookingAccessError) {
+      return handleBookingRouteError(e);
+    }
     return handleBookingRouteError(e);
   }
 }
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ bookingId: string }> }
 ) {
   const { user, error } = await requireBookingSession();
   if (error) return error;
 
-  const { id: bookingId } = await params;
+  const { bookingId } = await params;
 
   try {
     const existing = await getBookingForUser(user!, bookingId);
@@ -46,8 +52,8 @@ export async function PATCH(
     }
 
     const parsed = updateBookingSchema.parse(await req.json());
-    await updateBookingDetails(bookingId, parsed, user!.id);
-    const refreshed = await getBookingForUser(user!, bookingId);
+    const booking = await updateBookingDetails(bookingId, parsed, user!.id);
+    const refreshed = await getBookingForUser(user!, booking.id);
     return bookingOk({ booking: refreshed });
   } catch (e) {
     if (e instanceof ZodError) return zodErrorResponse(e);

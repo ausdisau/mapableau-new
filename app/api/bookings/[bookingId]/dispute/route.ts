@@ -4,11 +4,11 @@ import {
   bookingOk,
 } from "@/lib/api/booking-route-handler";
 import {
-  assertProviderCanManageBooking,
+  disputeBooking,
   getBookingForUser,
-  providerAcceptBookingRequest,
 } from "@/lib/bookings/booking-service";
-import { providerResponseSchema } from "@/lib/validation/booking-schemas";
+import { disputeBookingSchema } from "@/lib/validation/booking-schemas";
+import { BookingAccessError } from "@/lib/bookings/booking-access-policy";
 
 export async function POST(
   req: Request,
@@ -20,19 +20,16 @@ export async function POST(
   const { bookingId } = await params;
 
   try {
-    const parsed = providerResponseSchema.parse(await req.json());
-    const bookingRecord = await assertProviderCanManageBooking(
-      user!,
-      bookingId,
-      parsed.organisationId
-    );
+    const existing = await getBookingForUser(user!, bookingId);
+    if (!existing.permissions.allowedActions.includes("dispute")) {
+      throw new BookingAccessError("Booking access denied.");
+    }
 
-    const orgId = parsed.organisationId ?? bookingRecord.assignedOrganisationId!;
-    const booking = await providerAcceptBookingRequest(
+    const parsed = disputeBookingSchema.parse(await req.json());
+    const booking = await disputeBooking(
       bookingId,
-      orgId,
       user!.id,
-      parsed.note
+      parsed.reason
     );
     const refreshed = await getBookingForUser(user!, booking.id);
     return bookingOk({ booking: refreshed });

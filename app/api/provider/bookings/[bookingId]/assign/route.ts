@@ -1,14 +1,17 @@
+import { ZodError } from "zod";
+
 import {
   handleBookingRouteError,
   requireBookingSession,
   bookingOk,
 } from "@/lib/api/booking-route-handler";
+import { zodErrorResponse } from "@/lib/api/response";
 import {
   assertProviderCanManageBooking,
+  assignBooking,
   getBookingForUser,
-  providerAcceptBookingRequest,
 } from "@/lib/bookings/booking-service";
-import { providerResponseSchema } from "@/lib/validation/booking-schemas";
+import { assignBookingSchema } from "@/lib/validation/booking-schemas";
 
 export async function POST(
   req: Request,
@@ -20,7 +23,7 @@ export async function POST(
   const { bookingId } = await params;
 
   try {
-    const parsed = providerResponseSchema.parse(await req.json());
+    const parsed = assignBookingSchema.parse(await req.json());
     const bookingRecord = await assertProviderCanManageBooking(
       user!,
       bookingId,
@@ -28,15 +31,18 @@ export async function POST(
     );
 
     const orgId = parsed.organisationId ?? bookingRecord.assignedOrganisationId!;
-    const booking = await providerAcceptBookingRequest(
+    const result = await assignBooking({
       bookingId,
-      orgId,
-      user!.id,
-      parsed.note
-    );
-    const refreshed = await getBookingForUser(user!, booking.id);
-    return bookingOk({ booking: refreshed });
+      assigneeUserId: parsed.assigneeUserId,
+      assigneeRole: parsed.assigneeRole,
+      organisationId: orgId,
+      assignedById: user!.id,
+      notes: parsed.notes,
+    });
+    const refreshed = await getBookingForUser(user!, bookingId);
+    return bookingOk({ ...result, booking: refreshed });
   } catch (e) {
+    if (e instanceof ZodError) return zodErrorResponse(e);
     return handleBookingRouteError(e);
   }
 }
