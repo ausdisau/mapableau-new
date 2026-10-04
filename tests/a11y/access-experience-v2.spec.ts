@@ -49,7 +49,9 @@ test.describe("Access Experience V2 — /access", () => {
     }
 
     await expect(allRegions).toHaveAttribute("aria-pressed", "true");
-    const sydney = page.getByRole("button", { name: /sydney/i });
+    const sydney = page
+      .getByRole("group", { name: /capital-city region/i })
+      .getByRole("button", { name: /^sydney/i });
     await sydney.focus();
     await expect(sydney).toBeFocused();
     await page.keyboard.press("Enter");
