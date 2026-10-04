@@ -67,7 +67,7 @@ describe("MapAble Access authoring — ATAG-informed checks", () => {
     await user.click(screen.getByRole("button", { name: /review/i }));
     await user.click(screen.getByRole("button", { name: /submit observation/i }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    expect((await screen.findByRole("alert")).textContent).toContain(
       "Submission unavailable",
     );
     expect(screen.getByRole("button", { name: /submit observation/i })).toBeTruthy();
