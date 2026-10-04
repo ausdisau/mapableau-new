@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 import { assertDeployedProductionEnv } from "./lib/env/assert-deployed-production-env";
 import { getBaselineSecurityHeaders } from "./lib/security/headers";
 
-// Fail closed on real Vercel production builds when env is invalid.
-// Local/CI builds (no VERCEL_ENV=production) remain usable.
+// Fail closed on Vercel production and on fallback hosts that explicitly set
+// MAPABLE_ENFORCE_PRODUCTION_ENV=true. Local/CI builds remain usable.
 assertDeployedProductionEnv(process.env);
 
 const nextConfig: NextConfig = {
