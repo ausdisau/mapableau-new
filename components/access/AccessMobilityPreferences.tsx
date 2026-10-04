@@ -14,6 +14,8 @@ const MOBILITY_OPTIONS: Array<{
   { value: "mobility_scooter", label: "Mobility scooter" },
   { value: "walker", label: "Walker / rollator" },
   { value: "cane", label: "Cane / walking stick" },
+  { value: "prosthetic", label: "Prosthetic" },
+  { value: "assistance_animal", label: "Assistance animal" },
   { value: "other", label: "Other mobility aid" },
 ];
 
@@ -56,12 +58,6 @@ export function AccessMobilityPreferences({
                   mobilityAidPreference === "manual_wheelchair",
                 powerchairUser:
                   mobilityAidPreference === "power_wheelchair",
-                stepFreeRequired:
-                  mobilityAidPreference === "manual_wheelchair" ||
-                  mobilityAidPreference === "power_wheelchair" ||
-                  mobilityAidPreference === "mobility_scooter"
-                    ? true
-                    : value.stepFreeRequired,
               });
             }}
           >

@@ -112,7 +112,10 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
     id: "step_free_entry",
     label: "Step-free entry",
     isSelected: (p) =>
-      p.stepFreeRequired || p.wheelchairUser || p.powerchairUser,
+      p.stepFreeRequired ||
+      p.wheelchairUser ||
+      p.powerchairUser ||
+      p.mobilityAidPreference === "mobility_scooter",
     evaluate: (p, place) =>
       boolFit(
         place.stepFreeEntry,
@@ -157,7 +160,10 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
     id: "internal_step_free",
     label: "Internal step-free movement",
     isSelected: (p) =>
-      p.stepFreeRequired || p.wheelchairUser || p.powerchairUser,
+      p.stepFreeRequired ||
+      p.wheelchairUser ||
+      p.powerchairUser ||
+      p.mobilityAidPreference === "mobility_scooter",
     evaluate: (_p, place) =>
       boolFit(
         place.internalStepFree,
@@ -252,7 +258,8 @@ export const REQUIREMENT_CHECKS: RequirementCheckDefinition[] = [
   {
     id: "assistance_animal",
     label: "Assistance animal welcome",
-    isSelected: (p) => p.assistanceAnimal,
+    isSelected: (p) =>
+      p.assistanceAnimal || p.mobilityAidPreference === "assistance_animal",
     evaluate: (_p, place) =>
       boolFit(
         place.assistanceAnimalWelcome,

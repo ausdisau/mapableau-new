@@ -34,7 +34,12 @@ export function buildAccessToGoHandoff(
   }
 
   const req = input.requirements;
-  if (req.stepFreeRequired || req.wheelchairUser || req.powerchairUser) {
+  if (
+    req.stepFreeRequired ||
+    req.wheelchairUser ||
+    req.powerchairUser ||
+    req.mobilityAidPreference === "mobility_scooter"
+  ) {
     query.stepFreeRequired = "1";
   }
   if (req.maximumPreferredGradientPercent != null) {
