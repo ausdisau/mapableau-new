@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
+import { AccessEvidenceSummaryPanel } from "@/components/access/AccessEvidenceSummaryPanel";
 import { AccessMobilityPreferences } from "@/components/access/AccessMobilityPreferences";
 import { AccessSourceLegend } from "@/components/access/AccessSourceLegend";
 import {
@@ -588,6 +589,7 @@ export function AccessExplorationShell({
                   {ACCESS_GO_HANDOFF_SANDBOX_NOTICE}
                 </p>
               </section>
+              <AccessEvidenceSummaryPanel evidence={selectedPlace.evidence} />
               <AccessFitBreakdownV2 result={selectedFit} />
             </>
           ) : (
