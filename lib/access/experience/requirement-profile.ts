@@ -39,17 +39,9 @@ export function accessibilityProfileToRequirements(
     mobilityAidPreference: primaryMobilityAid,
     wheelchairUser: mobility.includes("manual_wheelchair"),
     powerchairUser: mobility.includes("power_wheelchair"),
-    stepFreeRequired:
-      mobility.includes("manual_wheelchair") ||
-      mobility.includes("power_wheelchair") ||
-      mobility.includes("mobility_scooter") ||
-      Boolean(transport.requiresRamp),
-    accessibleToiletRequired:
-      mobility.includes("manual_wheelchair") ||
-      mobility.includes("power_wheelchair"),
-    assistanceAnimal:
-      mobility.includes("assistance_animal") ||
-      Boolean(transport.assistanceAnimalPresent),
+    stepFreeRequired: Boolean(transport.requiresRamp),
+    accessibleToiletRequired: false,
+    assistanceAnimal: Boolean(transport.assistanceAnimalPresent),
     transportSupportNeeded: Boolean(
       transport.requiresWheelchairAccessibleVehicle ||
         transport.needsExtraBoardingTime,
@@ -62,7 +54,7 @@ export function accessibilityProfileToRequirements(
     quietAreaPreferred: Boolean(sensory.quietArea),
     lowStimulusPreferred: Boolean(sensory.lowStimulus),
     highContrastSignagePreferred: Boolean(digital.highContrast),
-    minimumDoorWidthMm: mobility.includes("power_wheelchair") ? 900 : 850,
+    minimumDoorWidthMm: null,
   };
 }
 
