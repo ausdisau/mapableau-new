@@ -41,12 +41,20 @@ Protect `netlify-production` with required human approval and restrict it to `ma
 
 Use a dedicated non-production Neon/Postgres branch where available.
 
-Configure:
+Configure as Netlify site environment variables:
 
 - `DATABASE_URL` — preview database connection
 - `DIRECT_URL` — preview direct/migration connection
 - `NEXTAUTH_SECRET` — preview-only secret, at least 16 characters
 - any external API credentials strictly required for public `/access` rendering
+
+On Netlify Free, leave these site variables available to the default/all scopes so
+they are present during both the build and serverless-function runtime. If the
+account later supports granular scopes, database/auth variables used by Next.js
+SSR or route handlers must include both **Builds** and **Functions**.
+
+Do **not** rely on `netlify.toml` for runtime secrets. File-declared environment
+variables are build-time configuration and are not exposed to Netlify Functions.
 
 Do **not** reuse production credentials unless the specific credential is intentionally shared and documented.
 
@@ -54,7 +62,7 @@ Authenticated preview routes are not part of the first fallback gate because Net
 
 ### Production context
 
-Before any production deploy, configure:
+Before any production deploy, configure as Netlify site environment variables:
 
 - `DATABASE_URL`
 - `DIRECT_URL`
@@ -62,7 +70,16 @@ Before any production deploy, configure:
 - `NEXTAUTH_URL=https://mapable.com.au`
 - `NEXT_PUBLIC_APP_URL=https://mapable.com.au`
 
-The repository's host-neutral production gate is enabled by `MAPABLE_ENFORCE_PRODUCTION_ENV=true` in the Netlify production context. A production build must fail closed if those values are absent or invalid.
+On the Free plan, the default/all scope is appropriate because Next.js needs the
+database and auth values in both the build and Functions runtime. Do not commit
+these values to `netlify.toml`.
+
+The workflow passes `MAPABLE_ENFORCE_PRODUCTION_ENV=true` and
+`MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED=true` to deployed Functions explicitly,
+while `netlify.toml` supplies the matching build-time configuration. A
+production build therefore fails closed when the canonical database, URL, or
+auth requirements are absent or invalid, and runtime Access APIs do not silently
+fall back to a disabled flag.
 
 ## Phase 3 — GitHub release candidate
 
