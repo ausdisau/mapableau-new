@@ -111,6 +111,8 @@ jobs:
           tests/access-mobility-preferences.test.ts
           tests/access-experience-v2.test.ts
           tests/access-authoring-atag.test.tsx
+          tests/deployment/netlify-fallback-config.test.ts
+          tests/deployment/netlify-fallback-config.test.ts
           tests/a11y/access-experience-v2.spec.ts
           --max-warnings 0
 
