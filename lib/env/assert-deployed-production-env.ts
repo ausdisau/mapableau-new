@@ -60,7 +60,7 @@ export function assertDeployedProductionEnv(
   throw new Error(
     [
       "MapAble production environment validation failed (fail-closed).",
-      "Fix Vercel Production env vars. Secret values are never printed.",
+      "Fix production deployment environment variables. Secret values are never printed.",
       formatProductionEnvIssues(issues),
     ].join("\n"),
   );
