@@ -14,12 +14,7 @@ const fillLayer: FillLayerSpecification = {
   source: "mapable-access-gccsa",
   paint: {
     "fill-color": "#005B7F",
-    "fill-opacity": [
-      "case",
-      ["==", ["get", "mapableSlug"], ["literal", "__selected__"]],
-      0.16,
-      0.06,
-    ],
+    "fill-opacity": 0.05,
   },
 };
 
@@ -41,24 +36,29 @@ export function GccsaBoundaryLayer({
   boundary: GccsaBoundaryFeatureCollection;
   selectedRegion: "all" | AccessCapitalRegionSlug;
 }) {
-  const data: GccsaBoundaryFeatureCollection = {
-    ...boundary,
-    features: boundary.features.map((feature) => ({
-      ...feature,
-      properties: {
-        ...feature.properties,
-        mapableSlug:
-          selectedRegion !== "all" &&
-          feature.properties.mapableSlug === selectedRegion
-            ? "__selected__"
-            : feature.properties.mapableSlug,
-      },
-    })),
+  const selectedFill: FillLayerSpecification = {
+    id: "mapable-access-gccsa-selected-fill",
+    type: "fill",
+    source: "mapable-access-gccsa",
+    filter: [
+      "==",
+      ["get", "mapableSlug"],
+      selectedRegion === "all" ? "__none__" : selectedRegion,
+    ],
+    paint: {
+      "fill-color": "#005B7F",
+      "fill-opacity": 0.18,
+    },
   };
 
   return (
-    <Source id="mapable-access-gccsa" type="geojson" data={data}>
+    <Source
+      id="mapable-access-gccsa"
+      type="geojson"
+      data={boundary as GeoJSON.FeatureCollection}
+    >
       <Layer {...fillLayer} />
+      <Layer {...selectedFill} />
       <Layer {...lineLayer} />
     </Source>
   );
