@@ -38,7 +38,10 @@ export function filterPlacesToGccsaRegion(input: {
     };
   }
 
+  const region = input.region;
+  const boundary = input.boundary;
   let unclassifiedCount = 0;
+
   const places = input.places.filter((place) => {
     if (
       !place.hasCoordinates ||
@@ -52,8 +55,8 @@ export function filterPlacesToGccsaRegion(input: {
     return pointIsInGccsaRegion({
       latitude: place.latitude,
       longitude: place.longitude,
-      slug: input.region,
-      boundary: input.boundary,
+      slug: region,
+      boundary,
     });
   });
 
