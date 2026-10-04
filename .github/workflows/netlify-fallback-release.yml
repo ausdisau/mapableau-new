@@ -211,6 +211,8 @@ jobs:
             --site "$NETLIFY_SITE_ID" \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --context deploy-preview \
+            --env "MAPABLE_ENFORCE_PRODUCTION_ENV=false" \
+            --env "MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED=true" \
             --message "MapAble fallback preview ${GITHUB_SHA}" \
             --json > netlify-deploy.json
           DEPLOY_URL="$(jq -r '.deploy_url // .url // empty' netlify-deploy.json)"
@@ -279,6 +281,8 @@ jobs:
             --site "$NETLIFY_SITE_ID" \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --context production \
+            --env "MAPABLE_ENFORCE_PRODUCTION_ENV=true" \
+            --env "MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED=true" \
             --prod \
             --message "MapAble fallback production ${GITHUB_SHA}" \
             --json > netlify-production.json
