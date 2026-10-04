@@ -55,7 +55,7 @@ export function GccsaBoundaryLayer({
     <Source
       id="mapable-access-gccsa"
       type="geojson"
-      data={boundary as GeoJSON.FeatureCollection}
+      data={boundary as never}
     >
       <Layer {...fillLayer} />
       <Layer {...selectedFill} />
