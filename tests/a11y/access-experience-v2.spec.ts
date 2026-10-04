@@ -35,24 +35,27 @@ test.describe("Access Experience V2 — /access", () => {
     expect(critical, JSON.stringify(critical, null, 2)).toEqual([]);
   });
 
-  test("national GCCSA controls expose pressed state when V2 shell is present", async ({
-    page,
-  }) => {
-    await page.goto("/access", { waitUntil: "domcontentloaded" });
+  test(
+    "national GCCSA controls expose pressed state when V2 shell is present",
+    async ({ page }) => {
+      await page.goto("/access", { waitUntil: "domcontentloaded" });
 
-    const allRegions = page.getByRole("button", { name: /all eight capitals/i });
-    if ((await allRegions.count()) === 0) {
-      test.skip(true, "Access Experience V2 flag is off in this environment");
-      return;
-    }
+      const allRegions = page.getByRole("button", {
+        name: /all eight capitals/i,
+      });
+      if ((await allRegions.count()) === 0) {
+        test.skip(true, "Access Experience V2 flag is off in this environment");
+        return;
+      }
 
-    await expect(allRegions).toHaveAttribute("aria-pressed", "true");
-    const sydney = page.getByRole("button", { name: /sydney/i });
-    await sydney.focus();
-    await expect(sydney).toBeFocused();
-    await page.keyboard.press("Enter");
-    await expect(sydney).toHaveAttribute("aria-pressed", "true");
-  });
+      await expect(allRegions).toHaveAttribute("aria-pressed", "true");
+      const sydney = page.getByRole("button", { name: /sydney/i });
+      await sydney.focus();
+      await expect(sydney).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(sydney).toHaveAttribute("aria-pressed", "true");
+    },
+  );
 
   test("list presentation controls are keyboard reachable when V2 shell is present", async ({
     page,
