@@ -1,0 +1,278 @@
+name: Netlify fallback release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deploy target"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - production
+      confirm_production:
+        description: "For production only, enter: PROMOTE NETLIFY"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: netlify-fallback-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_OPTIONS: --max-old-space-size=8192
+  MAPABLE_BUILD_HEAP_MB: "8192"
+  NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production-use-32chars
+  NEXTAUTH_URL: http://127.0.0.1:3000
+  NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+  MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED: "true"
+  NEXT_PUBLIC_MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED: "true"
+
+jobs:
+  validate-access-release:
+    name: Netlify RC / WCAG + ATAG + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mapable_netlify_rc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_netlify_rc?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_netlify_rc?schema=public
+      A11Y_SKIP_AUTH_ROUTES: "1"
+    steps:
+      - name: Checkout exact release commit
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node for Netlify CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma validate and generate
+        run: |
+          pnpm exec prisma validate
+          pnpm exec prisma generate
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Focused Access lint
+        run: >
+          pnpm exec eslint
+          app/access
+          app/api/access
+          components/access
+          components/access-fit
+          hooks/access
+          lib/access
+          tests/access-national-gccsa.test.ts
+          tests/access-mobility-preferences.test.ts
+          tests/access-experience-v2.test.ts
+          tests/access-authoring-atag.test.tsx
+          tests/a11y/access-experience-v2.spec.ts
+          --max-warnings 0
+
+      - name: Prepare ephemeral release-validation database
+        run: pnpm exec prisma db push --accept-data-loss --skip-generate
+
+      - name: Access and authoring tests
+        run: >
+          pnpm exec vitest run
+          tests/access-national-gccsa.test.ts
+          tests/access-mobility-preferences.test.ts
+          tests/access-experience-v2.test.ts
+          tests/access-authoring-atag.test.tsx
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Production-shaped Next.js build
+        run: pnpm build
+
+      - name: WCAG 2.2 AA Access browser gate
+        env:
+          PLAYWRIGHT_WEB_SERVER: pnpm start
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+        run: >
+          pnpm exec playwright test
+          tests/a11y/access-experience-v2.spec.ts
+          --project=access-experience-v2
+
+      - name: Build portable recovery bundle
+        env:
+          MAPABLE_PORTABLE_BUILD: "1"
+        run: pnpm build
+
+      - name: Package standalone recovery bundle
+        run: |
+          mkdir -p release/standalone/.next
+          cp -R .next/standalone/. release/standalone/
+          cp -R .next/static release/standalone/.next/static
+          cp -R public release/standalone/public
+          cat > release/release-evidence.json <<EOF
+          {
+            "commit": "${GITHUB_SHA}",
+            "surface": "/access",
+            "hostPreference": "netlify-free",
+            "wcagTarget": "WCAG 2.2 AA",
+            "atagScope": "Report a change authoring flow; ATAG-informed, no formal conformance claim",
+            "accessExperienceV2": true,
+            "portableFallback": true
+          }
+          EOF
+
+      - name: Upload immutable recovery artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapable-access-netlify-rc-${{ github.sha }}
+          path: release/
+          retention-days: 30
+          if-no-files-found: error
+
+  deploy-preview:
+    name: Netlify RC / deploy preview
+    needs: validate-access-release
+    if: ${{ inputs.target == 'preview' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: netlify-preview
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Require Netlify preview credentials
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo "NETLIFY_AUTH_TOKEN is required"; exit 1; }
+          test -n "$NETLIFY_SITE_ID" || { echo "NETLIFY_SITE_ID is required"; exit 1; }
+
+      - name: Deploy commit to Netlify preview
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AGENT: chatgpt
+        run: |
+          npx --yes netlify-cli@27.10.2 deploy             --site "$NETLIFY_SITE_ID"             --auth "$NETLIFY_AUTH_TOKEN"             --context deploy-preview             --message "MapAble fallback preview ${GITHUB_SHA}"             --json > netlify-deploy.json
+          DEPLOY_URL="$(jq -r '.deploy_url // .url // empty' netlify-deploy.json)"
+          test -n "$DEPLOY_URL" || { cat netlify-deploy.json; exit 1; }
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Deployed /access smoke
+        run: |
+          curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/access" >/dev/null
+          curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/accessibility-statement" >/dev/null
+
+      - name: WCAG 2.2 AA on deployed preview
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.deploy.outputs.url }}
+          A11Y_SKIP_AUTH_ROUTES: "1"
+        run: >
+          pnpm exec playwright test
+          tests/a11y/access-experience-v2.spec.ts
+          --project=access-experience-v2
+
+      - name: Deployment summary
+        run: |
+          echo "## Netlify fallback preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: ${{ steps.deploy.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- WCAG target: 2.2 AA" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ATAG: authoring-flow gate passed; no formal conformance claim" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-production:
+    name: Netlify RC / production cutover candidate
+    needs: validate-access-release
+    if: ${{ inputs.target == 'production' && inputs.confirm_production == 'PROMOTE NETLIFY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: netlify-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Require Netlify production credentials
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo "NETLIFY_AUTH_TOKEN is required"; exit 1; }
+          test -n "$NETLIFY_SITE_ID" || { echo "NETLIFY_SITE_ID is required"; exit 1; }
+
+      - name: Deploy production candidate
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AGENT: chatgpt
+        run: |
+          npx --yes netlify-cli@27.10.2 deploy             --site "$NETLIFY_SITE_ID"             --auth "$NETLIFY_AUTH_TOKEN"             --context production             --prod             --message "MapAble fallback production ${GITHUB_SHA}"             --json > netlify-production.json
+          DEPLOY_URL="$(jq -r '.deploy_url // .url // empty' netlify-production.json)"
+          test -n "$DEPLOY_URL" || { cat netlify-production.json; exit 1; }
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Production host smoke
+        run: |
+          curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/access" >/dev/null
+          curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/api/auth/providers" >/dev/null
+          curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/privacy" >/dev/null
+          curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/terms" >/dev/null
+
+      - name: WCAG 2.2 AA production candidate
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.deploy.outputs.url }}
+          A11Y_SKIP_AUTH_ROUTES: "1"
+        run: >
+          pnpm exec playwright test
+          tests/a11y/access-experience-v2.spec.ts
+          --project=access-experience-v2
+
+      - name: Cutover warning
+        run: |
+          echo "## Netlify production candidate deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: ${{ steps.deploy.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- DNS cutover is intentionally NOT automated by this workflow." >> "$GITHUB_STEP_SUMMARY"
+          echo "- Move mapable.com.au only after auth callbacks, database connectivity, WCAG/ATAG review and rollback evidence are confirmed." >> "$GITHUB_STEP_SUMMARY"
