@@ -33,8 +33,9 @@ on:
         type: string
 
 concurrency:
-  group: netlify-fallback-${{ github.ref }}
-  cancel-in-progress: false
+  group: netlify-fallback-${{ github.event_name }}-${{ github.ref }}
+  # Superseded PR validation should stop; an approved manual deployment must finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
