@@ -1,6 +1,21 @@
 name: Netlify fallback release
 
 on:
+  pull_request:
+    paths:
+      - "app/access/**"
+      - "app/api/access/**"
+      - "components/access/**"
+      - "components/access-fit/**"
+      - "hooks/access/**"
+      - "lib/access/**"
+      - "lib/env/**"
+      - "netlify.toml"
+      - "next.config.ts"
+      - "tests/access-*.test.*"
+      - "tests/a11y/access-experience-v2.spec.ts"
+      - ".github/workflows/netlify-fallback-release.yml"
+      - "docs/operations/netlify-transition.md"
   workflow_dispatch:
     inputs:
       target:
@@ -158,7 +173,7 @@ jobs:
   deploy-preview:
     name: Netlify RC / deploy preview
     needs: validate-access-release
-    if: ${{ inputs.target == 'preview' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'preview' }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: netlify-preview
@@ -221,7 +236,7 @@ jobs:
   deploy-production:
     name: Netlify RC / production cutover candidate
     needs: validate-access-release
-    if: ${{ inputs.target == 'production' && inputs.confirm_production == 'PROMOTE NETLIFY' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'production' && inputs.confirm_production == 'PROMOTE NETLIFY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: netlify-production
