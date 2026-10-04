@@ -41,7 +41,9 @@ export function accessibilityProfileToRequirements(
     powerchairUser: mobility.includes("power_wheelchair"),
     stepFreeRequired: Boolean(transport.requiresRamp),
     accessibleToiletRequired: false,
-    assistanceAnimal: Boolean(transport.assistanceAnimalPresent),
+    assistanceAnimal:
+      mobility.includes("assistance_animal") ||
+      Boolean(transport.assistanceAnimalPresent),
     transportSupportNeeded: Boolean(
       transport.requiresWheelchairAccessibleVehicle ||
         transport.needsExtraBoardingTime,
@@ -95,6 +97,17 @@ export function countSelectedRequirements(
   if (profile.kerbRampRequired) count += 1;
   if (profile.changingPlacesPreferred) count += 1;
   if (profile.minimumDoorWidthMm != null) count += 1;
+  if (
+    profile.mobilityAidPreference &&
+    ![
+      "none",
+      "manual_wheelchair",
+      "power_wheelchair",
+      "assistance_animal",
+    ].includes(profile.mobilityAidPreference)
+  ) {
+    count += 1;
+  }
   if (profile.maximumComfortableWalkingDistanceMetres != null) count += 1;
   return count;
 }
@@ -115,9 +128,12 @@ export function requirementsSummaryLabels(
   if (profile.kerbRampRequired) labels.push("Kerb ramp");
   if (
     profile.mobilityAidPreference &&
-    !["none", "manual_wheelchair", "power_wheelchair"].includes(
-      profile.mobilityAidPreference,
-    )
+    ![
+      "none",
+      "manual_wheelchair",
+      "power_wheelchair",
+      "assistance_animal",
+    ].includes(profile.mobilityAidPreference)
   ) {
     labels.push(
       profile.mobilityAidPreference
