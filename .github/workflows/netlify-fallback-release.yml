@@ -13,6 +13,7 @@ on:
       - "netlify.toml"
       - "next.config.ts"
       - "tests/access-*.test.*"
+      - "tests/deployment/netlify-fallback-config.test.ts"
       - "tests/a11y/access-experience-v2.spec.ts"
       - ".github/workflows/netlify-fallback-release.yml"
       - "docs/operations/netlify-transition.md"
@@ -112,7 +113,6 @@ jobs:
           tests/access-experience-v2.test.ts
           tests/access-authoring-atag.test.tsx
           tests/deployment/netlify-fallback-config.test.ts
-          tests/deployment/netlify-fallback-config.test.ts
           tests/a11y/access-experience-v2.spec.ts
           --max-warnings 0
 
@@ -126,6 +126,7 @@ jobs:
           tests/access-mobility-preferences.test.ts
           tests/access-experience-v2.test.ts
           tests/access-authoring-atag.test.tsx
+          tests/deployment/netlify-fallback-config.test.ts
 
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
@@ -206,7 +207,12 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AGENT: chatgpt
         run: |
-          npx --yes netlify-cli@27.10.2 deploy             --site "$NETLIFY_SITE_ID"             --auth "$NETLIFY_AUTH_TOKEN"             --context deploy-preview             --message "MapAble fallback preview ${GITHUB_SHA}"             --json > netlify-deploy.json
+          npx --yes netlify-cli@27.10.2 deploy \
+            --site "$NETLIFY_SITE_ID" \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --context deploy-preview \
+            --message "MapAble fallback preview ${GITHUB_SHA}" \
+            --json > netlify-deploy.json
           DEPLOY_URL="$(jq -r '.deploy_url // .url // empty' netlify-deploy.json)"
           test -n "$DEPLOY_URL" || { cat netlify-deploy.json; exit 1; }
           echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
@@ -269,7 +275,13 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AGENT: chatgpt
         run: |
-          npx --yes netlify-cli@27.10.2 deploy             --site "$NETLIFY_SITE_ID"             --auth "$NETLIFY_AUTH_TOKEN"             --context production             --prod             --message "MapAble fallback production ${GITHUB_SHA}"             --json > netlify-production.json
+          npx --yes netlify-cli@27.10.2 deploy \
+            --site "$NETLIFY_SITE_ID" \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --context production \
+            --prod \
+            --message "MapAble fallback production ${GITHUB_SHA}" \
+            --json > netlify-production.json
           DEPLOY_URL="$(jq -r '.deploy_url // .url // empty' netlify-production.json)"
           test -n "$DEPLOY_URL" || { cat netlify-production.json; exit 1; }
           echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
