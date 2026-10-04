@@ -21,6 +21,15 @@ describe("Netlify fallback deployment contract", () => {
     expect(netlifyConfig).toContain('MAPABLE_ENFORCE_PRODUCTION_ENV = "false"');
     expect(netlifyConfig).toContain('[context.production.environment]');
     expect(netlifyConfig).toContain('MAPABLE_ENFORCE_PRODUCTION_ENV = "true"');
+    expect(workflow).toContain(
+      '--env "MAPABLE_ENFORCE_PRODUCTION_ENV=false"',
+    );
+    expect(workflow).toContain(
+      '--env "MAPABLE_ENFORCE_PRODUCTION_ENV=true"',
+    );
+    expect(workflow).toContain(
+      '--env "MAPABLE_ACCESS_EXPERIENCE_V2_ENABLED=true"',
+    );
   });
 
   it("does not automate the mapable.com.au DNS cutover", () => {
