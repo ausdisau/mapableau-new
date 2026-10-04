@@ -14,6 +14,12 @@ export type AccessCapitalRegionSlug =
   | "darwin"
   | "canberra";
 
+export const ACCESS_NATIONAL_VIEW = {
+  latitude: -25.2744,
+  longitude: 133.7751,
+  zoom: 3.3,
+} as const;
+
 export type AccessCapitalRegion = {
   slug: AccessCapitalRegionSlug;
   gccsaCode: string;
