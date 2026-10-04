@@ -115,8 +115,17 @@ export function AccessExplorationShell({
 
   const filteredPlaces = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return regionFiltered.places.filter((place) => {
+    const confidenceRank = { high: 0, medium: 1, low: 2, unknown: 3 } as const;
+
+    const matches = regionFiltered.places.filter((place) => {
       if (category && place.category !== category) return false;
+      if (
+        exploration.evidencePreference === "VERIFIED_ONLY" &&
+        place.evidence.dominantState !== "VERIFIED" &&
+        place.evidence.dominantState !== "AUTHORITATIVE_SOURCE"
+      ) {
+        return false;
+      }
       if (!q) return true;
       return (
         place.name.toLowerCase().includes(q) ||
@@ -124,7 +133,22 @@ export function AccessExplorationShell({
         (place.addressText?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [regionFiltered.places, query, category]);
+
+    if (exploration.evidencePreference === "HIGH_CONFIDENCE") {
+      return [...matches].sort(
+        (a, b) =>
+          confidenceRank[a.evidence.confidenceLabel] -
+          confidenceRank[b.evidence.confidenceLabel],
+      );
+    }
+
+    return matches;
+  }, [
+    regionFiltered.places,
+    query,
+    category,
+    exploration.evidencePreference,
+  ]);
 
   const resultIds = useMemo(
     () =>
