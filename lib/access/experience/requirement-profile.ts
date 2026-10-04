@@ -1,21 +1,10 @@
 import type { AccessNeed } from "@/lib/access/fit/types";
 
-import type { AccessRequirementProfile } from "./types";
+import type { AccessRequirementProfile, MobilityAidPreference } from "./types";
 import { DEFAULT_ACCESS_REQUIREMENT_PROFILE } from "./types";
 
-type MobilityAid =
-  | "manual_wheelchair"
-  | "power_wheelchair"
-  | "mobility_scooter"
-  | "walker"
-  | "cane"
-  | "prosthetic"
-  | "assistance_animal"
-  | "none"
-  | "other";
-
 type AccessibilityProfileShape = {
-  mobilityNeeds?: MobilityAid[];
+  mobilityNeeds?: MobilityAidPreference[];
   communicationPreferences?: string[];
   sensoryPreferences?: Record<string, unknown>;
   transportRequirements?: {
@@ -42,8 +31,12 @@ export function accessibilityProfileToRequirements(
   const digital = profile.digitalPreferences ?? {};
   const sensory = profile.sensoryPreferences ?? {};
 
+  const primaryMobilityAid =
+    mobility.find((aid) => aid !== "none") ?? mobility[0] ?? null;
+
   return {
     ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
+    mobilityAidPreference: primaryMobilityAid,
     wheelchairUser: mobility.includes("manual_wheelchair"),
     powerchairUser: mobility.includes("power_wheelchair"),
     stepFreeRequired:
@@ -110,6 +103,7 @@ export function countSelectedRequirements(
   if (profile.kerbRampRequired) count += 1;
   if (profile.changingPlacesPreferred) count += 1;
   if (profile.minimumDoorWidthMm != null) count += 1;
+  if (profile.maximumComfortableWalkingDistanceMetres != null) count += 1;
   return count;
 }
 
@@ -127,5 +121,22 @@ export function requirementsSummaryLabels(
   if (profile.assistanceAnimal) labels.push("Assistance animal");
   if (profile.liftRequired) labels.push("Lift");
   if (profile.kerbRampRequired) labels.push("Kerb ramp");
+  if (
+    profile.mobilityAidPreference &&
+    !["none", "manual_wheelchair", "power_wheelchair"].includes(
+      profile.mobilityAidPreference,
+    )
+  ) {
+    labels.push(
+      profile.mobilityAidPreference
+        .replaceAll("_", " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    );
+  }
+  if (profile.maximumComfortableWalkingDistanceMetres != null) {
+    labels.push(
+      `Walking up to ${profile.maximumComfortableWalkingDistanceMetres} m`,
+    );
+  }
   return labels.slice(0, 5);
 }
