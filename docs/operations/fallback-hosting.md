@@ -8,7 +8,7 @@ or project ownership blockers.
 | Host             | Best fit                                                  | Main caveat                                                          |
 | ---------------- | --------------------------------------------------------- | -------------------------------------------------------------------- |
 | Cloudflare Pages | Static/edge-first public site, strong CDN and DNS control | Some Next.js server features may need OpenNext/Workers adaptation.   |
-| Netlify          | Next.js app hosting with simple project setup             | Verify server/API route support and scheduled jobs before migration. |
+| Netlify Free     | Preferred full-stack Next.js fallback via OpenNext         | Free credits have a hard monthly limit; validate usage before permanent production. |
 | Render           | Long-running Node web service using `next start`          | Free services can sleep; production requires a paid instance.        |
 | Railway/Fly.io   | Container-style deployment                                | More infrastructure ownership than Vercel/Netlify.                   |
 
@@ -49,20 +49,19 @@ curl https://www.mapable.com.au/sitemap.xml
 
 ## Netlify path
 
-1. Connect the GitHub repository.
-2. Use pnpm and Node 22.
-3. Build command:
+Netlify is the preferred subscription-independent full-stack fallback. Use
+`docs/operations/netlify-transition.md` as the canonical transition runbook.
 
-   ```bash
-   pnpm setup:cloud-agent && pnpm build
-   ```
+The repository includes `netlify.toml` and
+`.github/workflows/netlify-fallback-release.yml`. GitHub Actions performs the
+release and accessibility gates; Netlify provides the runtime.
 
-4. Configure the same production env vars.
-5. Verify NextAuth callback URL:
+Do not use `www.mapable.com.au` for NextAuth. The canonical origin enforced by
+the current application is:
 
-   ```text
-   https://www.mapable.com.au/api/auth/callback/credentials
-   ```
+```text
+https://mapable.com.au
+```
 
 ## Render path
 
