@@ -1,14 +1,19 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 
 import { SponsoredMapMarker } from "@/components/ads/mapable/SponsoredMapMarker";
+import { GccsaBoundaryLayer } from "@/components/access/GccsaBoundaryLayer";
 import { GaisMapLibreLayer } from "@/components/gais/GaisMapLibreLayer";
 import { useMapConfig } from "@/components/map/MapProvider";
 import type { AdCreativePayload } from "@/lib/ads/types";
 import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
+import type {
+  AccessCapitalRegionSlug,
+  GccsaBoundaryFeatureCollection,
+} from "@/lib/access/regions/gccsa";
 
 export function AccessMapLayer({
   places,
@@ -19,6 +24,9 @@ export function AccessMapLayer({
   gaisSelectedId,
   onGaisSelect,
   onGaisFeaturesChange,
+  gccsaBoundary,
+  selectedRegion = "all",
+  regionView,
 }: {
   places: { id: string; name: string; latitude: number; longitude: number }[];
   selectedId?: string;
@@ -32,9 +40,21 @@ export function AccessMapLayer({
   gaisSelectedId?: string;
   onGaisSelect?: (id: string | undefined) => void;
   onGaisFeaturesChange?: (features: GaisGeoJsonFeature[]) => void;
+  gccsaBoundary?: GccsaBoundaryFeatureCollection | null;
+  selectedRegion?: "all" | AccessCapitalRegionSlug;
+  regionView?: { latitude: number; longitude: number; zoom: number };
 }) {
   const { styleUrl, attribution, defaultCenter } = useMapConfig();
   const mapRef = useRef<MapRef>(null);
+
+  useEffect(() => {
+    if (!regionView || !mapRef.current) return;
+    mapRef.current.flyTo({
+      center: [regionView.longitude, regionView.latitude],
+      zoom: regionView.zoom,
+      essential: false,
+    });
+  }, [regionView]);
 
   const center = useMemo(() => {
     if (!places.length) {
@@ -63,6 +83,12 @@ export function AccessMapLayer({
       attributionControl={{}}
     >
       <NavigationControl position="top-left" />
+      {gccsaBoundary ? (
+        <GccsaBoundaryLayer
+          boundary={gccsaBoundary}
+          selectedRegion={selectedRegion}
+        />
+      ) : null}
       {places.map((p) => (
         <Marker
           key={p.id}
