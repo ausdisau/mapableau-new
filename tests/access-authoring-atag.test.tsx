@@ -26,7 +26,7 @@ describe("MapAble Access authoring — ATAG-informed checks", () => {
     expect(screen.getByText(/evidence for review/i)).toBeTruthy();
 
     const entrance = screen.getByRole("radio", {
-      name: /entrance|step|access/i,
+      name: "Entrance step-free check",
     });
     await user.click(entrance);
 
