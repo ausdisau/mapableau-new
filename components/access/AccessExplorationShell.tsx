@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
+import { AccessEvidenceSummaryPanel } from "@/components/access/AccessEvidenceSummaryPanel";
+import { AccessMobilityPreferences } from "@/components/access/AccessMobilityPreferences";
+import { AccessSourceLegend } from "@/components/access/AccessSourceLegend";
+import {
+  GccsaRegionSelector,
+  type AccessRegionSelection,
+} from "@/components/access/GccsaRegionSelector";
 import { AccessRequirementsPanel } from "@/components/access-fit/AccessRequirementsPanel";
 import { QuickObservationDialog } from "@/components/accessibility-map/QuickObservationDialog";
 import type { AccessExplorationDto } from "@/lib/access/experience/access-exploration-dto";
@@ -33,6 +40,12 @@ import type {
   AccessRequirementProfile,
 } from "@/lib/access/experience/types";
 import { calculateAccessFitV2 } from "@/lib/access/fit/calculate-access-fit-v2";
+import {
+  ACCESS_NATIONAL_VIEW,
+  getCapitalRegionBySlug,
+} from "@/lib/access/regions/gccsa";
+import { filterPlacesToGccsaRegion } from "@/lib/access/regions/filter-access-places";
+import { useGccsaBoundary } from "@/hooks/access/useGccsaBoundary";
 import { GAIS_EVIDENCE_STATE_LABELS } from "@/lib/gais/contracts/evidence";
 
 const AccessMap = dynamic(
@@ -59,6 +72,10 @@ export function AccessExplorationShell({
   );
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
+  const [regionSelection, setRegionSelection] =
+    useState<AccessRegionSelection>("all");
+  const { boundary: gccsaBoundary, state: gccsaBoundaryState } =
+    useGccsaBoundary();
   const [listLimit, setListLimit] = useState(80);
   const [mapFailed, setMapFailed] = useState(false);
   const [reportPlace, setReportPlace] = useState<AccessExplorationDto | null>(null);
@@ -86,10 +103,29 @@ export function AccessExplorationShell({
   const activeRequirements = resolveActiveRequirements(exploration);
   const journeyMode = Boolean(exploration.journeyOverride);
 
+  const regionFiltered = useMemo(
+    () =>
+      filterPlacesToGccsaRegion({
+        places: initialPlaces,
+        region: regionSelection,
+        boundary: gccsaBoundary,
+      }),
+    [initialPlaces, regionSelection, gccsaBoundary],
+  );
+
   const filteredPlaces = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return initialPlaces.filter((place) => {
+    const confidenceRank = { high: 0, medium: 1, low: 2, unknown: 3 } as const;
+
+    const matches = regionFiltered.places.filter((place) => {
       if (category && place.category !== category) return false;
+      if (
+        exploration.evidencePreference === "VERIFIED_ONLY" &&
+        place.evidence.dominantState !== "VERIFIED" &&
+        place.evidence.dominantState !== "AUTHORITATIVE_SOURCE"
+      ) {
+        return false;
+      }
       if (!q) return true;
       return (
         place.name.toLowerCase().includes(q) ||
@@ -97,7 +133,22 @@ export function AccessExplorationShell({
         (place.addressText?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [initialPlaces, query, category]);
+
+    if (exploration.evidencePreference === "HIGH_CONFIDENCE") {
+      return [...matches].sort(
+        (a, b) =>
+          confidenceRank[a.evidence.confidenceLabel] -
+          confidenceRank[b.evidence.confidenceLabel],
+      );
+    }
+
+    return matches;
+  }, [
+    regionFiltered.places,
+    query,
+    category,
+    exploration.evidencePreference,
+  ]);
 
   const resultIds = useMemo(
     () =>
@@ -177,18 +228,64 @@ export function AccessExplorationShell({
   );
 
   const view = exploration.presentationMode === "MAP" ? "map" : "list";
+  const regionView =
+    regionSelection === "all"
+      ? ACCESS_NATIONAL_VIEW
+      : getCapitalRegionBySlug(regionSelection).view;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-black tracking-tight text-[#0C1833]">
-          MapAble Access
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-[#005B7F]">
+          MapAble Access · National
+        </p>
+        <h1 className="text-3xl font-black tracking-[-0.04em] text-[#0C1833] sm:text-4xl">
+          Find places that fit how you move, communicate and participate
         </h1>
-        <p className="max-w-3xl text-sm text-slate-600">
-          Discover places using your functional access requirements. List view works
-          without the map. Unknown evidence is never treated as inaccessible.
+        <p className="max-w-3xl text-sm leading-6 text-slate-600">
+          Explore Australia&apos;s eight capital-city regions using functional access
+          requirements, transparent evidence and a map/list experience built from
+          the same results. Unknown evidence is never treated as inaccessible.
         </p>
       </header>
+
+      <GccsaRegionSelector
+        value={regionSelection}
+        boundaryState={gccsaBoundaryState}
+        onChange={(next) => {
+          setRegionSelection(next);
+          setListLimit(80);
+          setExploration((current) => ({
+            ...current,
+            selectedPlaceId: undefined,
+          }));
+          setStatusMessage(
+            next === "all"
+              ? "Showing all loaded capital-city places"
+              : `Selected ${getCapitalRegionBySlug(next).displayName} region`,
+          );
+        }}
+      />
+
+      {regionSelection !== "all" && !regionFiltered.boundaryApplied ? (
+        <p
+          className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
+          role="status"
+        >
+          The selected ABS GCCSA boundary is not available right now, so the loaded
+          place results have not been geographically filtered. No fallback geography
+          is being presented as the GCCSA.
+        </p>
+      ) : null}
+
+      {regionFiltered.unclassifiedCount > 0 ? (
+        <p className="text-sm text-slate-600" role="status">
+          {regionFiltered.unclassifiedCount} loaded place
+          {regionFiltered.unclassifiedCount === 1 ? "" : "s"} could not be assigned
+          to this GCCSA because coordinates are missing. They remain discoverable
+          when viewing all regions.
+        </p>
+      ) : null}
 
       <div className="sr-only" aria-live="polite">
         {statusMessage}
@@ -255,6 +352,13 @@ export function AccessExplorationShell({
         }
       />
 
+      <AccessMobilityPreferences
+        value={activeRequirements}
+        onChange={(next) =>
+          setExploration((current) => applyJourneyOverride(current, next))
+        }
+      />
+
       <fieldset className="space-y-2 rounded-xl border border-slate-200 p-4">
         <legend className="px-1 text-sm font-semibold text-[#0C1833]">
           Evidence and unknown data
@@ -297,6 +401,8 @@ export function AccessExplorationShell({
         </label>
       </fieldset>
 
+      <AccessSourceLegend />
+
       <div className="flex flex-wrap gap-2" role="group" aria-label="Result presentation">
         <button
           type="button"
@@ -336,6 +442,9 @@ export function AccessExplorationShell({
                 places={mapPlaces}
                 selectedId={exploration.selectedPlaceId}
                 onSelect={selectPlace}
+                gccsaBoundary={gccsaBoundary}
+                selectedRegion={regionSelection}
+                regionView={regionView}
               />
             </div>
           ) : null}
@@ -504,6 +613,7 @@ export function AccessExplorationShell({
                   {ACCESS_GO_HANDOFF_SANDBOX_NOTICE}
                 </p>
               </section>
+              <AccessEvidenceSummaryPanel evidence={selectedPlace.evidence} />
               <AccessFitBreakdownV2 result={selectedFit} />
             </>
           ) : (

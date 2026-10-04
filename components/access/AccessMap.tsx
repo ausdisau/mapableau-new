@@ -6,6 +6,10 @@ import dynamic from "next/dynamic";
 
 import type { AdCreativePayload } from "@/lib/ads/types";
 import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
+import type {
+  AccessCapitalRegionSlug,
+  GccsaBoundaryFeatureCollection,
+} from "@/lib/access/regions/gccsa";
 
 const AccessMapLayer = dynamic(
   () => import("@/components/access/AccessMapLayer").then((m) => m.AccessMapLayer),
@@ -21,6 +25,9 @@ export function AccessMap({
   gaisSelectedId,
   onGaisSelect,
   onGaisFeaturesChange,
+  gccsaBoundary,
+  selectedRegion,
+  regionView,
 }: {
   places: { id: string; name: string; latitude: number; longitude: number }[];
   selectedId?: string;
@@ -34,6 +41,9 @@ export function AccessMap({
   gaisSelectedId?: string;
   onGaisSelect?: (id: string | undefined) => void;
   onGaisFeaturesChange?: (features: GaisGeoJsonFeature[]) => void;
+  gccsaBoundary?: GccsaBoundaryFeatureCollection | null;
+  selectedRegion?: "all" | AccessCapitalRegionSlug;
+  regionView?: { latitude: number; longitude: number; zoom: number };
 }) {
   return (
     <div
@@ -50,6 +60,9 @@ export function AccessMap({
         gaisSelectedId={gaisSelectedId}
         onGaisSelect={onGaisSelect}
         onGaisFeaturesChange={onGaisFeaturesChange}
+        gccsaBoundary={gccsaBoundary}
+        selectedRegion={selectedRegion}
+        regionView={regionView}
       />
     </div>
   );

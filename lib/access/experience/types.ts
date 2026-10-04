@@ -1,6 +1,16 @@
 import type { AccessNeed } from "@/lib/access/fit/types";
 import type { GaisEvidenceState } from "@/lib/gais/contracts/evidence";
 
+export type MobilityAidPreference =
+  | "none"
+  | "manual_wheelchair"
+  | "power_wheelchair"
+  | "mobility_scooter"
+  | "walker"
+  | "cane"
+  | "prosthetic"
+  | "assistance_animal"
+  | "other";
 
 /** Functional participant-selected requirements — not diagnosis-based. */
 export type AccessRequirementProfile = AccessNeed & {
@@ -17,6 +27,8 @@ export type AccessRequirementProfile = AccessNeed & {
   lowStimulusPreferred?: boolean;
   textCommunicationPreferred?: boolean;
   surfaceTolerance?: "smooth_only" | "firm_ok" | "any" | null;
+  mobilityAidPreference?: MobilityAidPreference | null;
+  maximumComfortableWalkingDistanceMetres?: number | null;
 };
 
 export type GeoPoint = {
@@ -96,4 +108,6 @@ export const DEFAULT_ACCESS_REQUIREMENT_PROFILE: AccessRequirementProfile = {
   lowStimulusPreferred: false,
   textCommunicationPreferred: false,
   surfaceTolerance: null,
+  mobilityAidPreference: null,
+  maximumComfortableWalkingDistanceMetres: null,
 };
