@@ -4,6 +4,7 @@ command = "pnpm build"
 [build.environment]
 NODE_VERSION = "22.13.0"
 PNPM_VERSION = "10.12.1"
+PNPM_FLAGS = "--shamefully-hoist"
 NEXT_TELEMETRY_DISABLED = "1"
 NETLIFY_NEXT_SKEW_PROTECTION = "true"
 
