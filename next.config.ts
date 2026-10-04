@@ -8,6 +8,9 @@ import { getBaselineSecurityHeaders } from "./lib/security/headers";
 assertDeployedProductionEnv(process.env);
 
 const nextConfig: NextConfig = {
+  // Portable fallback builds are produced by GitHub Actions only when Vercel
+  // cannot accept deployments. Normal local/Vercel builds keep the existing mode.
+  output: process.env.MAPABLE_PORTABLE_BUILD === "1" ? "standalone" : undefined,
   reactStrictMode: true, // Enables additional React checks in dev
   // Vercel default build machines are 8 GB; leave headroom so lint+tsc
   // workers are not SIGKILL'd (OOM) during production deploys of main.
