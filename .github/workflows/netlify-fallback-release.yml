@@ -254,6 +254,7 @@ jobs:
       - name: Deployed /access smoke
         run: |
           curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/access" >/dev/null
+          curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/access/scaffold" >/dev/null
           curl --fail --show-error --silent --retry 4 --retry-delay 4 "${{ steps.deploy.outputs.url }}/accessibility-statement" >/dev/null
 
       - name: Install Playwright Chromium
