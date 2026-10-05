@@ -462,8 +462,8 @@ export function AccessExplorationShell({
               className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
               role="status"
             >
-              Map could not be loaded. Search, filters, list results, and place
-              details still work.
+              Map could not be loaded. Search, filters, and list results still
+              work{scaffoldMode ? "." : ", including place details."}
             </p>
           ) : null}
 
