@@ -3,6 +3,8 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
+import { AccessRequirementsPanel } from "@/components/access-fit/AccessRequirementsPanel";
 import { AccessEvidenceSummaryPanel } from "@/components/access/AccessEvidenceSummaryPanel";
 import { AccessMap } from "@/components/access/AccessMap";
 import { AccessMobilityPreferences } from "@/components/access/AccessMobilityPreferences";
@@ -11,8 +13,6 @@ import {
   GccsaRegionSelector,
   type AccessRegionSelection,
 } from "@/components/access/GccsaRegionSelector";
-import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
-import { AccessRequirementsPanel } from "@/components/access-fit/AccessRequirementsPanel";
 import { useGccsaBoundary } from "@/hooks/access/useGccsaBoundary";
 import {
   buildExplorationResultIds,
