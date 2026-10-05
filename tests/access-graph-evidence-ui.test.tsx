@@ -5,8 +5,23 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AccessGraphEvidencePanel } from "@/components/access/AccessGraphEvidencePanel";
 import { projectAccessGraphEvidence } from "@/lib/access/experience/project-access-graph-evidence";
+import { toPublicAccessObservation } from "@/lib/access/infrastructure/public-observation";
 
 describe("public Access Graph evidence projection", () => {
+  it("strips observer identity from infrastructure HTTP projections", () => {
+    const publicObservation = toPublicAccessObservation({
+      id: "obs-public",
+      observerUserId: "user-secret",
+      featureKey: "lift_present",
+    });
+
+    expect(publicObservation).toEqual({
+      id: "obs-public",
+      featureKey: "lift_present",
+    });
+    expect(JSON.stringify(publicObservation)).not.toContain("user-secret");
+  });
+
   it("strips internal observer/entity identifiers from the client-safe DTO", () => {
     const projected = projectAccessGraphEvidence({
       placeId: "place-1",
