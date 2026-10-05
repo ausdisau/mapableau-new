@@ -9,6 +9,7 @@ on:
       - "components/access-fit/**"
       - "hooks/access/**"
       - "lib/access/**"
+      - "lib/demo/access-ui-scaffold.ts"
       - "lib/env/**"
       - "netlify.toml"
       - "next.config.ts"
@@ -107,6 +108,7 @@ jobs:
           pnpm exec eslint app/access app/api/access --max-warnings 0
           pnpm exec eslint components/access components/access-fit --max-warnings 0
           pnpm exec eslint hooks/access lib/access --max-warnings 0
+          pnpm exec eslint lib/demo/access-ui-scaffold.ts --max-warnings 0
           pnpm exec eslint \
             tests/access-national-gccsa.test.ts \
             tests/access-mobility-preferences.test.ts \
@@ -115,6 +117,7 @@ jobs:
             tests/access-ui-scaffold.test.tsx \
             tests/deployment/netlify-fallback-config.test.ts \
             tests/a11y/access-experience-v2.spec.ts \
+            tests/a11y/access-ui-scaffold.spec.ts \
             --max-warnings 0
 
       - name: Prepare ephemeral release-validation database
@@ -144,6 +147,15 @@ jobs:
           pnpm exec playwright test
           tests/a11y/access-experience-v2.spec.ts
           --project=access-experience-v2
+
+      - name: WCAG 2.2 AA scaffold browser gate
+        env:
+          PLAYWRIGHT_WEB_SERVER: pnpm start
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+        run: >
+          pnpm exec playwright test
+          tests/a11y/access-ui-scaffold.spec.ts
+          --project=access-ui-scaffold
 
       - name: Build portable recovery bundle
         env:
@@ -255,6 +267,15 @@ jobs:
           pnpm exec playwright test
           tests/a11y/access-experience-v2.spec.ts
           --project=access-experience-v2
+
+      - name: WCAG 2.2 AA scaffold on deployed preview
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.deploy.outputs.url }}
+          A11Y_SKIP_AUTH_ROUTES: "1"
+        run: >
+          pnpm exec playwright test
+          tests/a11y/access-ui-scaffold.spec.ts
+          --project=access-ui-scaffold
 
       - name: Deployment summary
         run: |
