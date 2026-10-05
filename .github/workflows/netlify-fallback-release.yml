@@ -100,21 +100,21 @@ jobs:
         run: pnpm type-check
 
       - name: Focused Access lint
-        run: >
-          pnpm exec eslint
-          app/access
-          app/api/access
-          components/access
-          components/access-fit
-          hooks/access
-          lib/access
-          tests/access-national-gccsa.test.ts
-          tests/access-mobility-preferences.test.ts
-          tests/access-experience-v2.test.ts
-          tests/access-authoring-atag.test.tsx
-          tests/deployment/netlify-fallback-config.test.ts
-          tests/a11y/access-experience-v2.spec.ts
-          --max-warnings 0
+        env:
+          ESLINT_CI_LIGHT: "1"
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: |
+          pnpm exec eslint app/access app/api/access --max-warnings 0
+          pnpm exec eslint components/access components/access-fit --max-warnings 0
+          pnpm exec eslint hooks/access lib/access --max-warnings 0
+          pnpm exec eslint \
+            tests/access-national-gccsa.test.ts \
+            tests/access-mobility-preferences.test.ts \
+            tests/access-experience-v2.test.ts \
+            tests/access-authoring-atag.test.tsx \
+            tests/deployment/netlify-fallback-config.test.ts \
+            tests/a11y/access-experience-v2.spec.ts \
+            --max-warnings 0
 
       - name: Prepare ephemeral release-validation database
         run: pnpm exec prisma db push --accept-data-loss --skip-generate
