@@ -1,5 +1,7 @@
-import type { AccessExplorationDto } from "@/lib/access/experience/access-exploration-dto";
-import { EMPTY_CAPABILITY_FACTS } from "@/lib/access/experience/access-exploration-dto";
+import {
+  EMPTY_CAPABILITY_FACTS,
+  type AccessExplorationDto,
+} from "@/lib/access/experience/access-exploration-dto";
 import type { PlaceAccessProfile } from "@/lib/access/fit/types";
 import type { GaisEvidenceState } from "@/lib/gais/contracts/evidence";
 
