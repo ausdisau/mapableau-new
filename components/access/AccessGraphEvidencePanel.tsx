@@ -133,11 +133,8 @@ export function AccessGraphEvidencePanel({
           ) : null}
 
           {state === "error" ? (
-            <div
-              className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
-              role="status"
-            >
-              <p>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+              <p role="status" aria-live="polite">
                 Detailed graph evidence is not available for this place right
                 now. The existing AccessFit summary remains available.
               </p>
@@ -233,7 +230,10 @@ export function AccessGraphEvidencePanel({
                       {observation.confidence != null ? (
                         <p className="mt-2 text-xs text-slate-600">
                           Confidence:{" "}
-                          {Math.round(observation.confidence * 100)}%
+                          {Math.round(
+                            Math.max(0, Math.min(1, observation.confidence)) *
+                              100,
+                          )}%
                         </p>
                       ) : null}
 
