@@ -12,6 +12,8 @@ describe("public Access Graph evidence projection", () => {
     const publicObservation = toPublicAccessObservation({
       id: "obs-public",
       observerUserId: "user-secret",
+      entityId: "entity-secret",
+      entityType: "place",
       featureKey: "lift_present",
     });
 
@@ -19,7 +21,10 @@ describe("public Access Graph evidence projection", () => {
       id: "obs-public",
       featureKey: "lift_present",
     });
-    expect(JSON.stringify(publicObservation)).not.toContain("user-secret");
+    const serialized = JSON.stringify(publicObservation);
+    expect(serialized).not.toContain("user-secret");
+    expect(serialized).not.toContain("entity-secret");
+    expect(serialized).not.toContain("entityType");
   });
 
   it("strips internal observer/entity identifiers from the client-safe DTO", () => {
