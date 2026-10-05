@@ -177,7 +177,7 @@ jobs:
   deploy-preview:
     name: Netlify RC / deploy preview
     needs: validate-access-release
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'preview' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target == 'preview') || (github.event_name == 'pull_request' && github.head_ref == 'ops/access-portable-release-fallback') }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: netlify-preview
