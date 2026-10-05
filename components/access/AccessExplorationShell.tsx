@@ -520,38 +520,43 @@ export function AccessExplorationShell({
                           {place.evidence.freshnessLabel}
                         </p>
                         {scaffoldMode ? (
-                          <p className="text-xs font-semibold text-slate-500">
-                            Scaffold fixture — live place, reporting and route actions are disabled.
-                          </p>
-                        ) : (
-                                                  <div className="flex flex-wrap gap-2">
-                                                    <Link
-                                                      href={`/access/places/${place.accessPlaceId}`}
-                                                      className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-3 text-sm font-medium"
-                                                    >
-                                                      View details
-                                                    </Link>
-                                                    <button
-                                                      type="button"
-                                                      className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium"
-                                                      onClick={() => setReportPlace(place)}
-                                                    >
-                                                      Report a change
-                                                    </button>
-                                                    <Link
-                                                      href={accessToGoHref({
-                                                        destinationPlaceId: place.accessPlaceId,
-                                                        destinationName: place.name,
-                                                        requirements: activeRequirements,
-                                                        journeyOverrideActive: journeyMode,
-                                                      })}
-                                                      className="inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-3 text-sm font-medium text-white"
-                                                    >
-                                                      Plan route
-                                                    </Link>
-                                                  </div>
-                        )}
-                      </article>
+                  <p className="mt-3 text-xs font-semibold text-slate-500">
+                    Scaffold fixture — production actions are intentionally
+                    disabled.
+                  </p>
+                ) : (
+                  <>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        href={`/access/places/${selectedPlace.accessPlaceId}`}
+                        className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-3 text-sm font-medium"
+                      >
+                        View details
+                      </Link>
+                      <button
+                        type="button"
+                        className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium"
+                        onClick={() => setReportPlace(selectedPlace)}
+                      >
+                        Report a change
+                      </button>
+                      <Link
+                        href={accessToGoHref({
+                          destinationPlaceId: selectedPlace.accessPlaceId,
+                          destinationName: selectedPlace.name,
+                          requirements: activeRequirements,
+                          journeyOverrideActive: journeyMode,
+                        })}
+                        className="inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-3 text-sm font-medium text-white"
+                      >
+                        Plan route
+                      </Link>
+                    </div>
+                    <p className="mt-3 text-xs text-slate-500">
+                      {ACCESS_GO_HANDOFF_SANDBOX_NOTICE}
+                    </p>
+                  </>
+                )}                     </article>
                     </li>
                   );
                 })}
