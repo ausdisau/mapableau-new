@@ -1,5 +1,3 @@
-"use client";
-
 import { AccessExplorationShell } from "@/components/access/AccessExplorationShell";
 import { ACCESS_UI_SCAFFOLD_PLACES } from "@/lib/demo/access-ui-scaffold";
 import { Badge } from "@mapable/ui";
