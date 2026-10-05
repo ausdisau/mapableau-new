@@ -64,8 +64,15 @@ test.describe("Access Experience V2 — /access", () => {
     await page.goto("/access", { waitUntil: "domcontentloaded" });
 
     const firstPlace = page
-      .getByRole("region", { name: /selected place summary/i })
-      .locator("xpath=preceding::button[1]");
+      .locator('section[aria-labelledby="results-heading"]')
+      .getByRole("button")
+      .first();
+
+    if ((await firstPlace.count()) === 0) {
+      test.skip(true, "No Access Experience V2 place results in this environment");
+      return;
+    }
+    await firstPlace.click();
 
     const evidenceButton = page.getByRole("button", {
       name: /show evidence/i,
@@ -92,7 +99,6 @@ test.describe("Access Experience V2 — /access", () => {
     );
     expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
 
-    void firstPlace;
   });
 
   test("list presentation controls are keyboard reachable when V2 shell is present", async ({
