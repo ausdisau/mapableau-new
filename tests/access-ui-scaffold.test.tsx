@@ -3,19 +3,10 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/components/access/AccessMap", () => ({
-  AccessMap: ({
-    places,
-  }: {
-    places: Array<{ id: string; name: string }>;
-  }) => (
-    <div role="application" aria-label="Canonical AccessMap test double">
-      {places.length} map place{places.length === 1 ? "" : "s"}
-    </div>
-  ),
-}));
-
 import { AccessUIScaffold } from "@/components/access/AccessUIScaffold";
+import { DEFAULT_ACCESS_REQUIREMENT_PROFILE } from "@/lib/access/experience/types";
+import { calculateAccessFitV2 } from "@/lib/access/fit/calculate-access-fit-v2";
+import { ACCESS_UI_SCAFFOLD_PLACES } from "@/lib/demo/access-ui-scaffold";
 
 const darwinBoundary = {
   type: "FeatureCollection",
@@ -77,12 +68,18 @@ describe("AccessUIScaffold", () => {
     vi.unstubAllGlobals();
   });
 
-  it("uses canonical Access components while labelling fixture data honestly", async () => {
+  it("renders the canonical Access shell and labels fixture data honestly", async () => {
     render(<AccessUIScaffold />);
 
     expect(
       screen.getByRole("heading", {
-        name: /mapable access national discovery scaffold/i,
+        level: 1,
+        name: /find places that fit how you move, communicate and participate/i,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: /canonical mapable access shell, fixture-backed/i,
       }),
     ).toBeTruthy();
     expect(screen.getByText(/synthetic fixture data/i)).toBeTruthy();
@@ -98,7 +95,7 @@ describe("AccessUIScaffold", () => {
     );
   });
 
-  it("uses canonical GCCSA filtering and the same result IDs for list and map", async () => {
+  it("uses canonical GCCSA filtering and disables live actions for fixtures", async () => {
     const user = userEvent.setup();
     render(<AccessUIScaffold />);
 
@@ -111,33 +108,40 @@ describe("AccessUIScaffold", () => {
     expect(
       screen.getByText("Darwin Waterfront Pavilion — scaffold"),
     ).toBeTruthy();
-    expect(screen.getByText(/1 scaffold result/i)).toBeTruthy();
+    expect(screen.getByText(/^1 result$/i)).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: /^map$/i }));
+    await user.click(
+      screen.getByRole("button", {
+        name: "Darwin Waterfront Pavilion — scaffold",
+      }),
+    );
 
     expect(
-      screen.getByRole("application", {
-        name: /canonical accessmap test double/i,
-      }).textContent,
-    ).toContain("1 map place");
+      screen.getByText(
+        /scaffold fixture — live place, reporting and route actions are disabled/i,
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /view details/i })).toBeNull();
+    expect(screen.queryByRole("link", { name: /plan route/i })).toBeNull();
   });
 
-  it("preserves UNKNOWN through the real AccessFit V2 engine", async () => {
-    const user = userEvent.setup();
-    render(<AccessUIScaffold />);
-
-    await waitFor(() =>
-      expect(screen.getByText(/abs boundary partially loaded/i)).toBeTruthy(),
+  it("preserves UNKNOWN through the repository's AccessFit V2 engine", () => {
+    const darwin = ACCESS_UI_SCAFFOLD_PLACES.find(
+      (place) => place.accessPlaceId === "scaffold-darwin-pavilion",
     );
-    await user.click(screen.getByRole("button", { name: /^darwin/i }));
+    expect(darwin).toBeTruthy();
 
-    expect(
-      screen.getByRole("heading", {
-        name: /access fit for your selected requirements/i,
-      }),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(/2 requirements have unknown evidence/i),
-    ).toBeTruthy();
+    const fit = calculateAccessFitV2(
+      {
+        ...DEFAULT_ACCESS_REQUIREMENT_PROFILE,
+        stepFreeRequired: true,
+        accessibleToiletRequired: true,
+      },
+      darwin!.placeProfile,
+    );
+
+    expect(fit.metCount).toBe(0);
+    expect(fit.unmetCount).toBe(0);
+    expect(fit.unknownCount).toBe(2);
   });
 });
