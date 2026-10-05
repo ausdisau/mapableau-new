@@ -10,11 +10,16 @@ test.describe("MapAble Access UI scaffold", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: /mapable access national discovery scaffold/i,
+        name: /find places that fit how you move, communicate and participate/i,
       }),
     ).toBeVisible();
 
     await expect(page.getByText(/synthetic fixture data/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /canonical mapable access shell, fixture-backed/i,
+      }),
+    ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /my access requirements/i }),
     ).toBeVisible();
