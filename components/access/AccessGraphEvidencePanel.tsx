@@ -27,7 +27,7 @@ function formatDate(value: string): string {
 function featureLabel(value: string): string {
   return value
     .replaceAll(/[._-]+/g, " ")
-    .replace(/w/g, (character) => character.toUpperCase());
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function observationValue(
