@@ -112,6 +112,7 @@ jobs:
             tests/access-mobility-preferences.test.ts \
             tests/access-experience-v2.test.ts \
             tests/access-authoring-atag.test.tsx \
+            tests/access-ui-scaffold.test.tsx \
             tests/deployment/netlify-fallback-config.test.ts \
             tests/a11y/access-experience-v2.spec.ts \
             --max-warnings 0
@@ -126,6 +127,7 @@ jobs:
           tests/access-mobility-preferences.test.ts
           tests/access-experience-v2.test.ts
           tests/access-authoring-atag.test.tsx
+          tests/access-ui-scaffold.test.tsx
           tests/deployment/netlify-fallback-config.test.ts
 
       - name: Install Playwright Chromium
