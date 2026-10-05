@@ -1,6 +1,15 @@
 export function toPublicAccessObservation<
-  T extends { observerUserId?: string | null },
->(observation: T): Omit<T, "observerUserId"> {
-  const { observerUserId: _observerUserId, ...publicObservation } = observation;
+  T extends {
+    observerUserId?: string | null;
+    entityId?: string | null;
+    entityType?: string | null;
+  },
+>(observation: T): Omit<T, "observerUserId" | "entityId" | "entityType"> {
+  const {
+    observerUserId: _observerUserId,
+    entityId: _entityId,
+    entityType: _entityType,
+    ...publicObservation
+  } = observation;
   return publicObservation;
 }
