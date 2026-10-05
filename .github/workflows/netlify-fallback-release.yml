@@ -174,9 +174,27 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
+  preview-preflight:
+    name: Netlify RC / preview credential preflight
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target == 'preview') || (github.event_name == 'pull_request' && github.head_ref == 'ops/access-portable-release-fallback') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: netlify-preview
+    steps:
+      - name: Check Netlify preview connection
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo "::error::NETLIFY_AUTH_TOKEN is not configured in the netlify-preview environment"; exit 1; }
+          test -n "$NETLIFY_SITE_ID" || { echo "::error::NETLIFY_SITE_ID is not configured in the netlify-preview environment"; exit 1; }
+          echo "Netlify preview credentials are configured."
+
   deploy-preview:
     name: Netlify RC / deploy preview
-    needs: validate-access-release
+    needs:
+      - validate-access-release
+      - preview-preflight
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target == 'preview') || (github.event_name == 'pull_request' && github.head_ref == 'ops/access-portable-release-fallback') }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
