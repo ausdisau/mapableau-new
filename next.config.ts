@@ -3,11 +3,14 @@ import type { NextConfig } from "next";
 import { assertDeployedProductionEnv } from "./lib/env/assert-deployed-production-env";
 import { getBaselineSecurityHeaders } from "./lib/security/headers";
 
-// Fail closed on real Vercel production builds when env is invalid.
-// Local/CI builds (no VERCEL_ENV=production) remain usable.
+// Fail closed on Vercel production and on fallback hosts that explicitly set
+// MAPABLE_ENFORCE_PRODUCTION_ENV=true. Local/CI builds remain usable.
 assertDeployedProductionEnv(process.env);
 
 const nextConfig: NextConfig = {
+  // Portable fallback builds are produced by GitHub Actions only when Vercel
+  // cannot accept deployments. Normal local/Vercel builds keep the existing mode.
+  output: process.env.MAPABLE_PORTABLE_BUILD === "1" ? "standalone" : undefined,
   reactStrictMode: true, // Enables additional React checks in dev
   // Vercel default build machines are 8 GB; leave headroom so lint+tsc
   // workers are not SIGKILL'd (OOM) during production deploys of main.

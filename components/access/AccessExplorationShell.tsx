@@ -64,9 +64,12 @@ type PlaceRow = AccessExplorationDto & { id: string };
 
 export function AccessExplorationShell({
   initialPlaces,
+  mode = "live",
 }: {
   initialPlaces: AccessExplorationDto[];
+  mode?: "live" | "scaffold";
 }) {
+  const scaffoldMode = mode === "scaffold";
   const [exploration, setExploration] = useState<AccessExplorationState>(() =>
     createDefaultExplorationState({ presentationMode: "LIST" }),
   );
@@ -83,6 +86,11 @@ export function AccessExplorationShell({
   const hydrated = useRef(false);
 
   useEffect(() => {
+    if (scaffoldMode) {
+      hydrated.current = true;
+      return;
+    }
+
     const saved = loadExplorationSession();
     setExploration((current) => ({
       ...current,
@@ -93,12 +101,12 @@ export function AccessExplorationShell({
           : "LIST",
     }));
     hydrated.current = true;
-  }, []);
+  }, [scaffoldMode]);
 
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (scaffoldMode || !hydrated.current) return;
     saveExplorationSession(exploration);
-  }, [exploration]);
+  }, [exploration, scaffoldMode]);
 
   const activeRequirements = resolveActiveRequirements(exploration);
   const journeyMode = Boolean(exploration.journeyOverride);
@@ -454,8 +462,8 @@ export function AccessExplorationShell({
               className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
               role="status"
             >
-              Map could not be loaded. Search, filters, list results, and place
-              details still work.
+              Map could not be loaded. Search, filters, and list results still
+              work{scaffoldMode ? "." : ", including place details."}
             </p>
           ) : null}
 
@@ -511,33 +519,44 @@ export function AccessExplorationShell({
                           {" · "}
                           {place.evidence.freshnessLabel}
                         </p>
-                        <div className="flex flex-wrap gap-2">
-                          <Link
-                            href={`/access/places/${place.accessPlaceId}`}
-                            className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-3 text-sm font-medium"
-                          >
-                            View details
-                          </Link>
-                          <button
-                            type="button"
-                            className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium"
-                            onClick={() => setReportPlace(place)}
-                          >
-                            Report a change
-                          </button>
-                          <Link
-                            href={accessToGoHref({
-                              destinationPlaceId: place.accessPlaceId,
-                              destinationName: place.name,
-                              requirements: activeRequirements,
-                              journeyOverrideActive: journeyMode,
-                            })}
-                            className="inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-3 text-sm font-medium text-white"
-                          >
-                            Plan route
-                          </Link>
-                        </div>
-                      </article>
+                        {scaffoldMode ? (
+                  <p className="mt-3 text-xs font-semibold text-slate-500">
+                    Scaffold fixture — production actions are intentionally
+                    disabled.
+                  </p>
+                ) : (
+                  <>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        href={`/access/places/${selectedPlace.accessPlaceId}`}
+                        className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-3 text-sm font-medium"
+                      >
+                        View details
+                      </Link>
+                      <button
+                        type="button"
+                        className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium"
+                        onClick={() => setReportPlace(selectedPlace)}
+                      >
+                        Report a change
+                      </button>
+                      <Link
+                        href={accessToGoHref({
+                          destinationPlaceId: selectedPlace.accessPlaceId,
+                          destinationName: selectedPlace.name,
+                          requirements: activeRequirements,
+                          journeyOverrideActive: journeyMode,
+                        })}
+                        className="inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-3 text-sm font-medium text-white"
+                      >
+                        Plan route
+                      </Link>
+                    </div>
+                    <p className="mt-3 text-xs text-slate-500">
+                      {ACCESS_GO_HANDOFF_SANDBOX_NOTICE}
+                    </p>
+                  </>
+                )}                     </article>
                     </li>
                   );
                 })}
@@ -583,49 +602,57 @@ export function AccessExplorationShell({
                     {selectedPlace.accreditation.disclaimer}
                   </p>
                 ) : null}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link
-                    href={`/access/places/${selectedPlace.accessPlaceId}`}
-                    className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-3 text-sm font-medium"
-                  >
-                    View details
-                  </Link>
-                  <button
-                    type="button"
-                    className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium"
-                    onClick={() => setReportPlace(selectedPlace)}
-                  >
-                    Report a change
-                  </button>
-                  <Link
-                    href={accessToGoHref({
-                      destinationPlaceId: selectedPlace.accessPlaceId,
-                      destinationName: selectedPlace.name,
-                      requirements: activeRequirements,
-                      journeyOverrideActive: journeyMode,
-                    })}
-                    className="inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-3 text-sm font-medium text-white"
-                  >
-                    Plan route
-                  </Link>
-                </div>
-                <p className="mt-3 text-xs text-slate-500">
-                  {ACCESS_GO_HANDOFF_SANDBOX_NOTICE}
-                </p>
+                {scaffoldMode ? (
+                  <p className="mt-3 text-xs font-semibold text-slate-500">
+                    Scaffold fixture — production actions are intentionally disabled.
+                  </p>
+                ) : (
+                  <>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                      <Link
+                                        href={`/access/places/${selectedPlace.accessPlaceId}`}
+                                        className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-3 text-sm font-medium"
+                                      >
+                                        View details
+                                      </Link>
+                                      <button
+                                        type="button"
+                                        className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium"
+                                        onClick={() => setReportPlace(selectedPlace)}
+                                      >
+                                        Report a change
+                                      </button>
+                                      <Link
+                                        href={accessToGoHref({
+                                          destinationPlaceId: selectedPlace.accessPlaceId,
+                                          destinationName: selectedPlace.name,
+                                          requirements: activeRequirements,
+                                          journeyOverrideActive: journeyMode,
+                                        })}
+                                        className="inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-3 text-sm font-medium text-white"
+                                      >
+                                        Plan route
+                                      </Link>
+                                    </div>
+                                    <p className="mt-3 text-xs text-slate-500">
+                                      {ACCESS_GO_HANDOFF_SANDBOX_NOTICE}
+                                    </p>
+                  </>
+                )}
               </section>
               <AccessEvidenceSummaryPanel evidence={selectedPlace.evidence} />
               <AccessFitBreakdownV2 result={selectedFit} />
             </>
           ) : (
             <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600">
-              Select a place to inspect AccessFit, evidence, and actions. You can
-              complete discovery entirely from the list.
+              Select a place to inspect AccessFit and evidence. You can complete
+              discovery entirely from the list.
             </p>
           )}
         </aside>
       </div>
 
-      {reportPlace ? (
+      {!scaffoldMode && reportPlace ? (
         <QuickObservationDialog
           place={{ id: reportPlace.accessPlaceId, name: reportPlace.name }}
           onClose={() => setReportPlace(null)}
