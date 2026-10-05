@@ -25,9 +25,10 @@ export function projectAccessGraphEvidence(input: {
   return {
     placeId: input.placeId,
     featureCount: input.featureCount,
+    observationCount: input.observations.length,
     expiredCount: input.expiredCount,
     unverifiedCount: input.unverifiedCount,
-    observations: input.observations.map((observation) => ({
+    observations: input.observations.slice(0, 24).map((observation) => ({
       id: observation.id,
       featureKey: observation.featureKey,
       ontologyConceptId: observation.ontologyConceptId,
