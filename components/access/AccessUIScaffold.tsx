@@ -17,6 +17,7 @@ import { useGccsaBoundary } from "@/hooks/access/useGccsaBoundary";
 import {
   buildExplorationResultIds,
   explorationDtoToFitSource,
+  mapCoordinateIds,
   orderPlacesByResultIds,
 } from "@/lib/access/experience/exploration-results";
 import {
@@ -154,12 +155,26 @@ export function AccessUIScaffold() {
     [],
   );
 
+  const mapIds = useMemo(
+    () =>
+      mapCoordinateIds(
+        resultIds,
+        orderedPlaces.map((place) => ({
+          id: place.accessPlaceId,
+          hasCoordinates: place.hasCoordinates,
+          latitude: place.latitude,
+          longitude: place.longitude,
+        })),
+      ),
+    [orderedPlaces, resultIds],
+  );
+
   const mapPlaces = useMemo(
     () =>
       orderedPlaces
         .filter(
           (place) =>
-            place.hasCoordinates &&
+            mapIds.includes(place.accessPlaceId) &&
             typeof place.latitude === "number" &&
             typeof place.longitude === "number",
         )
@@ -169,7 +184,7 @@ export function AccessUIScaffold() {
           latitude: place.latitude as number,
           longitude: place.longitude as number,
         })),
-    [orderedPlaces],
+    [mapIds, orderedPlaces],
   );
 
   const regionView =
