@@ -118,8 +118,8 @@ describe("AccessUIScaffold", () => {
     expect(
       screen.getByRole("application", {
         name: /canonical accessmap test double/i,
-      }),
-    ).toHaveTextContent("1 map place");
+      }).textContent,
+    ).toContain("1 map place");
   });
 
   it("preserves UNKNOWN through the real AccessFit V2 engine", async () => {
