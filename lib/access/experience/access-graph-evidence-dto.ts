@@ -49,6 +49,7 @@ export type AccessGraphEvidenceItem = {
 export type AccessGraphEvidenceDto = {
   placeId: string;
   featureCount: number;
+  observationCount: number;
   expiredCount: number;
   unverifiedCount: number;
   observations: AccessGraphEvidenceItem[];
