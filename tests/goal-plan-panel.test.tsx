@@ -30,6 +30,31 @@ describe("GoalPlanPanel", () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
+  it("lets the participant decide ordinary candidates directly", async () => {
+    const user = userEvent.setup();
+    const plan = buildGoalPlanDraft(
+      "I want a job and transport to work",
+    );
+    const onChange = vi.fn();
+
+    render(<GoalPlanPanel plan={plan} onChange={onChange} />);
+
+    const jobsChoices = screen.getByRole("group", {
+      name: /choose whether to include jobs/i,
+    });
+    await user.click(
+      screen.getAllByRole("button", { name: /^yes$/i })[0]!,
+    );
+
+    expect(jobsChoices).toBeTruthy();
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange.mock.calls[0]?.[0].serviceCandidates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ module: "jobs", decision: "yes" }),
+      ]),
+    );
+  });
+
   it("always exposes human help and non-AI browse", () => {
     render(
       <GoalPlanPanel
