@@ -73,6 +73,7 @@ export default async function MyHomePage() {
     todayBookings,
     lifeIntents,
     activeCareRequests,
+    todayTransportCount,
     upcomingTransport,
     setupPreferences,
   ] = await Promise.all([
@@ -108,6 +109,13 @@ export default async function MyHomePage() {
             "in_progress",
           ],
         },
+      },
+    }),
+    prisma.transportTripRequest.count({
+      where: {
+        participantId: user.id,
+        scheduledStart: { gte: startOfDay, lt: startOfTomorrow },
+        status: { notIn: ["cancelled", "completed"] },
       },
     }),
     prisma.transportTripRequest.findMany({
@@ -182,7 +190,7 @@ export default async function MyHomePage() {
         lifeIntentsEnabled={personalAgencyFlags.lifeIntentsEnabled}
         todayBookingsCount={todayBookings.length}
         careRequestCount={activeCareRequests}
-        upcomingTransportCount={upcomingTransport.length}
+        todayTransportCount={todayTransportCount}
       />
 
       <FocusView projection={focusProjection} density={focusDensity} />
