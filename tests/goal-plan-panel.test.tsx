@@ -1,8 +1,8 @@
 /** @vitest-environment jsdom */
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildGoalPlanDraft,
@@ -10,6 +10,10 @@ import {
 } from "@mapable/contracts";
 
 import { GoalPlanPanel } from "@/components/goal-plan/GoalPlanPanel";
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("GoalPlanPanel", () => {
   it("shows ordinary candidates as Not yet decided and one active C3 question", async () => {
@@ -22,11 +26,15 @@ describe("GoalPlanPanel", () => {
     render(<GoalPlanPanel plan={plan} onChange={onChange} />);
 
     expect(screen.getAllByText(/not yet decided/i).length).toBeGreaterThan(0);
-    expect(
-      screen.getByText(nextConversationalCandidate(plan)!.question),
-    ).toBeTruthy();
+    const active = nextConversationalCandidate(plan)!;
+    expect(screen.getByText(active.question)).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: /^not sure$/i }));
+    const activeChoices = screen.getByRole("group", {
+      name: new RegExp(`choices for ${active.module}`, "i"),
+    });
+    await user.click(
+      within(activeChoices).getByRole("button", { name: /^not sure$/i }),
+    );
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
@@ -43,7 +51,7 @@ describe("GoalPlanPanel", () => {
       name: /choose whether to include jobs/i,
     });
     await user.click(
-      screen.getAllByRole("button", { name: /^yes$/i })[0]!,
+      within(jobsChoices).getByRole("button", { name: /^yes$/i }),
     );
 
     expect(jobsChoices).toBeTruthy();
