@@ -3,8 +3,11 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import type { GoalPlanDraft } from "@mapable/contracts";
+
 import { AskMapAbleChoiceChips } from "@/components/ask-mapable/AskMapAbleChoiceChips";
 import { AskMapAbleResponseActions } from "@/components/ask-mapable/AskMapAbleResponseActions";
+import { GoalPlanPanel } from "@/components/goal-plan/GoalPlanPanel";
 import { Button } from "@/components/ui/button";
 import {
   ASK_MAPABLE_EMPTY_STATE,
@@ -22,6 +25,8 @@ type Props = {
   onEnsureSession: (title?: string) => string;
   messages: AskChatMessage[];
   onAppend: (sessionId: string, messages: AskChatMessage[], title?: string) => void;
+  goalPlan: GoalPlanDraft | null;
+  onGoalPlanChange: (sessionId: string, goalPlan: GoalPlanDraft) => void;
   seedMessage?: string | null;
   onSeedConsumed?: () => void;
   maxVisibleChoices?: number;
@@ -37,6 +42,8 @@ export function AskMapAbleChatTab({
   onEnsureSession,
   messages,
   onAppend,
+  goalPlan,
+  onGoalPlanChange,
   seedMessage,
   onSeedConsumed,
   maxVisibleChoices = 3,
@@ -190,6 +197,9 @@ export function AskMapAbleChatTab({
         const answer = data.answer || data.summary || ASK_MAPABLE_SAFE_FAILURE;
         setResponseActions(data.actions ?? []);
         setBlockedActions(data.blockedActions ?? []);
+        if (data.goalPlan) {
+          onGoalPlanChange(sid, data.goalPlan);
+        }
         onAppend(sid, [
           {
             id: `a-${Date.now()}`,
@@ -217,6 +227,7 @@ export function AskMapAbleChatTab({
       messages,
       onAppend,
       onEnsureSession,
+      onGoalPlanChange,
       pageContext,
       pending,
       sessionId,
@@ -290,6 +301,16 @@ export function AskMapAbleChatTab({
           </p>
         ) : null}
       </div>
+
+      {goalPlan ? (
+        <GoalPlanPanel
+          plan={goalPlan}
+          onChange={(next) => {
+            const sid = sessionId ?? onEnsureSession(next.goal);
+            onGoalPlanChange(sid, next);
+          }}
+        />
+      ) : null}
 
       <AskMapAbleResponseActions
         actions={responseActions}
