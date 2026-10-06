@@ -76,30 +76,49 @@ describe("AskMapAbleWidget", () => {
       "I want a part-time job at a library and transport to work independently";
     const goalPlan = buildGoalPlanDraft(goal);
 
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ intercepted: false }),
-      })
-      .mockResolvedValueOnce({
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+
+      if (url.includes("/api/mapable/crisis")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ intercepted: false }),
+        } as Response;
+      }
+
+      if (url.includes("/api/mapable/ask")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            source: "mapable-copilot",
+            intent: "combined",
+            confidence: 0.9,
+            summary: "MapAble understood your goal.",
+            answer: "Here is a draft Goal Plan for you to review.",
+            filters: {},
+            actions: [],
+            draftRecords: [],
+            requiredConfirmations: [],
+            warnings: [],
+            blockedActions: [],
+            goalPlan,
+          }),
+        } as Response;
+      }
+
+      return {
         ok: true,
         status: 200,
-        json: async () => ({
-          source: "mapable-copilot",
-          intent: "combined",
-          confidence: 0.9,
-          summary: "MapAble understood your goal.",
-          answer: "Here is a draft Goal Plan for you to review.",
-          filters: {},
-          actions: [],
-          draftRecords: [],
-          requiredConfirmations: [],
-          warnings: [],
-          blockedActions: [],
-          goalPlan,
-        }),
-      });
+        json: async () => ({}),
+      } as Response;
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     render(<AskMapAbleWidget />);
