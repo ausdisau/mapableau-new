@@ -17,6 +17,7 @@ import {
   needsFirstRunSetup,
 } from "@/lib/personal-agency/setup-service";
 import { prisma } from "@/lib/prisma";
+import { getZonedDayBoundsUtc, getZonedHour } from "@/lib/time/zoned-day";
 import {
   BookingRow,
   Section,
@@ -39,8 +40,9 @@ function formatTime(date: Date): string {
   }).format(date);
 }
 
-function formatDate(date: Date): string {
+function formatDate(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-AU", {
+    timeZone,
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -64,10 +66,8 @@ export default async function MyHomePage() {
   }
 
   const now = new Date();
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(now);
-  endOfDay.setHours(23, 59, 59, 999);
+  const { start: startOfDay, endExclusive: startOfTomorrow } =
+    getZonedDayBoundsUtc(now, user.timezone);
 
   const [
     todayBookings,
@@ -79,7 +79,7 @@ export default async function MyHomePage() {
     prisma.booking.findMany({
       where: {
         participantId: user.id,
-        requestedStart: { gte: startOfDay, lte: endOfDay },
+        requestedStart: { gte: startOfDay, lt: startOfTomorrow },
         status: { notIn: ["cancelled"] },
       },
       orderBy: { requestedStart: "asc" },
@@ -130,7 +130,7 @@ export default async function MyHomePage() {
   ]);
 
   const firstName = user.name.split(/\s+/)[0] ?? user.name;
-  const greeting = greetingForHour(now.getHours());
+  const greeting = greetingForHour(getZonedHour(now, user.timezone));
   const primaryGoal = lifeIntents[0] ?? null;
 
   const timelineItems: TimelineItem[] = todayBookings.map((booking) => ({
@@ -151,7 +151,7 @@ export default async function MyHomePage() {
       status: booking.status,
     })),
     ...upcomingTransport
-      .filter((trip) => trip.scheduledStart <= endOfDay)
+      .filter((trip) => trip.scheduledStart < startOfTomorrow)
       .map((trip) => ({
         id: trip.id,
         source: "transport" as const,
@@ -170,7 +170,7 @@ export default async function MyHomePage() {
       <MyHomeDashboardTop
         greeting={greeting}
         firstName={firstName}
-        dateLabel={formatDate(now)}
+        dateLabel={formatDate(now, user.timezone)}
         goal={
           primaryGoal
             ? {
