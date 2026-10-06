@@ -2,6 +2,9 @@
 
 import { useCallback, useState } from "react";
 
+import type { GoalPlanDraft } from "@mapable/contracts";
+
+import { GoalPlanPanel } from "@/components/goal-plan/GoalPlanPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ASK_MAPABLE_SAFE_FAILURE } from "@/lib/ask-mapable";
@@ -36,12 +39,14 @@ export function CopilotPanel({
   const [useParticipant, setUseParticipant] = useState(true);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<CopilotAskResponse | null>(null);
+  const [goalPlan, setGoalPlan] = useState<GoalPlanDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const ask = useCallback(async () => {
     if (!query.trim()) return;
     setLoading(true);
     setError(null);
+    setGoalPlan(null);
     try {
       const res = await fetch("/api/mapable/ask", {
         method: "POST",
@@ -53,16 +58,21 @@ export function CopilotPanel({
           sessionId: `web-${Date.now()}`,
         }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as CopilotAskResponse & {
+        error?: string;
+      };
       if (!res.ok) {
-      setError(data.error ?? ASK_MAPABLE_SAFE_FAILURE);
-      setResponse(null);
-      return;
-    }
-      setResponse(data as CopilotAskResponse);
+        setError(data.error ?? ASK_MAPABLE_SAFE_FAILURE);
+        setResponse(null);
+        setGoalPlan(null);
+        return;
+      }
+      setResponse(data);
+      setGoalPlan(data.goalPlan ?? null);
     } catch {
       setError(ASK_MAPABLE_SAFE_FAILURE);
       setResponse(null);
+      setGoalPlan(null);
     } finally {
       setLoading(false);
     }
@@ -142,6 +152,9 @@ export function CopilotPanel({
             answer={response.answer}
             intentLabel={intentLabel(response.intent)}
           />
+          {goalPlan ? (
+            <GoalPlanPanel plan={goalPlan} onChange={setGoalPlan} />
+          ) : null}
           <CopilotWarnings warnings={response.warnings} />
           <CopilotActionCards
             actions={response.actions}

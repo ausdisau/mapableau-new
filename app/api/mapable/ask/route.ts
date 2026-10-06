@@ -14,6 +14,7 @@ import {
   attachAskMeta,
   enrichAskMapAblePlan,
   isHumanHelpRequest,
+  maybeBuildGoalPlanForAsk,
   parseAskPageContext,
   recordAskHumanHandoff,
 } from "@/lib/ask-mapable";
@@ -480,6 +481,14 @@ export async function POST(request: Request) {
       participantId: effectiveParticipantId,
     });
 
+    const goalPlan =
+      context === "default"
+        ? maybeBuildGoalPlanForAsk({
+            query,
+            intent: intent.type,
+          })
+        : null;
+
     let response: CopilotAskResponse = {
       source: "mapable-copilot",
       intent: intent.type,
@@ -495,6 +504,7 @@ export async function POST(request: Request) {
       results: guarded.providerResults ?? [],
       suggestedPrompts: buildSuggestedPrompts(intent.type),
       agent: guarded.agent,
+      ...(goalPlan ? { goalPlan } : {}),
     };
 
     if (intent.type === "provider_finder" && guarded.filters.finder) {

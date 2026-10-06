@@ -1,3 +1,5 @@
+import type { GoalPlanDraft } from "@mapable/contracts";
+
 import type { ConsentScope, DraftPrmsRecord } from "@/lib/prms/types";
 import type { AppliedSearchFields } from "@/lib/search/apply-interpretation";
 import type { SearchInterpretation } from "@/types/search";
@@ -229,6 +231,8 @@ export type CopilotAskResponse = {
   results?: CopilotProviderResult[];
   suggestedPrompts?: string[];
   agent?: CopilotAgentMeta;
+  /** Participant-controlled Goal Plan draft attached on eligible Ask flows. */
+  goalPlan?: GoalPlanDraft;
   /** Ask MapAble manager enrichment (constraints, specialist routing, brand). */
   askMeta?: AskMapAbleMeta;
 };
