@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import type { GoalPlanDraft } from "@mapable/contracts";
+
 import {
   ASK_WIDGET_STORAGE,
   type AskChatMessage,
@@ -88,8 +90,34 @@ export function useAskLocalSessions(activeSessionId: string | null) {
     [],
   );
 
+  const setGoalPlan = useCallback(
+    (sessionId: string, goalPlan: GoalPlanDraft) => {
+      setSessions((prev) => {
+        const idx = prev.findIndex((session) => session.id === sessionId);
+        if (idx === -1) return prev;
+
+        const current = prev[idx]!;
+        const next = [...prev];
+        next[idx] = {
+          ...current,
+          updatedAt: new Date().toISOString(),
+          goalPlan,
+        };
+        saveSessions(next);
+        return next;
+      });
+    },
+    [],
+  );
+
   const activeSession =
     sessions.find((s) => s.id === activeSessionId) ?? null;
 
-  return { sessions, ensureSession, appendMessages, activeSession };
+  return {
+    sessions,
+    ensureSession,
+    appendMessages,
+    setGoalPlan,
+    activeSession,
+  };
 }
