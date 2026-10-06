@@ -23,7 +23,7 @@ describe("MyHomeDashboardTop", () => {
         lifeIntentsEnabled
         todayBookingsCount={2}
         careRequestCount={1}
-        upcomingTransportCount={3}
+        todayTransportCount={3}
       />,
     );
 
@@ -42,7 +42,7 @@ describe("MyHomeDashboardTop", () => {
 
     expect(screen.getByText("2 activities today")).toBeTruthy();
     expect(screen.getByText("1 active care request")).toBeTruthy();
-    expect(screen.getByText("3 upcoming trips")).toBeTruthy();
+    expect(screen.getByText("3 trips today")).toBeTruthy();
 
     expect(
       screen.getByRole("link", { name: /accessibility map/i }).getAttribute("href"),
@@ -62,7 +62,7 @@ describe("MyHomeDashboardTop", () => {
         lifeIntentsEnabled
         todayBookingsCount={0}
         careRequestCount={0}
-        upcomingTransportCount={0}
+        todayTransportCount={0}
       />,
     );
 
