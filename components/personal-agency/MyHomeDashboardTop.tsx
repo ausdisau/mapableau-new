@@ -13,7 +13,7 @@ type Props = {
   lifeIntentsEnabled: boolean;
   todayBookingsCount: number;
   careRequestCount: number;
-  upcomingTransportCount: number;
+  todayTransportCount: number;
 };
 
 const QUICK_ACTIONS = [
@@ -61,7 +61,7 @@ export function MyHomeDashboardTop({
   lifeIntentsEnabled,
   todayBookingsCount,
   careRequestCount,
-  upcomingTransportCount,
+  todayTransportCount,
 }: Props) {
   const goalHref = goal
     ? `/my/life/${goal.id}`
@@ -156,9 +156,9 @@ export function MyHomeDashboardTop({
             href="/dashboard/transport"
             className="min-h-24 rounded-xl border border-slate-200 bg-white p-4 shadow-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40"
           >
-            <p className="text-2xl font-black text-[#0C1833]">{upcomingTransportCount}</p>
+            <p className="text-2xl font-black text-[#0C1833]">{todayTransportCount}</p>
             <p className="mt-1 text-sm font-semibold text-slate-800">
-              {countLabel(upcomingTransportCount, "upcoming trip", "upcoming trips")}
+              {countLabel(todayTransportCount, "trip today", "trips today")}
             </p>
           </Link>
         </div>
