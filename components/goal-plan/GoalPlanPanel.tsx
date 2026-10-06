@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useId } from "react";
 
 import {
   nextConversationalCandidate,
@@ -39,6 +40,9 @@ export function GoalPlanPanel({
   onChange,
   nonAiHref = "/provider-finder",
 }: Props) {
+  const instanceId = useId();
+  const headingId = `${instanceId}-goal-plan-heading`;
+  const questionId = `${instanceId}-goal-plan-question`;
   const active = nextConversationalCandidate(plan);
 
   const updateDecision = (
@@ -50,14 +54,14 @@ export function GoalPlanPanel({
 
   return (
     <section
-      aria-labelledby="goal-plan-heading"
+      aria-labelledby={headingId}
       className="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
     >
       <div className="space-y-2">
         <p className="text-xs font-black uppercase tracking-[0.14em] text-[#005B7F]">
           Participant-controlled draft
         </p>
-        <h2 id="goal-plan-heading" className="text-2xl font-black tracking-[-0.03em] text-[#0C1833]">
+        <h2 id={headingId} className="text-2xl font-black tracking-[-0.03em] text-[#0C1833]">
           My Goal Plan
         </h2>
         <p className="text-sm text-slate-600">Your goal, in your words:</p>
@@ -95,6 +99,25 @@ export function GoalPlanPanel({
               <p className="mt-3 text-sm leading-6 text-slate-700">
                 {candidate.participantBenefit}
               </p>
+              {active?.module !== candidate.module ? (
+                <div
+                  role="group"
+                  aria-label={`Choose whether to include ${MODULE_LABELS[candidate.module]}`}
+                  className="mt-3 flex flex-wrap gap-2"
+                >
+                  {(["yes", "no", "not_sure"] as const).map((decision) => (
+                    <button
+                      key={decision}
+                      type="button"
+                      aria-pressed={candidate.decision === decision}
+                      className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => updateDecision(candidate.module, decision)}
+                    >
+                      {decisionButtonLabel(decision)}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -102,10 +125,10 @@ export function GoalPlanPanel({
 
       {active ? (
         <section
-          aria-labelledby="goal-plan-question"
+          aria-labelledby={questionId}
           className="space-y-3 rounded-xl border border-[#005B7F]/20 bg-[#F6FBFC] p-4"
         >
-          <h3 id="goal-plan-question" className="font-bold text-[#0C1833]">
+          <h3 id={questionId} className="font-bold text-[#0C1833]">
             Ask MapAble
           </h3>
           <p className="text-sm leading-6 text-slate-800">{active.question}</p>
@@ -118,6 +141,7 @@ export function GoalPlanPanel({
               <button
                 key={decision}
                 type="button"
+                aria-pressed={active.decision === decision}
                 className="min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => updateDecision(active.module, decision)}
               >
