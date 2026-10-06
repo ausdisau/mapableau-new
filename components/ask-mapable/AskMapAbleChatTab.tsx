@@ -56,8 +56,8 @@ export function AskMapAbleChatTab({
   const [error, setError] = useState<string | null>(null);
   const [responseActions, setResponseActions] = useState<CopilotAction[]>([]);
   const [blockedActions, setBlockedActions] = useState<CopilotAction[]>([]);
-  const [resolvedGoalPlan, setResolvedGoalPlan] =
-    useState<GoalPlanDraft | null>(goalPlan);
+  const [responseGoalPlan, setResponseGoalPlan] =
+    useState<GoalPlanDraft | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -93,8 +93,10 @@ export function AskMapAbleChatTab({
   }, [seedMessage, onSeedConsumed]);
 
   useEffect(() => {
-    setResolvedGoalPlan(goalPlan);
-  }, [goalPlan, sessionId]);
+    setResponseGoalPlan(null);
+  }, [sessionId]);
+
+  const visibleGoalPlan = responseGoalPlan ?? goalPlan;
 
   useEffect(() => {
     const el = logRef.current;
@@ -204,7 +206,7 @@ export function AskMapAbleChatTab({
         setResponseActions(data.actions ?? []);
         setBlockedActions(data.blockedActions ?? []);
         if (data.goalPlan) {
-          setResolvedGoalPlan(data.goalPlan);
+          setResponseGoalPlan(data.goalPlan);
           onGoalPlanChange(sid, data.goalPlan);
         }
         onAppend(sid, [
@@ -309,11 +311,11 @@ export function AskMapAbleChatTab({
         ) : null}
       </div>
 
-      {resolvedGoalPlan ? (
+      {visibleGoalPlan ? (
         <GoalPlanPanel
-          plan={resolvedGoalPlan}
+          plan={visibleGoalPlan}
           onChange={(next) => {
-            setResolvedGoalPlan(next);
+            setResponseGoalPlan(next);
             const sid = sessionId ?? onEnsureSession(next.goal);
             onGoalPlanChange(sid, next);
           }}
