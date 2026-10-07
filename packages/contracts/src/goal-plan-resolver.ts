@@ -8,6 +8,92 @@ import {
 
 export const STEP_BY_STEP_PREFERENCE = "decision_mode:step_by_step" as const;
 
+export const GOAL_ACCESS_REQUIREMENT_TOKENS = [
+  "step_free",
+  "accessible_toilet",
+  "lift",
+  "hearing_loop",
+  "quiet_space",
+  "accessible_parking",
+  "drop_off",
+  "aac_friendly",
+  "auslan",
+  "captioning",
+  "assistance_animal",
+  "low_stimulus",
+  "changing_places",
+  "text_communication",
+] as const;
+
+export type GoalAccessRequirementToken =
+  (typeof GOAL_ACCESS_REQUIREMENT_TOKENS)[number];
+
+const ACCESS_REQUIREMENT_DEFINITIONS: Array<{
+  token: GoalAccessRequirementToken;
+  matches: RegExp[];
+}> = [
+  { token: "step_free", matches: [/\bstep[- ]free\b/i, /\bno stairs?\b/i] },
+  {
+    token: "accessible_toilet",
+    matches: [/\baccessible toilet\b/i, /\bwheelchair accessible toilet\b/i],
+  },
+  { token: "lift", matches: [/\blift\b/i, /\belevator\b/i] },
+  { token: "hearing_loop", matches: [/\bhearing loop\b/i] },
+  {
+    token: "quiet_space",
+    matches: [/\bquiet space\b/i, /\bquiet area\b/i],
+  },
+  {
+    token: "accessible_parking",
+    matches: [/\baccessible parking\b/i, /\bdisabled parking\b/i],
+  },
+  {
+    token: "drop_off",
+    matches: [/\bdrop[- ]?off\b/i, /\baccessible drop[- ]?off\b/i],
+  },
+  {
+    token: "aac_friendly",
+    matches: [/\bAAC\b/i, /\bAAC[- ]friendly\b/i],
+  },
+  { token: "auslan", matches: [/\bAuslan\b/i] },
+  {
+    token: "captioning",
+    matches: [/\bcaptioning\b/i, /\bcaptions?\b/i],
+  },
+  {
+    token: "assistance_animal",
+    matches: [/\bassistance animal\b/i, /\bservice dog\b/i],
+  },
+  {
+    token: "low_stimulus",
+    matches: [/\blow[- ]stimulus\b/i, /\blow sensory\b/i],
+  },
+  { token: "changing_places", matches: [/\bChanging Places\b/i] },
+  {
+    token: "text_communication",
+    matches: [/\btext communication\b/i, /\bcommunicate by text\b/i],
+  },
+];
+
+const ACCESS_SIGNAL_PATTERNS = [
+  ...ACCESS_REQUIREMENT_DEFINITIONS.flatMap((definition) => definition.matches),
+  /\baccessible\b/i,
+  /\baccessibility\b/i,
+  /\bwheelchair\b/i,
+  /\bramp\b/i,
+];
+
+export function extractGoalAccessRequirements(
+  goal: string,
+): GoalAccessRequirementToken[] {
+  const normalizedGoal = goal.trim();
+  if (!normalizedGoal) return [];
+
+  return ACCESS_REQUIREMENT_DEFINITIONS.filter((definition) =>
+    definition.matches.some((pattern) => pattern.test(normalizedGoal)),
+  ).map((definition) => definition.token);
+}
+
 type CandidateDefinition = Omit<
   GoalServiceCandidate,
   | "decision"
@@ -56,17 +142,7 @@ const CANDIDATE_DEFINITIONS: CandidateDefinition[] = [
     sensitivity: "ordinary",
     askConversationally: false,
     requiresExplicitChoice: false,
-    matches: [
-      /\baccessible\b/i,
-      /\baccessibility\b/i,
-      /\bstep[- ]free\b/i,
-      /\bwheelchair\b/i,
-      /\baccessible toilet\b/i,
-      /\bramp\b/i,
-      /\blift\b/i,
-      /\bhearing loop\b/i,
-      /\bquiet space\b/i,
-    ],
+    matches: ACCESS_SIGNAL_PATTERNS,
   },
   {
     module: "transport",
@@ -161,10 +237,17 @@ export function buildGoalPlanDraft(
   options?: { stepByStep?: boolean },
 ): GoalPlanDraft {
   const normalizedGoal = goal.trim();
+  const accessRequirements =
+    extractGoalAccessRequirements(normalizedGoal);
   const serviceCandidates = normalizedGoal
     ? CANDIDATE_DEFINITIONS.filter((definition) =>
         matchesAny(normalizedGoal, definition.matches),
-      ).map(toCandidate)
+      ).map((definition) => {
+        const candidate = toCandidate(definition);
+        return candidate.module === "access"
+          ? { ...candidate, requirements: [...accessRequirements] }
+          : candidate;
+      })
     : [];
 
   const needsClarification =
@@ -182,7 +265,7 @@ export function buildGoalPlanDraft(
     desiredOutcomes: normalizedGoal ? [normalizedGoal] : [],
     preferences: options?.stepByStep ? [STEP_BY_STEP_PREFERENCE] : [],
     nonNegotiables: [],
-    accessibilityRequirements: [],
+    accessibilityRequirements: [...accessRequirements],
     communicationRequirements: [],
     exclusions: [],
     serviceCandidates,
