@@ -1,54 +1,56 @@
 import { ZodError } from "zod";
 
-import { requireApiAdmin, requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
-import { isAdminRole } from "@/lib/auth/roles";
-import { updateBooking } from "@/lib/bookings/booking-service";
-import { prisma } from "@/lib/prisma";
-import { updateBookingSchema } from "@/lib/validation/booking";
+import {
+  handleBookingRouteError,
+  requireBookingSession,
+  bookingOk,
+} from "@/lib/api/booking-route-handler";
+import { zodErrorResponse } from "@/lib/api/response";
+import {
+  getBookingForUser,
+  updateBookingDetails,
+} from "@/lib/bookings/booking-service";
+import { updateBookingSchema } from "@/lib/validation/booking-schemas";
+import { BookingAccessError } from "@/lib/bookings/booking-access-policy";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireApiSession();
-  if (user instanceof Response) return user;
+  const { user, error } = await requireBookingSession();
+  if (error) return error;
 
-  const { id } = await params;
-  const booking = await prisma.booking.findUnique({
-    where: { id },
-    include: {
-      segments: { orderBy: { sortOrder: "asc" } },
-      assignedOrganisation: true,
-    },
-  });
+  const { id: bookingId } = await params;
 
-  if (!booking) return jsonError("Not found", 404);
-  if (
-    !isAdminRole(user.primaryRole) &&
-    booking.participantId !== user.id
-  ) {
-    return jsonError("Forbidden", 403);
+  try {
+    const booking = await getBookingForUser(user!, bookingId);
+    return bookingOk({ booking });
+  } catch (e) {
+    return handleBookingRouteError(e);
   }
-
-  return jsonOk({ booking });
 }
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireApiAdmin();
-  if (user instanceof Response) return user;
+  const { user, error } = await requireBookingSession();
+  if (error) return error;
 
-  const { id } = await params;
+  const { id: bookingId } = await params;
 
   try {
+    const existing = await getBookingForUser(user!, bookingId);
+    if (!existing.permissions.canUpdate) {
+      throw new BookingAccessError("Booking access denied.");
+    }
+
     const parsed = updateBookingSchema.parse(await req.json());
-    const booking = await updateBooking(id, parsed, user.id);
-    return jsonOk({ booking });
+    await updateBookingDetails(bookingId, parsed, user!.id);
+    const refreshed = await getBookingForUser(user!, bookingId);
+    return bookingOk({ booking: refreshed });
   } catch (e) {
     if (e instanceof ZodError) return zodErrorResponse(e);
-    return jsonError("Update failed", 500);
+    return handleBookingRouteError(e);
   }
 }

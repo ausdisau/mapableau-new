@@ -1,37 +1,42 @@
-import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk } from "@/lib/api/response";
-import { providerDeclineBooking } from "@/lib/bookings/provider-response";
-import { prisma } from "@/lib/prisma";
+import {
+  handleBookingRouteError,
+  requireBookingSession,
+  bookingOk,
+} from "@/lib/api/booking-route-handler";
+import {
+  assertProviderCanManageBooking,
+  getBookingForUser,
+  providerDeclineBookingRequest,
+} from "@/lib/bookings/booking-service";
+import { providerResponseSchema } from "@/lib/validation/booking-schemas";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ bookingId: string }> }
 ) {
-  const user = await requireApiSession();
-  if (user instanceof Response) return user;
+  const { user, error } = await requireBookingSession();
+  if (error) return error;
+
   const { bookingId } = await params;
-  const { note } = await req.json();
 
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-  });
-  if (!booking?.assignedOrganisationId) {
-    return jsonError("Booking not assigned", 400);
+  try {
+    const parsed = providerResponseSchema.parse(await req.json());
+    const bookingRecord = await assertProviderCanManageBooking(
+      user!,
+      bookingId,
+      parsed.organisationId
+    );
+
+    const orgId = parsed.organisationId ?? bookingRecord.assignedOrganisationId!;
+    const booking = await providerDeclineBookingRequest(
+      bookingId,
+      orgId,
+      user!.id,
+      parsed.note
+    );
+    const refreshed = await getBookingForUser(user!, booking.id);
+    return bookingOk({ booking: refreshed });
+  } catch (e) {
+    return handleBookingRouteError(e);
   }
-
-  const member = await prisma.organisationMember.findFirst({
-    where: {
-      userId: user.id,
-      organisationId: booking.assignedOrganisationId,
-    },
-  });
-  if (!member) return jsonError("Forbidden", 403);
-
-  const updated = await providerDeclineBooking(
-    bookingId,
-    booking.assignedOrganisationId,
-    user.id,
-    note
-  );
-  return jsonOk({ booking: updated });
 }
