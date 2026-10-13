@@ -5,11 +5,13 @@ import type { z } from "zod";
 import {
   upsertCareOSPreference,
 } from "@/intelligence/preferences/preference-service";
+import { savePreferenceViaAgencyMemory } from "@/lib/ai/platform/agency-memory";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import {
   createCareRequest,
   submitCareRequest,
 } from "@/lib/care/care-request-service";
+import { isAgencyMemoryEnabled } from "@/lib/config/agency-memory";
 import { sendMessage } from "@/lib/messages/message-service";
 import { createTransportTrip } from "@/lib/transport/transport-trip-service";
 import { createCareRequestSchema } from "@/lib/validation/care";
@@ -38,16 +40,38 @@ export async function executeSaveParticipantPreference(
   payload: z.infer<typeof saveParticipantPreferencePayloadSchema>,
   ctx: AdapterContext,
 ): Promise<AdapterResult> {
+  // Operational CareOS preference row (existing SoT for CareOS keys).
   await upsertCareOSPreference({
     participantId: ctx.participantId,
     key: payload.key,
     value: payload.value,
     expiresAt: payload.expiresAt ?? null,
   });
+
+  // Prompt 05: also create/confirm Agency Memory (not a parallel inference store).
+  // Action Kernel approval already constitutes participant confirmation for this write.
+  let agencyMemoryId: string | undefined;
+  if (isAgencyMemoryEnabled()) {
+    const memory = savePreferenceViaAgencyMemory({
+      participantId: ctx.participantId,
+      tenantId: ctx.participantId,
+      actorId: ctx.actorId,
+      key: payload.key,
+      value: payload.value,
+      expiresAt: payload.expiresAt ?? null,
+      consentScopes: ["profile.write"],
+    });
+    agencyMemoryId = memory.memoryId;
+  }
+
   return {
-    entityType: "CareOSParticipantPreference",
-    entityId: payload.key,
-    outcomeDetail: `Preference "${payload.key}" saved`,
+    entityType: agencyMemoryId
+      ? "MapAbleAgencyMemoryItem"
+      : "CareOSParticipantPreference",
+    entityId: agencyMemoryId ?? payload.key,
+    outcomeDetail: agencyMemoryId
+      ? `Preference "${payload.key}" saved and confirmed in Agency Memory`
+      : `Preference "${payload.key}" saved`,
   };
 }
 
