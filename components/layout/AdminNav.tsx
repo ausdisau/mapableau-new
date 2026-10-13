@@ -22,6 +22,7 @@ const OPS_LINKS = [
   { href: "/admin/system-health", label: "System health" },
   { href: "/admin/accessibility-accreditation", label: "Accreditation" },
   { href: "/admin/evidence-automation", label: "Evidence" },
+  { href: "/admin/digital-twin", label: "Digital Twin" },
   { href: "/admin/government-reporting", label: "Gov reporting" },
 ];
 
