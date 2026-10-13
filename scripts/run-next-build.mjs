@@ -16,14 +16,13 @@ function resolveHeapMb() {
     return Number(override);
   }
   if (process.env.VERCEL === "1") {
-    // History on default ~8 GB Vercel builders (PR #390 / #413):
+    // History on default ~8 GB Vercel builders (PR #390 / #413 / #488):
     // - 7168 → SIGKILL (RSS)
-    // - 5632 → JS heap OOM during lint+tsc when eslint ran in-build
-    // - 6144 → still SIGKILL with eslint in-build (dpl_9cgbYumEJum…)
-    // With eslint.ignoreDuringBuilds on Vercel only (CI still lints), keep
-    // headroom under the container RSS limit for tsc + SSG.
-    // If SIGKILL persists: OWNER_ACTION_REQUIRED — larger Vercel build machine.
-    return 5120;
+    // - 5632–6144 → JS heap OOM when eslint + tsc ran in-build
+    // - 5120 → SSG JS OOM after skipping in-build eslint (still ran tsc)
+    // With eslint + typescript ignored during build on Vercel (CI still gates
+    // both), allow more heap for SSG while staying under SIGKILL RSS ceiling.
+    return 6144;
   }
   if (process.env.GITHUB_ACTIONS === "true") {
     // Codebase growth after lib nesting / CareOS waves needs more SSG headroom
