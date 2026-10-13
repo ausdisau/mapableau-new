@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const READY_TIMEOUT_MS = 2_500;
+/** Neon cold-start wake can exceed 2.5s; keep redacted 503 on failure. */
+export const READY_TIMEOUT_MS = 8_000;
 
 const noStoreHeaders = {
   "Cache-Control": "no-store",

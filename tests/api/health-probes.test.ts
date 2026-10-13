@@ -62,20 +62,30 @@ describe("health probes", () => {
   });
 
   it("GET /api/health/ready returns 503 on dependency timeout", async () => {
-    queryRaw.mockImplementationOnce(
-      () =>
-        new Promise(() => {
-          /* never resolves */
-        }),
-    );
-    const { GET } = await import("@/app/api/health/ready/route");
-    const response = await GET();
-    expect(response.status).toBe(503);
-    expect(response.headers.get("Cache-Control")).toBe("no-store");
-    const body = await response.json();
-    expect(body).toEqual({ status: "unavailable" });
-    expect(JSON.stringify(body)).not.toMatch(/timeout|prisma|neon/i);
-  }, 10_000);
+    vi.useFakeTimers();
+    try {
+      queryRaw.mockImplementationOnce(
+        () =>
+          new Promise(() => {
+            /* never resolves */
+          }),
+      );
+      const { GET, READY_TIMEOUT_MS } = await import(
+        "@/app/api/health/ready/route"
+      );
+      expect(READY_TIMEOUT_MS).toBe(8_000);
+      const pending = GET();
+      await vi.advanceTimersByTimeAsync(READY_TIMEOUT_MS);
+      const response = await pending;
+      expect(response.status).toBe(503);
+      expect(response.headers.get("Cache-Control")).toBe("no-store");
+      const body = await response.json();
+      expect(body).toEqual({ status: "unavailable" });
+      expect(JSON.stringify(body)).not.toMatch(/timeout|prisma|neon/i);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it("ready route exports only GET and redacts failure details", async () => {
     const mod = await import("@/app/api/health/ready/route");
