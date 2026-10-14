@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { isAdminRole } from "@/lib/auth/roles";
@@ -125,6 +127,7 @@ export async function confirmCareServiceLog(
 ) {
   const log = await prisma.careServiceLog.findUnique({ where: { id: logId } });
   if (!log) throw new Error("NOT_FOUND");
+  if (log.status !== "submitted") throw new Error("INVALID_STATUS");
   assertParticipantOwnsBooking(actorUser, {
     participantId: log.participantId,
   });
@@ -158,6 +161,7 @@ export async function disputeCareServiceLog(
 ) {
   const log = await prisma.careServiceLog.findUnique({ where: { id: logId } });
   if (!log) throw new Error("NOT_FOUND");
+  if (log.status !== "submitted") throw new Error("INVALID_STATUS");
   assertParticipantOwnsBooking(actorUser, {
     participantId: log.participantId,
   });
@@ -191,9 +195,21 @@ export async function disputeCareServiceLog(
   return updated;
 }
 
+const careServiceLogListInclude = {
+  careBooking: {
+    select: {
+      id: true,
+      careRequest: { select: { title: true } },
+      organisation: { select: { name: true } },
+    },
+  },
+  careShift: { select: { id: true, startAt: true, endAt: true } },
+} satisfies Prisma.CareServiceLogInclude;
+
 export async function listServiceLogsForUser(user: CurrentUser) {
   if (isAdminRole(user.primaryRole)) {
     return prisma.careServiceLog.findMany({
+      include: careServiceLogListInclude,
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -201,6 +217,7 @@ export async function listServiceLogsForUser(user: CurrentUser) {
   if (user.primaryRole === "participant") {
     return prisma.careServiceLog.findMany({
       where: { participantId: user.id },
+      include: careServiceLogListInclude,
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -210,6 +227,7 @@ export async function listServiceLogsForUser(user: CurrentUser) {
     const orgIds = await getUserOrganisationIds(user.id);
     return prisma.careServiceLog.findMany({
       where: { organisationId: { in: orgIds } },
+      include: careServiceLogListInclude,
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -221,6 +239,7 @@ export async function listServiceLogsForUser(user: CurrentUser) {
     if (!profile) return [];
     return prisma.careServiceLog.findMany({
       where: { workerProfileId: profile.id },
+      include: careServiceLogListInclude,
       orderBy: { createdAt: "desc" },
       take: 100,
     });
