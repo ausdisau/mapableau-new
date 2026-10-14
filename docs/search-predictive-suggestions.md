@@ -63,3 +63,22 @@ See [nl-interpreter.md](./search/nl-interpreter.md) for environment variables, a
 - Autocomplete rate limit remains per-process in-memory (120 req/min/IP); use a shared store for multi-instance production.
 - Interpret endpoint rate limit is 30 req/min/IP (in-memory per instance).
 - Location data uses local `searchable_locations` plus **Australia Post PAC postcode search** when `AUSPOST_PAC_API_KEY` is set on the server (suburb-level suggestions such as "St Ives" or "2150"). Set `AUSPOST_PAC_ENABLED=false` to disable.
+
+## Booking street address search (Geoscape / G-NAF)
+
+Booking-related forms use a separate street-level path — not AusPost PAC suburbs:
+
+| Context | Forms |
+|---------|--------|
+| `booking` | Dashboard booking wizard (care location, pickup, drop-off) |
+| `transport_request` | Transport trip request |
+| `care_request` | Care request wizard |
+
+- UI: `StreetAddressAutocomplete` → `AccessibleAutocomplete` with `field=location`
+- Suggest: Geoscape Predictive `GET /predictive/address?query=...` via `lib/geoscape-predictive/*`
+- Resolve on select: `GET /api/addresses/resolve?id=...` (full formatted address, suburb, coords)
+- Requires `GEOSCAPE_PREDICTIVE_ENABLED=true` **and** `GEOSCAPE_API_KEY` on the server (Vercel). Both default off / empty.
+- Free-text entry still works if Geoscape is unset, disabled, or fails.
+- Homepage / Provider Finder location fields are unchanged (local + AusPost suburb composite only).
+- Do not log exact addresses; transport disclosure still masks streets from providers until assignment.
+- Never expose Geoscape keys via `NEXT_PUBLIC_*`.
