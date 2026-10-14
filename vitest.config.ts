@@ -18,33 +18,34 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      "server-only": path.resolve(__dirname, "tests/helpers/server-only.ts"),
       "@mapable/contracts": path.resolve(
         __dirname,
-        "packages/contracts/src/index.ts"
+        "packages/contracts/src/index.ts",
       ),
       "@mapable/intelligence-kernel": path.resolve(
         __dirname,
-        "packages/intelligence-kernel/src/index.ts"
+        "packages/intelligence-kernel/src/index.ts",
       ),
       "@mapable/domain-transport": path.resolve(
         __dirname,
-        "packages/domain-transport/src/index.ts"
+        "packages/domain-transport/src/index.ts",
       ),
       "@mapable/domain-provider": path.resolve(
         __dirname,
-        "packages/domain-provider/src/index.ts"
+        "packages/domain-provider/src/index.ts",
       ),
       "@mapable/domain-workforce": path.resolve(
         __dirname,
-        "packages/domain-workforce/src/index.ts"
+        "packages/domain-workforce/src/index.ts",
       ),
       "@mapable/research": path.resolve(
         __dirname,
-        "packages/research/src/index.ts"
+        "packages/research/src/index.ts",
       ),
       "@mapable/ui/tokens": path.resolve(
         __dirname,
-        "packages/ui/src/tokens/index.ts"
+        "packages/ui/src/tokens/index.ts",
       ),
       "@mapable/ui": path.resolve(__dirname, "packages/ui/src/index.ts"),
     },

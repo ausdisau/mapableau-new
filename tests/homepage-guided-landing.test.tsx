@@ -62,8 +62,11 @@ describe("homepage marketing splash", () => {
     expect(nav.querySelector('a[href="/providers"]')?.textContent).toBe(
       "Providers",
     );
-    expect(nav.querySelector('a[href="/ask"]')?.textContent).toBe(
-      "NDIS Guidance",
+    expect(nav.querySelector('a[href="/knowledge"]')?.textContent).toBe(
+      "Knowledge",
+    );
+    expect(nav.querySelector('a[href="/explore"]')?.textContent).toBe(
+      "Explore",
     );
   });
 

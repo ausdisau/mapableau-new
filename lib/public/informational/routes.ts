@@ -128,6 +128,26 @@ export const PUBLIC_INFORMATIONAL_ROUTES: readonly InformationalRoute[] = [
     authenticationProhibited: true,
     kind: "informational",
   },
+  {
+    path: "/explore",
+    label: "Explore MapAble",
+    inSitemap: true,
+    titleIncludes: "Explore",
+    h1Includes: "Everything MapAble",
+    formsPermitted: false,
+    authenticationProhibited: true,
+    kind: "informational",
+  },
+  {
+    path: "/knowledge",
+    label: "Public knowledge",
+    inSitemap: true,
+    titleIncludes: "Public knowledge",
+    h1Includes: "Ask what MapAble",
+    formsPermitted: true,
+    authenticationProhibited: true,
+    kind: "informational",
+  },
 ] as const;
 
 /**

@@ -10,15 +10,15 @@ import {
 describe("mapable-care-routes", () => {
   it("maps support areas to public discovery routes", () => {
     expect(supportAreaLandingRoutes.Places).toBe("/accessibility-map");
-    expect(supportAreaLandingRoutes["NDIS Help"]).toBe("/ask");
+    expect(supportAreaLandingRoutes["NDIS Help"]).toBe("/knowledge");
     expect(supportAreaLandingRoutes.Care).toBe("/provider-finder?area=Care");
   });
 
-  it("routes NDIS Help searches to Ask MapAble", () => {
+  it("routes NDIS Help searches to public knowledge", () => {
     expect(buildGuidedSearchUrl("transport funding", "NDIS Help")).toBe(
-      "/ask?q=transport+funding",
+      "/knowledge?q=transport+funding",
     );
-    expect(buildGuidedSearchUrl("", "NDIS Help")).toBe("/ask");
+    expect(buildGuidedSearchUrl("", "NDIS Help")).toBe("/knowledge");
   });
 
   it("routes other areas to provider finder with area filter", () => {
@@ -30,7 +30,7 @@ describe("mapable-care-routes", () => {
 
   it("maps search result categories to feature routes", () => {
     expect(getSearchResultHref("Places")).toBe("/accessibility-map");
-    expect(getSearchResultHref("NDIS Help")).toBe("/ask");
+    expect(getSearchResultHref("NDIS Help")).toBe("/knowledge");
     expect(getSearchResultHref("Care")).toBe("/provider-finder?area=Care");
   });
 

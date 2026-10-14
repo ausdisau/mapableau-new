@@ -72,6 +72,9 @@ importers:
       '@simplewebauthn/server':
         specifier: ^13.3.1
         version: 13.3.1
+      '@speechify/api':
+        specifier: 4.0.1
+        version: 4.0.1
       '@supabase/supabase-js':
         specifier: ^2.107.0
         version: 2.107.0
@@ -138,6 +141,9 @@ importers:
       react-map-gl:
         specifier: ^8.1.1
         version: 8.1.1(maplibre-gl@5.24.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       stripe:
         specifier: ^22.1.1
         version: 22.1.1(@types/node@20.19.30)
@@ -1507,6 +1513,10 @@ packages:
 
   '@socket.io/component-emitter@3.1.2':
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
+
+  '@speechify/api@4.0.1':
+    resolution: {integrity: sha512-OsfZbx4o47kIZ29OmntUj/9J2LYrlntRHfAwZ8uRLCw2gsu5zgQf46yasDgGe9fNgC5XI1+JfJwCweYVs5w+4w==}
+    engines: {node: '>=18.0.0'}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -4200,6 +4210,9 @@ packages:
     resolution: {integrity: sha512-xRXBn0pPqQTVQiC8wyQrKs2MOlX24zQ0POGaj0kultvoOCstBQM5yvOhAVSUwOMjQtTvsPWoNCHfPGwaaQJhTw==}
     engines: {node: '>= 18'}
 
+  server-only@0.0.1:
+    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
+
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
     engines: {node: '>= 0.4'}
@@ -5957,6 +5970,8 @@ snapshots:
       - supports-color
 
   '@socket.io/component-emitter@3.1.2': {}
+
+  '@speechify/api@4.0.1': {}
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -9045,6 +9060,8 @@ snapshots:
       send: 1.2.1
     transitivePeerDependencies:
       - supports-color
+
+  server-only@0.0.1: {}
 
   set-function-length@1.2.2:
     dependencies:
