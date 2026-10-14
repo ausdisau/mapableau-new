@@ -61,8 +61,10 @@ const DEFAULT_SEARCH_TERMS = [
   "shampoo",
 ];
 
-const WOOLWORTHS_PUBLIC_API_KEY = "KaGOqzzJ3ZTjswc62prswRLXCqJ4oepSqtI2P8iM";
-const COLES_PUBLIC_API_KEY = "dd6ae58532d743978508555a59a199ac";
+function groceryEnv(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value && value.length > 0 ? value : undefined;
+}
 
 export class SupplierFetchError extends Error {
   constructor(
