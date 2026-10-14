@@ -80,7 +80,8 @@ export function MarketingPrimaryNav() {
     { label: "Guides", href: "/guides" },
     { label: "Transport", href: "/transport" },
     { label: "Providers", href: "/providers" },
-    { label: "NDIS Guidance", href: marketingFeatureRoutes.ask },
+    { label: "Knowledge", href: "/knowledge" },
+    { label: "Explore", href: "/explore" },
   ];
 
   return (

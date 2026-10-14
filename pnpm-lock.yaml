@@ -66,6 +66,9 @@ importers:
       '@sendgrid/mail':
         specifier: ^8.1.6
         version: 8.1.6
+      '@speechify/api':
+        specifier: 4.0.1
+        version: 4.0.1
       '@simplewebauthn/browser':
         specifier: ^13.3.0
         version: 13.3.0
@@ -1478,6 +1481,10 @@ packages:
   '@sendgrid/mail@8.1.6':
     resolution: {integrity: sha512-/ZqxUvKeEztU9drOoPC/8opEPOk+jLlB2q4+xpx6HVLq6aFu3pMpalkTpAQz8XfRfpLp8O25bh6pGPcHDCYpqg==}
     engines: {node: '>=12.*'}
+
+  '@speechify/api@4.0.1':
+    resolution: {integrity: sha512-OsfZbx4o47kIZ29OmntUj/9J2LYrlntRHfAwZ8uRLCw2gsu5zgQf46yasDgGe9fNgC5XI1+JfJwCweYVs5w+4w==}
+    engines: {node: '>=18.0.0'}
 
   '@simplewebauthn/browser@13.3.0':
     resolution: {integrity: sha512-BE/UWv6FOToAdVk0EokzkqQQDOWtNydYlY6+OrmiZ5SCNmb41VehttboTetUM3T/fr6EAFYVXjz4My2wg230rQ==}
@@ -5902,6 +5909,8 @@ snapshots:
     transitivePeerDependencies:
       - debug
       - supports-color
+
+  '@speechify/api@4.0.1': {}
 
   '@simplewebauthn/browser@13.3.0': {}
 
