@@ -1,5 +1,18 @@
 # MapAble design system
 
+## Exact-logo design system
+
+The new Guided Independence system is in `design/mapable-independence/`.
+Read its `docs/AGENTS.md` before authoring any new UI. The complete uploaded
+PNG is now used by the shared brand components; separate marks, cropped
+wordmarks and recreated HTML tagline pills are no longer approved.
+
+This is an incremental integration, not a claim that all legacy pages have
+been restyled. The scoped new tokens and primitives are opt-in; the legacy
+tokens below still drive pages that have not migrated. Do not wrap whole
+legacy screens in the editorial reference styles without reviewing headings,
+portal inheritance, theme preferences, map semantics and hardcoded colours.
+
 This document describes the shared visual language for MapAble Core, module apps, marketing surfaces, and maps. **Source of truth is always the code** — when in doubt, read the files linked below rather than copying hex values from older screenshots.
 
 ## Design tokens

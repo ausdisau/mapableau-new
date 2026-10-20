@@ -1,0 +1,24 @@
+/* Optional. Load AFTER styles.css. Opt in on the SAME theme root.
+   Portalled content must also receive .mapable-system, its theme and bridge. */
+.mapable-system[data-ma-shadcn="true"] {
+  --background: var(--ma-background);
+  --foreground: var(--ma-text);
+  --card: var(--ma-surface);
+  --card-foreground: var(--ma-text);
+  --popover: var(--ma-surface);
+  --popover-foreground: var(--ma-text);
+  --primary: var(--ma-primary);
+  --primary-foreground: var(--ma-on-primary);
+  --secondary: var(--ma-violet-tint);
+  --secondary-foreground: var(--ma-violet);
+  --muted: var(--ma-tint);
+  --muted-foreground: var(--ma-muted);
+  --accent: var(--ma-gold-tint);
+  --accent-foreground: var(--ma-warning);
+  --destructive: var(--ma-danger);
+  --destructive-foreground: var(--ma-on-danger);
+  --border: var(--ma-rule);
+  --input: var(--ma-border);
+  --ring: var(--ma-focus);
+  --radius: .65rem;
+}

@@ -1,4 +1,6 @@
 import "@/app/index.css";
+import "@/design/mapable-independence/styles.css";
+import "@/design/mapable-independence/next-brand.css";
 import "leaflet/dist/leaflet.css";
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -75,9 +77,9 @@ export const metadata: Metadata = {
   // `alternates.canonical` relative to `metadataBase` so each path resolves
   // to https://mapable.com.au/<path>.
   icons: {
-    icon: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/svg+xml" }],
-    shortcut: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/svg+xml" }],
-    apple: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/svg+xml" }],
+    icon: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/png" }],
+    shortcut: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/png" }],
+    apple: [{ url: MAPABLE_LOGO_MARK_SRC, type: "image/png" }],
   },
   openGraph: {
     type: "website",

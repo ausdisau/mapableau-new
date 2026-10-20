@@ -86,7 +86,7 @@ export function MarketingPrimaryNav() {
   return (
     <div
       ref={navRef}
-      className="relative flex w-full items-center justify-between gap-4"
+      className="relative flex w-full flex-wrap items-center justify-between gap-4"
     >
       <MapAbleBrandLockup
         href={marketingFeatureRoutes.home}

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="MapAble Guided Independence: a design-system reference. All examples are illustrative.">
+  <title>MapAble — Guided independence / Design system</title>
+  <style>
+  /*__SYSTEM_CSS__*/
+  body { margin: 0; }
+  .mapable-system { min-height: 100dvh; }
+  .reference-header { border-bottom: 1px solid hsl(var(--ma-rule)); padding: 1rem clamp(1.25rem,5vw,5rem); display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+  .reference-header strong { font-size: 1.2rem; letter-spacing: -.04em; }
+  .reference-header .edition { font-family: var(--ma-font-mono); font-size: .75rem; color: hsl(var(--ma-muted)); }
+  .reference-layout { max-width: 1540px; margin: auto; display: grid; grid-template-columns: 180px minmax(0,1fr); gap: clamp(2rem,5vw,5rem); padding: 0 clamp(1.25rem,5vw,5rem); }
+  .reference-nav { align-self: start; position: sticky; top: 1.5rem; padding-top: 3rem; }
+  .reference-nav ol { list-style: none; padding: 0; margin: 1.2rem 0; }
+  .reference-nav a { display: flex; gap: .8rem; min-height: 44px; align-items: center; text-decoration: none; font-size: .875rem; color: hsl(var(--ma-muted)); }
+  .reference-nav a:hover { color: hsl(var(--ma-primary)); text-decoration: underline; }
+  .reference-nav a span { font: .7rem var(--ma-font-mono); opacity: .8; }
+  .reference-nav .nav-note { font-size: .8rem; max-width: 16ch; padding-top: 1.5rem; border-top: 1px solid hsl(var(--ma-rule)); color: hsl(var(--ma-muted)); }
+  .reference-main { min-width: 0; }
+  .reference-hero { padding: 4rem 0 3rem; display: grid; grid-template-columns: minmax(0,1fr) minmax(220px,32%); gap: 2rem; align-items: center; }
+  .reference-hero h1 { margin: 1.2rem 0; }
+  .reference-hero .intro { max-width: 40ch; font-size: 1.15rem; color: hsl(var(--ma-muted)); }
+  .brand-plate { background: #fff; padding: .7rem; border-radius: 1rem; border: 1px solid hsl(var(--ma-rule)); }
+  .brand-plate img { width: 100%; height: auto; display: block; }
+  .brand-plate figcaption { color: #354153; background: #fff; font: .65rem var(--ma-font-mono); text-align: center; padding: .75rem .5rem .25rem; }
+  .principle-strip { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; font-size: .85rem; color: hsl(var(--ma-primary)); padding: 1rem 0; border-block: 1px solid hsl(var(--ma-rule)); }
+  .principle-strip span::before { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-right: .5rem; border-radius: 50%; background: hsl(var(--ma-gold)); }
+  .reference-controls { margin-top: 1.5rem; padding: 1rem 1.2rem; border: 1px solid hsl(var(--ma-rule)); border-radius: 1rem; display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: end; background: hsl(var(--ma-surface)); }
+  .reference-controls label { display: grid; gap: .25rem; font-size: .8rem; font-weight: 700; }
+  .reference-controls select { width: auto; min-width: 10rem; }
+  .reference-controls .toggle { display: flex; align-items: center; gap: .6rem; min-height: 48px; }
+  .reference-controls input { width: 22px; height: 22px; accent-color: hsl(var(--ma-primary)); }
+  .reference-section { padding: 4rem 0; border-bottom: 1px solid hsl(var(--ma-rule)); scroll-margin-top: 2rem; }
+  .section-heading { display: grid; grid-template-columns: minmax(0,1fr) minmax(180px,34%); gap: 1.5rem; align-items: end; margin-bottom: 2rem; }
+  .section-heading h2 { margin-top: .6rem; }
+  .section-heading p:last-child { color: hsl(var(--ma-muted)); font-size: .95rem; }
+  .split { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.3rem; }
+  .wide-gap { gap: 2.5rem; }
+  .inset { padding: 1.5rem; border-radius: 1rem; background: hsl(var(--ma-tint)); }
+  .statement { font-family: var(--ma-font-display); font-size: clamp(1.6rem,3vw,2.3rem); line-height: 1.3; }
+  .reference-list { margin: 0; padding-left: 1.2rem; }
+  .reference-list li + li { margin-top: .6rem; }
+  .token-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .8rem; }
+  .token { border: 1px solid hsl(var(--ma-rule)); border-radius: .9rem; overflow: hidden; background: hsl(var(--ma-surface)); }
+  .swatch { height: 92px; background: hsl(var(--swatch)); border-bottom: 1px solid hsl(var(--ma-rule)); }
+  .token-info { padding: .8rem; display: grid; gap: .2rem; }
+  .token-info strong { font-size: .85rem; }
+  .token-info code { font: .7rem var(--ma-font-mono); color: hsl(var(--ma-muted)); }
+  .token-info p { font-size: .75rem; }
+  .reference-code { font: .8rem/1.7 var(--ma-font-mono); background: hsl(var(--ma-tint)); padding: 1rem; border-radius: .7rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .type-specimen { display: grid; grid-template-columns: 110px minmax(0,1fr); gap: 1.5rem; padding: 1.5rem 0; border-bottom: 1px solid hsl(var(--ma-rule)); align-items: baseline; }
+  .type-specimen code { font: .7rem var(--ma-font-mono); color: hsl(var(--ma-muted)); }
+  .type-specimen .type-large { font-family: var(--ma-font-display); font-size: clamp(2rem,4vw,3.2rem); line-height: 1.15; }
+  .example-label { display: block; font-family: var(--ma-font-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--ma-muted)); margin-bottom: 1rem; }
+  .specimen-group { display: grid; gap: 1.3rem; }
+  .specimen-group > div + div { padding-top: 1.3rem; border-top: 1px solid hsl(var(--ma-rule)); }
+  .reference-feedback { min-height: 1.8rem; font-size: .9rem; color: hsl(var(--ma-primary)); }
+  .state-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; }
+  .state-grid .ma-panel { border-radius: 1rem; }
+  .consent-heading { padding-bottom: 1rem; border-bottom: 1px solid hsl(var(--ma-rule)); }
+  .consent-details { display: grid; grid-template-columns: 100px minmax(0,1fr); gap: .6rem 1rem; margin: 0; }
+  .consent-details dt { color: hsl(var(--ma-muted)); }
+  .consent-details dd { margin: 0; }
+  .small-print { font-size: .85rem; color: hsl(var(--ma-muted)); }
+  .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  details { border-block: 1px solid hsl(var(--ma-rule)); padding: 1rem 0; }
+  summary { cursor: pointer; min-height: 44px; font-weight: 700; padding: .5rem 0; }
+  details > p { margin-top: 1rem !important; }
+  .reference-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 2rem 0 3rem; color: hsl(var(--ma-muted)); font-size: .8rem; }
+  @media (max-width: 1050px) { .reference-layout { grid-template-columns: 135px minmax(0,1fr); gap: 2rem; } .reference-hero { grid-template-columns: 1fr 230px; } .token-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+  @media (max-width: 767px) {
+    .reference-layout { display: block; }
+    .reference-nav { position: static; padding-top: 1rem; }
+    .reference-nav ol { display: flex; flex-wrap: wrap; gap: 0 1rem; margin: 0; }
+    .reference-nav .ma-eyebrow, .reference-nav .nav-note { display: none; }
+    .reference-hero, .section-heading, .split, .state-grid, .rules-grid { grid-template-columns: 1fr; }
+    .reference-hero { padding-top: 2rem; }
+    .brand-plate { max-width: 320px; }
+    .reference-header { align-items: start; }
+    .reference-header .edition { max-width: 15ch; text-align: right; }
+    .reference-section { padding: 2.7rem 0; }
+    .type-specimen { grid-template-columns: 1fr; gap: .6rem; }
+    .consent-details { grid-template-columns: 1fr; gap: .2rem; }
+    .consent-details dd { margin-bottom: .6rem; }
+  }
+  @media print { .reference-nav, .reference-controls, .reference-header, .ma-skip { display: none; } .reference-layout { display: block; } .reference-section { break-inside: avoid; padding: 1.5rem 0; } }
+  </style>
+</head>
+<body class="mapable-system" data-ma-theme="light">
+  <a class="ma-button ma-skip" href="#main">Skip to design reference</a>
+  <header class="reference-header">
+    <div><strong>MapAble</strong> <span class="ma-muted">/ Design system</span></div>
+    <span class="edition">GUIDED INDEPENDENCE<br>REFERENCE 01 · v1.0</span>
+  </header>
+  <div class="reference-layout">
+    <nav class="reference-nav" aria-label="Design reference sections">
+      <p class="ma-eyebrow">The foundations</p>
+      <ol>
+        <li><a href="#principles"><span>01</span> Our approach</a></li>
+        <li><a href="#colour"><span>02</span> Colour & tokens</a></li>
+        <li><a href="#type"><span>03</span> Type & rhythm</a></li>
+        <li><a href="#components"><span>04</span> Components</a></li>
+        <li><a href="#states"><span>05</span> Every state</a></li>
+        <li><a href="#consent"><span>06</span> Choice & authority</a></li>
+        <li><a href="#access"><span>07</span> Access by default</a></li>
+        <li><a href="#implementation"><span>08</span> Build with it</a></li>
+      </ol>
+      <p class="nav-note">More possibility.<br>Less uncertainty.</p>
+    </nav>
+    <main id="main" class="reference-main" tabindex="-1">
+      <section class="reference-hero" aria-labelledby="reference-title">
+        <div>
+          <p class="ma-eyebrow">One identity. Many ways forward.</p>
+          <h1 id="reference-title">Life, on your<br>own terms.</h1>
+          <p class="intro">A welcoming, capable design language for independent lives. Clear choices. Visible permission. Real people alongside you.</p>
+        </div>
+        <figure class="brand-plate">
+          <img src="__LOGO_DATA_URL__" alt="MapAble — Empowering Independence" width="1254" height="1254">
+          <figcaption>THE ORIGINAL ARTWORK · COMPLETE & UNALTERED</figcaption>
+        </figure>
+      </section>
+      <div class="principle-strip"><span>Care</span><span>Transport</span><span>Jobs</span><span>Accessible places</span><span>Human coordination</span></div>
+      <div class="reference-controls" role="group" aria-label="Reference appearance">
+        <label for="theme">Colour theme
+          <select id="theme" class="ma-input"><option value="light">Daylight</option><option value="dark">Evening</option><option value="contrast">High contrast</option><option value="system">Use device setting</option></select>
+        </label>
+        <label class="toggle" for="readable"><input type="checkbox" id="readable"> Readable type</label>
+        <label class="toggle" for="motion"><input type="checkbox" id="motion"> Reduce motion</label>
+      </div>
+      <p class="small-print" style="margin-top:.8rem">Design-system reference only. All people, permissions and component examples below are illustrative, not live service data. Appearance controls affect this document only.</p>
+
+      <section id="principles" class="reference-section" aria-labelledby="principles-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">01 / Our approach</p><h2 id="principles-title">Confidence, not complexity.</h2></div><p>Disabled participants are decision-makers. The interface should reflect that, at every step.</p></div>
+        <div class="split wide-gap">
+          <div class="inset ma-stack"><p class="statement">“Support my next step.<br>Don’t decide it for me.”</p><p class="small-print">A design principle, not a participant testimonial.</p></div>
+          <ol class="reference-list"><li><strong>Make the next step clear.</strong> Use plain language and one clear primary action.</li><li><strong>Make permission specific.</strong> Say who receives what, why, and for how long.</li><li><strong>Keep a person in reach.</strong> Automation never implies authority or replaces safeguarding.</li><li><strong>Design for different ways of using.</strong> Keyboard, touch, zoom, assistive technology and time to think.</li></ol>
+        </div>
+        <details style="margin-top:2rem"><summary>The logo is an artwork, not a kit of parts</summary><p>Keep the supplied square image whole, including its white background, gradient pin, landscape, wordmark and tagline. Never crop it into an icon, remove the background or rebuild the tagline. Give it space. If a compact header cannot fit the complete artwork legibly, change the layout—not the logo.</p></details>
+      </section>
+
+      <section id="colour" class="reference-section" aria-labelledby="colour-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">02 / Colour & tokens</p><h2 id="colour-title">Rooted in the artwork.</h2></div><p>Blue leads. Violet supports. Orange and gold bring warmth—not instructions that rely on colour alone.</p></div>
+        <div class="token-grid">
+          <article class="token"><div class="swatch" style="--swatch:var(--ma-primary)"></div><div class="token-info"><strong>Action blue</strong><code>--ma-primary</code><code data-token-value="primary"></code><p>Decisions & links</p></div></article>
+          <article class="token"><div class="swatch" style="--swatch:var(--ma-violet)"></div><div class="token-info"><strong>Supporting violet</strong><code>--ma-violet</code><code data-token-value="violet"></code><p>Authority & context</p></div></article>
+          <article class="token"><div class="swatch" style="--swatch:var(--ma-orange)"></div><div class="token-info"><strong>Journey orange</strong><code>--ma-orange</code><code data-token-value="orange"></code><p>Decorative warmth</p></div></article>
+          <article class="token"><div class="swatch" style="--swatch:var(--ma-gold)"></div><div class="token-info"><strong>Possibility gold</strong><code>--ma-gold</code><code data-token-value="gold"></code><p>Highlight, not body text</p></div></article>
+        </div>
+        <div class="split" style="margin-top:1.5rem">
+          <div class="ma-panel ma-stack"><h3>Colour has a job.</h3><p>Actions use blue. Authority context uses violet with a label. Warnings use dark amber on a pale gold surface. Errors use a dedicated red, never the logo’s orange.</p><p class="small-print">These are accessible UI derivatives, not a claim to reproduce individual pixels of the original gradient.</p></div>
+          <div class="ma-stack"><div class="ma-notice"><strong>Information</strong><p>You can review your choices before anything is shared.</p></div><div class="ma-notice" data-tone="warning"><strong>Check before continuing</strong><p>A coordinator’s access needs separate permission.</p></div><div class="reference-code">color: hsl(var(--ma-text));
+background: hsl(var(--ma-surface));
+border-color: hsl(var(--ma-border));</div></div>
+        </div>
+        <details style="margin-top:1.5rem"><summary>All semantic colours in the selected theme</summary><div class="reference-code" id="semantic-values" style="margin-top:1rem"></div></details>
+      </section>
+
+      <section id="type" class="reference-section" aria-labelledby="type-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">03 / Type & rhythm</p><h2 id="type-title">Warmth with precision.</h2></div><p>Georgia’s editorial warmth meets a humanist interface stack. No font download required.</p></div>
+        <div class="type-specimen"><code>DISPLAY<br>Georgia · 500<br>fluid / 1.14</code><p class="type-large">Your direction.<br>Your next step.</p></div>
+        <div class="type-specimen"><code>BODY<br>Avenir Next →<br>Trebuchet MS</code><div><p style="font-size:1.125rem;max-width:48ch">Choose support that works for you. We’ll tell you what happens next, and who can help if something changes.</p><p class="small-print" style="margin-top:.7rem">16px base · 1.65 line height · comfortable line lengths</p></div></div>
+        <div class="type-specimen"><code>UTILITY<br>System monospace</code><div><p class="ma-eyebrow">Illustrative permission record</p><p style="font: .85rem var(--ma-font-mono);margin-top:.6rem">Authority: not yet verified · Sharing: off</p></div></div>
+        <div class="split" style="margin-top:1.5rem"><p><strong>Room to understand.</strong> A 4px base with 8, 12, 16, 24, 32, 48, 64 and 96px steps. Use tighter spacing within a choice; more space between decisions.</p><p><strong>Readable mode.</strong> Switches both headings and body to Atkinson Hyperlegible if locally available, then Verdana. It is a preference—not a promise that one font suits every disability.</p></div>
+      </section>
+
+      <section id="components" class="reference-section" aria-labelledby="components-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">04 / Components</p><h2 id="components-title">Clear by construction.</h2></div><p>Native controls, generous targets and states that tell the truth.</p></div>
+        <div class="split">
+          <div class="ma-panel specimen-group">
+            <div><span class="example-label">Illustrative / Action hierarchy</span><div class="ma-row"><button class="ma-button" data-demo="Primary action">Review choices</button><button class="ma-button" data-variant="secondary" data-demo="Secondary action">Ask a person</button><button class="ma-button" data-variant="quiet" data-demo="Quiet action">Not now</button></div></div>
+            <div><span class="example-label">Illustrative / Disabled & busy</span><div class="ma-row"><button class="ma-button" disabled>Permission needed</button><button class="ma-button" disabled aria-busy="true">Saving choice…</button></div><p class="ma-help" style="margin-top:.6rem">Disabled actions need a visible reason. Busy text names the work.</p></div>
+            <div><span class="example-label">Illustrative / Status labels</span><div class="ma-row"><span class="ma-badge">Choice recorded</span><span class="ma-badge" data-tone="authority">Authority unverified</span><span class="ma-badge" data-tone="warning">Review needed</span></div></div>
+          </div>
+          <div class="ma-panel ma-stack">
+            <span class="example-label">Illustrative / Input anatomy</span>
+            <div class="ma-field"><label class="ma-label" for="example-name">Preferred name</label><p id="name-hint" class="ma-help">What would you like us to call you? Use a fictional name here.</p><input class="ma-input" id="example-name" aria-describedby="name-hint" placeholder="Your preferred name" autocomplete="off"></div>
+            <div class="ma-field"><label class="ma-label" for="example-email">Email address (required)</label><input class="ma-input" id="example-email" type="email" value="example" aria-invalid="true" aria-describedby="email-error" autocomplete="off"><p id="email-error" class="ma-error">Error: include an @ and a domain, for example name@example.org.</p></div>
+            <p class="ma-help">Static error specimen. This document does not submit personal details.</p>
+          </div>
+        </div>
+        <p id="demo-feedback" class="reference-feedback" role="status" style="margin-top:1rem">Try a specimen button. Nothing will be sent or saved.</p>
+      </section>
+
+      <section id="states" class="reference-section" aria-labelledby="states-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">05 / Every state</p><h2 id="states-title">No dead ends.</h2></div><p>Keep context visible while loading. Explain the gap. Offer a real recovery path.</p></div>
+        <div class="state-grid">
+          <div class="ma-panel ma-stack"><span class="example-label">Illustrative / Loading skeleton</span><h3>Finding the details</h3><div class="ma-skeleton" aria-hidden="true"></div><div class="ma-skeleton" style="width:75%" aria-hidden="true"></div><div class="ma-skeleton" style="width:45%" aria-hidden="true"></div><p class="ma-help">No endless pulse. The host announces actual loading with a status region.</p></div>
+          <div class="ma-panel ma-stack"><span class="example-label">Illustrative / Empty</span><h3>No choices recorded yet.</h3><p class="ma-muted">Start when you’re ready. You can ask someone to talk through the options first.</p><div><button class="ma-button" data-variant="secondary" data-demo="Empty-state action">Explore the options</button></div></div>
+          <div class="ma-panel ma-stack"><span class="example-label">Illustrative / Recoverable error</span><div class="ma-notice" data-tone="danger"><strong>We couldn’t load these details.</strong><p>Your choices haven’t changed. Please try again or ask a coordinator for help.</p></div><div><button id="retry-demo" class="ma-button" data-variant="secondary">Try recovery example</button></div><p id="retry-result" class="ma-help" role="status">A local demonstration, not a network request.</p></div>
+          <div class="ma-panel ma-stack"><span class="example-label">Illustrative / Destructive action</span><h3>Pause before removing.</h3><p class="ma-muted">Explain the consequence and provide a way back. Never hide removal behind a vague label.</p><details><summary>Review removal example</summary><p>This is where a host would identify the record and explain the effect. No record exists in this reference.</p><button class="ma-button" data-variant="danger" data-demo="Removal specimen" style="margin-top:1rem">Demonstrate removal state</button></details></div>
+        </div>
+      </section>
+
+      <section id="consent" class="reference-section" aria-labelledby="consent-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">06 / Choice & authority</p><h2 id="consent-title">Permission is specific.</h2></div><p>A relationship is not blanket authority. Consent, authority verification and coordination are different things.</p></div>
+        <div class="split">
+          <form id="consent-demo" class="ma-panel ma-stack">
+            <div class="consent-heading"><span class="example-label">Illustrative only / Local consent pattern</span><h3>Share access preferences?</h3></div>
+            <dl class="consent-details"><dt>With whom</dt><dd>Harbour Transport — fictional provider</dd><dt>What</dt><dd>Step-free access and boarding preferences only</dd><dt>Why</dt><dd>To help plan one requested journey</dd><dt>Until</dt><dd>The end of that journey, or until withdrawn</dd><dt>Not included</dt><dd>Health records, funding details or other journeys</dd></dl>
+            <label class="ma-choice" for="consent-choice"><input id="consent-choice" type="checkbox" aria-describedby="consent-description"><span><strong>I agree to this specific sharing.</strong><small id="consent-description">Optional. You can say no or withdraw later. Nothing in this reference is actually shared.</small></span></label>
+            <div class="ma-row"><button class="ma-button" type="submit">Review my example choice</button><button class="ma-button" data-variant="quiet" type="reset">Reset example</button></div>
+            <p id="consent-result" class="ma-help" role="status">Example sharing is off. No choice has been recorded.</p>
+          </form>
+          <div class="ma-stack">
+            <div class="ma-notice"><strong>Consent is not a pre-ticked box.</strong><p>Keep choices separate. Explain refusal, withdrawal and any service impact honestly. Never infer agreement from silence.</p></div>
+            <div class="ma-panel ma-stack"><span class="ma-badge" data-tone="authority">Authority not verified</span><h3>A coordinator can help.<br>They cannot assume.</h3><p>Show who is acting, on whose behalf, and the scope and expiry of verified authority. A support relationship alone does not grant permission.</p><p class="small-print">Production needs server-side checks and an auditable record. A badge, checkbox or chatbot response cannot confer authority.</p></div>
+            <p class="small-print">Accessible places: show the source, review date and any uncertainty for access information. “Step-free” does not mean every access need is met.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="access" class="reference-section" aria-labelledby="access-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">07 / Access by default</p><h2 id="access-title">Different needs.<br>Equal consideration.</h2></div><p>Accessibility is a continuous practice, not a theme switch or a compliance badge.</p></div>
+        <div class="rules-grid">
+          <div class="ma-stack"><h3>Interaction</h3><ul class="reference-list"><li>48px minimum control targets; let labels wrap.</li><li>Visible, offset focus that does not depend on gold on cream.</li><li>Every field has a label and associated help or error text.</li><li>Never communicate risk or permission through colour alone.</li><li>Use native keyboard behaviour; no custom shortcut traps.</li></ul></div>
+          <div class="ma-stack"><h3>Perception & comfort</h3><ul class="reference-list"><li>Normal text pairs checked at 4.5:1 or better.</li><li>Readable font and line-height preferences.</li><li>Reduced-motion support; no animated loading pulse.</li><li>Forced-colour outlines and borders remain visible.</li><li>Responsive reflow; check 200% text and 400% zoom in the consuming page.</li></ul></div>
+        </div>
+        <div class="ma-notice" style="margin-top:2rem"><strong>Try the keyboard.</strong><p>Tab through the appearance controls, open a disclosure with Enter or Space, and explore the example choices. Native focus order follows the reading order.</p></div>
+      </section>
+
+      <section id="implementation" class="reference-section" aria-labelledby="implementation-title">
+        <div class="section-heading"><div><p class="ma-eyebrow">08 / Build with it</p><h2 id="implementation-title">One considered foundation.</h2></div><p>Framework-neutral React. Scoped CSS. A deliberate migration—not a silent replacement.</p></div>
+        <div class="split"><div class="ma-stack"><h3>Opt in, don’t overwrite.</h3><p>Import the stylesheet once from the Next.js root layout. Wrap the intended surface in <code>.mapable-system</code>. Choose a theme on that same element.</p><div class="reference-code">&lt;section className="mapable-system"
+  data-ma-theme="light"&gt;
+  &lt;Button&gt;Review choices&lt;/Button&gt;
+&lt;/section&gt;</div></div><div class="ma-stack"><h3>Integrate with care.</h3><p>The canonical app currently has teal/green tokens and separate compact logo treatments. Those are not modified here. An optional shadcn bridge maps inherited semantic tokens for an opted-in subtree.</p><p>The original square artwork needs more header space than the old compact lockup. Deploy the byte-identical asset; don’t squeeze, crop or rebuild it.</p></div></div>
+        <details style="margin-top:2rem"><summary>Source, build and limitations</summary><p>Source lives in <code>design/mapable-independence/</code>. Read <code>docs/AGENTS.md</code> before making another artifact. Run <code>node design/mapable-independence/build.mjs --check</code> to check tokens, source/asset parity and contrast pairs. React primitives require React 18+ and existing React types. Backend consent enforcement, authority verification, audit persistence, help routing and real status announcements belong to the host application.</p></details>
+      </section>
+      <footer class="reference-footer"><p>MapAble / Empowering Independence</p><p>Design reference · Original artwork preserved · Examples are illustrative</p><a href="#main">Back to the beginning</a></footer>
+    </main>
+  </div>
+  <script type="application/json" id="mapable-tokens">__TOKENS_JSON__</script>
+  <script>
+    (() => {
+      const root = document.body;
+      const tokens = JSON.parse(document.getElementById("mapable-tokens").textContent);
+      const theme = document.getElementById("theme");
+      const dark = window.matchMedia("(prefers-color-scheme: dark)");
+      const contrast = window.matchMedia("(prefers-contrast: more)");
+      function updateValues() {
+        const selected = theme.value === "system" ? (contrast.matches ? "contrast" : dark.matches ? "dark" : "light") : theme.value;
+        const values = tokens.themes[selected];
+        document.querySelectorAll("[data-token-value]").forEach(node => { node.textContent = values[node.dataset.tokenValue].toUpperCase(); });
+        document.getElementById("semantic-values").textContent = Object.entries(values).map(([key,value]) => "--ma-" + key + ": " + value.toUpperCase()).join("\n");
+      }
+      theme.addEventListener("change", () => { root.dataset.maTheme = theme.value; updateValues(); });
+      dark.addEventListener("change", updateValues);
+      contrast.addEventListener("change", updateValues);
+      document.getElementById("readable").addEventListener("change", event => { root.dataset.maFont = event.target.checked ? "readable" : "default"; });
+      document.getElementById("motion").addEventListener("change", event => { root.dataset.maMotion = event.target.checked ? "reduce" : "default"; });
+      document.querySelectorAll("[data-demo]").forEach(button => button.addEventListener("click", () => {
+        document.getElementById("demo-feedback").textContent = button.dataset.demo + " demonstrated. No information was sent, saved or removed.";
+      }));
+      const form = document.getElementById("consent-demo");
+      const consentResult = document.getElementById("consent-result");
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        consentResult.textContent = document.getElementById("consent-choice").checked
+          ? "Illustrative review: you selected specific sharing. A real service must confirm and record this choice securely. Nothing was shared."
+          : "Illustrative review: you did not agree. Sharing stays off. Nothing was sent or saved.";
+      });
+      form.addEventListener("reset", () => { consentResult.textContent = "Example reset. Sharing is off. Nothing was recorded."; });
+      document.getElementById("retry-demo").addEventListener("click", () => {
+        document.getElementById("retry-result").textContent = "Recovery example complete. In production, retry the failed request and announce its actual result.";
+      });
+      updateValues();
+    })();
+  </script>
+</body>
+</html>

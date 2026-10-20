@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import {
   MAPABLE_BRAND_TAGLINE,
-  MAPABLE_LOGO_WORDMARK_SRC,
+  MAPABLE_LOGO_SRC,
 } from "@/lib/brand/constants";
 
 vi.mock("next/link", () => ({
@@ -31,7 +31,7 @@ afterEach(() => {
 });
 
 describe("MapAbleBrandLockup", () => {
-  it("centers the wordmark and a width-fitted tagline pill", () => {
+  it("renders the complete original image without reconstructing a tagline", () => {
     const { container } = render(<MapAbleBrandLockup href="/" size="header" />);
 
     const link = screen.getByRole("link", {
@@ -41,11 +41,11 @@ describe("MapAbleBrandLockup", () => {
     expect(link.className).toMatch(/items-center/);
 
     const img = container.querySelector("img");
-    expect(img?.getAttribute("src")).toBe(MAPABLE_LOGO_WORDMARK_SRC);
-    expect(img?.className).toMatch(/object-center/);
-
-    const pill = screen.getByText(MAPABLE_BRAND_TAGLINE);
-    expect(pill.className).toMatch(/w-fit/);
-    expect(pill.className).toMatch(/rounded-full/);
+    expect(img?.getAttribute("src")).toBe(MAPABLE_LOGO_SRC);
+    expect(img?.getAttribute("width")).toBe("1254");
+    expect(img?.getAttribute("height")).toBe("1254");
+    expect(img?.getAttribute("alt")).toBe("MapAble — Empowering Independence");
+    expect(container.querySelectorAll("img")).toHaveLength(1);
+    expect(screen.queryByText(MAPABLE_BRAND_TAGLINE)).toBeNull();
   });
 });

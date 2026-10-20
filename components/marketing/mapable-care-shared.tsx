@@ -9,10 +9,9 @@ import type { GuidedSearchSessionFields } from "@/components/guided-search/types
 import { MarketingPrimaryNav } from "@/components/marketing/home/MarketingPrimaryNav";
 import { ArrowIcon, ChevronDown, SearchIcon } from "@/components/marketing/mapable-care-icons";
 import {
-  MAPABLE_LOGO_ALT,
-  MAPABLE_LOGO_MARK_SRC,
   MAPABLE_LOGO_SRC,
 } from "@/lib/brand/constants";
+import { MapAbleLogo as OriginalLogo } from "@/design/mapable-independence/MapAbleLogo";
 import {
   getFilteredResults,
   getPredictiveSuggestions,
@@ -100,31 +99,10 @@ export function LogoMark({
   compact?: boolean;
   className?: string;
 }) {
-  if (compact) {
-    return (
-      <img
-        src={MAPABLE_LOGO_MARK_SRC}
-        alt=""
-        aria-hidden
-        className={className ?? "h-9 w-9 shrink-0 object-contain"}
-        decoding="async"
-      />
-    );
-  }
-
   return (
-    <img
-      src={MAPABLE_LOGO_SRC}
-      alt={MAPABLE_LOGO_ALT}
-      width={754}
-      height={1008}
-      className={
-        className ??
-        "block h-14 w-auto max-h-[4.5rem] shrink-0 bg-transparent object-contain object-left sm:h-16"
-      }
-      decoding="async"
-      fetchPriority="high"
-    />
+    <span className={`mapable-system ma-brand-link inline-flex shrink-0 ${className ?? ""}`}>
+      <OriginalLogo src={MAPABLE_LOGO_SRC} size={compact ? 120 : 240} priority />
+    </span>
   );
 }
 

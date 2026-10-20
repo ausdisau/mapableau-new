@@ -1,0 +1,86 @@
+@import "./tokens.css";
+
+/* All rules are opt-in. No global reset, root variables or Tailwind dependency. */
+.mapable-system {
+  color: hsl(var(--ma-text));
+  background: hsl(var(--ma-background));
+  font-family: var(--ma-font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  color-scheme: light;
+  overflow-wrap: anywhere;
+}
+.mapable-system[data-ma-theme="dark"] { color-scheme: dark; }
+.mapable-system, .mapable-system * { box-sizing: border-box; }
+.mapable-system :where(h1,h2,h3,h4,p,figure) { margin: 0; }
+.mapable-system :where(h1,h2,h3,h4) { font-family: var(--ma-font-display); line-height: 1.14; font-weight: 500; text-wrap: balance; }
+.mapable-system :where(h1) { font-size: clamp(2.6rem,6vw,5.3rem); letter-spacing: -.045em; }
+.mapable-system :where(h2) { font-size: clamp(2rem,4vw,3.2rem); letter-spacing: -.035em; }
+.mapable-system :where(h3) { font-size: 1.65rem; }
+.mapable-system :where(a) { color: hsl(var(--ma-primary)); text-underline-offset: .22em; text-decoration-thickness: .1em; }
+.mapable-system :where(button,input,select,textarea) { font: inherit; }
+.mapable-system :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible {
+  outline: 3px solid hsl(var(--ma-focus));
+  outline-offset: 4px;
+  box-shadow: 0 0 0 3px hsl(var(--ma-surface));
+}
+.mapable-system .ma-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
+  min-height: 48px; min-width: 48px; padding: .65rem 1.2rem;
+  border: 1px solid transparent; border-radius: var(--ma-radius-control);
+  background: hsl(var(--ma-primary)); color: hsl(var(--ma-on-primary));
+  font-weight: 700; text-decoration: none; cursor: pointer;
+  transition: transform 160ms ease;
+}
+.mapable-system .ma-button:not(:disabled):not([aria-disabled="true"]):hover { background: hsl(var(--ma-primary-hover)); }
+.mapable-system .ma-button:not(:disabled):not([aria-disabled="true"]):active { transform: translateY(1px); }
+.mapable-system .ma-button[data-variant="secondary"] { color: hsl(var(--ma-primary)); background: hsl(var(--ma-surface)); border-color: hsl(var(--ma-border)); }
+.mapable-system .ma-button[data-variant="secondary"]:not(:disabled):hover { background: hsl(var(--ma-tint)); }
+.mapable-system .ma-button[data-variant="quiet"] { color: hsl(var(--ma-primary)); background: transparent; text-decoration: underline; text-underline-offset: .2em; }
+.mapable-system .ma-button[data-variant="quiet"]:not(:disabled):hover { background: hsl(var(--ma-tint)); }
+.mapable-system .ma-button[data-variant="danger"] { color: hsl(var(--ma-on-danger)); background: hsl(var(--ma-danger)); }
+.mapable-system .ma-button[data-variant="danger"]:not(:disabled):hover { background: hsl(var(--ma-danger-hover)); }
+.mapable-system .ma-button:disabled, .mapable-system .ma-button[aria-disabled="true"] { background: hsl(var(--ma-disabled-surface)); color: hsl(var(--ma-disabled-text)); border-color: hsl(var(--ma-border)); cursor: not-allowed; }
+.mapable-system .ma-panel { padding: clamp(1.25rem,3vw,2rem); background: hsl(var(--ma-surface)); border: 1px solid hsl(var(--ma-rule)); border-radius: var(--ma-radius-panel); }
+.mapable-system .ma-stack { display: grid; gap: 1rem; }
+.mapable-system .ma-row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.mapable-system .ma-muted { color: hsl(var(--ma-muted)); }
+.mapable-system .ma-eyebrow { font-family: var(--ma-font-body); font-size: .75rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.mapable-system .ma-badge { display: inline-flex; align-items: center; width: fit-content; gap: .4rem; padding: .22rem .7rem; font-size: .8rem; font-weight: 700; border-radius: 2rem; border: 1px solid currentColor; background: hsl(var(--ma-tint)); color: hsl(var(--ma-primary)); }
+.mapable-system .ma-badge[data-tone="authority"] { background: hsl(var(--ma-violet-tint)); color: hsl(var(--ma-violet)); }
+.mapable-system .ma-badge[data-tone="warning"] { background: hsl(var(--ma-gold-tint)); color: hsl(var(--ma-warning)); }
+.mapable-system .ma-badge[data-tone="danger"] { background: hsl(var(--ma-danger-tint)); color: hsl(var(--ma-danger)); }
+.mapable-system .ma-field { display: grid; gap: .4rem; }
+.mapable-system .ma-label { font-weight: 700; }
+.mapable-system .ma-input { min-height: 48px; width: 100%; padding: .65rem .9rem; border: 1px solid hsl(var(--ma-border)); border-radius: var(--ma-radius-control); background: hsl(var(--ma-surface)); color: hsl(var(--ma-text)); }
+.mapable-system .ma-input::placeholder { color: hsl(var(--ma-muted)); opacity: 1; }
+.mapable-system .ma-input[aria-invalid="true"] { border: 2px solid hsl(var(--ma-danger)); }
+.mapable-system .ma-input:disabled { background: hsl(var(--ma-disabled-surface)); color: hsl(var(--ma-disabled-text)); cursor: not-allowed; }
+.mapable-system .ma-help { font-size: .9rem; color: hsl(var(--ma-muted)); }
+.mapable-system .ma-error { font-size: .9rem; font-weight: 700; color: hsl(var(--ma-danger)); }
+.mapable-system .ma-notice { padding: 1rem 1.2rem; border-inline-start: 4px solid hsl(var(--ma-primary)); background: hsl(var(--ma-tint)); border-radius: 0 var(--ma-radius-control) var(--ma-radius-control) 0; }
+.mapable-system .ma-notice[data-tone="warning"] { border-color: hsl(var(--ma-warning)); background: hsl(var(--ma-gold-tint)); }
+.mapable-system .ma-notice[data-tone="danger"] { border-color: hsl(var(--ma-danger)); background: hsl(var(--ma-danger-tint)); }
+.mapable-system .ma-choice { display: flex; align-items: start; gap: .8rem; padding: 1rem; border: 1px solid hsl(var(--ma-border)); border-radius: var(--ma-radius-control); cursor: pointer; }
+.mapable-system .ma-choice input { flex: 0 0 auto; width: 24px; height: 24px; margin: .15rem 0 0; accent-color: hsl(var(--ma-primary)); }
+.mapable-system .ma-choice small { display: block; color: hsl(var(--ma-muted)); }
+.mapable-system .ma-logo { display: block; width: var(--ma-logo-size, 240px); max-width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; background: #fff; flex-shrink: 0; }
+.mapable-system .ma-skeleton { height: 1rem; border-radius: .3rem; background: hsl(var(--ma-rule)); }
+.mapable-system .ma-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.mapable-system .ma-skip { position: absolute; top: 1rem; left: 1rem; transform: translateY(-300%); z-index: 10; }
+.mapable-system .ma-skip:focus { transform: translateY(0); }
+.mapable-system[data-ma-font="readable"], html[data-a11y-font="readable"] .mapable-system, html[data-a11y-font="dyslexia-friendly"] .mapable-system {
+  --ma-font-body: "Atkinson Hyperlegible", Verdana, sans-serif;
+  --ma-font-display: "Atkinson Hyperlegible", Verdana, sans-serif;
+  letter-spacing: .025em; line-height: 1.8;
+}
+.mapable-system[data-ma-motion="reduce"] *, .mapable-system[data-ma-motion="reduce"] *::before, .mapable-system[data-ma-motion="reduce"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) {
+  .mapable-system *, .mapable-system *::before, .mapable-system *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  .mapable-system { color: CanvasText; background: Canvas; }
+  .mapable-system .ma-button, .mapable-system .ma-input, .mapable-system .ma-choice, .mapable-system .ma-badge, .mapable-system .ma-panel { border: 1px solid CanvasText; }
+  .mapable-system :focus-visible { outline: 3px solid Highlight; }
+  .mapable-system .ma-button:disabled { color: GrayText; }
+}
