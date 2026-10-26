@@ -70,7 +70,7 @@ describe("OpenTripMap Sydney place adapter", () => {
   it("uses fixed-host authenticated server fetch and returns only validated data", async () => {
     vi.stubEnv("OPENTRIPMAP_ENABLED", "true");
     vi.stubEnv("OPENTRIPMAP_API_KEY", "dummy-key");
-    const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => [raw] }));
+    const fetchMock = vi.fn(async (_url: string) => ({ ok: true, status: 200, json: async () => [raw] }));
     vi.stubGlobal("fetch", fetchMock);
     const results = await searchSydneyOpenTripMapPlaces({ query: "gallery", kind: "museums" });
     expect(results).toHaveLength(1);
