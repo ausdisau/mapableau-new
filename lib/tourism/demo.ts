@@ -3,6 +3,10 @@
  * Source links were reviewed 27 October 2026. This is not a venue inspection,
  * an AccessFit evaluation, an accessible-route certification, or a booking.
  */
+import { isOpenTripMapPlace, type OpenTripMapPlace } from "@/lib/tourism/open-trip-map";
+
+export const TOURISM_TRIP_STORAGE_KEY = "mapable-tourism-sydney-demo-v1";
+
 export type TourismNeed = "step-free" | "accessible-toilet";
 export type EvidenceStatus = "documented" | "requires-confirmation" | "unknown";
 
@@ -14,7 +18,9 @@ export type AccessFeature = {
 export type TourismPlace = {
   id: string;
   name: string;
-  category: "Arts" | "Landmarks" | "Museums" | "Wildlife";
+  category: "Arts" | "Landmarks" | "Museums" | "Wildlife" | "Other";
+  sourceType?: "opentripmap";
+  sourceId?: string;
   neighbourhood: string;
   address: string;
   description: string;
@@ -41,6 +47,8 @@ export type TourismTrip = {
   destination: "Sydney";
   days: TourismTripDay[];
   createdFrom: "local-demo";
+  /** Additional OpenTripMap snapshots are never treated as verified access evidence. */
+  externalPlaces?: TourismPlace[];
 };
 
 export const TOURISM_NEEDS: { id: TourismNeed; label: string; hint: string }[] = [
@@ -181,6 +189,7 @@ export function makeSydneyDemoTrip(dayCount = 3): TourismTrip {
     id: "sydney-demo",
     destination: "Sydney",
     createdFrom: "local-demo",
+    externalPlaces: [],
     days: Array.from({ length: count }, (_, index) => ({
       day: index + 1,
       title: dayPlan[index]?.title ?? "Your choice",
@@ -193,12 +202,30 @@ export function getTourismPlace(id: string): TourismPlace | undefined {
   return SYDNEY_TOURISM_PLACES.find((place) => place.id === id);
 }
 
+export function getTourismPlaceInTrip(trip: TourismTrip, id: string): TourismPlace | undefined {
+  return getTourismPlace(id) ?? trip.externalPlaces?.find((place) => place.id === id);
+}
+
 export function isTourismTrip(value: unknown): value is TourismTrip {
   if (typeof value !== "object" || value === null) return false;
   const trip = value as Partial<TourismTrip>;
   if (trip.id !== "sydney-demo" || trip.destination !== "Sydney" || !Array.isArray(trip.days)) return false;
   if (trip.days.length < 1 || trip.days.length > 5) return false;
+  const external = trip.externalPlaces ?? [];
+  if (!Array.isArray(external) || external.length > 30) return false;
   const validIds = new Set(SYDNEY_TOURISM_PLACES.map((place) => place.id));
+  for (const p of external) {
+    if (!p || typeof p !== "object" || typeof p.id !== "string" ||
+        !/^otm:[A-Za-z0-9_-]{1,64}$/.test(p.id) || validIds.has(p.id) ||
+        p.sourceType !== "opentripmap" ||
+        typeof p.name !== "string" || p.name.trim().length < 1 || p.name.length > 160 ||
+        typeof p.latitude !== "number" || !Number.isFinite(p.latitude) ||
+        typeof p.longitude !== "number" || !Number.isFinite(p.longitude) ||
+        p.latitude < -34.05 || p.latitude > -33.65 || p.longitude < 150.98 || p.longitude > 151.40 ||
+        p.stepFree?.status !== "unknown" || p.accessibleToilet?.status !== "unknown" ||
+        p.sourceUrl !== "https://dev.opentripmap.org/product") return false;
+    validIds.add(p.id);
+  }
   const allIds: string[] = [];
   for (const day of trip.days) {
     if (!day || !Number.isInteger(day.day) || typeof day.title !== "string" || !Array.isArray(day.stopIds)) return false;
@@ -215,7 +242,7 @@ export function moveTourismStop(
   toDay: number,
   targetIndex?: number,
 ): TourismTrip {
-  if (!getTourismPlace(stopId) || !trip.days.some((d) => d.day === toDay)) return trip;
+  if (!getTourismPlaceInTrip(trip, stopId) || !trip.days.some((d) => d.day === toDay)) return trip;
   const days = trip.days.map((day) => ({ ...day, stopIds: [...day.stopIds] }));
   const origin = days.find((d) => d.day === fromDay);
   const destination = days.find((d) => d.day === toDay);
@@ -234,11 +261,63 @@ export function removeTourismStop(trip: TourismTrip, stopId: string): TourismTri
 }
 
 export function addTourismStop(trip: TourismTrip, stopId: string, dayNumber: number): TourismTrip {
-  if (!getTourismPlace(stopId) || trip.days.some((day) => day.stopIds.includes(stopId))) return trip;
+  if (!getTourismPlaceInTrip(trip, stopId) || trip.days.some((day) => day.stopIds.includes(stopId))) return trip;
   return {
     ...trip,
     days: trip.days.map((day) => day.day === dayNumber
       ? { ...day, stopIds: [...day.stopIds, stopId] }
       : day),
+  };
+}
+
+
+/**
+ * Persist a small OpenTripMap place snapshot only after the participant adds
+ * it to a demo itinerary. OpenTripMap does not supply reliable accessibility
+ * measurements in the place-list response; both criteria are UNKNOWN.
+ */
+export function addOpenTripMapStop(
+  trip: TourismTrip,
+  place: OpenTripMapPlace,
+  dayNumber: number,
+): TourismTrip {
+  if (!isOpenTripMapPlace(place) || !trip.days.some((day) => day.day === dayNumber)) return trip;
+  if (place.latitude < -34.05 || place.latitude > -33.65 ||
+      place.longitude < 150.98 || place.longitude > 151.40) return trip;
+  const id = "otm:" + place.xid;
+  if (trip.days.some((day) => day.stopIds.includes(id))) return trip;
+  const existing = trip.externalPlaces?.find((p) => p.id === id);
+  if (!existing && (trip.externalPlaces?.length ?? 0) >= 30) return trip;
+  const external: TourismPlace = {
+    id,
+    sourceType: "opentripmap",
+    sourceId: place.xid,
+    name: place.name,
+    category: "Other",
+    neighbourhood: "Sydney · OpenTripMap",
+    address: "Exact accessible entrance and address not verified",
+    description: "Tourism point of interest from OpenTripMap. Check opening hours, entry, facilities and transport independently.",
+    latitude: place.latitude,
+    longitude: place.longitude,
+    experienceMinutes: 0,
+    recommendedDay: 0,
+    stepFree: {
+      status: "unknown",
+      detail: "No verified step-free entrance or circulation information supplied by OpenTripMap.",
+    },
+    accessibleToilet: {
+      status: "unknown",
+      detail: "No verified accessible-toilet information supplied by OpenTripMap.",
+    },
+    caution: "Step-free access, toilets, operating status and the whole transport route all require confirmation.",
+    sourceName: "OpenTripMap (OpenStreetMap / Wikimedia sources)",
+    sourceUrl: "https://dev.opentripmap.org/product",
+    checkedOn: place.retrievedAt.slice(0, 10),
+  };
+  return {
+    ...trip,
+    externalPlaces: existing ? trip.externalPlaces : [...(trip.externalPlaces ?? []), external],
+    days: trip.days.map((day) =>
+      day.day === dayNumber ? { ...day, stopIds: [...day.stopIds, id] } : day),
   };
 }
