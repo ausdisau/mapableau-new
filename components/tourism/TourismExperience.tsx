@@ -5,15 +5,15 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, CalendarDays, CheckCircle2, Compass, ExternalLink, Info, MapPinned, Plus, RotateCcw, Save, Trash2, Wheelchair } from "lucide-react";
 
 import {
-  addTourismStop, getTourismPlace, isTourismTrip, makeSydneyDemoTrip, moveTourismStop,
-  removeTourismStop, SYDNEY_TOURISM_PLACES, TOURISM_NEEDS,
+  addTourismStop, getTourismPlaceInTrip, isTourismTrip, makeSydneyDemoTrip, moveTourismStop,
+  removeTourismStop, SYDNEY_TOURISM_PLACES, TOURISM_NEEDS, TOURISM_TRIP_STORAGE_KEY,
   type TourismNeed, type TourismPlace, type TourismTrip,
 } from "@/lib/tourism/demo";
 import { TourismMap } from "@/components/tourism/TourismMap";
-
-const STORAGE_KEY = "mapable-tourism-sydney-demo-v1";
+import { OpenTripMapDiscovery } from "@/components/tourism/OpenTripMapDiscovery";
 
 function chip(status: string) {
+  if (status === "unknown") return <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800"><Info size={13} aria-hidden /> Access unknown</span>;
   return status === "documented"
     ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900"><CheckCircle2 size={13} aria-hidden /> Documented</span>
     : <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900"><Info size={13} aria-hidden /> Confirm access</span>;
@@ -43,7 +43,7 @@ function useDemoTrip() {
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
+      const saved = window.localStorage.getItem(TOURISM_TRIP_STORAGE_KEY);
       if (saved) {
         const parsed: unknown = JSON.parse(saved);
         if (isTourismTrip(parsed)) setTrip(parsed);
@@ -53,7 +53,7 @@ function useDemoTrip() {
   }, []);
   const save = (next: TourismTrip) => {
     setTrip(next);
-    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }
+    try { window.localStorage.setItem(TOURISM_TRIP_STORAGE_KEY, JSON.stringify(next)); }
     catch { /* The itinerary remains editable for this session. */ }
   };
   const reset = () => save(makeSydneyDemoTrip());
@@ -117,6 +117,7 @@ export function TourismDiscover() {
       <p role="status" className="text-sm text-slate-600">{visible.length} illustrative Sydney places</p>
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{visible.map(place=>card(place))}</div>
     </section>
+    <OpenTripMapDiscovery />
   </>);
 }
 
@@ -163,8 +164,8 @@ export function TourismItinerary() {
     <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.83fr)]">
       <section aria-labelledby="itinerary-day" className="space-y-4"><div>{eyebrow("At your pace")}<h2 id="itinerary-day" className="mt-2 text-2xl font-black">{day.title}</h2></div>
         {day.stopIds.length===0 && <p className="rounded-2xl border border-dashed border-slate-400 bg-white p-7">This day is free. Add an attraction below.</p>}
-        {day.stopIds.map((id,index)=>{const p=getTourismPlace(id);if(!p)return null;return <div key={id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#d7f5ef] font-black text-[#005b7f]">{index+1}</div><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase tracking-widest text-slate-500">{p.neighbourhood} · Suggested visit {Math.round(p.experienceMinutes/15)*15} min</p><h3 className="mt-1 text-xl font-black">{p.name}</h3><p className="mt-2 text-sm text-slate-600">{p.description}</p><div className="mt-3 flex flex-wrap gap-2">{chip(p.stepFree.status)}{chip(p.accessibleToilet.status)}</div><p className="mt-3 text-sm font-semibold text-amber-900">Check before travel: {p.caution}</p><Link className="mt-2 inline-block text-sm font-bold text-[#005b7f] underline" href={"/tourism/places/"+p.id}>View evidence and venue information</Link></div></div>
+        {day.stopIds.map((id,index)=>{const p=getTourismPlaceInTrip(trip,id);if(!p)return null;return <div key={id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#d7f5ef] font-black text-[#005b7f]">{index+1}</div><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase tracking-widest text-slate-500">{p.neighbourhood} · {p.experienceMinutes ? "Suggested visit " + Math.round(p.experienceMinutes/15)*15 + " min" : "Duration to confirm"}</p><h3 className="mt-1 text-xl font-black">{p.name}</h3><p className="mt-2 text-sm text-slate-600">{p.description}</p><div className="mt-3 flex flex-wrap gap-2">{chip(p.stepFree.status)}{chip(p.accessibleToilet.status)}</div><p className="mt-3 text-sm font-semibold text-amber-900">Check before travel: {p.caution}</p><Link className="mt-2 inline-block text-sm font-bold text-[#005b7f] underline" href={"/tourism/places/"+p.id}>View evidence and venue information</Link></div></div>
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
             <button disabled={index===0} onClick={()=>save(moveTourismStop(trip,day.day,id,day.day,index-1))} className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-3 text-sm font-semibold disabled:opacity-40"><ArrowUp size={16} aria-hidden/>Earlier</button>
             <button disabled={index===day.stopIds.length-1} onClick={()=>save(moveTourismStop(trip,day.day,id,day.day,index+1))} className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-3 text-sm font-semibold disabled:opacity-40"><ArrowDown size={16} aria-hidden/>Later</button>
@@ -173,15 +174,17 @@ export function TourismItinerary() {
           </div>
           <p className="mt-3 text-xs text-slate-500">Allow a break and independently confirm the journey between locations. No travel-time estimate is provided.</p>
         </div>})}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5"><h3 className="font-black">Add an attraction</h3><label htmlFor="add-tourism-stop" className="mt-3 block text-sm font-semibold">Choose an available place</label><select id="add-tourism-stop" className="mt-1 min-h-12 w-full rounded-xl border px-3" value={selection??""} onChange={e=>setSelection(e.target.value)}><option value="">Choose a place…</option>{SYDNEY_TOURISM_PLACES.filter(p=>!trip.days.some(d=>d.stopIds.includes(p.id))).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button disabled={!selection} onClick={()=>{if(selection)save(addTourismStop(trip,selection,day.day));setSelection(null);}} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#005b7f] px-5 font-bold text-white disabled:opacity-50"><Plus size={18} aria-hidden/> Add to day {day.day}</button></div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5"><h3 className="font-black">Add an attraction</h3><label htmlFor="add-tourism-stop" className="mt-3 block text-sm font-semibold">Choose an available place</label><select id="add-tourism-stop" className="mt-1 min-h-12 w-full rounded-xl border px-3" value={selection??""} onChange={e=>setSelection(e.target.value)}><option value="">Choose a place…</option>{[...SYDNEY_TOURISM_PLACES, ...(trip.externalPlaces ?? [])].filter(p=>!trip.days.some(d=>d.stopIds.includes(p.id))).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button disabled={!selection} onClick={()=>{if(selection)save(addTourismStop(trip,selection,day.day));setSelection(null);}} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#005b7f] px-5 font-bold text-white disabled:opacity-50"><Plus size={18} aria-hidden/> Add to day {day.day}</button></div>
       </section>
-      <aside className="space-y-4"><TourismMap places={day.stopIds.map(id=>getTourismPlace(id)).filter((p):p is TourismPlace=>Boolean(p))}/><div className="rounded-2xl bg-[#073451] p-5 text-white"><h3 className="text-xl font-black">Travel checks</h3><p className="mt-3 text-sm leading-relaxed text-white/90">Check station lifts, accessible buses or ferries, kerb ramps and drop-off locations. Attraction accessibility does not validate the travel route.</p><a href="https://transportnsw.info/trip" target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-bold underline">Transport for NSW Trip Planner<ExternalLink size={14} aria-hidden /></a></div></aside>
+      <aside className="space-y-4"><TourismMap places={day.stopIds.map(id=>getTourismPlaceInTrip(trip,id)).filter((p):p is TourismPlace=>Boolean(p))}/><div className="rounded-2xl bg-[#073451] p-5 text-white"><h3 className="text-xl font-black">Travel checks</h3><p className="mt-3 text-sm leading-relaxed text-white/90">Check station lifts, accessible buses or ferries, kerb ramps and drop-off locations. Attraction accessibility does not validate the travel route.</p><a href="https://transportnsw.info/trip" target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-bold underline">Transport for NSW Trip Planner<ExternalLink size={14} aria-hidden /></a></div></aside>
     </div>
   </div>);
 }
 
 export function TourismPlaceDetail({id}:{id:string}) {
-  const place=getTourismPlace(id);
+  const {trip, loaded}=useDemoTrip();
+  const place=getTourismPlaceInTrip(trip,id);
+  if(!place && !loaded)return frame(<div className="mx-auto max-w-5xl px-5 py-16" role="status">Loading saved place details…</div>);
   if(!place)return frame(<div className="mx-auto max-w-5xl px-5 py-16"><h1 className="text-3xl font-black">Place not found</h1><Link className="mt-4 inline-block underline" href="/tourism">Back to discovery</Link></div>);
   return frame(<div className="mx-auto max-w-6xl space-y-7 px-5 py-12 lg:px-8">
     <Link className="text-sm font-bold text-[#005b7f] underline" href="/tourism">← All Sydney places</Link>
