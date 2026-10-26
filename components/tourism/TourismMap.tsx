@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { getMapAttribution, getMapStyleUrl } from "@/lib/map/map-style";
 import type { TourismPlace } from "@/lib/tourism/demo";
 export function TourismMap({ places }: { places: TourismPlace[] }) {
