@@ -95,8 +95,9 @@ export function Action({
     accessibilityState={{ disabled, ...(selected === undefined ? {} : { selected }) }}
     disabled={disabled}
     onPress={onPress}
-    style={({ pressed }) => [S.button, primary && S.buttonPrimary, danger && S.buttonDanger,
-      disabled && S.buttonDisabled, pressed && !disabled && { opacity: 0.8 }]}
+    style={({ pressed, focused }) => [S.button, primary && S.buttonPrimary, danger && S.buttonDanger,
+      disabled && S.buttonDisabled, pressed && !disabled && { opacity: 0.8 },
+      focused && { borderWidth: 3, borderColor: "#E5A500" }]}
   ><Text style={[S.buttonText, primary && S.buttonTextPrimary, danger && !primary && S.buttonTextDanger]}>{label}</Text></Pressable>;
 }
 
@@ -111,7 +112,8 @@ export function Choice<T extends string>({
       {options.map(option => <Pressable key={option.value} onPress={() => onChange(option.value)}
         accessibilityRole="radio" accessibilityLabel={option.label}
         accessibilityState={{ checked: value === option.value }}
-        style={[S.chip, value === option.value && S.chipActive]}>
+        style={({ focused }) => [S.chip, value === option.value && S.chipActive,
+          focused && { borderWidth: 3, borderColor: "#B36A00" }]}>
         <Text style={[S.chipText, value === option.value && S.chipTextActive]}>{option.label}</Text>
       </Pressable>)}
     </View>
