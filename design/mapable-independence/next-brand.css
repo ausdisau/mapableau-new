@@ -1,0 +1,5 @@
+/* Canonical host adaptation. Keep the original image on its white background.
+   Do not opt entire legacy pages into editorial reference typography. */
+.mapable-system.ma-brand-link {
+  background: transparent;
+}

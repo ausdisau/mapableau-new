@@ -53,6 +53,10 @@ next-env.d.ts
 *~
 .project
 .classpath
+
+# Generated design references
+/generated-artifacts/
+/design/mapable-independence/reference.html
 .settings/
 *.sublime-project
 *.sublime-workspace
