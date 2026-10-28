@@ -77,6 +77,9 @@ export function MarketingPrimaryNav() {
       href: isHome ? "#pre-register" : "/#pre-register",
     },
     { label: "Places", href: "/accessibility-map" },
+    ...(process.env.NEXT_PUBLIC_MAPABLE_PLACES_PROTOTYPE_ENABLED === "true"
+      ? [{ label: "Places Lab", href: "/places" }]
+      : []),
     { label: "Guides", href: "/guides" },
     { label: "Transport", href: "/transport" },
     { label: "Providers", href: "/providers" },
