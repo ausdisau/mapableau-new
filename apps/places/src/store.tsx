@@ -50,6 +50,7 @@ export function PlacesProvider({ children }: { children: React.ReactNode }) {
               if (report.status === "prepared-for-review") dispatch({ type: "prepare-report", id: report.id });
             }
             for (const eventId of restored.interestEventIds) dispatch({ type: "toggle-interest", eventId });
+            for (const circleId of restored.joinedCircleIds) dispatch({ type: "toggle-circle", circleId });
             for (const post of restored.posts) {
               dispatch({ type: "save-post", post });
               if (post.status === "prepared-for-review") dispatch({ type: "prepare-post", id: post.id });
