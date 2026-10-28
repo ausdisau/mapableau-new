@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { FlatList, Linking, Text, View } from "react-native";
-import { useCatalog } from "../catalog";
-import type { EvidenceStatus, Place } from "../domain";
-import { usePlacesStore } from "../store";
-import { Action, Card, Choice, COLORS, Field, Heading, Notice, S } from "../ui";
+import { useCatalog } from "./catalog";
+import type { EvidenceStatus, Place } from "./domain";
+import { usePlacesStore } from "./store";
+import { Action, Card, Choice, COLORS, Field, Heading, Notice, S } from "./ui";
 
 type Filter = "all" | "step-free" | "toilet" | "needs-confirmation";
 
