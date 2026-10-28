@@ -1,15 +1,26 @@
 import type { Place } from "./domain";
 
 /**
- * The existing MapAble route GET /api/access/places returns published places.
+ * The MapAble integration route GET /api/places/prototype returns published places.
  * Fetch only with explicit public base configuration. No device coordinates,
  * account identifiers, disability preferences or place memories are sent.
  */
-const BASE = (process.env.EXPO_PUBLIC_MAPABLE_API_URL ?? "").trim().replace(/\/+$/, "");
+function configuredMapAbleOrigin(): string | null {
+  const value = (process.env.EXPO_PUBLIC_MAPABLE_API_URL ?? "").trim();
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.username || url.password || url.search || url.hash || url.pathname !== "/") return null;
+    const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname.toLowerCase());
+    if (url.protocol !== "https:" && !(url.protocol === "http:" && local)) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
 
 export function isMapAbleReadConfigured(): boolean {
-  return /^https:\/\/[^/\s]+$/i.test(BASE) ||
-    /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(BASE);
+  return configuredMapAbleOrigin() !== null;
 }
 
 export function parseMapAbleDirectoryResponse(raw: unknown, sourceUrl: string, today: string): Place[] {
@@ -34,7 +45,7 @@ export function parseMapAbleDirectoryResponse(raw: unknown, sourceUrl: string, t
       source: "mapable-directory",
       sourceLabel: "MapAble published place record",
       sourceReviewedAt: today,
-      sourceUrl,
+      sourceUrl: sourceUrl + "/places/" + encodeURIComponent(p.id),
       stepFree: {
         status: "unknown",
         detail: "This brief directory response does not include sufficient verified entrance measurements.",
@@ -52,7 +63,9 @@ export function parseMapAbleDirectoryResponse(raw: unknown, sourceUrl: string, t
 
 export async function fetchMapAblePublishedPlaces(): Promise<Place[]> {
   if (!isMapAbleReadConfigured()) return [];
-  const url = BASE + "/api/access/places";
+  const base = configuredMapAbleOrigin();
+  if (!base) return [];
+  const url = base + "/api/places/prototype";
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
@@ -64,7 +77,7 @@ export async function fetchMapAblePublishedPlaces(): Promise<Place[]> {
     if (!response.ok) throw new Error("MapAble places service unavailable");
     const raw: unknown = await response.json();
     return parseMapAbleDirectoryResponse(
-      raw, BASE + "/access", new Date().toISOString().slice(0, 10),
+      raw, base + "/access", new Date().toISOString().slice(0, 10),
     );
   } finally {
     clearTimeout(timer);
