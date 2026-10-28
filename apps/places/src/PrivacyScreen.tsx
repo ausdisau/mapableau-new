@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AccessibilityInfo, Share, Text, TextInput, View } from "react-native";
 import { useCatalog } from "./catalog";
 import { usePlacesStore } from "./store";
-import { Action, Card, Field, Heading, Notice, S, Screen } from "./ui";
+import { Action, Card, Heading, Notice, S, Screen } from "./ui";
 
 export function PrivacyScreen() {
   const { state, ready, storageMessage, resetAll } = usePlacesStore();
