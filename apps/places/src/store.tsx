@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useMemo, useReducer, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import {
   initialPlacesState, parseSavedState, reducePlacesState,
@@ -21,6 +21,7 @@ export function PlacesProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducePlacesState, initialPlacesState);
   const [ready, setReady] = useState(false);
   const [storageMessage, setStorageMessage] = useState("Loading local records…");
+  const writes = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     let active = true;
@@ -33,28 +34,7 @@ export function PlacesProvider({ children }: { children: React.ReactNode }) {
           try { parsed = JSON.parse(saved); } catch { parsed = null; }
           const restored = parseSavedState(parsed);
           if (restored) {
-            // Immutable restore without a second store: pure fields were validated.
-            dispatch({ type: "reset" });
-            for (const place of restored.savedPlaces) {
-              // Restore via an explicitly typed, non-networked action.
-              dispatch({ type: "toggle-saved", place: {
-                id: place.id, name: place.name, suburb: place.suburb,
-                category: "Saved", description: "", source: "illustrative",
-                sourceLabel: "", stepFree: { status: "unknown", detail: "" },
-                accessibleToilet: { status: "unknown", detail: "" }, caution: "",
-              }, at: place.savedAt });
-            }
-            for (const memory of restored.memories) dispatch({ type: "save-memory", memory });
-            for (const report of restored.reports) {
-              dispatch({ type: "save-report", report });
-              if (report.status === "prepared-for-review") dispatch({ type: "prepare-report", id: report.id });
-            }
-            for (const eventId of restored.interestEventIds) dispatch({ type: "toggle-interest", eventId });
-            for (const circleId of restored.joinedCircleIds) dispatch({ type: "toggle-circle", circleId });
-            for (const post of restored.posts) {
-              dispatch({ type: "save-post", post });
-              if (post.status === "prepared-for-review") dispatch({ type: "prepare-post", id: post.id });
-            }
+            dispatch({ type: "hydrate", state: restored });
             setStorageMessage("Saved records restored from this device.");
           } else {
             setStorageMessage("Local data could not be restored. An empty prototype is available.");
@@ -74,7 +54,13 @@ export function PlacesProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready) return;
     let cancelled = false;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).then(() => {
+    const snapshot = JSON.stringify(state);
+    // Serialise writes. Otherwise a slow earlier write could overwrite newer
+    // edits or a reset, losing data after an app restart.
+    writes.current = writes.current.catch(() => {}).then(async () => {
+      await AsyncStorage.setItem(STORAGE_KEY, snapshot);
+    });
+    void writes.current.then(() => {
       if (!cancelled) setStorageMessage("Saved on this device.");
     }).catch(() => {
       if (!cancelled) setStorageMessage("Could not save on this device; keep a copy if needed.");
@@ -85,7 +71,12 @@ export function PlacesProvider({ children }: { children: React.ReactNode }) {
   const resetAll = async () => {
     dispatch({ type: "reset" });
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      // The reset and all earlier edits share one ordered disk-write queue.
+      // A subsequent state effect persists only empty records.
+      writes.current = writes.current.catch(() => {}).then(async () => {
+        await AsyncStorage.removeItem(STORAGE_KEY);
+      });
+      await writes.current;
       setStorageMessage("Your saved places, private notes, reports and posts were cleared from this device.");
     } catch {
       setStorageMessage("Could not clear local storage; try again when storage is available.");
