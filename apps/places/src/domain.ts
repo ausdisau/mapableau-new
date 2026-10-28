@@ -79,7 +79,8 @@ export type PlacesAction =
   | { type: "save-post"; post: CommunityPost }
   | { type: "prepare-post"; id: string }
   | { type: "delete-post"; id: string }
-  | { type: "reset" };
+  | { type: "reset" }
+  | { type: "hydrate"; state: PlacesState };
 
 export const initialPlacesState: PlacesState = {
   version: 1,
@@ -142,6 +143,8 @@ export function reducePlacesState(state: PlacesState, action: PlacesAction): Pla
       return { ...state, posts: state.posts.filter((post) => post.id !== action.id) };
     case "reset":
       return { ...initialPlacesState };
+    case "hydrate":
+      return { ...action.state };
   }
 }
 
