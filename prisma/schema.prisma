@@ -35,6 +35,8 @@ model User {
   roleAssignments        UserRoleAssignment[]
   participantProfile     ParticipantProfile?
   accessibilityProfile   AccessibilityProfile?
+  dclmfMemoryAsParticipant DclmfMemoryRecord[] @relation("DclmfMemoryParticipant")
+  dclmfMemoryCreated       DclmfMemoryRecord[] @relation("DclmfMemoryCreatedBy")
   accessPassport         AccessPassport?
   organisationMemberships OrganisationMember[]
   consentsAsSubject      ConsentRecord[]    @relation("ConsentSubject")
@@ -785,6 +787,44 @@ model ParticipantProfile {
   adminNotes               String?
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
+}
+
+
+/// Disability-Centric Logic & Memory Fabric record.
+/// Context/evidence only: never creates consent, capacity, clinical indication,
+/// funding eligibility, legal authority, treatment limits, or organisational authority.
+model DclmfMemoryRecord {
+  id              String   @id @default(cuid())
+  participantId   String
+  participant     User     @relation("DclmfMemoryParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  category        String
+  payloadJson     Json?
+  payloadRef      String?
+  sourceType      String
+  sourceRef       String?
+  confidence      String
+  scope           String
+  dataClass       String
+  purposeTags     String[] @default([])
+  evidenceRefs    String[] @default([])
+  observedAt      DateTime?
+  validFrom       DateTime?
+  validUntil      DateTime?
+  supersedesId    String?
+  supersedes      DclmfMemoryRecord?  @relation("DclmfSupersession", fields: [supersedesId], references: [id], onDelete: SetNull)
+  supersededBy    DclmfMemoryRecord[] @relation("DclmfSupersession")
+  status          String   @default("active")
+  contestReason   String?
+  consentRecordId String?
+  createdById     String
+  createdBy       User     @relation("DclmfMemoryCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt       DateTime @default(now())
+
+  @@index([participantId, status, category])
+  @@index([participantId, createdAt])
+  @@index([supersedesId])
+  @@index([consentRecordId])
+  @@map("dclmf_memory_records")
 }
 
 model AccessibilityProfile {

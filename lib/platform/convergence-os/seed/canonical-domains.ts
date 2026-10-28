@@ -64,6 +64,19 @@ export const CANONICAL_DOMAIN_SEEDS: DomainSeed[] = [
     notes: "Not on main; rename target from Access Intelligence PRs",
   },
   {
+    domainKey: "participant.dc_lmf",
+    name: "Disability-Centric Logic & Memory Fabric",
+    purpose: "Purpose-limited person context, corrections, provenance and service projections",
+    canonicalModel: "DclmfMemoryRecord",
+    canonicalService: "lib/dc-lmf/",
+    canonicalApi: "/api/dc-lmf/",
+    owningProgramme: "MapAble Core",
+    authoritativePath: "prisma/schema.prisma",
+    status: "experimental",
+    notes:
+      "Default off; reuses ConsentRecord, ParticipantAuthorityGrant, ParticipantAccessReceipt and AuditEvent; memory never creates authority",
+  },
+  {
     domainKey: "participant.consent",
     name: "ConsentRecord",
     purpose: "Sharing and consent records",
