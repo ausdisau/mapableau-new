@@ -87,17 +87,36 @@ export function Action({
   label: string; onPress: () => void; primary?: boolean; danger?: boolean;
   disabled?: boolean; hint?: string; selected?: boolean;
 }) {
+  const [hasFocus, setHasFocus] = React.useState(false);
   return <Pressable
     accessibilityRole="button"
     accessibilityLabel={label}
     accessibilityHint={hint}
     accessibilityState={{ disabled, ...(selected === undefined ? {} : { selected }) }}
     disabled={disabled}
+    onFocus={() => setHasFocus(true)}
+    onBlur={() => setHasFocus(false)}
     onPress={onPress}
-    style={({ pressed, focused }) => [S.button, primary && S.buttonPrimary, danger && S.buttonDanger,
+    style={({ pressed }) => [S.button, primary && S.buttonPrimary, danger && S.buttonDanger,
       disabled && S.buttonDisabled, pressed && !disabled && { opacity: 0.8 },
-      focused && { borderWidth: 3, borderColor: "#E5A500" }]}
+      hasFocus && { borderWidth: 3, borderColor: "#E5A500" }]}
   ><Text style={[S.buttonText, primary && S.buttonTextPrimary, danger && !primary && S.buttonTextDanger]}>{label}</Text></Pressable>;
+}
+
+function RadioOption<T extends string>({
+  option, selected, onSelect,
+}: {
+  option: { value: T; label: string }; selected: boolean; onSelect: (value: T) => void;
+}) {
+  const [hasFocus, setHasFocus] = React.useState(false);
+  return <Pressable onPress={() => onSelect(option.value)}
+    accessibilityRole="radio" accessibilityLabel={option.label}
+    accessibilityState={{ checked: selected }}
+    onFocus={() => setHasFocus(true)}
+    onBlur={() => setHasFocus(false)}
+    style={[S.chip, selected && S.chipActive, hasFocus && { borderWidth: 3, borderColor: "#B36A00" }]}>
+    <Text style={[S.chipText, selected && S.chipTextActive]}>{option.label}</Text>
+  </Pressable>;
 }
 
 export function Choice<T extends string>({
@@ -108,13 +127,8 @@ export function Choice<T extends string>({
   return <View style={S.field}>
     <Text style={S.label}>{label}</Text>
     <View style={S.row} accessibilityRole="radiogroup" accessibilityLabel={label}>
-      {options.map(option => <Pressable key={option.value} onPress={() => onChange(option.value)}
-        accessibilityRole="radio" accessibilityLabel={option.label}
-        accessibilityState={{ checked: value === option.value }}
-        style={({ focused }) => [S.chip, value === option.value && S.chipActive,
-          focused && { borderWidth: 3, borderColor: "#B36A00" }]}>
-        <Text style={[S.chipText, value === option.value && S.chipTextActive]}>{option.label}</Text>
-      </Pressable>)}
+      {options.map(option => <RadioOption key={option.value}
+        option={option} selected={value === option.value} onSelect={onChange}/>)}
     </View>
   </View>;
 }
