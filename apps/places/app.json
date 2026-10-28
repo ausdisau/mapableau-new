@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "MapAble Places Prototype",
+    "slug": "mapable-places-prototype",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "au.org.australiandisability.mapableplaces.prototype"
+    },
+    "android": {
+      "package": "au.org.australiandisability.mapableplaces.prototype"
+    },
+    "web": {
+      "bundler": "metro",
+      "name": "MapAble Places Prototype"
+    },
+    "plugins": [],
+    "extra": {
+      "privacy": "No passive geolocation. Local-only contributions."
+    }
+  }
+}
