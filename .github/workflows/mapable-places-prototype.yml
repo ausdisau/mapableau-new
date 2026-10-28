@@ -3,8 +3,8 @@ name: MapAble Places prototype checks
 on:
   pull_request:
     paths:
-      - 'apps/places/**'
-      - '.github/workflows/mapable-places-prototype.yml'
+      - "apps/places/**"
+      - ".github/workflows/mapable-places-prototype.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - name: Install prototype dependencies
         run: npm install --no-audit --no-fund --package-lock=false
       - name: Check TypeScript
