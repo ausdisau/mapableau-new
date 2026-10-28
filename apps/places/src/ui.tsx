@@ -58,7 +58,6 @@ export function Screen({ children }: { children: React.ReactNode }) {
     contentContainerStyle={[S.container, pad]}
     contentInsetAdjustmentBehavior="automatic"
     keyboardShouldPersistTaps="handled"
-    accessibilityLabel="Page content"
   >{children}</ScrollView>;
 }
 
