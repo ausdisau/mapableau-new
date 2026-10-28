@@ -2,5 +2,6 @@ packages:
   - "."
   - "apps/realtime-server"
   - "packages/*"
-  # apps/companion and apps/independence install independently (Expo SDK drift) —
-  # see apps/companion/README.md and apps/independence/README.md
+  # apps/companion, apps/independence and apps/places install independently
+  # to avoid pulling different Expo/React Native SDKs into the Next.js build.
+  # See each app's README; apps/places is default-off and development-only.
