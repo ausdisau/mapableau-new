@@ -47,7 +47,7 @@ cp .env.example .env.local
 npm run web
 \`\`\`
 
-Only configure an authorised HTTPS host or local loopback. Do not place keys/secrets in \`EXPO_PUBLIC_\` variables. Native phones cannot use \`localhost\` to reach a server running on another computer; use approved reachable development networking instead. Cross-origin web requests depend on MapAble server CORS; when blocked, the offline demonstration remains functional.
+Only configure an authorised HTTPS host or local loopback. Do not place keys/secrets in \`EXPO_PUBLIC_\` variables. Native phones cannot use \`localhost\` to reach a server running on another computer; use approved reachable development networking instead. Cross-origin web requests use a restricted allowlist on the MapAble server, not wildcard CORS. The server API is disabled unless `MAPABLE_PLACES_PROTOTYPE_ENABLED=true`; production Expo Web requires a reviewed exact `MAPABLE_PLACES_EXPO_ORIGIN`. When unavailable, the offline demonstration remains functional.
 
 ## UX and authoring constraints
 
@@ -69,3 +69,25 @@ npm run build:web
 The tests exercise place data validation, on-device actions, restoration and evidence separation. Manual VoiceOver/TalkBack, desktop keyboard/screen-reader, 200%/400% reflow, accessible error recovery and participant co-design sessions remain essential.
 
 The first feature release should not proceed until privacy/safeguarding governance, real content moderation, AD.iD integration and venue evidence review are approved. The demo is **not a replacement** for MapAble's existing canonical AccessPlace source of truth.
+
+## Integrated MapAble entrypoint (this PR)
+
+The main Next.js application now includes a **controlled, default-off** `/places` gateway linking published canonical MapAble places to the independently hosted Expo prototype. Existing marketing navigation and MapAble Access include a 'Places Lab' link **only when** `NEXT_PUBLIC_MAPABLE_PLACES_PROTOTYPE_ENABLED=true`. The server route requires `MAPABLE_PLACES_PROTOTYPE_ENABLED=true` independently and otherwise returns 404.
+
+For a local two-process preview, configure the root Next `.env.local`:
+
+```dotenv
+MAPABLE_PLACES_PROTOTYPE_ENABLED=true
+NEXT_PUBLIC_MAPABLE_PLACES_PROTOTYPE_ENABLED=true
+MAPABLE_PLACES_PREVIEW_URL=http://localhost:8081
+```
+
+And the Expo `apps/places/.env.local`:
+
+```dotenv
+EXPO_PUBLIC_MAPABLE_API_URL=http://localhost:3000
+```
+
+Run `pnpm dev` from the root and `npm run web` from `apps/places`. Open `http://localhost:3000/places` to see the integrated gateway and `http://localhost:8081` to use the full interactive Expo prototype. Expo Web is permitted from localhost:8081 only in development. No credentials, account identifiers, GPS or authored content are sent in the published-place request.
+
+**Before production exposure:** audit the root MapAble Next layout, which includes existing site-level analytics/advertising scripts. The gateway itself does not capture member check-ins or notes, but inherited script activity must be assessed and disabled on privacy-sensitive surfaces as necessary. Preserve the dedicated Expo app's no-tracking stance. Ensure CripSquare consent, moderation, authentication and secure storage before any real community publishing.
