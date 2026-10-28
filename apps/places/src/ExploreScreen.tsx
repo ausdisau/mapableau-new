@@ -72,7 +72,7 @@ export function ExploreScreen() {
   });
   const header = <View style={{ gap: 17, paddingBottom: 15 }}>
     <View style={S.hero}>
-      <Text style={S.eyebrow}>MapAble Places · Prototype</Text>
+      <Text style={[S.eyebrow,{color:"#D9FBFF"}]}>MapAble Places · Prototype</Text>
       <Text accessibilityRole="header" style={S.heroTitle}>Find places. Build belonging.</Text>
       <Text style={S.heroSubtitle}>
         Discover local places using practical accessibility evidence. Browsing does not require GPS or a check-in.
