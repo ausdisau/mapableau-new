@@ -111,6 +111,17 @@ export function MapAbleAccessShell({
             Accreditation. This venue has user-reported accessibility information
             where shown.
           </p>
+          {process.env.NEXT_PUBLIC_MAPABLE_PLACES_PROTOTYPE_ENABLED === "true" ? (
+            <p className="mt-3 text-sm">
+              <Link
+                href="/places"
+                className="inline-flex min-h-11 items-center rounded-xl border border-[#005B7F] px-4 font-bold text-[#005B7F] underline focus-visible:outline-4"
+              >
+                Explore the MapAble Places community prototype
+              </Link>
+              <span className="ml-2 text-slate-600">Development preview; no live CripSquare publishing.</span>
+            </p>
+          ) : null}
         </header>
 
         <AccessSearchBar value={query} onChange={setQuery} onSubmit={search} />
