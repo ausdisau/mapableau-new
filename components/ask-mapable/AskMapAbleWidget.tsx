@@ -32,8 +32,13 @@ export function AskMapAbleWidget() {
     setActiveSessionId,
     hydrated,
   } = useAskWidgetState("chat");
-  const { sessions, ensureSession, appendMessages, activeSession } =
-    useAskLocalSessions(activeSessionId);
+  const {
+    sessions,
+    ensureSession,
+    appendMessages,
+    setGoalPlan,
+    activeSession,
+  } = useAskLocalSessions(activeSessionId);
   const canReadPreferences =
     enabled && hydrated && status === "authenticated" && Boolean(session?.user);
   const { maxVisibleChoices } = useAskInteractionPreferences(canReadPreferences);
@@ -66,6 +71,8 @@ export function AskMapAbleWidget() {
             onEnsureSession={onEnsureSession}
             messages={activeSession?.messages ?? []}
             onAppend={appendMessages}
+            goalPlan={activeSession?.goalPlan ?? null}
+            onGoalPlanChange={setGoalPlan}
             seedMessage={seedMessage}
             onSeedConsumed={() => setSeedMessage(null)}
             maxVisibleChoices={maxVisibleChoices}
