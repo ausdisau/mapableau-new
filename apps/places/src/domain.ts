@@ -63,10 +63,13 @@ export type PlacesState = {
   memories: PlaceMemory[];
   reports: AccessReport[];
   interestEventIds: string[];
+  joinedCircleIds: string[];
   posts: CommunityPost[];
 };
 export type PlacesAction =
   | { type: "toggle-saved"; place: Place; at: string }
+  | { type: "remove-saved"; id: string }
+  | { type: "toggle-circle"; circleId: string }
   | { type: "save-memory"; memory: PlaceMemory }
   | { type: "delete-memory"; id: string }
   | { type: "save-report"; report: AccessReport }
@@ -84,6 +87,7 @@ export const initialPlacesState: PlacesState = {
   memories: [],
   reports: [],
   interestEventIds: [],
+  joinedCircleIds: [],
   posts: [],
 };
 
@@ -102,6 +106,12 @@ export function reducePlacesState(state: PlacesState, action: PlacesAction): Pla
       };
       return { ...state, savedPlaces: upsert(state.savedPlaces, saved) };
     }
+    case "remove-saved":
+      return { ...state, savedPlaces: state.savedPlaces.filter((saved) => saved.id !== action.id) };
+    case "toggle-circle":
+      return { ...state, joinedCircleIds: state.joinedCircleIds.includes(action.circleId)
+        ? state.joinedCircleIds.filter((id) => id !== action.circleId)
+        : [...state.joinedCircleIds, action.circleId].slice(0,100) };
     case "save-memory":
       if (!action.memory.note.trim()) return state;
       return { ...state, memories: upsert(state.memories, { ...action.memory, audience: "private" }) };
@@ -179,8 +189,8 @@ export function parseSavedState(raw: unknown): PlacesState | null {
   if (!isObject(raw) || raw.version !== 1 ||
     !Array.isArray(raw.savedPlaces) || !Array.isArray(raw.memories) ||
     !Array.isArray(raw.reports) || !Array.isArray(raw.posts) ||
-    !Array.isArray(raw.interestEventIds)) return null;
-  if ([raw.savedPlaces, raw.memories, raw.reports, raw.posts, raw.interestEventIds]
+    !Array.isArray(raw.interestEventIds) || !Array.isArray(raw.joinedCircleIds)) return null;
+  if ([raw.savedPlaces, raw.memories, raw.reports, raw.posts, raw.interestEventIds, raw.joinedCircleIds]
     .some((items) => items.length > 100)) return null;
   const savedPlaces: SavedPlace[] = [];
   for (const item of raw.savedPlaces) {
@@ -224,8 +234,10 @@ export function parseSavedState(raw: unknown): PlacesState | null {
       title: post.title, body: post.body, status: post.status, updatedAt: post.updatedAt,
     });
   }
-  if (!raw.interestEventIds.every((id: unknown) => isText(id, 100))) return null;
-  return { version: 1, savedPlaces, memories, reports, posts, interestEventIds: [...raw.interestEventIds] as string[] };
+  if (!raw.interestEventIds.every((id: unknown) => isText(id, 100)) ||
+      !raw.joinedCircleIds.every((id: unknown) => isText(id, 100))) return null;
+  return { version: 1, savedPlaces, memories, reports, posts,
+    interestEventIds: [...raw.interestEventIds] as string[], joinedCircleIds: [...raw.joinedCircleIds] as string[] };
 }
 
 export function createLocalId(prefix: string): string {
