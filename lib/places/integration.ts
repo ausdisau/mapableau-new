@@ -21,7 +21,7 @@ export function isPlacesPrototypeEnabled(
 /** Reject invalid, credential-bearing, path-bearing or downgraded preview URLs. */
 export function normalisePlacesPreviewOrigin(
   value: string | undefined,
-  environment = process.env.NODE_ENV,
+  environment: string | undefined = process.env.NODE_ENV,
 ): string | null {
   if (!value) return null;
   try {
