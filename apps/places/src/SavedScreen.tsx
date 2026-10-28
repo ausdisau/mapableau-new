@@ -19,8 +19,14 @@ export function SavedScreen() {
     }
   }, [state.savedPlaces, placeId]);
 
+  const originalMemory = state.memories.find(m => m.id === editingId);
+  const selectablePlaces = [...state.savedPlaces];
+  if (originalMemory && !selectablePlaces.some(p => p.id === originalMemory.placeId)) {
+    selectablePlaces.push({ id: originalMemory.placeId, name: originalMemory.placeName, suburb: "", savedAt: originalMemory.updatedAt });
+  }
+
   function saveMemory() {
-    const place = state.savedPlaces.find(p => p.id === placeId);
+    const place = selectablePlaces.find(p => p.id === placeId);
     if (!place) { setError("Save a place first, then select it here."); return; }
     const trimmed = note.trim();
     if (trimmed.length < 3 || trimmed.length > 1500) {
@@ -37,7 +43,6 @@ export function SavedScreen() {
     AccessibilityInfo.announceForAccessibility?.("Private memory saved");
   }
 
-  const chosen = state.savedPlaces.find(p=>p.id===placeId);
   return <Screen>
     <Heading>My Places</Heading>
     <Text style={S.body}>Your saved places and private memories. No GPS tracking, public activity feed or visit verification.</Text>
@@ -55,11 +60,11 @@ export function SavedScreen() {
     <Text style={S.muted}>
       You do not need to be at a venue to write a note. Memories remain private and are not check-ins.
     </Text>
-    {state.savedPlaces.length>0 && <Card>
+    {(state.savedPlaces.length>0 || Boolean(originalMemory)) && <Card>
       <Choice label="Choose the place" value={placeId}
-        options={state.savedPlaces.map(p=>({value:p.id,label:p.name}))}
+        options={selectablePlaces.map(p=>({value:p.id,label:p.name}))}
         onChange={id=>{setPlaceId(id);setNote("");setEditingId(null);setError("");}}/>
-      <Text style={S.small}>Selected place: {chosen?.name ?? "None"}</Text>
+      <Text style={S.small}>Selected place: {selectablePlaces.find(p=>p.id===placeId)?.name ?? "None"}</Text>
       <Field label="My private note" value={note} onChangeText={setNote} multiline maxLength={1500}
         placeholder="What matters about this place to you?"
         help="Plain text, 3–1,500 characters. Never published automatically; no precise time or GPS is recorded."/>
