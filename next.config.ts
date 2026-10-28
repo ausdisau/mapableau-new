@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withWorkflow } from "workflow/next";
 
 import { assertDeployedProductionEnv } from "./lib/env/assert-deployed-production-env";
 import { getBaselineSecurityHeaders } from "./lib/security/headers";
@@ -63,4 +64,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withWorkflow(nextConfig);
