@@ -1,0 +1,34 @@
+name: MapAble Places prototype checks
+
+on:
+  pull_request:
+    paths:
+      - 'apps/places/**'
+      - '.github/workflows/mapable-places-prototype.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  places-prototype:
+    name: Expo web build, TypeScript and domain tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/places
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install prototype dependencies
+        run: npm install --no-audit --no-fund --package-lock=false
+      - name: Check TypeScript
+        run: npm run typecheck
+      - name: Run interaction and privacy domain tests
+        run: npm run test
+      - name: Compile Expo web frontend
+        run: npm run build:web
