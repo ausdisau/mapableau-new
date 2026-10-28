@@ -14,10 +14,12 @@ export function SavedScreen() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state.savedPlaces.some(p=>p.id===placeId)) {
+    const editingUnbookmarked = state.memories.some(memory =>
+      memory.id === editingId && memory.placeId === placeId);
+    if (!state.savedPlaces.some(p=>p.id===placeId) && !editingUnbookmarked) {
       setPlaceId(state.savedPlaces[0]?.id ?? "");
     }
-  }, [state.savedPlaces, placeId]);
+  }, [state.savedPlaces, state.memories, placeId, editingId]);
 
   const originalMemory = state.memories.find(m => m.id === editingId);
   const selectablePlaces = [...state.savedPlaces];
