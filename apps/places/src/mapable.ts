@@ -21,7 +21,7 @@ export function parseMapAbleDirectoryResponse(raw: unknown, sourceUrl: string, t
   for (const value of entries.slice(0, 100)) {
     if (!value || typeof value !== "object") continue;
     const p = value as Record<string, unknown>;
-    if (typeof p.id !== "string" || p.id.length > 100 ||
+    if (typeof p.id !== "string" || !p.id.trim() || p.id.length > 100 ||
         typeof p.name !== "string" || !p.name.trim() || p.name.length > 160 ||
         ids.has(p.id)) continue;
     const suburb = typeof p.suburb === "string" ? p.suburb.slice(0, 120) : "Location not specified";
