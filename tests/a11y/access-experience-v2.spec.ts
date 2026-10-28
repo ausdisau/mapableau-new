@@ -58,6 +58,49 @@ test.describe("Access Experience V2 — /access", () => {
     await expect(sydney).toHaveAttribute("aria-pressed", "true");
   });
 
+  test("graph evidence disclosure remains keyboard-operable when enabled", async ({
+    page,
+  }) => {
+    await page.goto("/access", { waitUntil: "domcontentloaded" });
+
+    const firstPlace = page
+      .locator('section[aria-labelledby="results-heading"]')
+      .getByRole("button")
+      .first();
+
+    if ((await firstPlace.count()) === 0) {
+      test.skip(true, "No Access Experience V2 place results in this environment");
+      return;
+    }
+    await firstPlace.click();
+
+    const evidenceButton = page.getByRole("button", {
+      name: /show evidence/i,
+    });
+
+    if ((await evidenceButton.count()) === 0) {
+      test.skip(
+        true,
+        "Access Graph evidence UI is off or no place is selected in this environment",
+      );
+      return;
+    }
+
+    await evidenceButton.focus();
+    await expect(evidenceButton).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(evidenceButton).toHaveAttribute("aria-expanded", "true");
+
+    const expandedResults = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+      .analyze();
+    const blocking = expandedResults.violations.filter((violation) =>
+      ["critical", "serious"].includes(violation.impact || ""),
+    );
+    expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
+
+  });
+
   test("list presentation controls are keyboard reachable when V2 shell is present", async ({
     page,
   }) => {

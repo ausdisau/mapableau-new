@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
 import { AccessEvidenceSummaryPanel } from "@/components/access/AccessEvidenceSummaryPanel";
+import { AccessGraphEvidencePanel } from "@/components/access/AccessGraphEvidencePanel";
 import { AccessMobilityPreferences } from "@/components/access/AccessMobilityPreferences";
 import { AccessSourceLegend } from "@/components/access/AccessSourceLegend";
 import {
@@ -64,8 +65,10 @@ type PlaceRow = AccessExplorationDto & { id: string };
 
 export function AccessExplorationShell({
   initialPlaces,
+  accessGraphEvidenceEnabled = false,
 }: {
   initialPlaces: AccessExplorationDto[];
+  accessGraphEvidenceEnabled?: boolean;
 }) {
   const [exploration, setExploration] = useState<AccessExplorationState>(() =>
     createDefaultExplorationState({ presentationMode: "LIST" }),
@@ -614,6 +617,10 @@ export function AccessExplorationShell({
                 </p>
               </section>
               <AccessEvidenceSummaryPanel evidence={selectedPlace.evidence} />
+              <AccessGraphEvidencePanel
+                placeId={selectedPlace.accessPlaceId}
+                enabled={accessGraphEvidenceEnabled}
+              />
               <AccessFitBreakdownV2 result={selectedFit} />
             </>
           ) : (

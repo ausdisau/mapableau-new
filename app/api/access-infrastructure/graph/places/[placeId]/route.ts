@@ -4,6 +4,7 @@ import {
   AccessGraphError,
   getPlaceAccessGraph,
 } from "@/lib/access/infrastructure/observation-service";
+import { toPublicAccessObservation } from "@/lib/access/infrastructure/public-observation";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export async function GET(_request: Request, context: RouteContext) {
       framework: "access_as_infrastructure",
       epic: "mapable-epic-01-access-graph",
       ...graph,
+      observations: graph.observations.map(toPublicAccessObservation),
     });
   } catch (err) {
     if (err instanceof AccessGraphError) {

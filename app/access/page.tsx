@@ -2,6 +2,7 @@ import { AccessExplorationShell } from "@/components/access/AccessExplorationShe
 import { MapAbleAccessShell } from "@/components/access/MapAbleAccessShell";
 import { isClientAccessExperienceV2Enabled } from "@/lib/access/experience/flags";
 import { listAccessExplorationDtos } from "@/lib/access/experience/load-access-exploration";
+import { accessInfrastructureFlags } from "@/lib/access/infrastructure/flags";
 import { listPublishedPlaces } from "@/lib/access/map/access-place-service";
 
 export const metadata = {
@@ -15,7 +16,12 @@ export default async function AccessPage() {
 
   if (v2Enabled) {
     const places = await listAccessExplorationDtos(200);
-    return <AccessExplorationShell initialPlaces={places} />;
+    return (
+      <AccessExplorationShell
+        initialPlaces={places}
+        accessGraphEvidenceEnabled={accessInfrastructureFlags.graphApisEnabled}
+      />
+    );
   }
 
   const places = await listPublishedPlaces(200);

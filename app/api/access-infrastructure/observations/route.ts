@@ -8,6 +8,7 @@ import {
   createAccessObservation,
   listAccessObservations,
 } from "@/lib/access/infrastructure/observation-service";
+import { toPublicAccessObservation } from "@/lib/access/infrastructure/public-observation";
 import {
   ACCESS_OBSERVATION_SOURCE_TYPES,
 } from "@/lib/access/infrastructure/provenance";
@@ -65,7 +66,7 @@ export async function GET(request: Request) {
       productionClaim: "none",
       claimState: "in_development",
       count: observations.length,
-      observations,
+      observations: observations.map(toPublicAccessObservation),
       note: "Unknown ≠ inaccessible. AI-inferred assertions are labelled unverified.",
     });
   } catch (err) {
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
         framework: "access_as_infrastructure",
         epic: "mapable-epic-01-access-graph",
         productionClaim: "none",
-        observation,
+        observation: toPublicAccessObservation(observation),
       },
       { status: 201 },
     );
