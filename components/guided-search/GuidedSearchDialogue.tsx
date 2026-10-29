@@ -2,19 +2,24 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { AskProviderResultSnippets } from "@/components/provider-finder/AskProviderResultSnippets";
+import { FinderDiscoveryMatches } from "@/components/provider-finder/FinderDiscoveryMatches";
 import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomplete";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CopilotProviderResult } from "@/lib/copilot/types";
+import type { FinderDiscoveryMatch, FinderSearchScope } from "@/lib/provider/finder/personalisation/matching";
 import { buildFinderSearchParams } from "@/lib/search/apply-interpretation";
 import type {
   FinderAgentData,
   FinderInterpretationData,
+  FinderDiscoveryMeta,
   ProviderFinderChatUIMessage,
 } from "@/types/provider-finder-chat";
 
@@ -65,6 +70,9 @@ export function GuidedSearchDialogue({
   modelLabel,
 }: Props) {
   const router = useRouter();
+  const { status: authStatus } = useSession();
+  const signedIn = authStatus === "authenticated";
+  const discoveryEnabled = process.env.NEXT_PUBLIC_PROVIDER_FINDER_DISCOVERY_ENABLED === "true";
   const listId = useId();
   const inputId = useId();
   const locationInputId = useId();
@@ -72,7 +80,13 @@ export function GuidedSearchDialogue({
   const sessionRef = useRef(session);
   const sessionIdRef = useRef("");
   const initialSentRef = useRef(false);
+  const searchScopeRef = useRef<FinderSearchScope>("providers");
+  const useSavedRef = useRef(false);
   const [input, setInput] = useState("");
+  const [searchScope, setSearchScope] = useState<FinderSearchScope>("providers");
+  const [useSavedPreferences, setUseSavedPreferences] = useState(false);
+  const [discoveryMeta, setDiscoveryMeta] = useState<FinderDiscoveryMeta | null>(null);
+  const [discoveryMatches, setDiscoveryMatches] = useState<FinderDiscoveryMatch[]>([]);
   const [agentMeta, setAgentMeta] = useState<FinderAgentData | null>(null);
   const [applied, setApplied] = useState<FinderInterpretationData["applied"] | null>(
     null,
@@ -99,6 +113,17 @@ export function GuidedSearchDialogue({
 
   const handleData = useCallback(
     (dataPart: { type: string; data?: unknown }) => {
+      if (dataPart.type === "data-finderDiscoveryMeta" && dataPart.data && typeof dataPart.data === "object") {
+        setDiscoveryMatches([]);
+        setDiscoveryMeta(dataPart.data as FinderDiscoveryMeta);
+      }
+      if (dataPart.type === "data-finderDiscoveryMatch" && dataPart.data && typeof dataPart.data === "object") {
+        const result = dataPart.data as FinderDiscoveryMatch;
+        if (typeof result.id === "string" && (result.kind === "provider" || result.kind === "worker")) {
+          setDiscoveryMatches((previous) => previous.some((item) => item.kind === result.kind && item.id === result.id)
+            ? previous : [...previous, result]);
+        }
+      }
       if (
         dataPart.type === "data-finderInterpretation" &&
         dataPart.data &&
@@ -130,6 +155,10 @@ export function GuidedSearchDialogue({
             messages: chatMessages,
             sessionId: sessionIdRef.current,
             session: sessionRef.current,
+            ...(discoveryEnabled ? {
+              scope: signedIn ? searchScopeRef.current : "providers",
+              useSavedPreferences: signedIn && useSavedRef.current,
+            } : {}),
           },
         }),
       }),
@@ -153,6 +182,8 @@ export function GuidedSearchDialogue({
       const trimmed = text.trim();
       if (!trimmed || isBusy) return;
       setInput("");
+      setDiscoveryMatches([]);
+      setDiscoveryMeta(null);
       await sendMessage({ text: trimmed });
       requestAnimationFrame(scrollToBottom);
     },
@@ -222,7 +253,7 @@ export function GuidedSearchDialogue({
               compact ? "text-sm" : "text-base",
             )}
           >
-            Chat to find providers
+            {discoveryEnabled ? "Chat to find providers and workers" : "Chat to find providers"}
           </h2>
           <p
             className={cn(
@@ -232,6 +263,52 @@ export function GuidedSearchDialogue({
           >
             Describe what you need — I will set your search filters as we go.
           </p>
+          {discoveryEnabled ? (
+            <div className="mt-3 space-y-3 border-t pt-3">
+              <div className="space-y-1">
+                <label htmlFor={`finder-search-scope-${inputId}`} className="block text-sm font-medium">
+                  Who would you like to find?
+                </label>
+                <select
+                  id={`finder-search-scope-${inputId}`}
+                  value={signedIn ? searchScope : "providers"}
+                  disabled={isBusy}
+                  onChange={(event) => {
+                    const next = event.target.value as FinderSearchScope;
+                    setSearchScope(next);
+                    searchScopeRef.current = next;
+                  }}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                >
+                  <option value="providers">Providers</option>
+                  {signedIn ? <option value="both">Providers and opted-in workers</option> : null}
+                  {signedIn ? <option value="workers">Opted-in workers only</option> : null}
+                </select>
+              </div>
+              {signedIn ? (
+                <div className="space-y-1">
+                  <label className="flex items-start gap-2 text-sm">
+                    <input type="checkbox" className="mt-1 h-4 w-4"
+                      checked={useSavedPreferences}
+                      disabled={isBusy}
+                      onChange={(event) => {
+                        setUseSavedPreferences(event.target.checked);
+                        useSavedRef.current = event.target.checked;
+                      }}/>
+                    <span>Use my saved, opt-in search preferences for ranking these results</span>
+                  </label>
+                  <Link href="/provider-finder/preferences" className="text-xs underline">
+                    Manage or erase my search preferences
+                  </Link>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  <Link href="/login" className="underline">Sign in</Link> to search worker-published profiles or choose personalised results.
+                  You can always search for providers without signing in.
+                </p>
+              )}
+            </div>
+          ) : null}
           {agentMeta?.filledSlots ? (
             <div className="mt-2">
               <GuidedSearchSlotProgress
@@ -316,12 +393,18 @@ export function GuidedSearchDialogue({
         </div>
       ) : null}
 
+      {discoveryEnabled && discoveryMeta ? (
+        <div className={cn(compact ? "px-3 pb-2" : "px-4 pb-2")}>
+          <FinderDiscoveryMatches matches={discoveryMatches} meta={discoveryMeta} />
+        </div>
+      ) : null}
+
       {!needsClarification && agentMeta?.status === "complete" ? (
         <div className={cn(compact ? "px-3 pb-2" : "px-4 pb-2")}>
-          {providerResults.length > 0 ? (
+          {!discoveryMeta && providerResults.length > 0 ? (
             <AskProviderResultSnippets results={providerResults} />
           ) : null}
-          <Button
+          {(searchScope !== "workers" || !discoveryEnabled) && <Button
             type="button"
             variant="default"
             size={compact ? "sm" : "default"}
@@ -330,7 +413,7 @@ export function GuidedSearchDialogue({
             onClick={navigateToResults}
           >
             Show matching providers
-          </Button>
+          </Button>}
         </div>
       ) : null}
 
