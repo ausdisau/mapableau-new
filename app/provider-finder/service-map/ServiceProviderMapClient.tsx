@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MapLibreProvider } from "@/components/map/MapLibreMap";
+import { ProviderFinderAskPanel } from "@/components/provider-finder/ProviderFinderAskPanel";
+import type { FinderInterpretationData } from "@/types/provider-finder-chat";
 import { fetchProviderMapPins } from "@/lib/provider/finder/fetch-map-pins";
 
 const ProviderMap = dynamic(
@@ -94,6 +96,19 @@ export default function ServiceProviderMapClient() {
     [response],
   );
 
+  const handleChatSearch = useCallback((data: FinderInterpretationData) => {
+    // Chat interpretations are suggestions; retain editable form fields.
+    const next = {
+      location: data.applied.location.trim(),
+      service: data.applied.serviceQuery.trim(),
+      provider: data.applied.providerName.trim(),
+    };
+    setLocation(next.location);
+    setService(next.service);
+    setProvider(next.provider);
+    setFilters(next);
+  }, []);
+
   const onSearch = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFilters({
@@ -109,6 +124,17 @@ export default function ServiceProviderMapClient() {
         <h1 className="text-3xl font-bold">Disability care and support provider map</h1>
         <p>Explore provider locations from MapAble's existing NDIS provider dataset. An address pin is not proof of current registration, service availability, accessibility, quality, or an individual worker's screening clearance.</p>
       </header>
+      <section aria-label="Chat-assisted provider and worker discovery" className="space-y-3">
+        <h2 className="text-xl font-semibold">Ask MapAble to find support</h2>
+        <p className="text-sm text-muted-foreground">
+          Describe the support you need. Chat suggestions update the editable location and service filters below.
+          Signed-in members can choose worker-published profiles and opt-in personalisation where enabled.
+        </p>
+        <ProviderFinderAskPanel
+          session={{ query: "", location, providerName: provider, serviceQuery: service, accessQuery: "" }}
+          onInterpretation={handleChatSearch}
+        />
+      </section>
       <form onSubmit={onSearch} aria-label="Filter provider locations" className="grid gap-3 rounded-xl border p-4 md:grid-cols-4">
         <label className="flex flex-col gap-1 text-sm font-medium">
           Location, postcode or state
