@@ -1,28 +1,50 @@
-# VoliSoma public beta foundation
+# VoliSoma Public Research Beta
 
-Status: **working static browser simulation**, not a published clinical or robotic device.
+**Current status:** verified standalone simulated web interface. **Not yet publicly hosted.** This is not a medical device, brain-signal decoder, neuromodulation controller or actual robot.
 
-This isolated, reviewable experiment implements a branded, responsive public research landing page and a **functional browser-side simulated robotic-assistance workflow**. It keeps all actions entirely in-browser. Accessible operation includes keyboard controls, separate proposal and confirmation, independent STOP/RESET, text status, event log and reduced-motion handling. No EEG acquisition or hardware command path exists.
+## Source of truth
+- GitHub PR #624 (draft): `ausdisau/mapableau-new`, branch `feat/volisoma-beta-foundation-20261028`
+- Site root: `experiments/volisoma-beta/`
+- Main artifact: `index.html`, standalone HTML with embedded styles, icon and JavaScript; no npm build or backend required.
+- Australian Disability Ltd endorsed VoliSoma wordmark is a proposed concept, not a copy of the official corporate logo.
 
-## Run
-Open `index.html` directly in a modern browser or serve this directory with any static web server. No dependencies or secret keys.
+## Functional scope
+- Virtual AAC / gaze / switch / synthetic EEG input choices (selection **does not** read or process any actual signal)
+- Virtual phone / book / remote selection
+- Direct, shared-autonomy and supervised task labels (illustrative simulation)
+- Proposed action stays pending until explicit confirmation
+- STOP ALL latches the simulator and requires Reset
+- Changing a control preference invalidates an unconfirmed proposal
+- Session-only event history and explicitly requested local JSON download
+- Research references, safety limitations and Australian Disability Ltd attribution
+- Static, accessible information without sign-in, analytics or networked personal-data submission
 
-## Safeguards
-- No neural signal collection, physical actuation, neuromodulation, or medical claims.
-- No analytics or personal-data collection.
-- Research links identify evidence but do not imply endorsement.
-- Logo is custom inline SVG and uses accessible text.
-- WCAG 2.2 AA is a target, not independently certified.
-- This proof of concept has no registration endpoint; a future public beta will require an authenticated, validated, privacy-preserving backend.
+## How to preview
+Open `index.html` in a modern desktop or mobile browser. This file has no external code dependencies. The interface was smoke tested at desktop (1440px) and mobile (390px) widths, with the full approval -> stop -> reset -> local download sequence and zero observed horizontal overflow. Eight standalone state-transition tests also passed during the source build; the test harness is provided in the downloadable implementation package, not currently committed to this branch.
 
-## Core acceptance flows
-1. Propose action -> confirmation enabled; no movement before confirmation.
-2. Confirm -> simulated scene moves and activity log records the action.
-3. STOP -> action cancelled; confirm disabled, visual returned to idle.
-4. Change target/input/mode -> pending proposal invalidated.
-5. Keyboard and screen reader access to controls, textual status changes and log.
+## Independent deployment: manual provider setup required
+On Vercel, the project create attempt in team `MapAble` failed with HTTP 402 `resource_creation_blocked` indicating a suspended subscription. **Do not attempt to bypass billing or deploy via the current blocked account.**
 
-## Integration and next gates
-The separately created Base44 app is intended to provide real beta enrolment and project pages. Do not merge this experiment into MapAble Core or use the production MapAble Neon database until identity, tenant boundaries, data policies, accessibility, TGA/intended purpose and privacy reviews pass.
+Use a static host under a separately controlled account (e.g. Cloudflare Pages or Render Static Sites), with:
+- GitHub repository `ausdisau/mapableau-new`
+- Deployment branch `feat/volisoma-beta-foundation-20261028` for a **bounded beta preview only**
+- Root directory `experiments/volisoma-beta`
+- Framework: `none`; build command: none; output directory: repository subfolder itself
+- Serve `index.html` at the root
+- No secrets, no database, no personal data, no analytic scripts
+- Enforce HTTPS and security headers via hosting configuration
 
-Conceptual foundation: Roger Clarke, `https://doi.org/10.1109/2.248881` (1994), Australian Disability Ltd rights-centred mission, Anthrogenisis hypothesis.
+Important: a production site should ideally be split to `ausdisau/volisoma` or assigned its own release branch and dedicated host. Never auto-deploy the MapAble main branch to this public prototype.
+
+## Launch gate
+- [x] Standalone interactive HTML and embedded dependencies
+- [x] Static browser responsive smoke test
+- [x] Unit state-transition checks (8/8 local at implementation time)
+- [ ] Independent keyboard, NVDA, VoiceOver, TalkBack and alternative-input audit
+- [ ] Correct publication of approved Australian Disability Ltd logo and brand assets
+- [ ] Security/third-party link/claim and evidence editorial review
+- [ ] Host account connected, domain approved and public URL HTTP checks passed
+- [ ] Human approval of release
+
+## Next: Expo, deferred
+Do not ship native code in the static beta. When a separate Expo app is started, reuse the control-state contract and access-first labels. Run native TalkBack/VoiceOver testing and measure performance before any optimisation. Neural/robotic hardware interfaces and clinical claims remain excluded pending appropriate independent safety, privacy, consent, and regulatory review.
