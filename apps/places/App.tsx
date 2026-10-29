@@ -10,6 +10,7 @@ import { ContributeScreen } from "./src/ContributeScreen";
 import { ExploreScreen } from "./src/ExploreScreen";
 import { PrivacyScreen } from "./src/PrivacyScreen";
 import { SavedScreen } from "./src/SavedScreen";
+import { SupportSearchScreen } from "./src/SupportSearchScreen";
 import { PlacesProvider } from "./src/store";
 import { COLORS } from "./src/ui";
 
@@ -39,6 +40,7 @@ function PlacesNavigation() {
     sceneStyle: { backgroundColor: COLORS.bg },
   }}>
     <Tab.Screen name="Places" component={ExploreScreen} options={{title:"Discover places",tabBarLabel:"Places"}}/>
+    <Tab.Screen name="Supports" component={SupportSearchScreen} options={{title:"Find care and support",tabBarLabel:"Supports"}}/>
     <Tab.Screen name="Saved" component={SavedScreen} options={{title:"My private places",tabBarLabel:"Saved"}}/>
     <Tab.Screen name="Community" component={CommunityScreen} options={{title:"CripSquare community prototype",tabBarLabel:"Community"}}/>
     <Tab.Screen name="Contribute" component={ContributeScreen} options={{title:"Contribute access knowledge",tabBarLabel:"Contribute"}}/>
