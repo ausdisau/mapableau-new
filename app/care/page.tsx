@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { ModuleCanvasSection } from "@/components/canvas/ModuleCanvasSection";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
@@ -35,6 +37,11 @@ export default function CareHubPage() {
         primaryCta={{ label: "Explore provider finder", href: "/providers" }}
         secondaryCta={{ label: "Join pilot", href: "/contact" }}
       />
+      <section className="mx-auto max-w-7xl px-5 py-5 lg:px-8" aria-label="Care provider map">
+        <Link href="/care/provider-map" className="inline-flex min-h-11 items-center rounded-xl border border-[#005B7F] px-5 font-bold text-[#005B7F] underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+          Explore the Care provider map
+        </Link>
+      </section>
       <ModuleCanvasSection module="care" />
     </>
   );
