@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#163b69">
+  <meta name="description" content="Explore VoliSoma, an Australian Disability Ltd research initiative investigating person-directed AI, accessible interfaces and shared-autonomy robotics through simulation.">
+  <meta property="og:title" content="VoliSoma | Human-led technology, expanded possibilities">
+  <meta property="og:description" content="A public, accessible research beta for exploring human-directed assistive technology. Simulation only.">
+  <meta property="og:type" content="website">
+  <title>VoliSoma | Australian Disability Ltd research beta</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23102948%22%2F%3E%3Cpath%20d%3D%22M10%2035C17%2014%2042%2013%2052%2027%22%20stroke%3D%22%2381e1d5%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M54%2031C47%2052%2022%2053%2012%2039%22%20stroke%3D%22%23aac8ff%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2233%22%20r%3D%226%22%20fill%3D%22%23f0671d%22%2F%3E%3C%2Fsvg%3E%0A" type="image/svg+xml">
+  <style>
+:root{color-scheme:light;--blue:#1f5897;--navy:#102948;--ink:#162b48;--muted:#43586e;--teal:#087a76;--orange:#f0671d;--red:#9d304e;--surface:#f4f7fb;--stroke:#d7e0e9;--white:#fff;--focus:#efae17;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.55}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--white)}h1,h2,h3,h4,p{margin-top:0}h1,h2,h3{line-height:1.15}a{color:#075c75;text-underline-offset:4px}a:focus-visible,button:focus-visible,select:focus-visible{outline:4px solid var(--focus);outline-offset:4px}button,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.59}.shell{max-width:1190px;margin-inline:auto;padding-inline:clamp(18px,3vw,36px)}.skip-link{position:absolute;top:-130px;left:10px;z-index:20;padding:12px 18px;background:#fff;color:var(--navy);font-weight:700}.skip-link:focus{top:10px}.site-header{position:relative;background:#fff;border-bottom:1px solid var(--stroke);z-index:4}.header-inner{display:flex;align-items:center;justify-content:space-between;gap:25px;min-height:96px}.brand{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none}.brand-icon{width:55px;height:55px;flex:none}.brand-text{display:grid;gap:0}.brand-text strong{font-size:1.66rem;letter-spacing:-.05em;line-height:1.1}.brand-text small{font-size:.78rem;color:#4a5f77;line-height:1.5;font-weight:650}.nav-links{display:flex;flex-wrap:wrap;gap:clamp(12px,2vw,28px)}.nav-links a{color:var(--ink);font-size:.91rem;font-weight:750;text-decoration:none}.nav-links a:hover,.footer a:hover{text-decoration:underline}.hero{background:radial-gradient(circle at 83% 10%,#276a87 0,transparent 36%),linear-gradient(125deg,#102948 5%,#183f68 65%,#0b535b 100%);color:#fff;overflow:hidden}.hero-grid{min-height:515px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.85fr);gap:24px;align-items:center}.hero-copy{padding-block:70px}.eyebrow{display:inline-flex;align-items:center;gap:10px;border:1px solid #83c9db80;background:#132d5188;padding:7px 14px;border-radius:30px;font-size:.8rem;font-weight:700;letter-spacing:.04em}.pulse{height:8px;width:8px;background:#72dbc5;border-radius:50%}.hero h1{font-size:clamp(2.5rem,5.5vw,4.8rem);letter-spacing:-.055em;max-width:700px;margin:22px 0}.hero h1 em{font-style:normal;color:#8be4d5}.hero-lead{color:#e1edf6;max-width:660px;font-size:1.16rem;line-height:1.65}.hero-actions{display:flex;gap:21px;align-items:center;flex-wrap:wrap;margin-top:27px}.hero .text-link{color:white;font-weight:700}.hero-footnote{font-size:.85rem;color:#d2e7e9;margin:22px 0 0}.hero-visual{min-height:410px;display:flex;flex-direction:column;justify-content:center;align-items:center}.hero-visual svg{width:100%;max-width:500px;display:block}.visual-caption{font-size:.8rem;text-align:center;color:#d5e9ee;margin-top:-8px}.button{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:0;border-radius:10px;min-height:48px;padding:12px 19px;text-decoration:none;font-weight:800;text-align:center}.light-button{color:#112d4c;background:#e4fffa}.primary-button{color:#fff;background:#1f5897}.confirm-button{color:#fff;background:#087a76}.stop-button{color:#fff;background:#95334c}.secondary-button{color:#133e69;background:#e5edf7;border:1px solid #a5b7cd}.button:hover:not(:disabled){filter:brightness(.94)}.section{padding-block:78px}.section-heading{max-width:780px;margin-bottom:28px}.kicker{color:#075f74;font-size:.8rem;letter-spacing:.14em;font-weight:850}.section h2,.rights-section h2{font-size:clamp(2rem,4.2vw,3rem);letter-spacing:-.04em;margin:12px 0 16px}.section-heading p{font-size:1.08rem;color:var(--muted);line-height:1.65}.principles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.principle{border:1px solid var(--stroke);border-radius:14px;padding:24px;min-height:238px;background:#fff}.principle-index{font-size:.83rem;font-weight:900;color:var(--teal)}.principle h3{font-size:1.3rem;margin:28px 0 10px}.principle p{color:var(--muted);font-size:.96rem;margin:0}.lab-backdrop{background:var(--surface);border-block:1px solid var(--stroke)}.lab-heading{max-width:860px}.lab-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:22px}.card{background:#fff;border:1px solid var(--stroke);border-radius:18px;padding:clamp(20px,2.5vw,31px);box-shadow:0 10px 28px #1834560b}.panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.panel-title-row h3{margin:0;font-size:1.28rem}.status-dot{background:#087a76;height:10px;width:10px;border-radius:50%}fieldset{border:0;margin:0 0 20px;padding:0;min-width:0}legend{font-size:1rem;font-weight:750;margin-bottom:8px;padding:0}label{display:block;font-size:.86rem;color:var(--muted);margin-bottom:6px}select{display:block;width:100%;min-height:49px;background:#fff;border:2px solid #7e93ad;border-radius:8px;color:var(--ink);padding:8px 12px}select:hover{border-color:#1f5897}.command-status{border-left:5px solid #087a76;background:#e9f7f3;color:#163b39;border-radius:9px;min-height:65px;padding:12px 14px;font-weight:700}.command-status.stopped{border-color:#95334c;background:#fff0f2;color:#6b1429}.button-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.button-group button{font-size:.94rem;padding:11px 10px}.control-hint,.fineprint{font-size:.83rem;color:var(--muted)}.control-hint{margin:19px 0 0}.live-tag{background:#e8edf7;color:#153d66;border-radius:20px;padding:5px 10px;font-size:.72rem;font-weight:850;letter-spacing:.05em}.scene{overflow:hidden;border:1px solid #bfcddc;border-radius:14px;background:#eff4fa}.scene svg{display:block;width:100%;height:auto;aspect-ratio:520/290}.robot-arm,.virtual-object{transition:transform .55s cubic-bezier(.26,.8,.23,1)}.scene[data-phase=completed] .robot-arm{transform:translate(82px,-16px)}.scene[data-phase=completed] .virtual-object{transform:translate(-31px,-26px)}.scene-summary{font-size:.92rem;margin:13px 0 18px;color:var(--muted)}.log-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.log-head h4{font-size:1rem;margin:0 0 10px}.small-button{padding:7px 12px;min-height:40px;border:1px solid #7b95af;border-radius:7px;background:#fff;color:#16426b;font-weight:750}.event-log{border:1px solid #dce5ec;background:#f8fbfd;border-radius:9px;margin:0;padding:10px 15px 10px 32px;min-height:120px;max-height:160px;overflow:auto;font-size:.85rem;line-height:1.7;color:#384e63}.scene-panel .fineprint{margin-top:12px}.research-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.research-card{padding:25px;background:#f7fafd;border:1px solid var(--stroke);border-radius:14px;display:flex;flex-direction:column}.research-type{font-size:.75rem;letter-spacing:.1em;color:#11627d;font-weight:850}.research-card h3{font-size:1.27rem;margin:15px 0}.research-card p{font-size:.96rem;flex:1;color:var(--muted)}.research-card a{font-weight:800}.rights-section{background:#13375c;color:#fff;padding-block:75px}.rights-grid{display:grid;grid-template-columns:1fr 1fr;gap:65px;align-items:start}.rights-grid>div>p{max-width:450px;color:#e1ebf4;font-size:1.06rem}.light-kicker{color:#98e5d8}.rights-list{border-left:4px solid #81cfc9;padding-left:24px}.rights-list h3{margin-top:0;font-size:1.24rem}.rights-list p{font-size:.94rem;color:#e2ecf5;margin-bottom:13px}.rights-list strong{color:#fff}.participation-card{border:1px solid #d7e3ed;background:#edf6f6;border-radius:20px;padding:35px;display:flex;align-items:center;gap:28px;justify-content:space-between}.participation-card>div{max-width:740px}.participation-card h2{font-size:clamp(1.6rem,3vw,2.3rem)}.participation-card p{margin-bottom:0;color:#39586b}.participation-card .button{flex:none}.footer{background:#fff;border-top:1px solid var(--stroke);padding-block:32px}.footer-inner{display:flex;justify-content:space-between;gap:26px}.footer strong{font-size:1.25rem}.footer p{max-width:610px;color:var(--muted);font-size:.85rem}.footer a{color:var(--ink);font-weight:750}.noscript{padding:18px;text-align:center;background:#fff3e8;color:#572d12}.control-panel,.scene-panel{min-width:0}
+@media(max-width:900px){.hero-grid{grid-template-columns:minmax(0,1fr)}.hero-copy{padding-bottom:10px}.hero-visual{min-height:250px;max-width:500px;margin-inline:auto}.hero-visual svg{max-height:295px}.visual-caption{padding-bottom:25px}.principles{grid-template-columns:repeat(2,minmax(0,1fr))}.lab-grid{grid-template-columns:1fr}.research-grid{grid-template-columns:1fr 1fr}.rights-grid{gap:28px}.participation-card{align-items:flex-start;flex-direction:column}}
+@media(max-width:650px){.header-inner{align-items:flex-start;flex-direction:column;padding-block:17px;gap:16px}.nav-links{gap:12px 17px}.nav-links a{font-size:.85rem}.hero-copy{padding-block:43px 10px}.hero-grid{min-height:0}.hero-visual{min-height:200px}.hero-visual svg{max-height:225px}.section{padding-block:48px}.principles,.research-grid,.rights-grid{grid-template-columns:1fr}.principle{min-height:0}.principle h3{margin-top:14px}.rights-section{padding-block:50px}.participation-card{padding:23px}.footer-inner{display:block}.button-group{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media(prefers-contrast:more){.card,.principle,.research-card{border:2px solid #385470}select{border-color:#183b5d}.muted,.principle p,.research-card p{color:#273747}}
+</style>
+  
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="#home" aria-label="VoliSoma, top of page">
+        <svg class="brand-icon" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="currentColor" stroke-width="3" opacity=".22" />
+          <path d="M15 40C21 22 32 16 43 18C54 20 58 28 57 38" fill="none" stroke="#1f5897" stroke-width="6" stroke-linecap="round"/>
+          <path d="M57 32C51 50 40 56 29 54C18 52 14 44 15 34" fill="none" stroke="#087a76" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="36" cy="36" r="7" fill="#f0671d"/>
+          <circle cx="58" cy="40" r="4" fill="#9d5d61"/>
+        </svg>
+        <span class="brand-text"><strong>VoliSoma</strong><small>An Australian Disability Ltd initiative</small></span>
+      </a>
+      <nav aria-label="Main navigation" class="nav-links">
+        <a href="#why">Our purpose</a>
+        <a href="#lab">Try Access Lab</a>
+        <a href="#research">Research</a>
+        <a href="#rights">Rights and safety</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="home" aria-labelledby="hero-title">
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="pulse" aria-hidden="true"></span> Public research beta | Simulation only</span>
+          <h1 id="hero-title">Technology should follow <em>your intent.</em></h1>
+          <p class="hero-lead">VoliSoma explores a future where artificial intelligence, accessible communication and robotics work together to extend human possibility, while the person stays in control.</p>
+          <div class="hero-actions"><a class="button light-button" href="#lab">Explore the simulation <span aria-hidden="true">&rarr;</span></a><a class="text-link" href="#why">Learn about Anthrogenisis</a></div>
+          <p class="hero-footnote">No headset. No account. No collection of personal or neural data.</p>
+        </div>
+        <div class="hero-visual" aria-label="An abstract illustration of a person at the centre of a connected assistive technology system" role="img">
+          <svg viewBox="0 0 500 400" aria-hidden="true" focusable="false">
+            <defs><linearGradient id="arc" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#50d4c5"/><stop offset="1" stop-color="#92b9ff"/></linearGradient></defs>
+            <circle cx="250" cy="196" r="157" fill="none" stroke="#81bcd6" stroke-opacity=".20" stroke-width="2"/>
+            <circle cx="250" cy="196" r="116" fill="none" stroke="#81bcd6" stroke-opacity=".28" stroke-width="2" stroke-dasharray="6 10"/>
+            <path d="M109 196C144 84 322 53 390 160" fill="none" stroke="url(#arc)" stroke-width="11" stroke-linecap="round"/>
+            <path d="M391 197C366 306 185 346 112 238" fill="none" stroke="#92b9ff" stroke-width="11" stroke-linecap="round"/>
+            <circle cx="250" cy="169" r="31" fill="#fbdac6"/>
+            <path d="M188 279C188 226 221 214 250 214C279 214 312 226 312 279Z" fill="#91e3dc"/>
+            <path d="M219 235L250 258L281 235" fill="none" stroke="#113759" stroke-width="6" stroke-linecap="round"/>
+            <path d="M250 259V285" stroke="#113759" stroke-width="6" stroke-linecap="round"/>
+            <g fill="#163b69" stroke="#91e3dc" stroke-width="4"><circle cx="111" cy="196" r="20"/><circle cx="389" cy="194" r="20"/><circle cx="250" cy="37" r="17"/><circle cx="250" cy="354" r="17"/></g>
+            <g stroke="#dffbf6" stroke-width="3" stroke-linecap="round"><path d="M102 193L110 201L121 187"/><path d="M381 194H397M389 186V202"/><path d="M242 37H258M250 29V45"/><path d="M244 354H256"/></g>
+            <rect x="169" y="304" width="164" height="33" rx="16" fill="#112a4a" stroke="#70c7c0" stroke-opacity=".65"/>
+            <text x="251" y="326" font-size="13" fill="white" font-weight="700" text-anchor="middle" font-family="system-ui, sans-serif">HUMAN-LED AI</text>
+          </svg>
+          <div class="visual-caption">Human choice at the centre. Technology around it.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell section" id="why" aria-labelledby="why-title">
+      <div class="section-heading"><span class="kicker">PURPOSE</span><h2 id="why-title">Augmentation without surrendering autonomy.</h2><p>Anthrogenisis is our proposed research philosophy: exploring how human capability and intelligent technology can become more closely coordinated, without reducing a person to a diagnosis or shifting control to a machine.</p></div>
+      <div class="principles">
+        <article class="principle"><span class="principle-index" aria-hidden="true">01</span><h3>Accessible</h3><p>Multiple ways to express the same intention, including AAC, switches, gaze and future neural interfaces.</p></article>
+        <article class="principle"><span class="principle-index" aria-hidden="true">02</span><h3>Inclusive</h3><p>Technology shaped by disabled people's choices, priorities, experiences and rights.</p></article>
+        <article class="principle"><span class="principle-index" aria-hidden="true">03</span><h3>Innovative</h3><p>Turn ambitious research questions into small, measurable experiments and honest evidence.</p></article>
+        <article class="principle"><span class="principle-index" aria-hidden="true">04</span><h3>Accountable</h3><p>Visible limits, human confirmation, cancellation, meaningful audit and independent review.</p></article>
+      </div>
+    </section>
+
+    <section class="lab-backdrop" id="lab" aria-labelledby="lab-title">
+      <div class="shell section">
+        <div class="section-heading lab-heading"><span class="kicker">EXPERIMENT 001</span><h2 id="lab-title">VoliSoma Access Lab</h2><p>Try a simulated shared-control task: choose an access method, select an object and approve a virtual robot action. Nothing on this page reads brain activity or controls physical equipment.</p></div>
+        <div class="lab-grid">
+          <div class="card control-panel">
+            <div class="panel-title-row"><h3>Configure your controls</h3><span class="status-dot" aria-hidden="true"></span></div>
+            <fieldset><legend>1. How would you give an instruction?</legend>
+              <label for="input-method">Simulated input method</label><select id="input-method">
+                <option value="aac">AAC selection</option><option value="gaze">Eye gaze</option><option value="switch">Accessible switch</option><option value="synthetic-eeg">Synthetic EEG (not real brain data)</option>
+              </select>
+            </fieldset>
+            <fieldset><legend>2. How much should the robot assist?</legend>
+              <label for="control-mode">Preferred control mode</label><select id="control-mode"><option value="shared">Shared autonomy (target + assisted movement)</option><option value="direct">Direct (illustrative manual guidance)</option><option value="supervised">Supervised automation (approved task)</option></select>
+            </fieldset>
+            <fieldset><legend>3. What would you like to retrieve?</legend>
+              <label for="target-object">Virtual target</label><select id="target-object"><option value="phone">Phone</option><option value="book">Book</option><option value="remote">Remote control</option></select>
+            </fieldset>
+            <p class="command-status" id="command-status" role="status" aria-live="polite" aria-atomic="true">Ready. No action pending. Select your preferences and request a proposal.</p>
+            <div class="button-group"><button id="propose-button" type="button" class="button primary-button">Propose task</button><button id="confirm-button" type="button" class="button confirm-button" disabled>Confirm virtual action</button><button id="stop-button" type="button" class="button stop-button">STOP ALL</button><button id="reset-button" type="button" class="button secondary-button">Reset</button></div>
+            <p class="control-hint">STOP ALL holds the simulation in a stopped state until you select Reset. Changing a preference cancels an outstanding proposal.</p>
+          </div>
+          <div class="card scene-panel"><div class="panel-title-row"><h3>Virtual workspace</h3><span class="live-tag">SIMULATED</span></div>
+            <div class="scene" id="scene" data-phase="idle" role="img" aria-label="A diagram of a virtual robotic arm and selected object. No physical device is connected.">
+              <svg viewBox="0 0 520 290" aria-hidden="true" focusable="false">
+                <rect x="0" y="0" width="520" height="290" fill="#f1f6fb"/>
+                <path d="M0 228H520" stroke="#b4c8d6" stroke-width="4"/>
+                <rect x="39" y="188" width="68" height="39" rx="12" fill="#153c66"/>
+                <circle cx="76" cy="190" r="18" fill="#1f5897" stroke="#ffffff" stroke-width="5"/>
+                <g class="robot-arm" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M76 190L135 132L221 171" stroke="#1f5897" stroke-width="26"/><path d="M76 190L135 132L221 171" stroke="#69c8c3" stroke-width="9"/><path d="M221 171L259 151" stroke="#1f5897" stroke-width="24"/><path d="M221 171L259 151" stroke="#69c8c3" stroke-width="8"/><path d="M257 151L283 134M257 151L284 167" stroke="#163c60" stroke-width="8"/><circle cx="135" cy="132" r="15" fill="#f0671d" stroke="#ffffff" stroke-width="5"/><circle cx="221" cy="171" r="14" fill="#f0671d" stroke="#ffffff" stroke-width="5"/></g>
+                <rect x="332" y="217" width="143" height="11" rx="5" fill="#889eb1"/>
+                <g class="virtual-object" id="virtual-object">
+                  <g data-object="phone"><rect x="390" y="147" width="42" height="70" rx="8" fill="#183e69"/><rect x="396" y="155" width="30" height="49" rx="3" fill="#9cdeeb"/><circle cx="411" cy="211" r="3" fill="#fff"/></g>
+                  <g data-object="book" style="display:none"><path d="M369 159L408 165V219L369 211Z" fill="#087a76" stroke="#1e536d" stroke-width="3"/><path d="M408 165L451 158V211L408 219Z" fill="#b5dfda" stroke="#1e536d" stroke-width="3"/><path d="M408 165V219" stroke="#1e536d" stroke-width="3"/></g>
+                  <g data-object="remote" style="display:none"><rect x="396" y="137" width="30" height="81" rx="12" fill="#244469" stroke="#7ca9c3" stroke-width="3"/><circle cx="411" cy="154" r="7" fill="#ef8d4b"/><circle cx="405" cy="175" r="3" fill="#bfe6f0"/><circle cx="417" cy="175" r="3" fill="#bfe6f0"/><rect x="404" y="190" width="14" height="12" rx="3" fill="#bfe6f0"/></g>
+                </g>
+                <text x="76" y="252" text-anchor="middle" fill="#455b76" font-size="14" font-family="system-ui, sans-serif">Virtual robot</text><text x="411" y="252" text-anchor="middle" fill="#455b76" font-size="14" font-family="system-ui, sans-serif" id="target-label">Phone</text>
+              </svg>
+            </div>
+            <p class="scene-summary" id="scene-summary">A virtual arm is waiting for your instruction.</p>
+            <div class="log-head"><h4>Local activity history</h4><button type="button" id="export-button" class="small-button">Export JSON</button></div>
+            <ol id="event-log" class="event-log" aria-label="Simulation activity history"><li>Simulator ready. No external connections.</li></ol>
+            <p class="fineprint">The event history remains in this browser session. Export only when you choose to download it. No personal or medical data is collected.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell section" id="research" aria-labelledby="research-title">
+      <div class="section-heading"><span class="kicker">EVIDENCE</span><h2 id="research-title">Research-led. Clear about uncertainty.</h2><p>These sources help frame our questions. They do not constitute a clinical endorsement, proof of device effectiveness or a partnership.</p></div>
+      <div class="research-grid">
+        <article class="research-card"><span class="research-type">ROBOTICS GOVERNANCE</span><h3>Human authority and machine rules</h3><p>Roger Clarke's analysis of Asimov's laws explores the limits of simple rules for complex robotic decisions.</p><a href="https://doi.org/10.1109/2.248881" target="_blank" rel="noopener noreferrer">Read the IEEE article <span aria-hidden="true">&nearr;</span></a></article>
+        <article class="research-card"><span class="research-type">NEUROTECHNOLOGY</span><h3>Non-invasive BCI with AI assistance</h3><p>Early studies show how AI assistance can help people operate limited-class brain-computer interfaces, with significant limits on generalisation.</p><a href="https://pubmed.ncbi.nlm.nih.gov/41221369/" target="_blank" rel="noopener noreferrer">Explore the research <span aria-hidden="true">&nearr;</span></a></article>
+        <article class="research-card"><span class="research-type">DISABILITY RIGHTS</span><h3>Choice and participation</h3><p>The Convention on the Rights of Persons with Disabilities informs our approach to access, communication and independent living.</p><a href="https://www.un.org/development/desa/disabilities/convention-on-the-rights-of-persons-with-disabilities.html" target="_blank" rel="noopener noreferrer">Read the Convention <span aria-hidden="true">&nearr;</span></a></article>
+      </div>
+    </section>
+
+    <section class="rights-section" id="rights" aria-labelledby="rights-title"><div class="shell rights-grid"><div><span class="kicker light-kicker">OUR COMMITMENTS</span><h2 id="rights-title">Your body. Your voice. Your decision.</h2><p>We are interested in technology that follows a person's will and preferences, not systems that turn safety into unnecessary restrictions on everyday life.</p></div><div class="rights-list"><h3>Boundaries of this beta</h3><p><strong>Human-led:</strong> virtual actions require explicit confirmation.</p><p><strong>Reversible:</strong> STOP ALL blocks further actions until reset.</p><p><strong>Private:</strong> no sign-in, analytics, EEG data or health records.</p><p><strong>Truthful:</strong> no physical robotics, clinical treatment or neural decoding.</p><p><strong>Accessible:</strong> keyboard and screen-reader support is being tested against WCAG 2.2 AA; independent audit is pending.</p></div></div></section>
+
+    <section class="shell section participation" id="participate" aria-labelledby="participate-title"><div class="participation-card"><div><span class="kicker">CO-DESIGN</span><h2 id="participate-title">Help define what meaningful independence looks like.</h2><p>We welcome disability-led perspectives, research challenges and potential collaborations. This demonstration does not provide a registration or research-consent form. Contact Australian Disability Ltd through its official website and avoid sending sensitive health records through general enquiries.</p></div><a class="button primary-button" href="https://ad.org.au/" rel="noopener noreferrer" target="_blank">Visit Australian Disability Ltd <span aria-hidden="true">&nearr;</span></a></div></section>
+  </main>
+  <footer class="footer"><div class="shell footer-inner"><div><strong>VoliSoma</strong><p>An Australian Disability Ltd initiative</p><p class="fineprint">Anthrogenisis is a proposed research framework, not an established scientific theory. This is an educational software simulation, not a medical device or real robotic controller.</p></div><div><a href="#home">Back to top</a><p>&copy; 2026 Australian Disability Ltd. Beta identity and research concept.</p></div></div></footer>
+  <noscript><div class="noscript">The research website remains readable without JavaScript. Enable JavaScript to try the virtual Access Lab.</div></noscript>
+<script>
+(()=>{
+// Pure simulation state transitions: no network, hardware access or neural decoding.
+const targets = Object.freeze({ phone: 'Phone', book: 'Book', remote: 'Remote control' });
+const methods = Object.freeze({ aac: 'AAC selection', gaze: 'Eye gaze', switch: 'Accessible switch', 'synthetic-eeg': 'Synthetic EEG' });
+const modes = Object.freeze({ shared: 'Shared autonomy', direct: 'Direct control', supervised: 'Supervised automation' });
+
+function initialSession() {
+  return { phase: 'idle', proposal: null, events: [{ kind: 'ready', message: 'Simulator ready. No external connections.' }] };
+}
+function record(state, kind, message, phase, proposal = null) {
+  return { phase, proposal, events: [...state.events, { kind, message }].slice(-30) };
+}
+function propose(state, { method, mode, target }) {
+  if (state.phase === 'stopped') return state;
+  if (!methods[method] || !modes[mode] || !targets[target]) throw new Error('Invalid simulated setting');
+  const proposal = Object.freeze({ method, mode, target });
+  return record(state, 'proposed', `Proposed ${targets[target]} retrieval using ${methods[method]} and ${modes[mode]}.`, 'proposed', proposal);
+}
+function confirm(state) {
+  if (state.phase !== 'proposed' || !state.proposal) return state;
+  return record(state, 'completed', `User confirmed. Simulated ${targets[state.proposal.target]} retrieval completed.`, 'completed');
+}
+function stop(state) {
+  if (state.phase === 'stopped') return state;
+  return record(state, 'stopped', 'STOP ALL activated. Virtual actions cancelled; Reset required.', 'stopped');
+}
+function reset(state) {
+  return record(state, 'reset', 'Simulator reset; no action pending.', 'idle');
+}
+function preferenceChanged(state) {
+  if (state.phase === 'stopped') return state;
+  return record(state, 'changed', 'Control preference changed. Any pending proposal was cancelled.', 'idle');
+}
+
+
+
+const $ = (id) => document.getElementById(id);
+let session = initialSession();
+
+function selected() {
+  return { method: $('input-method').value, mode: $('control-mode').value, target: $('target-object').value };
+}
+function render(announce = true) {
+  const phase = session.phase;
+  $('scene').dataset.phase = phase;
+  $('confirm-button').disabled = phase !== 'proposed';
+  $('propose-button').disabled = phase === 'stopped';
+  $('command-status').classList.toggle('stopped', phase === 'stopped');
+  const proposal = session.proposal;
+  const targetLabel = targets[selected().target];
+  $('target-label').textContent = targetLabel;
+  for (const shape of $('virtual-object').querySelectorAll('[data-object]')) {
+    shape.style.display = shape.dataset.object === selected().target ? '' : 'none';
+  }
+  const text = phase === 'stopped' ? 'STOP ALL is active. The virtual simulator is locked until Reset.'
+    : phase === 'proposed' && proposal ? `Proposed virtual retrieval of ${targets[proposal.target]}. Review and confirm or cancel.`
+    : phase === 'completed' ? 'Virtual task completed. No real-world movement occurred. Select Propose task to start another.'
+    : 'Ready. No action pending. Select your preferences and request a proposal.';
+  if (announce) $('command-status').textContent = text;
+  $('scene-summary').textContent = phase === 'completed'
+    ? `The virtual arm completed the approved ${targetLabel.toLowerCase()} retrieval illustration.`
+    : phase === 'stopped' ? 'All simulated movement is stopped. Use Reset to unlock.'
+    : phase === 'proposed' ? `The virtual arm awaits confirmation to approach the ${targetLabel.toLowerCase()}.`
+    : `The virtual arm is waiting to retrieve the ${targetLabel.toLowerCase()}.`;
+  $('scene').setAttribute('aria-label', `${$('scene-summary').textContent} This is a static simulation, not a physical robot.`);
+  const log = $('event-log');
+  log.replaceChildren();
+  [...session.events].reverse().forEach(({ message }) => {
+    const li = document.createElement('li');
+    li.textContent = message;
+    log.appendChild(li);
+  });
+}
+function update(action) { session = action(session); render(); }
+$('propose-button').addEventListener('click', () => update((state) => propose(state, selected())));
+$('confirm-button').addEventListener('click', () => update(confirm));
+$('stop-button').addEventListener('click', () => update(stop));
+$('reset-button').addEventListener('click', () => update(reset));
+for (const id of ['input-method', 'control-mode', 'target-object']) {
+  $(id).addEventListener('change', () => { update(preferenceChanged); });
+}
+$('export-button').addEventListener('click', () => {
+  const download = { schema: 'volisoma-simulation-1', simulated: true, exported_at: new Date().toISOString(), events: session.events };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(download, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'volisoma-simulation-log.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+render();
+
+})();
+</script>
+</body>
+</html>
