@@ -9,6 +9,12 @@ import {
 } from "@/lib/ai/agent-sessions/provider-finder-session";
 import { assertProviderFinderChatAllowed } from "@/lib/ai/relational/gates";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { getOptionalApiUser } from "@/lib/api/optional-session";
+import {
+  findFinderDiscoveryMatches,
+  loadFinderPreference,
+} from "@/lib/provider/finder/personalisation/discovery";
+import type { FinderSearchScope } from "@/lib/provider/finder/personalisation/matching";
 import { isSearchInterpreterConfigured } from "@/lib/config/search-interpreter";
 import { runProviderFinderAskTurn } from "@/lib/provider/finder/ask-bridge";
 import { extractLastUserText } from "@/lib/provider/finder/conversation/extract-user-text";
@@ -34,6 +40,8 @@ export async function POST(request: Request) {
   let body: {
     messages?: ProviderFinderChatUIMessage[];
     sessionId?: string;
+    scope?: FinderSearchScope;
+    useSavedPreferences?: boolean;
     session?: {
       query?: string;
       location?: string;
@@ -49,8 +57,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const messages = body.messages ?? [];
+  if (!Array.isArray(body.messages) || body.messages.length > 30 ||
+      (body.sessionId && (typeof body.sessionId !== "string" || body.sessionId.length > 120))) {
+    return Response.json({ error: "Invalid conversation payload" }, { status: 400 });
+  }
+  const messages = body.messages;
   const userText = extractLastUserText(messages as UIMessage[]);
+  if (userText.length > 700) return Response.json({ error: "Message is too long" }, { status: 413 });
 
   if (!userText.trim()) {
     return Response.json({ error: "Message is required" }, { status: 400 });
@@ -58,12 +71,13 @@ export async function POST(request: Request) {
 
   const sessionId =
     body.sessionId?.trim() || `finder-${Date.now()}`;
+  const safeField = (value: unknown) => typeof value === "string" ? value.slice(0, 180) : "";
   const formSession = {
-    query: body.session?.query ?? "",
-    location: body.session?.location ?? "",
-    providerName: body.session?.providerName ?? "",
-    serviceQuery: body.session?.serviceQuery ?? "",
-    accessQuery: body.session?.accessQuery ?? "",
+    query: safeField(body.session?.query),
+    location: safeField(body.session?.location),
+    providerName: safeField(body.session?.providerName),
+    serviceQuery: safeField(body.session?.serviceQuery),
+    accessQuery: safeField(body.session?.accessQuery),
   };
 
   try {
@@ -85,6 +99,32 @@ export async function POST(request: Request) {
       agentTurnIndex: existing?.turnIndex ?? 0,
     });
 
+    // The new search path is default-off and never reads a health profile.
+    const discoveryEnabled = process.env.PROVIDER_FINDER_DISCOVERY_ENABLED === "true";
+    const currentUser = discoveryEnabled ? await getOptionalApiUser() : null;
+    const preference = discoveryEnabled && body.useSavedPreferences && currentUser
+      ? await loadFinderPreference(currentUser)
+      : null;
+    const scope: FinderSearchScope = discoveryEnabled && currentUser &&
+      (body.scope === "workers" || body.scope === "both")
+      ? body.scope
+      : "providers";
+    const discovery = discoveryEnabled
+      ? await findFinderDiscoveryMatches({
+          user: currentUser,
+          scope,
+          applied: turn.applied,
+          providerResults: turn.providerResults,
+          preference: preference?.enabled ? preference : null,
+        })
+      : null;
+    if (discovery && scope !== "providers") {
+      const workerCount = discovery.matches.filter((match) => match.kind === "worker").length;
+      turn.replyText += workerCount
+        ? ` I also found ${workerCount} worker-published profile${workerCount === 1 ? "" : "s"}; check the match reasons and verify screening independently.`
+        : " No opted-in worker profiles matched those filters. You can broaden your search.";
+    }
+
     if (turn.agent) {
       appendProviderFinderTurn(sessionId, {
         userText,
@@ -101,6 +141,7 @@ export async function POST(request: Request) {
         gate.allowed &&
         gate.useModelStream &&
         isSearchInterpreterConfigured(),
+      discovery,
     });
 
     return createUIMessageStreamResponse({ stream });
