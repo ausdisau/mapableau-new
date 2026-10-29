@@ -35,6 +35,7 @@ model User {
   roleAssignments        UserRoleAssignment[]
   participantProfile     ParticipantProfile?
   accessibilityProfile   AccessibilityProfile?
+  providerFinderPreference ProviderFinderPreference?
   accessPassport         AccessPassport?
   organisationMemberships OrganisationMember[]
   consentsAsSubject      ConsentRecord[]    @relation("ConsentSubject")
@@ -2190,6 +2191,7 @@ model WorkerProfile {
   careWorkerPreferences   CareWorkerPreference[]
   availabilityWindows     AvailabilityWindow[]
   onboardingProfile       OnboardingProfile?
+  directoryPublication    WorkerDirectoryPublication?
   trustCredentials        WorkerTrustCredential[]
   organisationInvites     WorkerOrganisationInvite[]
   payoutRecipients        PayoutRecipient[] @relation("WorkerPayoutRecipients")
@@ -16064,4 +16066,33 @@ model AdBillingEvent {
   @@index([status])
   @@index([createdAt])
   @@map("ad_billing_events")
+}
+
+
+/// Participant-controlled, purpose-limited preferences. Never populated from a health profile without explicit opt-in.
+model ProviderFinderPreference {
+  userId      String   @id
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled     Boolean  @default(false)
+  location    String?
+  supportType String?
+  language    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("provider_finder_preferences")
+}
+
+/// A worker's separate, revocable permission to appear in the participant-facing directory.
+/// Never use this field as evidence of NWSD screening clearance or qualification.
+model WorkerDirectoryPublication {
+  workerProfileId String        @id
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  published       Boolean       @default(false)
+  consentedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([published])
+  @@map("worker_directory_publications")
 }
