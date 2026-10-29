@@ -77,6 +77,8 @@ export async function searchWorkersPublic(filters: ProviderSearchFilters) {
   return prisma.workerProfile.findMany({
     where: {
       active: true,
+      // The worker—not their provider—must opt in to public directory discovery.
+      directoryPublication: { is: { published: true, consentedAt: { not: null } } },
       ...(filters.serviceType
         ? { serviceTypes: { has: filters.serviceType } }
         : {}),
