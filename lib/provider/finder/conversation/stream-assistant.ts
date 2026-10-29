@@ -13,6 +13,7 @@ import {
   getInterpreterEngineId,
   getInterpreterModel,
 } from "@/lib/search/interpreter/get-model";
+import type { FinderDiscoveryPayload } from "@/lib/provider/finder/personalisation/matching";
 import type { FinderAgentData } from "@/types/provider-finder-chat";
 
 import type { ProviderFinderAskTurn } from "../ask-bridge";
@@ -144,11 +145,30 @@ async function* tracedTextStream(
 export function createFinderChatResponseStream(options: {
   turn: FinderStreamTurn;
   useLlmStream: boolean;
+  discovery?: FinderDiscoveryPayload | null;
 }) {
-  const { turn, useLlmStream } = options;
+  const { turn, useLlmStream, discovery } = options;
 
   return createUIMessageStream({
     execute: async ({ writer }) => {
+      if (discovery) {
+        writer.write({
+          type: "data-finderDiscoveryMeta",
+          id: "finder-discovery-meta",
+          data: {
+            scope: discovery.scope,
+            personalised: discovery.personalised,
+            workerNotice: discovery.workerNotice,
+          },
+        });
+        for (const match of discovery.matches) {
+          writer.write({
+            type: "data-finderDiscoveryMatch",
+            id: `finder-${match.kind}-${match.id}`,
+            data: match,
+          });
+        }
+      }
       const agentData = buildFinderAgentStreamData(turn);
       if (agentData) {
         writer.write({
