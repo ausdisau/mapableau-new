@@ -21,6 +21,7 @@ export const CSP_EXTERNAL_ORIGINS = {
   styles: ["https://fonts.googleapis.com"],
   fonts: ["https://fonts.gstatic.com"],
   images: [
+    "https://tile.openstreetmap.org",
     "https://*.tile.openstreetmap.org",
     "https://*.basemaps.cartocdn.com",
     "https://api.maptiler.com",
@@ -39,6 +40,7 @@ export const CSP_EXTERNAL_ORIGINS = {
     "https://www.paypal.com",
     "https://www.sandbox.paypal.com",
     "https://*.googleapis.com",
+    "https://tile.openstreetmap.org",
     "https://*.tile.openstreetmap.org",
     "https://api.maptiler.com",
     "https://vitals.vercel-insights.com",
