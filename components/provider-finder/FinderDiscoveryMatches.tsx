@@ -1,15 +1,7 @@
 "use client";
 
-import type {
-  FinderDiscoveryMatch,
-  FinderSearchScope,
-} from "@/lib/provider/finder/personalisation/matching";
-
-export type FinderDiscoveryMeta = {
-  personalised: boolean;
-  scope: FinderSearchScope;
-  workerNotice: string;
-};
+import type { FinderDiscoveryMatch } from "@/lib/provider/finder/personalisation/matching";
+import type { FinderDiscoveryMeta } from "@/types/provider-finder-chat";
 
 type Props = {
   matches: FinderDiscoveryMatch[];
