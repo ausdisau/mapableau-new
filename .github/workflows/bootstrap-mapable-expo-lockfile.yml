@@ -1,0 +1,58 @@
+# One-time scoped bootstrap. Remove this workflow immediately after it has
+# committed the reviewed apps/places/package-lock.json to the draft branch.
+# Never run with pull_request, a fork, deployment keys, or production secrets.
+name: Bootstrap MapAble Expo lockfile (draft branch only)
+
+on:
+  push:
+    branches:
+      - feat/mapable-offline-static-expo-20261030
+    paths:
+      - .github/workflows/bootstrap-mapable-expo-lockfile.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mapable-expo-lockfile-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  lockfile:
+    if: github.repository == 'ausdisau/mapableau-new' && github.ref == 'refs/heads/feat/mapable-offline-static-expo-20261030'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout only the approved feature branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+      - name: Set up Node.js 22.16.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+          package-manager-cache: false
+      - name: Resolve dependency graph without running package scripts
+        run: npm install --prefix apps/places --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Validate lockfile against manifest
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('apps/places/package.json', 'utf8'));
+          const lock = JSON.parse(fs.readFileSync('apps/places/package-lock.json', 'utf8'));
+          if (lock.lockfileVersion !== 3 || lock.packages?.['']?.name !== manifest.name) throw Error('Unexpected npm lockfile format or package');
+          for (const group of ['dependencies', 'devDependencies']) {
+            for (const [name, version] of Object.entries(manifest[group] ?? {})) {
+              if (lock.packages[''][group]?.[name] !== version) throw Error('Manifest mismatch: ' + name);
+            }
+          }
+          if (Object.keys(lock.packages).length < 20) throw Error('Incomplete resolution');
+          process.stdout.write('Manifest and lockfile consistent; '+Object.keys(lock.packages).length+' package entries\n');
+          NODE
+          git diff --exit-code -- apps/places/package.json
+      - name: Commit lockfile to this draft branch only
+        run: |
+          git add -- apps/places/package-lock.json
+          if git diff --cached --quiet; then echo 'Already committed'; exit 0; fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build(expo): commit resolved isolated dependency lockfile'
+          git push origin HEAD:refs/heads/feat/mapable-offline-static-expo-20261030
