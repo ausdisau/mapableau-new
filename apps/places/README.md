@@ -1,3 +1,40 @@
+# MapAble Static-First Companion (Expo) — staging build
+
+**Implemented in a draft branch, not deployed.** This extends the original MapAble Places / CripSquare Expo prototype into a portable MapAble entrypoint with five accessible tabs: Home, Care, Places, Saved, More.
+
+**Purpose:** run the public discovery experience without paying for another application server. Use a statically exported `dist/` on the existing Wasmer account, or upload the same files to existing VentraIP/cPanel static hosting. Android/iOS use the Expo native application with bundled data; they do not require a hosted backend for the offline subset.
+
+## Working capabilities in this release
+- Home: clear navigation, connectivity and source limitations.
+- Care: full-text and category search across a privacy-minimised, **build-time generated** snapshot of the existing NDIS outlet dataset. Organisation-level only; no clearance, current registration or personal suitability claims. Results are paginated using a virtualized FlatList; locality links open OpenStreetMap rather than inferring precise coordinates.
+- Places: existing offline demonstration venues, user-controlled saved places and descriptive access observations.
+- More: local community drafts, access-report authoring, an optional transport-access checklist, employment guidance, and data export/deletion.
+- No mandatory login, browser tracking, GPS, payment service, or new database credentials.
+
+## Build from the repository root
+
+```bash
+cd apps/places
+npm install
+npm run test
+npm run typecheck
+npm run build:web
+```
+
+The standalone Node build step reads `../../public/data/provider-outlets.json` and the canonical `../../app/provider-finder/regGroupOptions.ts`. It removes confidential addresses, phone numbers, emails, precise coordinates and individual-worker identities; output goes to the ignored `src/generated/provider-directory.json`. **Do not copy the raw outlet export into a deployed web directory.**
+
+`dist/` is a self-contained static website; deploy that directory to Wasmer or cPanel without running `next start` or Node.js in production. The optional `app.yaml` in this directory targets **`ausdisau/mapable-companion-preview`**, not the existing `ausdisau/mapable` production app.
+
+For installation/backup/DNS cutover, see [the staged hosting guide](../../docs/hosting/mapable-static-current-hosting.md).
+
+## Important boundaries
+
+A static client cannot safely hold a Neon database password, signing secret, payment key, privileged cPanel token or NDIS worker screening credential. The existing Next.js API, consent, sensitive Care and payments remain separate until a reviewed authenticated backend is retained or moved. The optional MapAble Places public endpoint is read-only and off by default. Native app build packages and app-store distribution are separate from website hosting.
+
+The imported directory is a **snapshot**. Its build date is not the NDIS Commission verification date. Public names can still include sole traders, so perform licensing/source freshness and privacy review before releasing it. Locally authored drafts remain **unencrypted** in AsyncStorage; do not enter sensitive participant or health information. Do not call this release WCAG 2.2 AA conformant before completing assistive-technology tests.
+
+---
+
 # MapAble Places × CripSquare — UX-first Expo prototype
 
 **Branch-only prototype. Not deployed, not linked to production accounts or CripSquare, and not WCAG/ATAG certified.**
