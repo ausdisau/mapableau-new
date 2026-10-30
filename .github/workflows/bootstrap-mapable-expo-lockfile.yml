@@ -52,6 +52,7 @@ jobs:
           git diff --exit-code -- apps/places/package.json
       - name: Commit lockfile to this draft branch only
         run: |
+          # The root .gitignore now permits precisely this isolated npm lockfile.
           git add -- apps/places/package-lock.json
           if git diff --cached --quiet; then echo 'Already committed'; exit 0; fi
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build(expo): commit resolved isolated dependency lockfile'
