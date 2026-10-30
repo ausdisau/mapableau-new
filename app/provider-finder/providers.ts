@@ -11,6 +11,9 @@ export type Provider = {
   rating: number;
   reviewCount: number;
   registered: boolean;
+  /** Source provenance: never a substitute for live regulatory verification. */
+  source?: "ndis_import" | "demo" | "unknown";
+  directoryActivity?: "active_in_source" | "not_active_in_source" | "unknown";
   categories: string[];
   supports: ProviderSupportMode[];
   /** From outlet data; used by Map when present */
