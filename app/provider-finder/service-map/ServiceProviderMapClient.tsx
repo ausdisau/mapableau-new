@@ -54,6 +54,7 @@ export default function ServiceProviderMapClient() {
   const [filters, setFilters] = useState({ location: "", service: "", provider: "" });
   const [response, setResponse] = useState<MapResponse | null>(null);
   const [chatPins, setChatPins] = useState<MapLibreProvider[]>([]);
+  const [chatMode, setChatMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -99,7 +100,9 @@ export default function ServiceProviderMapClient() {
   const handleChatMapResults = useCallback((pins: MapLibreProvider[]) => {
     setChatPins(pins);
   }, []);
-  const mappedProviders = chatPins.length > 0 ? chatPins : providers;
+  const enableChatMap = useCallback(() => { setChatMode(true); setChatPins([]); }, []);
+  const resetChatMap = useCallback(() => { setChatMode(false); setChatPins([]); }, []);
+  const mappedProviders = chatMode ? chatPins : providers;
 
   const onSearch = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -131,14 +134,14 @@ export default function ServiceProviderMapClient() {
         </label>
         <button type="submit" disabled={loading} className="self-end rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-60">Search providers</button>
       </form>
-      <ProviderChatStream onMapResults={handleChatMapResults} />
+      <ProviderChatStream onMapResults={handleChatMapResults} onChatSearchStart={enableChatMap} onChatReset={resetChatMap} />
       <section aria-label="Provider location search results" className="space-y-3">
         <p role="status" aria-live="polite">
-          {loading ? "Loading provider locations…" : error ? "Provider lookup failed." : `${providers.length} locations plotted${response && response.count > providers.length ? ` (first ${providers.length} of ${response.count} matches)` : ""}.`}
+          {chatMode ? `${mappedProviders.length} chat results have map coordinates.` : loading ? "Loading provider locations…" : error ? "Provider lookup failed." : `${providers.length} locations plotted${response && response.count > providers.length ? ` (first ${providers.length} of ${response.count} matches)` : ""}.`}
         </p>
         {error && <p role="alert" className="text-destructive">{error}. Check the source import and try again.</p>}
         <div className="flex flex-wrap gap-3">
-          <button type="button" disabled={!providers.length} onClick={() => downloadGeoJson(providers)} className="rounded-md border px-4 py-2 disabled:opacity-50">
+          <button type="button" disabled={!mappedProviders.length} onClick={() => downloadGeoJson(mappedProviders)} className="rounded-md border px-4 py-2 disabled:opacity-50">
             Download GeoJSON for OSM / Leaflet
           </button>
           <a href="/provider-finder" className="rounded-md border px-4 py-2 underline">Full provider finder</a>
@@ -146,10 +149,10 @@ export default function ServiceProviderMapClient() {
         <p className="text-sm text-muted-foreground">Source: locally ingested NDIS Provider Finder records, not a live regulatory lookup. Individual worker screening is not publicly searchable. Confirm registration against the NDIS Commission Provider Register and screen individual workers through an authorised NDIS Worker Screening Database pathway.</p>
         {mappedProviders.length > 0 ? (
           <>
-            <p className="text-sm text-muted-foreground">{chatPins.length > 0 ? "Map showing current chat results with coordinates." : "Map showing directory filter results."}</p>
-            <ProviderMap providers={mappedProviders} fitToProviders={chatPins.length > 0} selectedProviderId={selected} onProviderSelect={setSelected} />
+            <p className="text-sm text-muted-foreground">{chatMode ? "Map showing current chat results with coordinates." : "Map showing directory filter results."}</p>
+            <ProviderMap providers={mappedProviders} fitToProviders={chatMode} selectedProviderId={selected} onProviderSelect={setSelected} />
           </>
-        ) : !loading && !error ? (
+        ) : (
           <p>No geocoded provider locations matched. Try a wider search or use the full provider finder.</p>
         ) : null}
       </section>
