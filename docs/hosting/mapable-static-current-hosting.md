@@ -21,7 +21,7 @@ Retain the existing MapAble Next.js/Neon system for authenticated sensitive acti
 
 ## Build
 
-From a complete checkout: cd apps/places, then npm install, npm run test, npm run typecheck and npm run build:web. The output is the dist directory. It does not require a long-running Node.js server.
+From a complete checkout: cd apps/places, then npm ci, npm run test, npm run typecheck and npm run build:web. The output is the dist directory. It does not require a long-running Node.js server.
 
 The generator uses ../../public/data/provider-outlets.json plus ../../app/provider-finder/regGroupOptions.ts. This source is an imported snapshot; a build timestamp is NOT the regulator's current verification date. Review publication terms, data age, and identifiable sole-trader names before a public release.
 
@@ -41,7 +41,7 @@ Use VentraIP's actual authoritative DNS controls when staging a new hostname suc
 
 ## Safety, accessibility and quality gates
 
-1. CI green for exact PR head, including Expo web output, TypeScript and data privacy tests.
+1. CI green for exact PR head: a committed npm v3 lockfile and `npm ci` now reproduce the Expo web output; TypeScript, tests and public-data checks pass. The high-severity Expo CLI/Zod dependency finding still fails `npm audit --omit=dev --audit-level=high`. No staging or merge until resolved or independently approved under a documented exception policy.
 2. Verify source freshness/license and redaction; no clinical, personal-care or NDIS worker screening status in the static snapshot.
 3. WCAG 2.2 AA and ATAG 2.0 evaluation on web, plus VoiceOver, TalkBack and large-text native tests.
 4. Measure search startup and memory on midrange devices with a full national index; use profiling rather than speculative optimisations.
