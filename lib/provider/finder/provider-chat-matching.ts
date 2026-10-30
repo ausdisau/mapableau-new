@@ -69,6 +69,7 @@ export type ProviderSearchFilters = {
   serviceTypes: ProviderServiceId[];
   providerName?: string;
   communicationModes: string[];
+  functionalRequirements: ProviderSearchPreferences["functionalRequirements"];
   delivery: ProviderSearchPreferences["delivery"];
   fundingManagement: ProviderSearchPreferences["fundingManagement"];
   usedSavedProfile: boolean;
@@ -98,6 +99,7 @@ export function buildProviderSearchFilters(input: {
   return {
     state, postcode, suburb, serviceTypes, providerName: intent.providerName,
     communicationModes: transient?.communication ? [transient.communication] : saved?.communicationModes ?? [],
+    functionalRequirements: saved?.functionalRequirements ?? [],
     delivery: saved?.delivery ?? "any",
     fundingManagement: saved?.fundingManagement ?? "unspecified",
     usedSavedProfile: input.usedSavedProfile,
