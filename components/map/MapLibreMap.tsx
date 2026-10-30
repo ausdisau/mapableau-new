@@ -27,6 +27,8 @@ type MapLibreMapProps = {
   userPosition?: { lat: number; lng: number } | null;
   onProviderSelect?: (id: string) => void;
   selectedProviderId?: string | null;
+  /** Opt-in accessible result focus for directory maps; default false. */
+  fitToProviders?: boolean;
 };
 
 export function MapLibreMap({
@@ -34,6 +36,7 @@ export function MapLibreMap({
   userPosition,
   onProviderSelect,
   selectedProviderId,
+  fitToProviders = false,
 }: MapLibreMapProps) {
   const mapId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,6 +71,22 @@ export function MapLibreMap({
     if (!map || !userPosition) return;
     map.flyTo({ center: [userPosition.lng, userPosition.lat], zoom: 12 });
   }, [map, userPosition]);
+
+  useEffect(() => {
+    if (!map || !fitToProviders || !providers.length) return;
+    const locations = providers.filter(
+      (p) => Number.isFinite(p.lat) && Number.isFinite(p.lng) &&
+        Math.abs(p.lat) <= 90 && Math.abs(p.lng) <= 180,
+    );
+    if (!locations.length) return;
+    const minLng = Math.min(...locations.map((p) => p.lng));
+    const maxLng = Math.max(...locations.map((p) => p.lng));
+    const minLat = Math.min(...locations.map((p) => p.lat));
+    const maxLat = Math.max(...locations.map((p) => p.lat));
+    map.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
+      padding: 40, maxZoom: 12, duration: 0,
+    });
+  }, [map, providers, fitToProviders]);
 
   const listResults = providers.slice(0, 50).map((p) => ({
     id: p.id,
