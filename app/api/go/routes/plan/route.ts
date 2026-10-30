@@ -1,3 +1,5 @@
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { mapableGoFlags, goFeatureDisabledResponse } from "@/lib/config/mapable-go";
 import { planRouteRequestSchema } from "@/lib/go/contracts/route-contracts";
 import {
@@ -5,8 +7,6 @@ import {
   ensureAccessPassport,
 } from "@/lib/go/profile-service";
 import { persistRoutePlan, planNavigateRoutes } from "@/lib/go/route-service";
-import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonOk, zodErrorResponse } from "@/lib/api/response";
 
 export async function POST(req: Request) {
   if (!mapableGoFlags.participantRoutesEnabled) {

@@ -5,6 +5,7 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { apiForbidden } from "@/lib/auth/guards";
+import { buildParticipantSupportSnapshot } from "@/lib/intake/participant-support-snapshot";
 import {
   REGISTRATION_ASSESSOR_SKIPPED_STATUS,
   REGISTRATION_ASSESSOR_STATUS,
@@ -12,7 +13,6 @@ import {
 } from "@/lib/intake/support-needs-assessor";
 import { refreshParticipantOnboarding } from "@/lib/onboarding/onboarding-service";
 import { prisma } from "@/lib/prisma";
-import { buildParticipantSupportSnapshot } from "@/lib/intake/participant-support-snapshot";
 
 function isParticipantUser(user: {
   primaryRole: string;
