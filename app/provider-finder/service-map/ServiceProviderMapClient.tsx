@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MapLibreProvider } from "@/components/map/MapLibreMap";
+import ProviderChatStream from "./ProviderChatStream";
 import { fetchProviderMapPins } from "@/lib/provider/finder/fetch-map-pins";
 
 const ProviderMap = dynamic(
@@ -124,6 +125,7 @@ export default function ServiceProviderMapClient() {
         </label>
         <button type="submit" disabled={loading} className="self-end rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-60">Search providers</button>
       </form>
+      <ProviderChatStream />
       <section aria-label="Provider location search results" className="space-y-3">
         <p role="status" aria-live="polite">
           {loading ? "Loading provider locations…" : error ? "Provider lookup failed." : `${providers.length} locations plotted${response && response.count > providers.length ? ` (first ${providers.length} of ${response.count} matches)` : ""}.`}
