@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
   PROVIDER_SEARCH_CONSENT_VERSION,
+  PROVIDER_FUNCTIONAL_REQUIREMENTS,
   type ProviderSearchPreferences,
   type SavedProviderSearchProfile,
 } from "@/lib/provider/finder/search-profile-contract";
@@ -14,6 +15,7 @@ import {
 
 const emptyPreferences: ProviderSearchPreferences = {
   serviceTypes: [],
+  functionalRequirements: [],
   communicationModes: [],
   delivery: "any",
   fundingManagement: "unspecified",
@@ -166,6 +168,22 @@ export default function ProviderSearchProfileForm({ onSavedAvailabilityChange }:
                   disabled={!draft.serviceTypes.includes(id) && draft.serviceTypes.length >= 5}
                   onChange={(event) => toggleService(id, event.target.checked)} />
                 {PROVIDER_SERVICE_CATALOG[id].label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset className="space-y-2">
+          <legend className="font-medium">Functional access requirements (not verified by directory listings)</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {PROVIDER_FUNCTIONAL_REQUIREMENTS.map(({ id, label }) => (
+              <label key={id} className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={draft.functionalRequirements.includes(id)}
+                  onChange={(event) => setDraft((p) => ({
+                    ...p, functionalRequirements: event.target.checked
+                      ? [...p.functionalRequirements, id]
+                      : p.functionalRequirements.filter((entry) => entry !== id),
+                  }))} />
+                {label}
               </label>
             ))}
           </div>
