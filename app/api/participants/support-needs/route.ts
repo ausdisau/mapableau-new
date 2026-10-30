@@ -5,6 +5,8 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { apiForbidden } from "@/lib/auth/guards";
+import { isAssessmentIntakeEnabled } from "@/lib/config/assessment-release";
+import { buildParticipantSupportSnapshot } from "@/lib/intake/participant-support-snapshot";
 import {
   REGISTRATION_ASSESSOR_SKIPPED_STATUS,
   REGISTRATION_ASSESSOR_STATUS,
@@ -12,7 +14,6 @@ import {
 } from "@/lib/intake/support-needs-assessor";
 import { refreshParticipantOnboarding } from "@/lib/onboarding/onboarding-service";
 import { prisma } from "@/lib/prisma";
-import { buildParticipantSupportSnapshot } from "@/lib/intake/participant-support-snapshot";
 
 function isParticipantUser(user: {
   primaryRole: string;
@@ -29,6 +30,10 @@ export async function POST(req: Request) {
 
   if (!isParticipantUser(user)) {
     return apiForbidden();
+  }
+
+  if (!isAssessmentIntakeEnabled()) {
+    return jsonError("Assessment intake is not enabled", 503);
   }
 
   let body: unknown;
@@ -139,7 +144,7 @@ export async function GET() {
   }
 
   const latest = await prisma.iCanV6IntakeSubmission.findFirst({
-    where: { participantId: user.id },
+    where: { participantId: user.id, status: { in: [REGISTRATION_ASSESSOR_STATUS, "submitted_draft"] } },
     orderBy: { createdAt: "desc" },
     select: { id: true, status: true, createdAt: true },
   });

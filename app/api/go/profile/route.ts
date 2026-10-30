@@ -1,3 +1,5 @@
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { mapableGoFlags, goFeatureDisabledResponse } from "@/lib/config/mapable-go";
 import { mobilityRoutingProfileSchema } from "@/lib/go/contracts/route-contracts";
 import {
@@ -5,8 +7,6 @@ import {
   getMobilityRoutingProfile,
   upsertMobilityRoutingProfile,
 } from "@/lib/go/profile-service";
-import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonOk, zodErrorResponse } from "@/lib/api/response";
 
 export async function GET() {
   if (!mapableGoFlags.enabled) {

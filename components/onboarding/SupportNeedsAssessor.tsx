@@ -222,8 +222,7 @@ export function SupportNeedsAssessor() {
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
             Choose life areas you want to talk about. Unselected areas are not treated as no support needed. We&apos;ll use this to
-            prepare your MapAble planning draft. You can change it later, and
-            nothing is sent to the NDIA from this step.
+            prepare your MapAble planning draft. Nothing is sent to the NDIA from this step.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button
