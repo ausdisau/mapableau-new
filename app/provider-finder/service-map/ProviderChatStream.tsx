@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { MapLibreProvider } from "@/components/map/MapLibreMap";
+import type { ProviderChatContext } from "@/lib/provider/finder/provider-chat-session";
 
 import ProviderSearchProfileForm from "./ProviderSearchProfileForm";
 
@@ -20,6 +21,7 @@ type ChatEvent = {
     serviceTypes: string[];
   };
   personalised?: boolean;
+  nextContext?: ProviderChatContext;
 };
 
 type Props = { onMapResults?: (pins: MapLibreProvider[]) => void };
@@ -36,6 +38,10 @@ export default function ProviderChatStream({ onMapResults }: Props) {
   const [log, setLog] = useState<string[]>([]);
   const [searchContext, setSearchContext] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [lastStatus, setLastStatus] = useState<string | null>(null);
+  const [previousContext, setPreviousContext] = useState<ProviderChatContext | null>(null);
+  const previousContextUpdatedAt = useRef<number>(0);
   const abortRef = useRef<AbortController | null>(null);
 
   const onSavedAvailabilityChange = useCallback((available: boolean) => {
@@ -57,15 +63,22 @@ export default function ProviderChatStream({ onMapResults }: Props) {
     onMapResults(pins);
   }, [results, onMapResults]);
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!message.trim()) return;
+  async function runSearch(queryText: string) {
+    if (!queryText.trim()) return;
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     const applySavedProfile = hasSavedProfile && useSavedProfile;
     setUseSavedProfile(false); // Consent to reuse a stored profile is per search, not sticky.
-    setLog([]); setResults([]); setSearchContext(null); setBusy(true);
+    const validPreviousContext =
+      previousContext && Date.now() - previousContextUpdatedAt.current <= 30 * 60_000
+        ? previousContext : undefined;
+    if (!validPreviousContext) {
+      setPreviousContext(null);
+      setHasMore(false);
+    }
+    setLog((previous) => [...previous, "You: " + queryText].slice(-24));
+    setResults([]); setLastStatus("Searching provider records…"); setSearchContext(null); setBusy(true);
 
     try {
       const response = await fetch("/api/providers/chat-search", {
@@ -73,7 +86,8 @@ export default function ProviderChatStream({ onMapResults }: Props) {
         signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message,
+          message: queryText,
+          previous: validPreviousContext,
           useSavedProfile: applySavedProfile,
           preferences: useSearchOnlyFilters ? {
             usePreferences: true, state: state || undefined,
@@ -100,8 +114,17 @@ export default function ProviderChatStream({ onMapResults }: Props) {
         if (entry.type === "provider" && entry.provider) {
           setResults((previous) => [...previous, entry.provider!]);
         }
-        if ((entry.type === "message" || entry.type === "error" || entry.type === "status") && entry.text) {
-          setLog((previous) => [...previous, entry.text!]);
+        if (entry.type === "status" && entry.text) setLastStatus(entry.text);
+        if ((entry.type === "message" || entry.type === "error") && entry.text) {
+          setLog((previous) => [...previous, "MapAble: " + entry.text!].slice(-24));
+        }
+        if (entry.type === "complete") {
+          setLastStatus(null);
+          setHasMore(Boolean(entry.hasMore));
+          if (entry.nextContext) {
+            setPreviousContext(entry.nextContext);
+            previousContextUpdatedAt.current = Date.now();
+          }
         }
         if (entry.type === "context" && entry.applied) {
           const applied = entry.applied;
@@ -123,11 +146,33 @@ export default function ProviderChatStream({ onMapResults }: Props) {
       }
     } catch (error) {
       if (!controller.signal.aborted) {
-        setLog((previous) => [...previous, error instanceof Error ? error.message : "Search failed"]);
+        setLastStatus(null);
+        setLog((previous) => [
+          ...previous, "MapAble: " + (error instanceof Error ? error.message : "Search failed"),
+        ].slice(-24));
       }
     } finally {
       if (!controller.signal.aborted) setBusy(false);
     }
+  }
+
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void runSearch(message);
+  }
+
+  function clearConversation() {
+    abortRef.current?.abort();
+    setBusy(false);
+    setLog([]);
+    setResults([]);
+    setMessage("");
+    setPreviousContext(null);
+    previousContextUpdatedAt.current = 0;
+    setHasMore(false);
+    setLastStatus(null);
+    setSearchContext(null);
+    setUseSavedProfile(false);
   }
 
   return (
@@ -178,11 +223,23 @@ export default function ProviderChatStream({ onMapResults }: Props) {
             className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">
             Search provider directory
           </button>
+          {hasMore && !busy && <button type="button" className="rounded-md border px-4 py-2"
+            disabled={Boolean(previousContext?.fromSavedProfile && !useSavedProfile)}
+            onClick={() => void runSearch("Show more")}>
+            Show more results
+          </button>}
           {busy && <button type="button" className="rounded-md border px-4 py-2"
-            onClick={() => { abortRef.current?.abort(); setBusy(false); }}>Stop search</button>}
+            onClick={() => { abortRef.current?.abort(); setLastStatus(null); setBusy(false); }}>Stop search</button>}
+          <button type="button" className="rounded-md border px-4 py-2"
+            onClick={clearConversation}>Clear conversation</button>
         </div>
       </form>
-      <div role="status" aria-live="polite" aria-atomic="false" className="space-y-2">
+      <p className="text-xs text-muted-foreground">Conversation context remains in this browser tab only, expires after 30 minutes of inactivity, and is not saved to Neon. Clear conversation to discard it sooner.</p>
+      {hasMore && previousContext?.fromSavedProfile && !useSavedProfile && <p className="text-sm">
+        To see more results from the saved-profile search, select your saved profile again.
+      </p>}
+      {lastStatus && <p role="status" aria-live="polite">{lastStatus}</p>}
+      <div role="log" aria-live="polite" aria-label="Current chat conversation" className="space-y-2">
         {log.map((entry, index) => <p key={index}>{entry}</p>)}
         {searchContext && <p className="text-sm text-muted-foreground">{searchContext}</p>}
       </div>
