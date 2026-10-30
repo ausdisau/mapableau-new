@@ -1,6 +1,11 @@
 name: Assessment production approval gate
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/assessment-production-gate.yml"
+      - "scripts/ci/assessment-production-gate.mjs"
+      - "scripts/ci/assessment-production-gate.node.mjs"
   workflow_dispatch:
     inputs:
       release_sha:
@@ -19,7 +24,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate-tests:
+    name: Assessment / release gate tests
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run fail-closed gate tests
+        run: node --test scripts/ci/assessment-production-gate.node.mjs
+
   preflight:
+    if: github.event_name == 'workflow_dispatch'
     name: Assessment / fail-closed preflight
     runs-on: ubuntu-latest
     timeout-minutes: 25
