@@ -6,14 +6,13 @@ import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { apiForbidden } from "@/lib/auth/guards";
 import {
-  mapLiteAssessorToICanPayload,
   REGISTRATION_ASSESSOR_SKIPPED_STATUS,
   REGISTRATION_ASSESSOR_STATUS,
   SupportNeedsAssessorBodySchema,
 } from "@/lib/intake/support-needs-assessor";
 import { refreshParticipantOnboarding } from "@/lib/onboarding/onboarding-service";
 import { prisma } from "@/lib/prisma";
-import { ICAN_V6_DOMAIN_IDS } from "@/lib/validation/i-can-v6";
+import { buildParticipantSupportSnapshot } from "@/lib/intake/participant-support-snapshot";
 
 function isParticipantUser(user: {
   primaryRole: string;
@@ -85,17 +84,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    const icanPayload = mapLiteAssessorToICanPayload(parsed);
+    const snapshot = buildParticipantSupportSnapshot(parsed);
 
     const submission = await prisma.iCanV6IntakeSubmission.create({
       data: {
         participantId: user.id,
         status: REGISTRATION_ASSESSOR_STATUS,
         payload: {
-          ...icanPayload,
-          source: "registration_assessor",
-          selectedAreas: parsed.selectedAreas,
-          priorityArea: parsed.priorityArea ?? null,
+          ...snapshot,
         } as unknown as Prisma.InputJsonValue,
       },
     });
@@ -111,7 +107,7 @@ export async function POST(req: Request) {
         status: REGISTRATION_ASSESSOR_STATUS,
         selectedAreaCount: parsed.selectedAreas.length,
         priorityArea: parsed.priorityArea ?? null,
-        domainCount: ICAN_V6_DOMAIN_IDS.length,
+        schemaVersion: snapshot.schemaVersion,
       },
     });
 

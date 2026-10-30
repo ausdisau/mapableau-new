@@ -24,6 +24,7 @@ export default function RegisterClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("inviteToken")?.trim() ?? "";
+  const assessmentFlow = searchParams.get("flow") === "assessment";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -61,7 +62,7 @@ export default function RegisterClient({
 
       const postRegisterPath = inviteToken
         ? "/worker/onboarding"
-        : "/register/support-needs";
+        : "/register/assessment";
 
       const result = await signIn("credentials", {
         email: normalizedEmail,
@@ -92,7 +93,9 @@ export default function RegisterClient({
       description={
         inviteToken
           ? "Complete registration to accept your provider invite and join their roster."
-          : "Join MapAble to request care, manage bookings, and connect with providers."
+          : assessmentFlow
+            ? "Create an account to record your own support needs and review assessment evidence. You can skip this step."
+            : "Join MapAble to request care, manage bookings, and connect with providers."
       }
       footer={
         <>
@@ -107,12 +110,16 @@ export default function RegisterClient({
       }
     >
       <div className="flex flex-col gap-4">
-        <OAuthSignInButtons
-          providers={oauthProviders}
-          callbackUrl="/dashboard"
-          disabled={isLoading}
-        />
-        <AuthOAuthDivider label="or register with email" />
+        {!inviteToken ? (
+          <>
+            <OAuthSignInButtons
+              providers={oauthProviders}
+              callbackUrl="/register/assessment"
+              disabled={isLoading}
+            />
+            <AuthOAuthDivider label="or register with email" />
+          </>
+        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

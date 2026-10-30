@@ -10,11 +10,11 @@ const registerClientSource = readFileSync(
 
 describe("RegisterClient support-needs redirect", () => {
   it("sends participants to the support needs assessor after signup", () => {
-    expect(registerClientSource).toContain('"/register/support-needs"');
+    expect(registerClientSource).toContain('"/register/assessment"');
     expect(registerClientSource).toContain('"/worker/onboarding"');
     // Participants should not go straight to dashboard after email register.
     expect(registerClientSource).toMatch(
-      /inviteToken\s*\?\s*"\/worker\/onboarding"\s*:\s*"\/register\/support-needs"/,
+      /inviteToken\s*\?\s*"\/worker\/onboarding"\s*:\s*"\/register\/assessment"/,
     );
   });
 });
