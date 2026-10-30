@@ -355,6 +355,7 @@ export function SupportNeedsAssessor() {
                     <input
                       id={inputId}
                       type="radio"
+                      aria-label={`${option.label}: ${option.description}`}
                       name={`intensity-${currentArea}`}
                       value={option.value}
                       checked={checked}

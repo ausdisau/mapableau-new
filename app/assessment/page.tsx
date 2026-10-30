@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { CorePageHeader } from "@/components/core/CorePageHeader";
+import { isAssessmentRegistrationEnabled } from "@/lib/config/assessment-release";
+
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Your support needs assessment | MapAble",
   description: "Record support needs and prepare for an assessment on your terms.",
 };
 export default function AssessmentInformationPage() {
+  const enabled = isAssessmentRegistrationEnabled();
   return (
     <main id="main-content" className="mx-auto max-w-3xl space-y-6 px-4 py-10">
       <CorePageHeader eyebrow="MapAble • Participant-owned" title="Your needs. Your words. Your choices."
@@ -20,9 +24,10 @@ export default function AssessmentInformationPage() {
       </section>
       <div className="rounded-xl border p-5">
         <p className="mb-4">MapAble does not conduct an official NDIA assessment, calculate an I-CAN score or determine NDIS eligibility. This is an optional planning tool.</p>
+        {!enabled ? <p role="status" className="mb-4 font-semibold">The assessment workspace is in a controlled validation phase. New assessment submissions are not available. You can still create a regular MapAble account.</p> : null}
         <div className="flex flex-wrap gap-4">
-          <Link className="rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground" href="/signup/assessment">Create an account</Link>
-          <Link className="rounded-lg border px-5 py-3 font-semibold" href="/login?callbackUrl=%2Fdashboard%2Fassessment">Sign in to continue</Link>
+          <Link className="rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground" href={enabled ? "/signup/assessment" : "/register"}>{enabled ? "Create an account to start" : "Create a MapAble account"}</Link>
+          <Link className="rounded-lg border px-5 py-3 font-semibold" href={enabled ? "/login?callbackUrl=%2Fdashboard%2Fassessment" : "/login"}>Sign in</Link>
         </div>
       </div>
       <p className="text-sm text-muted-foreground">You can create your MapAble account without completing an assessment. You remain in control of what you share.</p>

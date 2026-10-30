@@ -30,3 +30,35 @@ export function buildParticipantSupportSnapshot(input: SupportNeedsAssessorSubmi
     },
   };
 }
+
+export type StoredSupportRecordKind =
+  | "participant_self_report"
+  | "legacy_registration"
+  | "legacy_ican_draft"
+  | "skipped"
+  | "unknown";
+
+/**
+ * Interpret historical stored records without rewriting the original data.
+ * A legacy or unknown payload never becomes a participant-authored statement.
+ */
+export function classifyStoredSupportNeedsRecord(payload: unknown): StoredSupportRecordKind {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return "unknown";
+  }
+  const item = payload as Record<string, unknown>;
+  if (item.skipped === true) return "skipped";
+  if (
+    item.schemaVersion === 1 &&
+    item.recordType === "participant_authored_support_snapshot" &&
+    item.unselectedAreasMean === "not_assessed" &&
+    Array.isArray(item.areas)
+  ) {
+    return "participant_self_report";
+  }
+  if (item.source === "registration_assessor" && item.domains && typeof item.domains === "object") {
+    return "legacy_registration";
+  }
+  if (item.domains && typeof item.domains === "object") return "legacy_ican_draft";
+  return "unknown";
+}

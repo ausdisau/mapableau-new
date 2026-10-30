@@ -5,6 +5,11 @@ const createAuditEvent = vi.fn();
 const createSubmission = vi.fn();
 const findFirstSubmission = vi.fn();
 const refreshParticipantOnboarding = vi.fn();
+const isAssessmentRegistrationEnabled = vi.fn();
+
+vi.mock("@/lib/config/assessment-release", () => ({
+  isAssessmentRegistrationEnabled: () => isAssessmentRegistrationEnabled(),
+}));
 
 vi.mock("@/lib/api/auth-handler", () => ({
   requireApiSession: (...args: unknown[]) => requireApiSession(...args),
@@ -33,6 +38,7 @@ import { GET, POST } from "@/app/api/participants/support-needs/route";
 describe("POST /api/participants/support-needs", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    isAssessmentRegistrationEnabled.mockReturnValue(true);
     requireApiSession.mockResolvedValue({
       id: "user-1",
       primaryRole: "participant",
@@ -40,6 +46,36 @@ describe("POST /api/participants/support-needs", () => {
     });
     createSubmission.mockResolvedValue({ id: "sub-1" });
     refreshParticipantOnboarding.mockResolvedValue({});
+  });
+
+  it("fails closed on release hold without persisting data", async () => {
+    isAssessmentRegistrationEnabled.mockReturnValue(false);
+    const res = await POST(new Request("http://localhost/api/participants/support-needs", {
+      method: "POST",
+      body: JSON.stringify({ skipped: true }),
+    }));
+    expect(res.status).toBe(503);
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
+  it("prevents a caller assigning a snapshot to another participant", async () => {
+    const res = await POST(new Request("http://localhost/api/participants/support-needs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        participantId: "victim-account",
+        selectedAreas: ["mobility"],
+        answers: [{ domainId: "mobility", intensity: "some" }],
+        consentDraftProcessing: true,
+        consentNoClinicalPaste: true,
+      }),
+    }));
+    expect(res.status).toBe(202);
+    const call = createSubmission.mock.calls[0]?.[0];
+    expect(call.data.participantId).toBe("user-1");
+    expect(call.data.payload).not.toHaveProperty("participantId");
+    expect(call.data.payload.recordType).toBe("participant_authored_support_snapshot");
+    expect(call.data.payload.officialAssessment).toBe(false);
   });
 
   it("rejects unauthenticated callers", async () => {
@@ -140,11 +176,26 @@ describe("POST /api/participants/support-needs", () => {
 describe("GET /api/participants/support-needs", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    isAssessmentRegistrationEnabled.mockReturnValue(true);
     requireApiSession.mockResolvedValue({
       id: "user-1",
       primaryRole: "participant",
       roles: ["participant"],
     });
+  });
+
+  it("rejects unauthenticated reads", async () => {
+    requireApiSession.mockResolvedValue(new Response("Unauthorized", { status: 401 }));
+    const res = await GET();
+    expect(res.status).toBe(401);
+    expect(findFirstSubmission).not.toHaveBeenCalled();
+  });
+
+  it("blocks account assessment reads while release is held", async () => {
+    isAssessmentRegistrationEnabled.mockReturnValue(false);
+    const res = await GET();
+    expect(res.status).toBe(503);
+    expect(findFirstSubmission).not.toHaveBeenCalled();
   });
 
   it("reports whether a submission exists", async () => {

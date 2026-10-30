@@ -5,6 +5,7 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { apiForbidden } from "@/lib/auth/guards";
+import { isAssessmentRegistrationEnabled } from "@/lib/config/assessment-release";
 import { buildParticipantSupportSnapshot } from "@/lib/intake/participant-support-snapshot";
 import {
   REGISTRATION_ASSESSOR_SKIPPED_STATUS,
@@ -29,6 +30,9 @@ export async function POST(req: Request) {
 
   if (!isParticipantUser(user)) {
     return apiForbidden();
+  }
+  if (!isAssessmentRegistrationEnabled()) {
+    return jsonError("Support-needs assessment is not available", 503);
   }
 
   let body: unknown;
@@ -136,6 +140,9 @@ export async function GET() {
 
   if (!isParticipantUser(user)) {
     return apiForbidden();
+  }
+  if (!isAssessmentRegistrationEnabled()) {
+    return jsonError("Support-needs assessment is not available", 503);
   }
 
   const latest = await prisma.iCanV6IntakeSubmission.findFirst({

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth/guards";
 import { defaultDashboardPath } from "@/lib/auth/roles";
+import { isAssessmentRegistrationEnabled } from "@/lib/config/assessment-release";
+import { classifyStoredSupportNeedsRecord } from "@/lib/intake/participant-support-snapshot";
 import { SupportNeedsAssessor } from "@/components/onboarding/SupportNeedsAssessor";
 import { prisma } from "@/lib/prisma";
 
@@ -13,13 +15,18 @@ export default async function RegisterAssessmentPage() {
   if (user.primaryRole !== "participant" && !user.roles.includes("participant")) {
     redirect(defaultDashboardPath(user.primaryRole));
   }
-  const prior = await prisma.iCanV6IntakeSubmission.findFirst({
+  if (!isAssessmentRegistrationEnabled()) redirect("/dashboard");
+  const prior = await prisma.iCanV6IntakeSubmission.findMany({
     where: {
       participantId: user.id,
-      status: { in: ["registration_lite", "submitted_draft"] },
+      status: "registration_lite",
     },
-    select: { id: true },
+    select: { payload: true },
+    orderBy: { createdAt: "desc" },
+    take: 30,
   });
-  if (prior) redirect("/dashboard/assessment");
+  if (prior.some((entry) => classifyStoredSupportNeedsRecord(entry.payload) === "participant_self_report")) {
+    redirect("/dashboard/assessment");
+  }
   return <SupportNeedsAssessor />;
 }
