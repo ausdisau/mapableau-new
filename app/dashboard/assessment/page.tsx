@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
 import { requireAuth } from "@/lib/auth/guards";
-import { prisma } from "@/lib/prisma";
+import { defaultDashboardPath } from "@/lib/auth/roles";
 import { isAssessmentRegistrationEnabled } from "@/lib/config/assessment-release";
 import { classifyStoredSupportNeedsRecord } from "@/lib/intake/participant-support-snapshot";
-import { defaultDashboardPath } from "@/lib/auth/roles";
-import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "My assessment | MapAble" };
 export default async function ParticipantAssessmentDashboard() {

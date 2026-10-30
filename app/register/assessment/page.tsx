@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
+
+import { SupportNeedsAssessor } from "@/components/onboarding/SupportNeedsAssessor";
 import { requireAuth } from "@/lib/auth/guards";
 import { defaultDashboardPath } from "@/lib/auth/roles";
 import { isAssessmentRegistrationEnabled } from "@/lib/config/assessment-release";
 import { classifyStoredSupportNeedsRecord } from "@/lib/intake/participant-support-snapshot";
-import { SupportNeedsAssessor } from "@/components/onboarding/SupportNeedsAssessor";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = {

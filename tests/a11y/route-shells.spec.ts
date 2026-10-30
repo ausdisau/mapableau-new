@@ -13,6 +13,7 @@ import { expect, test, type Page, type Response } from "@playwright/test";
 
 const PUBLIC_ROUTES = [
   "/",
+  "/assessment",
   "/login",
   "/register",
   "/core",
