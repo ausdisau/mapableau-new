@@ -7,11 +7,18 @@ import {
   lookupMatchingProviderRecords,
   parseProviderChatIntent,
 } from "@/lib/provider/finder/provider-chat-matching";
-import { PROVIDER_SERVICE_CATALOG, PROVIDER_SERVICE_IDS } from "@/lib/provider/finder/search-service-catalog";
+import {
+  createBrowserChatContext,
+  mergeFollowUpFilters,
+  providerChatContextSchema,
+} from "@/lib/provider/finder/provider-chat-session";
+import { isSameOriginMutation } from "@/lib/provider/finder/same-origin";
+import {
+  PROVIDER_SERVICE_CATALOG,
+  PROVIDER_SERVICE_IDS,
+} from "@/lib/provider/finder/search-service-catalog";
 import { isProviderSearchProfileEnabled } from "@/lib/provider/finder/search-profile-contract";
 import { readProviderSearchProfile } from "@/lib/provider/finder/search-profile-service";
-import { createBrowserChatContext, mergeFollowUpFilters, providerChatContextSchema } from "@/lib/provider/finder/provider-chat-session";
-import { isSameOriginMutation } from "@/lib/provider/finder/same-origin";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
