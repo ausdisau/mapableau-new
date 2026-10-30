@@ -4,7 +4,7 @@
  *
  * Invocation: GitHub Actions manual dispatch on protected main.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -134,14 +134,18 @@ async function run() {
     errors.push("assessment-production GitHub environment lacks required reviewers");
   }
 
+  // Evidence is supplied at manual dispatch, not committed to the release SHA.
+  // Committing a JSON file containing its own commit SHA is self-referential.
+  // Never log the submitted payload: even redacted evidence is restricted.
   let evidence;
   try {
-    const path = "docs/operations/assessment-production-evidence.json";
-    const raw = readFileSync(path, "utf8");
-    if (Buffer.byteLength(raw, "utf8") > 131072) throw new Error("Release evidence file too large");
+    const raw = process.env.RELEASE_EVIDENCE_JSON;
+    if (!raw || Buffer.byteLength(raw, "utf8") > 16384) {
+      throw new Error("Missing or oversize evidence input");
+    }
     evidence = JSON.parse(raw);
   } catch {
-    errors.push("Required approved assessment-production-evidence.json unavailable");
+    errors.push("Valid release evidence input was not supplied");
   }
   errors.push(...assessEvidence(evidence, sha));
 

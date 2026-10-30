@@ -12,6 +12,10 @@ on:
         description: "Exact current main commit SHA (40 lowercase hexadecimal characters)"
         required: true
         type: string
+      evidence_json:
+        description: "Redacted four-gate review evidence as JSON (no participant data or secrets)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -60,6 +64,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           RELEASE_SHA: ${{ inputs.release_sha }}
+          RELEASE_EVIDENCE_JSON: ${{ inputs.evidence_json }}
         run: node scripts/ci/assessment-production-gate.mjs
       - name: Install frozen dependencies for independent security audit
         run: pnpm install --frozen-lockfile

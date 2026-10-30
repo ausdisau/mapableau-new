@@ -12,7 +12,7 @@
 
 ## Evidence contract
 
-Create `docs/operations/assessment-production-evidence.json` through a separately reviewed PR. Its `releaseSha` and `preview.commitSha` must match the exact current main SHA. Required structure is illustrated in `assessment-production-evidence.example.json`, which is deliberately NOT_RUN and is **never accepted** as passing evidence.
+At manual workflow dispatch, provide a small redacted JSON evidence statement using the `evidence_json` input. Its `releaseSha` and `preview.commitSha` must match the exact current main SHA. Do **not** commit this filled-in evidence to the same release SHA: embedding its own SHA creates an impossible self-reference. Required structure is illustrated in `assessment-production-evidence.example.json`, which is deliberately NOT_RUN and is **never accepted** as passing evidence. Do not include participant names, health data, credentials or private links in workflow inputs.
 
 Each reviewer (security, privacy, participant accessibility, operations) supplies `status: PASS`, identity, an HTTPS evidence reference and a review timestamp within 30 days. Additional PASS records with HTTPS evidence references are required for the consent/encryption/retention/deletion lifecycle and a rollback exercise. The preview must be protected, use synthetic data only, and match the same SHA.
 
