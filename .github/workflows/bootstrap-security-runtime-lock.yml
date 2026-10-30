@@ -1,0 +1,50 @@
+# Temporary branch-only lockfile refresh; delete immediately after commit.
+name: Bootstrap security runtime lock (draft only)
+on:
+  push:
+    branches: [fix/security-critical-runtime-upgrades-20261031]
+    paths: [.github/workflows/bootstrap-security-runtime-lock.yml]
+permissions:
+  contents: write
+concurrency:
+  group: bootstrap-security-runtime-lock
+  cancel-in-progress: false
+jobs:
+  generate:
+    if: github.repository == 'ausdisau/mapableau-new' && github.ref == 'refs/heads/fix/security-critical-runtime-upgrades-20261031'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+          cache: pnpm
+      - name: Resolve patched package graph, without lifecycle scripts
+        run: pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
+      - name: Check fixed versions in the resolved lockfile
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (p.dependencies.next !== '15.5.28') throw Error('Next.js patched version missing');
+          if (p.dependencies['maplibre-gl'] !== '^6.4.1') throw Error('MapLibre patched range missing');
+          if (p.dependencies.zod !== '^4.6.6') throw Error('Zod patched range missing');
+          if (p.pnpm.overrides.sharp !== '0.35.5') throw Error('sharp patched version missing');
+          const lock = fs.readFileSync('pnpm-lock.yaml','utf8');
+          for (const s of ['15.5.28','6.4.1','4.6.6','0.35.5','2.0.8']) {
+            if (!lock.includes(s)) throw Error('Lock is missing expected patched version '+s);
+          }
+          NODE
+          git diff --exit-code -- package.json
+      - name: Commit only resolved pnpm lockfile
+        run: |
+          git add -- pnpm-lock.yaml
+          if git diff --cached --quiet; then echo 'No lock changes'; exit 0; fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build(security): lock patched server and map runtime dependencies'
+          git push origin HEAD:refs/heads/fix/security-critical-runtime-upgrades-20261031
