@@ -122,17 +122,17 @@ export default function ServiceProviderMapClient() {
       <form onSubmit={onSearch} aria-label="Filter provider locations" className="grid gap-3 rounded-xl border p-4 md:grid-cols-4">
         <label className="flex flex-col gap-1 text-sm font-medium">
           Location, postcode or state
-          <input className="rounded-md border bg-background p-2" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. NSW or 2075" />
+          <input className="min-h-11 rounded-md border bg-background p-2" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. NSW or 2075" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
           Support service
-          <input className="rounded-md border bg-background p-2" value={service} onChange={(e) => setService(e.target.value)} placeholder="e.g. support coordination" />
+          <input className="min-h-11 rounded-md border bg-background p-2" value={service} onChange={(e) => setService(e.target.value)} placeholder="e.g. support coordination" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
           Provider name
-          <input className="rounded-md border bg-background p-2" value={provider} onChange={(e) => setProvider(e.target.value)} placeholder="Optional" />
+          <input className="min-h-11 rounded-md border bg-background p-2" value={provider} onChange={(e) => setProvider(e.target.value)} placeholder="Optional" />
         </label>
-        <button type="submit" disabled={loading} className="self-end rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-60">Search providers</button>
+        <button type="submit" disabled={loading} className="min-h-11 self-end rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-60">Search providers</button>
       </form>
       <ProviderChatStream onMapResults={handleChatMapResults} onChatSearchStart={enableChatMap} onChatReset={resetChatMap} />
       <section aria-label="Provider location search results" className="space-y-3">
@@ -141,10 +141,10 @@ export default function ServiceProviderMapClient() {
         </p>
         {error && <p role="alert" className="text-destructive">{error}. Check the source import and try again.</p>}
         <div className="flex flex-wrap gap-3">
-          <button type="button" disabled={!mappedProviders.length} onClick={() => downloadGeoJson(mappedProviders)} className="rounded-md border px-4 py-2 disabled:opacity-50">
+          <button type="button" disabled={!mappedProviders.length} onClick={() => downloadGeoJson(mappedProviders)} className="min-h-11 rounded-md border px-4 py-2 disabled:opacity-50">
             Download GeoJSON for OSM / Leaflet
           </button>
-          <a href="/provider-finder" className="rounded-md border px-4 py-2 underline">Full provider finder</a>
+          <a href="/provider-finder" className="min-h-11 rounded-md border px-4 py-2 underline">Full provider finder</a>
         </div>
         <p className="text-sm text-muted-foreground">Source: locally ingested NDIS Provider Finder records, not a live regulatory lookup. Individual worker screening is not publicly searchable. Confirm registration against the NDIS Commission Provider Register and screen individual workers through an authorised NDIS Worker Screening Database pathway.</p>
         {mappedProviders.length > 0 ? (
