@@ -54,6 +54,12 @@ describe("POST /api/providers/chat-search", () => {
     expect(lookup).not.toHaveBeenCalled();
   });
 
+  it("does not invent a precise location when user asks near me", async () => {
+    const response = await POST(request("Find support workers near me"));
+    expect(response.status).toBe(422);
+    expect(lookup).not.toHaveBeenCalled();
+  });
+
   it("rejects missing Origin for cookie-based requests", async () => {
     const response = await POST(request("support workers in NSW", {}, false));
     expect(response.status).toBe(403);
