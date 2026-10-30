@@ -130,7 +130,7 @@ export default function ProviderSearchProfileForm({ onSavedAvailabilityChange }:
 
   return (
     <details className="space-y-3 rounded-lg border p-3">
-      <summary className="cursor-pointer font-semibold">My private matching preferences</summary>
+      <summary className="flex min-h-11 cursor-pointer items-center font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">My private matching preferences</summary>
       <p className="mt-2 text-sm">
         Optional. MapAble stores only broad matching criteria, not diagnoses, medical records, NDIS numbers,
         home addresses or chat history. Your preferences stay private and are not disclosed to providers.
@@ -140,7 +140,7 @@ export default function ProviderSearchProfileForm({ onSavedAvailabilityChange }:
       {available && <form onSubmit={handleSave} className="space-y-3">
         <div className="grid gap-2 sm:grid-cols-3">
           <label className="flex flex-col gap-1 text-sm">Preferred state
-            <select className="rounded-md border bg-background p-2" value={draft.state ?? ""}
+            <select className="min-h-11 rounded-md border bg-background p-2" value={draft.state ?? ""}
               onChange={(event) => setDraft((p) => ({
                 ...p, state: (event.target.value || undefined) as ProviderSearchPreferences["state"],
               }))}>
@@ -149,12 +149,12 @@ export default function ProviderSearchProfileForm({ onSavedAvailabilityChange }:
             </select>
           </label>
           <label className="flex flex-col gap-1 text-sm">Postcode (optional)
-            <input className="rounded-md border bg-background p-2" inputMode="numeric"
+            <input className="min-h-11 rounded-md border bg-background p-2" inputMode="numeric"
               pattern="[0-9]{4}" maxLength={4} value={draft.postcode ?? ""}
               onChange={(event) => setDraft((p) => ({ ...p, postcode: event.target.value || undefined }))} />
           </label>
           <label className="flex flex-col gap-1 text-sm">Suburb (optional, no street address)
-            <input className="rounded-md border bg-background p-2" maxLength={50}
+            <input className="min-h-11 rounded-md border bg-background p-2" maxLength={50}
               value={draft.suburb ?? ""}
               onChange={(event) => setDraft((p) => ({ ...p, suburb: event.target.value || undefined }))} />
           </label>
@@ -207,7 +207,7 @@ export default function ProviderSearchProfileForm({ onSavedAvailabilityChange }:
         </fieldset>
         <div className="grid gap-2 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-sm">Delivery preference
-            <select className="rounded-md border bg-background p-2" value={draft.delivery}
+            <select className="min-h-11 rounded-md border bg-background p-2" value={draft.delivery}
               onChange={(event) => setDraft((p) => ({
                 ...p, delivery: event.target.value as ProviderSearchPreferences["delivery"],
               }))}>
@@ -218,7 +218,7 @@ export default function ProviderSearchProfileForm({ onSavedAvailabilityChange }:
             </select>
           </label>
           <label className="flex flex-col gap-1 text-sm">Funding management
-            <select className="rounded-md border bg-background p-2" value={draft.fundingManagement}
+            <select className="min-h-11 rounded-md border bg-background p-2" value={draft.fundingManagement}
               onChange={(event) => setDraft((p) => ({
                 ...p, fundingManagement: event.target.value as ProviderSearchPreferences["fundingManagement"],
               }))}>
@@ -240,14 +240,14 @@ export default function ProviderSearchProfileForm({ onSavedAvailabilityChange }:
           I can export, change or delete them. I understand no search uses them automatically.
         </label>
         <button type="submit" disabled={busy || !consentChecked}
-          className="rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50">
+          className="min-h-11 rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50">
           {saved ? "Update private preferences" : "Save private preferences"}
         </button>
       </form>}
       {available && saved && <div className="space-y-2 border-t pt-3">
         <p className="text-sm">Last saved: {new Date(saved.updatedAt).toLocaleDateString("en-AU")}</p>
         <div className="flex flex-wrap gap-3">
-          <button type="button" className="rounded-md border px-3 py-2" onClick={exportMyProfile}>
+          <button type="button" className="min-h-11 rounded-md border px-3 py-2" onClick={exportMyProfile}>
             Export my preferences
           </button>
           <label className="flex items-center gap-2 text-sm">
