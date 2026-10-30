@@ -33,7 +33,10 @@ export function parseGroups(source) {
 }
 
 export function makePublicDirectory(input, groupMap, generatedAt) {
-  const records = Array.isArray(input) ? input : input?.providers;
+  const records = Array.isArray(input) ? input :
+    Array.isArray(input?.data) ? input.data :
+    Array.isArray(input?.providers) ? input.providers :
+    Array.isArray(input?.results) ? input.results : null;
   if (!Array.isArray(records)) throw new Error("Expected an array of NDIS provider outlets");
   const consolidated = new Map();
   let excluded = 0;
