@@ -16,7 +16,7 @@ Retain the existing MapAble Next.js/Neon system for authenticated sensitive acti
 - No private addresses, phones, emails, raw ABNs, exact coordinates or worker identities are included in the generated data. This does not establish live provider status.
 - Accessible on-device filtering with pagination and source/uncertainty disclosure; locality-only OpenStreetMap links.
 - Offline transport accessibility checklist, employment guidance, places and community drafting interfaces, and local record export/deletion.
-- Wasmer staging manifest and a separate Apache .htaccess fallback.
+- Wasmer staging manifest and a separate Apache .htaccess security configuration (no fallback for unknown API-like URLs).
 - Isolated GitHub Actions tests and static web artifact packaging.
 
 ## Build
@@ -35,7 +35,7 @@ The generator uses ../../public/data/provider-outlets.json plus ../../app/provid
 
 ## VentraIP cPanel alternative
 
-If an existing Apache-based web hosting subscription is available, copy the **contents** of dist into a staging subdomain document root. Add deploy/cpanel/.htaccess beside index.html so client-side links reload correctly. Confirm HTTPS, correct fallback and rollback. No cPanel subscription is needed merely to manage VentraIP DNS for Wasmer.
+If an existing Apache-based web hosting subscription is available, copy the **contents** of dist into a staging subdomain document root. Add deploy/cpanel/.htaccess beside index.html for preview security headers and intentional 404 responses on unknown paths. There is no catch-all SPA fallback: the Expo web companion currently navigates from its root page. Confirm HTTPS, unknown /api paths return 404, client-side tabs, and rollback. No cPanel subscription is needed merely to manage VentraIP DNS for Wasmer.
 
 Use VentraIP's actual authoritative DNS controls when staging a new hostname such as edge.mapable.com.au. Do not assume the Wasmer display label 'mapable' is the apex CNAME name.
 
