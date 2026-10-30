@@ -80,6 +80,9 @@ export async function POST(request: Request) {
   }
 
   const intent = parseProviderChatIntent(message);
+  if (intent.unresolvedLocation) {
+    return Response.json({ error: "Precise location is not enabled. Enter a suburb or postcode; MapAble will not infer your current location." }, { status: 422, headers: noStore });
+  }
   const transient = preferences?.usePreferences ? {
     state: preferences.state,
     postcode: preferences.postcode,
