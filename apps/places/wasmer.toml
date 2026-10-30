@@ -1,0 +1,21 @@
+# Static Wasmer package: no Node.js API process or extra database.
+# Do not SPA-fallback unknown /api or /auth URLs to HTTP 200 HTML.
+# React Navigation currently stays at the root URL; introduce explicit route handling only after testing.
+[package]
+name = "ausdisau/mapable-companion-preview"
+version = "0.2.0"
+description = "MapAble offline-first companion; accessible local provider and place discovery"
+
+[dependencies]
+"wasmer/static-web-server" = "1"
+
+[fs]
+"/public" = "dist"
+
+[[command]]
+name = "serve"
+module = "wasmer/static-web-server:webserver"
+runner = "https://webc.org/runner/wasi"
+
+[command.annotations.wasi]
+main-args = ["--root", "/public"]

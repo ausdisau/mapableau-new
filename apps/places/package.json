@@ -1,17 +1,18 @@
 {
-  "name": "@mapable/places-prototype",
-  "version": "0.1.0",
+  "name": "@mapable/static-companion",
+  "version": "0.2.0",
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "build:web": "expo export --platform web --output-dir dist",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "npm run generate:directory && expo start",
+    "android": "npm run generate:directory && expo start --android",
+    "ios": "npm run generate:directory && expo start --ios",
+    "web": "npm run generate:directory && expo start --web",
+    "build:web": "npm run generate:directory && expo export --platform web --output-dir dist",
+    "typecheck": "npm run generate:directory && tsc -p tsconfig.json --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "check:prototype": "npm run typecheck && npm run test && npm run build:web"
+    "check:prototype": "npm run test && npm run typecheck && npm run build:web",
+    "generate:directory": "node scripts/generate-provider-directory.mjs"
   },
   "dependencies": {
     "expo": "~57.0.21",

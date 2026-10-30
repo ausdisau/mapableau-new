@@ -1,0 +1,56 @@
+name: MapAble static companion (no new hosting)
+
+on:
+  pull_request:
+    paths:
+      - "apps/places/**"
+      - "public/data/provider-outlets.json"
+      - "app/provider-finder/regGroupOptions.ts"
+      - ".github/workflows/mapable-static-companion.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-build:
+    runs-on: ubuntu-24.04 # Pinned during ubuntu-latest migration to 26.04
+    timeout-minutes: 35
+    env:
+      EXPO_PUBLIC_MAPABLE_API_URL: "" # No remote API in the static preview build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24)
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0 (Node 24)
+        with:
+          node-version: "22.16.0"
+          package-manager-cache: false # Keep CI reproducible without implicit dependency caching
+      - name: Clean locked Expo dependency install
+        run: npm ci --prefix apps/places --no-audit --no-fund
+      - name: Confirm immutable dependency lock
+        run: git diff --exit-code -- apps/places/package-lock.json apps/places/package.json
+      - name: Test locally generated source data and privacy boundaries
+        run: npm run test --prefix apps/places
+      - name: Typecheck Expo web and native screens
+        run: npm run typecheck --prefix apps/places
+      - name: Export static web application
+        run: npm run build:web --prefix apps/places
+      - name: Check build artifact
+        run: |
+          test -s apps/places/dist/index.html
+          test ! -f apps/places/dist/.env
+          test ! -f apps/places/dist/.env.local
+          echo "Static export generated. No production deploy performed."
+      - name: Verify minimised directory schema and built-file boundaries
+        run: node apps/places/scripts/verify-static-release.mjs
+      - name: Audit isolated Expo dependency tree (high and critical block release)
+        # Audits the exact lockfile used for npm ci. No auto-fix or waiver is applied.
+        run: npm audit --omit=dev --audit-level=high --prefix apps/places
+      - name: Upload staging-only build
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2 (Node 24)
+        with:
+          name: mapable-static-companion-preview
+          path: apps/places/dist/
+          retention-days: 7
+          if-no-files-found: error
