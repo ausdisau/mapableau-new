@@ -1,0 +1,68 @@
+name: Assessment production approval gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Exact current main commit SHA (40 lowercase hexadecimal characters)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  checks: read
+  statuses: read
+  actions: read
+
+concurrency:
+  group: assessment-production-approval
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Assessment / fail-closed preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout verified main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Test gate rejects missing or unsafe evidence
+        run: node --test scripts/ci/assessment-production-gate.node.mjs
+      - name: Verify exact SHA, CI checks, Vercel status and human evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: node scripts/ci/assessment-production-gate.mjs
+      - name: Install frozen dependencies for independent security audit
+        run: pnpm install --frozen-lockfile
+      - name: Independently re-run high-severity production dependency audit
+        run: pnpm ci:prod-audit
+
+  human-approval:
+    name: Assessment / human production approval
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment: assessment-production
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Record approval boundary, not deployment
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: |
+          echo "Assessment production gate approved for exact SHA: ${RELEASE_SHA}"
+          echo "NO deployment, Vercel flag change, or participant data collection occurred."
+          echo "A separate authorised release action with rollback evidence is required."
