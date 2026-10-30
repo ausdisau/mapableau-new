@@ -42,11 +42,14 @@ export function parseProviderChatIntent(text: string): ProviderChatIntent {
     /\b(?:near|around|in)\s+([a-z][a-z'’\-]*(?:\s+[a-z][a-z'’\-]*){0,2})(?=\s*(?:,|$|\b(?:for|with|who|that|and|to|providing|offering)\b))/i,
   )?.[1]?.trim();
 
-  const suburb = location && !/^(me|my area|my suburb|australia)$/i.test(location) &&
+  const cleanLocation = location?.replace(
+    new RegExp("\\s+(?:" + Object.keys(STATE_NAMES).join("|") + ")$", "i"), "",
+  ).trim();
+  const suburb = cleanLocation && !/^(me|my area|my suburb|australia)$/i.test(cleanLocation) &&
     !Object.keys(STATE_NAMES).some((code) =>
-      location.toUpperCase() === code || location.toLowerCase() === STATE_NAMES[code].toLowerCase(),
+      cleanLocation.toUpperCase() === code || cleanLocation.toLowerCase() === STATE_NAMES[code].toLowerCase(),
     )
-    ? location : undefined;
+    ? cleanLocation : undefined;
   const providerName = input.match(/\b(?:provider named|provider called|organisation named|organisation called)\s+([a-z0-9 .'\-]{3,60})$/i)?.[1]?.trim();
 
   return {
@@ -81,13 +84,15 @@ export function buildProviderSearchFilters(input: {
   usedSavedProfile: boolean;
 }): ProviderSearchFilters {
   const { intent, transient, saved } = input;
-  const explicitDifferentState = Boolean(
-    intent.state && saved?.state && intent.state !== saved.state,
-  );
-  const state = intent.state ?? transient?.state ?? saved?.state;
-  const postcode = intent.postcode ?? transient?.postcode ??
-    (!explicitDifferentState ? saved?.postcode : undefined);
-  const suburb = intent.suburb ?? (intent.postcode || explicitDifferentState ? undefined : saved?.suburb);
+  // Never combine an explicit location with conflicting stored or temporary geography.
+  const explicitLocation = Boolean(intent.state || intent.postcode || intent.suburb);
+  const transientLocation = Boolean(transient?.state || transient?.postcode);
+  const state = explicitLocation ? intent.state
+    : transientLocation ? transient?.state : saved?.state;
+  const postcode = explicitLocation ? intent.postcode
+    : transientLocation ? transient?.postcode : saved?.postcode;
+  const suburb = explicitLocation ? intent.suburb
+    : transientLocation ? undefined : saved?.suburb;
   const serviceTypes = intent.serviceType ? [intent.serviceType] :
     transient?.serviceType ? [transient.serviceType] : saved?.serviceTypes ?? [];
   return {
