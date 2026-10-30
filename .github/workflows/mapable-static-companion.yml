@@ -14,15 +14,16 @@ permissions:
 
 jobs:
   static-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Pinned during ubuntu-latest migration to 26.04
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24)
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0 (Node 24)
         with:
           node-version: "22.16.0"
+          package-manager-cache: false # No npm lockfile is committed for this isolated Expo app
       - name: Install isolated Expo dependencies
         run: npm install --prefix apps/places --no-audit --no-fund --package-lock=false
       - name: Test locally generated source data and privacy boundaries
@@ -38,7 +39,7 @@ jobs:
           test ! -f apps/places/dist/.env.local
           echo "Static export generated. No production deploy performed."
       - name: Upload staging-only build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2 (Node 24)
         with:
           name: mapable-static-companion-preview
           path: apps/places/dist/
