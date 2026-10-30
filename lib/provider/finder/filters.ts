@@ -69,8 +69,8 @@ export const ACCESS_NEEDS: AccessNeed[] = [
 
 export const FUNDING_OPTIONS = [
   { id: "all", label: "All funding" },
-  { id: "ndis", label: "NDIS registered" },
-  { id: "private", label: "Private / self-funded" },
+  { id: "ndis", label: "Active in imported directory (not live verified)" },
+  { id: "private", label: "Not active in imported directory (not a funding classification)" },
 ] as const;
 
 /** Static fallback when proactive API / DB catalog is unavailable. */
