@@ -3,12 +3,12 @@ import { Prisma } from "@prisma/client";
 import type { NdisProviderSearchRow } from "@/lib/ingestion/ndis-providers-search";
 import { prisma } from "@/lib/prisma";
 
+import type { ProviderSearchPreferences } from "./search-profile-contract";
 import {
   PROVIDER_SERVICE_CATALOG,
   PROVIDER_SERVICE_IDS,
   type ProviderServiceId,
 } from "./search-service-catalog";
-import type { ProviderSearchPreferences } from "./search-profile-contract";
 
 const STATE_NAMES: Record<string, string> = {
   NSW: "New South Wales", VIC: "Victoria", QLD: "Queensland",
