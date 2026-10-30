@@ -40,26 +40,31 @@ export function parseDirectoryActivity(value: unknown): DirectoryActivity {
   return "unknown";
 }
 
-/** Do not treat a negative service statement as evidence of service provision. */
+/** Negative service declarations must never count as positive service evidence. */
 export function isAffirmativeServiceLabel(value: unknown): boolean {
   if (typeof value !== "string") return false;
   const text = value.trim();
   if (!text || text.length > 120) return false;
-  return !/^(?:no\b|not\b|without\b|unable\b|unavailable\b|does not\b|do not\b|don't\b|excluded?\b)/i.test(text) &&
-    !/\b(?:not offered|not provided|not available|no vacancies|service unavailable|not supported)\b/i.test(text);
+  if (/^(?:no\b|not\b|without\b|unable\b|unavailable\b|does not\b|do not\b|don['’]t\b|excluded?\b)/i.test(text)) return false;
+  if (/\b(?:not offered|not provided|not available|no vacancies|service unavailable|not supported|cannot provide|cannot offer|does not provide|do not provide|unable to provide)\b/i.test(text)) return false;
+  return true;
 }
 
-/** Ternary AAC declarations; a mention of "AAC" alone is not evidence of support. */
-export function interpretAacDeclaration(value: unknown): "supported" | "not_supported" | "unknown" {
+/** Ternary AAC declarations: a mention of AAC alone is not evidence of support. */
+export function interpretAacDeclaration(
+  value: unknown,
+): "supported" | "not_supported" | "unknown" {
   if (typeof value !== "string") return "unknown";
   const text = value.trim().toLowerCase();
   if (!/\baac\b/.test(text)) return "unknown";
-  if (
-    /\b(?:no|without|not providing|does not provide)\s+aac\b/.test(text) ||
-    /\baac\b.{0,24}\b(?:not available|unavailable|not offered|not supported|unsupported)\b/.test(text)
-  ) {
-    return "not_supported";
-  }
+
+  const negativeBefore =
+    /\b(?:no|without|not\s+(?:providing|offering|supporting))\s+aac\b/.test(text) ||
+    /\b(?:(?:do|does)\s+not|don['’]t|doesn['’]t|cannot|can['’]t|unable to)\s+(?:currently\s+)?(?:provide|offer|support)\s+aac\b/.test(text);
+  const negativeAfter =
+    /\baac\b.{0,30}\b(?:not available|unavailable|not offered|not provided|not supported|unsupported|no support)\b/.test(text);
+  if (negativeBefore || negativeAfter) return "not_supported";
+
   if (
     /\b(?:supports?|provides?|offers?)\s+aac\b/.test(text) ||
     /\baac\b.{0,24}\b(?:supported|available|offered|provided)\b/.test(text)
