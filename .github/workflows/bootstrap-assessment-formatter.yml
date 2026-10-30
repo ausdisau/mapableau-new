@@ -1,0 +1,39 @@
+# One-time formatting-only repair on the existing draft PR #632.
+# No production deployment or approval changes. Delete after successful commit.
+name: Bootstrap assessment formatting (draft PR 632 only)
+on:
+  push:
+    branches:
+      - feature/assessment-remediation-gates-20261031
+    paths:
+      - .github/workflows/bootstrap-assessment-formatter.yml
+permissions:
+  contents: write
+jobs:
+  format-one:
+    if: github.repository == 'ausdisau/mapableau-new' && github.ref == 'refs/heads/feature/assessment-remediation-gates-20261031'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply only the known failing Prettier formatting
+        run: |
+          pnpm exec prettier --write tests/a11y/assessment-flow.spec.ts
+          pnpm exec prettier --check tests/a11y/assessment-flow.spec.ts
+          git diff --exit-code -- package.json pnpm-lock.yaml
+      - name: Commit only a11y test formatting
+        run: |
+          git add -- tests/a11y/assessment-flow.spec.ts
+          if git diff --cached --quiet; then echo 'Formatting already correct'; exit 0; fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(assessment): format synthetic accessibility test'
+          git push origin HEAD:refs/heads/feature/assessment-remediation-gates-20261031
