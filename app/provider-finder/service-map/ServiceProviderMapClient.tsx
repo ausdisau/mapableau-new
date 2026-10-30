@@ -147,7 +147,7 @@ export default function ServiceProviderMapClient() {
         {mappedProviders.length > 0 ? (
           <>
             <p className="text-sm text-muted-foreground">{chatPins.length > 0 ? "Map showing current chat results with coordinates." : "Map showing directory filter results."}</p>
-            <ProviderMap providers={mappedProviders} selectedProviderId={selected} onProviderSelect={setSelected} />
+            <ProviderMap providers={mappedProviders} fitToProviders={chatPins.length > 0} selectedProviderId={selected} onProviderSelect={setSelected} />
           </>
         ) : !loading && !error ? (
           <p>No geocoded provider locations matched. Try a wider search or use the full provider finder.</p>
