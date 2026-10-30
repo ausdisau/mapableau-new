@@ -63,6 +63,8 @@ export default function ProviderChatStream({ onMapResults }: Props) {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    const applySavedProfile = hasSavedProfile && useSavedProfile;
+    setUseSavedProfile(false); // Consent to reuse a stored profile is per search, not sticky.
     setLog([]); setResults([]); setSearchContext(null); setBusy(true);
 
     try {
@@ -72,7 +74,7 @@ export default function ProviderChatStream({ onMapResults }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
-          useSavedProfile: hasSavedProfile && useSavedProfile,
+          useSavedProfile: applySavedProfile,
           preferences: useSearchOnlyFilters ? {
             usePreferences: true, state: state || undefined,
             postcode: postcode.trim() || undefined, communication,
