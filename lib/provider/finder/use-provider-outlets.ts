@@ -9,11 +9,11 @@ export const PROVIDER_OUTLETS_QUERY_KEY = ["provider-outlets"] as const;
 
 /**
  * Caching: data is considered fresh for 5 minutes (staleTime), then refetched in background.
- * Cached in memory for 30 minutes (gcTime). Multiple components using this hook share one request.
+ * Cached in memory for 30 minutes (gcTime). This does not certify the upstream imported record as current.
  * Requires QueryClientProvider above in the tree (e.g. in root layout).
  */
-const STALE_TIME_MS = 5 * 60 * 24 * 1000; // 5 days
-const GC_TIME_MS = 10 * 60 * 24 * 1000; // 10 days
+const STALE_TIME_MS = 5 * 60 * 1000; // 5 minutes
+const GC_TIME_MS = 30 * 60 * 1000; // 30 minutes
 
 export function useProviderOutlets() {
   return useQuery({
