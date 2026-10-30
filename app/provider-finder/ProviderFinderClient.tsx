@@ -36,6 +36,7 @@ import {
   supportAreaLandingRoutes,
   supportAreaToSupportTypeId,
 } from "@/lib/marketing/mapable-care-routes";
+import { matchesDirectoryFilter } from "@/lib/provider/finder/evidence";
 import { fetchProviderMapPins } from "@/lib/provider/finder/fetch-map-pins";
 import {
   ACCESS_NEEDS,
@@ -43,7 +44,6 @@ import {
   type SupportTypeId,
 } from "@/lib/provider/finder/filters";
 import { useProviderOutlets } from "@/lib/provider/finder/use-provider-outlets";
-import { matchesDirectoryFilter } from "@/lib/provider/finder/evidence";
 import {
   applyInterpretationToFields,
   buildFinderSearchParams,
