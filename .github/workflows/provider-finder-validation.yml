@@ -1,0 +1,57 @@
+name: Provider Finder targeted validation
+
+on:
+  pull_request:
+    paths:
+      - "app/provider-finder/**"
+      - "app/api/providers/chat-search/**"
+      - "app/api/providers/search-profile/**"
+      - "components/provider-finder/**"
+      - "lib/provider/finder/**"
+      - "lib/crypto/provider-search-preferences.ts"
+      - "tests/provider-finder/**"
+      - "tests/security/provider-search-preferences.test.ts"
+      - ".github/workflows/provider-finder-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provider-finder:
+    name: Provider Finder regressions (not release approval)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production-use-32chars
+      NEXTAUTH_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
+      MAPABLE_PROVIDER_SEARCH_PROFILE_ENABLED: "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client without applying a migration
+        run: pnpm exec prisma generate
+      - name: TypeScript contract check
+        run: pnpm type-check
+      - name: Provider Finder and consent security tests
+        run: |
+          pnpm exec vitest run             tests/provider-finder/provider-regulatory-evidence.test.ts             tests/provider-finder/provider-chat-matching.test.ts             tests/provider-finder/provider-chat-session.test.ts             tests/provider-finder/provider-chat-stream-api.test.ts             tests/provider-finder/provider-search-origin.test.ts             tests/provider-finder/provider-search-profile-api.test.ts             tests/security/provider-search-preferences.test.ts
+      - name: Targeted source lint
+        env:
+          ESLINT_CI_LIGHT: "1"
+        run: |
+          pnpm exec eslint             app/provider-finder/ProviderFinderClient.tsx             components/provider-finder/ProviderFinderSidebar.tsx             components/provider-finder/ProviderFinderResultCard.tsx             components/provider-finder/ProviderRegulatoryEvidence.tsx             lib/provider/finder/evidence.ts             lib/provider/finder/provider-chat-matching.ts             lib/provider/finder/search-profile-contract.ts             lib/provider/finder/search-profile-service.ts             app/api/providers/chat-search/route.ts             app/api/providers/search-profile/route.ts             --max-warnings 0
