@@ -12,6 +12,7 @@ const saved: ProviderSearchPreferences = {
   suburb: "Melbourne",
   serviceTypes: ["therapy"],
   communicationModes: ["AAC"],
+  functionalRequirements: ["step_free"],
   delivery: "home_visit",
   fundingManagement: "plan",
 };
@@ -50,6 +51,7 @@ describe("provider conversational search intent", () => {
     expect(filters.suburb).toBeUndefined();
     expect(filters.serviceTypes).toEqual(["support_coordination"]);
     expect(filters.communicationModes).toEqual(["AAC"]);
+    expect(filters.functionalRequirements).toEqual(["step_free"]);
     expect(filters.delivery).toBe("home_visit");
   });
 
