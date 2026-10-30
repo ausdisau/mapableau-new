@@ -73,7 +73,7 @@ const MapLibreMap = dynamic(
   },
 );
 
-type SortMode = "relevance" | "distance" | "rating";
+type SortMode = "relevance" | "distance";
 
 const RADIUS_KM = 50;
 const MAP_PIN_LIMIT = 500;
@@ -267,25 +267,36 @@ export default function ProviderFinderClient({
         const hay = providerHaystack(p);
         if (!hay.includes(serviceQ)) return false;
       }
-      if (accessQuery.trim()) {
-        const accessQ = accessQuery.trim().toLowerCase();
-        if (!providerHaystack(p).includes(accessQ)) return false;
-      }
-
       return true;
     });
 
-    return [...filtered].sort((a, b) => {
-      if (sort === "distance") return a.distanceKm - b.distanceKm;
-      if (sort === "rating") return b.rating - a.rating;
+    const withDistance = filtered.map((provider) => {
+      if (!userLocation || provider.latitude == null || provider.longitude == null) {
+        return provider;
+      }
+      const km = distanceKm(
+        userLocation.lat,
+        userLocation.lng,
+        provider.latitude,
+        provider.longitude,
+      );
+      return Number.isFinite(km) ? { ...provider, distanceKm: km } : provider;
+    });
+
+    return withDistance.sort((a, b) => {
+      if (sort === "distance" && userLocation) {
+        const dA = a.latitude == null || a.longitude == null
+          ? Number.POSITIVE_INFINITY : a.distanceKm;
+        const dB = b.latitude == null || b.longitude == null
+          ? Number.POSITIVE_INFINITY : b.distanceKm;
+        if (Number.isFinite(dA) || Number.isFinite(dB)) return dA - dB;
+      }
       const sa = scoreRelevance(a, query);
       const sb = scoreRelevance(b, query);
       if (sb !== sa) return sb - sa;
       return a.name.localeCompare(b.name);
     });
   }, [
-    accessNeeds,
-    accessQuery,
     funding,
     location,
     providerName,
@@ -294,6 +305,7 @@ export default function ProviderFinderClient({
     serviceQuery,
     sort,
     supportType,
+    userLocation,
   ]);
 
   const handleAccessSuggestionSelect = (label: string) => {
@@ -529,7 +541,7 @@ export default function ProviderFinderClient({
     );
   };
 
-  const locationLabel = location.trim() || "your area";
+  const locationLabel = location.trim() || "Australia (location not selected)";
 
   if (isLoading) {
     return (
@@ -665,7 +677,7 @@ export default function ProviderFinderClient({
                   </h2>
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-                    Showing results near {locationLabel}.
+                    Showing results for {locationLabel}.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -694,8 +706,9 @@ export default function ProviderFinderClient({
                     className="min-h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="relevance">Relevance</option>
-                    <option value="distance">Distance</option>
-                    <option value="rating">Rating</option>
+                    <option value="distance" disabled={!userLocation}>
+                      Distance (use my location)
+                    </option>
                   </select>
                 </div>
               </div>
@@ -714,9 +727,9 @@ export default function ProviderFinderClient({
                 </p>
               ) : null}
 
-              {accessNeeds.length > 0 ? (
+              {(accessNeeds.length > 0 || accessQuery.trim().length > 0) ? (
                 <p role="status" className="rounded-lg border p-3 text-sm text-muted-foreground">
-                  Access preferences are recorded for your review, but this directory cannot confirm which providers support them. Verify AAC, accessibility and worker competence directly before engaging a service.
+                  Access preferences are recorded for your review, but this directory cannot confirm which providers support them. No listings are excluded or marked compatible based solely on unverified access keywords. Verify AAC, accessibility and worker competence directly before engaging a service.
                 </p>
               ) : null}
 
