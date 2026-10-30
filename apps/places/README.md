@@ -15,15 +15,18 @@
 
 ```bash
 cd apps/places
-npm install
+npm ci
 npm run test
 npm run typecheck
 npm run build:web
+node scripts/verify-static-release.mjs
 ```
 
 The standalone Node build step reads `../../public/data/provider-outlets.json` and the canonical `../../app/provider-finder/regGroupOptions.ts`. It removes confidential addresses, phone numbers, emails, precise coordinates and individual-worker identities; output goes to the ignored `src/generated/provider-directory.json`. **Do not copy the raw outlet export into a deployed web directory.**
 
 `dist/` is a self-contained static website; deploy that directory to Wasmer or cPanel without running `next start` or Node.js in production. The optional `app.yaml` in this directory targets **`ausdisau/mapable-companion-preview`**, not the existing `ausdisau/mapable` production app.
+
+The isolated npm lockfile is committed at `apps/places/package-lock.json`, and CI uses `npm ci`. The complete dependency audit is **not green**: the Expo 57 CLI dependency tree includes high-severity `zod@3.25.76` (GHSA-mrhx-c7xc-m3w5) and low-severity `deepmerge@4.3.1` (GHSA-gcqx-w48m-w2h4). An unsupported `npm audit fix --force` would downgrade Expo to 51, so no upgrade or waiver has been applied. Until the audit gate is resolved, the staging artifact remains blocked.
 
 For installation/backup/DNS cutover, see [the staged hosting guide](../../docs/hosting/mapable-static-current-hosting.md).
 
@@ -66,7 +69,7 @@ See [ATAG/WCAG acceptance matrix](./ACCESSIBILITY-QA.md).
 
 \`\`\`bash
 cd apps/places
-npm install
+npm ci
 npm run test
 npm run typecheck
 npm run web
