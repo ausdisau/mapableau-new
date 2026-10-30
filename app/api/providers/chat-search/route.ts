@@ -1,101 +1,134 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getCurrentUser } from "@/lib/auth/current-user";
-import { searchNdisProviders } from "@/lib/ingestion/ndis-providers-search";
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import {
+  buildProviderSearchFilters,
+  lookupMatchingProviderRecords,
+  parseProviderChatIntent,
+} from "@/lib/provider/finder/provider-chat-matching";
+import { PROVIDER_SERVICE_CATALOG, PROVIDER_SERVICE_IDS } from "@/lib/provider/finder/search-service-catalog";
+import { isProviderSearchProfileEnabled } from "@/lib/provider/finder/search-profile-contract";
+import { readProviderSearchProfile } from "@/lib/provider/finder/search-profile-service";
+import { isSameOriginMutation } from "@/lib/provider/finder/same-origin";
 
 export const runtime = "nodejs";
+export const maxDuration = 30;
+
+const transientSchema = z.object({
+  state: z.enum(["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"]).optional(),
+  postcode: z.string().regex(/^\d{4}$/).optional(),
+  service: z.string().max(100).optional(),
+  communication: z.enum(["AAC", "Text", "Auslan", "No preference"]).optional(),
+  usePreferences: z.boolean().default(false),
+}).strict();
 
 const requestSchema = z.object({
   message: z.string().trim().min(2).max(500),
-  preferences: z.object({
-    state: z.enum(["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"]).optional(),
-    postcode: z.string().regex(/^\d{4}$/).optional(),
-    service: z.string().max(100).optional(),
-    communication: z.enum(["AAC", "Text", "Auslan", "No preference"]).optional(),
-    usePreferences: z.boolean().default(false),
-  }).default({ usePreferences: false }),
-});
+  useSavedProfile: z.boolean().default(false),
+  preferences: transientSchema.optional(),
+}).strict();
 
-const stateNames: Record<string, string> = {
-  NSW: "New South Wales", VIC: "Victoria", QLD: "Queensland",
-  SA: "South Australia", WA: "Western Australia", TAS: "Tasmania",
-  ACT: "Australian Capital Territory", NT: "Northern Territory",
-};
-const services = [
-  "Support Coordination", "Therapeutic Supports", "Assistance with Daily Life",
-  "Community Participation", "Transport", "Employment Supports",
-  "Assistive Technology", "Home Modifications",
-];
+const noStore = { "Cache-Control": "no-store" };
 
-function extractLocation(input: string) {
-  const postcode = input.match(/\b\d{4}\b/)?.[0];
-  const state = Object.keys(stateNames).find((code) =>
-    new RegExp(`\\b${code}\\b`, "i").test(input) ||
-    input.toLowerCase().includes(stateNames[code].toLowerCase()),
-  );
-  return { postcode, state };
+function getTransientServiceId(service?: string) {
+  if (!service) return undefined;
+  return PROVIDER_SERVICE_IDS.find((id) => {
+    const item = PROVIDER_SERVICE_CATALOG[id];
+    return service === id || item.label.toLowerCase() === service.toLowerCase();
+  });
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Sign in to search with chat" }, { status: 401 });
-  let body: unknown;
-  try { body = await request.json(); } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
+  if (!isSameOriginMutation(request)) {
+    return Response.json({ error: "Origin not allowed" }, { status: 403, headers: noStore });
   }
+  if (!checkIpRateLimit("provider-chat:" + user.id + ":" + getClientIp(request), { windowMs: 60_000, max: 20 })) {
+    return Response.json({ error: "Too many searches" }, { status: 429, headers: noStore });
+  }
+
+  let body: unknown;
+  try { body = await request.json(); }
+  catch { return Response.json({ error: "Invalid JSON" }, { status: 400, headers: noStore }); }
+
   const parsed = requestSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid search request" }, { status: 400 });
+  if (!parsed.success) {
+    return Response.json({ error: "Invalid search request" }, { status: 400, headers: noStore });
+  }
 
-  const { message, preferences } = parsed.data;
-  const location = extractLocation(message);
-  const requestedService = services.find((service) =>
-    message.toLowerCase().includes(service.toLowerCase()),
-  );
-  const effectiveState = location.state ?? (preferences.usePreferences ? preferences.state : undefined);
-  const effectivePostcode = location.postcode ?? (preferences.usePreferences ? preferences.postcode : undefined);
-  const effectiveService = requestedService ?? (preferences.usePreferences ? preferences.service : undefined);
+  const { message, useSavedProfile, preferences } = parsed.data;
+  if (useSavedProfile && !isProviderSearchProfileEnabled()) {
+    return Response.json({ error: "Saved profiles are not enabled" }, { status: 503, headers: noStore });
+  }
 
-  // An individual-worker directory or authorised screening-status interface is not connected.
-  const workerIntent = /\b(worker|workers|carer|carers|support person|screening|clearance)\b/i.test(message);
+  let saved = null;
+  if (useSavedProfile) {
+    try {
+      const profile = await readProviderSearchProfile(user.id);
+      if (!profile) {
+        return Response.json({ error: "Save and consent to a profile before using it" }, { status: 409, headers: noStore });
+      }
+      saved = profile.preferences;
+    } catch {
+      return Response.json({ error: "Saved profile cannot be read" }, { status: 503, headers: noStore });
+    }
+  }
+
+  const intent = parseProviderChatIntent(message);
+  const transient = preferences?.usePreferences ? {
+    state: preferences.state,
+    postcode: preferences.postcode,
+    serviceType: getTransientServiceId(preferences.service),
+    communication: preferences.communication === "No preference" ? undefined : preferences.communication,
+  } : undefined;
+  const filters = buildProviderSearchFilters({
+    intent, saved, transient, usedSavedProfile: useSavedProfile,
+  });
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const emit = (event: unknown) => controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      const emit = (event: unknown) => {
+        controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      };
+
       try {
-        emit({ type: "status", text: "Searching MapAble's imported NDIS provider records…" });
-        const result = await searchNdisProviders({
-          state: effectiveState,
-          postcode: effectivePostcode,
-          // Exact service tags only: do not turn fuzzy wording into a false negative.
-          limit: 25,
-          withCoordinatesOnly: false,
-        });
-        const matches = effectiveService
-          ? result.providers.filter((row) =>
-              [...row.services, ...row.registration_groups].some((item) =>
-                item.toLowerCase().includes(effectiveService.toLowerCase()),
-              ),
-            )
-          : result.providers;
-        const ranked = matches.slice(0, 12);
-        const intro = workerIntent
-          ? "Worker-level search is not connected to an authorised directory. These are provider organisations, not verified individual workers. "
+        emit({ type: "status", text: "Searching imported provider classifications…" });
+        const { results, hasMore } = await lookupMatchingProviderRecords(filters);
+        const workerBoundary = intent.workerIntent
+          ? "Individual workers are not returned because this dataset contains provider organisations, not consented public worker profiles. Individual worker-screening status must be checked through an authorised NDIS Worker Screening Database pathway. "
           : "";
-        emit({
-          type: "message",
-          text: intro + (ranked.length
-            ? `Found ${ranked.length} provider records matching the available filters. Directory entries require fresh registration and availability checks.`
-            : "No provider records matched this query. Try a state or postcode, or adjust your service preference."),
-        });
+
+        const scope = filters.suburb ? "in the selected suburb" : filters.postcode
+          ? "in the selected postcode" : filters.state ? "in the selected state" : "across the available directory";
+        let summary = results.length
+          ? "Found " + results.length + " provider records " + scope + " matching the available directory categories."
+          : "No provider records matched the supplied directory filters.";
+
+        if (hasMore) summary += " More records may match; refine your search.";
+        if (filters.communicationModes.length || filters.delivery !== "any" || filters.fundingManagement !== "unspecified") {
+          summary += " Communication access, delivery method, funding suitability and availability still need individual confirmation.";
+        }
+        if (filters.suburb) summary += " Suburb search is not a distance or service-area search.";
+        emit({ type: "message", text: workerBoundary + summary });
+
         emit({
           type: "context",
-          applied: { state: effectiveState ?? null, postcode: effectivePostcode ?? null, service: effectiveService ?? null },
-          personalised: preferences.usePreferences,
-          communication: preferences.usePreferences ? preferences.communication ?? null : null,
-          note: "Communication preference is not proof that any returned provider can accommodate it.",
+          applied: {
+            state: filters.state ?? null,
+            postcode: filters.postcode ?? null,
+            suburb: filters.suburb ?? null,
+            serviceTypes: filters.serviceTypes,
+          },
+          personalised: useSavedProfile,
+          note: "Profile attributes are used only when explicitly selected. They are not disclosed to providers.",
+          unknownFit: ["worker_screening", "current_registration", "availability", "communication_access", "funding_eligibility"],
         });
-        for (const row of ranked) {
+
+        for (const row of results) {
           emit({
             type: "provider",
             provider: {
@@ -105,15 +138,17 @@ export async function POST(request: Request) {
               state: row.state,
               postcode: row.postcode,
               services: row.services,
+              registrationGroups: row.registration_groups,
               latitude: row.latitude,
               longitude: row.longitude,
               sourceUpdatedAt: row.updated_at,
-              evidence: "Imported NDIS provider record; current registration not reverified",
+              evidence: "Local imported NDIS provider directory record; registration not independently rechecked",
               workerScreening: "Not independently verified",
+              fitExplanation: "Directory service category / location match. Personal access and availability require confirmation.",
             },
           });
         }
-        emit({ type: "complete", count: ranked.length });
+        emit({ type: "complete", count: results.length, hasMore });
       } catch {
         emit({ type: "error", text: "Search unavailable. No results were verified." });
       } finally {
@@ -121,6 +156,7 @@ export async function POST(request: Request) {
       }
     },
   });
+
   return new Response(stream, {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",
