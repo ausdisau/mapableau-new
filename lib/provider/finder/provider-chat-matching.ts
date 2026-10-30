@@ -113,6 +113,7 @@ function likeLiteral(text: string) {
 export async function lookupMatchingProviderRecords(
   filters: ProviderSearchFilters,
   take = 12,
+  offset = 0,
 ): Promise<{ results: NdisProviderSearchRow[]; hasMore: boolean }> {
   if (!filters.state && !filters.postcode && !filters.suburb &&
       !filters.providerName && filters.serviceTypes.length === 0) {
@@ -141,6 +142,7 @@ export async function lookupMatchingProviderRecords(
   }
 
   const limit = Math.min(Math.max(take, 1), 25);
+  const safeOffset = Math.min(Math.max(offset, 0), 240);
   const rows = await prisma.$queryRaw<NdisProviderSearchRow[]>`
     SELECT source_id, provider_name, suburb, state, postcode,
            latitude, longitude, phone, email, website,
@@ -148,7 +150,7 @@ export async function lookupMatchingProviderRecords(
     FROM ndis_providers
     WHERE ${Prisma.join(clauses, " AND ")}
     ORDER BY provider_name ASC, source_id ASC
-    LIMIT ${limit + 1}
+    LIMIT ${limit + 1} OFFSET ${safeOffset}
   `;
   return { results: rows.slice(0, limit), hasMore: rows.length > limit };
 }
