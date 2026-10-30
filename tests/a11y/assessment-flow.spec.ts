@@ -39,9 +39,9 @@ test.describe("participant assessment journey", () => {
       "I use AAC and need additional response time.",
     );
 
-    await page.getByLabel("Do your support needs change? (optional)").fill(
-      "My fatigue varies. I may need a longer response time.",
-    );
+    await page
+      .getByLabel("Do your support needs change? (optional)")
+      .fill("My fatigue varies. I may need a longer response time.");
     await expect(
       page.getByRole("heading", { name: "Anything else we should know?" }),
     ).toBeVisible();
@@ -56,12 +56,12 @@ test.describe("participant assessment journey", () => {
       page.getByRole("heading", { name: "Review an assessor's report" }),
     ).toBeVisible();
 
-    await page.getByLabel("What did you originally say you need?").fill(
-      "Extra time to communicate using AAC.",
-    );
-    await page.getByLabel("What should happen next?").fill(
-      "Please correct the communication access finding.",
-    );
+    await page
+      .getByLabel("What did you originally say you need?")
+      .fill("Extra time to communicate using AAC.");
+    await page
+      .getByLabel("What should happen next?")
+      .fill("Please correct the communication access finding.");
     await page.getByRole("button", { name: "Add concern" }).click();
     await expect(
       page.getByRole("heading", { name: /Your concerns \(1\)/ }),
