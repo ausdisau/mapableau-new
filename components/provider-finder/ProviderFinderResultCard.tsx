@@ -5,11 +5,11 @@ import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
 import type { Provider } from "@/app/provider-finder/providers";
+import { ProviderRegulatoryEvidence } from "@/components/provider-finder/ProviderRegulatoryEvidence";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
-import { ProviderRegulatoryEvidence } from "@/components/provider-finder/ProviderRegulatoryEvidence";
 import { getProviderEvidence } from "@/lib/provider/finder/evidence";
+import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
 
 function formatLocation(provider: Provider) {
   if (provider.suburb === "Remote") return "Remote listing (location unconfirmed)";
