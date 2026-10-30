@@ -1,6 +1,6 @@
 "use client";
 
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import { useEffect, useState, type RefObject } from "react";
 
 export type MapInstanceConfig = {

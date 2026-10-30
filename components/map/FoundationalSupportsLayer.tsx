@@ -1,6 +1,6 @@
 "use client";
 
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 import { useMemo } from "react";
 
 import { useGeoJsonSource } from "@/lib/map/hooks/useGeoJsonSource";
