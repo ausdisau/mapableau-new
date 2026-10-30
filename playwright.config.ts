@@ -63,6 +63,12 @@ if (!skipAuth) {
       use: { storageState: "tests/a11y/.auth/participant.json" },
     },
     {
+      name: "assessment",
+      testMatch: /assessment-flows\.spec\.ts/,
+      dependencies: ["setup"],
+      use: { storageState: "tests/a11y/.auth/participant.json" },
+    },
+    {
       name: "provider",
       testMatch: /authenticated-provider\.spec\.ts/,
       dependencies: ["setup"],
