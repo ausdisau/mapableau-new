@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const requireApiSession = vi.fn();
 const createAuditEvent = vi.fn();
@@ -32,6 +32,7 @@ import { GET, POST } from "@/app/api/participants/support-needs/route";
 
 describe("POST /api/participants/support-needs", () => {
   beforeEach(() => {
+    vi.stubEnv("MAPABLE_ASSESSMENT_INTAKE_ENABLED", "true");
     vi.clearAllMocks();
     requireApiSession.mockResolvedValue({
       id: "user-1",
@@ -40,6 +41,34 @@ describe("POST /api/participants/support-needs", () => {
     });
     createSubmission.mockResolvedValue({ id: "sub-1" });
     refreshParticipantOnboarding.mockResolvedValue({});
+  });
+
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("denies intake while the owner-controlled release flag is off", async () => {
+    vi.stubEnv("MAPABLE_ASSESSMENT_INTAKE_ENABLED", "false");
+    const res = await POST(new Request("http://localhost/api/participants/support-needs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skipped: true }),
+    }));
+    expect(res.status).toBe(503);
+    expect(createSubmission).not.toHaveBeenCalled();
+    expect(createAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing participant consent", async () => {
+    const res = await POST(new Request("http://localhost/api/participants/support-needs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        selectedAreas: ["mobility"],
+        answers: [{ domainId: "mobility", intensity: "some" }],
+        consentDraftProcessing: false, consentNoClinicalPaste: true,
+      }),
+    }));
+    expect(res.status).toBe(400);
+    expect(createSubmission).not.toHaveBeenCalled();
   });
 
   it("rejects unauthenticated callers", async () => {
@@ -134,6 +163,11 @@ describe("POST /api/participants/support-needs", () => {
         action: "support_needs.assessor_submitted",
       }),
     );
+    const stored = createSubmission.mock.calls[0]?.[0]?.data?.payload;
+    expect(stored.recordType).toBe("participant_authored_support_snapshot");
+    expect(stored.unselectedAreasMean).toBe("not_assessed");
+    expect(stored.officialAssessment).toBe(false);
+    expect(stored).not.toHaveProperty("domains");
   });
 });
 
@@ -145,6 +179,24 @@ describe("GET /api/participants/support-needs", () => {
       primaryRole: "participant",
       roles: ["participant"],
     });
+  });
+
+  it("denies non-participant metadata access", async () => {
+    requireApiSession.mockResolvedValue({ id: "worker-1", primaryRole: "support_worker", roles: ["support_worker"] });
+    const res = await GET();
+    expect(res.status).toBe(403);
+    expect(findFirstSubmission).not.toHaveBeenCalled();
+  });
+
+  it("ignores skipped snapshots when checking whether an assessment exists", async () => {
+    findFirstSubmission.mockResolvedValue(null);
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.hasSubmission).toBe(false);
+    expect(findFirstSubmission).toHaveBeenCalledWith(expect.objectContaining({
+      where: { participantId: "user-1", status: { in: ["registration_lite", "submitted_draft"] } },
+    }));
   });
 
   it("reports whether a submission exists", async () => {
