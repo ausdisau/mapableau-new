@@ -43,6 +43,7 @@ import {
   type SupportTypeId,
 } from "@/lib/provider/finder/filters";
 import { useProviderOutlets } from "@/lib/provider/finder/use-provider-outlets";
+import { matchesDirectoryFilter } from "@/lib/provider/finder/evidence";
 import {
   applyInterpretationToFields,
   buildFinderSearchParams,
@@ -243,8 +244,7 @@ export default function ProviderFinderClient({
     const support = SUPPORT_TYPES.find((t) => t.id === supportType);
 
     const filtered = providers.filter((p) => {
-      if (funding === "ndis" && !p.registered) return false;
-      if (funding === "private" && p.registered) return false;
+      if (!matchesDirectoryFilter(p, funding)) return false;
 
       if (support && support.id !== "all") {
         const matchesCategory = support.categories.some((c) =>
@@ -253,16 +253,8 @@ export default function ProviderFinderClient({
         if (!matchesCategory) return false;
       }
 
-      if (accessNeeds.length > 0) {
-        const haystack = providerHaystack(p);
-        const matchesAccess = accessNeeds.every((needId) => {
-          const need = ACCESS_NEEDS.find((n) => n.id === needId);
-          if (!need) return true;
-          return need.keywords.some((kw) => haystack.includes(kw));
-        });
-        if (!matchesAccess) return false;
-      }
-
+      // Imported directory records lack affirmative per-provider access declarations.
+      // Never infer AAC or physical access from provider names or service categories.
       if (loc) {
         const locHaystack =
           `${p.suburb} ${p.state} ${p.postcode}`.toLowerCase();
@@ -719,6 +711,12 @@ export default function ProviderFinderClient({
                   <Bookmark className="h-4 w-4 text-primary" aria-hidden />
                   {compareIds.length} provider{compareIds.length === 1 ? "" : "s"}{" "}
                   selected to compare
+                </p>
+              ) : null}
+
+              {accessNeeds.length > 0 ? (
+                <p role="status" className="rounded-lg border p-3 text-sm text-muted-foreground">
+                  Access preferences are recorded for your review, but this directory cannot confirm which providers support them. Verify AAC, accessibility and worker competence directly before engaging a service.
                 </p>
               ) : null}
 
