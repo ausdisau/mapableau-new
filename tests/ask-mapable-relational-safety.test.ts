@@ -33,6 +33,7 @@ describe("MapAble Companion relational safety", () => {
 
   it("adds only guidance navigation for social participation", () => {
     const actions = addConnectionSupportActions([], "I feel isolated");
+    expect(addConnectionSupportActions([], "Find an accessible cafe nearby")).toEqual([]);
     expect(actions).toEqual([
       {
         type: "GUIDANCE_ONLY",
