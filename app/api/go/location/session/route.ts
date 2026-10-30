@@ -1,12 +1,12 @@
 import { z } from "zod";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { mapableGoFlags, goFeatureDisabledResponse } from "@/lib/config/mapable-go";
 import {
   createLocationSession,
   revokeLocationSession,
 } from "@/lib/go/location-session-service";
-import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 
 const createSessionSchema = z.object({
   purpose: z.enum(["current_location", "route_history", "barrier_report"]),

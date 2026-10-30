@@ -37,6 +37,9 @@ vi.mock("@/lib/prisma", () => ({
     participantAuthorityGrant: {
       create: vi.fn(),
     },
+    consentRecord: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -57,13 +60,14 @@ const baseInviteInput = {
   roleType: "family_member" as const,
   proposedDomain: "scheduling",
   proposedActions: ["view_schedule"],
-  proposedConsentScopes: ["read"],
+  proposedConsentScopes: ["booking.read"],
   expiresAt: futureExpiry,
 };
 
 describe("delegate invitations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma.consentRecord.findMany).mockResolvedValue([{ scope: "booking_read" }] as never);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: "delegate-1",
     } as never);
@@ -101,6 +105,20 @@ describe("delegate invitations", () => {
     expect(prisma.delegateInvitation.create).not.toHaveBeenCalled();
   });
 
+  it("rejects unrecognised generic consent scopes", async () => {
+    await expect(inviteDelegate({
+      ...baseInviteInput,
+      proposedConsentScopes: ["read"],
+    })).rejects.toThrow(/Unknown or non-delegatable scope: read/);
+    expect(prisma.delegateInvitation.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects delegation beyond the participant's active consents", async () => {
+    vi.mocked(prisma.consentRecord.findMany).mockResolvedValue([] as never);
+    await expect(inviteDelegate(baseInviteInput)).rejects.toThrow(/exceeds participant-granted scopes/);
+    expect(prisma.delegateInvitation.create).not.toHaveBeenCalled();
+  });
+
   it("creates a pending invitation for safe domains", async () => {
     vi.mocked(prisma.delegateInvitation.create).mockResolvedValue({
       id: "invite-1",
@@ -122,7 +140,7 @@ describe("delegate invitations", () => {
       participantId: "participant-1",
       proposedDomain: "scheduling",
       proposedActions: ["view_schedule"],
-      proposedConsentScopes: ["read"],
+      proposedConsentScopes: ["booking.read"],
       roleType: "family_member",
       expiresAt: futureExpiry,
       status: "pending",
@@ -166,7 +184,7 @@ describe("delegate invitations", () => {
       participantId: "participant-1",
       proposedDomain: "scheduling",
       proposedActions: ["view_schedule"],
-      proposedConsentScopes: ["read"],
+      proposedConsentScopes: ["booking.read"],
       roleType: "family_member",
       expiresAt: futureExpiry,
       status: "pending",

@@ -58,7 +58,7 @@ if (!skipAuth) {
     },
     {
       name: "participant",
-      testMatch: /authenticated-participant\.spec\.ts/,
+      testMatch: /(?:authenticated-participant|assessment-flow)\.spec\.ts/,
       dependencies: ["setup"],
       use: { storageState: "tests/a11y/.auth/participant.json" },
     },
