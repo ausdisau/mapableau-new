@@ -1,17 +1,5 @@
 import { z } from "zod";
 
-import {
-  ICAN_V6_DOMAIN_IDS,
-  ICanV6IntakeSchema,
-  iCanV6DomainIdSchema,
-  iCanV6FrequencySchema,
-  iCanV6SupportNeedLevelSchema,
-  type ICanV6DomainId,
-  type ICanV6Frequency,
-  type ICanV6Intake,
-  type ICanV6SupportNeedLevel,
-} from "@/lib/validation/i-can-v6";
-
 /** Life areas shown in the registration assessor (subset of I-CAN domains). */
 export const SUPPORT_NEEDS_LIFE_AREA_IDS = [
   "mobility",
@@ -68,29 +56,21 @@ export const SUPPORT_NEEDS_INTENSITY_OPTIONS = [
     value: "a_little",
     label: "A little help",
     description: "Occasional check-ins or reminders are enough.",
-    supportNeedLevel: "intermittent" as const,
-    frequency: "occasionally" as const,
   },
   {
     value: "some",
     label: "Some support",
     description: "Regular help with parts of this area.",
-    supportNeedLevel: "limited" as const,
-    frequency: "regularly" as const,
   },
   {
     value: "a_lot",
     label: "A lot of support",
     description: "Help with most of this area, most days.",
-    supportNeedLevel: "extensive" as const,
-    frequency: "daily" as const,
   },
   {
     value: "all_the_time",
     label: "Support all the time",
     description: "Someone needs to be with me for this area.",
-    supportNeedLevel: "pervasive" as const,
-    frequency: "constantly" as const,
   },
 ] as const;
 
@@ -118,9 +98,6 @@ function sanitizeNotes(value: string): string {
 const areaAnswerSchema = z.object({
   domainId: lifeAreaIdSchema,
   intensity: supportNeedsIntensitySchema,
-  /** Optional override; defaults from intensity mapping. */
-  supportNeedLevel: iCanV6SupportNeedLevelSchema.optional(),
-  frequency: iCanV6FrequencySchema.optional(),
 });
 
 /**
@@ -139,12 +116,21 @@ export const SupportNeedsAssessorSubmitSchema = z
       .optional()
       .transform((v) => (v === undefined ? undefined : sanitizeNotes(v)))
       .pipe(z.string().max(2000).optional()),
+    participantGoal: z.string().max(1000).optional().transform((v) => v === undefined ? undefined : sanitizeNotes(v)),
+    communicationAccess: z.string().max(1000).optional().transform((v) => v === undefined ? undefined : sanitizeNotes(v)),
+    changingSupportNeeds: z.string().max(1000).optional().transform((v) => v === undefined ? undefined : sanitizeNotes(v)),
     consentDraftProcessing: z.literal(true),
     consentNoClinicalPaste: z.literal(true),
     clientSessionId: z.string().min(1).max(100).optional(),
   })
   .superRefine((data, ctx) => {
     const selected = new Set(data.selectedAreas);
+    if (selected.size !== data.selectedAreas.length) {
+      ctx.addIssue({ code: "custom", path: ["selectedAreas"], message: "Choose each life area only once" });
+    }
+    if (new Set(data.answers.map((a) => a.domainId)).size !== data.answers.length) {
+      ctx.addIssue({ code: "custom", path: ["answers"], message: "Only one answer per life area is allowed" });
+    }
     const answered = new Set(data.answers.map((a) => a.domainId));
 
     for (const id of selected) {
@@ -196,99 +182,11 @@ export const REGISTRATION_ASSESSOR_STATUS = "registration_lite" as const;
 export const REGISTRATION_ASSESSOR_SKIPPED_STATUS =
   "registration_skipped" as const;
 
-function intensityDefaults(intensity: SupportNeedsIntensity): {
-  supportNeedLevel: ICanV6SupportNeedLevel;
-  frequency: ICanV6Frequency;
-} {
-  const match = SUPPORT_NEEDS_INTENSITY_OPTIONS.find(
-    (o) => o.value === intensity,
-  );
-  if (!match) {
-    return { supportNeedLevel: "limited", frequency: "regularly" };
-  }
-  return {
-    supportNeedLevel: match.supportNeedLevel,
-    frequency: match.frequency,
-  };
-}
-
 /**
- * Map lite assessor answers into a full I-CAN v6 intake payload.
- * Unselected domains default to none / never / completed.
+ * Registration support needs are participant self-reports. They must never
+ * be auto-converted into I-CAN ratings or treated as clinician findings.
+ * See buildParticipantSupportSnapshot for the separate, provenance-labelled model.
  */
-export function mapLiteAssessorToICanPayload(
-  input: SupportNeedsAssessorSubmit,
-): ICanV6Intake {
-  const answerByDomain = new Map(
-    input.answers.map((a) => [a.domainId, a] as const),
-  );
-
-  const domains = {} as ICanV6Intake["domains"];
-  const generalNotesParts: string[] = [];
-
-  if (input.priorityArea) {
-    generalNotesParts.push(`Priority area: ${input.priorityArea}`);
-  }
-  if (input.anythingElse?.trim()) {
-    generalNotesParts.push(input.anythingElse.trim());
-  }
-  const sharedNotes = generalNotesParts.join("\n\n");
-
-  for (const id of ICAN_V6_DOMAIN_IDS) {
-    const answer = answerByDomain.get(id as SupportNeedsLifeAreaId);
-    if (!answer) {
-      domains[id] = {
-        supportNeedLevel: "none",
-        frequency: "never",
-        notes: "",
-        completed: true,
-      };
-      continue;
-    }
-
-    const defaults = intensityDefaults(answer.intensity);
-    const isPriority = input.priorityArea === id;
-    const notesParts = [
-      `Registration assessor intensity: ${answer.intensity}`,
-      isPriority ? "Marked as what matters most." : null,
-      id === "looking_after_ones_health" ||
-      (sharedNotes && id === (input.priorityArea ?? input.selectedAreas[0]))
-        ? sharedNotes || null
-        : null,
-    ].filter(Boolean);
-
-    domains[id] = {
-      supportNeedLevel: answer.supportNeedLevel ?? defaults.supportNeedLevel,
-      frequency: answer.frequency ?? defaults.frequency,
-      notes: notesParts.join(" "),
-      completed: true,
-    };
-  }
-
-  // Ensure free-text lands somewhere even if no priority was chosen.
-  if (sharedNotes) {
-    const target =
-      (input.priorityArea as ICanV6DomainId | undefined) ??
-      (input.selectedAreas[0] as ICanV6DomainId);
-    if (target && !domains[target].notes.includes(sharedNotes)) {
-      domains[target] = {
-        ...domains[target],
-        notes: [domains[target].notes, sharedNotes].filter(Boolean).join("\n\n"),
-      };
-    }
-  }
-
-  const payload = {
-    domains,
-    consentDraftProcessing: true as const,
-    consentNoClinicalPaste: true as const,
-    clientSessionId:
-      input.clientSessionId ??
-      `registration_assessor_${Date.now().toString(36)}`,
-  };
-
-  return ICanV6IntakeSchema.parse(payload);
-}
 
 /** Type-narrow helper for life-area ids used in the UI. */
 export function isSupportNeedsLifeAreaId(
@@ -297,5 +195,3 @@ export function isSupportNeedsLifeAreaId(
   return (SUPPORT_NEEDS_LIFE_AREA_IDS as readonly string[]).includes(value);
 }
 
-// Re-export for callers that need full domain validation.
-export { iCanV6DomainIdSchema };

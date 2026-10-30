@@ -33,7 +33,7 @@ const CONSENT_SCOPES: ConsentScopeOption[] = [
   {
     id: "no_clinical_paste",
     label:
-      "I confirm I have not pasted clinical records or NDIS plan documents into this form",
+      "I understand not to paste clinical records or NDIS plan documents into this quick form",
     description: "Use a secure MapAble pathway if those records are required.",
   },
 ];
@@ -77,6 +77,9 @@ export function SupportNeedsAssessor() {
     SupportNeedsLifeAreaId | undefined
   >(undefined);
   const [anythingElse, setAnythingElse] = useState("");
+  const [participantGoal, setParticipantGoal] = useState("");
+  const [communicationAccess, setCommunicationAccess] = useState("");
+  const [changingSupportNeeds, setChangingSupportNeeds] = useState("");
   const [consentIds, setConsentIds] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -146,6 +149,9 @@ export function SupportNeedsAssessor() {
             answers,
             priorityArea,
             anythingElse: anythingElse.trim() || undefined,
+            participantGoal: participantGoal.trim() || undefined,
+            communicationAccess: communicationAccess.trim() || undefined,
+            changingSupportNeeds: changingSupportNeeds.trim() || undefined,
             consentDraftProcessing: true as const,
             consentNoClinicalPaste: true as const,
             clientSessionId: `registration_assessor_${crypto.randomUUID().slice(0, 12)}`,
@@ -212,10 +218,10 @@ export function SupportNeedsAssessor() {
             tabIndex={-1}
             className="text-lg font-semibold outline-none"
           >
-            A quick snapshot — not an NDIA claim
+            Your own support needs statement — not an NDIA assessment
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            Pick the life areas where you need support. We&apos;ll use this to
+            Choose life areas you want to talk about. Unselected areas are not treated as no support needed. We&apos;ll use this to
             prepare your MapAble planning draft. You can change it later, and
             nothing is sent to the NDIA from this step.
           </p>
@@ -326,7 +332,7 @@ export function SupportNeedsAssessor() {
             How much support with {areaLabel(currentArea).toLowerCase()}?
           </h2>
           <p className="text-sm text-muted-foreground">
-            Choose the option that fits most days.
+            Choose the option closest to your experience. You can explain days when you need more or less support before saving.
           </p>
           <fieldset className="space-y-2">
             <legend className="sr-only">Support level</legend>
@@ -501,6 +507,52 @@ export function SupportNeedsAssessor() {
           >
             Anything else we should know?
           </h2>
+          <AccessibleFormField
+            id="sna-participant-goal"
+            label="What do you want to be able to do? (optional)"
+            hint="Your goals belong to you. You do not need to disclose a diagnosis."
+          >
+            <textarea
+              id="sna-participant-goal"
+              value={participantGoal}
+              onChange={(e) => setParticipantGoal(e.target.value.slice(0, 1000))}
+              rows={3}
+              maxLength={1000}
+              className={formInputClass}
+              disabled={pending}
+            />
+          </AccessibleFormField>
+          <AccessibleFormField
+            id="sna-communication-access"
+            label="How should we communicate with you? (optional)"
+            hint="For example: AAC, Auslan, easy read, extra time, or your preferred method."
+          >
+            <textarea
+              id="sna-communication-access"
+              value={communicationAccess}
+              onChange={(e) => setCommunicationAccess(e.target.value.slice(0, 1000))}
+              rows={3}
+              maxLength={1000}
+              className={formInputClass}
+              disabled={pending}
+            />
+          </AccessibleFormField>
+          <AccessibleFormField
+            id="sna-changing-support-needs"
+            label="Do your support needs change? (optional)"
+            hint="Describe situations, fatigue, fluctuating support, or when informal support is unavailable."
+          >
+            <textarea
+              id="sna-changing-support-needs"
+              value={changingSupportNeeds}
+              onChange={(e) => setChangingSupportNeeds(e.target.value.slice(0, 1000))}
+              rows={3}
+              maxLength={1000}
+              className={formInputClass}
+              disabled={pending}
+            />
+          </AccessibleFormField>
+
           <AccessibleFormField
             id="sna-anything-else"
             label="Optional notes"
