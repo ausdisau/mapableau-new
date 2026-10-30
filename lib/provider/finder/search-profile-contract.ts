@@ -18,7 +18,7 @@ export const providerSearchPreferencesSchema = z.object({
   postcode: z.string().regex(/^\d{4}$/).optional(),
   suburb: z.string().trim().min(2).max(50).regex(/^[a-zA-Z \-'’.]+$/).optional(),
   serviceTypes: z.array(z.enum(PROVIDER_SERVICE_IDS)).max(5).default([]),
-  functionalRequirements: z.array(z.enum(PROVIDER_FUNCTIONAL_REQUIREMENTS.map((item) => item.id) as ["step_free", ...string[]])).max(6).default([]),
+  functionalRequirements: z.array(z.enum(["step_free", "quiet_environment", "assistance_animal", "wheelchair_transport", "personal_care", "mealtime_support"])).max(6).default([]),
   communicationModes: z.array(z.enum(["AAC", "Text", "Auslan"])).max(3).default([]),
   delivery: z.enum(["any", "home_visit", "in_person", "telehealth"]).default("any"),
   fundingManagement: z.enum(["unspecified", "ndia", "plan", "self"]).default("unspecified"),
