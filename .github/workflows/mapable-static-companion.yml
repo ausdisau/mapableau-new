@@ -25,13 +25,11 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0 (Node 24)
         with:
           node-version: "22.16.0"
-          package-manager-cache: false # No npm lockfile is committed for this isolated Expo app
-      - name: Install isolated Expo dependencies
-        run: npm install --prefix apps/places --no-audit --no-fund --package-lock=false
-      - name: Audit isolated Expo runtime dependencies
-        # Security gate for the resolved tree. A committed package-lock with
-        # npm ci is still required for reproducible release builds.
-        run: npm audit --no-package-lock --omit=dev --audit-level=high --prefix apps/places
+          package-manager-cache: false # Keep CI reproducible without implicit dependency caching
+      - name: Clean locked Expo dependency install
+        run: npm ci --prefix apps/places --no-audit --no-fund
+      - name: Confirm immutable dependency lock
+        run: git diff --exit-code -- apps/places/package-lock.json apps/places/package.json
       - name: Test locally generated source data and privacy boundaries
         run: npm run test --prefix apps/places
       - name: Typecheck Expo web and native screens
@@ -46,6 +44,9 @@ jobs:
           echo "Static export generated. No production deploy performed."
       - name: Verify minimised directory schema and built-file boundaries
         run: node apps/places/scripts/verify-static-release.mjs
+      - name: Audit isolated Expo dependency tree (high and critical block release)
+        # Audits the exact lockfile used for npm ci. No auto-fix or waiver is applied.
+        run: npm audit --omit=dev --audit-level=high --prefix apps/places
       - name: Upload staging-only build
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2 (Node 24)
         with:
