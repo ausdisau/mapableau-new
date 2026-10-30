@@ -3,6 +3,7 @@ import { regGroupIndicesToCategories } from "@/app/provider-finder/regGroupOptio
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import { entitiesToGeoJSON } from "@/lib/map/geojson";
 import { MAP_LAYER_IDS } from "@/lib/map/map-layer-ids";
+import { parseDirectoryActivity } from "@/lib/provider/finder/evidence";
 import type { MapPointEntity } from "@/lib/map/types";
 
 function slugify(s: string): string {
@@ -98,6 +99,8 @@ export function mapOutletToProvider(
     rating: 0,
     reviewCount: 0,
     registered: o.Active === 1,
+    source: "ndis_import",
+    directoryActivity: parseDirectoryActivity(o.Active),
     categories: categoriesMerged,
     supports: ["In-person"],
     latitude: o.Latitude !== 0 ? o.Latitude : undefined,
