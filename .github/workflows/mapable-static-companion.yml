@@ -16,6 +16,8 @@ jobs:
   static-build:
     runs-on: ubuntu-24.04 # Pinned during ubuntu-latest migration to 26.04
     timeout-minutes: 35
+    env:
+      EXPO_PUBLIC_MAPABLE_API_URL: "" # No remote API in the static preview build
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24)
         with:
@@ -26,6 +28,10 @@ jobs:
           package-manager-cache: false # No npm lockfile is committed for this isolated Expo app
       - name: Install isolated Expo dependencies
         run: npm install --prefix apps/places --no-audit --no-fund --package-lock=false
+      - name: Audit isolated Expo runtime dependencies
+        # Security gate for the resolved tree. A committed package-lock with
+        # npm ci is still required for reproducible release builds.
+        run: npm audit --no-package-lock --omit=dev --audit-level=high --prefix apps/places
       - name: Test locally generated source data and privacy boundaries
         run: npm run test --prefix apps/places
       - name: Typecheck Expo web and native screens
