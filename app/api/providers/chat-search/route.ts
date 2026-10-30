@@ -109,8 +109,8 @@ export async function POST(request: Request) {
           : "No provider records matched the supplied directory filters.";
 
         if (hasMore) summary += " More records may match; refine your search.";
-        if (filters.communicationModes.length || filters.delivery !== "any" || filters.fundingManagement !== "unspecified") {
-          summary += " Communication access, delivery method, funding suitability and availability still need individual confirmation.";
+        if (filters.communicationModes.length || filters.functionalRequirements.length || filters.delivery !== "any" || filters.fundingManagement !== "unspecified") {
+          summary += " Functional access, communication, delivery, funding suitability and availability still need individual confirmation.";
         }
         if (filters.suburb) summary += " Suburb search is not a distance or service-area search.";
         emit({ type: "message", text: workerBoundary + summary });
