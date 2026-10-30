@@ -2,13 +2,16 @@ import { ZodError } from "zod";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
-import { isProviderSearchProfileEnabled, saveProviderSearchProfileSchema } from "@/lib/provider/finder/search-profile-contract";
+import { isSameOriginMutation } from "@/lib/provider/finder/same-origin";
+import {
+  isProviderSearchProfileEnabled,
+  saveProviderSearchProfileSchema,
+} from "@/lib/provider/finder/search-profile-contract";
 import {
   deleteProviderSearchProfile,
   readProviderSearchProfile,
   saveProviderSearchProfile,
 } from "@/lib/provider/finder/search-profile-service";
-import { isSameOriginMutation } from "@/lib/provider/finder/same-origin";
 
 export const runtime = "nodejs";
 const noStore = { "Cache-Control": "no-store" };
