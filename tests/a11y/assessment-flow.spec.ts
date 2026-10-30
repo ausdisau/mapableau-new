@@ -7,9 +7,7 @@ import { expect, test } from "@playwright/test";
  * CI enables MAPABLE_ASSESSMENT_REGISTRATION_ENABLED only for this run.
  */
 test.describe("participant assessment journey", () => {
-  test("participant can navigate registration using keyboard and AAC-compatible text", async ({
-    page,
-  }) => {
+  test("registration supports keyboard and AAC text", async ({ page }) => {
     await page.goto("/register/assessment");
     await expect(
       page.getByRole("heading", { name: /not an NDIA assessment/i }),
@@ -34,7 +32,9 @@ test.describe("participant assessment journey", () => {
     const communicationAccess = page.getByLabel(
       "How should we communicate with you? (optional)",
     );
-    await communicationAccess.fill("I use AAC and need additional response time.");
+    await communicationAccess.fill(
+      "I use AAC and need additional response time.",
+    );
     await expect(communicationAccess).toHaveValue(
       "I use AAC and need additional response time.",
     );
@@ -48,7 +48,7 @@ test.describe("participant assessment journey", () => {
     // Deliberately do not save synthetic disclosure to the database here.
   });
 
-  test("assessment comparison draft can be approved locally without automatic sending", async ({
+  test("participant can approve a session-only review draft", async ({
     page,
   }) => {
     await page.goto("/dashboard/assessment/review");
@@ -63,9 +63,13 @@ test.describe("participant assessment journey", () => {
       "Please correct the communication access finding.",
     );
     await page.getByRole("button", { name: "Add concern" }).click();
-    await expect(page.getByRole("heading", { name: /Your concerns \(1\)/ })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Your concerns \(1\)/ }),
+    ).toBeVisible();
 
-    await page.getByRole("checkbox", { name: /I have reviewed this wording/i }).check();
+    await page
+      .getByRole("checkbox", { name: /I have reviewed this wording/i })
+      .check();
     await expect(
       page.getByRole("button", { name: /Download approved wording/i }),
     ).toBeEnabled();
@@ -77,9 +81,7 @@ test.describe("participant assessment journey", () => {
     ).toBeVisible();
   });
 
-  test("review form passes serious/critical automated accessibility checks", async ({
-    page,
-  }) => {
+  test("review form passes automated axe checks", async ({ page }) => {
     await page.goto("/dashboard/assessment/review");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
@@ -94,10 +96,11 @@ test.describe("participant assessment journey", () => {
     ).toEqual([]);
   });
 
-  test("assessment routes reflow at 200–400% equivalent widths", async ({
-    page,
-  }) => {
-    for (const route of ["/register/assessment", "/dashboard/assessment/review"]) {
+  test("assessment reflows at equivalent zoom widths", async ({ page }) => {
+    for (const route of [
+      "/register/assessment",
+      "/dashboard/assessment/review",
+    ]) {
       for (const width of [640, 320]) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(route);
@@ -110,9 +113,7 @@ test.describe("participant assessment journey", () => {
     }
   });
 
-  test("reduced-motion preference keeps the review form usable", async ({
-    page,
-  }) => {
+  test("reduced motion keeps review usable", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/dashboard/assessment/review");
     await expect(
