@@ -21,7 +21,7 @@
 
 ```sh
 cd apps/places
-npm install
+npm ci
 npm run test
 npm run typecheck
 npm run build:web
@@ -53,5 +53,5 @@ Build exports `apps/places/dist` with no deployed Node server.
 2. Validate data indexing and source-license/provenance, source age and source redactions.
 3. WCAG 2.2 AA and ATAG 2.0 QA: NVDA/Firefox, TalkBack, VoiceOver, keyboard, 400% reflow, switch, AAC and touch targets.
 4. No mixed-content calls, analytics on private surfaces, inadvertent network traffic or client secrets; static hosts must not return HTTP 200 HTML for absent /api or /auth endpoints.
-5. Commit and review a dedicated Expo package-lock.json, switch CI to npm ci, and re-run an audited dependency tree before production. Current npm install --package-lock=false is not reproducible.
+5. The dedicated `apps/places/package-lock.json` is now committed and CI uses `npm ci`. The build/tests pass but the **locked** production dependency audit remains failed: 3 high and 5 low Expo transitive findings; the high-severity Zod advisory requires a supported upstream remediation or explicit, time-bounded human risk determination (no exception applied).
 6. Explicit user approval before attaching production domain or replacing Vercel.
