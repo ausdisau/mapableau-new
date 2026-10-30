@@ -24,8 +24,8 @@ import {
   SearchResultCardSkeleton,
   SearchResultGridSkeleton,
 } from "@/components/ui/skeleton";
-import { trackProductEvent } from "@/lib/analytics/product-analytics";
 import { isClientAdsProviderFinderEnabled } from "@/lib/ads/config/client-flags";
+import { trackProductEvent } from "@/lib/analytics/product-analytics";
 import { getProviderFinderMapSourceClient } from "@/lib/config/provider-finder-map";
 import {
   distanceKm,
