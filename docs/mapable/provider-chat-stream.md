@@ -14,7 +14,7 @@
 ## User control and consent
 
 - **Per-search:** User explicitly chooses to apply temporary filters, a saved profile, both or neither. Message-specific geography and service take precedence over saved filters.
-- **Persisted data:** Only broad optional state, postcode, suburb, typed service categories, AAC/Text/Auslan preference, delivery preference and funding management preference. No diagnosis, clinical notes, NDIS number, precise home address, location history, contacts or chat transcripts.
+- **Persisted data:** Only broad optional state, postcode, suburb, typed service categories, AAC/Text/Auslan preference, typed functional access requirements, delivery preference and funding management preference. No diagnosis, clinical notes, NDIS number, precise home address, location history, contacts or chat transcripts.
 - **Encryption:** AES-256-GCM using dedicated MapAble data-encryption key with purpose-bound additional authenticated data. Missing or invalid keys fail closed. Key rotation requires explicit reviewed migration.
 - **Consent:** Explicit and versioned; save/edit renews consent and records an audit event with no profile values. Deletion physically removes the ciphertext and leaves a content-free withdrawal audit event. No provider sharing, ad targeting, cross-module inheritance or implicit use of AccessibilityProfile.
 - **Owner access:** Server always derives user ID from authenticated session, not request-provided participant ID. No delegation or organisation-wide access.
