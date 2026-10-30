@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 /** Life areas shown in the registration assessor (subset of I-CAN domains). */
 export const SUPPORT_NEEDS_LIFE_AREA_IDS = [
   "mobility",
