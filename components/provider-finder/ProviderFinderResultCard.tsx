@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Bookmark, MessageCircle, Star } from "lucide-react";
+import { ArrowRight, Bookmark, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
@@ -49,7 +49,6 @@ export function ProviderFinderResultCard({
   onToggleCompare,
 }: ProviderFinderResultCardProps) {
   const { careRequestHref } = usePlatformCareLink(provider);
-  const rating = Math.max(0, Math.min(5, provider.rating));
   const showDistance =
     provider.distanceKm > 0 && provider.suburb !== "Remote";
   return (
@@ -63,11 +62,7 @@ export function ProviderFinderResultCard({
         <Badge variant="outline" className="text-muted-foreground">
           {getProviderEvidence(provider).provenance}
         </Badge>
-        <div className="ml-auto flex items-center gap-1 text-sm">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
-          <span className="font-semibold">{rating.toFixed(1)}</span>
-          <span className="text-muted-foreground">({provider.reviewCount} reviews)</span>
-        </div>
+        <span className="ml-auto text-xs text-muted-foreground">Evidence requires confirmation</span>
       </div>
 
       <button
