@@ -183,7 +183,7 @@ export default function ProviderChatStream({ onMapResults, onChatSearchStart, on
 
   return (
     <section aria-labelledby="chat-provider-heading" className="space-y-4 rounded-xl border p-4">
-      <h2 id="chat-provider-heading" className="text-xl font-semibold">Chat-based provider and worker discovery</h2>
+      <h2 id="chat-provider-heading" className="text-xl font-semibold">Conversational provider discovery</h2>
       <p className="text-sm text-muted-foreground">
         Describe support needs in everyday language. MapAble searches imported provider classifications.
         Individual worker profiles and current screening clearances are not available through this directory.
@@ -207,18 +207,18 @@ export default function ProviderChatStream({ onMapResults, onChatSearchStart, on
         </label>
         {useSearchOnlyFilters && <div className="grid gap-3 md:grid-cols-3">
           <label className="flex flex-col gap-1">State
-            <select className="rounded-md border bg-background p-2" value={state} onChange={(event) => setState(event.target.value)}>
+            <select className="min-h-11 rounded-md border bg-background p-2" value={state} onChange={(event) => setState(event.target.value)}>
               <option value="">Any state</option>
               {["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"].map((s) => <option key={s}>{s}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1">Postcode
-            <input className="rounded-md border bg-background p-2" value={postcode}
+            <input className="min-h-11 rounded-md border bg-background p-2" value={postcode}
               onChange={(event) => setPostcode(event.target.value)} inputMode="numeric"
               pattern="[0-9]{4}" maxLength={4} />
           </label>
           <label className="flex flex-col gap-1">Communication preference (requires confirmation)
-            <select className="rounded-md border bg-background p-2" value={communication}
+            <select className="min-h-11 rounded-md border bg-background p-2" value={communication}
               onChange={(event) => setCommunication(event.target.value)}>
               {["No preference", "AAC", "Text", "Auslan"].map((value) => <option key={value}>{value}</option>)}
             </select>
@@ -226,17 +226,17 @@ export default function ProviderChatStream({ onMapResults, onChatSearchStart, on
         </div>}
         <div className="flex flex-wrap gap-2">
           <button disabled={busy || !message.trim()} type="submit"
-            className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">
+            className="min-h-11 rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">
             Search provider directory
           </button>
-          {hasMore && !busy && <button type="button" className="rounded-md border px-4 py-2"
+          {hasMore && !busy && <button type="button" className="min-h-11 rounded-md border px-4 py-2"
             disabled={Boolean(previousContext?.fromSavedProfile && !useSavedProfile)}
             onClick={() => void runSearch("Show more")}>
             Show more results
           </button>}
-          {busy && <button type="button" className="rounded-md border px-4 py-2"
+          {busy && <button type="button" className="min-h-11 rounded-md border px-4 py-2"
             onClick={() => { abortRef.current?.abort(); setLastStatus(null); setBusy(false); }}>Stop search</button>}
-          <button type="button" className="rounded-md border px-4 py-2"
+          <button type="button" className="min-h-11 rounded-md border px-4 py-2"
             onClick={clearConversation}>Clear conversation</button>
         </div>
       </form>
