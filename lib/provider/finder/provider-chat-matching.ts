@@ -23,6 +23,7 @@ export type ProviderChatIntent = {
   serviceType?: ProviderServiceId;
   providerName?: string;
   workerIntent: boolean;
+  unresolvedLocation: boolean;
 };
 
 export function parseProviderChatIntent(text: string): ProviderChatIntent {
@@ -59,6 +60,7 @@ export function parseProviderChatIntent(text: string): ProviderChatIntent {
     serviceType,
     providerName,
     workerIntent: /\b(?:worker|workers|carer|carers|screening|clearance)\b/i.test(input),
+    unresolvedLocation: /\b(?:near me|close to me|my current location|around here)\b/i.test(input),
   };
 }
 
