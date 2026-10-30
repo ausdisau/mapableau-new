@@ -154,7 +154,7 @@ export default function ServiceProviderMapClient() {
           </>
         ) : (
           <p>No geocoded provider locations matched. Try a wider search or use the full provider finder.</p>
-        ) : null}
+        )}
       </section>
       <section aria-labelledby="evidence-heading" className="space-y-2 rounded-xl border p-4">
         <h2 id="evidence-heading" className="text-xl font-semibold">Evidence and safeguarding</h2>
