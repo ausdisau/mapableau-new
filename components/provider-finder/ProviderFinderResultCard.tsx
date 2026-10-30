@@ -12,13 +12,13 @@ import { ProviderRegulatoryEvidence } from "@/components/provider-finder/Provide
 import { getProviderEvidence } from "@/lib/provider/finder/evidence";
 
 function formatLocation(provider: Provider) {
-  if (provider.suburb === "Remote") return "Telehealth (Australia-wide)";
+  if (provider.suburb === "Remote") return "Remote listing (location unconfirmed)";
   return `${provider.suburb} ${provider.state}`;
 }
 
 function providerBlurb(provider: Provider) {
   const primary = provider.categories[0] ?? "Disability support";
-  return `${provider.name} offers ${primary.toLowerCase()} and related supports for participants who want practical, access-aware service options nearby.`;
+  return `${primary} appears in this provider-directory record. Confirm current services, access requirements and vacancies directly before arranging support.`;
 }
 
 function availabilityLabel(provider: Provider) {
@@ -101,11 +101,6 @@ export function ProviderFinderResultCard({
             {cat}
           </span>
         ))}
-        {provider.supports.includes("Telehealth") ? (
-          <span className="rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs text-foreground">
-            Telehealth
-          </span>
-        ) : null}
       </div>
 
       <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-border/60 pt-4 text-center sm:gap-4">
@@ -127,7 +122,7 @@ export function ProviderFinderResultCard({
         </div>
         <div>
           <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Funding
+            Registration
           </dt>
           <dd className="mt-1 text-xs font-medium text-foreground sm:text-sm">
             {fundingLabel(provider)}
