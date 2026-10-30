@@ -1,0 +1,19 @@
+# Static Wasmer package: no Node.js API process or extra database.
+[package]
+name = "ausdisau/mapable-companion-preview"
+version = "0.2.0"
+description = "MapAble offline-first companion; accessible local provider and place discovery"
+
+[dependencies]
+"wasmer/static-web-server" = "1"
+
+[fs]
+"/public" = "dist"
+
+[[command]]
+name = "serve"
+module = "wasmer/static-web-server:webserver"
+runner = "https://webc.org/runner/wasi"
+
+[command.annotations.wasi]
+main-args = ["--root", "/public", "--page-fallback", "/public/index.html"]
