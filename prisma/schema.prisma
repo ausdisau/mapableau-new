@@ -35,6 +35,7 @@ model User {
   roleAssignments        UserRoleAssignment[]
   participantProfile     ParticipantProfile?
   accessibilityProfile   AccessibilityProfile?
+  providerSearchProfile ProviderSearchProfile?
   accessPassport         AccessPassport?
   organisationMemberships OrganisationMember[]
   consentsAsSubject      ConsentRecord[]    @relation("ConsentSubject")
@@ -16064,4 +16065,20 @@ model AdBillingEvent {
   @@index([status])
   @@index([createdAt])
   @@map("ad_billing_events")
+}
+
+
+/// Private, participant-controlled provider discovery preferences. Never expose to providers.
+/// Ciphertext uses dedicated MapAble data encryption; only the owner may read/write.
+model ProviderSearchProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ciphertext       String   @db.Text
+  consentVersion   String
+  consentGrantedAt DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("provider_search_profiles")
 }
