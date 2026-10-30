@@ -10,6 +10,7 @@ import {
 import { PROVIDER_SERVICE_CATALOG, PROVIDER_SERVICE_IDS } from "@/lib/provider/finder/search-service-catalog";
 import { isProviderSearchProfileEnabled } from "@/lib/provider/finder/search-profile-contract";
 import { readProviderSearchProfile } from "@/lib/provider/finder/search-profile-service";
+import { createBrowserChatContext, mergeFollowUpFilters, providerChatContextSchema } from "@/lib/provider/finder/provider-chat-session";
 import { isSameOriginMutation } from "@/lib/provider/finder/same-origin";
 
 export const runtime = "nodejs";
@@ -27,6 +28,7 @@ const requestSchema = z.object({
   message: z.string().trim().min(2).max(500),
   useSavedProfile: z.boolean().default(false),
   preferences: transientSchema.optional(),
+  previous: providerChatContextSchema.optional(),
 }).strict();
 
 const noStore = { "Cache-Control": "no-store" };
@@ -59,7 +61,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid search request" }, { status: 400, headers: noStore });
   }
 
-  const { message, useSavedProfile, preferences } = parsed.data;
+  const { message, useSavedProfile, preferences, previous } = parsed.data;
   if (useSavedProfile && !isProviderSearchProfileEnabled()) {
     return Response.json({ error: "Saved profiles are not enabled" }, { status: 503, headers: noStore });
   }
@@ -84,8 +86,16 @@ export async function POST(request: Request) {
     serviceType: getTransientServiceId(preferences.service),
     communication: preferences.communication === "No preference" ? undefined : preferences.communication,
   } : undefined;
-  const filters = buildProviderSearchFilters({
+  const currentFilters = buildProviderSearchFilters({
     intent, saved, transient, usedSavedProfile: useSavedProfile,
+  });
+  const { filters, offset } = mergeFollowUpFilters({
+    current: currentFilters,
+    intent,
+    previous,
+    message,
+    hasTemporaryLocation: Boolean(transient?.state || transient?.postcode),
+    hasTemporaryService: Boolean(transient?.serviceType),
   });
 
   const encoder = new TextEncoder();
@@ -97,7 +107,7 @@ export async function POST(request: Request) {
 
       try {
         emit({ type: "status", text: "Searching imported provider classifications…" });
-        const { results, hasMore } = await lookupMatchingProviderRecords(filters);
+        const { results, hasMore } = await lookupMatchingProviderRecords(filters, 12, offset);
         const workerBoundary = intent.workerIntent
           ? "Individual workers are not returned because this dataset contains provider organisations, not consented public worker profiles. Individual worker-screening status must be checked through an authorised NDIS Worker Screening Database pathway. "
           : "";
@@ -108,7 +118,7 @@ export async function POST(request: Request) {
           ? "Found " + results.length + " provider records " + scope + " matching the available directory categories."
           : "No provider records matched the supplied directory filters.";
 
-        if (hasMore) summary += " More records may match; refine your search.";
+        if (hasMore) summary += " More records may match; say Show more to see the next page.";
         if (filters.communicationModes.length || filters.functionalRequirements.length || filters.delivery !== "any" || filters.fundingManagement !== "unspecified") {
           summary += " Functional access, communication, delivery, funding suitability and availability still need individual confirmation.";
         }
@@ -148,7 +158,13 @@ export async function POST(request: Request) {
             },
           });
         }
-        emit({ type: "complete", count: results.length, hasMore });
+        emit({
+          type: "complete",
+          count: results.length,
+          hasMore,
+          // User-held filter-only state; it is neither credential nor durable chat history.
+          nextContext: createBrowserChatContext(filters, offset, results.length, hasMore),
+        });
       } catch {
         emit({ type: "error", text: "Search unavailable. No results were verified." });
       } finally {
