@@ -24,9 +24,13 @@ type ChatEvent = {
   nextContext?: ProviderChatContext;
 };
 
-type Props = { onMapResults?: (pins: MapLibreProvider[]) => void };
+type Props = {
+  onMapResults?: (pins: MapLibreProvider[]) => void;
+  onChatSearchStart?: () => void;
+  onChatReset?: () => void;
+};
 
-export default function ProviderChatStream({ onMapResults }: Props) {
+export default function ProviderChatStream({ onMapResults, onChatSearchStart, onChatReset }: Props) {
   const [message, setMessage] = useState("");
   const [state, setState] = useState("");
   const [postcode, setPostcode] = useState("");
@@ -68,6 +72,7 @@ export default function ProviderChatStream({ onMapResults }: Props) {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    onChatSearchStart?.();
     const applySavedProfile = hasSavedProfile && useSavedProfile;
     setUseSavedProfile(false); // Consent to reuse a stored profile is per search, not sticky.
     const validPreviousContext =
@@ -162,6 +167,7 @@ export default function ProviderChatStream({ onMapResults }: Props) {
   }
 
   function clearConversation() {
+    onChatReset?.();
     abortRef.current?.abort();
     setBusy(false);
     setLog([]);
