@@ -39,12 +39,12 @@ Build exports `apps/places/dist` with no deployed Node server.
 
 ## VentraIP cPanel
 - Copy only static build output under a **staging subdomain document root**, never overwrite production `public_html`.
-- If cPanel Apache is the web server, copy the fallback `apps/places/deploy/cpanel/.htaccess` alongside the output's `index.html`.
+- If cPanel Apache is the web server, copy the preview security configuration `apps/places/deploy/cpanel/.htaccess` alongside the output's `index.html`.
 - Domain registration/DNS in VentraIP VIPcontrol is independent of hosting; check authoritative DNS before modifying any records.
-- Test TLS, cache behaviour, SPA route fallback, resource loads and index accessibility on preview hostname first.
+- Test TLS, cache behaviour, unknown /api/* returning 404, root-page tab navigation, resource loads and index accessibility on preview hostname first.
 
 ## Deployment controls
-- `.github/workflows/mapable-static-companion.yml` runs tests, typecheck and static export on PRs, then uploads a preview build as a CI artifact. No deploy credentials and no production deploy are configured.
+- `.github/workflows/mapable-static-companion.yml` runs tests, a no-lockfile runtime dependency audit, typecheck, static export and public-data/artifact checks on PRs, then uploads a preview build as a CI artifact. No deploy credentials and no production deploy are configured.
 - `MAPABLE_PROVIDER_SEARCH_PROFILE_ENABLED` remains disabled on static builds; no storage of sensitive matching profiles is implemented in this bundle.
 - Existing Next.js/Neon application stays unchanged. Complete platform replacement needs a separate backend plan, migration, security review and cutover approval.
 
@@ -52,5 +52,6 @@ Build exports `apps/places/dist` with no deployed Node server.
 1. Build passes with pinned/reviewed package dependencies and acceptable bundle sizes.
 2. Validate data indexing and source-license/provenance, source age and source redactions.
 3. WCAG 2.2 AA and ATAG 2.0 QA: NVDA/Firefox, TalkBack, VoiceOver, keyboard, 400% reflow, switch, AAC and touch targets.
-4. No mixed-content calls, analytics on private surfaces, inadvertent network traffic or client secrets.
-5. Explicit user approval before attaching production domain or replacing Vercel.
+4. No mixed-content calls, analytics on private surfaces, inadvertent network traffic or client secrets; static hosts must not return HTTP 200 HTML for absent /api or /auth endpoints.
+5. Commit and review a dedicated Expo package-lock.json, switch CI to npm ci, and re-run an audited dependency tree before production. Current npm install --package-lock=false is not reproducible.
+6. Explicit user approval before attaching production domain or replacing Vercel.
