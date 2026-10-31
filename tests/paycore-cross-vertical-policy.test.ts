@@ -97,6 +97,37 @@ describe("MapAble PayCore shared funding-routing policy", () => {
     expect(preparePayCoreInstruction({ ...context, payer: "participant", payerApproval: "participant_confirmed" }).status).toBe("on_hold");
   });
 
+  it("prepares organisational Marketplace purchases and employer card subscriptions without allowing capture", () => {
+    const employer: PayCoreVerifiedContext = {
+      ...base, payer: "organisation", payerApproval: "organisation_confirmed",
+      funding: "private_card",
+      lines: [{
+        ...base.lines[0],
+        source: { vertical: "jobs", type: "subscription_period", ref: "employer-subscription-1" },
+      }],
+    };
+    const subscription = preparePayCoreInstruction(employer);
+    expect(subscription.status).toBe("prepared");
+    expect(subscription.paymentRoute).toBe("psp_hosted_payment_preparation");
+    expect(subscription.executable).toBe(false);
+    const businessPurchase = preparePayCoreInstruction({
+      ...employer,
+      lines: [{
+        ...base.lines[0],
+        source: { vertical: "marketplace", type: "marketplace_transaction", ref: "purchase-b2b-1" },
+      }],
+    });
+    expect(businessPurchase.status).toBe("prepared");
+    const unauthorisedCareCharge = preparePayCoreInstruction({
+      ...employer, deliveryConfirmed: true,
+      lines: [{
+        ...base.lines[0],
+        source: { vertical: "care", type: "care_shift", ref: "care-1" },
+      }],
+    });
+    expect(unauthorisedCareCharge.holds).toContain("FUNDING_ROUTE_INCOMPATIBLE");
+  });
+
   it("requires completed service evidence for Care, Transport and employment service", () => {
     const sources: PayCoreSource[] = [
       { vertical: "care", type: "care_shift", ref: "opaque-care" },
