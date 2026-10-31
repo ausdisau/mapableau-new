@@ -18,6 +18,8 @@ const PUBLIC_ROUTES = [
   "/register",
   "/core",
   "/accessibility-map",
+  "/provider-finder",
+  "/provider-finder/service-map",
   "/care",
   "/care/request",
   "/transport",
@@ -161,4 +163,51 @@ test.describe("Keyboard / skip-link smoke", () => {
     );
     await expect(main.first()).toBeVisible({ timeout: 10_000 });
   });
+});
+
+
+test("provider finder service map exposes evidence and keyboard-operable controls", async ({
+  page,
+}) => {
+  const response = await page.goto("/provider-finder/service-map", {
+    waitUntil: "domcontentloaded",
+  });
+  assertSuccessfulShell("/provider-finder/service-map", response);
+  await expect(
+    page.getByRole("heading", {
+      name: "Disability care and support provider map",
+    }),
+  ).toBeVisible();
+  const form = page.getByRole("form", { name: "Filter provider locations" });
+  const location = form.getByRole("textbox", {
+    name: "Location, postcode or state",
+  });
+  const service = form.getByRole("textbox", { name: "Support service" });
+  await location.focus();
+  await expect(location).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(service).toBeFocused();
+
+  const search = form.getByRole("button", { name: "Search providers" });
+  const bounds = await search.boundingBox();
+  expect(bounds?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+  await expect(
+    page.getByRole("heading", { name: "Evidence and safeguarding" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/not independently reverified by this map/i),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Conversational provider discovery" }),
+  ).toBeVisible();
+
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(
+    results.violations.filter((item) =>
+      ["critical", "serious"].includes(item.impact ?? ""),
+    ),
+  ).toEqual([]);
 });

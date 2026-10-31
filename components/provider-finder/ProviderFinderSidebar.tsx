@@ -43,7 +43,7 @@ export function ProviderFinderSidebar({
           Refine search
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Narrow results by support type, access needs and funding.
+          Narrow by listed services and imported directory activity. Access preferences are not verified provider capabilities.
         </p>
       </div>
 
@@ -63,7 +63,7 @@ export function ProviderFinderSidebar({
                 type="button"
                 onClick={() => onSupportTypeChange(type.id)}
                 className={cn(
-                  "w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
+                  "w-full min-h-11 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
                   supportType === type.id
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -80,8 +80,9 @@ export function ProviderFinderSidebar({
 
       <div>
         <h3 id="pf-access-needs-heading" className="text-sm font-semibold text-foreground">
-          Access needs
+          Access preferences (not yet verified)
         </h3>
+        <p className="mt-1 text-xs text-muted-foreground">These preferences are advisory until each provider confirms them.</p>
         <div
           className="mt-3 flex flex-wrap gap-2"
           role="group"
@@ -96,7 +97,7 @@ export function ProviderFinderSidebar({
                 type="button"
                 onClick={() => toggleAccessNeed(need.id)}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
+                  "min-h-11 rounded-full border px-3 py-2 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
                   active
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-accent",
@@ -113,8 +114,9 @@ export function ProviderFinderSidebar({
 
       <div>
         <h3 id="pf-funding-heading" className="text-sm font-semibold text-foreground">
-          Funding
+          Imported directory activity
         </h3>
+        <p className="mt-1 text-xs text-muted-foreground">This is not a live registration or NDIS funding eligibility check.</p>
         <div
           className="mt-3 space-y-1"
           role="group"
@@ -126,7 +128,7 @@ export function ProviderFinderSidebar({
               type="button"
               onClick={() => onFundingChange(option.id)}
               className={cn(
-                "w-full rounded-lg px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
+                "w-full min-h-11 rounded-lg px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
                 funding === option.id
                   ? "bg-primary/10 font-medium text-primary"
                   : "text-muted-foreground hover:bg-accent",

@@ -1,38 +1,36 @@
 "use client";
 
-import { ArrowRight, Bookmark, MessageCircle, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, Bookmark, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@/app/lib/utils";
 import type { Provider } from "@/app/provider-finder/providers";
+import { ProviderRegulatoryEvidence } from "@/components/provider-finder/ProviderRegulatoryEvidence";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getProviderEvidence } from "@/lib/provider/finder/evidence";
 import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
 
 function formatLocation(provider: Provider) {
-  if (provider.suburb === "Remote") return "Telehealth (Australia-wide)";
+  if (provider.suburb === "Remote") return "Remote listing (location unconfirmed)";
   return `${provider.suburb} ${provider.state}`;
 }
 
 function providerBlurb(provider: Provider) {
   const primary = provider.categories[0] ?? "Disability support";
-  return `${provider.name} offers ${primary.toLowerCase()} and related supports for participants who want practical, access-aware service options nearby.`;
+  return `${primary} appears in this provider-directory record. Confirm current services, access requirements and vacancies directly before arranging support.`;
 }
 
 function availabilityLabel(provider: Provider) {
-  if (provider.suburb === "Remote") return "Telehealth slots open";
-  if (provider.registered) return "Available this week";
-  return "Enquire for availability";
+  return getProviderEvidence(provider).availability;
 }
 
 function responseLabel(provider: Provider) {
-  if (provider.reviewCount >= 100) return "Usually replies in 2 hours";
-  if (provider.reviewCount >= 30) return "Usually replies same day";
-  return "Response time varies";
+  return getProviderEvidence(provider).responseTime;
 }
 
 function fundingLabel(provider: Provider) {
-  return provider.registered ? "NDIS registered" : "Private / plan flexible";
+  return getProviderEvidence(provider).registration;
 }
 
 type ProviderFinderResultCardProps = {
@@ -51,7 +49,6 @@ export function ProviderFinderResultCard({
   onToggleCompare,
 }: ProviderFinderResultCardProps) {
   const { careRequestHref } = usePlatformCareLink(provider);
-  const rating = Math.max(0, Math.min(5, provider.rating));
   const showDistance =
     provider.distanceKm > 0 && provider.suburb !== "Remote";
   return (
@@ -62,20 +59,10 @@ export function ProviderFinderResultCard({
       )}
     >
       <div className="flex flex-wrap items-start gap-2">
-        {provider.registered ? (
-          <Badge
-            variant="outline"
-            className="border-primary/20 bg-primary/5 text-primary"
-          >
-            <ShieldCheck className="mr-1 h-3.5 w-3.5" aria-hidden />
-            Verified profile
-          </Badge>
-        ) : null}
-        <div className="ml-auto flex items-center gap-1 text-sm">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
-          <span className="font-semibold">{rating.toFixed(1)}</span>
-          <span className="text-muted-foreground">({provider.reviewCount} reviews)</span>
-        </div>
+        <Badge variant="outline" className="text-muted-foreground">
+          {getProviderEvidence(provider).provenance}
+        </Badge>
+        <span className="ml-auto text-xs text-muted-foreground">Evidence requires confirmation</span>
       </div>
 
       <button
@@ -114,11 +101,6 @@ export function ProviderFinderResultCard({
             {cat}
           </span>
         ))}
-        {provider.supports.includes("Telehealth") ? (
-          <span className="rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs text-foreground">
-            Telehealth
-          </span>
-        ) : null}
       </div>
 
       <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-border/60 pt-4 text-center sm:gap-4">
@@ -140,13 +122,15 @@ export function ProviderFinderResultCard({
         </div>
         <div>
           <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Funding
+            Registration
           </dt>
           <dd className="mt-1 text-xs font-medium text-foreground sm:text-sm">
             {fundingLabel(provider)}
           </dd>
         </div>
       </dl>
+
+      <ProviderRegulatoryEvidence provider={provider} />
 
       <div className="mt-5 flex flex-wrap gap-2">
         {careRequestHref ? (
