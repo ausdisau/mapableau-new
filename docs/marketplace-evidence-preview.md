@@ -70,3 +70,16 @@ Do not treat clean TypeScript syntax as proof of runtime accessibility or securi
 - Before production release: independent UX/accessibility, security, consumer-law, safety and billing/settlement review; verified inventory/merchant contracts; controlled synthetic deployment; human approval.
 
 **Release decision:** design review only. Default-off; no deploy, no merge, no live purchases.
+
+
+## Targeted automated validation added in follow-up
+
+- New `tests/marketplace-evidence-preview.ui.test.tsx` exercises labelled search, comparison and specialist-review exclusions with synthetic fixtures in jsdom.
+- New `tests/a11y/marketplace-evidence-preview.spec.ts` uses a seeded synthetic participant account for browser navigation, keyboard interaction, status announcements and WCAG-tagged axe inspection.
+- Accessibility workflow enables `MAPABLE_MARKETPLACE_ENABLED=true` **only in the ephemeral CI job**, so the otherwise gated preview can be tested. No production flag or deployment is changed.
+- `playwright.config.ts` adds a dedicated authenticated `marketplace-evidence` test project; the existing `setup` project provides the pilot account.
+- Added Marketplace-scoped validation workflow to run focused ESLint and Vitest independently of unrelated global lint debt.
+- Compared item and draft controls have item-specific accessible names; the optional large-text preference applies to real content and form controls rather than just the root container.
+- The existing global CI lint errors and eight expired security-advisory exceptions remain separate blockers; this change neither suppresses them nor renews exemptions.
+
+**Release remains no-go** pending actual CI and independent participant accessibility results.
