@@ -14,25 +14,25 @@ Phase 1 is an orchestrator and evidence ledger, **not** custody of participant f
 
 ## Current implementation evidence
 
-- \`prisma/schema.prisma\`: BillingInvoice, BillingPayment, BillingPaymentSplit, BillingFundingSource, BillingAccount, PayoutRecipient, PayoutTransfer, PaymentAllocation and other records.
-- \`lib/billing/core/checkout-service.ts\`: Stripe Checkout initiation from existing invoice totals; potential single-provider Connect destination.
-- \`lib/billing/core/funding-logic.ts\`: self-managed/private card can use hosted payment; plan-managed invoices export; other funding blocks.
-- \`lib/billing/service-records/service.ts\`: evidence-backed source records and draft-invoice workflow.
-- \`lib/abilitypay/abilitypay-service.ts\`: deterministic invoice reconciliation and participant review; payment execution disabled.
-- \`lib/config/abilitypay-home-living.ts\`: \`paymentExecutionEnabled: false\` and \`ndisClaimSubmissionEnabled: false\`.
-- \`lib/billing/payment-reconciliation/reconciliation-service.ts\`: separate older invoice/Stripe/Xero comparison service. This is NOT itself a proof of settlement.
-- \`docs/abilitypay-architecture.md\` and \`docs/careos-financial-boundaries.md\`: participant authority and financial decision boundaries.
+- `prisma/schema.prisma`: BillingInvoice, BillingPayment, BillingPaymentSplit, BillingFundingSource, BillingAccount, PayoutRecipient, PayoutTransfer, PaymentAllocation and other records.
+- `lib/billing/core/checkout-service.ts`: Stripe Checkout initiation from existing invoice totals; potential single-provider Connect destination.
+- `lib/billing/core/funding-logic.ts`: self-managed/private card can use hosted payment; plan-managed invoices export; other funding blocks.
+- `lib/billing/service-records/service.ts`: evidence-backed source records and draft-invoice workflow.
+- `lib/abilitypay/abilitypay-service.ts`: deterministic invoice reconciliation and participant review; payment execution disabled.
+- `lib/config/abilitypay-home-living.ts`: `paymentExecutionEnabled: false` and `ndisClaimSubmissionEnabled: false`.
+- `lib/billing/payment-reconciliation/reconciliation-service.ts`: separate older invoice/Stripe/Xero comparison service. This is NOT itself a proof of settlement.
+- `docs/abilitypay-architecture.md` and `docs/careos-financial-boundaries.md`: participant authority and financial decision boundaries.
 
 **Material gaps found**:
-1. Generic \`POST /api/billing/invoices\` accepts user-supplied descriptions, quantities, rates, GST and line metadata. Source-verified invoice construction must replace this for all four verticals; draft PR #641 proposes only a Marketplace-specific guard.
-2. \`createCheckoutForInvoice\` can create BillingPayment and Checkout sessions from invoice totals; inspect invoice ownership, statuses, verification, idempotency, and concurrent request semantics before wider deployment.
-3. In \`lib/stripe/webhooks.ts\`, per-handler exceptions are caught and the corresponding webhook event can still be marked processed. A successfully acknowledged but failed handler may not be retried by the processor. This requires targeted remediation and replay tests.
-4. \`assertLivemodeMatches\` in \`lib/billing/core/webhook-handler.ts\` logs a warning on mismatch rather than rejecting it. This must be treated as a release blocker for financial processing.
+1. Generic `POST /api/billing/invoices` accepts user-supplied descriptions, quantities, rates, GST and line metadata. Source-verified invoice construction must replace this for all four verticals; draft PR #641 proposes only a Marketplace-specific guard.
+2. `createCheckoutForInvoice` can create BillingPayment and Checkout sessions from invoice totals; inspect invoice ownership, statuses, verification, idempotency, and concurrent request semantics before wider deployment.
+3. In `lib/stripe/webhooks.ts`, per-handler exceptions are caught and the corresponding webhook event can still be marked processed. A successfully acknowledged but failed handler may not be retried by the processor. This requires targeted remediation and replay tests.
+4. `assertLivemodeMatches` in `lib/billing/core/webhook-handler.ts` logs a warning on mismatch rather than rejecting it. This must be treated as a release blocker for financial processing.
 5. Payments, payouts, customer invoices, accounting, AbilityPay and older reconciliation models overlap. Establish canonical event ownership, uniqueness and financial state before adding more service-specific payment tables.
 
 ## Architecture (logical, not a live service topology)
 
-\`\`\`mermaid
+```mermaid
 flowchart TB
   MARKET[Marketplace catalogue/approved order] --> SR[MapAble Core: verified billable source]
   CARE[Care service record/timesheet] --> SR
@@ -51,22 +51,22 @@ flowchart TB
   B2B --> LEDGER
   LEDGER --> AUDIT[Immutable audit, disputes, receipts, payout controls]
   PAYROLL[Employment wages/payroll] -. separate legal/payroll integration .-> B2B
-\`\`\`
+```
 
 All payment, transfer and claim rails are **disabled in this design slice**. The diagram describes future interfaces and boundaries, not approved operational integrations.
 
 ## Contract and API boundaries
 
-1. Each domain sends an opaque source reference: \`{vertical,sourceType,sourceId,version,organisationId}\`. **No client unit prices, GST claims, NDIS support code guesses, personal health details or untrusted vendor payout instructions.**
+1. Each domain sends an opaque source reference: `{vertical,sourceType,sourceId,version,organisationId}`. **No client unit prices, GST claims, NDIS support code guesses, personal health details or untrusted vendor payout instructions.**
 2. PayCore loads the canonical source and checks tenant, participant authority, contract, service/supplier evidence, pricing revision, tax review, fee disclosure, dispute holds, and cancellation state.
 3. AbilityPay presents a readable, accessible itemised statement and recorded participant/organisation choice. A carer or coordinator may prepare only with a purpose-bound, unexpired, revocable participant authorisation.
 4. Funding router chooses a **nonexecuting preparation path**:
-   - \`private_card\`, \`private_pay\`: hosted PSP preparation, not live capture;
-   - \`ndis_self_managed\`: private/card route and receipt, with independent NDIS claim/reimbursement by participant; no auto-eligibility;
-   - \`ndis_plan_managed\`: invoice to registered plan manager; **no card capture**;
-   - \`ndis_agency_managed\`: eligible registered provider's approved NDIA portal route, not a card transaction or implied direct NDIS API;
-   - \`employer_funded\`, \`organisation_invoice\`: organisation receivable/invoice route;
-   - \`mixed\`, grant and other unresolved funding: human review before defining separate independent funding legs.
+   - `private_card`, `private_pay`: hosted PSP preparation for approved participant purchases, employer subscriptions or organisational Marketplace purchases, not live capture;
+   - `ndis_self_managed`: private/card route and receipt, with independent NDIS claim/reimbursement by participant; no auto-eligibility;
+   - `ndis_plan_managed`: invoice to registered plan manager; **no card capture**;
+   - `ndis_agency_managed`: eligible registered provider's approved NDIA portal route, not a card transaction or implied direct NDIS API;
+   - `employer_funded`, `organisation_invoice`: organisation receivable/invoice route;
+   - `mixed`, grant and other unresolved funding: human review before defining separate independent funding legs.
 5. When and only when independently authorised, a payment adapter could create a **server-idempotent** Stripe session or approved alternate PSP request; provider responses are not financial truth until verified against signed webhook and settlement records.
 6. Processor/bank reconciliation and accounting postings are transactionally linked by durable idempotency keys, payment intent and source version, not by amounts alone.
 7. Refunds, disputes, chargebacks and cancellations are explicit casework with participant-facing explanation and accessible human escalation. Freeze payout on unresolved problems.
@@ -74,14 +74,14 @@ All payment, transfer and claim rails are **disabled in this design slice**. The
 
 ### Proposed persistent schema additions (NOT implemented in this PR)
 
-- \`BillingSourceCharge\` unique on \`(organisationId,sourceType,sourceId,version)\`.
-- \`PaymentCommand\` unique on \`(organisationId,idempotencyKey)\` and immutable approved amount + consent receipt.
-- \`PaymentProcessorEvent\` unique on \`(provider,eventId)\` with \`pending,processing,processed,failed\`, processing lock, retries and dead-letter.
-- \`PaymentJournalEntry\` in balanced debit/credit pairs, typed accounts, immutable reference and correction entries; invoice and PSP clearing distinguished from actual bank balance.
-- \`PaymentReconciliationRecord\` for settlement files, fees, chargebacks, payout and refund allocation; differences require manual review.
-- \`PaymentMandate\` for third-party approvals and legal authority with scope, revocation and expiry (do not conflate with Core consent).
-- \`MerchantContract\`, \`PayoutRecipient\` and a policy-versioned \`PayoutHold\` for settlement liability, insurance and KYC.
-- Read-only \`AbilityPayPlanManagerAdapter\`, \`StripePaymentsAdapter\`, \`XeroAccountingAdapter\` and future \`SponsoredPayToAdapter\` behind capability and regulatory gates.
+- `BillingSourceCharge` unique on `(organisationId,sourceType,sourceId,version)`.
+- `PaymentCommand` unique on `(organisationId,idempotencyKey)` and immutable approved amount + consent receipt.
+- `PaymentProcessorEvent` unique on `(provider,eventId)` with `pending,processing,processed,failed`, processing lock, retries and dead-letter.
+- `PaymentJournalEntry` in balanced debit/credit pairs, typed accounts, immutable reference and correction entries; invoice and PSP clearing distinguished from actual bank balance.
+- `PaymentReconciliationRecord` for settlement files, fees, chargebacks, payout and refund allocation; differences require manual review.
+- `PaymentMandate` for third-party approvals and legal authority with scope, revocation and expiry (do not conflate with Core consent).
+- `MerchantContract`, `PayoutRecipient` and a policy-versioned `PayoutHold` for settlement liability, insurance and KYC.
+- Read-only `AbilityPayPlanManagerAdapter`, `StripePaymentsAdapter`, `XeroAccountingAdapter` and future `SponsoredPayToAdapter` behind capability and regulatory gates.
 
 Review current Prisma models before creating any of these to avoid duplicates. Use additive migrations, unique DB constraints and transactional invariants.
 
@@ -132,7 +132,7 @@ WCAG 2.2 AA target; screen-reader and keyboard-complete payment decisions; AAC a
 ## Test and progressive release plan
 
 P0: Reconcile legacy billing and AbilityPay models; identify one authoritative source record, record dual-path conflicts, audit current webhook handling and stripe livemode mismatches; add negative/replay tests; keep execution off.
-P1: Unit-tested cross-vertical prepare-only funding router in \`lib/billing/orchestration/paycore-policy.ts\`. This PR does **only** P1 contracts and tests; no route or Prisma migration.
+P1: Unit-tested cross-vertical prepare-only funding router in `lib/billing/orchestration/paycore-policy.ts`. This PR does **only** P1 contracts and tests; no route or Prisma migration.
 P2: Server-only quote/orchestration API built from typed source IDs, participant approval receipts and versioned pricing; signed/verified preview endpoints (synthetic first); no payment capture.
 P3: Accounting/Xero and plan-manager export adapters with manual verification and linked evidence; never auto-claim.
 P4: Stripe hosted checkout behind explicit environment and recipient gates; signed webhook retry/settlement; legally reviewed Connect transfer mode.
