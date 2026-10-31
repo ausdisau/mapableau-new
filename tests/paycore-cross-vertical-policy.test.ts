@@ -6,6 +6,7 @@ import {
   fundingRouteFor,
   preparePayCoreInstruction,
   type PayCoreVerifiedContext,
+  type PayCoreSource,
 } from "../lib/billing/orchestration/paycore-policy";
 
 const base: PayCoreVerifiedContext = {
@@ -35,23 +36,24 @@ const base: PayCoreVerifiedContext = {
 
 describe("MapAble PayCore shared funding-routing policy", () => {
   it("keeps all four service verticals on one typed contract", () => {
-    for (const [vertical, sourceType] of [
-      ["marketplace", "marketplace_transaction"],
-      ["care", "care_shift"],
-      ["transport", "transport_trip"],
-      ["jobs", "subscription_period"],
-    ] as const) {
+    const sources: PayCoreSource[] = [
+      { vertical: "marketplace", type: "marketplace_transaction", ref: "opaque-marketplace" },
+      { vertical: "care", type: "care_shift", ref: "opaque-care" },
+      { vertical: "transport", type: "transport_trip", ref: "opaque-transport" },
+      { vertical: "jobs", type: "subscription_period", ref: "opaque-jobs" },
+    ];
+    for (const source of sources) {
       const context: PayCoreVerifiedContext = {
         ...base,
         lines: [{
           ...base.lines[0],
-          source: { vertical, type: sourceType, ref: "opaque-" + vertical },
+          source,
         }],
         deliveryConfirmed: true,
         sellerApproved: true,
       };
       const result = preparePayCoreInstruction(context);
-      expect(result.vertical).toBe(vertical);
+      expect(result.vertical).toBe(source.vertical);
       expect(result.status).toBe("prepared");
       expect(result.executable).toBe(false);
     }
@@ -96,14 +98,15 @@ describe("MapAble PayCore shared funding-routing policy", () => {
   });
 
   it("requires completed service evidence for Care, Transport and employment service", () => {
-    for (const [vertical, type] of [
-      ["care", "care_shift"],
-      ["transport", "transport_trip"],
-      ["jobs", "employment_session"],
-    ] as const) {
+    const sources: PayCoreSource[] = [
+      { vertical: "care", type: "care_shift", ref: "opaque-care" },
+      { vertical: "transport", type: "transport_trip", ref: "opaque-trip" },
+      { vertical: "jobs", type: "employment_session", ref: "opaque-employment-session" },
+    ];
+    for (const source of sources) {
       const result = preparePayCoreInstruction({
         ...base,
-        lines: [{ ...base.lines[0], source: { vertical, type, ref: "opaque" } }],
+        lines: [{ ...base.lines[0], source }],
         deliveryConfirmed: false,
       });
       expect(result.holds).toContain("SERVICE_NOT_CONFIRMED");
