@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { findMarketListing, formatExampleMoney } from "@/packages/marketplace-inclusive/src/index";
 import {
@@ -34,16 +34,16 @@ const roles: { id: DemoRole; label: string }[] = [
   { id: "finance", label: "Finance reviewer" },
 ];
 
-const actions: { type: DemoAction["type"]; label: string; purpose: string }[] = [
-  { type: "cancel_order", label: "Cancel before dispatch", purpose: "Participant can cancel a reserved example order" },
-  { type: "dispatch", label: "Record mock dispatch", purpose: "Supplier records a fictional dispatch" },
-  { type: "record_delay", label: "Record mock delay", purpose: "Supplier records a delivery disruption" },
-  { type: "acknowledge_delivery", label: "Confirm example delivery", purpose: "Participant acknowledges an example arrival" },
-  { type: "request_return", label: "Request a return", purpose: "Participant initiates return review" },
-  { type: "approve_return", label: "Review return", purpose: "Human reviewer examines a simulated request" },
-  { type: "receive_return", label: "Record mock return received", purpose: "Supplier records a fictional return" },
-  { type: "approve_refund", label: "Authorise notional refund", purpose: "Finance reviewer reverses a fictional amount" },
-  { type: "reconcile", label: "Reconcile zero-cash ledger", purpose: "Finance reviewer checks the simulated ledger" },
+const actions: { action: DemoAction; label: string; purpose: string }[] = [
+  { action: { type: "cancel_order" }, label: "Cancel before dispatch", purpose: "Participant can cancel a reserved example order" },
+  { action: { type: "dispatch" }, label: "Record mock dispatch", purpose: "Supplier records a fictional dispatch" },
+  { action: { type: "record_delay" }, label: "Record mock delay", purpose: "Supplier records a delivery disruption" },
+  { action: { type: "acknowledge_delivery" }, label: "Confirm example delivery", purpose: "Participant acknowledges an example arrival" },
+  { action: { type: "request_return" }, label: "Request a return", purpose: "Participant initiates return review" },
+  { action: { type: "approve_return" }, label: "Review return", purpose: "Human reviewer examines a simulated request" },
+  { action: { type: "receive_return" }, label: "Record mock return received", purpose: "Supplier records a fictional return" },
+  { action: { type: "approve_refund" }, label: "Authorise notional refund", purpose: "Finance reviewer reverses a fictional amount" },
+  { action: { type: "reconcile" }, label: "Reconcile zero-cash ledger", purpose: "Finance reviewer checks the simulated ledger" },
 ];
 
 const roleNote: Record<DemoRole, string> = {
@@ -68,7 +68,7 @@ function Section({
 }: {
   id: string;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section aria-labelledby={id} className="rounded-2xl border border-[#c9d5e9] bg-white p-5 sm:p-6">
@@ -256,9 +256,9 @@ export function MarketplaceOperationsLab() {
           <p>External payment captured: <strong>{formatExampleMoney(cycle.order?.paymentCapturedCents ?? 0)}</strong></p>
           <div className="grid gap-2 sm:grid-cols-2">
             {actions.map((item) => (
-              <button key={item.type} type="button" className={button}
+              <button key={item.action.type} type="button" className={button}
                 title={item.purpose}
-                onClick={() => execute({ type: item.type })}>
+                onClick={() => execute(item.action)}>
                 {item.label}
               </button>
             ))}
