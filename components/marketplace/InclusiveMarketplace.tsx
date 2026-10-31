@@ -7,7 +7,6 @@ import {
   MARKET_CATEGORY_LABELS,
   MARKET_FEATURE_LABELS,
   MARKET_KIND_LABELS,
-  MARKETPLACE_PILOT_LISTINGS,
   RISK_LABELS,
   exportMarketEnquiryDraft,
   filterMarketListings,
@@ -348,7 +347,7 @@ export function InclusiveMarketplace(){
 
     <section aria-labelledby="basket-heading" className="mt-12 rounded-2xl border border-[#c9d5e9] bg-[#f5f8ff] p-6">
       <h2 id="basket-heading" className="text-2xl font-black text-[#101c37]">Private planning basket</h2>
-      <p className="mt-2 text-slate-700">Collect options for your own review or discussion. This is not a cart that accepts payment. A supporter or coordinator cannot submit on someone else's behalf from this view.</p>
+      <p className="mt-2 text-slate-700">Collect options for your own review or discussion. This is not a cart that accepts payment. A supporter or coordinator cannot submit on someone else&apos;s behalf from this view.</p>
       {draft.length===0?<p className="mt-4 rounded-xl border border-dashed bg-white p-4">Your planning basket is empty.</p>:
         <ul className="mt-5 space-y-3">{draft.map((line)=>{
           const item=findMarketListing(line.id);

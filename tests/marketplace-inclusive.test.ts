@@ -57,7 +57,7 @@ describe("MapAble inclusive Marketplace pilot",()=>{
   it("exports no private participant identifiers and no sale instruction",()=>{
     const text=exportMarketEnquiryDraft([{id:"demo-jar",quantity:1}],"coordinator");
     expect(text).toContain("NOT SENT");
-    expect(text).toContain("No NDIS");
+    expect(text).toContain("NO NDIS");
     expect(text).toContain("does not grant access");
   });
   it("denies generic invoices with marketplace metadata",()=>{
