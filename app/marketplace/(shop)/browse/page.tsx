@@ -33,26 +33,40 @@ export default async function MarketplaceBrowsePage({
         </h1>
         <p className="text-muted-foreground">
           {products.length} product{products.length === 1 ? "" : "s"}
-          {category ? ` in ${getCategoryLabel(category).toLowerCase()}` : ""}.
+          {category ? " in " + getCategoryLabel(category).toLowerCase() : ""}.
         </p>
       </header>
 
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Product categories">
+      <aside className="rounded-xl border border-[#073F97]/20 bg-[#F5F7FC] p-5" aria-labelledby="evidence-demo-heading">
+        <h2 id="evidence-demo-heading" className="text-lg font-bold text-[#073F97]">
+          Explore an evidence-first Marketplace concept
+        </h2>
+        <p className="mt-2 text-sm text-[#0C1833]">
+          Compare six synthetic equipment examples, see seller statements and unknowns, and download
+          a local-only enquiry draft. This preview cannot create purchases, invoices or payments.
+        </p>
+        <Link href="/marketplace/browse/evidence-preview"
+          className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-[#073F97] px-4 py-2 font-semibold text-white hover:bg-[#042A6A] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[#073F97]">
+          Open evidence-first preview
+        </Link>
+      </aside>
+
+      <div className="flex flex-wrap gap-2" aria-label="Product categories">
         <Link
           href="/marketplace/browse"
-          className={`rounded-full border px-3 py-1 text-sm ${
-            !category ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-          }`}
+          aria-current={!category ? "page" : undefined}
+          className={"rounded-full border px-3 py-1 text-sm " +
+            (!category ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
         >
           All
         </Link>
         {MARKETPLACE_CATEGORIES.map((cat) => (
           <Link
             key={cat.slug}
-            href={`/marketplace/browse?category=${cat.slug}`}
-            className={`rounded-full border px-3 py-1 text-sm ${
-              category === cat.slug ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-            }`}
+            href={"/marketplace/browse?category=" + cat.slug}
+            aria-current={category === cat.slug ? "page" : undefined}
+            className={"rounded-full border px-3 py-1 text-sm " +
+              (category === cat.slug ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
           >
             {cat.label}
           </Link>
