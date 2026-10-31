@@ -179,8 +179,18 @@ export function preparePayCoreInstruction(context: PayCoreVerifiedContext): PayC
   const route = fundingRouteFor(context.funding);
   if (route === "organisation_receivable_invoice" && context.payer !== "organisation")
     hold("FUNDING_ROUTE_INCOMPATIBLE");
-  if ((route === "psp_hosted_payment_preparation" ||
-       route === "plan_manager_invoice_export" ||
+  // Employers may pay subscription/enterprise charges by card, and
+  // organisations may buy Marketplace goods. This is NOT worker payroll.
+  const approvedOrganisationCard =
+    route === "psp_hosted_payment_preparation" &&
+    context.payer === "organisation" &&
+    (vertical === "marketplace" ||
+      (vertical === "jobs" &&
+        context.lines.every((line) => line.source.type === "subscription_period")));
+  if (route === "psp_hosted_payment_preparation" &&
+      context.payer !== "participant" && !approvedOrganisationCard)
+    hold("FUNDING_ROUTE_INCOMPATIBLE");
+  if ((route === "plan_manager_invoice_export" ||
        route === "ndia_provider_claim_preparation") && context.payer !== "participant")
     hold("FUNDING_ROUTE_INCOMPATIBLE");
   if (route === "manual_finance_review") hold("FUNDING_ROUTE_INCOMPATIBLE");
