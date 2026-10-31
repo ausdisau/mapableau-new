@@ -1,0 +1,55 @@
+name: Marketplace inclusive pilot
+
+on:
+  pull_request:
+    paths:
+      - "packages/marketplace-inclusive/**"
+      - "components/marketplace/InclusiveMarketplace.tsx"
+      - "components/marketplace/MarketplaceClient.tsx"
+      - "app/marketplace/(shop)/**"
+      - "app/api/marketplace/estimate-preview/**"
+      - "app/api/billing/invoices/route.ts"
+      - "tests/marketplace-inclusive*"
+      - ".github/workflows/marketplace-inclusive.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inclusive-pilot:
+    name: Scoped Marketplace TypeScript and behaviour checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+      - name: TypeScript
+        run: pnpm type-check
+      - name: Synthetic Marketplace domain and UI tests
+        run: pnpm exec vitest run tests/marketplace-inclusive.test.ts tests/marketplace-inclusive.ui.test.tsx
+      - name: Focused ESLint
+        env:
+          ESLINT_CI_LIGHT: "1"
+        run: |
+          pnpm exec eslint \
+            "components/marketplace/InclusiveMarketplace.tsx" \
+            "components/marketplace/MarketplaceClient.tsx" \
+            "app/marketplace/(shop)/browse/inclusive/page.tsx" \
+            "app/marketplace/(shop)/cart/page.tsx" \
+            "app/marketplace/(shop)/layout.tsx" \
+            "app/api/billing/invoices/route.ts" \
+            "app/api/marketplace/estimate-preview/route.ts" \
+            "packages/marketplace-inclusive/src/index.ts" \
+            "tests/marketplace-inclusive.test.ts" \
+            "tests/marketplace-inclusive.ui.test.tsx" --max-warnings 0

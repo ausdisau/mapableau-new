@@ -29,6 +29,9 @@ export default async function MarketplaceShopLayout({
           <Link href="/marketplace/browse" className="text-sm underline">
             Browse
           </Link>
+          <Link href="/marketplace/browse/inclusive" className="text-sm underline">
+            Inclusive shop (pilot)
+          </Link>
           <Link href="/marketplace/cart" className="text-sm underline">
             Cart
             <MarketplaceCartBadge />
