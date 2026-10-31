@@ -1,0 +1,52 @@
+name: Marketplace one-cycle assurance
+
+on:
+  pull_request:
+    paths:
+      - "packages/marketplace-inclusive/src/operations-cycle.ts"
+      - "components/marketplace/MarketplaceOperationsLab.tsx"
+      - "app/marketplace/(shop)/browse/operations-lab/**"
+      - "app/marketplace/(shop)/layout.tsx"
+      - "tests/marketplace-operations*"
+      - ".github/workflows/marketplace-one-cycle-assurance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assurance:
+    name: Synthetic supplier-to-refund and accessibility checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install pinned dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate client
+        run: pnpm exec prisma generate
+      - name: Type check
+        run: pnpm type-check
+      - name: Run deterministic and UI tests
+        run: |
+          pnpm exec vitest run \
+            tests/marketplace-operations-cycle.test.ts \
+            tests/marketplace-operations-ui.test.tsx
+      - name: Scoped lint
+        env:
+          ESLINT_CI_LIGHT: "1"
+        run: |
+          pnpm exec eslint \
+            packages/marketplace-inclusive/src/operations-cycle.ts \
+            components/marketplace/MarketplaceOperationsLab.tsx \
+            "app/marketplace/(shop)/browse/operations-lab/page.tsx" \
+            "app/marketplace/(shop)/layout.tsx" \
+            tests/marketplace-operations-cycle.test.ts \
+            tests/marketplace-operations-ui.test.tsx --max-warnings 0
