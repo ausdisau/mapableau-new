@@ -4,3 +4,5 @@ dist/
 .env
 .env.local
 *.log
+# Generated from the public NDIS snapshot at build time
+src/generated/provider-directory.json

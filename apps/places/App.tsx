@@ -5,21 +5,28 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { CatalogProvider } from "./src/catalog";
-import { CommunityScreen } from "./src/CommunityScreen";
-import { ContributeScreen } from "./src/ContributeScreen";
 import { ExploreScreen } from "./src/ExploreScreen";
-import { PrivacyScreen } from "./src/PrivacyScreen";
+import { HomeScreen } from "./src/HomeScreen";
+import { MoreScreen } from "./src/MoreScreen";
+import { ProvidersScreen } from "./src/ProvidersScreen";
 import { SavedScreen } from "./src/SavedScreen";
 import { PlacesProvider } from "./src/store";
 import { COLORS } from "./src/ui";
 
-const Tab = createBottomTabNavigator();
+type MapAbleTabs = {
+  Home: undefined;
+  Support: undefined;
+  Places: undefined;
+  Saved: undefined;
+  More: undefined;
+};
+const Tab = createBottomTabNavigator<MapAbleTabs>();
 
-function PlacesNavigation() {
+function MapAbleNavigation() {
   const { width } = useWindowDimensions();
   const desktop = width >= 950;
 
-  return <Tab.Navigator initialRouteName="Places" screenOptions={{
+  return <Tab.Navigator initialRouteName="Home" screenOptions={{
     headerStyle: { backgroundColor: COLORS.white },
     headerTitleStyle: { fontSize: 18, fontWeight: "800", color: COLORS.navy },
     headerTintColor: COLORS.navy,
@@ -38,11 +45,13 @@ function PlacesNavigation() {
     tabBarActiveBackgroundColor: COLORS.soft,
     sceneStyle: { backgroundColor: COLORS.bg },
   }}>
+    <Tab.Screen name="Home" options={{title:"MapAble overview",tabBarLabel:"Home"}}>
+      {({ navigation }) => <HomeScreen onOpen={destination => navigation.navigate(destination)}/>}
+    </Tab.Screen>
+    <Tab.Screen name="Support" component={ProvidersScreen} options={{title:"Find care and support",tabBarLabel:"Care"}}/>
     <Tab.Screen name="Places" component={ExploreScreen} options={{title:"Discover places",tabBarLabel:"Places"}}/>
     <Tab.Screen name="Saved" component={SavedScreen} options={{title:"My private places",tabBarLabel:"Saved"}}/>
-    <Tab.Screen name="Community" component={CommunityScreen} options={{title:"CripSquare community prototype",tabBarLabel:"Community"}}/>
-    <Tab.Screen name="Contribute" component={ContributeScreen} options={{title:"Contribute access knowledge",tabBarLabel:"Contribute"}}/>
-    <Tab.Screen name="Privacy" component={PrivacyScreen} options={{title:"Privacy and accessibility",tabBarLabel:"Privacy"}}/>
+    <Tab.Screen name="More" component={MoreScreen} options={{title:"More MapAble modules",tabBarLabel:"More"}}/>
   </Tab.Navigator>;
 }
 
@@ -51,7 +60,7 @@ export default function App() {
     <CatalogProvider>
       <StatusBar style="dark"/>
       <NavigationContainer>
-        <PlacesNavigation/>
+        <MapAbleNavigation/>
       </NavigationContainer>
     </CatalogProvider>
   </PlacesProvider>;

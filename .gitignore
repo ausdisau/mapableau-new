@@ -66,8 +66,9 @@ next-env.d.ts
 ehthumbs.db
 Thumbs.db
 
-# Package manager locks (keeping pnpm-lock.yaml, ignoring npm/yarn)
+# Keep pnpm for the Next.js monorepo; Expo uses its own npm lock.
 package-lock.json
+!apps/places/package-lock.json
 yarn.lock
 
 # Husky (uncomment if you don't want to commit husky hooks)

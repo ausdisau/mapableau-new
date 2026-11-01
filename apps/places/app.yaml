@@ -1,0 +1,8 @@
+# STAGING ONLY. Do not replace ausdisau/mapable or change mapable.com.au DNS.
+kind: wasmer.io/App.v0
+owner: ausdisau
+name: mapable-companion-preview
+package: ausdisau/mapable-companion-preview
+description: Static MapAble companion for staging and accessibility testing
+# No runtime secrets, paid database or server-side functions are required here.
+debug: false
