@@ -39,6 +39,7 @@ describe("GAIS API gates", () => {
   it("flags default off", () => {
     expect(mapableGaisFlags.enabled).toBe(false);
     expect(mapableGaisFlags.readEnabled).toBe(false);
+    expect(mapableGaisFlags.regionalDemandEnabled).toBe(false);
   });
 
   it("returns disabled response", async () => {
