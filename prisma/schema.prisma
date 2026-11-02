@@ -196,6 +196,7 @@ model User {
   careOSParticipantPreferences CareOSParticipantPreference[]
   clinicalAuthors ClinicalAuthor[]
   communicationPassports CommunicationPassport[] @relation("CommunicationPassportParticipant")
+  adtunisParticipantWorkspace AdtunisParticipantWorkspace?
   complianceEvidenceSubmitted ComplianceEvidence[] @relation("ComplianceEvidenceSubmittedBy")
   consentReceiptsAsParticipant ConsentReceipt[] @relation("ConsentReceiptParticipant")
   consentReceiptsAsActor ConsentReceipt[] @relation("ConsentReceiptActor")
@@ -710,6 +711,10 @@ enum ConsentScope {
   go_current_location
   go_route_history
   go_barrier_report
+  adtunis_transcription
+  adtunis_personalisation
+  adtunis_research
+  adtunis_audio_retain
 }
 
 enum ConsentStatus {
@@ -16081,4 +16086,15 @@ model ProviderSearchProfile {
   updatedAt        DateTime @updatedAt
 
   @@map("provider_search_profiles")
+}
+
+/// Participant-scoped Adtunis communication workspace (JSON state). Isolated by MapAble user id.
+model AdtunisParticipantWorkspace {
+  participantId String   @id
+  participant   User     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  state         Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("adtunis_participant_workspaces")
 }

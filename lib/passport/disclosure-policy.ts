@@ -51,6 +51,10 @@ export const CONSENT_SCOPE_FIELD_CATEGORIES: Partial<
   ],
   "engagement.read_delegate": ["active_authority", "service_history_summary"],
   "engagement.submit_delegate": ["active_authority"],
+  "adtunis.transcription": ["communication_preferences"],
+  "adtunis.personalisation": ["communication_preferences"],
+  "adtunis.research": ["communication_preferences"],
+  "adtunis.audio_retain": ["communication_preferences"],
 };
 
 export function fieldCategoriesForConsentScope(

@@ -24,6 +24,10 @@ const NON_DELEGATABLE_SCOPES: readonly ConsentScope[] = [
   "go.route_history",
   "go.barrier_report",
   "support_coordination.access",
+  "adtunis.transcription",
+  "adtunis.personalisation",
+  "adtunis.research",
+  "adtunis.audio_retain",
 ] as const;
 
 export class DelegateScopeError extends Error {

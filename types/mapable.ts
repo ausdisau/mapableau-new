@@ -65,7 +65,11 @@ export type ConsentScope =
   | "engagement.submit_delegate"
   | "go.current_location"
   | "go.route_history"
-  | "go.barrier_report";
+  | "go.barrier_report"
+  | "adtunis.transcription"
+  | "adtunis.personalisation"
+  | "adtunis.research"
+  | "adtunis.audio_retain";
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 
