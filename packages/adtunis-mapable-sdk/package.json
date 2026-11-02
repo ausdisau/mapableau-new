@@ -1,0 +1,22 @@
+{
+  "name": "@mapable/adtunis-mapable-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react/index.ts",
+    "./vue": "./src/vue/index.ts"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "vue": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "vue": { "optional": true }
+  },
+  "dependencies": {
+    "@mapable/adtunis-core": "workspace:*"
+  }
+}

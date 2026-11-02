@@ -20,6 +20,10 @@ const TO_PRISMA: Record<ConsentScope, PrismaConsentScope> = {
   "go.current_location": "go_current_location",
   "go.route_history": "go_route_history",
   "go.barrier_report": "go_barrier_report",
+  "adtunis.transcription": "adtunis_transcription",
+  "adtunis.personalisation": "adtunis_personalisation",
+  "adtunis.research": "adtunis_research",
+  "adtunis.audio_retain": "adtunis_audio_retain",
 };
 
 const FROM_PRISMA: Record<PrismaConsentScope, ConsentScope> = Object.fromEntries(

@@ -1,0 +1,12 @@
+{
+  "name": "@mapable/adtunis-asr",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mapable/adtunis-core": "workspace:*"
+  }
+}
