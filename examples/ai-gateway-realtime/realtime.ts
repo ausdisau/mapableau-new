@@ -6,7 +6,8 @@ import WebSocket from 'ws';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 
-const modelId = 'xai/grok-voice-think-fast-1.0';
+// Live catalog: xai/grok-voice-think-fast-1.0 is not available over WebSocket.
+const modelId = 'spacexai/grok-voice-think-fast-2.0';
 const sampleRateHz = 24_000;
 const outputPath = resolve(process.cwd(), 'realtime-output.wav');
 
