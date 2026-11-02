@@ -9,6 +9,7 @@ import {
   MAPABLE_LOGO_ALT,
   MAPABLE_LOGO_SRC,
   MAPABLE_SUPPORT_EMAIL,
+  MAPABLE_TAGLINE,
 } from "@/lib/brand/constants";
 import {
   companyRegistrationDetails,
@@ -68,9 +69,9 @@ function FooterBrandMark() {
     <img
       src={MAPABLE_LOGO_SRC}
       alt={MAPABLE_LOGO_ALT}
-      width={754}
-      height={1008}
-      className="h-12 w-auto max-w-[180px] bg-transparent object-contain object-left"
+      width={1254}
+      height={1254}
+      className="h-16 w-auto max-w-[180px] bg-transparent object-contain object-left"
       decoding="async"
     />
   );
@@ -122,9 +123,7 @@ export function MapAbleCareMarketingFooter() {
           <section aria-label="About MapAble">
             <FooterBrandMark />
             <p className="mt-5 max-w-sm text-sm leading-7 text-slate-600">
-              A combined care and support platform helping people with
-              disability connect with care, transport, opportunity and everyday
-              access.
+              {MAPABLE_TAGLINE}
             </p>
             <div className="mt-5 flex items-center gap-2">
               {socialLinks.map((link) => (

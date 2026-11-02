@@ -18,14 +18,13 @@ export const MAPABLE_DONATION_URL =
 
 /**
  * Official MapAble vertical lockup (icon + wordmark + baked-in tagline).
- * Prefer MAPABLE_LOGO_WORDMARK_SRC + the HTML tagline pill for headers so the
- * pill can be width-matched and centered under the mark.
+ * Same asset as MAPABLE_LOGO_WORDMARK_SRC after the 2026 brand refresh.
  */
 export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 
 /**
- * Icon + MapAble wordmark only (no baked-in tagline). Use with MapAbleBrandLockup
- * or a separate Empowering Independence pill.
+ * Official MapAble vertical lockup for headers (icon + MapAble +
+ * Empowering Independence baked into the PNG). Prefer MapAbleBrandLockup.
  */
 export const MAPABLE_LOGO_WORDMARK_SRC = "/brand/mapable-logo-wordmark.png";
 
