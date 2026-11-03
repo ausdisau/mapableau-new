@@ -9,7 +9,7 @@
 
 **North star (repo SoT):** MapAble is **participant-controlled infrastructure** for accessibility journeys — not another marketplace, directory, rostering tool, or generic AI assistant. Public marketing must under-claim; bookings, claims, and Managed Support stay GO-gated until authorised.
 
-**Doc reconciliation rule:** Marketing Plan + trust/brand recommendations drive **public site voice**. Competitive Analysis “super-app / marketplace commission” language is **strategy input only** until leadership records Option A vs B. Executive Summary (AccessLens / Digital Twin / MapAble Go) informs **dashboard + future product** handoffs — not first-viewport marketing claims.
+**Doc reconciliation rule:** Marketing Plan + trust/brand recommendations drive **public site voice**. Competitive Analysis “super-app / marketplace commission” language is **strategy input only**. **R15 recorded 2026-11-03: Option A** (orchestration / repo SoT) in `BUSINESS_PLAN_ANZ_GAP_ANALYSIS.md` — marketplace commissions stay deferred. Executive Summary (AccessLens / Digital Twin / MapAble Go) informs **dashboard + future product** handoffs — not first-viewport marketing claims.
 
 ---
 
@@ -33,7 +33,7 @@ Accessible tourism context (Tourism Australia: ~21% of domestic tourism spend fr
 | **A — Map & community** | Marketing Plan | **Yes** — free, community-powered, evidence-based places |
 | **B — Connected life / journey** | Competitive Analysis USP (“Your Life, Connected.”) aspirational; repo journey chain | **Soft** — How it works + pilot honesty; no national booking CTA |
 | **C — MapAble Go / Digital Twin** | Executive Summary | **No** on marketing hero — Labs / future / dashboard roadmap only |
-| **D — Marketplace commissions / 7 verticals** | Competitive Analysis | **Blocked** until Option A/B decision (R15) |
+| **D — Marketplace commissions / 7 verticals** | Competitive Analysis | **Blocked** under Option A (R15 decided 2026-11-03) |
 
 ### Recommended public positioning (v2)
 
@@ -101,7 +101,7 @@ Canonical tokens already live in `app/index.css`:
 ### Claim discipline (non-negotiable)
 
 - Connect ≠ Network ≠ Managed Support ≠ Infrastructure (`docs/strategy/OPERATING_LANES.md`).
-- Informational GO routes only for programme explainers; no silent marketplace monetisation until leadership Option A/B is recorded (`BUSINESS_PLAN_ANZ_GAP_ANALYSIS.md`).
+- Informational GO routes only for programme explainers; no silent marketplace monetisation under Option A (`BUSINESS_PLAN_ANZ_GAP_ANALYSIS.md`, R15).
 - AI may explain/draft — never approve workers, claims, payments, consent, or clinical decisions.
 - Competitive Analysis commission / freemium marketplace copy must not ship on public pages while Option A remains default.
 
@@ -373,14 +373,14 @@ Add Playwright a11y smoke where patterns exist under tests/.
 | R5 | Transport/Services copy honesty pass | Marketing | P1 |
 | R6 | Design token documentation in Storybook or MDX | System | P1 |
 | R7 | Accessible component primitives (Button, Chip, SkipLink) audit | System | P0 |
-| R8 | Participant dashboard home | Dashboard | P0 |
+| R8 | Participant dashboard home | Dashboard | P0 (shipped: “What needs you today”) |
 | R9 | Trip/booking status dual view | Dashboard | P1 |
 | R10 | Preferences + readable/motion settings | Dashboard | P1 |
 | R11 | Messaging/notifications a11y | Dashboard | P2 |
 | R12 | Tasks/approvals human-gate UI | Dashboard | P1 |
-| R13 | Consent/evidence/audit surfaces | Dashboard | P0 |
+| R13 | Consent/evidence/audit surfaces | Dashboard | P0 (shipped: purpose/recipient/fields/revoke/audit CSV) |
 | R14 | Remove/relocate PayPal primary chrome | Marketing | P1 |
-| R15 | Leadership Option A/B recorded before marketplace UX | Strategy | P0 blocker |
+| R15 | Leadership Option A/B recorded before marketplace UX | Strategy | P0 **done** — Option A (2026-11-03) |
 
 ---
 
