@@ -1,24 +1,80 @@
 # MapAble Website Redesign
 
-**Status:** Cursor-ready build brief (v1)  
-**Sources:** live homepage screenshot (mapable.com.au), `app/index.css` tokens, `docs/strategy/*`, marketing + dashboard route inventory  
-**Missing inputs:** `Executive Summary.docx` and `MapAble Competitive Analysis & Marketing Strategy.docx` were not present in this environment (Google Drive MCP unauthenticated). Re-run brand translation when those files are uploaded.
+**Status:** Cursor-ready build brief (v2 — brand docs ingested)  
+**Sources:**
+- Live homepage screenshot (mapable.com.au)
+- `app/index.css` tokens; marketing + dashboard route inventory
+- `docs/strategy/*` (competitive position, operating lanes, ANZ gap analysis)
+- Uploaded: *MapAble Marketing Plan.docx*, *Executive Summary.docx* (MapAble Go architecture), *MapAble Competitive Analysis & Marketing Strategy.docx*
 
 **North star (repo SoT):** MapAble is **participant-controlled infrastructure** for accessibility journeys — not another marketplace, directory, rostering tool, or generic AI assistant. Public marketing must under-claim; bookings, claims, and Managed Support stay GO-gated until authorised.
 
+**Doc reconciliation rule:** Marketing Plan + trust/brand recommendations drive **public site voice**. Competitive Analysis “super-app / marketplace commission” language is **strategy input only** until leadership records Option A vs B. Executive Summary (AccessLens / Digital Twin / MapAble Go) informs **dashboard + future product** handoffs — not first-viewport marketing claims.
+
 ---
 
-## Brand translation
+## Brand translation (v2)
+
+### Audience & value props (from Marketing Plan)
+
+| Audience | Message | Site implication |
+|----------|---------|------------------|
+| People with disability (esp. mobility) | Empowerment / independence: **“Find accessible places confidently.”** | Home + Places as primary public job |
+| NDIS participants & families | Closing the accessibility information gap | Guides, How it works, plain-language trust |
+| Venues / businesses / agencies | Free listing → positive exposure to access-aware patrons | Providers / for-providers freemium pitch |
+| Support coordinators / LACs | Practical aid to plan outings for clients | Dedicated SC pathway on Contact + How it works |
+
+Accessible tourism context (Tourism Australia: ~21% of domestic tourism spend from travellers with disability) may appear in **About / evidence**, not the hero.
+
+### Narrative layers (do not collapse)
+
+| Layer | Source | Public copy today? |
+|-------|--------|--------------------|
+| **A — Map & community** | Marketing Plan | **Yes** — free, community-powered, evidence-based places |
+| **B — Connected life / journey** | Competitive Analysis USP (“Your Life, Connected.”) aspirational; repo journey chain | **Soft** — How it works + pilot honesty; no national booking CTA |
+| **C — MapAble Go / Digital Twin** | Executive Summary | **No** on marketing hero — Labs / future / dashboard roadmap only |
+| **D — Marketplace commissions / 7 verticals** | Competitive Analysis | **Blocked** until Option A/B decision (R15) |
+
+### Recommended public positioning (v2)
+
+- **Tagline keep:** POWERING INDEPENDENCE.  
+- **H1 keep:** Accessibility you can plan around.  
+- **Support line (new):** Use MapAble’s evidence-based accessibility map and local guides today — then pre-register for the controlled pilot as a participant or provider.  
+- **Alt conversion line (Places / SEO):** Find accessible places confidently.  
+- **Ecosystem line (How it works only):** Connect places, transport, and support planning in one journey — with consent you control.  
+- **Trust pillar:** Social enterprise under Australian Disability Ltd / “by the community, for the community” — lead on About and Trust sections.  
+- **Differentiation vs Google / AccessNow / Wheelmap:** depth + evidence + hyper-local AU last-mile detail — not global scale; do **not** promise transactional Care booking on public map until authorised.
+
+### Competitive takeaways → site rules
+
+| Recommendation (Competitive Analysis) | Redesign action |
+|---------------------------------------|-----------------|
+| Phase 1 foundation = Map + Care + Transport; Sydney beachhead | Homepage Explore prioritises Places, Transport, Services; maturity chips |
+| Fortify brand of trust / ADL social enterprise | About + Trust strip; avoid for-profit marketplace tone |
+| Win last-mile accessibility data | Places/Guides content strategy; mapping days CTA |
+| B2B partnership engine | Providers, for-providers, Contact role = employer/provider |
+| Diversify beyond NDIS dependence | About/Contact language includes aged care / private-pay *interest* without inventing products |
+| Contagion risk of super-app failures | Never market verticals that are not claim-approved; lane honesty |
+
+### MapAble Go / Executive Summary → product (not marketing)
+
+Use for Unified Dashboard + future Labs, not hero claims:
+
+- ParticipantAuthority + ActionEnvelope (search free; book needs confirmation)
+- Mobility Cockpit / Chair Mode: large targets, high contrast, informational only (never drive motors)
+- AccessLens / Digital Twin / AccessVR as maturity-gated roadmap items
+- Control Tower + human oversight levels for agent actions
 
 ### What the homepage already signals
 
 | Signal | Evidence | Keep / change |
 |--------|----------|---------------|
-| Brand name as hero-level identity | Logo + “POWERING INDEPENDENCE.” in header | Keep; make brand larger than secondary headlines on first viewport |
-| Navy + gold CTA system | Yellow primary CTA, navy secondary, white outline tertiary | Keep; map to existing CSS tokens |
-| Plain-language promise | “Accessibility you can plan around.” | Keep as H1 pattern |
-| Honesty about maturity | Pilot / informational framing in meta + body | Strengthen; never imply live national bookings |
-| Feature checklist under hero | Four ticks (evidence, a11y-first, pilot, lived experience) | Keep as trust strip; reduce competing CTAs |
+| Brand name as hero-level identity | Logo + “POWERING INDEPENDENCE.” | Keep; brand > secondary headlines |
+| Navy + gold CTA system | Yellow primary, navy secondary, outline tertiary | Keep; map to CSS tokens |
+| Plain-language promise | “Accessibility you can plan around.” | Keep H1; add Marketing Plan Places line on `/places` |
+| Honesty about maturity | Pilot / informational framing | Strengthen; align Phase 1 beachhead honesty |
+| Feature checklist under hero | Four ticks | Keep trust strip; reduce competing header CTAs |
+| PayPal in primary header | Screenshot | Move to footer/support (R14) |
 
 ### Token mapping (shipped → redesign)
 
@@ -34,17 +90,20 @@ Canonical tokens already live in `app/index.css`:
 | `--card` | `#FFFFFF` | Interactive cards only |
 | Fonts | Outfit (display), Plus Jakarta Sans (body), Atkinson Hyperlegible (readable mode) | Keep; expose readable/dyslexia modes |
 
-### Positioning line (marketing)
+### Inclusive content rules (Marketing Plan)
 
-**For participants:** Plan access around your real requirements — places, transport, support — with consent you control.  
-**For providers:** Join a governed pilot where readiness, evidence, and participant authority come first.  
-**Not for public copy:** commissions, pay-to-rank, auto-assign workers, “book care nationwide,” Managed Support delivery.
+- Diverse disability imagery — not wheelchair-only.  
+- People-first / inclusive language.  
+- Accessible media: alt text, captions, high contrast, large type.  
+- SEO content: local guides, outing checklists, success stories (blog/knowledge base).  
+- Lead magnets: newsletter + “accessible outing checklist” PDF on Contact / Home secondary.
 
 ### Claim discipline (non-negotiable)
 
 - Connect ≠ Network ≠ Managed Support ≠ Infrastructure (`docs/strategy/OPERATING_LANES.md`).
 - Informational GO routes only for programme explainers; no silent marketplace monetisation until leadership Option A/B is recorded (`BUSINESS_PLAN_ANZ_GAP_ANALYSIS.md`).
 - AI may explain/draft — never approve workers, claims, payments, consent, or clinical decisions.
+- Competitive Analysis commission / freemium marketplace copy must not ship on public pages while Option A remains default.
 
 ---
 
@@ -95,24 +154,26 @@ Canonical tokens already live in `app/index.css`:
 
 1. Brand (logo + POWERING INDEPENDENCE)  
 2. One H1: **Accessibility you can plan around.**  
-3. One support sentence (pilot honesty).  
+3. One support sentence: evidence-based map + guides today; pilot pre-register (participant or provider).  
 4. CTA group: Pre-register (gold) · Explore places (navy) · About (outline)  
 5. Dominant atmosphere (soft surface / map texture — full-bleed, no inset card collage)  
-**Do not put** stats, schedules, address blocks, or secondary promos in the first viewport.
+**Do not put** stats, tourism %, schedules, device roadmaps, or secondary promos in the first viewport.
 
 ### Below the fold
 
-1. **Explore MapAble** — what is public today (Places, Guides, Transport explainer, Services explainer).  
-2. **How a journey works** — 5–7 step chain from competitive position (goal → consent → passport → fit → delivery → evidence → recovery).  
-3. **Who it’s for** — participant / provider / coordinator (plain language).  
-4. **Trust & limits** — what is pilot vs informational; link accessibility statement.  
-5. **Get started** — role chooser into contact / pre-register.
+1. **Explore MapAble** — Places (Available now), Guides (Available now), Transport (Explainer / Pilot), Services (Explainer / Pilot).  
+2. **How a journey works** — repo chain + soft “life connected” narrative without national booking CTAs.  
+3. **Who it’s for** — participants & families · providers/venues · support coordinators (Marketing Plan audiences).  
+4. **Trust & community** — ADL social enterprise; mapping days / volunteer campaigns; testimonials slot.  
+5. **Trust & limits** — beachhead / pilot honesty; accessibility statement.  
+6. **Get started** — role chooser → pre-register / contact; optional newsletter + outing checklist lead magnet.
 
 ### Tone
 
 - Plain language, short sentences, active voice.  
 - Prefer “you can…” over “we leverage…”.  
-- Always pair capability with maturity label: `Available now` | `Pilot` | `Explainer only`.
+- Always pair capability with maturity label: `Available now` | `Pilot` | `Explainer only` | `Future research`.  
+- Prefer Marketing Plan empowerment voice on Places; journey voice on How it works; never Executive Summary device jargon on Home.
 
 ---
 
@@ -261,11 +322,14 @@ Do not invent marketplace booking claims. Follow docs/design/MAPABLE_WEBSITE_RED
 
 ### Prompt B — Homepage rewrite
 ```text
-Rewrite components/marketing/MapAbleCareCombinedHomepage to the hero budget in
-docs/design/MAPABLE_WEBSITE_REDESIGN.md: brand, one H1, one sentence, three CTAs,
-trust strip, then Explore / How it works / Who it’s for / Trust & limits.
-Full-bleed atmosphere only; no inset hero collage; no cards in the hero.
-Add maturity chips on Explore cards. Keep claim honesty.
+Rewrite components/marketing/MapAbleCareCombinedHomepage to the v2 hero budget in
+docs/design/MAPABLE_WEBSITE_REDESIGN.md: brand, H1 “Accessibility you can plan
+around.”, support sentence with map + guides + pilot honesty, three CTAs, trust
+strip, then Explore / How it works / Who it’s for (participants, providers,
+coordinators) / Trust & community (ADL social enterprise + mapping days) /
+Trust & limits. Full-bleed atmosphere only; no inset hero collage; no cards in
+the hero. Maturity chips on Explore cards. Do not mention AccessLens, Digital
+Twin, commissions, or nationwide care booking.
 ```
 
 ### Prompt C — How it works page
@@ -350,8 +414,11 @@ Add Playwright a11y smoke where patterns exist under tests/.
 **Owner:** product + frontend  
 **Scope:** role-aware shell over existing `/dashboard` and `/my` routes; do not fork a second design system.  
 **Must reuse:** mapable tokens, consent APIs, transport/care status models, Communication Passport fields.  
-**Must not:** auto-assign workers; AI approval of payments/claims; ambient nominee access.  
+**Must not:** auto-assign workers; AI approval of payments/claims; ambient nominee access; wheelchair motor control.  
+**Authority model (Executive Summary):** search/filter may be self-serve; draft booking = participant confirmation; book/cancel = explicit approval + audit.  
+**Chair Mode UI cues:** large hit targets, high contrast, plain route steps, REROUTE / DETAILS — informational only.  
 **First slice:** participant home + trip status + preferences + consent panel.  
+**Later (gated):** AccessLens / Digital Twin / AccessVR as Labs maturity, not default dashboard chrome.  
 **Success:** participant completes “check trip → confirm/dispute → update preference” keyboard-only in <2 minutes on Preview.
 
 ---
@@ -360,12 +427,24 @@ Add Playwright a11y smoke where patterns exist under tests/.
 
 **Owner:** leadership + strategy  
 **Decisions needed:**
-1. Record Option A (orchestration) vs B (marketplace plan) in `BUSINESS_PLAN_ANZ_GAP_ANALYSIS.md`.  
-2. Confirm PayPal placement (footer/support only vs remove).  
-3. Confirm `/how-it-works` as primary education URL.  
-4. Supply official brand PDFs (`Executive Summary`, Competitive Analysis & Marketing Strategy) for v2 brand translation.  
+1. Record Option A (orchestration / repo SoT) vs B (Competitive Analysis marketplace + commissions) in `BUSINESS_PLAN_ANZ_GAP_ANALYSIS.md`.  
+2. Confirm public Phase 1 narrative = Map + Care/Transport explainers + Sydney beachhead honesty (per Competitive Analysis sequencing).  
+3. Confirm PayPal placement (footer/support only vs remove).  
+4. Confirm `/how-it-works` as primary education URL; Places SEO line “Find accessible places confidently.”  
+5. Confirm whether “Your Life, Connected.” is approved as secondary brand line or reserved.  
+6. Decide when MapAble Go / AccessLens / Digital Twin may appear on Labs vs stay internal.  
 **Delivery sequence:** R15 decision → R1/R7 → R2/R3 → R8/R13 → R5/R9/R10 → remaining.  
-**Risk:** marketplace-plan language leaking into public UI while claim registry forbids it.
+**Risk:** Competitive Analysis marketplace language leaking into public UI while claim registry forbids it; Executive Summary future-tech overclaiming on Home.
+
+### Marketing engine backlog (from Marketing Plan — non-UI)
+
+| ID | Item | Note |
+|----|------|------|
+| M1 | Newsletter + outing checklist lead magnet | Contact / Home secondary |
+| M2 | Mapping days campaign page/module | Already has `/mapping-days` — align CTA |
+| M3 | Blog / local guides SEO programme | Guides + resources |
+| M4 | Advocacy / SC / LAC partner pack | PDF + Contact roles |
+| M5 | Accessible social/email content standards | Alt text, captions, contrast |
 
 ---
 
@@ -375,7 +454,8 @@ Add Playwright a11y smoke where patterns exist under tests/.
 - Prefer server components for marketing; client only for interactive dashboard widgets.  
 - A11y: eslint-plugin-jsx-a11y + Playwright axe smoke.  
 - Content: keep programme copy adjacent to GO/claim helpers — do not hardcode maturity in random components.  
-- No new component library; extend current primitives.
+- No new component library; extend current primitives.  
+- Dashboard agent actions (if any) must follow ParticipantAuthority / ActionEnvelope patterns from Executive Summary — confirm before book.
 
 ---
 
@@ -383,19 +463,21 @@ Add Playwright a11y smoke where patterns exist under tests/.
 
 1. Strategy gate (Option A/B).  
 2. Shell + tokens + primitives.  
-3. Homepage + How it works + Contact.  
-4. Dashboard participant slice.  
+3. Homepage + How it works + Contact (v2 messaging).  
+4. Dashboard participant slice (authority-first).  
 5. Consent/evidence.  
 6. Transport/Services honesty + trip status.  
-7. Jobs/messaging polish.  
+7. Jobs/messaging polish + mapping-days CTA.  
 8. Full a11y regression + Preview demo.
 
 ---
 
-## Open input — brand Drive files
+## Source documents (ingested)
 
-When `Executive Summary.docx` and `MapAble Competitive Analysis & Marketing Strategy.docx` are uploaded (or Google Drive MCP is authenticated), update:
-- Brand translation section (voice, audience segments, competitive messaging).  
-- Homepage subcopy variants.  
-- Provider vs participant value props.  
-- Any visual rules that differ from `app/index.css` tokens.
+| File | Role in brief |
+|------|----------------|
+| MapAble Marketing Plan.docx | Public audience VPs, grassroots channels, inclusive content rules |
+| MapAble Competitive Analysis & Marketing Strategy.docx | USP, competitive matrix, Phase 1–3 sequencing, beachhead, trust brand — **gated** vs Option A/B |
+| Executive Summary.docx (MapAble Go) | Dashboard / future architecture: authority envelopes, Chair Mode a11y, Digital Twin — **not** Home claims |
+
+Visual brand rules in these Word docs do not override `app/index.css` tokens unless design leadership issues a new token PR.
