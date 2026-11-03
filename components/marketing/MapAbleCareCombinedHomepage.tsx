@@ -5,9 +5,11 @@ import React from "react";
 import { BoundaryNotice } from "@/components/canvas/BoundaryNotice";
 import { CompetitorContrastStrip } from "@/components/marketing/home/CompetitorContrastStrip";
 import { HeroSection } from "@/components/marketing/home/HeroSection";
+import { HomepageAudienceSection } from "@/components/marketing/home/HomepageAudienceSection";
 import { HomepageExploreStrip } from "@/components/marketing/home/HomepageExploreStrip";
 import { HomepageFinalCta } from "@/components/marketing/home/HomepageFinalCta";
-import { MyMapAbleHomepageSection } from "@/components/marketing/home/MyMapAbleHomepageSection";
+import { HomepageHowItWorksTeaser } from "@/components/marketing/home/HomepageHowItWorksTeaser";
+import { HomepageTrustCommunitySection } from "@/components/marketing/home/HomepageTrustCommunitySection";
 import { PreRegistrationSection } from "@/components/marketing/home/PreRegistrationSection";
 import { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 import { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
@@ -17,13 +19,19 @@ export { MapAbleCareMarketingTypography } from "@/components/marketing/MapAbleCa
 export { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 export { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 
-/** Marketing proof splash: hero → explore → why MapAble → pre-register → CTA. */
+/**
+ * Marketing splash (redesign v2):
+ * hero → explore → how it works → who it’s for → trust → why MapAble →
+ * pre-register → CTA.
+ */
 export function MapAbleCareCombinedHomepageSections() {
   return (
     <>
       <HeroSection />
       <HomepageExploreStrip />
-      <MyMapAbleHomepageSection />
+      <HomepageHowItWorksTeaser />
+      <HomepageAudienceSection />
+      <HomepageTrustCommunitySection />
       <CompetitorContrastStrip />
       <PreRegistrationSection />
       <HomepageFinalCta />

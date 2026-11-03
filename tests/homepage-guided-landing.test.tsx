@@ -49,22 +49,25 @@ describe("homepage marketing splash", () => {
     render(<MapAbleCareCombinedHomepage />);
   });
 
-  it("renders primary nav with pre-register and places links", () => {
+  it("renders primary nav IA with pre-register header action", () => {
     const nav = screen.getByRole("navigation", { name: "Primary" });
     expect(nav).toBeTruthy();
-    expect(nav.querySelector('a[href="#pre-register"]')?.textContent).toBe(
-      "Pre-register",
-    );
     expect(nav.querySelector('a[href="/accessibility-map"]')?.textContent).toBe(
       "Places",
     );
-    expect(nav.querySelector('a[href="/guides"]')?.textContent).toBe("Guides");
-    expect(nav.querySelector('a[href="/providers"]')?.textContent).toBe(
-      "Providers",
+    expect(nav.querySelector('a[href="/how-it-works"]')?.textContent).toBe(
+      "How it works",
     );
-    expect(nav.querySelector('a[href="/ask"]')?.textContent).toBe(
-      "NDIS Guidance",
+    expect(nav.querySelector('a[href="/transport"]')?.textContent).toBe(
+      "Transport",
     );
+    expect(nav.querySelector('a[href="/care"]')?.textContent).toBe("Services");
+    expect(nav.querySelector('a[href="/employment"]')?.textContent).toBe(
+      "Jobs",
+    );
+    expect(
+      screen.getByRole("link", { name: "Pre-register" }).getAttribute("href"),
+    ).toBe("#pre-register");
   });
 
   it("renders updated hero headline and single h1", () => {
