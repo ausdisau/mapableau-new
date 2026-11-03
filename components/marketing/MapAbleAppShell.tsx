@@ -51,7 +51,7 @@ export function MapAbleAppShell({
         <header className="border-b border-slate-200 bg-white px-5 py-3">
           <Link
             href="/"
-            className="inline-flex rounded-xl p-1 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="inline-flex rounded-xl p-1 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             <LogoMark compact />
             <span className="sr-only">MapAble home</span>
@@ -65,7 +65,7 @@ export function MapAbleAppShell({
   }
 
   return (
-    <div className="mapable-soft flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]">
+    <div className="mapable-soft flex min-h-screen flex-col bg-[#F7F8FC] text-[#0C1833]">
       <SkipToContent />
       <MapAbleAppCompactHeader
         title={headerTitle}

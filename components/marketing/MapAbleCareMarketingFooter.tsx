@@ -27,7 +27,7 @@ function FooterTextLink({
   return (
     <Link
       href={href}
-      className="rounded-lg text-sm font-medium text-slate-600 transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+      className="rounded-lg text-sm font-medium text-slate-600 transition hover:text-[#3B5BDB] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
     >
       {children}
     </Link>
@@ -56,7 +56,7 @@ function SocialLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black text-slate-600 transition hover:bg-white hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black text-slate-600 transition hover:bg-white hover:text-[#3B5BDB] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
     >
       {icon}
     </a>
@@ -186,13 +186,13 @@ export function MapAbleCareMarketingFooter() {
             <address className="mt-5 grid gap-4 not-italic text-sm text-slate-600">
               <a
                 href={`mailto:${MAPABLE_SUPPORT_EMAIL}`}
-                className="rounded-lg transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                className="rounded-lg transition hover:text-[#3B5BDB] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
               >
                 {MAPABLE_SUPPORT_EMAIL}
               </a>
               <a
                 href="tel:0434083624"
-                className="rounded-lg transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                className="rounded-lg transition hover:text-[#3B5BDB] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
               >
                 {MAPABLE_CARE_COMBINED_PHONE}
               </a>
@@ -226,7 +226,7 @@ export function MapAbleCareSlimFooter() {
           <AccessibilityPanelTrigger variant="link" />
           <a
             href={`mailto:${MAPABLE_SUPPORT_EMAIL}`}
-            className="rounded-lg font-medium transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="rounded-lg font-medium transition hover:text-[#3B5BDB] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             Contact
           </a>
