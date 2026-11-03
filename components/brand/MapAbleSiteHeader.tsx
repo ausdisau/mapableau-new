@@ -44,7 +44,7 @@ export function MapAbleSiteHeader({
   menuBreakpoint = "lg",
   externalCta,
   actions,
-  logoVariant = "text",
+  logoVariant = "full",
 }: {
   logoHref?: string;
   logoTitle?: string;

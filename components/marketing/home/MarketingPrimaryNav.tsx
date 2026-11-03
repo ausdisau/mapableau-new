@@ -95,7 +95,7 @@ export function MarketingPrimaryNav() {
         href={marketingFeatureRoutes.home}
         size="header"
         className={`min-w-0 shrink overflow-visible hover:bg-slate-50 hover:opacity-100 ${mapableCareFocusRing}`}
-        ariaLabel="MapAble home"
+        ariaLabel="MapAble home — Empowering Independence"
         onClick={() => setMobileOpen(false)}
       />
 

@@ -15,6 +15,7 @@ export function PeersSiteHeader() {
       logoHref="/"
       logoTitle="MapAble"
       logoSubtitle="PEERS"
+      logoVariant="text"
       navItems={[...PEER_PEERS_NAV]}
       externalCta={{ href: MAPABLE_MARKETING_URL, label: "mapable.com.au" }}
     />
