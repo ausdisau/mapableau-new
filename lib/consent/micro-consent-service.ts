@@ -153,21 +153,23 @@ export async function listMicroConsentsForParticipant(subjectUserId: string) {
   );
 }
 
-export async function exportConsentAuditCsv(options?: {
-  pseudonymiseParticipants?: boolean;
-  since?: Date;
-}) {
-  const since = options?.since ?? new Date(Date.now() - 30 * 86400000);
+const CONSENT_AUDIT_ACTIONS = [
+  "consent.micro.granted",
+  "consent.micro.revoked",
+  "consent.granted",
+  "consent.revoked",
+] as const;
 
-  const events = await prisma.auditEvent.findMany({
-    where: {
-      action: { in: ["consent.micro.granted", "consent.micro.revoked", "consent.granted", "consent.revoked"] },
-      createdAt: { gte: since },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 500,
-  });
-
+function formatConsentAuditCsv(
+  events: Array<{
+    id: string;
+    action: string;
+    participantId: string | null;
+    entityId: string | null;
+    createdAt: Date;
+  }>,
+  options?: { pseudonymiseParticipants?: boolean }
+) {
   const header = "id,action,participantId,entityId,createdAt\n";
   const rows = events
     .map((e) => {
@@ -181,4 +183,42 @@ export async function exportConsentAuditCsv(options?: {
     .join("\n");
 
   return header + rows;
+}
+
+export async function exportConsentAuditCsv(options?: {
+  pseudonymiseParticipants?: boolean;
+  since?: Date;
+}) {
+  const since = options?.since ?? new Date(Date.now() - 30 * 86400000);
+
+  const events = await prisma.auditEvent.findMany({
+    where: {
+      action: { in: [...CONSENT_AUDIT_ACTIONS] },
+      createdAt: { gte: since },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+  });
+
+  return formatConsentAuditCsv(events, options);
+}
+
+/** Participant-scoped consent audit — only events for the requesting subject. */
+export async function exportParticipantConsentAuditCsv(
+  participantId: string,
+  options?: { since?: Date }
+) {
+  const since = options?.since ?? new Date(Date.now() - 365 * 86400000);
+
+  const events = await prisma.auditEvent.findMany({
+    where: {
+      participantId,
+      action: { in: [...CONSENT_AUDIT_ACTIONS] },
+      createdAt: { gte: since },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+  });
+
+  return formatConsentAuditCsv(events);
 }

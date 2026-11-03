@@ -50,6 +50,15 @@ export default async function AccessHistoryPage() {
 
       <AccessHistoryActions />
 
+      <p className="text-sm">
+        <Link
+          className="inline-flex min-h-11 items-center underline underline-offset-2"
+          href="/dashboard/consent"
+        >
+          Manage consent grants and download consent audit
+        </Link>
+      </p>
+
       {history.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No access receipts recorded yet.
