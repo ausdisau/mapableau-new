@@ -91,3 +91,13 @@ EXPO_PUBLIC_MAPABLE_API_URL=http://localhost:3000
 Run `pnpm dev` from the root and `npm run web` from `apps/places`. Open `http://localhost:3000/places` to see the integrated gateway and `http://localhost:8081` to use the full interactive Expo prototype. Expo Web is permitted from localhost:8081 only in development. No credentials, account identifiers, GPS or authored content are sent in the published-place request.
 
 **Before production exposure:** audit the root MapAble Next layout, which includes existing site-level analytics/advertising scripts. The gateway itself does not capture member check-ins or notes, but inherited script activity must be assessed and disabled on privacy-sensitive surfaces as necessary. Preserve the dedicated Expo app's no-tracking stance. Ensure CripSquare consent, moderation, authentication and secure storage before any real community publishing.
+
+## AccessFit Evidence Lens R&D (November 2026)
+
+A feature-level, deterministic pre-visit planning aid is available inside **Discover places** and **CripSquare community gathering scenarios**. Select which details matter for a trip (step-free entry, accessible toilets, communication options, sensory conditions, transport approach), read source-specific or missing evidence, and prepare a plain-text venue enquiry using the device share sheet or manual copy.
+
+- No overall accessibility score, inferred personal suitability, diagnosis or predictive rating.
+- Current brief place records cannot verify communication, sensory or transport conditions; they are marked not assessed, not assumed accessible or inaccessible.
+- Selections are transient screen state only. They are never saved to AsyncStorage or sent to MapAble/CripSquare. A participant must explicitly open sharing options, which can disclose chosen questions to a selected recipient.
+- No event, RSVP, location check-in or community publication occurs.
+- Run `npm run test` and review `ACCESS-LENS-RD.md` for scenarios, research hypotheses and ATAG/WCAG acceptance evidence.
