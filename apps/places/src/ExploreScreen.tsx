@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FlatList, Linking, Text, View } from "react-native";
+import { AccessLensPanel } from "./AccessLensPanel";
 import { useCatalog } from "./catalog";
 import type { EvidenceStatus, Place } from "./domain";
 import { usePlacesStore } from "./store";
@@ -22,6 +23,7 @@ function PlaceCard({ place, saved, expanded, toggle, expand }: {
   place: Place; saved: boolean; expanded: boolean;
   toggle: () => void; expand: () => void;
 }) {
+  const [planning, setPlanning] = useState(false);
   return <Card>
     <Text style={S.eyebrow}>{place.suburb} · {place.category}</Text>
     <Heading level={2}>{place.name}</Heading>
@@ -36,7 +38,11 @@ function PlaceCard({ place, saved, expanded, toggle, expand }: {
       <Action label={saved ? "Remove from My Places" : "Save to My Places"} selected={saved} onPress={toggle}
         hint="Saves the place's name and suburb on your device, without a location check-in." />
       <Action label={expanded ? "Hide access details" : "Read access details"} selected={expanded} onPress={expand}/>
+      <Action label={planning ? "Close AccessFit questions" : "Plan access for this place"}
+        selected={planning} onPress={() => setPlanning((old) => !old)}
+        hint="Opens a local evidence comparison. It does not use GPS or save your selected access topics."/>
     </View>
+    {planning && <AccessLensPanel place={place} />}
     {expanded && <View style={{ gap: 13, borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: 14 }}>
       <EvidenceLine label="Step-free entry" status={place.stepFree.status} detail={place.stepFree.detail}/>
       <EvidenceLine label="Accessible toilets" status={place.accessibleToilet.status} detail={place.accessibleToilet.detail}/>
