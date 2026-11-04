@@ -37,6 +37,7 @@ export function AccessLensPanel({
   const [selection, setSelection] = useState<AccessCheckSelection>(DEFAULT_ACCESS_CHECKS);
   const [feedback, setFeedback] = useState("");
   const [showDraft, setShowDraft] = useState(false);
+  const [draftText, setDraftText] = useState("");
   const [showSources, setShowSources] = useState(false);
 
   const results = useMemo(
@@ -55,15 +56,19 @@ export function AccessLensPanel({
   function toggle(key: AccessCheckKey) {
     setSelection((old) => ({ ...old, [key]: !old[key] }));
     setShowDraft(false);
+    setDraftText("");
     setFeedback("");
   }
 
   async function shareDraft() {
-    if (!draft) return;
+    if (!draftText.trim()) {
+      setFeedback("The draft is empty. Restore the suggested questions or enter your own before sharing.");
+      return;
+    }
     try {
       await Share.share({
         title: "Pre-visit accessibility questions (draft)",
-        message: draft,
+        message: draftText,
       });
       setFeedback("The device sharing options were opened. Review your destination before sending. No MapAble or CripSquare post was created.");
     } catch {
@@ -148,7 +153,11 @@ export function AccessLensPanel({
         label={showDraft ? "Hide questions draft" : "Prepare a venue enquiry"}
         disabled={results.length === 0}
         primary
-        onPress={() => { setShowDraft((old) => !old); setFeedback(""); }}
+        onPress={() => {
+          if (!showDraft) setDraftText(draft);
+          setShowDraft((old) => !old);
+          setFeedback("");
+        }}
         hint="Opens a local plain-text draft; nothing is sent to the venue."
       />
       {showDraft && results.length > 0 && (
@@ -160,13 +169,18 @@ export function AccessLensPanel({
             it may still reveal which access topics interest you.
           </Text>
           <TextInput
-            accessibilityLabel="Editable selection of venue enquiry text for copying"
-            accessibilityHint="Select and copy this draft. It is not automatically shared."
-            editable={false}
-            selectTextOnFocus
+            accessibilityLabel="Review and edit the venue enquiry draft"
+            accessibilityHint="You can edit, select and copy this draft. Nothing is automatically shared."
             multiline
-            value={draft}
+            maxLength={5000}
+            value={draftText}
+            onChangeText={setDraftText}
             style={[S.input, S.textArea, { minHeight: 240 }]}
+          />
+          <Action
+            label="Restore suggested questions"
+            onPress={() => { setDraftText(draft); setFeedback(""); }}
+            hint="Replaces your edits with the original suggested questions. Nothing is sent."
           />
           <Action
             label="Open my device sharing options"
