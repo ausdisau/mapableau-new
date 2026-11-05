@@ -192,6 +192,14 @@ Participant-facing Care conversational surface at `/care/gpt` (planned). Orchest
 
 Schema and synthetic fixtures live under [`perceptual-frame/`](./perceptual-frame/). MAIRA Structured Outputs are proposal-only (`actionAuthority: "none"`). No routes, model calls, Prisma migrations, or production enablement. P00 reconciliation: [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](./VIRTUAL_PERSONA_P00_RECONCILIATION.md). Shadow retrieval (MapAble PR #22) remains **blocked** pending a narrow freeze waiver and consent/authority/stop corrections.
 
+### Virtual Persona text-first UI (P02 synthetic)
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| virtual_persona.text_first_ui | deterministic fixtures | synthetic_only | `MAPABLE_VIRTUAL_PERSONA_UI` off — **not a live model** |
+
+Route `/virtual-persona` mounts an accessible workspace only when the flag is exact `true`. No ParticipantRAG/ProviderRAG, no AgentRun execution, `actionAuthority: "none"`. Docs: [`virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md`](./virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md). P01 policy PEP is **not** implemented on this branch—do not integrate protected retrieval here.
+
 ## Claim honesty
 
 All ConvergenceOS public claims remain `publicClaimAllowed: false`. `MAPABLE_AI_PUBLIC_CLAIM_ENABLED` defaults false.

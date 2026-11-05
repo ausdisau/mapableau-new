@@ -58,6 +58,8 @@ Waivers do **not** lift the global freeze. Flags stay default-false. No producti
 
 **Virtual Persona Phase 1 (docs only):** synthetic AURA × MAIRA perceptual-frame contracts under `docs/ai-platform/perceptual-frame/**` plus P00 reconciliation notes sit inside the existing W-AA-1 **documentation/testing** scope (related `docs/ai-platform/**`). No path expansion into `lib/ai/platform/retrieval/**`, no runtime agents, no Prisma, no flag enablement. Shadow RAG (MapAble draft PR #22) remains **outside** the original W-AA-1 path enumeration and needs a **separate narrow waiver** before merge. See [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](../ai-platform/VIRTUAL_PERSONA_P00_RECONCILIATION.md).
 
+**Virtual Persona P02 (synthetic UI only):** flag-gated text-first workspace under `lib/virtual-persona/**`, `components/virtual-persona/**`, `app/(marketing)/virtual-persona/**`, and related tests/docs. `MAPABLE_VIRTUAL_PERSONA_UI` defaults **false**. No live model, RAG, AgentRun, payments, bookings, consent writes, or permission grants. P01 PEP is not assumed; protected retrieval remains out of scope. This does **not** authorise a new AI agent marketplace or production enablement. See [`docs/ai-platform/virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md`](../ai-platform/virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md).
+
 ## Honesty labels
 
 Demo, mock, scaffold, and pilot behaviour must be labelled honestly in UI, API, and docs. Feature flags are not assurance.
