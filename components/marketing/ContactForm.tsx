@@ -138,7 +138,7 @@ export function ContactForm() {
   if (status === "success") {
     return (
       <div
-        className={`${mapablePublicCardClass} border-[#005B7F]/15 bg-[#F6FBFC]`}
+        className={`${mapablePublicCardClass} border-[#3B5BDB]/15 bg-[#F7F8FC]`}
         role="status"
         aria-live="polite"
       >
@@ -163,7 +163,7 @@ export function ContactForm() {
       ref={formRef}
       onSubmit={handleSubmit}
       noValidate
-      className={`${mapablePublicCardClass} border-[#005B7F]/15 bg-white`}
+      className={`${mapablePublicCardClass} border-[#3B5BDB]/15 bg-white`}
       aria-labelledby="contact-form-heading"
     >
       <p className={mapablePublicSectionTitleClass}>Send a message</p>

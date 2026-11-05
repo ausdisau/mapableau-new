@@ -15,7 +15,7 @@ export function HomepageExploreStrip() {
       className="border-y border-slate-200 bg-white"
     >
       <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
           Explore MapAble
         </p>
         <h2

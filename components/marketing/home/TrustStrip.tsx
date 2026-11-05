@@ -24,7 +24,7 @@ export function TrustStrip() {
     >
       {homepageTrustStripItems.map((item) => (
         <li key={item} className="inline-flex min-h-11 items-center gap-2">
-          <span className="text-[#005B7F]">
+          <span className="text-[#3B5BDB]">
             <CheckIcon />
           </span>
           <span>{item}</span>

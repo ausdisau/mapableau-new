@@ -7,9 +7,9 @@ import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export function PersonaEntrySection() {
   return (
-    <section aria-labelledby="persona-entry-heading" className="bg-[#F6FBFC]">
+    <section aria-labelledby="persona-entry-heading" className="bg-[#F7F8FC]">
       <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
           Start with your role
         </p>
         <h2
@@ -31,7 +31,7 @@ export function PersonaEntrySection() {
               >
                 <h3 className="text-lg font-black text-[#0C1833]">{entry.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{entry.description}</p>
-                <span className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[#005B7F]">
+                <span className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[#3B5BDB]">
                   {entry.cta} <ArrowIcon />
                 </span>
               </Link>

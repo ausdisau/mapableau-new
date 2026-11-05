@@ -11,7 +11,7 @@ export const metadata = {
 export default function PersonalAgencyPage() {
   return (
     <article className="mx-auto max-w-3xl px-5 py-12 lg:px-8">
-      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
         Being developed
       </p>
       <h1 className="mt-3 text-4xl font-black tracking-tight text-[#0C1833]">
@@ -57,7 +57,7 @@ export default function PersonalAgencyPage() {
       <div className="mt-10 flex flex-wrap gap-3">
         <Link
           href="/register"
-          className={`inline-flex min-h-11 items-center rounded-lg bg-[#F8C51C] px-5 py-2 text-sm font-bold text-[#0C1833] ${mapableCareFocusRing}`}
+          className={`inline-flex min-h-11 items-center rounded-lg bg-[#F26A21] px-5 py-2 text-sm font-bold text-white ${mapableCareFocusRing}`}
         >
           Create My MapAble
         </Link>

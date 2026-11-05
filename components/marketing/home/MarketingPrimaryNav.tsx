@@ -46,8 +46,8 @@ function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
     ? `min-h-11 rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 ${mapableCareFocusRing}`
     : `min-h-11 rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 ${mapableCareFocusRing}`;
   const registerClassName = compact
-    ? `min-h-11 rounded-xl bg-[#005B7F] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`
-    : `min-h-11 rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`;
+    ? `min-h-11 rounded-xl bg-[#F26A21] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#D45512] ${mapableCareFocusRing}`
+    : `min-h-11 rounded-xl bg-[#F26A21] px-5 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#D45512] ${mapableCareFocusRing}`;
 
   return (
     <div className={className}>

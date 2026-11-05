@@ -13,7 +13,7 @@ export function HomepageProviderPitch() {
       <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
               For providers
             </p>
             <h2
@@ -27,7 +27,7 @@ export function HomepageProviderPitch() {
             </p>
             <Link
               href={homepageProviderPitch.ctaHref}
-              className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#005B7F] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
+              className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
             >
               {homepageProviderPitch.ctaLabel}
             </Link>
@@ -36,7 +36,7 @@ export function HomepageProviderPitch() {
             {homepageProviderPitch.points.map((point) => (
               <li
                 key={point}
-                className="rounded-[1.3rem] border border-slate-200 bg-[#F6FBFC] px-4 py-4 text-sm font-semibold text-[#0C1833]"
+                className="rounded-[1.3rem] border border-slate-200 bg-[#F7F8FC] px-4 py-4 text-sm font-semibold text-[#0C1833]"
               >
                 {point}
               </li>

@@ -62,11 +62,11 @@ function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
     ? "flex flex-col gap-2"
     : "flex items-center gap-3";
   const loginClassName = compact
-    ? "rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-    : "rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+    ? "rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
+    : "rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40";
   const registerClassName = compact
-    ? "rounded-xl bg-[#005B7F] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-    : "rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+    ? "rounded-xl bg-[#F26A21] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
+    : "rounded-xl bg-[#F26A21] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40";
 
   return (
     <div className={className}>
@@ -137,7 +137,7 @@ export function LogoMenu() {
     <div ref={menuRef} className="relative flex min-w-fit items-center gap-1">
       <Link
         href="/"
-        className="rounded-2xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="rounded-2xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
         onClick={() => setOpen(false)}
       >
         <span className="sr-only">MapAble home</span>
@@ -148,7 +148,7 @@ export function LogoMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="rounded-full bg-slate-100 p-2 text-[#005B7F] transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="rounded-full bg-slate-100 p-2 text-[#3B5BDB] transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
       >
         <span className="sr-only">Open MapAble menu</span>
         <ChevronDown />
@@ -158,7 +158,7 @@ export function LogoMenu() {
           role="menu"
           className="absolute left-0 top-[calc(100%+0.75rem)] z-[60] w-[min(92vw,27rem)] overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/50"
         >
-          <div className="border-b border-slate-100 bg-[#005B7F] p-4 text-white">
+          <div className="border-b border-slate-100 bg-[#F26A21] p-4 text-white">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">MapAble menu</p>
             <p className="mt-1 text-lg font-black">Care, support and access in one place.</p>
           </div>
@@ -169,7 +169,7 @@ export function LogoMenu() {
                 href={item.href}
                 role="menuitem"
                 onClick={() => setOpen(false)}
-                className="rounded-2xl px-4 py-3 transition hover:bg-[#F8C51C]/20 focus:bg-[#F8C51C]/20 focus:outline-none"
+                className="rounded-2xl px-4 py-3 transition hover:bg-[#F26A21]/20 focus:bg-[#F26A21]/20 focus:outline-none"
               >
                 <span className="block text-sm font-black text-[#0C1833]">{item.label}</span>
                 <span className="mt-1 block text-xs leading-5 text-slate-600">{item.description}</span>
@@ -203,7 +203,7 @@ function SupportAreaCombo({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="inline-flex h-9 max-w-[11rem] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black text-[#0C1833] transition hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="inline-flex h-9 max-w-[11rem] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black text-[#0C1833] transition hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
       >
         <span className="truncate">{selectedArea}</span>
         <ChevronDown />
@@ -220,8 +220,8 @@ function SupportAreaCombo({
           {supportAreas.map((area) => {
             const selected = selectedArea === area;
             const optionClassName = selected
-              ? "w-full rounded-xl bg-[#005B7F]/10 px-3 py-3 text-left text-sm font-black text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
-              : "w-full rounded-xl px-3 py-3 text-left text-sm font-black text-[#0C1833] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40";
+              ? "w-full rounded-xl bg-[#F26A21]/10 px-3 py-3 text-left text-sm font-black text-[#3B5BDB] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
+              : "w-full rounded-xl px-3 py-3 text-left text-sm font-black text-[#0C1833] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40";
             return (
               <button
                 key={area}
@@ -249,14 +249,14 @@ export function ResultRow({ result }: { result: SearchResult }) {
     <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-black text-[#0C1833]">{result.title}</h3>
-        <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#005B7F]">
+        <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#3B5BDB]">
           {result.category}
         </span>
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-600">{result.description}</p>
       <Link
         href={result.href}
-        className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-[#005B7F] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-[#3B5BDB] transition hover:bg-[#F26A21]/20 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
       >
         {result.action} <ArrowIcon />
       </Link>
@@ -266,7 +266,7 @@ export function ResultRow({ result }: { result: SearchResult }) {
 
 export function SponsoredBadge({ children = "Sponsored partner" }: { children?: ReactNode }) {
   return (
-    <span className="inline-flex w-fit rounded-full border border-[#005B7F]/20 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#005B7F]">
+    <span className="inline-flex w-fit rounded-full border border-[#3B5BDB]/20 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#3B5BDB]">
       {children}
     </span>
   );
@@ -280,8 +280,8 @@ export function SponsoredCard({
   compact?: boolean;
 }) {
   const cardClassName = compact
-    ? "rounded-2xl border border-[#005B7F]/15 bg-[#F6FBFC] p-4"
-    : "rounded-[1.5rem] border border-[#005B7F]/15 bg-white p-5 shadow-sm";
+    ? "rounded-2xl border border-[#3B5BDB]/15 bg-[#F7F8FC] p-4"
+    : "rounded-[1.5rem] border border-[#3B5BDB]/15 bg-white p-5 shadow-sm";
   return (
     <article className={cardClassName}>
       <SponsoredBadge>{placement.category}</SponsoredBadge>
@@ -291,7 +291,7 @@ export function SponsoredCard({
       <p className="mt-2 text-sm leading-6 text-slate-600">{placement.description}</p>
       <Link
         href={placement.href}
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#005B7F] px-4 py-2 text-sm font-black text-white transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-white transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
       >
         {placement.cta} <ArrowIcon />
       </Link>
@@ -375,8 +375,8 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
         <label htmlFor={searchId} className="sr-only">
           Search MapAble
         </label>
-        <div className="flex min-h-12 items-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-3 shadow-sm transition focus-within:border-[#005B7F] focus-within:ring-4 focus-within:ring-[#F8C51C]/30">
-          <span className="text-[#005B7F]">
+        <div className="flex min-h-12 items-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-3 shadow-sm transition focus-within:border-[#3B5BDB] focus-within:ring-4 focus-within:ring-[#F26A21]/30">
+          <span className="text-[#3B5BDB]">
             <SearchIcon />
           </span>
           <input
@@ -396,7 +396,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
           <SupportAreaCombo selectedArea={selectedArea} setSelectedArea={setSelectedArea} />
           <button
             type="submit"
-            className="rounded-xl bg-[#005B7F] px-4 py-2 text-sm font-black text-white transition hover:bg-[#004766] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-white transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             Find
           </button>
@@ -407,7 +407,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
           {chatMode ? (
             <div className="p-3">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#005B7F]">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#3B5BDB]">
                   Guided search
                 </p>
                 <button
@@ -446,7 +446,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
                   onClick={() => setSelectedArea(area)}
                   className={
                     selectedArea === area
-                      ? "rounded-full bg-[#005B7F] px-4 py-2 text-sm font-black text-white"
+                      ? "rounded-full bg-[#F26A21] px-4 py-2 text-sm font-black text-white"
                       : "rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-black text-[#0C1833]"
                   }
                 >
@@ -468,7 +468,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
                     setQuery(prompt);
                     launchChat(prompt);
                   }}
-                  className="rounded-xl px-3 py-3 text-left text-sm font-bold text-[#0C1833] transition hover:bg-[#F8C51C]/20 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                  className="rounded-xl px-3 py-3 text-left text-sm font-bold text-[#0C1833] transition hover:bg-[#F26A21]/20 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
                 >
                   {prompt}
                 </button>
@@ -476,8 +476,8 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
             </div>
           </div>
           <div className="grid gap-3 p-3" aria-live="polite">
-            <div className="rounded-2xl bg-[#005B7F]/10 p-4">
-              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#005B7F]">
+            <div className="rounded-2xl bg-[#F26A21]/10 p-4">
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#3B5BDB]">
                 <SparkIcon /> Guided support
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-700">
@@ -502,8 +502,8 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
 
 export function MapAbleCareMarketingHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="relative mx-auto max-w-7xl px-5 py-4 lg:px-8">
+    <header className="sticky top-0 z-40 overflow-visible border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="relative mx-auto max-w-7xl overflow-visible px-4 py-3 sm:px-5 lg:px-8">
         <MarketingPrimaryNav />
       </div>
     </header>

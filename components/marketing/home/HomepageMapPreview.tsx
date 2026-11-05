@@ -12,11 +12,11 @@ export function HomepageMapPreview() {
     <section
       id="map-preview"
       aria-labelledby="map-preview-heading"
-      className="border-y border-slate-200 bg-[#F6FBFC]"
+      className="border-y border-slate-200 bg-[#F7F8FC]"
     >
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-16">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
             Accessibility map preview
           </p>
           <h2
@@ -44,7 +44,7 @@ export function HomepageMapPreview() {
           </fieldset>
           <Link
             href="/accessibility-map"
-            className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#005B7F] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
+            className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
           >
             Open accessibility map
           </Link>
@@ -63,7 +63,7 @@ export function HomepageMapPreview() {
                       {place.category.replace(/_/g, " ")} · {place.suburb}
                     </p>
                   </div>
-                  <p className="rounded-full bg-[#F6FBFC] px-3 py-1 text-xs font-bold text-[#005B7F]">
+                  <p className="rounded-full bg-[#F7F8FC] px-3 py-1 text-xs font-bold text-[#3B5BDB]">
                     {place.tier} · score {place.accessScore}
                   </p>
                 </div>
@@ -73,7 +73,7 @@ export function HomepageMapPreview() {
                 </p>
                 <Link
                   href={`/accessibility-map/${place.slug}`}
-                  className={`mt-3 inline-flex min-h-11 items-center text-sm font-black text-[#005B7F] underline-offset-2 hover:underline ${mapableCareFocusRing}`}
+                  className={`mt-3 inline-flex min-h-11 items-center text-sm font-black text-[#3B5BDB] underline-offset-2 hover:underline ${mapableCareFocusRing}`}
                 >
                   View access details
                 </Link>

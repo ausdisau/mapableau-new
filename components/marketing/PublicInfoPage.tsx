@@ -33,10 +33,10 @@ export function PublicInfoPage({
 }) {
   return (
     <div className="bg-white text-[#0C1833]">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F7F8FC]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F8C51C]/25 blur-3xl"
+          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F26A21]/25 blur-3xl"
         />
         <div className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}>
           <div className="max-w-3xl">
@@ -63,7 +63,7 @@ export function PublicInfoPage({
             <article
               key={section.title}
               className={`${mapablePublicCardClass} ${
-                index === 0 ? "border-[#005B7F]/15 bg-[#F6FBFC]" : ""
+                index === 0 ? "border-[#3B5BDB]/15 bg-[#F7F8FC]" : ""
               }`}
             >
               <h3 className="text-lg font-black text-[#0C1833]">{section.title}</h3>
@@ -80,7 +80,7 @@ export function PublicInfoPage({
           </Link>
           <Link
             href="/privacy"
-            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#3B5BDB] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             Privacy policy
           </Link>

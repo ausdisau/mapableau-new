@@ -57,14 +57,14 @@ export function PublicModulePage({
 }: PublicModulePageProps) {
   return (
     <div className="bg-white text-[#0C1833]">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F7F8FC]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F8C51C]/25 blur-3xl"
+          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F26A21]/25 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-[-8rem] left-[-6rem] h-72 w-72 rounded-full bg-[#00A979]/10 blur-3xl"
+          className="pointer-events-none absolute bottom-[-8rem] left-[-6rem] h-72 w-72 rounded-full bg-[#8B4DFF]/10 blur-3xl"
         />
         <div className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}>
           <div className="max-w-3xl">
@@ -121,9 +121,9 @@ export function PublicModulePage({
           />
         </div>
 
-        <div className="mt-8 rounded-[1.7rem] border border-[#005B7F]/15 bg-[#F8C51C]/15 p-6 sm:p-8">
+        <div className="mt-8 rounded-[1.7rem] border border-[#3B5BDB]/15 bg-[#F26A21]/15 p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[#005B7F]">
+            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[#3B5BDB]">
               <ShieldCheck className="h-5 w-5" aria-hidden="true" />
             </span>
             <div>
@@ -153,7 +153,7 @@ export function PublicModulePage({
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#005B7F] transition hover:border-[#005B7F]/30 hover:bg-[#F6FBFC] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#3B5BDB] transition hover:border-[#3B5BDB]/30 hover:bg-[#F7F8FC] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
               >
                 {item.label}
               </Link>
@@ -178,7 +178,7 @@ function InfoPanel({
 }) {
   const panelClass =
     tone === "highlight"
-      ? "rounded-[1.5rem] border border-[#005B7F]/15 bg-[#005B7F]/5 p-5"
+      ? "rounded-[1.5rem] border border-[#3B5BDB]/15 bg-[#F26A21]/5 p-5"
       : tone === "muted"
         ? mapablePublicMutedCardClass
         : mapablePublicCardClass;
@@ -191,7 +191,7 @@ function InfoPanel({
         {items.map((item) => (
           <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
             <span
-              className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#005B7F]"
+              className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#F26A21]"
               aria-hidden="true"
             />
             <span>{item}</span>

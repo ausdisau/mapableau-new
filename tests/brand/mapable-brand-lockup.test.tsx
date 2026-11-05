@@ -47,5 +47,8 @@ describe("MapAbleBrandLockup", () => {
     const pill = screen.getByText(MAPABLE_BRAND_TAGLINE);
     expect(pill.className).toMatch(/w-fit/);
     expect(pill.className).toMatch(/rounded-full/);
+    expect(pill.className).toMatch(/bg-\[#0C1833\]/);
+    expect(pill.className).toMatch(/text-\[#F26A21\]/);
+    expect(link.className).toMatch(/outline-\[#F26A21\]/);
   });
 });

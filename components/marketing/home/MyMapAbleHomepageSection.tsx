@@ -7,10 +7,10 @@ export function MyMapAbleHomepageSection() {
   return (
     <section
       aria-labelledby="your-mapable-heading"
-      className="border-y border-slate-200 bg-[#F6FBFC]"
+      className="border-y border-slate-200 bg-[#F7F8FC]"
     >
       <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
           In development
         </p>
         <h2
@@ -32,13 +32,13 @@ export function MyMapAbleHomepageSection() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/register"
-            className={`inline-flex min-h-11 items-center rounded-lg bg-[#F8C51C] px-5 py-2 text-sm font-bold text-[#0C1833] ${mapableCareFocusRing}`}
+            className={`inline-flex min-h-11 items-center rounded-lg bg-[#F26A21] px-5 py-2 text-sm font-bold text-white ${mapableCareFocusRing}`}
           >
             Create My MapAble
           </Link>
           <Link
             href="/personal-agency"
-            className={`inline-flex min-h-11 items-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-[#005B7F] ${mapableCareFocusRing}`}
+            className={`inline-flex min-h-11 items-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-[#3B5BDB] ${mapableCareFocusRing}`}
           >
             How it works
           </Link>
