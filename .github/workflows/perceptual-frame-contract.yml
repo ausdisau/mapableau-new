@@ -1,0 +1,40 @@
+name: Perceptual frame contract
+
+on:
+  pull_request:
+    paths:
+      - "docs/ai-platform/perceptual-frame/**"
+      - "docs/ai-platform/VIRTUAL_PERSONA_P00_RECONCILIATION.md"
+      - ".github/workflows/perceptual-frame-contract.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/ai-platform/perceptual-frame/**"
+      - "docs/ai-platform/VIRTUAL_PERSONA_P00_RECONCILIATION.md"
+      - ".github/workflows/perceptual-frame-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perceptual-frame-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-fixtures:
+    name: verify-fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.16.0"
+
+      - name: Run synthetic perceptual-frame governance fixtures
+        run: node --test docs/ai-platform/perceptual-frame/tests/verify-fixtures.mjs
