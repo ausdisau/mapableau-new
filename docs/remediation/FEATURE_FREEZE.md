@@ -56,6 +56,8 @@ Waivers do **not** lift the global freeze. Flags stay default-false. No producti
 | W-PBS-7   | #379 PBS foundation                                       | Non-canonical `lib/positive-behaviour-support/**`                                                                                       | **Not accepted as Wave 7 owner path**; canonical remains `lib/pbs-operations/**`                                  | Waiver **rejected / blocked** pending recreate                |
 | W-AA-1    | `cursor/autonomy-assurance-prompt-0-59aa` (+ Train A/B/C) | `lib/ai/platform/capabilities/**` (ARC sidecar), `lib/aura-harness/**`, `lib/trust/fabric/**`, `lib/act/handoff/**`, related docs/tests | Autonomy Assurance programme — deepen Trust Fabric + AURA harness; flags default false; see explicit waiver below | Active for Prompt 0 docs; product prompts require this waiver |
 
+**Virtual Persona Phase 1 (docs only):** synthetic AURA × MAIRA perceptual-frame contracts under `docs/ai-platform/perceptual-frame/**` plus P00 reconciliation notes sit inside the existing W-AA-1 **documentation/testing** scope (related `docs/ai-platform/**`). No path expansion into `lib/ai/platform/retrieval/**`, no runtime agents, no Prisma, no flag enablement. Shadow RAG (MapAble draft PR #22) remains **outside** the original W-AA-1 path enumeration and needs a **separate narrow waiver** before merge. See [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](../ai-platform/VIRTUAL_PERSONA_P00_RECONCILIATION.md).
+
 ## Honesty labels
 
 Demo, mock, scaffold, and pilot behaviour must be labelled honestly in UI, API, and docs. Feature flags are not assurance.

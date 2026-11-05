@@ -184,6 +184,14 @@ The in-process **AURA Agentic Risk Harness** (`lib/aura-harness/`) is separate f
 
 Participant-facing Care conversational surface at `/care/gpt` (planned). Orchestrates Care APIs, Co-Pilot drafts, and care agents; never silent book/assign/bill. Spec: [docs/modules/caregpt.md](../modules/caregpt.md).
 
+### Virtual Persona / AURA × MAIRA Care & Support Perceptual Frame (contracts only)
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| virtual_persona.care_support_perceptual_frame (planned) | deterministic contracts | synthetic_only | **not registered / no runtime flag** |
+
+Schema and synthetic fixtures live under [`perceptual-frame/`](./perceptual-frame/). MAIRA Structured Outputs are proposal-only (`actionAuthority: "none"`). No routes, model calls, Prisma migrations, or production enablement. P00 reconciliation: [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](./VIRTUAL_PERSONA_P00_RECONCILIATION.md). Shadow retrieval (MapAble PR #22) remains **blocked** pending a narrow freeze waiver and consent/authority/stop corrections.
+
 ## Claim honesty
 
 All ConvergenceOS public claims remain `publicClaimAllowed: false`. `MAPABLE_AI_PUBLIC_CLAIM_ENABLED` defaults false.
