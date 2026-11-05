@@ -4656,6 +4656,11 @@ model Tenant {
   enterpriseWorkspaces EnterpriseProviderWorkspace[]
   governmentWorkspaces GovernmentPartnerWorkspace[]
   outboxEvents CloudEventOutbox[]
+  coverageCareBrand CoverageCareTenantBrand?
+  coverageCareListings CoverageCareServiceListing[]
+  coverageCareEnquiries CoverageCareEnquiry[]
+  coverageCareBrandItems CoverageCareBrandContentItem[]
+  coverageCareProvisionChecks CoverageCareProvisionCheck[]
 }
 
 model TenantMembership {
@@ -16097,4 +16102,93 @@ model AdtunisParticipantWorkspace {
   updatedAt     DateTime @updatedAt
 
   @@map("adtunis_participant_workspaces")
+}
+
+// ---------------------------------------------------------------------------
+// Coverage Care white-label pilot (local / review only — not a production rollout)
+// ---------------------------------------------------------------------------
+
+model CoverageCareTenantBrand {
+  id             String   @id @default(cuid())
+  tenantId       String   @unique
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  colorsJson     Json
+  logoSvg        String?  @db.Text
+  messagingJson  Json
+  approvalStatus String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("coverage_care_tenant_brands")
+}
+
+model CoverageCareServiceListing {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title              String
+  discipline         String
+  region             String
+  accessibilityNotes String   @db.Text
+  summary            String   @db.Text
+  /// Always synthetic_demo for the pilot — never ndis_verified.
+  provenance         String   @default("synthetic_demo")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  enquiries          CoverageCareEnquiry[]
+
+  @@index([tenantId, discipline])
+  @@map("coverage_care_service_listings")
+}
+
+model CoverageCareEnquiry {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  participantUserId String
+  listingId         String?
+  listing           CoverageCareServiceListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  status            String    @default("draft")
+  sharePreviewJson  Json?
+  consentRecordId   String?
+  providerNotes     String?   @db.Text
+  withdrawnAt       DateTime?
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([tenantId, status])
+  @@index([participantUserId])
+  @@map("coverage_care_enquiries")
+}
+
+model CoverageCareBrandContentItem {
+  id               String    @id @default(cuid())
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind             String
+  title            String
+  body             String    @db.Text
+  approvalStatus   String    @default("draft")
+  reviewedAt       DateTime?
+  reviewedByUserId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([tenantId, kind, approvalStatus])
+  @@map("coverage_care_brand_content_items")
+}
+
+model CoverageCareProvisionCheck {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  checkCode String
+  label     String
+  status    String
+  detail    String   @db.Text
+  ranAt     DateTime @default(now())
+
+  @@index([tenantId, checkCode])
+  @@map("coverage_care_provision_checks")
 }

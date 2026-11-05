@@ -8,6 +8,11 @@ import {
   redirectLegacySquarePath,
   shouldRunAuthMiddleware,
 } from "@/lib/community/mapable-peers/peer-middleware";
+import {
+  COVERAGE_CARE_REQUEST_HEADER,
+  coverageCareRewritePath,
+  isCoverageCareHost,
+} from "@/lib/coverage-care/host-routing";
 import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
 import {
   CSP_ENFORCE_HEADER,
@@ -184,6 +189,35 @@ export default async function middleware(request: NextRequest) {
       enforcePolicy,
       embedRoute,
     );
+  }
+
+  // coveragecare.mapable.com.au — proposed white-label host (not live DNS).
+  // Labs-style rewrite: public paths → /coverage-care/*; api/robots/sitemap untouched.
+  const coverageCareHost =
+    process.env.MAPABLE_COVERAGE_CARE_HOST ?? "coveragecare.mapable.com.au";
+  if (
+    isCoverageCareHost(
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+      coverageCareHost,
+    )
+  ) {
+    const rewritePath = coverageCareRewritePath(request.nextUrl.pathname);
+    if (rewritePath) {
+      const url = request.nextUrl.clone();
+      url.pathname = rewritePath;
+      requestHeaders.set(COVERAGE_CARE_REQUEST_HEADER, "1");
+      const response = NextResponse.rewrite(url, {
+        request: { headers: requestHeaders },
+      });
+      response.headers.set(COVERAGE_CARE_REQUEST_HEADER, "1");
+      return withCorrelationAndCsp(
+        response,
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
   }
 
   // labs.mapable.com.au is a public experimental surface backed by the same
