@@ -56,6 +56,8 @@ Waivers do **not** lift the global freeze. Flags stay default-false. No producti
 | W-PBS-7   | #379 PBS foundation                                       | Non-canonical `lib/positive-behaviour-support/**`                                                                                       | **Not accepted as Wave 7 owner path**; canonical remains `lib/pbs-operations/**`                                  | Waiver **rejected / blocked** pending recreate                |
 | W-AA-1    | `cursor/autonomy-assurance-prompt-0-59aa` (+ Train A/B/C) | `lib/ai/platform/capabilities/**` (ARC sidecar), `lib/aura-harness/**`, `lib/trust/fabric/**`, `lib/act/handoff/**`, related docs/tests | Autonomy Assurance programme — deepen Trust Fabric + AURA harness; flags default false; see explicit waiver below | Active for Prompt 0 docs; product prompts require this waiver |
 
+**Virtual Persona P02 (synthetic UI only):** flag-gated text-first workspace under `lib/virtual-persona/**`, `components/virtual-persona/**`, `app/(marketing)/virtual-persona/**`, and related tests/docs. `MAPABLE_VIRTUAL_PERSONA_UI` defaults **false**. No live model, RAG, AgentRun, payments, bookings, consent writes, or permission grants. P01 PEP is not assumed; protected retrieval remains out of scope. This does **not** authorise a new AI agent marketplace or production enablement. See [`docs/ai-platform/virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md`](../ai-platform/virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md).
+
 ## Honesty labels
 
 Demo, mock, scaffold, and pilot behaviour must be labelled honestly in UI, API, and docs. Feature flags are not assurance.

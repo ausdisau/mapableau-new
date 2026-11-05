@@ -184,6 +184,14 @@ The in-process **AURA Agentic Risk Harness** (`lib/aura-harness/`) is separate f
 
 Participant-facing Care conversational surface at `/care/gpt` (planned). Orchestrates Care APIs, Co-Pilot drafts, and care agents; never silent book/assign/bill. Spec: [docs/modules/caregpt.md](../modules/caregpt.md).
 
+### Virtual Persona text-first UI (P02 synthetic)
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| virtual_persona.text_first_ui | deterministic fixtures | synthetic_only | `MAPABLE_VIRTUAL_PERSONA_UI` off — **not a live model** |
+
+Route `/virtual-persona` mounts an accessible workspace only when the flag is exact `true`. No ParticipantRAG/ProviderRAG, no AgentRun execution, `actionAuthority: "none"`. Docs: [`virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md`](./virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md). P01 policy PEP is **not** implemented on this branch—do not integrate protected retrieval here.
+
 ## Claim honesty
 
 All ConvergenceOS public claims remain `publicClaimAllowed: false`. `MAPABLE_AI_PUBLIC_CLAIM_ENABLED` defaults false.
