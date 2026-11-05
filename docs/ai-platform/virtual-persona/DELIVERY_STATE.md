@@ -9,7 +9,7 @@ Update after every authorised work unit. Do not treat this file as release appro
 |-----|-----------|-------|
 | mapableau-new `main` (delivery) | `f12981e6` at P01 branch cut | P00 #658 + P02 #659 merged |
 | ausdisau/MapAble `main` (canonical monorepo) | `43ce85df` | No VP P00/P02 code yet; PR #21/#22 open drafts |
-| This work branch | `cursor/vp-p01-pep-enforcement-ac5c` @ `078252cc` | P01 PEP |
+| This work branch | `cursor/vp-p01-pep-enforcement-ac5c` @ `a6afefee` (PR #660) | P01 PEP |
 
 ## Phase status
 
