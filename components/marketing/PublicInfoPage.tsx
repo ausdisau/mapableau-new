@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PublicMarketingBreadcrumbs } from "@/components/marketing/PublicMarketingBreadcrumbs";
 import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
@@ -39,6 +42,7 @@ export function PublicInfoPage({
           className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F8C51C]/25 blur-3xl"
         />
         <div className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}>
+          <PublicMarketingBreadcrumbs className="mb-6" />
           <div className="max-w-3xl">
             <p className={mapablePublicEyebrowClass}>{eyebrow}</p>
             <h1 className={`${mapablePublicTitleClass} mt-3`}>{title}</h1>

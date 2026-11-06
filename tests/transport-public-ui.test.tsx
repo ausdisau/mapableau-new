@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -109,6 +109,7 @@ describe("MarketingPrimaryNav Transport entry", () => {
     render(<MapAbleCareMarketingHeader />);
 
     const nav = screen.getByRole("navigation", { name: "Primary" });
+    fireEvent.click(within(nav).getByRole("button", { name: /^Programmes\b/ }));
     const transport = within(nav).getByRole("link", { name: "Transport" });
     expect(transport.getAttribute("href")).toBe("/transport");
   });
