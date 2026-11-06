@@ -49,22 +49,21 @@ describe("homepage marketing splash", () => {
     render(<MapAbleCareCombinedHomepage />);
   });
 
-  it("renders primary nav with pre-register and places links", () => {
+  it("renders primary nav with pre-register and grouped discovery links", () => {
     const nav = screen.getByRole("navigation", { name: "Primary" });
     expect(nav).toBeTruthy();
     expect(nav.querySelector('a[href="#pre-register"]')?.textContent).toBe(
       "Pre-register",
     );
-    expect(nav.querySelector('a[href="/accessibility-map"]')?.textContent).toBe(
-      "Places",
-    );
-    expect(nav.querySelector('a[href="/guides"]')?.textContent).toBe("Guides");
-    expect(nav.querySelector('a[href="/providers"]')?.textContent).toBe(
-      "Providers",
-    );
-    expect(nav.querySelector('a[href="/ask"]')?.textContent).toBe(
-      "NDIS Guidance",
-    );
+    expect(screen.getByRole("button", { name: /^Explore\b/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Programmes\b/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Support\b/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /^Explore\b/ }));
+    expect(nav.querySelector('a[href="/accessibility-map"]')).toBeTruthy();
+    expect(nav.querySelector('a[href="/guides"]')).toBeTruthy();
+    expect(nav.querySelector('a[href="/providers"]')).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /^Support\b/ }));
+    expect(nav.querySelector('a[href="/ask"]')).toBeTruthy();
   });
 
   it("renders updated hero headline and single h1", () => {
