@@ -49,22 +49,24 @@ describe("homepage marketing splash", () => {
     render(<MapAbleCareCombinedHomepage />);
   });
 
-  it("renders primary nav with pre-register and places links", () => {
+  it("renders primary nav for the public information architecture", () => {
     const nav = screen.getByRole("navigation", { name: "Primary" });
     expect(nav).toBeTruthy();
-    expect(nav.querySelector('a[href="#pre-register"]')?.textContent).toBe(
-      "Pre-register",
+    expect(nav.querySelector('a[href="/explore"]')?.textContent).toBe("Explore");
+    expect(nav.querySelector('a[href="/for-participants"]')?.textContent).toBe(
+      "For people",
     );
-    expect(nav.querySelector('a[href="/accessibility-map"]')?.textContent).toBe(
-      "Places",
+    expect(nav.querySelector('a[href="/for-providers"]')?.textContent).toBe(
+      "For providers",
     );
-    expect(nav.querySelector('a[href="/guides"]')?.textContent).toBe("Guides");
-    expect(nav.querySelector('a[href="/providers"]')?.textContent).toBe(
-      "Providers",
+    expect(nav.querySelector('a[href="/white-label"]')?.textContent).toBe(
+      "White-label",
     );
-    expect(nav.querySelector('a[href="/ask"]')?.textContent).toBe(
-      "NDIS Guidance",
+    expect(nav.querySelector('a[href="/technology"]')?.textContent).toBe(
+      "Technology",
     );
+    expect(nav.querySelector('a[href="/about"]')?.textContent).toBe("About");
+    expect(nav.querySelector('a[href="/contact"]')?.textContent).toBe("Contact");
   });
 
   it("renders updated hero headline and single h1", () => {
@@ -83,9 +85,14 @@ describe("homepage marketing splash", () => {
     expect(preRegLinks[0]?.getAttribute("href")).toBe("#pre-register");
     expect(
       screen
+        .getAllByRole("link", { name: homepageHeroCopy.primaryCta })
+        .some((link) => link.getAttribute("href") === "/explore"),
+    ).toBe(true);
+    expect(
+      screen
         .getByRole("link", { name: homepageHeroCopy.secondaryCta })
         .getAttribute("href"),
-    ).toBe("/accessibility-map");
+    ).toBe("/register-interest");
     expect(
       screen.queryByRole("link", { name: /^Request support$/i }),
     ).toBeNull();

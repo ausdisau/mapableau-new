@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
@@ -65,25 +64,18 @@ function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
 }
 
 export function MarketingPrimaryNav() {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   useDismissOnOutsideAndEscape(mobileOpen, () => setMobileOpen(false), navRef);
 
   const primaryLinks = [
-    {
-      label: "Pre-register",
-      href: isHome ? "#pre-register" : "/#pre-register",
-    },
-    { label: "Places", href: "/accessibility-map" },
-    ...(process.env.NEXT_PUBLIC_MAPABLE_PLACES_PROTOTYPE_ENABLED === "true"
-      ? [{ label: "Places Lab", href: "/places" }]
-      : []),
-    { label: "Guides", href: "/guides" },
-    { label: "Transport", href: "/transport" },
-    { label: "Providers", href: "/providers" },
-    { label: "NDIS Guidance", href: marketingFeatureRoutes.ask },
+    { label: "Explore", href: "/explore" },
+    { label: "For people", href: "/for-participants" },
+    { label: "For providers", href: "/for-providers" },
+    { label: "White-label", href: "/white-label" },
+    { label: "Technology", href: "/technology" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
   ];
 
   return (

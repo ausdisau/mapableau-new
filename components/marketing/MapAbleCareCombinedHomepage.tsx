@@ -7,8 +7,10 @@ import { CompetitorContrastStrip } from "@/components/marketing/home/CompetitorC
 import { HeroSection } from "@/components/marketing/home/HeroSection";
 import { HomepageExploreStrip } from "@/components/marketing/home/HomepageExploreStrip";
 import { HomepageFinalCta } from "@/components/marketing/home/HomepageFinalCta";
+import { HomepagePathways } from "@/components/marketing/home/HomepagePathways";
 import { MyMapAbleHomepageSection } from "@/components/marketing/home/MyMapAbleHomepageSection";
 import { PreRegistrationSection } from "@/components/marketing/home/PreRegistrationSection";
+import { SupportCloudSection } from "@/components/marketing/home/SupportCloudSection";
 import { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 import { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 
@@ -22,7 +24,9 @@ export function MapAbleCareCombinedHomepageSections() {
   return (
     <>
       <HeroSection />
+      <HomepagePathways />
       <HomepageExploreStrip />
+      <SupportCloudSection />
       <MyMapAbleHomepageSection />
       <CompetitorContrastStrip />
       <PreRegistrationSection />

@@ -7,7 +7,7 @@ import { AccessibilityPanelTrigger } from "@/components/accessibility/Accessibil
 import { AdvertisingUnit } from "@/components/ads/AdvertisingUnit";
 import {
   MAPABLE_LOGO_ALT,
-  MAPABLE_LOGO_SRC,
+  MAPABLE_LOGO_LOCKUP_SRC,
   MAPABLE_SUPPORT_EMAIL,
 } from "@/lib/brand/constants";
 import {
@@ -66,7 +66,7 @@ function SocialLink({
 function FooterBrandMark() {
   return (
     <img
-      src={MAPABLE_LOGO_SRC}
+      src={MAPABLE_LOGO_LOCKUP_SRC}
       alt={MAPABLE_LOGO_ALT}
       width={754}
       height={1008}

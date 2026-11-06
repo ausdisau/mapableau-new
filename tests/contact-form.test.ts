@@ -38,6 +38,24 @@ describe("contactFormSchema", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("accepts a provider pilot expression of interest", () => {
+    const parsed = contactFormSchema.safeParse({
+      name: "Alex Taylor",
+      email: "alex@example.com",
+      topic: "provider_pilot",
+      organisationName: "Harbor Supports",
+      message:
+        "We want to explore a branded provider workspace in a controlled pilot.",
+      company: "",
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.topic).toBe("provider_pilot");
+      expect(parsed.data.organisationName).toBe("Harbor Supports");
+    }
+  });
+
   it("accepts optional consentScopes for audit logging", () => {
     const parsed = contactFormSchema.safeParse({
       name: "Alex Taylor",

@@ -25,6 +25,9 @@ export async function sendContactFormEmail(
     `Name: ${submission.name}`,
     `Email: ${submission.email}`,
     `Topic: ${topicLabel}`,
+    submission.organisationName
+      ? `Organisation: ${submission.organisationName}`
+      : null,
     submission.consentScopes?.length
       ? `Consent scopes: ${submission.consentScopes.join(", ")}`
       : null,
@@ -38,6 +41,11 @@ export async function sendContactFormEmail(
     <p><strong>Name:</strong> ${escapeHtml(submission.name)}</p>
     <p><strong>Email:</strong> ${escapeHtml(submission.email)}</p>
     <p><strong>Topic:</strong> ${escapeHtml(topicLabel)}</p>
+    ${
+      submission.organisationName
+        ? `<p><strong>Organisation:</strong> ${escapeHtml(submission.organisationName)}</p>`
+        : ""
+    }
     ${
       submission.consentScopes?.length
         ? `<p><strong>Consent scopes:</strong> ${escapeHtml(submission.consentScopes.join(", "))}</p>`

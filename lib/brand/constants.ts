@@ -23,6 +23,9 @@ export const MAPABLE_DONATION_URL =
  */
 export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 
+/** Official vertical lockup supplied for public marketing (pin, wordmark, tagline). */
+export const MAPABLE_LOGO_LOCKUP_SRC = "/brand/mapable-logo-lockup.png";
+
 /**
  * Icon + MapAble wordmark only (no baked-in tagline). Use with MapAbleBrandLockup
  * or a separate Empowering Independence pill.
