@@ -9,10 +9,13 @@ import {
   resolveActorTenantId,
   resolveCoverageCareProviderAdmin,
 } from "@/lib/coverage-care/demo-actor";
-import { markEnquiryProviderReviewed } from "@/lib/coverage-care/enquiry-service";
+import { markEnquiryProviderStatus } from "@/lib/coverage-care/enquiry-service";
+import { PROVIDER_INBOX_STATUSES } from "@/lib/tenancy/tenant-enquiry-model";
 
 const reviewSchema = z.object({
+  providerStatus: z.enum(PROVIDER_INBOX_STATUSES).default("in_review"),
   notes: z.string().optional(),
+  reply: z.string().optional(),
 });
 
 export async function POST(
@@ -25,16 +28,18 @@ export async function POST(
   const actor = await resolveCoverageCareProviderAdmin();
   if (!actor) return jsonError("Unauthorized", 401);
 
-  const { id } = await Promise.resolve(context.params);
+  const { id } = await context.params;
   try {
     const body = reviewSchema.parse(await request.json().catch(() => ({})));
-    const enquiry = markEnquiryProviderReviewed({
+    const enquiry = markEnquiryProviderStatus({
       enquiryId: id,
       actor,
       actorTenantId: resolveActorTenantId(
         request.headers.get("x-mapable-tenant-id"),
       ),
+      providerStatus: body.providerStatus,
       notes: body.notes,
+      reply: body.reply,
     });
     return jsonOk({ enquiry });
   } catch (error) {

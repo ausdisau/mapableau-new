@@ -29,6 +29,10 @@ import {
   REQUEST_ID_HEADER,
   resolveCorrelationId,
 } from "@/lib/security/request-correlation";
+import {
+  isTenantPreviewPathname,
+  TENANT_PREVIEW_REQUEST_HEADER,
+} from "@/lib/tenancy/tenant-preview-header";
 
 /** Match NextAuth secure cookie naming on HTTPS (Vercel, production). */
 function usesSecureSessionCookies(request: NextRequest): boolean {
@@ -191,8 +195,40 @@ export default async function middleware(request: NextRequest) {
     );
   }
 
+  // Mark tenant preview paths so root layout can suppress MapAble ads/analytics.
+  if (isTenantPreviewPathname(request.nextUrl.pathname)) {
+    requestHeaders.set(TENANT_PREVIEW_REQUEST_HEADER, "1");
+  }
+
+  // Legacy /coverage-care → /t/coveragecare (preserve prior pilot links).
+  const { pathname } = request.nextUrl;
+  if (pathname === "/coverage-care" || pathname.startsWith("/coverage-care/")) {
+    const rest =
+      pathname === "/coverage-care" ? "" : pathname.slice("/coverage-care".length);
+    let mapped = `/t/coveragecare${rest}`;
+    // Remap participant paths that moved under portal/enquire.
+    if (rest === "/enquiries" || rest === "/enquiries/") {
+      mapped = "/t/coveragecare/portal";
+    } else if (rest === "/enquiries/new" || rest.startsWith("/enquiries/new?")) {
+      mapped = "/t/coveragecare/enquire";
+    } else if (rest.startsWith("/enquiries/")) {
+      const id = rest.slice("/enquiries/".length).split("/")[0] ?? "";
+      mapped = id
+        ? `/t/coveragecare/portal/${encodeURIComponent(id)}`
+        : "/t/coveragecare/portal";
+    }
+    const target = new URL(mapped, request.url);
+    target.search = request.nextUrl.search;
+    return withCorrelationAndCsp(
+      NextResponse.redirect(target, 308),
+      correlationId,
+      enforcePolicy,
+      embedRoute,
+    );
+  }
+
   // coveragecare.mapable.com.au — proposed white-label host (not live DNS).
-  // Labs-style rewrite: public paths → /coverage-care/*; api/robots/sitemap untouched.
+  // Rewrite only when MAPABLE_COVERAGE_CARE_ENABLED=true (fail-closed).
   const coverageCareHost =
     process.env.MAPABLE_COVERAGE_CARE_HOST ?? "coveragecare.mapable.com.au";
   if (
@@ -207,10 +243,12 @@ export default async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = rewritePath;
       requestHeaders.set(COVERAGE_CARE_REQUEST_HEADER, "1");
+      requestHeaders.set(TENANT_PREVIEW_REQUEST_HEADER, "1");
       const response = NextResponse.rewrite(url, {
         request: { headers: requestHeaders },
       });
       response.headers.set(COVERAGE_CARE_REQUEST_HEADER, "1");
+      response.headers.set(TENANT_PREVIEW_REQUEST_HEADER, "1");
       return withCorrelationAndCsp(
         response,
         correlationId,

@@ -11,7 +11,8 @@ import {
 import { getCoverageCareListing } from "@/lib/coverage-care/listing-service";
 import {
   assertEnquiryParticipant,
-  assertProviderTenantAdmin,
+  assertProviderCanViewEnquiry,
+  assertProviderTenantStaff,
   assertSameTenant,
   canReadProviderInbox,
   CoverageCarePermissionError,
@@ -29,6 +30,14 @@ import type {
   CoverageCareEnquiry,
   CoverageCareSharePreview,
 } from "@/lib/coverage-care/types";
+import {
+  assertParticipantTransition,
+  assertProviderTransition,
+  isAmendable,
+  isProviderVisible,
+  providerStatusAfterSubmit,
+  type ProviderInboxStatus,
+} from "@/lib/tenancy/tenant-enquiry-model";
 
 function shouldUseSyntheticConsent() {
   return coverageCareConfig.persistence === "memory";
@@ -53,6 +62,12 @@ function requireTenantMatch(input: {
     });
     throw error;
   }
+}
+
+function findEnquiry(enquiryId: string): CoverageCareEnquiry | undefined {
+  return getCoverageCareMemoryState().enquiries.find(
+    (item) => item.id === enquiryId && !item.deletedAt,
+  );
 }
 
 export function createCoverageCareEnquiry(input: {
@@ -81,9 +96,12 @@ export function createCoverageCareEnquiry(input: {
     participantUserId: input.participant.id,
     listingId: input.listingId ?? null,
     status: "draft",
+    providerStatus: null,
     sharePreview: null,
     consentRecordId: null,
     providerNotes: null,
+    providerReply: null,
+    responderLabel: null,
     withdrawnAt: null,
     deletedAt: null,
     createdAt: ts,
@@ -109,11 +127,8 @@ export function updateEnquirySharePreview(input: {
   sharePreview: CoverageCareSharePreview;
 }): CoverageCareEnquiry {
   ensureCoverageCareEnabled();
-  const state = getCoverageCareMemoryState();
-  const enquiry = state.enquiries.find((item) => item.id === input.enquiryId);
-  if (!enquiry || enquiry.deletedAt) {
-    throw new Error("ENQUIRY_NOT_FOUND");
-  }
+  const enquiry = findEnquiry(input.enquiryId);
+  if (!enquiry) throw new Error("ENQUIRY_NOT_FOUND");
 
   assertEnquiryParticipant(input.participant, enquiry);
   if (input.actorTenantId) {
@@ -126,17 +141,58 @@ export function updateEnquirySharePreview(input: {
     });
   }
 
-  if (enquiry.status !== "draft" && enquiry.status !== "sharing_review") {
-    throw new Error("ENQUIRY_NOT_EDITABLE");
+  if (!isAmendable(enquiry.status)) throw new Error("ENQUIRY_NOT_EDITABLE");
+
+  if (enquiry.status === "draft") {
+    assertParticipantTransition(enquiry.status, "sharing_review");
+    enquiry.status = "sharing_review";
   }
 
   enquiry.sharePreview = { ...input.sharePreview };
-  enquiry.status = "sharing_review";
   enquiry.updatedAt = memoryNow();
 
   void recordCoverageCareAudit({
     actorUserId: input.participant.id,
     action: "coverage_care.enquiry.share_reviewed",
+    entityType: "CoverageCareEnquiry",
+    entityId: enquiry.id,
+    participantId: enquiry.participantUserId,
+  });
+
+  return { ...enquiry };
+}
+
+export function amendCoverageCareEnquiry(input: {
+  enquiryId: string;
+  participant: CurrentUser;
+  sharePreview?: CoverageCareSharePreview;
+  listingId?: string | null;
+}): CoverageCareEnquiry {
+  ensureCoverageCareEnabled();
+  const enquiry = findEnquiry(input.enquiryId);
+  if (!enquiry) throw new Error("ENQUIRY_NOT_FOUND");
+  assertEnquiryParticipant(input.participant, enquiry);
+  if (!isAmendable(enquiry.status)) throw new Error("ENQUIRY_NOT_EDITABLE");
+
+  if (input.listingId !== undefined) {
+    if (input.listingId) {
+      const listing = getCoverageCareListing(input.listingId, enquiry.tenantId);
+      if (!listing) throw new Error("LISTING_NOT_FOUND");
+    }
+    enquiry.listingId = input.listingId;
+  }
+  if (input.sharePreview) {
+    enquiry.sharePreview = { ...input.sharePreview };
+    if (enquiry.status === "draft") {
+      assertParticipantTransition("draft", "sharing_review");
+      enquiry.status = "sharing_review";
+    }
+  }
+  enquiry.updatedAt = memoryNow();
+
+  void recordCoverageCareAudit({
+    actorUserId: input.participant.id,
+    action: "coverage_care.enquiry.amended",
     entityType: "CoverageCareEnquiry",
     entityId: enquiry.id,
     participantId: enquiry.participantUserId,
@@ -151,11 +207,8 @@ export async function submitCoverageCareEnquiry(input: {
   actorTenantId?: string;
 }): Promise<CoverageCareEnquiry> {
   ensureCoverageCareEnabled();
-  const state = getCoverageCareMemoryState();
-  const enquiry = state.enquiries.find((item) => item.id === input.enquiryId);
-  if (!enquiry || enquiry.deletedAt) {
-    throw new Error("ENQUIRY_NOT_FOUND");
-  }
+  const enquiry = findEnquiry(input.enquiryId);
+  if (!enquiry) throw new Error("ENQUIRY_NOT_FOUND");
 
   assertEnquiryParticipant(input.participant, enquiry);
   if (input.actorTenantId) {
@@ -171,9 +224,12 @@ export async function submitCoverageCareEnquiry(input: {
   if (enquiry.status !== "sharing_review" && enquiry.status !== "draft") {
     throw new Error("ENQUIRY_NOT_SUBMITTABLE");
   }
-  if (!enquiry.sharePreview) {
-    throw new Error("SHARE_PREVIEW_REQUIRED");
-  }
+  if (!enquiry.sharePreview) throw new Error("SHARE_PREVIEW_REQUIRED");
+
+  assertParticipantTransition(
+    enquiry.status === "draft" ? "draft" : "sharing_review",
+    "submitted",
+  );
 
   const tenant = getCoverageCareTenant();
   const { consentRecordId } = await grantEnquiryShareConsent({
@@ -185,6 +241,7 @@ export async function submitCoverageCareEnquiry(input: {
 
   enquiry.consentRecordId = consentRecordId;
   enquiry.status = "submitted";
+  enquiry.providerStatus = providerStatusAfterSubmit();
   enquiry.updatedAt = memoryNow();
 
   void recordCoverageCareAudit({
@@ -199,38 +256,53 @@ export async function submitCoverageCareEnquiry(input: {
   return { ...enquiry };
 }
 
+export function markEnquiryProviderStatus(input: {
+  enquiryId: string;
+  actor: CurrentUser;
+  actorTenantId: string;
+  providerStatus: ProviderInboxStatus;
+  notes?: string;
+  reply?: string;
+}): CoverageCareEnquiry {
+  ensureCoverageCareEnabled();
+  const enquiry = findEnquiry(input.enquiryId);
+  if (!enquiry) throw new Error("ENQUIRY_NOT_FOUND");
+
+  assertProviderTenantStaff(input.actor, input.actorTenantId, enquiry.tenantId);
+  assertProviderCanViewEnquiry(enquiry);
+
+  if (!enquiry.providerStatus) throw new Error("ENQUIRY_NOT_IN_INBOX");
+  assertProviderTransition(enquiry.providerStatus, input.providerStatus);
+
+  enquiry.providerStatus = input.providerStatus;
+  enquiry.providerNotes = input.notes?.trim() || enquiry.providerNotes;
+  enquiry.providerReply = input.reply?.trim() || enquiry.providerReply;
+  enquiry.responderLabel = input.actor.name;
+  enquiry.updatedAt = memoryNow();
+
+  void recordCoverageCareAudit({
+    actorUserId: input.actor.id,
+    action: "coverage_care.enquiry.provider_status",
+    entityType: "CoverageCareEnquiry",
+    entityId: enquiry.id,
+    participantId: enquiry.participantUserId,
+    metadata: { providerStatus: input.providerStatus },
+  });
+
+  return { ...enquiry };
+}
+
+/** @deprecated Prefer markEnquiryProviderStatus */
 export function markEnquiryProviderReviewed(input: {
   enquiryId: string;
   actor: CurrentUser;
   actorTenantId: string;
   notes?: string;
 }): CoverageCareEnquiry {
-  ensureCoverageCareEnabled();
-  const state = getCoverageCareMemoryState();
-  const enquiry = state.enquiries.find((item) => item.id === input.enquiryId);
-  if (!enquiry || enquiry.deletedAt) {
-    throw new Error("ENQUIRY_NOT_FOUND");
-  }
-
-  assertProviderTenantAdmin(input.actor, input.actorTenantId, enquiry.tenantId);
-
-  if (enquiry.status !== "submitted" && enquiry.status !== "provider_reviewed") {
-    throw new Error("ENQUIRY_NOT_IN_INBOX");
-  }
-
-  enquiry.status = "provider_reviewed";
-  enquiry.providerNotes = input.notes?.trim() || enquiry.providerNotes;
-  enquiry.updatedAt = memoryNow();
-
-  void recordCoverageCareAudit({
-    actorUserId: input.actor.id,
-    action: "coverage_care.enquiry.provider_reviewed",
-    entityType: "CoverageCareEnquiry",
-    entityId: enquiry.id,
-    participantId: enquiry.participantUserId,
+  return markEnquiryProviderStatus({
+    ...input,
+    providerStatus: "in_review",
   });
-
-  return { ...enquiry };
 }
 
 export async function withdrawCoverageCareEnquiry(input: {
@@ -239,11 +311,8 @@ export async function withdrawCoverageCareEnquiry(input: {
   actorTenantId?: string;
 }): Promise<CoverageCareEnquiry> {
   ensureCoverageCareEnabled();
-  const state = getCoverageCareMemoryState();
-  const enquiry = state.enquiries.find((item) => item.id === input.enquiryId);
-  if (!enquiry || enquiry.deletedAt) {
-    throw new Error("ENQUIRY_NOT_FOUND");
-  }
+  const enquiry = findEnquiry(input.enquiryId);
+  if (!enquiry) throw new Error("ENQUIRY_NOT_FOUND");
 
   assertEnquiryParticipant(input.participant, enquiry);
   if (input.actorTenantId) {
@@ -260,6 +329,8 @@ export async function withdrawCoverageCareEnquiry(input: {
     throw new Error("ENQUIRY_ALREADY_CLOSED");
   }
 
+  assertParticipantTransition(enquiry.status, "withdrawn");
+
   if (enquiry.consentRecordId) {
     await revokeEnquiryShareConsent({
       consentRecordId: enquiry.consentRecordId,
@@ -269,6 +340,7 @@ export async function withdrawCoverageCareEnquiry(input: {
   }
 
   enquiry.status = "withdrawn";
+  enquiry.providerStatus = null;
   enquiry.withdrawnAt = memoryNow();
   enquiry.updatedAt = enquiry.withdrawnAt;
 
@@ -288,13 +360,11 @@ export async function deleteCoverageCareEnquiry(input: {
   participant: CurrentUser;
 }): Promise<CoverageCareEnquiry> {
   ensureCoverageCareEnabled();
-  const state = getCoverageCareMemoryState();
-  const enquiry = state.enquiries.find((item) => item.id === input.enquiryId);
-  if (!enquiry || enquiry.deletedAt) {
-    throw new Error("ENQUIRY_NOT_FOUND");
-  }
+  const enquiry = findEnquiry(input.enquiryId);
+  if (!enquiry) throw new Error("ENQUIRY_NOT_FOUND");
 
   assertEnquiryParticipant(input.participant, enquiry);
+  assertParticipantTransition(enquiry.status, "deleted");
 
   if (enquiry.consentRecordId && enquiry.status !== "withdrawn") {
     await revokeEnquiryShareConsent({
@@ -305,6 +375,7 @@ export async function deleteCoverageCareEnquiry(input: {
   }
 
   enquiry.status = "deleted";
+  enquiry.providerStatus = null;
   enquiry.deletedAt = memoryNow();
   enquiry.updatedAt = enquiry.deletedAt;
 
@@ -324,9 +395,7 @@ export function getCoverageCareEnquiry(
   opts: { actorTenantId?: string; actorUserId?: string } = {},
 ): CoverageCareEnquiry | null {
   ensureCoverageCareEnabled();
-  const enquiry = getCoverageCareMemoryState().enquiries.find(
-    (item) => item.id === enquiryId && !item.deletedAt,
-  );
+  const enquiry = findEnquiry(enquiryId);
   if (!enquiry) return null;
 
   if (opts.actorTenantId && opts.actorTenantId !== enquiry.tenantId) {
@@ -381,7 +450,7 @@ export function listProviderInbox(input: {
       (item) =>
         item.tenantId === input.actorTenantId &&
         !item.deletedAt &&
-        (item.status === "submitted" || item.status === "provider_reviewed"),
+        isProviderVisible(item.status, item.providerStatus),
     )
     .map((item) => ({ ...item }));
 }

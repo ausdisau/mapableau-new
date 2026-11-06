@@ -1,35 +1,37 @@
 import { coverageCareConfig } from "@/lib/config/coverage-care";
+import {
+  isProposedCoverageCareHost,
+  PROPOSED_COVERAGE_CARE_HOST,
+} from "@/lib/tenancy/tenant-host-policy";
+import { getTenantPreviewGate } from "@/lib/tenancy/tenant-preview-policy";
 
-export const DEFAULT_COVERAGE_CARE_HOST = "coveragecare.mapable.com.au";
+export const DEFAULT_COVERAGE_CARE_HOST = PROPOSED_COVERAGE_CARE_HOST;
 export const COVERAGE_CARE_REQUEST_HEADER = "x-mapable-coverage-care";
-export const COVERAGE_CARE_BASE_PATH = "/coverage-care";
+export const COVERAGE_CARE_BASE_PATH = "/t/coveragecare";
 
 const PUBLIC_FILE = /\.[^/]+$/;
-
-function normalizeHost(value: string | null | undefined): string {
-  if (!value) return "";
-  return value.split(",")[0]?.trim().toLowerCase().split(":")[0] ?? "";
-}
 
 export function isCoverageCareHost(
   forwardedHost: string | null | undefined,
   host: string | null | undefined,
-  configuredHost = coverageCareConfig.host || DEFAULT_COVERAGE_CARE_HOST,
+  _configuredHost = coverageCareConfig.host || DEFAULT_COVERAGE_CARE_HOST,
 ): boolean {
-  const resolvedHost = normalizeHost(forwardedHost) || normalizeHost(host);
-  return resolvedHost === normalizeHost(configuredHost);
+  return isProposedCoverageCareHost(forwardedHost, host);
 }
 
 /**
- * Labs-style rewrite: public paths on the Coverage Care host map under
- * `/coverage-care`. API, robots, sitemap, and static files are never rewritten
- * so apex SEO/CSP behaviour stays intact.
+ * Labs-style rewrite gated by preview policy.
+ * Proposed host alone never activates when master flag is off.
  */
 export function coverageCareRewritePath(pathname: string): string | null {
+  const gate = getTenantPreviewGate();
+  if (!gate.hostRewriteEnabled) return null;
+
   if (pathname === "/") return COVERAGE_CARE_BASE_PATH;
 
   if (
-    pathname.startsWith(COVERAGE_CARE_BASE_PATH) ||
+    pathname.startsWith("/t/") ||
+    pathname.startsWith("/coverage-care") ||
     pathname.startsWith("/api/") ||
     pathname === "/api" ||
     pathname.startsWith("/_next/") ||

@@ -1,28 +1,22 @@
 import type { CoverageCareBrandKit } from "@/lib/coverage-care/types";
+import {
+  COVERAGE_CARE_BRAND as TENANCY_BRAND,
+  COVERAGE_CARE_CSS_VARS as TENANCY_CSS,
+  COVERAGE_CARE_WAVE_PATH,
+} from "@/lib/tenancy/coverage-care-brand";
 
 export const COVERAGE_CARE_BRAND: CoverageCareBrandKit = {
-  name: "Coverage Care",
-  tagline: "Your life. Your choices. Our commitment.",
-  sage: "#849F63",
-  olive: "#4B630C",
-  values: [
-    "Hope",
-    "Transparency",
-    "Bond/Connection",
-    "Courage",
-    "Collaboration",
-    "Compassion and Inclusivity",
-  ],
-} as const;
+  name: TENANCY_BRAND.name,
+  tagline: TENANCY_BRAND.tagline,
+  sage: TENANCY_BRAND.colors.sage,
+  olive: TENANCY_BRAND.colors.olive,
+  values: TENANCY_BRAND.values,
+};
 
-export const COVERAGE_CARE_CSS_VARS = {
-  "--cc-sage": COVERAGE_CARE_BRAND.sage,
-  "--cc-olive": COVERAGE_CARE_BRAND.olive,
-  "--cc-cream": "#F4F7EF",
-  "--cc-ink": "#1C2410",
-  "--cc-wave": "#6F8B4F",
-} as const;
-
-/** Organic wave wordmark path data for inline SVG. */
-export const COVERAGE_CARE_WAVE_PATH =
-  "M2 22 C18 6, 36 6, 52 22 S86 38, 102 22 S134 6, 150 22";
+export const COVERAGE_CARE_CSS_VARS = TENANCY_CSS;
+export { COVERAGE_CARE_WAVE_PATH };
+export {
+  COVERAGE_CARE_ABN,
+  COVERAGE_CARE_PROPOSED_DISCIPLINES,
+  LISTING_PUBLICATION_STATUS,
+} from "@/lib/tenancy/coverage-care-brand";

@@ -4,8 +4,7 @@ import {
   ensureCoverageCareEnabled,
 } from "@/lib/config/coverage-care";
 import { recordCoverageCareAudit } from "@/lib/coverage-care/core-bridge";
-import { DEFAULT_COVERAGE_CARE_HOST } from "@/lib/coverage-care/host-routing";
-import { assertProviderTenantAdmin } from "@/lib/coverage-care/permissions";
+import { assertProviderTenantStaff } from "@/lib/coverage-care/permissions";
 import {
   getCoverageCareMemoryState,
   memoryCreateId,
@@ -13,6 +12,10 @@ import {
 } from "@/lib/coverage-care/store/memory-store";
 import { getCoverageCareTenant } from "@/lib/coverage-care/tenant-context";
 import type { CoverageCareProvisionCheck } from "@/lib/coverage-care/types";
+import {
+  PROPOSED_COVERAGE_CARE_HOST,
+  RESERVED_TENANT_HOST_LABELS,
+} from "@/lib/tenancy/tenant-host-policy";
 
 function assertProvisioningEnabled() {
   ensureCoverageCareEnabled();
@@ -21,28 +24,43 @@ function assertProvisioningEnabled() {
   }
 }
 
-/**
- * Domain-readiness preview only. Never writes DNS, certificates, or cookies.
- */
 export function runProvisioningPreview(input: {
   actor: CurrentUser;
   actorTenantId: string;
 }): CoverageCareProvisionCheck[] {
   assertProvisioningEnabled();
   const tenant = getCoverageCareTenant();
-  assertProviderTenantAdmin(input.actor, input.actorTenantId, tenant.id);
+  assertProviderTenantStaff(input.actor, input.actorTenantId, tenant.id);
 
-  const host = coverageCareConfig.host || DEFAULT_COVERAGE_CARE_HOST;
+  const host = coverageCareConfig.host || PROPOSED_COVERAGE_CARE_HOST;
   const ts = memoryNow();
 
   const checks: CoverageCareProvisionCheck[] = [
     {
       id: memoryCreateId("prov"),
       tenantId: tenant.id,
+      checkCode: "domain_activation",
+      label: "Domain activation status",
+      status: "not_configured",
+      detail: `Proposed host ${host} is NOT CONFIGURED. No DNS, TLS, or Vercel domain attach performed.`,
+      ranAt: ts,
+    },
+    {
+      id: memoryCreateId("prov"),
+      tenantId: tenant.id,
       checkCode: "hostname_configured",
       label: "Hostname configuration present",
       status: host ? "pass" : "fail",
-      detail: `Configured host: ${host} (proposed — not live DNS).`,
+      detail: `Configured proposed host: ${host} (not live DNS).`,
+      ranAt: ts,
+    },
+    {
+      id: memoryCreateId("prov"),
+      tenantId: tenant.id,
+      checkCode: "reserved_hosts",
+      label: "Reserved host labels protected",
+      status: "pass",
+      detail: `Reserved labels never activate as tenants: ${RESERVED_TENANT_HOST_LABELS.join(", ")}.`,
       ranAt: ts,
     },
     {
@@ -78,16 +96,6 @@ export function runProvisioningPreview(input: {
     {
       id: memoryCreateId("prov"),
       tenantId: tenant.id,
-      checkCode: "canonical_seo",
-      label: "Canonical / SEO isolation",
-      status: "pass",
-      detail:
-        "Coverage Care layout sets proposed metadataBase when host rewrite is active; apex robots untouched.",
-      ranAt: ts,
-    },
-    {
-      id: memoryCreateId("prov"),
-      tenantId: tenant.id,
       checkCode: "feature_flags_default_off",
       label: "Feature flags fail-closed",
       status: "pass",
@@ -100,7 +108,7 @@ export function runProvisioningPreview(input: {
       checkCode: "tenant_isolation",
       label: "Tenant-scoped enquiry store",
       status: "pass",
-      detail: "Enquiry and listing reads require matching tenantId.",
+      detail: "Enquiry and listing reads require matching tenantId from server registry.",
       ranAt: ts,
     },
   ];

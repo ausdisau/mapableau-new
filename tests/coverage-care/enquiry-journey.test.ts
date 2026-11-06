@@ -78,6 +78,7 @@ describe("Coverage Care participant journey", () => {
         fieldsShared: ["firstName", "suburb"],
         purpose: "Synthetic allied-health enquiry",
         providerLabel: listing.title,
+        preferredChannel: "email",
       },
     });
     expect(reviewed.status).toBe("sharing_review");
@@ -87,6 +88,7 @@ describe("Coverage Care participant journey", () => {
       participant,
     });
     expect(submitted.status).toBe("submitted");
+    expect(submitted.providerStatus).toBe("new");
     expect(submitted.consentRecordId).toBeTruthy();
 
     const coverageTenant = getCoverageCareTenant();
@@ -102,7 +104,7 @@ describe("Coverage Care participant journey", () => {
       actorTenantId: coverageTenant.id,
       notes: "Synthetic acknowledgement",
     });
-    expect(providerReviewed.status).toBe("provider_reviewed");
+    expect(providerReviewed.providerStatus).toBe("in_review");
 
     const withdrawn = await withdrawCoverageCareEnquiry({
       enquiryId: draft.id,

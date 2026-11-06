@@ -3,34 +3,51 @@ import {
   memoryCreateId,
   memoryNow,
 } from "@/lib/coverage-care/store/memory-store";
+import type { CoverageCareTenantRecord } from "@/lib/coverage-care/types";
 import {
-  ACME_CARE_TENANT_SLUG,
-  COVERAGE_CARE_TENANT_SLUG,
-  type CoverageCareTenantRecord,
-} from "@/lib/coverage-care/types";
+  getAcmeCareRegisteredTenant,
+  getCoverageCareRegisteredTenant,
+  resolveTenantBySlug,
+} from "@/lib/tenancy/tenant-registry";
 
 export function resolveCoverageCareTenantBySlug(
   slug: string,
 ): CoverageCareTenantRecord | null {
+  const registered = resolveTenantBySlug(slug);
+  if (!registered) return null;
   return (
-    getCoverageCareMemoryState().tenants.find((t) => t.slug === slug) ?? null
+    getCoverageCareMemoryState().tenants.find((t) => t.id === registered.id) ??
+    {
+      id: registered.id,
+      slug: registered.slug,
+      name: registered.name,
+      organisationId: registered.organisationId,
+    }
   );
 }
 
 export function getCoverageCareTenant(): CoverageCareTenantRecord {
-  const tenant = resolveCoverageCareTenantBySlug(COVERAGE_CARE_TENANT_SLUG);
-  if (!tenant) {
-    throw new Error("COVERAGE_CARE_TENANT_MISSING");
-  }
-  return tenant;
+  const registered = getCoverageCareRegisteredTenant();
+  return (
+    getCoverageCareMemoryState().tenants.find((t) => t.id === registered.id) ?? {
+      id: registered.id,
+      slug: registered.slug,
+      name: registered.name,
+      organisationId: registered.organisationId,
+    }
+  );
 }
 
 export function getAcmeCareTenant(): CoverageCareTenantRecord {
-  const tenant = resolveCoverageCareTenantBySlug(ACME_CARE_TENANT_SLUG);
-  if (!tenant) {
-    throw new Error("ACME_CARE_TENANT_MISSING");
-  }
-  return tenant;
+  const registered = getAcmeCareRegisteredTenant();
+  return (
+    getCoverageCareMemoryState().tenants.find((t) => t.id === registered.id) ?? {
+      id: registered.id,
+      slug: registered.slug,
+      name: registered.name,
+      organisationId: registered.organisationId,
+    }
+  );
 }
 
 export function recordAccessDenial(input: {
@@ -56,4 +73,10 @@ export function listAccessDenials(tenantId?: string) {
   const denials = getCoverageCareMemoryState().denials;
   if (!tenantId) return [...denials];
   return denials.filter((d) => d.attemptedTenantId === tenantId);
+}
+
+export function listSyntheticDelegates(participantUserId?: string) {
+  const delegates = getCoverageCareMemoryState().delegates;
+  if (!participantUserId) return [...delegates];
+  return delegates.filter((d) => d.participantUserId === participantUserId);
 }

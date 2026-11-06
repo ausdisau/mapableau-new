@@ -1,4 +1,3 @@
-import { COVERAGE_CARE_BRAND } from "@/lib/coverage-care/brand";
 import type {
   CoverageCareAccessDenial,
   CoverageCareBrandContentItem,
@@ -6,11 +5,17 @@ import type {
   CoverageCareProvisionCheck,
   CoverageCareServiceListing,
   CoverageCareTenantRecord,
+  SyntheticDelegateGrant,
 } from "@/lib/coverage-care/types";
 import {
-  ACME_CARE_TENANT_SLUG,
-  COVERAGE_CARE_TENANT_SLUG,
-} from "@/lib/coverage-care/types";
+  COVERAGE_CARE_BRAND,
+  COVERAGE_CARE_PROPOSED_DISCIPLINES,
+  LISTING_PUBLICATION_STATUS,
+} from "@/lib/tenancy/coverage-care-brand";
+import {
+  getAcmeCareRegisteredTenant,
+  getCoverageCareRegisteredTenant,
+} from "@/lib/tenancy/tenant-registry";
 
 function nowIso() {
   return new Date().toISOString();
@@ -19,6 +24,14 @@ function nowIso() {
 function id(prefix: string) {
   return `${prefix}_${crypto.randomUUID()}`;
 }
+
+const REGION_CYCLE = [
+  "Greater Sydney (synthetic)",
+  "Illawarra (synthetic)",
+  "Hunter (synthetic)",
+  "ACT (synthetic)",
+  "South East Queensland (synthetic)",
+] as const;
 
 export interface CoverageCareMemoryState {
   tenants: CoverageCareTenantRecord[];
@@ -31,91 +44,70 @@ export interface CoverageCareMemoryState {
     string,
     { tagline: string; values: string[]; approvalStatus: string }
   >;
+  delegates: SyntheticDelegateGrant[];
+}
+
+function seedListings(coverageTenantId: string, acmeTenantId: string, ts: string) {
+  const listings: CoverageCareServiceListing[] = COVERAGE_CARE_PROPOSED_DISCIPLINES.map(
+    (discipline, index) => ({
+      id: `listing_cc_${index + 1}`,
+      tenantId: coverageTenantId,
+      title: `${discipline} (proposed)`,
+      discipline,
+      region: REGION_CYCLE[index % REGION_CYCLE.length]!,
+      accessibilityNotes:
+        "Access details awaiting verification. AAC-friendly and step-free options may be available after verification.",
+      summary: `Proposed ${discipline} listing for Coverage Care pilot exploration. Not a live provider. Availability, practitioners and registration are not verified.`,
+      provenance: "synthetic_demo",
+      publicationStatus: LISTING_PUBLICATION_STATUS,
+      createdAt: ts,
+      updatedAt: ts,
+    }),
+  );
+
+  listings.push({
+    id: "listing_acme_ot",
+    tenantId: acmeTenantId,
+    title: "Acme OT (other tenant — isolation fixture)",
+    discipline: "Occupational Therapy",
+    region: "Melbourne (synthetic)",
+    accessibilityNotes: "Isolation test fixture only.",
+    summary: "Belongs to fictional second tenant acme-care.",
+    provenance: "synthetic_demo",
+    publicationStatus: LISTING_PUBLICATION_STATUS,
+    createdAt: ts,
+    updatedAt: ts,
+  });
+
+  return listings;
 }
 
 function seedState(): CoverageCareMemoryState {
-  const coverageTenantId = "tenant_coverage_care";
-  const acmeTenantId = "tenant_acme_care";
+  const coverage = getCoverageCareRegisteredTenant();
+  const acme = getAcmeCareRegisteredTenant();
   const ts = nowIso();
-
-  const listings: CoverageCareServiceListing[] = [
-    {
-      id: "listing_cc_ot",
-      tenantId: coverageTenantId,
-      title: "Community Occupational Therapy (demo)",
-      discipline: "Occupational Therapy",
-      region: "Greater Sydney (synthetic)",
-      accessibilityNotes:
-        "Wheelchair-accessible clinic rooms. AAC-friendly communication available on request.",
-      summary:
-        "Synthetic allied-health listing for Coverage Care pilot exploration. Not a live provider.",
-      provenance: "synthetic_demo",
-      createdAt: ts,
-      updatedAt: ts,
-    },
-    {
-      id: "listing_cc_speech",
-      tenantId: coverageTenantId,
-      title: "Speech Pathology — home & telehealth (demo)",
-      discipline: "Speech Pathology",
-      region: "Illawarra (synthetic)",
-      accessibilityNotes:
-        "Telehealth and home-visit options. Easy-read materials available.",
-      summary:
-        "Demo speech pathology directory entry. Availability and registration are not verified.",
-      provenance: "synthetic_demo",
-      createdAt: ts,
-      updatedAt: ts,
-    },
-    {
-      id: "listing_cc_physio",
-      tenantId: coverageTenantId,
-      title: "Physiotherapy & mobility support (demo)",
-      discipline: "Physiotherapy",
-      region: "Hunter (synthetic)",
-      accessibilityNotes:
-        "Step-free entry. Quiet waiting room option.",
-      summary:
-        "Synthetic physiotherapy listing. Do not treat as confirmed NDIS registration.",
-      provenance: "synthetic_demo",
-      createdAt: ts,
-      updatedAt: ts,
-    },
-    {
-      id: "listing_acme_ot",
-      tenantId: acmeTenantId,
-      title: "Acme OT (other tenant — isolation fixture)",
-      discipline: "Occupational Therapy",
-      region: "Melbourne (synthetic)",
-      accessibilityNotes: "Isolation test fixture only.",
-      summary: "Belongs to fictional second tenant acme-care.",
-      provenance: "synthetic_demo",
-      createdAt: ts,
-      updatedAt: ts,
-    },
-  ];
 
   return {
     tenants: [
       {
-        id: coverageTenantId,
-        slug: COVERAGE_CARE_TENANT_SLUG,
-        name: COVERAGE_CARE_BRAND.name,
-        organisationId: "org_coverage_care",
+        id: coverage.id,
+        slug: coverage.slug,
+        name: coverage.name,
+        organisationId: coverage.organisationId,
       },
       {
-        id: acmeTenantId,
-        slug: ACME_CARE_TENANT_SLUG,
-        name: "Acme Care (fictional isolation tenant)",
-        organisationId: "org_acme_care",
+        id: acme.id,
+        slug: acme.slug,
+        name: acme.name,
+        organisationId: acme.organisationId,
       },
     ],
-    listings,
+    listings: seedListings(coverage.id, acme.id, ts),
     enquiries: [],
     brandItems: [
       {
         id: "brand_msg_1",
-        tenantId: coverageTenantId,
+        tenantId: coverage.id,
         kind: "messaging",
         title: "Homepage welcome",
         body: COVERAGE_CARE_BRAND.tagline,
@@ -127,7 +119,7 @@ function seedState(): CoverageCareMemoryState {
       },
       {
         id: "brand_asset_1",
-        tenantId: coverageTenantId,
+        tenantId: coverage.id,
         kind: "brand_asset",
         title: "Organic wave wordmark",
         body: "svg:coverage-care-wave",
@@ -141,12 +133,22 @@ function seedState(): CoverageCareMemoryState {
     provisionChecks: [],
     denials: [],
     brandMessaging: {
-      [coverageTenantId]: {
+      [coverage.id]: {
         tagline: COVERAGE_CARE_BRAND.tagline,
         values: [...COVERAGE_CARE_BRAND.values],
         approvalStatus: "approved",
       },
     },
+    delegates: [
+      {
+        id: "delegate_cc_demo",
+        participantUserId: "user_cc_participant_demo",
+        delegateUserId: "user_cc_delegate_demo",
+        scope: "enquiry.assist_text_only",
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        revokedAt: null,
+      },
+    ],
   };
 }
 

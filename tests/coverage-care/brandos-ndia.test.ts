@@ -61,6 +61,12 @@ describe("Coverage Care BrandOS, provisioning, NDIA", () => {
       actor: admin,
       actorTenantId: tenant.id,
     });
+    expect(
+      checks.some(
+        (c) =>
+          c.checkCode === "domain_activation" && c.status === "not_configured",
+      ),
+    ).toBe(true);
     expect(checks.some((c) => c.checkCode === "dns_ownership" && c.status === "blocked")).toBe(
       true,
     );
@@ -74,5 +80,11 @@ describe("Coverage Care BrandOS, provisioning, NDIA", () => {
     expect(readiness.liveSubmissionEnabled).toBe(false);
     expect(readiness.status).toBe("disabled");
     expect(readiness.gatewayName).toBe("official_disabled");
+    expect(
+      readiness.capabilities.every(
+        (c) => c.code === "NOT_AUTHORISED_OR_NOT_CONFIGURED",
+      ),
+    ).toBe(true);
   });
 });
+

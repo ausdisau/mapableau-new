@@ -1,6 +1,6 @@
 import type { CurrentUser } from "@/lib/auth/current-user";
-import { isAdminRole } from "@/lib/auth/roles";
 import type { CoverageCareEnquiry } from "@/lib/coverage-care/types";
+import { isProviderVisible } from "@/lib/tenancy/tenant-enquiry-model";
 
 export class CoverageCarePermissionError extends Error {
   constructor(
@@ -9,7 +9,8 @@ export class CoverageCarePermissionError extends Error {
       | "FORBIDDEN"
       | "TENANT_MISMATCH"
       | "NOT_OWNER"
-      | "ROLE_REQUIRED",
+      | "ROLE_REQUIRED"
+      | "CONSENT_WITHDRAWN",
   ) {
     super(message);
     this.name = "CoverageCarePermissionError";
@@ -34,11 +35,15 @@ export function assertSameTenant(
   }
 }
 
+/**
+ * Participant ownership only. Platform admin does NOT inherit participant
+ * authority (prompt: mapable_admin must not auto-access participant records).
+ */
 export function assertEnquiryParticipant(
   user: CurrentUser,
   enquiry: CoverageCareEnquiry,
 ): void {
-  if (enquiry.participantUserId !== user.id && !isAdminRole(user.primaryRole)) {
+  if (enquiry.participantUserId !== user.id) {
     throw new CoverageCarePermissionError(
       "Only the participant who created this enquiry may perform this action.",
       "NOT_OWNER",
@@ -46,7 +51,7 @@ export function assertEnquiryParticipant(
   }
 }
 
-export function assertProviderTenantAdmin(
+export function assertProviderTenantStaff(
   user: CurrentUser,
   actorTenantId: string | null | undefined,
   resourceTenantId: string,
@@ -55,13 +60,23 @@ export function assertProviderTenantAdmin(
   const allowed =
     user.primaryRole === "provider_admin" ||
     user.roles.includes("provider_admin") ||
-    isAdminRole(user.primaryRole);
+    user.primaryRole === "support_worker" ||
+    user.roles.includes("support_worker");
   if (!allowed) {
     throw new CoverageCarePermissionError(
-      "Provider administrator role is required.",
+      "Coverage Care provider staff role is required.",
       "ROLE_REQUIRED",
     );
   }
+}
+
+/** @deprecated Use assertProviderTenantStaff — name retained for call-site compatibility. */
+export function assertProviderTenantAdmin(
+  user: CurrentUser,
+  actorTenantId: string | null | undefined,
+  resourceTenantId: string,
+): void {
+  assertProviderTenantStaff(user, actorTenantId, resourceTenantId);
 }
 
 export function canReadProviderInbox(user: CurrentUser): boolean {
@@ -69,7 +84,19 @@ export function canReadProviderInbox(user: CurrentUser): boolean {
     user.primaryRole === "provider_admin" ||
     user.roles.includes("provider_admin") ||
     user.primaryRole === "support_worker" ||
-    user.roles.includes("support_worker") ||
-    isAdminRole(user.primaryRole)
+    user.roles.includes("support_worker")
   );
+}
+
+export function assertProviderCanViewEnquiry(enquiry: CoverageCareEnquiry): void {
+  if (
+    !isProviderVisible(enquiry.status, enquiry.providerStatus) ||
+    enquiry.deletedAt ||
+    enquiry.status === "withdrawn"
+  ) {
+    throw new CoverageCarePermissionError(
+      "Consent withdrawn or enquiry not visible to provider.",
+      "CONSENT_WITHDRAWN",
+    );
+  }
 }

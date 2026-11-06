@@ -1,25 +1,27 @@
-export const COVERAGE_CARE_TENANT_SLUG = "coverage-care" as const;
+import { LISTING_PUBLICATION_STATUS } from "@/lib/tenancy/coverage-care-brand";
+import type {
+  CommunicationChannel,
+  EnquirySharePreview,
+  ParticipantEnquiryStatus,
+  ProviderInboxStatus,
+} from "@/lib/tenancy/tenant-enquiry-model";
+
+export const COVERAGE_CARE_TENANT_SLUG = "coveragecare" as const;
 export const ACME_CARE_TENANT_SLUG = "acme-care" as const;
 
-export const COVERAGE_CARE_ENQUIRY_STATUSES = [
-  "draft",
-  "sharing_review",
-  "submitted",
-  "provider_reviewed",
-  "withdrawn",
-  "deleted",
-] as const;
+export type CoverageCareEnquiryStatus = ParticipantEnquiryStatus;
+export type CoverageCareProviderStatus = ProviderInboxStatus;
+export type CoverageCareSharePreview = EnquirySharePreview;
+export type CoverageCareCommunicationChannel = CommunicationChannel;
 
-export type CoverageCareEnquiryStatus =
-  (typeof COVERAGE_CARE_ENQUIRY_STATUSES)[number];
-
-/** Directory provenance — never claim NDIS verification from synthetic data. */
 export const COVERAGE_CARE_LISTING_PROVENANCES = [
   "synthetic_demo",
 ] as const;
 
 export type CoverageCareListingProvenance =
   (typeof COVERAGE_CARE_LISTING_PROVENANCES)[number];
+
+export const COVERAGE_CARE_PUBLICATION_STATUS = LISTING_PUBLICATION_STATUS;
 
 export const COVERAGE_CARE_BRAND_APPROVAL_STATUSES = [
   "draft",
@@ -57,15 +59,9 @@ export interface CoverageCareServiceListing {
   accessibilityNotes: string;
   summary: string;
   provenance: CoverageCareListingProvenance;
+  publicationStatus: typeof LISTING_PUBLICATION_STATUS;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface CoverageCareSharePreview {
-  fieldsShared: string[];
-  purpose: string;
-  providerLabel: string;
-  participantNote?: string;
 }
 
 export interface CoverageCareEnquiry {
@@ -74,9 +70,12 @@ export interface CoverageCareEnquiry {
   participantUserId: string;
   listingId: string | null;
   status: CoverageCareEnquiryStatus;
+  providerStatus: CoverageCareProviderStatus | null;
   sharePreview: CoverageCareSharePreview | null;
   consentRecordId: string | null;
   providerNotes: string | null;
+  providerReply: string | null;
+  responderLabel: string | null;
   withdrawnAt: string | null;
   deletedAt: string | null;
   createdAt: string;
@@ -101,7 +100,7 @@ export interface CoverageCareProvisionCheck {
   tenantId: string;
   checkCode: string;
   label: string;
-  status: "pass" | "fail" | "blocked" | "not_run";
+  status: "pass" | "fail" | "blocked" | "not_run" | "not_configured";
   detail: string;
   ranAt: string;
 }
@@ -121,4 +120,13 @@ export interface CoverageCareAccessDenial {
   resourceId?: string;
   reason: "TENANT_CONTEXT_REQUIRED" | "TENANT_MISMATCH" | "CROSS_TENANT_DENIED";
   createdAt: string;
+}
+
+export interface SyntheticDelegateGrant {
+  id: string;
+  participantUserId: string;
+  delegateUserId: string;
+  scope: string;
+  expiresAt: string;
+  revokedAt: string | null;
 }
