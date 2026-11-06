@@ -3,6 +3,7 @@ import { z } from "zod";
 export const CONTACT_TOPICS = [
   "pilot",
   "provider",
+  "provider_pilot",
   "accessibility",
   "privacy",
   "general",
@@ -13,6 +14,7 @@ export type ContactTopic = (typeof CONTACT_TOPICS)[number];
 export const contactTopicLabels: Record<ContactTopic, string> = {
   pilot: "Pilot or early access",
   provider: "Provider registration",
+  provider_pilot: "Provider pilot expression of interest",
   accessibility: "Accessibility feedback",
   privacy: "Privacy or data request",
   general: "General enquiry",
@@ -22,6 +24,8 @@ export const contactFormSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(120),
   email: z.string().trim().email("Enter a valid email address").max(254),
   topic: z.enum(CONTACT_TOPICS),
+  /** Organisation name for provider pilot interest. Optional for other topics. */
+  organisationName: z.string().trim().max(160).optional(),
   message: z
     .string()
     .trim()
