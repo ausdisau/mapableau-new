@@ -4,6 +4,7 @@ import React from "react";
 import { TrustStrip } from "@/components/marketing/home/TrustStrip";
 import { ArrowIcon } from "@/components/marketing/mapable-care-icons";
 import { WavyText } from "@/components/marketing/MapAbleCareTypography";
+import { MAPABLE_LOGO_ALT, MAPABLE_LOGO_LOCKUP_SRC } from "@/lib/brand/constants";
 import {
   homepageHeroCopy,
   homepageHeroCtas,
@@ -27,35 +28,45 @@ export function HeroSection() {
         aria-hidden="true"
         className="absolute bottom-[-12rem] left-[-8rem] h-[30rem] w-[30rem] animate-[pulse_11s_ease-in-out_infinite] rounded-full bg-[#005B7F]/16 blur-3xl motion-reduce:animate-none motion-reduce:blur-none"
       />
-      <div className="relative mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-24">
-        <Eyebrow className="mb-4 border-none bg-transparent px-0 text-sm tracking-[0.18em]">
-          MapAble Australia
-        </Eyebrow>
-        <h1
-          aria-label={homepageHeroCopy.headline}
-          className="max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-[#0C1833] md:text-6xl lg:text-7xl"
-        >
-          <WavyText text={homepageHeroCopy.headline} />
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-          {homepageHeroCopy.subheading}
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          {homepageHeroCtas.map((cta, index) => (
-            <Button
-              key={cta.href}
-              variant={ctaVariants[index] ?? "brandOutline"}
-              size="lg"
-              asChild
-            >
-              <Link href={cta.href}>
-                {cta.label}
-                {index === 0 ? <ArrowIcon /> : null}
-              </Link>
-            </Button>
-          ))}
+      <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 lg:grid-cols-[16rem_minmax(0,1fr)] lg:px-8 lg:py-24">
+        <img
+          src={MAPABLE_LOGO_LOCKUP_SRC}
+          alt={MAPABLE_LOGO_ALT}
+          width={1254}
+          height={1254}
+          className="mx-auto h-auto w-full max-w-[16rem] bg-white object-contain"
+          decoding="async"
+        />
+        <div>
+          <Eyebrow className="mb-4 border-none bg-transparent px-0 text-sm tracking-[0.18em]">
+            MapAble Australia
+          </Eyebrow>
+          <h1
+            aria-label={homepageHeroCopy.headline}
+            className="max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-[#0C1833] md:text-6xl lg:text-7xl"
+          >
+            <WavyText text={homepageHeroCopy.headline} />
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+            {homepageHeroCopy.subheading}
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {homepageHeroCtas.map((cta, index) => (
+              <Button
+                key={cta.href}
+                variant={ctaVariants[index] ?? "brandOutline"}
+                size="lg"
+                asChild
+              >
+                <Link href={cta.href}>
+                  {cta.label}
+                  {index === 0 ? <ArrowIcon /> : null}
+                </Link>
+              </Button>
+            ))}
+          </div>
+          <TrustStrip />
         </div>
-        <TrustStrip />
       </div>
     </section>
   );

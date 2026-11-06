@@ -29,6 +29,14 @@ export function HomepageExploreStrip() {
           tools. Care bookings, live transport matching, and NDIS claims stay
           separately governed and are not generally available here.
         </p>
+        <p className="mt-4">
+          <Link
+            href="/explore"
+            className="font-black text-[#005B7F] underline-offset-4 hover:underline focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+          >
+            Open the full Explore MapAble page
+          </Link>
+        </p>
         <AppGrid columns={3} className="mt-8 gap-x-8 gap-y-6">
           {homepageExploreFeatures.map((feature) => (
             <ModuleCard

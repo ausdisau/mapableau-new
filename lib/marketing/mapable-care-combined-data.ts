@@ -114,18 +114,96 @@ export const logoMenuItems: MenuItem[] = [
 ];
 
 export const homepageHeroCopy = {
-  headline: "Accessibility you can plan around.",
+  headline: "MapAble — Access, Choice and Connection.",
   subheading:
-    "Use MapAble’s public accessibility map and programme explainers today, then pre-register for the controlled pilot as a participant or provider.",
-  primaryCta: "Pre-register interest",
-  secondaryCta: "Explore accessible places",
+    "Digital tools designed with people with disability to make information, services and communities easier to navigate.",
+  primaryCta: "Explore MapAble",
+  secondaryCta: "Register Provider Interest",
 };
 
-/** Informational-release CTAs — splash page anchors + public informational destinations. */
+/** Informational-release CTAs — public marketing destinations. */
 export const homepageHeroCtas = [
-  { label: "Pre-register interest", href: "#pre-register" },
-  { label: "Explore accessible places", href: "/accessibility-map" },
-  { label: "About MapAble", href: "/about" },
+  { label: "Explore MapAble", href: "/explore" },
+  { label: "Register Provider Interest", href: "/register-interest" },
+] as const;
+
+export type ExploreServiceStatus = "available" | "in_development";
+
+/** Public catalogue. Status text is required — colour is never the only signal. */
+export const exploreServiceCatalogue: {
+  title: string;
+  status: ExploreServiceStatus;
+  statusLabel: string;
+  body: string;
+  href: string;
+}[] = [
+  {
+    title: "Accessibility mapping",
+    status: "available",
+    statusLabel: "Available now",
+    body: "Browse public access notes so you can plan a visit. Notes are informational and should be checked before you travel.",
+    href: "/accessibility-map",
+  },
+  {
+    title: "Care",
+    status: "available",
+    statusLabel: "Available now",
+    body: "Read how consent-aware care coordination is intended to work. Bookings are not generally available on this public site.",
+    href: "/care",
+  },
+  {
+    title: "Transport",
+    status: "available",
+    statusLabel: "Available now",
+    body: "Read the accessible transport programme. Live matching and trip booking are not generally available.",
+    href: "/transport",
+  },
+  {
+    title: "Jobs",
+    status: "in_development",
+    statusLabel: "In development",
+    body: "Employment pathway information is published for feedback. Job applications are not a general public service yet.",
+    href: "/employment",
+  },
+  {
+    title: "Places",
+    status: "available",
+    statusLabel: "Available now",
+    body: "Use the accessibility map to explore places. A separate places laboratory remains a prototype, not a live directory.",
+    href: "/accessibility-map",
+  },
+  {
+    title: "Marketplace",
+    status: "in_development",
+    statusLabel: "In development",
+    body: "Marketplace ideas are explained publicly. Checkout and payments are not generally available.",
+    href: "/marketplace",
+  },
+  {
+    title: "Community connections",
+    status: "available",
+    statusLabel: "Available now",
+    body: "Peer and community pages introduce ways to share access information. They do not replace human support.",
+    href: "/peer",
+  },
+];
+
+export const homepagePathways = [
+  {
+    title: "For Participants",
+    body: "Discover information and services while retaining control over personal decisions.",
+    href: "/for-participants",
+  },
+  {
+    title: "For Providers",
+    body: "Explore proposed tools for service coordination and accessible digital operations.",
+    href: "/for-providers",
+  },
+  {
+    title: "For Communities",
+    body: "Contribute to more inclusive places, information and connections.",
+    href: "/peer",
+  },
 ] as const;
 
 export const homepageCategoryChips = [
@@ -272,7 +350,7 @@ export const homepageProviderPitch = {
     "Consent-aware coordination (pilot)",
   ],
   ctaLabel: "Register provider interest",
-  ctaHref: "/for-providers",
+  ctaHref: "/register-interest",
 };
 
 export const homepageFinalCta = {
@@ -473,20 +551,19 @@ export const marketplaceCards: MarketplaceCard[] = [
 ];
 
 export const footerPlatformLinks: FooterLink[] = [
-  { label: "Care", href: "/care" },
-  { label: "Transport", href: "/transport" },
-  { label: "Employment", href: "/employment" },
-  { label: "Providers", href: "/providers" },
+  { label: "Explore", href: "/explore" },
+  { label: "For people", href: "/for-participants" },
+  { label: "For providers", href: "/for-providers" },
+  { label: "White-label", href: "/white-label" },
+  { label: "Technology", href: "/technology" },
   { label: "Accessible places", href: "/accessibility-map" },
-  { label: "Provider finder", href: "/provider-finder" },
 ];
 
 export const footerResourceLinks: FooterLink[] = [
-  { label: "Resources", href: "/resources" },
-  { label: "Local Access Guides", href: "/guides" },
-  { label: "Help Centre", href: "/help" },
-  { label: "Register provider interest", href: "/for-providers" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
+  { label: "Register provider interest", href: "/register-interest" },
+  { label: "Help Centre", href: "/help" },
   { label: "Privacy", href: "/privacy" },
   { label: "Accessibility", href: "/accessibility-statement" },
 ];
