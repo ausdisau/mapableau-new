@@ -23,6 +23,7 @@ export function PublicInfoPage({
   sections,
   ctaLabel = "Contact MapAble",
   ctaHref = "/contact",
+  media,
 }: {
   eyebrow: string;
   title: string;
@@ -30,6 +31,7 @@ export function PublicInfoPage({
   sections: PublicInfoSection[];
   ctaLabel?: string;
   ctaHref?: string;
+  media?: ReactNode;
 }) {
   return (
     <div className="bg-white text-[#0C1833]">
@@ -39,6 +41,8 @@ export function PublicInfoPage({
           className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F8C51C]/25 blur-3xl"
         />
         <div className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}>
+          <div className={media ? "grid items-center gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]" : ""}>
+          {media}
           <div className="max-w-3xl">
             <p className={mapablePublicEyebrowClass}>{eyebrow}</p>
             <h1 className={`${mapablePublicTitleClass} mt-3`}>{title}</h1>
@@ -46,6 +50,7 @@ export function PublicInfoPage({
             <Link href={ctaHref} className={`${mapablePublicPrimaryButtonClass} mt-8`}>
               {ctaLabel}
             </Link>
+          </div>
           </div>
         </div>
       </section>

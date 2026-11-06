@@ -13,7 +13,7 @@ import {
 export const metadata = {
   title: "For providers | MapAble",
   description:
-    "Register provider interest for the MapAble controlled pilot and verification pathway.",
+    "MapAble Support Cloud is a proposed white-label workspace for disability service organisations. Register interest in a controlled pilot.",
 };
 
 export default function ForProvidersPage() {
@@ -25,36 +25,49 @@ export default function ForProvidersPage() {
     <>
       <PublicInfoPage
         eyebrow="For providers"
-        title="Prepare your organisation for safer participant-facing operations."
-        description="MapAble is designed for providers that need consent-aware intake, bookings, workforce eligibility, service evidence and participant review."
+        title="MapAble Support Cloud for your organisation."
+        description="Support Cloud is a proposed white-label platform for branded provider portals, organisational dashboards, support coordination and service discovery. It is not live hosting."
         ctaLabel="Register provider interest"
-        ctaHref="/contact"
+        ctaHref="/register-interest"
         sections={[
           {
             title: "What providers can do now",
             content: (
               <ul className="list-disc space-y-2 pl-5">
-                <li>Register interest in the controlled pilot.</li>
+                <li>Register interest in a controlled provider pilot.</li>
                 <li>
                   Explore the public provider finder and public module pages.
                 </li>
-                <li>Review the planned verification and safety approach.</li>
+                <li>
+                  Read how{" "}
+                  <Link href="/white-label" className="font-medium text-primary hover:underline">
+                    white-label workspaces
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/technology" className="font-medium text-primary hover:underline">
+                    planned integrations
+                  </Link>{" "}
+                  are proposed. Prefer a conversation first?{" "}
+                  <Link href="/contact" className="font-medium text-primary hover:underline">
+                    Contact MapAble
+                  </Link>
+                  .
+                </li>
               </ul>
             ),
           },
           {
-            title: "What is coming soon",
+            title: "Proposed Support Cloud tools",
             content: (
               <ul className="list-disc space-y-2 pl-5">
+                <li>Branded provider portals and organisational dashboards.</li>
+                <li>Support coordination and service discovery workflows.</li>
                 <li>
-                  Organisation profiles, service regions and service catalogues.
+                  Accounting connections, including Xero, are planned and are
+                  not a live sync.
                 </li>
                 <li>
-                  Worker, driver, vehicle and practitioner credential tracking.
-                </li>
-                <li>
-                  Booking inboxes, service logs, invoice evidence and audit
-                  trails.
+                  A draft preview, if offered later, does not configure DNS.
                 </li>
               </ul>
             ),
