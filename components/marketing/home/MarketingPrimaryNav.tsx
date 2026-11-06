@@ -6,7 +6,6 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
-import { PayPalDonateButton } from "@/components/paypal/PayPalDonateButton";
 import { marketingFeatureRoutes } from "@/lib/marketing/mapable-care-routes";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
@@ -64,6 +63,7 @@ function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
   );
 }
 
+/** Primary marketing nav — redesign IA (≤8 items). PayPal lives in the footer. */
 export function MarketingPrimaryNav() {
   const pathname = usePathname();
   const isHome = pathname === "/";
@@ -71,20 +71,19 @@ export function MarketingPrimaryNav() {
   const navRef = useRef<HTMLDivElement>(null);
   useDismissOnOutsideAndEscape(mobileOpen, () => setMobileOpen(false), navRef);
 
+  const preRegisterHref = isHome ? "#pre-register" : "/#pre-register";
+
   const primaryLinks = [
-    {
-      label: "Pre-register",
-      href: isHome ? "#pre-register" : "/#pre-register",
-    },
     { label: "Places", href: "/accessibility-map" },
-    ...(process.env.NEXT_PUBLIC_MAPABLE_PLACES_PROTOTYPE_ENABLED === "true"
-      ? [{ label: "Places Lab", href: "/places" }]
-      : []),
-    { label: "Guides", href: "/guides" },
+    { label: "How it works", href: "/how-it-works" },
     { label: "Transport", href: "/transport" },
-    { label: "Providers", href: "/providers" },
-    { label: "NDIS Guidance", href: marketingFeatureRoutes.ask },
+    { label: "Services", href: "/care" },
+    { label: "Jobs", href: "/employment" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
   ];
+
+  const preRegisterClassName = `inline-flex min-h-11 items-center justify-center rounded-xl bg-[#F8C51C] px-4 py-2 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#e6b412] ${mapableCareFocusRing}`;
 
   return (
     <div
@@ -99,7 +98,7 @@ export function MarketingPrimaryNav() {
         onClick={() => setMobileOpen(false)}
       />
 
-      <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
+      <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
         {primaryLinks.map((link) => (
           <Link key={link.label} href={link.href} className={navLinkClass}>
             {link.label}
@@ -111,7 +110,12 @@ export function MarketingPrimaryNav() {
         <div className="hidden md:block">
           <AccessibilityPanelTrigger />
         </div>
-        <PayPalDonateButton />
+        <Link
+          href={preRegisterHref}
+          className={`hidden sm:inline-flex ${preRegisterClassName}`}
+        >
+          Pre-register
+        </Link>
         <div className="hidden md:flex">
           <MarketingAuthLinks />
         </div>
@@ -120,7 +124,7 @@ export function MarketingPrimaryNav() {
           aria-expanded={mobileOpen}
           aria-controls="marketing-primary-nav-mobile"
           onClick={() => setMobileOpen(!mobileOpen)}
-          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black md:hidden ${mapableCareFocusRing}`}
+          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black lg:hidden ${mapableCareFocusRing}`}
         >
           Menu
         </button>
@@ -129,9 +133,16 @@ export function MarketingPrimaryNav() {
       {mobileOpen && (
         <div
           id="marketing-primary-nav-mobile"
-          className="absolute left-5 right-5 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl md:hidden"
+          className="absolute left-5 right-5 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl lg:hidden"
         >
           <nav aria-label="Primary mobile" className="grid gap-1">
+            <Link
+              href={preRegisterHref}
+              className={`min-h-11 rounded-xl bg-[#F8C51C] px-4 py-3 text-center text-sm font-black text-[#0C1833] ${mapableCareFocusRing}`}
+              onClick={() => setMobileOpen(false)}
+            >
+              Pre-register
+            </Link>
             {primaryLinks.map((link) => (
               <Link
                 key={link.label}

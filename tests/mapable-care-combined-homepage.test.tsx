@@ -162,6 +162,9 @@ describe("mapAbleCareCombinedDesignTests", () => {
     expect(spec?.expectedSections).toEqual([
       "HeroSection",
       "HomepageExploreStrip",
+      "HomepageHowItWorksTeaser",
+      "HomepageAudienceSection",
+      "HomepageTrustCommunitySection",
       "CompetitorContrastStrip",
       "PreRegistrationSection",
       "HomepageFinalCta",
@@ -172,6 +175,7 @@ describe("mapAbleCareCombinedDesignTests", () => {
     }
     expect(source).not.toContain("HomepageProofStrip");
     expect(source).not.toContain("GuidedSearchPanel");
+    expect(source).not.toContain("MyMapAbleHomepageSection");
   });
 
   it("homepage has single pre-registration panel anchor", () => {
@@ -203,16 +207,35 @@ describe("MapAbleCareCombinedHomepage", () => {
         name: /What you can use on the public site today/i,
       }),
     ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: /Connect places, transport, and support planning/i,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: /Built for people planning access/i,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: /By the community, for the community/i,
+      }),
+    ).toBeTruthy();
+    expect(screen.getAllByText("Available now").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Explainer only").length).toBeGreaterThan(0);
     expect(screen.queryByText("Honest progress signals")).toBeNull();
     expect(screen.queryByText("Coming soon")).toBeNull();
   });
 
-  it("renders a header PayPal control to Australian Disability", () => {
+  it("keeps PayPal donate in the footer, not the primary header", () => {
     const paypal = screen.getByRole("link", { name: "Donate with PayPal" });
     expect(paypal.getAttribute("href")).toBe("https://paypal.me/ausdisau");
     expect(paypal.getAttribute("target")).toBe("_blank");
     expect(paypal.getAttribute("rel")).toBe("noopener noreferrer");
-    expect(screen.queryByRole("link", { name: "Donate" })).toBeNull();
+    expect(paypal.closest("footer")).toBeTruthy();
+    const header = document.querySelector("header");
+    expect(header?.textContent ?? "").not.toMatch(/Donate with PayPal/);
   });
 
   it("renders pre-registration and marketing proof sections", () => {

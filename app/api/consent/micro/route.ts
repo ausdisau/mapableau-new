@@ -5,6 +5,7 @@ import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import { isAdminRole } from "@/lib/auth/roles";
 import {
   exportConsentAuditCsv,
+  exportParticipantConsentAuditCsv,
   isMicroConsentV2Enabled,
   listMicroConsentsForParticipant,
   recordMicroConsentGrant,
@@ -20,12 +21,12 @@ export async function GET(req: Request) {
   const exportCsv = url.searchParams.get("export") === "csv";
 
   if (exportCsv) {
-    if (!isAdminRole(user.primaryRole)) {
-      return jsonError("Forbidden", 403);
-    }
-    const csv = await exportConsentAuditCsv({
-      pseudonymiseParticipants: url.searchParams.get("pseudonymise") === "true",
-    });
+    const csv = isAdminRole(user.primaryRole)
+      ? await exportConsentAuditCsv({
+          pseudonymiseParticipants:
+            url.searchParams.get("pseudonymise") === "true",
+        })
+      : await exportParticipantConsentAuditCsv(user.id);
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv",

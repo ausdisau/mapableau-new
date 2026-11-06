@@ -116,7 +116,7 @@ export const logoMenuItems: MenuItem[] = [
 export const homepageHeroCopy = {
   headline: "Accessibility you can plan around.",
   subheading:
-    "Use MapAble’s public accessibility map and programme explainers today, then pre-register for the controlled pilot as a participant or provider.",
+    "Use MapAble’s evidence-based accessibility map and local guides today — then pre-register for the controlled pilot as a participant or provider.",
   primaryCta: "Pre-register interest",
   secondaryCta: "Explore accessible places",
 };
@@ -143,46 +143,114 @@ export const homepageTrustStripItems = [
   "Built with lived experience",
 ];
 
+export type MaturityLabel =
+  | "Available now"
+  | "Pilot"
+  | "Explainer only"
+  | "Future research";
+
 /**
  * Public surfaces that exist in-repo today (informational / discovery).
  * Keep claims aligned with fail-closed feature flags — no bookings/claims GA.
+ * Phase 1 beachhead priority: Places, Transport, Services (Care).
  */
 export const homepageExploreFeatures = [
   {
     eyebrow: "Places",
     title: "Accessibility map",
-    body: "Browse venues with access notes, measurements, confidence, and sources — so you can plan before you go.",
+    body: "Browse venues with access notes, measurements, confidence, and sources — so you can find accessible places confidently before you go.",
     href: "/accessibility-map",
+    maturity: "Available now" as MaturityLabel,
   },
   {
-    eyebrow: "Care",
-    title: "Care programme explainer",
-    body: "Learn how MapAble approaches consent-aware care coordination. Public pages explain the programme; bookings stay separately governed.",
-    href: "/care",
+    eyebrow: "Guides",
+    title: "Local access guides",
+    body: "Practical local guides and outing tips grounded in accessibility detail — not tourism slogans alone.",
+    href: "/guides",
+    maturity: "Available now" as MaturityLabel,
   },
   {
     eyebrow: "Transport",
     title: "Transport programme explainer",
     body: "Read how accessible journey planning is intended to work. Live matching and trip booking are not generally available on this site.",
     href: "/transport",
+    maturity: "Explainer only" as MaturityLabel,
+  },
+  {
+    eyebrow: "Services",
+    title: "Support & care explainer",
+    body: "Learn how MapAble approaches consent-aware support coordination. Public pages explain the programme; bookings stay separately governed.",
+    href: "/care",
+    maturity: "Explainer only" as MaturityLabel,
   },
   {
     eyebrow: "Jobs",
     title: "Employment pathways",
     body: "Explore inclusive employment programme information and pathways MapAble is building with partners.",
     href: "/employment",
+    maturity: "Explainer only" as MaturityLabel,
   },
   {
     eyebrow: "Providers",
     title: "Provider discovery",
     body: "Find providers and services through public discovery pages. Enquiry and listing interest is available; live marketplace checkout is not.",
     href: "/providers",
+    maturity: "Available now" as MaturityLabel,
+  },
+] as const;
+
+/** Journey chain for /how-it-works — list alternative always preferred for a11y. */
+export const howItWorksSteps: JourneyStep[] = [
+  {
+    number: "01",
+    title: "Start with your goal",
+    body: "Say what you need to do — visit a place, plan transport, or understand support options — in plain language.",
   },
   {
-    eyebrow: "Guidance",
-    title: "NDIS guidance",
-    body: "Ask MapAble for practical NDIS-aware guidance. This is informational support — not NDIA claim submission.",
-    href: "/ask",
+    number: "02",
+    title: "Keep authority and consent",
+    body: "You decide what is shared, with whom, and for what purpose. Consent stays revocable.",
+  },
+  {
+    number: "03",
+    title: "Capture access requirements",
+    body: "Record functional access needs (not inferred diagnoses) so places, trips, and support can fit you.",
+  },
+  {
+    number: "04",
+    title: "Check readiness and fit",
+    body: "See environmental fit, provider or worker readiness, and transport options before you commit.",
+  },
+  {
+    number: "05",
+    title: "Confirm human gates",
+    body: "Search and explore freely. Booking or assignment only proceeds with your explicit confirmation — never silent auto-assign.",
+  },
+  {
+    number: "06",
+    title: "Keep evidence and recovery",
+    body: "When something is delivered, evidence and review stay auditable. If something fails, you can dispute and recover with human help.",
+  },
+];
+
+export const homepageAudienceCards = [
+  {
+    title: "Participants and families",
+    body: "Find accessible places confidently, plan with clearer evidence, and pre-register for the controlled pilot.",
+    href: "/#pre-register",
+    cta: "Pre-register interest",
+  },
+  {
+    title: "Providers and venues",
+    body: "Get positive exposure through free discovery listings and join a governed pilot where readiness and evidence come first.",
+    href: "/for-providers",
+    cta: "Provider interest",
+  },
+  {
+    title: "Support coordinators",
+    body: "Use MapAble as a practical aid to plan outings and access details for the people you support.",
+    href: "/contact",
+    cta: "Contact MapAble",
   },
 ] as const;
 
@@ -473,17 +541,18 @@ export const marketplaceCards: MarketplaceCard[] = [
 ];
 
 export const footerPlatformLinks: FooterLink[] = [
-  { label: "Care", href: "/care" },
+  { label: "Accessible places", href: "/accessibility-map" },
+  { label: "How it works", href: "/how-it-works" },
+  { label: "Services", href: "/care" },
   { label: "Transport", href: "/transport" },
   { label: "Employment", href: "/employment" },
   { label: "Providers", href: "/providers" },
-  { label: "Accessible places", href: "/accessibility-map" },
-  { label: "Provider finder", href: "/provider-finder" },
 ];
 
 export const footerResourceLinks: FooterLink[] = [
   { label: "Resources", href: "/resources" },
   { label: "Local Access Guides", href: "/guides" },
+  { label: "Mapping days", href: "/mapping-days" },
   { label: "Help Centre", href: "/help" },
   { label: "Register provider interest", href: "/for-providers" },
   { label: "Contact", href: "/contact" },
@@ -571,6 +640,9 @@ export const mapAbleCareCombinedDesignTests = [
     expectedSections: [
       "HeroSection",
       "HomepageExploreStrip",
+      "HomepageHowItWorksTeaser",
+      "HomepageAudienceSection",
+      "HomepageTrustCommunitySection",
       "CompetitorContrastStrip",
       "PreRegistrationSection",
       "HomepageFinalCta",

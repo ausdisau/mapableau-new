@@ -36,6 +36,7 @@ export function HomepageExploreStrip() {
               eyebrow={feature.eyebrow}
               title={feature.title}
               description={feature.body}
+              meta={feature.maturity}
               href={feature.href}
               linkComponent={Link}
               className="border-t border-slate-200 bg-white pt-5 shadow-none hover:shadow-sm"

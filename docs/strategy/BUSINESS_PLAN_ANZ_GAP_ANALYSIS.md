@@ -39,23 +39,23 @@ Current product    →  controlled pilots + GO-gated public explainers
 
 ## OWNER_ACTION_REQUIRED — Product north star
 
-**Status:** `AWAITING_LEADERSHIP`  
-**Blocks:** freemium listing tiers, pay-to-rank or premium placement, transaction commissions marketed as a marketplace SKU, Hireup/Mable-clone booking UX on public surfaces, MapAble Marketplace commerce vertical.
+**Status:** `DECIDED_OPTION_A` (2026-11-03)  
+**Blocks (still apply under Option A):** freemium listing tiers, pay-to-rank or premium placement, transaction commissions marketed as a marketplace SKU, Hireup/Mable-clone booking UX on public surfaces, MapAble Marketplace commerce vertical.
 
-Leadership must choose **one** of the following before commission/listing work proceeds:
+Leadership options (recorded below):
 
 | Option | Meaning | Consequence |
 |--------|---------|-------------|
 | **A — Keep orchestration strategy** | Repo [COMPETITIVE_POSITION.md](./COMPETITIVE_POSITION.md) and masterplan remain SoT; business plan is research input only | Continue pilots, Access Map, evidence/billing, honest public copy; **do not** implement marketplace commissions or national worker-marketplace launch (see [BUILD_PARTNER_DEFER.md](./BUILD_PARTNER_DEFER.md)) |
 | **B — Align product to marketplace plan** | Explicitly revise competitive position + claim registry to allow freemium marketplace + commissions | Requires new PRDs, GO-gate changes, consumer-law/NDIS intermediary review, and public claim updates **before** any shipping work |
 
-Until Option A or B is recorded here (date + decision owner), engineering must **not** silently implement plan monetization against current claim gates.
+**Active north star: Option A.** Engineering must **not** silently implement plan monetization against current claim gates. Revisit only with an explicit Option B decision log entry.
 
 **Decision log**
 
 | Date | Decision | Owner | Notes |
 |------|----------|-------|-------|
-| — | *Pending* | — | Fill when leadership decides A or B |
+| 2026-11-03 | **Option A — Keep orchestration strategy** | Repo SoT / redesign delivery (MapAble website redesign R15) | Confirms `COMPETITIVE_POSITION.md` + masterplan as SoT; ANZ business plan remains research input. Marketplace commissions, freemium listing tiers, and national worker-marketplace launch stay deferred per [BUILD_PARTNER_DEFER.md](./BUILD_PARTNER_DEFER.md). Public claim discipline unchanged. |
 
 ---
 
@@ -132,9 +132,9 @@ Until Option A or B is recorded here (date + decision owner), engineering must *
 
 ## Deferred low-conflict backlog (after north star)
 
-**Status:** `BLOCKED_ON_NORTH_STAR` — do not start until the decision log above records Option A or B.
+**Status:** `UNBLOCKED_OPTION_A` — decision log records Option A (2026-11-03). Marketplace commerce increments remain out of scope.
 
-These increments are the nearest plan-aligned work that conflicts least with current claim gates **if Option A (orchestration) is chosen**. If Option B is chosen, this backlog is superseded by a Marketplace PRD.
+These increments are the nearest plan-aligned work that conflicts least with current claim gates under **Option A (orchestration)**. If Option B is later chosen, this backlog is superseded by a Marketplace PRD.
 
 | Priority | Increment | Why low-conflict under Option A | Explicit non-goals |
 |----------|-----------|----------------------------------|--------------------|

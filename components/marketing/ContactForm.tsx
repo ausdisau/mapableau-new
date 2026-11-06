@@ -166,12 +166,12 @@ export function ContactForm() {
       className={`${mapablePublicCardClass} border-[#005B7F]/15 bg-white`}
       aria-labelledby="contact-form-heading"
     >
-      <p className={mapablePublicSectionTitleClass}>Send a message</p>
+      <p className={mapablePublicSectionTitleClass}>Get started</p>
       <h2
         id="contact-form-heading"
         className="mapable-display mt-2 text-xl font-black tracking-[-0.04em] text-[#0C1833] sm:text-2xl"
       >
-        Tell us how we can help
+        Choose your role, then tell us how we can help
       </h2>
 
       <SensitiveDataBanner className="mt-4" id="contact-sensitive-banner" />
@@ -228,7 +228,8 @@ export function ContactForm() {
 
         <AccessibleFormField
           id="contact-topic"
-          label="Topic"
+          label="I am contacting as"
+          hint="Pick the option that best matches your role so we can route your message."
           required
           error={errors.topic}
         >

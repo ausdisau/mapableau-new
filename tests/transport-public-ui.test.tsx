@@ -112,4 +112,19 @@ describe("MarketingPrimaryNav Transport entry", () => {
     const transport = within(nav).getByRole("link", { name: "Transport" });
     expect(transport.getAttribute("href")).toBe("/transport");
   });
+
+  it("exposes How it works and keeps Pre-register as a header action", () => {
+    render(<MapAbleCareMarketingHeader />);
+
+    const nav = screen.getByRole("navigation", { name: "Primary" });
+    expect(
+      within(nav).getByRole("link", { name: "How it works" }).getAttribute("href"),
+    ).toBe("/how-it-works");
+    expect(
+      within(nav).getByRole("link", { name: "Services" }).getAttribute("href"),
+    ).toBe("/care");
+    expect(
+      screen.getByRole("link", { name: "Pre-register" }).getAttribute("href"),
+    ).toBe("#pre-register");
+  });
 });

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const CONTACT_TOPICS = [
   "pilot",
   "provider",
+  "coordinator",
   "accessibility",
   "privacy",
   "general",
@@ -10,9 +11,11 @@ export const CONTACT_TOPICS = [
 
 export type ContactTopic = (typeof CONTACT_TOPICS)[number];
 
+/** Role-oriented labels for the contact / get-started form. */
 export const contactTopicLabels: Record<ContactTopic, string> = {
-  pilot: "Pilot or early access",
-  provider: "Provider registration",
+  pilot: "I'm a participant or family — pilot interest",
+  provider: "I'm a provider, venue, or employer",
+  coordinator: "I'm a support coordinator or LAC",
   accessibility: "Accessibility feedback",
   privacy: "Privacy or data request",
   general: "General enquiry",

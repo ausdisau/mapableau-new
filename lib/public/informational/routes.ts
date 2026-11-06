@@ -49,6 +49,16 @@ export const PUBLIC_INFORMATIONAL_ROUTES: readonly InformationalRoute[] = [
     kind: "informational",
   },
   {
+    path: "/how-it-works",
+    label: "How it works",
+    inSitemap: true,
+    titleIncludes: "How it works",
+    h1Includes: "journey",
+    formsPermitted: false,
+    authenticationProhibited: true,
+    kind: "informational",
+  },
+  {
     path: "/contact",
     label: "Contact",
     inSitemap: true,

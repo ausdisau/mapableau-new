@@ -5,6 +5,7 @@ import React, { type ReactNode } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { AdvertisingUnit } from "@/components/ads/AdvertisingUnit";
+import { PayPalDonateButton } from "@/components/paypal/PayPalDonateButton";
 import {
   MAPABLE_LOGO_ALT,
   MAPABLE_LOGO_SRC,
@@ -198,6 +199,14 @@ export function MapAbleCareMarketingFooter() {
               </a>
               <span>Sydney, Australia</span>
             </address>
+            <div className="mt-5">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+                Support Australian Disability
+              </p>
+              <div className="mt-3">
+                <PayPalDonateButton />
+              </div>
+            </div>
           </section>
         </div>
         <div className="mt-10 flex flex-col gap-4 border-t border-slate-200 pt-7 text-xs text-slate-600 md:flex-row md:items-center md:justify-between">
