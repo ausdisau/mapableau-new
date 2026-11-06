@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 import { assertDeployedProductionEnv } from "./lib/env/assert-deployed-production-env";
+import {
+  shouldSkipNextBuildEslint,
+  shouldSkipNextBuildTypecheck,
+} from "./lib/env/next-build-gates";
 import { getBaselineSecurityHeaders } from "./lib/security/headers";
 
 // Fail closed on real Vercel production builds when env is invalid.
@@ -51,15 +55,14 @@ const nextConfig: NextConfig = {
     // Vercel/GHA OOM during Next's combined "Linting and checking validity of
     // types" phase. CI still runs `pnpm lint` + `pnpm type-check` as required
     // gates before Production build — do not remove those workflow steps.
-    ignoreDuringBuilds:
-      process.env.VERCEL === "1" || process.env.GITHUB_ACTIONS === "true",
+    ignoreDuringBuilds: shouldSkipNextBuildEslint(process.env),
     // tests/ linted via `pnpm lint:tests` (tracked debt; not ignored during builds for app code).
     dirs: ["app", "components", "lib", "schemas", "scripts/ci"],
   },
   typescript: {
-    // CI already ran `pnpm type-check`. Skip duplicate tsc inside `next build`
-    // on GHA only (Vercel still typechecks at build; local builds typecheck).
-    ignoreBuildErrors: process.env.GITHUB_ACTIONS === "true",
+    // CI already ran `pnpm type-check`. Skip the duplicate tsc pass inside
+    // `next build` on GHA and Vercel. Local builds still typecheck.
+    ignoreBuildErrors: shouldSkipNextBuildTypecheck(process.env),
   },
 };
 
