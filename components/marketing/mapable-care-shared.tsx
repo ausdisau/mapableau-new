@@ -4,15 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { MapAbleBrandMark } from "@/components/brand/MapAbleBrandLockup";
 import { GuidedSearchDialogue } from "@/components/guided-search/GuidedSearchDialogue";
 import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
 import { MarketingPrimaryNav } from "@/components/marketing/home/MarketingPrimaryNav";
 import { ArrowIcon, ChevronDown, SearchIcon } from "@/components/marketing/mapable-care-icons";
-import {
-  MAPABLE_LOGO_ALT,
-  MAPABLE_LOGO_MARK_SRC,
-  MAPABLE_LOGO_SRC,
-} from "@/lib/brand/constants";
+import { MAPABLE_LOGO_MARK_SRC } from "@/lib/brand/constants";
 import {
   getFilteredResults,
   getPredictiveSuggestions,
@@ -112,20 +109,7 @@ export function LogoMark({
     );
   }
 
-  return (
-    <img
-      src={MAPABLE_LOGO_SRC}
-      alt={MAPABLE_LOGO_ALT}
-      width={754}
-      height={1008}
-      className={
-        className ??
-        "block h-14 w-auto max-h-[4.5rem] shrink-0 bg-transparent object-contain object-left sm:h-16"
-      }
-      decoding="async"
-      fetchPriority="high"
-    />
-  );
+  return <MapAbleBrandMark size="header" className={className} fetchPriority="high" />;
 }
 
 export function LogoMenu() {
