@@ -75,6 +75,7 @@ function main(): void {
     "MAPABLE_PBS_OPERATIONS_ENABLED",
     "MAPABLE_PBS_AI_DRAFTING_ENABLED",
     "MAPABLE_RESTRICTIVE_PRACTICE_REGISTER_ENABLED",
+    "MAPABLE_ACCESS_SIGNALS_DEMO_ENABLED",
   ]) {
     const enabled = new RegExp(`${flag}\\s*=\\s*true`, "i").test(envExample);
     if (enabled) {
