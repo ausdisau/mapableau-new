@@ -1,6 +1,56 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "ci": {
+    "bootstrapping": {
+      "installEnv": {
+        "NODE_OPTIONS": {
+          "constant": {
+            "value": "--max-old-space-size=6144"
+          }
+        },
+        "DATABASE_URL": {
+          "constant": {
+            "value": "postgresql://postgres:postgres@127.0.0.1:5432/mapable_ci?schema=public"
+          }
+        },
+        "DIRECT_URL": {
+          "constant": {
+            "value": "postgresql://postgres:postgres@127.0.0.1:5432/mapable_ci?schema=public"
+          }
+        }
+      },
+      "resources": {
+        "vcpus": 8
+      }
+    },
+    "tasks": {
+      "prisma:validate": {
+        "DATABASE_URL": {
+          "constant": {
+            "value": "postgresql://postgres:postgres@127.0.0.1:5432/mapable_ci?schema=public"
+          }
+        },
+        "DIRECT_URL": {
+          "constant": {
+            "value": "postgresql://postgres:postgres@127.0.0.1:5432/mapable_ci?schema=public"
+          }
+        }
+      },
+      "db:generate": {
+        "DATABASE_URL": {
+          "constant": {
+            "value": "postgresql://postgres:postgres@127.0.0.1:5432/mapable_ci?schema=public"
+          }
+        },
+        "DIRECT_URL": {
+          "constant": {
+            "value": "postgresql://postgres:postgres@127.0.0.1:5432/mapable_ci?schema=public"
+          }
+        }
+      }
+    }
+  },
   "crons": [
     {
       "path": "/api/admin/ingest/ndis-providers",
@@ -11,18 +61,36 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "https://mapable.com.au" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://mapable.com.au"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
       ]
     },
     {
       "source": "/api/(.*)",
       "has": [{ "type": "host", "value": "peer.mapable.com.au" }],
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "https://peer.mapable.com.au" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://peer.mapable.com.au"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
       ]
     }
   ]

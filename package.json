@@ -17,6 +17,7 @@
     "lint:schemas-ci": "ESLINT_CI_LIGHT=1 NODE_OPTIONS='--max-old-space-size=4096' eslint schemas scripts/ci --max-warnings 0",
     "lint:careos": "ESLINT_CI_LIGHT=1 NODE_OPTIONS='--max-old-space-size=4096' eslint app/api/intelligence app/careos app/coordinator/careos components/intelligence components/layout/DashboardNav.tsx intelligence tests/careos-action-kernel.test.ts tests/careos-agentic-network.test.ts tests/careos-appointment-replay.test.ts tests/careos-coordinate-confirm.test.ts tests/care-support-intelligence.test.ts tests/careos-kernel-v1.test.ts tests/careos-kernel-v1-appointment.test.ts --max-warnings 0",
     "lint:tests": "ESLINT_CI_LIGHT=1 NODE_OPTIONS='--max-old-space-size=4096' eslint tests --max-warnings 0",
+    "prisma:validate": "prisma validate",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check \"scripts/ci/**/*.{ts,tsx,md}\" \"docs/remediation/**/*.md\" \"docs/operations/branch-protection.md\" \".github/workflows/**/*.{yml,yaml}\" \"tests/a11y/**/*.{ts,tsx}\" \"next.config.ts\" \"package.json\" \"playwright.config.ts\" \"README.md\"",
@@ -181,6 +182,7 @@
     "prettier-eslint": "^16.4.2",
     "prisma": "6.19.2",
     "tsx": "^4.22.3",
+    "turbo": "2.11.10",
     "typescript": "^5.0.0",
     "vitest": "^3.2.7"
   },
