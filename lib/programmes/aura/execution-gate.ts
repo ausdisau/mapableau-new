@@ -5,6 +5,7 @@
  * - `lib/aura/` proposal/execution stack is absent
  * - AI-platform authority ceilings live in `lib/ai/platform/types/authority.ts`
  * - Companion exposes device-local Stop AURA (`apps/companion/src/aura/stop-aura.ts`)
+ * - ACS Stage 1: durable Postgres Stop via `durable-stop.ts` (cross-instance)
  *
  * Programme adapters may read governed proposals only.
  * Models cannot publish, certify, approve, consent, refer, book, pay, or execute.
@@ -12,6 +13,10 @@
  */
 
 import type { AuthorityCeiling } from "@/lib/ai/platform/types/authority";
+import {
+  activateProgrammeAuraStop,
+  isDurableProgrammeAuraStopped,
+} from "@/lib/programmes/aura/durable-stop";
 import { evaluateParticipantAuthority } from "@/lib/programmes/authority/participant-authority-service";
 import {
   ForbiddenAuraAction,
@@ -20,7 +25,10 @@ import {
   type AuraProposalAction,
 } from "@/lib/programmes/safety-invariants";
 
-/** Process-local stop flag for server-side programme gates (mirrors companion stop). */
+/**
+ * Process-local emergency overlay (tests / same-process fast path).
+ * Durable SoT is Postgres — see isProgrammeAuraStoppedFor / durable-stop.ts.
+ */
 let programmeAuraStopped = false;
 
 export function stopProgrammeAura(): void {
@@ -33,6 +41,27 @@ export function isProgrammeAuraStopped(): boolean {
 
 export function __resetProgrammeAuraStopForTests(): void {
   programmeAuraStopped = false;
+}
+
+/** Activate durable (cross-instance) stop for a participant. */
+export async function stopProgrammeAuraDurable(input: {
+  participantId: string;
+  organisationId?: string | null;
+  stoppedById: string;
+  reason?: string;
+  correlationId?: string;
+}): Promise<{ id: string }> {
+  programmeAuraStopped = true;
+  return activateProgrammeAuraStop(input);
+}
+
+/** True if process-local OR durable stop is active for this participant. */
+export async function isProgrammeAuraStoppedFor(input: {
+  participantId: string;
+  organisationId?: string | null;
+}): Promise<boolean> {
+  if (programmeAuraStopped) return true;
+  return isDurableProgrammeAuraStopped(input);
 }
 
 export const PROGRAMME_AURA_CEILING: AuthorityCeiling =
@@ -87,7 +116,11 @@ export async function assertProgrammeExecutionEligibility(input: {
   action: string;
   requiredFields?: string[];
 }): Promise<void> {
-  if (programmeAuraStopped) {
+  const stopped = await isProgrammeAuraStoppedFor({
+    participantId: input.participantId,
+    organisationId: input.organisationId,
+  });
+  if (stopped) {
     throw new ProgrammeInvariantError(
       "explicit_authority_only",
       "Programme execution blocked: AURA/programme stop is active",
