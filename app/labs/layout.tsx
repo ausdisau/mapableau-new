@@ -33,9 +33,9 @@ export default function LabsLayout({ children }: { children: ReactNode }) {
             </span>
             <span>
               <span className="block text-xs font-black uppercase tracking-[0.2em] text-[#F8C51C]">
-                MapAble
+                Empowering Independence
               </span>
-              <span className="block text-xl font-black tracking-tight">Labs</span>
+              <span className="block text-xl font-black tracking-tight">MapAble Labs</span>
             </span>
           </Link>
           <nav aria-label="MapAble Labs">

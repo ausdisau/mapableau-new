@@ -5,6 +5,7 @@ import React, { type ReactNode } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { LogoMark } from "@/components/marketing/mapable-care-shared";
+import { MAPABLE_BRAND_TAGLINE } from "@/lib/brand/constants";
 
 export function MapAbleAppCompactHeader({
   title,
@@ -26,6 +27,9 @@ export function MapAbleAppCompactHeader({
           <div className="hidden sm:block">
             <span className="mapable-display text-lg font-black tracking-[-0.05em] text-[#3B5BDB]">
               MapAble
+            </span>
+            <span className="mapable-soft block text-[11px] font-bold uppercase tracking-[0.08em] text-[#0C1833]">
+              {MAPABLE_BRAND_TAGLINE}
             </span>
             {title ? (
               <span className="mapable-soft block text-xs font-bold text-slate-500">

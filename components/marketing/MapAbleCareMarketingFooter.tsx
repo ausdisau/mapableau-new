@@ -5,11 +5,8 @@ import React, { type ReactNode } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { AdvertisingUnit } from "@/components/ads/AdvertisingUnit";
-import {
-  MAPABLE_LOGO_ALT,
-  MAPABLE_LOGO_SRC,
-  MAPABLE_SUPPORT_EMAIL,
-} from "@/lib/brand/constants";
+import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
+import { MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
 import {
   companyRegistrationDetails,
   footerPlatformLinks,
@@ -65,13 +62,11 @@ function SocialLink({
 
 function FooterBrandMark() {
   return (
-    <img
-      src={MAPABLE_LOGO_SRC}
-      alt={MAPABLE_LOGO_ALT}
-      width={754}
-      height={1008}
-      className="h-12 w-auto max-w-[180px] bg-transparent object-contain object-left"
-      decoding="async"
+    <MapAbleBrandLockup
+      href="/"
+      size="footer"
+      align="start"
+      className="hover:opacity-100"
     />
   );
 }

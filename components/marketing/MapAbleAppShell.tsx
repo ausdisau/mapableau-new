@@ -1,13 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import React, { type ReactNode } from "react";
 
+import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import { SkipToContent } from "@/components/core/SkipToContent";
-import {
-  LogoMark,
-  MapAbleCareMarketingHeader,
-} from "@/components/marketing/mapable-care-shared";
+import { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 import { MapAbleAppCompactHeader } from "@/components/marketing/MapAbleAppCompactHeader";
 import {
   MapAbleCareMarketingFooter,
@@ -49,13 +46,11 @@ export function MapAbleAppShell({
       <div className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
         <SkipToContent />
         <header className="border-b border-slate-200 bg-white px-5 py-3">
-          <Link
+          <MapAbleBrandLockup
             href="/"
-            className="inline-flex rounded-xl p-1 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
-          >
-            <LogoMark compact />
-            <span className="sr-only">MapAble home</span>
-          </Link>
+            size="header"
+            className="hover:opacity-100 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
+          />
         </header>
         <main id="main-content" className="flex-1">
           {children}

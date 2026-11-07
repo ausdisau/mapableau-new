@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { LogoMark } from "@/components/marketing/mapable-care-shared";
+import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import type { PublicVerifiedWorkerCard } from "@/lib/workers/find-verified-workers";
 
 export function FindVerifiedWorkersLanding({
@@ -30,15 +30,11 @@ export function FindVerifiedWorkersLanding({
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e8f6f2,transparent_40%),radial-gradient(circle_at_top_right,#dceef7,transparent_45%),#F6FBFC] text-[#0C1833]">
       <div className="mx-auto max-w-5xl px-5 pb-16 pt-6 sm:px-8">
         <header className="flex items-center justify-between gap-4">
-          <Link
+          <MapAbleBrandLockup
             href="/"
-            className="flex items-center gap-3 rounded-xl p-1 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#F8C51C]/40"
-          >
-            <LogoMark compact />
-            <span className="mapable-display text-2xl font-black tracking-[-0.05em] text-[#005B7F]">
-              MapAble
-            </span>
-          </Link>
+            size="header"
+            className="hover:bg-white/70 hover:opacity-100 focus-visible:outline-[#F8C51C]"
+          />
           <div className="flex items-center gap-3 text-sm font-black">
             <Link
               href="/login"

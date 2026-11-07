@@ -1,7 +1,7 @@
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import Link from "next/link";
 
-import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
+import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import {
   MAPABLE_MARKETING_URL,
   MAPABLE_SUPPORT_EMAIL,
@@ -19,9 +19,10 @@ export function MapAbleMarketingFooter() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
             <div className="mb-4">
-              <MapAbleLogo
+              <MapAbleBrandLockup
                 href="/"
-                variant="full"
+                size="footer"
+                align="start"
                 className="hover:opacity-100"
               />
             </div>

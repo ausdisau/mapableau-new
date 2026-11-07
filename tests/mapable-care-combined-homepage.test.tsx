@@ -197,9 +197,11 @@ describe("MapAbleCareCombinedHomepage", () => {
         name: homepageHeroCopy.headline,
       }),
     ).toBeTruthy();
-    const homeLink = screen.getByRole("link", { name: /MapAble home/i });
-    expect(homeLink.textContent).toMatch(/Empowering Independence/i);
-    expect(screen.getAllByText(/Empowering Independence/i)).toHaveLength(1);
+    const homeLinks = screen.getAllByRole("link", { name: /MapAble home/i });
+    expect(homeLinks.length).toBeGreaterThanOrEqual(2);
+    expect(homeLinks[0].textContent).toMatch(/Empowering Independence/i);
+    expect(homeLinks[1].textContent).toMatch(/Empowering Independence/i);
+    expect(screen.getAllByText(/Empowering Independence/i).length).toBeGreaterThanOrEqual(2);
     expect(
       screen.getByRole("heading", {
         name: /What you can use on the public site today/i,

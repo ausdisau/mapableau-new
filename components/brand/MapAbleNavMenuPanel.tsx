@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/app/lib/utils";
-import { MapAbleLogo } from "@/components/brand/MapAbleLogo";
+import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import type { MapAbleNavGroup } from "@/components/brand/MapAbleSiteHeader";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens";
@@ -78,7 +78,7 @@ export function MapAbleNavMenuPanel({
       >
         <div className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
           <div className="min-w-0">
-            <MapAbleLogo href={logoHref} variant="full" ariaLabel="MapAble home" />
+            <MapAbleBrandLockup href={logoHref} size="header" ariaLabel="MapAble home" />
           </div>
           <button
             ref={closeButtonRef}

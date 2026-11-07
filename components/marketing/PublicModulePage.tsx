@@ -1,7 +1,11 @@
+"use client";
+
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PublicMarketingBreadcrumbs } from "@/components/marketing/PublicMarketingBreadcrumbs";
+import { PublicModuleRelatedSection } from "@/components/marketing/PublicModuleRelatedSection";
 import {
   mapablePublicCardClass,
   mapablePublicEyebrowClass,
@@ -32,18 +36,6 @@ export type PublicModulePageProps = {
   secondaryCta?: CallToAction;
 };
 
-const relatedModules = [
-  { label: "Care", href: "/care" },
-  { label: "Transport", href: "/transport" },
-  { label: "Employment", href: "/employment" },
-  { label: "Marketplace", href: "/marketplace" },
-  { label: "Foods", href: "/foods" },
-  { label: "Kids", href: "/kids" },
-  { label: "Moves", href: "/moves" },
-  { label: "Accessible places", href: "/access" },
-  { label: "Provider finder", href: "/provider-finder" },
-];
-
 export function PublicModulePage({
   eyebrow,
   title,
@@ -67,6 +59,7 @@ export function PublicModulePage({
           className="pointer-events-none absolute bottom-[-8rem] left-[-6rem] h-72 w-72 rounded-full bg-[#8B4DFF]/10 blur-3xl"
         />
         <div className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}>
+          <PublicMarketingBreadcrumbs className="mb-6" />
           <div className="max-w-3xl">
             <p className={mapablePublicEyebrowClass}>{eyebrow}</p>
             <h1 className={`${mapablePublicTitleClass} mt-3`}>{title}</h1>
@@ -142,25 +135,7 @@ export function PublicModulePage({
         </div>
       </section>
 
-      <section className="border-t border-slate-200 bg-slate-50">
-        <div className={`${mapablePublicPageContainerClass} py-10 sm:py-12`}>
-          <p className={mapablePublicSectionTitleClass}>Explore MapAble</p>
-          <h2 className="mapable-display mt-2 text-xl font-black tracking-[-0.04em] text-[#0C1833] sm:text-2xl">
-            Related modules and entry points
-          </h2>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {relatedModules.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#3B5BDB] transition hover:border-[#3B5BDB]/30 hover:bg-[#F7F8FC] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PublicModuleRelatedSection />
     </div>
   );
 }

@@ -11,3 +11,5 @@ Design-time ARC assessments live in `lib/ai/platform/capabilities/arc-sidecar.ts
 A feature must not be publicly described as model-backed AI unless a real model is invoked.
 
 Navigator pilot keys (`navigator.provider_search.*`) and AURA keys (`agent.aura_harness`, `agent.aura_recognise`) are registered with flags default **false**. Runtime enforcement for Navigator uses `lib/ai/navigator/gates.ts`.
+
+**Virtual Persona honesty:** the Care & Support Perceptual Frame (`docs/ai-platform/perceptual-frame/**`) is **synthetic contract documentation only**. It is **not** registered in `seed.ts`, has **no** production claim, and must not be described as a live AI capability. See [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](./VIRTUAL_PERSONA_P00_RECONCILIATION.md) and [`perceptual-frame/README.md`](./perceptual-frame/README.md).

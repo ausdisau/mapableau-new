@@ -43,6 +43,8 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
+import { MAPABLE_BRAND_TAGLINE, MAPABLE_LOGO_MARK_SRC } from "@/lib/brand/constants";
+
 type Tab = "map" | "care" | "transport" | "jobs" | "profile";
 type TextSize = "normal" | "large" | "xlarge";
 type FlowType = "care" | "transport" | "job";
@@ -469,7 +471,7 @@ export function MapAbleApp() {
               MapAble
             </span>
             <span className="mt-1 block text-[9px] font-extrabold uppercase tracking-[0.22em] opacity-55">
-              Life, connected
+              {MAPABLE_BRAND_TAGLINE}
             </span>
           </div>
         </div>
@@ -694,15 +696,17 @@ export function MapAbleApp() {
 
 function LogoMark({ compact = false }: { compact?: boolean }) {
   return (
-    <span
-      aria-hidden="true"
-      className={cx(
-        "grid place-items-center rounded-2xl bg-[#173f36] font-heading font-extrabold text-white",
-        compact ? "h-9 w-9 text-sm" : "h-10 w-10 text-base",
-      )}
-    >
-      M
-    </span>
+    <img
+      src={MAPABLE_LOGO_MARK_SRC}
+      alt=""
+      aria-hidden
+      className={
+        compact
+          ? "h-9 w-9 shrink-0 object-contain"
+          : "h-10 w-10 shrink-0 object-contain"
+      }
+      decoding="async"
+    />
   );
 }
 
