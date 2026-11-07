@@ -62,8 +62,8 @@ function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
     ? "rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
     : "rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40";
   const registerClassName = compact
-    ? "rounded-xl bg-[#F26A21] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
-    : "rounded-xl bg-[#F26A21] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40";
+    ? "rounded-xl bg-[#F26A21] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#FF8140] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
+    : "rounded-xl bg-[#F26A21] px-5 py-3 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#FF8140] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40";
 
   return (
     <div className={className}>
@@ -142,7 +142,7 @@ export function LogoMenu() {
           role="menu"
           className="absolute left-0 top-[calc(100%+0.75rem)] z-[60] w-[min(92vw,27rem)] overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/50"
         >
-          <div className="border-b border-slate-100 bg-[#F26A21] p-4 text-white">
+          <div className="border-b border-slate-100 bg-[#F26A21] p-4 text-[#0C1833]">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">MapAble menu</p>
             <p className="mt-1 text-lg font-black">Care, support and access in one place.</p>
           </div>
@@ -275,7 +275,7 @@ export function SponsoredCard({
       <p className="mt-2 text-sm leading-6 text-slate-600">{placement.description}</p>
       <Link
         href={placement.href}
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-white transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-[#0C1833] transition hover:bg-[#FF8140] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
       >
         {placement.cta} <ArrowIcon />
       </Link>
@@ -380,7 +380,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
           <SupportAreaCombo selectedArea={selectedArea} setSelectedArea={setSelectedArea} />
           <button
             type="submit"
-            className="rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-white transition hover:bg-[#D45512] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
+            className="rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-[#0C1833] transition hover:bg-[#FF8140] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             Find
           </button>
@@ -430,7 +430,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
                   onClick={() => setSelectedArea(area)}
                   className={
                     selectedArea === area
-                      ? "rounded-full bg-[#F26A21] px-4 py-2 text-sm font-black text-white"
+                      ? "rounded-full bg-[#F26A21] px-4 py-2 text-sm font-black text-[#0C1833]"
                       : "rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-black text-[#0C1833]"
                   }
                 >

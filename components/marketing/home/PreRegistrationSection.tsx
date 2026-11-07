@@ -219,7 +219,7 @@ export function PreRegistrationSection() {
                         htmlFor={inputId}
                         className={`flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border-2 px-4 text-center text-sm font-black transition ${
                           selected
-                            ? "border-[#3B5BDB] bg-[#F26A21] text-white"
+                            ? "border-[#3B5BDB] bg-[#F26A21] text-[#0C1833]"
                             : "border-slate-200 bg-[#F7F8FC] text-[#0C1833] hover:border-[#3B5BDB]/40"
                         } ${mapableCareFocusRing}`}
                       >
@@ -350,7 +350,7 @@ export function PreRegistrationSection() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className={`inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-white shadow-sm transition hover:bg-[#D45512] disabled:opacity-60 sm:w-auto ${mapableCareFocusRing}`}
+                className={`inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#FF8140] disabled:opacity-60 sm:w-auto ${mapableCareFocusRing}`}
               >
                 {status === "loading" ? "Submitting…" : "Pre-register interest"}
               </button>

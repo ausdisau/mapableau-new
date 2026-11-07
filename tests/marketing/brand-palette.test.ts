@@ -16,7 +16,8 @@ describe("marketing brand palette", () => {
   it("exports logo-derived marketing tokens from the redesign plan", () => {
     expect(marketingColors.navy).toBe("#0C1833");
     expect(marketingColors.orange).toBe("#F26A21");
-    expect(marketingColors.orangeDark).toBe("#D45512");
+    expect(marketingColors.orangeDark).toBe("#C2410C");
+    expect(marketingColors.orangeHover).toBe("#FF8140");
     expect(marketingColors.royalBlue).toBe("#3B5BDB");
     expect(marketingColors.violet).toBe("#8B4DFF");
     expect(marketingColors.surface).toBe("#F7F8FC");
@@ -27,6 +28,7 @@ describe("marketing brand palette", () => {
     expect(marketingPrimaryCtaClass).toContain("rounded-full");
     expect(marketingPrimaryCtaClass).toContain("bg-[#F26A21]");
     expect(marketingPrimaryCtaClass).toContain("text-[#0C1833]");
+    expect(marketingPrimaryCtaClass).toContain("hover:bg-[#FF8140]");
     expect(mapableCareFocusRing).toContain("#F26A21");
     expect(mapableCareEyebrowClass).toContain("#3B5BDB");
     expect(mapableCarePageBgClass).toContain("#F7F8FC");

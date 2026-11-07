@@ -27,7 +27,7 @@ export function HomepageProviderPitch() {
             </p>
             <Link
               href={homepageProviderPitch.ctaHref}
-              className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
+              className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-[#0C1833] ${mapableCareFocusRing}`}
             >
               {homepageProviderPitch.ctaLabel}
             </Link>

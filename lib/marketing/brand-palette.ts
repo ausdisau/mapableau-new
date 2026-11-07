@@ -13,7 +13,10 @@
 export const marketingColors = {
   navy: "#0C1833",
   orange: "#F26A21",
-  orangeDark: "#D45512",
+  /** Darker orange — use with white text only (not navy). */
+  orangeDark: "#C2410C",
+  /** Lighter orange hover for navy-on-orange CTAs (keeps ≥4.5:1). */
+  orangeHover: "#FF8140",
   royalBlue: "#3B5BDB",
   violet: "#8B4DFF",
   surface: "#F7F8FC",
@@ -22,9 +25,9 @@ export const marketingColors = {
 
 export type MarketingColor = (typeof marketingColors)[keyof typeof marketingColors];
 
-/** Orange primary CTA with navy text (WCAG-safer fill for compact labels). */
+/** Orange primary CTA with navy text (AA on fill and hover). */
 export const marketingPrimaryCtaClass =
-  "inline-flex min-h-11 items-center justify-center rounded-full bg-[#F26A21] px-6 text-sm font-black text-[#0C1833] transition hover:bg-[#D45512] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
+  "inline-flex min-h-11 items-center justify-center rounded-full bg-[#F26A21] px-6 text-sm font-black text-[#0C1833] transition hover:bg-[#FF8140] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
 
 /** Navy outline secondary CTA. */
 export const marketingOutlineCtaClass =

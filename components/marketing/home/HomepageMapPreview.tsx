@@ -44,7 +44,7 @@ export function HomepageMapPreview() {
           </fieldset>
           <Link
             href="/accessibility-map"
-            className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
+            className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-[#0C1833] ${mapableCareFocusRing}`}
           >
             Open accessibility map
           </Link>

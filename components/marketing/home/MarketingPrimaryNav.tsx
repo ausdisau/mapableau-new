@@ -55,8 +55,8 @@ function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
     ? `min-h-11 rounded-full border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-[#F7F8FC] ${mapableCareFocusRing}`
     : `min-h-11 rounded-full border-2 border-[#0C1833] px-4 py-2.5 text-sm font-black transition hover:bg-[#F7F8FC] ${mapableCareFocusRing}`;
   const registerClassName = compact
-    ? `min-h-11 rounded-full bg-[#F26A21] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#D45512] ${mapableCareFocusRing}`
-    : `min-h-11 rounded-full bg-[#F26A21] px-5 py-2.5 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#D45512] ${mapableCareFocusRing}`;
+    ? `min-h-11 rounded-full bg-[#F26A21] px-4 py-2 text-center text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#FF8140] ${mapableCareFocusRing}`
+    : `min-h-11 rounded-full bg-[#F26A21] px-5 py-2.5 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#FF8140] ${mapableCareFocusRing}`;
 
   return (
     <div className={className}>

@@ -57,7 +57,7 @@ export default function PersonalAgencyPage() {
       <div className="mt-10 flex flex-wrap gap-3">
         <Link
           href="/register"
-          className={`inline-flex min-h-11 items-center rounded-lg bg-[#F26A21] px-5 py-2 text-sm font-bold text-white ${mapableCareFocusRing}`}
+          className={`inline-flex min-h-11 items-center rounded-lg bg-[#F26A21] px-5 py-2 text-sm font-bold text-[#0C1833] transition hover:bg-[#FF8140] ${mapableCareFocusRing}`}
         >
           Create My MapAble
         </Link>
