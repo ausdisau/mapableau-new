@@ -165,6 +165,9 @@ model User {
   authorityGrantsAsDelegate               ParticipantAuthorityGrant[] @relation("AuthorityGrantDelegate")
   participantAuthorityGrantsCreated       ParticipantAuthorityGrant[] @relation("AuthorityGrantCreatedBy")
   participantAuthorityGrantsRevoked       ParticipantAuthorityGrant[] @relation("AuthorityGrantRevokedBy")
+  programmeAuraStopsAsParticipant         ProgrammeAuraStop[]         @relation("ProgrammeAuraStopParticipant")
+  programmeAuraStopsStoppedBy             ProgrammeAuraStop[]         @relation("ProgrammeAuraStopStoppedBy")
+  programmeAuraStopsClearedBy             ProgrammeAuraStop[]         @relation("ProgrammeAuraStopClearedBy")
   navigatorProfiles                       NavigatorProfile[]          @relation("NavigatorProfileUser")
   navigatorRequestsAsParticipant          NavigatorRequest[]          @relation("NavigatorRequestParticipant")
   navigatorAssignmentsAsParticipant       NavigatorAssignment[]       @relation("NavigatorAssignmentParticipant")
@@ -11319,6 +11322,28 @@ model ParticipantAuthorityGrant {
   @@map("participant_authority_grants")
   decisions AuthorityDecision[]
   invitations DelegateInvitation[]
+}
+
+/// Durable cross-instance Stop AURA (ACS Stage 1 / C3). Not a consent SoT.
+model ProgrammeAuraStop {
+  id               String    @id @default(cuid())
+  participantId    String
+  participant      User      @relation("ProgrammeAuraStopParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  organisationId   String?
+  stoppedById      String
+  stoppedBy        User      @relation("ProgrammeAuraStopStoppedBy", fields: [stoppedById], references: [id])
+  stoppedAt        DateTime  @default(now())
+  reason           String?
+  clearedAt        DateTime?
+  clearedById      String?
+  clearedBy        User?     @relation("ProgrammeAuraStopClearedBy", fields: [clearedById], references: [id], onDelete: SetNull)
+  correlationId    String    @default(cuid())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([participantId, clearedAt])
+  @@index([organisationId, clearedAt])
+  @@map("programme_aura_stops")
 }
 
 model NavigatorOrganisation {

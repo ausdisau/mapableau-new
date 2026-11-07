@@ -25,14 +25,21 @@ export async function createParticipantAuthorityGrant(
     expiry: input.expiresAt ?? null,
   });
 
+  // Dual-write dialect fields so Core `hasParticipantAuthority` (delegateId +
+  // actions) and programme `evaluateParticipantAuthority` (granteeUserId +
+  // allowedActions) see the same grant — ACS Stage 1 / C2 facade.
+  const allowedActions = input.allowedActions ?? [];
   const grant = await prisma.participantAuthorityGrant.create({
     data: {
       participantId: input.participantId,
       granteeUserId: input.granteeUserId,
       granteeOrganisationId: input.granteeOrganisationId,
+      delegateId: input.granteeUserId ?? undefined,
+      domain: "programmes",
+      actions: allowedActions,
       purpose: input.purpose,
       allowedFields: input.allowedFields,
-      allowedActions: input.allowedActions ?? [],
+      allowedActions,
       consentRecordId: input.consentRecordId,
       expiresAt: input.expiresAt,
       createdById: input.createdById,
@@ -117,23 +124,43 @@ export async function evaluateParticipantAuthority(input: {
   const grants = await prisma.participantAuthorityGrant.findMany({
     where: {
       participantId: input.participantId,
-      granteeUserId: input.actorUserId,
       status: "active",
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      OR: [
+        { granteeUserId: input.actorUserId },
+        { delegateId: input.actorUserId },
+      ],
+      AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }],
     },
   });
 
   for (const grant of grants) {
-    if (grant.purpose !== input.purpose) {
+    const purposeOk =
+      !grant.purpose ||
+      grant.purpose === input.purpose ||
+      grant.purpose.startsWith(`${input.purpose}.`) ||
+      input.purpose.startsWith(`${grant.purpose}.`);
+    if (!purposeOk) {
       continue;
     }
 
-    const allowedFields = input.requestedFields.filter((field) =>
-      grant.allowedFields.includes(field),
-    );
+    const fieldAllowlist = grant.allowedFields ?? [];
+    const allowedFields =
+      fieldAllowlist.length === 0
+        ? input.requestedFields
+        : input.requestedFields.filter((field) =>
+            fieldAllowlist.includes(field),
+          );
 
     if (input.requestedAction) {
-      if (!grant.allowedActions.includes(input.requestedAction)) {
+      const actionAllow =
+        grant.allowedActions.length > 0
+          ? grant.allowedActions
+          : grant.actions;
+      if (
+        actionAllow.length > 0 &&
+        !actionAllow.includes(input.requestedAction) &&
+        !actionAllow.includes("*")
+      ) {
         continue;
       }
     }
