@@ -10,7 +10,7 @@ export function CompetitorContrastStrip() {
   return (
     <section
       aria-labelledby="contrast-heading"
-      className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16"
+      className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20"
     >
       <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
         Why MapAble

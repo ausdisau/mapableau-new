@@ -21,6 +21,15 @@
   );
 }
 
+/* PDA-inspired hero atmosphere — MapAble colours only */
+.marketing-pda-hero {
+  isolation: isolate;
+}
+
+.marketing-pda-hero h1 .mapable-wavy-word {
+  text-shadow: 0 1px 0 rgba(12, 24, 51, 0.25);
+}
+
 .mapable-wavy-word {
   display: inline-block;
   white-space: nowrap;

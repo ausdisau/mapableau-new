@@ -16,15 +16,24 @@ function CheckIcon() {
   );
 }
 
-export function TrustStrip() {
+export function TrustStrip({
+  tone = "light",
+}: {
+  tone?: "light" | "onDark";
+}) {
+  const textClass =
+    tone === "onDark" ? "text-white/80" : "text-slate-600";
+  const iconClass =
+    tone === "onDark" ? "text-[#F26A21]" : "text-[#3B5BDB]";
+
   return (
     <ul
       aria-label="MapAble trust highlights"
-      className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold text-slate-600"
+      className={`mt-0 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold ${textClass}`}
     >
       {homepageTrustStripItems.map((item) => (
         <li key={item} className="inline-flex min-h-11 items-center gap-2">
-          <span className="text-[#3B5BDB]">
+          <span className={iconClass}>
             <CheckIcon />
           </span>
           <span>{item}</span>

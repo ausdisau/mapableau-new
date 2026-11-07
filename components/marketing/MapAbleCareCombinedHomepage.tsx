@@ -7,6 +7,8 @@ import { CompetitorContrastStrip } from "@/components/marketing/home/CompetitorC
 import { HeroSection } from "@/components/marketing/home/HeroSection";
 import { HomepageExploreStrip } from "@/components/marketing/home/HomepageExploreStrip";
 import { HomepageFinalCta } from "@/components/marketing/home/HomepageFinalCta";
+import { HomepagePathwayStrip } from "@/components/marketing/home/HomepagePathwayStrip";
+import { HomepagePurposePair } from "@/components/marketing/home/HomepagePurposePair";
 import { MyMapAbleHomepageSection } from "@/components/marketing/home/MyMapAbleHomepageSection";
 import { PreRegistrationSection } from "@/components/marketing/home/PreRegistrationSection";
 import { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
@@ -17,11 +19,13 @@ export { MapAbleCareMarketingTypography } from "@/components/marketing/MapAbleCa
 export { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 export { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 
-/** Marketing proof splash: hero → explore → why MapAble → pre-register → CTA. */
+/** Marketing splash: hero → pathways → purpose → explore → contrast → pre-register → CTA. */
 export function MapAbleCareCombinedHomepageSections() {
   return (
     <>
       <HeroSection />
+      <HomepagePathwayStrip />
+      <HomepagePurposePair />
       <HomepageExploreStrip />
       <MyMapAbleHomepageSection />
       <CompetitorContrastStrip />

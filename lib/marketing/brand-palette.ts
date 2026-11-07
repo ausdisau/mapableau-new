@@ -3,6 +3,10 @@
  * App/dashboard surfaces keep @mapable/ui tokens (teal/gold) until a shared
  * migration is approved.
  *
+ * UX rhythm is informed by peer disability peak-body patterns (e.g. PDA):
+ * pill CTAs, dual primary/ghost actions, calm section breathing room —
+ * colours stay MapAble navy/orange/royal/violet.
+ *
  * Contrast: navy on white/surface; white or navy on orange CTAs (large bold text);
  * orange focus rings on light backgrounds.
  */
@@ -20,15 +24,19 @@ export type MarketingColor = (typeof marketingColors)[keyof typeof marketingColo
 
 /** Orange primary CTA with navy text (WCAG-safer fill for compact labels). */
 export const marketingPrimaryCtaClass =
-  "inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-[#0C1833] transition hover:bg-[#D45512] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
+  "inline-flex min-h-11 items-center justify-center rounded-full bg-[#F26A21] px-6 text-sm font-black text-[#0C1833] transition hover:bg-[#D45512] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
 
 /** Navy outline secondary CTA. */
 export const marketingOutlineCtaClass =
-  "inline-flex min-h-11 items-center justify-center rounded-2xl border-2 border-[#0C1833] bg-white/70 px-5 text-sm font-black text-[#0C1833] transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
+  "inline-flex min-h-11 items-center justify-center rounded-full border-2 border-[#0C1833] bg-white px-6 text-sm font-black text-[#0C1833] transition hover:bg-[#F7F8FC] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
 
-/** White outline CTA for navy bands. */
+/** White solid CTA for dark hero bands (PDA-style primary on photo overlays). */
+export const marketingOnDarkSolidCtaClass =
+  "inline-flex min-h-11 items-center justify-center rounded-full bg-white px-6 text-sm font-black text-[#0C1833] transition hover:bg-[#F7F8FC] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
+
+/** White outline CTA for navy / photo-overlay bands. */
 export const marketingGhostCtaClass =
-  "inline-flex min-h-11 items-center justify-center rounded-2xl border border-white/40 px-5 text-sm font-black text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
+  "inline-flex min-h-11 items-center justify-center rounded-full border-2 border-white/80 bg-transparent px-6 text-sm font-black text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";
 
 export const marketingFocusRingClass =
   "focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F26A21]";

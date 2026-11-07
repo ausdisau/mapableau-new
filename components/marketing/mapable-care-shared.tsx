@@ -503,7 +503,7 @@ export function GuidedSearch({ idSuffix = "header" }: { idSuffix?: string }) {
 export function MapAbleCareMarketingHeader() {
   return (
     <header className="sticky top-0 z-40 overflow-visible border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="relative mx-auto max-w-7xl overflow-visible px-4 py-3 sm:px-5 lg:px-8">
+      <div className="relative mx-auto max-w-7xl overflow-visible">
         <MarketingPrimaryNav />
       </div>
     </header>

@@ -22,8 +22,9 @@ describe("marketing brand palette", () => {
     expect(marketingColors.surface).toBe("#F7F8FC");
   });
 
-  it("uses orange CTAs with navy text and orange focus rings", () => {
+  it("uses pill orange CTAs with navy text and orange focus rings", () => {
     expect(marketingFocusRingClass).toContain("#F26A21");
+    expect(marketingPrimaryCtaClass).toContain("rounded-full");
     expect(marketingPrimaryCtaClass).toContain("bg-[#F26A21]");
     expect(marketingPrimaryCtaClass).toContain("text-[#0C1833]");
     expect(mapableCareFocusRing).toContain("#F26A21");
