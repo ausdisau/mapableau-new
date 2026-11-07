@@ -13,6 +13,7 @@ import React, {
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { AdvertisingUnit } from "@/components/ads/AdvertisingUnit";
 import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
 import {
   companyRegistrationDetails,
@@ -291,6 +292,7 @@ export function MapAbleCareMarketingFooter() {
   const [chromeHeight, setChromeHeight] = useState(72);
   const chromeRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const anyPanelOpen = mobileOpen || groupOpenId !== null;
   const dismissAll = () => {
@@ -299,6 +301,10 @@ export function MapAbleCareMarketingFooter() {
   };
 
   useDismissOnOutsideAndEscape(anyPanelOpen, dismissAll, chromeRef);
+  // Panel sits above the bar in the visual stack but before the Menu/group
+  // triggers in DOM order — trap moves focus into panel links on open and
+  // restores the trigger on close (Escape / outside click).
+  useFocusTrap(panelRef, anyPanelOpen);
 
   useLayoutEffect(() => {
     const bar = barRef.current;
@@ -334,10 +340,12 @@ export function MapAbleCareMarketingFooter() {
       >
         {anyPanelOpen ? (
           <div
+            ref={panelRef}
             id={panelId}
             className="absolute inset-x-0 bottom-full max-h-[min(70vh,36rem)] overflow-y-auto border-t border-slate-200 bg-[#F7F8FC]"
             role="region"
             aria-label="Footer navigation"
+            tabIndex={-1}
           >
             <div className="mx-auto max-w-7xl px-5 py-6 lg:px-8">
               {mobileOpen ? (

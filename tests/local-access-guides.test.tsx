@@ -158,14 +158,23 @@ describe("guides public page contract", () => {
 
     const menuButton = screen.getByRole("button", { name: "Menu" });
     expect(menuButton.getAttribute("aria-expanded")).toBe("false");
+    menuButton.focus();
     fireEvent.click(menuButton);
     expect(menuButton.getAttribute("aria-expanded")).toBe("true");
 
-    expect(
-      screen
-        .getByRole("link", { name: "Local Access Guides" })
-        .getAttribute("href"),
-    ).toBe("/guides");
+    const guidesLink = screen.getByRole("link", {
+      name: "Local Access Guides",
+    });
+    expect(guidesLink.getAttribute("href")).toBe("/guides");
+
+    const panel = document.getElementById("marketing-footer-docked-panel");
+    expect(panel).toBeTruthy();
+    expect(panel?.contains(document.activeElement)).toBe(true);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(menuButton.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(menuButton);
   });
 });
+
 
