@@ -65,6 +65,8 @@ Waivers do **not** lift the global freeze. Flags stay default-false. No producti
 
 **Autonomous Care & Support Stage 1 (W-ACS-1):** deterministic trust under paths listed in the waiver table. Purpose-aware shared consent helper, Postgres-backed durable Stop AURA, authority writer facade, cross-tenant deny helpers, and default-off PEP (`MAPABLE_PEP_ENABLED`). Additive schema only. Still frozen: shadow care RAG, Temporal Cloud, Redis-as-consent, L2 standing-instruction store, physical/clinical control, production flag enablement, second consent SoT. See explicit domain waiver below.
 
+**Autonomous Care & Support Stage 2 (W-ACS-2 addendum):** after Stage 1 evidence, extend Virtual Persona synthetic digital assistance under `lib/virtual-persona/**`, `components/virtual-persona/**`, ACS Stage 2 docs/tests. Public fixture search + L1 drafts only. Flags `MAPABLE_VIRTUAL_PERSONA_UI` / `MAPABLE_VIRTUAL_PERSONA_PUBLIC_SEARCH` default **false**. Does **not** waive private RAG, L2 standing instructions, Temporal Cloud, or production enablement.
+
 ## Honesty labels
 
 Demo, mock, scaffold, and pilot behaviour must be labelled honestly in UI, API, and docs. Feature flags are not assurance.

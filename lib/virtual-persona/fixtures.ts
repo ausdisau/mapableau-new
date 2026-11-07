@@ -114,6 +114,78 @@ export const SYNTHETIC_FALLBACK_TURN = (turnId: string): PersonaTurn =>
     canUseNonAiFallback: true,
   });
 
+/** Paper §5 breakfast continuity — L1 draft only; never contacts family. */
+export const SYNTHETIC_BREAKFAST_CONTINUITY_TURN = (
+  turnId: string,
+): PersonaTurn =>
+  baseTurn({
+    turnId,
+    responseType: "draft_support_request",
+    displayText:
+      "Goal preserved: eat breakfast independently with packaging help. Worker attendance is unknown (not confirmed absent). Family contact is excluded. Here are reviewable options only — nothing is sent.",
+    editableDraft: {
+      title: "Draft message to service provider (not sent)",
+      body: "My morning support has not arrived. I can eat breakfast myself if packaging is opened. Please do not contact my family. Options I am considering: accessible packaging tips, an authorised backup support contact if I approve one, or this editable message to the provider.",
+      executable: false,
+    },
+    uncertainties: [
+      "Worker attendance is unknown until verified by an authorised roster lookup (not available in Stage 2 synthetic pilot).",
+      "Silence or AAC delay is not treated as consent or incapacity.",
+    ],
+    suggestedQuestions: [
+      "Search public packaging tips",
+      "Use the non-AI path",
+      "Reject this draft",
+    ],
+    requiresHumanReview: true,
+    sourceReferences: [
+      {
+        id: "fixture-breakfast-scenario",
+        label: "Synthetic continuity scenario (discussion paper §5)",
+        evidenceStatus: "synthetic_fixture",
+      },
+    ],
+  });
+
+export const SYNTHETIC_PUBLIC_SEARCH_TURN = (
+  turnId: string,
+  hitSummaries: string[],
+): PersonaTurn =>
+  baseTurn({
+    turnId,
+    responseType: "informational",
+    displayText:
+      hitSummaries.length > 0
+        ? `Public directory results (fixtures only):\n${hitSummaries.map((s, i) => `${i + 1}. ${s}`).join("\n")}\nNothing private was searched. actionAuthority remains none.`
+        : "No public fixture matches. I will not invent private provider records.",
+    sourceReferences: [
+      {
+        id: "fixture-public-directory",
+        label: "Synthetic public directory (not worker screening)",
+        evidenceStatus: "synthetic_fixture",
+      },
+    ],
+    suggestedQuestions: [
+      "Draft a support request without sending",
+      "Use the non-AI path",
+    ],
+  });
+
+export const SYNTHETIC_PRIVATE_SEARCH_DENIED_TURN = (
+  turnId: string,
+): PersonaTurn =>
+  baseTurn({
+    turnId,
+    responseType: "refusal",
+    displayText:
+      "That request looks like private participant data. Stage 2 only searches public fixtures. Private retrieval stays blocked until Stage 1 trust gates and a separate RAG waiver. You can use the non-AI path or ask a human.",
+    evidenceStatus: "not_applicable",
+    sourceReferences: [],
+    requiresHumanReview: true,
+    canUseNonAiFallback: true,
+    suggestedQuestions: ["Search public directory", "Use non-AI options"],
+  });
+
 export const PROHIBITED_ACTION_PATTERNS = [
   /\bbook\b/i,
   /\bpay\b/i,
@@ -123,4 +195,8 @@ export const PROHIBITED_ACTION_PATTERNS = [
   /\bassign\b.+\b(worker|provider)\b/i,
   /\bdiagnos/i,
   /\bfunding\b.+\b(approv|determin)/i,
+  /\bcontact\s+my\s+family\b/i,
+  /\bhoist\b/i,
+  /\bmedication\b/i,
+  /\brestraint\b/i,
 ] as const;

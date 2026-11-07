@@ -10,5 +10,6 @@ Stage 0 governance artefacts for the **ALLOW WITH SAFEGUARDS** Autonomous Care &
 | Reviewable Stage 1 diff proposal | [`STAGE0_DIFF_PROPOSAL.md`](./STAGE0_DIFF_PROPOSAL.md) |
 | Stage 1 trust evidence | [`STAGE1_TRUST_EVIDENCE.md`](./STAGE1_TRUST_EVIDENCE.md) |
 | Standing-instruction design note | [`STAGE1_STANDING_INSTRUCTION_ENVELOPE.md`](./STAGE1_STANDING_INSTRUCTION_ENVELOPE.md) |
+| Stage 2 digital assistance evidence | [`STAGE2_DIGITAL_ASSISTANCE_EVIDENCE.md`](./STAGE2_DIGITAL_ASSISTANCE_EVIDENCE.md) |
 
-No live data, Temporal Cloud, Redis-as-consent, physical/clinical sole control, or production flag enablement is authorised without a later human go. Stage 1 adds additive `ProgrammeAuraStop` and default-off PEP only.
+No live private data, Temporal Cloud, Redis-as-consent, physical/clinical sole control, or production flag enablement is authorised without a later human go. Stage 1 adds durable Stop + default-off PEP; Stage 2 adds synthetic public search / L1 drafts only.

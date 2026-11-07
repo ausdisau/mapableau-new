@@ -1,12 +1,16 @@
 import {
   PROHIBITED_ACTION_PATTERNS,
+  SYNTHETIC_BREAKFAST_CONTINUITY_TURN,
   SYNTHETIC_CLARIFY_TURN,
   SYNTHETIC_DRAFT_TURN,
   SYNTHETIC_FALLBACK_TURN,
+  SYNTHETIC_PRIVATE_SEARCH_DENIED_TURN,
   SYNTHETIC_PUBLIC_INFO_TURN,
+  SYNTHETIC_PUBLIC_SEARCH_TURN,
   SYNTHETIC_REFUSAL_TURN,
   SYNTHETIC_UNCERTAIN_TURN,
 } from "@/lib/virtual-persona/fixtures";
+import { searchPublicDirectory } from "@/lib/virtual-persona/public-search";
 import type { PersonaTurn } from "@/lib/virtual-persona/types";
 import { validatePersonaTurn } from "@/lib/virtual-persona/validate-turn";
 
@@ -23,7 +27,7 @@ export type SyntheticAdapterResult =
   | { ok: false; reason: "adapter_unavailable" | "invalid_response"; latencyMs: number };
 
 /**
- * Deterministic fixture adapter — never calls a live model or RAG.
+ * Deterministic fixture adapter — never calls a live model or private RAG.
  * Labels responses as synthetic; actionAuthority is always none after validation.
  */
 export async function generateSyntheticPersonaTurn(
@@ -41,11 +45,55 @@ export async function generateSyntheticPersonaTurn(
     return finalize(SYNTHETIC_CLARIFY_TURN(input.turnId), started);
   }
 
+  const lower = message.toLowerCase();
+
+  // Continuity scenario before generic prohibited matches so "do not contact
+  // my family" is preserved as an exclusion, not treated as a contact request.
+  if (
+    lower.includes("breakfast") ||
+    (lower.includes("packaging") && lower.includes("worker")) ||
+    (lower.includes("morning support") && lower.includes("not arrived"))
+  ) {
+    return finalize(SYNTHETIC_BREAKFAST_CONTINUITY_TURN(input.turnId), started);
+  }
+
   if (PROHIBITED_ACTION_PATTERNS.some((pattern) => pattern.test(message))) {
     return finalize(SYNTHETIC_REFUSAL_TURN(input.turnId), started);
   }
 
-  const lower = message.toLowerCase();
+  if (
+    lower.includes("search") ||
+    lower.includes("directory") ||
+    lower.includes("find provider") ||
+    lower.includes("public")
+  ) {
+    const search = searchPublicDirectory(message);
+    if (!search.ok && search.deniedPrivate) {
+      return finalize(
+        SYNTHETIC_PRIVATE_SEARCH_DENIED_TURN(input.turnId),
+        started,
+      );
+    }
+    if (search.ok) {
+      return finalize(
+        SYNTHETIC_PUBLIC_SEARCH_TURN(
+          input.turnId,
+          search.hits.map((hit) => `${hit.name}: ${hit.summary}`),
+        ),
+        started,
+      );
+    }
+  }
+
+  // Private-looking queries without explicit search verb still deny retrieval.
+  const privateProbe = searchPublicDirectory(message);
+  if (!privateProbe.ok && privateProbe.deniedPrivate) {
+    return finalize(
+      SYNTHETIC_PRIVATE_SEARCH_DENIED_TURN(input.turnId),
+      started,
+    );
+  }
+
   let candidate: PersonaTurn;
   if (
     lower.includes("draft") ||
@@ -81,6 +129,16 @@ function finalize(
   const validated = validatePersonaTurn(turn);
   const latencyMs = Math.max(0, Date.now() - started);
   if (!validated.ok) {
+    return { ok: false, reason: "invalid_response", latencyMs };
+  }
+  // Stage 2 invariant: drafts are never executable sends.
+  if (
+    validated.turn.editableDraft &&
+    validated.turn.editableDraft.executable !== false
+  ) {
+    return { ok: false, reason: "invalid_response", latencyMs };
+  }
+  if (validated.turn.actionAuthority !== "none") {
     return { ok: false, reason: "invalid_response", latencyMs };
   }
   return { ok: true, turn: validated.turn, latencyMs };
