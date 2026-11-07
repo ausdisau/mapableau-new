@@ -1,0 +1,37 @@
+{
+  "id": "ACS-N-16",
+  "synthetic": true,
+  "notLiveData": true,
+  "title": "Missed morning support — packaging help",
+  "participantUtterance": "I can eat breakfast myself, but I need the packaging opened. My scheduled worker has not arrived. Do not contact my family.",
+  "expressedGoal": {
+    "independentBreakfast": true,
+    "limitedPackagingHelp": true,
+    "inabilityToEat": false
+  },
+  "standingExclusions": ["contact.family"],
+  "workerAttendance": "unknown",
+  "not": {
+    "confirmedAbsence": true,
+    "medicalEmergency": true,
+    "permissionToContactRelatives": true,
+    "inferredIncapacity": true
+  },
+  "reviewableOptions": [
+    "accessible_packaging",
+    "authorised_backup_support_contact",
+    "editable_message_to_service_provider"
+  ],
+  "beforeSendRequires": [
+    "serverVerifiedIdentity",
+    "currentConsentRevision",
+    "timeAndCostLimits",
+    "contactExclusions"
+  ],
+  "silenceMeans": "not_permission",
+  "communicationAccessFailure": {
+    "aacDelay": "not_consent",
+    "cameraUnavailable": "not_incapacity",
+    "dysarthricSpeech": "not_incapacity"
+  }
+}
