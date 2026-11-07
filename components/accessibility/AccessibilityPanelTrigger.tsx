@@ -28,7 +28,7 @@ export function AccessibilityPanelTrigger({
       <button
         ref={ref as React.RefObject<HTMLButtonElement>}
         type="button"
-        className={`min-h-11 rounded-lg text-sm font-medium text-slate-600 underline-offset-2 hover:text-[#005B7F] hover:underline ${mapableCareFocusRing} ${className}`}
+        className={`min-h-11 rounded-lg text-sm font-medium text-slate-600 underline-offset-2 hover:text-[#0C1833] hover:underline ${mapableCareFocusRing} ${className}`}
         aria-label={label}
         aria-expanded={a11y.isPanelOpen}
         aria-haspopup="dialog"
@@ -59,7 +59,7 @@ export function AccessibilityPanelTrigger({
         <span className="hidden sm:inline">
           Accessibility
           {adjusted ? (
-            <span className="ml-1 inline-block h-2 w-2 rounded-full bg-[#005B7F]" aria-hidden="true" />
+            <span className="ml-1 inline-block h-2 w-2 rounded-full bg-[#F15A29]" aria-hidden="true" />
           ) : null}
         </span>
       ) : null}

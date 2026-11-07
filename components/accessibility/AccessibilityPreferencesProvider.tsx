@@ -292,7 +292,7 @@ function ReadingGuideOverlay() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 z-[90] h-1 bg-[#005B7F]/70"
+      className="pointer-events-none fixed inset-x-0 z-[90] h-1 bg-[#F15A29]/70"
       style={{ top: y }}
     />
   );
