@@ -155,6 +155,12 @@ describe("guides public page contract", () => {
     ).toBe(true);
 
     render(<MapAbleCareMarketingFooter />);
+
+    const menuButton = screen.getByRole("button", { name: "Menu" });
+    expect(menuButton.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(menuButton);
+    expect(menuButton.getAttribute("aria-expanded")).toBe("true");
+
     expect(
       screen
         .getByRole("link", { name: "Local Access Guides" })
@@ -162,3 +168,4 @@ describe("guides public page contract", () => {
     ).toBe("/guides");
   });
 });
+
