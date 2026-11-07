@@ -92,7 +92,7 @@ export function MapAbleBrandMark({
         height={875}
         className={styles.image}
         decoding="async"
-        fetchpriority={fetchPriority}
+        fetchPriority={fetchPriority}
         aria-hidden
       />
       <span
