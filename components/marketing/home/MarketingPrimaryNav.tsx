@@ -171,12 +171,14 @@ export function MarketingPrimaryNav() {
         </div>
       </div>
 
-      {/* Solid primary nav band with grouped megamenus */}
+      {/* Solid primary nav band with grouped megamenus.
+          Avoid overflow-x-auto here: it creates a scrollport that clips
+          absolutely positioned megamenus below the short band. */}
       <nav
         aria-label="Primary"
-        className="relative hidden border-t border-[#0C1833]/10 bg-[#0C1833] min-[920px]:block"
+        className="relative z-40 hidden overflow-visible border-t border-[#0C1833]/10 bg-[#0C1833] min-[920px]:block"
       >
-        <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1 sm:px-5 lg:px-8">
+        <div className="relative mx-auto flex max-w-7xl flex-wrap items-center gap-1 overflow-visible px-4 py-1 sm:px-5 lg:px-8">
           <Link
             href={preRegisterHref}
             className={primaryBandLinkClass}
@@ -187,7 +189,7 @@ export function MarketingPrimaryNav() {
           {navGroups.map((group) => {
             const open = megaOpenId === group.id;
             return (
-              <div key={group.id} className="relative">
+              <div key={group.id} className="relative overflow-visible">
                 <button
                   type="button"
                   className={`${primaryBandLinkClass} ${open ? "bg-white/15" : ""}`}
@@ -210,7 +212,7 @@ export function MarketingPrimaryNav() {
                     id={`marketing-mega-${group.id}`}
                     role="region"
                     aria-label={group.label}
-                    className={navMegaPanelClass}
+                    className={`${navMegaPanelClass} z-[70]`}
                   >
                     <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#3B5BDB]">
                       {group.label}

@@ -81,7 +81,7 @@ export function GuidedSearchPanel() {
             />
             <button
               type="submit"
-              className={`min-h-11 rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-white transition hover:bg-[#D45512] ${mapableCareFocusRing}`}
+              className={`min-h-11 rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-[#0C1833] transition hover:bg-[#D45512] ${mapableCareFocusRing}`}
             >
               {guidedSearchPanelCopy.submitLabel}
             </button>
@@ -140,7 +140,7 @@ export function GuidedSearchPanel() {
             <button
               type="button"
               onClick={() => handleLaunch(query)}
-              className={`mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#F26A21] px-6 py-4 text-base font-black text-white shadow-sm transition hover:bg-[#D45512] ${mapableCareFocusRing}`}
+              className={`mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#F26A21] px-6 py-4 text-base font-black text-[#0C1833] shadow-sm transition hover:bg-[#D45512] ${mapableCareFocusRing}`}
             >
               {guidedSearchPanelCopy.ctaLabel}
             </button>
