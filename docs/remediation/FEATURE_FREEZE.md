@@ -55,6 +55,7 @@ Waivers do **not** lift the global freeze. Flags stay default-false. No producti
 | W-VA-1    | #383 VisionAccess contracts                               | vision-access contracts / synthetic lens                                                                                                | No camera/inference/migrations                                                                                    | Active; review vs freeze each revision                        |
 | W-PBS-7   | #379 PBS foundation                                       | Non-canonical `lib/positive-behaviour-support/**`                                                                                       | **Not accepted as Wave 7 owner path**; canonical remains `lib/pbs-operations/**`                                  | Waiver **rejected / blocked** pending recreate                |
 | W-AA-1    | `cursor/autonomy-assurance-prompt-0-59aa` (+ Train A/B/C) | `lib/ai/platform/capabilities/**` (ARC sidecar), `lib/aura-harness/**`, `lib/trust/fabric/**`, `lib/act/handoff/**`, related docs/tests | Autonomy Assurance programme — deepen Trust Fabric + AURA harness; flags default false; see explicit waiver below | Active for Prompt 0 docs; product prompts require this waiver |
+| W-ACS-0   | `cursor/autonomy-care-stage0-83a9` | `docs/ai-platform/AUTONOMY_ENVELOPE_STAGE_0.md`, `lib/autonomy/envelope.ts`, `lib/consent/exact-purpose-check.ts`, `tests/autonomy/stage0-evidence.test.ts` | Stage 0 evidence map only — no live agents, no consent SoT replacement, no production `checkConsent` behaviour change | Active for Stage 0 docs/tests; Stage 1 requires a separate waiver |
 
 **Virtual Persona Phase 1 (docs only):** synthetic AURA × MAIRA perceptual-frame contracts under `docs/ai-platform/perceptual-frame/**` plus P00 reconciliation notes sit inside the existing W-AA-1 **documentation/testing** scope (related `docs/ai-platform/**`). No path expansion into `lib/ai/platform/retrieval/**`, no runtime agents, no Prisma, no flag enablement. Shadow RAG (MapAble draft PR #22) remains **outside** the original W-AA-1 path enumeration and needs a **separate narrow waiver** before merge. See [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](../ai-platform/VIRTUAL_PERSONA_P00_RECONCILIATION.md).
 
@@ -101,3 +102,23 @@ against `main` @ `dd5ff9fc`. Extends existing Trust Fabric and AURA harness; doe
 **Permanent prohibitions under this waiver:** no autonomous funding/claim/invoice/payment approval; support reduction; worker or driver assignment; worker suspension or punishment; clinical or behaviour-support decisions; restrictive-practice approval; safeguarding findings; consent alteration; capacity inference; mental-state inference from voice, face, gait, or behavioural telemetry.
 
 This waiver does **not** lift the freeze globally.
+
+## Explicit domain waiver — Autonomous Care & Support Stage 0 (W-ACS-0)
+
+**Authorised:** Stage 0 evidence map against `main` following the 6 November 2026 ALLOW WITH SAFEGUARDS decision. Documentation, types, an **unwired** exact-purpose helper, and synthetic tests only.
+
+| Field        | Value |
+| ------------ | ----- |
+| Domain       | Autonomous Care & Support Stage 0 (governance / evidence) |
+| Paths        | `docs/ai-platform/AUTONOMY_ENVELOPE_STAGE_0.md`, `docs/remediation/FEATURE_FREEZE.md`, `lib/autonomy/envelope.ts`, `lib/consent/exact-purpose-check.ts`, `tests/autonomy/stage0-evidence.test.ts` |
+| Schema       | None |
+| Flags        | None added; existing AI/agent flags remain default **false** |
+| Public claim | `not_claimable` — no production autonomy, care or TGA claims |
+| Stack        | Single PR; do not attach to breached stacks |
+| Still frozen | Live AgentRun/Temporal execution; ParticipantRAG on private data; durable Stop implementation; changing production `checkConsent()`; second consent SoT; `lib/aura/` Agent OS; physical/clinical device control; payments; capacity inference |
+| Non-goals    | L3–L5 product; unattended workflows; production migrations; live data |
+| Rollback     | Revert the PR; no schema or flag cutover |
+
+**Permanent prohibitions under this waiver:** no autonomous funding/claim/invoice/payment approval; worker or driver assignment; clinical or behaviour-support decisions; restrictive-practice approval; safeguarding findings; consent alteration; capacity inference from disability, silence, AAC delay or communication style; LLM-only physical care.
+
+This waiver does **not** lift the freeze globally. Stage 1 (deterministic trust) needs its own waiver after Stage 0 sign-off.
