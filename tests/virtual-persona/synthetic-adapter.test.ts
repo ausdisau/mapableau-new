@@ -50,8 +50,12 @@ describe("generateSyntheticPersonaTurn", () => {
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.turn.evidenceStatus).toBe("missing");
+      // Stage 2: private-looking queries are denied before fixture retrieval.
+      expect(["missing", "not_applicable"]).toContain(result.turn.evidenceStatus);
+      expect(["refusal", "informational"]).toContain(result.turn.responseType);
+      expect(result.turn.actionAuthority).toBe("none");
       expect(result.turn.requiresHumanReview).toBe(true);
     }
   });
 });
+
