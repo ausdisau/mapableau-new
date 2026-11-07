@@ -22,7 +22,8 @@ export function agentLog(
   data?: Record<string, unknown>,
   runId?: string
 ) {
-  if (process.env.NODE_ENV === "production") {
+  // Opt-in only — preview/staging may hold real data; never enable by NODE_ENV alone.
+  if (process.env.MAPABLE_AGENT_DEBUG_LOGS !== "true") {
     return;
   }
 

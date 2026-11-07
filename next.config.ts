@@ -48,11 +48,9 @@ const nextConfig: NextConfig = {
     ];
   },
   eslint: {
-    // Vercel/GHA OOM during Next's combined "Linting and checking validity of
-    // types" phase. CI still runs `pnpm lint` + `pnpm type-check` as required
-    // gates before Production build — do not remove those workflow steps.
-    ignoreDuringBuilds:
-      process.env.VERCEL === "1" || process.env.GITHUB_ACTIONS === "true",
+    // Fail closed: production builds must surface ESLint errors.
+    // CI also runs `pnpm lint` + `pnpm type-check` as separate gates.
+    ignoreDuringBuilds: false,
     // tests/ linted via `pnpm lint:tests` (tracked debt; not ignored during builds for app code).
     dirs: ["app", "components", "lib", "schemas", "scripts/ci"],
   },
