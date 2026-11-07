@@ -4,7 +4,7 @@ import { canonicalAlternate } from "@/lib/config/canonical-url";
 export const metadata = {
   title: "Accessibility statement | MapAble",
   description:
-    "MapAble accessibility statement covering WCAG design targets and how ATAG and UAAG inform authoring tools and display preferences. Not a formal conformance claim.",
+    "MapAble accessibility statement covering WCAG 2.2 design targets across web interfaces, ATAG for Places authoring, and UAAG-informed display preferences. Not a formal conformance claim.",
   alternates: canonicalAlternate("/accessibility-statement"),
 };
 
@@ -15,7 +15,7 @@ export default function AccessibilityStatementPage() {
     <PublicInfoPage
       eyebrow="Accessibility"
       title="Accessibility statement"
-      description="MapAble is designed toward WCAG 2.2 AA accessibility, with formal testing pending before any compliance claim is made. ATAG and UAAG inform authoring tools and display preferences — those are design targets, not conformance claims."
+      description="MapAble is designed toward WCAG 2.2 AA across its web interfaces, with formal testing pending before any compliance claim is made. ATAG guides Places authoring; UAAG informs display preferences as design guidance only — not conformance claims."
       ctaLabel="Send accessibility feedback"
       ctaHref="/contact"
       sections={[
@@ -27,7 +27,8 @@ export default function AccessibilityStatementPage() {
               responsive layouts and accessible loading/error states. Formal
               WCAG 2.2 AA testing has not yet been completed, so MapAble does
               not claim conformance at this stage. MapAble likewise does not
-              claim ATAG 2.0 or UAAG 2.0 conformance.
+              claim ATAG 2.0 or UAAG 2.0 conformance, and does not claim to be
+              a user agent.
             </p>
           ),
         },
@@ -41,7 +42,7 @@ export default function AccessibilityStatementPage() {
               <li>Mobile-responsive layouts and touch-friendly controls.</li>
               <li>
                 Discoverable display preferences (text size, contrast, motion)
-                via Accessibility in the site header.
+                via Display settings in the site header.
               </li>
             </ul>
           ),
@@ -61,12 +62,15 @@ export default function AccessibilityStatementPage() {
                 >
                   accessible content, authoring tools, and user agents
                 </a>
-                . MapAble’s design targets map as follows:
+                . MapAble’s design targets map as follows (design targets only —
+                not conformance claims):
               </p>
               <ul className="list-disc space-y-2 pl-5">
                 <li>
-                  <strong>WCAG 2.2</strong> — public marketing pages,
-                  informational routes, and CareOS pilot journeys.{" "}
+                  <strong>WCAG 2.2</strong> — design target for MapAble’s web
+                  interfaces, including marketing pages, Places UI,
+                  authentication, preference panels, dashboards, and CareOS
+                  journeys.{" "}
                   <a
                     className={linkClass}
                     href="https://www.w3.org/WAI/standards-guidelines/wcag/"
@@ -78,9 +82,9 @@ export default function AccessibilityStatementPage() {
                   .
                 </li>
                 <li>
-                  <strong>ATAG 2.0</strong> — Places and other surfaces where
-                  people create or edit content (authoring-tool accessibility
-                  and prompts that help produce accessible content).{" "}
+                  <strong>ATAG 2.0</strong> — Places authoring, editing, and
+                  publishing (Part A: accessible authoring tool; Part B:
+                  support for accessible content creation).{" "}
                   <a
                     className={linkClass}
                     href="https://www.w3.org/WAI/standards-guidelines/atag/"
@@ -92,8 +96,10 @@ export default function AccessibilityStatementPage() {
                   .
                 </li>
                 <li>
-                  <strong>UAAG 2.0</strong> — in-product accessibility
-                  preferences that act like user-agent configuration.{" "}
+                  <strong>UAAG 2.0</strong> — Working Group Note providing
+                  design guidance for display preferences (text size, contrast,
+                  motion). MapAble is not a user agent and does not claim UAAG
+                  conformance. Spec and reference:{" "}
                   <a
                     className={linkClass}
                     href="https://www.w3.org/TR/UAAG20/"
@@ -111,7 +117,8 @@ export default function AccessibilityStatementPage() {
                   >
                     UAAG 2.0 Reference
                   </a>
-                  .
+                  . Open <strong>Display settings</strong> in the site header
+                  to adjust preferences.
                 </li>
               </ul>
               <p>
@@ -131,9 +138,10 @@ export default function AccessibilityStatementPage() {
               Map, dashboard and workflow-heavy screens require additional
               assistive technology testing, manual keyboard checks and
               user-centred accessibility review before production launch.
-              Authoring surfaces need continued ATAG Part A/B checks; preference
-              panel behaviour needs continued UAAG-informed review alongside
-              WCAG for the panel UI itself.
+              Places authoring needs continued ATAG Part A/B evaluation
+              (including accessible content output). Display preferences need
+              continued keyboard, screen reader, zoom, reduced-motion, and
+              persistence testing alongside WCAG for the panel UI itself.
             </p>
           ),
         },

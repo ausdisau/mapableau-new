@@ -99,17 +99,17 @@ export function MarketingPrimaryNav() {
     <div ref={navRef} className="relative w-full">
       {/* PWD/BCA-style contact utility strip */}
       <div className="hidden border-b border-white/10 bg-[#0C1833] text-white md:block">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-xs font-semibold sm:px-5 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-xs font-semibold sm:px-5 lg:px-8">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <a
               href={phoneHref}
-              className={`rounded-md text-white/90 hover:text-white ${mapableCareFocusRing}`}
+              className={`inline-flex min-h-11 items-center rounded-md px-1 text-white/90 hover:text-white ${mapableCareFocusRing}`}
             >
               {MAPABLE_CARE_COMBINED_PHONE}
             </a>
             <a
               href={`mailto:${MAPABLE_SUPPORT_EMAIL}`}
-              className={`rounded-md text-white/90 hover:text-white ${mapableCareFocusRing}`}
+              className={`inline-flex min-h-11 items-center rounded-md px-1 text-white/90 hover:text-white ${mapableCareFocusRing}`}
             >
               {MAPABLE_SUPPORT_EMAIL}
             </a>
@@ -117,15 +117,15 @@ export function MarketingPrimaryNav() {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <Link
               href="/contact"
-              className={`rounded-md text-white/90 hover:text-white ${mapableCareFocusRing}`}
+              className={`inline-flex min-h-11 items-center rounded-md px-1 text-white/90 hover:text-white ${mapableCareFocusRing}`}
             >
               Contact us
             </Link>
             <Link
               href="/accessibility-statement"
-              className={`rounded-md text-white/90 hover:text-white ${mapableCareFocusRing}`}
+              className={`inline-flex min-h-11 items-center rounded-md px-1 text-white/90 hover:text-white ${mapableCareFocusRing}`}
             >
-              Accessibility
+              Accessibility statement
             </Link>
           </div>
         </div>
@@ -149,7 +149,7 @@ export function MarketingPrimaryNav() {
           >
             Contact
           </Link>
-          <div className="hidden lg:block">
+          <div className="hidden md:block">
             <AccessibilityPanelTrigger />
           </div>
           <div className="hidden md:flex">

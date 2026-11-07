@@ -60,9 +60,9 @@ export function ProviderDirectory() {
 
   return (
     <div className="bg-white text-[#0C1833]">
-      <section className="border-b border-slate-200 bg-[#F6FBFC]">
+      <section className="border-b border-slate-200 bg-[#F7F8FC]">
         <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#0C1833]">
             Providers
           </p>
           <h1 className="mt-3 max-w-4xl text-4xl font-black tracking-[-0.04em] md:text-5xl">
@@ -158,7 +158,7 @@ export function ProviderDirectory() {
                         Suburbs: {provider.suburbsServed.join(", ")}
                       </p>
                     </div>
-                    <p className="rounded-full bg-[#F6FBFC] px-3 py-1 text-xs font-bold text-[#005B7F]">
+                    <p className="rounded-full bg-[#F7F8FC] px-3 py-1 text-xs font-bold text-[#0C1833]">
                       Access-readiness {provider.accessReadinessScore}
                     </p>
                   </div>
@@ -179,7 +179,7 @@ export function ProviderDirectory() {
                   <div className="mt-4 flex flex-wrap gap-3">
                     <button
                       type="button"
-                      className={`inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-4 text-sm font-black text-white ${mapableCareFocusRing}`}
+                      className={`inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-4 text-sm font-black text-white ${mapableCareFocusRing}`}
                       onClick={() => setSelectedId(provider.id)}
                     >
                       View profile summary
@@ -205,7 +205,7 @@ export function ProviderDirectory() {
           {selected ? (
             <section
               aria-labelledby="provider-profile-heading"
-              className="rounded-2xl border border-slate-200 bg-[#F6FBFC] p-6"
+              className="rounded-2xl border border-slate-200 bg-[#F7F8FC] p-6"
             >
               <h2 id="provider-profile-heading" className="text-2xl font-black">
                 {selected.name} — profile sections
@@ -240,7 +240,7 @@ export function ProviderDirectory() {
               </div>
               <Link
                 href="/care/request"
-                className={`mt-4 inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-4 text-sm font-black text-white ${mapableCareFocusRing}`}
+                className={`mt-4 inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-4 text-sm font-black text-white ${mapableCareFocusRing}`}
               >
                 Request introduction
               </Link>

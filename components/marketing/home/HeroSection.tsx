@@ -36,10 +36,8 @@ export function HeroSection() {
         <p className="mb-4 text-sm font-black uppercase tracking-[0.18em] text-[#F26A21]">
           MapAble Australia
         </p>
-        <h1
-          aria-label={homepageHeroCopy.headline}
-          className="mapable-display max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-white md:text-6xl lg:text-7xl"
-        >
+        <h1 className="mapable-display max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-white md:text-6xl lg:text-7xl">
+          <span className="sr-only">{homepageHeroCopy.headline}</span>
           <WavyText text={homepageHeroCopy.headline} />
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85">

@@ -7,6 +7,17 @@ Guideline surface map: [WAI-GUIDELINES-MAP.md](./WAI-GUIDELINES-MAP.md).
 Automated Playwright/axe coverage is necessary but not sufficient.  
 **Status:** all manual rows `NOT_RUN` until a human tester records evidence.
 
+## Next acceptance gate (record SHA + environment before marking)
+
+See [WAI-GUIDELINES-MAP.md](./WAI-GUIDELINES-MAP.md) “Next acceptance gate”. Until human evidence is attached, leave status `NOT_RUN`.
+
+| Gate ID | Scope | Required evidence columns | Status |
+| ------- | ----- | ------------------------- | ------ |
+| G-ATAG | Places authoring/editing/publishing — ATAG 2.0 Part A + Part B (accessible content output); see `apps/places/ACCESSIBILITY-QA.md` | Commit SHA, environment, result, limitations, human reviewer | `NOT_RUN` |
+| G-PREFS | Display preferences — keyboard, screen readers, 200–400% zoom, reduced motion, session persistence | Commit SHA, environment, result, limitations, human reviewer | `NOT_RUN` |
+
+Do **not** assert WCAG, ATAG, or UAAG conformance from unfinished gate rows.
+
 ## Automated coverage (repository)
 
 | Check                      | Evidence                                                    | Status                                                                                       |

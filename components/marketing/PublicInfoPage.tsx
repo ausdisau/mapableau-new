@@ -53,9 +53,9 @@ export function PublicInfoPage({
       <section className={`${mapablePublicPageContainerClass} py-12 sm:py-16`}>
         <div className="mb-8 max-w-2xl">
           <p className={mapablePublicSectionTitleClass}>Details</p>
-          <h2 className="mapable-display mt-2 text-2xl font-black tracking-[-0.04em] text-[#0C1833] sm:text-3xl">
+          <p className="mt-2 text-base leading-7 text-slate-600">
             Clear information, without overstated claims.
-          </h2>
+          </p>
         </div>
 
         <div className="grid gap-5">
@@ -66,7 +66,7 @@ export function PublicInfoPage({
                 index === 0 ? "border-[#3B5BDB]/15 bg-[#F7F8FC]" : ""
               }`}
             >
-              <h3 className="text-lg font-black text-[#0C1833]">{section.title}</h3>
+              <h2 className="text-lg font-black text-[#0C1833]">{section.title}</h2>
               <div className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
                 {section.content}
               </div>

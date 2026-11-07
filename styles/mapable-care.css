@@ -38,6 +38,12 @@
   transform-origin: 50% 80%;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .mapable-wavy-word {
+    transform: none;
+  }
+}
+
 /* MapAble Transport public landing — atmospheric hero + motion */
 .transport-public-hero-visual {
   background-color: #0c1833;

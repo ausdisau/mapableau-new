@@ -20,8 +20,8 @@ export function AccessibilityPanelTrigger({
   if (!a11y) return null;
 
   const adjusted = a11y.hasCustomPreferences;
-  const label = "Open accessibility settings";
-  const visible = showLabel ? "Accessibility" : null;
+  const label = "Open display settings";
+  const visible = showLabel ? "Display settings" : null;
 
   if (variant === "link") {
     return (
@@ -34,7 +34,7 @@ export function AccessibilityPanelTrigger({
         aria-haspopup="dialog"
         onClick={() => a11y.openPanel(ref.current)}
       >
-        {visible ?? "Accessibility settings"}
+        {visible ?? "Display settings"}
         {adjusted ? (
           <span className="sr-only"> (custom display settings active)</span>
         ) : null}
@@ -57,7 +57,7 @@ export function AccessibilityPanelTrigger({
       </span>
       {showLabel ? (
         <span className="hidden sm:inline">
-          Accessibility
+          Display settings
           {adjusted ? (
             <span className="ml-1 inline-block h-2 w-2 rounded-full bg-[#F15A29]" aria-hidden="true" />
           ) : null}

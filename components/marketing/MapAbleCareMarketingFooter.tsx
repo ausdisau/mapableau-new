@@ -221,7 +221,7 @@ export function MapAbleCareSlimFooter() {
           <FooterTextLink href="/privacy">Privacy</FooterTextLink>
           <FooterTextLink href="/terms">Terms</FooterTextLink>
           <FooterTextLink href="/accessibility-statement">
-            Accessibility
+            Accessibility statement
           </FooterTextLink>
           <AccessibilityPanelTrigger variant="link" />
           <a
