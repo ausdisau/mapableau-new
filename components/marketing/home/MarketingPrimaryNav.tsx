@@ -82,6 +82,10 @@ export function MarketingPrimaryNav() {
     { label: "Providers", href: "/providers" },
     { label: "NDIS Guidance", href: marketingFeatureRoutes.ask },
   ];
+  const exploreLinks = [
+    { label: "Accessibility map", href: "/accessibility-map" },
+    { label: "Tourism prototype", href: "/tourism" },
+  ];
 
   return (
     <div
@@ -102,6 +106,24 @@ export function MarketingPrimaryNav() {
             {link.label}
           </Link>
         ))}
+        <details className="relative">
+          <summary
+            className={`${navLinkClass} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}
+          >
+            Explore
+          </summary>
+          <div className="absolute left-0 z-40 mt-2 min-w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+            {exploreLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`block min-h-11 rounded-xl px-4 py-3 text-sm font-bold text-[#005B7F] hover:bg-slate-50 ${mapableCareFocusRing}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </details>
       </nav>
 
       <div className="flex items-center gap-2 md:gap-3">
@@ -137,6 +159,16 @@ export function MarketingPrimaryNav() {
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
+              </Link>
+            ))}
+            {exploreLinks.map((link) => (
+              <Link
+                key={`explore-${link.href}`}
+                href={link.href}
+                className={`min-h-11 rounded-xl px-4 py-3 text-sm font-black text-[#0C1833] transition hover:bg-slate-50 ${mapableCareFocusRing}`}
+                onClick={() => setMobileOpen(false)}
+              >
+                Explore: {link.label}
               </Link>
             ))}
             <div className="px-1 py-1">

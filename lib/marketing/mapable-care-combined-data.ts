@@ -101,6 +101,12 @@ export const logoMenuItems: MenuItem[] = [
       "Explore venues with access notes, quiet spaces and community guidance.",
   },
   {
+    label: "Tourism prototype",
+    href: "/tourism",
+    description:
+      "Illustrative Sydney trip planner with sourced access notes. Local data only.",
+  },
+  {
     label: "List your service",
     href: "/for-providers",
     description:
@@ -153,6 +159,12 @@ export const homepageExploreFeatures = [
     title: "Accessibility map",
     body: "Browse venues with access notes, measurements, confidence, and sources — so you can plan before you go.",
     href: "/accessibility-map",
+  },
+  {
+    eyebrow: "Explore",
+    title: "Tourism prototype",
+    body: "Plan an illustrative Sydney itinerary with rest stops and attributed access notes. Not bookings or certified access.",
+    href: "/tourism",
   },
   {
     eyebrow: "Care",
@@ -478,6 +490,7 @@ export const footerPlatformLinks: FooterLink[] = [
   { label: "Employment", href: "/employment" },
   { label: "Providers", href: "/providers" },
   { label: "Accessible places", href: "/accessibility-map" },
+  { label: "Tourism prototype", href: "/tourism" },
   { label: "Provider finder", href: "/provider-finder" },
 ];
 

@@ -1,17 +1,18 @@
 "use client";
 
+import { CheckCircle2, Compass, ExternalLink, Info, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
-import { CheckCircle2, Compass, ExternalLink, Info, Plus, Search } from "lucide-react";
 
 import {
-  addOpenTripMapStop, isTourismTrip, makeSydneyDemoTrip,
+  addOpenTripMapStop, makeSydneyDemoTrip,
   TOURISM_TRIP_STORAGE_KEY, type TourismTrip,
 } from "@/lib/tourism/demo";
 import {
   isOpenTripMapPlace,
   type OpenTripMapKind, type OpenTripMapPlace, type OpenTripMapSearchResponse,
 } from "@/lib/tourism/open-trip-map";
+import { migrateTourismTrip } from "@/lib/tourism/trip-ops";
 
 const kindOptions: { value: OpenTripMapKind; label: string }[] = [
   { value: "interesting_places", label: "All attractions" },
@@ -35,7 +36,8 @@ export function OpenTripMapDiscovery() {
       const saved = window.localStorage.getItem(TOURISM_TRIP_STORAGE_KEY);
       if (saved) {
         const parsed: unknown = JSON.parse(saved);
-        if (isTourismTrip(parsed)) setTrip(parsed);
+        const migrated = migrateTourismTrip(parsed);
+        if (migrated) setTrip(migrated);
       }
     } catch {
       // Private browsing and disabled storage remain supported for browsing.
