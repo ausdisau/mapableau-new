@@ -165,7 +165,6 @@ test.describe("Keyboard / skip-link smoke", () => {
   });
 });
 
-
 test("provider finder service map exposes evidence and keyboard-operable controls", async ({
   page,
 }) => {
