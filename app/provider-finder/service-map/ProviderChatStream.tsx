@@ -252,7 +252,11 @@ export default function ProviderChatStream({ onMapResults, onChatSearchStart, on
       {results.length > 0 && <p className="text-sm">
         Results with coordinates are also shown on the map below. Registration and access requirements need confirmation.
       </p>}
-      <div aria-label="Chat search provider results" className="grid gap-3 md:grid-cols-2">
+      <div
+        role="region"
+        aria-label="Chat search provider results"
+        className="grid gap-3 md:grid-cols-2"
+      >
         {results.map((provider) => <article key={provider.id} className="space-y-2 rounded-lg border p-3">
           <h3 className="font-semibold">{provider.name}</h3>
           <p className="text-sm">{[provider.suburb, provider.state, provider.postcode].filter(Boolean).join(", ")}</p>
