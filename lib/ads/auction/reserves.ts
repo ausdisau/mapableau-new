@@ -2,8 +2,8 @@ import {
   DEFAULT_PLACEMENT_FLOOR_CPM_MICROS,
 } from "@/lib/ads/auction/config";
 import type { AdsMicros } from "@/lib/ads/money/micros";
-import type { PlacementCode } from "@/lib/ads/types";
 import { isPlacementCode } from "@/lib/ads/placement-registry";
+import type { PlacementCode } from "@/lib/ads/types";
 
 export type PlacementReserveSource = "default" | "rule" | "override";
 

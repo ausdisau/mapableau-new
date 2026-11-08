@@ -1,5 +1,5 @@
-import type { AutonomyMode } from "./autonomy";
 import type { AgencyEvent, DecisionPoint, ParticipantChoice } from "./agency";
+import type { AutonomyMode } from "./autonomy";
 import { LABS_SIMULATION_DATA } from "./experiment";
 
 export const SCENARIO_PHASES = [

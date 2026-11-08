@@ -5,14 +5,15 @@
  */
 
 import type { AccessProvenanceStatus, Prisma } from "@prisma/client";
+
+
+import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import { prisma } from "@/lib/prisma";
 import {
   buildAssertionProvenance,
   storageStatusToEvidenceProvenance,
   type AccessGraphAssertionProvenance,
 } from "@mapable/contracts";
-
-import { createAuditEvent } from "@/lib/audit/audit-event-service";
-import { prisma } from "@/lib/prisma";
 
 import { ACCESS_ENTITY_TYPES, type AccessEntityType } from "./domains";
 import { accessInfrastructureFlags } from "./flags";

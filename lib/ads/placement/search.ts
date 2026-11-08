@@ -47,7 +47,7 @@ function ownedCandidates(now: Date): PlacementCandidate[] {
   });
 }
 
-function doohCandidates(now: Date): PlacementCandidate[] {
+function doohCandidates(_now: Date): PlacementCandidate[] {
   if (!adsFlagsConfig.isDoohSandboxEnabled()) return [];
   return SYNTHETIC_DOOH_SCREENS.map((screen) => ({
     opportunityId: `dooh-sandbox-${screen.providerScreenId}`,

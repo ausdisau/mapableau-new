@@ -1,9 +1,10 @@
-import type { AdsFlagEnv } from "@/lib/ads/config/flags";
-import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import {
   runInternalAuction,
   type AuctionableCampaign,
 } from "@/lib/ads/auction/run-auction";
+import type { AuctionOutcome } from "@/lib/ads/auction/second-price";
+import type { AdsFlagEnv } from "@/lib/ads/config/flags";
+import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import type { AdProviderAdapter } from "@/lib/ads/providers/adapter";
 import {
   rankCampaigns,
@@ -16,7 +17,6 @@ import type {
   AdProviderDecision,
   AdRequestContext,
 } from "@/lib/ads/types";
-import type { AuctionOutcome } from "@/lib/ads/auction/second-price";
 
 export type InternalInventory = {
   campaigns: RankableCampaign[];
