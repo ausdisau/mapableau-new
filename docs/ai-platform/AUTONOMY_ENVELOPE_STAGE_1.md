@@ -51,6 +51,7 @@ Run: `pnpm exec vitest run tests/autonomy/stage0-evidence.test.ts tests/autonomy
 | S1-08 | Durable Stop for one tenant does not block another |
 | S1-09 | PEP does not use another organisation's consent id |
 | S1-10 | Exact-consent programme call without acting tenant is denied |
+| S1-11 | PEP with empty tenantId is denied before consent lookup |
 
 ## Out of scope
 

@@ -306,6 +306,26 @@ describe("Stage 1 deterministic trust", () => {
     expect(findFirstMock).not.toHaveBeenCalled();
   });
 
+  it("denies PEP evaluation when the acting tenant is empty", async () => {
+    vi.stubEnv("MAPABLE_ACS_EXACT_CONSENT_ENABLED", "true");
+    findFirstMock.mockResolvedValue({
+      id: "consent-any-org",
+      dataScope: ["rosterStatus"],
+    });
+    const pep = await evaluateAutonomyPep({
+      actorUserId: "actor-1",
+      tenantId: "   ",
+      participantId: "participant-1",
+      purpose: "breakfast_packaging_help",
+      scope: "accessibility.read",
+      grantedToOrganisationId: "org-b",
+      requestedFields: ["rosterStatus"],
+    });
+    expect(pep.allowed).toBe(false);
+    expect(pep.reason).toMatch(/Acting tenant is required/);
+    expect(findFirstMock).not.toHaveBeenCalled();
+  });
+
   it("binds PEP consent to the acting tenant and ignores another org id", async () => {
     vi.stubEnv("MAPABLE_ACS_EXACT_CONSENT_ENABLED", "true");
     findFirstMock.mockResolvedValue({

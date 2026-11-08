@@ -52,10 +52,15 @@ export async function evaluateAutonomyPep(
     return { allowed: false, reason: "Server-derived actor is required" };
   }
 
+  const actingTenantId = input.tenantId.trim();
+  if (!actingTenantId) {
+    return { allowed: false, reason: "Acting tenant is required" };
+  }
+
   try {
     assertCrossTenantDenied({
-      actorOrganisationId: input.tenantId,
-      resourceOrganisationId: input.resourceOrganisationId ?? input.tenantId,
+      actorOrganisationId: actingTenantId,
+      resourceOrganisationId: input.resourceOrganisationId ?? actingTenantId,
     });
   } catch (error) {
     if (error instanceof ProgrammeInvariantError) {
@@ -73,7 +78,7 @@ export async function evaluateAutonomyPep(
 
   if (isAcsDurableStopEnabled()) {
     const durable = await isDurableProgrammeAuraStopped({
-      tenantId: input.tenantId,
+      tenantId: actingTenantId,
       participantId: input.participantId,
     });
     if (durable) {
@@ -94,7 +99,7 @@ export async function evaluateAutonomyPep(
 
   if (
     input.grantedToOrganisationId &&
-    input.grantedToOrganisationId !== input.tenantId
+    input.grantedToOrganisationId !== actingTenantId
   ) {
     return {
       allowed: false,
@@ -107,7 +112,7 @@ export async function evaluateAutonomyPep(
     scope: input.scope,
     purpose: input.purpose,
     grantedToUserId: input.grantedToUserId,
-    grantedToOrganisationId: input.tenantId,
+    grantedToOrganisationId: actingTenantId,
     requestedFields: input.requestedFields,
   });
 
