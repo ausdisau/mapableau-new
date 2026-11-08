@@ -1,12 +1,12 @@
 import Link from "next/link";
 
-import { requireAuth } from "@/lib/auth/guards";
+import { AdsTopUpForm } from "@/app/provider/(console)/ads/top-up-form";
+import { ADS_TOPUP_PRESETS_CENTS } from "@/lib/ads/auction/config";
 import { listAdvertisersForUser } from "@/lib/ads/auth/advertiser-access";
 import { getOrCreateAdWallet } from "@/lib/ads/billing/wallet";
 import { formatAudMicros, microsToString } from "@/lib/ads/money/micros";
-import { ADS_TOPUP_PRESETS_CENTS } from "@/lib/ads/auction/config";
+import { requireAuth } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
-import { AdsTopUpForm } from "@/app/provider/(console)/ads/top-up-form";
 
 export default async function ProviderAdsPage() {
   const user = await requireAuth();

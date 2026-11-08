@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { PlacementPlannerClient } from "@/components/ads/manager/PlacementPlannerClient";
-import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { listAdvertisersForUser } from "@/lib/ads/auth/advertiser-access";
+import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { requireAuth } from "@/lib/auth/guards";
 
 export default async function AdsManagerPage() {

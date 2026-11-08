@@ -2,12 +2,12 @@ import Link from "next/link";
 
 import { MyDayAiAssistedPanel } from "@/components/dashboard/MyDayAiAssistedPanel";
 import { MyDayProgrammaticPanel } from "@/components/dashboard/MyDayProgrammaticPanel";
+import { getMapAbleIntelligenceConfig } from "@/intelligence/config";
 import { adaptParticipantDashboard } from "@/lib/access/adaptive";
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
 import { participantWorkspaceFlags } from "@/lib/config/participant-workspace";
 import { loadProgrammaticMyDay } from "@/lib/dashboard/load-my-day";
-import { getMapAbleIntelligenceConfig } from "@/intelligence/config";
 
 export const metadata = { title: "My Day | MapAble" };
 

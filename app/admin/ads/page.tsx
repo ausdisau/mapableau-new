@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { requireAdmin } from "@/lib/auth/guards";
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { formatAudMicros } from "@/lib/ads/money/micros";
+import { requireAdmin } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminAdsPage() {

@@ -178,7 +178,7 @@ export default function CrisisSupportPage() {
         <p className="mt-3 leading-6">
           A person should not lose access to crisis support because speech,
           hearing, AAC, fatigue, motor access or communication speed makes a
-          standard phone call difficult. MapAble should preserve the person's
+          standard phone call difficult. MapAble should preserve the person&apos;s
           usual communication method and allow extra response time.
         </p>
         <p className="mt-3 text-sm text-muted-foreground">
