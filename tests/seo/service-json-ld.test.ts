@@ -31,7 +31,7 @@ describe("Organization JSON-LD for Australian Disability Ltd", () => {
     expect(organization.taxID).toBe("55641613541");
     expect(organization.logo).toMatchObject({
       "@type": "ImageObject",
-      url: "https://mapable.com.au/brand/mapable-logo.png",
+      url: "https://mapable.com.au/brand/mapable-independence.png",
     });
     expect(website.name).toBe("MapAble Australia");
     expect(website.inLanguage).toBe("en-AU");

@@ -196,8 +196,13 @@ describe("MapAbleCareCombinedHomepage", () => {
       }),
     ).toBeTruthy();
     const homeLink = screen.getByRole("link", { name: /MapAble home/i });
-    expect(homeLink.textContent).toMatch(/Empowering Independence/i);
-    expect(screen.getAllByText(/Empowering Independence/i)).toHaveLength(1);
+    const logo = homeLink.querySelector("img");
+    expect(logo?.getAttribute("src")).toBe("/brand/mapable-independence.png");
+    expect(logo?.getAttribute("alt")).toBe("MapAble — Empowering Independence");
+    expect(logo?.getAttribute("width")).toBe("1254");
+    expect(logo?.getAttribute("height")).toBe("1254");
+    expect(homeLink.querySelectorAll("img")).toHaveLength(1);
+    expect(homeLink.textContent?.trim()).toBe("");
     expect(
       screen.getByRole("heading", {
         name: /What you can use on the public site today/i,
