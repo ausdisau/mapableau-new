@@ -36,6 +36,10 @@ const projects: Project[] = [
     testMatch: /access-experience-v2\.spec\.ts/,
   },
   {
+    name: "tourism",
+    testMatch: /tourism\.spec\.ts/,
+  },
+  {
     name: "unified-shell",
     testMatch: /unified-shell\.spec\.ts/,
     dependencies: skipAuth ? undefined : ["setup"],
