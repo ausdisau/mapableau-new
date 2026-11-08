@@ -176,11 +176,9 @@ export function FirstRunSetup() {
                     checked={informationDensity === option.value}
                     onChange={() => setInformationDensity(option.value)}
                   />
-                  <span>
-                    <span className="block font-semibold">{option.label}</span>
-                    <span className="mt-1 block text-sm text-slate-600">
-                      {option.description}
-                    </span>
+                  <span className="block font-semibold">{option.label}</span>
+                  <span className="mt-1 block text-sm text-slate-600">
+                    {option.description}
                   </span>
                 </label>
               </li>

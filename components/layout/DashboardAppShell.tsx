@@ -2,15 +2,15 @@
 
 import type { ReactNode } from "react";
 
+import { SkipToContent } from "@/components/core/SkipToContent";
 import { DashboardNav } from "@/components/layout/DashboardNav";
 import { MapAbleUserBar } from "@/components/layout/MapAbleUserBar";
 import {
   ParticipantWorkspaceMobileNav,
   ParticipantWorkspaceSidebar,
 } from "@/components/layout/ParticipantWorkspaceNav";
-import { SkipToContent } from "@/components/core/SkipToContent";
-import { MapAbleAppShell } from "@/components/marketing/MapAbleAppShell";
 import { MapAbleAppCompactHeader } from "@/components/marketing/MapAbleAppCompactHeader";
+import { MapAbleAppShell } from "@/components/marketing/MapAbleAppShell";
 import { MapAbleCareSlimFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 import { participantWorkspaceFlags } from "@/lib/config/participant-workspace";
 import type { UserRole } from "@/types/mapable";

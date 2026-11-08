@@ -4,12 +4,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import dynamic from "next/dynamic";
 
-import type { AdCreativePayload } from "@/lib/ads/types";
-import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 import type {
   AccessCapitalRegionSlug,
   GccsaBoundaryFeatureCollection,
 } from "@/lib/access/regions/gccsa";
+import type { AdCreativePayload } from "@/lib/ads/types";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 const AccessMapLayer = dynamic(
   () => import("@/components/access/AccessMapLayer").then((m) => m.AccessMapLayer),
