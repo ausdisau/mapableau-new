@@ -35,6 +35,18 @@ export type MyDaySnapshot = {
   source: "programmatic";
 };
 
+/** Attention framing for My Day — mirrors concept scenarios with real data. */
+export type AttentionLevel = "ok" | "warn" | "bad" | "neutral";
+
+export type MyDayAttention = {
+  level: AttentionLevel;
+  statusLabel: string;
+  title: string;
+  description: string;
+  primaryHref: string;
+  primaryLabel: string;
+};
+
 const CARE_CONFIRMED = new Set([
   "accepted",
   "worker_assigned",
@@ -105,6 +117,93 @@ export function certaintyLabel(status: Certainty): string {
       return _exhaustive;
     }
   }
+}
+
+/**
+ * Derive “what needs attention” copy from an authorised snapshot.
+ * Transport is never treated as dependent on care without a verified linkage.
+ */
+export function buildAttention(snapshot: MyDaySnapshot): MyDayAttention {
+  if (snapshot.empty) {
+    return {
+      level: "neutral",
+      statusLabel: "Nothing scheduled",
+      title: "Nothing scheduled yet",
+      description:
+        "When you have care or transport arrangements, they will appear here. You can explore services without inventing a timetable.",
+      primaryHref: "/dashboard/find-support",
+      primaryLabel: "Find places & services",
+    };
+  }
+
+  if (snapshot.careSummary.status === "cancelled") {
+    const transportNote =
+      snapshot.transportSummary.status === "confirmed"
+        ? " Your transport arrangements remain confirmed unless you change them separately."
+        : snapshot.transportSummary.status === "pending"
+          ? " A transport trip is still awaiting confirmation and is not treated as booked."
+          : snapshot.transportSummary.count > 0
+            ? " Review transport separately — it is not assumed to depend on this care visit."
+            : "";
+    return {
+      level: "bad",
+      statusLabel: "Review care coverage",
+      title: "A care visit needs your attention",
+      description: `A care visit is cancelled.${transportNote} Care and transport are separate arrangements unless you confirm a linked change.`,
+      primaryHref: snapshot.careSummary.href,
+      primaryLabel: "Review support options",
+    };
+  }
+
+  if (snapshot.transportSummary.status === "pending") {
+    return {
+      level: "warn",
+      statusLabel: "Check trip status",
+      title: "A transport trip is awaiting confirmation",
+      description:
+        "Do not treat this trip as booked until it is confirmed. Check availability before relying on it.",
+      primaryHref: snapshot.transportSummary.href,
+      primaryLabel: "Review transport options",
+    };
+  }
+
+  if (snapshot.careSummary.status === "pending") {
+    return {
+      level: "warn",
+      statusLabel: "Care awaiting confirmation",
+      title: "A care arrangement is not confirmed yet",
+      description:
+        "This is not a booked visit until a provider confirms it. Help & Safety remains available if you need a person.",
+      primaryHref: snapshot.careSummary.href,
+      primaryLabel: "Review care arrangements",
+    };
+  }
+
+  if (
+    snapshot.careSummary.status === "confirmed" ||
+    snapshot.transportSummary.status === "confirmed" ||
+    snapshot.nearestConfirmed
+  ) {
+    return {
+      level: "ok",
+      statusLabel: "Everything confirmed",
+      title: "Your arrangements are up to date",
+      description:
+        "Authorised care and transport records that are confirmed appear below. Nothing here requires action unless a status changes.",
+      primaryHref: snapshot.nearestConfirmed?.href ?? "/dashboard/bookings",
+      primaryLabel: "View my plan",
+    };
+  }
+
+  return {
+    level: "neutral",
+    statusLabel: "Review records",
+    title: "Some statuses could not be verified",
+    description:
+      "Available records could not be confirmed. Continue with Help & Safety or review your bookings directly.",
+    primaryHref: "/dashboard/safety",
+    primaryLabel: "Get human help",
+  };
 }
 
 function careCertaintyNote(status: Certainty): string {

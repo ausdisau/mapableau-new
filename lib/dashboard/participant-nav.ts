@@ -32,7 +32,7 @@ export const PARTICIPANT_NAV_GROUPS: ParticipantNavGroup[] = [
       },
       {
         href: "/care",
-        label: "Care",
+        label: "My Care & Support",
         matchPrefix: "/care",
         children: [
           { href: "/care/bookings", label: "Care bookings" },
@@ -41,7 +41,7 @@ export const PARTICIPANT_NAV_GROUPS: ParticipantNavGroup[] = [
       },
       {
         href: "/dashboard/transport",
-        label: "Transport",
+        label: "My Transport",
         matchPrefix: "/dashboard/transport",
         children: [
           { href: "/dashboard/find-transport", label: "Find transport" },
@@ -49,7 +49,7 @@ export const PARTICIPANT_NAV_GROUPS: ParticipantNavGroup[] = [
       },
       {
         href: "/dashboard/bookings",
-        label: "Bookings / Calendar",
+        label: "Bookings & Calendar",
         matchPrefix: "/dashboard/bookings",
         children: [
           { href: "/dashboard/calendar", label: "Calendar" },

@@ -8,7 +8,14 @@ test.describe("Participant workspace navigation", () => {
     // Auth may redirect; ensure page is usable and never exposes AI as enabled by default.
     const body = await page.locator("body").innerText();
     expect(body.length).toBeGreaterThan(0);
-    await expect(page.locator("text=AI-assisted view is off").or(page.locator("[data-testid='my-day-ai-disabled']")).or(page.locator("text=Sign in")).first()).toBeVisible({
+    await expect(
+      page
+        .locator("text=AI-assisted view is off")
+        .or(page.locator("[data-testid='my-day-view-picker']"))
+        .or(page.locator("[data-testid='my-day-ai-disabled']"))
+        .or(page.locator("text=Sign in"))
+        .first(),
+    ).toBeVisible({
       timeout: 15_000,
     });
     const mains = page.locator("main#main-content");

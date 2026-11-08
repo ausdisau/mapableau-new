@@ -1,7 +1,4 @@
-import Link from "next/link";
-
-import { MyDayAiAssistedPanel } from "@/components/dashboard/MyDayAiAssistedPanel";
-import { MyDayProgrammaticPanel } from "@/components/dashboard/MyDayProgrammaticPanel";
+import { MyDayWorkspace } from "@/components/dashboard/MyDayWorkspace";
 import { adaptParticipantDashboard } from "@/lib/access/adaptive";
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
@@ -21,8 +18,8 @@ export default async function DashboardPage() {
   const densityClass =
     presentation.applied &&
     presentation.policy?.informationDensity === "low"
-      ? "max-w-3xl space-y-8"
-      : "space-y-8";
+      ? "max-w-3xl"
+      : "";
 
   return (
     <div
@@ -31,69 +28,13 @@ export default async function DashboardPage() {
       data-adapt-variant={presentation.policy?.componentVariant ?? "default"}
       data-testid="participant-my-day-page"
     >
-      <header className="space-y-2">
-        <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#005B7F]">
-          Participant workspace
-        </p>
-        <h1 className="font-heading text-3xl font-bold text-[#0C1833]">
-          My Day
-        </h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Signed in as <strong>{roleLabel(user.primaryRole)}</strong>. This
-          page shows decision-safe context from your records. Administration
-          stays in a separate permissioned workspace.
-        </p>
-      </header>
-
-      <MyDayProgrammaticPanel snapshot={snapshot} />
-
-      <MyDayAiAssistedPanel
-        enabled={aiEnabled}
-        careOsEnabled={careOsEnabled}
+      <MyDayWorkspace
         snapshot={snapshot}
+        aiEnabled={aiEnabled}
+        careOsEnabled={careOsEnabled}
+        roleLabelText={roleLabel(user.primaryRole)}
+        showCareOsLink={careOsEnabled}
       />
-
-      <section
-        aria-labelledby="more-tools-heading"
-        className="rounded-2xl border border-slate-200 bg-white p-5"
-      >
-        <h2 id="more-tools-heading" className="text-lg font-bold">
-          More tools
-        </h2>
-        <p className="mt-1 text-sm text-slate-600">
-          Legacy deep links remain available. Use the left navigation for
-          everyday paths.
-        </p>
-        <ul className="mt-4 flex flex-wrap gap-3 text-sm">
-          <li>
-            <Link className="font-bold text-[#005B7F] underline" href="/dashboard/billing">
-              Billing centre
-            </Link>
-          </li>
-          <li>
-            <Link className="font-bold text-[#005B7F] underline" href="/dashboard/notifications">
-              Notifications
-            </Link>
-          </li>
-          <li>
-            <Link className="font-bold text-[#005B7F] underline" href="/dashboard/jobs">
-              Jobs
-            </Link>
-          </li>
-          <li>
-            <Link className="font-bold text-[#005B7F] underline" href="/dashboard/calendar">
-              Calendar
-            </Link>
-          </li>
-          {careOsEnabled ? (
-            <li>
-              <Link className="font-bold text-[#005B7F] underline" href="/dashboard/careos">
-                My CareOS
-              </Link>
-            </li>
-          ) : null}
-        </ul>
-      </section>
     </div>
   );
 }
