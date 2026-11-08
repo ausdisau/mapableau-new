@@ -46,7 +46,9 @@ test.describe("MapAble Tourism prototype (axe, not a WCAG claim)", () => {
       page.getByRole("button", { name: "Generate sample itinerary" }),
     ).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("status")).toContainText("saved locally");
+    await expect(
+      page.getByRole("status").filter({ hasText: "saved locally" }),
+    ).toBeVisible();
     await expectNoSeriousAxe(page, "/tourism/plan");
   });
 
