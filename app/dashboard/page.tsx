@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DayContinuityReviewPanel } from "@/components/dashboard/DayContinuityReviewPanel";
 import { MyDayAiAssistedPanel } from "@/components/dashboard/MyDayAiAssistedPanel";
 import { MyDayProgrammaticPanel } from "@/components/dashboard/MyDayProgrammaticPanel";
 import { adaptParticipantDashboard } from "@/lib/access/adaptive";
@@ -46,6 +47,10 @@ export default async function DashboardPage() {
       </header>
 
       <MyDayProgrammaticPanel snapshot={snapshot} />
+
+      {participantWorkspaceFlags.dayContinuityReviewEnabled() ? (
+        <DayContinuityReviewPanel snapshot={snapshot} />
+      ) : null}
 
       <MyDayAiAssistedPanel
         enabled={aiEnabled}

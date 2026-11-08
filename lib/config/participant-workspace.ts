@@ -14,6 +14,10 @@ export const participantWorkspaceFlags = {
     if (env.MAPABLE_PARTICIPANT_WORKSPACE_SIDEBAR === "false") return false;
     return true;
   },
+  /** Read-only continuity review; OFF by default and not a booking authority. */
+  dayContinuityReviewEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+    return envFlag("MAPABLE_DAY_CONTINUITY_REVIEW_ENABLED", env);
+  },
   /** Optional AI-assisted My Day panel. Requires CareOS AI flags + consent separately. */
   aiAssistedViewEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
     return envFlag("MAPABLE_PARTICIPANT_MY_DAY_AI_ENABLED", env);
