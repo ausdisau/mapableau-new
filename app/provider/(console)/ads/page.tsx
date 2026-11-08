@@ -32,6 +32,11 @@ export default async function ProviderAdsPage() {
           sponsored placements only — never accessibility or provider suitability
           scores.
         </p>
+        <p className="mt-2 text-sm">
+          <Link href="/provider/ads/manager" className="underline">
+            Open Ads Manager (placement planning)
+          </Link>
+        </p>
       </header>
 
       {rows.length === 0 ? (

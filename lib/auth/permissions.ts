@@ -215,7 +215,13 @@ export type Permission =
   | "billing:manage_policy"
   | "billing:manage_integrations"
   | "billing:export"
-  | "billing:audit";
+  | "billing:audit"
+  | "ads:campaigns:read"
+  | "ads:campaigns:write"
+  | "ads:spend:approve"
+  | "ads:review"
+  | "ads:providers:read"
+  | "ads:providers:manage";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   participant: [
@@ -331,6 +337,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "billing:approve_provider",
     "billing:issue_invoice",
     "billing:export",
+    "ads:campaigns:read",
+    "ads:campaigns:write",
+    "ads:spend:approve",
+    "ads:review",
+    "ads:providers:read",
+    "ads:providers:manage",
   ],
   transport_operator: [
     "booking:read:any",

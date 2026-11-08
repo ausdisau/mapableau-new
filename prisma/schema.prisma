@@ -15709,6 +15709,13 @@ model AdCampaign {
   advertiser           AdAdvertiser   @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
   name                 String
   status               AdEntityStatus @default(DRAFT)
+  /// Manager lifecycle (additive). Serve path continues to use `status`.
+  lifecycleStatus      AdManagerLifecycleStatus @default(DRAFT)
+  lifecycleVersion     Int                      @default(1)
+  /// Placement-manager budget in integer minor units (cents). Null = auction-only campaign.
+  budgetMinor          BigInt?
+  budgetCurrency       String                   @default("AUD")
+  objective            String?
   startAt              DateTime?
   endAt                DateTime?
   budgetType           String?
@@ -15729,6 +15736,7 @@ model AdCampaign {
   priority             Int            @default(0)
   isHouse              Boolean        @default(false)
   placementCodes       String[]       @default([])
+  createdByUserId      String?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -15739,9 +15747,14 @@ model AdCampaign {
   clicks         AdClick[]
   auctionResults AdAuctionResult[]
   billingEvents  AdBillingEvent[]
+  allocations    AdCampaignAllocation[]
+  placementQuotes AdPlacementQuote[]
+  spendAuthorisations AdSpendAuthorisation[]
+  placementOrders AdPlacementOrder[]
 
   @@index([advertiserId])
   @@index([status])
+  @@index([lifecycleStatus])
   @@index([bidModel])
   @@index([startAt, endAt])
   @@map("ad_campaigns")
@@ -15902,15 +15915,18 @@ model AdConversion {
 }
 
 model AdPolicyReview {
-  id         String         @id @default(cuid())
-  creativeId String
-  creative   AdCreative     @relation(fields: [creativeId], references: [id], onDelete: Cascade)
-  status     AdEntityStatus
-  notes      String?
-  reviewerId String?
-  claimFlags String[]       @default([])
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  creativeId    String
+  creative      AdCreative     @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+  status        AdEntityStatus
+  notes         String?
+  reviewerId    String?
+  claimFlags    String[]       @default([])
+  reasonCodes   String[]       @default([])
+  policyVersion String?
+  evidenceRef   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@index([creativeId])
   @@index([status])
@@ -16072,6 +16088,398 @@ model AdBillingEvent {
   @@map("ad_billing_events")
 }
 
+// ─── Ads Manager placement slice (P1 + §14.11) — additive, flag-gated ───────
+
+enum AdManagerLifecycleStatus {
+  DRAFT
+  VALIDATING
+  AWAITING_REVIEW
+  CHANGES_REQUESTED
+  REJECTED
+  APPROVED
+  QUOTE_PENDING
+  AWAITING_SPEND_AUTHORISATION
+  AUTHORISING
+  READY_TO_SUBMIT
+  SUBMITTING
+  SCHEDULED
+  PARTIALLY_SCHEDULED
+  SUBMISSION_UNKNOWN
+  FAILED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+  RECONCILED
+  CLOSED
+}
+
+enum AdBuyingChannel {
+  mapable
+  meta
+  google
+  tiktok
+  linkedin
+  dooh
+}
+
+enum AdIntegrationStatus {
+  demo
+  pending_access
+  enabled
+  degraded
+  disabled
+}
+
+enum AdProviderAssuranceState {
+  catalogued
+  source_reviewed
+  vendor_confirmed
+  commercially_approved
+  sandbox_verified
+  security_privacy_accessibility_signed_off
+  limited_live
+  production_enabled
+  suspended
+}
+
+enum AdAvailabilityState {
+  confirmed
+  indicative
+  unknown
+  unavailable
+}
+
+enum AdBuyingMode {
+  owned_reservation
+  guaranteed
+  preferred_deal
+  private_auction
+  open_auction
+  social_platform
+}
+
+enum AdQuoteKind {
+  indicative
+  firm
+}
+
+enum AdPlacementOrderStatus {
+  draft
+  review_pending
+  reviewed
+  spend_pending
+  spend_approved
+  submission_pending
+  unknown_external_state
+  accepted
+  live
+  paused_pending
+  paused_confirmed
+  completed
+  cancelled
+  failed
+  disputed
+  reconciled
+}
+
+enum AdEvidenceKind {
+  verified_play_log
+  partner_reported_play
+  modelled_impressions
+  unavailable
+}
+
+model AdCampaignAllocation {
+  id         String          @id @default(cuid())
+  campaignId String
+  campaign   AdCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  channel    AdBuyingChannel
+  capMinor   BigInt
+  currency   String          @default("AUD")
+  status     String          @default("planned")
+  quoteId    String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([campaignId, channel])
+  @@index([campaignId])
+  @@map("ad_campaign_allocations")
+}
+
+/// Read-only research cache. Never grants buy rights by itself.
+model AdProviderCatalogEntry {
+  id                 String                   @id @default(cuid())
+  sourceUrl          String
+  catalogProviderId  String
+  displayName        String?
+  contentHash        String
+  etag               String?
+  evidenceClass      String                   @default("catalogue_or_public_docs_only")
+  assuranceState     AdProviderAssuranceState @default(catalogued)
+  rawMetadataJson    Json?
+  retrievedAt        DateTime
+  verifiedByUserId   String?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@unique([catalogProviderId, sourceUrl])
+  @@index([assuranceState])
+  @@index([retrievedAt])
+  @@map("ad_provider_catalog_entries")
+}
+
+model AdProviderEntitlement {
+  id              String              @id @default(cuid())
+  organisationId  String?
+  advertiserId    String?
+  providerId      String
+  buyingModes     String[]            @default([])
+  countryCodes    String[]            @default([])
+  accountRef      String?
+  contractRef     String?
+  accessState     AdIntegrationStatus @default(demo)
+  expiresAt       DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([organisationId])
+  @@index([advertiserId])
+  @@index([providerId])
+  @@map("ad_provider_entitlements")
+}
+
+model AdProviderCapabilitySnapshot {
+  id            String              @id @default(cuid())
+  providerId    String
+  apiVersion    String?
+  canDiscover   Boolean             @default(false)
+  canQuote      Boolean             @default(false)
+  canBook       Boolean             @default(false)
+  canPause      Boolean             @default(false)
+  canReport     Boolean             @default(false)
+  canReconcile  Boolean             @default(false)
+  status        AdIntegrationStatus @default(demo)
+  observedAt    DateTime
+  snapshotJson  Json?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([providerId])
+  @@map("ad_provider_capability_snapshots")
+}
+
+model AdPlacementOpportunity {
+  id                   String              @id @default(cuid())
+  organisationId       String?
+  advertiserId         String?
+  externalInventoryId  String
+  channel              AdBuyingChannel
+  providerId           String
+  inventoryType        String
+  geoRegion            String?
+  timeZone             String?
+  formatSpecsJson      Json?
+  policyRestrictions   String[]            @default([])
+  inventorySource      String
+  sourceObservedAt     DateTime
+  availabilityState    AdAvailabilityState @default(indicative)
+  availabilityExpiresAt DateTime?
+  buyingMode           AdBuyingMode
+  currency             String              @default("AUD")
+  minimumSpendMinor    BigInt?
+  priceEstimateMinor   BigInt?
+  screenEnvironment    String?
+  accessibilityReqsJson Json?
+  forecastProvenance   String?
+  validUntil           DateTime?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@unique([providerId, externalInventoryId])
+  @@index([channel])
+  @@index([availabilityState])
+  @@index([organisationId])
+  @@map("ad_placement_opportunities")
+}
+
+model AdPlacementRuleVersion {
+  id              String   @id @default(cuid())
+  ruleVersion     String   @unique
+  policyHash      String
+  eligibleFilters Json
+  rankWeights     Json
+  approvedBy      String?
+  validFrom       DateTime @default(now())
+  validTo         DateTime?
+  createdAt       DateTime @default(now())
+
+  @@map("ad_placement_rule_versions")
+}
+
+model AdPlacementQuote {
+  id                 String     @id @default(cuid())
+  campaignId         String?
+  campaign           AdCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  advertiserId       String
+  organisationId     String?
+  opportunityId      String?
+  providerId         String
+  channel            AdBuyingChannel
+  quoteKind          AdQuoteKind
+  currency           String     @default("AUD")
+  mediaMinor         BigInt
+  partnerFeesMinor   BigInt     @default(0)
+  platformFeesMinor  BigInt     @default(0)
+  taxMinor           BigInt     @default(0)
+  totalMinor         BigInt
+  termsHash          String
+  expiresAt          DateTime
+  isInventoryReserved Boolean   @default(false)
+  buyingMode         AdBuyingMode
+  capabilityStatus   AdIntegrationStatus @default(demo)
+  provenanceJson     Json?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  spendAuthorisations AdSpendAuthorisation[]
+  orders              AdPlacementOrder[]
+
+  @@index([advertiserId])
+  @@index([campaignId])
+  @@index([expiresAt])
+  @@map("ad_placement_quotes")
+}
+
+model AdSpendAuthorisation {
+  id                   String   @id @default(cuid())
+  campaignId           String?
+  campaign             AdCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  quoteId              String
+  quote                AdPlacementQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  advertiserId         String
+  actorUserId          String
+  approvedAmountMinor  BigInt
+  currency             String   @default("AUD")
+  quoteHash            String
+  approvedAt           DateTime @default(now())
+  expiresAt            DateTime
+  revokedAt            DateTime?
+  createdAt            DateTime @default(now())
+
+  orders AdPlacementOrder[]
+
+  @@index([advertiserId])
+  @@index([quoteId])
+  @@map("ad_spend_authorisations")
+}
+
+model AdPlacementOrder {
+  id                    String                 @id @default(cuid())
+  campaignId            String?
+  campaign              AdCampaign?            @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  advertiserId          String
+  organisationId        String?
+  quoteId               String
+  quote                 AdPlacementQuote       @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  spendAuthorisationId  String
+  spendAuthorisation    AdSpendAuthorisation   @relation(fields: [spendAuthorisationId], references: [id], onDelete: Restrict)
+  channel               AdBuyingChannel
+  providerId            String
+  status                AdPlacementOrderStatus @default(submission_pending)
+  externalOrderId       String?
+  requestId             String
+  idempotencyKey        String                 @unique
+  requestHash           String
+  providerStatus        String?
+  lastReconciledAt      DateTime?
+  committedBudgetMinor  BigInt
+  currency              String                 @default("AUD")
+  freezeRetry           Boolean                @default(false)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  deliveryEvidence AdDeliveryEvidence[]
+  disputes         AdDisputeCorrection[]
+  submissions      AdExternalSubmission[]
+
+  @@index([advertiserId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([externalOrderId])
+  @@map("ad_placement_orders")
+}
+
+model AdExternalSubmission {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           AdPlacementOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  providerId      String
+  requestRef      String
+  providerOrderId String?
+  requestHash     String
+  status          String
+  responseCode    Int?
+  observedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@unique([orderId, requestRef])
+  @@index([providerId])
+  @@map("ad_external_submissions")
+}
+
+model AdDeliveryEvidence {
+  id            String         @id @default(cuid())
+  orderId       String
+  order         AdPlacementOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  source        String
+  evidenceKind  AdEvidenceKind
+  metric        String
+  value         Float
+  unit          String?
+  windowStart   DateTime?
+  windowEnd     DateTime?
+  asOf          DateTime
+  licenceRef    String?
+  createdAt     DateTime       @default(now())
+
+  @@index([orderId])
+  @@index([asOf])
+  @@map("ad_delivery_evidence")
+}
+
+model AdDisputeCorrection {
+  id                   String   @id @default(cuid())
+  orderId              String
+  order                AdPlacementOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ownerUserId          String?
+  reason               String
+  financialImpactMinor BigInt?
+  evidenceRefs         String[] @default([])
+  status               String   @default("open")
+  resolution           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+  @@map("ad_disputes_and_corrections")
+}
+
+model AdManagerIdempotencyRecord {
+  id             String   @id @default(cuid())
+  scope          String
+  idempotencyKey String
+  advertiserId   String?
+  requestHash    String
+  responseStatus Int
+  responseBody   Json
+  createdAt      DateTime @default(now())
+
+  @@unique([scope, idempotencyKey])
+  @@index([createdAt])
+  @@map("ad_manager_idempotency_records")
+}
 
 /// Private, participant-controlled provider discovery preferences. Never expose to providers.
 /// Ciphertext uses dedicated MapAble data encryption; only the owner may read/write.

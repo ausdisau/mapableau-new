@@ -1,0 +1,597 @@
+openapi: 3.1.0
+info:
+  title: MapAble Ads Placement API (proposed)
+  version: 1.2.0
+  description: Design contract only; no MapAble production endpoints or external media-buying rights have been verified.
+    Requests are tenant-scoped and all billable mutations require separate explicit approval.
+servers:
+- url: https://ads-api.example.invalid
+  description: Placeholder illustrating a non-routable design endpoint, never use as production
+tags:
+- name: Discovery
+- name: Planning
+- name: Orders
+- name: Reports
+security:
+- bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque access token
+  parameters:
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Unique tenant-scoped operation ID. Financial mutations must not automatically replay after ambiguous
+        provider response.
+      schema:
+        type: string
+        minLength: 12
+        maxLength: 128
+  schemas:
+    Money:
+      type: object
+      additionalProperties: false
+      required:
+      - amountMinor
+      - currency
+      properties:
+        amountMinor:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+    Flight:
+      type: object
+      additionalProperties: false
+      required:
+      - start
+      - end
+      - timeZone
+      properties:
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        timeZone:
+          type: string
+    Region:
+      type: object
+      additionalProperties: false
+      required:
+      - country
+      properties:
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+        state:
+          type: string
+        locality:
+          type: string
+    Provider:
+      type: object
+      additionalProperties: false
+      required:
+      - providerId
+      - channel
+      - status
+      - productionEnabled
+      - evidenceAsOf
+      properties:
+        providerId:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+          enum:
+          - catalogued
+          - source_reviewed
+          - vendor_confirmed
+          - commercially_approved
+          - sandbox_verified
+          - limited_live
+          - production_enabled
+          - suspended
+        productionEnabled:
+          type: boolean
+        evidenceAsOf:
+          type: string
+          format: date-time
+        sourceUrl:
+          type: string
+          format: uri
+        capabilities:
+          type: array
+          items:
+            type: string
+    SearchRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - channels
+      - region
+      - flight
+      - budget
+      properties:
+        channels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+            - mapable
+            - dooh
+            - social
+        region:
+          $ref: '#/components/schemas/Region'
+        flight:
+          $ref: '#/components/schemas/Flight'
+        budget:
+          $ref: '#/components/schemas/Money'
+        creativeFormat:
+          type: string
+          enum:
+          - image
+          - video
+          - html5
+          - text
+        contextualOnly:
+          type: boolean
+          const: true
+    Opportunity:
+      type: object
+      additionalProperties: false
+      required:
+      - opportunityId
+      - channel
+      - providerId
+      - availabilityState
+      - observedAt
+      - buyable
+      - reasons
+      properties:
+        opportunityId:
+          type: string
+        channel:
+          type: string
+        providerId:
+          type: string
+        availabilityState:
+          type: string
+          enum:
+          - confirmed
+          - indicative
+          - unknown
+          - unavailable
+        observedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        buyable:
+          type: boolean
+        reasons:
+          type: array
+          items:
+            type: string
+        indicativePrice:
+          $ref: '#/components/schemas/Money'
+    QuoteRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - campaignId
+      - opportunityIds
+      properties:
+        campaignId:
+          type: string
+        opportunityIds:
+          type: array
+          items:
+            type: string
+          minItems: 1
+    Quote:
+      type: object
+      additionalProperties: false
+      required:
+      - quoteId
+      - status
+      - amount
+      - expiresAt
+      - termsHash
+      - isFirm
+      - buyingMode
+      properties:
+        quoteId:
+          type: string
+        status:
+          type: string
+          enum:
+          - indicative
+          - firm
+          - expired
+          - revoked
+        amount:
+          $ref: '#/components/schemas/Money'
+        fees:
+          $ref: '#/components/schemas/Money'
+        tax:
+          $ref: '#/components/schemas/Money'
+        expiresAt:
+          type: string
+          format: date-time
+        termsHash:
+          type: string
+        isFirm:
+          type: boolean
+        buyingMode:
+          type: string
+        reservationSupported:
+          type: boolean
+    OrderRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - quoteId
+      - spendAuthorizationId
+      - creativeApprovalId
+      properties:
+        quoteId:
+          type: string
+        spendAuthorizationId:
+          type: string
+        creativeApprovalId:
+          type: string
+    Order:
+      type: object
+      additionalProperties: false
+      required:
+      - orderId
+      - status
+      - partnerStatus
+      - asOf
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - submission_pending
+          - unknown_external_state
+          - accepted
+          - live
+          - paused_pending
+          - paused_confirmed
+          - completed
+          - cancelled
+          - failed
+          - disputed
+        partnerStatus:
+          type: string
+        asOf:
+          type: string
+          format: date-time
+        reasonCodes:
+          type: array
+          items:
+            type: string
+    Metric:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - value
+      - evidenceKind
+      - source
+      - asOf
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+        evidenceKind:
+          type: string
+          enum:
+          - partner_reported
+          - direct_play_log
+          - modelled_estimate
+          - invoice
+        source:
+          type: string
+        asOf:
+          type: string
+          format: date-time
+        measurementVersion:
+          type: string
+        licenceReference:
+          type: string
+    Reconciliation:
+      type: object
+      additionalProperties: false
+      required:
+      - orderId
+      - status
+      - asOf
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - unreconciled
+          - matching
+          - matched
+          - discrepant
+          - disputed
+        asOf:
+          type: string
+          format: date-time
+        discrepancyCodes:
+          type: array
+          items:
+            type: string
+    Problem:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - title
+      - status
+      - traceId
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        traceId:
+          type: string
+paths:
+  /v1/providers:
+    get:
+      tags:
+      - Discovery
+      summary: List providers and validated account capabilities
+      operationId: listProviders
+      description: Discovery results are not buyable until independently authorised and verified.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                - providers
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Provider'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
+  /v1/placements/search:
+    post:
+      tags:
+      - Planning
+      summary: Search eligible placement opportunities without buying
+      operationId: searchPlacements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                - opportunities
+                properties:
+                  opportunities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Opportunity'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
+  /v1/quotes:
+    post:
+      tags:
+      - Planning
+      summary: Create indicative or firm placement quote; never spends
+      operationId: createPlacementQuote
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+      responses:
+        '201':
+          description: Quote generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
+  /v1/orders:
+    post:
+      tags:
+      - Orders
+      summary: Request authorised asynchronous order dispatch
+      operationId: createOrder
+      description: Requires server-verifiable, unexpired quote, human creative review and independent spend approval.
+        No automatic retries on unknown external write outcomes.
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '202':
+          description: Accepted for dispatch, NOT proof of delivery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
+  /v1/orders/{orderId}:
+    get:
+      tags:
+      - Orders
+      summary: Read order and partner state
+      operationId: getOrder
+      parameters:
+      - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
+  /v1/orders/{orderId}/pause:
+    post:
+      tags:
+      - Orders
+      summary: Request a controlled pause, which may remain pending
+      operationId: requestOrderPause
+      parameters:
+      - $ref: '#/components/parameters/OrderId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Pause requested; not yet confirmed by partner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
+  /v1/orders/{orderId}/delivery:
+    get:
+      tags:
+      - Reports
+      summary: Read delivery metrics with provenance
+      operationId: getDelivery
+      parameters:
+      - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                - metrics
+                properties:
+                  metrics:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Metric'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
+  /v1/orders/{orderId}/reconciliation:
+    get:
+      tags:
+      - Reports
+      summary: Read financial reconciliation state
+      operationId: getReconciliation
+      parameters:
+      - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reconciliation'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden by tenant policy or insufficient permission
+        '409':
+          description: Conflicting state or stale quote
+        '429':
+          description: Too many requests
