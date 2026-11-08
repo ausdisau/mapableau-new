@@ -42,6 +42,8 @@ model User {
   consentsGranted        ConsentRecord[]    @relation("ConsentGrantedToUser")
   consentsCreated        ConsentRecord[]    @relation("ConsentCreatedBy")
   consentsRevoked        ConsentRecord[]    @relation("ConsentRevokedBy")
+  autonomyStopsAsParticipant AutonomyStop[] @relation("AutonomyStopParticipant")
+  autonomyStopsCreated       AutonomyStop[] @relation("AutonomyStopStoppedBy")
   notificationPreferences NotificationPreference[]
   notifications          Notification[]
   auditEvents            AuditEvent[]       @relation("AuditActor")
@@ -908,6 +910,7 @@ model Organisation {
   trainingRequirements TrainingRequirement[]
   workplaceLocations WorkplaceLocation[]
   adAdvertisers      AdAdvertiser[]
+  autonomyStops      AutonomyStop[]
 }
 
 model OrganisationMember {
@@ -948,6 +951,23 @@ model ConsentRecord {
 
   @@index([subjectUserId, status])
   @@index([grantedToOrganisationId])
+}
+
+/// Tenant-scoped durable Stop for ACS Stage 1. Not a consent source of truth.
+model AutonomyStop {
+  id            String        @id @default(cuid())
+  tenantId      String
+  tenant        Organisation  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  participantId String?
+  participant   User?         @relation("AutonomyStopParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  stoppedById   String
+  stoppedBy     User          @relation("AutonomyStopStoppedBy", fields: [stoppedById], references: [id], onDelete: Restrict)
+  reason        String
+  createdAt     DateTime      @default(now())
+  clearedAt     DateTime?
+
+  @@index([tenantId, clearedAt])
+  @@index([tenantId, participantId, clearedAt])
 }
 
 model NotificationPreference {

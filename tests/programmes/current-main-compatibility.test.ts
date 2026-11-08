@@ -1,5 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    autonomyStop: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+    },
+  },
+}));
+
+vi.mock("@/lib/audit/audit-event-service", () => ({
+  createAuditEvent: vi.fn(),
+}));
+
 import {
   PROGRAMME_AURA_CEILING,
   __resetProgrammeAuraStopForTests,
@@ -87,7 +100,7 @@ describe("Prompt 0 current-main compatibility", () => {
 
   it("stop state blocks programme execution eligibility", async () => {
     expect(isProgrammeAuraStopped()).toBe(false);
-    stopProgrammeAura();
+    await stopProgrammeAura();
     expect(isProgrammeAuraStopped()).toBe(true);
     await expect(
       assertProgrammeExecutionEligibility({

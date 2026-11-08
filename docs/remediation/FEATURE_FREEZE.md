@@ -56,6 +56,7 @@ Waivers do **not** lift the global freeze. Flags stay default-false. No producti
 | W-PBS-7   | #379 PBS foundation                                                               | Non-canonical `lib/positive-behaviour-support/**`                                                                                                                                                      | **Not accepted as Wave 7 owner path**; canonical remains `lib/pbs-operations/**`                                                                                             | Waiver **rejected / blocked** pending recreate                         |
 | W-AA-1    | `cursor/autonomy-assurance-prompt-0-59aa` (+ Train A/B/C)                         | `lib/ai/platform/capabilities/**` (ARC sidecar), `lib/aura-harness/**`, `lib/trust/fabric/**`, `lib/act/handoff/**`, related docs/tests                                                                | Autonomy Assurance programme — deepen Trust Fabric + AURA harness; flags default false; see explicit waiver below                                                            | Active for Prompt 0 docs; product prompts require this waiver          |
 | W-ACS-0   | #670 `cursor/autonomy-care-stage0-83a9` + #672 `cursor/acs-stage-0-evidence-17d4` | `docs/ai-platform/AUTONOMY_ENVELOPE_STAGE_0.md`, `docs/ai-platform/acs/**`, `lib/autonomy/envelope.ts`, `lib/consent/exact-purpose-check.ts`, `tests/autonomy/stage0-evidence.test.ts`, `tests/acs/**` | ACS Stage 0 (6 Nov 2026 paper) — docs, types, unwired exact-purpose helper, synthetic tests; no live agents, no consent SoT replacement, no production `checkConsent` change | Active for Stage 0 docs/tests; Stage 1 requires a **separate** W-ACS-1 |
+| W-ACS-1   | `cursor/autonomy-care-stage1-83a9` | `docs/ai-platform/AUTONOMY_ENVELOPE_STAGE_1.md`, `lib/config/autonomy-care.ts`, `lib/consent/require-exact-consent.ts`, `lib/autonomy/pep.ts`, `lib/programmes/aura/execution-gate.ts`, Prisma `AutonomyStop`, `tests/autonomy/stage1-trust.test.ts` | Stage 1 deterministic trust — exact-purpose gate + durable Stop, flags default false; no live agents, no second consent SoT, no production `checkConsent` signature change | Active for Stage 1 gates/tests; Stage 2 requires a separate waiver |
 
 **Virtual Persona Phase 1 (docs only):** synthetic AURA × MAIRA perceptual-frame contracts under `docs/ai-platform/perceptual-frame/**` plus P00 reconciliation notes sit inside the existing W-AA-1 **documentation/testing** scope (related `docs/ai-platform/**`). No path expansion into `lib/ai/platform/retrieval/**`, no runtime agents, no Prisma, no flag enablement. Shadow RAG (MapAble draft PR #22) remains **outside** the original W-AA-1 path enumeration and needs a **separate narrow waiver** before merge. See [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](../ai-platform/VIRTUAL_PERSONA_P00_RECONCILIATION.md).
 
@@ -121,4 +122,24 @@ This waiver does **not** lift the freeze globally.
 
 **Permanent prohibitions under this waiver:** no autonomous funding/claim/invoice/payment approval; worker or driver assignment; clinical or behaviour-support decisions; restrictive-practice approval; safeguarding findings; consent alteration; capacity inference from disability, silence, AAC delay or communication style; LLM-only physical care.
 
-This waiver does **not** lift the freeze globally. W-AA-1 remains the Autonomy Assurance product waiver. Stage 1 (deterministic trust) needs its own waiver after Stage 0 sign-off.
+This waiver does **not** lift the freeze globally. W-AA-1 remains the Autonomy Assurance product waiver. Stage 1 (deterministic trust) is covered by **W-ACS-1**.
+
+## Explicit domain waiver — Autonomous Care & Support Stage 1 (W-ACS-1)
+
+**Authorised:** Stage 1 deterministic trust after Stage 0 evidence map. Exact-purpose consent on ACS paths, durable tenant-scoped Stop, synthetic PEP. Flags default **false**.
+
+| Field        | Value |
+| ------------ | ----- |
+| Domain       | Autonomous Care & Support Stage 1 (deterministic trust) |
+| Paths        | `docs/ai-platform/AUTONOMY_ENVELOPE_STAGE_1.md`, `lib/config/autonomy-care.ts`, `lib/consent/require-exact-consent.ts`, `lib/consent/exact-purpose-check.ts`, `lib/autonomy/pep.ts`, `lib/programmes/aura/execution-gate.ts`, `prisma/schema.prisma` (`AutonomyStop`), `prisma/migrations/20261108090000_autonomy_stop_stage1`, `tests/autonomy/stage1-trust.test.ts` |
+| Schema       | Additive `AutonomyStop` only — not a consent SoT |
+| Flags        | `MAPABLE_ACS_EXACT_CONSENT_ENABLED`, `MAPABLE_ACS_DURABLE_STOP_ENABLED` default **false** (`=== "true"` to enable) |
+| Public claim | `not_claimable` — no production autonomy, care or TGA claims |
+| Stack        | Single PR from Stage 0; do not attach to breached stacks |
+| Still frozen | Live AgentRun/Temporal execution; ParticipantRAG on private data; changing production `checkConsent()` behaviour; second consent SoT; `lib/aura/` Agent OS; physical/clinical device control; payments; capacity inference; flag-on-by-default |
+| Non-goals    | L2 standing-instruction workflow (Stage 3); L3–L5 product; merging dual authority writers; companion Stop as server Stop |
+| Rollback     | Flags off; revert additive `AutonomyStop` migration on non-prod if required |
+
+**Permanent prohibitions under this waiver:** no autonomous funding/claim/invoice/payment approval; worker or driver assignment; clinical or behaviour-support decisions; restrictive-practice approval; safeguarding findings; consent alteration; capacity inference from disability, silence, AAC delay or communication style; LLM-only physical care; treating silence or AAC delay as consent.
+
+This waiver does **not** lift the freeze globally. Stage 2 needs its own waiver after Stage 1 sign-off.
