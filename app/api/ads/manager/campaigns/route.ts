@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 import { requireAdvertiserAccess } from "@/lib/ads/auth/advertiser-access";
+import { adsFlagsConfig } from "@/lib/ads/config/flags";
+import {
+  AllocationValidationError,
+  assertAllocationsWithinBudget,
+} from "@/lib/ads/manager/allocations";
+import { evaluateCreativeForReview } from "@/lib/ads/manager/review";
 import { centsToMicros, MICROS_PER_AUD } from "@/lib/ads/money/micros";
 import { OrganisationAccessError } from "@/lib/api/organisation-scope";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
@@ -21,6 +27,23 @@ const campaignSchema = z.object({
   placementCodes: z.array(z.string()).min(1),
   region: z.string().optional(),
   category: z.string().optional(),
+  objective: z.string().max(80).optional(),
+  budgetMinor: z.number().int().nonnegative().optional(),
+  allocations: z
+    .array(
+      z.object({
+        channel: z.enum([
+          "mapable",
+          "meta",
+          "google",
+          "tiktok",
+          "linkedin",
+          "dooh",
+        ]),
+        capMinor: z.number().int().nonnegative(),
+      }),
+    )
+    .optional(),
   creative: z.object({
     format: z.string().min(1),
     headline: z.string().min(1).max(120),
@@ -71,11 +94,43 @@ export async function POST(request: Request) {
     return jsonError("Maximum bid must be at least A$1", 400);
   }
 
+  const managerOn = adsFlagsConfig.isManagerEnabled();
+  if ((parsed.data.budgetMinor != null || parsed.data.allocations) && !managerOn) {
+    return jsonError(
+      "budgetMinor/allocations require MAPABLE_ADS_MANAGER_ENABLED",
+      404,
+    );
+  }
+
+  if (managerOn && parsed.data.budgetMinor != null && parsed.data.allocations) {
+    try {
+      assertAllocationsWithinBudget(
+        parsed.data.budgetMinor,
+        parsed.data.allocations,
+      );
+    } catch (err) {
+      if (err instanceof AllocationValidationError) {
+        return jsonError(err.message, 400);
+      }
+      throw err;
+    }
+  }
+
+  const claimEval = evaluateCreativeForReview(parsed.data.creative);
+
   const campaign = await prisma.adCampaign.create({
     data: {
       advertiserId: parsed.data.advertiserId,
       name: parsed.data.name,
       status: "DRAFT",
+      lifecycleStatus: "DRAFT",
+      lifecycleVersion: 1,
+      objective: parsed.data.objective,
+      budgetMinor:
+        managerOn && parsed.data.budgetMinor != null
+          ? BigInt(parsed.data.budgetMinor)
+          : null,
+      createdByUserId: user.id,
       bidModel: parsed.data.bidModel,
       maxBidMicros,
       dailyBudgetMicros: parsed.data.dailyBudgetAud
@@ -98,6 +153,7 @@ export async function POST(request: Request) {
           altText: parsed.data.creative.altText,
           businessName: parsed.data.creative.businessName,
           status: "DRAFT",
+          claimFlags: claimEval.claimFlags,
         },
       },
       targets: {
@@ -107,8 +163,18 @@ export async function POST(request: Request) {
           geometry: { type: "NATIONAL" },
         },
       },
+      allocations:
+        managerOn && parsed.data.allocations
+          ? {
+              create: parsed.data.allocations.map((row) => ({
+                channel: row.channel,
+                capMinor: BigInt(row.capMinor),
+                currency: "AUD",
+              })),
+            }
+          : undefined,
     },
-    include: { creatives: true },
+    include: { creatives: true, allocations: true },
   });
 
   await createAuditEvent({
@@ -120,6 +186,8 @@ export async function POST(request: Request) {
     metadata: {
       bidModel: campaign.bidModel,
       maxBidMicros: maxBidMicros.toString(),
+      lifecycleStatus: campaign.lifecycleStatus,
+      requiresHumanReview: claimEval.requiresHumanReview,
     },
   });
 
@@ -129,11 +197,22 @@ export async function POST(request: Request) {
         id: campaign.id,
         name: campaign.name,
         status: campaign.status,
+        lifecycleStatus: campaign.lifecycleStatus,
         bidModel: campaign.bidModel,
         maxBidMicros: campaign.maxBidMicros?.toString(),
+        budgetMinor:
+          campaign.budgetMinor != null
+            ? Number(campaign.budgetMinor)
+            : null,
+        allocations: campaign.allocations.map((a) => ({
+          channel: a.channel,
+          capMinor: Number(a.capMinor),
+        })),
+        claimFlags: claimEval.claimFlags,
+        requiresHumanReview: claimEval.requiresHumanReview,
       },
       notice:
-        "You will never be charged more than your maximum bid. Actual price may be lower depending on competing eligible ads and MapAble placement reserve prices.",
+        "You will never be charged more than your maximum bid. Actual price may be lower depending on competing eligible ads and MapAble placement reserve prices. Draft creation never purchases inventory.",
     },
     201,
   );
