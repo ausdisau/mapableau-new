@@ -19,6 +19,7 @@
 
 ## Related (do not fork)
 
+- [`AUTONOMY_ENVELOPE_STAGE_0.md`](../AUTONOMY_ENVELOPE_STAGE_0.md) — sibling Stage 0 map from #670; same W-ACS-0
 - [`VIRTUAL_PERSONA_P00_RECONCILIATION.md`](../VIRTUAL_PERSONA_P00_RECONCILIATION.md) — C1–C8
 - [`AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md`](../AUTONOMY_ASSURANCE_PROMPT_0_RECONCILIATION.md)
 - [`FEATURE_FREEZE.md`](../../remediation/FEATURE_FREEZE.md) — W-AA-1 remains the Autonomy Assurance product waiver

@@ -65,6 +65,31 @@ export const adsFlagsConfig = {
   isGlobalKillSwitch(env: AdsFlagEnv = process.env): boolean {
     return envFlag("MAPABLE_ADS_GLOBAL_KILL_SWITCH", env);
   },
+  /** Advertiser manager shell + extended campaign lifecycle (default off). */
+  isManagerEnabled(env: AdsFlagEnv = process.env): boolean {
+    return this.isEnabled(env) && envFlag("MAPABLE_ADS_MANAGER_ENABLED", env);
+  },
+  /** Read-only APIs.io provider catalogue sync (default off). */
+  isProviderDiscoveryEnabled(env: AdsFlagEnv = process.env): boolean {
+    return (
+      this.isEnabled(env) &&
+      envFlag("MAPABLE_ADS_PROVIDER_DISCOVERY_ENABLED", env)
+    );
+  },
+  /** Placement OpenAPI /api/ads/v1 planning + mock orders (default off). */
+  isPlacementApiEnabled(env: AdsFlagEnv = process.env): boolean {
+    return (
+      this.isEnabled(env) &&
+      envFlag("MAPABLE_ADS_PLACEMENT_API_ENABLED", env)
+    );
+  },
+  /** Synthetic DOOH sandbox inventory and quotes (default off). */
+  isDoohSandboxEnabled(env: AdsFlagEnv = process.env): boolean {
+    return (
+      this.isEnabled(env) &&
+      envFlag("MAPABLE_ADS_DOOH_SANDBOX_ENABLED", env)
+    );
+  },
   getExternalTimeoutMs(env: AdsFlagEnv = process.env): number {
     const raw = env.MAPABLE_ADS_EXTERNAL_TIMEOUT_MS?.trim();
     const n = raw ? Number.parseInt(raw, 10) : 1500;

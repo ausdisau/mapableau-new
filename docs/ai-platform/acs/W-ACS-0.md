@@ -5,18 +5,18 @@
 **Does not expand W-AA-1 paths.**  
 **Does not authorise Stage 1.**
 
-| Field        | Value                                                                                                                                                                 |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Waiver ID    | W-ACS-0                                                                                                                                                               |
-| Domain       | ACS Stage 0 evidence pack (Decision 5 of the 6 November 2026 paper)                                                                                                   |
-| Paths        | `docs/ai-platform/acs/**`, freeze table row in `docs/remediation/FEATURE_FREEZE.md`, `tests/acs/**`                                                                   |
-| Schema       | **None**                                                                                                                                                              |
-| Flags        | Unchanged; all agentic flags remain default **false** (`=== "true"` to enable)                                                                                        |
-| Public claim | `internal_alpha` / not claimable                                                                                                                                      |
-| Stack        | Single docs/tests PR; do not deepen Geoscape W-GEO-1 or MapAble #22                                                                                                   |
-| Still frozen | `lib/ai/platform/retrieval/care-support/**`; Temporal enable; second consent SoT; physical/clinical; production claims; stacks deeper than three unmerged product PRs |
-| Non-goals    | Merging MapAble PR #22; implementing PEP; durable Stop runtime; Prisma migrations; live data                                                                          |
-| Rollback     | Revert the docs/tests commit                                                                                                                                          |
+| Field        | Value                                                                                                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Waiver ID    | W-ACS-0                                                                                                                                                                                                                               |
+| Domain       | ACS Stage 0 evidence pack (Decision 5 of the 6 November 2026 paper)                                                                                                                                                                   |
+| Paths        | Union with #670: `docs/ai-platform/acs/**`, `docs/ai-platform/AUTONOMY_ENVELOPE_STAGE_0.md`, `lib/autonomy/envelope.ts`, `lib/consent/exact-purpose-check.ts`, `tests/autonomy/stage0-evidence.test.ts`, freeze table, `tests/acs/**` |
+| Schema       | **None**                                                                                                                                                                                                                              |
+| Flags        | Unchanged; all agentic flags remain default **false** (`=== "true"` to enable)                                                                                                                                                        |
+| Public claim | `internal_alpha` / not claimable                                                                                                                                                                                                      |
+| Stack        | Single docs/tests PR; do not deepen Geoscape W-GEO-1 or MapAble #22                                                                                                                                                                   |
+| Still frozen | `lib/ai/platform/retrieval/care-support/**`; Temporal enable; second consent SoT; physical/clinical; production claims; stacks deeper than three unmerged product PRs                                                                 |
+| Non-goals    | Merging MapAble PR #22; implementing PEP; durable Stop runtime; Prisma migrations; live data                                                                                                                                          |
+| Rollback     | Revert the docs/tests commit                                                                                                                                                                                                          |
 
 ## Relationship to W-AA-1
 
