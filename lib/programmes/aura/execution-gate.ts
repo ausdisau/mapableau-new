@@ -44,11 +44,17 @@ export type ProgrammeAuraStopInput = {
 export async function stopProgrammeAura(
   input?: ProgrammeAuraStopInput,
 ): Promise<void> {
-  programmeAuraStopped = true;
-  if (!input || !isAcsDurableStopEnabled()) {
+  if (isAcsDurableStopEnabled() && input) {
+    await persistDurableProgrammeAuraStop(input);
     return;
   }
 
+  programmeAuraStopped = true;
+}
+
+async function persistDurableProgrammeAuraStop(
+  input: ProgrammeAuraStopInput,
+): Promise<void> {
   const record = await prisma.autonomyStop.create({
     data: {
       tenantId: input.tenantId,
@@ -191,13 +197,23 @@ export async function assertProgrammeExecutionEligibility(input: {
         "Exact-purpose consent requires purpose and consent scope",
       );
     }
+    const actingTenantId = input.tenantId ?? input.organisationId ?? undefined;
+    if (
+      input.grantedToOrganisationId &&
+      actingTenantId &&
+      input.grantedToOrganisationId !== actingTenantId
+    ) {
+      throw new ProgrammeInvariantError(
+        "explicit_authority_only",
+        "Cross-organisation programme access denied",
+      );
+    }
     const consent = await checkExactPurposeConsent({
       subjectUserId: input.participantId,
       scope: input.consentScope,
       purpose,
       grantedToUserId: input.grantedToUserId,
-      grantedToOrganisationId:
-        input.grantedToOrganisationId ?? input.organisationId ?? undefined,
+      grantedToOrganisationId: actingTenantId,
       requestedFields: input.requiredFields,
     });
     if (!consent.allowed) {

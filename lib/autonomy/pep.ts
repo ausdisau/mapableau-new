@@ -92,12 +92,22 @@ export async function evaluateAutonomyPep(
     };
   }
 
+  if (
+    input.grantedToOrganisationId &&
+    input.grantedToOrganisationId !== input.tenantId
+  ) {
+    return {
+      allowed: false,
+      reason: "Cross-organisation programme access denied",
+    };
+  }
+
   const consent = await checkExactPurposeConsent({
     subjectUserId: input.participantId,
     scope: input.scope,
     purpose: input.purpose,
     grantedToUserId: input.grantedToUserId,
-    grantedToOrganisationId: input.grantedToOrganisationId ?? input.tenantId,
+    grantedToOrganisationId: input.tenantId,
     requestedFields: input.requestedFields,
   });
 

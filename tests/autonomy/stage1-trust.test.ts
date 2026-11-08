@@ -245,7 +245,7 @@ describe("Stage 1 deterministic trust", () => {
     info.mockRestore();
   });
 
-  it("persists durable Stop and audit when the durable flag is on", async () => {
+  it("persists durable Stop without flipping the process-local stop", async () => {
     vi.stubEnv("MAPABLE_ACS_DURABLE_STOP_ENABLED", "true");
     autonomyStopCreateMock.mockResolvedValue({ id: "stop-row" });
     await stopProgrammeAura({
@@ -255,6 +255,54 @@ describe("Stage 1 deterministic trust", () => {
       reason: "participant stop",
     });
     expect(autonomyStopCreateMock).toHaveBeenCalled();
-    expect(isProgrammeAuraStopped()).toBe(true);
+    expect(isProgrammeAuraStopped()).toBe(false);
+  });
+
+  it("does not apply a durable Stop from one tenant to another", async () => {
+    vi.stubEnv("MAPABLE_ACS_DURABLE_STOP_ENABLED", "true");
+    autonomyStopFindFirstMock.mockImplementation(
+      async (args: { where: { tenantId: string } }) => {
+        if (args.where.tenantId === "org-1") {
+          return { id: "stop-1", tenantId: "org-1", participantId: "p1" };
+        }
+        return null;
+      },
+    );
+    await expect(
+      assertProgrammeExecutionEligibility({
+        participantId: "p1",
+        actorUserId: "p1",
+        action: "view_checklist",
+        tenantId: "org-1",
+      }),
+    ).rejects.toThrow(/durable stop is active/);
+    await expect(
+      assertProgrammeExecutionEligibility({
+        participantId: "p2",
+        actorUserId: "p2",
+        action: "view_checklist",
+        tenantId: "org-2",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("binds PEP consent to the acting tenant and ignores another org id", async () => {
+    vi.stubEnv("MAPABLE_ACS_EXACT_CONSENT_ENABLED", "true");
+    findFirstMock.mockResolvedValue({
+      id: "consent-other-org",
+      dataScope: ["rosterStatus"],
+    });
+    const pep = await evaluateAutonomyPep({
+      actorUserId: "actor-1",
+      tenantId: "org-a",
+      participantId: "participant-1",
+      purpose: "breakfast_packaging_help",
+      scope: "accessibility.read",
+      grantedToOrganisationId: "org-b",
+      requestedFields: ["rosterStatus"],
+    });
+    expect(pep.allowed).toBe(false);
+    expect(pep.reason).toMatch(/Cross-organisation/);
+    expect(findFirstMock).not.toHaveBeenCalled();
   });
 });

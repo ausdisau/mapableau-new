@@ -24,8 +24,8 @@ This artefact records what Stage 1 actually wired: exact-purpose consent on cons
 | `requireConsent()` | Unchanged | Calls `checkConsent` only |
 | `requireExactConsent()` | Flag `MAPABLE_ACS_EXACT_CONSENT_ENABLED` | Purpose required always. When flag on: `checkExactPurposeConsent`. When off: log skip, then legacy `checkConsent` |
 | Programme execution | Process-local Stop always | Durable Stop + exact consent only when their flags are true |
-| Durable Stop | Flag `MAPABLE_ACS_DURABLE_STOP_ENABLED` | Prisma `AutonomyStop` + `AuditEvent` `autonomy.stop`. Companion device Stop is **not** the server Stop |
-| PEP `evaluateAutonomyPep` | Exact-consent flag | Fail-closed retrieval stub; rejects client-supplied role; tenant mismatch denied **before** loader |
+| Durable Stop | Flag `MAPABLE_ACS_DURABLE_STOP_ENABLED` | Prisma `AutonomyStop` + `AuditEvent` `autonomy.stop`. Tenant-scoped persist does **not** flip the process-local Stop. Companion device Stop is **not** the server Stop |
+| PEP `evaluateAutonomyPep` | Exact-consent flag | Fail-closed retrieval stub; rejects client-supplied role; consent recipient is the acting tenant; tenant mismatch denied **before** loader |
 
 ## Remaining gaps (honest)
 
@@ -48,6 +48,8 @@ Run: `pnpm exec vitest run tests/autonomy/stage0-evidence.test.ts tests/autonomy
 | S1-05 | Cross-tenant deny before retrieval stub |
 | S1-06 | Missing purpose does not silently grant ACS-flagged paths |
 | S1-07 | Trust Fabric AI authority still false; no live fetch |
+| S1-08 | Durable Stop for one tenant does not block another |
+| S1-09 | PEP does not use another organisation's consent id |
 
 ## Out of scope
 
