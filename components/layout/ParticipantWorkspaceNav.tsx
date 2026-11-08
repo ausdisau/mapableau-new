@@ -8,9 +8,31 @@ import { cn } from "@/app/lib/utils";
 import {
   isNavLinkActive,
   PARTICIPANT_NAV_GROUPS,
+  type ParticipantNavGroup,
   type ParticipantNavLink,
 } from "@/lib/dashboard/participant-nav";
 import { sidebarNavLinkClass } from "@mapable/ui";
+
+function navGroupsWithMapAbleId(
+  showMapAbleIdNav: boolean,
+): ParticipantNavGroup[] {
+  if (!showMapAbleIdNav) return PARTICIPANT_NAV_GROUPS;
+  return PARTICIPANT_NAV_GROUPS.map((group) => {
+    if (group.id !== "choice-safety") return group;
+    return {
+      ...group,
+      items: [
+        {
+          href: "/dashboard/identity",
+          label: "MapAbleID",
+          matchPrefix: "/dashboard/identity",
+          description: "Identity, security, delegates and recovery",
+        },
+        ...group.items,
+      ],
+    };
+  });
+}
 
 function NavItem({
   link,
@@ -80,14 +102,17 @@ function NavItem({
 
 export function ParticipantWorkspaceSidebar({
   showAdminLink = false,
+  showMapAbleIdNav = false,
   onNavigate,
 }: {
   showAdminLink?: boolean;
+  showMapAbleIdNav?: boolean;
   onNavigate?: () => void;
 }) {
+  const groups = navGroupsWithMapAbleId(showMapAbleIdNav);
   return (
     <nav aria-label="Participant workspace" data-testid="participant-workspace-nav">
-      {PARTICIPANT_NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.id} className="mb-5">
           <p className="px-3 pb-2 text-[11px] font-extrabold uppercase tracking-[0.12em] text-slate-500">
             {group.label}
@@ -123,8 +148,10 @@ export function ParticipantWorkspaceSidebar({
 
 export function ParticipantWorkspaceMobileNav({
   showAdminLink = false,
+  showMapAbleIdNav = false,
 }: {
   showAdminLink?: boolean;
+  showMapAbleIdNav?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -196,6 +223,7 @@ export function ParticipantWorkspaceMobileNav({
             <div className="flex-1 overflow-y-auto p-4">
               <ParticipantWorkspaceSidebar
                 showAdminLink={showAdminLink}
+                showMapAbleIdNav={showMapAbleIdNav}
                 onNavigate={close}
               />
             </div>

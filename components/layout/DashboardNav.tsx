@@ -51,16 +51,21 @@ const CAREOS_LINKS = [
 export function DashboardNav({
   role,
   showCareOsNav = false,
+  showMapAbleIdNav = false,
 }: {
   userName: string;
   role: UserRole;
   showCareOsNav?: boolean;
+  showMapAbleIdNav?: boolean;
 }) {
   const pathname = usePathname();
   const links = [
     ...(personalAgencyFlags.uiEnabled
       ? [{ href: "/my", label: "My MapAble", exact: true as const }]
       : [{ href: "/dashboard", label: "Control panel", exact: true as const }]),
+    ...(showMapAbleIdNav
+      ? [{ href: "/dashboard/identity", label: "MapAbleID" }]
+      : []),
     ...(showCareOsNav ? CAREOS_LINKS : []),
     ...BASE_LINKS.filter(
       (link) =>
