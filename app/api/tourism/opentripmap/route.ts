@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { searchSydneyOpenTripMapPlaces, OpenTripMapUnavailable } from "@/lib/tourism/open-trip-map-server";
 import type { OpenTripMapKind, OpenTripMapSearchResponse } from "@/lib/tourism/open-trip-map";
+import { searchSydneyOpenTripMapPlaces, OpenTripMapUnavailable } from "@/lib/tourism/open-trip-map-server";
 
 export const runtime = "nodejs";
 const KINDS = new Set<OpenTripMapKind>(["interesting_places", "museums", "historic", "natural"]);
