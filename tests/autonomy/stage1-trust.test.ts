@@ -286,6 +286,26 @@ describe("Stage 1 deterministic trust", () => {
     ).resolves.toBeUndefined();
   });
 
+  it("denies exact-consent programme calls that omit the acting tenant", async () => {
+    vi.stubEnv("MAPABLE_ACS_EXACT_CONSENT_ENABLED", "true");
+    findFirstMock.mockResolvedValue({
+      id: "consent-other-org",
+      dataScope: ["rosterStatus"],
+    });
+    await expect(
+      assertProgrammeExecutionEligibility({
+        participantId: "p1",
+        actorUserId: "p1",
+        action: "view_checklist",
+        purpose: "breakfast_packaging_help",
+        consentScope: "accessibility.read",
+        grantedToOrganisationId: "org-b",
+        requiredFields: ["rosterStatus"],
+      }),
+    ).rejects.toThrow(/requires a tenant id/);
+    expect(findFirstMock).not.toHaveBeenCalled();
+  });
+
   it("binds PEP consent to the acting tenant and ignores another org id", async () => {
     vi.stubEnv("MAPABLE_ACS_EXACT_CONSENT_ENABLED", "true");
     findFirstMock.mockResolvedValue({

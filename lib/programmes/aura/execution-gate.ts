@@ -197,10 +197,15 @@ export async function assertProgrammeExecutionEligibility(input: {
         "Exact-purpose consent requires purpose and consent scope",
       );
     }
-    const actingTenantId = input.tenantId ?? input.organisationId ?? undefined;
+    const actingTenantId = input.tenantId ?? input.organisationId ?? null;
+    if (!actingTenantId) {
+      throw new ProgrammeInvariantError(
+        "explicit_authority_only",
+        "Exact-purpose consent requires a tenant id",
+      );
+    }
     if (
       input.grantedToOrganisationId &&
-      actingTenantId &&
       input.grantedToOrganisationId !== actingTenantId
     ) {
       throw new ProgrammeInvariantError(
