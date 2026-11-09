@@ -17,9 +17,8 @@ import {
 } from "@/components/ui/card";
 
 /**
- * Placeholder KPI metrics for the Partner Portal dashboard.
- * TODO: replace with server fetches from Partner API usage, embed registry,
- * accessibility report exports, and referral ledger services.
+ * Status cards are not usage metrics. Replace them with scoped server-side
+ * data only after partner identity, consent and audit have been reviewed.
  */
 const KPI_CARDS = [
   {
