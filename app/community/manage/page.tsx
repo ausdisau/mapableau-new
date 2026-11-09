@@ -18,5 +18,5 @@ export default async function CommunityManagePage() {
     });
     if (decision !== "allowed") notFound();
   }
-  return <CommunityLiveAdmin />;
+  return <CommunityLiveAdmin pilotMode={communityPilotModeEnabled()} />;
 }
