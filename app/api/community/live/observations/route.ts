@@ -1,6 +1,6 @@
 import { getApiUser } from "@/lib/auth/guards";
 import { publicFinding, COMMUNITY_CONSENT_VERSION, canPublishFinding } from "@/lib/community-live/policy";
-import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard } from "@/lib/community-live/runtime";
+import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard, communityPilotAccessGuard, communityPilotModeEnabled } from "@/lib/community-live/runtime";
 import { createFindingSchema, parseCommunityJson } from "@/lib/community-live/validation";
 import { prisma } from "@/lib/prisma";
 
@@ -10,7 +10,9 @@ export async function GET(request: Request) {
   if (!communityLiveEnabled()) return communityDisabled();
   const url = new URL(request.url);
   const mine = url.searchParams.get("mine") === "1";
-  const user = mine ? await getApiUser() : null;
+  const user = (mine || communityPilotModeEnabled()) ? await getApiUser() : null;
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   if (mine && !user) return communityNoStore({ error: "Sign in required" }, 401);
   if (mine && user) {
     const records = await prisma.communitySignalObservation.findMany({
@@ -52,6 +54,8 @@ export async function POST(request: Request) {
   if (!communityLiveEnabled()) return communityDisabled();
   const user = await getApiUser();
   if (!user) return communityNoStore({ error: "Sign in required" }, 401);
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   const originError = communityOriginGuard(request);
   if (originError) return originError;
   try {
@@ -98,6 +102,8 @@ export async function DELETE(request: Request) {
   if (!communityLiveEnabled()) return communityDisabled();
   const user = await getApiUser();
   if (!user) return communityNoStore({ error: "Sign in required" }, 401);
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   const originError = communityOriginGuard(request);
   if (originError) return originError;
   try {
