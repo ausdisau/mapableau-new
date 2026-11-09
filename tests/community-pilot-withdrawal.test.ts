@@ -30,12 +30,12 @@ vi.mock("@/lib/prisma", () => {
   };
 });
 
+import { POST as review } from "@/app/api/community/live/moderation/route";
 import {
   DELETE,
   GET,
   POST,
 } from "@/app/api/community/live/observations/route";
-import { POST as review } from "@/app/api/community/live/moderation/route";
 
 const originals = {
   live: process.env.MAPABLE_COMMUNITY_LIVE_ENABLED,
