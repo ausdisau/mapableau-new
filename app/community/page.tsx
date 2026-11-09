@@ -61,5 +61,5 @@ export default async function CommunitySignalSitesPage() {
       );
     }
   }
-  return <CommunityLiveApp />;
+  return <CommunityLiveApp pilotMode={communityPilotModeEnabled()} />;
 }
