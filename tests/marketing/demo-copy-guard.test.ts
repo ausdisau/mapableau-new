@@ -62,7 +62,7 @@ describe("participant-facing copy does not imply unverified live capabilities", 
     const landing = source("components/marketing/home/HomepageMapPreview.tsx");
     expect(signals).toContain("fictional route and feature information");
     expect(signals).toContain("does not");
-    expect(landing).toContain("not assessed");
+    expect(landing).toMatch(/not assessed|not been assessed/i);
     expect(landing).not.toContain("score {place.accessScore}");
   });
 });
