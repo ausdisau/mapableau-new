@@ -14,6 +14,7 @@ place ratings, remediation backends, or `MAPABLE_ACCESS_REMEDIATION_ENABLED`.
 | Path | Screen |
 | --- | --- |
 | `/access-signals` | Explore (list + illustrative map) |
+| `/access-signals/challenges` | Five fictional community challenges with optional session-only checklists and Field Notes links |
 | `/access-signals/field-notes` | Field Notes Observe (local draft only) |
 | `/access-signals/remediation` | Remediation workspace |
 | `/access-signals/evidence` | Placeholder |
@@ -28,6 +29,12 @@ place ratings, remediation backends, or `MAPABLE_ACCESS_REMEDIATION_ENABLED`.
   vocabulary with text + geometric shapes. It is not merged into AccessCast
   state machines.
 - No Neon schema, evidence store, or change ledger persistence.
+
+## Community challenge controls
+
+Five participant-led missions cover journeys, entrances, sensory/communication access, essential facilities, and change detection. They reuse fictional route IDs and existing Field Notes. Optional checklists stay in session storage; no server submissions, leaderboards, GPS, verification or public publishing. Challenge context is linked to Field Notes by query parameter, but the existing Field Notes does not persist challenge attribution.
+
+Production remains hard-off. A future real pilot needs dedicated moderation and evidence review, consent/withdrawal, safe media handling, contributor safeguards, appeals, accessibility testing, operational staffing, and a privacy review.
 
 ## Accessibility notes
 
