@@ -3,9 +3,9 @@ import { ExploreAccessView } from "@/components/access-signals/ExploreAccessView
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Access Signals (synthetic demo) | MapAble",
+  title: "Access Signals — illustrative workspace | MapAble",
   description:
-    "Synthetic Access Signals explore demo — not a real place and not published ratings.",
+    "Explore fictional accessibility examples. No live place assessment or published rating is provided.",
 };
 
 export default function AccessSignalsExplorePage() {
