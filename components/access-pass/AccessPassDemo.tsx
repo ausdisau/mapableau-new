@@ -81,8 +81,8 @@ export function AccessPassDemo() {
             Share your access needs once, on your terms.
           </h1>
           <p className="mt-4 text-lg text-slate-600">
-            Access Pass stays on this device in demo mode. MapAble does not send sensitive access
-            needs to a server from this page.
+            Use this page to explore a personal access statement. Details remain in this browser tab
+            and are not saved, sent to a provider or shared through MapAble.
           </p>
         </div>
       </section>
@@ -217,20 +217,10 @@ export function AccessPassDemo() {
               </ul>
             )}
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Revoke (demo)
-            </button>
-            <button
-              type="button"
-              className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
-            >
-              Audit log placeholder
-            </button>
-          </div>
+          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="note">
+            No data has been shared. There is no permission to revoke or server-side audit record.
+            Close or refresh this tab to clear the example fields.
+          </p>
         </section>
 
         <section aria-labelledby="privacy-heading" className="rounded-2xl bg-slate-50 p-5">
