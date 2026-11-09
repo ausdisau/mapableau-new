@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 };
 
 const cards = [
-  { label: "Mapped places", value: "Pilot target" },
-  { label: "Unknown access records", value: "Demo" },
-  { label: "Top reported barriers", value: "Demo" },
-  { label: "Suburbs with low access confidence", value: "Coming soon" },
-  { label: "Accessible toilet gaps", value: "Demo" },
-  { label: "Transport access gaps", value: "Coming soon" },
-  { label: "Venue verification pipeline", value: "Demo" },
-  { label: "Community mapping progress", value: "Pilot target" },
+  { label: "Mapped places", value: "Not reported" },
+  { label: "Unknown access records", value: "No validated aggregate" },
+  { label: "Top reported barriers", value: "Not assessed" },
+  { label: "Suburbs with low access confidence", value: "Not assessed" },
+  { label: "Accessible toilet gaps", value: "Not assessed" },
+  { label: "Transport access gaps", value: "Not assessed" },
+  { label: "Venue verification pipeline", value: "Under development" },
+  { label: "Community mapping progress", value: "Pilot planning" },
 ];
 
 const reports = [
@@ -39,8 +39,8 @@ export default function AccessIntelligencePage() {
               Access intelligence for places and precincts
             </h1>
             <p className="mt-4 max-w-3xl text-lg text-slate-600">
-              A B2B/B2G preview for councils, venues, tourism bodies, transport partners, and
-              disability organisations. Demo metrics only.
+              Explore the types of accessibility evidence councils, venues and community partners
+              could use. No live statistics, verified counts or published findings are shown here.
             </p>
           </div>
         </section>
@@ -48,7 +48,7 @@ export default function AccessIntelligencePage() {
         <div className="mx-auto max-w-7xl space-y-12 px-5 py-12 lg:px-8">
           <section aria-labelledby="cards-heading">
             <h2 id="cards-heading" className="text-2xl font-black">
-              Dashboard cards
+              Current evidence availability
             </h2>
             <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {cards.map((card) => (
@@ -62,7 +62,7 @@ export default function AccessIntelligencePage() {
 
           <section aria-labelledby="reports-heading">
             <h2 id="reports-heading" className="text-2xl font-black">
-              Report types
+              Proposed reporting formats
             </h2>
             <ul className="mt-4 grid gap-3 md:grid-cols-2">
               {reports.map((report) => (
@@ -75,14 +75,14 @@ export default function AccessIntelligencePage() {
 
           <section aria-labelledby="ethics-heading" className="rounded-2xl bg-slate-50 p-6">
             <h2 id="ethics-heading" className="text-xl font-black">
-              Data ethics
+              Reporting safeguards
             </h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
-              <li>Aggregated only</li>
-              <li>No identifiable disability or health data</li>
-              <li>Minimum aggregation threshold</li>
-              <li>Transparent methodology</li>
-              <li>Lived-experience review</li>
+              <li>Aggregate information before any approved release</li>
+              <li>Exclude identifiable disability and health data from public reports</li>
+              <li>Require a reviewed minimum aggregation threshold</li>
+              <li>Publish a clear methodology and evidence limitations</li>
+              <li>Include disabled people in reviewing reporting decisions</li>
             </ul>
           </section>
 
