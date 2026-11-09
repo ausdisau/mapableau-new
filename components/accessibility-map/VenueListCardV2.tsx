@@ -34,7 +34,8 @@ export const VenueListCardV2 = forwardRef<HTMLElement, VenueListCardV2Props>(
     { place, requirements, isSelected = false, onSelect, onReportChange, className },
     ref,
   ) {
-    const fit = calculateAccessFitV2(requirements, place.profile);
+    const unassessed = place.isDemo || place.tier === "Unverified";
+    const fit = unassessed ? null : calculateAccessFitV2(requirements, place.profile);
     const sourceKind = resolveAccessDataSourceKind({
       isDemo: place.isDemo,
       source: place.source,
@@ -63,28 +64,33 @@ export const VenueListCardV2 = forwardRef<HTMLElement, VenueListCardV2Props>(
           <AccessDataSourceMarker kind={sourceKind} className="max-w-xs text-left" />
         </div>
 
-        <p className="mt-3 text-sm text-slate-700" role="status">
-          {accessFitV2SummaryLine(fit)}
-        </p>
-        <p className="mt-1 text-xs text-slate-600">
-          Last checked {place.lastChecked} · Confidence {place.confidence}
-        </p>
-
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {place.topAccessFacts.slice(0, 3).map((fact) => (
-            <li
-              key={fact}
-              className="rounded-full bg-[#F6FBFC] px-3 py-1 text-xs font-semibold text-[#005B7F]"
-            >
-              {fact}
-            </li>
-          ))}
-        </ul>
-
-        {fit.unknownCount > 0 ? (
-          <p className="mt-2 text-sm text-slate-600">
-            {fit.unknownCount} unknown requirement{fit.unknownCount === 1 ? "" : "s"}
+        {unassessed ? (
+          <p className="mt-3 text-sm text-amber-900" role="status">
+            {place.isDemo
+              ? "Fictional example. No access requirements or feature measurements are verified."
+              : "Imported source record. Accessibility conditions and personal access fit are unknown."}
           </p>
+        ) : fit ? (
+          <>
+            <p className="mt-3 text-sm text-slate-700" role="status">
+              {accessFitV2SummaryLine(fit)}
+            </p>
+            <p className="mt-1 text-xs text-slate-600">
+              Last checked {place.lastChecked} · Confidence {place.confidence}
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {place.topAccessFacts.slice(0, 3).map((fact) => (
+                <li key={fact} className="rounded-full bg-[#F6FBFC] px-3 py-1 text-xs font-semibold text-[#005B7F]">
+                  {fact}
+                </li>
+              ))}
+            </ul>
+            {fit.unknownCount > 0 ? (
+              <p className="mt-2 text-sm text-slate-600">
+                {fit.unknownCount} unknown requirement{fit.unknownCount === 1 ? "" : "s"}
+              </p>
+            ) : null}
+          </>
         ) : null}
 
         <div className="mt-4 flex flex-wrap gap-3">
