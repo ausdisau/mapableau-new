@@ -34,12 +34,14 @@ type Draft = {
 
 export function FieldNotesObserve({
   initialRouteId,
+  initialChallenge,
 }: {
   initialRouteId?: string;
+  initialChallenge?: { title: string; focus: AccessDomain; prompt: string };
 }) {
   const route =
     DEMO_ROUTES.find((r) => r.id === initialRouteId) ?? DEMO_ROUTES[0];
-  const [domain, setDomain] = useState<AccessDomain>("physical");
+  const [domain, setDomain] = useState<AccessDomain>(initialChallenge?.focus ?? "physical");
   const [rating, setRating] = useState<RaguStatus>("unknown");
   const [note, setNote] = useState(
     "Narrow point on the approach. Further measurement needed.",
@@ -56,7 +58,7 @@ export function FieldNotesObserve({
       if (parsed.rating) setRating(parsed.rating);
       if (parsed.note) setNote(parsed.note);
       setDraftSaved(true);
-      setStatusMessage("Restored local draft.");
+      setStatusMessage("Restored local draft. Check its scope before using it for a different challenge.");
     } catch {
       // ignore corrupt draft
     }
@@ -123,6 +125,15 @@ export function FieldNotesObserve({
             {draftSaved ? "Draft saved locally" : "No local draft yet"}
           </p>
         </div>
+
+        {initialChallenge ? (
+          <aside className="space-y-2 rounded-xl border-l-4 border-[#F97316] bg-orange-50 p-4" aria-label="Mapping challenge context">
+            <p className="font-bold">Community challenge: {initialChallenge.title}</p>
+            <p className="text-sm text-slate-700">Suggested observation: {initialChallenge.prompt}</p>
+            <p className="text-sm text-slate-700">This is a fictional exercise. Existing local Field Notes may be restored; check their content and route before saving.</p>
+            <Link href="/access-signals/challenges" className={`font-bold text-[#005B7F] underline ${mapableInteractiveFocusRing}`}>Back to challenges</Link>
+          </aside>
+        ) : null}
 
         <fieldset className="space-y-3">
           <legend className="font-bold">Domain (what this observation is about)</legend>
