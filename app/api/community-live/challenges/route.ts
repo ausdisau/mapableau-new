@@ -1,4 +1,4 @@
-import { requireApiAdmin, requireApiSession } from "@/lib/api/auth-handler";
+import { requireApiAdmin } from "@/lib/api/auth-handler";
 import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard } from "@/lib/community-live/runtime";
 import { createChallengeSchema, parseCommunityJson } from "@/lib/community-live/validation";
 import { prisma } from "@/lib/prisma";
