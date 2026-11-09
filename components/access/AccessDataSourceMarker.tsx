@@ -22,8 +22,8 @@ const KIND_COPY: Record<
     className: "border-slate-300 bg-slate-50 text-slate-800",
   },
   demo: {
-    label: "Demo record",
-    description: "Synthetic demo data for product exploration — not a live venue claim.",
+    label: "Illustrative example",
+    description: "Fictional example only. No real venue, current access rating or independent verification is established.",
     className: "border-amber-300 bg-amber-50 text-amber-950",
   },
   provider: {
