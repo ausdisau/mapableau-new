@@ -220,6 +220,14 @@ export async function cacheApisIoHits(input: {
       hit.id ?? hit.name ?? hit.title ?? `anon-${count}`,
     ).slice(0, 120);
     const sourceUrl = String(hit.url ?? input.sourceUrl);
+    // APIs.io responses may contain arbitrary unknown keys. Persist only
+    // well-typed catalogue metadata; never cast unknown into Prisma JSON.
+    const hitMetadata = {
+      id: hit.id ?? null,
+      name: hit.name ?? null,
+      title: hit.title ?? null,
+      url: hit.url ?? null,
+    };
     await prisma.adProviderCatalogEntry.upsert({
       where: {
         catalogProviderId_sourceUrl: {
@@ -237,7 +245,7 @@ export async function cacheApisIoHits(input: {
         assuranceState: "catalogued",
         rawMetadataJson: {
           query: input.query,
-          hit,
+          hit: hitMetadata,
           notice: "Catalogue metadata only — not a buying entitlement",
         },
         retrievedAt: new Date(),
@@ -248,7 +256,7 @@ export async function cacheApisIoHits(input: {
         etag: input.etag,
         rawMetadataJson: {
           query: input.query,
-          hit,
+          hit: hitMetadata,
           notice: "Catalogue metadata only — not a buying entitlement",
         },
         retrievedAt: new Date(),
