@@ -1,0 +1,50 @@
+name: Community pilot privacy and access validation
+
+on:
+  pull_request:
+    paths:
+      - "app/api/community/live/**"
+      - "app/community/**"
+      - "components/community-live/**"
+      - "lib/community-live/**"
+      - "tests/community-pilot-*.test.ts"
+      - "tests/community-live-policy.test.ts"
+      - ".github/workflows/community-pilot-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  privacy-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify consent, pilot admission and withdrawal regression cases
+        run: pnpm exec vitest run tests/community-live-policy.test.ts tests/community-pilot-access.test.ts tests/community-pilot-withdrawal.test.ts
+      - name: Check only the changed pilot surfaces
+        run: |
+          pnpm exec eslint \
+            lib/community-live/policy.ts \
+            lib/community-live/runtime.ts \
+            app/community/page.tsx \
+            app/community/manage/page.tsx \
+            app/api/community/live/challenges/route.ts \
+            app/api/community/live/observations/route.ts \
+            app/api/community/live/moderation/route.ts \
+            components/community-live/CommunityLiveApp.tsx \
+            components/community-live/CommunityLiveAdmin.tsx \
+            tests/community-pilot-access.test.ts \
+            tests/community-pilot-withdrawal.test.ts \
+            --max-warnings 0
