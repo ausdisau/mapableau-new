@@ -74,7 +74,7 @@ export async function POST(request: Request) {
           reviewedAt: new Date(),
           publicAt: decision === "approved" ? new Date() : null,
           // Publication review is NOT independent feature verification.
-          evidenceState: "reviewed", rating: "unknown",
+          evidenceState: decision === "approved" ? "reviewed" : "reported", rating: "unknown",
         },
       });
       if (change.count !== 1) return { error: "CONFLICT" } as const;
