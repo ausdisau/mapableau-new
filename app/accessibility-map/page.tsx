@@ -8,7 +8,7 @@ import { MAPABLE_ADL_SOURCE_LABEL } from "@/lib/access/map/copy";
 export const metadata: Metadata = {
   title: "Accessibility Map | MapAble",
   description:
-    "Know before you go. Search accessible places with practical details, confidence levels, measurements, and transport options — including MapAble by Australian Disability Ltd locations.",
+    "Explore source-attributed place information and known gaps. Illustrative examples and historical records do not establish current accessibility or route suitability.",
 };
 
 export default async function AccessibilityMapPage() {
@@ -21,7 +21,7 @@ export default async function AccessibilityMapPage() {
         initialPlaces={places}
         dataSourceNote={
           partnerCount > 0
-            ? `Includes ${partnerCount.toLocaleString("en-AU")} locations from ${MAPABLE_ADL_SOURCE_LABEL}.`
+            ? `Includes ${partnerCount.toLocaleString("en-AU")} historical source locations from ${MAPABLE_ADL_SOURCE_LABEL}. These are not independently verified accessibility assessments.`
             : undefined
         }
       />
