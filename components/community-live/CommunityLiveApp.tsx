@@ -37,7 +37,7 @@ const fieldClass =
 const buttonClass =
   "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0c2043] px-5 py-2 font-semibold text-white hover:bg-[#243e6e] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-amber-500 disabled:cursor-not-allowed disabled:opacity-60";
 
-export default function CommunityLiveApp() {
+export default function CommunityLiveApp({ pilotMode = false }: { pilotMode?: boolean }) {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [published, setPublished] = useState<Finding[]>([]);
   const [mine, setMine] = useState<Finding[]>([]);
@@ -165,6 +165,16 @@ export default function CommunityLiveApp() {
         </p>
       </div>
 
+      {pilotMode ? (
+        <div role="note" className="rounded-xl border-2 border-amber-600 bg-amber-50 p-5">
+          <strong>Private, invited pilot</strong>
+          <p className="mt-2 text-sm leading-6">
+            Submissions are visible only to your account or authorised reviewers.
+            Public publication and independent accessibility verification are disabled.
+            Use test information only. No photographs or precise location data.
+          </p>
+        </div>
+      ) : null}
       {notice ? <p role="status" aria-live="polite" className="rounded-xl border border-blue-400 bg-blue-50 p-4">{notice}</p> : null}
       {loadError ? <p role="alert" className="rounded-xl border border-red-500 bg-red-50 p-4">{loadError} <button type="button" className="underline" onClick={() => void refresh()}>Retry</button></p> : null}
       {loading ? <p role="status">Loading community information…</p> : null}
@@ -245,11 +255,17 @@ export default function CommunityLiveApp() {
           </div>
           <fieldset className="space-y-3 rounded-xl border border-slate-400 p-4">
             <legend className="px-2 font-bold">Your sharing decision</legend>
+            {pilotMode ? (
+              <p className="px-2 text-sm text-slate-700">
+                For this protected pilot, choose private or moderator review only.
+                Nothing can be published publicly.
+              </p>
+            ) : null}
             {([
               ["private", "Private to me", "Only your signed-in account can read it. No moderation or publication."],
               ["review", "Share with moderators only", "Reviewers can read it, but it cannot be published."],
               ["public", "Consider for public publication", "Human moderators may approve it for public viewing without identifying account details."] ,
-            ] as const).map(([scope, label, description]) => (
+            ] as const).filter(([scope]) => !pilotMode || scope !== "public").map(([scope, label, description]) => (
               <label key={scope} className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
                 <input type="radio" name="scope" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === scope} onChange={() => setConsentScope(scope)} />
                 <span><strong>{label}</strong><span className="mt-1 block text-sm text-slate-600">{description}</span></span>
@@ -288,6 +304,7 @@ export default function CommunityLiveApp() {
         )}
       </section>
 
+      {!pilotMode ? (
       <section aria-labelledby="published-heading" className="space-y-4">
         <h2 id="published-heading" className="text-2xl font-bold">Human-reviewed public contributions</h2>
         <p className="text-sm leading-6">These community reports are not independent verification, compliance certificates or recommendations that a route is suitable for everyone.</p>
@@ -304,6 +321,15 @@ export default function CommunityLiveApp() {
           </div>
         )}
       </section>
+      ) : (
+        <section aria-labelledby="published-heading" className="rounded-xl border border-slate-300 p-5">
+          <h2 id="published-heading" className="text-2xl font-bold">Public publishing is disabled</h2>
+          <p className="mt-2 text-sm leading-6">
+            You can test private submissions and share with invited moderators.
+            No pilot observation is available for public publication.
+          </p>
+        </section>
+      )}
       <footer className="border-t border-slate-300 pt-5 text-sm text-slate-700">
         <p>MapAble Community does not determine NDIS eligibility, publish medical records or replace independent accessibility assessment.</p>
         <p className="mt-2">Community moderators: <a className="underline" href="/community/manage">moderation workspace</a>.</p>
