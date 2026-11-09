@@ -1,0 +1,17 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": true,
+  "rewrites": [
+    { "source": "/community", "destination": "/" },
+    { "source": "/community/", "destination": "/" },
+    { "source": "/community/:path*", "destination": "/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    }
+  ]
+}
