@@ -1,7 +1,7 @@
 import { getApiUser } from "@/lib/auth/guards";
 import { isAdminRole } from "@/lib/auth/roles";
 import { canModerateFinding, mayApprovePublicFinding } from "@/lib/community-live/policy";
-import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard, communityPilotAccessGuard } from "@/lib/community-live/runtime";
+import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard, communityPilotAccessGuard, communityPilotModeEnabled } from "@/lib/community-live/runtime";
 import { moderateFindingSchema, parseCommunityJson } from "@/lib/community-live/validation";
 import { prisma } from "@/lib/prisma";
 
@@ -48,6 +48,11 @@ export async function POST(request: Request) {
     const parsed = moderateFindingSchema.safeParse(await parseCommunityJson(request));
     if (!parsed.success) return communityNoStore({ error: "Invalid review decision" }, 400);
     const { id, decision, note } = parsed.data;
+    if (communityPilotModeEnabled() && decision === "approved") {
+      return communityNoStore({
+        error: "Public publication approval is disabled for the protected pilot",
+      }, 409);
+    }
     const result = await prisma.$transaction(async tx => {
       const existing = await tx.communitySignalObservation.findUnique({
         where: { id },
