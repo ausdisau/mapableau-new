@@ -29,9 +29,9 @@ Never use `NEXT_PUBLIC_*` for the pilot allowlist. The pilot mode must remain **
 
 1. **Unauthenticated visit:** no read or write APIs, no participant data; accessible sign-in explanation.
 2. **Signed-in non-invited account:** receives 403 on every pilot API and cannot open the community moderation page.
-3. **Invited participant:** sees only their own private entries; creates a scoped observation with explicit consent; initial rating stays **Unknown**.
+3. **Invited participant:** sees only their own private entries; creates a scoped observation with explicit **private** or **moderator-review-only** consent; initial rating stays **Unknown**.
 4. **Review-only consent:** only authorised reviewers can read the submitted text. It cannot become public without a new, explicit public-consent decision.
-5. **Public-consent submission:** not public until a different authorised moderator reviews it. Moderation does not certify accessibility.
+5. **Public publication disabled:** public consent, approval, and public-feed responses are disabled at server and UI level throughout pilot mode. Reviewers can request clarification or reject a submission; no pilot report can be approved for public release.
 6. **Withdrawal:** participant removes their submission; it must disappear from own and public queries. Minimal audit metadata may remain according to a reviewed retention schedule. Check concurrency with a moderator approving at the same time.
 7. **Unavailability:** network failure, lost session, disabled flag and database outage must not imply a submission succeeded.
 8. **AAC and access:** test keyboard-only, slow input, speech dictation, screen readers, 200–400% zoom, reduced motion, language clarity, focus management, error recovery and alternative text-based place information.
