@@ -31,8 +31,10 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    // Community static pilot is hosted on the mapable-community Vercel project.
-    // Proxy path keeps mapable.com.au/community without changing DNS.
+    // MapAble Signal Sites prototype is hosted on the mapable-community
+    // Vercel project. Proxy keeps mapable.com.au/community without DNS changes.
+    // :path* covers CSS/JS/assets when the multi-file shell is used; the
+    // production index is the standalone single-file build.
     return {
       beforeFiles: [
         {
@@ -42,6 +44,10 @@ const nextConfig: NextConfig = {
         {
           source: "/community/",
           destination: "https://mapable-community.vercel.app/",
+        },
+        {
+          source: "/community/:path*",
+          destination: "https://mapable-community.vercel.app/:path*",
         },
       ],
     };
