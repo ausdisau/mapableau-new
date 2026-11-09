@@ -217,7 +217,7 @@ export function FieldNotesObserve({
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
           <p>
-            Source: synthetic example · Observed: 7 Nov 2026
+            Source: fictional example · Date shown is illustrative only
           </p>
           <Link
             href="/access-signals/evidence"
@@ -234,7 +234,7 @@ export function FieldNotesObserve({
           <span aria-hidden className="font-bold">
             i
           </span>
-          No real-place rating will be published from this demo.
+          No real-place rating or verified observation will be published from this workspace.
         </p>
 
         <div aria-live="polite" className="min-h-6 text-sm text-slate-700">
@@ -254,7 +254,7 @@ export function FieldNotesObserve({
             onClick={() => {
               saveDraft();
               setStatusMessage(
-                "Draft saved locally. Evidence step is a placeholder in this demo.",
+                "Draft kept in local browser state. No evidence was uploaded, reviewed or published.",
               );
             }}
             className={`inline-flex min-h-11 items-center rounded-xl bg-[#0C1833] px-4 font-bold text-white ${mapableInteractiveFocusRing}`}
