@@ -23,6 +23,7 @@ import {
   CSP_NONCE_HEADER,
   isCspPreviewEnforceEnabled,
 } from "@/lib/security/csp-preview-enforce";
+import { TENANT_PREVIEW_REQUEST_HEADER } from "@/lib/tenancy/tenant-preview-header";
 
 const canonicalOrigin = getCanonicalPublicOrigin();
 const publicJsonLd = buildPublicJsonLd();
@@ -112,12 +113,18 @@ async function resolveScriptNonce(): Promise<string | undefined> {
   return headerStore.get(CSP_NONCE_HEADER) ?? undefined;
 }
 
+async function isTenantPreviewRequest(): Promise<boolean> {
+  const headerStore = await headers();
+  return headerStore.get(TENANT_PREVIEW_REQUEST_HEADER) === "1";
+}
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const scriptNonce = await resolveScriptNonce();
+  const tenantPreview = await isTenantPreviewRequest();
 
   return (
     <html
@@ -125,11 +132,15 @@ export default async function RootLayout({
       className={`${plusJakarta.variable} ${outfit.variable} ${atkinsonHyperlegible.variable}`}
     >
       <head>
-        <meta
-          name="purpleads-verification"
-          content="832ea0b13123578b63ae2fe9"
-        />
-        <meta name="google-adsense-account" content={ADSENSE_CLIENT_ID} />
+        {tenantPreview ? null : (
+          <>
+            <meta
+              name="purpleads-verification"
+              content="832ea0b13123578b63ae2fe9"
+            />
+            <meta name="google-adsense-account" content={ADSENSE_CLIENT_ID} />
+          </>
+        )}
         {firstPartyA11yPanel ? (
           <script
             nonce={scriptNonce}
@@ -140,16 +151,20 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className={plusJakarta.className}>
-        <JsonLd
-          nonce={scriptNonce}
-          data={[publicJsonLd.organization, publicJsonLd.website]}
-        />
+        {tenantPreview ? null : (
+          <JsonLd
+            nonce={scriptNonce}
+            data={[publicJsonLd.organization, publicJsonLd.website]}
+          />
+        )}
         <Providers>{children}</Providers>
-        {firstPartyA11yPanel ? null : <AccessiBeWidget />}
-        <GoogleAnalytics />
-        <GoogleAdSense />
+        {firstPartyA11yPanel || tenantPreview ? null : <AccessiBeWidget />}
+        {tenantPreview ? null : <GoogleAnalytics />}
+        {tenantPreview ? null : <GoogleAdSense />}
         {/* Speed Insights only on Vercel; local/CI production servers have no SI endpoint. */}
-        {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
+        {process.env.VERCEL === "1" && !tenantPreview ? (
+          <SpeedInsights />
+        ) : null}
       </body>
     </html>
   );
