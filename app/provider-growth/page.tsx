@@ -59,7 +59,7 @@ export default function ProviderGrowthPage() {
             className="rounded-2xl border border-slate-200 bg-[#F6FBFC] p-6"
           >
             <h2 id="dashboard-heading" className="text-2xl font-black">
-              Provider dashboard mockup (demo)
+              Illustrative provider dashboard — no verified operating metrics
             </h2>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
               <Stat term="Enquiries (30 days)" detail="24" />
@@ -74,7 +74,7 @@ export default function ProviderGrowthPage() {
 
           <section aria-labelledby="pricing-heading">
             <h2 id="pricing-heading" className="text-2xl font-black">
-              Pricing placeholder
+              Pricing not published
             </h2>
             <ul className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[
