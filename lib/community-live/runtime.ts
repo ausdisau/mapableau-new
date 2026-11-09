@@ -1,9 +1,28 @@
 import { NextResponse } from "next/server";
-import { validMutationOrigin } from "@/lib/community-live/policy";
+import { evaluateCommunityPilotAccess, validMutationOrigin } from "@/lib/community-live/policy";
 
 /** Kept OFF until auth, DB migration, moderation, accessibility and rollback gates pass. */
+export function communityPilotModeEnabled(): boolean {
+  return process.env.MAPABLE_COMMUNITY_PILOT_MODE === "true";
+}
+
 export function communityLiveEnabled(): boolean {
+  // Closed-pilot mode must never enable the live backend on a production Vercel deployment.
+  if (communityPilotModeEnabled() && process.env.VERCEL_ENV === "production") return false;
   return process.env.MAPABLE_COMMUNITY_LIVE_ENABLED === "true";
+}
+
+export function communityPilotAccessGuard(user: { id: string } | null): Response | null {
+  const decision = evaluateCommunityPilotAccess({
+    pilotMode: communityPilotModeEnabled(),
+    userId: user?.id,
+    allowedIds: process.env.MAPABLE_COMMUNITY_PILOT_USER_IDS ?? "",
+  });
+  if (decision === "not_required" || decision === "allowed") return null;
+  if (decision === "sign_in_required") {
+    return communityNoStore({ error: "Sign in required for the protected pilot" }, 401);
+  }
+  return communityNoStore({ error: "This account is not invited to the protected pilot" }, 403);
 }
 
 export function communityNoStore(data: unknown, status = 200) {
