@@ -33,6 +33,7 @@ vi.mock("@/lib/prisma", () => {
 import {
   DELETE,
   GET,
+  POST,
 } from "@/app/api/community/live/observations/route";
 import { POST as review } from "@/app/api/community/live/moderation/route";
 
@@ -121,6 +122,8 @@ describe("protected MapAble Community API: owner withdrawal and moderator concur
   });
 
   it("blocks reviewer approval after a competing withdrawal wins", async () => {
+    // Race behaviour is shared with the future public release, not enabled in a pilot.
+    process.env.MAPABLE_COMMUNITY_PILOT_MODE = "false";
     mocks.getApiUser.mockResolvedValue({
       id: "test-reviewer",
       primaryRole: "mapable_admin",
@@ -165,6 +168,38 @@ describe("protected MapAble Community API: owner withdrawal and moderator concur
     }));
     expect(response.status).toBe(403);
     expect(mocks.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("does not return any publicly published records in private pilot mode", async () => {
+    const response = await GET(new Request("https://mapable.com.au/api/community/live/observations"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ observations: [] });
+    expect(mocks.findMany).not.toHaveBeenCalled();
+  });
+
+  it("refuses requests to publish a participant submission during the pilot", async () => {
+    const response = await POST(browserRequest("/api/community/live/observations", "POST", {
+      challengeId: "challenge1", title: "Observed step at entrance",
+      feature: "Entrance", finding: "A step was present at the public entrance.",
+      method: "direct observation", observedAt: "2026-11-09",
+      consentScope: "public", consentAcknowledged: true,
+    }));
+    expect(response.status).toBe(409);
+    expect(mocks.auditCreate).not.toHaveBeenCalled();
+  });
+
+  it("refuses moderator publication approval during a protected pilot", async () => {
+    mocks.getApiUser.mockResolvedValue({
+      id: "test-reviewer",
+      primaryRole: "mapable_admin",
+      roles: ["mapable_admin"],
+    });
+    const response = await review(browserRequest("/api/community/live/moderation", "POST", {
+      id: "finding1", decision: "approved", note: "",
+    }));
+    expect(response.status).toBe(409);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+    expect(mocks.auditCreate).not.toHaveBeenCalled();
   });
 
   it("hard-disables live pilot endpoints if the deployment becomes production", async () => {
