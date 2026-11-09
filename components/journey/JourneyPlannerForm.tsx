@@ -14,7 +14,6 @@ type JourneyResult = {
   returnTripReminder: string;
   supportWorkerOption: string;
   unknowns: string[];
-  confidenceScore: number;
 };
 
 function buildDemoJourney(input: {
@@ -30,36 +29,36 @@ function buildDemoJourney(input: {
   returnTrip: boolean;
 }): JourneyResult {
   const modeNotes: Record<string, string> = {
-    "public-transport": "Public transport connectivity is estimated only (demo).",
-    "wat-taxi": "Wheelchair accessible taxi availability is a placeholder estimate.",
-    "community-transport": "Community transport windows are demo assumptions.",
-    "support-worker-transport": "Support worker transport depends on provider acceptance.",
+    "public-transport": "Routes and interchange accessibility have not been checked.",
+    "wat-taxi": "Vehicle availability and boarding equipment require direct confirmation.",
+    "community-transport": "Service area, eligibility and booking times require direct confirmation.",
+    "support-worker-transport": "Transport arrangements require agreement with the chosen worker or provider.",
   };
 
   return {
-    destinationSummary: `${input.destination || "Destination"} access summary is demo-based. Confirm critical access needs before travelling.`,
+    destinationSummary: `Draft travel considerations for ${input.destination || "your destination"}. No route or accessibility assessment has been completed.`,
     routeAssumptions: [
       `Start: ${input.start || "Not specified"}`,
       `Mobility aid: ${input.mobilityAid || "Not specified"}`,
       `Access needs noted: ${input.accessNeeds || "None entered"}`,
       `Companions: ${input.companions || "None"}`,
-      modeNotes[input.mode] ?? "Transport mode assumptions are demo-only.",
+      modeNotes[input.mode] ?? "This transport preference has not been checked with an operator.",
     ],
     transportOptions: [
       {
-        mode: "Public transport (placeholder)",
+        mode: "Public transport (not checked)",
         note: "Check stop accessibility and transfer times separately.",
       },
       {
-        mode: "Wheelchair accessible taxi (placeholder)",
+        mode: "Wheelchair accessible taxi (not booked)",
         note: "Confirm vehicle type, ramp/hoist, and booking lead time.",
       },
       {
-        mode: "Community transport (placeholder)",
+        mode: "Community transport (check availability)",
         note: "May require advance booking and membership eligibility.",
       },
       {
-        mode: "Support worker transport (placeholder)",
+        mode: "Support worker transport (not arranged)",
         note: input.supportWorker
           ? "Include meeting point and handover notes."
           : "Enable support worker needed if this applies.",
@@ -77,14 +76,13 @@ function buildDemoJourney(input: {
       ? `Return trip reminder after appointment (${input.appointmentTime || "time TBC"}).`
       : "No return trip selected.",
     supportWorkerOption: input.supportWorker
-      ? "Support worker can meet at the destination entrance (demo option)."
+      ? "If you choose, discuss a meeting point with your support worker; nothing is arranged here."
       : "No support worker meeting requested.",
     unknowns: [
       "Live traffic and vehicle availability not queried.",
-      "Venue access confidence should be checked on the place page.",
+      "Entrances, crossings and facilities need independent confirmation.",
       "Funding eligibility is not assessed by this planner.",
     ],
-    confidenceScore: 58,
   };
 }
 
@@ -141,7 +139,7 @@ export function JourneyPlannerForm() {
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-slate-600">
             This planner works as a labelled form and text summary. Map visuals are optional.
-            Results use demo assumptions — not live transport APIs.
+            This creates a local planning outline, not a checked route, transport booking or live timetable.
           </p>
         </div>
       </section>
@@ -250,7 +248,7 @@ export function JourneyPlannerForm() {
             type="submit"
             className={`inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
           >
-            Build demo journey plan
+            Create an unconfirmed journey outline
           </button>
         </form>
 
@@ -265,7 +263,7 @@ export function JourneyPlannerForm() {
           ) : (
             <div className="mt-4 space-y-4 text-sm text-slate-700">
               <p className="rounded-xl bg-amber-50 px-3 py-2 font-semibold text-amber-950">
-                Demo plan · confidence {result.confidenceScore}/100
+                Planning outline only — route safety, travel time and availability are unverified.
               </p>
               <p>{result.destinationSummary}</p>
               <div>
@@ -308,12 +306,12 @@ export function JourneyPlannerForm() {
                 </ul>
               </div>
               <div className="flex flex-wrap gap-3 pt-2">
-                <Action href="/dashboard" label="Save journey" />
+                <Action href="/dashboard" label="Go to dashboard" />
                 <Action href="/transport" label="Request transport" />
                 <Action href="/care/request" label="Request support worker" />
                 <Action
                   href="/support-coordinator"
-                  label="Share journey with support coordinator"
+                  label="Explore support coordination"
                 />
               </div>
             </div>
