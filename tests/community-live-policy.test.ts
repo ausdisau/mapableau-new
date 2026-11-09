@@ -109,6 +109,11 @@ describe("MapAble Community request boundaries", () => {
       title: "Real path survey", template: "unsupported", boundary: "City centre",
       instruction: "Record the measurable physical access changes",
     }).success).toBe(false);
+    expect(createChallengeSchema.safeParse({
+      title: "A live test challenge", template: "street", boundary: "City centre",
+      instruction: "Record the accessible features actually observed in the scope",
+      status: "published",
+    }).success).toBe(false);
     expect(moderateFindingSchema.safeParse({
       id: "o1", decision: "approved", note: "x".repeat(401),
     }).success).toBe(false);
