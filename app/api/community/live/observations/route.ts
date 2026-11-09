@@ -19,6 +19,7 @@ export async function GET(request: Request) {
         id: true, challengeId: true, title: true, feature: true, finding: true,
         method: true, observedAt: true, consentScope: true, moderation: true,
         evidenceState: true, rating: true, createdAt: true, consentWithdrawnAt: true,
+        reviewNote: true,
       },
       orderBy: { createdAt: "desc" },
       take: 100,
