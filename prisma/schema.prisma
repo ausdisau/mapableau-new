@@ -30,6 +30,8 @@ model User {
   sessions               Session[]
   claimedProviders       ClaimedProvider[]
   passkeyCredentials     PasskeyCredential[]
+  communitySignalChallenges CommunitySignalChallenge[] @relation("CommunitySignalChallengeCreator")
+  communitySignalObservations CommunitySignalObservation[] @relation("CommunitySignalObservationAuthor")
 
   memberships            ProviderUserRole[]
   roleAssignments        UserRoleAssignment[]
@@ -16505,4 +16507,65 @@ model AdtunisParticipantWorkspace {
   updatedAt     DateTime @updatedAt
 
   @@map("adtunis_participant_workspaces")
+}
+
+
+/// Authenticated and administrator-published accessibility mapping challenges.
+model CommunitySignalChallenge {
+  id          String @id @default(cuid())
+  title       String @db.VarChar(160)
+  template    String @db.VarChar(30)
+  boundary    String @db.VarChar(200)
+  instruction String @db.VarChar(1200)
+  status      String @default("draft") @db.VarChar(20)
+  createdById String
+  createdBy   User @relation("CommunitySignalChallengeCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  observations CommunitySignalObservation[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+/// Submitted evidence remains private/review-only until explicit public consent and human moderation.
+model CommunitySignalObservation {
+  id                    String @id @default(cuid())
+  challengeId           String
+  challenge             CommunitySignalChallenge @relation(fields: [challengeId], references: [id], onDelete: Restrict)
+  authorId              String
+  author                User @relation("CommunitySignalObservationAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  title                 String @db.VarChar(160)
+  feature               String @db.VarChar(100)
+  finding               String @db.Text
+  method                String @db.VarChar(40)
+  observedAt            DateTime
+  consentScope          String @default("private") @db.VarChar(20)
+  consentVersion        String @db.VarChar(50)
+  consentAcknowledgedAt DateTime @default(now())
+  consentWithdrawnAt    DateTime?
+  moderation            String @default("pending") @db.VarChar(20)
+  evidenceState         String @default("reported") @db.VarChar(20)
+  rating                String @default("unknown") @db.VarChar(15)
+  reviewerId            String?
+  reviewedAt            DateTime?
+  reviewNote            String? @db.VarChar(400)
+  publicAt              DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([authorId, createdAt])
+  @@index([moderation, consentScope, consentWithdrawnAt])
+  @@index([challengeId, createdAt])
+}
+
+/// No observation excerpts, names, coordinates or attachments in audit payloads.
+model CommunitySignalAudit {
+  id         String @id @default(cuid())
+  action     String @db.VarChar(40)
+  entityType String @db.VarChar(40)
+  entityId   String
+  actorId    String
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
 }

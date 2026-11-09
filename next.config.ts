@@ -30,22 +30,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async rewrites() {
-    // Community static pilot is hosted on the mapable-community Vercel project.
-    // Proxy path keeps mapable.com.au/community without changing DNS.
-    return {
-      beforeFiles: [
-        {
-          source: "/community",
-          destination: "https://mapable-community.vercel.app/",
-        },
-        {
-          source: "/community/",
-          destination: "https://mapable-community.vercel.app/",
-        },
-      ],
-    };
-  },
   async headers() {
     return [
       {
