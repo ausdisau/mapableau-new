@@ -17,7 +17,9 @@ describe("participant-facing copy does not imply unverified live capabilities", 
   it("marks fictional access profiles and keeps them out of structured place data", () => {
     const page = source("app/accessibility-map/[slug]/page.tsx");
     expect(page).toContain("robots: { index: false, follow: false }");
-    expect(page).toContain("place.isDemo ? null : buildPlaceAccessibilityJsonLd");
+    expect(page).toContain('place.isDemo || place.tier === "Unverified"');
+    expect(page).toContain("unassessed ? null : buildPlaceAccessibilityJsonLd");
+    expect(page).toContain("Accessibility has not been independently assessed");
     expect(page).toContain("jsonLd ? <JsonLd data={jsonLd} /> : null");
     expect(page).toContain("Access status: Unknown");
   });
@@ -55,6 +57,25 @@ describe("participant-facing copy does not imply unverified live capabilities", 
     expect(login).toContain("import.meta.env.DEV");
     expect(reportButton).toContain("disabled");
     expect(reportButton).not.toContain("setTimeout");
+  });
+
+  it("does not present KML-imported or fictional places as assessed in map UI", () => {
+    const cards = source("components/accessibility-map/VenueListCard.tsx");
+    const cardsV2 = source("components/accessibility-map/VenueListCardV2.tsx");
+    const popup = source("components/accessibility-map/AccessibilityMapPopup.tsx");
+    for (const component of [cards, cardsV2, popup]) {
+      expect(component).toContain('place.isDemo || place.tier === "Unverified"');
+      expect(component).toContain("unassessed");
+    }
+    expect(cards).toContain("Access status unknown");
+    expect(cardsV2).toContain("personal access fit are unknown");
+    expect(popup).toContain("Current accessibility conditions and access fit are unknown");
+  });
+
+  it("does not infer assessment authority from a tier label alone", () => {
+    const marker = source("components/access/AccessDataSourceMarker.tsx");
+    expect(marker).not.toContain('input.tier !== "Unverified"');
+    expect(marker).toContain("A tier label alone is not evidence");
   });
 
   it("retains explicit factual limits for fictional community mapping", () => {
