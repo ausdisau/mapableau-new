@@ -152,7 +152,9 @@ describe("protected MapAble Community API: owner withdrawal and moderator concur
     expect(mocks.auditCreate).not.toHaveBeenCalled();
   });
 
-  it("rejects even an invited reviewer approving their own contribution", async () => {
+  it("rejects a reviewer approving their own contribution outside the closed pilot", async () => {
+    // Pilot approval is unconditionally denied; test the independent-review gate separately.
+    process.env.MAPABLE_COMMUNITY_PILOT_MODE = "false";
     mocks.getApiUser.mockResolvedValue({
       id: "test-reviewer",
       primaryRole: "mapable_admin",
