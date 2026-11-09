@@ -81,7 +81,7 @@ export function buildDayContinuityReview(
   // Do not accept a client participant ID or silently join external records.
   const byId = new Map(reviewable.map((activity) => [activity.id, activity]));
   const issues: DayReviewIssue[] = Array.from(byId.values())
-    .map((activity) => ({
+    .map((activity): DayReviewIssue => ({
       id: activity.id,
       kind: activity.kind,
       title: activity.title,
