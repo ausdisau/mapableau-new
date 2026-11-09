@@ -3,6 +3,10 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { resolveAccessDataSourceKind } from "@/components/access/AccessDataSourceMarker";
+import { mapAdlPlaceToAccessPlace } from "@/lib/access/map/mapable-adl-dataset";
+import { DEMO_ACCESS_PLACES, filterDemoPlaces } from "@/lib/demo/accessibility-places";
+
 function source(path: string): string {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
@@ -76,6 +80,23 @@ describe("participant-facing copy does not imply unverified live capabilities", 
     const marker = source("components/access/AccessDataSourceMarker.tsx");
     expect(marker).not.toContain('input.tier !== "Unverified"');
     expect(marker).toContain("A tier label alone is not evidence");
+  });
+
+  it("does not list fictional or unverified imported locations as verified", () => {
+    const imported = mapAdlPlaceToAccessPlace({
+      id: "source:unverified-location",
+      slug: "test-unverified-location",
+      name: "Imported location for testing",
+      layer: "Accessible Toilets",
+      category: "public_toilet",
+      lat: -33.8,
+      lng: 151.2,
+      fact: "Unverified category from a historical location source",
+    });
+    expect(imported.tier).toBe("Unverified");
+    expect(imported.isDemo).toBe(false);
+    expect(filterDemoPlaces([...DEMO_ACCESS_PLACES, imported], { filters: ["verified"] })).toEqual([]);
+    expect(resolveAccessDataSourceKind({ source: "community", tier: "Gold" })).toBe("community");
   });
 
   it("retains explicit factual limits for fictional community mapping", () => {
