@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react";
 
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 type PassFields = {
   mobilityAids: string;
