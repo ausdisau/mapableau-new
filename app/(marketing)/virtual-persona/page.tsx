@@ -29,7 +29,7 @@ export default function VirtualPersonaPage() {
           <p className="text-base leading-relaxed text-slate-700">
             A text-first workspace to ask questions, review sources, and edit
             drafts. It preserves your decision-making authority. This build uses{" "}
-            <strong>synthetic fixtures only</strong>—no live model calls, no
+            <strong>fictional example responses only</strong>—no live model calls, no
             private participant retrieval, and no bookings or payments.
           </p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
