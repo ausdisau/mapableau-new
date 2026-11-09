@@ -18,7 +18,7 @@ export function ChoicePanel({
         Decision required
       </h2>
       <p className="mt-2 leading-7 text-white/80">{decision.prompt}</p>
-      <ul className="mt-4 grid gap-3" role="list">
+      <ul className="mt-4 grid gap-3">
         {decision.options.map((option) => (
           <li key={option.id}>
             <button

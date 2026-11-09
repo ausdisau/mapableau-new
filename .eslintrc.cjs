@@ -62,6 +62,7 @@ module.exports = {
     "react/prop-types": "off",
   },
   settings: {
+    "import/core-modules": ["server-only"],
     "import/resolver": isCiLight
       ? {
           node: {

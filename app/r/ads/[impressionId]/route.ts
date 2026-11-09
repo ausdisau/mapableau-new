@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { resolveClickRedirect } from "@/lib/ads/services/measurement";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 
 type RouteContext = {
   params: Promise<{ impressionId: string }>;

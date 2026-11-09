@@ -1,3 +1,4 @@
+import { userHasAdsPermission } from "@/lib/ads/auth/ads-permissions";
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import {
   listCatalogProviders,
@@ -7,7 +8,6 @@ import {
   assertPlacementApiEnabled,
   placementApiDisabledResponse,
 } from "@/lib/ads/manager/flag-gate";
-import { userHasAdsPermission } from "@/lib/ads/auth/ads-permissions";
 import { jsonOk } from "@/lib/api/response";
 import { apiForbidden, apiUnauthorized, getApiUser } from "@/lib/auth/guards";
 

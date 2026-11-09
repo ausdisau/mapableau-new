@@ -44,7 +44,7 @@ export function AssessmentReviewWorkspace() {
  }
  return <main className="mx-auto max-w-3xl space-y-6">
    <Link href="/dashboard/assessment" className="text-primary underline">Back to my assessment</Link>
-   <h1 className="text-3xl font-bold">Review an assessor's report</h1>
+   <h1 className="text-3xl font-bold">Review an assessor&apos;s report</h1>
    <p>Compare your account with the report. A missing link does not by itself prove an omission. You decide which concerns to raise.</p>
    <div className="rounded-xl border p-5 space-y-4">
     <h2 className="text-xl font-semibold">Add a concern</h2>
@@ -52,7 +52,7 @@ export function AssessmentReviewWorkspace() {
     <select id="review-kind" className={field} value={kind} onChange={e=>setKind(e.target.value as ConcernKind)}>{kinds.map(k=><option key={k.value} value={k.value}>{k.label}</option>)}</select>
     <label className="block font-medium" htmlFor="review-need">What did you originally say you need?</label>
     <textarea id="review-need" className={field} rows={3} maxLength={4000} value={need} onChange={e=>setNeed(e.target.value)} />
-    <label className="block font-medium" htmlFor="review-finding">What does the assessor's report say? (optional)</label>
+    <label className="block font-medium" htmlFor="review-finding">What does the assessor&apos;s report say? (optional)</label>
     <textarea id="review-finding" className={field} rows={3} maxLength={4000} value={finding} onChange={e=>setFinding(e.target.value)} />
     <label className="block font-medium" htmlFor="review-evidence">Evidence and page references (optional)</label>
     <textarea id="review-evidence" className={field} rows={2} maxLength={2000} value={evidence} onChange={e=>setEvidence(e.target.value)} />

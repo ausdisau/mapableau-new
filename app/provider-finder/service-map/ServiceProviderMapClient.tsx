@@ -1,11 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MapLibreProvider } from "@/components/map/MapLibreMap";
-import ProviderChatStream from "./ProviderChatStream";
 import { fetchProviderMapPins } from "@/lib/provider/finder/fetch-map-pins";
+
+import ProviderChatStream from "./ProviderChatStream";
 
 const ProviderMap = dynamic(
   () => import("@/components/map/MapLibreMap").then((module) => module.MapLibreMap),
@@ -117,7 +119,7 @@ export default function ServiceProviderMapClient() {
     <main className="container mx-auto max-w-7xl space-y-6 px-4 py-8">
       <header className="space-y-3">
         <h1 className="text-3xl font-bold">Disability care and support provider map</h1>
-        <p>Explore provider locations from MapAble's existing NDIS provider dataset. An address pin is not proof of current registration, service availability, accessibility, quality, or an individual worker's screening clearance.</p>
+        <p>Explore provider locations from MapAble&apos;s existing NDIS provider dataset. An address pin is not proof of current registration, service availability, accessibility, quality, or an individual worker&apos;s screening clearance.</p>
       </header>
       <form onSubmit={onSearch} aria-label="Filter provider locations" className="grid gap-3 rounded-xl border p-4 md:grid-cols-4">
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -144,7 +146,7 @@ export default function ServiceProviderMapClient() {
           <button type="button" disabled={!mappedProviders.length} onClick={() => downloadGeoJson(mappedProviders)} className="min-h-11 rounded-md border px-4 py-2 disabled:opacity-50">
             Download GeoJSON for OSM / Leaflet
           </button>
-          <a href="/provider-finder" className="min-h-11 rounded-md border px-4 py-2 underline">Full provider finder</a>
+          <Link href="/provider-finder" className="min-h-11 rounded-md border px-4 py-2 underline">Full provider finder</Link>
         </div>
         <p className="text-sm text-muted-foreground">Source: locally ingested NDIS Provider Finder records, not a live regulatory lookup. Individual worker screening is not publicly searchable. Confirm registration against the NDIS Commission Provider Register and screen individual workers through an authorised NDIS Worker Screening Database pathway.</p>
         {mappedProviders.length > 0 ? (
@@ -160,7 +162,7 @@ export default function ServiceProviderMapClient() {
         <h2 id="evidence-heading" className="text-xl font-semibold">Evidence and safeguarding</h2>
         <p><strong>Provider location:</strong> sourced from imported directory data; check source freshness before relying on a result.</p>
         <p><strong>Provider registration:</strong> not independently reverified by this map. Check the official NDIS Commission Provider Register using ABN or legal name.</p>
-        <p><strong>Worker screening:</strong> not independently verified. A provider's registration never proves its workers hold valid clearances. Authorised employers and self-managed participants can use the NDIS Worker Screening Database.</p>
+        <p><strong>Worker screening:</strong> not independently verified. A provider&apos;s registration never proves its workers hold valid clearances. Authorised employers and self-managed participants can use the NDIS Worker Screening Database.</p>
         <p><strong>Access fit:</strong> no accessibility, AAC, complex-support competence, vacancies, fees or funding suitability is inferred from map pins.</p>
         <p>Map tiles and map controls use the existing MapLibre integration. The downloadable GeoJSON is compatible with Leaflet and other OpenStreetMap-based viewers.</p>
       </section>

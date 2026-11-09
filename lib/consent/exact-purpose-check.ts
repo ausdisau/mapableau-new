@@ -1,10 +1,10 @@
 /**
- * Proposed Stage 1 exact-purpose consent gate.
+ * Stage 1 exact-purpose consent gate.
  *
- * Current production `checkConsent()` matches subject, scope, recipient, active
- * status and expiry only. This helper is the reviewable contract for purpose,
- * recipient and data-field checks. It is not wired into `requireConsent` or
- * any live agent/tool path in Stage 0.
+ * Production `checkConsent()` still matches subject, scope, recipient, active
+ * status and expiry only. Consequential ACS paths use this helper via
+ * `requireExactConsent` and PEP when MAPABLE_ACS_EXACT_CONSENT_ENABLED is true.
+ * Empty dataScope with requested fields fails closed.
  */
 import { consentScopeToPrisma } from "@/lib/consent/scope-map";
 import { prisma } from "@/lib/prisma";

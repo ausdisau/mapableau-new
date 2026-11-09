@@ -7,8 +7,9 @@ import type {
   HomeActionReceipt,
   HomeActionRequest,
 } from "../contracts/action";
-import type { AuthorityDecision } from "../contracts/authority";
 import type { HomeCapabilityAdapter } from "../contracts/adapter";
+import type { AuthorityDecision } from "../contracts/authority";
+
 import {
   evaluateHomeAuthority,
   refuseConfirmation,

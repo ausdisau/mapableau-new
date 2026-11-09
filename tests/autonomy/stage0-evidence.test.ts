@@ -110,19 +110,20 @@ describe("Stage 0 autonomy envelope evidence", () => {
     expect(fieldDenied.reason).toMatch(/familyContact/);
   });
 
-  it("records that programme AURA stop is process-local, not cross-instance", () => {
+  it("keeps process-local Stop when the durable flag is off", async () => {
     expect(isProgrammeAuraStopped()).toBe(false);
-    stopProgrammeAura();
+    await stopProgrammeAura();
     expect(isProgrammeAuraStopped()).toBe(true);
     const source = readFileSync(
       join(process.cwd(), "lib/programmes/aura/execution-gate.ts"),
       "utf8",
     );
     expect(source).toMatch(/let programmeAuraStopped = false/);
-    expect(source).not.toMatch(/redis|temporal|durable stop/i);
+    expect(source).toMatch(/isAcsDurableStopEnabled/);
+    expect(source).not.toMatch(/redis|temporal/i);
   });
 
-  it("does not wire the exact-purpose helper into requireConsent in Stage 0", () => {
+  it("does not wire the exact-purpose helper into legacy requireConsent", () => {
     const requireSource = readFileSync(
       join(process.cwd(), "lib/consent/require-consent.ts"),
       "utf8",

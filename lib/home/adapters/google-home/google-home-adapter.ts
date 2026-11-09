@@ -1,3 +1,5 @@
+import { mapableHomeFlags } from "@/lib/config/mapable-home";
+
 import type {
   AuthorizedHomeAction,
   HomeActionReceipt,
@@ -7,7 +9,7 @@ import type { HomeEndpoint } from "../../contracts/environment";
 import type { CapabilityState } from "../../contracts/state";
 import { buildHomeActionReceipt } from "../../core/receipts";
 import { normalizeCapabilityState } from "../../core/state-normalizer";
-import { mapableHomeFlags } from "@/lib/config/mapable-home";
+
 import type { GoogleHomeBridge } from "./google-home-mapper";
 
 /** Simulated Google bridge — no real account or SDK. */

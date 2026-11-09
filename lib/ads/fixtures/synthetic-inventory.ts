@@ -4,8 +4,8 @@
  */
 
 import type { InternalInventory } from "@/lib/ads/providers/internal/mapable-internal-adapter";
-import type { AdCreativePayload } from "@/lib/ads/types";
 import type { RankableCampaign } from "@/lib/ads/ranking/rank-campaigns";
+import type { AdCreativePayload } from "@/lib/ads/types";
 
 export const SYNTHETIC_HOUSE_CAMPAIGN_ID = "camp_synth_house_academy";
 export const SYNTHETIC_DIRECT_CAMPAIGN_ID = "camp_synth_direct_cafe";

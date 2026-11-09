@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-import {
-  PROVIDER_SERVICE_IDS,
-  type ProviderServiceId,
-} from "./search-service-catalog";
 import type {
   ProviderChatIntent,
   ProviderSearchFilters,
 } from "./provider-chat-matching";
+import {
+  PROVIDER_SERVICE_IDS,
+  type ProviderServiceId,
+} from "./search-service-catalog";
 
 /** Minimal, non-secret, browser-held search state. No raw prompts, medical notes,
  * names of workers, profile values, personal identifiers or chat transcripts.

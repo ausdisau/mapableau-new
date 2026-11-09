@@ -109,8 +109,10 @@ export {
   refuseDirectAuraWriter,
   stopProgrammeAura,
   isProgrammeAuraStopped,
+  isDurableProgrammeAuraStopped,
   __resetProgrammeAuraStopForTests,
 } from "@/lib/programmes/aura/execution-gate";
+export type { ProgrammeAuraStopInput } from "@/lib/programmes/aura/execution-gate";
 export { sanitiseProgrammeAuditMetadata } from "@/lib/programmes/audit";
 
 export {

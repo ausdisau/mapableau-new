@@ -1,9 +1,9 @@
+import { auditGuardianDecision } from "./audit";
 import type {
   GuardianDecision,
   GuardianEvaluateRequest,
   GuardianModelSignal,
 } from "./contracts";
-import { auditGuardianDecision } from "./audit";
 import { evaluateGuardianPolicy } from "./guardian-policy";
 
 export type GuardianServiceEvaluateInput = GuardianEvaluateRequest & {

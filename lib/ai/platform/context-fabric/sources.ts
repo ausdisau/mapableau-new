@@ -1,5 +1,5 @@
-import type { SourceGateInput, SourceGateResult, VerificationStatus } from "./types";
 import { verificationForSourceTrust } from "./freshness";
+import type { SourceGateInput, SourceGateResult, VerificationStatus } from "./types";
 
 /**
  * Source Gate — provenance / auth / data class / consent admission control.
