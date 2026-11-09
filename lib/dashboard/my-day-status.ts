@@ -19,6 +19,8 @@ export type MyDaySnapshot = {
   generatedAt: string;
   nearestConfirmed: ContextualActivity | null;
   pendingActions: ContextualActivity[];
+  /** Recent cancellations and unknown record statuses, including mixed-status days. */
+  continuityAlerts?: ContextualActivity[];
   careSummary: {
     status: Certainty;
     label: string;
@@ -187,6 +189,9 @@ export function buildMyDaySnapshot(input: {
     .find((a) => Date.parse(a.startsAt!) >= now.getTime() - 60 * 60 * 1000);
 
   const pendingActions = activities.filter((a) => a.status === "pending");
+  const continuityAlerts = activities.filter(
+    (a) => a.status === "cancelled" || a.status === "unknown",
+  );
 
   const carePending = activities.filter(
     (a) => a.kind === "care" && a.status === "pending",
@@ -236,6 +241,7 @@ export function buildMyDaySnapshot(input: {
     generatedAt: now.toISOString(),
     nearestConfirmed: upcomingConfirmed ?? null,
     pendingActions,
+    continuityAlerts,
     careSummary: {
       status: careSummaryStatus,
       label:
