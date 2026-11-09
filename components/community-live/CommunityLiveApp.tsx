@@ -261,19 +261,28 @@ export default function CommunityLiveApp({ pilotMode = false }: { pilotMode?: bo
                 Nothing can be published publicly.
               </p>
             ) : null}
-            <label htmlFor="community-scope-private" className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
-              <input id="community-scope-private" type="radio" name="scope" value="private" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === "private"} onChange={() => setConsentScope("private")} />
-              <span><strong>Private to me</strong><span className="mt-1 block text-sm text-slate-600">Only your signed-in account can read it. No moderation or publication.</span></span>
-            </label>
-            <label htmlFor="community-scope-review" className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
-              <input id="community-scope-review" type="radio" name="scope" value="review" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === "review"} onChange={() => setConsentScope("review")} />
-              <span><strong>Share with moderators only</strong><span className="mt-1 block text-sm text-slate-600">Reviewers can read it, but it cannot be published.</span></span>
-            </label>
+            <div className="flex min-h-11 items-start gap-3 rounded-lg p-2 hover:bg-white">
+              <input id="community-scope-private" type="radio" name="scope" value="private" aria-describedby="community-scope-private-help" className="mt-3 size-5 accent-[#0c2043]" checked={consentScope === "private"} onChange={() => setConsentScope("private")} />
+              <div>
+                <label htmlFor="community-scope-private" className="inline-flex min-h-11 items-center font-bold">Private to me</label>
+                <p id="community-scope-private-help" className="text-sm text-slate-600">Only your signed-in account can read it. No moderation or publication.</p>
+              </div>
+            </div>
+            <div className="flex min-h-11 items-start gap-3 rounded-lg p-2 hover:bg-white">
+              <input id="community-scope-review" type="radio" name="scope" value="review" aria-describedby="community-scope-review-help" className="mt-3 size-5 accent-[#0c2043]" checked={consentScope === "review"} onChange={() => setConsentScope("review")} />
+              <div>
+                <label htmlFor="community-scope-review" className="inline-flex min-h-11 items-center font-bold">Share with moderators only</label>
+                <p id="community-scope-review-help" className="text-sm text-slate-600">Reviewers can read it, but it cannot be published.</p>
+              </div>
+            </div>
             {!pilotMode ? (
-              <label htmlFor="community-scope-public" className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
-                <input id="community-scope-public" type="radio" name="scope" value="public" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === "public"} onChange={() => setConsentScope("public")} />
-                <span><strong>Consider for public publication</strong><span className="mt-1 block text-sm text-slate-600">Human moderators may approve it for public viewing without identifying account details.</span></span>
-              </label>
+              <div className="flex min-h-11 items-start gap-3 rounded-lg p-2 hover:bg-white">
+                <input id="community-scope-public" type="radio" name="scope" value="public" aria-describedby="community-scope-public-help" className="mt-3 size-5 accent-[#0c2043]" checked={consentScope === "public"} onChange={() => setConsentScope("public")} />
+                <div>
+                  <label htmlFor="community-scope-public" className="inline-flex min-h-11 items-center font-bold">Consider for public publication</label>
+                  <p id="community-scope-public-help" className="text-sm text-slate-600">Human moderators may approve it for public viewing without identifying account details.</p>
+                </div>
+              </div>
             ) : null}
           </fieldset>
           <label className="flex items-start gap-3">
