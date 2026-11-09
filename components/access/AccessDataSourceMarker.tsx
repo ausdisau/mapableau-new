@@ -45,12 +45,12 @@ export function resolveAccessDataSourceKind(input: {
 }): AccessDataSourceKind {
   if (input.isDemo) return "demo";
   const source = (input.source || "").toLowerCase();
-  if (source.includes("mapable") || source.includes("assessor")) {
+  if (source === "mapable assessor") {
     return "mapable_verified";
   }
   if (source.includes("partner")) return "partner";
   if (source.includes("provider")) return "provider";
-  if (input.tier && input.tier !== "Unverified") return "mapable_verified";
+  // A tier label alone is not evidence of an assessor review.
   return "community";
 }
 
