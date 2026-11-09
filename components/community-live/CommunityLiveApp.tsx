@@ -21,6 +21,7 @@ type Finding = {
   rating: string;
   moderation?: string;
   consentScope?: string;
+  reviewNote?: string | null;
 };
 type ConsentScope = "private" | "review" | "public";
 
@@ -274,6 +275,7 @@ export default function CommunityLiveApp() {
                 <h3 className="font-bold">{record.title}</h3>
                 <p className="mt-1 text-sm">Consent: {record.consentScope}. Moderation: {record.moderation}. Access classification: Unknown until independently evidenced.</p>
                 <p className="mt-2 whitespace-pre-wrap">{record.finding}</p>
+                {record.reviewNote ? <p className="mt-2 text-sm"><strong>Moderator response:</strong> {record.reviewNote}</p> : null}
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <button className={buttonClass} disabled={working} type="button" onClick={() => void removeFinding(record.id)}>
                     {confirmDeleteId === record.id ? "Confirm removal of submission content" : "Remove my observation"}
