@@ -1,7 +1,7 @@
 import { getApiUser } from "@/lib/auth/guards";
 import { isAdminRole } from "@/lib/auth/roles";
 import { canModerateFinding, mayApprovePublicFinding } from "@/lib/community-live/policy";
-import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard } from "@/lib/community-live/runtime";
+import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard, communityPilotAccessGuard, communityPilotModeEnabled } from "@/lib/community-live/runtime";
 import { moderateFindingSchema, parseCommunityJson } from "@/lib/community-live/validation";
 import { prisma } from "@/lib/prisma";
 
@@ -11,6 +11,8 @@ export async function GET() {
   if (!communityLiveEnabled()) return communityDisabled();
   const user = await getApiUser();
   if (!user) return communityNoStore({ error: "Sign in required" }, 401);
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   if (!isAdminRole(user.primaryRole)) return communityNoStore({ error: "Moderation permission required" }, 403);
   const queue = await prisma.communitySignalObservation.findMany({
     where: {
@@ -37,6 +39,8 @@ export async function POST(request: Request) {
   if (!communityLiveEnabled()) return communityDisabled();
   const user = await getApiUser();
   if (!user) return communityNoStore({ error: "Sign in required" }, 401);
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   if (!isAdminRole(user.primaryRole)) return communityNoStore({ error: "Moderation permission required" }, 403);
   const originError = communityOriginGuard(request);
   if (originError) return originError;
@@ -44,6 +48,11 @@ export async function POST(request: Request) {
     const parsed = moderateFindingSchema.safeParse(await parseCommunityJson(request));
     if (!parsed.success) return communityNoStore({ error: "Invalid review decision" }, 400);
     const { id, decision, note } = parsed.data;
+    if (communityPilotModeEnabled() && decision === "approved") {
+      return communityNoStore({
+        error: "Public publication approval is disabled for the protected pilot",
+      }, 409);
+    }
     const result = await prisma.$transaction(async tx => {
       const existing = await tx.communitySignalObservation.findUnique({
         where: { id },

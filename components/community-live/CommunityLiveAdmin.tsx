@@ -34,7 +34,7 @@ async function api<T>(url: string, options: RequestInit = {}): Promise<T> {
   return body;
 }
 
-export default function CommunityLiveAdmin() {
+export default function CommunityLiveAdmin({ pilotMode = false }: { pilotMode?: boolean }) {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [queue, setQueue] = useState<ModerationItem[]>([]);
   const [busy, setBusy] = useState(false);
@@ -91,7 +91,7 @@ export default function CommunityLiveAdmin() {
         body: JSON.stringify({ id, confirmPublish: true }),
       });
       setConfirmPublishId(null);
-      setMessage("Challenge published. It is available for new contributions.");
+      setMessage(pilotMode ? "Challenge is available to invited pilot accounts only." : "Challenge published. It is available for new contributions.");
       await refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Could not publish challenge.");
@@ -128,6 +128,13 @@ export default function CommunityLiveAdmin() {
       <div className="rounded-xl border-2 border-amber-600 bg-amber-50 p-4" role="note">
         <strong>Review instructions:</strong> Check for names, addresses, identifying details, allegations, threats and sensitive information. Reject inappropriate material; never approve your own submission. Reports marked “moderator review only” must not become public. Resolve urgent safety concerns through appropriate human processes, not automated ratings.
       </div>
+      {pilotMode ? (
+        <div className="rounded-xl border-2 border-amber-600 bg-amber-50 p-4" role="note">
+          <strong>Private pilot moderation:</strong> You can request more information or
+          reject submitted reports. Public approval is disabled until a separate,
+          reviewed production release. Use test information only.
+        </div>
+      ) : null}
       {message ? <p role="status" aria-live="polite" className="rounded-xl border border-blue-300 bg-blue-50 p-4">{message}</p> : null}
       {error ? <p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4">{error} <button type="button" onClick={() => void refresh()} className="underline">Retry</button></p> : null}
 
@@ -188,7 +195,7 @@ export default function CommunityLiveAdmin() {
             {item.consentScope === "review" ? <p className="mt-3 text-sm font-semibold">Review only: publication is not permitted by this consent setting.</p> : null}
             <div className="mt-4 flex flex-wrap gap-2">
               {(["approved", "needs_info", "rejected"] as const).map(decision => (
-                <button key={decision} className={actionClass} type="button" disabled={busy || !item.canReview || (decision === "approved" && item.consentScope !== "public")}
+                <button key={decision} className={actionClass} type="button" disabled={busy || !item.canReview || (decision === "approved" && (pilotMode || item.consentScope !== "public"))}
                   onClick={() => void decide(item.id, decision)}>
                   {confirmModerationId === item.id + ":" + decision ? "Confirm " + decision : decision === "approved" ? "Approve publication" : decision === "needs_info" ? "Request more information" : "Reject"}
                 </button>

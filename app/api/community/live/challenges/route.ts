@@ -1,6 +1,6 @@
 import { getApiUser } from "@/lib/auth/guards";
 import { isAdminRole } from "@/lib/auth/roles";
-import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard } from "@/lib/community-live/runtime";
+import { communityDisabled, communityInputError, communityLiveEnabled, communityNoStore, communityOriginGuard, communityPilotAccessGuard } from "@/lib/community-live/runtime";
 import { createChallengeSchema, parseCommunityJson } from "@/lib/community-live/validation";
 import { prisma } from "@/lib/prisma";
 
@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   if (!communityLiveEnabled()) return communityDisabled();
   const user = await getApiUser();
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   const isAdmin = Boolean(user && isAdminRole(user.primaryRole));
   const includeDrafts = isAdmin && new URL(request.url).searchParams.get("includeDrafts") === "1";
   const challenges = await prisma.communitySignalChallenge.findMany({
@@ -27,6 +29,8 @@ export async function POST(request: Request) {
   if (!communityLiveEnabled()) return communityDisabled();
   const user = await getApiUser();
   if (!user) return communityNoStore({ error: "Sign in required" }, 401);
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   if (!isAdminRole(user.primaryRole)) return communityNoStore({ error: "Community administration required" }, 403);
   const originError = communityOriginGuard(request);
   if (originError) return originError;
@@ -65,6 +69,8 @@ export async function PATCH(request: Request) {
   if (!communityLiveEnabled()) return communityDisabled();
   const user = await getApiUser();
   if (!user) return communityNoStore({ error: "Sign in required" }, 401);
+  const pilotDenied = communityPilotAccessGuard(user);
+  if (pilotDenied) return pilotDenied;
   if (!isAdminRole(user.primaryRole)) return communityNoStore({ error: "Community administration required" }, 403);
   const originError = communityOriginGuard(request);
   if (originError) return originError;

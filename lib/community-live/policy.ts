@@ -61,3 +61,24 @@ export function validMutationOrigin(request: Request): boolean {
 
 export const COMMUNITY_CONSENT_VERSION = "community-signal-2026-11-v1";
 export const COMMUNITY_DEFAULT_RATING = "unknown" as const;
+
+
+/**
+ * A separate closed-pilot gate. Missing identities or an empty allowlist
+ * must not grant participant, moderator or anonymous access.
+ * The allowlist contains existing MapAble user IDs, not email addresses.
+ */
+export function evaluateCommunityPilotAccess({
+  pilotMode,
+  userId,
+  allowedIds,
+}: {
+  pilotMode: boolean;
+  userId: string | null | undefined;
+  allowedIds: string;
+}): "not_required" | "sign_in_required" | "not_invited" | "allowed" {
+  if (!pilotMode) return "not_required";
+  if (!userId) return "sign_in_required";
+  const entries = allowedIds.split(",").map((id) => id.trim()).filter(Boolean);
+  return entries.includes(userId) ? "allowed" : "not_invited";
+}
