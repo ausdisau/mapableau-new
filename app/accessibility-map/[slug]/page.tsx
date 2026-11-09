@@ -27,6 +27,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!place) {
     return { title: "Place not found | MapAble" };
   }
+  if (place.isDemo) {
+    return {
+      title: `${place.name} | Illustrative access profile`,
+      description: "A fictional example of access information. Not a verified place, rating or travel recommendation.",
+      robots: { index: false, follow: false },
+    };
+  }
   return {
     title: `${place.name} access details`,
     description: `Access score ${place.accessScore}, ${place.tier} tier, last checked ${place.lastChecked}. Evidence-based access information for ${place.suburb}.`,
@@ -48,7 +55,7 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
   const rampMeasurement = place.measurements.find((m) =>
     /gradient|slope|ramp/i.test(m.label),
   );
-  const jsonLd = buildPlaceAccessibilityJsonLd({
+  const jsonLd = place.isDemo ? null : buildPlaceAccessibilityJsonLd({
     name: place.name,
     description: `Access score ${place.accessScore}. ${place.topAccessFacts.join(". ")}`,
     url: placeUrl,
@@ -68,10 +75,10 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
 
   return (
     <MapAbleCareMarketingShell>
-      <JsonLd data={jsonLd} />
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
       <article className="mx-auto max-w-4xl space-y-8 px-5 py-10 lg:px-8">
         <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-800">
-          Demo place profile
+          {place.isDemo ? "Illustrative profile — not assessed" : "Place access details"}
         </p>
         <header className="space-y-3">
           <h1 className="text-4xl font-black tracking-[-0.04em] text-[#0C1833]">
@@ -82,20 +89,32 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
           </p>
           <AccessDataSourceMarker kind={sourceKind} />
           <ul className="flex flex-wrap gap-2 text-sm">
+            {place.isDemo ? (
+              <li className="rounded-full bg-amber-50 px-3 py-1 font-semibold text-amber-950">
+                Access status: Unknown — illustrative values only
+              </li>
+            ) : (
+              <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
+                Access score {place.accessScore}
+              </li>
+            )}
+            {!place.isDemo ? (
+              <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
+                Tier: {place.tier}
+              </li>
+            ) : null}
+            {!place.isDemo ? (
+              <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
+                Confidence: {place.confidence}
+              </li>
+            ) : null}
+            {!place.isDemo ? (
+              <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
+                Last checked {place.lastChecked}
+              </li>
+            ) : null}
             <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
-              Access score {place.accessScore}
-            </li>
-            <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
-              Tier: {place.tier}
-            </li>
-            <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
-              Confidence: {place.confidence}
-            </li>
-            <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
-              Last checked {place.lastChecked}
-            </li>
-            <li className="rounded-full bg-[#F6FBFC] px-3 py-1 font-semibold">
-              Source: {place.source}
+              Source: {place.isDemo ? "Fictional example" : place.source}
             </li>
           </ul>
         </header>
@@ -117,8 +136,8 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
             Indoor floor plan
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            View an interactive floor plan with verified accessibility features, measurements, and
-            step-free routes where available.
+            Explore indoor layout information where available. Example layouts and measurements
+            are not verified access conditions and must not be used for route assurance.
           </p>
           <div className="mt-4">
             {place.hasFloorPlan ? (
@@ -140,7 +159,7 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
           </h2>
           <div className="mt-4 space-y-3">
             <details className="rounded-xl border border-slate-200 p-4">
-              <summary className="cursor-pointer min-h-11 font-semibold">Measurements</summary>
+              <summary className="cursor-pointer min-h-11 font-semibold">{place.isDemo ? "Illustrative measurements — not verified" : "Measurements"}</summary>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
                 {place.measurements.map((item) => (
                   <li key={item.label}>
@@ -153,14 +172,13 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
             <details className="rounded-xl border border-slate-200 p-4">
               <summary className="cursor-pointer min-h-11 font-semibold">Photos</summary>
               <p className="mt-3 text-sm text-slate-600">
-                Photo evidence is coming soon. Demo profiles do not include people photos.
+                No photo evidence is attached to this illustrative profile. Do not infer accessibility from missing images.
               </p>
             </details>
             <details className="rounded-xl border border-slate-200 p-4">
               <summary className="cursor-pointer min-h-11 font-semibold">Reviews</summary>
               <p className="mt-3 text-sm text-slate-600">
-                Community reviews can be added via MapAble Access. This demo profile uses
-                assessor/partner/community source labels instead of live review threads.
+                This example explains possible source categories; it is not a record of actual community or assessor reviews.
               </p>
             </details>
             <details className="rounded-xl border border-slate-200 p-4">
@@ -177,7 +195,7 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
               <p className="mt-3 text-sm text-slate-600">
                 {place.source === "provider"
                   ? "Provider-declared access details included in this profile."
-                  : "No provider-declared packet attached to this demo place."}
+                  : "No independently checked provider statement is attached to this example."}
               </p>
             </details>
             <details className="rounded-xl border border-slate-200 p-4">
@@ -193,7 +211,7 @@ export default async function AccessibilityMapPlacePage({ params }: PageProps) {
               <p className="mt-3 text-sm text-slate-600">
                 {place.keyBarrier
                   ? `Open issue focus: ${place.keyBarrier}`
-                  : "No open barrier flagged on this demo profile."}
+                  : "No real-world barrier status has been established for this example."}
               </p>
             </details>
           </div>
