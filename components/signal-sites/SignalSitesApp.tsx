@@ -542,6 +542,7 @@ function validateCoords(
 export default function SignalSitesApp() {
   const [store, setStore] = useState<SignalWorkspace>(() => createSeedWorkspace());
   const [hydrated, setHydrated] = useState(false);
+  const [storageError, setStorageError] = useState("");
   const [ui, setUi] = useState<UiState>({
     view: "overview",
     challengeId: "c1",
@@ -592,7 +593,12 @@ export default function SignalSitesApp() {
 
   useEffect(() => {
     if (!hydrated) return;
-    saveWorkspace(store);
+    try {
+      saveWorkspace(store);
+      setStorageError("");
+    } catch {
+      setStorageError("Browser storage is unavailable or full. Recent changes have not been saved; export your records before closing this page.");
+    }
   }, [store, hydrated]);
 
   useEffect(() => {
@@ -616,14 +622,14 @@ export default function SignalSitesApp() {
     [announceMsg],
   );
 
-  const audit = useCallback((action: string, detail: string) => {
+  const audit = useCallback((action: string, _detail: string) => {
     setStore((prev) => ({
       ...prev,
       audit: [
         {
           id: newId(),
           action,
-          detail,
+          detail: "Action recorded. Personal details are not stored in the audit trail.",
           at: new Date().toISOString(),
           actor: "Local workspace user",
         },
@@ -1053,23 +1059,35 @@ export default function SignalSitesApp() {
     ) {
       return;
     }
-    for (const k of o.evidenceIds || []) {
-      try {
+    try {
+      for (const k of o.evidenceIds || []) {
         await deleteEvidenceFile(k);
-      } catch {
-        // continue deleting remaining files
       }
+    } catch {
+      showToast("Some evidence files could not be erased. The observation is retained so you can retry or clear browser site data.");
+      return;
     }
     updateStore((prev) => ({
       ...prev,
       observations: prev.observations.filter((a) => a.id !== id),
+      // Older local audit entries could contain observation titles or review notes.
+      // Remove all historical detail text rather than retaining deleted personal content.
+      audit: [
+        {
+          id: newId(),
+          action: "Observation withdrawn and local evidence removed",
+          detail: "Submission content removed at participant request",
+          at: new Date().toISOString(),
+          actor: "Local workspace user",
+        },
+        ...prev.audit.map((entry) => ({
+          ...entry,
+          detail: "Earlier audit detail erased for privacy",
+        })),
+      ].slice(0, 400),
     }));
-    audit(
-      "Observation withdrawn and erased",
-      `Record ${id.slice(0, 8)} deleted at participant request; details no longer retained`,
-    );
     goto("observe");
-    showToast("Observation and its available attachments deleted.");
+    showToast("Observation and its attachments removed from this browser workspace.");
   }
 
   async function wipeWorkspace() {
@@ -1841,7 +1859,7 @@ export default function SignalSitesApp() {
                         type="number"
                         id={id}
                         name={id}
-                        step={key.includes("lat") || key.includes("lon") ? "any" : "1"}
+                        step="any"
                         min={
                           key.includes("lat")
                             ? -90
@@ -2935,6 +2953,11 @@ export default function SignalSitesApp() {
         browser — do not invite real participants or treat signals as
         certification.
       </div>
+      {storageError ? (
+        <p role="alert" className="p-4" style={{ background: "#fff1d6", color: "#6d2600", fontWeight: 700 }}>
+          {storageError}
+        </p>
+      ) : null}
       <div className="shell">
         <aside className="sidebar" aria-label="Main navigation">
           <div className="brand">
