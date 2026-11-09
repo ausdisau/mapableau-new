@@ -28,6 +28,13 @@ export async function GET(request: Request) {
     });
     return communityNoStore({ observations: records, privacy: "Only your authenticated account" });
   }
+  // The closed pilot does not offer public publication, including to invited members.
+  if (communityPilotModeEnabled()) {
+    return communityNoStore({
+      observations: [],
+      qualification: "Public publication is unavailable in the protected pilot",
+    });
+  }
   // Always filter in the database; do not accidentally return rejected or withdrawn rows.
   const approved = await prisma.communitySignalObservation.findMany({
     where: {
@@ -62,6 +69,11 @@ export async function POST(request: Request) {
     const parsed = createFindingSchema.safeParse(await parseCommunityJson(request));
     if (!parsed.success) return communityNoStore({ error: "Check the observation fields and consent choice" }, 400);
     const input = parsed.data;
+    if (communityPilotModeEnabled() && input.consentScope === "public") {
+      return communityNoStore({
+        error: "Public publication is unavailable in the protected pilot. Choose private or moderator review only.",
+      }, 409);
+    }
     const challenge = await prisma.communitySignalChallenge.findFirst({
       where: { id: input.challengeId, status: "published" },
       select: { id: true },
