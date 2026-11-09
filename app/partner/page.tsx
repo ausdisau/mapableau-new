@@ -1,5 +1,4 @@
 import {
-  Download,
   KeyRound,
   Layers3,
   LineChart,
@@ -25,26 +24,26 @@ import {
 const KPI_CARDS = [
   {
     title: "API Requests (This Month)",
-    value: "128,450",
-    hint: "Across all live API keys",
+    value: "Not reported",
+    hint: "No verified request totals connected",
     icon: LineChart,
   },
   {
     title: "Active Embed Widgets",
-    value: "14",
-    hint: "3D wayfinding iframes in production",
+    value: "Not reported",
+    hint: "No authorised widget usage data connected",
     icon: Layers3,
   },
   {
     title: "Accessibility Reports Generated",
-    value: "62",
-    hint: "Quarter-to-date compliance packs",
+    value: "Not available",
+    hint: "No verified reports connected",
     icon: Sparkles,
   },
   {
     title: "Referral Credits Earned",
-    value: "$4,800",
-    hint: "Pending settlement this quarter",
+    value: "Not available",
+    hint: "No approved referral-credit ledger connected",
     icon: Link2,
   },
 ] as const;
@@ -52,20 +51,20 @@ const KPI_CARDS = [
 const QUICK_ACTIONS = [
   {
     href: "/partner/developer",
-    label: "Generate New API Key",
-    description: "Create a scoped key for your integration",
+    label: "Explore API integrations",
+    description: "Review available developer tools and permissions",
     icon: KeyRound,
   },
   {
     href: "/partner/analytics",
-    label: "Download Quarterly Report",
-    description: "Export accessibility impact for compliance",
-    icon: Download,
+    label: "View reporting status",
+    description: "See which accessibility reports are currently available",
+    icon: LineChart,
   },
   {
     href: "/partner/referrals",
-    label: "Share Referral Link",
-    description: "Invite organisations and earn credits",
+    label: "View referral status",
+    description: "Review whether referral links are enabled for your account",
     icon: Link2,
   },
 ] as const;
@@ -76,14 +75,14 @@ export default function PartnerDashboardPage() {
       <header className="space-y-2">
         <h2 className="font-heading text-2xl font-bold">Dashboard</h2>
         <p className="max-w-2xl text-muted-foreground">
-          Overview of your organisation&apos;s MapAble Partner Program activity —
-          API usage, embeds, accessibility reporting, and referral incentives.
+          An overview of partner integration and reporting options. Verified account-level
+          statistics and referral credits are not connected to this dashboard.
         </p>
       </header>
 
       <section aria-labelledby="partner-kpis-heading">
         <h3 id="partner-kpis-heading" className="sr-only">
-          Key performance indicators
+          Current data availability
         </h3>
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {KPI_CARDS.map((kpi) => {
@@ -126,8 +125,8 @@ export default function PartnerDashboardPage() {
             Quick Actions
           </h3>
           <p className="text-sm text-muted-foreground">
-            Common partner tasks. Actions route to the relevant portal section
-            until dedicated server actions are wired.
+            These links explain the available partner sections. They do not create API keys,
+            download reports or issue referral credits automatically.
           </p>
         </div>
 
