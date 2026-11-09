@@ -261,16 +261,20 @@ export default function CommunityLiveApp({ pilotMode = false }: { pilotMode?: bo
                 Nothing can be published publicly.
               </p>
             ) : null}
-            {([
-              ["private", "Private to me", "Only your signed-in account can read it. No moderation or publication."],
-              ["review", "Share with moderators only", "Reviewers can read it, but it cannot be published."],
-              ["public", "Consider for public publication", "Human moderators may approve it for public viewing without identifying account details."] ,
-            ] as const).filter(([scope]) => !pilotMode || scope !== "public").map(([scope, label, description]) => (
-              <label key={scope} className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
-                <input type="radio" name="scope" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === scope} onChange={() => setConsentScope(scope)} />
-                <span><strong>{label}</strong><span className="mt-1 block text-sm text-slate-600">{description}</span></span>
+            <label htmlFor="community-scope-private" className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
+              <input id="community-scope-private" type="radio" name="scope" value="private" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === "private"} onChange={() => setConsentScope("private")} />
+              <span><strong>Private to me</strong><span className="mt-1 block text-sm text-slate-600">Only your signed-in account can read it. No moderation or publication.</span></span>
+            </label>
+            <label htmlFor="community-scope-review" className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
+              <input id="community-scope-review" type="radio" name="scope" value="review" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === "review"} onChange={() => setConsentScope("review")} />
+              <span><strong>Share with moderators only</strong><span className="mt-1 block text-sm text-slate-600">Reviewers can read it, but it cannot be published.</span></span>
+            </label>
+            {!pilotMode ? (
+              <label htmlFor="community-scope-public" className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
+                <input id="community-scope-public" type="radio" name="scope" value="public" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === "public"} onChange={() => setConsentScope("public")} />
+                <span><strong>Consider for public publication</strong><span className="mt-1 block text-sm text-slate-600">Human moderators may approve it for public viewing without identifying account details.</span></span>
               </label>
-            ))}
+            ) : null}
           </fieldset>
           <label className="flex items-start gap-3">
             <input type="checkbox" className="mt-1 size-5 accent-[#0c2043]" checked={acknowledged} required onChange={e => setAcknowledged(e.target.checked)} />
