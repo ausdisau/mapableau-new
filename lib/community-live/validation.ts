@@ -8,7 +8,6 @@ export const createChallengeSchema = z.object({
   template: z.enum(["street", "journey", "venue", "crossing", "sensory", "temporary"]),
   boundary: shortText(200),
   instruction: longText(1200),
-  status: z.enum(["draft", "published"]).default("draft"),
 }).strict();
 
 export const createFindingSchema = z.object({
