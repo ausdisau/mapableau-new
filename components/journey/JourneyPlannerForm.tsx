@@ -193,11 +193,11 @@ export function JourneyPlannerForm() {
               value={mode}
               onChange={(e) => setMode(e.target.value)}
             >
-              <option value="public-transport">Public transport (placeholder)</option>
-              <option value="wat-taxi">Wheelchair accessible taxi (placeholder)</option>
-              <option value="community-transport">Community transport (placeholder)</option>
+              <option value="public-transport">Public transport (not confirmed)</option>
+              <option value="wat-taxi">Wheelchair accessible taxi (not confirmed)</option>
+              <option value="community-transport">Community transport (not confirmed)</option>
               <option value="support-worker-transport">
-                Support worker transport (placeholder)
+                Support worker transport (not arranged)
               </option>
             </select>
           </div>
