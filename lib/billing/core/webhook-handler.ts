@@ -6,43 +6,27 @@ import {
 } from "@/lib/billing/core/account-service";
 import { writeBillingAuditLog } from "@/lib/billing/core/audit";
 import { updateInvoiceStatus } from "@/lib/billing/core/invoice-service";
+import {
+  markWebhookFailed,
+  markWebhookProcessed,
+  markWebhookQuarantined,
+  storeWebhookEventIdempotent,
+} from "@/lib/billing/core/webhook-event-store";
+import { assertLivemodeMatches } from "@/lib/billing/core/webhook-livemode";
 import { handleDispute, handleRefund } from "@/lib/payouts/block-service";
-import { paymentsMode } from "@/lib/payouts/config";
 import { syncRecipientFromStripeAccount } from "@/lib/payouts/recipient-service";
 import { prisma } from "@/lib/prisma";
 
-export async function storeWebhookEventIdempotent(
-  stripeEventId: string,
-  type: string,
-  payload: object
-): Promise<{ duplicate: boolean; eventRowId: string }> {
-  const existing = await prisma.billingStripeWebhookEvent.findUnique({
-    where: { stripeEventId },
-  });
-  if (existing?.processed) {
-    return { duplicate: true, eventRowId: existing.id };
-  }
-
-  const row = await prisma.billingStripeWebhookEvent.upsert({
-    where: { stripeEventId },
-    create: {
-      stripeEventId,
-      type,
-      payload,
-      processed: false,
-    },
-    update: { type, payload },
-  });
-
-  return { duplicate: false, eventRowId: row.id };
-}
-
-export async function markWebhookProcessed(eventRowId: string) {
-  await prisma.billingStripeWebhookEvent.update({
-    where: { id: eventRowId },
-    data: { processed: true, processedAt: new Date() },
-  });
-}
+export {
+  markWebhookFailed,
+  markWebhookProcessed,
+  markWebhookQuarantined,
+  storeWebhookEventIdempotent,
+} from "@/lib/billing/core/webhook-event-store";
+export {
+  assertLivemodeMatches,
+  StripeLivemodeMismatchError,
+} from "@/lib/billing/core/webhook-livemode";
 
 export async function handleStripeBillingEvent(event: Stripe.Event) {
   assertLivemodeMatches(event);
@@ -111,15 +95,6 @@ export async function handleStripeBillingEvent(event: Stripe.Event) {
   }
 }
 
-function assertLivemodeMatches(event: Stripe.Event) {
-  const expectedLive = paymentsMode() === "live";
-  if (event.livemode !== expectedLive) {
-    console.warn(
-      `[stripe-webhook] livemode mismatch: event=${event.livemode} env=${paymentsMode()} id=${event.id}`
-    );
-  }
-}
-
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const invoiceId = session.metadata?.invoiceId;
   const userId = session.metadata?.userId ?? session.metadata?.mapableUserId;
@@ -150,6 +125,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   if (!invoiceId) return;
+
+  // Idempotent across checkout.session.completed and payment_intent.succeeded.
+  const existingInvoice = await prisma.billingInvoice.findUnique({
+    where: { id: invoiceId },
+    select: { status: true },
+  });
+  if (existingInvoice?.status === "paid") {
+    await prisma.billingPayment.updateMany({
+      where: {
+        stripeCheckoutSessionId: session.id,
+        status: { not: "succeeded" },
+      },
+      data: {
+        status: "succeeded",
+        stripePaymentIntentId: paymentIntentId ?? undefined,
+        paidAt: new Date(),
+        payoutStatus: "paid_pending_service",
+      },
+    });
+    return;
+  }
 
   await prisma.billingPayment.updateMany({
     where: { stripeCheckoutSessionId: session.id },
@@ -205,6 +201,11 @@ async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
     });
     return;
   }
+
+  const existingInvoice = await prisma.billingInvoice.findUnique({
+    where: { id: invoiceId },
+    select: { status: true },
+  });
   await prisma.billingPayment.updateMany({
     where: { invoiceId },
     data: {
@@ -213,6 +214,9 @@ async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
       paidAt: new Date(),
     },
   });
+  // Skip re-applying paid transition when checkout.session already succeeded.
+  if (existingInvoice?.status === "paid") return;
+
   await updateInvoiceStatus(invoiceId, "paid", {
     paidAt: new Date(),
     stripePaymentIntentId: pi.id,

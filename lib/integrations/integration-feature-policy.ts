@@ -53,6 +53,7 @@ export function isIntegrationEnvEnabled(key: string): boolean {
     postgres: process.env.DATABASE_URL,
     stripe: process.env.STRIPE_ENABLED,
     xero: process.env.XERO_ENABLED,
+    deputy: process.env.DEPUTY_ENABLED,
     ndia: process.env.NDIA_READINESS_ENABLED,
     keycloak: process.env.KEYCLOAK_ENABLED,
     maplibre: process.env.MAP_INTEGRATION_ENABLED,

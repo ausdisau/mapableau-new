@@ -6,8 +6,13 @@ Primary endpoint: `POST /api/webhooks/stripe`
 
 - Raw request body for signature verification
 - `STRIPE_WEBHOOK_SECRET` server-only
-- Idempotent storage in `BillingStripeWebhookEvent`
-- `livemode` logged when mismatched with `MAPABLE_PAYMENTS_MODE`
+- Idempotent storage in `BillingStripeWebhookEvent` with durable states:
+  `pending` | `processing` | `processed` | `failed` | `quarantined`
+- Handler failures leave the event **retryable** (`failed`) and return HTTP 500 —
+  never mark `processed` after an error
+- `livemode` mismatch with `MAPABLE_PAYMENTS_MODE` **quarantines** the event (HTTP 409)
+  and does not advance payment/invoice state
+- Legitimate sandbox: `MAPABLE_PAYMENTS_MODE=test` + `livemode=false` continues to process
 
 ## Events handled
 
