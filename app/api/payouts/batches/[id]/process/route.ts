@@ -17,7 +17,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireApiAdminScope("admin:billing:read");
+  const user = await requireApiAdminScope("billing:manage_payouts");
   if (user instanceof Response) return user;
   const { id: batchId } = await params;
 
@@ -38,7 +38,7 @@ export async function PUT(
   req: Request,
   _ctx: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireApiAdminScope("admin:billing:read");
+  const user = await requireApiAdminScope("billing:manage_payouts");
   if (user instanceof Response) return user;
 
   const body = await req.json().catch(() => null);

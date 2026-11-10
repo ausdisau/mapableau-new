@@ -11,7 +11,7 @@ type AgentLogBody = {
 };
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.MAPABLE_AGENT_DEBUG_LOGS !== "true") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

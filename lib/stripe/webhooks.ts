@@ -5,9 +5,11 @@ import {
   isAdsWalletTopUpEvent,
 } from "@/lib/ads/billing/stripe-webhook";
 import {
+  assertLivemodeMatches,
   handleStripeBillingEvent,
   markWebhookProcessed,
   storeWebhookEventIdempotent,
+  StripeLivemodeMismatchError,
 } from "@/lib/billing/core/webhook-handler";
 import { getStripeClient } from "@/lib/stripe/client";
 import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
@@ -185,6 +187,15 @@ export async function parseAndProcessWebhookRequest(
     event = constructStripeWebhookEvent(rawBody, signature);
   } catch {
     return { ok: false, status: 400, message: "Invalid signature" };
+  }
+
+  try {
+    assertLivemodeMatches(event);
+  } catch (err) {
+    if (err instanceof StripeLivemodeMismatchError) {
+      return { ok: false, status: 400, message: err.message };
+    }
+    throw err;
   }
 
   const dispatched = await dispatchStripeWebhook(event);
