@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import { NavigatorPilotJourney } from "@/components/navigator/NavigatorPilotJourney";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { careBlueprintCssVariables } from "@/lib/brand/care-blueprint-tokens";
 import { isNavigatorPilotEnabled } from "@/lib/config/navigator-pilot";
 import { prisma } from "@/lib/prisma";
 
@@ -35,7 +37,8 @@ export default async function NavigatorPilotPage({ searchParams }: PageProps) {
   return (
     <main
       id="main-content"
-      className="min-h-screen bg-[radial-gradient(circle_at_top_left,#d9f0ea,transparent_42%),radial-gradient(circle_at_top_right,#d3eaf4,transparent_48%),linear-gradient(180deg,#F6FBFC_0%,#E8F2F6_100%)] px-4 py-10 text-[#0C1833]"
+      className="care-blueprint-pilot min-h-screen bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--care-brand-lavender)_80%,white),transparent_42%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--care-brand-blue)_18%,white),transparent_48%),linear-gradient(180deg,var(--care-brand-canvas)_0%,#E8F2F6_100%)] px-4 py-10 text-[var(--care-brand-charcoal)]"
+      style={careBlueprintCssVariables as CSSProperties}
     >
       <div className="mx-auto max-w-2xl space-y-8">
         <header className="space-y-5">
@@ -45,10 +48,10 @@ export default async function NavigatorPilotPage({ searchParams }: PageProps) {
             className="hover:bg-white/50 hover:opacity-100"
           />
           <div className="space-y-2">
-            <p className="text-sm font-bold tracking-wide text-[#005B7F]">
+            <p className="text-sm font-bold tracking-wide text-[var(--care-brand-blue)]">
               Navigator pilot
             </p>
-            <h1 className="font-heading text-2xl font-bold tracking-tight text-[#0C1833] sm:text-[1.75rem]">
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-[var(--care-brand-charcoal)] sm:text-[1.75rem]">
               Find providers with you in control
             </h1>
             <p className="max-w-prose text-base leading-relaxed text-[#334155]">
@@ -77,7 +80,7 @@ export default async function NavigatorPilotPage({ searchParams }: PageProps) {
             <p className="mt-4">
               <Link
                 href="/provider-finder"
-                className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#1B4F72] px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B4F72]"
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-[var(--care-brand-blue)] px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--care-brand-purple)]"
               >
                 Continue to Provider Finder
               </Link>
@@ -101,7 +104,7 @@ export default async function NavigatorPilotPage({ searchParams }: PageProps) {
             <p className="mt-4">
               <Link
                 href="/api/auth/signin"
-                className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#1B4F72] px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B4F72]"
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-[var(--care-brand-blue)] px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--care-brand-purple)]"
               >
                 Sign in
               </Link>
