@@ -61,6 +61,8 @@ Waivers do **not** lift the global freeze. Flags stay default-false. No producti
 
 **Virtual Persona P02 (synthetic UI only):** flag-gated text-first workspace under `lib/virtual-persona/**`, `components/virtual-persona/**`, `app/(marketing)/virtual-persona/**`, and related tests/docs. `MAPABLE_VIRTUAL_PERSONA_UI` defaults **false**. No live model, RAG, AgentRun, payments, bookings, consent writes, or permission grants. P01 PEP is not assumed; protected retrieval remains out of scope. This does **not** authorise a new AI agent marketplace or production enablement. See [`docs/ai-platform/virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md`](../ai-platform/virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md).
 
+**Autonomous Care & Support Stage 0 (docs only — W-ACS-0 draft):** evidence map, exact test plan, narrow waiver draft, and reviewable Stage 1 diff proposal under [`docs/ai-platform/autonomous-care-support/**`](../ai-platform/autonomous-care-support/). Sits inside W-AA-1 documentation/testing scope for related `docs/ai-platform/**`. Optional `tests/autonomous-care-support/**` may use `describe.skip` / `it.todo` skeletons only. Does **not** waive shadow RAG, durable Stop AURA implementation, consent migrations, Temporal Cloud, Redis-as-consent, physical/clinical control, or any flag enablement. Promote from draft only with human signature — see [`WAIVER_DRAFT_ACS_STAGE0.md`](../ai-platform/autonomous-care-support/WAIVER_DRAFT_ACS_STAGE0.md).
+
 ## Honesty labels
 
 Demo, mock, scaffold, and pilot behaviour must be labelled honestly in UI, API, and docs. Feature flags are not assurance.
