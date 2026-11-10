@@ -1,9 +1,14 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import "@/app/index.css";
 import "leaflet/dist/leaflet.css";
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible, Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Atkinson_Hyperlegible,
+  Outfit,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 import { headers } from "next/headers";
 
 import { AccessiBeWidget } from "@/components/accessibility/AccessiBeWidget";
@@ -140,16 +145,18 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className={plusJakarta.className}>
-        <JsonLd
-          nonce={scriptNonce}
-          data={[publicJsonLd.organization, publicJsonLd.website]}
-        />
-        <Providers>{children}</Providers>
-        {firstPartyA11yPanel ? null : <AccessiBeWidget />}
-        <GoogleAnalytics />
-        <GoogleAdSense />
-        {/* Speed Insights only on Vercel; local/CI production servers have no SI endpoint. */}
-        {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
+        <ClerkProvider>
+          <JsonLd
+            nonce={scriptNonce}
+            data={[publicJsonLd.organization, publicJsonLd.website]}
+          />
+          <Providers>{children}</Providers>
+          {firstPartyA11yPanel ? null : <AccessiBeWidget />}
+          <GoogleAnalytics />
+          <GoogleAdSense />
+          {/* Speed Insights only on Vercel; local/CI production servers have no SI endpoint. */}
+          {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
+        </ClerkProvider>
       </body>
     </html>
   );
