@@ -1521,13 +1521,28 @@ model StripePaymentIntentRecord {
   updatedAt             DateTime @updatedAt
 }
 
+enum BillingStripeWebhookProcessingStatus {
+  pending
+  processing
+  processed
+  failed
+  quarantined
+}
+
 model StripeWebhookEvent {
-  id            String   @id @default(cuid())
-  stripeEventId String   @unique
-  eventType     String
-  processedAt   DateTime?
-  payload       Json?
-  createdAt     DateTime @default(now())
+  id               String                               @id @default(cuid())
+  stripeEventId    String                               @unique
+  eventType        String
+  processedAt      DateTime?
+  payload          Json?
+  processingStatus BillingStripeWebhookProcessingStatus @default(pending)
+  lastError        String?
+  attemptCount     Int                                  @default(0)
+  claimedAt        DateTime?
+  claimExpiresAt   DateTime?
+  createdAt        DateTime                             @default(now())
+
+  @@index([processingStatus])
 }
 
 model XeroTenantConnection {
@@ -6054,15 +6069,21 @@ model BillingSubscription {
 }
 
 model BillingStripeWebhookEvent {
-  id            String    @id @default(cuid())
-  stripeEventId String    @unique
-  type          String
-  processed     Boolean   @default(false)
-  payload       Json
-  createdAt     DateTime  @default(now())
-  processedAt   DateTime?
+  id               String                               @id @default(cuid())
+  stripeEventId    String                               @unique
+  type             String
+  processed        Boolean                              @default(false)
+  payload          Json
+  processingStatus BillingStripeWebhookProcessingStatus @default(pending)
+  lastError        String?
+  attemptCount     Int                                  @default(0)
+  claimedAt        DateTime?
+  claimExpiresAt   DateTime?
+  createdAt        DateTime                             @default(now())
+  processedAt      DateTime?
 
   @@index([processed])
+  @@index([processingStatus])
 }
 
 model BillingAuditLog {
@@ -9999,20 +10020,110 @@ model BillingReconciliationMatch {
 }
 
 model BillingIntegrationConnection {
-  id             String   @id @default(cuid())
-  organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
-  provider       String
-  status         String   @default("disconnected")
-  externalTenantId String?
-  configJson     Json?
-  lastSyncAt     DateTime?
-  lastError      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                   String    @id @default(cuid())
+  organisationId       String?
+  organisation         Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  provider             String
+  status               String    @default("disconnected")
+  externalTenantId     String?
+  configJson           Json?
+  /// AES-GCM ciphertext for OAuth tokens; never expose in API responses.
+  tokenCiphertext      String?
+  tokenExpiresAt       DateTime?
+  permissionMetadata   Json?
+  connectedById        String?
+  connectedAt          DateTime?
+  revokedAt            DateTime?
+  revokedById          String?
+  lastSyncAt           DateTime?
+  lastSuccessfulSyncAt DateTime?
+  lastError            String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   @@index([organisationId, provider])
   @@unique([organisationId, provider])
+}
+
+enum IntegrationProvider {
+  deputy
+  xero
+  stripe
+}
+
+enum IntegrationDeliveryState {
+  pending
+  running
+  delivered
+  retryable
+  needs_review
+  dead_letter
+}
+
+/// Maps MapAble entities to external provider IDs (worker↔Deputy employee, invoice↔Xero, etc.).
+model IntegrationExternalMapping {
+  id              String              @id @default(cuid())
+  organisationId  String
+  provider        IntegrationProvider
+  internalType    String
+  internalId      String
+  externalId      String
+  externalVersion String?
+  syncState       String              @default("active")
+  metadataJson    Json?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([organisationId, provider, internalType, internalId], map: "IntegrationExternalMapping_org_provider_internal_uid")
+  @@unique([organisationId, provider, internalType, externalId], map: "IntegrationExternalMapping_org_provider_external_uid")
+  @@index([organisationId, provider])
+}
+
+/// Durable outbox for provider deliveries. Distinct from CareOS CloudEventOutbox.
+model IntegrationDelivery {
+  id                String                   @id @default(cuid())
+  eventId           String
+  aggregateType     String
+  aggregateId       String
+  aggregateRevision Int                      @default(1)
+  provider          IntegrationProvider
+  organisationId    String
+  externalTenantId  String?
+  dedupeKey         String                   @unique
+  payloadRefJson    Json?
+  state             IntegrationDeliveryState @default(pending)
+  attemptCount      Int                      @default(0)
+  lastErrorClass    String?
+  lastErrorMessage  String?
+  nextRetryAt       DateTime?
+  deliveredAt       DateTime?
+  deadLetteredAt    DateTime?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([state, nextRetryAt])
+  @@index([organisationId, provider])
+  @@index([aggregateType, aggregateId])
+}
+
+/// Catch-up reconciliation; never silently overwrite human-reviewed MapAble state.
+model IntegrationReconciliation {
+  id                   String              @id @default(cuid())
+  provider             IntegrationProvider
+  organisationId       String
+  externalTenantId     String?
+  cursorSince          DateTime?
+  observedRemoteStatus String?
+  discrepancyType      String?
+  lastResult           String?
+  reviewedById         String?
+  reviewedAt           DateTime?
+  metadataJson         Json?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@index([organisationId, provider])
+  @@index([provider, createdAt])
 }
 
 model BillingInvoiceNumberSequence {

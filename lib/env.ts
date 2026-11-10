@@ -56,6 +56,20 @@ const integrationRules: IntegrationEnvRule[] = [
     requiredVars: ["XERO_CLIENT_ID", "XERO_CLIENT_SECRET"],
   },
   {
+    key: "xero_direct",
+    enabledWhen: () => envTrue("XERO_DIRECT_ENABLED"),
+    requiredVars: ["XERO_CLIENT_ID", "XERO_CLIENT_SECRET"],
+  },
+  {
+    key: "deputy",
+    enabledWhen: () => envTrue("DEPUTY_ENABLED"),
+    requiredVars: [
+      "DEPUTY_CLIENT_ID",
+      "DEPUTY_CLIENT_SECRET",
+      "DEPUTY_OAUTH_REDIRECT_URI",
+    ],
+  },
+  {
     key: "keycloak",
     enabledWhen: () => envTrue("KEYCLOAK_ENABLED"),
     requiredVars: [
