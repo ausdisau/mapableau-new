@@ -169,7 +169,8 @@ export function normaliseAccessiMartProductForReview(
 
   const rawCategory = limitedText(row.categorySlug ?? row.category, 60);
   const categorySlug: AccessiMartReviewListing["categorySlug"] =
-    rawCategory && CATEGORY_SLUGS.has(rawCategory)
+    rawCategory &&
+    CATEGORY_SLUGS.has(rawCategory as AccessiMartDraftCategorySlug)
       ? (rawCategory as AccessiMartDraftCategorySlug)
       : "unknown";
 
