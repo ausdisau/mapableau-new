@@ -75,6 +75,12 @@ set -a && source .env && set +a
 npx prisma migrate status
 ```
 
+## Programme subdomains (Cloudflare + Vercel)
+
+Programme hosts (`accessimart`, `marketplace`, `ecosystem`, `care`, `transport`, `employment`, `signal`, plus Labs/Peers) share this Neon project. Subdomain DNS does not create a second database.
+
+See `docs/architecture/mapable-subdomain-dns-cloudflare-vercel-neon.md` for Cloudflare CNAME → Vercel domain attach. Do not attach production DNS until review.
+
 ## Vercel (`mapableau-new`)
 
 The Vercel project is linked to GitHub `ausdisau/mapableau-new`. Add these **Environment Variables** in [Vercel → mapableau-new → Settings → Environment Variables](https://vercel.com/map-able/mapableau-new/settings/environment-variables) for **Production**, **Preview**, and **Development**:

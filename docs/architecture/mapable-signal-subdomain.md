@@ -10,7 +10,7 @@ MapAble Signal is the Community Mapping Challenges surface. The subdomain gives 
 
 ## Routing
 
-Handled in middleware via `lib/signal/host-routing.ts`:
+Handled via the shared programme registry and thin wrapper `lib/signal/host-routing.ts`:
 
 - `signal.mapable.com.au/` rewrites to `/signal`
 - `signal.mapable.com.au/<path>` rewrites to `/signal/<path>`
@@ -19,6 +19,8 @@ Handled in middleware via `lib/signal/host-routing.ts`:
 - API and static-asset requests are not rewritten
 
 Override host with `MAPABLE_SIGNAL_HOST` for controlled environments.
+
+DNS / Vercel / Neon attach runbook: `docs/architecture/mapable-subdomain-dns-cloudflare-vercel-neon.md`.
 
 ## Safety
 

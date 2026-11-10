@@ -9,11 +9,7 @@ import {
   shouldRunAuthMiddleware,
 } from "@/lib/community/mapable-peers/peer-middleware";
 import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
-import {
-  isAccessiMartHost,
-  accessiMartRewritePath,
-} from "@/lib/marketplace/accessimart-host-routing";
-import { isSignalHost, signalRewritePath } from "@/lib/signal/host-routing";
+import { matchProgrammeSubdomainRewrite } from "@/lib/platform/mapable-subdomain-registry";
 import {
   CSP_ENFORCE_HEADER,
   createScriptNonce,
@@ -218,50 +214,25 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // signal.mapable.com.au → /signal (Community Mapping Challenges / Signal Sites)
-  if (
-    isSignalHost(
-      request.headers.get("x-forwarded-host"),
-      request.headers.get("host"),
-    )
-  ) {
-    const rewritePath = signalRewritePath(request.nextUrl.pathname);
-    if (rewritePath) {
-      const url = request.nextUrl.clone();
-      url.pathname = rewritePath;
-      const response = NextResponse.rewrite(url, {
-        request: { headers: requestHeaders },
-      });
-      return withCorrelationAndCsp(
-        response,
-        correlationId,
-        enforcePolicy,
-        embedRoute,
-      );
-    }
-  }
-
-  // accessimart.mapable.com.au → /marketplace (public programme only)
-  if (
-    isAccessiMartHost(
-      request.headers.get("x-forwarded-host"),
-      request.headers.get("host"),
-    )
-  ) {
-    const rewritePath = accessiMartRewritePath(request.nextUrl.pathname);
-    if (rewritePath) {
-      const url = request.nextUrl.clone();
-      url.pathname = rewritePath;
-      const response = NextResponse.rewrite(url, {
-        request: { headers: requestHeaders },
-      });
-      return withCorrelationAndCsp(
-        response,
-        correlationId,
-        enforcePolicy,
-        embedRoute,
-      );
-    }
+  // Programme subdomains: signal, accessimart, marketplace, ecosystem,
+  // care, transport, employment → path prefixes (Labs-style). Peers/Labs above.
+  const programmeRewrite = matchProgrammeSubdomainRewrite(
+    request.headers.get("x-forwarded-host"),
+    request.headers.get("host"),
+    request.nextUrl.pathname,
+  );
+  if (programmeRewrite) {
+    const url = request.nextUrl.clone();
+    url.pathname = programmeRewrite.rewritePath;
+    const response = NextResponse.rewrite(url, {
+      request: { headers: requestHeaders },
+    });
+    return withCorrelationAndCsp(
+      response,
+      correlationId,
+      enforcePolicy,
+      embedRoute,
+    );
   }
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {

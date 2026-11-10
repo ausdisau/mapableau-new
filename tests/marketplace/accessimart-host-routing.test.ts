@@ -29,6 +29,12 @@ describe("AccessiMart host routing", () => {
     expect(accessiMartRewritePath("/browse")).toBe("/marketplace/browse");
   });
 
+  it("rewrites /review on the AccessiMart host to the gated review surface", () => {
+    expect(accessiMartRewritePath("/review")).toBe(
+      "/marketplace/accessimart-review",
+    );
+  });
+
   it("does not double-prefix explicit Marketplace routes", () => {
     expect(accessiMartRewritePath("/marketplace")).toBeNull();
     expect(accessiMartRewritePath("/marketplace/accessimart-review")).toBeNull();
