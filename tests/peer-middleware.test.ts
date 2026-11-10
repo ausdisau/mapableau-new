@@ -28,6 +28,10 @@ describe("shouldRunAuthMiddleware", () => {
     expect(shouldRunAuthMiddleware("/marketplace/browse")).toBe(true);
     expect(shouldRunAuthMiddleware("/marketplace/cart")).toBe(true);
     expect(shouldRunAuthMiddleware("/marketplace/products/abc")).toBe(true);
+    expect(shouldRunAuthMiddleware("/marketplace/accessimart-review")).toBe(true);
+    expect(
+      shouldRunAuthMiddleware("/marketplace/accessimart-review/example-slug"),
+    ).toBe(true);
   });
 
   it("guards authenticated module subroutes", () => {

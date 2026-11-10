@@ -16,11 +16,12 @@ const AUTH_PREFIXES = [
   "/practitioner",
 ] as const;
 
-/** Marketplace shop is auth-gated; /marketplace explainer is public. */
+/** Marketplace shop + AccessiMart review are auth-gated; /marketplace explainer is public. */
 const AUTH_MARKETPLACE_PREFIXES = [
   "/marketplace/browse",
   "/marketplace/cart",
   "/marketplace/products",
+  "/marketplace/accessimart-review",
 ] as const;
 
 const AUTH_PATHS = ["/care/", "/transport/"] as const;

@@ -4,7 +4,9 @@ import Link from "next/link";
 import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
 import {
   ECOSYSTEM_JOURNEYS,
+  ECOSYSTEM_PRIMARY_NAV,
   ECOSYSTEM_SERVICES,
+  getEcosystemService,
   getJourneyServiceDetails,
   type EcosystemService,
 } from "@/lib/ecosystem/service-directory";
@@ -59,6 +61,12 @@ export default function MapAbleEcosystemPage() {
   return (
     <MapAbleCareMarketingShell>
       <div className="min-h-screen bg-white text-[#0C1833]">
+        <a
+          href="#main-ecosystem"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:ring-4 focus:ring-amber-300"
+        >
+          Skip to main content
+        </a>
         <header className="border-b border-slate-200 bg-[#F6FBFC]">
           <div className={`${mapablePublicPageContainerClass} py-12 sm:py-16`}>
             <p className={mapablePublicEyebrowClass}>MapAble Ecosystem</p>
@@ -70,8 +78,50 @@ export default function MapAbleEcosystemPage() {
               consider work and find assistive technology in one accessible
               ecosystem. Each service keeps its own safety and consent controls.
             </p>
-            <nav aria-label="Explore this page" className="mt-7 flex flex-wrap gap-3">
-              <a href="#journeys" className={mapablePublicPrimaryButtonClass}>
+            <nav
+              aria-label="Primary MapAble services"
+              className="mt-7 flex flex-wrap gap-3"
+            >
+              {ECOSYSTEM_PRIMARY_NAV.map((item) => {
+                const service = getEcosystemService(item.id);
+                if (!service.href) {
+                  return (
+                    <span
+                      key={item.id}
+                      className="inline-flex min-h-11 items-center rounded-2xl border border-dashed border-slate-300 px-4 text-sm font-semibold text-slate-600"
+                    >
+                      {item.label} (planned)
+                    </span>
+                  );
+                }
+                if (service.href.startsWith("https://")) {
+                  return (
+                    <a
+                      key={item.id}
+                      href={service.href}
+                      className={mapablePublicSecondaryButtonClass}
+                    >
+                      {item.label}
+                    </a>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.id}
+                    href={service.href}
+                    className={
+                      item.id === "explore"
+                        ? mapablePublicPrimaryButtonClass
+                        : mapablePublicSecondaryButtonClass
+                    }
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+            <nav aria-label="Explore this page" className="mt-4 flex flex-wrap gap-3">
+              <a href="#journeys" className={mapablePublicSecondaryButtonClass}>
                 Explore journeys
               </a>
               <a href="#services" className={mapablePublicSecondaryButtonClass}>
@@ -81,7 +131,10 @@ export default function MapAbleEcosystemPage() {
           </div>
         </header>
 
-        <div className={`${mapablePublicPageContainerClass} py-10 sm:py-14`}>
+        <div
+          id="main-ecosystem"
+          className={`${mapablePublicPageContainerClass} py-10 sm:py-14`}
+        >
           <section aria-labelledby="journey-title" id="journeys">
             <h2 id="journey-title" className="text-2xl font-black sm:text-3xl">
               Start with what you want to do
@@ -131,7 +184,9 @@ export default function MapAbleEcosystemPage() {
               {ECOSYSTEM_SERVICES.map((service) => (
                 <article key={service.id} className={mapablePublicCardClass}>
                   <h3 className="text-lg font-black">{service.name}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-700">{service.summary}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    {service.summary}
+                  </p>
                   <p className="mt-3 text-sm font-semibold text-[#005B7F]">
                     {stateLabels[service.state]}
                   </p>
