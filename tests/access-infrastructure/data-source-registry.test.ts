@@ -194,3 +194,53 @@ describe("Navigate municipal source admission", () => {
     expect(unknown.licence).toBeNull();
   });
 });
+
+const INTERNATIONAL_RESEARCH_SOURCE_IDS = [
+  "hdx-papua-new-guinea-accessibility-indicators",
+  "hdx-hotosm-singapore-roads",
+  "heigit-openaccesslens-global",
+  "malaria-atlas-earth-engine-accessibility-catalogue",
+  "singapore-lta-datamall",
+  "singapore-data-gov-sg",
+  "singapore-onemap",
+  "india-geodata-catalogue",
+  "india-open-city-geojson-catalogue",
+  "wheelmap-accessibility-cloud-source-lead",
+  "google-open-buildings-footprints",
+] as const;
+
+describe("International accessibility research candidate admission", () => {
+  it.each(INTERNATIONAL_RESEARCH_SOURCE_IDS)(
+    "blocks candidate international research source %s from production import",
+    (sourceId) => {
+      const source = getDataSource(sourceId);
+      expect(source.operationalImport).toBe(false);
+      expect(source.requiresDatasetLevelLicence).toBe(true);
+      expect(evaluateOperationalIngestion(source).allowed).toBe(false);
+    },
+  );
+
+  it("prevents motorised health and education access indicators from driving wheelchair navigation", () => {
+    const heigit = getDataSource("heigit-openaccesslens-global");
+    const malaria = getDataSource("malaria-atlas-earth-engine-accessibility-catalogue");
+    expect(heigit.prohibitedUses).toContain("wheelchair_accessibility_inference");
+    expect(malaria.prohibitedUses).toContain("wheelchair_navigation");
+  });
+
+  it("prevents Open Buildings footprints from becoming entrance-accessibility observations", () => {
+    const buildings = getDataSource("google-open-buildings-footprints");
+    expect(buildings.prohibitedUses).toContain("building_footprint_as_accessible_entrance");
+  });
+
+  it("uses the already registered OSM source rather than creating a duplicate primary network identity", () => {
+    expect(getDataSource("openstreetmap").licence?.id).toBe("ODbL-1.0");
+    const hotosm = getDataSource("hdx-hotosm-singapore-roads");
+    expect(hotosm.prohibitedUses).toContain("duplicating_existing_osm_source_identity");
+  });
+
+  it("never inherits OpenStreetMap's licence automatically for Wheelmap partner datasets", () => {
+    const wheelmap = getDataSource("wheelmap-accessibility-cloud-source-lead");
+    expect(wheelmap.prohibitedUses).toContain("automatic_partner_licence_inheritance_from_osm");
+    expect(wheelmap.licence).toBeNull();
+  });
+});
