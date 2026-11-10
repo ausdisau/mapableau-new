@@ -56,6 +56,7 @@ export function ClerkAuthControls({ compact = false }: ClerkAuthControlsProps) {
         </SignUpButton>
       </Show>
       <Show when="signed-in">
+        {/* UserButton only clears Clerk; ClerkNextAuthSignOutBridge also clears NextAuth. */}
         <UserButton />
       </Show>
     </div>
