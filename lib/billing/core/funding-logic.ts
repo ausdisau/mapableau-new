@@ -31,6 +31,15 @@ export function checkoutDecisionForFundingType(
     };
   }
 
+  if (type === "ndis_agency_managed") {
+    return {
+      allowed: false,
+      reason: "unsupported",
+      instruction:
+        "Agency-managed NDIS claiming remains independent of Stripe Checkout. Use the NDIA claim pathway.",
+    };
+  }
+
   // private_pay is checkout-compatible with private_card (card / self-pay).
   if (
     type === "ndis_self_managed" ||
