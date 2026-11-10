@@ -1,0 +1,25 @@
+name: My Day Resilience synthetic contract
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/lib/my-day-resilience/**"
+      - "apps/web/components/my-day-resilience/**"
+      - "apps/web/app/dashboard/my-day-resilience/**"
+      - "apps/web/tests/my-day-resilience/**"
+      - ".github/workflows/my-day-resilience-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run pure synthetic contract tests without external dependencies
+        run: node --experimental-strip-types --test apps/web/tests/my-day-resilience/my-day-resilience.contract.test.mjs
