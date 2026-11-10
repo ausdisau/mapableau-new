@@ -25,13 +25,19 @@ export function PortalNav({
   links,
   backHref = "/dashboard",
   backLabel = "Dashboard",
+  normalizePathname,
 }: {
   title: string;
   links: PortalNavLink[];
   backHref?: string;
   backLabel?: string;
+  /** Optional path normalizer for host rewrites (e.g. strip /provider). */
+  normalizePathname?: (pathname: string) => string;
 }) {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = normalizePathname
+    ? normalizePathname(rawPathname)
+    : rawPathname;
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
