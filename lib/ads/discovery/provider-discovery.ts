@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import type { AdProviderAssuranceState } from "@prisma/client";
+import type { AdProviderAssuranceState, Prisma } from "@prisma/client";
 
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { prisma } from "@/lib/prisma";
@@ -239,7 +239,7 @@ export async function cacheApisIoHits(input: {
           query: input.query,
           hit,
           notice: "Catalogue metadata only — not a buying entitlement",
-        },
+        } as Prisma.InputJsonValue,
         retrievedAt: new Date(),
       },
       update: {
@@ -250,7 +250,7 @@ export async function cacheApisIoHits(input: {
           query: input.query,
           hit,
           notice: "Catalogue metadata only — not a buying entitlement",
-        },
+        } as Prisma.InputJsonValue,
         retrievedAt: new Date(),
       },
     });

@@ -13,24 +13,51 @@ import {
 } from "@/lib/dashboard/participant-nav";
 import { sidebarNavLinkClass } from "@mapable/ui";
 
-function navGroupsWithMapAbleId(
-  showMapAbleIdNav: boolean,
-): ParticipantNavGroup[] {
-  if (!showMapAbleIdNav) return PARTICIPANT_NAV_GROUPS;
+function navGroupsWithOptions(options: {
+  showMapAbleIdNav: boolean;
+  showMyDayResilienceNav?: boolean;
+  showMatchingPreviewNav?: boolean;
+}): ParticipantNavGroup[] {
   return PARTICIPANT_NAV_GROUPS.map((group) => {
-    if (group.id !== "choice-safety") return group;
-    return {
-      ...group,
-      items: [
-        {
-          href: "/dashboard/identity",
-          label: "MapAbleID",
-          matchPrefix: "/dashboard/identity",
-          description: "Identity, security, delegates and recovery",
-        },
-        ...group.items,
-      ],
-    };
+    if (group.id === "your-life") {
+      const demoItems: ParticipantNavLink[] = [];
+      if (options.showMyDayResilienceNav) {
+        demoItems.push({
+          href: "/dashboard/my-day-resilience",
+          label: "My Day Resilience (demo)",
+          matchPrefix: "/dashboard/my-day-resilience",
+          description: "Synthetic disruption and recovery simulator",
+        });
+      }
+      if (options.showMatchingPreviewNav) {
+        demoItems.push({
+          href: "/dashboard/matching-preview",
+          label: "Worker matching preview (demo)",
+          matchPrefix: "/dashboard/matching-preview",
+          description: "Fictional worker suitability preview",
+        });
+      }
+      if (demoItems.length === 0) return group;
+      return {
+        ...group,
+        items: [group.items[0]!, ...demoItems, ...group.items.slice(1)],
+      };
+    }
+    if (group.id === "choice-safety" && options.showMapAbleIdNav) {
+      return {
+        ...group,
+        items: [
+          {
+            href: "/dashboard/identity",
+            label: "MapAbleID",
+            matchPrefix: "/dashboard/identity",
+            description: "Identity, security, delegates and recovery",
+          },
+          ...group.items,
+        ],
+      };
+    }
+    return group;
   });
 }
 
@@ -103,13 +130,21 @@ function NavItem({
 export function ParticipantWorkspaceSidebar({
   showAdminLink = false,
   showMapAbleIdNav = false,
+  showMyDayResilienceNav = false,
+  showMatchingPreviewNav = false,
   onNavigate,
 }: {
   showAdminLink?: boolean;
   showMapAbleIdNav?: boolean;
+  showMyDayResilienceNav?: boolean;
+  showMatchingPreviewNav?: boolean;
   onNavigate?: () => void;
 }) {
-  const groups = navGroupsWithMapAbleId(showMapAbleIdNav);
+  const groups = navGroupsWithOptions({
+    showMapAbleIdNav,
+    showMyDayResilienceNav,
+    showMatchingPreviewNav,
+  });
   return (
     <nav aria-label="Participant workspace" data-testid="participant-workspace-nav">
       {groups.map((group) => (
@@ -149,9 +184,13 @@ export function ParticipantWorkspaceSidebar({
 export function ParticipantWorkspaceMobileNav({
   showAdminLink = false,
   showMapAbleIdNav = false,
+  showMyDayResilienceNav = false,
+  showMatchingPreviewNav = false,
 }: {
   showAdminLink?: boolean;
   showMapAbleIdNav?: boolean;
+  showMyDayResilienceNav?: boolean;
+  showMatchingPreviewNav?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -224,6 +263,8 @@ export function ParticipantWorkspaceMobileNav({
               <ParticipantWorkspaceSidebar
                 showAdminLink={showAdminLink}
                 showMapAbleIdNav={showMapAbleIdNav}
+                showMyDayResilienceNav={showMyDayResilienceNav}
+                showMatchingPreviewNav={showMatchingPreviewNav}
                 onNavigate={close}
               />
             </div>

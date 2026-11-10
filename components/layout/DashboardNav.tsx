@@ -52,19 +52,30 @@ export function DashboardNav({
   role,
   showCareOsNav = false,
   showMapAbleIdNav = false,
+  showMyDayResilienceNav = false,
+  showMatchingPreviewNav = false,
 }: {
   userName: string;
   role: UserRole;
   showCareOsNav?: boolean;
   showMapAbleIdNav?: boolean;
+  showMyDayResilienceNav?: boolean;
+  showMatchingPreviewNav?: boolean;
 }) {
   const pathname = usePathname();
+  const demoRole = role === "participant" || role === "mapable_admin";
   const links = [
     ...(personalAgencyFlags.uiEnabled
       ? [{ href: "/my", label: "My MapAble", exact: true as const }]
       : [{ href: "/dashboard", label: "Control panel", exact: true as const }]),
     ...(showMapAbleIdNav
       ? [{ href: "/dashboard/identity", label: "MapAbleID" }]
+      : []),
+    ...(showMyDayResilienceNav && demoRole
+      ? [{ href: "/dashboard/my-day-resilience", label: "My Day Resilience (demo)" }]
+      : []),
+    ...(showMatchingPreviewNav && demoRole
+      ? [{ href: "/dashboard/matching-preview", label: "Worker matching preview (demo)" }]
       : []),
     ...(showCareOsNav ? CAREOS_LINKS : []),
     ...BASE_LINKS.filter(
