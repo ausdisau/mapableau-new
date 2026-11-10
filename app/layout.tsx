@@ -1,7 +1,4 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import "@/app/index.css";
-import "leaflet/dist/leaflet.css";
-
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import {
@@ -10,6 +7,9 @@ import {
   Plus_Jakarta_Sans,
 } from "next/font/google";
 import { headers } from "next/headers";
+
+import "@/app/index.css";
+import "leaflet/dist/leaflet.css";
 
 import { AccessiBeWidget } from "@/components/accessibility/AccessiBeWidget";
 import {
