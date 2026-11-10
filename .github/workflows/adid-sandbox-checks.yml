@@ -1,0 +1,44 @@
+name: AD.iD sandbox checks
+on:
+  pull_request:
+    paths:
+      - "apps/adid/**"
+      - ".github/workflows/adid-sandbox-checks.yml"
+  push:
+    branches:
+      - feat/adid-clerk-wix-neon-sandbox-20261110
+      - cursor/adid-clerk-dev-portal-77fc
+      - cursor/adid-clerk-wix-stages-77fc
+    paths:
+      - "apps/adid/**"
+      - ".github/workflows/adid-sandbox-checks.yml"
+permissions:
+  contents: read
+jobs:
+  check-adid:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/adid
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install isolated dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install Wix integration package deps
+        run: npm install --ignore-scripts --no-audit --no-fund
+        working-directory: apps/adid/packages/wix-integration
+      - name: TypeScript type check
+        run: npm run typecheck
+      - name: Pure public contract tests
+        run: npm test
+      - name: Production build (no Clerk keys required for compile)
+        run: npm run build
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder_for_ci_build_only
+          CLERK_SECRET_KEY: sk_test_placeholder_for_ci_build_only
+      # Browser/Clerk integration tests require a protected preview tenant and are explicitly not run here.
