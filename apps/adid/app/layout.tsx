@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 
+import { FirebaseAnalytics } from "../components/FirebaseAnalytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({
           <a className="skip-link" href="#main-content">
             Skip to main content
           </a>
+          <FirebaseAnalytics />
           {children}
         </ClerkProvider>
       </body>
