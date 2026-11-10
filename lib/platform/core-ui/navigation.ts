@@ -35,7 +35,7 @@ export const CORE_CIVIC_LINKS: CoreNavLink[] = [
   { href: "/insights/national", label: "National insights" },
   { href: "/membership", label: "Membership" },
   { href: "/investment-models", label: "Investment models" },
-  { href: "/ecosystem", label: "API ecosystem" },
+  { href: "/certified-api-ecosystem", label: "API ecosystem" },
   { href: "/partners/certified", label: "Certified partners" },
   { href: "/research-federation", label: "Research federation" },
   { href: "/audit-index", label: "Civic audit" },

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import type { AdProviderAssuranceState } from "@prisma/client";
+import type { AdProviderAssuranceState, Prisma } from "@prisma/client";
 
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { prisma } from "@/lib/prisma";
@@ -237,7 +237,7 @@ export async function cacheApisIoHits(input: {
         assuranceState: "catalogued",
         rawMetadataJson: {
           query: input.query,
-          hit,
+          hit: JSON.parse(JSON.stringify(hit)) as Prisma.InputJsonValue,
           notice: "Catalogue metadata only — not a buying entitlement",
         },
         retrievedAt: new Date(),
@@ -248,7 +248,7 @@ export async function cacheApisIoHits(input: {
         etag: input.etag,
         rawMetadataJson: {
           query: input.query,
-          hit,
+          hit: JSON.parse(JSON.stringify(hit)) as Prisma.InputJsonValue,
           notice: "Catalogue metadata only — not a buying entitlement",
         },
         retrievedAt: new Date(),

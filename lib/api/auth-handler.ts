@@ -1,16 +1,15 @@
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth/current-user";
 import { apiForbidden, apiUnauthorized } from "@/lib/auth/guards";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
 
+/**
+ * Dual-run: authorize from `getCurrentUser()` (Clerk when trusted, else NextAuth).
+ * Do not gate on a NextAuth cookie alone — Clerk-only sessions would 401.
+ */
 export async function requireApiSession(): Promise<
   CurrentUser | Response
 > {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return apiUnauthorized();
   const user = await getCurrentUser();
   if (!user) return apiUnauthorized();
   return user;

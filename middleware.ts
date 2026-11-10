@@ -1,7 +1,9 @@
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
+import { shouldTrustClerkSessionAsAuth } from "@/lib/auth/clerk-dual-run";
 import { resolveNextAuthSecret } from "@/lib/auth/nextauth-env";
 import {
   handlePeerPeersHost,
@@ -146,7 +148,10 @@ function withCorrelationAndCsp(
   return response;
 }
 
-export default async function middleware(request: NextRequest) {
+async function runMapableMiddleware(
+  request: NextRequest,
+  clerkAuthenticated: boolean,
+): Promise<NextResponse> {
   const nonce = createScriptNonce();
   const enforceEnabled = isCspPreviewEnforceEnabled();
   const enforcePolicy = enforceEnabled
@@ -213,9 +218,11 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
+  // Dual-run: accept Clerk or NextAuth session while migration is in progress.
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {
-    if (!(await hasAuthenticatedSession(request))) {
-      if (!resolveNextAuthSecret()) {
+    const nextAuthSession = await hasAuthenticatedSession(request);
+    if (!clerkAuthenticated && !nextAuthSession) {
+      if (!resolveNextAuthSecret() && !process.env.CLERK_SECRET_KEY?.trim()) {
         return withCorrelationAndCsp(
           authMisconfiguredResponse(request),
           correlationId,
@@ -243,8 +250,31 @@ export default async function middleware(request: NextRequest) {
   );
 }
 
+function isClerkConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
+}
+
+/**
+ * Dual-run: wrap with Clerk only when publishable key is present.
+ * CI / preview without Clerk secrets keep NextAuth-only middleware so
+ * Playwright webServers can boot.
+ */
+const middleware = isClerkConfigured()
+  ? clerkMiddleware(async (auth, request) => {
+      const { isAuthenticated } = await auth();
+      const clerkTrusted =
+        isAuthenticated && shouldTrustClerkSessionAsAuth();
+      return runMapableMiddleware(request, clerkTrusted);
+    })
+  : async function nextAuthOnlyMiddleware(request: NextRequest) {
+      return runMapableMiddleware(request, false);
+    };
+
+export default middleware;
+
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|css|js)$).*)",
+    "/__clerk/(.*)",
   ],
 };
