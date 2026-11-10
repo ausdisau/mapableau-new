@@ -53,6 +53,10 @@ function toCurrentUser(
  * `external_id` (legacy NextAuth / Prisma `User.id`). Fall back to NextAuth.
  */
 async function getCurrentUserFromClerk(): Promise<CurrentUser | null> {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) {
+    return null;
+  }
+
   const { isAuthenticated } = await auth();
   if (!isAuthenticated) return null;
 

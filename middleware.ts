@@ -249,10 +249,25 @@ async function runMapableMiddleware(
   );
 }
 
-export default clerkMiddleware(async (auth, request) => {
-  const { isAuthenticated } = await auth();
-  return runMapableMiddleware(request, isAuthenticated);
-});
+function isClerkConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
+}
+
+/**
+ * Dual-run: wrap with Clerk only when publishable key is present.
+ * CI / preview without Clerk secrets keep NextAuth-only middleware so
+ * Playwright webServers can boot.
+ */
+const middleware = isClerkConfigured()
+  ? clerkMiddleware(async (auth, request) => {
+      const { isAuthenticated } = await auth();
+      return runMapableMiddleware(request, isAuthenticated);
+    })
+  : async function nextAuthOnlyMiddleware(request: NextRequest) {
+      return runMapableMiddleware(request, false);
+    };
+
+export default middleware;
 
 export const config = {
   matcher: [

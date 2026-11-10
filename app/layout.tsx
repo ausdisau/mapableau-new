@@ -117,6 +117,17 @@ async function resolveScriptNonce(): Promise<string | undefined> {
   return headerStore.get(CSP_NONCE_HEADER) ?? undefined;
 }
 
+/**
+ * Dual-run: only mount Clerk when keys exist so CI/preview without secrets
+ * keep NextAuth-only auth surfaces.
+ */
+function OptionalClerkProvider({ children }: { children: React.ReactNode }) {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) {
+    return children;
+  }
+  return <ClerkProvider>{children}</ClerkProvider>;
+}
+
 export default async function RootLayout({
   children,
 }: {
@@ -145,7 +156,7 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className={plusJakarta.className}>
-        <ClerkProvider>
+        <OptionalClerkProvider>
           <JsonLd
             nonce={scriptNonce}
             data={[publicJsonLd.organization, publicJsonLd.website]}
@@ -156,7 +167,7 @@ export default async function RootLayout({
           <GoogleAdSense />
           {/* Speed Insights only on Vercel; local/CI production servers have no SI endpoint. */}
           {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
-        </ClerkProvider>
+        </OptionalClerkProvider>
       </body>
     </html>
   );

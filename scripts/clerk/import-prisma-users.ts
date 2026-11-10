@@ -104,13 +104,17 @@ async function main() {
           : {}),
       };
 
+      const emailDomain = email.includes("@")
+        ? email.slice(email.indexOf("@") + 1)
+        : "unknown";
+
       if (!APPLY) {
         console.log(
           JSON.stringify({
             action: "would-create",
             externalId: user.id,
-            email,
-            hasPasswordDigest: Boolean(passwordHash),
+            emailDomain,
+            passwordImport: Boolean(passwordHash) ? "digest" : "none",
           }),
         );
         skipped += 1;
@@ -125,7 +129,7 @@ async function main() {
             action: "created",
             clerkUserId: createdUser.id,
             externalId: user.id,
-            email,
+            emailDomain,
           }),
         );
       } catch (error) {
@@ -136,7 +140,7 @@ async function main() {
           JSON.stringify({
             action: "failed",
             externalId: user.id,
-            email,
+            emailDomain,
             message,
           }),
         );
