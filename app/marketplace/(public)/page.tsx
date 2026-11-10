@@ -25,6 +25,7 @@ export default function MarketplaceProgrammePage() {
         "Signed-in shop prototypes only when MAPABLE_MARKETPLACE_ENABLED is on (pilot).",
       ]}
       comingSoon={[
+        "CripSquare community, MapAble Day and Cross-service Challenges integrations (review only).",
         "Browseable catalogue with accessibility attributes and community reviews.",
         "NDIS support-item metadata and plan-manager friendly invoices.",
         "Verified vendor listings without pay-to-rank placement.",
@@ -32,8 +33,8 @@ export default function MarketplaceProgrammePage() {
       safetyNote="MapAble will not claim products are automatically NDIS-funded. Pricing, registration status and suitability must stay accurate — marketplace commerce remains pilot-gated until readiness criteria pass."
       primaryCta={{ label: "Join pilot", href: "/contact" }}
       secondaryCta={{
-        label: "Explore accessible places",
-        href: "/accessibility-map",
+        label: "Explore connected MapAble services",
+        href: "/ecosystem",
       }}
     />
   );
