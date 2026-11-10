@@ -5,57 +5,63 @@ import { TrustStrip } from "@/components/marketing/home/TrustStrip";
 import { ArrowIcon } from "@/components/marketing/mapable-care-icons";
 import { WavyText } from "@/components/marketing/MapAbleCareTypography";
 import {
+  marketingGhostCtaClass,
+  marketingOnDarkSolidCtaClass,
+} from "@/lib/marketing/brand-palette";
+import {
   homepageHeroCopy,
   homepageHeroCtas,
 } from "@/lib/marketing/mapable-care-combined-data";
-import { Button, Eyebrow } from "@mapable/ui";
 
-const ctaVariants = ["brandYellow", "brand", "brandOutline"] as const;
-
+/**
+ * PDA-inspired full-bleed hero: atmospheric plane, white type on dark overlay,
+ * solid + ghost dual CTAs. MapAble palette (navy/orange/violet) — not PDA purple.
+ */
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-[#F6FBFC]">
+    <section className="marketing-pda-hero relative overflow-hidden text-white">
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(248,197,28,0.32),_transparent_52%),radial-gradient(ellipse_at_bottom_left,_rgba(0,91,127,0.22),_transparent_48%)]"
+        className="absolute inset-0 bg-[#0C1833]"
       />
       <div
         aria-hidden="true"
-        className="absolute right-[-10rem] top-[-6rem] h-[28rem] w-[28rem] animate-[pulse_9s_ease-in-out_infinite] rounded-full bg-[#F8C51C]/22 blur-3xl motion-reduce:animate-none motion-reduce:blur-none"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_20%,_rgba(59,91,219,0.55),_transparent_55%),radial-gradient(ellipse_at_15%_80%,_rgba(139,77,255,0.32),_transparent_50%),radial-gradient(ellipse_at_85%_75%,_rgba(242,106,33,0.28),_transparent_45%)]"
       />
       <div
         aria-hidden="true"
-        className="absolute bottom-[-12rem] left-[-8rem] h-[30rem] w-[30rem] animate-[pulse_11s_ease-in-out_infinite] rounded-full bg-[#005B7F]/16 blur-3xl motion-reduce:animate-none motion-reduce:blur-none"
+        className="absolute inset-0 bg-gradient-to-t from-[#0C1833] via-[#0C1833]/55 to-transparent"
       />
-      <div className="relative mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-24">
-        <Eyebrow className="mb-4 border-none bg-transparent px-0 text-sm tracking-[0.18em]">
+      <div className="relative mx-auto flex min-h-[28rem] max-w-7xl flex-col justify-end px-5 pb-14 pt-20 sm:min-h-[32rem] lg:min-h-[36rem] lg:px-8 lg:pb-16 lg:pt-24">
+        <p className="mb-4 text-sm font-black uppercase tracking-[0.18em] text-[#F26A21]">
           MapAble Australia
-        </Eyebrow>
-        <h1
-          aria-label={homepageHeroCopy.headline}
-          className="max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-[#0C1833] md:text-6xl lg:text-7xl"
-        >
+        </p>
+        <h1 className="mapable-display max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-white md:text-6xl lg:text-7xl">
+          <span className="sr-only">{homepageHeroCopy.headline}</span>
           <WavyText text={homepageHeroCopy.headline} />
         </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+        <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85">
           {homepageHeroCopy.subheading}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           {homepageHeroCtas.map((cta, index) => (
-            <Button
+            <Link
               key={cta.href}
-              variant={ctaVariants[index] ?? "brandOutline"}
-              size="lg"
-              asChild
+              href={cta.href}
+              className={`${
+                index === 0
+                  ? marketingOnDarkSolidCtaClass
+                  : marketingGhostCtaClass
+              } gap-2 px-7 text-base`}
             >
-              <Link href={cta.href}>
-                {cta.label}
-                {index === 0 ? <ArrowIcon /> : null}
-              </Link>
-            </Button>
+              {cta.label}
+              {index === 0 ? <ArrowIcon /> : null}
+            </Link>
           ))}
         </div>
-        <TrustStrip />
+        <div className="mt-8 border-t border-white/15 pt-6">
+          <TrustStrip tone="onDark" />
+        </div>
       </div>
     </section>
   );

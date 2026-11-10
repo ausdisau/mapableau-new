@@ -140,15 +140,15 @@ export function PreRegistrationSection() {
     <section
       id="pre-register"
       aria-labelledby="pre-register-heading"
-      className="relative overflow-hidden border-y border-slate-200 bg-[#F6FBFC]"
+      className="relative overflow-hidden border-y border-slate-200 bg-[#F7F8FC]"
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 top-0 h-64 w-64 rounded-full bg-[#005B7F]/10 blur-3xl motion-reduce:blur-none"
+        className="pointer-events-none absolute -right-24 top-0 h-64 w-64 rounded-full bg-[#F26A21]/10 blur-3xl motion-reduce:blur-none"
       />
       <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:px-8 lg:py-16">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
             Early access
           </p>
           <h2
@@ -164,13 +164,13 @@ export function PreRegistrationSection() {
           </p>
           <ul className="mt-6 space-y-3 text-sm font-semibold text-slate-700">
             <li className="flex gap-2">
-              <span className="text-[#005B7F]" aria-hidden="true">
+              <span className="text-[#3B5BDB]" aria-hidden="true">
                 •
               </span>
               Participants and carers: accessibility maps and support discovery
             </li>
             <li className="flex gap-2">
-              <span className="text-[#005B7F]" aria-hidden="true">
+              <span className="text-[#3B5BDB]" aria-hidden="true">
                 •
               </span>
               Providers: list interest for verified access-ready profiles
@@ -182,7 +182,7 @@ export function PreRegistrationSection() {
           {status === "success" ? (
             <div
               role="status"
-              className="rounded-2xl border border-[#00A979]/30 bg-[#00A979]/10 p-5 text-sm leading-6 text-[#0C1833]"
+              className="rounded-2xl border border-[#8B4DFF]/30 bg-[#8B4DFF]/10 p-5 text-sm leading-6 text-[#0C1833]"
             >
               <p className="font-black">You are on the list</p>
               <p className="mt-2">{successMessage}</p>
@@ -219,8 +219,8 @@ export function PreRegistrationSection() {
                         htmlFor={inputId}
                         className={`flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border-2 px-4 text-center text-sm font-black transition ${
                           selected
-                            ? "border-[#005B7F] bg-[#005B7F] text-white"
-                            : "border-slate-200 bg-[#F6FBFC] text-[#0C1833] hover:border-[#005B7F]/40"
+                            ? "border-[#3B5BDB] bg-[#F26A21] text-[#0C1833]"
+                            : "border-slate-200 bg-[#F7F8FC] text-[#0C1833] hover:border-[#3B5BDB]/40"
                         } ${mapableCareFocusRing}`}
                       >
                         <input
@@ -350,7 +350,7 @@ export function PreRegistrationSection() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className={`inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#005B7F] px-5 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] disabled:opacity-60 sm:w-auto ${mapableCareFocusRing}`}
+                className={`inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#F26A21] px-5 text-sm font-black text-[#0C1833] shadow-sm transition hover:bg-[#FF8140] disabled:opacity-60 sm:w-auto ${mapableCareFocusRing}`}
               >
                 {status === "loading" ? "Submitting…" : "Pre-register interest"}
               </button>

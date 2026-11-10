@@ -74,7 +74,7 @@ export default function ContactPage() {
 
           <aside className="space-y-5">
             <article
-              className={`${mapablePublicMutedCardClass} border-[#005B7F]/15`}
+              className={`${mapablePublicMutedCardClass} border-[#3B5BDB]/15`}
             >
               <p className={mapablePublicSectionTitleClass}>Before you send</p>
               <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-700">

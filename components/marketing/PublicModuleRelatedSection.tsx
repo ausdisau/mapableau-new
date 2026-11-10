@@ -25,7 +25,7 @@ export function PublicModuleRelatedSection() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#005B7F] transition hover:border-[#005B7F]/30 hover:bg-[#F6FBFC] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#3B5BDB] transition hover:border-[#3B5BDB]/30 hover:bg-[#F7F8FC] focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
             >
               {item.label}
             </Link>

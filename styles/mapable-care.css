@@ -6,6 +6,28 @@
 
 .mapable-soft {
   font-family: "Trebuchet MS", ui-rounded, system-ui, sans-serif;
+  /* Marketing-only logo palette — app/dashboard tokens stay teal/gold */
+  --mapable-mkt-navy: #0c1833;
+  --mapable-mkt-orange: #f26a21;
+  --mapable-mkt-orange-dark: #d45512;
+  --mapable-mkt-royal: #3b5bdb;
+  --mapable-mkt-violet: #8b4dff;
+  --mapable-mkt-surface: #f7f8fc;
+  --mapable-mkt-gradient: linear-gradient(
+    135deg,
+    #3b5bdb 0%,
+    #8b4dff 50%,
+    #f26a21 100%
+  );
+}
+
+/* PDA-inspired hero atmosphere — MapAble colours only */
+.marketing-pda-hero {
+  isolation: isolate;
+}
+
+.marketing-pda-hero h1 .mapable-wavy-word {
+  text-shadow: 0 1px 0 rgba(12, 24, 51, 0.25);
 }
 
 .mapable-wavy-word {
@@ -16,19 +38,25 @@
   transform-origin: 50% 80%;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .mapable-wavy-word {
+    transform: none;
+  }
+}
+
 /* MapAble Transport public landing — atmospheric hero + motion */
 .transport-public-hero-visual {
   background-color: #0c1833;
   background-image:
-    radial-gradient(ellipse 80% 55% at 70% 20%, rgba(0, 91, 127, 0.55), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 15% 80%, rgba(0, 169, 121, 0.28), transparent 50%),
-    linear-gradient(160deg, #0c1833 0%, #005b7f 48%, #0c1833 100%),
+    radial-gradient(ellipse 80% 55% at 70% 20%, rgba(59, 91, 219, 0.55), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 15% 80%, rgba(139, 77, 255, 0.28), transparent 50%),
+    linear-gradient(160deg, #0c1833 0%, #3b5bdb 48%, #0c1833 100%),
     repeating-linear-gradient(
       105deg,
       transparent 0,
       transparent 46px,
-      rgba(248, 197, 28, 0.06) 46px,
-      rgba(248, 197, 28, 0.06) 48px
+      rgba(242, 106, 33, 0.08) 46px,
+      rgba(242, 106, 33, 0.08) 48px
     );
   background-size: 100% 100%, 100% 100%, 100% 100%, 120% 120%;
   animation: transport-public-drift 28s ease-in-out infinite alternate;
@@ -57,7 +85,7 @@
 
 .transport-public-cta-presence:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(0, 91, 127, 0.28);
+  box-shadow: 0 10px 24px rgba(242, 106, 33, 0.28);
 }
 
 .transport-public-cta-presence:focus-visible {

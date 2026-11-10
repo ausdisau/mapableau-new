@@ -29,7 +29,7 @@ export function AccessGuidesSection({
   return (
     <section
       id={id}
-      className="border-b border-slate-200 bg-[#F6FBFC]"
+      className="border-b border-slate-200 bg-[#F7F8FC]"
       aria-labelledby={`${id}-heading`}
     >
       <div className={`${mapablePublicPageContainerClass} py-12 lg:py-16`}>
@@ -57,20 +57,20 @@ export function AccessGuidesSection({
           <a
             href={accessGuideDownloads.docx}
             download
-            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#0C1833] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             Download Word (.docx)
           </a>
           <a
             href={accessGuideDownloads.rolloutMatrix}
             download
-            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#0C1833] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             Rollout matrix (CSV)
           </a>
           <Link
             href="/guides"
-            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#005B7F] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-[#0C1833] transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           >
             Browse all guides
           </Link>
@@ -84,9 +84,9 @@ export function AccessGuidesSection({
             <Link
               key={guide.href}
               href={guide.href}
-              className={`${mapablePublicCardClass} block transition hover:border-[#005B7F]/30 hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40`}
+              className={`${mapablePublicCardClass} block transition hover:border-[#0C1833]/30 hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40`}
             >
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#005B7F]">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0C1833]">
                 {guide.state}
               </p>
               <h4 className="mt-2 text-lg font-black text-[#0C1833]">

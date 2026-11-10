@@ -9,7 +9,7 @@ export function HomepageProofStrip() {
       className="border-y border-slate-200 bg-white"
     >
       <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
-        <h2 id="proof-strip-heading" className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+        <h2 id="proof-strip-heading" className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
           Honest progress signals
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-600">
@@ -19,7 +19,7 @@ export function HomepageProofStrip() {
           {homepageProofMetrics.map((metric) => (
             <li
               key={metric.label}
-              className="rounded-[1.4rem] border border-slate-200 bg-[#F6FBFC] p-5"
+              className="rounded-[1.4rem] border border-slate-200 bg-[#F7F8FC] p-5"
             >
               <p className="text-2xl font-black tracking-[-0.03em] text-[#0C1833]">
                 {metric.value}

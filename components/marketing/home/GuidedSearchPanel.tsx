@@ -41,7 +41,7 @@ export function GuidedSearchPanel() {
       className="border-y border-slate-200 bg-white"
     >
       <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
           {guidedSearchPanelCopy.eyebrow}
         </p>
         <h2
@@ -64,8 +64,8 @@ export function GuidedSearchPanel() {
           <label htmlFor={inputId} className="text-sm font-black text-[#0C1833]">
             {guidedSearchPanelCopy.inputLabel}
           </label>
-          <div className="mt-2 flex min-h-12 items-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-3 shadow-sm transition focus-within:border-[#005B7F] focus-within:ring-4 focus-within:ring-[#F8C51C]/30">
-            <span className="text-[#005B7F]">
+          <div className="mt-2 flex min-h-12 items-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-3 shadow-sm transition focus-within:border-[#3B5BDB] focus-within:ring-4 focus-within:ring-[#F26A21]/30">
+            <span className="text-[#3B5BDB]">
               <SearchIcon />
             </span>
             <input
@@ -81,13 +81,13 @@ export function GuidedSearchPanel() {
             />
             <button
               type="submit"
-              className={`min-h-11 rounded-xl bg-[#005B7F] px-4 py-2 text-sm font-black text-white transition hover:bg-[#004766] ${mapableCareFocusRing}`}
+              className={`min-h-11 rounded-xl bg-[#F26A21] px-4 py-2 text-sm font-black text-[#0C1833] transition hover:bg-[#FF8140] ${mapableCareFocusRing}`}
             >
               {guidedSearchPanelCopy.submitLabel}
             </button>
           </div>
           {statusHint ? (
-            <p role="status" className="mt-2 text-sm font-semibold text-[#005B7F]">
+            <p role="status" className="mt-2 text-sm font-semibold text-[#3B5BDB]">
               {statusHint}
             </p>
           ) : null}
@@ -106,7 +106,7 @@ export function GuidedSearchPanel() {
                 setQuery(chip.prefill);
                 handleLaunch(chip.prefill, chip.label);
               }}
-              className={`min-h-11 rounded-full border border-slate-200 bg-[#F6FBFC] px-4 py-3 text-sm font-black text-[#005B7F] transition hover:bg-[#F8C51C]/20 ${mapableCareFocusRing}`}
+              className={`min-h-11 rounded-full border border-slate-200 bg-[#F7F8FC] px-4 py-3 text-sm font-black text-[#3B5BDB] transition hover:bg-[#F26A21]/20 ${mapableCareFocusRing}`}
             >
               {chip.label}
             </button>
@@ -125,11 +125,11 @@ export function GuidedSearchPanel() {
               {pathwayPreviewSteps.map((step, index) => (
                 <li
                   key={step}
-                  className="flex min-h-11 items-center gap-3 rounded-2xl border border-slate-200 bg-[#F6FBFC] px-4 py-3 text-sm font-bold text-[#0C1833]"
+                  className="flex min-h-11 items-center gap-3 rounded-2xl border border-slate-200 bg-[#F7F8FC] px-4 py-3 text-sm font-bold text-[#0C1833]"
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#005B7F] text-xs font-black text-white"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F26A21] text-xs font-black text-[#0C1833]"
                   >
                     {index + 1}
                   </span>
@@ -140,16 +140,16 @@ export function GuidedSearchPanel() {
             <button
               type="button"
               onClick={() => handleLaunch(query)}
-              className={`mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#005B7F] px-6 py-4 text-base font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`}
+              className={`mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#F26A21] px-6 py-4 text-base font-black text-[#0C1833] shadow-sm transition hover:bg-[#FF8140] ${mapableCareFocusRing}`}
             >
               {guidedSearchPanelCopy.ctaLabel}
             </button>
           </div>
 
           {chatMode ? (
-            <div className="rounded-[1.5rem] border border-slate-200 bg-[#F6FBFC] p-4">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-[#F7F8FC] p-4">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#005B7F]">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#3B5BDB]">
                   Guided search
                 </p>
                 <button
@@ -172,7 +172,7 @@ export function GuidedSearchPanel() {
               />
             </div>
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-[#F6FBFC] p-6 text-sm leading-7 text-slate-600">
+            <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-[#F7F8FC] p-6 text-sm leading-7 text-slate-600">
               {guidedSearchPanelCopy.previewHint}
             </div>
           )}
