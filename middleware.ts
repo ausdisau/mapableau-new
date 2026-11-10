@@ -10,6 +10,11 @@ import {
 } from "@/lib/community/mapable-peers/peer-middleware";
 import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
 import {
+  isAccessiMartHost,
+  accessiMartRewritePath,
+} from "@/lib/marketplace/accessimart-host-routing";
+import { isSignalHost, signalRewritePath } from "@/lib/signal/host-routing";
+import {
   CSP_ENFORCE_HEADER,
   createScriptNonce,
   isCspPreviewEnforceEnabled,
@@ -198,6 +203,52 @@ export default async function middleware(request: NextRequest) {
     )
   ) {
     const rewritePath = labsRewritePath(request.nextUrl.pathname);
+    if (rewritePath) {
+      const url = request.nextUrl.clone();
+      url.pathname = rewritePath;
+      const response = NextResponse.rewrite(url, {
+        request: { headers: requestHeaders },
+      });
+      return withCorrelationAndCsp(
+        response,
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
+  }
+
+  // signal.mapable.com.au → /signal (Community Mapping Challenges / Signal Sites)
+  if (
+    isSignalHost(
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+    )
+  ) {
+    const rewritePath = signalRewritePath(request.nextUrl.pathname);
+    if (rewritePath) {
+      const url = request.nextUrl.clone();
+      url.pathname = rewritePath;
+      const response = NextResponse.rewrite(url, {
+        request: { headers: requestHeaders },
+      });
+      return withCorrelationAndCsp(
+        response,
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
+  }
+
+  // accessimart.mapable.com.au → /marketplace (public programme only)
+  if (
+    isAccessiMartHost(
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+    )
+  ) {
+    const rewritePath = accessiMartRewritePath(request.nextUrl.pathname);
     if (rewritePath) {
       const url = request.nextUrl.clone();
       url.pathname = rewritePath;
