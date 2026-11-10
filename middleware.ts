@@ -1,8 +1,9 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
+import { shouldTrustClerkSessionAsAuth } from "@/lib/auth/clerk-dual-run";
 import { resolveNextAuthSecret } from "@/lib/auth/nextauth-env";
 import {
   handlePeerPeersHost,
@@ -261,7 +262,9 @@ function isClerkConfigured(): boolean {
 const middleware = isClerkConfigured()
   ? clerkMiddleware(async (auth, request) => {
       const { isAuthenticated } = await auth();
-      return runMapableMiddleware(request, isAuthenticated);
+      const clerkTrusted =
+        isAuthenticated && shouldTrustClerkSessionAsAuth();
+      return runMapableMiddleware(request, clerkTrusted);
     })
   : async function nextAuthOnlyMiddleware(request: NextRequest) {
       return runMapableMiddleware(request, false);

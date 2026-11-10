@@ -3,6 +3,7 @@ import { auth, currentUser as currentClerkUser } from "@clerk/nextjs/server";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { shouldTrustClerkSessionAsAuth } from "@/lib/auth/clerk-dual-run";
 import { agentLog } from "@/lib/debug/agent-log";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/mapable";
@@ -53,7 +54,7 @@ function toCurrentUser(
  * `external_id` (legacy NextAuth / Prisma `User.id`). Fall back to NextAuth.
  */
 async function getCurrentUserFromClerk(): Promise<CurrentUser | null> {
-  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) {
+  if (!shouldTrustClerkSessionAsAuth()) {
     return null;
   }
 

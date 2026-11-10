@@ -42,6 +42,10 @@ function splitName(name: string): { firstName?: string; lastName?: string } {
 async function main() {
   const prisma = new PrismaClient();
   const clerk = createClerkClient({ secretKey: requireSecretKey() });
+  // Dual-run: do not copy password digests while Twilio Verify is MFA.
+  // Importing bcrypt into Clerk would let password-only Clerk sign-in skip SMS.
+  const twilio2faEnabled = process.env.TWILIO_2FA_ENABLED === "true";
+  const importPasswordDigests = !twilio2faEnabled;
 
   try {
     const users = await prisma.user.findMany({
@@ -64,8 +68,9 @@ async function main() {
         {
           mode: APPLY ? "apply" : "dry-run",
           candidateCount: users.length,
-          passwordHasher: "bcrypt",
+          passwordHasher: importPasswordDigests ? "bcrypt" : "skipped-twilio-2fa",
           externalIdStrategy: "prisma.user.id",
+          twilio2faEnabled,
         },
         null,
         2,
@@ -91,7 +96,7 @@ async function main() {
           mapablePrimaryRole: user.primaryRole,
           migratedFrom: "next-auth",
         },
-        ...(passwordHash
+        ...(passwordHash && importPasswordDigests
           ? {
               passwordDigest: passwordHash,
               passwordHasher: "bcrypt" as const,
@@ -114,7 +119,12 @@ async function main() {
             action: "would-create",
             externalId: user.id,
             emailDomain,
-            passwordImport: Boolean(passwordHash) ? "digest" : "none",
+            passwordImport:
+              passwordHash && importPasswordDigests
+                ? "digest"
+                : passwordHash && twilio2faEnabled
+                  ? "skipped-twilio-2fa"
+                  : "none",
           }),
         );
         skipped += 1;
