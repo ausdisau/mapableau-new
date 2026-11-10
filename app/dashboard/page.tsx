@@ -2,12 +2,17 @@ import Link from "next/link";
 
 import { MyDayAiAssistedPanel } from "@/components/dashboard/MyDayAiAssistedPanel";
 import { MyDayProgrammaticPanel } from "@/components/dashboard/MyDayProgrammaticPanel";
+import { DayChangesPanel } from "@/components/day/DayChangesPanel";
+import { DayContinuityDemo } from "@/components/day/DayContinuityDemo";
+import { DayHandoverDemo } from "@/components/day/DayHandoverDemo";
+import { DayRoutinesDemo } from "@/components/day/DayRoutinesDemo";
+import { getMapAbleIntelligenceConfig } from "@/intelligence/config";
 import { adaptParticipantDashboard } from "@/lib/access/adaptive";
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
+import { mapableDayFlags } from "@/lib/config/mapable-day";
 import { participantWorkspaceFlags } from "@/lib/config/participant-workspace";
 import { loadProgrammaticMyDay } from "@/lib/dashboard/load-my-day";
-import { getMapAbleIntelligenceConfig } from "@/intelligence/config";
 
 export const metadata = { title: "My Day | MapAble" };
 
@@ -17,6 +22,10 @@ export default async function DashboardPage() {
   const presentation = adaptParticipantDashboard({ profile: null });
   const careOsEnabled = getMapAbleIntelligenceConfig().enabled;
   const aiEnabled = participantWorkspaceFlags.aiAssistedViewEnabled();
+  const dayV2 = mapableDayFlags.v2Enabled();
+  const routinesDemo = mapableDayFlags.routinesDemoEnabled();
+  const handoverDemo = mapableDayFlags.handoverDemoEnabled();
+  const continuityDemo = mapableDayFlags.continuityDemoEnabled();
 
   const densityClass =
     presentation.applied &&
@@ -30,6 +39,7 @@ export default async function DashboardPage() {
       data-adapt-runtime={presentation.applied ? "on" : "off"}
       data-adapt-variant={presentation.policy?.componentVariant ?? "default"}
       data-testid="participant-my-day-page"
+      data-day-v2={dayV2 ? "on" : "off"}
     >
       <header className="space-y-2">
         <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#005B7F]">
@@ -46,6 +56,12 @@ export default async function DashboardPage() {
       </header>
 
       <MyDayProgrammaticPanel snapshot={snapshot} />
+
+      {dayV2 ? <DayChangesPanel snapshot={snapshot} /> : null}
+
+      {routinesDemo ? <DayRoutinesDemo /> : null}
+      {continuityDemo ? <DayContinuityDemo /> : null}
+      {handoverDemo ? <DayHandoverDemo /> : null}
 
       <MyDayAiAssistedPanel
         enabled={aiEnabled}
