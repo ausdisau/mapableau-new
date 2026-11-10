@@ -9,6 +9,7 @@ import {
   shouldRunAuthMiddleware,
 } from "@/lib/community/mapable-peers/peer-middleware";
 import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
+import { matchProgrammeSubdomainRewrite } from "@/lib/platform/mapable-subdomain-registry";
 import {
   CSP_ENFORCE_HEADER,
   createScriptNonce,
@@ -211,6 +212,27 @@ export default async function middleware(request: NextRequest) {
         embedRoute,
       );
     }
+  }
+
+  // Programme subdomains: signal, accessimart, marketplace, ecosystem,
+  // care, transport, employment → path prefixes (Labs-style). Peers/Labs above.
+  const programmeRewrite = matchProgrammeSubdomainRewrite(
+    request.headers.get("x-forwarded-host"),
+    request.headers.get("host"),
+    request.nextUrl.pathname,
+  );
+  if (programmeRewrite) {
+    const url = request.nextUrl.clone();
+    url.pathname = programmeRewrite.rewritePath;
+    const response = NextResponse.rewrite(url, {
+      request: { headers: requestHeaders },
+    });
+    return withCorrelationAndCsp(
+      response,
+      correlationId,
+      enforcePolicy,
+      embedRoute,
+    );
   }
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {
