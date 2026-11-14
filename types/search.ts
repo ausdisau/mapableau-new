@@ -1,4 +1,22 @@
-export type AutocompleteContext = "homepage" | "provider_finder";
+export type AutocompleteContext =
+  | "homepage"
+  | "provider_finder"
+  | "booking"
+  | "transport_request"
+  | "care_request";
+
+/** Contexts that use Geoscape street-level address search (not suburb PAC). */
+export const BOOKING_ADDRESS_CONTEXTS: readonly AutocompleteContext[] = [
+  "booking",
+  "transport_request",
+  "care_request",
+] as const;
+
+export function isBookingAddressContext(
+  context: AutocompleteContext,
+): boolean {
+  return (BOOKING_ADDRESS_CONTEXTS as readonly string[]).includes(context);
+}
 
 export type AutocompleteSuggestionType =
   | "provider"
@@ -23,6 +41,10 @@ export type AutocompleteSuggestion = {
     state?: string;
     postcode?: string;
     providerId?: string;
+    /** Geoscape Predictive suggestion id (for resolve). */
+    gnafId?: string;
+    lat?: number;
+    lng?: number;
   };
 };
 
@@ -76,6 +98,9 @@ export type LocationSearchDiagnostics = {
   pacApiKeyLength?: number;
   /** Trimmed `AUSPOST_API_KEY` alias is non-empty. */
   auspostApiKeyAliasPresent?: boolean;
+  /** Geoscape Predictive street search availability (booking contexts). */
+  geoscapeConfigured?: boolean;
+  geoscapeStreetSearch?: boolean;
 };
 
 export type SuggestionResultMeta = {

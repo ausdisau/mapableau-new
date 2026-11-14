@@ -25,6 +25,7 @@ import {
 import {
   AUTOCOMPLETE_MAX_SUGGESTIONS,
   AUTOCOMPLETE_MIN_QUERY_LENGTH,
+  isBookingAddressContext,
 } from "@/types/search";
 import type {
   AutocompleteContext,
@@ -187,6 +188,49 @@ export async function searchPredictiveSuggestions(
     };
   }
 
+  // Booking street search: reactive location only; no proactive catalog / static suburb fallback.
+  if (isBookingAddressContext(context)) {
+    if (mode === "proactive" || (field !== "location" && field !== "all")) {
+      return {
+        groups: emptyGroups(),
+        meta: {
+          mode,
+          degraded: false,
+          sourceCounts: countSources(emptyGroups()),
+        },
+      };
+    }
+
+    const out = await safeAdapter("geoscape-street", () =>
+      searchLocations(q, limit, context),
+    );
+    const ranked = rankSuggestions({
+      suggestions: out.suggestions,
+      query: q,
+      mode: "reactive",
+      signals,
+    });
+    const groups = applyContextCaps(
+      splitIntoGroups(ranked, AUTOCOMPLETE_MAX_SUGGESTIONS),
+      context,
+      "location",
+      mode,
+    );
+    return {
+      groups,
+      meta: {
+        mode,
+        degraded: out.failed,
+        degradedReason: out.failed ? "partial_adapter_failure" : undefined,
+        sourceCounts: countSources(groups),
+      },
+    };
+  }
+
+  // Suburb / provider-finder path only (booking contexts returned above).
+  const suburbContext: "homepage" | "provider_finder" =
+    context === "provider_finder" ? "provider_finder" : "homepage";
+
   let degraded = false;
   const degradedReasons: string[] = [];
 
@@ -220,7 +264,7 @@ export async function searchPredictiveSuggestions(
       if (out.failed) degraded = true;
     } else {
       const catalog = await listProactiveCatalog(
-        context,
+        suburbContext,
         AUTOCOMPLETE_MAX_SUGGESTIONS,
       );
       if (catalog.failed) {
@@ -297,7 +341,7 @@ export async function searchPredictiveSuggestions(
       ? safeAdapter("services", () => searchServiceCategories(q, limit))
       : Promise.resolve({ suggestions: [], failed: false }),
     shouldInclude(field, "location")
-      ? safeAdapter("locations", () => searchLocations(q, limit))
+      ? safeAdapter("locations", () => searchLocations(q, limit, context))
       : Promise.resolve({ suggestions: [], failed: false }),
     shouldInclude(field, "accessibility")
       ? safeAdapter("accessibility", () => searchAccessibilityFeatures(q, limit))
@@ -307,7 +351,11 @@ export async function searchPredictiveSuggestions(
       : Promise.resolve({ suggestions: [], failed: false }),
     field === "all"
       ? safeAdapter("popular", () =>
-          searchPopularSearches(q, context, context === "homepage" ? 3 : 2),
+          searchPopularSearches(
+            q,
+            suburbContext,
+            suburbContext === "homepage" ? 3 : 2,
+          ),
         )
       : Promise.resolve({ suggestions: [], failed: false }),
   ]);
