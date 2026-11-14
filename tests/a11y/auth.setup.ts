@@ -45,7 +45,12 @@ for (const role of roles) {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await page.locator("#login-email").fill(role.email);
     await page.locator("#login-password").fill(role.password);
-    await page.getByRole("button", { name: /sign in|log in/i }).click();
+    const passwordForm = page.locator("form").filter({
+      has: page.locator("#login-password"),
+    });
+    await passwordForm
+      .getByRole("button", { name: /sign in|log in/i })
+      .click();
 
     await page.waitForURL((url) => !url.pathname.startsWith("/login"), {
       timeout: 30_000,

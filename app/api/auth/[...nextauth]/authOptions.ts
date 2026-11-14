@@ -15,6 +15,12 @@ import {
   mergeUserIntoJwtToken,
 } from "@/lib/auth/nextauth-session";
 import { buildOAuthProviders } from "@/lib/auth/oauth-providers";
+import {
+  refreshWorkOSAuthKitToken,
+  WORKOS_AUTHKIT_PROVIDER_ID,
+  type WorkOSAuthKitProfile,
+} from "@/lib/auth/workos-authkit-provider";
+import { resolveAndLinkWorkOSIdentity } from "@/lib/auth/workos-identity";
 import { isTwilio2FAEnabled } from "@/lib/auth/twilio-verify";
 import { verifyTwoFactorToken } from "@/lib/auth/two-factor-token";
 import { agentLog } from "@/lib/debug/agent-log";
@@ -185,10 +191,31 @@ export const authOptions = {
       }
 
       try {
-        const dbUser = await ensureOAuthUser({
-          email,
-          name: user.name,
-        });
+        let dbUser: Awaited<ReturnType<typeof ensureOAuthUser>>;
+        if (account.provider === WORKOS_AUTHKIT_PROVIDER_ID) {
+          const workOSProfile = (
+            account as typeof account & { workos_profile?: unknown }
+          ).workos_profile as WorkOSAuthKitProfile | undefined;
+          if (
+            !workOSProfile?.email_verified ||
+            workOSProfile.id !== account.providerAccountId
+          ) {
+            console.error(
+              "[auth] WorkOS AuthKit rejected an unverified or mismatched identity",
+            );
+            return false;
+          }
+          dbUser = await resolveAndLinkWorkOSIdentity({
+            externalSubjectId: workOSProfile.id,
+            verifiedEmail: workOSProfile.email,
+            name: user.name,
+          });
+        } else {
+          dbUser = await ensureOAuthUser({
+            email,
+            name: user.name,
+          });
+        }
         user.id = dbUser.id;
         (user as { role?: string }).role = dbUser.primaryRole;
         return true;
@@ -197,7 +224,7 @@ export const authOptions = {
         return false;
       }
     },
-    jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user?.id) {
         mergeUserIntoJwtToken(token as Record<string, unknown>, {
           id: user.id,
@@ -214,6 +241,37 @@ export const authOptions = {
           nextAuthUrl: process.env.NEXTAUTH_URL ?? null,
         });
         // #endregion
+      }
+
+      if (account?.provider === WORKOS_AUTHKIT_PROVIDER_ID) {
+        token.workosAccessToken = account.access_token;
+        token.workosRefreshToken = account.refresh_token;
+        token.workosAccessTokenExpiresAt = account.expires_at
+          ? account.expires_at * 1_000
+          : Date.now() + 5 * 60 * 1_000;
+        delete token.workosTokenError;
+      }
+
+      if (
+        token.workosAccessToken &&
+        token.workosRefreshToken &&
+        typeof token.workosAccessTokenExpiresAt === "number" &&
+        token.workosAccessTokenExpiresAt <= Date.now() + 60_000
+      ) {
+        try {
+          const refreshed = await refreshWorkOSAuthKitToken(
+            token.workosRefreshToken,
+          );
+          token.workosAccessToken = refreshed.accessToken;
+          token.workosRefreshToken = refreshed.refreshToken;
+          token.workosAccessTokenExpiresAt =
+            refreshed.accessTokenExpiresAt ?? Date.now() + 5 * 60 * 1_000;
+          delete token.workosTokenError;
+        } catch (error) {
+          console.error("[auth] WorkOS AuthKit token refresh failed", error);
+          delete token.workosAccessToken;
+          token.workosTokenError = "refresh_failed";
+        }
       }
       return token as JWT;
     },

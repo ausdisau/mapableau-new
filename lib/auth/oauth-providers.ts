@@ -6,8 +6,13 @@ import GoogleProvider from "next-auth/providers/google";
 import type { Provider } from "next-auth/providers/index";
 
 import { getAppleClientSecret } from "@/lib/auth/apple-client-secret";
+import {
+  buildWorkOSAuthKitProvider,
+  isWorkOSAuthKitConfigured,
+} from "@/lib/auth/workos-authkit-provider";
 
 export type OAuthProviderFlags = {
+  workosAuthKit: boolean;
   auth0: boolean;
   google: boolean;
   microsoft: boolean;
@@ -90,6 +95,7 @@ function appleCredentialsPresent(): boolean {
 
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   return {
+    workosAuthKit: isWorkOSAuthKitConfigured(),
     auth0: Boolean(auth0ClientId() && auth0ClientSecret() && auth0Issuer()),
     google: Boolean(googleClientId() && googleClientSecret()),
     microsoft: envPresent("AZURE_AD_CLIENT_ID", "AZURE_AD_CLIENT_SECRET"),
@@ -102,6 +108,10 @@ export function getConfiguredOAuthProviders(): OAuthProviderFlags {
 export function buildOAuthProviders(): Provider[] {
   const providers: Provider[] = [];
   const flags = getConfiguredOAuthProviders();
+
+  if (flags.workosAuthKit) {
+    providers.push(buildWorkOSAuthKitProvider());
+  }
 
   if (flags.auth0) {
     providers.push(

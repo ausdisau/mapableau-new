@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function oauthProviderFlagsFromNextAuthProviders(
   const ids = new Set(providerIds);
 
   return {
+    workosAuthKit: ids.has("workos-authkit"),
     auth0: ids.has("auth0"),
     google: ids.has("google"),
     microsoft: ids.has("azure-ad"),
@@ -52,7 +54,13 @@ export function OAuthSignInButtons({
   const [runtimeProviders, setRuntimeProviders] =
     useState<OAuthProviderFlags>(providers);
   const [pending, setPending] = useState<
-    "auth0" | "google" | "microsoft" | "facebook" | "apple" | null
+    | "workos-authkit"
+    | "auth0"
+    | "google"
+    | "microsoft"
+    | "facebook"
+    | "apple"
+    | null
   >(null);
   const visibleProviders = publicOAuthProviderFlags(runtimeProviders);
 
@@ -85,6 +93,7 @@ export function OAuthSignInButtons({
   }, []);
 
   if (
+    !visibleProviders.workosAuthKit &&
     !visibleProviders.auth0 &&
     !visibleProviders.google &&
     !visibleProviders.microsoft &&
@@ -95,26 +104,62 @@ export function OAuthSignInButtons({
   }
 
   const startOAuth = (
-    provider: "auth0" | "google" | "azure-ad" | "facebook" | "apple",
+    provider:
+      | "workos-authkit"
+      | "auth0"
+      | "google"
+      | "azure-ad"
+      | "facebook"
+      | "apple",
   ) => {
-    setPending(
-      provider === "auth0"
-        ? "auth0"
-        : provider === "google"
-          ? "google"
-          : provider === "facebook"
-            ? "facebook"
-            : provider === "apple"
-              ? "apple"
-              : "microsoft",
+    setPending(provider === "azure-ad" ? "microsoft" : provider);
+    void signIn(
+      provider,
+      { callbackUrl },
+      provider === "workos-authkit"
+        ? { screen_hint: labelMode === "login" ? "sign-in" : "sign-up" }
+        : undefined,
     );
-    void signIn(provider, { callbackUrl });
   };
 
   const oauthButtonClass = "w-full justify-center";
 
   return (
-    <div className="flex flex-col gap-2">
+    <div
+      className="flex flex-col gap-2"
+      role="group"
+      aria-label="Secure account options"
+      aria-busy={pending !== null}
+    >
+      <span className="sr-only" aria-live="polite">
+        {pending ? "Opening secure sign-in…" : ""}
+      </span>
+      {visibleProviders.workosAuthKit ? (
+        <div className="flex flex-col gap-1.5">
+          <Button
+            type="button"
+            size="default"
+            className="w-full justify-center bg-[#075985] text-white hover:bg-[#0b4a6f] focus-visible:ring-[#075985]"
+            disabled={disabled || pending !== null}
+            loading={pending === "workos-authkit"}
+            aria-describedby="workos-authkit-help"
+            onClick={() => startOAuth("workos-authkit")}
+          >
+            <ShieldCheck aria-hidden="true" />
+            {pending === "workos-authkit"
+              ? "Opening secure sign-in…"
+              : labelMode === "login"
+                ? "Sign in securely with MapAble"
+                : "Create account securely with MapAble"}
+          </Button>
+          <p
+            id="workos-authkit-help"
+            className="px-1 text-center text-xs leading-relaxed text-muted-foreground"
+          >
+            Opens MapAble&apos;s secure sign-in page, powered by WorkOS.
+          </p>
+        </div>
+      ) : null}
       {visibleProviders.auth0 ? (
         <Button
           type="button"
