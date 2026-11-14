@@ -71,6 +71,7 @@ export function CareRequestWizard({
 }) {
   const router = useRouter();
   const sessionId = useMemo(() => newSessionId(), []);
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const [step, setStep] = useState<"describe" | "review">("describe");
   const [requestType, setRequestType] =
@@ -78,6 +79,13 @@ export function CareRequestWizard({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [timingPreference, setTimingPreference] =
+    useState<"specific" | "flexible">("specific");
+  const [preferredDate, setPreferredDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [recurrencePlaceholder, setRecurrencePlaceholder] = useState(false);
+  const [communicationNotes, setCommunicationNotes] = useState("");
   const [tasks, setTasks] = useState<CareIntakeTaskRow[]>([
     { name: "", intensity: "standard" },
   ]);
@@ -116,6 +124,27 @@ export function CareRequestWizard({
     if (trimmedDescription.length < 1) {
       setError("Please describe what support you need.");
       queueMicrotask(() => focusField("care-description"));
+      return;
+    }
+
+    if (timingPreference === "specific" && !preferredDate) {
+      setError("Choose the date you need support, or select flexible timing.");
+      queueMicrotask(() => focusField("care-preferred-date"));
+      return;
+    }
+    if (timingPreference === "specific" && !startTime) {
+      setError("Choose a start time, or select flexible timing.");
+      queueMicrotask(() => focusField("care-start-time"));
+      return;
+    }
+    if (
+      timingPreference === "specific" &&
+      endTime &&
+      startTime &&
+      endTime <= startTime
+    ) {
+      setError("Choose an end time that is later than the start time.");
+      queueMicrotask(() => focusField("care-end-time"));
       return;
     }
 
@@ -206,6 +235,16 @@ export function CareRequestWizard({
       requestType: draft.requestType,
       title: draft.title,
       description: draft.description,
+      preferredDate:
+        timingPreference === "specific" && preferredDate && startTime
+          ? new Date(`${preferredDate}T${startTime}`).toISOString()
+          : undefined,
+      startTime:
+        timingPreference === "specific" ? startTime || undefined : undefined,
+      endTime:
+        timingPreference === "specific" ? endTime || undefined : undefined,
+      recurrencePlaceholder,
+      communicationNotes: communicationNotes.trim() || undefined,
       address: address.trim() || undefined,
       linkedTransportRequired: draft.linkedTransportRequired,
       shareAccessibility: draft.shareAccessibility,
@@ -255,16 +294,47 @@ export function CareRequestWizard({
 
   if (step === "review" && transformOutput) {
     return (
-      <CarePlanDraftReview
-        output={transformOutput}
-        onBack={() => {
-          setStep("describe");
-          setError(null);
-        }}
-        onConfirm={() => void handleConfirmSave()}
-        confirming={confirming}
-        error={error}
-      />
+      <div className="space-y-4">
+        <section
+          aria-labelledby="booking-preferences-title"
+          className="rounded-xl border border-[#9CCFC0] bg-[#F1FAF7] p-4 sm:p-5"
+        >
+          <h2
+            id="booking-preferences-title"
+            className="font-heading text-lg font-bold text-[#0C1833]"
+          >
+            Your booking preferences
+          </h2>
+          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="font-medium text-[#0C1833]">Timing</dt>
+              <dd className="mt-1 text-muted-foreground">
+                {timingPreference === "specific"
+                  ? `${preferredDate} from ${startTime}${endTime ? ` to ${endTime}` : ""}`
+                  : "Flexible — discuss timing before confirmation"}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-[#0C1833]">Repeats</dt>
+              <dd className="mt-1 text-muted-foreground">
+                {recurrencePlaceholder
+                  ? "May repeat — the pattern still needs your agreement"
+                  : "One request"}
+              </dd>
+            </div>
+          </dl>
+        </section>
+        <CarePlanDraftReview
+          output={transformOutput}
+          onBack={() => {
+            setStep("describe");
+            setError(null);
+          }}
+          onConfirm={() => void handleConfirmSave()}
+          confirming={confirming}
+          error={error}
+        />
+      </div>
     );
   }
 
@@ -273,10 +343,10 @@ export function CareRequestWizard({
       {preferredProviderName ? (
         <AuthAlert variant="info">
           You are requesting care with a preference for{" "}
-          <strong>{preferredProviderName}</strong>. MapAble will use this when
-          matching and assigning your request
-          {preferredOrganisationId ? " to a verified provider on the platform" : ""}
-          .
+          <strong>{preferredProviderName}</strong>. MapAble will use this as a
+          preference
+          {preferredOrganisationId ? " with a verified provider on the platform" : ""}
+          . You can review any proposed provider before a booking is confirmed.
         </AuthAlert>
       ) : null}
 
@@ -414,6 +484,124 @@ export function CareRequestWizard({
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className={formInputClass}
+          disabled={loading}
+        />
+      </AccessibleFormField>
+
+      <fieldset
+        className="space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5"
+        disabled={loading}
+      >
+        <legend className="px-1 text-base font-semibold text-[#0C1833]">
+          When do you need support?
+        </legend>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border border-border/70 p-3 has-[:checked]:border-[#007A59] has-[:checked]:bg-[#F1FAF7]">
+            <input
+              type="radio"
+              name="care-timing"
+              value="specific"
+              checked={timingPreference === "specific"}
+              onChange={() => setTimingPreference("specific")}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-medium">I know the date and time</span>
+              <span className="mt-1 block text-sm text-muted-foreground">
+                Add a preferred date and start time.
+              </span>
+            </span>
+          </label>
+          <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border border-border/70 p-3 has-[:checked]:border-[#007A59] has-[:checked]:bg-[#F1FAF7]">
+            <input
+              type="radio"
+              name="care-timing"
+              value="flexible"
+              checked={timingPreference === "flexible"}
+              onChange={() => setTimingPreference("flexible")}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-medium">I want to discuss timing</span>
+              <span className="mt-1 block text-sm text-muted-foreground">
+                No time is agreed until you confirm it.
+              </span>
+            </span>
+          </label>
+        </div>
+
+        {timingPreference === "specific" ? (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <AccessibleFormField
+              id="care-preferred-date"
+              label="Preferred date"
+              required
+            >
+              <input
+                id="care-preferred-date"
+                type="date"
+                min={today}
+                value={preferredDate}
+                onChange={(e) => setPreferredDate(e.target.value)}
+                className={formInputClass}
+                required
+                disabled={loading}
+              />
+            </AccessibleFormField>
+            <AccessibleFormField
+              id="care-start-time"
+              label="Start time"
+              required
+            >
+              <input
+                id="care-start-time"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className={formInputClass}
+                required
+                disabled={loading}
+              />
+            </AccessibleFormField>
+            <AccessibleFormField id="care-end-time" label="End time (optional)">
+              <input
+                id="care-end-time"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className={formInputClass}
+                disabled={loading}
+              />
+            </AccessibleFormField>
+          </div>
+        ) : null}
+
+        <label className="flex min-h-12 items-start gap-3 rounded-lg bg-muted/30 p-3 text-sm">
+          <input
+            type="checkbox"
+            checked={recurrencePlaceholder}
+            onChange={(e) => setRecurrencePlaceholder(e.target.checked)}
+            className="mt-1"
+          />
+          <span>
+            This support may repeat. No repeating schedule will be created until
+            I agree to the pattern.
+          </span>
+        </label>
+      </fieldset>
+
+      <AccessibleFormField
+        id="care-communication-notes"
+        label="How should workers communicate with you? (optional)"
+        hint="For example: use plain language, allow extra response time, or text before calling. Share only what is needed for this support."
+      >
+        <textarea
+          id="care-communication-notes"
+          value={communicationNotes}
+          onChange={(e) => setCommunicationNotes(e.target.value)}
+          className={formInputClass}
+          rows={3}
+          maxLength={1000}
           disabled={loading}
         />
       </AccessibleFormField>
