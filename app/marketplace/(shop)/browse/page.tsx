@@ -42,8 +42,8 @@ export default async function MarketplaceBrowsePage({
           Explore an evidence-first Marketplace concept
         </h2>
         <p className="mt-2 text-sm text-[#0C1833]">
-          Compare six synthetic equipment examples, see seller statements and unknowns, and download
-          a local-only enquiry draft. This preview cannot create purchases, invoices or payments.
+          Explore six fictional equipment listings, see how seller statements and unknowns would
+          be displayed, and prepare a local-only enquiry outline. No seller contact, checkout or payment occurs.
         </p>
         <Link href="/marketplace/browse/evidence-preview"
           className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-[#073F97] px-4 py-2 font-semibold text-white hover:bg-[#042A6A] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[#073F97]">

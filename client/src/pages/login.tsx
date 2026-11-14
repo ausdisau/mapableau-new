@@ -163,8 +163,9 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {import.meta.env.DEV ? (
               <div className="mt-6 pt-4 border-t border-white/10">
-                <p className="text-[11px] text-white/40 text-center mb-3">Demo Accounts</p>
+                <p className="text-[11px] text-white/40 text-center mb-3">Development-only test identities</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -186,6 +187,7 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+              ) : null}
             </CardContent>
           </Card>
 

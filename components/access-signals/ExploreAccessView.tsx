@@ -55,7 +55,7 @@ export function ExploreAccessView() {
               Explore access along a route
             </h1>
             <p className="mt-1 text-slate-600">
-              Synthetic demo · Not a real place
+              Illustrative route data · Not for travel
             </p>
           </div>
           <span className="inline-flex min-h-9 items-center rounded-full bg-sky-100 px-3 py-1 text-sm font-bold text-sky-900">
@@ -104,10 +104,10 @@ export function ExploreAccessView() {
             List view
           </h2>
           <p className="text-sm text-slate-600">
-            Synthetic assessment · Not a real place
+            Fictional example · No verified access rating
           </p>
           {routes.length === 0 ? (
-            <p role="status">No demo routes match this search and focus.</p>
+            <p role="status">No illustrative routes match the selected search and focus.</p>
           ) : (
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">

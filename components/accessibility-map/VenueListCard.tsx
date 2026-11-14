@@ -34,7 +34,8 @@ export const VenueListCard = forwardRef<HTMLElement, VenueListCardProps>(
     { place, activeNeeds, isSelected = false, onShowOnMap, className },
     ref,
   ) {
-    const fit = calculateAccessFit(activeNeeds, place.profile);
+    const unassessed = place.isDemo || place.tier === "Unverified";
+    const fit = unassessed ? null : calculateAccessFit(activeNeeds, place.profile);
     const sourceKind = resolveAccessDataSourceKind({
       isDemo: place.isDemo,
       source: place.source,
@@ -61,18 +62,34 @@ export const VenueListCard = forwardRef<HTMLElement, VenueListCardProps>(
             </p>
           </div>
           <div className="space-y-2 text-right">
-            <p className="text-sm font-bold">
-              Access score {place.accessScore} · {place.tier}
-            </p>
-            <p className="text-xs text-slate-600">
-              Confidence: {place.confidence} · Last checked {place.lastChecked}
-            </p>
+            {unassessed ? (
+              <p className="text-sm font-bold text-amber-900">
+                Access status unknown — not independently assessed
+              </p>
+            ) : (
+              <>
+                <p className="text-sm font-bold">
+                  Access score {place.accessScore} · {place.tier}
+                </p>
+                <p className="text-xs text-slate-600">
+                  Confidence: {place.confidence} · Last checked {place.lastChecked}
+                </p>
+              </>
+            )}
             <AccessDataSourceMarker
               kind={sourceKind}
               className="ml-auto max-w-xs text-left"
             />
           </div>
         </div>
+        {unassessed ? (
+          <p className="mt-3 text-sm text-slate-700" role="note">
+            {place.isDemo
+              ? "This is a fictional example. No access features or route suitability have been verified."
+              : "This record comes from an imported source. Its accessibility features and current conditions have not been verified."}
+          </p>
+        ) : (
+          <>
         <ul className="mt-3 flex flex-wrap gap-2">
           {place.topAccessFacts.map((fact) => (
             <li
@@ -88,9 +105,13 @@ export const VenueListCard = forwardRef<HTMLElement, VenueListCardProps>(
             Key barrier: {place.keyBarrier}
           </p>
         ) : null}
-        <div className="mt-3">
-          <AccessFitBadge score={fit.score} label={fit.label} />
-        </div>
+        {fit ? (
+          <div className="mt-3">
+            <AccessFitBadge score={fit.score} label={fit.label} />
+          </div>
+        ) : null}
+          </>
+        )}
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
             href={`/accessibility-map/${place.slug}`}
@@ -98,7 +119,7 @@ export const VenueListCard = forwardRef<HTMLElement, VenueListCardProps>(
           >
             View access details
           </Link>
-          {place.hasFloorPlan ? (
+          {!unassessed && place.hasFloorPlan ? (
             <ViewFloorPlanButton
               venueId={place.id}
               venueName={place.name}
@@ -116,10 +137,10 @@ export const VenueListCard = forwardRef<HTMLElement, VenueListCardProps>(
             </button>
           ) : null}
           <Link
-            href={`/journey-planner?destination=${encodeURIComponent(place.name)}`}
+            href={unassessed ? "/journey-planner" : `/journey-planner?destination=${encodeURIComponent(place.name)}`}
             className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableInteractiveFocusRing}`}
           >
-            Plan trip
+            {unassessed ? "Explore journey planning" : "Plan trip"}
           </Link>
           <Link
             href={`/add-access-info?place=${encodeURIComponent(place.name)}`}

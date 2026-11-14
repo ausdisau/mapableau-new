@@ -26,8 +26,8 @@ export function HomepageMapPreview() {
             Know before you go, with practical filters.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-600">
-            Search by access needs that people actually use. List view works without map
-            scripts. Demo places are labelled until live coverage expands.
+            Explore the information that matters for an accessible journey. An equivalent
+            text list is available. These example places are fictional and have not been assessed.
           </p>
           <fieldset className="mt-6">
             <legend className="text-sm font-semibold text-[#0C1833]">Preview filters</legend>
@@ -51,9 +51,9 @@ export function HomepageMapPreview() {
         </div>
         <div className="rounded-[1.6rem] border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-800">
-            Demo data
+            Illustrative examples — not verified
           </p>
-          <ul className="mt-4 space-y-3" aria-label="Sample accessible places">
+          <ul className="mt-4 space-y-3" aria-label="Illustrative place examples">
             {previewPlaces.map((place) => (
               <li key={place.id} className="rounded-xl border border-slate-200 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -64,18 +64,19 @@ export function HomepageMapPreview() {
                     </p>
                   </div>
                   <p className="rounded-full bg-[#F6FBFC] px-3 py-1 text-xs font-bold text-[#005B7F]">
-                    {place.tier} · score {place.accessScore}
+                    Not assessed · example only
                   </p>
                 </div>
                 <p className="mt-2 text-sm text-slate-700">
-                  {place.topAccessFacts[0]}
-                  {place.keyBarrier ? ` · Barrier: ${place.keyBarrier}` : ""}
+                  Illustrative feature: {place.topAccessFacts[0]}.
+                  {place.keyBarrier ? ` Example barrier: ${place.keyBarrier}.` : ""}
+                  Do not rely on this entry for travel planning.
                 </p>
                 <Link
                   href={`/accessibility-map/${place.slug}`}
                   className={`mt-3 inline-flex min-h-11 items-center text-sm font-black text-[#005B7F] underline-offset-2 hover:underline ${mapableCareFocusRing}`}
                 >
-                  View access details
+                  Explore example details
                 </Link>
               </li>
             ))}

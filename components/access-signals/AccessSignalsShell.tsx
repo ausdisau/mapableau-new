@@ -44,7 +44,7 @@ export function AccessSignalsShell({
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="inline-flex min-h-9 items-center rounded-full bg-[#F97316] px-3 py-1 font-bold text-[#0C1833]">
-              Synthetic demo
+              Illustrative workspace
             </span>
             <span className="text-white/80">{ACCESS_SIGNALS_DEMO_DATE_LABEL}</span>
           </div>
@@ -82,13 +82,12 @@ export function AccessSignalsShell({
       <footer className="mt-12 border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl space-y-2 px-4 py-6 text-sm text-slate-600">
           <p role="note">
-            Synthetic demo only. Status is scoped to one route requirement and is
-            not an urgent-hazard claim. No real-place rating will be published
-            from this demo.
+            This workspace uses fictional route and feature information. It does not
+            assess real places, confirm urgent hazards or publish accessibility ratings.
           </p>
           <p>
-            Map features are illustrative — not directions for travel. Use the
-            text list as the accessible alternative to the map.
+            Map features are illustrative and cannot be used for travel directions.
+            Choose the equivalent text list if you prefer not to use the map.
           </p>
         </div>
       </footer>

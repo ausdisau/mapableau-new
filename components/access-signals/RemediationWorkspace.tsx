@@ -132,7 +132,7 @@ export function RemediationWorkspace() {
           </div>
           <p className="text-sm text-slate-600" role="status">
             Selected signal: {raguAnnouncement(selected.status)}. Planning only —
-            no work order is created in this demo.
+            no work order, funding request or real-world remediation is created here.
           </p>
         </section>
       </div>

@@ -14,11 +14,10 @@ export function InvoicePlaceholderCard({ careBookingId }: { careBookingId: strin
   return (
     <section className="rounded-xl border p-4" aria-labelledby="inv-heading">
       <h2 id="inv-heading" className="font-semibold">
-        Invoice (placeholder)
+        Draft billing reference — not an invoice
       </h2>
       <p className="text-sm text-muted-foreground">
-        Pricing is a placeholder until NDIS Pricing Intelligence is connected. Not NDIS
-        funding approval.
+        Pricing is not confirmed. A draft billing reference is not a tax invoice, payment request or NDIS funding approval.
       </p>
       {link ? (
         <p className="mt-2 text-sm">
@@ -44,7 +43,7 @@ export function InvoicePlaceholderCard({ careBookingId }: { careBookingId: strin
             setLink(d.invoiceLink);
           }}
         >
-          Generate invoice placeholder
+          Create draft billing reference
         </Button>
       )}
       {error ? (

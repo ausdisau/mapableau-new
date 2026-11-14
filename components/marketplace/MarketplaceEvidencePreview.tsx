@@ -165,7 +165,7 @@ export function MarketplaceEvidencePreview() {
           missing details and review requirements. Decide which details matter to you.
         </p>
         <p className="mt-4 rounded-xl border border-[#073F97]/20 bg-white p-3 text-sm font-semibold text-[#0C1833]" role="note">
-          Demonstration only. All listings, suppliers and prices are synthetic. No checkout, seller contact,
+          Illustrative catalogue only. All listings, suppliers and prices are fictional. No checkout, seller contact,
           NDIS approval or safety certification is provided.
         </p>
         <button type="button" className={"mt-4 " + buttonClass} aria-pressed={largeText}

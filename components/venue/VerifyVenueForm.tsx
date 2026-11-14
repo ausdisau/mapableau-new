@@ -38,7 +38,7 @@ export function VerifyVenueForm() {
           <ul className="mt-4 grid gap-4 md:grid-cols-3">
             <TierCard title="Bronze" body="Foundational access across core domains." />
             <TierCard title="Silver" body="Strong accessibility with fewer unknowns." />
-            <TierCard title="Gold" body="Best-practice universal access evidence." />
+            <TierCard title="Gold" body="Broader evidence across specified access criteria; never a universal-access guarantee." />
           </ul>
           <p className="mt-4 text-sm text-slate-600">
             Verification is not legal certification under the Disability Discrimination Act or
@@ -54,7 +54,8 @@ export function VerifyVenueForm() {
             setSubmitted(true);
           }}
         >
-          <h2 className="text-xl font-black">Venue intake form</h2>
+          <h2 className="text-xl font-black">Prepare an access-check enquiry</h2>
+          <p className="text-sm text-slate-700">This outline is not submitted or saved. Do not enter confidential personal details; use <a href="/contact" className="font-semibold text-[#005B7F] underline">Contact MapAble</a> for a real enquiry.</p>
           <Field id="venue-name" label="Venue name" required />
           <Field id="venue-type" label="Venue type" required />
           <Field id="venue-address" label="Address" required />
@@ -79,11 +80,11 @@ export function VerifyVenueForm() {
             type="submit"
             className={`inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-5 text-sm font-black text-white ${mapableCareFocusRing}`}
           >
-            Submit venue check request (demo)
+            Review this form locally — do not submit
           </button>
           {submitted ? (
             <p className="text-sm text-emerald-800" role="status">
-              Demo submission received. No venue data was sent to a backend.
+              Form checked on this screen only. No request was created, sent or saved.
             </p>
           ) : null}
         </form>
@@ -118,29 +119,28 @@ export function VerifyVenueForm() {
           className="rounded-2xl border border-slate-200 bg-[#F6FBFC] p-5"
         >
           <h2 id="output-preview-heading" className="text-2xl font-black">
-            Sample public accessibility page badge
+            Information needed before any public assessment
           </h2>
           <dl className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
             <div>
               <dt className="font-bold">Access score</dt>
-              <dd>78 (demo)</dd>
+              <dd>Not assessed</dd>
             </div>
             <div>
               <dt className="font-bold">Tier</dt>
-              <dd>Silver</dd>
+              <dd>Not awarded</dd>
             </div>
             <div>
               <dt className="font-bold">Assessed date</dt>
-              <dd>2026-06-01</dd>
+              <dd>Not recorded</dd>
             </div>
             <div>
               <dt className="font-bold">Next review date</dt>
-              <dd>2027-06-01</dd>
+              <dd>Not scheduled</dd>
             </div>
           </dl>
           <p className="mt-4 text-sm text-slate-700">
-            Exact details and improvement actions appear after assessment. Paid plans improve
-            tooling, not evidence-based trust scores.
+            A published rating requires an actual scoped assessment, evidence, participant-informed review and an approved reporting process. Payment cannot purchase a rating.
           </p>
         </section>
 

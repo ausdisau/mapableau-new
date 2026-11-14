@@ -290,7 +290,7 @@ function AccessibilityMapLandingLegacy({
             measurements, and transport/support options.
           </p>
           <p className="mt-3 text-sm font-semibold text-amber-900">
-            Places below include clearly labelled demo data while live coverage grows.
+            Places may include fictional examples and source-imported records that have not been independently verified. Confirm critical details before visiting.
           </p>
           {dataSourceNote ? (
             <p className="mt-2 text-sm text-slate-600" role="note">
@@ -411,7 +411,7 @@ function AccessibilityMapLandingLegacy({
                 onChange={(event) => setUseDemoNeeds(event.target.checked)}
                 aria-controls="access-needs-panel"
               />
-              Use demo wheelchair Access-Fit profile
+              Try an illustrative wheelchair Access-Fit profile
             </label>
             {!useDemoNeeds ? (
               <div id="access-needs-panel">
