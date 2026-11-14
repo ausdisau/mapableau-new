@@ -101,3 +101,4 @@ export {
   enrichAskMapAblePlan,
   buildAskMetaFromFilters,
 } from "./enrich";
+export { maybeBuildGoalPlanForAsk } from "./goal-plan";

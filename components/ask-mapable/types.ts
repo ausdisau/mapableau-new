@@ -1,3 +1,5 @@
+import type { GoalPlanDraft } from "@mapable/contracts";
+
 export type AskWidgetTab = "chat" | "actions" | "history";
 
 export type AskChatMessage = {
@@ -12,6 +14,7 @@ export type AskLocalSession = {
   title: string;
   updatedAt: string;
   messages: AskChatMessage[];
+  goalPlan?: GoalPlanDraft;
 };
 
 export const ASK_WIDGET_STORAGE = {

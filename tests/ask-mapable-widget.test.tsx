@@ -3,6 +3,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { buildGoalPlanDraft } from "@mapable/contracts";
+
 vi.mock("next-auth/react", () => ({
   useSession: () => ({
     status: "authenticated",
@@ -34,6 +36,7 @@ describe("AskMapAbleWidget", () => {
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
   });
 
   it("exposes an accessible launcher and opens the panel", async () => {
@@ -65,5 +68,74 @@ describe("AskMapAbleWidget", () => {
     await user.keyboard("{Escape}");
     expect(screen.queryByTestId("ask-mapable-panel")).toBeNull();
     expect(launcher.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("renders and stores the Goal Plan draft returned by Ask MapAble", async () => {
+    const user = userEvent.setup();
+    const goal =
+      "I want a part-time job at a library and transport to work independently";
+    const goalPlan = buildGoalPlanDraft(goal);
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+
+      if (url.includes("/api/mapable/crisis")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ intercepted: false }),
+        } as Response;
+      }
+
+      if (url.includes("/api/mapable/ask")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            source: "mapable-copilot",
+            intent: "combined",
+            confidence: 0.9,
+            summary: "MapAble understood your goal.",
+            answer: "Here is a draft Goal Plan for you to review.",
+            filters: {},
+            actions: [],
+            draftRecords: [],
+            requiredConfirmations: [],
+            warnings: [],
+            blockedActions: [],
+            goalPlan,
+          }),
+        } as Response;
+      }
+
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+      } as Response;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<AskMapAbleWidget />);
+    await user.click(screen.getByTestId("ask-mapable-launcher"));
+
+    await user.type(
+      screen.getByLabelText(/message ask mapable/i),
+      goal,
+    );
+    await user.click(screen.getByRole("button", { name: /^send$/i }));
+
+    expect(
+      await screen.findByRole("heading", { name: /my goal plan/i }),
+    ).toBeTruthy();
+
+    const stored = sessionStorage.getItem("mapable.askWidget.sessions");
+    expect(stored).toContain('"goalPlan"');
+    expect(stored).toContain("part-time job at a library");
   });
 });
