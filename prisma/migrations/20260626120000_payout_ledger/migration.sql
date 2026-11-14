@@ -1,4 +1,6 @@
 -- MapAble Stripe Connect payout ledger
+-- prisma-migrate-disable-transaction
+-- Required: PostgreSQL cannot use newly added enum values in the same transaction as ADD VALUE.
 
 -- CreateEnum
 CREATE TYPE "BillingPayoutStatus" AS ENUM ('none', 'paid_pending_service', 'service_completed', 'payout_pending', 'partially_paid_out', 'paid_out');
