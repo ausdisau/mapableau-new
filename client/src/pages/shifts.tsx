@@ -275,7 +275,7 @@ function AvailabilityEditor({ workerId }: { workerId: string }) {
   return (
     <>
     <Card className="overflow-hidden" data-testid="card-availability-editor">
-      <div className="bg-gradient-to-r from-[#14578F] to-[#1B6EB5] px-5 py-3">
+      <div className="bg-gradient-to-r from-[#004766] to-[#005B7F] px-5 py-3">
         <h3 className="font-bold text-sm text-white flex items-center gap-2">
           <Clock className="w-4 h-4" /> Weekly Availability
         </h3>
@@ -629,7 +629,7 @@ function NdisPlanPanel({ participantId }: { participantId: string }) {
 
   return (
     <Card className="overflow-hidden" data-testid="card-ndis-plan">
-      <div className="bg-gradient-to-r from-[#2EAA6E] to-[#25905D] px-5 py-3 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-[#00A979] to-[#25905D] px-5 py-3 flex items-center justify-between">
         <h3 className="font-bold text-sm text-white flex items-center gap-2">
           <Target className="w-4 h-4" /> NDIS Plan Goals
         </h3>
@@ -652,7 +652,7 @@ function NdisPlanPanel({ participantId }: { participantId: string }) {
             {(plan.goals as Array<{ id: string; name: string; category: string; budget: number }>).map((goal, i: number) => (
               <div key={i} className="flex items-center justify-between text-sm" data-testid={`ndis-goal-${i}`}>
                 <div className="flex items-center gap-2">
-                  <Target className="w-3 h-3 text-[#2EAA6E]" />
+                  <Target className="w-3 h-3 text-[#00A979]" />
                   <span className="font-medium">{goal.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -813,7 +813,7 @@ export default function ShiftsPage() {
 
           {upcomingShifts.length > 0 && (
             <Card className="overflow-hidden">
-              <div className="bg-gradient-to-r from-[#E6A817] to-[#D49A15] px-5 py-3">
+              <div className="bg-gradient-to-r from-[#F8C51C] to-[#D49A15] px-5 py-3">
                 <h3 className="font-bold text-sm text-white flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4" /> Upcoming Shifts
                 </h3>

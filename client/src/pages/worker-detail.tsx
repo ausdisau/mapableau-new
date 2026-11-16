@@ -78,7 +78,7 @@ function VerificationChecklist({ worker }: { worker: Worker & { user?: User } })
     <Card className="p-5" data-testid="card-verification-checklist">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-sm flex items-center gap-2">
-          <FileCheck className="w-4 h-4 text-[#2EAA6E]" /> Verification
+          <FileCheck className="w-4 h-4 text-[#00A979]" /> Verification
         </h3>
         <Badge variant="secondary" className="text-[10px]">
           {verifiedCount}/{items.length} verified
@@ -88,7 +88,7 @@ function VerificationChecklist({ worker }: { worker: Worker & { user?: User } })
         {items.map((item) => (
           <div key={item.label} className="flex items-start gap-2.5" data-testid={`verification-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
             {item.verified ? (
-              <CheckCircle2 className="w-4 h-4 text-[#2EAA6E] flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-[#00A979] flex-shrink-0 mt-0.5" />
             ) : (
               <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
             )}
@@ -138,7 +138,7 @@ function ReviewForm({ workerId, participantId }: { workerId: string; participant
   return (
     <Card className="p-5" data-testid="card-review-form">
       <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
-        <Heart className="w-4 h-4 text-[#E6A817]" /> Leave a Review
+        <Heart className="w-4 h-4 text-[#F8C51C]" /> Leave a Review
       </h3>
       <div className="flex gap-1 mb-3" role="radiogroup" aria-label="Rating">
         {[1, 2, 3, 4, 5].map((star) => (
@@ -249,7 +249,7 @@ function ShiftManager({ workerId, participantId, workerName }: { workerId: strin
 
   return (
     <Card className="overflow-hidden" data-testid="card-shift-manager">
-      <div className="bg-gradient-to-r from-[#2EAA6E] to-[#25905D] px-5 py-3">
+      <div className="bg-gradient-to-r from-[#00A979] to-[#25905D] px-5 py-3">
         <h3 className="font-bold text-sm text-white flex items-center gap-2">
           <Clock className="w-4 h-4" /> Shift Management
         </h3>

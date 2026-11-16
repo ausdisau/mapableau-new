@@ -53,7 +53,7 @@ export function HistoryTab({
                 <button
                   type="button"
                   onClick={() => onOpenConversation(c.id)}
-                  className="w-full text-left px-3 py-2 rounded-md border border-border hover-elevate min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#1B6EB5]/50"
+                  className="w-full text-left px-3 py-2 rounded-md border border-border hover-elevate min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#005B7F]/50"
                   data-testid={`button-history-conversation-${c.id}`}
                 >
                   <div className="text-sm truncate">{c.title || "Untitled conversation"}</div>
@@ -81,7 +81,7 @@ export function HistoryTab({
                 <button
                   type="button"
                   onClick={() => onOpenDraft(d.id)}
-                  className="w-full text-left px-3 py-2 rounded-md border border-border hover-elevate min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#1B6EB5]/50"
+                  className="w-full text-left px-3 py-2 rounded-md border border-border hover-elevate min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#005B7F]/50"
                   data-testid={`button-history-draft-${d.id}`}
                 >
                   <div className="text-sm truncate">{d.title}</div>
@@ -110,7 +110,7 @@ export function HistoryTab({
                 <button
                   type="button"
                   onClick={() => onOpenPendingAction(p.id)}
-                  className="w-full text-left px-3 py-2 rounded-md border border-border hover-elevate min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#1B6EB5]/50"
+                  className="w-full text-left px-3 py-2 rounded-md border border-border hover-elevate min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#005B7F]/50"
                   data-testid={`button-history-pending-${p.id}`}
                 >
                   <div className="text-sm">{p.label}</div>

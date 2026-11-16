@@ -215,7 +215,7 @@ function BriefView({ brief }: { brief: PlanReviewBrief }) {
         ) : (
           <ul className="space-y-2">
             {content.participantGoalsVerbatim.map((g, i) => (
-              <li key={i} className="border-l-4 pl-3 py-1" style={{ borderColor: "#1B6EB5" }} data-testid={`item-goal-${i}`}>
+              <li key={i} className="border-l-4 pl-3 py-1" style={{ borderColor: "#005B7F" }} data-testid={`item-goal-${i}`}>
                 <blockquote className="italic">&ldquo;{g.quote}&rdquo;</blockquote>
                 {g.sourceHint && <p className="text-xs text-muted-foreground mt-1">Source hint: {g.sourceHint}</p>}
               </li>
@@ -261,7 +261,7 @@ function BriefView({ brief }: { brief: PlanReviewBrief }) {
         )}
       </section>
 
-      <section className="rounded-md border-2 border-dashed p-4" style={{ borderColor: "#E6A817" }}>
+      <section className="rounded-md border-2 border-dashed p-4" style={{ borderColor: "#F8C51C" }}>
         <h3 className="font-semibold mb-2 flex items-center gap-2">
           <Eye className="w-4 h-4" />What this brief did NOT see
         </h3>
@@ -417,7 +417,7 @@ export default function PlanReviewPrepPage() {
       <div className="flex items-start justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ClipboardList className="w-6 h-6" style={{ color: "#1B6EB5" }} />
+            <ClipboardList className="w-6 h-6" style={{ color: "#005B7F" }} />
             Plan-review prep co-pilot
           </h1>
           <p className="text-sm text-muted-foreground max-w-3xl mt-1">

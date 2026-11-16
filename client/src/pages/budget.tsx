@@ -25,7 +25,7 @@ function BudgetCard({ budget }: { budget: ParticipantBudget }) {
   const remaining = allocated - used;
   const percentage = allocated > 0 ? (used / allocated) * 100 : 0;
 
-  const barColor = percentage > 80 ? "bg-red-500" : percentage > 60 ? "bg-amber-500" : "bg-[#2EAA6E]";
+  const barColor = percentage > 80 ? "bg-red-500" : percentage > 60 ? "bg-amber-500" : "bg-[#00A979]";
   const cat = categoryLabels[budget.category] || { label: budget.category, icon: Wallet };
   const CatIcon = cat.icon;
 
@@ -72,11 +72,11 @@ function TierIndicator({ label, tier, rate, usage, unit }: { label: string; tier
   return (
     <Card className="p-5" data-testid={`card-tier-${label.toLowerCase().replace(/\s/g, "-")}`}>
       <div className="flex items-center gap-2 mb-2">
-        <TrendingUp className="w-4 h-4 text-[#E6A817]" />
+        <TrendingUp className="w-4 h-4 text-[#F8C51C]" />
         <h3 className="font-bold text-sm">{label}</h3>
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-black" style={{ color: "#E6A817" }}>${rate.toFixed(2)}</span>
+        <span className="text-2xl font-black" style={{ color: "#F8C51C" }}>${rate.toFixed(2)}</span>
         <span className="text-sm text-muted-foreground">/{unit === "hours" ? "hr" : "km"}</span>
       </div>
       <Badge variant="secondary" className="mt-2 text-xs">{tier}</Badge>
@@ -197,7 +197,7 @@ export default function BudgetPage() {
       )}
 
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-r from-[#14578F] via-[#1B6EB5] to-[#2384C9] px-6 py-4">
+        <div className="bg-gradient-to-r from-[#004766] via-[#005B7F] to-[#00749E] px-6 py-4">
           <h2 className="text-lg font-black text-white flex items-center gap-2">
             <DollarSign className="w-5 h-5" /> Recent Activity
           </h2>

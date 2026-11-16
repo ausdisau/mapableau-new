@@ -64,7 +64,7 @@ export function DomainTabBar({ active, onChange }: DomainTabBarProps) {
             )}
             data-testid={`tab-domain-${domain}`}
           >
-            <Icon className={cn("w-4 h-4", isActive && "text-[#1B6EB5]")} />
+            <Icon className={cn("w-4 h-4", isActive && "text-[#005B7F]")} />
             {DOMAIN_LABELS[domain]}
           </button>
         );

@@ -17,9 +17,9 @@ export const MAPABLE_DONATION_URL =
   process.env.NEXT_PUBLIC_DONATION_URL ?? "https://paypal.me/ausdisau";
 
 /**
- * Official MapAble vertical lockup (icon + wordmark + baked-in tagline).
- * Prefer MAPABLE_LOGO_WORDMARK_SRC + the HTML tagline pill for headers so the
- * pill can be width-matched and centered under the mark.
+ * Full vertical lockup PNG (icon + wordmark + baked-in tagline). Prefer
+ * MAPABLE_LOGO_WORDMARK_SRC + the HTML tagline pill for headers so the pill
+ * can be width-matched and centered under the mark.
  */
 export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
 
@@ -28,6 +28,9 @@ export const MAPABLE_LOGO_SRC = "/brand/mapable-logo.png";
  * or a separate Empowering Independence pill.
  */
 export const MAPABLE_LOGO_WORDMARK_SRC = "/brand/mapable-logo-wordmark.png";
+
+/** Preferred Organization logo URL for JSON-LD and social crawlers. */
+export const MAPABLE_ORG_JSON_LD_LOGO_SRC = MAPABLE_LOGO_WORDMARK_SRC;
 
 /** Pin + Australia mark for compact headers with separate text. */
 export const MAPABLE_LOGO_MARK_SRC = "/brand/mapable-logo-mark.svg";

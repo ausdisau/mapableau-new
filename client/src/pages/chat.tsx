@@ -50,8 +50,8 @@ function MessageBubble({
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
           isUser
-            ? "bg-[#1B6EB5] text-white"
-            : "bg-[#2EAA6E]/15 text-[#2EAA6E] dark:bg-[#2EAA6E]/25"
+            ? "bg-[#005B7F] text-white"
+            : "bg-[#00A979]/15 text-[#00A979] dark:bg-[#00A979]/25"
         }`}
         aria-hidden="true"
       >
@@ -61,7 +61,7 @@ function MessageBubble({
         <div
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
             isUser
-              ? "bg-[#1B6EB5] text-white rounded-br-md"
+              ? "bg-[#005B7F] text-white rounded-br-md"
               : "bg-card border border-border rounded-bl-md"
           }`}
           data-testid={`text-message-content-${message.id}`}
@@ -116,7 +116,7 @@ function SessionList({
       <div className="p-3 border-b border-border">
         <Button
           onClick={onNew}
-          className="w-full gap-2 bg-[#1B6EB5] text-white min-h-[44px]"
+          className="w-full gap-2 bg-[#005B7F] text-white min-h-[44px]"
           data-testid="button-new-chat"
         >
           <Plus className="w-4 h-4" />
@@ -133,7 +133,7 @@ function SessionList({
           <div
             key={s.id}
             className={`group flex items-center gap-2 rounded-lg px-3 py-2.5 cursor-pointer transition-colors min-h-[44px] ${
-              s.id === activeId ? "bg-[#1B6EB5]/10 border border-[#1B6EB5]/30" : "border border-transparent"
+              s.id === activeId ? "bg-[#005B7F]/10 border border-[#005B7F]/30" : "border border-transparent"
             }`}
             onClick={() => onSelect(s.id)}
             role="button"
@@ -345,8 +345,8 @@ export default function ChatPage() {
               {showSessions ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#2EAA6E]/15 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-[#2EAA6E]" />
+              <div className="w-8 h-8 rounded-full bg-[#00A979]/15 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-[#00A979]" />
               </div>
               <div>
                 <h1 className="text-sm font-semibold" data-testid="text-chat-title">MapAble Chat</h1>
@@ -385,8 +385,8 @@ export default function ChatPage() {
         <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4" role="log" aria-live="polite" aria-label="Chat messages" data-testid="chat-messages-area">
           {showWelcome && (
             <div className="flex flex-col items-center justify-center text-center py-12 md:py-20 gap-6" data-testid="chat-welcome">
-              <div className="w-16 h-16 rounded-full bg-[#2EAA6E]/15 flex items-center justify-center">
-                <Bot className="w-8 h-8 text-[#2EAA6E]" />
+              <div className="w-16 h-16 rounded-full bg-[#00A979]/15 flex items-center justify-center">
+                <Bot className="w-8 h-8 text-[#00A979]" />
               </div>
               <div className="space-y-2 max-w-lg">
                 <h2 className="text-xl font-bold" data-testid="text-welcome-heading">Welcome to MapAble Chat</h2>
@@ -408,7 +408,7 @@ export default function ChatPage() {
                       <Button
                         size="sm"
                         onClick={() => setShowProfileWizard(true)}
-                        className="gap-1.5 min-h-[44px] bg-[#1B6EB5] text-white"
+                        className="gap-1.5 min-h-[44px] bg-[#005B7F] text-white"
                         data-testid="button-welcome-setup-profile"
                       >
                         <UserCog className="w-3.5 h-3.5" />
@@ -443,11 +443,11 @@ export default function ChatPage() {
 
           {pendingMessages.map((msg, i) => (
             <div key={`pending-${i}`} className="flex gap-3 flex-row-reverse">
-              <div className="w-8 h-8 rounded-full bg-[#1B6EB5] text-white flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#005B7F] text-white flex items-center justify-center shrink-0">
                 <User className="w-4 h-4" />
               </div>
               <div className="max-w-[85%] md:max-w-[75%]">
-                <div className="rounded-2xl rounded-br-md px-4 py-3 text-sm bg-[#1B6EB5] text-white">
+                <div className="rounded-2xl rounded-br-md px-4 py-3 text-sm bg-[#005B7F] text-white">
                   {msg.content}
                 </div>
               </div>
@@ -456,8 +456,8 @@ export default function ChatPage() {
 
           {sendMutation.isPending && (
             <div className="flex gap-3" data-testid="chat-thinking-indicator">
-              <div className="w-8 h-8 rounded-full bg-[#2EAA6E]/15 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-[#2EAA6E]" />
+              <div className="w-8 h-8 rounded-full bg-[#00A979]/15 flex items-center justify-center shrink-0">
+                <Bot className="w-4 h-4 text-[#00A979]" />
               </div>
               <div className="rounded-2xl rounded-bl-md px-4 py-3 bg-card border border-border">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -479,7 +479,7 @@ export default function ChatPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask about accessible transport, journey planning, or report a barrier..."
-              className="flex-1 resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-[#1B6EB5]/50"
+              className="flex-1 resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-[#005B7F]/50"
               rows={1}
               disabled={sendMutation.isPending}
               data-testid="input-chat-message"
@@ -488,7 +488,7 @@ export default function ChatPage() {
             <Button
               onClick={handleSend}
               disabled={!input.trim() || sendMutation.isPending}
-              className="min-h-[44px] min-w-[44px] bg-[#1B6EB5] text-white rounded-xl"
+              className="min-h-[44px] min-w-[44px] bg-[#005B7F] text-white rounded-xl"
               data-testid="button-send-message"
               aria-label="Send message"
             >

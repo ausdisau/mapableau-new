@@ -189,8 +189,8 @@ export default function AdminChatGuardrailsPage() {
   return (
     <div className="p-4 md:p-6 space-y-4" data-testid="page-admin-chat-guardrails">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-[#1B6EB5]/10 flex items-center justify-center">
-          <ShieldAlert className="w-5 h-5 text-[#1B6EB5]" />
+        <div className="w-10 h-10 rounded-lg bg-[#005B7F]/10 flex items-center justify-center">
+          <ShieldAlert className="w-5 h-5 text-[#005B7F]" />
         </div>
         <div>
           <h1 className="text-2xl font-bold" data-testid="text-guardrail-title">Chat Safeguarding & Guardrails</h1>
@@ -217,7 +217,7 @@ export default function AdminChatGuardrailsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2" data-testid="text-queue-count">
-                <ClipboardList className="w-4 h-4 text-[#1B6EB5]" />
+                <ClipboardList className="w-4 h-4 text-[#005B7F]" />
                 {queueQuery.isLoading
                   ? "Loading safeguarding queue..."
                   : `${queue.length} item${queue.length === 1 ? "" : "s"} · ${openQueue.length} open`}
@@ -406,7 +406,7 @@ export default function AdminChatGuardrailsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2" data-testid="text-handoff-count">
-                <Headphones className="w-4 h-4 text-[#1B6EB5]" />
+                <Headphones className="w-4 h-4 text-[#005B7F]" />
                 {handoffsQuery.isLoading ? "Loading handoffs..." : `${handoffs.length} handoff${handoffs.length === 1 ? "" : "s"}`}
               </CardTitle>
             </CardHeader>
@@ -420,7 +420,7 @@ export default function AdminChatGuardrailsPage() {
                 <article
                   key={h.id}
                   ref={h.id === highlightedHandoffId ? highlightedHandoffRef : undefined}
-                  className={`border rounded-lg p-3 space-y-2 ${h.id === highlightedHandoffId ? "border-[#1B6EB5] ring-2 ring-[#1B6EB5]/40" : ""}`}
+                  className={`border rounded-lg p-3 space-y-2 ${h.id === highlightedHandoffId ? "border-[#005B7F] ring-2 ring-[#005B7F]/40" : ""}`}
                   data-testid={`card-handoff-${h.id}`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">

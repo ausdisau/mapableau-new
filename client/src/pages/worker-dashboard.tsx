@@ -108,7 +108,7 @@ function LiveTimer({ startTime }: { startTime: string }) {
   }, [startTime]);
 
   return (
-    <span className="font-mono text-lg font-bold text-[#2EAA6E]" data-testid="text-live-timer">{elapsed}</span>
+    <span className="font-mono text-lg font-bold text-[#00A979]" data-testid="text-live-timer">{elapsed}</span>
   );
 }
 
@@ -202,12 +202,12 @@ export default function WorkerDashboard() {
         </div>
         <div className="flex items-center gap-3">
           {data.worker.ndisVerified && (
-            <Badge className="bg-[#2EAA6E]/10 text-[#2EAA6E] border-[#2EAA6E]/30 gap-1" data-testid="badge-ndis-verified">
+            <Badge className="bg-[#00A979]/10 text-[#00A979] border-[#00A979]/30 gap-1" data-testid="badge-ndis-verified">
               <ShieldCheck className="w-3.5 h-3.5" /> NDIS Verified
             </Badge>
           )}
           <Badge variant="outline" className="gap-1" data-testid="badge-rating">
-            <Star className="w-3.5 h-3.5 fill-[#E6A817] text-[#E6A817]" />
+            <Star className="w-3.5 h-3.5 fill-[#F8C51C] text-[#F8C51C]" />
             {Number(data.rating).toFixed(1)} ({data.reviewCount})
           </Badge>
         </div>
@@ -232,8 +232,8 @@ export default function WorkerDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-5" data-testid="stat-month-hours">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-[#1B6EB5]/10">
-              <Clock className="w-5 h-5 text-[#1B6EB5]" />
+            <div className="p-2.5 rounded-lg bg-[#005B7F]/10">
+              <Clock className="w-5 h-5 text-[#005B7F]" />
             </div>
             <div>
               <p className="text-2xl font-bold">{data.monthHours}</p>
@@ -244,8 +244,8 @@ export default function WorkerDashboard() {
 
         <Card className="p-5" data-testid="stat-month-earnings">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-[#2EAA6E]/10">
-              <DollarSign className="w-5 h-5 text-[#2EAA6E]" />
+            <div className="p-2.5 rounded-lg bg-[#00A979]/10">
+              <DollarSign className="w-5 h-5 text-[#00A979]" />
             </div>
             <div>
               <p className="text-2xl font-bold">${data.monthEarnings.toFixed(2)}</p>
@@ -256,8 +256,8 @@ export default function WorkerDashboard() {
 
         <Card className="p-5" data-testid="stat-active-bookings">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-[#E6A817]/10">
-              <Briefcase className="w-5 h-5 text-[#E6A817]" />
+            <div className="p-2.5 rounded-lg bg-[#F8C51C]/10">
+              <Briefcase className="w-5 h-5 text-[#F8C51C]" />
             </div>
             <div>
               <p className="text-2xl font-bold">{data.activeBookingsCount}</p>
@@ -280,11 +280,11 @@ export default function WorkerDashboard() {
       </div>
 
       {data.activeShift && (
-        <Card className="border-[#2EAA6E] bg-[#2EAA6E]/5 p-5" data-testid="card-active-shift">
+        <Card className="border-[#00A979] bg-[#00A979]/5 p-5" data-testid="card-active-shift">
           <div className="flex items-center gap-3 mb-3">
-            <Play className="w-5 h-5 text-[#2EAA6E]" />
-            <h3 className="font-semibold text-[#2EAA6E]">Active Shift</h3>
-            <Badge className="bg-[#2EAA6E]/20 text-[#2EAA6E] border-[#2EAA6E]/30 gap-1 animate-pulse">
+            <Play className="w-5 h-5 text-[#00A979]" />
+            <h3 className="font-semibold text-[#00A979]">Active Shift</h3>
+            <Badge className="bg-[#00A979]/20 text-[#00A979] border-[#00A979]/30 gap-1 animate-pulse">
               <Timer className="w-3 h-3" /> Live
             </Badge>
           </div>
@@ -341,7 +341,7 @@ export default function WorkerDashboard() {
               <ClipboardList className="w-4 h-4 text-purple-600" /> Pending Bookings ({data.pendingBookings.length})
             </h3>
             <Link href="/worker/bookings">
-              <Button variant="ghost" size="sm" className="text-[#1B6EB5] gap-1" data-testid="link-all-bookings">
+              <Button variant="ghost" size="sm" className="text-[#005B7F] gap-1" data-testid="link-all-bookings">
                 View All <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
@@ -358,7 +358,7 @@ export default function WorkerDashboard() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 gap-1 border-[#2EAA6E] text-[#2EAA6E] hover:bg-[#2EAA6E]/10"
+                    className="h-8 gap-1 border-[#00A979] text-[#00A979] hover:bg-[#00A979]/10"
                     disabled={bookingActionMutation.isPending}
                     onClick={() => bookingActionMutation.mutate({ id: booking.id, status: "confirmed" })}
                     data-testid={`button-accept-booking-${booking.id}`}
@@ -386,10 +386,10 @@ export default function WorkerDashboard() {
         <Card className="p-5" data-testid="card-upcoming-bookings">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-[#1B6EB5]" /> Upcoming Bookings
+              <CalendarDays className="w-4 h-4 text-[#005B7F]" /> Upcoming Bookings
             </h3>
             <Link href="/worker/bookings">
-              <Button variant="ghost" size="sm" className="text-[#1B6EB5] gap-1" data-testid="link-all-upcoming-bookings">
+              <Button variant="ghost" size="sm" className="text-[#005B7F] gap-1" data-testid="link-all-upcoming-bookings">
                 View All <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
@@ -412,10 +412,10 @@ export default function WorkerDashboard() {
         <Card className="p-5" data-testid="card-today-shifts">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-[#1B6EB5]" /> Today's Schedule ({data.todayShifts.length})
+              <CalendarDays className="w-4 h-4 text-[#005B7F]" /> Today's Schedule ({data.todayShifts.length})
             </h3>
             <Link href="/worker/shifts">
-              <Button variant="ghost" size="sm" className="text-[#1B6EB5] gap-1" data-testid="link-all-shifts">
+              <Button variant="ghost" size="sm" className="text-[#005B7F] gap-1" data-testid="link-all-shifts">
                 View All <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
@@ -440,7 +440,7 @@ export default function WorkerDashboard() {
         <Card className="p-5" data-testid="card-upcoming-shifts">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#1B6EB5]" /> Upcoming Shifts
+              <Clock className="w-4 h-4 text-[#005B7F]" /> Upcoming Shifts
             </h3>
           </div>
           {data.upcomingShifts.length === 0 ? (
@@ -465,10 +465,10 @@ export default function WorkerDashboard() {
       <Card className="p-5" data-testid="card-recent-reviews">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold flex items-center gap-2">
-            <Star className="w-4 h-4 text-[#E6A817]" /> Recent Reviews
+            <Star className="w-4 h-4 text-[#F8C51C]" /> Recent Reviews
           </h3>
           <div className="flex items-center gap-1 text-sm font-medium">
-            <TrendingUp className="w-3.5 h-3.5 text-[#2EAA6E]" />
+            <TrendingUp className="w-3.5 h-3.5 text-[#00A979]" />
             {Number(data.rating).toFixed(1)} avg
           </div>
         </div>
@@ -482,7 +482,7 @@ export default function WorkerDashboard() {
                   <span className="text-sm font-medium">{review.participant?.fullName || "Participant"}</span>
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-[#E6A817] text-[#E6A817]" : "text-gray-300"}`} />
+                      <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-[#F8C51C] text-[#F8C51C]" : "text-gray-300"}`} />
                     ))}
                   </div>
                 </div>
@@ -497,7 +497,7 @@ export default function WorkerDashboard() {
         <Link href="/worker/bookings">
           <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer group" data-testid="link-card-bookings">
             <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-[#1B6EB5] group-hover:scale-110 transition-transform" />
+              <Users className="w-5 h-5 text-[#005B7F] group-hover:scale-110 transition-transform" />
               <div>
                 <p className="font-semibold">Bookings</p>
                 <p className="text-xs text-muted-foreground">Accept & manage requests</p>
@@ -508,7 +508,7 @@ export default function WorkerDashboard() {
         <Link href="/worker/profile">
           <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer group" data-testid="link-card-profile">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 text-[#2EAA6E] group-hover:scale-110 transition-transform" />
+              <ShieldCheck className="w-5 h-5 text-[#00A979] group-hover:scale-110 transition-transform" />
               <div>
                 <p className="font-semibold">Profile</p>
                 <p className="text-xs text-muted-foreground">Update your details</p>
@@ -519,7 +519,7 @@ export default function WorkerDashboard() {
         <Link href="/worker/availability">
           <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer group" data-testid="link-card-availability">
             <div className="flex items-center gap-3">
-              <CalendarDays className="w-5 h-5 text-[#E6A817] group-hover:scale-110 transition-transform" />
+              <CalendarDays className="w-5 h-5 text-[#F8C51C] group-hover:scale-110 transition-transform" />
               <div>
                 <p className="font-semibold">Availability</p>
                 <p className="text-xs text-muted-foreground">Set your schedule</p>

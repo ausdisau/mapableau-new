@@ -151,7 +151,7 @@ export default function WorkerBookings() {
             <>
               <Button
                 size="sm"
-                className="bg-[#2EAA6E] hover:bg-[#259D61] gap-1"
+                className="bg-[#00A979] hover:bg-[#259D61] gap-1"
                 onClick={() => statusMutation.mutate({ id: booking.id, status: "confirmed" })}
                 disabled={statusMutation.isPending}
                 data-testid={`button-accept-${booking.id}`}
@@ -173,7 +173,7 @@ export default function WorkerBookings() {
           {booking.status === "confirmed" && (
             <Button
               size="sm"
-              className="bg-[#1B6EB5] hover:bg-[#155B96] gap-1"
+              className="bg-[#005B7F] hover:bg-[#004766] gap-1"
               onClick={() => startShiftMutation.mutate(booking.id)}
               disabled={startShiftMutation.isPending}
               data-testid={`button-start-shift-${booking.id}`}
@@ -190,10 +190,10 @@ export default function WorkerBookings() {
     <div className="p-6 space-y-6" data-testid="worker-bookings">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-bookings-heading">
-          <ClipboardList className="w-6 h-6 text-[#1B6EB5]" /> My Bookings
+          <ClipboardList className="w-6 h-6 text-[#005B7F]" /> My Bookings
         </h1>
         {pendingBookings.length > 0 && (
-          <Badge className="bg-[#E6A817]/10 text-[#E6A817] border-[#E6A817]/30">
+          <Badge className="bg-[#F8C51C]/10 text-[#F8C51C] border-[#F8C51C]/30">
             {pendingBookings.length} pending
           </Badge>
         )}

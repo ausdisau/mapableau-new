@@ -91,7 +91,7 @@ export default function GroceryOrdersPage() {
         </Button>
       </Link>
       <h1 className="text-2xl md:text-3xl font-black flex items-center gap-2" data-testid="text-page-title">
-        <ShoppingCart className="w-6 h-6 text-[#2EAA6E]" /> My Grocery Orders
+        <ShoppingCart className="w-6 h-6 text-[#00A979]" /> My Grocery Orders
       </h1>
 
       {isLoading ? (
@@ -126,7 +126,7 @@ export default function GroceryOrdersPage() {
                     </div>
                   </Link>
                   <div className="text-right flex items-center gap-2 shrink-0">
-                    <span className="font-black text-[#2EAA6E]" data-testid={`text-amount-${o.id}`}>
+                    <span className="font-black text-[#00A979]" data-testid={`text-amount-${o.id}`}>
                       ${Number(o.totalAmount).toFixed(2)}
                     </span>
                     <Button

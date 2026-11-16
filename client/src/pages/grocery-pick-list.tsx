@@ -66,7 +66,7 @@ export default function GroceryPickListPage() {
       <header className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-black flex items-center gap-2" data-testid="text-page-title">
-            <ClipboardList className="w-6 h-6 text-[#2EAA6E]" /> Grocery pick list
+            <ClipboardList className="w-6 h-6 text-[#00A979]" /> Grocery pick list
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Orders assigned to you. Update the status as you shop, deliver, and complete the run.
@@ -121,15 +121,15 @@ export default function GroceryPickListPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-lg font-black text-[#2EAA6E]" data-testid={`text-total-${o.id}`}>
+                  <p className="text-lg font-black text-[#00A979]" data-testid={`text-total-${o.id}`}>
                     ${Number(o.totalAmount).toFixed(2)}
                   </p>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 {o.accessNeeds && (
-                  <Alert className="border-[#E6A817]/40 bg-[#E6A817]/5">
-                    <AlertCircle className="w-4 h-4 text-[#E6A817]" />
+                  <Alert className="border-[#F8C51C]/40 bg-[#F8C51C]/5">
+                    <AlertCircle className="w-4 h-4 text-[#F8C51C]" />
                     <AlertDescription className="text-xs">
                       <span className="font-semibold">Access needs:</span> {o.accessNeeds}
                     </AlertDescription>

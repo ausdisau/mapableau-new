@@ -90,7 +90,7 @@ export function CoverageEditor() {
   // Represent the coverage circle as a polygon feature for the map preview
   const previewLayers: MapLayer[] = useMemo(() => [{
     id: "coverage-preview", slug: "coverage-preview", name: "Coverage", domains: ["care"],
-    visibility: "public", geometryType: "Polygon", defaultVisible: true, ordering: 1, color: "#2EAA6E",
+    visibility: "public", geometryType: "Polygon", defaultVisible: true, ordering: 1, color: "#00A979",
   }], []);
 
   const previewFeatures: MapFeature[] = useMemo(() => {
@@ -117,7 +117,7 @@ export function CoverageEditor() {
   return (
     <Card data-testid="card-coverage-editor">
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2"><Radius className="w-4 h-4 text-[#2EAA6E]" /> Service Coverage Area</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><Radius className="w-4 h-4 text-[#00A979]" /> Service Coverage Area</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">Set the area you cover so jobs and transport requests outside your range can be flagged.</p>
@@ -143,7 +143,7 @@ export function CoverageEditor() {
           </div>
           {centerLat != null && centerLng != null && (
             <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="text-coverage-center">
-              <MapPin className="w-3 h-3 text-[#2EAA6E]" /> {centerLat.toFixed(4)}, {centerLng.toFixed(4)}
+              <MapPin className="w-3 h-3 text-[#00A979]" /> {centerLat.toFixed(4)}, {centerLng.toFixed(4)}
             </p>
           )}
         </div>

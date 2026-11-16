@@ -63,7 +63,7 @@ function PayModal({ orderId, amount, onClose, onSuccess }: { orderId: string; am
         if (cancelled) return;
         const el = stripe.elements({
           clientSecret: data.clientSecret,
-          appearance: { theme: "stripe", variables: { colorPrimary: "#1B6EB5" } },
+          appearance: { theme: "stripe", variables: { colorPrimary: "#005B7F" } },
         });
         const pe = el.create("payment", { layout: "tabs" });
         pe.mount("#grocery-pay-element");
@@ -181,7 +181,7 @@ export default function GroceryOrderDetailPage() {
 
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl md:text-3xl font-black flex items-center gap-2" data-testid="text-page-title">
-          <ShoppingCart className="w-6 h-6 text-[#2EAA6E]" /> Order #{order.id.slice(0, 8)}
+          <ShoppingCart className="w-6 h-6 text-[#00A979]" /> Order #{order.id.slice(0, 8)}
         </h1>
         <Badge data-testid="badge-status">{STATUS_LABELS[order.status] || order.status}</Badge>
       </div>
@@ -197,7 +197,7 @@ export default function GroceryOrderDetailPage() {
               const Icon = step === "placed" ? Package : step === "confirmed" ? CreditCard : step === "shopping" ? ShoppingCart : step === "out_for_delivery" ? Truck : Package;
               return (
                 <li key={step} className="flex flex-col items-center text-center gap-1 flex-1 min-w-[70px]" data-testid={`step-${step}`}>
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${completed ? "bg-[#2EAA6E] text-white" : "bg-muted text-muted-foreground"}`}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${completed ? "bg-[#00A979] text-white" : "bg-muted text-muted-foreground"}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   <span className={`text-[10px] font-semibold ${completed ? "" : "text-muted-foreground"}`}>{STATUS_LABELS[step]}</span>
@@ -228,7 +228,7 @@ export default function GroceryOrderDetailPage() {
           )}
           <div className="border-t mt-2 pt-3 flex items-center justify-between">
             <span className="font-bold">Total</span>
-            <span className="text-lg font-black text-[#2EAA6E]" data-testid="text-order-total">${Number(order.totalAmount).toFixed(2)}</span>
+            <span className="text-lg font-black text-[#00A979]" data-testid="text-order-total">${Number(order.totalAmount).toFixed(2)}</span>
           </div>
         </Card>
 

@@ -41,7 +41,7 @@ export default function GeoAdminPage() {
   if (!user || user.role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 p-8 text-center" data-testid="status-forbidden">
-        <AlertTriangle className="w-10 h-10 text-[#E6A817]" />
+        <AlertTriangle className="w-10 h-10 text-[#F8C51C]" />
         <h1 className="text-xl font-bold">Admins only</h1>
         <p className="text-muted-foreground">Geo Management is restricted to administrators.</p>
         <Link href="/accessibility-map"><Button variant="outline" data-testid="link-back-map">Go to Accessibility Map</Button></Link>
@@ -54,7 +54,7 @@ export default function GeoAdminPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-            <LayersIcon className="w-6 h-6 text-[#1B6EB5]" /> Geo Management
+            <LayersIcon className="w-6 h-6 text-[#005B7F]" /> Geo Management
           </h1>
           <p className="text-sm text-muted-foreground">Manage map layers, features, imports and categories.</p>
         </div>
@@ -92,10 +92,10 @@ function LayersTab() {
   const { toast } = useToast();
   const { data: layers = [], isLoading } = useLayers();
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ slug: "", name: "", description: "", color: "#1B6EB5", domain: "accessibility" as GeoDomain, geometryType: "Point" as MapLayer["geometryType"], visibility: "public" as MapLayer["visibility"] });
+  const [form, setForm] = useState({ slug: "", name: "", description: "", color: "#005B7F", domain: "accessibility" as GeoDomain, geometryType: "Point" as MapLayer["geometryType"], visibility: "public" as MapLayer["visibility"] });
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<MapLayer | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", color: "#1B6EB5", domains: [] as GeoDomain[], visibility: "public" as MapLayer["visibility"] });
+  const [editForm, setEditForm] = useState({ name: "", description: "", color: "#005B7F", domains: [] as GeoDomain[], visibility: "public" as MapLayer["visibility"] });
   const [savingEdit, setSavingEdit] = useState(false);
 
   const beginEdit = (l: MapLayer) => {
@@ -103,7 +103,7 @@ function LayersTab() {
     setEditForm({
       name: l.name,
       description: l.description || "",
-      color: l.color || "#1B6EB5",
+      color: l.color || "#005B7F",
       domains: ((l.domains || []) as GeoDomain[]).filter((d) => DOMAINS.includes(d)),
       visibility: l.visibility,
     });
@@ -158,7 +158,7 @@ function LayersTab() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/geo/layers"] });
       toast({ title: "Layer created", description: form.name });
-      setForm({ slug: "", name: "", description: "", color: "#1B6EB5", domain: "accessibility", geometryType: "Point", visibility: "public" });
+      setForm({ slug: "", name: "", description: "", color: "#005B7F", domain: "accessibility", geometryType: "Point", visibility: "public" });
       setCreating(false);
     } catch (e) {
       toast({ title: "Create failed", description: (e as Error).message, variant: "destructive" });
@@ -256,7 +256,7 @@ function LayersTab() {
           {layers.map((l) => (
             <Card key={l.id} data-testid={`card-layer-${l.slug}`}>
               <CardContent className="flex items-center gap-3 py-4 flex-wrap">
-                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: l.color || "#1B6EB5" }} />
+                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: l.color || "#005B7F" }} />
                 <div className="flex-1 min-w-[160px]">
                   <div className="font-semibold flex items-center gap-2">{l.name} <code className="text-xs text-muted-foreground">{l.slug}</code></div>
                   {l.description && <div className="text-sm text-muted-foreground line-clamp-1">{l.description}</div>}
@@ -626,7 +626,7 @@ function FeaturesTab() {
               {filtered.map((f) => (
                 <Card key={f.id} data-testid={`card-feature-${f.id}`}>
                   <CardContent className="flex items-center gap-3 py-3 flex-wrap">
-                    <MapPin className="w-4 h-4 text-[#1B6EB5] shrink-0" />
+                    <MapPin className="w-4 h-4 text-[#005B7F] shrink-0" />
                     <div className="flex-1 min-w-[160px]">
                       <div className="font-medium leading-tight">{f.name || "(unnamed)"}</div>
                       {f.description && <div className="text-sm text-muted-foreground line-clamp-1">{f.description}</div>}
@@ -810,7 +810,7 @@ function ImportsTab() {
           <Label htmlFor="import-replace" className="text-sm">Replace existing features in target layer</Label>
         </div>
 
-        {result && <div className="text-sm text-[#2EAA6E] font-medium" data-testid="text-import-result">{result}</div>}
+        {result && <div className="text-sm text-[#00A979] font-medium" data-testid="text-import-result">{result}</div>}
 
         <div className="flex justify-end">
           <Button onClick={run} disabled={importing} data-testid="button-run-import">{importing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />} Import</Button>
@@ -825,7 +825,7 @@ function CategoriesTab() {
   const { data: categories = [], isLoading } = useCategories();
   const [slug, setSlug] = useState("");
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#1B6EB5");
+  const [color, setColor] = useState("#005B7F");
   const [saving, setSaving] = useState(false);
 
   const create = async () => {
@@ -837,7 +837,7 @@ function CategoriesTab() {
     try {
       await geoApi.createCategory({ slug: slug.trim(), name: name.trim(), color });
       queryClient.invalidateQueries({ queryKey: ["/api/geo/categories"] });
-      setSlug(""); setName(""); setColor("#1B6EB5");
+      setSlug(""); setName(""); setColor("#005B7F");
       toast({ title: "Category created", description: name });
     } catch (e) {
       toast({ title: "Create failed", description: (e as Error).message, variant: "destructive" });
@@ -886,7 +886,7 @@ function CategoriesTab() {
           {categories.map((c) => (
             <Card key={c.id} data-testid={`card-category-${c.slug}`}>
               <CardContent className="flex items-center gap-3 py-3">
-                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: c.color || "#1B6EB5" }} />
+                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: c.color || "#005B7F" }} />
                 <div className="flex-1"><span className="font-medium">{c.name}</span> <code className="text-xs text-muted-foreground">{c.slug}</code></div>
                 <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(c)} data-testid={`button-delete-category-${c.slug}`}><Trash2 className="w-4 h-4" /></Button>
               </CardContent>

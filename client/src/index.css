@@ -8,23 +8,23 @@
   --map-navy: 210 65% 29%;
   --map-gold: 42 82% 50%;
 
-  /* MapAble brand palette (dynamic/animated accents) */
-  --brand-blue: 207 73% 41%;
-  --brand-teal: 151 56% 40%;
-  --brand-gold: 42 82% 50%;
+  /* MapAble brand palette (@mapable/ui tokens) */
+  --brand-blue: 198 100% 25%;
+  --brand-teal: 162 100% 33%;
+  --brand-gold: 45 94% 54%;
   --brand-orange: 25 90% 50%;
   /* Brand blue shades + navy for header / hero gradients */
-  --brand-blue-dark: 207 76% 32%;
-  --brand-blue-light: 205 70% 46%;
-  --brand-navy: 210 64% 29%;
-  --brand-navy-deep: 220 51% 12%;
+  --brand-blue-dark: 198 100% 20%;
+  --brand-blue-light: 198 100% 31%;
+  --brand-navy: 198 100% 20%;
+  --brand-navy-deep: 222 61% 13%;
 
   /* Semantic status roles */
   --success: 151 56% 38%;
   --success-foreground: 0 0% 100%;
   --warning: 28 90% 48%;
   --warning-foreground: 0 0% 100%;
-  --info: 207 73% 41%;
+  --info: 198 100% 25%;
   --info-foreground: 0 0% 100%;
 
   --button-outline: rgba(0,0,0, .10);
@@ -41,15 +41,15 @@
   --sidebar: 214 22% 95%;
   --sidebar-foreground: 215 28% 12%;
   --sidebar-border: 214 20% 89%;
-  --sidebar-primary: 207 73% 41%;
+  --sidebar-primary: 198 100% 25%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 207 40% 90%;
   --sidebar-accent-foreground: 207 50% 25%;
-  --sidebar-ring: 207 73% 50%;
+  --sidebar-ring: 45 94% 54%;
   --popover: 0 0% 100%;
   --popover-foreground: 215 28% 12%;
   --popover-border: 214 18% 88%;
-  --primary: 207 73% 41%;
+  --primary: 198 100% 25%;
   --primary-foreground: 0 0% 100%;
   --secondary: 214 20% 92%;
   --secondary-foreground: 215 28% 18%;
@@ -60,8 +60,8 @@
   --destructive: 0 75% 48%;
   --destructive-foreground: 0 0% 98%;
   --input: 214 20% 69%;
-  --ring: 207 73% 50%;
-  --chart-1: 207 73% 41%;
+  --ring: 45 94% 54%;
+  --chart-1: 198 100% 25%;
   --chart-2: 160 58% 42%;
   --chart-3: 42 82% 50%;
   --chart-4: 280 65% 45%;
@@ -110,22 +110,22 @@
   --map-gold: 42 82% 60%;
 
   /* MapAble brand palette (dark) */
-  --brand-blue: 207 73% 58%;
-  --brand-teal: 151 52% 52%;
-  --brand-gold: 42 82% 60%;
+  --brand-blue: 198 85% 42%;
+  --brand-teal: 162 72% 45%;
+  --brand-gold: 45 94% 60%;
   --brand-orange: 25 90% 60%;
   /* Brand blue shades + navy for header / hero gradients (dark) */
-  --brand-blue-dark: 207 70% 26%;
-  --brand-blue-light: 205 70% 40%;
-  --brand-navy: 210 64% 22%;
-  --brand-navy-deep: 220 51% 9%;
+  --brand-blue-dark: 198 100% 22%;
+  --brand-blue-light: 198 85% 48%;
+  --brand-navy: 198 100% 22%;
+  --brand-navy-deep: 222 61% 9%;
 
   /* Semantic status roles (dark) */
   --success: 151 52% 50%;
   --success-foreground: 0 0% 100%;
   --warning: 28 90% 56%;
   --warning-foreground: 30 40% 12%;
-  --info: 207 73% 60%;
+  --info: 198 85% 48%;
   --info-foreground: 0 0% 100%;
 
   --button-outline: rgba(255,255,255, .10);
@@ -142,15 +142,15 @@
   --sidebar: 218 28% 14%;
   --sidebar-foreground: 210 18% 92%;
   --sidebar-border: 218 22% 19%;
-  --sidebar-primary: 207 73% 52%;
+  --sidebar-primary: 198 85% 42%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 218 25% 20%;
   --sidebar-accent-foreground: 210 18% 92%;
-  --sidebar-ring: 207 73% 55%;
+  --sidebar-ring: 45 94% 60%;
   --popover: 218 28% 15%;
   --popover-foreground: 210 18% 92%;
   --popover-border: 218 22% 20%;
-  --primary: 207 73% 52%;
+  --primary: 198 85% 42%;
   --primary-foreground: 0 0% 100%;
   --secondary: 218 22% 22%;
   --secondary-foreground: 210 18% 92%;
@@ -161,8 +161,8 @@
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 98%;
   --input: 218 22% 35%;
-  --ring: 207 73% 55%;
-  --chart-1: 207 73% 60%;
+  --ring: 45 94% 60%;
+  --chart-1: 198 85% 42%;
   --chart-2: 160 58% 55%;
   --chart-3: 42 82% 60%;
   --chart-4: 280 65% 60%;

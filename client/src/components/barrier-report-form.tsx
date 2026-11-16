@@ -102,7 +102,7 @@ export function BarrierReportForm({ onClose, onSubmitted }: BarrierReportFormPro
                   className={`text-left px-3 py-2.5 rounded-lg text-xs font-medium border min-h-[44px] transition-colors ${
                     barrierType === bt.value
                       ? bt.value === "helpful_staff"
-                        ? "bg-[#2EAA6E] text-white border-[#2EAA6E]"
+                        ? "bg-[#00A979] text-white border-[#00A979]"
                         : "bg-amber-500 text-white border-amber-500"
                       : "border-border bg-card"
                   }`}
@@ -156,7 +156,7 @@ export function BarrierReportForm({ onClose, onSubmitted }: BarrierReportFormPro
           <Button
             onClick={() => submitMutation.mutate()}
             disabled={!isValid || submitMutation.isPending}
-            className="gap-1.5 min-h-[44px] bg-[#1B6EB5] text-white"
+            className="gap-1.5 min-h-[44px] bg-[#005B7F] text-white"
             data-testid="button-submit-barrier-report"
           >
             {submitMutation.isPending ? (

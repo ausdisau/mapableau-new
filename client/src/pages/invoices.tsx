@@ -97,7 +97,7 @@ function StripePaymentModal({
           clientSecret: cs,
           appearance: {
             theme: "stripe",
-            variables: { colorPrimary: "#1B6EB5" },
+            variables: { colorPrimary: "#005B7F" },
           },
         });
         const paymentElement = el.create("payment", {
@@ -327,7 +327,7 @@ function InvoiceRow({ invoice, onPaySuccess, qbConnected }: { invoice: InvoiceWi
               </div>
               {invoice.ndisClaimable && (
                 <div className="text-[10px] text-muted-foreground flex items-center gap-1 justify-end">
-                  <ShieldCheck className="w-3 h-3 text-[#2EAA6E]" />
+                  <ShieldCheck className="w-3 h-3 text-[#00A979]" />
                   NDIS claimable: ${Number(invoice.ndisClaimable).toFixed(2)}
                 </div>
               )}
@@ -490,7 +490,7 @@ function UsageMeteringSummary({ userId }: { userId: string }) {
 
   return (
     <Card className="overflow-hidden" data-testid="card-usage-metering">
-      <div className="bg-gradient-to-r from-[#14578F] via-[#1B6EB5] to-[#2384C9] px-6 py-4">
+      <div className="bg-gradient-to-r from-[#004766] via-[#005B7F] to-[#00749E] px-6 py-4">
         <h2 className="text-lg font-black text-white flex items-center gap-2">
           <Zap className="w-5 h-5" /> Current Billing Period Usage
         </h2>
@@ -501,7 +501,7 @@ function UsageMeteringSummary({ userId }: { userId: string }) {
       <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
         <div className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-4 h-4 text-[#E6A817]" />
+            <Clock className="w-4 h-4 text-[#F8C51C]" />
             <h3 className="font-bold text-sm">Care Hours</h3>
           </div>
           <div className="flex items-baseline gap-2">
@@ -515,7 +515,7 @@ function UsageMeteringSummary({ userId }: { userId: string }) {
         </div>
         <div className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Car className="w-4 h-4 text-[#E6A817]" />
+            <Car className="w-4 h-4 text-[#F8C51C]" />
             <h3 className="font-bold text-sm">Transport Distance</h3>
           </div>
           <div className="flex items-baseline gap-2">

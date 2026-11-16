@@ -76,7 +76,7 @@ export default function GroceriesPage() {
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-black flex items-center gap-2" data-testid="text-page-title">
-            <ShoppingCart className="w-6 h-6 text-[#2EAA6E]" /> Grocery Delivery
+            <ShoppingCart className="w-6 h-6 text-[#00A979]" /> Grocery Delivery
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Order groceries delivered to your door, or book a support worker to shop for you under your NDIS daily living budget.
@@ -97,8 +97,8 @@ export default function GroceriesPage() {
       </header>
 
       {supplierStatus && (supplierStatus.bySource.openfoodfacts ?? 0) > 0 && (
-        <Alert className="border-[#1B6EB5]/30 bg-[#1B6EB5]/5" data-testid="alert-supplier-disclosure">
-          <Info className="w-4 h-4 text-[#1B6EB5]" />
+        <Alert className="border-[#005B7F]/30 bg-[#005B7F]/5" data-testid="alert-supplier-disclosure">
+          <Info className="w-4 h-4 text-[#005B7F]" />
           <AlertDescription className="text-xs">
             Catalogue powered by <span className="font-semibold">Open Food Facts</span> ({supplierStatus.bySource.openfoodfacts} live AU products).
             Prices shown are <span className="font-semibold">estimated AUD bands by category</span> — not real retail pricing. A paid supplier feed
@@ -167,7 +167,7 @@ export default function GroceriesPage() {
                       {p.name}
                     </h3>
                     {p.brand && (
-                      <p className="text-[11px] uppercase tracking-wide text-[#1B6EB5] font-semibold" data-testid={`text-brand-${p.id}`}>
+                      <p className="text-[11px] uppercase tracking-wide text-[#005B7F] font-semibold" data-testid={`text-brand-${p.id}`}>
                         {p.brand}
                       </p>
                     )}
@@ -181,7 +181,7 @@ export default function GroceriesPage() {
                   <p className="text-xs text-muted-foreground flex-1">{p.description}</p>
                 )}
                 <div className="flex items-center justify-between mt-auto pt-2">
-                  <span className="text-base font-black text-[#2EAA6E]" data-testid={`text-price-${p.id}`}>
+                  <span className="text-base font-black text-[#00A979]" data-testid={`text-price-${p.id}`}>
                     ${Number(p.price).toFixed(2)}
                   </span>
                   {inCart ? (

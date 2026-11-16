@@ -215,7 +215,7 @@ export default function WorkerProfile() {
 
       <Card className="p-6" data-testid="card-profile-photo">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Camera className="w-5 h-5 text-[#1B6EB5]" /> Profile Photo
+          <Camera className="w-5 h-5 text-[#005B7F]" /> Profile Photo
         </h2>
         <div className="flex items-center gap-6">
           <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-border" data-testid="img-profile-photo">
@@ -240,7 +240,7 @@ export default function WorkerProfile() {
 
       <Card className="p-6" data-testid="card-personal-info">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <UserIcon className="w-5 h-5 text-[#1B6EB5]" /> Personal Information
+          <UserIcon className="w-5 h-5 text-[#005B7F]" /> Personal Information
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -306,7 +306,7 @@ export default function WorkerProfile() {
 
       <Card className="p-6" data-testid="card-worker-details">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Briefcase className="w-5 h-5 text-[#1B6EB5]" /> Worker Details
+          <Briefcase className="w-5 h-5 text-[#005B7F]" /> Worker Details
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -339,7 +339,7 @@ export default function WorkerProfile() {
           <div>
             <Label className="text-muted-foreground text-xs">Rating</Label>
             <p className="font-medium mt-1.5 flex items-center gap-1" data-testid="text-rating">
-              <Star className="w-3.5 h-3.5 fill-[#E6A817] text-[#E6A817]" />
+              <Star className="w-3.5 h-3.5 fill-[#F8C51C] text-[#F8C51C]" />
               {Number(worker.rating || 0).toFixed(1)} ({worker.reviewCount || 0} reviews)
             </p>
           </div>
@@ -348,7 +348,7 @@ export default function WorkerProfile() {
             <div className="flex items-center gap-2 mt-1.5">
               <p className="font-medium" data-testid="text-abn">{worker.abn || "Not set"}</p>
               <Link href="/abn-lookup">
-                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-[#1B6EB5]" data-testid="link-abn-lookup">
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-[#005B7F]" data-testid="link-abn-lookup">
                   <ExternalLink className="w-3 h-3" /> ABN Lookup
                 </Button>
               </Link>
@@ -427,7 +427,7 @@ export default function WorkerProfile() {
 
       <Card className="p-6" data-testid="card-transport">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Car className="w-5 h-5 text-[#2EAA6E]" /> Transport Settings
+          <Car className="w-5 h-5 text-[#00A979]" /> Transport Settings
         </h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -475,13 +475,13 @@ export default function WorkerProfile() {
 
       <Card className="p-6" data-testid="card-compliance">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#E6A817]" /> Compliance & Verification
+          <Calendar className="w-5 h-5 text-[#F8C51C]" /> Compliance & Verification
         </h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <span className="text-sm font-medium">NDIS Verified</span>
             {worker.ndisVerified ? (
-              <Badge className="bg-[#2EAA6E]/10 text-[#2EAA6E] border-[#2EAA6E]/30 gap-1">
+              <Badge className="bg-[#00A979]/10 text-[#00A979] border-[#00A979]/30 gap-1">
                 <ShieldCheck className="w-3 h-3" /> Verified
               </Badge>
             ) : (
@@ -533,7 +533,7 @@ function ExpiryField({ label, value, onChange, testId }: { label: string; value:
     const days = Math.ceil((new Date(value).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     if (days < 0) return { color: "text-red-600", bg: "bg-red-50 dark:bg-red-950/30", text: "Expired" };
     if (days <= 30) return { color: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-950/30", text: `Expires in ${days}d` };
-    return { color: "text-[#2EAA6E]", bg: "bg-green-50 dark:bg-green-950/30", text: "Valid" };
+    return { color: "text-[#00A979]", bg: "bg-green-50 dark:bg-green-950/30", text: "Valid" };
   };
   const status = getExpiryStatus();
   return (

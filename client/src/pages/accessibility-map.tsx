@@ -172,7 +172,7 @@ export default function AccessibilityMapPage() {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-              <MapPin className="w-6 h-6 text-[#1B6EB5]" /> Accessibility Map
+              <MapPin className="w-6 h-6 text-[#005B7F]" /> Accessibility Map
             </h1>
             <p className="text-sm text-muted-foreground">Explore accessible places, parking, lifts and routes.</p>
           </div>
@@ -277,7 +277,7 @@ export default function AccessibilityMapPage() {
                     onCheckedChange={() => toggleLayer(l.id)}
                     data-testid={`checkbox-layer-${l.slug}`}
                   />
-                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: l.color || "#1B6EB5" }} />
+                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: l.color || "#005B7F" }} />
                   <span className="flex-1 leading-tight">{l.name}</span>
                 </label>
               ))}
@@ -305,7 +305,7 @@ export default function AccessibilityMapPage() {
                       className="w-full text-left p-2 rounded-md hover-elevate text-sm flex items-start gap-2"
                       data-testid={`inview-feature-${f.id}`}
                     >
-                      <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#1B6EB5]" />
+                      <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#005B7F]" />
                       <span className="leading-tight line-clamp-2">{f.name}</span>
                     </button>
                   ))
@@ -317,7 +317,7 @@ export default function AccessibilityMapPage() {
           {/* My Places management */}
           <div className="border-t flex flex-col min-h-0 max-h-[35%]">
             <div className="p-3 flex items-center gap-2 text-sm font-semibold shrink-0">
-              <Star className="w-4 h-4 text-[#E6A817]" /> My Places
+              <Star className="w-4 h-4 text-[#F8C51C]" /> My Places
               <Badge variant="outline" className="ml-auto" data-testid="badge-places-count">{personalPlaces.length}</Badge>
             </div>
             <ScrollArea className="flex-1">
@@ -335,7 +335,7 @@ export default function AccessibilityMapPage() {
                         className="flex-1 text-left p-2 text-sm flex items-start gap-2 min-w-0"
                         data-testid={`button-flyto-place-${p.id}`}
                       >
-                        <Star className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#E6A817]" />
+                        <Star className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#F8C51C]" />
                         <span className="leading-tight truncate">{p.name}</span>
                       </button>
                       <button
@@ -450,7 +450,7 @@ function AIExplorerPanel(props: {
     return (
       <Button
         onClick={() => setOpen(true)}
-        className="absolute bottom-6 right-6 z-[600] rounded-full shadow-lg gap-2 bg-[#1B6EB5] hover:bg-[#14578F]"
+        className="absolute bottom-6 right-6 z-[600] rounded-full shadow-lg gap-2 bg-[#005B7F] hover:bg-[#004766]"
         data-testid="button-open-ai-explorer"
       >
         <Sparkles className="w-4 h-4" /> AI Explorer
@@ -461,7 +461,7 @@ function AIExplorerPanel(props: {
   return (
     <aside className="w-80 border-l flex flex-col shrink-0 bg-background" aria-label="AI map explorer" data-testid="panel-ai-explorer">
       <div className="p-3 border-b flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-[#1B6EB5]" />
+        <Sparkles className="w-4 h-4 text-[#005B7F]" />
         <span className="font-semibold text-sm">AI Explorer</span>
         <Button variant="ghost" size="icon" className="ml-auto h-7 w-7" onClick={() => setOpen(false)} data-testid="button-close-ai-explorer"><X className="w-4 h-4" /></Button>
       </div>
@@ -470,7 +470,7 @@ function AIExplorerPanel(props: {
           {messages.map((m, i) => (
             <div
               key={i}
-              className={`text-sm rounded-lg px-3 py-2 ${m.role === "user" ? "bg-[#1B6EB5] text-white ml-6" : "bg-muted mr-6"}`}
+              className={`text-sm rounded-lg px-3 py-2 ${m.role === "user" ? "bg-[#005B7F] text-white ml-6" : "bg-muted mr-6"}`}
               data-testid={`ai-message-${m.role}-${i}`}
             >
               {m.content}
