@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   appendProviderFinderTurn,
@@ -17,38 +17,44 @@ const stored: AppliedSearchFields = {
   accessNeedIds: ["text-communication"],
 };
 
-describe("priorAppliedFromSession", () => {
-  it("lets an empty form location clear a stored location", () => {
-    resetProviderFinderSessionsForTests();
-    appendProviderFinderTurn("finder-test", {
-      userText: "morning daily activities around Penrith",
-      assistantText: "I’ll look for providers.",
-      applied: stored,
-      interpretation: {
-        sourceQuery: "morning daily activities around Penrith",
-        parsed: true,
-        configured: true,
-        filters: {
-          q: "morning daily activities",
-          location: "Penrith 2750",
-          access: "text communication",
-          service: "morning daily activities",
-          provider: "",
-        },
-        serviceCategorySlug: null,
-        serviceCategoryId: null,
-        accessNeedIds: ["text-communication"],
-        accessNeeds: {
-          ids: ["text-communication"],
-          confidence: 0.8,
-          source: "keyword",
-        },
-        confidence: 0.8,
-        engineId: "test",
+function seedStoredTurn() {
+  appendProviderFinderTurn("finder-test", {
+    userText: "morning daily activities around Penrith",
+    assistantText: "I’ll look for providers.",
+    applied: stored,
+    interpretation: {
+      sourceQuery: "morning daily activities around Penrith",
+      parsed: true,
+      configured: true,
+      filters: {
+        q: "morning daily activities",
+        location: "Penrith 2750",
+        access: "text communication",
+        service: "morning daily activities",
+        provider: "",
       },
-      agent: { sessionId: "finder-test", turnIndex: 1, status: "complete" },
-    });
+      serviceCategorySlug: null,
+      serviceCategoryId: null,
+      accessNeedIds: ["text-communication"],
+      accessNeeds: {
+        ids: ["text-communication"],
+        confidence: 0.8,
+        source: "keyword",
+      },
+      confidence: 0.8,
+      engineId: "test",
+    },
+    agent: { sessionId: "finder-test", turnIndex: 1, status: "complete" },
+  });
+}
 
+describe("priorAppliedFromSession", () => {
+  afterEach(() => {
+    resetProviderFinderSessionsForTests();
+  });
+
+  it("lets an empty form location clear a stored location", () => {
+    seedStoredTurn();
     const overlay = priorAppliedFromSession("finder-test", {
       query: stored.query,
       location: "",
@@ -60,37 +66,42 @@ describe("priorAppliedFromSession", () => {
     expect(overlay?.location).toBe("");
     expect(overlay?.serviceQuery).toBe("morning daily activities");
     expect(overlay?.accessQuery).toBe("text communication");
-    resetProviderFinderSessionsForTests();
+    expect(overlay?.supportType).toBe("personal-care");
+    expect(overlay?.accessNeedIds).toEqual(["text-communication"]);
+  });
+
+  it("clears stored supportType when the service chip is removed", () => {
+    seedStoredTurn();
+    const overlay = priorAppliedFromSession("finder-test", {
+      query: stored.query,
+      location: stored.location,
+      providerName: "",
+      serviceQuery: "",
+      accessQuery: stored.accessQuery,
+    });
+
+    expect(overlay?.serviceQuery).toBe("");
+    expect(overlay?.supportType).toBeNull();
+    expect(overlay?.accessNeedIds).toEqual(["text-communication"]);
+  });
+
+  it("clears stored accessNeedIds when the access chip is removed", () => {
+    seedStoredTurn();
+    const overlay = priorAppliedFromSession("finder-test", {
+      query: stored.query,
+      location: stored.location,
+      providerName: "",
+      serviceQuery: stored.serviceQuery,
+      accessQuery: "",
+    });
+
+    expect(overlay?.accessQuery).toBe("");
+    expect(overlay?.accessNeedIds).toEqual([]);
+    expect(overlay?.supportType).toBe("personal-care");
   });
 
   it("falls back to the store when no form session is sent", () => {
-    resetProviderFinderSessionsForTests();
-    appendProviderFinderTurn("finder-test", {
-      userText: "help",
-      assistantText: "ok",
-      applied: stored,
-      interpretation: {
-        sourceQuery: "help",
-        parsed: true,
-        configured: true,
-        filters: {
-          q: "help",
-          location: "Penrith 2750",
-          access: "",
-          service: "",
-          provider: "",
-        },
-        serviceCategorySlug: null,
-        serviceCategoryId: null,
-        accessNeedIds: [],
-        accessNeeds: { ids: [], confidence: 0, source: "none" },
-        confidence: 0.4,
-        engineId: "test",
-      },
-      agent: { sessionId: "finder-test", turnIndex: 1, status: "complete" },
-    });
-
+    seedStoredTurn();
     expect(priorAppliedFromSession("finder-test")?.location).toBe("Penrith 2750");
-    resetProviderFinderSessionsForTests();
   });
 });

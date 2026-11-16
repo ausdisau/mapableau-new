@@ -89,10 +89,14 @@ describe("chat-first provider finder v2", () => {
     expect(screen.getAllByTestId("map-slot").length).toBeGreaterThan(0);
   });
 
-  it("does not reveal results during clarification turns", () => {
-    expect(shouldRevealChatFirstResults("needs_clarification")).toBe(false);
-    expect(shouldRevealChatFirstResults(undefined)).toBe(false);
-    expect(shouldRevealChatFirstResults("complete")).toBe(true);
+  it("does not reveal results until a complete turn has applied filters", () => {
+    expect(shouldRevealChatFirstResults("needs_clarification", true)).toBe(
+      false,
+    );
+    expect(shouldRevealChatFirstResults("complete")).toBe(false);
+    expect(shouldRevealChatFirstResults("complete", false)).toBe(false);
+    expect(shouldRevealChatFirstResults(undefined, true)).toBe(false);
+    expect(shouldRevealChatFirstResults("complete", true)).toBe(true);
   });
 
   it("offers no-results actions without automated reportability", () => {

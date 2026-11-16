@@ -16,9 +16,14 @@ export function isProviderFinderChatFirstV2Enabled(
   return envFlag("MAPABLE_PROVIDER_FINDER_CHAT_FIRST_V2_ENABLED", env);
 }
 
-/** Results pane follows a completed turn, not a clarification interpretation. */
+/**
+ * Results pane follows a completed turn after applied fields have landed.
+ * Agent metadata is streamed before interpretation, so complete alone must
+ * not reveal the previous (or empty) filter set.
+ */
 export function shouldRevealChatFirstResults(
   status: string | undefined,
+  interpretationApplied = false,
 ): boolean {
-  return status === "complete";
+  return status === "complete" && interpretationApplied;
 }

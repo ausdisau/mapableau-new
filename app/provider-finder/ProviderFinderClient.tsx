@@ -3,7 +3,7 @@
 import { Bookmark, Loader2, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AdPlacement } from "@/components/ads/mapable/AdPlacement";
 import { MapErrorBoundary } from "@/components/error/MapErrorBoundary";
@@ -162,6 +162,9 @@ export default function ProviderFinderClient({
   const [sort, setSort] = useState<SortMode>("relevance");
   const [page, setPage] = useState(1);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const chatFirstRevealStatusRef = useRef<string | undefined>(undefined);
+  const chatFirstAgentTurnRef = useRef(0);
+  const chatFirstAppliedTurnRef = useRef(0);
   const [userLocation, setUserLocation] = useState<UserPosition | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -635,6 +638,20 @@ export default function ProviderFinderClient({
     setPage(1);
   };
 
+  const revealChatFirstResultsIfReady = () => {
+    const paired =
+      chatFirstAgentTurnRef.current > 0 &&
+      chatFirstAgentTurnRef.current === chatFirstAppliedTurnRef.current;
+    if (
+      !chatFirstV2Enabled ||
+      !shouldRevealChatFirstResults(chatFirstRevealStatusRef.current, paired)
+    ) {
+      return;
+    }
+    setSearchSubmitted(true);
+    setPage(1);
+  };
+
   const handleAskInterpretation = ({
     interpretation,
     applied: nextApplied,
@@ -647,13 +664,14 @@ export default function ProviderFinderClient({
       service_category_slug: interpretation.serviceCategorySlug ?? "",
       engine_id: interpretation.engineId,
     });
+    chatFirstAppliedTurnRef.current += 1;
+    revealChatFirstResultsIfReady();
   };
 
   const handleAskAgentMeta = (data: FinderAgentData) => {
-    if (chatFirstV2Enabled && shouldRevealChatFirstResults(data.status)) {
-      setSearchSubmitted(true);
-      setPage(1);
-    }
+    chatFirstRevealStatusRef.current = data.status;
+    chatFirstAgentTurnRef.current += 1;
+    revealChatFirstResultsIfReady();
   };
 
   const askPanel = (

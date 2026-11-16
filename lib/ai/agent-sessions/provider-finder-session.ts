@@ -115,6 +115,19 @@ export function priorAppliedFromSession(
 
   if (!formSession) return fromStore;
 
+  const serviceQuery =
+    formSession.serviceQuery !== undefined
+      ? formSession.serviceQuery
+      : fromStore?.serviceQuery ?? "";
+  const accessQuery =
+    formSession.accessQuery !== undefined
+      ? formSession.accessQuery
+      : fromStore?.accessQuery ?? "";
+  const serviceCleared =
+    formSession.serviceQuery !== undefined && !formSession.serviceQuery.trim();
+  const accessCleared =
+    formSession.accessQuery !== undefined && !formSession.accessQuery.trim();
+
   return {
     ...(fromStore ?? emptyApplied()),
     query:
@@ -127,14 +140,10 @@ export function priorAppliedFromSession(
       formSession.providerName !== undefined
         ? formSession.providerName
         : fromStore?.providerName ?? "",
-    serviceQuery:
-      formSession.serviceQuery !== undefined
-        ? formSession.serviceQuery
-        : fromStore?.serviceQuery ?? "",
-    accessQuery:
-      formSession.accessQuery !== undefined
-        ? formSession.accessQuery
-        : fromStore?.accessQuery ?? "",
+    serviceQuery,
+    accessQuery,
+    supportType: serviceCleared ? null : fromStore?.supportType ?? null,
+    accessNeedIds: accessCleared ? [] : fromStore?.accessNeedIds ?? [],
   };
 }
 
