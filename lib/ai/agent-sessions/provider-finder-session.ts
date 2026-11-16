@@ -110,7 +110,7 @@ export function priorAppliedFromSession(
   },
 ): AppliedSearchFields | undefined {
   const fromStore = sessionId
-    ? getProviderFinderSession(sessionId)?.cumulativeApplied
+    ? (getProviderFinderSession(sessionId)?.cumulativeApplied ?? undefined)
     : undefined;
 
   if (!formSession) return fromStore;
