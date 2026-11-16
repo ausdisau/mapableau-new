@@ -94,6 +94,11 @@ export function appendProviderFinderTurn(
   return session;
 }
 
+/**
+ * Client form/chip state is authoritative when provided (including empty
+ * strings that clear a slot). The in-memory store is a fallback only for
+ * omitted fields or when no form session is sent.
+ */
 export function priorAppliedFromSession(
   sessionId: string | undefined,
   formSession?: {
@@ -104,25 +109,32 @@ export function priorAppliedFromSession(
     accessQuery?: string;
   },
 ): AppliedSearchFields | undefined {
-  const fromStore = sessionId ? getProviderFinderSession(sessionId) : null;
-  if (fromStore?.cumulativeApplied) return fromStore.cumulativeApplied;
+  const fromStore = sessionId
+    ? getProviderFinderSession(sessionId)?.cumulativeApplied
+    : undefined;
 
-  if (!formSession) return undefined;
-  const hasAny =
-    formSession.query?.trim() ||
-    formSession.location?.trim() ||
-    formSession.providerName?.trim() ||
-    formSession.serviceQuery?.trim() ||
-    formSession.accessQuery?.trim();
-  if (!hasAny) return undefined;
+  if (!formSession) return fromStore;
 
   return {
-    ...emptyApplied(),
-    query: formSession.query ?? "",
-    location: formSession.location ?? "",
-    providerName: formSession.providerName ?? "",
-    serviceQuery: formSession.serviceQuery ?? "",
-    accessQuery: formSession.accessQuery ?? "",
+    ...(fromStore ?? emptyApplied()),
+    query:
+      formSession.query !== undefined ? formSession.query : fromStore?.query ?? "",
+    location:
+      formSession.location !== undefined
+        ? formSession.location
+        : fromStore?.location ?? "",
+    providerName:
+      formSession.providerName !== undefined
+        ? formSession.providerName
+        : fromStore?.providerName ?? "",
+    serviceQuery:
+      formSession.serviceQuery !== undefined
+        ? formSession.serviceQuery
+        : fromStore?.serviceQuery ?? "",
+    accessQuery:
+      formSession.accessQuery !== undefined
+        ? formSession.accessQuery
+        : fromStore?.accessQuery ?? "",
   };
 }
 

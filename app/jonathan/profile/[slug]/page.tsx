@@ -7,7 +7,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  ShieldCheck,
   Star,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { REGISTRATION_NOT_VERIFIED_LABEL } from "@/lib/provider/finder/evidence";
 import { useProviderOutlets } from "@/lib/provider/finder/use-provider-outlets";
 import { usePlatformCareLink } from "@/lib/provider/use-platform-care-link";
 import { buildProviderProfileJsonLd } from "@/lib/seo/provider-profile-json-ld";
@@ -89,22 +89,12 @@ function ProviderProfile({
                 </CardDescription>
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
-                {provider.registered ? (
-                  <Badge
-                    variant="outline"
-                    className="border-primary/20 bg-primary/5 px-3 py-1.5 text-primary"
-                  >
-                    <ShieldCheck className="mr-1.5 h-4 w-4" />
-                    Registered
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="border-border bg-background text-muted-foreground"
-                  >
-                    Unregistered
-                  </Badge>
-                )}
+                <Badge
+                  variant="outline"
+                  className="border-border bg-background text-muted-foreground"
+                >
+                  {REGISTRATION_NOT_VERIFIED_LABEL}
+                </Badge>
                 {(provider.rating > 0 || provider.reviewCount > 0) && (
                   <div className="flex items-center gap-1.5 text-sm">
                     <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />

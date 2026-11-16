@@ -23,7 +23,10 @@ vi.mock("next/link", () => ({
 import { ChatFirstFilterChips } from "@/components/provider-finder/ChatFirstFilterChips";
 import { ChatFirstFinderExperience } from "@/components/provider-finder/ChatFirstFinderExperience";
 import { ChatFirstNoResults } from "@/components/provider-finder/ChatFirstNoResults";
-import { isProviderFinderChatFirstV2Enabled } from "@/lib/config/provider-finder-chat-first";
+import {
+  isProviderFinderChatFirstV2Enabled,
+  shouldRevealChatFirstResults,
+} from "@/lib/config/provider-finder-chat-first";
 import { clearAppliedField } from "@/lib/provider/finder/merge-applied";
 import type { AppliedSearchFields } from "@/lib/search/apply-interpretation";
 
@@ -86,20 +89,27 @@ describe("chat-first provider finder v2", () => {
     expect(screen.getAllByTestId("map-slot").length).toBeGreaterThan(0);
   });
 
+  it("does not reveal results during clarification turns", () => {
+    expect(shouldRevealChatFirstResults("needs_clarification")).toBe(false);
+    expect(shouldRevealChatFirstResults(undefined)).toBe(false);
+    expect(shouldRevealChatFirstResults("complete")).toBe(true);
+  });
+
   it("offers no-results actions without automated reportability", () => {
+    const onViewDirectory = vi.fn();
     render(
       <ChatFirstNoResults
         applied={applied}
         onEditSearch={() => undefined}
         onBroadenSearch={() => undefined}
+        onViewDirectory={onViewDirectory}
       />,
     );
 
     expect(screen.getByRole("button", { name: "Edit my search" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Broaden search" })).toBeTruthy();
-    expect(
-      screen.getByRole("link", { name: "View directory" }).getAttribute("href"),
-    ).toBe("/provider-finder");
+    fireEvent.click(screen.getByRole("button", { name: "View directory" }));
+    expect(onViewDirectory).toHaveBeenCalledTimes(1);
     expect(
       screen.getByRole("link", { name: "Ask for human support" }),
     ).toBeTruthy();

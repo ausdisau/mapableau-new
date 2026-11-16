@@ -106,6 +106,38 @@ describe("provider finder ask integration", () => {
     expect(turn.agent?.sessionId).toBeDefined();
   });
 
+  it("does not treat Skip as a search query", async () => {
+    const turn = await runProviderFinderAskTurn(
+      "Skip",
+      {
+        query: "morning daily activities",
+        location: "Penrith 2750",
+        providerName: "",
+        serviceQuery: "morning daily activities",
+        accessQuery: "text communication",
+        skippedSlots: ["access"],
+      },
+      {
+        priorApplied: {
+          query: "morning daily activities",
+          location: "Penrith 2750",
+          providerName: "",
+          serviceQuery: "morning daily activities",
+          accessQuery: "text communication",
+          supportType: "personal-care",
+          accessNeedIds: ["text-communication"],
+        },
+      },
+    );
+
+    expect(turn.applied.query.toLowerCase()).not.toContain("skip");
+    expect(turn.interpretation.sourceQuery.toLowerCase()).not.toContain("skip");
+    expect(turn.applied.location).toBe("Penrith 2750");
+    expect(turn.applied.serviceQuery).toBe("morning daily activities");
+    expect(turn.applied.accessNeedIds).toEqual(["text-communication"]);
+    expect(turn.agent?.status).toBe("complete");
+  });
+
   it("mergeAppliedFields accumulates location across turns", () => {
     const merged = mergeAppliedFields(
       {

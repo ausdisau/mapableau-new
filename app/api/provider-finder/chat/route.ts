@@ -82,6 +82,7 @@ export async function POST(request: Request) {
     );
   }
 
+  let handedToStream = false;
   try {
     touchProviderFinderSession(sessionId);
     const existing = getProviderFinderSession(sessionId);
@@ -93,10 +94,14 @@ export async function POST(request: Request) {
       silent: false,
     });
 
-    const priorApplied = priorAppliedFromSession(sessionId, formSession);
+    const priorApplied = priorAppliedFromSession(
+      sessionId,
+      parsed.data.session,
+    );
 
     const turn = await runProviderFinderAskTurn(userText, formSession, {
       priorApplied,
+      priorInterpretation: existing?.lastInterpretation,
       agentSessionId: sessionId,
       agentTurnIndex: existing?.turnIndex ?? 0,
     });
@@ -117,8 +122,10 @@ export async function POST(request: Request) {
         gate.allowed &&
         gate.useModelStream &&
         isSearchInterpreterConfigured(),
+      onFinally: () => unlockFinderChatTurn(sessionId),
     });
 
+    handedToStream = true;
     return createUIMessageStreamResponse({ stream });
   } catch (err) {
     console.error("[provider-finder/chat]", err);
@@ -127,6 +134,6 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   } finally {
-    unlockFinderChatTurn(sessionId);
+    if (!handedToStream) unlockFinderChatTurn(sessionId);
   }
 }

@@ -7,12 +7,16 @@ import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/app/lib/utils";
 import { GuidedSearchDialogue } from "@/components/guided-search/GuidedSearchDialogue";
 import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
-import type { FinderInterpretationData } from "@/types/provider-finder-chat";
+import type {
+  FinderAgentData,
+  FinderInterpretationData,
+} from "@/types/provider-finder-chat";
 
 type Props = {
   id?: string;
   session: GuidedSearchSessionFields;
   onInterpretation: (data: FinderInterpretationData) => void;
+  onAgentMeta?: (data: FinderAgentData) => void;
   onSessionChange?: (session: GuidedSearchSessionFields) => void;
   onShowResults?: () => void;
   stayOnPage?: boolean;
@@ -25,6 +29,7 @@ export function ProviderFinderAskPanel({
   id = "ask-panel",
   session,
   onInterpretation,
+  onAgentMeta,
   onSessionChange,
   onShowResults,
   stayOnPage = false,
@@ -89,6 +94,7 @@ export function ProviderFinderAskPanel({
           onSessionChange?.(next);
         }}
         onInterpretation={handleInterpretation}
+        onAgentMeta={onAgentMeta}
         onShowResults={onShowResults}
         stayOnPage={stayOnPage}
         className="min-h-0 flex-1"

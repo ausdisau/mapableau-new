@@ -132,3 +132,7 @@ export function getProviderEvidence(
       : "Directory snapshot date not established",
   } as const;
 }
+
+/** Never render “Unregistered” from the legacy `registered` boolean. */
+export const REGISTRATION_NOT_VERIFIED_LABEL =
+  "Registration not independently verified";

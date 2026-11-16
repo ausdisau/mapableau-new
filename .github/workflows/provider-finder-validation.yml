@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "app/provider-finder/**"
+      - "app/jonathan/profile/**"
       - "app/api/provider-finder/**"
       - "app/api/providers/chat-search/**"
       - "app/api/providers/search-profile/**"
@@ -11,6 +12,7 @@ on:
       - "components/provider-finder/**"
       - "components/guided-search/**"
       - "lib/provider/finder/**"
+      - "lib/ai/agent-sessions/provider-finder-session.ts"
       - "lib/ingestion/ndis-providers-search.ts"
       - "lib/config/provider-finder-chat-first.ts"
       - "lib/map/mappers/ndis-provider.ts"
@@ -18,6 +20,7 @@ on:
       - "lib/crypto/provider-search-preferences.ts"
       - "tests/provider-finder/**"
       - "tests/provider-finder-truthfulness.test.ts"
+      - "tests/provider-finder-ask.test.ts"
       - "tests/provider-finder-chat-first-v2.test.tsx"
       - "tests/clarification-guidance.test.ts"
       - "tests/guided-search-*.ts"
@@ -70,6 +73,8 @@ jobs:
             tests/provider-finder-truthfulness.test.ts \
             tests/provider-finder/ndis-search-from-applied.test.ts \
             tests/provider-finder/chat-request.test.ts \
+            tests/provider-finder/finder-agent-session.test.ts \
+            tests/provider-finder-ask.test.ts \
             tests/provider-finder/provider-regulatory-evidence.test.ts \
             tests/provider-finder/provider-chat-matching.test.ts \
             tests/provider-finder/provider-chat-session.test.ts \
@@ -96,6 +101,12 @@ jobs:
             lib/provider/finder/evidence.ts \
             lib/provider/finder/ndis-search-from-applied.ts \
             lib/provider/finder/chat-request.ts \
+            lib/provider/finder/ask-bridge.ts \
+            lib/ai/agent-sessions/provider-finder-session.ts \
+            lib/provider/finder/conversation/stream-assistant.ts \
+            components/guided-search/GuidedSearchDialogue.tsx \
+            components/provider-finder/ProviderFinderAskPanel.tsx \
+            app/jonathan/profile/[slug]/page.tsx \
             lib/provider/finder/provider-chat-matching.ts \
             lib/provider/finder/search-profile-contract.ts \
             lib/provider/finder/search-profile-service.ts \

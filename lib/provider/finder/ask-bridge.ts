@@ -13,6 +13,7 @@ import type { SearchInterpretation } from "@/types/search";
 import {
   buildClarificationQuestion,
   enrichCopilotAgentMeta,
+  isSkipClarificationValue,
   needsProviderFinderClarification,
 } from "./clarification";
 import { runProviderFinderConversationTurn } from "./conversation/run-turn";
@@ -41,6 +42,7 @@ export type ProviderFinderAskOptions = {
   providerName?: string;
   providerSlug?: string;
   priorApplied?: AppliedSearchFields;
+  priorInterpretation?: SearchInterpretation | null;
   agentSessionId?: string;
   agentTurnIndex?: number;
 };
@@ -82,8 +84,12 @@ export async function runProviderFinderAskTurn(
     skippedSlots,
   };
 
-  const effectiveQuery = mergeProviderContextIntoQuery(userText, options);
-  const turn = await runProviderFinderConversationTurn(effectiveQuery, session);
+  const turn = isSkipClarificationValue(userText)
+    ? skipConversationTurn(session, options)
+    : await runProviderFinderConversationTurn(
+        mergeProviderContextIntoQuery(userText, options),
+        session,
+      );
 
   const applied = mergeAppliedFields(options?.priorApplied, turn.applied);
 
@@ -154,6 +160,56 @@ export async function runProviderFinderAskTurn(
     searchParams: buildFinderSearchParams(applied),
     providerResults,
     agent,
+  };
+}
+
+function interpretationFromApplied(
+  applied: AppliedSearchFields,
+): SearchInterpretation {
+  return {
+    sourceQuery: applied.query.trim() || " ",
+    parsed: true,
+    configured: true,
+    filters: {
+      q: applied.query,
+      location: applied.location,
+      access: applied.accessQuery,
+      service: applied.serviceQuery,
+      provider: applied.providerName,
+    },
+    serviceCategorySlug: null,
+    serviceCategoryId: null,
+    accessNeedIds: applied.accessNeedIds,
+    accessNeeds: {
+      ids: applied.accessNeedIds,
+      confidence: applied.accessNeedIds.length > 0 ? 0.8 : 0,
+      source: applied.accessNeedIds.length > 0 ? "keyword" : "none",
+    },
+    confidence: 0.4,
+    engineId: "skip",
+  };
+}
+
+function skipConversationTurn(
+  session: ProviderFinderSessionFields,
+  options?: ProviderFinderAskOptions,
+) {
+  const applied = mergeAppliedFields(options?.priorApplied, {
+    query: session.query,
+    location: session.location,
+    providerName: session.providerName,
+    serviceQuery: session.serviceQuery,
+    accessQuery: session.accessQuery,
+    supportType: options?.priorApplied?.supportType ?? null,
+    accessNeedIds: options?.priorApplied?.accessNeedIds ?? [],
+  });
+  const interpretation =
+    options?.priorInterpretation ?? interpretationFromApplied(applied);
+  return {
+    interpretation,
+    applied,
+    replyText:
+      "I’ll skip that for now and keep the rest of your search. You can add it later.",
   };
 }
 

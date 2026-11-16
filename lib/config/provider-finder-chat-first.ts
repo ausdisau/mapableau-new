@@ -15,3 +15,10 @@ export function isProviderFinderChatFirstV2Enabled(
 ): boolean {
   return envFlag("MAPABLE_PROVIDER_FINDER_CHAT_FIRST_V2_ENABLED", env);
 }
+
+/** Results pane follows a completed turn, not a clarification interpretation. */
+export function shouldRevealChatFirstResults(
+  status: string | undefined,
+): boolean {
+  return status === "complete";
+}

@@ -16,12 +16,14 @@ type Props = {
   applied: AppliedSearchFields;
   onEditSearch: () => void;
   onBroadenSearch: () => void;
+  onViewDirectory: () => void;
 };
 
 export function ChatFirstNoResults({
   applied,
   onEditSearch,
   onBroadenSearch,
+  onViewDirectory,
 }: Props) {
   const [broadenConfirm, setBroadenConfirm] = useState(false);
   const chips = chipsFromApplied(applied);
@@ -69,8 +71,8 @@ export function ChatFirstNoResults({
             Broaden search
           </Button>
         )}
-        <Button type="button" variant="outline" size="default" asChild>
-          <Link href="/provider-finder">View directory</Link>
+        <Button type="button" variant="outline" size="default" onClick={onViewDirectory}>
+          View directory
         </Button>
         <Button type="button" variant="outline" size="default" asChild>
           <Link href="/contact">Ask for human support</Link>

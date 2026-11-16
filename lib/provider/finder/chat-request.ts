@@ -8,6 +8,8 @@ import { z } from "zod";
  */
 
 export const PROVIDER_FINDER_CHAT_MAX_MESSAGES = 20;
+/** Accept extra history, then slice to `PROVIDER_FINDER_CHAT_MAX_MESSAGES`. */
+export const PROVIDER_FINDER_CHAT_MAX_REQUEST_MESSAGES = 50;
 export const PROVIDER_FINDER_CHAT_MAX_TEXT = 2000;
 export const PROVIDER_FINDER_CHAT_MAX_FIELD = 200;
 
@@ -27,7 +29,7 @@ const messageSchema = z.object({
 export const providerFinderChatRequestSchema = z.object({
   messages: z
     .array(messageSchema)
-    .max(PROVIDER_FINDER_CHAT_MAX_MESSAGES)
+    .max(PROVIDER_FINDER_CHAT_MAX_REQUEST_MESSAGES)
     .optional()
     .default([]),
   sessionId: z

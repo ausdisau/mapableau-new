@@ -13,6 +13,7 @@ import { mergeProviderContextIntoQuery } from "@/lib/provider/finder/ask-bridge"
 import {
   buildClarificationQuestion,
   enrichCopilotAgentMeta,
+  isSkipClarificationValue,
   needsProviderFinderClarification,
 } from "@/lib/provider/finder/clarification";
 import { runProviderFinderConversationTurn } from "@/lib/provider/finder/conversation/run-turn";
@@ -55,6 +56,18 @@ export async function runProviderFinderAgentTurn(
   const sessionId =
     options?.agentSessionId?.trim() || `finder-${Date.now()}`;
   const turnIndex = (existing?.turnIndex ?? 0) + 1;
+
+  if (isSkipClarificationValue(query)) {
+    const turn = await runProviderFinderAskTurn(query, session, {
+      providerName: options?.providerName,
+      providerSlug: options?.providerSlug,
+      priorApplied,
+      priorInterpretation: existing?.lastInterpretation,
+      agentSessionId: sessionId,
+      agentTurnIndex: existing?.turnIndex ?? 0,
+    });
+    return { ...turn, toolsCalled: [] };
+  }
 
   if (toolsCalled.length < MAX_AGENT_STEPS) {
     toolsCalled.push(TOOL_INTERPRET_FINDER_QUERY);

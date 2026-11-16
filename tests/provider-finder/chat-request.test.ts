@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   PROVIDER_FINDER_CHAT_MAX_MESSAGES,
+  PROVIDER_FINDER_CHAT_MAX_REQUEST_MESSAGES,
   providerFinderChatRequestSchema,
   resetFinderChatLocksForTests,
   sliceChatHistory,
@@ -9,17 +10,33 @@ import {
   unlockFinderChatTurn,
 } from "@/lib/provider/finder/chat-request";
 
+function history(length: number) {
+  return Array.from({ length }, (_, i) => ({
+    role: "user" as const,
+    parts: [{ type: "text", text: `m${i}` }],
+  }));
+}
+
 describe("provider finder chat request", () => {
-  it("rejects oversized history and invalid session ids", () => {
-    const tooMany = {
-      messages: Array.from({ length: PROVIDER_FINDER_CHAT_MAX_MESSAGES + 1 }, (_, i) => ({
-        role: "user" as const,
-        parts: [{ type: "text", text: `m${i}` }],
-      })),
-    };
-    expect(providerFinderChatRequestSchema.safeParse(tooMany).success).toBe(
-      false,
+  it("accepts long chats then slices, and rejects only the request ceiling", () => {
+    expect(
+      providerFinderChatRequestSchema.safeParse({
+        messages: history(PROVIDER_FINDER_CHAT_MAX_MESSAGES + 1),
+      }).success,
+    ).toBe(true);
+
+    const parsed = providerFinderChatRequestSchema.parse({
+      messages: history(PROVIDER_FINDER_CHAT_MAX_REQUEST_MESSAGES),
+    });
+    expect(sliceChatHistory(parsed.messages)).toHaveLength(
+      PROVIDER_FINDER_CHAT_MAX_MESSAGES,
     );
+
+    expect(
+      providerFinderChatRequestSchema.safeParse({
+        messages: history(PROVIDER_FINDER_CHAT_MAX_REQUEST_MESSAGES + 1),
+      }).success,
+    ).toBe(false);
 
     expect(
       providerFinderChatRequestSchema.safeParse({

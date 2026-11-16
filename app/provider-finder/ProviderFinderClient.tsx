@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/skeleton";
 import { isClientAdsProviderFinderEnabled } from "@/lib/ads/config/client-flags";
 import { trackProductEvent } from "@/lib/analytics/product-analytics";
+import { shouldRevealChatFirstResults } from "@/lib/config/provider-finder-chat-first";
 import { getProviderFinderMapSourceClient } from "@/lib/config/provider-finder-map";
 import type { ClarificationSlot } from "@/lib/copilot/types";
 import {
@@ -58,7 +59,10 @@ import {
   type AppliedSearchFields,
 } from "@/lib/search/apply-interpretation";
 import { interpretSearchQueryClient } from "@/lib/search/interpreter-client";
-import type { FinderInterpretationData } from "@/types/provider-finder-chat";
+import type {
+  FinderAgentData,
+  FinderInterpretationData,
+} from "@/types/provider-finder-chat";
 
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
@@ -616,6 +620,21 @@ export default function ProviderFinderClient({
     applyClearedFields({ ...applied, location: "", query: "" });
   };
 
+  const handleViewDirectory = () => {
+    applyClearedFields({
+      query: "",
+      location: "",
+      providerName: "",
+      serviceQuery: "",
+      accessQuery: "",
+      supportType: null,
+      accessNeedIds: [],
+    });
+    setSkippedSlots([]);
+    setSearchSubmitted(true);
+    setPage(1);
+  };
+
   const handleAskInterpretation = ({
     interpretation,
     applied: nextApplied,
@@ -628,7 +647,10 @@ export default function ProviderFinderClient({
       service_category_slug: interpretation.serviceCategorySlug ?? "",
       engine_id: interpretation.engineId,
     });
-    if (chatFirstV2Enabled) {
+  };
+
+  const handleAskAgentMeta = (data: FinderAgentData) => {
+    if (chatFirstV2Enabled && shouldRevealChatFirstResults(data.status)) {
       setSearchSubmitted(true);
       setPage(1);
     }
@@ -649,6 +671,7 @@ export default function ProviderFinderClient({
       }}
       onSessionChange={(next) => setSkippedSlots(next.skippedSlots ?? [])}
       onInterpretation={handleAskInterpretation}
+      onAgentMeta={handleAskAgentMeta}
       stayOnPage={chatFirstV2Enabled}
       onShowResults={() => {
         setSearchSubmitted(true);
@@ -664,6 +687,7 @@ export default function ProviderFinderClient({
           applied={applied}
           onEditSearch={focusFinderChat}
           onBroadenSearch={handleBroadenSearch}
+          onViewDirectory={handleViewDirectory}
         />
       ) : (
         <Card variant="outlined" className="p-8 text-center">

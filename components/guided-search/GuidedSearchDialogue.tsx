@@ -11,6 +11,7 @@ import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomple
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CopilotProviderResult } from "@/lib/copilot/types";
+import { isSkipClarificationValue } from "@/lib/provider/finder/clarification";
 import { buildFinderSearchParams } from "@/lib/search/apply-interpretation";
 import type {
   FinderAgentData,
@@ -81,12 +82,17 @@ export function GuidedSearchDialogue({
     null,
   );
   const [locationDraft, setLocationDraft] = useState("");
+  const agentMetaRef = useRef<FinderAgentData | null>(null);
 
   const compact = variant === "compact";
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  useEffect(() => {
+    agentMetaRef.current = agentMeta;
+  }, [agentMeta]);
 
   useEffect(() => {
     sessionIdRef.current = getOrCreateGuidedSearchSessionId();
@@ -160,11 +166,20 @@ export function GuidedSearchDialogue({
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || isBusy) return;
+      const slot = agentMetaRef.current?.clarificationSlot;
+      if (isSkipClarificationValue(trimmed) && slot) {
+        const nextSession = applyChoiceToSession(
+          sessionRef.current,
+          slot,
+          trimmed,
+        );
+        updateSession(nextSession);
+      }
       setInput("");
       await sendMessage({ text: trimmed });
       requestAnimationFrame(scrollToBottom);
     },
-    [isBusy, sendMessage],
+    [isBusy, sendMessage, updateSession],
   );
 
   useEffect(() => {
@@ -321,6 +336,13 @@ export function GuidedSearchDialogue({
           >
             Use this location
           </Button>
+          <GuidedSearchChoiceChips
+            choices={[]}
+            onSelect={handleChoiceSelect}
+            disabled={isBusy}
+            compact={compact}
+            showSkip
+          />
         </div>
       ) : null}
 
