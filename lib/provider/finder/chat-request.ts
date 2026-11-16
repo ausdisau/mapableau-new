@@ -40,7 +40,8 @@ export const providerFinderChatRequestSchema = z.object({
     .optional(),
   session: z
     .object({
-      query: z.string().max(PROVIDER_FINDER_CHAT_MAX_FIELD).optional(),
+      // Echoed applied.query can be the last user utterance (up to MAX_TEXT).
+      query: z.string().max(PROVIDER_FINDER_CHAT_MAX_TEXT).optional(),
       location: z.string().max(PROVIDER_FINDER_CHAT_MAX_FIELD).optional(),
       providerName: z.string().max(PROVIDER_FINDER_CHAT_MAX_FIELD).optional(),
       serviceQuery: z.string().max(PROVIDER_FINDER_CHAT_MAX_FIELD).optional(),

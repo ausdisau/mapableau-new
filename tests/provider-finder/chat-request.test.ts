@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  PROVIDER_FINDER_CHAT_MAX_FIELD,
   PROVIDER_FINDER_CHAT_MAX_MESSAGES,
   PROVIDER_FINDER_CHAT_MAX_REQUEST_MESSAGES,
+  PROVIDER_FINDER_CHAT_MAX_TEXT,
   providerFinderChatRequestSchema,
   resetFinderChatLocksForTests,
   sliceChatHistory,
@@ -42,6 +44,28 @@ describe("provider finder chat request", () => {
       providerFinderChatRequestSchema.safeParse({
         messages: [{ role: "user", parts: [] }],
         sessionId: "bad id with spaces",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("accepts a follow-up session.query as long as a chat message", () => {
+    const echoed = "x".repeat(PROVIDER_FINDER_CHAT_MAX_FIELD + 50);
+    expect(
+      providerFinderChatRequestSchema.safeParse({
+        messages: [{ role: "user", parts: [{ type: "text", text: "next" }] }],
+        session: { query: echoed },
+      }).success,
+    ).toBe(true);
+
+    expect(
+      providerFinderChatRequestSchema.safeParse({
+        session: { query: "x".repeat(PROVIDER_FINDER_CHAT_MAX_TEXT + 1) },
+      }).success,
+    ).toBe(false);
+
+    expect(
+      providerFinderChatRequestSchema.safeParse({
+        session: { location: "x".repeat(PROVIDER_FINDER_CHAT_MAX_FIELD + 1) },
       }).success,
     ).toBe(false);
   });
