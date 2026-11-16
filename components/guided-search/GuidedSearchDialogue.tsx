@@ -36,6 +36,8 @@ type Props = {
   onInterpretation: (data: FinderInterpretationData) => void;
   onAgentMeta?: (data: FinderAgentData) => void;
   onShowResults?: () => void;
+  /** When true, Show results applies filters in place instead of navigating. */
+  stayOnPage?: boolean;
   initialMessage?: string;
   variant?: GuidedSearchDialogueVariant;
   className?: string;
@@ -57,6 +59,7 @@ export function GuidedSearchDialogue({
   onInterpretation,
   onAgentMeta,
   onShowResults,
+  stayOnPage = false,
   initialMessage,
   variant = "full",
   className,
@@ -145,7 +148,12 @@ export function GuidedSearchDialogue({
     (agentMeta?.suggestedChoices?.length ?? 0) > 0;
 
   function scrollToBottom() {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    bottomRef.current?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }
 
   const submitText = useCallback(
@@ -189,7 +197,7 @@ export function GuidedSearchDialogue({
   }
 
   function navigateToResults() {
-    if (applied) {
+    if (applied && !stayOnPage) {
       const params = buildFinderSearchParams(applied);
       const qs = params.toString();
       router.push(qs ? `/provider-finder?${qs}` : "/provider-finder");

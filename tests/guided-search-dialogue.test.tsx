@@ -90,4 +90,35 @@ describe("GuidedSearchDialogue", () => {
       value: "Transport",
     });
   });
+
+  it("offers Skip and Not sure without wiping other session fields", () => {
+    const session = {
+      query: "morning daily activities",
+      location: "Penrith 2750",
+      providerName: "",
+      serviceQuery: "morning daily activities",
+      accessQuery: "text communication",
+    };
+
+    const skipped = applyChoiceToSession(session, "access", "Not sure");
+    expect(skipped.skippedSlots).toEqual(["access"]);
+    expect(skipped.location).toBe("Penrith 2750");
+    expect(skipped.serviceQuery).toBe("morning daily activities");
+    expect(skipped.accessQuery).toBe("text communication");
+
+    const onSelect = vi.fn();
+    render(
+      <GuidedSearchChoiceChips
+        choices={[{ label: "Wheelchair access", value: "Wheelchair access" }]}
+        onSelect={onSelect}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Skip" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not sure" }));
+    expect(onSelect).toHaveBeenCalledWith({ label: "Skip", value: "Skip" });
+    expect(onSelect).toHaveBeenCalledWith({
+      label: "Not sure",
+      value: "Not sure",
+    });
+  });
 });

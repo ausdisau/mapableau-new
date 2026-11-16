@@ -1,5 +1,9 @@
 import { searchAgentConfig } from "@/lib/config/search-agent";
-import type { CopilotAgentMeta, CopilotProviderResult } from "@/lib/copilot/types";
+import type {
+  ClarificationSlot,
+  CopilotAgentMeta,
+  CopilotProviderResult,
+} from "@/lib/copilot/types";
 import {
   buildFinderSearchParams,
   type AppliedSearchFields,
@@ -21,6 +25,7 @@ export type ProviderFinderSessionFields = {
   providerName: string;
   serviceQuery: string;
   accessQuery: string;
+  skippedSlots?: ClarificationSlot[];
 };
 
 export type ProviderFinderAskTurn = {
@@ -64,6 +69,7 @@ export async function runProviderFinderAskTurn(
   currentFields?: Partial<ProviderFinderSessionFields>,
   options?: ProviderFinderAskOptions,
 ): Promise<ProviderFinderAskTurn> {
+  const skippedSlots = currentFields?.skippedSlots ?? [];
   const session: ProviderFinderSessionFields = {
     query: currentFields?.query ?? "",
     location: currentFields?.location ?? "",
@@ -73,6 +79,7 @@ export async function runProviderFinderAskTurn(
       "",
     serviceQuery: currentFields?.serviceQuery ?? "",
     accessQuery: currentFields?.accessQuery ?? "",
+    skippedSlots,
   };
 
   const effectiveQuery = mergeProviderContextIntoQuery(userText, options);
@@ -88,9 +95,15 @@ export async function runProviderFinderAskTurn(
     options?.agentSessionId?.trim() || `finder-${Date.now()}`;
   const turnIndex = (options?.agentTurnIndex ?? 0) + 1;
 
-  const clarification = needsProviderFinderClarification(turn.interpretation);
+  const clarification = needsProviderFinderClarification(
+    turn.interpretation,
+    skippedSlots,
+  );
   if (clarification) {
-    const question = buildClarificationQuestion(turn.interpretation);
+    const question = buildClarificationQuestion(
+      turn.interpretation,
+      skippedSlots,
+    );
     const agent = enrichCopilotAgentMeta(
       {
         sessionId,
@@ -99,6 +112,8 @@ export async function runProviderFinderAskTurn(
         clarificationQuestion: question,
       },
       turn.interpretation,
+      undefined,
+      skippedSlots,
     );
     return {
       interpretation: turn.interpretation,
@@ -129,6 +144,7 @@ export async function runProviderFinderAskTurn(
     },
     turn.interpretation,
     providerResults,
+    skippedSlots,
   );
 
   return {
