@@ -10,6 +10,7 @@ const querySchema = z.object({
   location: z.string().optional(),
   state: z.string().max(8).optional(),
   postcode: z.string().max(16).optional(),
+  suburb: z.string().max(120).optional(),
   service: z.string().max(200).optional(),
   limit: z.coerce.number().int().min(1).max(2000).optional(),
 });
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
     location: searchParams.get("location") ?? undefined,
     state: searchParams.get("state") ?? undefined,
     postcode: searchParams.get("postcode") ?? undefined,
+    suburb: searchParams.get("suburb") ?? undefined,
     service: searchParams.get("service") ?? undefined,
     limit: searchParams.get("limit") ?? undefined,
   });
@@ -32,13 +34,14 @@ export async function GET(request: Request) {
     );
   }
 
-  const { q, location, state, postcode, service, limit } = parsed.data;
+  const { q, location, state, postcode, suburb, service, limit } = parsed.data;
   const loc = location ? parseLocationForNdisSearch(location) : {};
 
   const { providers, count } = await searchNdisProviders({
     q,
     state: state ?? loc.state,
     postcode: postcode ?? loc.postcode,
+    suburb: suburb ?? loc.suburbQuery,
     service,
     limit: limit ?? getProviderFinderMapPinLimit(),
     withCoordinatesOnly: true,

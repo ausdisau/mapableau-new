@@ -65,6 +65,18 @@ export const ACCESS_NEEDS: AccessNeed[] = [
     label: "Complex support",
     keywords: ["complex", "high needs", "specialist"],
   },
+  {
+    id: "text-communication",
+    label: "Text / written communication",
+    keywords: [
+      "text",
+      "sms",
+      "written",
+      "aac",
+      "text communication",
+      "communicate using text",
+    ],
+  },
 ];
 
 export const FUNDING_OPTIONS = [

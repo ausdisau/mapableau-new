@@ -1,5 +1,12 @@
 import type { AppliedSearchFields } from "@/lib/search/apply-interpretation";
 
+export type AppliedFieldKey =
+  | "query"
+  | "location"
+  | "providerName"
+  | "serviceQuery"
+  | "accessQuery";
+
 /** Merge a new interpretation onto prior finder fields (multi-turn). */
 export function mergeAppliedFields(
   prior: AppliedSearchFields | undefined,
@@ -20,4 +27,27 @@ export function mergeAppliedFields(
     supportType: next.supportType ?? prior.supportType,
     accessNeedIds,
   };
+}
+
+/** Clear one field without wiping the others. */
+export function clearAppliedField(
+  applied: AppliedSearchFields,
+  key: AppliedFieldKey,
+): AppliedSearchFields {
+  switch (key) {
+    case "query":
+      return { ...applied, query: "" };
+    case "location":
+      return { ...applied, location: "" };
+    case "providerName":
+      return { ...applied, providerName: "" };
+    case "serviceQuery":
+      return { ...applied, serviceQuery: "", supportType: null };
+    case "accessQuery":
+      return { ...applied, accessQuery: "", accessNeedIds: [] };
+    default: {
+      const _exhaustive: never = key;
+      return applied;
+    }
+  }
 }

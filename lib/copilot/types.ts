@@ -79,6 +79,8 @@ export type CopilotFinderPayload = {
   replyText: string;
 };
 
+export type CopilotRegistrationStatus = "unknown" | "groups_listed_in_import";
+
 /** NDIS directory row surfaced in Ask / agent responses (not MapAble-verified). */
 export type CopilotProviderResult = {
   id: string;
@@ -88,11 +90,18 @@ export type CopilotProviderResult = {
   state: string | null;
   postcode: string | null;
   locationLabel: string | null;
+  /** Always false for imported rows — never live Commission registration. */
   registered: boolean;
+  registrationStatus?: CopilotRegistrationStatus;
   registrationGroups: string[];
   services: string[];
   phone: string | null;
   website: string | null;
+  sourceType?: "ndis_import" | "demo" | "unknown";
+  sourceId?: string | null;
+  sourceUpdatedAt?: string | null;
+  availability?: "unknown";
+  workerCredentials?: "unknown";
 };
 
 export type CopilotAgentStatus = "complete" | "needs_clarification";

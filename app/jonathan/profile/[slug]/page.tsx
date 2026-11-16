@@ -301,8 +301,10 @@ export default function ProviderProfilePage() {
   const router = useRouter();
   const { status } = useSession();
   const slug = params.slug as string | undefined;
-  const { data: outlets, isLoading, isError, error } = useProviderOutlets();
-  const providers = outlets ? mapOutletsToProviders(outlets) : [];
+  const { data: outletsFile, isLoading, isError, error } = useProviderOutlets();
+  const providers = outletsFile
+    ? mapOutletsToProviders(outletsFile.data, outletsFile.date)
+    : [];
   const [claimCheckDone, setClaimCheckDone] = useState(false);
 
   const provider = slug

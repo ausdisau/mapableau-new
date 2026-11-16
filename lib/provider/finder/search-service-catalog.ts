@@ -32,7 +32,20 @@ export const PROVIDER_SERVICE_CATALOG: Record<
       "Assistance with daily life tasks in a group or shared living arrangement",
     ],
     serviceLabels: ["Disability Support Worker (includes Mental Health or Peer Worker)"],
-    phrases: ["support worker", "support workers", "personal care", "daily living", "daily life", "carer", "carers", "personal support"],
+    phrases: [
+      "support worker",
+      "support workers",
+      "personal care",
+      "daily living",
+      "daily life",
+      "daily activities",
+      "daily personal activities",
+      "assistance with daily life",
+      "morning daily activities",
+      "carer",
+      "carers",
+      "personal support",
+    ],
   },
   therapy: {
     label: "Therapy and allied health",
@@ -90,3 +103,29 @@ export const PROVIDER_SERVICE_CATALOG: Record<
     phrases: ["specialist disability accommodation", "sda", "disability housing", "accessible housing"],
   },
 };
+
+export function resolveProviderServiceCatalog(
+  text: string,
+): ProviderServiceId | undefined {
+  const lower = text.trim().toLowerCase();
+  if (!lower) return undefined;
+
+  const byId = PROVIDER_SERVICE_IDS.find((id) => id === lower.replace(/\s+/g, "_"));
+  if (byId) return byId;
+
+  for (const id of PROVIDER_SERVICE_IDS) {
+    const entry = PROVIDER_SERVICE_CATALOG[id];
+    if (entry.label.toLowerCase() === lower) return id;
+    if (entry.phrases.some((phrase) => lower.includes(phrase))) return id;
+    if (
+      entry.registrationGroups.some((group) => group.toLowerCase() === lower)
+    ) {
+      return id;
+    }
+    if (entry.serviceLabels.some((label) => label.toLowerCase() === lower)) {
+      return id;
+    }
+  }
+
+  return undefined;
+}

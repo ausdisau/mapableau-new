@@ -98,10 +98,15 @@ export function matchesDirectoryFilter(
 }
 
 export function getProviderEvidence(
-  provider: Pick<Provider, "source" | "directoryActivity" | "abn">,
+  provider: Pick<
+    Provider,
+    "source" | "directoryActivity" | "abn" | "sourceId" | "sourceDate"
+  >,
 ) {
   const imported = provider.source === "ndis_import";
   const activity = getDirectoryActivity(provider);
+  const sourceId = provider.sourceId?.trim() || provider.abn?.trim() || undefined;
+  const sourceDate = provider.sourceDate?.trim() || undefined;
   return {
     provenance: imported
       ? "Locally imported NDIS provider-directory outlet"
@@ -120,5 +125,10 @@ export function getProviderEvidence(
     accessibility: "AAC, access features and worker competence not verified",
     funding: "Funding compatibility requires current registration and plan-rule checks",
     abn: imported && /^\d{11}$/.test(provider.abn ?? "") ? provider.abn : undefined,
+    sourceId,
+    sourceDate,
+    sourceCheckedLabel: sourceDate
+      ? `Directory snapshot dated ${sourceDate}`
+      : "Directory snapshot date not established",
   } as const;
 }

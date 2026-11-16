@@ -27,6 +27,10 @@ export type Provider = {
   openingHours?: string;
   /** Stable key for claim matching: ABN-slugify(Outletname)-slugify(Address) */
   outletKey?: string;
+  /** Imported directory identifier (ABN, outlet key, or ndis source_id). */
+  sourceId?: string;
+  /** Publisher or snapshot date from the imported file, when present. */
+  sourceDate?: string;
 };
 
 export const PROVIDER_CATEGORIES = [
@@ -40,7 +44,7 @@ export const PROVIDER_CATEGORIES = [
   "Employment Supports",
 ] as const;
 
-export const PROVIDERS: Provider[] = [
+const DEMO_DIRECTORY: Omit<Provider, "source">[] = [
   {
     id: "prov_001",
     slug: "harbour-support-co",
@@ -210,4 +214,12 @@ export const PROVIDERS: Provider[] = [
     supports: ["In-person", "Telehealth"],
   },
 ];
+
+/** Fixture landings only. Ratings and review counts are not source evidence. */
+export const PROVIDERS: Provider[] = DEMO_DIRECTORY.map((provider) => ({
+  ...provider,
+  source: "demo",
+  rating: 0,
+  reviewCount: 0,
+}));
 

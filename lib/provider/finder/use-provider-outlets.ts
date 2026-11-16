@@ -18,7 +18,7 @@ const GC_TIME_MS = 30 * 60 * 1000; // 30 minutes
 export function useProviderOutlets() {
   return useQuery({
     queryKey: PROVIDER_OUTLETS_QUERY_KEY,
-    queryFn: () => fetchProviderOutlets(),
+    queryFn: fetchProviderOutlets,
     staleTime: STALE_TIME_MS,
     gcTime: GC_TIME_MS,
   });
