@@ -257,7 +257,21 @@ export function MarketplaceCartClient({
         return;
       }
 
-      // Only clear if the cart still matches what we submitted (edits mid-flight kept).
+      const redirectUrl =
+        data.mode === "stripe_checkout" && typeof data.checkoutUrl === "string"
+          ? data.checkoutUrl
+          : data.mode === "export_only" && typeof data.invoicePath === "string"
+            ? data.invoicePath
+            : null;
+
+      if (!redirectUrl) {
+        setMessage("Checkout response was incomplete. Try again.");
+        setBusy(false);
+        return;
+      }
+
+      // Clear only after a usable redirect exists, and only if the cart still
+      // matches what we submitted (edits mid-flight are preserved).
       const currentKey = readMarketplaceCart()
         .map((item) => `${item.productId}:${item.quantity}`)
         .sort()
@@ -266,18 +280,7 @@ export function MarketplaceCartClient({
         clearMarketplaceCart();
       }
 
-      if (data.mode === "stripe_checkout" && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-        return;
-      }
-
-      if (data.mode === "export_only" && data.invoicePath) {
-        window.location.href = data.invoicePath;
-        return;
-      }
-
-      setMessage("Checkout response was incomplete. Try again.");
-      setBusy(false);
+      window.location.href = redirectUrl;
     } catch {
       setMessage("Checkout failed. Try again.");
       setBusy(false);
