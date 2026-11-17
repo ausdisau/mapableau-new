@@ -134,12 +134,37 @@ async function resolveFundingSourceForPathway(
   const match = existing.find((source) => source.type === fundingType);
   if (match) return { ok: true as const, fundingSource: match };
 
+  // Never steal an existing default funding source (e.g. NDIS) for a cart buy.
   const created = await createFundingSource(userId, {
     type: fundingType,
     label: PATHWAY_LABEL[pathway],
-    isDefault: pathway === "ordinary_purchase",
+    isDefault: false,
   });
   return { ok: true as const, fundingSource: created };
+}
+
+function marketplaceCartFingerprint(
+  pathway: MarketplaceCheckoutPathway,
+  fundingSourceId: string,
+  items: MarketplaceCheckoutInput["items"],
+): string {
+  const normalized = [...items]
+    .map((item) => ({ productId: item.productId, quantity: item.quantity }))
+    .sort((a, b) => a.productId.localeCompare(b.productId));
+  return JSON.stringify({ pathway, fundingSourceId, items: normalized });
+}
+
+function invoiceMatchesFingerprint(
+  invoice: {
+    lineItems: Array<{ metadata?: unknown }>;
+  },
+  fingerprint: string,
+): boolean {
+  const firstMeta = invoice.lineItems[0]?.metadata as
+    | { checkoutFingerprint?: string }
+    | null
+    | undefined;
+  return firstMeta?.checkoutFingerprint === fingerprint;
 }
 
 /**
@@ -162,38 +187,69 @@ export async function createMarketplaceCheckout(
   if (!funding.ok) return funding;
 
   const decision = checkoutDecisionForFundingType(funding.fundingSource.type);
+  const fingerprint = marketplaceCartFingerprint(
+    pathway,
+    funding.fundingSource.id,
+    input.items,
+  );
 
-  const invoice = await createDraftInvoice(userId, {
-    serviceType: "marketplace",
-    fundingSourceId: funding.fundingSource.id,
-    ndisClaimable: pathway !== "ordinary_purchase",
-    lineItems: quote.lines.map((line) => ({
-      description: line.description,
-      quantity: line.quantity,
-      unitAmountCents: line.unitAmountCents,
-      gstApplicable: line.gstApplicable,
-      ndisLineItem: line.ndisLineItem,
-      metadata: {
-        productId: line.productId,
-        slug: line.slug,
-        sellerName: line.sellerName,
-        pathway,
-        checkoutSource: "marketplace_cart",
-      },
-    })),
-  });
-
-  await writeBillingAuditLog({
-    actorUserId: userId,
-    entityType: "BillingInvoice",
-    entityId: invoice.id,
-    action: "marketplace_checkout_draft",
-    after: {
-      pathway,
-      totalCents: invoice.totalCents,
-      lineCount: quote.lines.length,
+  // Reuse a recent unpaid invoice for the same cart to avoid duplicate drafts
+  // on retries / cancelled Checkout.
+  const recentInvoices = await prisma.billingInvoice.findMany({
+    where: {
+      userId,
+      serviceType: "marketplace",
+      status: { in: ["draft", "pending_payment"] },
+      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
     },
+    include: { lineItems: true, fundingSource: true },
+    orderBy: { createdAt: "desc" },
+    take: 15,
   });
+  let invoice =
+    recentInvoices.find((candidate) =>
+      invoiceMatchesFingerprint(candidate, fingerprint),
+    ) ?? null;
+
+  if (!invoice) {
+    const ndisClaimable = quote.lines.some((line) => Boolean(line.ndisLineItem));
+    invoice = await createDraftInvoice(userId, {
+      serviceType: "marketplace",
+      fundingSourceId: funding.fundingSource.id,
+      ndisClaimable,
+      lineItems: quote.lines.map((line) => ({
+        description: line.description,
+        quantity: line.quantity,
+        unitAmountCents: line.unitAmountCents,
+        gstApplicable: line.gstApplicable,
+        ndisLineItem: line.ndisLineItem,
+        metadata: {
+          productId: line.productId,
+          slug: line.slug,
+          sellerName: line.sellerName,
+          pathway,
+          checkoutSource: "marketplace_cart",
+          checkoutFingerprint: fingerprint,
+          // Catalogue sellers are display names until Connect-bound seller IDs exist.
+          sellerSplitDeferred: true,
+        },
+      })),
+    });
+
+    await writeBillingAuditLog({
+      actorUserId: userId,
+      entityType: "BillingInvoice",
+      entityId: invoice.id,
+      action: "marketplace_checkout_draft",
+      after: {
+        pathway,
+        totalCents: invoice.totalCents,
+        lineCount: quote.lines.length,
+        fingerprint,
+        sellerSplitDeferred: true,
+      },
+    });
+  }
 
   if (!decision.allowed) {
     return {

@@ -36,16 +36,22 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
 
   const stripe = getStripeClient();
 
-  // Idempotency: reuse an open Checkout Session instead of creating duplicates.
+  // Idempotency: reuse an open Checkout Session; never start a second charge
+  // while a prior session is complete / payment already succeeded.
   const existingPayment = await prisma.billingPayment.findFirst({
     where: {
       invoiceId: invoice.id,
       userId,
-      status: "requires_payment",
       stripeCheckoutSessionId: { not: null },
     },
     orderBy: { createdAt: "desc" },
   });
+  if (existingPayment?.status === "succeeded") {
+    return {
+      ok: false as const,
+      error: "Invoice payment already succeeded",
+    };
+  }
   if (existingPayment?.stripeCheckoutSessionId) {
     try {
       const existingSession = await stripe.checkout.sessions.retrieve(
@@ -57,6 +63,13 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
           checkoutUrl: existingSession.url,
           sessionId: existingSession.id,
           reused: true as const,
+        };
+      }
+      if (existingSession.status === "complete") {
+        return {
+          ok: false as const,
+          error:
+            "Checkout already completed for this invoice. Waiting for webhook confirmation — do not pay again.",
         };
       }
     } catch {

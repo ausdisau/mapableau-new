@@ -54,6 +54,8 @@ Disclose the platform fee on the cart before payment (cart UI + quote API).
 
 Preferred MVP: **separate charges and transfers** (platform charges the buyer, then transfers net to connected accounts after attestation / review window). Destination charges remain available when a single provider connected account is on the invoice and policy allows.
 
+**Current catalogue limitation:** static catalogue sellers are display names only (`sellerName` in line metadata). Until each seller is bound to a `PayoutRecipient` / Connect account ID, marketplace invoices set `sellerSplitDeferred: true` and **do not** create `BillingPaymentSplit` rows. Funds remain on the platform balance; seller earnings UI will not show transfers for those purchases. This is intentional until a Connect-bound seller registry exists.
+
 | Concept | Meaning |
 | --- | --- |
 | **Transfer** | Platform → connected Stripe account (`PayoutTransfer`) |

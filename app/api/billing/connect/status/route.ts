@@ -20,10 +20,22 @@ export async function GET() {
   const payoutsEnabled = process.env.MAPABLE_PAYOUTS_ENABLED === "true";
 
   const account = await getOrCreateBillingAccount(user.id, "provider");
-  const recipient = await prisma.payoutRecipient.findFirst({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  // Prefer the payout recipient bound to this BillingAccount's Connect ID so
+  // status/earnings cannot drift across multiple Stripe accounts.
+  const recipient = account.stripeConnectedAccountId
+    ? await prisma.payoutRecipient.findFirst({
+        where: {
+          OR: [
+            { stripeAccountId: account.stripeConnectedAccountId },
+            { userId: user.id, stripeAccountId: account.stripeConnectedAccountId },
+          ],
+        },
+        orderBy: { updatedAt: "desc" },
+      })
+    : await prisma.payoutRecipient.findFirst({
+        where: { userId: user.id },
+        orderBy: { updatedAt: "desc" },
+      });
 
   const recentTransfers = recipient
     ? await prisma.payoutTransfer.findMany({

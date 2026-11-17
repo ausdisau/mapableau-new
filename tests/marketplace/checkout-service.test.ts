@@ -74,6 +74,17 @@ describe("marketplace checkout pricing", () => {
     expect(quote.totals).toEqual(expected);
     expect(quote.disclosures.ndisEligibilityClaim).toBe(false);
   });
+
+  it("only treats lines with support item codes as NDIS-eligible catalogue items", () => {
+    const withoutCode = resolveMarketplaceCheckoutLines([
+      { productId: "mp_reacher", quantity: 1 },
+    ]);
+    const withCode = resolveMarketplaceCheckoutLines([
+      { productId: "mp_keyboard", quantity: 1 },
+    ]);
+    expect(withoutCode.ok && !withoutCode.lines[0]?.ndisLineItem).toBe(true);
+    expect(withCode.ok && Boolean(withCode.lines[0]?.ndisLineItem)).toBe(true);
+  });
 });
 
 describe("marketplace payment pathways", () => {
