@@ -1,7 +1,9 @@
 import { transportRoutingConfig } from "@/lib/config/transport-routing";
+import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
 import type { RoutingAdapter } from "@/lib/transport/routing/routing-adapter";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import type {
+  LatLng,
   RouteEstimateInput,
   RouteMatrixInput,
   RouteOptimisationInput,
@@ -25,7 +27,8 @@ export class OsrmRoutingAdapter implements RoutingAdapter {
     ]
       .map(coordPair)
       .join(";");
-    const url = `${this.baseUrl}/route/v1/driving/${coords}?overview=false`;
+    const overview = input.includeGeometry ? "simplified" : "false";
+    const url = `${this.baseUrl}/route/v1/driving/${coords}?overview=${overview}&geometries=geojson`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new TransportApiError("TRANSPORT_ROUTE_NOT_FOUND");
@@ -35,6 +38,7 @@ export class OsrmRoutingAdapter implements RoutingAdapter {
         distance: number;
         duration: number;
         legs?: Array<{ distance: number; duration: number }>;
+        geometry?: { coordinates?: [number, number][] };
       }>;
     };
     const route = data.routes?.[0];
@@ -55,12 +59,21 @@ export class OsrmRoutingAdapter implements RoutingAdapter {
         durationSeconds: Math.round(leg.duration),
       })) ?? [];
 
-    return {
+    const geometry: LatLng[] | undefined = route.geometry?.coordinates
+      ?.map(([lng, lat]) => ({ lat, lng }))
+      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+
+    return finalizeRouteEstimate({
       distanceMetres: Math.round(route.distance),
       durationSeconds: Math.round(route.duration),
       segments,
-      raw: data,
-    };
+      geometry,
+      source: "osrm",
+      trafficModeApplied: "none",
+      liveTrafficUsed: false,
+      providerStatus: "ok",
+      raw: { provider: "osrm", overview },
+    });
   }
 
   async routeMatrix(input: RouteMatrixInput) {

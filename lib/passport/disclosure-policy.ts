@@ -38,6 +38,7 @@ export const CONSENT_SCOPE_FIELD_CATEGORIES: Partial<
     "transport_requirements",
     "access_requirements",
   ],
+  "transport.driver_location_share": ["transport_requirements"],
   "care.accessibility_share": [
     "access_requirements",
     "mobility_needs",

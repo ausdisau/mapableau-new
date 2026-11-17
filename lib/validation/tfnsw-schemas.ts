@@ -26,6 +26,7 @@ export const trafficNearbySchema = z.object({
   origin: latLngSchema,
   destination: latLngSchema,
   waypoints: z.array(latLngSchema).optional(),
+  geometry: z.array(latLngSchema).max(500).optional(),
   maxHazards: z.number().int().min(1).max(50).optional(),
   radiusMetres: z.number().int().min(100).max(50_000).optional(),
 });

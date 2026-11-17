@@ -6,6 +6,11 @@ import { MapAbleRoleNav } from "@/components/layout/MapAbleRoleNav";
 
 const LINKS = [
   { href: "/driver/trips", label: "Trips", matchPrefix: "/driver/trips" },
+  {
+    href: "/driver/transport",
+    label: "Transport trips",
+    matchPrefix: "/driver/transport",
+  },
   { href: "/driver/profile", label: "Profile" },
 ];
 

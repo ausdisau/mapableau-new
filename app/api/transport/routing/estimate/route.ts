@@ -14,6 +14,9 @@ export async function POST(req: Request) {
         origin: body.origin,
         destination: body.destination,
         waypoints: body.waypoints,
+        departAt: body.departAt,
+        routeOptions: body.routeOptions,
+        includeGeometry: body.includeGeometry,
       },
       tripId: body.tripId,
     });

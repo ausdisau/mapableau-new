@@ -28,6 +28,7 @@ const NON_DELEGATABLE_SCOPES: readonly ConsentScope[] = [
   "adtunis.personalisation",
   "adtunis.research",
   "adtunis.audio_retain",
+  "transport.driver_location_share",
 ] as const;
 
 export class DelegateScopeError extends Error {

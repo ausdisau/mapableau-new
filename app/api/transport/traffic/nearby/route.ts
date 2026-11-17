@@ -18,6 +18,7 @@ export async function POST(req: Request) {
       origin: body.origin,
       destination: body.destination,
       waypoints: body.waypoints,
+      geometry: body.geometry,
       maxHazards: body.maxHazards,
       radiusMetres: body.radiusMetres,
       force: true,

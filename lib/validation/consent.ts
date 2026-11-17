@@ -11,6 +11,7 @@ const consentScope = z.enum([
   "plan_manager.invoice_access",
   "transport.accessibility_share",
   "transport.trip_access",
+  "transport.driver_location_share",
   "care.accessibility_share",
   "support_profile.read",
 ]);

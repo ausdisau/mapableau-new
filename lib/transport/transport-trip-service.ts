@@ -16,6 +16,7 @@ import {
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
 import { buildTripResponse } from "@/lib/transport/transport-response";
+import { expireTripEstimatesAndNotify } from "@/lib/transport/routing/traffic-aware-eta-service";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
 import type { CreateTransportTripInput } from "@/lib/validation/transport-trip-schemas";
 
@@ -184,7 +185,10 @@ export async function getTransportTripForUser(user: CurrentUser, tripId: string)
   });
 
   const estimate = await prisma.transportRouteEstimate.findFirst({
-    where: { tripId: trip.id },
+    where: {
+      tripId: trip.id,
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -274,7 +278,18 @@ export async function cancelTransportTrip(
   tripId: string,
   reason?: string
 ) {
-  return transitionTrip(user, tripId, "cancelled", { message: reason });
+  const result = await transitionTrip(user, tripId, "cancelled", {
+    message: reason,
+  });
+  const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
+  if (trip) {
+    await expireTripEstimatesAndNotify({
+      trip,
+      actorUserId: user.id,
+      reason,
+    });
+  }
+  return result;
 }
 
 export async function confirmTransportTrip(user: CurrentUser, tripId: string) {

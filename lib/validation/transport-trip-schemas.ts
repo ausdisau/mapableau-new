@@ -57,6 +57,18 @@ export const driverLocationSchema = z.object({
   lng: z.number().min(-180).max(180),
 });
 
+export const driverLocationOptInSchema = z.object({
+  optedIn: z.boolean(),
+});
+
+export const tripLocationConsentSchema = z.object({
+  granted: z.literal(true),
+});
+
+export const tripEtaRefreshSchema = z.object({
+  reroute: z.boolean().optional(),
+});
+
 export const tripEvidenceSchema = z.object({
   evidenceType: z.string().min(1),
   notes: z.string().max(2000).optional(),

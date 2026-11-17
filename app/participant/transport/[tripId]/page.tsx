@@ -3,7 +3,11 @@ import Link from "next/link";
 import { AccessibleRouteDetailsPanel } from "@/components/transport/AccessibleRouteDetails";
 import { ContinuityRecoveryPanel } from "@/components/transport/ContinuityRecoveryPanel";
 import { ReturnTripAssurancePanel } from "@/components/transport/ReturnTripAssurancePanel";
+import { TransportEtaPilotPanel } from "@/components/transport/TransportEtaPilotPanel";
+import { TransportLocationSharePanel } from "@/components/transport/TransportLocationSharePanel";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
+import { phase4Config } from "@/lib/config/phase4";
+import { transportRoutingConfig } from "@/lib/config/transport-routing";
 import { requireAuth } from "@/lib/auth/guards";
 import { transportCommandConfig } from "@/lib/config/transport-command";
 import { listOpenRecoveries } from "@/lib/transport/continuity/recovery-service";
@@ -65,6 +69,17 @@ export default async function ParticipantTransportTripPage({
           {new Date(response.trip.scheduledStart).toLocaleString("en-AU")}
         </p>
       </section>
+
+      <TransportEtaPilotPanel
+        tripId={response.trip.id}
+        initialEstimate={response.routeEstimate}
+        enabled={transportRoutingConfig.etaPilotEnabled}
+      />
+      <TransportLocationSharePanel
+        tripId={response.trip.id}
+        role="participant"
+        liveLocationEnabled={phase4Config.transportLiveLocationEnabled}
+      />
 
       {assurance ? <ReturnTripAssurancePanel data={assurance} /> : null}
 
