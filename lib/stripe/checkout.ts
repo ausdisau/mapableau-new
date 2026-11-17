@@ -47,8 +47,10 @@ export async function createStripePaymentCheckoutSession(
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     metadata: params.metadata,
+    // Must be identical across idempotent retries; derive from the key when set.
     integration_identifier: checkoutIntegrationIdentifier(
-      params.integrationLabel ?? "mapable-invoice-pay"
+      params.integrationLabel ?? "mapable-invoice-pay",
+      params.idempotencyKey,
     ),
   };
 

@@ -108,6 +108,25 @@ describe("checkout and portal return URLs", () => {
     const id = checkoutIntegrationIdentifier("mapable-invoice-pay");
     expect(id).toMatch(/^mapable-invoice-pay-[a-z]{8}$/);
   });
+
+  it("derives a stable integration identifier from an idempotency key", () => {
+    const first = checkoutIntegrationIdentifier(
+      "mapable-invoice-pay",
+      "billing_checkout_pay_123",
+    );
+    const second = checkoutIntegrationIdentifier(
+      "mapable-invoice-pay",
+      "billing_checkout_pay_123",
+    );
+    expect(first).toBe(second);
+    expect(first).toMatch(/^mapable-invoice-pay-[a-z]{8}$/);
+    expect(
+      checkoutIntegrationIdentifier(
+        "mapable-invoice-pay",
+        "billing_checkout_pay_other",
+      ),
+    ).not.toBe(first);
+  });
 });
 
 describe("customer billing nav", () => {
