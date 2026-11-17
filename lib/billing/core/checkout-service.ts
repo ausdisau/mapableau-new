@@ -119,16 +119,38 @@ async function resolvePayablePayment(params: {
             payment = refreshed;
             break;
           }
-          if (refreshed && refreshed.status !== "requires_payment") {
+          if (refreshed?.status === "succeeded") {
             return {
               ok: false,
               error: "Invoice payment already succeeded",
             };
           }
+          if (refreshed?.status === "processing") {
+            return {
+              ok: false,
+              error:
+                "Invoice payment is already processing. Waiting for confirmation — do not pay again.",
+            };
+          }
+          if (refreshed?.status === "failed") {
+            // Peer aborted (e.g. Stripe session missing URL). Do not tell the
+            // buyer it was paid — fall through and reserve a replacement row.
+            payment = refreshed;
+            break;
+          }
         }
       }
 
       if (!payment.stripeCheckoutSessionId) {
+        if (payment.status === "failed") {
+          const reserved = await reserveCheckoutPayment(reserveParams);
+          if (!reserved.ok) {
+            return { ok: false, error: reserved.error };
+          }
+          payment = reserved.payment;
+          created = reserved.created;
+          continue;
+        }
         return { ok: true, payment, reused: false };
       }
     }
