@@ -9,20 +9,24 @@ import { prisma } from "@/lib/prisma";
 import { buildBillingPaymentCheckout } from "@/lib/stripe/checkout";
 import { getStripeClient } from "@/lib/stripe/client";
 
-/**
- * Serialize checkout creation per invoice and reuse an in-flight payment row
- * (including rows that do not yet have a Stripe session id). Prevents two
- * overlapping requests from inserting distinct payments and opening two
- * payable Checkout Sessions for the same cart.
- */
-async function reserveCheckoutPayment(params: {
+type ReserveParams = {
   invoiceId: string;
   userId: string;
   providerId: string | null;
   amountCents: number;
   currency: string;
   transferGroup: string | null;
-}): Promise<
+};
+
+/**
+ * Serialize checkout creation per invoice and reuse an in-flight payment row
+ * (including rows that do not yet have a Stripe session id). Prevents two
+ * overlapping requests from inserting distinct payments and opening two
+ * payable Checkout Sessions for the same cart.
+ */
+async function reserveCheckoutPayment(
+  params: ReserveParams,
+): Promise<
   | { ok: true; payment: BillingPayment; created: boolean }
   | { ok: false; error: string }
 > {
@@ -77,6 +81,103 @@ async function markPaymentFailed(paymentId: string, reason: string) {
   });
 }
 
+/**
+ * Resolve a payment row that is safe to attach a *new* Checkout Session to:
+ * either an open reusable session, a hard stop (complete/succeeded), or a
+ * payment with no session id yet. Never returns a row whose existing session
+ * is expired/dead — those are retired and replaced so Stripe idempotency keys
+ * are not reused against a null-URL session.
+ */
+async function resolvePayablePayment(params: {
+  stripe: ReturnType<typeof getStripeClient>;
+  reserveParams: ReserveParams;
+  initial: { payment: BillingPayment; created: boolean };
+}): Promise<
+  | {
+      ok: true;
+      payment: BillingPayment;
+      checkoutUrl?: string;
+      sessionId?: string;
+      reused: boolean;
+    }
+  | { ok: false; error: string }
+> {
+  const { stripe, reserveParams } = params;
+  let payment = params.initial.payment;
+  let created = params.initial.created;
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    if (!payment.stripeCheckoutSessionId) {
+      if (!created) {
+        // Peer may still be writing the session id — poll briefly.
+        for (let poll = 0; poll < 8; poll += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          const refreshed = await prisma.billingPayment.findUnique({
+            where: { id: payment.id },
+          });
+          if (refreshed?.stripeCheckoutSessionId) {
+            payment = refreshed;
+            break;
+          }
+          if (refreshed && refreshed.status !== "requires_payment") {
+            return {
+              ok: false,
+              error: "Invoice payment already succeeded",
+            };
+          }
+        }
+      }
+
+      if (!payment.stripeCheckoutSessionId) {
+        return { ok: true, payment, reused: false };
+      }
+    }
+
+    try {
+      const existingSession = await stripe.checkout.sessions.retrieve(
+        payment.stripeCheckoutSessionId,
+      );
+      if (existingSession.status === "open" && existingSession.url) {
+        return {
+          ok: true,
+          payment,
+          checkoutUrl: existingSession.url,
+          sessionId: existingSession.id,
+          reused: true,
+        };
+      }
+      if (existingSession.status === "complete") {
+        return {
+          ok: false,
+          error:
+            "Checkout already completed for this invoice. Waiting for webhook confirmation — do not pay again.",
+        };
+      }
+
+      await markPaymentFailed(
+        payment.id,
+        `replaced_after_session_${existingSession.status ?? "closed"}`,
+      );
+    } catch {
+      // Unreadable/missing session — retire and replace; do not reuse this
+      // payment id (Stripe may still honour its idempotency key).
+      await markPaymentFailed(payment.id, "replaced_after_unreadable_session");
+    }
+
+    const reserved = await reserveCheckoutPayment(reserveParams);
+    if (!reserved.ok) {
+      return { ok: false, error: reserved.error };
+    }
+    payment = reserved.payment;
+    created = reserved.created;
+  }
+
+  return {
+    ok: false,
+    error: "Could not obtain a usable Checkout Session for this invoice",
+  };
+}
+
 export async function createCheckoutForInvoice(userId: string, invoiceId: string) {
   const invoice = await getInvoiceForUser(invoiceId, userId);
   if (!invoice) return { ok: false as const, error: "Invoice not found" };
@@ -103,7 +204,7 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
   }
 
   const stripe = getStripeClient();
-  const reserveParams = {
+  const reserveParams: ReserveParams = {
     invoiceId: invoice.id,
     userId,
     providerId: invoice.providerId,
@@ -112,96 +213,30 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     transferGroup: invoice.transferGroup,
   };
 
-  let reserved = await reserveCheckoutPayment(reserveParams);
+  const reserved = await reserveCheckoutPayment(reserveParams);
   if (!reserved.ok) {
     return { ok: false as const, error: reserved.error };
   }
 
-  let payment = reserved.payment;
-  let reusedExistingSession = false;
-
-  if (payment.stripeCheckoutSessionId) {
-    try {
-      const existingSession = await stripe.checkout.sessions.retrieve(
-        payment.stripeCheckoutSessionId,
-      );
-      if (existingSession.status === "open" && existingSession.url) {
-        return {
-          ok: true as const,
-          checkoutUrl: existingSession.url,
-          sessionId: existingSession.id,
-          reused: true as const,
-        };
-      }
-      if (existingSession.status === "complete") {
-        return {
-          ok: false as const,
-          error:
-            "Checkout already completed for this invoice. Waiting for webhook confirmation — do not pay again.",
-        };
-      }
-
-      // Expired/abandoned session: retire payment and reserve a replacement so
-      // the Stripe idempotency key (payment-scoped) is not reused for a dead session.
-      await markPaymentFailed(
-        payment.id,
-        `replaced_after_session_${existingSession.status ?? "closed"}`,
-      );
-      reserved = await reserveCheckoutPayment(reserveParams);
-      if (!reserved.ok) {
-        return { ok: false as const, error: reserved.error };
-      }
-      payment = reserved.payment;
-      if (payment.stripeCheckoutSessionId) {
-        const again = await stripe.checkout.sessions.retrieve(
-          payment.stripeCheckoutSessionId,
-        );
-        if (again.status === "open" && again.url) {
-          return {
-            ok: true as const,
-            checkoutUrl: again.url,
-            sessionId: again.id,
-            reused: true as const,
-          };
-        }
-      }
-    } catch {
-      // Session missing or unreadable — create a fresh session on this payment.
-    }
-  } else if (!reserved.created) {
-    // Another request reserved this payment and is still creating the Stripe
-    // session. Poll briefly for the session id rather than opening a second one.
-    for (let attempt = 0; attempt < 8; attempt += 1) {
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      const refreshed = await prisma.billingPayment.findUnique({
-        where: { id: payment.id },
-      });
-      if (refreshed?.stripeCheckoutSessionId) {
-        payment = refreshed;
-        reusedExistingSession = true;
-        break;
-      }
-      if (refreshed && refreshed.status !== "requires_payment") {
-        return {
-          ok: false as const,
-          error: "Invoice payment already succeeded",
-        };
-      }
-    }
-    if (payment.stripeCheckoutSessionId) {
-      const existingSession = await stripe.checkout.sessions.retrieve(
-        payment.stripeCheckoutSessionId,
-      );
-      if (existingSession.status === "open" && existingSession.url) {
-        return {
-          ok: true as const,
-          checkoutUrl: existingSession.url,
-          sessionId: existingSession.id,
-          reused: true as const,
-        };
-      }
-    }
+  const resolved = await resolvePayablePayment({
+    stripe,
+    reserveParams,
+    initial: reserved,
+  });
+  if (!resolved.ok) {
+    return { ok: false as const, error: resolved.error };
   }
+
+  if (resolved.checkoutUrl && resolved.sessionId) {
+    return {
+      ok: true as const,
+      checkoutUrl: resolved.checkoutUrl,
+      sessionId: resolved.sessionId,
+      reused: true as const,
+    };
+  }
+
+  const payment = resolved.payment;
 
   const account = await getOrCreateBillingAccount(userId, "participant");
 
@@ -235,8 +270,8 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     providerAccountId = providerAccount?.stripeConnectedAccountId ?? null;
   }
 
-  // Idempotency key is payment-scoped. Concurrent callers that reserved the
-  // same payment row send the same key, so Stripe collapses duplicate creates.
+  // Only reached for payments with no session id yet. Idempotency key is
+  // payment-scoped so concurrent peers that share this row collapse in Stripe.
   const session = await buildBillingPaymentCheckout({
     invoiceId: invoice.id,
     userId,
@@ -252,6 +287,14 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     platformFeeCents: invoice.platformFeeCents,
     providerConnectedAccountId: providerAccountId,
   });
+
+  if (!session.url) {
+    await markPaymentFailed(payment.id, "stripe_session_missing_url");
+    return {
+      ok: false as const,
+      error: "Stripe Checkout Session did not return a URL",
+    };
+  }
 
   await prisma.billingPayment.update({
     where: { id: payment.id },
@@ -277,6 +320,6 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     ok: true as const,
     checkoutUrl: session.url,
     sessionId: session.id,
-    reused: reusedExistingSession,
+    reused: false as const,
   };
 }
