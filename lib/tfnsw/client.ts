@@ -7,6 +7,12 @@ type TfnswFetchOptions = {
   accept?: string;
 };
 
+type TfnswPostOptions = {
+  path: string;
+  body: unknown;
+  accept?: string;
+};
+
 const memoryCache = new Map<string, { expiresAt: number; body: unknown }>();
 
 function buildUrl(path: string, query?: TfnswFetchOptions["query"]): string {
@@ -60,6 +66,33 @@ export async function tfnswGetJson<T>(options: TfnswFetchOptions): Promise<T> {
   const body = (await res.json()) as T;
   memoryCache.set(key, { expiresAt: Date.now() + ttlMs, body });
   return body;
+}
+
+export async function tfnswPostJson<T>(options: TfnswPostOptions): Promise<T> {
+  if (!isTfnswConfigured()) {
+    throw tfnswNotConfiguredError();
+  }
+
+  const url = buildUrl(options.path);
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `apikey ${tfnswConfig.apiKey!.trim()}`,
+      Accept: options.accept ?? "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(options.body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw tfnswUpstreamError(
+      res.status,
+      text.slice(0, 200) || undefined
+    );
+  }
+
+  return (await res.json()) as T;
 }
 
 /** Clears in-memory cache (for tests) */

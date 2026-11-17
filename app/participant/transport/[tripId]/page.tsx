@@ -2,10 +2,12 @@ import Link from "next/link";
 
 import { AccessibleRouteDetailsPanel } from "@/components/transport/AccessibleRouteDetails";
 import { ContinuityRecoveryPanel } from "@/components/transport/ContinuityRecoveryPanel";
+import { MajiJourneyIntelligencePanel } from "@/components/transport/MajiJourneyIntelligencePanel";
 import { ReturnTripAssurancePanel } from "@/components/transport/ReturnTripAssurancePanel";
 import { TransportEtaPilotPanel } from "@/components/transport/TransportEtaPilotPanel";
 import { TransportLocationSharePanel } from "@/components/transport/TransportLocationSharePanel";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
+import { majiConfig } from "@/lib/config/maji";
 import { phase4Config } from "@/lib/config/phase4";
 import { transportRoutingConfig } from "@/lib/config/transport-routing";
 import { requireAuth } from "@/lib/auth/guards";
@@ -74,6 +76,11 @@ export default async function ParticipantTransportTripPage({
         tripId={response.trip.id}
         initialEstimate={response.routeEstimate}
         enabled={transportRoutingConfig.etaPilotEnabled}
+      />
+      <MajiJourneyIntelligencePanel
+        tripId={response.trip.id}
+        enabled={majiConfig.advisoryEnabled}
+        mode="participant"
       />
       <TransportLocationSharePanel
         tripId={response.trip.id}

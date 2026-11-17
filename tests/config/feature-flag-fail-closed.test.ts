@@ -68,4 +68,32 @@ describe("Wave 0 capability flags fail closed", () => {
     expect(phase4Config.transportLiveLocationEnabled).toBe(false);
     expect(tfnswConfig.enrichRouteEstimates).toBe(false);
   });
+
+  it("keeps MAJI advisory flags fail-closed when unset", async () => {
+    vi.stubEnv("MAJI_ADVISORY_ENABLED", undefined);
+    vi.stubEnv("MAJI_TRAFFIC_ROUTING_ENABLED", undefined);
+    vi.stubEnv("MAJI_TOLL_ESTIMATES_ENABLED", undefined);
+    vi.stubEnv("MAJI_SYNTHETIC_PREVIEW_ENABLED", undefined);
+    vi.stubEnv("MAJI_SYNTHETIC_CENTS_PER_KM", undefined);
+    vi.stubEnv("MAJI_SYNTHETIC_CENTS_PER_PAID_MINUTE", undefined);
+    vi.stubEnv("TRANSPORT_TRAFFIC_AWARE_ENABLED", undefined);
+    vi.stubEnv("TRANSPORT_TOMTOM_TRAFFIC_LIVE", undefined);
+    vi.stubEnv("TOMTOM_API_KEY", undefined);
+
+    const { majiConfig, isMajiLiveTrafficAllowed, resolveMajiSyntheticRates } =
+      await import("@/lib/config/maji");
+
+    expect(majiConfig.advisoryEnabled).toBe(false);
+    expect(majiConfig.trafficRoutingEnabled).toBe(false);
+    expect(majiConfig.tollEstimatesEnabled).toBe(false);
+    expect(majiConfig.syntheticPreviewEnabled).toBe(false);
+    expect(majiConfig.minTimeSavingSeconds).toBe(180);
+    expect(majiConfig.minCostSavingCents).toBe(200);
+    expect(majiConfig.cooldownSeconds).toBe(300);
+    expect(isMajiLiveTrafficAllowed()).toBe(false);
+    expect(resolveMajiSyntheticRates()).toEqual({
+      centsPerKm: null,
+      centsPerPaidMinute: null,
+    });
+  });
 });

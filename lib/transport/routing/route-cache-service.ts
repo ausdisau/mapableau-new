@@ -28,7 +28,11 @@ export function timeBucketIso(
 export function hashRouteOptions(options?: RouteOptions): string {
   const avoid = [...(options?.avoid ?? [])].sort().join(",");
   const routeType = options?.routeType ?? "fast";
-  return `${routeType}:${avoid}`;
+  const alternatives =
+    options?.maxAlternatives && options.maxAlternatives > 0
+      ? `:alt${options.maxAlternatives}`
+      : "";
+  return `${routeType}:${avoid}${alternatives}`;
 }
 
 export function buildRouteCacheKey(parts: {

@@ -83,15 +83,14 @@ export function resolveTomTomTrafficModeForInput(
   return resolveTomTomTrafficMode();
 }
 
-export function mapTomTomRouteResponse(
-  data: TomTomRouteResponse,
+function mapOneTomTomRoute(
+  route: TomTomRoute,
   input: RouteEstimateInput,
   trafficMode: RoutingTrafficMode
-): RouteEstimateResult {
-  const route = data.routes?.[0];
-  const summary = route?.summary;
-  if (!route || summary?.lengthInMeters == null || summary.travelTimeInSeconds == null) {
-    throw new TransportApiError("TRANSPORT_ROUTE_NOT_FOUND");
+): RouteEstimateResult | null {
+  const summary = route.summary;
+  if (summary?.lengthInMeters == null || summary.travelTimeInSeconds == null) {
+    return null;
   }
 
   const waypoints = input.waypoints ?? [];
@@ -122,6 +121,28 @@ export function mapTomTomRouteResponse(
   });
 }
 
+export function mapTomTomRouteResponses(
+  data: TomTomRouteResponse,
+  input: RouteEstimateInput,
+  trafficMode: RoutingTrafficMode
+): RouteEstimateResult[] {
+  const mapped = (data.routes ?? [])
+    .map((route) => mapOneTomTomRoute(route, input, trafficMode))
+    .filter((route): route is RouteEstimateResult => route != null);
+  if (mapped.length === 0) {
+    throw new TransportApiError("TRANSPORT_ROUTE_NOT_FOUND");
+  }
+  return mapped;
+}
+
+export function mapTomTomRouteResponse(
+  data: TomTomRouteResponse,
+  input: RouteEstimateInput,
+  trafficMode: RoutingTrafficMode
+): RouteEstimateResult {
+  return mapTomTomRouteResponses(data, input, trafficMode)[0];
+}
+
 export class TomTomOrbisRoutingAdapter implements RoutingAdapter {
   readonly provider = "tomtom" as const;
 
@@ -131,6 +152,15 @@ export class TomTomOrbisRoutingAdapter implements RoutingAdapter {
   ) {}
 
   async estimateRoute(input: RouteEstimateInput): Promise<RouteEstimateResult> {
+    const routes = await this.estimateRoutes(input);
+    const primary = routes[0];
+    if (!primary) {
+      throw new TransportApiError("TRANSPORT_ROUTE_NOT_FOUND");
+    }
+    return primary;
+  }
+
+  async estimateRoutes(input: RouteEstimateInput): Promise<RouteEstimateResult[]> {
     if (!this.apiKey) {
       throw new TransportApiError(
         "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
@@ -152,7 +182,16 @@ export class TomTomOrbisRoutingAdapter implements RoutingAdapter {
       input.destination,
     ];
     const trafficMode = resolveTomTomTrafficModeForInput(input);
+    const url = this.buildCalculateRouteUrl(points, input, trafficMode);
+    const data = await this.fetchCalculateRoute(url);
+    return mapTomTomRouteResponses(data, input, trafficMode);
+  }
 
+  private buildCalculateRouteUrl(
+    points: LatLng[],
+    input: RouteEstimateInput,
+    trafficMode: RoutingTrafficMode
+  ): URL {
     const url = new URL(
       `${ORBIS_CALCULATE_ROUTE}/${locationPath(points)}/json`
     );
@@ -162,21 +201,31 @@ export class TomTomOrbisRoutingAdapter implements RoutingAdapter {
     url.searchParams.set("sectionType", "traffic");
     url.searchParams.set("routeRepresentation", "polyline");
     url.searchParams.set("routeType", input.routeOptions?.routeType ?? "fast");
+    const maxAlternatives = Math.min(
+      Math.max(input.routeOptions?.maxAlternatives ?? 0, 0),
+      2
+    );
+    if (maxAlternatives > 0) {
+      url.searchParams.set("maxAlternatives", String(maxAlternatives));
+      url.searchParams.set("alternativeType", "anyRoute");
+    }
     if (input.departAt) url.searchParams.set("departAt", input.departAt);
     for (const avoid of input.routeOptions?.avoid ?? []) {
       url.searchParams.append("avoid", avoid);
     }
+    return url;
+  }
 
+  private async fetchCalculateRoute(url: URL): Promise<TomTomRouteResponse> {
     const res = await this.fetchImpl(url.toString(), {
       method: "GET",
       headers: {
         Accept: "application/json",
         "TomTom-Api-Version": "2",
-        "TomTom-Api-Key": this.apiKey,
+        "TomTom-Api-Key": this.apiKey ?? "",
       },
       signal: AbortSignal.timeout(10_000),
     });
-
     const data = (await res.json().catch(() => ({}))) as TomTomRouteResponse;
     if (!res.ok) {
       throw new TransportApiError(
@@ -184,7 +233,7 @@ export class TomTomOrbisRoutingAdapter implements RoutingAdapter {
         data.detailedError?.message ?? "TomTom could not calculate that route."
       );
     }
-    return mapTomTomRouteResponse(data, input, trafficMode);
+    return data;
   }
 
   async routeMatrix(_input: RouteMatrixInput): Promise<never> {

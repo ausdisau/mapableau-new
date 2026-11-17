@@ -23,6 +23,8 @@ const STATUS_BY_CODE: Record<TransportErrorCode, number> = {
   TRANSPORT_RECOVERY_OPTION_NOT_FOUND: 404,
   TRANSPORT_ETA_PILOT_DISABLED: 503,
   TRANSPORT_LOCATION_SHARE_DISABLED: 403,
+  TRANSPORT_MAJI_DISABLED: 503,
+  TRANSPORT_MAJI_ADVICE_NOT_FOUND: 404,
 };
 
 const PLAIN_MESSAGES: Record<TransportErrorCode, string> = {
@@ -58,6 +60,10 @@ const PLAIN_MESSAGES: Record<TransportErrorCode, string> = {
     "The traffic-aware ETA pilot is not enabled.",
   TRANSPORT_LOCATION_SHARE_DISABLED:
     "Live driver location sharing is not enabled or not consented.",
+  TRANSPORT_MAJI_DISABLED:
+    "Journey Intelligence advisory comparisons are not enabled.",
+  TRANSPORT_MAJI_ADVICE_NOT_FOUND:
+    "We could not find that journey advice record.",
 };
 
 export class TransportApiError extends Error {

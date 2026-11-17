@@ -201,6 +201,15 @@ Governing docs: [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md), [CURRENT_S
 - Acceptance: missing key ≠ fabricated data; estimates ≠ quotes; type-check + build + tests
 - Notes: TomTom Orbis adapter + labelled OSRM fallback, cache expiry, TfNSW geometry match, boarding buffers, trip-scoped reroute-advisory (no booking mutation). Shared cache is provider travel time only; location consent is trip-bound to the assigned driver. Traffic flags default OFF. Preview-only deploy. Public OSRM is blocked in production and for live origin.
 
+### Prompt MAJI-0 — Advisory remaining-route comparison
+
+- [x] Goal: Advisory-only in-trip comparison of remaining time and operating cost; never mutate bookings, quotes, or NDIS records
+- Depends on: PC-3 traffic-aware ETA pilot
+- Touch paths: `lib/transport/maji/`, `lib/tfnsw/toll-calculator-adapter.ts`, `app/api/transport/trips/[tripId]/route-advice/**`, `components/transport/MajiJourneyIntelligencePanel.tsx`, Prisma advice tables
+- Claim gate: **pilot** (flags off). Live traffic/tolls remain **partner_required** until human-approval gates in `docs/transport/MAJI_ADVISORY.md`.
+- Acceptance: fail-closed flags; null-not-zero costs; dismiss does not change trip/quote; type-check + targeted vitest
+- Notes: Stacked on the ETA pilot. TomTom alternatives only via documented Orbis `maxAlternatives` plus labelled `routeType`/`avoid=tolls`. TfNSW toll POST fail-closed. Driver UI read-only. Preview-only deploy.
+
 ### Prompt PC-4 — Production claim promotion review
 
 - [ ] Goal: Documented go/pilot/partner/unavailable/no-go; sync public page
