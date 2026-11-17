@@ -179,6 +179,9 @@ describe("mock routing adapter", () => {
     });
     expect(result.distanceMetres).toBeGreaterThan(0);
     expect(result.durationSeconds).toBeGreaterThan(0);
+    expect(result.liveTrafficUsed).toBe(false);
+    expect(result.source).toBe("mock");
+    expect(result.advisoryOnly).toBe(true);
   });
 });
 

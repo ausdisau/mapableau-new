@@ -65,6 +65,67 @@ describe("TfNSW traffic advisory", () => {
 
     expect(advisory).toBeNull();
   });
+
+  it("matches LineString hazards to route geometry and ignores far works", async () => {
+    const alongRoute: LiveTrafficFeatureCollection = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [151.2093, -33.8688],
+              [151.215, -33.875],
+            ],
+          },
+          properties: {
+            id: "rw-near",
+            headline: "Lane closure",
+            category: "roadwork",
+            subCategory: "lane_closed",
+          },
+        },
+        {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [150.0, -34.5],
+              [150.01, -34.51],
+            ],
+          },
+          properties: {
+            id: "rw-far",
+            headline: "Distant works",
+            category: "roadwork",
+          },
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => alongRoute,
+      })
+    );
+
+    const advisory = await buildTrafficAdvisoryForRoute({
+      origin: { lat: -33.8688, lng: 151.2093 },
+      destination: { lat: -33.88, lng: 151.22 },
+      geometry: [
+        { lat: -33.8688, lng: 151.2093 },
+        { lat: -33.875, lng: 151.215 },
+        { lat: -33.88, lng: 151.22 },
+      ],
+      force: true,
+    });
+
+    expect(advisory).not.toBeNull();
+    expect(advisory!.hazards.map((h) => h.id)).toEqual(["rw-near"]);
+    expect(advisory!.hazards[0]?.distanceToRouteMetres).toBeLessThanOrEqual(250);
+  });
 });
 
 describe("TfNSW client", () => {
