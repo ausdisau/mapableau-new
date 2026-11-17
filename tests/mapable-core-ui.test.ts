@@ -13,6 +13,15 @@ describe("Core UI navigation", () => {
     expect(CORE_CIVIC_LINKS.some((l) => l.href === "/status")).toBe(true);
   });
 
+  it("points the Certified API ecosystem directory at /ecosystem/api-directory", () => {
+    expect(
+      CORE_CIVIC_LINKS.some(
+        (l) => l.href === "/ecosystem/api-directory" && l.label === "API ecosystem",
+      ),
+    ).toBe(true);
+    expect(CORE_CIVIC_LINKS.some((l) => l.href === "/ecosystem")).toBe(false);
+  });
+
   it("includes platform entry points", () => {
     expect(CORE_PLATFORM_LINKS.some((l) => l.href === "/dashboard")).toBe(true);
     expect(CORE_PLATFORM_LINKS.some((l) => l.href === "/login")).toBe(true);
