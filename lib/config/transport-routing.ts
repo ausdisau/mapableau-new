@@ -61,3 +61,24 @@ export function isTomTomLiveTrafficAllowed(): boolean {
     Boolean(transportRoutingConfig.tomtomApiKey)
   );
 }
+
+export function isPublicOsrmDemo(
+  baseUrl = transportRoutingConfig.osrmBaseUrl
+): boolean {
+  try {
+    const host = new URL(baseUrl).hostname.toLowerCase();
+    return host === "router.project-osrm.org" || host.endsWith(".project-osrm.org");
+  } catch {
+    return true;
+  }
+}
+
+export function shouldBlockPublicOsrmFallback(params?: {
+  sensitiveOrigin?: boolean;
+  nodeEnv?: string;
+  baseUrl?: string;
+}): boolean {
+  if (!isPublicOsrmDemo(params?.baseUrl)) return false;
+  const nodeEnv = params?.nodeEnv ?? process.env.NODE_ENV;
+  return nodeEnv === "production" || Boolean(params?.sensitiveOrigin);
+}

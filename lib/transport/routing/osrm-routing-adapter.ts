@@ -1,6 +1,6 @@
 import { transportRoutingConfig } from "@/lib/config/transport-routing";
-import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
 import type { RoutingAdapter } from "@/lib/transport/routing/routing-adapter";
+import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import type {
   LatLng,

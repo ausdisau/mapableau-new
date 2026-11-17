@@ -9,3 +9,12 @@ export function boardingBufferSecondsForMobility(mobility: unknown): number {
   }
   return base;
 }
+
+export function providerTravelSeconds(row: {
+  travelDurationSeconds?: number | null;
+  durationSeconds: number;
+  boardingBufferSeconds?: number | null;
+}): number {
+  if (row.travelDurationSeconds != null) return row.travelDurationSeconds;
+  return Math.max(0, row.durationSeconds - (row.boardingBufferSeconds ?? 0));
+}

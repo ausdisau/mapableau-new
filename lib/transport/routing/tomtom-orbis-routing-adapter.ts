@@ -2,8 +2,8 @@ import {
   isTomTomLiveTrafficAllowed,
   transportRoutingConfig,
 } from "@/lib/config/transport-routing";
-import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
 import type { RoutingAdapter } from "@/lib/transport/routing/routing-adapter";
+import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import type {
   LatLng,
@@ -68,6 +68,19 @@ function pointsFromLegs(legs: TomTomLeg[] | undefined): LatLng[] {
 
 export function resolveTomTomTrafficMode(): RoutingTrafficMode {
   return isTomTomLiveTrafficAllowed() ? "live" : "historical";
+}
+
+export function resolveTomTomTrafficModeForInput(
+  input: RouteEstimateInput
+): RoutingTrafficMode {
+  const requested = input.routeOptions?.trafficMode;
+  if (requested === "live") {
+    return isTomTomLiveTrafficAllowed() ? "live" : "historical";
+  }
+  if (requested === "historical" || requested === "none") {
+    return "historical";
+  }
+  return resolveTomTomTrafficMode();
 }
 
 export function mapTomTomRouteResponse(
@@ -138,12 +151,7 @@ export class TomTomOrbisRoutingAdapter implements RoutingAdapter {
       ...(input.waypoints ?? []),
       input.destination,
     ];
-    const trafficMode =
-      input.routeOptions?.trafficMode === "historical"
-        ? "historical"
-        : input.routeOptions?.trafficMode === "live" && isTomTomLiveTrafficAllowed()
-          ? "live"
-          : resolveTomTomTrafficMode();
+    const trafficMode = resolveTomTomTrafficModeForInput(input);
 
     const url = new URL(
       `${ORBIS_CALCULATE_ROUTE}/${locationPath(points)}/json`

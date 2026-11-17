@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { clearTfnswClientCache } from "@/lib/tfnsw/client";
-import { buildTrafficAdvisoryForRoute } from "@/lib/tfnsw/traffic-advisory-service";
+import {
+  buildTrafficAdvisoryForRoute,
+  distanceSegmentToSegmentMetres,
+} from "@/lib/tfnsw/traffic-advisory-service";
 import type { LiveTrafficFeatureCollection } from "@/types/tfnsw";
 
 const sampleHazards: LiveTrafficFeatureCollection = {
@@ -125,6 +128,57 @@ describe("TfNSW traffic advisory", () => {
     expect(advisory).not.toBeNull();
     expect(advisory!.hazards.map((h) => h.id)).toEqual(["rw-near"]);
     expect(advisory!.hazards[0]?.distanceToRouteMetres).toBeLessThanOrEqual(250);
+  });
+
+  it("matches a crossing LineString whose vertices are outside the 250 m corridor", async () => {
+    expect(
+      distanceSegmentToSegmentMetres(
+        { lat: -33.8688, lng: 151.2093 },
+        { lat: -33.88, lng: 151.22 },
+        { lat: -33.9, lng: 151.214 },
+        { lat: -33.84, lng: 151.214 }
+      )
+    ).toBeLessThanOrEqual(250);
+
+    const crossing: LiveTrafficFeatureCollection = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [151.214, -33.9],
+              [151.214, -33.84],
+            ],
+          },
+          properties: {
+            id: "rw-cross",
+            headline: "Crossing works",
+            category: "roadwork",
+          },
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => crossing,
+      })
+    );
+
+    const advisory = await buildTrafficAdvisoryForRoute({
+      origin: { lat: -33.8688, lng: 151.2093 },
+      destination: { lat: -33.88, lng: 151.22 },
+      geometry: [
+        { lat: -33.8688, lng: 151.2093 },
+        { lat: -33.88, lng: 151.22 },
+      ],
+      force: true,
+    });
+
+    expect(advisory!.hazards.map((h) => h.id)).toEqual(["rw-cross"]);
   });
 });
 

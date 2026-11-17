@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { transportRoutingConfig } from "@/lib/config/transport-routing";
+import { prisma } from "@/lib/prisma";
 
 export const TOMTOM_USAGE_PROVIDER = "tomtom";
 
@@ -24,18 +24,39 @@ export async function isTomTomDailyCapReached(now = new Date()): Promise<boolean
   return used >= transportRoutingConfig.tomtomDailyRequestCap;
 }
 
-export async function incrementTomTomUsage(now = new Date()): Promise<number> {
+export async function tryReserveTomTomSlot(now = new Date()): Promise<boolean> {
+  const cap = transportRoutingConfig.tomtomDailyRequestCap;
+  if (cap <= 0) return false;
   const dayUtc = utcDayKey(now);
-  const row = await prisma.transportRoutingDailyUsage.upsert({
+
+  const claimed = await prisma.transportRoutingDailyUsage.updateMany({
     where: {
-      provider_dayUtc: { provider: TOMTOM_USAGE_PROVIDER, dayUtc },
-    },
-    create: {
       provider: TOMTOM_USAGE_PROVIDER,
       dayUtc,
-      requestCount: 1,
+      requestCount: { lt: cap },
     },
-    update: { requestCount: { increment: 1 } },
+    data: { requestCount: { increment: 1 } },
   });
-  return row.requestCount;
+  if (claimed.count === 1) return true;
+
+  try {
+    await prisma.transportRoutingDailyUsage.create({
+      data: {
+        provider: TOMTOM_USAGE_PROVIDER,
+        dayUtc,
+        requestCount: 1,
+      },
+    });
+    return true;
+  } catch {
+    const retried = await prisma.transportRoutingDailyUsage.updateMany({
+      where: {
+        provider: TOMTOM_USAGE_PROVIDER,
+        dayUtc,
+        requestCount: { lt: cap },
+      },
+      data: { requestCount: { increment: 1 } },
+    });
+    return retried.count === 1;
+  }
 }

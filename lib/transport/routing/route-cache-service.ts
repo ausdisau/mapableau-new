@@ -1,10 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { LatLng, RouteOptions } from "@/types/transport-routing";
 
-const memoryCache = new Map<
-  string,
-  { estimateId: string; expiresAt: number; tripId?: string }
->();
+const memoryCache = new Map<string, { estimateId: string; expiresAt: number }>();
 
 export const COORD_DECIMALS = 5;
 export const TIME_BUCKET_MINUTES = 15;
@@ -55,6 +52,19 @@ export function buildRouteCacheKey(parts: {
   ].join("|");
 }
 
+function unexpiredWhere(now: Date) {
+  return {
+    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+  };
+}
+
+function isUnexpired(
+  row: { expiresAt?: Date | null },
+  nowMs: number
+): boolean {
+  return !row.expiresAt || row.expiresAt.getTime() > nowMs;
+}
+
 export async function getCachedEstimate(cacheKey: string) {
   const now = Date.now();
   const mem = memoryCache.get(cacheKey);
@@ -62,34 +72,44 @@ export async function getCachedEstimate(cacheKey: string) {
     const row = await prisma.transportRouteEstimate.findUnique({
       where: { id: mem.estimateId },
     });
-    if (row && (!row.expiresAt || row.expiresAt.getTime() > now)) {
+    if (row && isUnexpired(row, now) && !row.tripId) {
       return row;
     }
     memoryCache.delete(cacheKey);
   }
 
-  const row = await prisma.transportRouteEstimate.findFirst({
+  const asOf = new Date(now);
+  const shared = await prisma.transportRouteEstimate.findFirst({
     where: {
       cacheKey,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date(now) } }],
+      tripId: null,
+      ...unexpiredWhere(asOf),
     },
     orderBy: { createdAt: "desc" },
   });
-  if (!row) return null;
-  if (row.expiresAt && row.expiresAt.getTime() <= now) return null;
-  return row;
+  if (shared && isUnexpired(shared, now)) return shared;
+
+  const legacy = await prisma.transportRouteEstimate.findFirst({
+    where: {
+      cacheKey,
+      ...unexpiredWhere(asOf),
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!legacy || !isUnexpired(legacy, now)) return null;
+  return legacy;
 }
 
 export function rememberEstimate(
   cacheKey: string,
   estimateId: string,
   ttlMs = 15 * 60 * 1000,
-  tripId?: string
+  _tripId?: string
 ) {
+  void _tripId;
   memoryCache.set(cacheKey, {
     estimateId,
     expiresAt: Date.now() + ttlMs,
-    tripId,
   });
 }
 
@@ -100,12 +120,9 @@ export function forgetCachedEstimate(cacheKey?: string) {
 export async function expireEstimatesForTrip(tripId: string) {
   const now = new Date();
   await prisma.transportRouteEstimate.updateMany({
-    where: { tripId, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+    where: { tripId, ...unexpiredWhere(now) },
     data: { expiresAt: now },
   });
-  for (const [key, value] of memoryCache.entries()) {
-    if (value.tripId === tripId) memoryCache.delete(key);
-  }
 }
 
 export async function refreshRouteCache(params: {

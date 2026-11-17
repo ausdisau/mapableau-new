@@ -8843,6 +8843,7 @@ model TransportRouteEstimate {
   providerStatus  String                 @default("ok")
   fallbackReason  String?
   generatedAt     DateTime               @default(now())
+  departAt        DateTime?
   geometryJson    Json?
   boardingBufferSeconds Int              @default(0)
   travelDurationSeconds Int?

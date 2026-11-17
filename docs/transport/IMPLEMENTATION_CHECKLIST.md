@@ -199,7 +199,7 @@ Governing docs: [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md), [CURRENT_S
 - Touch paths: routing registry, estimate APIs, UI advisory cards
 - Claim gate: `routing_adapters` → **pilot** for traffic-aware ETA (flags off; TomTom/OSRM labelled; mock never live). Production live traffic remains **partner_required** until human-approval gates in `docs/transport/TRAFFIC_ETA_PILOT.md`.
 - Acceptance: missing key ≠ fabricated data; estimates ≠ quotes; type-check + build + tests
-- Notes: TomTom Orbis adapter + labelled OSRM fallback, cache expiry, TfNSW geometry match, boarding buffers, trip-scoped reroute-advisory (no booking mutation). Traffic flags default OFF. Preview-only deploy.
+- Notes: TomTom Orbis adapter + labelled OSRM fallback, cache expiry, TfNSW geometry match, boarding buffers, trip-scoped reroute-advisory (no booking mutation). Shared cache is provider travel time only; location consent is trip-bound to the assigned driver. Traffic flags default OFF. Preview-only deploy. Public OSRM is blocked in production and for live origin.
 
 ### Prompt PC-4 — Production claim promotion review
 

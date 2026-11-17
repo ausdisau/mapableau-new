@@ -9,6 +9,7 @@ import {
   parseMobilityRequirements,
 } from "@/lib/transport/mobility-schema";
 import { getMobilityPrefillForUser } from "@/lib/transport/profile-prefill-service";
+import { expireTripEstimatesAndNotify } from "@/lib/transport/routing/traffic-aware-eta-service";
 import {
   assertCanAccessTrip,
   assertProviderOrgTrip,
@@ -16,7 +17,6 @@ import {
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
 import { buildTripResponse } from "@/lib/transport/transport-response";
-import { expireTripEstimatesAndNotify } from "@/lib/transport/routing/traffic-aware-eta-service";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
 import type { CreateTransportTripInput } from "@/lib/validation/transport-trip-schemas";
 
@@ -283,11 +283,18 @@ export async function cancelTransportTrip(
   });
   const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
   if (trip) {
-    await expireTripEstimatesAndNotify({
-      trip,
-      actorUserId: user.id,
-      reason,
-    });
+    try {
+      await expireTripEstimatesAndNotify({
+        trip,
+        actorUserId: user.id,
+        reason,
+      });
+    } catch (error) {
+      console.error(
+        "[transport] cancel cleanup failed after trip was cancelled",
+        error
+      );
+    }
   }
   return result;
 }

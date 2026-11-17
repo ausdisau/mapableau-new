@@ -1,10 +1,12 @@
 import type { TransportTrip } from "@prisma/client";
 
-import { transportRoutingConfig } from "@/lib/config/transport-routing";
-import { prisma } from "@/lib/prisma";
 import type { CurrentUser } from "@/lib/auth/current-user";
+import { transportRoutingConfig } from "@/lib/config/transport-routing";
 import { deliverNotificationCloud } from "@/lib/notifications/notification-cloud";
+import { prisma } from "@/lib/prisma";
 import {
+  expireDriverLocationShareConsent,
+  isDriverLocationInServiceStatus,
   latestConsentedDriverOrigin,
   stopLocationAcceptanceForTrip,
 } from "@/lib/transport/privacy/driver-location-share";
@@ -86,6 +88,7 @@ export function presentRouteEstimate(
     providerStatus?: string | null;
     fallbackReason?: string | null;
     generatedAt?: Date | null;
+    departAt?: Date | null;
     expiresAt?: Date | null;
     createdAt: Date;
     hazardEvidence?: unknown;
@@ -99,6 +102,7 @@ export function presentRouteEstimate(
     (estimate.source as "tomtom_orbis" | "osrm" | "mock" | null) ?? "mock";
   const liveTrafficUsed = Boolean(estimate.liveTrafficUsed);
   const generatedAt = estimate.generatedAt ?? estimate.createdAt;
+  const departAt = options?.departAt ?? estimate.departAt ?? generatedAt;
   return {
     distanceMetres: estimate.distanceMetres,
     durationSeconds: travel + boarding,
@@ -120,7 +124,7 @@ export function presentRouteEstimate(
       generatedAt,
       travelDurationSeconds: travel,
       boardingBufferSeconds: boarding,
-      departAt: options?.departAt,
+      departAt,
     }),
     hazards: hazardsFromEvidence(estimate.hazardEvidence),
   };
@@ -147,7 +151,7 @@ export async function getTripEta(user: CurrentUser, tripId: string) {
     return { eta: null, advisoryOnly: true as const };
   }
   return {
-    eta: presentRouteEstimate(estimate, { departAt: trip.scheduledStart }),
+    eta: presentRouteEstimate(estimate),
     advisoryOnly: true as const,
   };
 }
@@ -175,19 +179,23 @@ export async function refreshTripEta(
     await expireEstimatesForTrip(tripId);
   }
 
+  const useNow =
+    Boolean(options?.reroute) ||
+    (Boolean(liveOrigin) && isDriverLocationInServiceStatus(trip.status));
+  const departAt = useNow ? new Date() : trip.scheduledStart;
+
   const created = await createRouteEstimate({
     input: {
       origin,
       destination,
-      departAt: options?.reroute
-        ? new Date().toISOString()
-        : trip.scheduledStart.toISOString(),
+      departAt: departAt.toISOString(),
       includeGeometry: true,
     },
     tripId,
     boardingBufferSeconds: boardingBufferSecondsForMobility(
       trip.mobilityRequirements
     ),
+    sensitiveOrigin: Boolean(liveOrigin),
   });
 
   await recordTripEvent({
@@ -205,9 +213,7 @@ export async function refreshTripEta(
   });
 
   return {
-    eta: presentRouteEstimate(created.estimate, {
-      departAt: options?.reroute ? new Date() : trip.scheduledStart,
-    }),
+    eta: presentRouteEstimate(created.estimate, { departAt }),
     advisoryDisclaimer: created.advisoryDisclaimer,
     trafficAdvisory: created.trafficAdvisory,
     fromCache: created.fromCache,
@@ -217,37 +223,78 @@ export async function refreshTripEta(
   };
 }
 
+async function runCancelCleanup(
+  label: string,
+  work: () => Promise<void>,
+  failures: string[]
+) {
+  try {
+    await work();
+  } catch (error) {
+    failures.push(label);
+    console.error(`[transport] ${label} failed during trip cancel`, error);
+  }
+}
+
 export async function expireTripEstimatesAndNotify(params: {
   trip: TransportTrip;
   actorUserId: string;
   reason?: string;
 }) {
-  await expireEstimatesForTrip(params.trip.id);
-  await stopLocationAcceptanceForTrip(params.trip.id);
+  const failures: string[] = [];
+  await runCancelCleanup(
+    "expire_estimates",
+    () => expireEstimatesForTrip(params.trip.id),
+    failures
+  );
+  await runCancelCleanup(
+    "stop_location",
+    () => stopLocationAcceptanceForTrip(params.trip.id),
+    failures
+  );
+  await runCancelCleanup(
+    "expire_location_consent",
+    () => expireDriverLocationShareConsent(params.trip.id),
+    failures
+  );
+
   const title = "Transport trip cancelled";
   const body =
     "The trip was cancelled. Any earlier travel-time estimate is no longer current. This was not live traffic.";
-  await deliverNotificationCloud({
-    userId: params.trip.participantId,
-    category: "booking",
-    purpose: "transport_trip_cancelled",
-    title,
-    body,
-  });
+  await runCancelCleanup(
+    "notify_participant",
+    async () => {
+      await deliverNotificationCloud({
+        userId: params.trip.participantId,
+        category: "booking",
+        purpose: "transport_trip_cancelled",
+        title,
+        body,
+      });
+    },
+    failures
+  );
 
-  const assignment = await prisma.transportDispatchAssignment.findFirst({
-    where: { tripId: params.trip.id, active: true },
-    include: { driver: true },
-  });
-  if (assignment?.driver?.userId) {
-    await deliverNotificationCloud({
-      userId: assignment.driver.userId,
-      category: "booking",
-      purpose: "transport_trip_cancelled",
-      title,
-      body,
-    });
-  }
+  await runCancelCleanup(
+    "notify_driver",
+    async () => {
+      const assignment = await prisma.transportDispatchAssignment.findFirst({
+        where: { tripId: params.trip.id, active: true },
+        include: { driver: true },
+      });
+      if (!assignment?.driver?.userId) return;
+      await deliverNotificationCloud({
+        userId: assignment.driver.userId,
+        category: "booking",
+        purpose: "transport_trip_cancelled",
+        title,
+        body,
+      });
+    },
+    failures
+  );
+
   void params.reason;
   void params.actorUserId;
+  void failures;
 }

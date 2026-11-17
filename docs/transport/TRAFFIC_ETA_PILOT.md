@@ -7,11 +7,11 @@ Protected, fail-closed pilot for advisory travel times on **TransportTrip** (rep
 - Provider-neutral estimate contract with honesty fields (`source`, `trafficModeApplied`, `liveTrafficUsed`, `providerStatus`, `fallbackReason`, `generatedAt`, `validUntil`, `advisoryOnly`).
 - TomTom Orbis Calculate Route adapter (HTTP docs, `apiVersion=2`, car-only, public preview).
 - Labelled OSRM fallback when TomTom is selected but misconfigured, capped, or upstream-failed.
-- Route cache keys include provider, traffic mode, options, 15-minute UTC departure bucket, rounded origin/waypoints/destination. Memory TTL is 3 minutes when live traffic was used, otherwise 15 minutes. Database rows honour `expiresAt`.
-- TfNSW incident and roadwork Open Data matched to route geometry (~250 m corridor). Hazards are advisory only.
+- Route cache keys include provider, traffic mode, options, 15-minute UTC departure bucket, rounded origin/waypoints/destination. Memory TTL is 3 minutes when live traffic was used, otherwise 15 minutes. Database rows honour `expiresAt`. Shared cache stores **provider travel time only**; trip boarding buffers and `tripId` are composed per request.
+- TfNSW incident and roadwork Open Data matched to route geometry (~250 m corridor), including LineString-to-polyline proximity. Hazards are advisory only.
 - Boarding buffers (default 10 minutes, plus 10 minutes when `needsExtraBoardingTime`) applied at composition, not in the shared cache key.
-- Trip-scoped ETA and reroute-advisory APIs. Reroute does **not** change the booking.
-- Consent scope `transport.driver_location_share` plus driver opt-in. Recording also requires `TRANSPORT_LIVE_LOCATION_ENABLED`.
+- Trip-scoped ETA and reroute-advisory APIs. Reroute does **not** change the booking. In-service refresh from a consented driver origin uses `departAt=now` and persists that instant for later GET.
+- Consent scope `transport.driver_location_share` is trip-bound to the assigned driver (`sourceAction=transport.trip:{tripId}`). Recording and reading also require `TRANSPORT_LIVE_LOCATION_ENABLED`, driver opt-in, in-service status, and the current driver.
 - Participant and driver TransportTrip UI with source, freshness (Australia/Sydney), live vs typical vs sandbox labels, hazard lists, and 44px controls.
 
 ## Flags (defaults OFF)
@@ -33,7 +33,8 @@ Protected, fail-closed pilot for advisory travel times on **TransportTrip** (rep
 - Cap: 200 TomTom Calculate Route calls per UTC day, then labelled OSRM fallback.
 - Live traffic is the expensive path and stays off unless both traffic flags and a server key are set later.
 - TfNSW Open Data is unused unless `TFNSW_ENRICH_ROUTE_ESTIMATES` is on, or an operator calls the existing nearby API (`force`).
-- Public OSRM demo is **not** a production live-traffic source. Copy always says typical road speeds when `liveTrafficUsed` is false.
+- Public OSRM demo (`router.project-osrm.org`) is **not** a production live-traffic source and is **not** called from production or with consented live coordinates. Configure a private `OSRM_BASE_URL` before relying on labelled TomTom fallback. Copy always says typical road speeds when `liveTrafficUsed` is false.
+- TomTom daily cap uses an atomic `updateMany` reservation (`requestCount < cap`) so concurrent requests cannot overshoot.
 
 ## Known limits
 

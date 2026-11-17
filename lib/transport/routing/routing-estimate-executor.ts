@@ -1,17 +1,18 @@
-import { transportRoutingConfig } from "@/lib/config/transport-routing";
-import { osrmRoutingAdapter } from "@/lib/transport/routing/osrm-routing-adapter";
-import { getRoutingAdapter } from "@/lib/transport/routing/routing-provider-registry";
-import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
+import type { TransportRoutingProvider } from "@prisma/client";
+
 import {
-  incrementTomTomUsage,
-  isTomTomDailyCapReached,
-} from "@/lib/transport/routing/tomtom-usage";
+  shouldBlockPublicOsrmFallback,
+  transportRoutingConfig,
+} from "@/lib/config/transport-routing";
+import { osrmRoutingAdapter } from "@/lib/transport/routing/osrm-routing-adapter";
+import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
+import { getRoutingAdapter } from "@/lib/transport/routing/routing-provider-registry";
+import { tryReserveTomTomSlot } from "@/lib/transport/routing/tomtom-usage";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import type {
   RouteEstimateInput,
   RouteEstimateResult,
 } from "@/types/transport-routing";
-import type { TransportRoutingProvider } from "@prisma/client";
 
 export type EstimateExecution = {
   result: RouteEstimateResult;
@@ -21,8 +22,15 @@ export type EstimateExecution = {
 async function osrmFallback(
   input: RouteEstimateInput,
   reason: string,
-  status: RouteEstimateResult["providerStatus"]
+  status: RouteEstimateResult["providerStatus"],
+  sensitiveOrigin?: boolean
 ): Promise<EstimateExecution> {
+  if (shouldBlockPublicOsrmFallback({ sensitiveOrigin })) {
+    throw new TransportApiError(
+      "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
+      "Routing fallback is not available. A private route service is not configured."
+    );
+  }
   const result = await osrmRoutingAdapter.estimateRoute({
     ...input,
     includeGeometry: input.includeGeometry ?? true,
@@ -43,25 +51,28 @@ async function osrmFallback(
 export async function executeRouteEstimate(params: {
   input: RouteEstimateInput;
   provider?: TransportRoutingProvider;
+  sensitiveOrigin?: boolean;
 }): Promise<EstimateExecution> {
   const requested = params.provider ?? transportRoutingConfig.provider;
 
   if (requested === "tomtom") {
     if (!transportRoutingConfig.tomtomApiKey) {
-      if (process.env.NODE_ENV === "production" && requested === "tomtom") {
-        return osrmFallback(
-          params.input,
-          "tomtom_missing_key",
-          "misconfigured"
-        );
-      }
-      return osrmFallback(params.input, "tomtom_missing_key", "misconfigured");
+      return osrmFallback(
+        params.input,
+        "tomtom_missing_key",
+        "misconfigured",
+        params.sensitiveOrigin
+      );
     }
-    if (await isTomTomDailyCapReached()) {
-      return osrmFallback(params.input, "tomtom_daily_cap", "cost_limited");
+    if (!(await tryReserveTomTomSlot())) {
+      return osrmFallback(
+        params.input,
+        "tomtom_daily_cap",
+        "cost_limited",
+        params.sensitiveOrigin
+      );
     }
     try {
-      await incrementTomTomUsage();
       const adapter = getRoutingAdapter("tomtom");
       const result = await adapter.estimateRoute(params.input);
       return { provider: "tomtom", result };
@@ -72,12 +83,27 @@ export async function executeRouteEstimate(params: {
       ) {
         throw error;
       }
-      return osrmFallback(params.input, "tomtom_upstream_error", "fallback");
+      return osrmFallback(
+        params.input,
+        "tomtom_upstream_error",
+        "fallback",
+        params.sensitiveOrigin
+      );
     }
   }
 
   if (requested === "disabled" && process.env.NODE_ENV === "production") {
     throw new TransportApiError("TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE");
+  }
+
+  if (
+    requested === "osrm" &&
+    shouldBlockPublicOsrmFallback({ sensitiveOrigin: params.sensitiveOrigin })
+  ) {
+    throw new TransportApiError(
+      "TRANSPORT_ROUTE_PROVIDER_UNAVAILABLE",
+      "Routing fallback is not available. A private route service is not configured."
+    );
   }
 
   const adapter = getRoutingAdapter(requested);
