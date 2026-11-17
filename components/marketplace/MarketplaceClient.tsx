@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { calculateInvoiceTotals } from "@/lib/billing/core/calculations";
 import { formatMarketplacePrice } from "@/lib/marketplace/format";
 import type {
   MarketplaceCartItem,
@@ -16,6 +15,13 @@ type CheckoutPathway =
   | "ordinary_purchase"
   | "ndis_self_managed"
   | "ndis_plan_managed";
+
+type ServerQuoteTotals = {
+  subtotalCents: number;
+  gstCents: number;
+  platformFeeCents: number;
+  totalCents: number;
+};
 
 export function readMarketplaceCart(): MarketplaceCartItem[] {
   if (typeof window === "undefined") return [];
@@ -150,6 +156,9 @@ export function MarketplaceCartClient({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [pathway, setPathway] = useState<CheckoutPathway>("ordinary_purchase");
+  const [totals, setTotals] = useState<ServerQuoteTotals | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   useEffect(() => {
     setCart(readMarketplaceCart());
@@ -168,20 +177,59 @@ export function MarketplaceCartClient({
     })
     .filter(Boolean) as { item: MarketplaceCartItem; product: MarketplaceProduct }[];
 
-  const totals = useMemo(
-    () =>
-      calculateInvoiceTotals(
-        lines.map(({ item, product }) => ({
-          quantity: item.quantity,
-          unitAmountCents: product.priceCents,
-          gstApplicable: product.gstApplicable,
-        })),
-      ),
-    [lines],
-  );
+  const quoteItemsKey = lines
+    .map(({ item, product }) => `${product.id}:${item.quantity}`)
+    .sort()
+    .join("|");
+
+  // Payable total must match server billing bps (never browser-local defaults).
+  useEffect(() => {
+    if (!quoteItemsKey) {
+      setTotals(null);
+      setQuoteError(null);
+      setQuoteLoading(false);
+      return;
+    }
+
+    const items = quoteItemsKey.split("|").map((entry) => {
+      const [productId, quantity] = entry.split(":");
+      return { productId: productId!, quantity: Number(quantity) };
+    });
+
+    const controller = new AbortController();
+    setQuoteLoading(true);
+    setQuoteError(null);
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/marketplace/checkout/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({ pathway, items }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setTotals(null);
+          setQuoteError(data.error ?? "Could not calculate payable total.");
+          return;
+        }
+        setTotals(data.totals as ServerQuoteTotals);
+        setQuoteError(null);
+      } catch {
+        if (controller.signal.aborted) return;
+        setTotals(null);
+        setQuoteError("Could not calculate payable total.");
+      } finally {
+        if (!controller.signal.aborted) setQuoteLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [quoteItemsKey, pathway]);
 
   async function checkout() {
-    if (lines.length === 0) return;
+    if (lines.length === 0 || !totals) return;
     setBusy(true);
     setMessage(null);
     try {
@@ -318,37 +366,47 @@ export function MarketplaceCartClient({
         aria-live="polite"
       >
         <h2 className="font-semibold">Payable total</h2>
-        <dl className="grid gap-1 text-sm sm:grid-cols-2">
-          <div className="flex justify-between gap-4 sm:contents">
-            <dt className="text-muted-foreground">Subtotal</dt>
-            <dd className="text-right font-medium">
-              {formatMarketplacePrice(totals.subtotalCents)}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-4 sm:contents">
-            <dt className="text-muted-foreground">GST</dt>
-            <dd className="text-right font-medium">
-              {formatMarketplacePrice(totals.gstCents)}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-4 sm:contents">
-            <dt className="text-muted-foreground">
-              MapAble platform fee (commission)
-            </dt>
-            <dd className="text-right font-medium">
-              {formatMarketplacePrice(totals.platformFeeCents)}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-4 border-t pt-2 text-base sm:col-span-2 sm:contents">
-            <dt className="font-semibold sm:col-start-1">Total payable</dt>
-            <dd className="text-right text-lg font-semibold">
-              {formatMarketplacePrice(totals.totalCents)}
-            </dd>
-          </div>
-        </dl>
+        {quoteLoading && !totals ? (
+          <p className="text-sm text-muted-foreground">Calculating server total…</p>
+        ) : null}
+        {quoteError ? (
+          <p className="text-sm text-destructive" role="alert">
+            {quoteError}
+          </p>
+        ) : null}
+        {totals ? (
+          <dl className="grid gap-1 text-sm sm:grid-cols-2">
+            <div className="flex justify-between gap-4 sm:contents">
+              <dt className="text-muted-foreground">Subtotal</dt>
+              <dd className="text-right font-medium">
+                {formatMarketplacePrice(totals.subtotalCents)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 sm:contents">
+              <dt className="text-muted-foreground">GST</dt>
+              <dd className="text-right font-medium">
+                {formatMarketplacePrice(totals.gstCents)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 sm:contents">
+              <dt className="text-muted-foreground">
+                MapAble platform fee (commission)
+              </dt>
+              <dd className="text-right font-medium">
+                {formatMarketplacePrice(totals.platformFeeCents)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 border-t pt-2 text-base sm:col-span-2 sm:contents">
+              <dt className="font-semibold sm:col-start-1">Total payable</dt>
+              <dd className="text-right text-lg font-semibold">
+                {formatMarketplacePrice(totals.totalCents)}
+              </dd>
+            </div>
+          </dl>
+        ) : null}
         <p className="text-xs text-muted-foreground">
-          Final charge is calculated on the server from catalogue prices. Optional extras are
-          never pre-selected.
+          Total comes from the server (catalogue prices + configured GST/fee rates). Optional
+          extras are never pre-selected.
         </p>
       </div>
 
@@ -360,16 +418,18 @@ export function MarketplaceCartClient({
         </p>
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || quoteLoading || !totals}
           onClick={() => void checkout()}
-          aria-busy={busy}
+          aria-busy={busy || quoteLoading}
           className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
         >
           {busy
             ? "Starting checkout…"
-            : pathway === "ndis_plan_managed"
-              ? "Create invoice for export"
-              : `Pay ${formatMarketplacePrice(totals.totalCents)}`}
+            : quoteLoading || !totals
+              ? "Waiting for total…"
+              : pathway === "ndis_plan_managed"
+                ? "Create invoice for export"
+                : `Pay ${formatMarketplacePrice(totals.totalCents)}`}
         </button>
       </div>
       {message ? (

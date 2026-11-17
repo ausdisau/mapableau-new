@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { calculateInvoiceTotals } from "@/lib/billing/core/calculations";
 import { checkoutDecisionForFundingType } from "@/lib/billing/core/funding-logic";
+import { isMarketplaceSurfaceEnabled } from "@/lib/config/year-one-scope";
 import { marketplaceCheckoutSchema } from "@/lib/marketplace/checkout-schema";
 import {
   quoteMarketplaceCheckout,
@@ -86,5 +87,21 @@ describe("marketplace payment pathways", () => {
     expect(decision.allowed).toBe(false);
     if (decision.allowed) return;
     expect(decision.reason).toBe("plan_managed");
+  });
+});
+
+describe("marketplace surface gate", () => {
+  afterEach(() => {
+    delete process.env.MAPABLE_MARKETPLACE_ENABLED;
+  });
+
+  it("is off by default so checkout APIs stay deferred", () => {
+    delete process.env.MAPABLE_MARKETPLACE_ENABLED;
+    expect(isMarketplaceSurfaceEnabled()).toBe(false);
+  });
+
+  it("enables only when MAPABLE_MARKETPLACE_ENABLED=true", () => {
+    process.env.MAPABLE_MARKETPLACE_ENABLED = "true";
+    expect(isMarketplaceSurfaceEnabled()).toBe(true);
   });
 });
