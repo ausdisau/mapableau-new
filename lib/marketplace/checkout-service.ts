@@ -218,54 +218,66 @@ export async function createMarketplaceCheckout(
     totals: quote.totals,
   });
 
-  // Reuse a recent unpaid invoice for the same cart + priced totals to avoid
-  // duplicate drafts on retries / cancelled Checkout without charging stale rates.
-  const recentInvoices = await prisma.billingInvoice.findMany({
-    where: {
-      userId,
-      serviceType: "marketplace",
-      status: { in: ["draft", "pending_payment"] },
-      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-    },
-    include: { lineItems: true, fundingSource: true },
-    orderBy: { createdAt: "desc" },
-    take: 15,
-  });
-  let invoice =
-    recentInvoices.find((candidate) =>
-      invoiceMatchesFingerprint(
-        candidate,
-        fingerprint,
-        quote.totals.totalCents,
-      ),
-    ) ?? null;
+  // Serialize find-or-create for this cart fingerprint so two parallel tabs
+  // cannot open two draft invoices (and therefore two payable sessions).
+  const { invoice, created } = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`
+      SELECT pg_advisory_xact_lock(hashtext(${`marketplace:${userId}:${fingerprint}`}))
+    `;
 
-  if (!invoice) {
+    const recentInvoices = await tx.billingInvoice.findMany({
+      where: {
+        userId,
+        serviceType: "marketplace",
+        status: { in: ["draft", "pending_payment"] },
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+      include: { lineItems: true, fundingSource: true },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+    });
+    const existing =
+      recentInvoices.find((candidate) =>
+        invoiceMatchesFingerprint(
+          candidate,
+          fingerprint,
+          quote.totals.totalCents,
+        ),
+      ) ?? null;
+    if (existing) return { invoice: existing, created: false as const };
+
     // Catalogue support-item codes are informational only — a cart purchase does
     // not imply NDIS eligibility/assessment, so keep invoices non-claimable.
-    invoice = await createDraftInvoice(userId, {
-      serviceType: "marketplace",
-      fundingSourceId: funding.fundingSource.id,
-      ndisClaimable: false,
-      lineItems: quote.lines.map((line) => ({
-        description: line.description,
-        quantity: line.quantity,
-        unitAmountCents: line.unitAmountCents,
-        gstApplicable: line.gstApplicable,
-        ndisLineItem: line.ndisLineItem,
-        metadata: {
-          productId: line.productId,
-          slug: line.slug,
-          sellerName: line.sellerName,
-          pathway,
-          checkoutSource: "marketplace_cart",
-          checkoutFingerprint: fingerprint,
-          // Catalogue sellers are display names until Connect-bound seller IDs exist.
-          sellerSplitDeferred: true,
-        },
-      })),
-    });
+    const draft = await createDraftInvoice(
+      userId,
+      {
+        serviceType: "marketplace",
+        fundingSourceId: funding.fundingSource.id,
+        ndisClaimable: false,
+        lineItems: quote.lines.map((line) => ({
+          description: line.description,
+          quantity: line.quantity,
+          unitAmountCents: line.unitAmountCents,
+          gstApplicable: line.gstApplicable,
+          ndisLineItem: line.ndisLineItem,
+          metadata: {
+            productId: line.productId,
+            slug: line.slug,
+            sellerName: line.sellerName,
+            pathway,
+            checkoutSource: "marketplace_cart",
+            checkoutFingerprint: fingerprint,
+            // Catalogue sellers are display names until Connect-bound seller IDs exist.
+            sellerSplitDeferred: true,
+          },
+        })),
+      },
+      tx,
+    );
+    return { invoice: draft, created: true as const };
+  });
 
+  if (created) {
     await writeBillingAuditLog({
       actorUserId: userId,
       entityType: "BillingInvoice",

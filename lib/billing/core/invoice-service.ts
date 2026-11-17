@@ -1,4 +1,4 @@
-import type { BillingInvoiceStatus } from "@prisma/client";
+import type { BillingInvoiceStatus, Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { getUserOrganisationIds } from "@/lib/api/organisation-scope";
@@ -10,8 +10,13 @@ import { hasBillingPermission } from "@/lib/billing/permissions";
 import { prisma } from "@/lib/prisma";
 
 type CreateInput = z.infer<typeof createInvoiceSchema>;
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
-export async function createDraftInvoice(userId: string, input: CreateInput) {
+export async function createDraftInvoice(
+  userId: string,
+  input: CreateInput,
+  db: DbClient = prisma,
+) {
   const calcItems = input.lineItems.map((li) => ({
     quantity: li.quantity,
     unitAmountCents: li.unitAmountCents,
@@ -19,7 +24,7 @@ export async function createDraftInvoice(userId: string, input: CreateInput) {
   }));
   const totals = calculateInvoiceTotals(calcItems);
 
-  const invoice = await prisma.billingInvoice.create({
+  const invoice = await db.billingInvoice.create({
     data: {
       userId,
       providerId: input.providerId,
@@ -53,7 +58,7 @@ export async function createDraftInvoice(userId: string, input: CreateInput) {
   });
 
   if (input.providerSplits?.length) {
-    const payment = await prisma.billingPayment.create({
+    const payment = await db.billingPayment.create({
       data: {
         invoiceId: invoice.id,
         userId,
