@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { calculateInvoiceTotals } from "@/lib/billing/core/calculations";
 import { formatMarketplacePrice } from "@/lib/marketplace/format";
-import type { MarketplaceCartItem, MarketplaceProduct } from "@/lib/marketplace/types";
+import type {
+  MarketplaceCartItem,
+  MarketplaceProduct,
+} from "@/lib/marketplace/types";
 
 const CART_KEY = "mapable-marketplace-cart";
+
+type CheckoutPathway =
+  | "ordinary_purchase"
+  | "ndis_self_managed"
+  | "ndis_plan_managed";
 
 export function readMarketplaceCart(): MarketplaceCartItem[] {
   if (typeof window === "undefined") return [];
@@ -140,6 +149,7 @@ export function MarketplaceCartClient({
   const [cart, setCart] = useState<MarketplaceCartItem[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [pathway, setPathway] = useState<CheckoutPathway>("ordinary_purchase");
 
   useEffect(() => {
     setCart(readMarketplaceCart());
@@ -158,9 +168,16 @@ export function MarketplaceCartClient({
     })
     .filter(Boolean) as { item: MarketplaceCartItem; product: MarketplaceProduct }[];
 
-  const totalCents = lines.reduce(
-    (sum, { item, product }) => sum + item.quantity * product.priceCents,
-    0,
+  const totals = useMemo(
+    () =>
+      calculateInvoiceTotals(
+        lines.map(({ item, product }) => ({
+          quantity: item.quantity,
+          unitAmountCents: product.priceCents,
+          gstApplicable: product.gstApplicable,
+        })),
+      ),
+    [lines],
   );
 
   async function checkout() {
@@ -168,29 +185,38 @@ export function MarketplaceCartClient({
     setBusy(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/billing/invoices", {
+      const res = await fetch("/api/marketplace/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          serviceType: "marketplace",
-          lineItems: lines.map(({ item, product }) => ({
-            description: `${product.name} — ${product.sellerName}`,
+          pathway,
+          items: lines.map(({ item, product }) => ({
+            productId: product.id,
             quantity: item.quantity,
-            unitAmountCents: product.priceCents,
-            gstApplicable: product.gstApplicable,
-            ndisLineItem: product.ndisSupportItemCode,
-            metadata: { productId: product.id, slug: product.slug },
           })),
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setMessage(data.error ?? "Could not create order.");
+        setMessage(data.error ?? "Could not start checkout.");
         setBusy(false);
         return;
       }
-      clearMarketplaceCart();
-      window.location.href = `/dashboard/billing/invoices/${data.invoice.id}`;
+
+      if (data.mode === "stripe_checkout" && data.checkoutUrl) {
+        clearMarketplaceCart();
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
+      if (data.mode === "export_only" && data.invoicePath) {
+        clearMarketplaceCart();
+        window.location.href = data.invoicePath;
+        return;
+      }
+
+      setMessage("Checkout response was incomplete. Try again.");
+      setBusy(false);
     } catch {
       setMessage("Checkout failed. Try again.");
       setBusy(false);
@@ -241,15 +267,109 @@ export function MarketplaceCartClient({
           </li>
         ))}
       </ul>
+
+      <fieldset className="space-y-3 rounded-xl border p-4">
+        <legend className="px-1 text-sm font-semibold">Payment pathway</legend>
+        <p className="text-sm text-muted-foreground">
+          Choose how you intend to pay. A successful payment does not imply NDIS eligibility
+          or plan approval. Assessment pathways are separate from marketplace checkout.
+        </p>
+        {(
+          [
+            {
+              value: "ordinary_purchase" as const,
+              label: "Ordinary private purchase",
+              hint: "Pay by card via Stripe Checkout.",
+            },
+            {
+              value: "ndis_self_managed" as const,
+              label: "NDIS self-managed",
+              hint: "Card checkout for self-managed participants. Does not confirm plan eligibility.",
+            },
+            {
+              value: "ndis_plan_managed" as const,
+              label: "NDIS plan-managed",
+              hint: "Creates an invoice for plan-manager export — no card charge.",
+            },
+          ] as const
+        ).map((option) => (
+          <label
+            key={option.value}
+            className="flex cursor-pointer gap-3 rounded-lg border border-transparent p-2 hover:bg-muted/40 focus-within:ring-2 focus-within:ring-ring"
+          >
+            <input
+              type="radio"
+              name="marketplace-pathway"
+              value={option.value}
+              checked={pathway === option.value}
+              onChange={() => setPathway(option.value)}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-medium">{option.label}</span>
+              <span className="block text-sm text-muted-foreground">{option.hint}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+
+      <div
+        className="space-y-2 rounded-xl border bg-muted/20 p-4"
+        aria-live="polite"
+      >
+        <h2 className="font-semibold">Payable total</h2>
+        <dl className="grid gap-1 text-sm sm:grid-cols-2">
+          <div className="flex justify-between gap-4 sm:contents">
+            <dt className="text-muted-foreground">Subtotal</dt>
+            <dd className="text-right font-medium">
+              {formatMarketplacePrice(totals.subtotalCents)}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4 sm:contents">
+            <dt className="text-muted-foreground">GST</dt>
+            <dd className="text-right font-medium">
+              {formatMarketplacePrice(totals.gstCents)}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4 sm:contents">
+            <dt className="text-muted-foreground">
+              MapAble platform fee (commission)
+            </dt>
+            <dd className="text-right font-medium">
+              {formatMarketplacePrice(totals.platformFeeCents)}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4 border-t pt-2 text-base sm:col-span-2 sm:contents">
+            <dt className="font-semibold sm:col-start-1">Total payable</dt>
+            <dd className="text-right text-lg font-semibold">
+              {formatMarketplacePrice(totals.totalCents)}
+            </dd>
+          </div>
+        </dl>
+        <p className="text-xs text-muted-foreground">
+          Final charge is calculated on the server from catalogue prices. Optional extras are
+          never pre-selected.
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-lg font-semibold">Total {formatMarketplacePrice(totalCents)}</p>
+        <p className="text-sm text-muted-foreground">
+          {pathway === "ndis_plan_managed"
+            ? "Continues to billing invoice for plan-manager export."
+            : "Continues to Stripe Checkout (test/sandbox when configured)."}
+        </p>
         <button
           type="button"
           disabled={busy}
-          onClick={checkout}
+          onClick={() => void checkout()}
+          aria-busy={busy}
           className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {busy ? "Creating order…" : "Create order & pay"}
+          {busy
+            ? "Starting checkout…"
+            : pathway === "ndis_plan_managed"
+              ? "Create invoice for export"
+              : `Pay ${formatMarketplacePrice(totals.totalCents)}`}
         </button>
       </div>
       {message ? (
@@ -257,10 +377,6 @@ export function MarketplaceCartClient({
           {message}
         </p>
       ) : null}
-      <p className="text-sm text-muted-foreground">
-        GST is calculated on checkout. NDIS plan-managed funding uses export instead of card
-        payment in the billing centre.
-      </p>
     </div>
   );
 }

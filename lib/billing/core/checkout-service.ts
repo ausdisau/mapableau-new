@@ -13,6 +13,13 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
   const invoice = await getInvoiceForUser(invoiceId, userId);
   if (!invoice) return { ok: false as const, error: "Invoice not found" };
 
+  if (invoice.status === "paid" || invoice.status === "refunded") {
+    return {
+      ok: false as const,
+      error: `Invoice is already ${invoice.status}`,
+    };
+  }
+
   const fundingType = invoice.fundingSource?.type;
   const decision = checkoutDecisionForFundingType(fundingType);
   if (!decision.allowed) {
@@ -27,11 +34,40 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     };
   }
 
+  const stripe = getStripeClient();
+
+  // Idempotency: reuse an open Checkout Session instead of creating duplicates.
+  const existingPayment = await prisma.billingPayment.findFirst({
+    where: {
+      invoiceId: invoice.id,
+      userId,
+      status: "requires_payment",
+      stripeCheckoutSessionId: { not: null },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  if (existingPayment?.stripeCheckoutSessionId) {
+    try {
+      const existingSession = await stripe.checkout.sessions.retrieve(
+        existingPayment.stripeCheckoutSessionId,
+      );
+      if (existingSession.status === "open" && existingSession.url) {
+        return {
+          ok: true as const,
+          checkoutUrl: existingSession.url,
+          sessionId: existingSession.id,
+          reused: true as const,
+        };
+      }
+    } catch {
+      // Session missing or unreadable — create a fresh one below.
+    }
+  }
+
   const account = await getOrCreateBillingAccount(userId, "participant");
 
   let customerId = account.stripeCustomerId;
   if (!customerId) {
-    const stripe = getStripeClient();
     const user = await prisma.user.findUnique({ where: { id: userId } });
     const customer = await stripe.customers.create({
       email: user?.email,
@@ -113,5 +149,6 @@ export async function createCheckoutForInvoice(userId: string, invoiceId: string
     ok: true as const,
     checkoutUrl: session.url,
     sessionId: session.id,
+    reused: false as const,
   };
 }
