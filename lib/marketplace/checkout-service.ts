@@ -183,10 +183,12 @@ export function marketplaceCartFingerprint(params: {
 function invoiceMatchesFingerprint(
   invoice: {
     totalCents: number;
+    fundingSourceId?: string | null;
     lineItems: Array<{ metadata?: unknown }>;
   },
   fingerprint: string,
   expectedTotalCents: number,
+  expectedFundingSourceId: string,
 ): boolean {
   const firstMeta = invoice.lineItems[0]?.metadata as
     | { checkoutFingerprint?: string }
@@ -194,7 +196,10 @@ function invoiceMatchesFingerprint(
     | undefined;
   return (
     firstMeta?.checkoutFingerprint === fingerprint &&
-    invoice.totalCents === expectedTotalCents
+    invoice.totalCents === expectedTotalCents &&
+    // Lock key omits fundingSourceId (parallel first checkout), but reuse must
+    // keep the resolved funding source so plan-manager exports stay correct.
+    invoice.fundingSourceId === expectedFundingSourceId
   );
 }
 
@@ -233,11 +238,14 @@ export async function createMarketplaceCheckout(
 
     // Target matching fingerprint via JSON path — do not cap to N newest rows
     // (an older matching cart would otherwise open a second payable session).
+    // Also require the same fundingSourceId so an explicit alternate source for
+    // the same pathway cannot reuse another draft's plan-manager details.
     const candidates = await tx.billingInvoice.findMany({
       where: {
         userId,
         serviceType: "marketplace",
         status: { in: ["draft", "pending_payment"] },
+        fundingSourceId: funding.fundingSource.id,
         createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
         totalCents: quote.totals.totalCents,
         lineItems: {
@@ -259,6 +267,7 @@ export async function createMarketplaceCheckout(
           candidate,
           fingerprint,
           quote.totals.totalCents,
+          funding.fundingSource.id,
         ),
       ) ?? null;
     if (existing) {

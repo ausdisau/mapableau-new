@@ -118,7 +118,9 @@ describe("marketplace checkout pricing", () => {
       totals: quote.totals,
     });
     // Parallel first checkouts must share one lock before either creates a
-    // FundingSource — the key must not embed a source id.
+    // FundingSource — the key must not embed a source id. Reuse still filters
+    // by the resolved fundingSourceId column so alternate sources do not share
+    // a draft invoice / plan-manager export.
     expect(fingerprint).not.toContain("fundingSourceId");
     expect(fingerprint).toContain("ordinary_purchase");
   });
