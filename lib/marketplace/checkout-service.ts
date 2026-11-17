@@ -143,7 +143,8 @@ async function resolveFundingSourceForPathway(
   return { ok: true as const, fundingSource: created };
 }
 
-function marketplaceCartFingerprint(params: {
+/** Exported for unit tests — must change when unit prices or fee/GST totals change. */
+export function marketplaceCartFingerprint(params: {
   pathway: MarketplaceCheckoutPathway;
   fundingSourceId: string;
   lines: ResolvedMarketplaceLine[];

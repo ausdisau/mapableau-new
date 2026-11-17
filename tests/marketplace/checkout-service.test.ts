@@ -5,6 +5,7 @@ import { checkoutDecisionForFundingType } from "@/lib/billing/core/funding-logic
 import { isMarketplaceSurfaceEnabled } from "@/lib/config/year-one-scope";
 import { marketplaceCheckoutSchema } from "@/lib/marketplace/checkout-schema";
 import {
+  marketplaceCartFingerprint,
   quoteMarketplaceCheckout,
   resolveMarketplaceCheckoutLines,
 } from "@/lib/marketplace/checkout-service";
@@ -73,6 +74,38 @@ describe("marketplace checkout pricing", () => {
     ]);
     expect(quote.totals).toEqual(expected);
     expect(quote.disclosures.ndisEligibilityClaim).toBe(false);
+  });
+
+  it("changes reuse fingerprint when unit price or totals change", () => {
+    const quote = quoteMarketplaceCheckout([
+      { productId: "mp_reacher", quantity: 1 },
+    ]);
+    expect(quote.ok).toBe(true);
+    if (!quote.ok) return;
+
+    const base = marketplaceCartFingerprint({
+      pathway: "ordinary_purchase",
+      fundingSourceId: "fs_1",
+      lines: quote.lines,
+      totals: quote.totals,
+    });
+    const priceChanged = marketplaceCartFingerprint({
+      pathway: "ordinary_purchase",
+      fundingSourceId: "fs_1",
+      lines: quote.lines.map((line) => ({
+        ...line,
+        unitAmountCents: line.unitAmountCents + 100,
+      })),
+      totals: quote.totals,
+    });
+    const totalChanged = marketplaceCartFingerprint({
+      pathway: "ordinary_purchase",
+      fundingSourceId: "fs_1",
+      lines: quote.lines,
+      totals: { ...quote.totals, totalCents: quote.totals.totalCents + 50 },
+    });
+    expect(base).not.toEqual(priceChanged);
+    expect(base).not.toEqual(totalChanged);
   });
 
   it("keeps support-item codes on lines without implying invoice claimability", () => {
