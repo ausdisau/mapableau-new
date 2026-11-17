@@ -17,6 +17,21 @@ export function safeAuthCallbackPath(
   return path;
 }
 
+/**
+ * Build a same-app callback from the current path plus its query string.
+ * `search` may include a leading `?`. Hash fragments are ignored.
+ */
+export function safeAuthCallbackFromLocation(
+  pathname: string | null | undefined,
+  search: string | null | undefined,
+  fallback = "/dashboard",
+): string {
+  const path = pathname?.trim() ?? "";
+  const query = (search ?? "").replace(/^\?/, "").trim();
+  const combined = query ? `${path}?${query}` : path;
+  return safeAuthCallbackPath(combined, fallback);
+}
+
 /** Full navigation after auth so middleware sees the new session cookie. */
 export function redirectAfterAuth(callbackUrl: string): void {
   if (typeof window === "undefined") return;
