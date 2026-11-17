@@ -1,4 +1,4 @@
-import type { BillingFundingSourceType } from "@prisma/client";
+import type { BillingFundingSourceType, Prisma } from "@prisma/client";
 
 import { writeBillingAuditLog } from "@/lib/billing/core/audit";
 import { calculateInvoiceTotals } from "@/lib/billing/core/calculations";
@@ -15,6 +15,8 @@ import type {
   MarketplaceCheckoutPathway,
 } from "@/lib/marketplace/checkout-schema";
 import { prisma } from "@/lib/prisma";
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 const PATHWAY_FUNDING_TYPE: Record<
   MarketplaceCheckoutPathway,
@@ -109,12 +111,13 @@ export function quoteMarketplaceCheckout(
 async function resolveFundingSourceForPathway(
   userId: string,
   pathway: MarketplaceCheckoutPathway,
-  fundingSourceId?: string,
+  fundingSourceId: string | undefined,
+  db: DbClient,
 ) {
   const fundingType = PATHWAY_FUNDING_TYPE[pathway];
 
   if (fundingSourceId) {
-    const owned = await prisma.billingFundingSource.findFirst({
+    const owned = await db.billingFundingSource.findFirst({
       where: { id: fundingSourceId, userId },
     });
     if (!owned) {
@@ -130,23 +133,28 @@ async function resolveFundingSourceForPathway(
     return { ok: true as const, fundingSource: owned };
   }
 
-  const existing = await listFundingSources(userId);
+  const existing = await listFundingSources(userId, db);
   const match = existing.find((source) => source.type === fundingType);
   if (match) return { ok: true as const, fundingSource: match };
 
   // Never steal an existing default funding source (e.g. NDIS) for a cart buy.
-  const created = await createFundingSource(userId, {
-    type: fundingType,
-    label: PATHWAY_LABEL[pathway],
-    isDefault: false,
-  });
+  // Callers must hold the cart advisory lock so parallel first checkouts cannot
+  // each insert a distinct FundingSource and fork into two payable sessions.
+  const created = await createFundingSource(
+    userId,
+    {
+      type: fundingType,
+      label: PATHWAY_LABEL[pathway],
+      isDefault: false,
+    },
+    db,
+  );
   return { ok: true as const, fundingSource: created };
 }
 
 /** Exported for unit tests — must change when unit prices or fee/GST totals change. */
 export function marketplaceCartFingerprint(params: {
   pathway: MarketplaceCheckoutPathway;
-  fundingSourceId: string;
   lines: ResolvedMarketplaceLine[];
   totals: {
     subtotalCents: number;
@@ -155,8 +163,8 @@ export function marketplaceCartFingerprint(params: {
     totalCents: number;
   };
 }): string {
-  // Include unit prices + computed totals so rate/catalogue changes do not
-  // reuse a stale invoice from the 24h window.
+  // Cart + pathway only (no fundingSourceId). Including a newly created funding
+  // source id let parallel first checkouts take different advisory locks.
   const normalized = [...params.lines]
     .map((line) => ({
       productId: line.productId,
@@ -167,7 +175,6 @@ export function marketplaceCartFingerprint(params: {
     .sort((a, b) => a.productId.localeCompare(b.productId));
   return JSON.stringify({
     pathway: params.pathway,
-    fundingSourceId: params.fundingSourceId,
     items: normalized,
     totals: params.totals,
   });
@@ -203,48 +210,65 @@ export async function createMarketplaceCheckout(
   const quote = quoteMarketplaceCheckout(input.items);
   if (!quote.ok) return quote;
 
-  const funding = await resolveFundingSourceForPathway(
-    userId,
-    pathway,
-    input.fundingSourceId,
-  );
-  if (!funding.ok) return funding;
-
-  const decision = checkoutDecisionForFundingType(funding.fundingSource.type);
+  // Fingerprint excludes fundingSourceId so first-purchase parallel tabs share
+  // one advisory lock before either request creates a FundingSource.
   const fingerprint = marketplaceCartFingerprint({
     pathway,
-    fundingSourceId: funding.fundingSource.id,
     lines: quote.lines,
     totals: quote.totals,
   });
 
-  // Serialize find-or-create for this cart fingerprint so two parallel tabs
-  // cannot open two draft invoices (and therefore two payable sessions).
-  const { invoice, created } = await prisma.$transaction(async (tx) => {
+  const locked = await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`
       SELECT pg_advisory_xact_lock(hashtext(${`marketplace:${userId}:${fingerprint}`}))
     `;
 
-    const recentInvoices = await tx.billingInvoice.findMany({
+    const funding = await resolveFundingSourceForPathway(
+      userId,
+      pathway,
+      input.fundingSourceId,
+      tx,
+    );
+    if (!funding.ok) return funding;
+
+    // Target matching fingerprint via JSON path — do not cap to N newest rows
+    // (an older matching cart would otherwise open a second payable session).
+    const candidates = await tx.billingInvoice.findMany({
       where: {
         userId,
         serviceType: "marketplace",
         status: { in: ["draft", "pending_payment"] },
         createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        totalCents: quote.totals.totalCents,
+        lineItems: {
+          some: {
+            metadata: {
+              path: ["checkoutFingerprint"],
+              equals: fingerprint,
+            },
+          },
+        },
       },
       include: { lineItems: true, fundingSource: true },
       orderBy: { createdAt: "desc" },
-      take: 15,
+      take: 5,
     });
     const existing =
-      recentInvoices.find((candidate) =>
+      candidates.find((candidate) =>
         invoiceMatchesFingerprint(
           candidate,
           fingerprint,
           quote.totals.totalCents,
         ),
       ) ?? null;
-    if (existing) return { invoice: existing, created: false as const };
+    if (existing) {
+      return {
+        ok: true as const,
+        invoice: existing,
+        created: false as const,
+        fundingType: funding.fundingSource.type,
+      };
+    }
 
     // Catalogue support-item codes are informational only — a cart purchase does
     // not imply NDIS eligibility/assessment, so keep invoices non-claimable.
@@ -274,8 +298,18 @@ export async function createMarketplaceCheckout(
       },
       tx,
     );
-    return { invoice: draft, created: true as const };
+    return {
+      ok: true as const,
+      invoice: draft,
+      created: true as const,
+      fundingType: funding.fundingSource.type,
+    };
   });
+
+  if (!locked.ok) return locked;
+
+  const { invoice, created, fundingType } = locked;
+  const decision = checkoutDecisionForFundingType(fundingType);
 
   if (created) {
     await writeBillingAuditLog({

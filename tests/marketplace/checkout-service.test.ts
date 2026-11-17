@@ -85,13 +85,11 @@ describe("marketplace checkout pricing", () => {
 
     const base = marketplaceCartFingerprint({
       pathway: "ordinary_purchase",
-      fundingSourceId: "fs_1",
       lines: quote.lines,
       totals: quote.totals,
     });
     const priceChanged = marketplaceCartFingerprint({
       pathway: "ordinary_purchase",
-      fundingSourceId: "fs_1",
       lines: quote.lines.map((line) => ({
         ...line,
         unitAmountCents: line.unitAmountCents + 100,
@@ -100,12 +98,29 @@ describe("marketplace checkout pricing", () => {
     });
     const totalChanged = marketplaceCartFingerprint({
       pathway: "ordinary_purchase",
-      fundingSourceId: "fs_1",
       lines: quote.lines,
       totals: { ...quote.totals, totalCents: quote.totals.totalCents + 50 },
     });
     expect(base).not.toEqual(priceChanged);
     expect(base).not.toEqual(totalChanged);
+  });
+
+  it("keeps the same lock fingerprint regardless of funding source id", () => {
+    const quote = quoteMarketplaceCheckout([
+      { productId: "mp_reacher", quantity: 1 },
+    ]);
+    expect(quote.ok).toBe(true);
+    if (!quote.ok) return;
+
+    const fingerprint = marketplaceCartFingerprint({
+      pathway: "ordinary_purchase",
+      lines: quote.lines,
+      totals: quote.totals,
+    });
+    // Parallel first checkouts must share one lock before either creates a
+    // FundingSource — the key must not embed a source id.
+    expect(fingerprint).not.toContain("fundingSourceId");
+    expect(fingerprint).toContain("ordinary_purchase");
   });
 
   it("keeps support-item codes on lines without implying invoice claimability", () => {
