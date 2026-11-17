@@ -75,7 +75,7 @@ describe("marketplace checkout pricing", () => {
     expect(quote.disclosures.ndisEligibilityClaim).toBe(false);
   });
 
-  it("only treats lines with support item codes as NDIS-eligible catalogue items", () => {
+  it("keeps support-item codes on lines without implying invoice claimability", () => {
     const withoutCode = resolveMarketplaceCheckoutLines([
       { productId: "mp_reacher", quantity: 1 },
     ]);
@@ -84,6 +84,7 @@ describe("marketplace checkout pricing", () => {
     ]);
     expect(withoutCode.ok && !withoutCode.lines[0]?.ndisLineItem).toBe(true);
     expect(withCode.ok && Boolean(withCode.lines[0]?.ndisLineItem)).toBe(true);
+    // Checkout service always persists ndisClaimable=false for catalogue carts.
   });
 });
 

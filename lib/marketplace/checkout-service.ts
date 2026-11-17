@@ -212,11 +212,12 @@ export async function createMarketplaceCheckout(
     ) ?? null;
 
   if (!invoice) {
-    const ndisClaimable = quote.lines.some((line) => Boolean(line.ndisLineItem));
+    // Catalogue support-item codes are informational only — a cart purchase does
+    // not imply NDIS eligibility/assessment, so keep invoices non-claimable.
     invoice = await createDraftInvoice(userId, {
       serviceType: "marketplace",
       fundingSourceId: funding.fundingSource.id,
-      ndisClaimable,
+      ndisClaimable: false,
       lineItems: quote.lines.map((line) => ({
         description: line.description,
         quantity: line.quantity,

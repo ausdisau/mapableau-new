@@ -230,6 +230,15 @@ export function MarketplaceCartClient({
 
   async function checkout() {
     if (lines.length === 0 || !totals) return;
+    const submittedItems = lines.map(({ item, product }) => ({
+      productId: product.id,
+      quantity: item.quantity,
+    }));
+    const submittedKey = submittedItems
+      .map((item) => `${item.productId}:${item.quantity}`)
+      .sort()
+      .join("|");
+
     setBusy(true);
     setMessage(null);
     try {
@@ -238,10 +247,7 @@ export function MarketplaceCartClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pathway,
-          items: lines.map(({ item, product }) => ({
-            productId: product.id,
-            quantity: item.quantity,
-          })),
+          items: submittedItems,
         }),
       });
       const data = await res.json();
@@ -251,14 +257,21 @@ export function MarketplaceCartClient({
         return;
       }
 
-      if (data.mode === "stripe_checkout" && data.checkoutUrl) {
+      // Only clear if the cart still matches what we submitted (edits mid-flight kept).
+      const currentKey = readMarketplaceCart()
+        .map((item) => `${item.productId}:${item.quantity}`)
+        .sort()
+        .join("|");
+      if (currentKey === submittedKey) {
         clearMarketplaceCart();
+      }
+
+      if (data.mode === "stripe_checkout" && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
         return;
       }
 
       if (data.mode === "export_only" && data.invoicePath) {
-        clearMarketplaceCart();
         window.location.href = data.invoicePath;
         return;
       }
@@ -301,12 +314,13 @@ export function MarketplaceCartClient({
                 min={1}
                 max={99}
                 value={item.quantity}
+                disabled={busy}
                 onChange={(e) => {
                   const qty = Number(e.target.value);
                   updateMarketplaceCartQuantity(product.id, qty);
                   setCart(readMarketplaceCart());
                 }}
-                className="w-16 rounded border px-2 py-1 text-sm"
+                className="w-16 rounded border px-2 py-1 text-sm disabled:opacity-60"
               />
               <span className="font-medium">
                 {formatMarketplacePrice(item.quantity * product.priceCents)}

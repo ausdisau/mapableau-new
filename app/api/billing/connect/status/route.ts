@@ -61,6 +61,7 @@ export async function GET() {
     payoutsEnabled: boolean;
     detailsSubmitted: boolean;
   } | null = null;
+  let requirementsAvailable = false;
 
   if (stripeConfigured && account.stripeConnectedAccountId) {
     try {
@@ -76,10 +77,20 @@ export async function GET() {
         payoutsEnabled: Boolean(connected.payouts_enabled),
         detailsSubmitted: Boolean(connected.details_submitted),
       };
+      requirementsAvailable = true;
     } catch {
       stripeRequirements = null;
+      requirementsAvailable = false;
     }
   }
+
+  const onboardingState = !account.stripeConnectedAccountId
+    ? ("not_started" as const)
+    : !requirementsAvailable
+      ? ("unknown" as const)
+      : stripeRequirements?.detailsSubmitted && stripeRequirements.payoutsEnabled
+        ? ("complete" as const)
+        : ("incomplete" as const);
 
   return jsonOk({
     configured: stripeConfigured,
@@ -88,10 +99,9 @@ export async function GET() {
     connect: {
       billingAccountId: account.id,
       stripeConnectedAccountId: account.stripeConnectedAccountId,
-      onboardingComplete: Boolean(
-        stripeRequirements?.detailsSubmitted &&
-          stripeRequirements.payoutsEnabled,
-      ),
+      onboardingState,
+      onboardingComplete: onboardingState === "complete",
+      requirementsAvailable,
       requirements: stripeRequirements,
     },
     recipient: recipient

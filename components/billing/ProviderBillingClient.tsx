@@ -15,7 +15,9 @@ type ConnectStatusResponse = {
   connect: {
     billingAccountId: string;
     stripeConnectedAccountId: string | null;
+    onboardingState: "not_started" | "incomplete" | "complete" | "unknown";
     onboardingComplete: boolean;
+    requirementsAvailable: boolean;
     requirements: {
       currentlyDue: string[];
       eventuallyDue: string[];
@@ -47,24 +49,44 @@ type ConnectStatusResponse = {
   };
 };
 
+function onboardingLabel(status: ConnectStatusResponse | null): string {
+  if (!status) return "Loading…";
+  switch (status.connect.onboardingState) {
+    case "complete":
+      return "Complete";
+    case "incomplete":
+      return "Incomplete — requirements outstanding";
+    case "unknown":
+      return "Status unavailable (could not refresh from Stripe)";
+    default:
+      return "Not started";
+  }
+}
+
 export function ProviderBillingClient() {
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<ConnectStatusResponse | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
 
   const loadStatus = useCallback(async () => {
+    setStatusLoading(true);
     try {
       const res = await fetch("/api/billing/connect/status");
       const data = await res.json();
       if (!res.ok) {
+        setStatus(null);
         setStatusError(data.error ?? "Could not load Connect status");
         return;
       }
       setStatus(data as ConnectStatusResponse);
       setStatusError(null);
     } catch {
+      setStatus(null);
       setStatusError("Could not load Connect status");
+    } finally {
+      setStatusLoading(false);
     }
   }, []);
 
@@ -75,14 +97,19 @@ export function ProviderBillingClient() {
   async function finishOnboarding() {
     setBusy(true);
     setMessage(null);
-    const res = await fetch("/api/billing/connect/onboarding-link", {
-      method: "POST",
-    });
-    const data = await res.json();
-    if (data.onboardingUrl) {
-      window.location.href = data.onboardingUrl;
-    } else {
+    try {
+      const res = await fetch("/api/billing/connect/onboarding-link", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.onboardingUrl) {
+        window.location.href = data.onboardingUrl;
+        return;
+      }
       setMessage(data.error ?? "Could not start onboarding");
+    } catch {
+      setMessage("Could not start onboarding");
+    } finally {
       setBusy(false);
     }
   }
@@ -90,14 +117,19 @@ export function ProviderBillingClient() {
   async function createAccount() {
     setBusy(true);
     setMessage(null);
-    const res = await fetch("/api/billing/connect/create-account", {
-      method: "POST",
-    });
-    const data = await res.json();
-    if (data.onboardingUrl) {
-      window.location.href = data.onboardingUrl;
-    } else {
+    try {
+      const res = await fetch("/api/billing/connect/create-account", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.onboardingUrl) {
+        window.location.href = data.onboardingUrl;
+        return;
+      }
       setMessage(data.error ?? "Could not create Connect account");
+    } catch {
+      setMessage("Could not create Connect account");
+    } finally {
       setBusy(false);
     }
   }
@@ -105,15 +137,21 @@ export function ProviderBillingClient() {
   async function startSubscription() {
     setBusy(true);
     setMessage(null);
-    const res = await fetch("/api/billing/subscriptions/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planCode: "provider_pro" }),
-    });
-    const data = await res.json();
-    if (data.checkoutUrl) window.location.href = data.checkoutUrl;
-    else {
+    try {
+      const res = await fetch("/api/billing/subscriptions/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planCode: "provider_pro" }),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
       setMessage(data.error ?? "Subscription checkout unavailable");
+    } catch {
+      setMessage("Subscription checkout unavailable");
+    } finally {
       setBusy(false);
     }
   }
@@ -146,10 +184,17 @@ export function ProviderBillingClient() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {statusLoading && !status ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading Connect status…
+            </p>
+          ) : null}
           <dl className="grid gap-2 text-sm sm:grid-cols-2" aria-live="polite">
             <div>
               <dt className="text-muted-foreground">Stripe configured</dt>
-              <dd className="font-medium">{status?.configured ? "Yes" : "No"}</dd>
+              <dd className="font-medium">
+                {status ? (status.configured ? "Yes" : "No") : "…"}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Payments mode</dt>
@@ -158,18 +203,16 @@ export function ProviderBillingClient() {
             <div>
               <dt className="text-muted-foreground">Live transfers gate</dt>
               <dd className="font-medium">
-                {status?.payoutsEnabled ? "MAPABLE_PAYOUTS_ENABLED" : "Off (sandbox-safe)"}
+                {!status
+                  ? "…"
+                  : status.payoutsEnabled
+                    ? "MAPABLE_PAYOUTS_ENABLED"
+                    : "Off (sandbox-safe)"}
               </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Onboarding</dt>
-              <dd className="font-medium">
-                {status?.connect.onboardingComplete
-                  ? "Complete"
-                  : hasConnectedAccount
-                    ? "Incomplete — requirements outstanding"
-                    : "Not started"}
-              </dd>
+              <dd className="font-medium">{onboardingLabel(status)}</dd>
             </div>
           </dl>
 
@@ -193,12 +236,12 @@ export function ProviderBillingClient() {
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            {!hasConnectedAccount ? (
+            {status && !hasConnectedAccount ? (
               <Button
                 type="button"
                 variant="default"
                 onClick={() => void createAccount()}
-                disabled={busy || !status?.configured}
+                disabled={busy || !status.configured}
                 size="lg"
               >
                 Start Stripe Connect onboarding
@@ -220,13 +263,13 @@ export function ProviderBillingClient() {
               type="button"
               variant="outline"
               onClick={() => void loadStatus()}
-              disabled={busy}
+              disabled={busy || statusLoading}
               size="lg"
             >
               Refresh status
             </Button>
           </div>
-          {!status?.configured ? (
+          {status && !status.configured ? (
             <p className="text-sm text-muted-foreground" role="status">
               Stripe is not configured in this environment. Set test-mode keys before onboarding.
             </p>
@@ -245,7 +288,11 @@ export function ProviderBillingClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {status?.earnings.recentTransfers.length ? (
+          {!status ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              {statusLoading ? "Loading earnings…" : "Earnings unavailable until status loads."}
+            </p>
+          ) : status.earnings.recentTransfers.length ? (
             <ul className="divide-y rounded-lg border">
               {status.earnings.recentTransfers.map((transfer) => (
                 <li
@@ -267,7 +314,11 @@ export function ProviderBillingClient() {
               payout release.
             </p>
           )}
-          <p className="mt-3 text-xs text-muted-foreground">{status?.earnings.bankPayoutNote}</p>
+          {status ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {status.earnings.bankPayoutNote}
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
