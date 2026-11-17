@@ -3,10 +3,12 @@
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import React, { useEffect, useRef, useState } from "react";
 
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
+import { MapAbleUserBar } from "@/components/layout/MapAbleUserBar";
 import { PayPalDonateButton } from "@/components/paypal/PayPalDonateButton";
 import { marketingFeatureRoutes } from "@/lib/marketing/mapable-care-routes";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
@@ -45,27 +47,18 @@ const navLinkClass = `inline-flex min-h-11 items-center gap-1 rounded-xl px-3 te
 const navMegaPanelClass =
   "absolute left-0 top-[calc(100%+0.35rem)] z-[60] w-[min(92vw,22rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-300/40";
 
-function MarketingAuthLinks({ compact = false }: { compact?: boolean }) {
-  const className = compact ? "flex flex-col gap-2" : "flex items-center gap-3";
-  const loginClassName = compact
-    ? `min-h-11 rounded-xl border-2 border-[#0C1833] px-4 py-2 text-center text-sm font-black transition hover:bg-slate-50 ${mapableCareFocusRing}`
-    : `min-h-11 rounded-xl border-2 border-[#0C1833] px-5 py-3 text-sm font-black transition hover:bg-slate-50 ${mapableCareFocusRing}`;
-  const registerClassName = compact
-    ? `min-h-11 rounded-xl bg-[#005B7F] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`
-    : `min-h-11 rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`;
+function MarketingGetStartedLink({ compact = false }: { compact?: boolean }) {
+  const { status } = useSession();
+  if (status === "authenticated") return null;
+
+  const className = compact
+    ? `inline-flex min-h-11 items-center justify-center rounded-xl bg-[#005B7F] px-4 py-2 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`
+    : `inline-flex min-h-11 items-center rounded-xl bg-[#005B7F] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#004766] ${mapableCareFocusRing}`;
 
   return (
-    <div className={className}>
-      <Link href={marketingFeatureRoutes.login} className={loginClassName}>
-        Log in
-      </Link>
-      <Link
-        href={marketingFeatureRoutes.register}
-        className={registerClassName}
-      >
-        Get started
-      </Link>
-    </div>
+    <Link href={marketingFeatureRoutes.register} className={className}>
+      Get started
+    </Link>
   );
 }
 
@@ -177,8 +170,9 @@ export function MarketingPrimaryNav() {
         </div>
         <PayPalDonateButton />
         <div className="hidden md:flex">
-          <MarketingAuthLinks />
+          <MarketingGetStartedLink />
         </div>
+        <MapAbleUserBar />
         <button
           type="button"
           aria-expanded={mobileOpen}
@@ -242,7 +236,7 @@ export function MarketingPrimaryNav() {
             </div>
           </nav>
           <div className="mt-3 border-t border-slate-100 pt-3">
-            <MarketingAuthLinks compact />
+            <MarketingGetStartedLink compact />
           </div>
         </div>
       )}

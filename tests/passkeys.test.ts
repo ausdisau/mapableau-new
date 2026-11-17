@@ -16,6 +16,10 @@ const profilePageSource = readFileSync(
   join(process.cwd(), "app/dashboard/profile/page.tsx"),
   "utf8",
 );
+const signInFormSource = readFileSync(
+  join(process.cwd(), "components/auth/SignInForm.tsx"),
+  "utf8",
+);
 const loginClientSource = readFileSync(
   join(process.cwd(), "app/login/LoginClient.tsx"),
   "utf8",
@@ -34,9 +38,10 @@ describe("passkey support", () => {
   });
 
   it("adds a passkey login mode to the login client", () => {
-    expect(loginClientSource).toContain("Login with passkey");
-    expect(loginClientSource).toContain("/api/passkeys/login/options");
-    expect(loginClientSource).toContain("/api/passkeys/login/verify");
+    expect(signInFormSource).toContain("Login with passkey");
+    expect(signInFormSource).toContain("/api/passkeys/login/options");
+    expect(signInFormSource).toContain("/api/passkeys/login/verify");
+    expect(loginClientSource).toContain("<SignInForm");
   });
 
   it("round-trips passkey auth challenge tokens", () => {

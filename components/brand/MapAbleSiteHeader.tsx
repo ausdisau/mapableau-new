@@ -8,6 +8,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { cn } from "@/app/lib/utils";
 import { MapAbleLogo, type MapAbleLogoVariant } from "@/components/brand/MapAbleLogo";
 import { MapAbleNavMenuPanel } from "@/components/brand/MapAbleNavMenuPanel";
+import { MapAbleUserBar } from "@/components/layout/MapAbleUserBar";
 import {
   mapableHeaderClass,
   mapableNavLinkActiveClass,
@@ -54,7 +55,7 @@ export function MapAbleSiteHeader({
   navGroups?: MapAbleNavGroup[];
   menuBreakpoint?: keyof typeof MENU_BREAKPOINT_CLASSES;
   externalCta?: { href: string; label: string };
-  /** Replaces default sign-in CTA on desktop (e.g. Log in + Get started). */
+  /** Extra header actions (donate, CTAs). Account status is always shown via UserBar. */
   actions?: ReactNode;
   /** Use `full` for the official MapAble wordmark image in the header. */
   logoVariant?: MapAbleLogoVariant;
@@ -125,27 +126,26 @@ export function MapAbleSiteHeader({
               >
                 {externalCta.label}
               </Link>
-            ) : (
-              <Link href="/login" className={mapableNavLinkClass}>
-                Sign in
-              </Link>
-            )}
+            ) : null}
           </div>
 
-          <button
-            ref={menuButtonRef}
-            type="button"
-            className={cn(
-              "inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              breakpointClasses.menu,
-            )}
-            aria-expanded={open}
-            aria-controls={useGroupedMenu ? "mapable-nav-menu" : "mapable-mobile-nav"}
-            onClick={toggleMenu}
-          >
-            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-            {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
-          </button>
+          <div className="flex items-center gap-2">
+            <MapAbleUserBar />
+            <button
+              ref={menuButtonRef}
+              type="button"
+              className={cn(
+                "inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-input bg-background p-2 text-muted-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                breakpointClasses.menu,
+              )}
+              aria-expanded={open}
+              aria-controls={useGroupedMenu ? "mapable-nav-menu" : "mapable-mobile-nav"}
+              onClick={toggleMenu}
+            >
+              <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+              {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -186,17 +186,7 @@ export function MapAbleSiteHeader({
             ))}
             {actions ? (
               <li className="flex flex-col gap-2 px-3 pt-2">{actions}</li>
-            ) : (
-              <li>
-                <Link
-                  href="/login"
-                  className="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-primary"
-                  onClick={() => setOpen(false)}
-                >
-                  Sign in
-                </Link>
-              </li>
-            )}
+            ) : null}
           </ul>
         </nav>
       ) : null}

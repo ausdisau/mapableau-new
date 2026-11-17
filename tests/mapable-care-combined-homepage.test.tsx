@@ -25,6 +25,12 @@ import {
 
 const mockPush = vi.fn();
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({ status: "unauthenticated", data: null }),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => "/",
