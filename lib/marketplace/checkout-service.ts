@@ -143,28 +143,51 @@ async function resolveFundingSourceForPathway(
   return { ok: true as const, fundingSource: created };
 }
 
-function marketplaceCartFingerprint(
-  pathway: MarketplaceCheckoutPathway,
-  fundingSourceId: string,
-  items: MarketplaceCheckoutInput["items"],
-): string {
-  const normalized = [...items]
-    .map((item) => ({ productId: item.productId, quantity: item.quantity }))
+function marketplaceCartFingerprint(params: {
+  pathway: MarketplaceCheckoutPathway;
+  fundingSourceId: string;
+  lines: ResolvedMarketplaceLine[];
+  totals: {
+    subtotalCents: number;
+    gstCents: number;
+    platformFeeCents: number;
+    totalCents: number;
+  };
+}): string {
+  // Include unit prices + computed totals so rate/catalogue changes do not
+  // reuse a stale invoice from the 24h window.
+  const normalized = [...params.lines]
+    .map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+      unitAmountCents: line.unitAmountCents,
+      gstApplicable: line.gstApplicable,
+    }))
     .sort((a, b) => a.productId.localeCompare(b.productId));
-  return JSON.stringify({ pathway, fundingSourceId, items: normalized });
+  return JSON.stringify({
+    pathway: params.pathway,
+    fundingSourceId: params.fundingSourceId,
+    items: normalized,
+    totals: params.totals,
+  });
 }
 
 function invoiceMatchesFingerprint(
   invoice: {
+    totalCents: number;
     lineItems: Array<{ metadata?: unknown }>;
   },
   fingerprint: string,
+  expectedTotalCents: number,
 ): boolean {
   const firstMeta = invoice.lineItems[0]?.metadata as
     | { checkoutFingerprint?: string }
     | null
     | undefined;
-  return firstMeta?.checkoutFingerprint === fingerprint;
+  return (
+    firstMeta?.checkoutFingerprint === fingerprint &&
+    invoice.totalCents === expectedTotalCents
+  );
 }
 
 /**
@@ -187,14 +210,15 @@ export async function createMarketplaceCheckout(
   if (!funding.ok) return funding;
 
   const decision = checkoutDecisionForFundingType(funding.fundingSource.type);
-  const fingerprint = marketplaceCartFingerprint(
+  const fingerprint = marketplaceCartFingerprint({
     pathway,
-    funding.fundingSource.id,
-    input.items,
-  );
+    fundingSourceId: funding.fundingSource.id,
+    lines: quote.lines,
+    totals: quote.totals,
+  });
 
-  // Reuse a recent unpaid invoice for the same cart to avoid duplicate drafts
-  // on retries / cancelled Checkout.
+  // Reuse a recent unpaid invoice for the same cart + priced totals to avoid
+  // duplicate drafts on retries / cancelled Checkout without charging stale rates.
   const recentInvoices = await prisma.billingInvoice.findMany({
     where: {
       userId,
@@ -208,7 +232,11 @@ export async function createMarketplaceCheckout(
   });
   let invoice =
     recentInvoices.find((candidate) =>
-      invoiceMatchesFingerprint(candidate, fingerprint),
+      invoiceMatchesFingerprint(
+        candidate,
+        fingerprint,
+        quote.totals.totalCents,
+      ),
     ) ?? null;
 
   if (!invoice) {
