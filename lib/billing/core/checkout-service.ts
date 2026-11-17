@@ -158,10 +158,27 @@ async function resolvePayablePayment(params: {
         payment.id,
         `replaced_after_session_${existingSession.status ?? "closed"}`,
       );
-    } catch {
-      // Unreadable/missing session — retire and replace; do not reuse this
-      // payment id (Stripe may still honour its idempotency key).
-      await markPaymentFailed(payment.id, "replaced_after_unreadable_session");
+    } catch (error) {
+      // Only retire when Stripe confirms the session is gone. Transient
+      // retrieve failures must not open a second payable session while the
+      // original may still be open.
+      const stripeCode =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code?: string }).code)
+          : undefined;
+      const statusCode =
+        error && typeof error === "object" && "statusCode" in error
+          ? Number((error as { statusCode?: number }).statusCode)
+          : undefined;
+      if (stripeCode === "resource_missing" || statusCode === 404) {
+        await markPaymentFailed(payment.id, "replaced_after_missing_session");
+      } else {
+        return {
+          ok: false,
+          error:
+            "Could not verify the existing Checkout Session. Please try again shortly — do not start a second payment.",
+        };
+      }
     }
 
     const reserved = await reserveCheckoutPayment(reserveParams);
