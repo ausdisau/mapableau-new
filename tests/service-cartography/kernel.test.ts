@@ -16,6 +16,7 @@ import {
   proposeServiceSchedule,
   timestamp,
 } from "@mapable/service-cartography";
+import type { MatchWeights } from "@mapable/service-cartography";
 
 const at = "2026-11-18T03:00:00.000Z";
 const request = {
@@ -157,6 +158,15 @@ describe("service cartography matching kernel", () => {
     ).toBe("revoked");
     expect(
       checkConsent({
+        grants: [{ ...consent, revokedAt: "" }],
+        subjectId: request.participantId,
+        purpose: "service_matching",
+        recipientId: "mapable-engine",
+        at,
+      }).authorised,
+    ).toBe(false);
+    expect(
+      checkConsent({
         grants: [consent],
         subjectId: request.participantId,
         purpose: "service_matching",
@@ -174,6 +184,15 @@ describe("service cartography matching kernel", () => {
         grants: [consent],
         at,
         weights: { ...DEFAULT_MATCH_WEIGHTS, estimatedCost: 2 },
+      }),
+    ).toThrow();
+    expect(() =>
+      matchServices({
+        request,
+        offers: [offered],
+        grants: [consent],
+        at,
+        weights: { participantPreference: 1 } as MatchWeights,
       }),
     ).toThrow();
   });
@@ -412,6 +431,20 @@ describe("service cartography routing, graph, gaps and equity", () => {
     expect(result.requiresRealWorldConfirmation).toBe(true);
   });
 
+  it("fails closed when supplied accessibility limits are non-finite", () => {
+    const result = findAccessibleRoute({
+      originId: "a",
+      destinationId: "c",
+      segments,
+      needs: { requireStepFree: true, maximumGradientPercent: Number.NaN },
+      at,
+    });
+    expect(result.status).toBe("no_verified_route");
+    expect(result.excluded.every((item) => item.reasons.includes("invalid_access_limit"))).toBe(
+      true,
+    );
+  });
+
   it("fails closed on unknown step status and reported evidence", () => {
     const result = findAccessibleRoute({
       originId: "a",
@@ -527,6 +560,21 @@ describe("service cartography routing, graph, gaps and equity", () => {
     expect(
       result.findings.filter((finding) => finding.requiresHumanInvestigation),
     ).toHaveLength(2);
+  });
+
+  it("treats an equal-to-threshold disparity as requiring investigation", () => {
+    const result = auditServiceEquity({
+      cohorts: [
+        { cohortId: "region-a", eligibleServiceRequests: 10, fulfilledServiceRequests: 6 },
+        { cohortId: "region-b", eligibleServiceRequests: 10, fulfilledServiceRequests: 4 },
+      ],
+      minimumCohortSize: 10,
+      reviewThresholdPercentagePoints: 0.1,
+    });
+    expect(result.visiblePooledRate).toBe(0.5);
+    expect(
+      result.findings.every((finding) => finding.requiresHumanInvestigation),
+    ).toBe(true);
   });
 });
 

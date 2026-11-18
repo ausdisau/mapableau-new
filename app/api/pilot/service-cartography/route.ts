@@ -4,6 +4,7 @@ import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
 import {
   isServiceCartographyPilotEnabled,
+  isServiceCartographyPreviewEnabled,
   serviceCartographyConfig,
 } from "@/lib/config/service-cartography";
 import {
@@ -40,8 +41,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  if (!isServiceCartographyPilotEnabled()) {
-    return jsonError("Service Cartography pilot is not enabled", 503);
+  if (!isServiceCartographyPreviewEnabled()) {
+    return jsonError(
+      "Service Cartography preview is not enabled (requires pilot + syntheticOnly)",
+      503,
+    );
   }
   const user = await requireApiSession();
   if (user instanceof Response) return user;

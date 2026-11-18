@@ -36,7 +36,12 @@ export interface MatchResult {
 }
 
 function validateWeights(weights: MatchWeights): void {
-  const values = Object.values(weights);
+  const values = [
+    weights.participantPreference,
+    weights.reliability,
+    weights.travel,
+    weights.estimatedCost,
+  ];
   if (values.some((v) => !Number.isFinite(v) || v < 0) || Math.abs(values.reduce((a, b) => a + b, 0) - 1) > 1e-9) {
     throw new Error('Match weights must be finite, non-negative, and sum to 1');
   }

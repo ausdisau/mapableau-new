@@ -102,4 +102,17 @@ describe("Service Cartography pilot API", () => {
     const res = await simulateGet(new Request(`${api}/simulate`));
     expect(res.status).toBe(503);
   });
+
+  it("rejects POST when synthetic-only is turned off", async () => {
+    vi.stubEnv("MAPABLE_SERVICE_CARTOGRAPHY_SYNTHETIC_ONLY", "false");
+    const res = await POST(
+      new Request(api, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      }),
+    );
+    expect(res.status).toBe(503);
+    expect(auditMock).not.toHaveBeenCalled();
+  });
 });

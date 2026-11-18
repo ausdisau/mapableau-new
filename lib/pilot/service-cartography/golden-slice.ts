@@ -303,6 +303,11 @@ export async function runGoldenSlice(
       "Ranked options require participant confirmation and human review; they cannot be executed by this engine.",
     );
   }
+  if (matchingFailedClosed(matching)) {
+    notices.push(
+      "Schedule proposals are withheld because matching already failed closed.",
+    );
+  }
 
   const audit = createDecisionAuditEvent({
     eventId: `synthetic-slice-${failureMode ?? "baseline"}`,

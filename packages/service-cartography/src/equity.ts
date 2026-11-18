@@ -44,7 +44,8 @@ export function auditServiceEquity(input: {
     const rate = c.fulfilledServiceRequests/c.eligibleServiceRequests;
     const diff = rate-pooled;
     return { cohortId: c.cohortId, visibility: 'visible' as const, fulfilmentRate: rate,
-      differenceFromVisiblePooledRate: diff, requiresHumanInvestigation: Math.abs(diff) >= threshold };
+      differenceFromVisiblePooledRate: diff,
+      requiresHumanInvestigation: Math.abs(diff) + 1e-12 >= threshold };
   });
   return { visiblePooledRate: pooled, findings,
     warning: 'This is a descriptive disparity screen, not a finding of discrimination. Suppression thresholds alone do not ensure privacy.' };

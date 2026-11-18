@@ -25,8 +25,8 @@ export function checkConsent(input: {
   for (const grant of matches) {
     const start = timestamp(grant.grantedAt);
     const expiry = timestamp(grant.expiresAt);
-    const revocation = grant.revokedAt ? timestamp(grant.revokedAt) : null;
-    if (start === null || expiry === null || (grant.revokedAt && revocation === null)) {
+    const revocation = grant.revokedAt !== undefined ? timestamp(grant.revokedAt) : null;
+    if (start === null || expiry === null || (grant.revokedAt !== undefined && revocation === null)) {
       mostRecentDenial = { authorised: false, reason: 'out_of_scope', grantId: grant.grantId };
       continue;
     }

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import {
   isServiceCartographyPilotEnabled,
+  isServiceCartographyPreviewEnabled,
   runGoldenSlice,
   serviceCartographyConfig,
 } from "@/lib/pilot/service-cartography";
@@ -17,6 +18,18 @@ export default async function ServiceCartographyPilotPage() {
           Pilot is disabled. Set{" "}
           <code>MAPABLE_SERVICE_CARTOGRAPHY_PILOT=true</code> for the
           synthetic community-visit advisory preview.
+        </p>
+      </main>
+    );
+  }
+
+  if (!isServiceCartographyPreviewEnabled()) {
+    return (
+      <main className="mx-auto max-w-3xl space-y-4 p-6">
+        <h1 className="text-2xl font-bold">Service Cartography pilot</h1>
+        <p className="text-muted-foreground">
+          Synthetic-only mode is required. Live participant or provider records
+          are not authorised in this release.
         </p>
       </main>
     );

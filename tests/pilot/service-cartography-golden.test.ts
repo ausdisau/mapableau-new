@@ -53,6 +53,9 @@ describe("Service Cartography golden community-visit slice", () => {
     expect(slice.matching.status).toBe("consent_required");
     expect(slice.matching.ranked).toHaveLength(0);
     expect(slice.schedule.proposals).toHaveLength(0);
+    expect(
+      slice.notices.some((notice) => /schedule proposals are withheld/i.test(notice)),
+    ).toBe(true);
   });
 
   it("rejects stale evidence", async () => {

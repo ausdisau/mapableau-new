@@ -113,8 +113,10 @@ No identity provider, consent persistence, encrypted database, worker screening,
 NDIA integration, live traffic data, external provider vetting, payment execution,
 legal claiming advice, real-time alerts, automated accessibility certification,
 secure multi-tenant API, availability feeds, production web UI, or independently
-validated fairness assessment. A five-record disclosure threshold is not a
-privacy guarantee. The scheduling heuristic is not globally optimal.
+validated fairness assessment. The default disclosure threshold applies to
+summed requested units (five by default, configurable as low as two); it is
+not a privacy guarantee and is not a record-count suppression check. The
+scheduling heuristic is not globally optimal.
 
 For deployment and design gates see `docs/RELEASE_GATES.md` and
 `docs/THREAT_MODEL.md`.

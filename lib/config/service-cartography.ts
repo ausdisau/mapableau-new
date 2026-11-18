@@ -26,11 +26,17 @@ export function isServiceCartographySyntheticOnly(
   return env.MAPABLE_SERVICE_CARTOGRAPHY_SYNTHETIC_ONLY !== "false";
 }
 
-export function isServiceCartographySimulateEnabled(
+export function isServiceCartographyPreviewEnabled(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
   return (
     isServiceCartographyPilotEnabled(env) &&
     isServiceCartographySyntheticOnly(env)
   );
+}
+
+export function isServiceCartographySimulateEnabled(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return isServiceCartographyPreviewEnabled(env);
 }

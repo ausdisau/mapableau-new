@@ -1,5 +1,6 @@
 export {
   isServiceCartographyPilotEnabled,
+  isServiceCartographyPreviewEnabled,
   isServiceCartographySimulateEnabled,
   isServiceCartographySyntheticOnly,
   serviceCartographyConfig,

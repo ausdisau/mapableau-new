@@ -28,7 +28,8 @@ for professional advice.
 1. The host application authenticates identity and organisation boundaries.
 2. The host validates lawful consent/authorisation and its withdrawal semantics.
 3. This library applies additional conservative input-level scope checks.
-4. All model suggestions carry the `advisory_only` flag.
+4. All model suggestions are `advisory_only`. That metadata lives on
+   `MatchResult.advisory` at the result level, not on each `RankedOffer`.
 5. Host applications render alternative options and comprehensible explanations.
 6. Participants can refuse, contest and obtain an accessible human review.
 7. Before any downstream service is performed, the host re-verifies capability,

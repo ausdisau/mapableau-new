@@ -22,10 +22,10 @@ Vendor docs (rights contract, threat model, unmet real-data release gates):
 
 ## APIs
 
-- `GET /api/pilot/service-cartography` — honesty fields and prohibitions
-- `POST /api/pilot/service-cartography` — authenticated golden slice (optional `failureMode`)
-- `GET /api/pilot/service-cartography/simulate` — synthetic-only browser path
-- Page: `/pilot/service-cartography`
+- `GET /api/pilot/service-cartography` — honesty fields and prohibitions (pilot flag)
+- `POST /api/pilot/service-cartography` — authenticated golden slice; requires pilot **and** synthetic-only
+- `GET /api/pilot/service-cartography/simulate` — unauthenticated synthetic-only path; same dual-flag gate
+- Page `/pilot/service-cartography` — disabled unless both flags allow a synthetic preview
 
 ## Prohibitions
 

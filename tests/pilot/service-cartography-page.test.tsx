@@ -23,6 +23,14 @@ describe("Service Cartography pilot page", () => {
     expect(screen.getByText(/Pilot is disabled/i)).toBeTruthy();
   });
 
+  it("refuses the preview when synthetic-only is turned off", async () => {
+    vi.stubEnv("MAPABLE_SERVICE_CARTOGRAPHY_PILOT", "true");
+    vi.stubEnv("MAPABLE_SERVICE_CARTOGRAPHY_SYNTHETIC_ONLY", "false");
+    const ui = await ServiceCartographyPilotPage();
+    render(ui);
+    expect(screen.getByText(/Synthetic-only mode is required/i)).toBeTruthy();
+  });
+
   it("renders advisory-only honesty copy when enabled", async () => {
     vi.stubEnv("MAPABLE_SERVICE_CARTOGRAPHY_PILOT", "true");
     vi.stubEnv("MAPABLE_SERVICE_CARTOGRAPHY_SYNTHETIC_ONLY", "true");

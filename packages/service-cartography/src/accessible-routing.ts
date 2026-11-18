@@ -39,6 +39,22 @@ export function findAccessibleRoute(input: {
 }): RouteResult {
   const adjacency = new Map<string, RouteSegment[]>();
   const excluded: RouteResult['excluded'] = [];
+  const gradientLimit = input.needs.maximumGradientPercent;
+  const clearanceLimit = input.needs.minimumClearanceMm;
+  if (
+    (gradientLimit !== undefined && !Number.isFinite(gradientLimit)) ||
+    (clearanceLimit !== undefined && !Number.isFinite(clearanceLimit))
+  ) {
+    return {
+      status: 'no_verified_route',
+      segmentIds: [],
+      estimatedMinutes: null,
+      excluded: [...input.segments]
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map((edge) => ({ segmentId: edge.id, reasons: ['invalid_access_limit'] })),
+      requiresRealWorldConfirmation: true,
+    };
+  }
   for (const edge of [...input.segments].sort((a, b) => a.id.localeCompare(b.id))) {
     const reasons: string[] = [];
     if (!edge.open) reasons.push('closed');
