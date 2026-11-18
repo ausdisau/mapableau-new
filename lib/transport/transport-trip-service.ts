@@ -1,4 +1,4 @@
-import { Prisma, type TransportTripStatus } from "@prisma/client";
+import { Prisma, type TransportTrip, type TransportTripStatus } from "@prisma/client";
 
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
@@ -30,6 +30,12 @@ export function isMissingReturnAssuranceColumn(error: unknown): boolean {
     (error.meta as { column?: string } | undefined)?.column ?? error.message,
   );
   return column.includes("returnAssuranceStatus");
+}
+
+export function withNullReturnAssuranceStatus(
+  trip: Omit<TransportTrip, "returnAssuranceStatus">,
+): TransportTrip {
+  return { ...trip, returnAssuranceStatus: null };
 }
 
 export async function createTransportTrip(
@@ -168,7 +174,7 @@ export async function listTransportTripsForUser(user: CurrentUser) {
     }
   }
 
-  let trips;
+  let trips: TransportTrip[];
   try {
     trips = await prisma.transportTrip.findMany({
       where,
@@ -177,27 +183,30 @@ export async function listTransportTripsForUser(user: CurrentUser) {
     });
   } catch (error) {
     if (!isMissingReturnAssuranceColumn(error)) throw error;
-    trips = await prisma.transportTrip.findMany({
-      where,
-      orderBy: { scheduledStart: "desc" },
-      take: 100,
-      omit: { returnAssuranceStatus: true },
-    });
+    trips = (
+      await prisma.transportTrip.findMany({
+        where,
+        orderBy: { scheduledStart: "desc" },
+        take: 100,
+        omit: { returnAssuranceStatus: true },
+      })
+    ).map(withNullReturnAssuranceStatus);
   }
 
   return Promise.all(trips.map((trip) => buildTripResponse({ trip, user })));
 }
 
 export async function getTransportTripForUser(user: CurrentUser, tripId: string) {
-  let trip;
+  let trip: TransportTrip | null;
   try {
     trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
   } catch (error) {
     if (!isMissingReturnAssuranceColumn(error)) throw error;
-    trip = await prisma.transportTrip.findUnique({
+    const omitted = await prisma.transportTrip.findUnique({
       where: { id: tripId },
       omit: { returnAssuranceStatus: true },
     });
+    trip = omitted ? withNullReturnAssuranceStatus(omitted) : null;
   }
   if (!trip) throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
 
