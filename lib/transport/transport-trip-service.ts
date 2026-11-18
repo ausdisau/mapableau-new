@@ -1,4 +1,4 @@
-import type { Prisma, TransportTripStatus } from "@prisma/client";
+import { Prisma, type TransportTripStatus } from "@prisma/client";
 
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
@@ -21,6 +21,15 @@ import type { CreateTransportTripInput } from "@/lib/validation/transport-trip-s
 
 function defaultScheduledEnd(start: Date) {
   return new Date(start.getTime() + 60 * 60 * 1000);
+}
+
+export function isMissingReturnAssuranceColumn(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
+  if (error.code !== "P2022") return false;
+  const column = String(
+    (error.meta as { column?: string } | undefined)?.column ?? error.message,
+  );
+  return column.includes("returnAssuranceStatus");
 }
 
 export async function createTransportTrip(
@@ -159,17 +168,37 @@ export async function listTransportTripsForUser(user: CurrentUser) {
     }
   }
 
-  const trips = await prisma.transportTrip.findMany({
-    where,
-    orderBy: { scheduledStart: "desc" },
-    take: 100,
-  });
+  let trips;
+  try {
+    trips = await prisma.transportTrip.findMany({
+      where,
+      orderBy: { scheduledStart: "desc" },
+      take: 100,
+    });
+  } catch (error) {
+    if (!isMissingReturnAssuranceColumn(error)) throw error;
+    trips = await prisma.transportTrip.findMany({
+      where,
+      orderBy: { scheduledStart: "desc" },
+      take: 100,
+      omit: { returnAssuranceStatus: true },
+    });
+  }
 
   return Promise.all(trips.map((trip) => buildTripResponse({ trip, user })));
 }
 
 export async function getTransportTripForUser(user: CurrentUser, tripId: string) {
-  const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
+  let trip;
+  try {
+    trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
+  } catch (error) {
+    if (!isMissingReturnAssuranceColumn(error)) throw error;
+    trip = await prisma.transportTrip.findUnique({
+      where: { id: tripId },
+      omit: { returnAssuranceStatus: true },
+    });
+  }
   if (!trip) throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
 
   await assertCanAccessTrip(user, trip, "summary");
