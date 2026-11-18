@@ -8,6 +8,7 @@ export {
 export {
   clearAdvisoryOutcomeLog,
   createSyntheticCartographyAdapter,
+  MAX_ADVISORY_OUTCOME_LOG,
   readAdvisoryOutcomeLog,
 } from "./adapter";
 export {

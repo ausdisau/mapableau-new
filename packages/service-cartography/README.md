@@ -45,16 +45,19 @@ telemetry, API keys, external services or live participant records are required.
 
 ## Quick start
 
-Requires Node 20+ and a TypeScript 5.x compiler (installed with `npm install` or
-available on your PATH).
+This workspace package is consumed through TypeScript source exports
+(`".": "./src/index.ts"`). There is no committed `dist/` build.
+
+From the MapAble repository root:
 
 ```sh
-npm install
-npm test
-npm run demo
+pnpm exec vitest run tests/service-cartography
 ```
 
-`npm test` compiles TypeScript and runs the Node built-in test suite.
+`package.json` `test` runs that same host Vitest suite. Package-local
+`tests/*.test.mjs` files are the original Node suite and expect a compiled
+`dist/` that this workspace does not ship. The synthetic host preview is
+`/pilot/service-cartography` (flag-gated, default off).
 
 ### Example: rights-first options
 

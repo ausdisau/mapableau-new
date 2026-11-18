@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   clearAdvisoryOutcomeLog,
+  createSyntheticCartographyAdapter,
+  MAX_ADVISORY_OUTCOME_LOG,
   readAdvisoryOutcomeLog,
   runGoldenSlice,
 } from "@/lib/pilot/service-cartography";
@@ -50,18 +52,21 @@ describe("Service Cartography golden community-visit slice", () => {
     expect(slice.blocked).toBe(true);
     expect(slice.matching.status).toBe("consent_required");
     expect(slice.matching.ranked).toHaveLength(0);
+    expect(slice.schedule.proposals).toHaveLength(0);
   });
 
   it("rejects stale evidence", async () => {
     const slice = await runGoldenSlice({ failureMode: "stale_evidence" });
     expect(slice.blocked).toBe(true);
     expect(slice.matching.status).toBe("no_verified_match");
+    expect(slice.schedule.proposals).toHaveLength(0);
   });
 
   it("rejects unverified provider evidence", async () => {
     const slice = await runGoldenSlice({ failureMode: "unverified_provider" });
     expect(slice.blocked).toBe(true);
     expect(slice.matching.exclusions.length).toBeGreaterThan(0);
+    expect(slice.schedule.proposals).toHaveLength(0);
   });
 
   it("rejects communication mismatches before cost ranking", async () => {
@@ -72,6 +77,7 @@ describe("Service Cartography golden community-visit slice", () => {
         exclusion.reasons.includes("communication_access_missing"),
       ),
     ).toBe(true);
+    expect(slice.schedule.proposals).toHaveLength(0);
   });
 
   it("blocks a missing required transport dependency", async () => {
@@ -86,6 +92,37 @@ describe("Service Cartography golden community-visit slice", () => {
     expect(slice.blocked).toBe(true);
     expect(slice.matching.status).toBe("no_verified_match");
     expect(slice.matching.ranked).toHaveLength(0);
+    expect(slice.schedule.proposals).toHaveLength(0);
+  });
+
+  it("caps the in-memory advisory log so simulate cannot grow without bound", async () => {
+    const adapter = createSyntheticCartographyAdapter();
+    const context = {
+      actorUserId: null,
+      organisationId: null,
+      source: "synthetic_simulate" as const,
+    };
+    for (let index = 0; index < MAX_ADVISORY_OUTCOME_LOG + 5; index += 1) {
+      await adapter.recordAdvisoryOutcome(
+        {
+          eventId: `cap-${index}`,
+          occurredAt: "2026-11-18T09:00:00Z",
+          algorithmId: "MATCH-001",
+          algorithmVersion: "0.1.0",
+          inputReferenceIds: [`cap-${index}`],
+          outcome: "advisory",
+          reasonCodes: ["cap"],
+          humanReviewRequired: true,
+        },
+        context,
+      );
+    }
+    const log = readAdvisoryOutcomeLog();
+    expect(log).toHaveLength(MAX_ADVISORY_OUTCOME_LOG);
+    expect(log[0]?.eventId).toBe("cap-5");
+    expect(log[log.length - 1]?.eventId).toBe(
+      `cap-${MAX_ADVISORY_OUTCOME_LOG + 4}`,
+    );
   });
 
   it("surfaces cancellation without fallback as a human follow-up", async () => {

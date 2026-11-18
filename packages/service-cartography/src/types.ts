@@ -63,12 +63,45 @@ export const ADVISORY_META: AdvisoryMeta = {
   requiresHumanReview: true,
 };
 
+const ISO_INSTANT =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-]\d{2}:\d{2})$/;
+
 /** No time is silently inferred; callers supply a reference instant for deterministic replay. */
 export function timestamp(value: string): number | null {
-  // Reject locale-dependent strings and timestamps with no explicit timezone.
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
-  const n = Date.parse(value);
-  return Number.isFinite(n) ? n : null;
+  // Reject locale-dependent strings, timestamps with no explicit timezone, and
+  // calendar values that Date.parse would silently overflow (e.g. 2026-02-30).
+  if (typeof value !== 'string') return null;
+  const match = ISO_INSTANT.exec(value);
+  if (!match) return null;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const millisecond = match[7] ? Number(match[7].padEnd(3, '0')) : 0;
+  const tz = match[8];
+  if (!tz) return null;
+  let offsetMinutes = 0;
+  if (tz !== 'Z') {
+    const sign = tz.startsWith('-') ? -1 : 1;
+    offsetMinutes = sign * (Number(tz.slice(1, 3)) * 60 + Number(tz.slice(4, 6)));
+  }
+  const wall = new Date(parsed + offsetMinutes * 60_000);
+  if (
+    wall.getUTCFullYear() !== year ||
+    wall.getUTCMonth() + 1 !== month ||
+    wall.getUTCDate() !== day ||
+    wall.getUTCHours() !== hour ||
+    wall.getUTCMinutes() !== minute ||
+    wall.getUTCSeconds() !== second ||
+    wall.getUTCMilliseconds() !== millisecond
+  ) {
+    return null;
+  }
+  return parsed;
 }
 
 export function isValidInterval(start: string, end: string): boolean {

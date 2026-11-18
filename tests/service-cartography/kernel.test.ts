@@ -14,6 +14,7 @@ import {
   modelEconomicScenario,
   planServiceDependencies,
   proposeServiceSchedule,
+  timestamp,
 } from "@mapable/service-cartography";
 
 const at = "2026-11-18T03:00:00.000Z";
@@ -215,6 +216,27 @@ describe("service cartography matching kernel", () => {
       at,
     });
     expect(result.status).toBe("no_verified_match");
+  });
+
+  it("rejects overflow calendar dates that Date.parse would otherwise accept", () => {
+    expect(timestamp("2026-02-30T00:00:00Z")).toBeNull();
+    expect(timestamp("2025-02-29T00:00:00Z")).toBeNull();
+    expect(timestamp("2024-02-29T00:00:00Z")).toBe(Date.parse("2024-02-29T00:00:00Z"));
+    expect(timestamp("2026-11-18T14:00:00+11:00")).toBe(
+      Date.parse("2026-11-18T14:00:00+11:00"),
+    );
+    expect(
+      matchServices({
+        request: {
+          ...request,
+          startsAt: "2026-02-30T00:00:00Z",
+          endsAt: "2026-02-30T02:00:00Z",
+        },
+        offers: [offered],
+        grants: [consent],
+        at,
+      }).status,
+    ).toBe("invalid_request");
   });
 
   it("rejects past requests and timezone-ambiguous timestamps", () => {
@@ -532,8 +554,26 @@ describe("service cartography scenarios, continuity and audit", () => {
     expect(a.estimatedCostOfStatedNeedsCentsAUD).toBe(132000);
     expect(a.estimatedFundingGapCentsAUD).toBe(32000);
     expect(b.estimatedFundingGapCentsAUD).toBe(132000);
-    expect(a.knownCapacityGapUnits).toBe(5);
+    expect(a.knownCapacityGapUnitsBySupportType).toEqual({ care: 5 });
     expect(a.hasUnknownCapacity).toBe(true);
+  });
+
+  it("keeps known capacity gaps per support type instead of summing mixed units", () => {
+    const result = modelEconomicScenario({
+      needs: [
+        { supportType: "care", requiredUnits: 5, estimatedUnitCostCentsAUD: 1000 },
+        { supportType: "transport", requiredUnits: 2, estimatedUnitCostCentsAUD: 8000 },
+      ],
+      scenario: {
+        ...scenario,
+        verifiedCapacityUnits: { care: 0, transport: 0 },
+      },
+    });
+    expect(result.knownCapacityGapUnitsBySupportType).toEqual({
+      care: 5,
+      transport: 2,
+    });
+    expect(result.hasUnknownCapacity).toBe(false);
   });
 
   it("keeps political labels from affecting modelled outcomes", () => {

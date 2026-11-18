@@ -15,38 +15,43 @@ export function CartographyControls() {
     const url = failureMode
       ? `/api/pilot/service-cartography/simulate?failureMode=${encodeURIComponent(failureMode)}`
       : "/api/pilot/service-cartography/simulate";
-    const res = await fetch(url);
-    const body = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) {
-      setResult(body.error ?? "Simulate failed");
-      return;
+    try {
+      const res = await fetch(url);
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setResult(body.error ?? "Simulate failed");
+        return;
+      }
+      const state = body.state as {
+        blocked: boolean;
+        blockReason?: string;
+        failureMode?: string;
+        matching: { status: string; ranked: unknown[] };
+        isBooking: boolean;
+        autoAssignment: boolean;
+        notices: string[];
+      };
+      setResult(
+        JSON.stringify(
+          {
+            blocked: state.blocked,
+            blockReason: state.blockReason,
+            failureMode: state.failureMode,
+            matchingStatus: state.matching.status,
+            ranked: state.matching.ranked.length,
+            isBooking: state.isBooking,
+            autoAssignment: state.autoAssignment,
+            notices: state.notices.slice(-3),
+          },
+          null,
+          2,
+        ),
+      );
+    } catch (error) {
+      setResult(error instanceof Error ? error.message : "Simulate failed");
+    } finally {
+      setLoading(false);
     }
-    const state = body.state as {
-      blocked: boolean;
-      blockReason?: string;
-      failureMode?: string;
-      matching: { status: string; ranked: unknown[] };
-      isBooking: boolean;
-      autoAssignment: boolean;
-      notices: string[];
-    };
-    setResult(
-      JSON.stringify(
-        {
-          blocked: state.blocked,
-          blockReason: state.blockReason,
-          failureMode: state.failureMode,
-          matchingStatus: state.matching.status,
-          ranked: state.matching.ranked.length,
-          isBooking: state.isBooking,
-          autoAssignment: state.autoAssignment,
-          notices: state.notices.slice(-3),
-        },
-        null,
-        2,
-      ),
-    );
   }
 
   return (

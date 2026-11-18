@@ -16,7 +16,8 @@ export interface ScenarioExposure {
   estimatedCostOfStatedNeedsCentsAUD: number;
   fundingCeilingCentsAUD: number;
   estimatedFundingGapCentsAUD: number;
-  knownCapacityGapUnits: number;
+  /** Per support type only; never a cross-type sum of heterogeneous units. */
+  knownCapacityGapUnitsBySupportType: Readonly<Record<string, number>>;
   hasUnknownCapacity: boolean;
   /** Do not interpret a ceiling as a reduced individual support requirement. */
   assumptions: readonly string[];
@@ -33,8 +34,8 @@ export function modelEconomicScenario(input: {
   }
   const seen = new Set<string>();
   const neededUnitsByType = new Map<string, number>();
+  const knownCapacityGapUnitsByType = new Map<string, number>();
   let estimatedCost = 0;
-  let knownCapacityGap = 0;
   let hasUnknownCapacity = false;
   for (const need of input.needs) {
     if (!need.supportType || seen.has(need.supportType)) throw new Error('Unique supportType required');
@@ -53,20 +54,21 @@ export function modelEconomicScenario(input: {
       continue;
     }
     if (!Number.isSafeInteger(supply) || supply < 0) throw new Error('Capacity must be a nonnegative safe integer or null');
-    knownCapacityGap += Math.max(0, need.requiredUnits - supply);
+    knownCapacityGapUnitsByType.set(need.supportType, Math.max(0, need.requiredUnits - supply));
   }
   return {
     requiredUnitsBySupportType: Object.fromEntries(neededUnitsByType),
     estimatedCostOfStatedNeedsCentsAUD: estimatedCost,
     fundingCeilingCentsAUD: input.scenario.fundingCeilingCentsAUD,
     estimatedFundingGapCentsAUD: Math.max(0, estimatedCost - input.scenario.fundingCeilingCentsAUD),
-    knownCapacityGapUnits: knownCapacityGap,
+    knownCapacityGapUnitsBySupportType: Object.fromEntries(knownCapacityGapUnitsByType),
     hasUnknownCapacity,
     assumptions: [
       'Required support is fixed by the supplied needs assessment, not inferred from budget.',
       'Funding ceiling is hypothetical, not a statement of NDIS entitlement.',
       'Estimated costs are inputs and require independent price and claiming verification.',
       'Capacity gaps and funding gaps can overlap; do not add them together as independent losses.',
+      'Capacity gaps are reported per support type; units from different types cannot be added.',
     ],
     disposition: 'scenario_analysis_not_eligibility_or_allocation',
   };

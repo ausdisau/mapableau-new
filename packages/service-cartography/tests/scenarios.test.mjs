@@ -16,7 +16,7 @@ test('need is not reduced when the hypothetical funding ceiling decreases',()=>{
  assert.equal(a.estimatedCostOfStatedNeedsCentsAUD,132000);
  assert.equal(a.estimatedFundingGapCentsAUD,32000);
  assert.equal(b.estimatedFundingGapCentsAUD,132000);
- assert.equal(a.knownCapacityGapUnits,5);
+ assert.deepEqual(a.knownCapacityGapUnitsBySupportType,{care:5});
  assert.equal(a.hasUnknownCapacity,true);
 });
 

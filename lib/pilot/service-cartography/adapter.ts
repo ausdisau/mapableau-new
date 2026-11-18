@@ -16,6 +16,9 @@ import {
 } from "./fixtures";
 import type { CartographyAdapter, CartographyCallerContext } from "./types";
 
+/** In-memory ring buffer for the synthetic pilot; never a durable ledger. */
+export const MAX_ADVISORY_OUTCOME_LOG = 50;
+
 const advisoryLog: DecisionAuditEvent[] = [];
 
 function assertSyntheticPilot(): void {
@@ -72,6 +75,9 @@ export function createSyntheticCartographyAdapter(): CartographyAdapter {
       assertServerContext(callerContext);
       const normalized = createDecisionAuditEvent(event);
       advisoryLog.push(normalized);
+      if (advisoryLog.length > MAX_ADVISORY_OUTCOME_LOG) {
+        advisoryLog.splice(0, advisoryLog.length - MAX_ADVISORY_OUTCOME_LOG);
+      }
       if (!callerContext.actorUserId) return;
       await createAuditEvent({
         actorUserId: callerContext.actorUserId,

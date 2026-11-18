@@ -187,6 +187,30 @@ function outcomeFor(slice: {
   return "advisory";
 }
 
+function matchingFailedClosed(matching: MatchResult): boolean {
+  switch (matching.status) {
+    case "advisory_options":
+      return matching.ranked.length === 0;
+    case "consent_required":
+    case "invalid_request":
+    case "no_verified_match":
+      return true;
+    default: {
+      const _never: never = matching.status;
+      throw new Error(`Unhandled matching status: ${_never}`);
+    }
+  }
+}
+
+function blockedSchedule(requestId: string, reason: string): ScheduleOutcome {
+  return {
+    proposals: [],
+    notScheduled: [{ requestId, reason }],
+    advisory: ADVISORY_META,
+    methodology: "fewest_valid_options_first_greedy_not_globally_optimal",
+  };
+}
+
 export async function runGoldenSlice(
   input: GoldenSliceInput = {},
 ): Promise<CartographyGoldenSlice> {
@@ -225,12 +249,14 @@ export async function runGoldenSlice(
     needs: { requireStepFree: true },
     at: CARTOGRAPHY_AT,
   });
-  const schedule = proposeServiceSchedule({
-    requests: [set.request],
-    slots: set.slots,
-    grants: set.schedulingGrants,
-    at: CARTOGRAPHY_AT,
-  });
+  const schedule = matchingFailedClosed(matching)
+    ? blockedSchedule(set.request.id, matching.status)
+    : proposeServiceSchedule({
+        requests: [set.request],
+        slots: set.slots,
+        grants: set.schedulingGrants,
+        at: CARTOGRAPHY_AT,
+      });
   const continuity = detectContinuityGaps(set.planned);
   const economic = modelEconomicScenario({
     needs: syntheticNeeds,
