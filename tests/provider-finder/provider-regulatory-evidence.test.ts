@@ -5,6 +5,7 @@ import {
   isAffirmativeServiceLabel,
   matchesDirectoryFilter,
   getProviderEvidence,
+  REGISTRATION_NOT_VERIFIED_LABEL,
 } from "@/lib/provider/finder/evidence";
 
 describe("provider finder evidence gating", () => {
@@ -47,6 +48,12 @@ describe("provider finder evidence gating", () => {
     });
     expect(evidence.directoryActivity).toContain("Marked active");
     expect(evidence.registration).toContain("not independently verified");
+    expect(REGISTRATION_NOT_VERIFIED_LABEL).toBe(
+      "Registration not independently verified",
+    );
+    expect(REGISTRATION_NOT_VERIFIED_LABEL.toLowerCase()).not.toContain(
+      "unregistered",
+    );
     expect(evidence.workerScreening).toContain("not independently verified");
     expect(evidence.availability).toContain("Not confirmed");
   });

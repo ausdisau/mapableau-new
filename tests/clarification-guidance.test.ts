@@ -101,4 +101,53 @@ describe("clarification guidance", () => {
     expect(needsProviderFinderClarification(interpretation)).toBe(false);
     expect(getClarificationGuidance(interpretation).clarificationSlot).toBeUndefined();
   });
+
+  it("asks one slot at a time and Skip does not invent a value", () => {
+    const interpretation = baseInterpretation({
+      filters: {
+        q: "morning daily activities",
+        location: "",
+        access: "",
+        service: "",
+        provider: "",
+      },
+      confidence: 0.2,
+    });
+
+    const first = getClarificationGuidance(interpretation);
+    expect(first.clarificationSlot).toBe("service");
+
+    const afterSkipService = getClarificationGuidance(interpretation, ["service"]);
+    expect(afterSkipService.clarificationSlot).toBe("location");
+    expect(afterSkipService.filledSlots.service).toBe(true);
+    expect(interpretation.filters.service).toBe("");
+    expect(interpretation.filters.location).toBe("");
+  });
+
+  it("keeps access/text-communication when location is still being clarified", () => {
+    const interpretation = baseInterpretation({
+      filters: {
+        q: "support",
+        location: "",
+        access: "text communication",
+        service: "morning daily activities",
+        provider: "",
+      },
+      serviceCategorySlug: "daily-life",
+      accessNeedIds: ["text-communication"],
+      accessNeeds: {
+        ids: ["text-communication"],
+        confidence: 0.9,
+        source: "keyword",
+      },
+      confidence: 0.2,
+    });
+
+    const guidance = getClarificationGuidance(interpretation);
+    expect(guidance.clarificationSlot).toBe("location");
+    expect(guidance.filledSlots.access).toBe(true);
+    expect(guidance.filledSlots.service).toBe(true);
+    expect(interpretation.filters.access).toBe("text communication");
+    expect(interpretation.accessNeedIds).toEqual(["text-communication"]);
+  });
 });

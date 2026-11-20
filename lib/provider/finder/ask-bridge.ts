@@ -1,5 +1,9 @@
 import { searchAgentConfig } from "@/lib/config/search-agent";
-import type { CopilotAgentMeta, CopilotProviderResult } from "@/lib/copilot/types";
+import type {
+  ClarificationSlot,
+  CopilotAgentMeta,
+  CopilotProviderResult,
+} from "@/lib/copilot/types";
 import {
   buildFinderSearchParams,
   type AppliedSearchFields,
@@ -9,6 +13,7 @@ import type { SearchInterpretation } from "@/types/search";
 import {
   buildClarificationQuestion,
   enrichCopilotAgentMeta,
+  isSkipClarificationValue,
   needsProviderFinderClarification,
 } from "./clarification";
 import { runProviderFinderConversationTurn } from "./conversation/run-turn";
@@ -21,6 +26,7 @@ export type ProviderFinderSessionFields = {
   providerName: string;
   serviceQuery: string;
   accessQuery: string;
+  skippedSlots?: ClarificationSlot[];
 };
 
 export type ProviderFinderAskTurn = {
@@ -36,6 +42,7 @@ export type ProviderFinderAskOptions = {
   providerName?: string;
   providerSlug?: string;
   priorApplied?: AppliedSearchFields;
+  priorInterpretation?: SearchInterpretation | null;
   agentSessionId?: string;
   agentTurnIndex?: number;
 };
@@ -64,6 +71,7 @@ export async function runProviderFinderAskTurn(
   currentFields?: Partial<ProviderFinderSessionFields>,
   options?: ProviderFinderAskOptions,
 ): Promise<ProviderFinderAskTurn> {
+  const skippedSlots = currentFields?.skippedSlots ?? [];
   const session: ProviderFinderSessionFields = {
     query: currentFields?.query ?? "",
     location: currentFields?.location ?? "",
@@ -73,10 +81,15 @@ export async function runProviderFinderAskTurn(
       "",
     serviceQuery: currentFields?.serviceQuery ?? "",
     accessQuery: currentFields?.accessQuery ?? "",
+    skippedSlots,
   };
 
-  const effectiveQuery = mergeProviderContextIntoQuery(userText, options);
-  const turn = await runProviderFinderConversationTurn(effectiveQuery, session);
+  const turn = isSkipClarificationValue(userText)
+    ? skipConversationTurn(session, options)
+    : await runProviderFinderConversationTurn(
+        mergeProviderContextIntoQuery(userText, options),
+        session,
+      );
 
   const applied = mergeAppliedFields(options?.priorApplied, turn.applied);
 
@@ -88,9 +101,15 @@ export async function runProviderFinderAskTurn(
     options?.agentSessionId?.trim() || `finder-${Date.now()}`;
   const turnIndex = (options?.agentTurnIndex ?? 0) + 1;
 
-  const clarification = needsProviderFinderClarification(turn.interpretation);
+  const clarification = needsProviderFinderClarification(
+    turn.interpretation,
+    skippedSlots,
+  );
   if (clarification) {
-    const question = buildClarificationQuestion(turn.interpretation);
+    const question = buildClarificationQuestion(
+      turn.interpretation,
+      skippedSlots,
+    );
     const agent = enrichCopilotAgentMeta(
       {
         sessionId,
@@ -99,6 +118,8 @@ export async function runProviderFinderAskTurn(
         clarificationQuestion: question,
       },
       turn.interpretation,
+      undefined,
+      skippedSlots,
     );
     return {
       interpretation: turn.interpretation,
@@ -129,6 +150,7 @@ export async function runProviderFinderAskTurn(
     },
     turn.interpretation,
     providerResults,
+    skippedSlots,
   );
 
   return {
@@ -138,6 +160,56 @@ export async function runProviderFinderAskTurn(
     searchParams: buildFinderSearchParams(applied),
     providerResults,
     agent,
+  };
+}
+
+function interpretationFromApplied(
+  applied: AppliedSearchFields,
+): SearchInterpretation {
+  return {
+    sourceQuery: applied.query.trim() || " ",
+    parsed: true,
+    configured: true,
+    filters: {
+      q: applied.query,
+      location: applied.location,
+      access: applied.accessQuery,
+      service: applied.serviceQuery,
+      provider: applied.providerName,
+    },
+    serviceCategorySlug: null,
+    serviceCategoryId: null,
+    accessNeedIds: applied.accessNeedIds,
+    accessNeeds: {
+      ids: applied.accessNeedIds,
+      confidence: applied.accessNeedIds.length > 0 ? 0.8 : 0,
+      source: applied.accessNeedIds.length > 0 ? "keyword" : "none",
+    },
+    confidence: 0.4,
+    engineId: "skip",
+  };
+}
+
+function skipConversationTurn(
+  session: ProviderFinderSessionFields,
+  options?: ProviderFinderAskOptions,
+) {
+  const applied = mergeAppliedFields(options?.priorApplied, {
+    query: session.query,
+    location: session.location,
+    providerName: session.providerName,
+    serviceQuery: session.serviceQuery,
+    accessQuery: session.accessQuery,
+    supportType: options?.priorApplied?.supportType ?? null,
+    accessNeedIds: options?.priorApplied?.accessNeedIds ?? [],
+  });
+  const interpretation =
+    options?.priorInterpretation ?? interpretationFromApplied(applied);
+  return {
+    interpretation,
+    applied,
+    replyText:
+      "I’ll skip that for now and keep the rest of your search. You can add it later.",
   };
 }
 

@@ -144,50 +144,55 @@ async function* tracedTextStream(
 export function createFinderChatResponseStream(options: {
   turn: FinderStreamTurn;
   useLlmStream: boolean;
+  onFinally?: () => void;
 }) {
-  const { turn, useLlmStream } = options;
+  const { turn, useLlmStream, onFinally } = options;
 
   return createUIMessageStream({
     execute: async ({ writer }) => {
-      const agentData = buildFinderAgentStreamData(turn);
-      if (agentData) {
-        writer.write({
-          type: "data-finderAgent",
-          id: "finder-agent",
-          data: agentData,
-        });
-      }
-
-      writer.write({
-        type: "data-finderInterpretation",
-        id: "finder-interpretation",
-        data: {
-          interpretation: turn.interpretation,
-          applied: turn.applied,
-        },
-      });
-
-      if (useLlmStream) {
-        const stream = streamFinderAssistantText(turn);
-        const textId = "finder-assistant-text";
-        writer.write({ type: "text-start", id: textId });
-
-        for await (const delta of stream) {
-          if (delta) {
-            writer.write({ type: "text-delta", id: textId, delta });
-          }
+      try {
+        const agentData = buildFinderAgentStreamData(turn);
+        if (agentData) {
+          writer.write({
+            type: "data-finderAgent",
+            id: "finder-agent",
+            data: agentData,
+          });
         }
 
-        writer.write({ type: "text-end", id: textId });
-      } else {
-        const textId = "finder-assistant-text";
-        writer.write({ type: "text-start", id: textId });
         writer.write({
-          type: "text-delta",
-          id: textId,
-          delta: turn.replyText,
+          type: "data-finderInterpretation",
+          id: "finder-interpretation",
+          data: {
+            interpretation: turn.interpretation,
+            applied: turn.applied,
+          },
         });
-        writer.write({ type: "text-end", id: textId });
+
+        if (useLlmStream) {
+          const stream = streamFinderAssistantText(turn);
+          const textId = "finder-assistant-text";
+          writer.write({ type: "text-start", id: textId });
+
+          for await (const delta of stream) {
+            if (delta) {
+              writer.write({ type: "text-delta", id: textId, delta });
+            }
+          }
+
+          writer.write({ type: "text-end", id: textId });
+        } else {
+          const textId = "finder-assistant-text";
+          writer.write({ type: "text-start", id: textId });
+          writer.write({
+            type: "text-delta",
+            id: textId,
+            delta: turn.replyText,
+          });
+          writer.write({ type: "text-end", id: textId });
+        }
+      } finally {
+        onFinally?.();
       }
     },
   });

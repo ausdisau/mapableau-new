@@ -62,7 +62,9 @@ export function ProviderFinderResultCard({
         <Badge variant="outline" className="text-muted-foreground">
           {getProviderEvidence(provider).provenance}
         </Badge>
-        <span className="ml-auto text-xs text-muted-foreground">Evidence requires confirmation</span>
+        <span className="ml-auto text-xs text-muted-foreground">
+          {getProviderEvidence(provider).sourceCheckedLabel}
+        </span>
       </div>
 
       <button

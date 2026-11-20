@@ -10,6 +10,15 @@ import type { SearchInterpretation } from "@/types/search";
 export const CLARIFICATION_CONFIDENCE_THRESHOLD = 0.55;
 export const ACCESS_NEEDS_CLARIFICATION_CONFIDENCE = 0.4;
 
+export const SKIP_CLARIFICATION_VALUES = ["Skip", "Not sure"] as const;
+
+export function isSkipClarificationValue(value: string): boolean {
+  const trimmed = value.trim();
+  return SKIP_CLARIFICATION_VALUES.some(
+    (label) => label.toLowerCase() === trimmed.toLowerCase(),
+  );
+}
+
 export function hasUnresolvedAccessNeeds(
   interpretation: SearchInterpretation,
 ): boolean {
@@ -20,56 +29,88 @@ export function hasUnresolvedAccessNeeds(
   return resolution.confidence < ACCESS_NEEDS_CLARIFICATION_CONFIDENCE;
 }
 
+function skipped(
+  slots: readonly ClarificationSlot[] | undefined,
+  slot: ClarificationSlot,
+): boolean {
+  return Boolean(slots?.includes(slot));
+}
+
 export function needsProviderFinderClarification(
   interpretation: SearchInterpretation,
+  skippedSlots: readonly ClarificationSlot[] = [],
 ): boolean {
   if (!interpretation.parsed) return false;
 
-  if (hasUnresolvedAccessNeeds(interpretation)) return true;
+  if (
+    hasUnresolvedAccessNeeds(interpretation) &&
+    !skipped(skippedSlots, "access")
+  ) {
+    return true;
+  }
 
   if (interpretation.confidence >= CLARIFICATION_CONFIDENCE_THRESHOLD) {
     return false;
   }
-  const hasLocation = Boolean(interpretation.filters.location?.trim());
-  const hasService = Boolean(
-    interpretation.filters.service?.trim() ||
-      interpretation.serviceCategorySlug?.trim(),
-  );
+  const hasLocation =
+    Boolean(interpretation.filters.location?.trim()) ||
+    skipped(skippedSlots, "location");
+  const hasService =
+    Boolean(
+      interpretation.filters.service?.trim() ||
+        interpretation.serviceCategorySlug?.trim(),
+    ) || skipped(skippedSlots, "service");
   return !hasLocation || !hasService;
 }
 
 export function buildClarificationQuestion(
   interpretation: SearchInterpretation,
+  skippedSlots: readonly ClarificationSlot[] = [],
 ): string {
-  if (hasUnresolvedAccessNeeds(interpretation)) {
-    return "Which access needs matter most — for example wheelchair access, Auslan, low sensory, or hoist support?";
+  if (
+    hasUnresolvedAccessNeeds(interpretation) &&
+    !skipped(skippedSlots, "access")
+  ) {
+    return "Which access needs matter most — for example wheelchair access, Auslan, text/written communication, or hoist support? You can skip if you are not sure.";
   }
 
-  const hasLocation = Boolean(interpretation.filters.location?.trim());
-  const hasService = Boolean(
-    interpretation.filters.service?.trim() ||
-      interpretation.serviceCategorySlug?.trim(),
-  );
+  const hasLocation =
+    Boolean(interpretation.filters.location?.trim()) ||
+    skipped(skippedSlots, "location");
+  const hasService =
+    Boolean(
+      interpretation.filters.service?.trim() ||
+        interpretation.serviceCategorySlug?.trim(),
+    ) || skipped(skippedSlots, "service");
 
   if (!hasService) {
-    return "What type of support are you looking for — for example occupational therapy, a support worker, or transport?";
+    return "What type of support are you looking for — for example occupational therapy, a support worker, or transport? You can skip if you are not sure.";
   }
   if (!hasLocation) {
-    return "Which suburb or postcode should I search near?";
+    return "Which suburb or postcode should I search near? You can skip if you are not sure.";
   }
-  return "Could you add a bit more detail — suburb or postcode and the type of support you need?";
+  return "Could you add a bit more detail — suburb or postcode and the type of support you need? You can skip if you are not sure.";
 }
 
 function resolveClarificationSlot(
   interpretation: SearchInterpretation,
+  skippedSlots: readonly ClarificationSlot[] = [],
 ): ClarificationSlot {
-  if (hasUnresolvedAccessNeeds(interpretation)) return "access";
+  if (
+    hasUnresolvedAccessNeeds(interpretation) &&
+    !skipped(skippedSlots, "access")
+  ) {
+    return "access";
+  }
 
-  const hasLocation = Boolean(interpretation.filters.location?.trim());
-  const hasService = Boolean(
-    interpretation.filters.service?.trim() ||
-      interpretation.serviceCategorySlug?.trim(),
-  );
+  const hasLocation =
+    Boolean(interpretation.filters.location?.trim()) ||
+    skipped(skippedSlots, "location");
+  const hasService =
+    Boolean(
+      interpretation.filters.service?.trim() ||
+        interpretation.serviceCategorySlug?.trim(),
+    ) || skipped(skippedSlots, "service");
 
   if (!hasService) return "service";
   if (!hasLocation) return "location";
@@ -78,6 +119,7 @@ function resolveClarificationSlot(
 
 export function getFilledSlots(
   interpretation: SearchInterpretation,
+  skippedSlots: readonly ClarificationSlot[] = [],
 ): Partial<Record<ClarificationSlot, boolean>> {
   const hasLocation = Boolean(interpretation.filters.location?.trim());
   const hasService = Boolean(
@@ -91,24 +133,30 @@ export function getFilledSlots(
         ACCESS_NEEDS_CLARIFICATION_CONFIDENCE);
 
   return {
-    location: hasLocation,
-    service: hasService,
-    access: hasAccess,
+    location: hasLocation || skipped(skippedSlots, "location"),
+    service: hasService || skipped(skippedSlots, "service"),
+    access: hasAccess || skipped(skippedSlots, "access"),
   };
 }
 
-export function getClarificationGuidance(interpretation: SearchInterpretation): {
+export function getClarificationGuidance(
+  interpretation: SearchInterpretation,
+  skippedSlots: readonly ClarificationSlot[] = [],
+): {
   clarificationSlot?: ClarificationSlot;
   suggestedChoices?: ClarificationChoice[];
   filledSlots: Partial<Record<ClarificationSlot, boolean>>;
 } {
-  const filledSlots = getFilledSlots(interpretation);
+  const filledSlots = getFilledSlots(interpretation, skippedSlots);
 
-  if (!needsProviderFinderClarification(interpretation)) {
+  if (!needsProviderFinderClarification(interpretation, skippedSlots)) {
     return { filledSlots };
   }
 
-  const clarificationSlot = resolveClarificationSlot(interpretation);
+  const clarificationSlot = resolveClarificationSlot(
+    interpretation,
+    skippedSlots,
+  );
   let suggestedChoices: ClarificationChoice[] | undefined;
 
   if (clarificationSlot === "access") {
@@ -136,8 +184,9 @@ export function enrichCopilotAgentMeta(
   agent: CopilotAgentMeta,
   interpretation: SearchInterpretation,
   providerResults?: CopilotProviderResult[],
+  skippedSlots: readonly ClarificationSlot[] = [],
 ): CopilotAgentMeta {
-  const guidance = getClarificationGuidance(interpretation);
+  const guidance = getClarificationGuidance(interpretation, skippedSlots);
   return {
     ...agent,
     ...guidance,

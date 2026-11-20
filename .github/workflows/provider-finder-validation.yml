@@ -4,12 +4,27 @@ on:
   pull_request:
     paths:
       - "app/provider-finder/**"
+      - "app/jonathan/profile/**"
+      - "app/api/provider-finder/**"
       - "app/api/providers/chat-search/**"
       - "app/api/providers/search-profile/**"
+      - "app/api/providers/map/**"
       - "components/provider-finder/**"
+      - "components/guided-search/**"
       - "lib/provider/finder/**"
+      - "lib/ai/agent-sessions/provider-finder-session.ts"
+      - "lib/ingestion/ndis-providers-search.ts"
+      - "lib/config/provider-finder-chat-first.ts"
+      - "lib/map/mappers/ndis-provider.ts"
+      - "lib/map/mappers/provider-outlet.ts"
       - "lib/crypto/provider-search-preferences.ts"
       - "tests/provider-finder/**"
+      - "tests/provider-finder-truthfulness.test.ts"
+      - "tests/provider-finder-ask.test.ts"
+      - "tests/provider-finder-chat-first-v2.test.tsx"
+      - "tests/clarification-guidance.test.ts"
+      - "tests/guided-search-*.ts"
+      - "tests/guided-search-*.tsx"
       - "tests/security/provider-search-preferences.test.ts"
       - ".github/workflows/provider-finder-validation.yml"
   workflow_dispatch:
@@ -49,9 +64,52 @@ jobs:
         run: pnpm type-check
       - name: Provider Finder and consent security tests
         run: |
-          pnpm exec vitest run             tests/provider-finder/provider-regulatory-evidence.test.ts             tests/provider-finder/provider-chat-matching.test.ts             tests/provider-finder/provider-chat-session.test.ts             tests/provider-finder/provider-chat-stream-api.test.ts             tests/provider-finder/provider-search-origin.test.ts             tests/provider-finder/provider-search-profile-api.test.ts             tests/security/provider-search-preferences.test.ts
+          pnpm exec vitest run \
+            tests/clarification-guidance.test.ts \
+            tests/guided-search-stream.test.ts \
+            tests/guided-search-dialogue.test.tsx \
+            tests/guided-search-header.test.tsx \
+            tests/provider-finder-chat-first-v2.test.tsx \
+            tests/provider-finder-truthfulness.test.ts \
+            tests/provider-finder/ndis-search-from-applied.test.ts \
+            tests/provider-finder/chat-request.test.ts \
+            tests/provider-finder/finder-agent-session.test.ts \
+            tests/provider-finder-ask.test.ts \
+            tests/provider-finder/provider-regulatory-evidence.test.ts \
+            tests/provider-finder/provider-chat-matching.test.ts \
+            tests/provider-finder/provider-chat-session.test.ts \
+            tests/provider-finder/provider-chat-stream-api.test.ts \
+            tests/provider-finder/provider-search-origin.test.ts \
+            tests/provider-finder/provider-search-profile-api.test.ts \
+            tests/security/provider-search-preferences.test.ts
       - name: Targeted source lint
         env:
           ESLINT_CI_LIGHT: "1"
         run: |
-          pnpm exec eslint             app/provider-finder/ProviderFinderClient.tsx             components/provider-finder/ProviderFinderSidebar.tsx             components/provider-finder/ProviderFinderResultCard.tsx             components/provider-finder/ProviderRegulatoryEvidence.tsx             lib/provider/finder/evidence.ts             lib/provider/finder/provider-chat-matching.ts             lib/provider/finder/search-profile-contract.ts             lib/provider/finder/search-profile-service.ts             app/api/providers/chat-search/route.ts             app/api/providers/search-profile/route.ts             --max-warnings 0
+          pnpm exec eslint \
+            app/provider-finder/ProviderFinderClient.tsx \
+            app/provider-finder/page.tsx \
+            app/api/provider-finder/chat/route.ts \
+            components/provider-finder/ProviderFinderSidebar.tsx \
+            components/provider-finder/ProviderFinderResultCard.tsx \
+            components/provider-finder/ProviderRegulatoryEvidence.tsx \
+            components/provider-finder/ChatFirstFinderExperience.tsx \
+            components/provider-finder/ChatFirstFilterChips.tsx \
+            components/provider-finder/ChatFirstNoResults.tsx \
+            components/guided-search/GuidedSearchChoiceChips.tsx \
+            components/guided-search/GuidedSearchMessageList.tsx \
+            lib/provider/finder/evidence.ts \
+            lib/provider/finder/ndis-search-from-applied.ts \
+            lib/provider/finder/chat-request.ts \
+            lib/provider/finder/ask-bridge.ts \
+            lib/ai/agent-sessions/provider-finder-session.ts \
+            lib/provider/finder/conversation/stream-assistant.ts \
+            components/guided-search/GuidedSearchDialogue.tsx \
+            components/provider-finder/ProviderFinderAskPanel.tsx \
+            app/jonathan/profile/[slug]/page.tsx \
+            lib/provider/finder/provider-chat-matching.ts \
+            lib/provider/finder/search-profile-contract.ts \
+            lib/provider/finder/search-profile-service.ts \
+            app/api/providers/chat-search/route.ts \
+            app/api/providers/search-profile/route.ts \
+            --max-warnings 0

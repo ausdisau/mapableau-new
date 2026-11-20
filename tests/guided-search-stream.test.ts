@@ -1,5 +1,5 @@
 import { readUIMessageStream } from "ai";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { ProviderFinderAskTurn } from "@/lib/provider/finder/ask-bridge";
 import {
@@ -81,5 +81,20 @@ describe("guided search stream", () => {
     const interpretationIndex = parts.indexOf("data-finderInterpretation");
     expect(agentIndex).toBeGreaterThanOrEqual(0);
     expect(interpretationIndex).toBeGreaterThan(agentIndex);
+  });
+
+  it("calls onFinally after the stream execute finishes", async () => {
+    const onFinally = vi.fn();
+    const stream = createFinderChatResponseStream({
+      turn: clarificationTurn(),
+      useLlmStream: false,
+      onFinally,
+    });
+
+    for await (const _message of readUIMessageStream({ stream })) {
+      void _message;
+    }
+
+    expect(onFinally).toHaveBeenCalledTimes(1);
   });
 });

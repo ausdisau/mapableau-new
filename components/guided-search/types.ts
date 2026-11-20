@@ -1,4 +1,5 @@
 import type { ClarificationSlot } from "@/lib/copilot/types";
+import { isSkipClarificationValue } from "@/lib/provider/finder/clarification";
 
 export type GuidedSearchSessionFields = {
   query: string;
@@ -6,6 +7,7 @@ export type GuidedSearchSessionFields = {
   providerName: string;
   serviceQuery: string;
   accessQuery: string;
+  skippedSlots?: ClarificationSlot[];
 };
 
 export const GUIDED_SEARCH_SESSION_STORAGE_KEY =
@@ -29,6 +31,13 @@ export function applyChoiceToSession(
   const trimmed = value.trim();
   if (!trimmed || !slot) return session;
 
+  if (isSkipClarificationValue(trimmed)) {
+    const skippedSlots = [
+      ...new Set([...(session.skippedSlots ?? []), slot]),
+    ];
+    return { ...session, skippedSlots };
+  }
+
   switch (slot) {
     case "location":
       return { ...session, location: trimmed };
@@ -36,7 +45,11 @@ export function applyChoiceToSession(
       return { ...session, serviceQuery: trimmed };
     case "access":
       return { ...session, accessQuery: trimmed };
-    default:
+    case "general":
       return { ...session, query: trimmed };
+    default: {
+      const _exhaustive: never = slot;
+      return session;
+    }
   }
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { canonicalAlternate } from "@/lib/config/canonical-url";
+import { isProviderFinderChatFirstV2Enabled } from "@/lib/config/provider-finder-chat-first";
 import { getInterpreterDisplayName } from "@/lib/config/search-interpreter";
 
 import ProviderFinderClient from "./ProviderFinderClient";
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   const modelLabel = getInterpreterDisplayName();
+  const chatFirstV2Enabled = isProviderFinderChatFirstV2Enabled();
 
   return (
     <Suspense
@@ -29,7 +31,10 @@ export default function Page() {
         </p>
       }
     >
-      <ProviderFinderClient modelLabel={modelLabel} />
+      <ProviderFinderClient
+        modelLabel={modelLabel}
+        chatFirstV2Enabled={chatFirstV2Enabled}
+      />
     </Suspense>
   );
 }
