@@ -9,6 +9,7 @@ export const metadata = {
 export default function PeerPage() {
   return (
     <PublicModulePage
+        roadmapModule="peer"
       eyebrow="MapAble Peer"
       title="Lived-experience support without turning disability support into social media."
       description="MapAble Peer is planned for moderated topic circles, peer mentor profiles, story resources and escalation pathways when safety concerns appear."
