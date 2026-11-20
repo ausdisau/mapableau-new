@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { StatusTextBadge } from "@/components/phase3/StatusTextBadge";
 import { requirePermission } from "@/lib/auth/guards";
+import { isCareSchedulerUiEnabled } from "@/lib/config/care-scheduler";
 import { prisma } from "@/lib/prisma";
 
 export default async function CareShiftsPage() {
@@ -14,6 +15,11 @@ export default async function CareShiftsPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">Care shifts</h1>
+      {isCareSchedulerUiEnabled() ? (
+        <Link href="/care/scheduler" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 font-semibold text-primary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+          Open weekly Care scheduler
+        </Link>
+      ) : null}
       <ul className="space-y-3">
         {shifts.map((s) => (
           <li key={s.id}>
