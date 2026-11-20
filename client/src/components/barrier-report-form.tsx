@@ -102,7 +102,7 @@ export function BarrierReportForm({ onClose, onSubmitted }: BarrierReportFormPro
                   className={`text-left px-3 py-2.5 rounded-lg text-xs font-medium border min-h-[44px] transition-colors ${
                     barrierType === bt.value
                       ? bt.value === "helpful_staff"
-                        ? "bg-[#00A979] text-white border-[#00A979]"
+                        ? "bg-[#007A57] text-white border-[#00A979]"
                         : "bg-amber-500 text-white border-amber-500"
                       : "border-border bg-card"
                   }`}

@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: mapableAuthHeroGradient }}>
-      <div className="flex h-[3px] shrink-0">
+      <div className="flex h-[3px] shrink-0" aria-hidden="true">
         <div className="flex-1" style={{ backgroundColor: mapableBrand.brandGreen }} />
         <div className="flex-1" style={{ backgroundColor: mapableBrand.brandBlueDark }} />
         <div className="flex-1" style={{ backgroundColor: mapableBrand.brandYellow }} />
@@ -49,19 +49,19 @@ export default function LoginPage() {
             <div className="flex justify-center gap-6 pt-2">
               <div className="flex flex-col items-center gap-1">
                 <HeartHandshake className="w-5 h-5 text-[#00A979]" />
-                <span className="text-[10px] text-white/50 font-medium">Care</span>
+                <span className="text-[11px] text-white/85 font-medium">Care</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Bus className="w-5 h-5 text-[#00A979]" />
-                <span className="text-[10px] text-white/50 font-medium">Transport</span>
+                <span className="text-[11px] text-white/85 font-medium">Transport</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Briefcase className="w-5 h-5 text-[#00A979]" />
-                <span className="text-[10px] text-white/50 font-medium">Employment</span>
+                <span className="text-[11px] text-white/85 font-medium">Employment</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Bot className="w-5 h-5 text-[#00A979]" />
-                <span className="text-[10px] text-white/50 font-medium">AI Chat</span>
+                <span className="text-[11px] text-white/85 font-medium">AI Chat</span>
               </div>
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function LoginPage() {
                     placeholder="Enter your username"
                     required
                     autoComplete="username"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#00A979] focus:ring-[#00A979]/20 h-11"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                     data-testid="input-username"
                   />
                 </div>
@@ -104,7 +104,7 @@ export default function LoginPage() {
                     placeholder="Enter your password"
                     required
                     autoComplete="current-password"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#00A979] focus:ring-[#00A979]/20 h-11"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                     data-testid="input-password"
                   />
                 </div>
@@ -113,7 +113,7 @@ export default function LoginPage() {
                   type="submit"
                   disabled={isLoggingIn || !username || !password}
                   className="w-full h-11 text-sm font-semibold"
-                  style={{ backgroundColor: "#00A979" }}
+                  style={{ backgroundColor: mapableBrand.brandBlue }}
                   data-testid="button-login"
                 >
                   {isLoggingIn ? (
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 <div className="mt-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-xs text-white/40 font-medium">or</span>
+                    <span className="text-xs text-white/75 font-medium">or</span>
                     <div className="flex-1 h-px bg-white/10" />
                   </div>
 
@@ -162,12 +162,12 @@ export default function LoginPage() {
               )}
 
               <div className="mt-6 pt-4 border-t border-white/10">
-                <p className="text-[11px] text-white/40 text-center mb-3">Demo Accounts</p>
+                <p className="text-[11px] text-white/75 text-center mb-3">Demo Accounts</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => { setUsername("demo_participant"); setPassword("hashed_password"); }}
-                    className="text-xs text-white/60 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
+                    className="text-xs text-white/85 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
                     data-testid="button-demo-participant"
                   >
                     <span className="font-medium text-white/80 block">Participant</span>
@@ -176,7 +176,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => { setUsername("alex_m"); setPassword("hashed_password"); }}
-                    className="text-xs text-white/60 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
+                    className="text-xs text-white/85 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
                     data-testid="button-demo-carer"
                   >
                     <span className="font-medium text-white/80 block">Carer</span>
@@ -190,16 +190,16 @@ export default function LoginPage() {
           <div className="text-center">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 text-white/50 text-sm hover:text-white/70 transition-colors"
+              className="inline-flex min-h-11 items-center gap-2 text-white/85 text-sm underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F8C51C]"
               data-testid="link-create-account"
             >
               <UserPlus className="w-4 h-4" />
-              Don't have an account? <span className="text-[#00A979] font-medium">Create Account</span>
+              Don't have an account? <span className="text-[#F8C51C] font-medium">Create Account</span>
             </Link>
           </div>
 
           <div className="flex justify-center">
-            <div className="flex items-center gap-2 text-white/30 text-xs">
+            <div className="flex items-center gap-2 text-white/75 text-xs">
               <ShieldCheck className="w-3.5 h-3.5 text-[#00A979]/60" />
               <span>NDIS Registered Provider</span>
             </div>

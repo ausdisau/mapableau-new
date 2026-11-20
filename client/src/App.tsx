@@ -201,6 +201,7 @@ function MobileMenuToggle() {
             <MapAbleClientLockup
               variant="mark"
               showTagline={false}
+              decorative
               imageClassName="h-10 w-10"
               data-testid="img-header-logo"
             />

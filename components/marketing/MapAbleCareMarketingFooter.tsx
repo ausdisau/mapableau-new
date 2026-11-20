@@ -75,6 +75,7 @@ function AustralianDisabilityMark() {
   return (
     <div
       className="mt-5 rounded-2xl border border-slate-200 bg-white/60 p-4"
+      role="group"
       aria-label="Australian Disability Ltd"
     >
       <div className="flex items-center gap-3">

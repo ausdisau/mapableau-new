@@ -151,7 +151,7 @@ export default function WorkerBookings() {
             <>
               <Button
                 size="sm"
-                className="bg-[#00A979] hover:bg-[#259D61] gap-1"
+                className="bg-[#007A57] hover:bg-[#006B4F] gap-1"
                 onClick={() => statusMutation.mutate({ id: booking.id, status: "confirmed" })}
                 disabled={statusMutation.isPending}
                 data-testid={`button-accept-${booking.id}`}

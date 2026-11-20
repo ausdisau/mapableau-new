@@ -120,6 +120,7 @@ export function AppSidebar() {
               <MapAbleClientLockup
                 variant={isCollapsed ? "mark" : "header"}
                 showTagline={!isCollapsed}
+                decorative
                 imageClassName={
                   isCollapsed ? undefined : "h-10 w-auto max-w-[8.5rem]"
                 }

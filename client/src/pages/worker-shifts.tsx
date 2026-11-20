@@ -309,7 +309,7 @@ export default function WorkerShifts() {
             <div className="flex gap-2">
               <Button
                 size="sm"
-                className="bg-[#00A979] hover:bg-[#259D61] gap-1"
+                className="bg-[#007A57] hover:bg-[#006B4F] gap-1"
                 onClick={confirmEndShift}
                 disabled={statusMutation.isPending || !endShiftHours}
                 data-testid="button-confirm-end-shift"
@@ -338,7 +338,7 @@ export default function WorkerShifts() {
           <CalendarDays className="w-6 h-6 text-[#005B7F]" /> My Shifts & Earnings
         </h1>
         <div className="flex gap-2">
-          <Button className="gap-2 bg-[#00A979] hover:bg-[#258f5c]" onClick={() => setShowNewShift(true)} data-testid="button-start-new-shift">
+          <Button className="gap-2 bg-[#007A57] hover:bg-[#006B4F]" onClick={() => setShowNewShift(true)} data-testid="button-start-new-shift">
             <Play className="w-4 h-4" /> Start New Shift
           </Button>
           <Button variant="outline" className="gap-2" onClick={handleExportCSV} data-testid="button-export-csv">
@@ -546,7 +546,7 @@ export default function WorkerShifts() {
                       </div>
                       <Button
                         size="sm"
-                        className="ml-2 bg-[#00A979] hover:bg-[#258f5c] gap-1"
+                        className="ml-2 bg-[#007A57] hover:bg-[#006B4F] gap-1"
                         disabled={startShiftMutation.isPending}
                         onClick={() => startShiftMutation.mutate(booking.id)}
                         data-testid={`button-start-shift-from-booking-${booking.id}`}

@@ -321,7 +321,7 @@ export function AccessProfileWizard({ onClose }: WizardProps) {
             <Button
               onClick={() => saveMutation.mutate()}
               disabled={saveMutation.isPending}
-              className="gap-1.5 min-h-[44px] bg-[#00A979] text-white"
+              className="gap-1.5 min-h-[44px] bg-[#007A57] text-white"
               data-testid="button-wizard-save"
             >
               {saveMutation.isPending ? (

@@ -197,7 +197,7 @@ export default function GroceryOrderDetailPage() {
               const Icon = step === "placed" ? Package : step === "confirmed" ? CreditCard : step === "shopping" ? ShoppingCart : step === "out_for_delivery" ? Truck : Package;
               return (
                 <li key={step} className="flex flex-col items-center text-center gap-1 flex-1 min-w-[70px]" data-testid={`step-${step}`}>
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${completed ? "bg-[#00A979] text-white" : "bg-muted text-muted-foreground"}`}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${completed ? "bg-[#007A57] text-white" : "bg-muted text-muted-foreground"}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   <span className={`text-[10px] font-semibold ${completed ? "" : "text-muted-foreground"}`}>{STATUS_LABELS[step]}</span>

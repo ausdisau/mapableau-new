@@ -7,6 +7,11 @@ type MapAbleClientLockupProps = {
   variant?: "header" | "mark";
   imageClassName?: string;
   showTagline?: boolean;
+  /**
+   * Use inside an interactive parent that already has an accessible name
+   * (e.g. a navigation button) so the image is not announced twice.
+   */
+  decorative?: boolean;
   "data-testid"?: string;
 };
 
@@ -15,6 +20,7 @@ export function MapAbleClientLockup({
   variant = "header",
   imageClassName,
   showTagline = true,
+  decorative = false,
   "data-testid": dataTestId,
 }: MapAbleClientLockupProps) {
   const isMark = variant === "mark";
@@ -23,7 +29,8 @@ export function MapAbleClientLockup({
     <span className={cn("inline-flex min-w-0 flex-col items-center gap-1.5", className)}>
       <img
         src={isMark ? mapableBrandAssets.mark : mapableBrandAssets.wordmark}
-        alt={mapableBrandAssets.wordmarkAlt}
+        alt={decorative ? "" : "MapAble"}
+        aria-hidden={decorative || undefined}
         className={cn(
           "shrink-0 bg-transparent object-contain object-left",
           isMark ? "h-8 w-8" : "h-12 w-auto max-w-[11rem] sm:max-w-[12rem]",

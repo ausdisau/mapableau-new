@@ -36,6 +36,7 @@ describe("AccessiMart ZIP review adapter", () => {
     expect(result?.assurance).toEqual({
       supplierIdentity: "not-verified",
       productSafety: "not-verified",
+      warranty: "not-verified",
       ndisEligibility: "not-assessed",
       provenance: "unreviewed-source",
     });
@@ -43,6 +44,7 @@ describe("AccessiMart ZIP review adapter", () => {
       checkoutAvailable: false,
       quoteSubmissionAvailable: false,
       sellerContactAvailable: false,
+      illustrativePriceShown: false,
     });
 
     const output = JSON.stringify(result);

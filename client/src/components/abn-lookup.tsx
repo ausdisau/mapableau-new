@@ -145,7 +145,7 @@ export function AbnResultCard({ result, compact }: { result: AbnLookupResult; co
             ABN: {result.abnFormatted}
           </span>
         </div>
-        <Badge variant={isActive ? "default" : isFormatOnly ? "secondary" : "destructive"} className={isActive ? "bg-[#00A979]" : ""} data-testid="badge-abn-status">
+        <Badge variant={isActive ? "default" : isFormatOnly ? "secondary" : "destructive"} className={isActive ? "bg-[#007A57]" : ""} data-testid="badge-abn-status">
           {result.abnStatus}
         </Badge>
       </div>
@@ -228,14 +228,14 @@ export function AbnResultCard({ result, compact }: { result: AbnLookupResult; co
               <div className="flex items-center gap-1.5">
                 <Receipt className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">GST:</span>
-                <Badge variant={result.gstRegistered ? "default" : "secondary"} className={`text-[10px] ${result.gstRegistered ? "bg-[#00A979]" : ""}`} data-testid="badge-gst-status">
+                <Badge variant={result.gstRegistered ? "default" : "secondary"} className={`text-[10px] ${result.gstRegistered ? "bg-[#007A57]" : ""}`} data-testid="badge-gst-status">
                   {result.gstRegistered ? `Registered${result.gstRegisteredFrom ? ` from ${result.gstRegisteredFrom}` : ""}` : "Not Registered"}
                 </Badge>
               </div>
               <div className="flex items-center gap-1.5">
                 <Heart className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">DGR:</span>
-                <Badge variant={result.dgrEndorsed ? "default" : "secondary"} className={`text-[10px] ${result.dgrEndorsed ? "bg-[#00A979]" : ""}`} data-testid="badge-dgr-status">
+                <Badge variant={result.dgrEndorsed ? "default" : "secondary"} className={`text-[10px] ${result.dgrEndorsed ? "bg-[#007A57]" : ""}`} data-testid="badge-dgr-status">
                   {result.dgrEndorsed ? "Endorsed" : "Not Endorsed"}
                 </Badge>
               </div>
