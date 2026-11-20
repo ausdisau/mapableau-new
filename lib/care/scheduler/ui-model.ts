@@ -4,7 +4,6 @@
  * No worker assignment, funding or verification decisions happen here.
  */
 export const CARE_SCHEDULER_TIME_ZONE = "Australia/Sydney";
-const DAY_MS = 86_400_000;
 
 export type CareSchedulerRole = "participant" | "provider" | "worker";
 
