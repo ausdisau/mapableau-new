@@ -116,9 +116,9 @@ export async function searchDomainDirectory(
               ...(input.q.trim()
                 ? {
                     OR: [
-                      { title: { contains: input.q.trim(), mode: "insensitive" } },
-                      { description: { contains: input.q.trim(), mode: "insensitive" } },
-                      { location: { contains: input.q.trim(), mode: "insensitive" } },
+                      { title: { contains: input.q.trim(), mode: "insensitive" as const } },
+                      { description: { contains: input.q.trim(), mode: "insensitive" as const } },
+                      { location: { contains: input.q.trim(), mode: "insensitive" as const } },
                     ],
                   }
                 : {}),
