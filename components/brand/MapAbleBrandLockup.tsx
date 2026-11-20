@@ -3,31 +3,35 @@ import Link from "next/link";
 import { cn } from "@/app/lib/utils";
 import {
   MAPABLE_BRAND_TAGLINE,
-  MAPABLE_LOGO_WORDMARK_SRC,
+  MAPABLE_LOGO_MARK_SRC,
 } from "@/lib/brand/constants";
+import { mapableAaaFocusRingClass } from "@mapable/ui";
 
 export type MapAbleBrandLockupSize = "header" | "hero" | "footer";
 
 const sizeStyles: Record<
   MapAbleBrandLockupSize,
-  { image: string; pill: string; stack: string }
+  { mark: string; wordmark: string; pill: string; stack: string }
 > = {
   header: {
-    stack: "gap-1.5",
-    image:
-      "block h-[2.8125rem] w-auto max-h-[3.125rem] max-w-[9.5rem] shrink-0 bg-transparent object-contain object-center sm:h-[3.125rem] sm:max-w-[11rem]",
+    stack: "gap-1",
+    mark: "block h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10",
+    wordmark:
+      "text-lg font-black leading-none tracking-tight text-[#0C1833] sm:text-xl",
     pill: "px-2.5 py-1 text-[0.55rem] tracking-[0.08em] sm:px-3 sm:text-[0.62rem] sm:tracking-[0.1em]",
   },
   hero: {
-    stack: "gap-2",
-    image:
-      "block h-14 w-auto max-h-16 max-w-[12rem] shrink-0 bg-transparent object-contain object-center sm:h-16 sm:max-w-[14rem]",
+    stack: "gap-1.5",
+    mark: "block h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14",
+    wordmark:
+      "text-2xl font-black leading-none tracking-tight text-[#0C1833] sm:text-3xl",
     pill: "px-3 py-1 text-[0.62rem] tracking-[0.1em] sm:px-3.5 sm:text-[0.68rem] sm:tracking-[0.12em]",
   },
   footer: {
-    stack: "gap-1.5",
-    image:
-      "block h-12 w-auto max-h-14 max-w-[10.5rem] shrink-0 bg-transparent object-contain object-center sm:h-14 sm:max-w-[12rem]",
+    stack: "gap-1",
+    mark: "block h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10",
+    wordmark:
+      "text-lg font-black leading-none tracking-tight text-[#0C1833] sm:text-xl",
     pill: "px-2.5 py-1 text-[0.55rem] tracking-[0.08em] sm:px-3 sm:text-[0.62rem] sm:tracking-[0.1em]",
   },
 };
@@ -60,8 +64,8 @@ function lockupFetchPriority(size: MapAbleBrandLockupSize): "high" | "low" | "au
 }
 
 /**
- * Wordmark + width-fitted tagline pill (no link). Use inside an existing
- * interactive parent, or wrap with MapAbleBrandLockup.
+ * Mark + HTML wordmark + tagline pill (no link). Prefer HTML text over the
+ * portrait PNG wordmark so headers stay legible and pass 1.4.9 images-of-text.
  */
 export function MapAbleBrandMark({
   size = "header",
@@ -85,16 +89,21 @@ export function MapAbleBrandMark({
         className,
       )}
     >
-      <img
-        src={MAPABLE_LOGO_WORDMARK_SRC}
-        alt=""
-        width={754}
-        height={940}
-        className={styles.image}
-        decoding="async"
-        fetchPriority={fetchPriority}
-        aria-hidden
-      />
+      <span className="inline-flex items-center gap-2">
+        <img
+          src={MAPABLE_LOGO_MARK_SRC}
+          alt=""
+          width={80}
+          height={80}
+          className={styles.mark}
+          decoding="async"
+          fetchPriority={fetchPriority}
+          aria-hidden
+        />
+        <span className={styles.wordmark} aria-hidden>
+          MapAble
+        </span>
+      </span>
       <span
         className={cn(
           "inline-flex w-fit max-w-full items-center justify-center rounded-full bg-[#0C1833] text-center font-black uppercase leading-none text-[#F8C51C]",
@@ -108,8 +117,8 @@ export function MapAbleBrandMark({
 }
 
 /**
- * Centered MapAble mark + wordmark with a width-fitted tagline pill beneath.
- * Avoids the full PNG’s oversized baked-in tagline and left-heavy clip hacks.
+ * Centered MapAble mark + HTML wordmark with a width-fitted tagline pill.
+ * Dual focus ring (brand blue + yellow offset) for WCAG 2.4.13 on white headers.
  */
 export function MapAbleBrandLockup({
   href = "/",
@@ -132,7 +141,8 @@ export function MapAbleBrandLockup({
       aria-label={ariaLabel}
       onClick={onClick}
       className={cn(
-        "inline-flex min-w-0 rounded-2xl p-1 transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F8C51C]",
+        "inline-flex min-w-0 rounded-2xl p-1 transition hover:opacity-90",
+        mapableAaaFocusRingClass,
         align === "start" ? "items-start" : "items-center",
         className,
       )}

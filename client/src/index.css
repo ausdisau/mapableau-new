@@ -54,13 +54,15 @@
   --secondary: 214 20% 92%;
   --secondary-foreground: 215 28% 18%;
   --muted: 214 18% 93%;
-  --muted-foreground: 215 15% 40%;
+  --muted-foreground: 215 16% 34%; /* slate-600 AAA on white */
   --accent: 214 18% 94%;
   --accent-foreground: 215 28% 18%;
   --destructive: 0 75% 48%;
   --destructive-foreground: 0 0% 98%;
   --input: 214 20% 69%;
-  --ring: 198 100% 25%; /* brand blue on light surfaces; yellow ring only on navy/dark */
+  /* Dual focus: brand blue ring; yellow applied as ring-offset in focus utilities */
+  --ring: 198 100% 25%;
+  --focus-ring-offset: 45 94% 54%;
   --chart-1: 198 100% 25%;
   --chart-2: 160 58% 42%;
   --chart-3: 42 82% 50%;
@@ -150,18 +152,21 @@
   --popover: 218 28% 15%;
   --popover-foreground: 210 18% 92%;
   --popover-border: 218 22% 20%;
-  --primary: 198 85% 42%;
-  --primary-foreground: 0 0% 100%;
+  /* Light blue primary for AAA contrast on dark surfaces */
+  --primary: 213 97% 78%;
+  --primary-foreground: 222 47% 11%;
   --secondary: 218 22% 22%;
   --secondary-foreground: 210 18% 92%;
   --muted: 218 20% 20%;
-  --muted-foreground: 210 15% 65%;
+  --muted-foreground: 210 20% 82%; /* AAA on dark surfaces */
   --accent: 218 18% 18%;
   --accent-foreground: 210 18% 92%;
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 98%;
   --input: 218 22% 35%;
-  --ring: 45 94% 60%;
+  /* Dual focus on dark: light blue ring + yellow offset */
+  --ring: 213 97% 78%;
+  --focus-ring-offset: 45 94% 60%;
   --chart-1: 198 85% 42%;
   --chart-2: 160 58% 55%;
   --chart-3: 42 82% 60%;
@@ -344,8 +349,9 @@
   display: none !important;
 }
 .screen-reader-optimized *:focus {
-  outline: 3px solid hsl(var(--brand-blue)) !important;
-  outline-offset: 2px;
+  outline: 3px solid hsl(var(--ring)) !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px hsl(var(--focus-ring-offset, 45 94% 54%));
 }
 .screen-reader-optimized .blur-3xl,
 .screen-reader-optimized [class*="opacity-[0.0"] {
