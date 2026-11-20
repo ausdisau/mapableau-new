@@ -1,6 +1,22 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 
+/** WCAG 2.2 A/AA tags used for authenticated shells. */
+export const AXE_AA_TAGS = [
+  "wcag2a",
+  "wcag2aa",
+  "wcag21a",
+  "wcag21aa",
+  "wcag22aa",
+] as const;
+
+/** Marketing / public surfaces gate on AAA tags (plus AA). */
+export const AXE_AAA_TAGS = [
+  ...AXE_AA_TAGS,
+  "wcag2aaa",
+  "wcag22aaa",
+] as const;
+
 export async function settle(page: Page): Promise<void> {
   await page.waitForLoadState("domcontentloaded");
   await expect(page.locator("body")).toBeVisible();
@@ -27,25 +43,49 @@ export async function expectMainLandmark(page: Page): Promise<void> {
 export async function expectNoSeriousAxe(
   page: Page,
   route: string,
+  tags: readonly string[] = AXE_AA_TAGS,
 ): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
+  const results = await new AxeBuilder({ page }).withTags([...tags]).analyze();
   const serious = results.violations.filter((v) =>
     ["critical", "serious"].includes(v.impact || ""),
   );
-  expect
-    .soft(
-      serious,
-      `Serious/critical axe on ${route}: ${JSON.stringify(
-        serious.map((v) => ({
-          id: v.id,
-          impact: v.impact,
-          nodes: v.nodes.length,
-        })),
-      )}`,
-    )
-    .toEqual([]);
+  expect(
+    serious,
+    `Serious/critical axe on ${route}: ${JSON.stringify(
+      serious.map((v) => ({
+        id: v.id,
+        impact: v.impact,
+        nodes: v.nodes.length,
+      })),
+    )}`,
+  ).toEqual([]);
+}
+
+/** Marketing routes: full AAA tag set, assert zero critical/serious. */
+export async function expectNoSeriousAxeAaa(
+  page: Page,
+  route: string,
+): Promise<void> {
+  return expectNoSeriousAxe(page, route, AXE_AAA_TAGS);
+}
+
+/** Hard gate: zero axe violations at the requested tag set (panel-style). */
+export async function expectZeroAxeViolations(
+  page: Page,
+  route: string,
+  tags: readonly string[] = AXE_AAA_TAGS,
+): Promise<void> {
+  const results = await new AxeBuilder({ page }).withTags([...tags]).analyze();
+  expect(
+    results.violations,
+    `Axe violations on ${route}: ${JSON.stringify(
+      results.violations.map((v) => ({
+        id: v.id,
+        impact: v.impact,
+        nodes: v.nodes.length,
+      })),
+    )}`,
+  ).toEqual([]);
 }
 
 export async function expectVisibleFocus(page: Page): Promise<void> {
@@ -67,5 +107,19 @@ export async function assertAuthShell(
   expect(new URL(page.url()).pathname).not.toMatch(/^\/login/);
   await expectMainLandmark(page);
   await expectNoSeriousAxe(page, route);
+  await expectVisibleFocus(page);
+}
+
+export async function assertMarketingShellAaa(
+  page: Page,
+  route: string,
+): Promise<void> {
+  const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+  expect(response, `navigation to ${route}`).not.toBeNull();
+  const status = response!.status();
+  expect(status, `${route} status`).toBeLessThan(400);
+  await settle(page);
+  await expectMainLandmark(page);
+  await expectNoSeriousAxeAaa(page, route);
   await expectVisibleFocus(page);
 }

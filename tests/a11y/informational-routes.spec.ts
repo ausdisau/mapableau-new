@@ -66,7 +66,15 @@ test.describe("Informational release routes (axe + shell)", () => {
       await expect(page.locator("main, [role='main']").first()).toBeVisible();
 
       const results = await new AxeBuilder({ page })
-        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+        .withTags([
+          "wcag2a",
+          "wcag2aa",
+          "wcag21a",
+          "wcag21aa",
+          "wcag22aa",
+          "wcag2aaa",
+          "wcag22aaa",
+        ])
         .analyze();
       const serious = results.violations.filter((v) =>
         ["critical", "serious"].includes(v.impact || ""),

@@ -4,7 +4,6 @@ import { ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { PublicMarketingBreadcrumbs } from "@/components/marketing/PublicMarketingBreadcrumbs";
 import { PublicModuleRelatedSection } from "@/components/marketing/PublicModuleRelatedSection";
 import {
   mapablePublicCardClass,
@@ -59,7 +58,6 @@ export function PublicModulePage({
           className="pointer-events-none absolute bottom-[-8rem] left-[-6rem] h-72 w-72 rounded-full bg-[#00A979]/10 blur-3xl"
         />
         <div className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}>
-          <PublicMarketingBreadcrumbs className="mb-6" />
           <div className="max-w-3xl">
             <p className={mapablePublicEyebrowClass}>{eyebrow}</p>
             <h1 className={`${mapablePublicTitleClass} mt-3`}>{title}</h1>

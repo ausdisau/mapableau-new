@@ -24,7 +24,7 @@ function FooterTextLink({
   return (
     <Link
       href={href}
-      className="rounded-lg text-sm font-medium text-slate-600 transition hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+      className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium text-slate-600 transition hover:text-[#005B7F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#005B7F] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F8C51C]"
     >
       {children}
     </Link>
@@ -53,7 +53,7 @@ function SocialLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black text-slate-600 transition hover:bg-white hover:text-[#005B7F] focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-sm font-black text-slate-600 transition hover:bg-white hover:text-[#005B7F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#005B7F] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F8C51C]"
     >
       {icon}
     </a>

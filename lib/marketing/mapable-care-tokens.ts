@@ -9,4 +9,6 @@ export {
   mapableCareOutlineCtaClass,
   mapableCareCardClass,
   mapableCareEyebrowClass,
+  mapableAaaFocusRingClass,
+  mapableTypography,
 } from "@mapable/ui/tokens";
