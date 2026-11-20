@@ -22,6 +22,8 @@ export type PaymentCheckoutParams = {
   transferDestination?: string;
   paymentIntentData?: Stripe.Checkout.SessionCreateParams["payment_intent_data"];
   integrationLabel?: string;
+  /** Stripe request idempotency key — prevents duplicate sessions on retries. */
+  idempotencyKey?: string;
 };
 
 export async function createStripePaymentCheckoutSession(
@@ -45,8 +47,10 @@ export async function createStripePaymentCheckoutSession(
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     metadata: params.metadata,
+    // Must be identical across idempotent retries; derive from the key when set.
     integration_identifier: checkoutIntegrationIdentifier(
-      params.integrationLabel ?? "mapable-invoice-pay"
+      params.integrationLabel ?? "mapable-invoice-pay",
+      params.idempotencyKey,
     ),
   };
 
@@ -64,7 +68,12 @@ export async function createStripePaymentCheckoutSession(
     };
   }
 
-  return stripe.checkout.sessions.create(sessionParams);
+  return stripe.checkout.sessions.create(
+    sessionParams,
+    params.idempotencyKey
+      ? { idempotencyKey: params.idempotencyKey }
+      : undefined,
+  );
 }
 
 export async function createStripeSubscriptionCheckoutSession(params: {
@@ -154,6 +163,9 @@ export function buildBillingPaymentCheckout(params: {
     paymentIntentData,
     applicationFeeAmount: undefined,
     transferDestination: undefined,
+    idempotencyKey: params.paymentId
+      ? `billing_checkout_${params.paymentId}`
+      : undefined,
   });
 }
 

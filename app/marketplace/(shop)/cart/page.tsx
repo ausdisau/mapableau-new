@@ -9,8 +9,8 @@ export default function MarketplaceCartPage() {
       <header>
         <h1 className="font-heading text-2xl font-bold">Your cart</h1>
         <p className="text-muted-foreground">
-          Review items before creating a billing invoice. Payment continues in the billing
-          centre.
+          Review items and the full payable total. Card payments use Stripe Checkout; amounts
+          are calculated on the server. Paying does not imply NDIS eligibility.
         </p>
       </header>
       <MarketplaceCartClient products={MARKETPLACE_CATALOG} />

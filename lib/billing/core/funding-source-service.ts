@@ -1,4 +1,4 @@
-import type { BillingFundingSourceType } from "@prisma/client";
+import type { BillingFundingSourceType, Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { writeBillingAuditLog } from "@/lib/billing/core/audit";
@@ -6,23 +6,28 @@ import type { createFundingSourceSchema } from "@/lib/billing/core/schemas";
 import { prisma } from "@/lib/prisma";
 
 type CreateInput = z.infer<typeof createFundingSourceSchema>;
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
-export async function listFundingSources(userId: string) {
-  return prisma.billingFundingSource.findMany({
+export async function listFundingSources(userId: string, db: DbClient = prisma) {
+  return db.billingFundingSource.findMany({
     where: { userId },
     orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
   });
 }
 
-export async function createFundingSource(userId: string, input: CreateInput) {
+export async function createFundingSource(
+  userId: string,
+  input: CreateInput,
+  db: DbClient = prisma,
+) {
   if (input.isDefault) {
-    await prisma.billingFundingSource.updateMany({
+    await db.billingFundingSource.updateMany({
       where: { userId },
       data: { isDefault: false },
     });
   }
 
-  const source = await prisma.billingFundingSource.create({
+  const source = await db.billingFundingSource.create({
     data: {
       userId,
       type: input.type as BillingFundingSourceType,
@@ -35,13 +40,18 @@ export async function createFundingSource(userId: string, input: CreateInput) {
     },
   });
 
-  await writeBillingAuditLog({
-    actorUserId: userId,
-    entityType: "BillingFundingSource",
-    entityId: source.id,
-    action: "created",
-    after: source,
-  });
+  // Audit outside the caller's transaction would race; write after create using
+  // the same client so a rolled-back create cannot leave an orphan audit row.
+  await writeBillingAuditLog(
+    {
+      actorUserId: userId,
+      entityType: "BillingFundingSource",
+      entityId: source.id,
+      action: "created",
+      after: source,
+    },
+    db,
+  );
 
   return source;
 }

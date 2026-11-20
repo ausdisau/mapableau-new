@@ -35,9 +35,13 @@ function envEnabled(name: string): boolean {
 
 /** Opt-in only — default off for Year-One transactional commerce. */
 export const yearOneScopeConfig = {
-  marketplaceTransactionalEnabled: envEnabled("MAPABLE_MARKETPLACE_ENABLED"),
+  get marketplaceTransactionalEnabled() {
+    return envEnabled("MAPABLE_MARKETPLACE_ENABLED");
+  },
   /** @deprecated Alias — prefer marketplaceTransactionalEnabled */
-  marketplaceEnabled: envEnabled("MAPABLE_MARKETPLACE_ENABLED"),
+  get marketplaceEnabled() {
+    return envEnabled("MAPABLE_MARKETPLACE_ENABLED");
+  },
   /** Legacy flags retained for ops docs; public explainers are always on. */
   foodsEnabled: true,
   kidsEnabled: true,

@@ -38,11 +38,13 @@ describe("AccessiMart ZIP review adapter", () => {
       productSafety: "not-verified",
       ndisEligibility: "not-assessed",
       provenance: "unreviewed-source",
+      warranty: "not-verified",
     });
     expect(result?.commerce).toEqual({
       checkoutAvailable: false,
       quoteSubmissionAvailable: false,
       sellerContactAvailable: false,
+      illustrativePriceShown: false,
     });
 
     const output = JSON.stringify(result);

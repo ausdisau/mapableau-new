@@ -1,7 +1,7 @@
 import { listPublicEcosystemDirectory } from "@/lib/api/certified-ecosystem/ecosystem-service";
 import { API_CERTIFICATION_DISCLAIMER } from "@/lib/config/y5-rights-infrastructure";
 
-export default async function EcosystemPage() {
+export default async function CertifiedApiEcosystemPage() {
   const entries = await listPublicEcosystemDirectory();
 
   return (

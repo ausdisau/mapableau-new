@@ -1,14 +1,21 @@
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
-export async function writeBillingAuditLog(params: {
-  actorUserId?: string | null;
-  entityType: string;
-  entityId: string;
-  action: string;
-  before?: unknown;
-  after?: unknown;
-}) {
-  return prisma.billingAuditLog.create({
+type DbClient = Prisma.TransactionClient | typeof prisma;
+
+export async function writeBillingAuditLog(
+  params: {
+    actorUserId?: string | null;
+    entityType: string;
+    entityId: string;
+    action: string;
+    before?: unknown;
+    after?: unknown;
+  },
+  db: DbClient = prisma,
+) {
+  return db.billingAuditLog.create({
     data: {
       actorUserId: params.actorUserId ?? null,
       entityType: params.entityType,
