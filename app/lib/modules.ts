@@ -107,7 +107,7 @@ export const deferredModules: MapAbleModule[] = [
       "Mobility Aids",
       "Daily Living",
       "Sensory Products",
-      "NDIS Approved",
+      "Funding guidance (not approval)",
     ],
   },
   {

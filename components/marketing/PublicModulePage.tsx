@@ -4,6 +4,9 @@ import { ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PlannedJourneyPreview } from "@/components/marketing/PlannedJourneyPreview";
+import type { PublicRoadmapModule } from "@/lib/marketing/coming-soon-journeys";
+
 import { PublicMarketingBreadcrumbs } from "@/components/marketing/PublicMarketingBreadcrumbs";
 import { PublicModuleRelatedSection } from "@/components/marketing/PublicModuleRelatedSection";
 import {
@@ -31,6 +34,7 @@ export type PublicModulePageProps = {
   whoFor: string[];
   availableNow: string[];
   comingSoon: string[];
+  roadmapModule?: PublicRoadmapModule;
   safetyNote: ReactNode;
   primaryCta: CallToAction;
   secondaryCta?: CallToAction;
@@ -43,6 +47,7 @@ export function PublicModulePage({
   whoFor,
   availableNow,
   comingSoon,
+  roadmapModule,
   safetyNote,
   primaryCta,
   secondaryCta,
@@ -113,6 +118,8 @@ export function PublicModulePage({
             tone="muted"
           />
         </div>
+
+        {roadmapModule ? <PlannedJourneyPreview module={roadmapModule} /> : null}
 
         <div className="mt-8 rounded-[1.7rem] border border-[#005B7F]/15 bg-[#F8C51C]/15 p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
