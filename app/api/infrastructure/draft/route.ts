@@ -2,6 +2,8 @@ import { generateObject } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
 import { isAddInfrastructureEnabled } from "@/lib/config/care-transport-map";
 import { isSearchInterpreterConfigured } from "@/lib/config/search-interpreter";
 import { forwardGeocodeAustralia } from "@/lib/map/nominatim-server";
@@ -11,6 +13,10 @@ import {
   infrastructureDraftRequestSchema,
 } from "@/lib/transport/care-map/infrastructure-draft";
 import { accessPlaceCategorySchema } from "@/types/access-map";
+
+/** Process-local IP limit — not multi-instance-safe; shared-store follow-up if scaled. */
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 5;
 
 const gptDraftSchema = z.object({
   name: z.string().min(2).max(200),
@@ -30,6 +36,24 @@ export async function POST(request: Request) {
         code: "FEATURE_DISABLED",
       },
       { status: 404 },
+    );
+  }
+
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
+  const ip = getClientIp(request);
+  if (
+    !checkIpRateLimit(ip, {
+      windowMs: RATE_LIMIT_WINDOW_MS,
+      max: RATE_LIMIT_MAX,
+    })
+  ) {
+    return NextResponse.json(
+      {
+        error: "Too many draft requests. Please wait a minute and try again.",
+      },
+      { status: 429 },
     );
   }
 

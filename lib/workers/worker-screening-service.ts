@@ -2,7 +2,7 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 import {
   storeDocumentFile,
-  validateUpload,
+  validateUploadBuffer,
 } from "@/lib/storage/documents";
 import {
   type ScreeningSubmissionView,
@@ -43,9 +43,9 @@ export async function submitWorkerScreeningCheck(params: {
   if (!profile) throw new Error("WORKER_PROFILE_NOT_FOUND");
 
   const buffer = Buffer.from(await params.file.arrayBuffer());
-  const stored = await storeDocumentFile(buffer, params.file.name);
-  const validation = validateUpload(stored.mimeType, stored.fileSize);
+  const { error: validation, mimeType } = validateUploadBuffer(buffer);
   if (validation) throw new Error(`UPLOAD_INVALID:${validation}`);
+  const stored = await storeDocumentFile(buffer, params.file.name, mimeType);
 
   const description = JSON.stringify({
     kind: "ndis_worker_screening",
