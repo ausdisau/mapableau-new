@@ -1,3 +1,4 @@
+import { DirectoryCategoryLinks } from "@/components/search/DirectoryCategoryLinks";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
 
@@ -10,7 +11,8 @@ export const metadata = {
 
 export default function MovesModulePage() {
   return (
-    <PublicModulePage
+    <>
+      <PublicModulePage
       eyebrow="MapAble Moves"
       title="Move better with therapy and mobility supports you can trust."
       description="MapAble Moves is planned for physical therapy, rehabilitation and mobility training — connecting people to providers who understand disability and access needs."
@@ -23,6 +25,7 @@ export default function MovesModulePage() {
         "Public module information and pilot enquiry pathway.",
         "Provider finder and Care links for related supports.",
         "Transport programme information for therapy trip planning.",
+        "Source-labelled Rehabilitation directory with searchable allied-health categories (source data may be disabled).",
       ]}
       comingSoon={[
         "Therapy discovery with accessibility requirements.",
@@ -32,9 +35,11 @@ export default function MovesModulePage() {
       safetyNote="MapAble Moves will not claim clinical outcomes or prescribe therapy. Clinical decisions stay with qualified practitioners; the platform coordinates discovery and journey support only."
       primaryCta={{ label: "Join pilot", href: "/contact" }}
       secondaryCta={{
-        label: "Learn about Transport",
-        href: "/transport",
+        label: "Browse Rehabilitation directory",
+        href: "/moves/directory",
       }}
-    />
+      />
+      <DirectoryCategoryLinks domain="rehabilitation" />
+    </>
   );
 }

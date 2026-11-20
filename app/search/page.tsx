@@ -3,6 +3,10 @@ import Link from "next/link";
 
 import { canonicalAlternate } from "@/lib/config/canonical-url";
 import { searchMapAble } from "@/lib/search/mapable-search-service";
+import {
+  categoriesForDomain,
+  isValidCategoryFilter,
+} from "@/lib/search/domain-directory-taxonomy";
 import type { MapAbleVertical } from "@/lib/search/mapable-search-core";
 
 export const metadata: Metadata = {
@@ -16,13 +20,14 @@ const verticals = [
   ["providers", "Providers"],
   ["care", "Care"],
   ["transport", "Transport"],
-  ["jobs", "Jobs"],
+  ["jobs", "Employment and jobs"],
+  ["rehabilitation", "Rehabilitation and therapy"],
 ] as const;
 
 const validVerticals = new Set<MapAbleVertical>(verticals.map(([id]) => id));
 const states = new Set(["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"]);
 
-type Params = { q?: string; vertical?: string; state?: string; postcode?: string };
+type Params = { q?: string; vertical?: string; state?: string; postcode?: string; category?: string };
 
 export default async function MapAbleSearchPage({
   searchParams,
@@ -36,7 +41,10 @@ export default async function MapAbleSearchPage({
     : "all";
   const state = states.has(params.state ?? "") ? params.state : undefined;
   const postcode = /^\d{4}$/.test(params.postcode ?? "") ? params.postcode : undefined;
-  const response = await searchMapAble({ q: query, vertical, state, postcode });
+  const category = isValidCategoryFilter(vertical, params.category)
+    ? (params.category ?? undefined)
+    : undefined;
+  const response = await searchMapAble({ q: query, vertical, state, postcode, category });
 
   return (
     <main id="main-content" className="mx-auto max-w-5xl space-y-8 px-4 py-12">
@@ -47,7 +55,7 @@ export default async function MapAbleSearchPage({
         <h1 className="font-heading text-4xl font-bold">MapAble Search</h1>
         <p className="max-w-3xl text-lg">
           Find what you need. Know what is verified. Stay in control.
-          Explore providers, care, transport and employment pathways in one place.
+          Explore providers, care, transport, employment and rehabilitation pathways in one place.
         </p>
       </header>
 
@@ -60,7 +68,7 @@ export default async function MapAbleSearchPage({
             type="search"
             maxLength={180}
             defaultValue={query}
-            placeholder="e.g. disability support, accessible transport, jobs"
+            placeholder="e.g. employment support, physiotherapy, accessible transport"
             className="min-h-12 w-full rounded-lg border bg-background px-4 text-foreground"
           />
         </div>
@@ -75,6 +83,28 @@ export default async function MapAbleSearchPage({
             >
               {verticals.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
             </select>
+          </div>
+          <div className="min-w-40 flex-1 space-y-1">
+            <label htmlFor="search-category" className="block text-sm font-semibold">Type of service (optional)</label>
+            <select
+              id="search-category"
+              name="category"
+              defaultValue={category ?? ""}
+              className="min-h-11 w-full rounded-lg border bg-background px-3"
+            >
+              <option value="">All service types</option>
+              <optgroup label="Employment">
+                {categoriesForDomain("jobs").filter((item) => item.id !== "all").map((item) => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Rehabilitation">
+                {categoriesForDomain("rehabilitation").filter((item) => item.id !== "all").map((item) => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
+                ))}
+              </optgroup>
+            </select>
+            <p className="text-xs text-muted-foreground">Choose the corresponding Employment or Rehabilitation area when filtering by service type.</p>
           </div>
           <div className="min-w-32 flex-1 space-y-1">
             <label htmlFor="search-state" className="block text-sm font-semibold">State (optional)</label>
@@ -97,6 +127,15 @@ export default async function MapAbleSearchPage({
         </p>
       </form>
 
+      <nav aria-label="Browse specialist directories" className="flex flex-wrap gap-3">
+        <Link href="/employment/directory" className="inline-flex min-h-11 items-center rounded-lg border bg-card px-4 font-semibold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4">
+          Browse Employment directory
+        </Link>
+        <Link href="/moves/directory" className="inline-flex min-h-11 items-center rounded-lg border bg-card px-4 font-semibold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4">
+          Browse Rehabilitation directory
+        </Link>
+      </nav>
+
       <section aria-labelledby="search-results-heading" className="space-y-4">
         <div className="space-y-1">
           <h2 id="search-results-heading" className="font-heading text-2xl font-bold">
@@ -106,15 +145,17 @@ export default async function MapAbleSearchPage({
             {response.resultCount} results. {response.sourceState === "navigation_only"
               ? "Showing MapAble navigation."
               : response.sourceState === "partial"
-                ? "Provider index unavailable; showing available navigation."
-                : "Includes imported provider directory records."}
+                ? "Some sources are unavailable; showing partial results."
+                : response.sourceState === "directory_results"
+                  ? "Includes source-labelled directory records or approved published jobs."
+                  : "Includes imported provider directory records."}
           </p>
         </div>
         {response.results.length ? (
           <ul className="space-y-3">
             {response.results.map((hit) => (
               <li key={hit.id} className="rounded-xl border bg-card p-5">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{hit.vertical} · {hit.kind === "module" ? "MapAble module" : "Provider directory outlet"}</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{hit.vertical} · {hit.kind === "module" ? "MapAble module" : hit.kind === "published_job" ? "Employer-published vacancy" : "Imported provider directory outlet"}</p>
                 <h3 className="text-lg font-semibold">
                   <Link href={hit.href} className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4">
                     {hit.title}
@@ -124,7 +165,10 @@ export default async function MapAbleSearchPage({
                 <p className="mt-2 text-sm text-muted-foreground">Source: {hit.sourceLabel}</p>
                 {hit.directoryUpdatedAt ? <p className="text-sm text-muted-foreground">Local record updated: {hit.directoryUpdatedAt.slice(0, 10)}</p> : null}
                 {hit.kind === "provider_outlet" ? (
-                  <p className="mt-2 text-sm">Current registration, worker screening, access fit and vacancies: not independently verified.</p>
+                  <p className="mt-2 text-sm">Current registration, professional credentials, worker screening, access fit and availability: not independently verified.</p>
+                ) : null}
+                {hit.kind === "published_job" ? (
+                  <p className="mt-2 text-sm">Employer-supplied vacancy; adjustment, pay and accessibility information require direct confirmation. Applying may require sign-in.</p>
                 ) : null}
               </li>
             ))}

@@ -1,3 +1,4 @@
+import { DirectoryCategoryLinks } from "@/components/search/DirectoryCategoryLinks";
 import { ModuleCanvasSection } from "@/components/canvas/ModuleCanvasSection";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
@@ -25,6 +26,7 @@ export default function EmploymentPage() {
           "Public module information and pilot contact path.",
           "Signed-in jobs routes for invited pilot users.",
           "Provider finder entry points for employment-related support.",
+          "Source-labelled Employment directory and searchable service categories (source data may be disabled in preview).",
         ]}
         comingSoon={[
           "Job seeker profiles with controlled disclosure settings.",
@@ -34,10 +36,11 @@ export default function EmploymentPage() {
         safetyNote="Job seekers will control whether disability, access needs or adjustment information is shared. MapAble will not support automated rejection based on access needs."
         primaryCta={{ label: "Join pilot", href: "/contact" }}
         secondaryCta={{
-          label: "Explore provider finder",
-          href: "/providers?service=employment",
+          label: "Browse Employment directory",
+          href: "/employment/directory",
         }}
       />
+      <DirectoryCategoryLinks domain="jobs" />
       <ModuleCanvasSection module="employment" />
     </>
   );

@@ -2,14 +2,17 @@
  * MapAble Search: pure public-discovery contract. No registration or worker
  * screening inference, no user profiles and no external calls.
  */
-export type MapAbleVertical = "all" | "providers" | "care" | "transport" | "jobs";
-export type MapAbleResultKind = "module" | "provider_outlet";
+import { domainForCategory } from "@/lib/search/domain-directory-taxonomy";
+
+export type MapAbleVertical = "all" | "providers" | "care" | "transport" | "jobs" | "rehabilitation";
+export type MapAbleResultKind = "module" | "provider_outlet" | "published_job";
 
 export type MapAbleSearchInput = {
   q: string;
   vertical: MapAbleVertical;
   state?: string;
   postcode?: string;
+  category?: string;
 };
 
 export type MapAbleSearchHit = {
@@ -19,7 +22,8 @@ export type MapAbleSearchHit = {
   title: string;
   description: string;
   href: string;
-  provenance: "mapable_navigation" | "local_ndis_directory_import";
+  provenance: "mapable_navigation" | "local_ndis_directory_import" | "approved_employer_listing";
+  category?: string;
   sourceLabel: string;
   sourceUrl?: string;
   directoryUpdatedAt?: string;
@@ -31,7 +35,7 @@ export type MapAbleSearchHit = {
 
 export type MapAbleSearchResponse = {
   results: MapAbleSearchHit[];
-  sourceState: "navigation_only" | "imported_provider_index" | "partial";
+  sourceState: "navigation_only" | "imported_provider_index" | "directory_results" | "partial";
   providerIndexEnabled: boolean;
   warnings: string[];
   resultCount: number;
@@ -90,6 +94,14 @@ const MODULES: readonly ModuleDefinition[] = [
     href: "/employment",
     terms: ["job", "jobs", "work", "employment", "career", "employer", "adjustment", "workplace", "inclusive"],
   },
+  {
+    id: "rehabilitation",
+    vertical: "rehabilitation",
+    title: "MapAble Moves · Rehabilitation directory",
+    description: "Explore sourced therapy and rehabilitation-related providers without assuming clinical suitability or live availability.",
+    href: "/moves/directory",
+    terms: ["rehabilitation", "rehab", "therapy", "physiotherapy", "occupational", "speech", "exercise", "allied health"],
+  },
 ];
 
 export function searchTokens(value: string): string[] {
@@ -109,6 +121,7 @@ export function navigationSearch(input: MapAbleSearchInput): MapAbleSearchHit[] 
   return MODULES.filter(
     (module) =>
       (input.vertical === "all" || input.vertical === module.vertical) &&
+      (!input.category || input.category === "all" || domainForCategory(input.category) === module.vertical) &&
       matchesQuery(module, input.q),
   ).map((module) => ({
     id: module.id,

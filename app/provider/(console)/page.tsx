@@ -6,6 +6,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { roleLabel } from "@/lib/auth/roles";
 import { getEnterpriseWorkspaceSummaryV2 } from "@/lib/provider/enterprise/workspace-v2-service";
 import { getProviderControlPanelSummaryForUser } from "@/lib/provider/provider-control-panel-service";
+import { isMapAbleOneOperationsHubEnabled } from "@/lib/config/mapable-one";
 
 export const metadata = { title: "Provider control panel | MapAble" };
 
@@ -64,6 +65,14 @@ export default async function ProviderControlPanelPage() {
             ". Link your account to an organisation to see metrics."
           )}
         </p>
+        {isMapAbleOneOperationsHubEnabled() ? (
+          <Link
+            href="/provider/one"
+            className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-primary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            Open MapAble One operations preview
+          </Link>
+        ) : null}
       </header>
 
       {showServiceReadyBadge && primary ? (
