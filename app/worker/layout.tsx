@@ -10,7 +10,11 @@ export default async function WorkerLayout({
   const user = await requirePermission("care:shift:work");
 
   return (
-    <AuthenticatedRoleAppShell user={user} headerTitle="Worker" secondaryNav={<WorkerNav />}>
+    <AuthenticatedRoleAppShell
+      user={user}
+      headerTitle="Worker"
+      secondaryNav={<WorkerNav />}
+    >
       {children}
     </AuthenticatedRoleAppShell>
   );

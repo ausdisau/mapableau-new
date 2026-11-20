@@ -6,13 +6,20 @@ import { DayChangesPanel } from "@/components/day/DayChangesPanel";
 import { DayContinuityDemo } from "@/components/day/DayContinuityDemo";
 import { DayHandoverDemo } from "@/components/day/DayHandoverDemo";
 import { DayRoutinesDemo } from "@/components/day/DayRoutinesDemo";
+import {
+  OneActionCentre,
+  OnePrivacyNote,
+  OneServiceCard,
+} from "@/components/mapable-one";
 import { getMapAbleIntelligenceConfig } from "@/intelligence/config";
 import { adaptParticipantDashboard } from "@/lib/access/adaptive";
 import { requireAuth } from "@/lib/auth/guards";
 import { roleLabel } from "@/lib/auth/roles";
 import { mapableDayFlags } from "@/lib/config/mapable-day";
+import { isMapAbleOneUnifiedShellEnabled } from "@/lib/config/mapable-one-shell";
 import { participantWorkspaceFlags } from "@/lib/config/participant-workspace";
 import { loadProgrammaticMyDay } from "@/lib/dashboard/load-my-day";
+import { buildCoreActionCentre } from "@/lib/mapable-one/action-centre";
 
 export const metadata = { title: "My Day | MapAble" };
 
@@ -26,6 +33,15 @@ export default async function DashboardPage() {
   const routinesDemo = mapableDayFlags.routinesDemoEnabled();
   const handoverDemo = mapableDayFlags.handoverDemoEnabled();
   const continuityDemo = mapableDayFlags.continuityDemoEnabled();
+  const oneShell = isMapAbleOneUnifiedShellEnabled();
+  const coreActions = oneShell
+    ? buildCoreActionCentre({
+        bookingCount:
+          snapshot.careSummary.count + snapshot.transportSummary.count,
+        hasBookingsToday: snapshot.careSummary.count > 0,
+        hasTransportToday: snapshot.transportSummary.count > 0,
+      })
+    : null;
 
   const densityClass =
     presentation.applied &&
@@ -40,10 +56,17 @@ export default async function DashboardPage() {
       data-adapt-variant={presentation.policy?.componentVariant ?? "default"}
       data-testid="participant-my-day-page"
       data-day-v2={dayV2 ? "on" : "off"}
+      data-mapable-one={oneShell ? "on" : "off"}
     >
       <header className="space-y-2">
-        <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#005B7F]">
-          Participant workspace
+        <p
+          className={
+            oneShell
+              ? "text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--mo-purple)]"
+              : "text-xs font-extrabold uppercase tracking-[0.14em] text-[#005B7F]"
+          }
+        >
+          {oneShell ? "MapAble Core" : "Participant workspace"}
         </p>
         <h1 className="font-heading text-3xl font-bold text-[#0C1833]">
           My Day
@@ -52,8 +75,41 @@ export default async function DashboardPage() {
           Signed in as <strong>{roleLabel(user.primaryRole)}</strong>. This
           page shows decision-safe context from your records. Administration
           stays in a separate permissioned workspace.
+          {oneShell
+            ? " Chat is optional — use Care, Transport, or Bookings directly."
+            : null}
         </p>
       </header>
+
+      {coreActions ? <OneActionCentre projection={coreActions} /> : null}
+
+      {oneShell ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <OneServiceCard
+            title="Care"
+            description="Your care bookings and requests"
+            href="/care"
+            badge="You decide"
+          />
+          <OneServiceCard
+            title="Transport"
+            description="Accessible trip requests and status"
+            href="/dashboard/transport"
+          />
+          <OneServiceCard
+            title="Calendar"
+            description="List view of upcoming arrangements"
+            href="/dashboard/calendar"
+          />
+        </div>
+      ) : null}
+
+      {oneShell ? (
+        <OnePrivacyNote>
+          Only records you are authorised to see appear here. Providers and
+          workers cannot displace your direct approval on consent or bookings.
+        </OnePrivacyNote>
+      ) : null}
 
       <MyDayProgrammaticPanel snapshot={snapshot} />
 
