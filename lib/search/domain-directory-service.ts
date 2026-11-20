@@ -109,6 +109,7 @@ export async function searchDomainDirectory(
             where: {
               status: "published",
               employerOrganisationId: { in: employerIds },
+              employerOrganisation: { status: "active" },
               ...(category.id === "workplace_adjustments"
                 ? { adjustmentOpennessStatement: { not: null } }
                 : {}),
@@ -153,7 +154,7 @@ export async function searchDomainDirectory(
               title: job.title,
               description: attributes.join(" · ") +
                 ". Details and adjustment claims come from the publishing employer.",
-              href: "/dashboard/jobs/" + encodeURIComponent(job.id),
+              href: "/employment/directory/jobs/" + encodeURIComponent(job.id),
               provenance: "approved_employer_listing",
               sourceLabel: "MapAble published job from an explicitly approved employer organisation",
               registration: "not_independently_verified",
