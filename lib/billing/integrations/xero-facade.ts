@@ -4,6 +4,9 @@ import type { MapAbleUserRole } from "@prisma/client";
 
 import { writeFinancialAudit } from "@/lib/billing/audit/financial-audit";
 import { isXeroConfigured } from "@/lib/config/phase2";
+import { integrationsFeatureFlags } from "@/lib/integrations/config/feature-flags";
+import { createDraftAccRecInvoice } from "@/lib/integrations/xero/invoices";
+import { buildXeroAuthorizeUrl, createXeroOAuthState } from "@/lib/integrations/xero/oauth";
 import { prisma } from "@/lib/prisma";
 import {
   getXeroOAuthStartUrl,
@@ -37,6 +40,61 @@ export async function connectXero(input: {
   actorId?: string | null;
   actorRole?: MapAbleUserRole | string | null;
 }): Promise<XeroConnectResult> {
+  // Prefer direct OAuth when XERO_DIRECT_ENABLED; otherwise legacy placeholder URL.
+  if (
+    integrationsFeatureFlags.xeroDirectEnabled() &&
+    input.organisationId &&
+    input.actorId
+  ) {
+    try {
+      const { state } = createXeroOAuthState({
+        organisationId: input.organisationId,
+        actorUserId: input.actorId,
+      });
+      const url = buildXeroAuthorizeUrl(state);
+      const connection = await prisma.billingIntegrationConnection.upsert({
+        where: {
+          organisationId_provider: {
+            organisationId: input.organisationId,
+            provider: "xero",
+          },
+        },
+        create: {
+          organisationId: input.organisationId,
+          provider: "xero",
+          status: "connecting",
+          connectedById: input.actorId,
+        },
+        update: { status: "connecting", lastError: null },
+      });
+      await writeFinancialAudit({
+        organisationId: input.organisationId,
+        actorId: input.actorId,
+        actorRole: input.actorRole,
+        action: "xero_direct_connect_started",
+        entityType: "BillingIntegrationConnection",
+        entityId: connection.id,
+        newValues: { live: false, mode: "authorization_code" },
+      });
+      return {
+        ok: true,
+        live: false,
+        configured: true,
+        url,
+        connectionId: connection.id,
+        message:
+          "Xero direct OAuth start URL prepared. Invoices remain DRAFT-only until accountant review.",
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        live: false,
+        configured: false,
+        message: err instanceof Error ? err.message : "Xero direct connect failed",
+      };
+    }
+  }
+
   const start = getXeroOAuthStartUrl();
   const configured = isXeroConfigured();
 
@@ -110,7 +168,8 @@ export type SyncInvoiceToXeroInput = {
 
 export type SyncInvoiceToXeroResult = {
   ok: boolean;
-  live: false;
+  /** True only when a real Xero DRAFT was created under XERO_DIRECT_ENABLED. */
+  live: boolean;
   configured: boolean;
   idempotencyRef: string;
   message: string;
@@ -118,12 +177,13 @@ export type SyncInvoiceToXeroResult = {
 };
 
 /**
- * Idempotent Xero sync stub. Always reports live: false.
+ * Idempotent Xero sync. Uses direct DRAFT ACCREC when XERO_DIRECT_ENABLED;
+ * otherwise the historical non-live stub. Never auto-authorises/sends invoices.
  */
 export async function syncInvoiceToXero(
   input: SyncInvoiceToXeroInput
 ): Promise<SyncInvoiceToXeroResult> {
-  const configured = isXeroConfigured();
+  const configured = isXeroConfigured() || integrationsFeatureFlags.xeroDirectEnabled();
   const idempotencyRef =
     input.idempotencyKey ?? `xero-sync:${input.invoiceId}:${randomUUID()}`;
 
@@ -137,6 +197,47 @@ export async function syncInvoiceToXero(
         },
       })
     : null;
+
+  if (
+    integrationsFeatureFlags.xeroDirectEnabled() &&
+    input.organisationId &&
+    existingConnection?.status === "connected"
+  ) {
+    const invoice = await prisma.billingInvoice.findUnique({
+      where: { id: input.invoiceId },
+      include: { lineItems: true },
+    });
+    if (invoice?.lineItems.length) {
+      const direct = await createDraftAccRecInvoice({
+        organisationId: input.organisationId,
+        billingInvoiceId: invoice.id,
+        idempotencyKey: idempotencyRef,
+        reference: invoice.invoiceNumber ?? invoice.id,
+        lineItems: invoice.lineItems.map((line) => ({
+          description: line.description,
+          quantity: Number(line.quantity),
+          unitAmount: line.unitAmountCents / 100,
+        })),
+      });
+      await writeFinancialAudit({
+        organisationId: input.organisationId,
+        actorId: input.actorId,
+        actorRole: input.actorRole,
+        action: direct.ok ? "xero_direct_draft_export" : "xero_direct_draft_failed",
+        entityType: "BillingInvoice",
+        entityId: input.invoiceId,
+        newValues: { idempotencyRef, ...direct },
+      });
+      return {
+        ok: direct.ok,
+        live: Boolean(direct.ok && "live" in direct && direct.live),
+        configured: true,
+        idempotencyRef,
+        recordId: direct.ok ? direct.xeroInvoiceId : undefined,
+        message: direct.message,
+      };
+    }
+  }
 
   if (!configured) {
     await writeFinancialAudit({
@@ -256,13 +357,16 @@ export async function getBillingXeroStatus(invoiceId: string) {
     select: { xeroExportStatus: true, xeroInvoiceId: true },
   });
   if (billing) {
+    const direct = integrationsFeatureFlags.xeroDirectEnabled();
     return {
-      configured: isXeroConfigured(),
-      live: false as const,
+      configured: isXeroConfigured() || direct,
+      live: Boolean(direct && billing.xeroExportStatus === "draft_exported"),
       status: billing.xeroExportStatus ?? "not_started",
       externalId: billing.xeroInvoiceId,
+      directEnabled: direct,
+      autoAuthorise: false as const,
     };
   }
   const legacy = await getXeroSyncStatus(invoiceId);
-  return { ...legacy, live: false as const };
+  return { ...legacy, live: false as const, autoAuthorise: false as const };
 }
