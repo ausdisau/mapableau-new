@@ -13,10 +13,10 @@ const sizeStyles: Record<
   { image: string; pill: string; stack: string }
 > = {
   header: {
-    stack: "gap-1.5",
+    stack: "gap-1",
     image:
-      "block h-[2.8125rem] w-auto max-h-[3.125rem] max-w-[9.5rem] shrink-0 bg-transparent object-contain object-center sm:h-[3.125rem] sm:max-w-[11rem]",
-    pill: "px-2.5 py-1 text-[0.55rem] tracking-[0.08em] sm:px-3 sm:text-[0.62rem] sm:tracking-[0.1em]",
+      "block h-10 w-auto max-h-11 max-w-[7.5rem] shrink-0 bg-transparent object-contain object-center sm:h-11 sm:max-w-[8.5rem]",
+    pill: "px-2 py-0.5 text-[0.5rem] tracking-[0.06em] sm:px-2.5 sm:text-[0.55rem] sm:tracking-[0.08em]",
   },
   hero: {
     stack: "gap-2",
@@ -79,7 +79,7 @@ export function MapAbleBrandMark({
   return (
     <span
       className={cn(
-        "inline-flex min-w-0 flex-col",
+        "inline-flex min-w-0 max-w-full flex-col overflow-visible rounded-2xl p-1 transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F26A21]",
         align === "start" ? "items-start" : "items-center",
         styles.stack,
         className,
@@ -88,8 +88,8 @@ export function MapAbleBrandMark({
       <img
         src={MAPABLE_LOGO_WORDMARK_SRC}
         alt=""
-        width={754}
-        height={940}
+        width={882}
+        height={875}
         className={styles.image}
         decoding="async"
         fetchPriority={fetchPriority}
@@ -97,7 +97,7 @@ export function MapAbleBrandMark({
       />
       <span
         className={cn(
-          "inline-flex w-fit max-w-full items-center justify-center rounded-full bg-[#0C1833] text-center font-black uppercase leading-none text-[#F8C51C]",
+          "inline-flex w-fit max-w-full items-center justify-center rounded-full bg-[#0C1833] text-center font-black uppercase leading-none text-[#F26A21]",
           styles.pill,
         )}
       >
@@ -132,7 +132,7 @@ export function MapAbleBrandLockup({
       aria-label={ariaLabel}
       onClick={onClick}
       className={cn(
-        "inline-flex min-w-0 rounded-2xl p-1 transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F8C51C]",
+        "inline-flex min-w-0 rounded-2xl p-1 transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F26A21]",
         align === "start" ? "items-start" : "items-center",
         className,
       )}

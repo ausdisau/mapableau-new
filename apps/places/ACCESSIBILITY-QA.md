@@ -2,6 +2,8 @@
 
 **Not an accessibility certification or completed conformance audit.** This document identifies implemented design intentions and outstanding tests.
 
+Cross-product WAI map (WCAG · ATAG · UAAG): [`docs/accessibility/WAI-GUIDELINES-MAP.md`](../../docs/accessibility/WAI-GUIDELINES-MAP.md).
+
 ## Scope
 - Web: WCAG 2.2 A/AA as target; user-generated content editing assessed using ATAG 2.0 Part A (accessible editor) and Part B (support accessible output).
 - React Native Android/iOS: equivalent interaction expectations using platform accessibility APIs (TalkBack/VoiceOver, switch and voice control).

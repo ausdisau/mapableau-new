@@ -8,7 +8,7 @@ export function HomepageSupportJourney() {
       aria-labelledby="support-journey-heading"
       className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16"
     >
-      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#005B7F]">
+      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#3B5BDB]">
         Support journey
       </p>
       <h2
@@ -23,7 +23,7 @@ export function HomepageSupportJourney() {
             key={step.number}
             className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#005B7F]">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#3B5BDB]">
               Step {step.number}
             </p>
             <h3 className="mt-2 text-xl font-black text-[#0C1833]">{step.title}</h3>

@@ -144,6 +144,40 @@ export const homepageTrustStripItems = [
 ];
 
 /**
+ * PWDA-style pathway tiles directly under the hero.
+ * Labels/hrefs reuse informational-safe destinations already on the splash.
+ */
+export const homepagePathwayTiles = [
+  {
+    label: "Explore accessible places",
+    href: "/accessibility-map",
+    body: "Browse venues with access notes, confidence, and sources.",
+  },
+  {
+    label: "Pre-register interest",
+    href: "#pre-register",
+    body: "Register pilot interest as a participant or provider.",
+  },
+  {
+    label: "Contact MapAble",
+    href: "/contact",
+    body: "Ask a question about public information or pilot interest.",
+  },
+] as const;
+
+/** AFDO-style purpose pair — reuses existing splash claim language. */
+export const homepagePurposePair = [
+  {
+    title: "Our focus",
+    body: homepageHeroCopy.headline,
+  },
+  {
+    title: "Our commitment",
+    body: "Public pages explain programmes and discovery tools. Care bookings, live transport matching, and NDIS claims stay separately governed.",
+  },
+] as const;
+
+/**
  * Public surfaces that exist in-repo today (informational / discovery).
  * Keep claims aligned with fail-closed feature flags — no bookings/claims GA.
  */
@@ -570,6 +604,8 @@ export const mapAbleCareCombinedDesignTests = [
     name: "guided landing includes primary homepage sections",
     expectedSections: [
       "HeroSection",
+      "HomepagePathwayStrip",
+      "HomepagePurposePair",
       "HomepageExploreStrip",
       "CompetitorContrastStrip",
       "PreRegistrationSection",

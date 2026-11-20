@@ -49,7 +49,7 @@ export function MapAbleAppShell({
           <MapAbleBrandLockup
             href="/"
             size="header"
-            className="hover:opacity-100"
+            className="hover:opacity-100 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
           />
         </header>
         <main id="main-content" className="flex-1">
@@ -60,7 +60,7 @@ export function MapAbleAppShell({
   }
 
   return (
-    <div className="mapable-soft flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]">
+    <div className="mapable-soft flex min-h-screen flex-col bg-[#F7F8FC] text-[#0C1833]">
       <SkipToContent />
       <MapAbleAppCompactHeader
         title={headerTitle}

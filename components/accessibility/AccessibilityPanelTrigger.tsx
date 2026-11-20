@@ -20,21 +20,21 @@ export function AccessibilityPanelTrigger({
   if (!a11y) return null;
 
   const adjusted = a11y.hasCustomPreferences;
-  const label = "Open accessibility settings";
-  const visible = showLabel ? "Accessibility" : null;
+  const label = "Open display settings";
+  const visible = showLabel ? "Display settings" : null;
 
   if (variant === "link") {
     return (
       <button
         ref={ref as React.RefObject<HTMLButtonElement>}
         type="button"
-        className={`min-h-11 rounded-lg text-sm font-medium text-slate-600 underline-offset-2 hover:text-[#005B7F] hover:underline ${mapableCareFocusRing} ${className}`}
+        className={`min-h-11 rounded-lg text-sm font-medium text-slate-600 underline-offset-2 hover:text-[#0C1833] hover:underline ${mapableCareFocusRing} ${className}`}
         aria-label={label}
         aria-expanded={a11y.isPanelOpen}
         aria-haspopup="dialog"
         onClick={() => a11y.openPanel(ref.current)}
       >
-        {visible ?? "Accessibility settings"}
+        {visible ?? "Display settings"}
         {adjusted ? (
           <span className="sr-only"> (custom display settings active)</span>
         ) : null}
@@ -57,9 +57,9 @@ export function AccessibilityPanelTrigger({
       </span>
       {showLabel ? (
         <span className="hidden sm:inline">
-          Accessibility
+          Display settings
           {adjusted ? (
-            <span className="ml-1 inline-block h-2 w-2 rounded-full bg-[#005B7F]" aria-hidden="true" />
+            <span className="ml-1 inline-block h-2 w-2 rounded-full bg-[#F15A29]" aria-hidden="true" />
           ) : null}
         </span>
       ) : null}

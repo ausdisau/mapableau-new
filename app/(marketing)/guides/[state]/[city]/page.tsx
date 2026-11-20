@@ -54,10 +54,10 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
 
   return (
     <div className="bg-white text-[#0C1833]">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F7F8FC]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F8C51C]/25 blur-3xl"
+          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F26A21]/25 blur-3xl"
         />
         <div
           className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}
@@ -122,14 +122,14 @@ export default async function AccessGuidePage({ params }: GuidePageProps) {
               <a
                 href={accessGuideDownloads.pdf}
                 download
-                className={`font-medium text-[#005B7F] underline ${mapableCareFocusRing}`}
+                className={`font-medium text-[#3B5BDB] underline ${mapableCareFocusRing}`}
               >
                 PDF
               </a>
               <a
                 href={accessGuideDownloads.docx}
                 download
-                className={`font-medium text-[#005B7F] underline ${mapableCareFocusRing}`}
+                className={`font-medium text-[#3B5BDB] underline ${mapableCareFocusRing}`}
               >
                 Word
               </a>

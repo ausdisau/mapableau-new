@@ -161,6 +161,8 @@ describe("mapAbleCareCombinedDesignTests", () => {
     );
     expect(spec?.expectedSections).toEqual([
       "HeroSection",
+      "HomepagePathwayStrip",
+      "HomepagePurposePair",
       "HomepageExploreStrip",
       "CompetitorContrastStrip",
       "PreRegistrationSection",
@@ -233,9 +235,20 @@ describe("MapAbleCareCombinedHomepage", () => {
   });
 
   it("renders footer contact and registration details", () => {
-    expect(screen.getByText("0434 083 624")).toBeTruthy();
+    expect(screen.getAllByText("0434 083 624").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/55 641 613 541/)).toBeTruthy();
     expect(screen.getByText("To be confirmed")).toBeTruthy();
+  });
+
+  it("renders DPO-inspired pathway tiles and purpose pair", () => {
+    expect(screen.getByRole("region", { name: "Start here" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Explore accessible places" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Our focus" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Our commitment" }),
+    ).toBeTruthy();
   });
 
   it("renders informational final CTA with pre-register anchor", () => {
