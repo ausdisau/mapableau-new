@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -164,16 +165,16 @@ function StripePaymentModal({
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md" data-testid="modal-stripe-payment">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-md" closeTestId="button-close-payment" data-testid="modal-stripe-payment">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" /> Pay Invoice
           </DialogTitle>
+          <DialogDescription>
+            Amount: <span className="font-bold text-foreground">${Number(invoice.totalAmount).toFixed(2)} AUD</span>
+          </DialogDescription>
         </DialogHeader>
-        <div className="mb-4 text-sm text-muted-foreground">
-          Amount: <span className="font-bold text-foreground">${Number(invoice.totalAmount).toFixed(2)} AUD</span>
-        </div>
 
         {loading && !error && (
           <div className="flex items-center justify-center py-8">

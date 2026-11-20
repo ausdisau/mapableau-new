@@ -54,14 +54,17 @@ function colorForLayer(layer?: MapLayer): string {
   return sanitizeHexColor(layer?.color, "#005B7F");
 }
 
-function makeDivIcon(color: string): L.DivIcon {
+function makeDivIcon(color: string, label = "Map marker"): L.DivIcon {
   const safe = sanitizeHexColor(color);
+  const aria = escapeHtml(label);
+  // 44×44 hit target; visual pin stays 16px. Colour is allow-listed hex only.
+  // Span (not <button>) so Leaflet keyboard:true remains the sole focusable control.
   return L.divIcon({
     className: "mapable-pin",
-    html: `<span style="display:block;width:16px;height:16px;border-radius:50% 50% 50% 0;background:${safe};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></span>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 16],
-    popupAnchor: [0, -16],
+    html: `<span role="img" aria-label="${aria}" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px"><span aria-hidden="true" style="display:block;width:16px;height:16px;border-radius:50% 50% 50% 0;background:${safe};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></span></span>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 44],
+    popupAnchor: [0, -44],
   });
 }
 
@@ -176,9 +179,25 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
       if (geomType === "Point") {
         const [lng, lat] = f.geometry.coordinates as [number, number];
         if (typeof lat !== "number" || typeof lng !== "number") continue;
-        const marker = L.marker([lat, lng], { icon: makeDivIcon(colorForLayer(layer)), title: f.name, alt: f.name });
+        const marker = L.marker([lat, lng], {
+          icon: makeDivIcon(colorForLayer(layer), f.name),
+          title: f.name,
+          alt: f.name,
+          keyboard: true,
+          riseOnHover: true,
+        });
         marker.bindPopup(popupHtml(f, layer));
-        if (props.onFeatureClick) marker.on("click", () => props.onFeatureClick!(f));
+        const activate = () => {
+          props.onFeatureClick?.(f);
+          marker.openPopup();
+        };
+        marker.on("click", activate);
+        marker.on("keypress", (e: L.LeafletKeyboardEvent) => {
+          if (e.originalEvent.key === "Enter" || e.originalEvent.key === " ") {
+            e.originalEvent.preventDefault();
+            activate();
+          }
+        });
         markers.push(marker);
       } else if (geomType === "LineString") {
         const coords = (f.geometry.coordinates as number[][]).map(([lng, lat]) => [lat, lng] as [number, number]);
@@ -205,8 +224,20 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     for (const p of props.personalPlaces || []) {
       const lat = Number(p.lat), lng = Number(p.lng);
       if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
-      const marker = L.marker([lat, lng], { icon: makeDivIcon("#F8C51C"), title: p.name, alt: p.name });
-      marker.bindPopup(`<div style="font-weight:700;color:#F8C51C">${escapeHtml(p.name)}</div>${p.address ? `<div style="font-size:12px">${escapeHtml(p.address)}</div>` : ""}`);
+      const marker = L.marker([lat, lng], {
+        icon: makeDivIcon("#F8C51C", p.name),
+        title: p.name,
+        alt: p.name,
+        keyboard: true,
+        riseOnHover: true,
+      });
+      marker.bindPopup(`<div style="font-weight:700;color:#004766">${escapeHtml(p.name)}</div>${p.address ? `<div style="font-size:12px">${escapeHtml(p.address)}</div>` : ""}`);
+      marker.on("keypress", (e: L.LeafletKeyboardEvent) => {
+        if (e.originalEvent.key === "Enter" || e.originalEvent.key === " ") {
+          e.originalEvent.preventDefault();
+          marker.openPopup();
+        }
+      });
       marker.addTo(personalLayerRef.current!);
     }
   }, [ready, props.personalPlaces]);

@@ -1,14 +1,25 @@
 # Vite client AAA scope
 
-The authenticated Vite twin (`client/`) is **not** served by the Next Playwright
-Accessibility CI workflow today (Replit/Vite CJS/ESM breakage tracked separately).
+## CI inclusion
 
-WS5 therefore:
+The authenticated Vite twin (`client/`) is **explicitly excluded** from the Next
+Playwright Accessibility CI workflow (`.github/workflows/accessibility.yml` →
+`pnpm test:a11y`). That suite boots the Next.js app on port 3000 and does not
+serve Vite SPA routes (`/invoices`, `/payment-methods`, grocery checkout, geo
+map, worker shifts, etc.).
 
-- Uses Radix `Dialog` for payment and shift overlays (Esc, focus trap, focus return).
-- Provides a synchronised text list for `MapView` and removes `role="application"`.
-- Sanitises map icon colours to `#RGB` / `#RRGGBB` only.
+Axe AAA automation for Vite routes remains excluded until a stable Vite preview
+(or equivalent) can be wired into `playwright.config.ts`. The Replit/Vite
+CJS/ESM breakage is tracked separately.
 
-Axe AAA automation for Vite routes is **explicitly excluded** from CI until a
-stable Vite preview server can be wired into `playwright.config.ts`. Manual
-keyboard / screen-reader checks remain required before claiming client AAA.
+## WS5 coverage (this branch)
+
+- Radix `Dialog` for Stripe/BECS payment overlays and start-shift (Esc, focus
+  trap, focus return). Payment flows use `Dialog`, not `AlertDialog`.
+- `MapView`: removed `role="application"`; synchronised text/list alternative;
+  keyboard-operable markers with 44×44 hit targets; hex-only colour sanitisation
+  for pin HTML; `escapeHtml` retained on popups.
+- Interactive targets in touched surfaces sized to ≥44×44px; dual focus ring
+  tokens come from the AAA tokens branch.
+
+Manual keyboard / screen-reader checks remain required before claiming client AAA.

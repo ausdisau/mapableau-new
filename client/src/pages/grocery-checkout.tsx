@@ -114,16 +114,16 @@ function StripePaymentModal({
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md" data-testid="modal-grocery-payment">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-md" closeTestId="button-close-grocery-payment" data-testid="modal-grocery-payment">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" /> Pay for Groceries
           </DialogTitle>
+          <DialogDescription>
+            Amount: <span className="font-bold text-foreground">${amount.toFixed(2)} AUD</span>
+          </DialogDescription>
         </DialogHeader>
-        <div className="mb-4 text-sm text-muted-foreground">
-          Amount: <span className="font-bold text-foreground">${amount.toFixed(2)} AUD</span>
-        </div>
         {loading && !error && (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />

@@ -15,12 +15,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -532,13 +526,15 @@ export default function WorkerShifts() {
       )}
 
       <Dialog open={showNewShift} onOpenChange={setShowNewShift}>
-        <DialogContent className="max-w-md" data-testid="dialog-start-shift">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" data-testid="dialog-start-shift">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Play className="w-5 h-5 text-[#005A42]" /> Start New Shift
             </DialogTitle>
+            <DialogDescription>
+              Select a confirmed booking to start a shift.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground mb-4">Select a confirmed booking to start a shift:</p>
           {(() => {
             const confirmed = (confirmedBookings || []).filter((b) => b.status === "confirmed");
             if (confirmed.length === 0) {

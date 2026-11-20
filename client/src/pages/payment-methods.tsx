@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -247,10 +248,13 @@ function BecsSetupModal({ publishableKey, onClose }: { publishableKey: string; o
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md" data-testid="modal-becs-setup">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-md" closeTestId="button-close-becs-setup" data-testid="modal-becs-setup">
         <DialogHeader>
           <DialogTitle>Add Australian bank account</DialogTitle>
+          <DialogDescription>
+            Confirm a BECS Direct Debit Request. Settlements take 3–4 business days.
+          </DialogDescription>
         </DialogHeader>
         {loading ? (
           <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
