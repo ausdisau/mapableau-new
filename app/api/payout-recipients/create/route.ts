@@ -2,7 +2,10 @@ import { z } from "zod";
 
 import { requireApiSession } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk, zodErrorResponse } from "@/lib/api/response";
-import { createPayoutRecipient } from "@/lib/payouts/recipient-service";
+import {
+  authorizePayoutRecipientCreate,
+  createPayoutRecipient,
+} from "@/lib/payouts/recipient-service";
 
 const schema = z.object({
   recipientType: z.enum([
@@ -29,9 +32,25 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return zodErrorResponse(parsed.error);
 
+  const authorized = await authorizePayoutRecipientCreate(user, {
+    userId: parsed.data.userId,
+    providerOrgId: parsed.data.providerOrgId,
+    workerId: parsed.data.workerId,
+  });
+  if (!authorized.ok) {
+    return jsonError(authorized.error, 403);
+  }
+
   try {
     const recipient = await createPayoutRecipient(
-      { ...parsed.data, userId: parsed.data.userId ?? user.id },
+      {
+        recipientType: parsed.data.recipientType,
+        email: parsed.data.email,
+        displayName: parsed.data.displayName,
+        country: parsed.data.country,
+        dashboardPreference: parsed.data.dashboardPreference,
+        ...authorized.targets,
+      },
       user.id
     );
     return jsonOk({ recipient });

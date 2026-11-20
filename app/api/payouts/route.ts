@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   const scope = url.searchParams.get("scope");
 
   if (scope === "admin") {
-    const admin = await requireApiAdminScope("admin:billing:read");
+    const admin = await requireApiAdminScope("billing:manage_payouts");
     if (admin instanceof Response) return admin;
     const queue = await listPayoutQueue();
     return jsonOk({ queue });

@@ -3,6 +3,9 @@ import type {
   StripeOnboardingStatus,
 } from "@prisma/client";
 
+import { workerProfileAccess } from "@/lib/api/organisation-scope";
+import type { CurrentUser } from "@/lib/auth/current-user";
+import { isAdminRole } from "@/lib/auth/roles";
 import { writeBillingAuditLog } from "@/lib/billing/core/audit";
 import { connectRefreshUrl, connectReturnUrl } from "@/lib/payouts/config";
 import { prisma } from "@/lib/prisma";
@@ -21,6 +24,68 @@ export type CreatePayoutRecipientInput = {
   country?: string;
   dashboardPreference?: "express";
 };
+
+export type AuthorizedCreatePayoutRecipientTargets = {
+  userId?: string;
+  providerOrgId?: string;
+  workerId?: string;
+};
+
+/**
+ * Resolve and authorize ownership targets for recipient creation.
+ * Does not trust caller-supplied ownership without membership checks.
+ */
+export async function authorizePayoutRecipientCreate(
+  actor: CurrentUser,
+  targets: {
+    userId?: string;
+    providerOrgId?: string;
+    workerId?: string;
+  }
+): Promise<
+  | { ok: true; targets: AuthorizedCreatePayoutRecipientTargets }
+  | { ok: false; error: string }
+> {
+  const isAdmin = isAdminRole(actor.primaryRole);
+  const resolved: AuthorizedCreatePayoutRecipientTargets = {};
+
+  if (targets.userId !== undefined) {
+    if (!isAdmin && targets.userId !== actor.id) {
+      return { ok: false, error: "Forbidden" };
+    }
+    resolved.userId = targets.userId;
+  } else if (!targets.providerOrgId && !targets.workerId) {
+    resolved.userId = actor.id;
+  }
+
+  if (targets.providerOrgId) {
+    if (!isAdmin) {
+      const membership = await prisma.organisationMember.findFirst({
+        where: {
+          organisationId: targets.providerOrgId,
+          userId: actor.id,
+          role: { in: ["provider_admin", "mapable_admin"] },
+        },
+      });
+      if (!membership) {
+        return { ok: false, error: "Forbidden" };
+      }
+    }
+    resolved.providerOrgId = targets.providerOrgId;
+  }
+
+  if (targets.workerId) {
+    if (!isAdmin) {
+      const access = await workerProfileAccess(actor, targets.workerId);
+      if (!access || (!access.isOwner && !access.canManage)) {
+        return { ok: false, error: "Forbidden" };
+      }
+    }
+    resolved.workerId = targets.workerId;
+  }
+
+  return { ok: true, targets: resolved };
+}
 
 export async function createPayoutRecipient(
   input: CreatePayoutRecipientInput,
