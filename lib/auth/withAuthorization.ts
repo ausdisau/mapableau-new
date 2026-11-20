@@ -197,12 +197,7 @@ export function withAuthorization<
     request: Request,
     context: TContext = { params: Promise.resolve({}) } as TContext,
   ) => {
-    // Prefer NextAuth/Keycloak session presence, then hydrate CurrentUser from DB.
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    // Dual-run: hydrate from Clerk (when trusted) or NextAuth via getCurrentUser.
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

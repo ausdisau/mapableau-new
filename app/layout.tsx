@@ -1,10 +1,15 @@
-import "@/app/index.css";
-import "leaflet/dist/leaflet.css";
-
+import { ClerkProvider } from "@clerk/nextjs";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible, Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Atkinson_Hyperlegible,
+  Outfit,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 import { headers } from "next/headers";
+
+import "@/app/index.css";
+import "leaflet/dist/leaflet.css";
 
 import { AccessiBeWidget } from "@/components/accessibility/AccessiBeWidget";
 import {
@@ -112,6 +117,17 @@ async function resolveScriptNonce(): Promise<string | undefined> {
   return headerStore.get(CSP_NONCE_HEADER) ?? undefined;
 }
 
+/**
+ * Dual-run: only mount Clerk when keys exist so CI/preview without secrets
+ * keep NextAuth-only auth surfaces.
+ */
+function OptionalClerkProvider({ children }: { children: React.ReactNode }) {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) {
+    return children;
+  }
+  return <ClerkProvider>{children}</ClerkProvider>;
+}
+
 export default async function RootLayout({
   children,
 }: {
@@ -140,16 +156,18 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className={plusJakarta.className}>
-        <JsonLd
-          nonce={scriptNonce}
-          data={[publicJsonLd.organization, publicJsonLd.website]}
-        />
-        <Providers>{children}</Providers>
-        {firstPartyA11yPanel ? null : <AccessiBeWidget />}
-        <GoogleAnalytics />
-        <GoogleAdSense />
-        {/* Speed Insights only on Vercel; local/CI production servers have no SI endpoint. */}
-        {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
+        <OptionalClerkProvider>
+          <JsonLd
+            nonce={scriptNonce}
+            data={[publicJsonLd.organization, publicJsonLd.website]}
+          />
+          <Providers>{children}</Providers>
+          {firstPartyA11yPanel ? null : <AccessiBeWidget />}
+          <GoogleAnalytics />
+          <GoogleAdSense />
+          {/* Speed Insights only on Vercel; local/CI production servers have no SI endpoint. */}
+          {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
+        </OptionalClerkProvider>
       </body>
     </html>
   );

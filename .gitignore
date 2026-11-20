@@ -38,6 +38,9 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 
+# Clerk CLI / SDK claim + link state (never commit)
+.clerk/
+
 # Vercel
 .vercel
 
