@@ -13,7 +13,9 @@ export function useAuth() {
       if (!res.ok) throw new Error("Failed to check auth");
       return res.json();
     },
-    staleTime: Infinity,
+    // Finite staleTime so mid-session expiry surfaces as 401 instead of an infinite cache.
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
     retry: false,
   });
 
@@ -24,7 +26,7 @@ export function useAuth() {
       if (!res.ok) return { enabled: false, domain: null };
       return res.json();
     },
-    staleTime: Infinity,
+    staleTime: 60 * 60 * 1000,
     retry: false,
   });
 
