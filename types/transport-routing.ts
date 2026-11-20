@@ -19,6 +19,8 @@ export type RouteOptions = {
   avoid?: string[];
   routeType?: "fast" | "short" | "efficient";
   trafficMode?: RoutingTrafficMode;
+  /** Documented on TomTom Orbis HTTP calculateRoute. 0–2 in this app. */
+  maxAlternatives?: number;
 };
 
 export type RouteEstimateInput = {

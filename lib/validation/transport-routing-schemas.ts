@@ -9,6 +9,7 @@ export const routeOptionsSchema = z.object({
   avoid: z.array(z.string().min(1).max(40)).max(8).optional(),
   routeType: z.enum(["fast", "short", "efficient"]).optional(),
   trafficMode: z.enum(["live", "historical", "none"]).optional(),
+  maxAlternatives: z.number().int().min(0).max(2).optional(),
 });
 
 export const routeEstimateSchema = z.object({

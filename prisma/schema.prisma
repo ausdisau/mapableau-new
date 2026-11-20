@@ -8564,6 +8564,7 @@ model TransportTrip {
   dispatchAssignments     TransportDispatchAssignment[]
   scheduleConflicts       TransportScheduleConflict[]
   routeEstimates          TransportRouteEstimate[]
+  journeyAdvice           TransportJourneyAdvice[]
   optimisationJobs        TransportRouteOptimisationJob[]
   liveLocations           TransportLiveLocation[]
   etaEvents               TransportEtaEvent[]
@@ -8619,6 +8620,66 @@ model RideRun {
   @@index([providerOrganisationId, status])
   @@index([scheduledStart])
   @@map("ride_runs")
+}
+
+/// Advisory-only in-trip comparison. Never mutates bookings, quotes, or NDIS records.
+model TransportJourneyAdvice {
+  id                      String                      @id @default(cuid())
+  tripId                  String
+  trip                    TransportTrip               @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  preference              String
+  status                  String
+  decision                String                      @default("pending")
+  evaluatedAt             DateTime
+  expiresAt               DateTime
+  actorUserId             String?
+  explanation             String
+  provenanceJson          Json?
+  requiresHumanReview     Boolean                     @default(false)
+  idempotencyKey          String
+  advisoryOnly            Boolean                     @default(true)
+  bookingUnchanged        Boolean                     @default(true)
+  quoteUnchanged          Boolean                     @default(true)
+  acceptedQuoteTotalCents Int?
+  originKind              String
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  candidates              TransportJourneyCandidate[]
+
+  @@unique([idempotencyKey])
+  @@index([tripId, evaluatedAt])
+  @@index([tripId, expiresAt])
+  @@map("transport_journey_advice")
+}
+
+model TransportJourneyCandidate {
+  id                            String                  @id @default(cuid())
+  adviceId                      String
+  advice                        TransportJourneyAdvice  @relation(fields: [adviceId], references: [id], onDelete: Cascade)
+  role                          String
+  label                         String
+  remainingDurationSeconds      Int
+  remainingDistanceMetres       Int
+  liveTrafficUsed               Boolean                 @default(false)
+  source                        String
+  trafficMode                   String?
+  providerStatus                String?
+  validUntil                    DateTime?
+  estimatedArrivalAt            DateTime?
+  paidDriverTimeCents           Int?
+  distanceCostCents             Int?
+  energyAllowanceCents          Int?
+  tollCents                     Int?
+  extraChargesCents             Int?
+  totalRemainingCents           Int?
+  operatingCostDifferenceCents  Int?
+  timeSavingSeconds             Int?
+  constraintJson                Json?
+  hazardEvidence                Json?
+  createdAt                     DateTime                @default(now())
+
+  @@index([adviceId])
+  @@map("transport_journey_candidates")
 }
 
 model TransportTripStop {

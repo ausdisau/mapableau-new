@@ -1,8 +1,10 @@
 import Link from "next/link";
 
+import { MajiJourneyIntelligencePanel } from "@/components/transport/MajiJourneyIntelligencePanel";
 import { TransportEtaPilotPanel } from "@/components/transport/TransportEtaPilotPanel";
 import { TransportLocationSharePanel } from "@/components/transport/TransportLocationSharePanel";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
+import { majiConfig } from "@/lib/config/maji";
 import { phase4Config } from "@/lib/config/phase4";
 import { transportRoutingConfig } from "@/lib/config/transport-routing";
 import { requireAuth } from "@/lib/auth/guards";
@@ -57,6 +59,11 @@ export default async function DriverTransportTripPage({
           tripId={trip.id}
           initialEstimate={routeEstimate}
           enabled={transportRoutingConfig.etaPilotEnabled}
+        />
+        <MajiJourneyIntelligencePanel
+          tripId={trip.id}
+          enabled={majiConfig.advisoryEnabled}
+          mode="driver"
         />
         <TransportLocationSharePanel
           tripId={trip.id}

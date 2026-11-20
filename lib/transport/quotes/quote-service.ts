@@ -243,6 +243,24 @@ export async function getTransportQuote(
   return toDto(await expireIfNeeded(row));
 }
 
+/** Read-only accepted quote total for a trip request. Never updates quote rows. */
+export async function getAcceptedQuoteTotalCentsForTripRequest(
+  tripRequestId: string | null | undefined,
+): Promise<number | null> {
+  if (!tripRequestId) return null;
+  const row = await prisma.transportQuote.findFirst({
+    where: { tripRequestId, status: "accepted" },
+    include: versionInclude,
+    orderBy: { acceptedAt: "desc" },
+  });
+  if (!row) return null;
+  try {
+    return toDto(row).totalCents;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Tenant-aware read: participant owns quote, or caller asserts org match.
  * Cross-tenant → null (404), not 403.
