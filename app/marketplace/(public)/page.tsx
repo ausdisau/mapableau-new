@@ -11,6 +11,7 @@ export const metadata = {
 export default function MarketplaceProgrammePage() {
   return (
     <PublicModulePage
+        roadmapModule="marketplace"
       eyebrow="MapAble Marketplace"
       title="Find aids, equipment and everyday essentials with disability-first context."
       description="MapAble Marketplace is planned as a trusted place to discover assistive technology, mobility aids and daily living products — with community reviews and NDIS-aware framing. Live catalogue checkout is not a Year-One production claim."
