@@ -42,14 +42,23 @@ function isDarkMode(): boolean {
   return typeof document !== "undefined" && document.documentElement.classList.contains("dark");
 }
 
+/** Allow-list #RGB / #RRGGBB only — never interpolate untrusted colour into icon HTML. */
+function sanitizeHexColor(raw: unknown, fallback = "#005B7F"): string {
+  if (typeof raw !== "string") return fallback;
+  const value = raw.trim();
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value)) return value;
+  return fallback;
+}
+
 function colorForLayer(layer?: MapLayer): string {
-  return layer?.color || "#005B7F";
+  return sanitizeHexColor(layer?.color, "#005B7F");
 }
 
 function makeDivIcon(color: string): L.DivIcon {
+  const safe = sanitizeHexColor(color);
   return L.divIcon({
     className: "mapable-pin",
-    html: `<span style="display:block;width:16px;height:16px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></span>`,
+    html: `<span style="display:block;width:16px;height:16px;border-radius:50% 50% 50% 0;background:${safe};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></span>`,
     iconSize: [16, 16],
     iconAnchor: [8, 16],
     popupAnchor: [0, -16],
@@ -173,7 +182,7 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
         markers.push(marker);
       } else if (geomType === "LineString") {
         const coords = (f.geometry.coordinates as number[][]).map(([lng, lat]) => [lat, lng] as [number, number]);
-        const color = (f.attributes?._color as string) || colorForLayer(layer);
+        const color = sanitizeHexColor(f.attributes?._color, colorForLayer(layer));
         const line = L.polyline(coords, { color, weight: 4, opacity: 0.8 });
         line.bindPopup(popupHtml(f, layer));
         if (props.onFeatureClick) line.on("click", () => props.onFeatureClick!(f));
@@ -211,5 +220,65 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     }
   }, [ready, props.highlightFeatureId, props.features]);
 
-  return <div ref={containerRef} className={props.className} style={{ height: "100%", width: "100%" }} data-testid="map-view" role="application" aria-label="Interactive accessibility map" />;
+  const visibleFeatures = props.features.filter((f) =>
+    props.visibleLayerIds.has(f.layerId),
+  );
+  const layerById = new Map(props.layers.map((l) => [l.id, l]));
+
+  return (
+    <div className={props.className} style={{ height: "100%", width: "100%", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <div
+        ref={containerRef}
+        style={{ flex: 1, minHeight: "12rem", width: "100%" }}
+        data-testid="map-view"
+        role="region"
+        aria-label="Interactive accessibility map"
+      />
+      <div
+        className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        data-testid="map-feature-list"
+      >
+        <h2 className="text-sm font-bold text-[#0C1833] dark:text-white">
+          Map features ({visibleFeatures.length})
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Text alternative synchronised with the map. Activate a row to focus that feature.
+        </p>
+        {visibleFeatures.length === 0 ? (
+          <p className="mt-2 text-xs text-muted-foreground">No features in the current view.</p>
+        ) : (
+          <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+            {visibleFeatures.slice(0, 50).map((f) => {
+              const layer = layerById.get(f.layerId);
+              return (
+                <li key={f.id}>
+                  <button
+                    type="button"
+                    className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-2 text-left hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005B7F] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F8C51C] dark:hover:bg-slate-800"
+                    onClick={() => {
+                      props.onFeatureClick?.(f);
+                      if (f.lat != null && f.lng != null) {
+                        mapRef.current?.flyTo(
+                          [Number(f.lat), Number(f.lng)],
+                          16,
+                          { duration: 0.6 },
+                        );
+                      }
+                    }}
+                  >
+                    <span className="truncate font-medium">{f.name}</span>
+                    {layer ? (
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {layer.name}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
 });

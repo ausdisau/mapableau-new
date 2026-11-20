@@ -4,7 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CreditCard, Trash2, Star, Plus, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Loader2, CreditCard, Trash2, Star, Plus } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { BecsMandate } from "@shared/schema";
@@ -122,11 +128,25 @@ export default function PaymentMethodsPage() {
               </div>
               <div className="flex gap-2">
                 {!m.isDefault && (
-                  <Button size="sm" variant="ghost" onClick={() => setDefault.mutate(m.id)} data-testid={`button-default-${m.id}`}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="min-h-11 min-w-11"
+                    aria-label="Set as default payment method"
+                    onClick={() => setDefault.mutate(m.id)}
+                    data-testid={`button-default-${m.id}`}
+                  >
                     <Star className="w-4 h-4" />
                   </Button>
                 )}
-                <Button size="sm" variant="ghost" onClick={() => remove.mutate(m.id)} data-testid={`button-remove-${m.id}`}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="min-h-11 min-w-11"
+                  aria-label="Remove payment method"
+                  onClick={() => remove.mutate(m.id)}
+                  data-testid={`button-remove-${m.id}`}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -227,26 +247,25 @@ function BecsSetupModal({ publishableKey, onClose }: { publishableKey: string; o
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <Card className="w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()} data-testid="modal-becs-setup">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-lg">Add Australian bank account</h3>
-          <Button size="icon" variant="ghost" onClick={onClose}><X className="w-4 h-4" /></Button>
-        </div>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md" data-testid="modal-becs-setup">
+        <DialogHeader>
+          <DialogTitle>Add Australian bank account</DialogTitle>
+        </DialogHeader>
         {loading ? (
           <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
         ) : (
           <>
             <div className="space-y-3 mb-4">
               <input
-                className="w-full border rounded-md p-2 text-sm"
+                className="w-full min-h-11 border rounded-md p-2 text-sm"
                 placeholder="Account holder name"
                 value={accountHolder}
                 onChange={(e) => setAccountHolder(e.target.value)}
                 data-testid="input-account-holder"
               />
               <input
-                className="w-full border rounded-md p-2 text-sm"
+                className="w-full min-h-11 border rounded-md p-2 text-sm"
                 placeholder="Email"
                 type="email"
                 value={email}
@@ -264,13 +283,13 @@ function BecsSetupModal({ publishableKey, onClose }: { publishableKey: string; o
               </p>
             </div>
             {error && <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 rounded-md p-3 mb-4 text-sm text-red-700">{error}</div>}
-            <Button onClick={handleSubmit} disabled={submitting} className="w-full" data-testid="button-confirm-mandate">
+            <Button onClick={handleSubmit} disabled={submitting} className="w-full min-h-11" data-testid="button-confirm-mandate">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
               Confirm bank account
             </Button>
           </>
         )}
-      </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
