@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FloorPlanAuthoringForm } from "@/components/admin/FloorPlanAuthoringForm";
 import { isIndoorFeatureEnabled } from "@/lib/access/indoor/feature-flags";
 
 export default function FloorPlansAdminPage() {
@@ -21,10 +22,14 @@ export default function FloorPlansAdminPage() {
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-8">
       <h1 className="text-2xl font-black text-[#0C1833]">Floor plan publishing studio</h1>
-      <p className="text-slate-600">
+      <p className="max-w-[80ch] text-base leading-[1.5] text-slate-600">
         Create, annotate, review and publish indoor floor plans. Published versions are immutable;
         edits create new draft versions.
       </p>
+
+      {authoringEnabled ? (
+        <FloorPlanAuthoringForm placeId="demo-parramatta-library" />
+      ) : null}
 
       <section className="rounded-2xl border border-slate-200 p-6">
         <h2 className="font-bold">Authoring workflow</h2>

@@ -94,6 +94,8 @@ function LayersTab() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ slug: "", name: "", description: "", color: "#005B7F", domain: "accessibility" as GeoDomain, geometryType: "Point" as MapLayer["geometryType"], visibility: "public" as MapLayer["visibility"] });
   const [saving, setSaving] = useState(false);
+  const [createErrors, setCreateErrors] = useState<string[]>([]);
+  const [createPreview, setCreatePreview] = useState(false);
   const [editing, setEditing] = useState<MapLayer | null>(null);
   const [editForm, setEditForm] = useState({ name: "", description: "", color: "#005B7F", domains: [] as GeoDomain[], visibility: "public" as MapLayer["visibility"] });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -146,8 +148,17 @@ function LayersTab() {
   };
 
   const create = async () => {
-    if (!form.slug.trim() || !form.name.trim()) {
-      toast({ title: "Missing fields", description: "Slug and name are required.", variant: "destructive" });
+    const errors: string[] = [];
+    if (!form.slug.trim()) errors.push("Slug is required.");
+    if (!form.name.trim()) errors.push("Name is required.");
+    setCreateErrors(errors);
+    if (errors.length) {
+      document.getElementById("layer-create-errors")?.focus();
+      toast({ title: "Missing fields", description: "Fix the errors listed in the form.", variant: "destructive" });
+      return;
+    }
+    if (!createPreview) {
+      setCreatePreview(true);
       return;
     }
     setSaving(true);
@@ -160,8 +171,13 @@ function LayersTab() {
       toast({ title: "Layer created", description: form.name });
       setForm({ slug: "", name: "", description: "", color: "#005B7F", domain: "accessibility", geometryType: "Point", visibility: "public" });
       setCreating(false);
+      setCreatePreview(false);
+      setCreateErrors([]);
     } catch (e) {
-      toast({ title: "Create failed", description: (e as Error).message, variant: "destructive" });
+      const message = (e as Error).message;
+      setCreateErrors([message]);
+      document.getElementById("layer-create-errors")?.focus();
+      toast({ title: "Create failed", description: message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -196,18 +212,43 @@ function LayersTab() {
         <Card data-testid="card-create-layer">
           <CardHeader><CardTitle className="text-base">Create layer</CardTitle></CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
+            {createErrors.length > 0 ? (
+              <div
+                id="layer-create-errors"
+                role="alert"
+                tabIndex={-1}
+                className="md:col-span-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm"
+                data-testid="layer-create-error-summary"
+              >
+                <p className="font-semibold">Fix the following before publishing:</p>
+                <ul className="mt-1 list-disc pl-5">
+                  {createErrors.map((err) => (
+                    <li key={err}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <p className="md:col-span-2 text-xs text-muted-foreground" id="layer-authoring-help">
+              Layers default to accessible colours. Prefer meaningful names; description text is announced in the map feature list.
+            </p>
             <div className="space-y-1">
               <Label htmlFor="layer-slug">Slug</Label>
-              <Input id="layer-slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="accessible-toilets" data-testid="input-layer-slug" />
+              <Input id="layer-slug" value={form.slug} onChange={(e) => { setCreatePreview(false); setForm({ ...form, slug: e.target.value }); }} placeholder="accessible-toilets" aria-describedby="layer-authoring-help" data-testid="input-layer-slug" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="layer-name">Name</Label>
-              <Input id="layer-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Accessible Toilets" data-testid="input-layer-name" />
+              <Input id="layer-name" value={form.name} onChange={(e) => { setCreatePreview(false); setForm({ ...form, name: e.target.value }); }} placeholder="Accessible Toilets" data-testid="input-layer-name" />
             </div>
             <div className="space-y-1 md:col-span-2">
               <Label htmlFor="layer-desc">Description</Label>
-              <Input id="layer-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="input-layer-description" />
+              <Input id="layer-desc" value={form.description} onChange={(e) => { setCreatePreview(false); setForm({ ...form, description: e.target.value }); }} data-testid="input-layer-description" />
             </div>
+            {createPreview ? (
+              <div className="md:col-span-2 rounded-lg border bg-muted/40 p-3 text-sm" data-testid="layer-create-preview">
+                <p className="font-semibold">Review before commit</p>
+                <p className="mt-1">{form.name} (<code>{form.slug}</code>) — {form.domain} / {form.geometryType} / {form.visibility}</p>
+              </div>
+            ) : null}
             <div className="space-y-1">
               <Label htmlFor="layer-domain">Domain</Label>
               <Select value={form.domain} onValueChange={(v) => setForm({ ...form, domain: v as GeoDomain })}>
@@ -242,8 +283,11 @@ function LayersTab() {
               <Input id="layer-color" type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-10 w-20 p-1" data-testid="input-layer-color" />
             </div>
             <div className="md:col-span-2 flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setCreating(false)} data-testid="button-cancel-create-layer">Cancel</Button>
-              <Button onClick={create} disabled={saving} data-testid="button-save-layer">{saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Save layer</Button>
+              <Button variant="outline" onClick={() => { setCreating(false); setCreatePreview(false); setCreateErrors([]); }} data-testid="button-cancel-create-layer">Cancel</Button>
+              <Button onClick={create} disabled={saving} data-testid="button-save-layer">
+                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {createPreview ? "Confirm create layer" : "Preview layer"}
+              </Button>
             </div>
           </CardContent>
         </Card>
