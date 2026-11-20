@@ -1,3 +1,4 @@
+import { deputyAdapter } from "@/lib/integrations/adapters/deputy-adapter";
 import { maplibreAdapter } from "@/lib/integrations/adapters/maplibre-adapter";
 import { ndiaAdapter } from "@/lib/integrations/adapters/ndia-adapter";
 import { openSearchAdapter } from "@/lib/integrations/adapters/opensearch-adapter";
@@ -34,6 +35,7 @@ function register(adapter: IntegrationAdapter) {
 register(postgresAdapter);
 register(stripeAdapter);
 register(xeroAdapter);
+register(deputyAdapter);
 register(ndiaAdapter);
 register(maplibreAdapter);
 register(openStreetMapAdapter);
