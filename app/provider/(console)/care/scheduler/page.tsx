@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { CareSchedulerBoard } from "@/components/care/scheduler/CareSchedulerBoard";
 import { getUserOrganisationIds } from "@/lib/api/organisation-scope";
 import { requirePermission } from "@/lib/auth/guards";
-import { CareSchedulerBoard } from "@/components/care/scheduler/CareSchedulerBoard";
 import { loadProviderCareWeek } from "@/lib/care/scheduler/load-week";
 import { mondayOfWeek } from "@/lib/care/scheduler/ui-model";
 import { isCareSchedulerUiEnabled } from "@/lib/config/care-scheduler";
