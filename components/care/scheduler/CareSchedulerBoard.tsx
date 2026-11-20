@@ -137,7 +137,7 @@ export function CareSchedulerBoard({
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1500px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-[1500px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
       <div className="rounded-3xl border border-violet-200 bg-gradient-to-r from-violet-50 via-white to-orange-50 p-5 dark:border-violet-800 dark:from-violet-950/40 dark:via-background dark:to-orange-950/20 sm:p-7">
         <p className="text-xs font-bold uppercase tracking-widest text-violet-800 dark:text-violet-200">
           MapAble Care · Scheduler preview
@@ -356,7 +356,7 @@ export function CareSchedulerBoard({
               className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground underline underline-offset-4">
               {role === "worker" ? "Report a problem" : "Review Care bookings"}
             </Link>
-            <Link href="/dashboard/transport"
+            <Link href={role === "provider" ? "/provider/transport" : "/dashboard/transport"}
               className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground underline underline-offset-4">
               Transport trips
             </Link>
@@ -380,6 +380,6 @@ export function CareSchedulerBoard({
           </details>
         </section>
       </div>
-    </main>
+    </div>
   );
 }
