@@ -21,6 +21,8 @@ const STATUS_BY_CODE: Record<TransportErrorCode, number> = {
   TRANSPORT_RECOVERY_ALREADY_CONFIRMED: 409,
   TRANSPORT_RECOVERY_EXPIRED: 410,
   TRANSPORT_RECOVERY_OPTION_NOT_FOUND: 404,
+  TRANSPORT_ETA_PILOT_DISABLED: 503,
+  TRANSPORT_LOCATION_SHARE_DISABLED: 403,
 };
 
 const PLAIN_MESSAGES: Record<TransportErrorCode, string> = {
@@ -52,6 +54,10 @@ const PLAIN_MESSAGES: Record<TransportErrorCode, string> = {
   TRANSPORT_RECOVERY_ALREADY_CONFIRMED: "This recovery option was already confirmed.",
   TRANSPORT_RECOVERY_EXPIRED: "Recovery options have expired. New options are required.",
   TRANSPORT_RECOVERY_OPTION_NOT_FOUND: "Selected recovery option not found.",
+  TRANSPORT_ETA_PILOT_DISABLED:
+    "The traffic-aware ETA pilot is not enabled.",
+  TRANSPORT_LOCATION_SHARE_DISABLED:
+    "Live driver location sharing is not enabled or not consented.",
 };
 
 export class TransportApiError extends Error {

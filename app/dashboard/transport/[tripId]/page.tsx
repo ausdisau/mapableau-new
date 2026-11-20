@@ -2,9 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { VehicleSuitabilityWarning } from "@/components/phase3/VehicleSuitabilityWarning";
-import { TransportRouteAdvisory } from "@/components/transport/TransportRouteAdvisory";
+import { TransportEtaPilotPanel } from "@/components/transport/TransportEtaPilotPanel";
+import { TransportLocationSharePanel } from "@/components/transport/TransportLocationSharePanel";
 import { TransportTripActions } from "@/components/transport/TransportTripActions";
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
+import { phase4Config } from "@/lib/config/phase4";
+import { transportRoutingConfig } from "@/lib/config/transport-routing";
 import { requireAuth } from "@/lib/auth/guards";
 import { MOBILITY_FIELD_LABELS } from "@/lib/transport/mobility-schema";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
@@ -170,7 +173,18 @@ export default async function TransportTripDetailPage({
           </p>
         ) : null}
 
-        {routeEstimate ? <TransportRouteAdvisory routeEstimate={routeEstimate} /> : null}
+        <TransportEtaPilotPanel
+          tripId={trip.id}
+          initialEstimate={routeEstimate}
+          enabled={transportRoutingConfig.etaPilotEnabled}
+        />
+        {user.id === trip.participantId ? (
+          <TransportLocationSharePanel
+            tripId={trip.id}
+            role="participant"
+            liveLocationEnabled={phase4Config.transportLiveLocationEnabled}
+          />
+        ) : null}
 
         <TransportTripActions
           tripId={trip.id}

@@ -5,6 +5,7 @@ import { graphhopperRoutingAdapter } from "@/lib/transport/routing/graphhopper-r
 import { mockRoutingAdapter } from "@/lib/transport/routing/mock-routing-adapter";
 import { openRouteServiceRoutingAdapter } from "@/lib/transport/routing/openrouteservice-routing-adapter";
 import { osrmRoutingAdapter } from "@/lib/transport/routing/osrm-routing-adapter";
+import { tomtomOrbisRoutingAdapter } from "@/lib/transport/routing/tomtom-orbis-routing-adapter";
 import type { RoutingAdapter } from "@/lib/transport/routing/routing-adapter";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 
@@ -13,6 +14,7 @@ const ADAPTERS: Record<TransportRoutingProvider, RoutingAdapter> = {
   osrm: osrmRoutingAdapter,
   graphhopper: graphhopperRoutingAdapter,
   openrouteservice: openRouteServiceRoutingAdapter,
+  tomtom: tomtomOrbisRoutingAdapter,
   disabled: mockRoutingAdapter,
 };
 

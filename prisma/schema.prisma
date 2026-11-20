@@ -717,6 +717,7 @@ enum ConsentScope {
   adtunis_personalisation
   adtunis_research
   adtunis_audio_retain
+  transport_driver_location_share
 }
 
 enum ConsentStatus {
@@ -8380,6 +8381,7 @@ enum TransportRoutingProvider {
   osrm
   graphhopper
   openrouteservice
+  tomtom
   disabled
 }
 
@@ -8800,6 +8802,7 @@ model TransportDispatchAssignment {
   active           Boolean  @default(true)
   assignedAt       DateTime @default(now())
   unassignedAt     DateTime?
+  driverLocationShareOptedIn Boolean @default(false)
 
   @@index([tripId, active])
   @@index([driverId])
@@ -8833,11 +8836,35 @@ model TransportRouteEstimate {
   cacheKey        String?
   rawResponse     Json?
   createdAt       DateTime               @default(now())
+  expiresAt       DateTime?
+  source          String?
+  trafficMode     String?
+  liveTrafficUsed Boolean                @default(false)
+  providerStatus  String                 @default("ok")
+  fallbackReason  String?
+  generatedAt     DateTime               @default(now())
+  departAt        DateTime?
+  geometryJson    Json?
+  boardingBufferSeconds Int              @default(0)
+  travelDurationSeconds Int?
+  hazardEvidence  Json?
 
   segments        TransportRouteSegment[]
 
   @@index([tripId, createdAt])
+  @@index([cacheKey, expiresAt])
   @@map("transport_route_estimates")
+}
+
+model TransportRoutingDailyUsage {
+  id           String   @id @default(cuid())
+  provider     String
+  dayUtc       String
+  requestCount Int      @default(0)
+  updatedAt    DateTime @updatedAt
+
+  @@unique([provider, dayUtc])
+  @@map("transport_routing_daily_usage")
 }
 
 model TransportRouteSegment {

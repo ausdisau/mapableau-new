@@ -16,7 +16,7 @@ import type {
   TransportTripDetail,
   TransportTripPermissions,
 } from "@/types/transport";
-import { ROUTE_ADVISORY_DISCLAIMER } from "@/types/transport-routing";
+import { presentRouteEstimate } from "@/lib/transport/routing/traffic-aware-eta-service";
 
 function shapeAddress(
   trip: TransportTrip,
@@ -172,12 +172,9 @@ export async function buildTripResponse(params: {
     permissions,
     nextActions: buildNextActions(permissions, params.trip.id),
     routeEstimate: params.routeEstimate
-      ? {
-          distanceMetres: params.routeEstimate.distanceMetres,
-          durationSeconds: params.routeEstimate.durationSeconds,
-          advisoryDisclaimer: ROUTE_ADVISORY_DISCLAIMER,
-          provider: params.routeEstimate.provider,
-        }
+      ? presentRouteEstimate(params.routeEstimate, {
+          departAt: params.trip.scheduledStart,
+        })
       : undefined,
     suitabilityWarnings: extras.suitabilityWarnings,
     handoverStatus: {

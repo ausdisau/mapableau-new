@@ -33,11 +33,24 @@ export async function enrichTripResponseExtras(
 
   let trafficAdvisory;
   if (trip.pickupLat != null && trip.pickupLng != null && trip.dropoffLat != null && trip.dropoffLng != null) {
+    const latestEstimate = await prisma.transportRouteEstimate.findFirst({
+      where: { tripId: trip.id },
+      orderBy: { createdAt: "desc" },
+      select: { geometryJson: true },
+    });
+    const geometry = Array.isArray(
+      (latestEstimate?.geometryJson as { points?: unknown } | null)?.points
+    )
+      ? (
+          (latestEstimate?.geometryJson as { points: { lat: number; lng: number }[] })
+            .points
+        )
+      : undefined;
     trafficAdvisory =
       (await buildTrafficAdvisoryForRoute({
         origin: { lat: trip.pickupLat, lng: trip.pickupLng },
         destination: { lat: trip.dropoffLat, lng: trip.dropoffLng },
-        force: true,
+        geometry,
       })) ?? undefined;
   }
 

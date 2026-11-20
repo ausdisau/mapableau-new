@@ -69,7 +69,8 @@ export type ConsentScope =
   | "adtunis.transcription"
   | "adtunis.personalisation"
   | "adtunis.research"
-  | "adtunis.audio_retain";
+  | "adtunis.audio_retain"
+  | "transport.driver_location_share";
 
 export type ConsentStatus = "active" | "expired" | "revoked" | "pending";
 

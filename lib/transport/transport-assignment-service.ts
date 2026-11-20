@@ -1,5 +1,6 @@
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
+import { recordConsentedDriverLocation } from "@/lib/transport/privacy/driver-location-share";
 import {
   assertAssignedDriver,
   assertProviderOrgTrip,
@@ -214,34 +215,7 @@ export async function recordDriverLocation(
   lat: number,
   lng: number
 ) {
-  const driver = await assertAssignedDriver(user, tripId);
-  const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
-  if (!trip) throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
-
-  const activeStatuses = [
-    "en_route_to_pickup",
-    "arrived_at_pickup",
-    "participant_boarded",
-    "en_route_to_dropoff",
-    "arrived_at_dropoff",
-  ];
-  if (!activeStatuses.includes(trip.status)) {
-    throw new TransportApiError("TRANSPORT_ACCESS_DENIED");
-  }
-
-  await prisma.transportLiveLocation.create({
-    data: { tripId, driverId: driver.id, lat, lng },
-  });
-
-  await recordTripEvent({
-    tripId,
-    actorUserId: user.id,
-    eventType: "location_update",
-    metadata: { lat, lng },
-    participantId: trip.participantId,
-  });
-
-  return { ok: true };
+  return recordConsentedDriverLocation(user, tripId, lat, lng);
 }
 
 export async function getDriverTrips(user: CurrentUser) {
@@ -264,5 +238,12 @@ export async function getDriverTrip(user: CurrentUser, tripId: string) {
   await assertAssignedDriver(user, tripId);
   const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
   if (!trip) throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
-  return buildTripResponse({ trip, user });
+  const routeEstimate = await prisma.transportRouteEstimate.findFirst({
+    where: {
+      tripId: trip.id,
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  return buildTripResponse({ trip, user, routeEstimate });
 }

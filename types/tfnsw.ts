@@ -49,9 +49,18 @@ export type TrafficAdvisoryHazard = {
   category?: string;
   headline?: string;
   subCategory?: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
   distanceMetres?: number;
+  distanceToRouteMetres?: number;
+};
+
+export type PermittedHazardEvidence = {
+  id?: string;
+  category?: string;
+  headline?: string;
+  subCategory?: string;
+  distanceToRouteMetres?: number;
 };
 
 export type TrafficAdvisory = {

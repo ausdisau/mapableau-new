@@ -93,8 +93,25 @@ export type TransportTripApiResponse = {
   routeEstimate?: {
     distanceMetres: number;
     durationSeconds: number;
+    travelDurationSeconds?: number;
+    boardingBufferSeconds?: number;
     advisoryDisclaimer: string;
     provider: string;
+    source?: string;
+    trafficMode?: string | null;
+    liveTrafficUsed?: boolean;
+    providerStatus?: string;
+    fallbackReason?: string | null;
+    generatedAt?: string;
+    validUntil?: string | null;
+    pickupEta?: string;
+    hazards?: Array<{
+      id?: string;
+      category?: string;
+      headline?: string;
+      subCategory?: string;
+      distanceToRouteMetres?: number;
+    }>;
   };
   suitabilityWarnings?: string[];
   handoverStatus?: TransportHandoverStatusView;
@@ -123,4 +140,6 @@ export type TransportErrorCode =
   | "TRANSPORT_RECOVERY_NOT_FOUND"
   | "TRANSPORT_RECOVERY_ALREADY_CONFIRMED"
   | "TRANSPORT_RECOVERY_EXPIRED"
-  | "TRANSPORT_RECOVERY_OPTION_NOT_FOUND";
+  | "TRANSPORT_RECOVERY_OPTION_NOT_FOUND"
+  | "TRANSPORT_ETA_PILOT_DISABLED"
+  | "TRANSPORT_LOCATION_SHARE_DISABLED";

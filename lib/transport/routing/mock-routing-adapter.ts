@@ -1,3 +1,4 @@
+import { finalizeRouteEstimate } from "@/lib/transport/routing/routing-provenance";
 import type { RoutingAdapter } from "@/lib/transport/routing/routing-adapter";
 import type {
   RouteEstimateInput,
@@ -39,12 +40,17 @@ export class MockRoutingAdapter implements RoutingAdapter {
       });
     }
     const durationSeconds = Math.max(300, Math.round(distanceMetres / 8));
-    return {
+    return finalizeRouteEstimate({
       distanceMetres,
       durationSeconds,
       segments,
+      geometry: input.includeGeometry ? points : undefined,
+      source: "mock",
+      trafficModeApplied: "none",
+      liveTrafficUsed: false,
+      providerStatus: "ok",
       raw: { provider: "mock" },
-    };
+    });
   }
 
   async routeMatrix(input: RouteMatrixInput) {

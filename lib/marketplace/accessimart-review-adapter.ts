@@ -97,7 +97,7 @@ const CONDITIONS = new Set([
   "spare_part",
 ]);
 
-const CATEGORY_SLUGS = new Set(
+const CATEGORY_SLUGS = new Set<string>(
   ACCESSIMART_DRAFT_CATEGORIES.map((category) => category.slug),
 );
 

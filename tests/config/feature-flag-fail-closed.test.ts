@@ -44,4 +44,28 @@ describe("Wave 0 capability flags fail closed", () => {
       await import("@/lib/config/starting-work-pilot");
     expect(startingWorkPilotConfig.syntheticOnly).toBe(true);
   });
+
+  it("keeps traffic-aware ETA and live location flags fail-closed when unset", async () => {
+    vi.stubEnv("TRANSPORT_ETA_PILOT_ENABLED", undefined);
+    vi.stubEnv("TRANSPORT_TRAFFIC_AWARE_ENABLED", undefined);
+    vi.stubEnv("TRANSPORT_TOMTOM_TRAFFIC_LIVE", undefined);
+    vi.stubEnv("TRANSPORT_LIVE_LOCATION_ENABLED", undefined);
+    vi.stubEnv("TFNSW_ENRICH_ROUTE_ESTIMATES", undefined);
+    vi.stubEnv("TRANSPORT_ROUTING_PROVIDER", undefined);
+    vi.stubEnv("TOMTOM_API_KEY", undefined);
+
+    const { transportRoutingConfig } = await import(
+      "@/lib/config/transport-routing"
+    );
+    const { phase4Config } = await import("@/lib/config/phase4");
+    const { tfnswConfig } = await import("@/lib/config/tfnsw");
+
+    expect(transportRoutingConfig.etaPilotEnabled).toBe(false);
+    expect(transportRoutingConfig.trafficAwareEnabled).toBe(false);
+    expect(transportRoutingConfig.tomtomTrafficLive).toBe(false);
+    expect(transportRoutingConfig.provider).toBe("mock");
+    expect(transportRoutingConfig.tomtomApiKey).toBeUndefined();
+    expect(phase4Config.transportLiveLocationEnabled).toBe(false);
+    expect(tfnswConfig.enrichRouteEstimates).toBe(false);
+  });
 });

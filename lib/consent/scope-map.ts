@@ -24,6 +24,7 @@ const TO_PRISMA: Record<ConsentScope, PrismaConsentScope> = {
   "adtunis.personalisation": "adtunis_personalisation",
   "adtunis.research": "adtunis_research",
   "adtunis.audio_retain": "adtunis_audio_retain",
+  "transport.driver_location_share": "transport_driver_location_share",
 };
 
 const FROM_PRISMA: Record<PrismaConsentScope, ConsentScope> = Object.fromEntries(
