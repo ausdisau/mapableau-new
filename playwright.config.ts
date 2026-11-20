@@ -43,6 +43,22 @@ const projects: Project[] = [
       ? undefined
       : { storageState: "tests/a11y/.auth/participant.json" },
   },
+  {
+    name: "mapable-go",
+    testMatch: /mapable-go\.spec\.ts/,
+  },
+  {
+    name: "my-mapable",
+    testMatch: /my-mapable\.spec\.ts/,
+    dependencies: skipAuth ? undefined : ["setup"],
+    use: skipAuth
+      ? undefined
+      : { storageState: "tests/a11y/.auth/participant.json" },
+  },
+  {
+    name: "marketing-aaa",
+    testMatch: /marketing-aaa\.spec\.ts/,
+  },
 ];
 
 if (!skipAuth) {

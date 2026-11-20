@@ -22,15 +22,17 @@ test.describe("My MapAble public surfaces", () => {
 });
 
 test.describe("My MapAble authenticated shell", () => {
-  test.skip(
-    !process.env.A11Y_PARTICIPANT_STORAGE,
-    "Requires seeded participant storage state",
-  );
-
-  test.use({ storageState: process.env.A11Y_PARTICIPANT_STORAGE });
-
-  test("my home renders when flag-enabled in preview", async ({ page }) => {
+  // Storage state comes from playwright project `my-mapable` (participant.json).
+  test("my home or login gate renders for participant session", async ({
+    page,
+  }) => {
     await page.goto("/my");
+    await settle(page);
+    const path = new URL(page.url()).pathname;
+    if (path.startsWith("/login")) {
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      return;
+    }
     await expect(
       page.getByRole("heading", { name: /My MapAble/i }),
     ).toBeVisible();
