@@ -8,7 +8,15 @@ import {
   redirectLegacySquarePath,
   shouldRunAuthMiddleware,
 } from "@/lib/community/mapable-peers/peer-middleware";
+import { CANONICAL_PRODUCTION_ORIGIN } from "@/lib/config/canonical-url";
 import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
+import {
+  BUSINESS_HOST_REQUEST_HEADER,
+  businessRewritePath,
+  businessStripProviderPrefix,
+  isBusinessHost,
+  resolveBusinessHost,
+} from "@/lib/provider/business-host-routing";
 import {
   CSP_ENFORCE_HEADER,
   createScriptNonce,
@@ -86,10 +94,33 @@ function authMisconfiguredResponse(request: NextRequest): NextResponse {
   );
 }
 
-function redirectToLogin(request: NextRequest): NextResponse {
-  const login = new URL("/login", request.url);
+function apexAuthOrigin(): string {
+  const fromEnv =
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    process.env.NEXTAUTH_URL?.trim();
+  if (fromEnv) {
+    try {
+      return new URL(fromEnv).origin;
+    } catch {
+      // fall through
+    }
+  }
+  return CANONICAL_PRODUCTION_ORIGIN;
+}
+
+function redirectToLogin(
+  request: NextRequest,
+  options?: { absoluteCallbackOrigin?: string },
+): NextResponse {
+  const loginOrigin = options?.absoluteCallbackOrigin
+    ? apexAuthOrigin()
+    : request.nextUrl.origin;
+  const login = new URL("/login", loginOrigin);
   const callbackPath = request.nextUrl.pathname + request.nextUrl.search;
-  login.searchParams.set("callbackUrl", callbackPath);
+  const callbackUrl = options?.absoluteCallbackOrigin
+    ? `${options.absoluteCallbackOrigin}${callbackPath}`
+    : callbackPath;
+  login.searchParams.set("callbackUrl", callbackUrl);
   return NextResponse.redirect(login);
 }
 
@@ -211,6 +242,79 @@ export default async function middleware(request: NextRequest) {
         embedRoute,
       );
     }
+  }
+
+  // business.mapable.com.au — Provider Center (Meta Business Suite–style).
+  // Clean public paths rewrite into /provider/*; auth required.
+  const businessHost = resolveBusinessHost();
+  if (
+    isBusinessHost(
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+      businessHost,
+    )
+  ) {
+    const { pathname } = request.nextUrl;
+    const stripped = businessStripProviderPrefix(pathname);
+    if (stripped) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = stripped;
+      return withCorrelationAndCsp(
+        NextResponse.redirect(redirectUrl),
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
+
+    const rewritePath = businessRewritePath(pathname);
+    const authPath = rewritePath ?? pathname;
+    if (shouldRunAuthMiddleware(authPath)) {
+      if (!(await hasAuthenticatedSession(request))) {
+        if (!resolveNextAuthSecret()) {
+          return withCorrelationAndCsp(
+            authMisconfiguredResponse(request),
+            correlationId,
+            enforcePolicy,
+            embedRoute,
+          );
+        }
+        const businessOrigin = `${request.nextUrl.protocol}//${businessHost}`;
+        return withCorrelationAndCsp(
+          redirectToLogin(request, {
+            absoluteCallbackOrigin: businessOrigin,
+          }),
+          correlationId,
+          enforcePolicy,
+          embedRoute,
+        );
+      }
+    }
+
+    requestHeaders.set(BUSINESS_HOST_REQUEST_HEADER, "1");
+    if (rewritePath) {
+      const url = request.nextUrl.clone();
+      url.pathname = rewritePath;
+      const response = NextResponse.rewrite(url, {
+        request: { headers: requestHeaders },
+      });
+      return withCorrelationAndCsp(
+        response,
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
+
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    return withCorrelationAndCsp(
+      response,
+      correlationId,
+      enforcePolicy,
+      embedRoute,
+    );
   }
 
   if (shouldRunAuthMiddleware(request.nextUrl.pathname)) {

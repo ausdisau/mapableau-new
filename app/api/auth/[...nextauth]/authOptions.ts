@@ -15,12 +15,15 @@ import {
   mergeUserIntoJwtToken,
 } from "@/lib/auth/nextauth-session";
 import { buildOAuthProviders } from "@/lib/auth/oauth-providers";
+import { buildSharedSessionCookieOptions } from "@/lib/auth/session-cookie-domain";
 import { isTwilio2FAEnabled } from "@/lib/auth/twilio-verify";
 import { verifyTwoFactorToken } from "@/lib/auth/two-factor-token";
 import { agentLog } from "@/lib/debug/agent-log";
 import { prisma } from "@/lib/prisma";
 
 ensureNextAuthEnv();
+
+const sharedSessionCookies = buildSharedSessionCookieOptions();
 
 export const authOptions = {
   secret: resolveNextAuthSecret(),
@@ -33,6 +36,7 @@ export const authOptions = {
   jwt: {
     maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
   },
+  ...(sharedSessionCookies ? { cookies: sharedSessionCookies } : {}),
   providers: [
     ...buildOAuthProviders(),
     Credentials({
