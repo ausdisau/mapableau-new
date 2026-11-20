@@ -11,6 +11,7 @@ export const metadata = {
 export default function MovesModulePage() {
   return (
     <PublicModulePage
+        roadmapModule="moves"
       eyebrow="MapAble Moves"
       title="Move better with therapy and mobility supports you can trust."
       description="MapAble Moves is planned for physical therapy, rehabilitation and mobility training — connecting people to providers who understand disability and access needs."
