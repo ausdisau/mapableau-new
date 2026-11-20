@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { NewTransportTripForm } from "@/components/transport/NewTransportTripForm";
 import { TransportAccessDenied } from "@/components/transport/TransportAccessDenied";
+import { TransportBookingWorkspace } from "@/components/transport/TransportBookingWorkspace";
 import { TransportWorkspaceNav } from "@/components/transport/TransportWorkspaceNav";
 import { requireAuth } from "@/lib/auth/guards";
 import { canManageParticipantTransport } from "@/lib/transport/transport-ui-access";
@@ -15,10 +15,10 @@ export const metadata = {
     "Request an accessible transport trip with mobility needs, pickup and drop-off details.",
 };
 
-function TripFormFallback() {
+function WorkspaceFallback() {
   return (
     <p className="text-sm text-muted-foreground" role="status">
-      Loading the trip request form…
+      Loading the transport booking workspace…
     </p>
   );
 }
@@ -40,7 +40,7 @@ export default async function TransportRequestPage() {
   return (
     <>
       <TransportWorkspaceNav activeHref="/transport/request" />
-      <div className="mx-auto max-w-3xl space-y-4 px-5 py-8 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-4 px-5 py-8 lg:px-8">
         <p>
           <Link
             href="/transport/dashboard"
@@ -54,15 +54,14 @@ export default async function TransportRequestPage() {
             Request accessible transport
           </h1>
           <p className="text-sm text-slate-600">
-            This creates a trip request for the pilot. Route estimates are
-            advisory and are not a guarantee of timing or NDIS payment approval.
-            A quote is not confirmed until you explicitly accept one. Funding is
-            not marked as covered unless a verified rule or provider response
-            supports it.
+            List-first booking with optional map. This creates a trip request for
+            the pilot. Route estimates are advisory. A quote is not confirmed
+            until you explicitly accept one. Funding is not marked as covered
+            unless a verified rule or provider response supports it.
           </p>
         </header>
-        <Suspense fallback={<TripFormFallback />}>
-          <NewTransportTripForm />
+        <Suspense fallback={<WorkspaceFallback />}>
+          <TransportBookingWorkspace />
         </Suspense>
       </div>
     </>
