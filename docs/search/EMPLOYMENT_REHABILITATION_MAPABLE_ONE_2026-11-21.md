@@ -28,7 +28,8 @@ This PR provides a bounded, discover/compare/understand integration slice. It do
 ## Changed public surfaces
 
 - **/search** and GET **/api/mapable-search**: type-validated new Rehabilitation vertical and employment/therapy category IDs. Existing Care, Transport and provider verticals are preserved.
-- **/employment/directory**: public, keyboard-friendly search and filter page for published employer jobs and employment-support outlets (gated by independent sources).
+- **/employment/directory**: public, keyboard-friendly search and filter page for explicitly approved published employer jobs and employment-support outlets (gated by independent sources).
+- **/employment/directory/jobs/[jobId]**: source-labelled public role detail accessible only while the job is published and its employer is active and explicitly allowlisted; application action links to the separate authenticated workflow.
 - **/moves/directory**: public, keyboard-friendly search and filters for imported therapy-support classifications.
 - **/employment** and **/moves**: category cards linked to their directory; filters transfer to /search through a stable query contract.
 - **/provider/one**: permissioned, **default-off**, read-only provider operations overview with existing Care aggregates and a native feature registry.
@@ -134,6 +135,7 @@ Also add E2E:
 7. Roles can use filters with keyboard-only, screen reader, zoom and AAC.
 8. No restricted clinical route bypass by using MapAble One links.
 9. Rate limits, anti-automation and unsupported-data payload tests before public pilot.
+10. Public job detail returns not-found for draft, closed, unapproved or inactive employer records and never fetches application/adjustment data.
 
 ## Dependency and merge sequence
 
