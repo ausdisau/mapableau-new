@@ -125,12 +125,26 @@ export function CareSchedulerBoard({
     );
   }
 
-  const workerRows = [
-    ...data.workers,
-    ...(unallocatedCount && role === "provider"
-      ? [{ id: "__unallocated__", label: "Unallocated shifts" }]
-      : []),
-  ];
+  // Include assigned workers omitted from the capped active-worker directory.
+  // A real shift must never disappear from the provider matrix.
+  const workerMap = new Map(data.workers.map((worker) => [worker.id, worker]));
+  for (const entry of data.entries) {
+    if (entry.workerId && !workerMap.has(entry.workerId)) {
+      workerMap.set(entry.workerId, {
+        id: entry.workerId,
+        label: entry.workerLabel,
+      });
+    }
+  }
+  const workerRows =
+    role === "provider"
+      ? [
+          ...Array.from(workerMap.values()),
+          ...(unallocatedCount
+            ? [{ id: "__unallocated__", label: "Unallocated shifts" }]
+            : []),
+        ]
+      : [];
 
   function showInCell(entry: CareSchedulerEntry, workerId: string): boolean {
     return workerId === "__unallocated__" ? !entry.workerId : entry.workerId === workerId;
@@ -356,9 +370,9 @@ export function CareSchedulerBoard({
               className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground underline underline-offset-4">
               {role === "worker" ? "Report a problem" : "Review Care bookings"}
             </Link>
-            <Link href={role === "provider" ? "/provider/transport" : "/dashboard/transport"}
+            <Link href={role === "provider" ? "/provider/transport" : role === "worker" ? "/worker/today" : "/dashboard/transport"}
               className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground underline underline-offset-4">
-              Transport trips
+              {role === "worker" ? "Today\u2019s shifts" : "Transport trips"}
             </Link>
           </div>
         </section>
