@@ -23,6 +23,7 @@ const PRODUCTISATION_PATHS: Record<string, string[]> = {
   "provider.ops_attention": ["lib/provider/ops/attention-queue.ts"],
   "mobile.companion": ["apps/companion/App.tsx", "lib/companion/visit-pack-compile.ts"],
   "pilot.starting_work": ["lib/pilot/starting-work/golden-journey.ts"],
+  "pilot.service_cartography": ["lib/pilot/service-cartography/golden-slice.ts"],
   "transport.quotes": ["lib/transport/quotes/quote-service.ts"],
   "accesscast.outlook": ["lib/accesscast/index.ts"],
   "billing.centre": ["lib/billing/index.ts"],
@@ -95,6 +96,14 @@ describe("Strategic opportunity registry honesty", () => {
     expect(starting?.honesty.implemented).toBe(true);
     expect(starting?.honesty.durable).toBe(false);
     expect(starting?.honesty.productionSupported).toBe(false);
+
+    const cartography = CAPABILITY_SEEDS.find(
+      (c) => c.capabilityKey === "pilot.service_cartography",
+    );
+    expect(cartography?.maturity).toBe("fixture_only");
+    expect(cartography?.honesty.implemented).toBe(true);
+    expect(cartography?.honesty.productionSupported).toBe(false);
+    expect(cartography?.honesty.featureEnabled).toBe(false);
   });
 
   it("marks landed productisation packages as implemented but not production_supported", () => {

@@ -44,4 +44,19 @@ describe("Wave 0 capability flags fail closed", () => {
       await import("@/lib/config/starting-work-pilot");
     expect(startingWorkPilotConfig.syntheticOnly).toBe(true);
   });
+
+  it("keeps service-cartography disabled and synthetic-only by default", async () => {
+    vi.stubEnv("MAPABLE_SERVICE_CARTOGRAPHY_PILOT", undefined);
+    vi.stubEnv("MAPABLE_SERVICE_CARTOGRAPHY_SYNTHETIC_ONLY", undefined);
+    const {
+      serviceCartographyConfig,
+      isServiceCartographyPilotEnabled,
+      isServiceCartographyPreviewEnabled,
+    } = await import("@/lib/config/service-cartography");
+    expect(isServiceCartographyPilotEnabled()).toBe(false);
+    expect(isServiceCartographyPreviewEnabled()).toBe(false);
+    expect(serviceCartographyConfig.syntheticOnly).toBe(true);
+    expect(serviceCartographyConfig.isBookingEngine).toBe(false);
+    expect(serviceCartographyConfig.isLiveMatchingEngine).toBe(false);
+  });
 });

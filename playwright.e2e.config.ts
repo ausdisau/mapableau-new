@@ -29,6 +29,8 @@ export default defineConfig({
           MAPABLE_STARTING_WORK_SYNTHETIC_ONLY: "true",
           MAPABLE_STARTING_WORK_DB_PERSISTENCE_ENABLED:
             process.env.MAPABLE_STARTING_WORK_DB_PERSISTENCE_ENABLED ?? "false",
+          MAPABLE_SERVICE_CARTOGRAPHY_PILOT: "true",
+          MAPABLE_SERVICE_CARTOGRAPHY_SYNTHETIC_ONLY: "true",
         },
       }
     : undefined,
