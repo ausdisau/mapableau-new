@@ -606,7 +606,7 @@ Y4 flags live in `lib/config/y4-civic-platform.ts`. Integration tests: `tests/ma
 | Theme | Config flag | Primary modules |
 |-------|-------------|-----------------|
 | API certification v2 | `API_CERTIFICATION_V2_ENABLED` | `lib/api/certification/`, `/partners/certified`, `/admin/api-certification` |
-| Certified API ecosystem v2 | `CERTIFIED_API_ECOSYSTEM_V2_ENABLED` | `lib/api/certified-ecosystem/`, `/ecosystem`, `/admin/certified-api-ecosystem` |
+| Certified API ecosystem v2 | `CERTIFIED_API_ECOSYSTEM_V2_ENABLED` | `lib/api/certified-ecosystem/`, `/certified-api-ecosystem`, `/admin/certified-api-ecosystem` |
 | Federated research v2 | `FEDERATED_RESEARCH_V2_ENABLED` | `lib/research/federated/`, `/admin/federated-research` |
 | Research federation at scale v2 | `RESEARCH_FEDERATION_AT_SCALE_V2_ENABLED` | `lib/research/federation-at-scale/`, `/research-federation`, `/admin/research-federation-nodes` |
 | Community governance membership v2 | `COMMUNITY_GOVERNANCE_MEMBERSHIP_V2_ENABLED` | `lib/governance/community-membership/`, `/membership`, `/admin/community-membership` |

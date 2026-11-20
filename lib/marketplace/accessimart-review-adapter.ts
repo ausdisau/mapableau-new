@@ -90,18 +90,18 @@ export type AccessiMartReviewListing = {
   };
 };
 
-const CONDITIONS = new Set([
+const CONDITIONS = new Set<string>([
   "new",
   "refurbished",
   "repair_service",
   "spare_part",
 ]);
 
-const CATEGORY_SLUGS = new Set(
+const CATEGORY_SLUGS = new Set<string>(
   ACCESSIMART_DRAFT_CATEGORIES.map((category) => category.slug),
 );
 
-const SETUP = new Set(["simple", "moderate", "complex"]);
+const SETUP = new Set<string>(["simple", "moderate", "complex"]);
 
 function limitedText(value: unknown, maximum: number): string | null {
   if (typeof value !== "string") return null;

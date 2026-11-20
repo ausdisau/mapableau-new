@@ -22,12 +22,16 @@ export function DashboardAppShell({
   role,
   showCareOsNav = false,
   showMapAbleIdNav = false,
+  showMyDayResilienceNav = false,
+  showMatchingPreviewNav = false,
 }: {
   children: ReactNode;
   userName: string;
   role: UserRole;
   showCareOsNav?: boolean;
   showMapAbleIdNav?: boolean;
+  showMyDayResilienceNav?: boolean;
+  showMatchingPreviewNav?: boolean;
 }) {
   const sidebarEnabled = participantWorkspaceFlags.sidebarEnabled();
   const showAdminLink = role === "mapable_admin";
@@ -45,6 +49,8 @@ export function DashboardAppShell({
             role={role}
             showCareOsNav={showCareOsNav}
             showMapAbleIdNav={showMapAbleIdNav}
+            showMyDayResilienceNav={showMyDayResilienceNav}
+            showMatchingPreviewNav={showMatchingPreviewNav}
           />
         }
       >
@@ -72,12 +78,16 @@ export function DashboardAppShell({
           <ParticipantWorkspaceSidebar
             showAdminLink={showAdminLink}
             showMapAbleIdNav={showMapAbleIdNav}
+            showMyDayResilienceNav={showMyDayResilienceNav}
+            showMatchingPreviewNav={showMatchingPreviewNav}
           />
         }
         mobileNav={
           <ParticipantWorkspaceMobileNav
             showAdminLink={showAdminLink}
             showMapAbleIdNav={showMapAbleIdNav}
+            showMyDayResilienceNav={showMyDayResilienceNav}
+            showMatchingPreviewNav={showMatchingPreviewNav}
           />
         }
       >
