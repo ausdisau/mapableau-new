@@ -138,7 +138,7 @@ export function AccessProfileWizard({ onClose }: WizardProps) {
             onClick={() => onChange(level)}
             className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium border min-h-[44px] transition-colors capitalize ${
               value === level
-                ? "bg-[#1B6EB5] text-white border-[#1B6EB5]"
+                ? "bg-[#005B7F] text-white border-[#005B7F]"
                 : "border-border bg-card"
             }`}
             data-testid={`${testId}-${level}`}
@@ -167,7 +167,7 @@ export function AccessProfileWizard({ onClose }: WizardProps) {
           {steps.map((_, i) => (
             <div
               key={i}
-              className={`h-1 flex-1 rounded-full ${i <= step ? "bg-[#1B6EB5]" : "bg-muted"}`}
+              className={`h-1 flex-1 rounded-full ${i <= step ? "bg-[#005B7F]" : "bg-muted"}`}
             />
           ))}
         </div>
@@ -186,7 +186,7 @@ export function AccessProfileWizard({ onClose }: WizardProps) {
                       onClick={() => toggleMobilityAid(aid.value)}
                       className={`text-left px-3 py-2.5 rounded-lg text-sm border min-h-[44px] transition-colors ${
                         mobilityAids.includes(aid.value)
-                          ? "bg-[#1B6EB5] text-white border-[#1B6EB5]"
+                          ? "bg-[#005B7F] text-white border-[#005B7F]"
                           : "border-border bg-card"
                       }`}
                       data-testid={`button-mobility-aid-${aid.value}`}
@@ -258,7 +258,7 @@ export function AccessProfileWizard({ onClose }: WizardProps) {
                       onClick={() => setCommunicationMode(mode.value)}
                       className={`text-left px-3 py-2.5 rounded-lg text-sm border min-h-[44px] transition-colors ${
                         communicationMode === mode.value
-                          ? "bg-[#1B6EB5] text-white border-[#1B6EB5]"
+                          ? "bg-[#005B7F] text-white border-[#005B7F]"
                           : "border-border bg-card"
                       }`}
                       data-testid={`button-comm-mode-${mode.value}`}
@@ -311,7 +311,7 @@ export function AccessProfileWizard({ onClose }: WizardProps) {
           {step < steps.length - 1 ? (
             <Button
               onClick={() => setStep(step + 1)}
-              className="gap-1.5 min-h-[44px] bg-[#1B6EB5] text-white"
+              className="gap-1.5 min-h-[44px] bg-[#005B7F] text-white"
               data-testid="button-wizard-next"
             >
               Next
@@ -321,7 +321,7 @@ export function AccessProfileWizard({ onClose }: WizardProps) {
             <Button
               onClick={() => saveMutation.mutate()}
               disabled={saveMutation.isPending}
-              className="gap-1.5 min-h-[44px] bg-[#2EAA6E] text-white"
+              className="gap-1.5 min-h-[44px] bg-[#007A57] text-white"
               data-testid="button-wizard-save"
             >
               {saveMutation.isPending ? (

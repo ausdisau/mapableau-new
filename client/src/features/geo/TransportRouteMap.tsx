@@ -32,8 +32,8 @@ export function TransportRouteMap({ pickup, dropoff }: { pickup: string; dropoff
   }, [pickup, dropoff]);
 
   const layers: MapLayer[] = useMemo(() => [
-    { id: "trip-pts", slug: "trip-pts", name: "Stops", domains: ["transport"], visibility: "public", geometryType: "Point", defaultVisible: true, ordering: 1, color: "#1B6EB5" },
-    { id: "trip-line", slug: "trip-line", name: "Route", domains: ["transport"], visibility: "public", geometryType: "LineString", defaultVisible: true, ordering: 2, color: "#E6A817" },
+    { id: "trip-pts", slug: "trip-pts", name: "Stops", domains: ["transport"], visibility: "public", geometryType: "Point", defaultVisible: true, ordering: 1, color: "#005B7F" },
+    { id: "trip-line", slug: "trip-line", name: "Route", domains: ["transport"], visibility: "public", geometryType: "LineString", defaultVisible: true, ordering: 2, color: "#F8C51C" },
   ], []);
 
   const features: MapFeature[] = useMemo(() => {

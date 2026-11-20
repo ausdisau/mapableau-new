@@ -37,7 +37,7 @@ export function MessageBubble({ message, onQuickAction, compact }: MessageBubble
     <div className={`flex gap-2 ${isUser ? "flex-row-reverse" : ""}`} data-testid={`message-bubble-${message.id}`}>
       <div
         className={`${avatarSize} rounded-full flex items-center justify-center shrink-0 ${
-          isUser ? "bg-[#1B6EB5] text-white" : "bg-[#2EAA6E]/15 text-[#2EAA6E] dark:bg-[#2EAA6E]/25"
+          isUser ? "bg-[#005B7F] text-white" : "bg-[#00A979]/15 text-[#00A979] dark:bg-[#00A979]/25"
         }`}
         aria-hidden="true"
       >
@@ -47,7 +47,7 @@ export function MessageBubble({ message, onQuickAction, compact }: MessageBubble
         <div
           className={`rounded-2xl ${bubblePad} leading-relaxed whitespace-pre-wrap ${
             isUser
-              ? "bg-[#1B6EB5] text-white rounded-br-md"
+              ? "bg-[#005B7F] text-white rounded-br-md"
               : "bg-card border border-border rounded-bl-md"
           }`}
           data-testid={`text-message-content-${message.id}`}

@@ -49,8 +49,8 @@ export function JobCoverageNotice({ location }: { location: string }) {
   );
 
   const previewLayers: MapLayer[] = useMemo(() => [
-    { id: "job-loc", slug: "job-loc", name: "Job", domains: ["employment"], visibility: "public", geometryType: "Point", defaultVisible: true, ordering: 1, color: "#1B6EB5" },
-    { id: "coverage", slug: "coverage", name: "Coverage", domains: ["care"], visibility: "public", geometryType: "Polygon", defaultVisible: true, ordering: 2, color: "#2EAA6E" },
+    { id: "job-loc", slug: "job-loc", name: "Job", domains: ["employment"], visibility: "public", geometryType: "Point", defaultVisible: true, ordering: 1, color: "#005B7F" },
+    { id: "coverage", slug: "coverage", name: "Coverage", domains: ["care"], visibility: "public", geometryType: "Polygon", defaultVisible: true, ordering: 2, color: "#00A979" },
   ], []);
 
   const previewFeatures: MapFeature[] = useMemo(() => {
@@ -77,7 +77,7 @@ export function JobCoverageNotice({ location }: { location: string }) {
 
   return (
     <Card className="p-4 space-y-3" data-testid="card-job-coverage">
-      <h3 className="font-bold text-sm flex items-center gap-2"><MapPin className="w-4 h-4 text-[#1B6EB5]" /> Coverage check</h3>
+      <h3 className="font-bold text-sm flex items-center gap-2"><MapPin className="w-4 h-4 text-[#005B7F]" /> Coverage check</h3>
 
       {geoState === "loading" && (
         <div className="text-sm text-muted-foreground flex items-center gap-2" data-testid="status-coverage-loading"><Loader2 className="w-4 h-4 animate-spin" /> Locating job…</div>

@@ -219,7 +219,7 @@ export default function WorkerAvailabilityPage() {
     <div className="p-6 space-y-6 max-w-4xl" data-testid="worker-availability">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-availability-heading">
-          <CalendarDays className="w-6 h-6 text-[#1B6EB5]" /> My Availability
+          <CalendarDays className="w-6 h-6 text-[#005B7F]" /> My Availability
         </h1>
         {!editing ? (
           <Button onClick={startEdit} className="gap-2" data-testid="button-edit-availability">
@@ -237,7 +237,7 @@ export default function WorkerAvailabilityPage() {
 
       <Card className="p-6" data-testid="card-weekly-schedule">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-[#1B6EB5]" /> Weekly Schedule
+          <Clock className="w-5 h-5 text-[#005B7F]" /> Weekly Schedule
         </h2>
 
         {!editing ? (
@@ -255,7 +255,7 @@ export default function WorkerAvailabilityPage() {
                   tabIndex={focusedDay === idx ? 0 : -1}
                   data-day-index={idx}
                   aria-label={`${day}: ${daySlots.length > 0 ? daySlots.map(s => `${s.startTime} to ${s.endTime}`).join(", ") : "Not available"}`}
-                  className="flex items-center gap-4 py-2 border-b last:border-b-0 focus:outline-none focus:ring-2 focus:ring-[#1B6EB5] focus:rounded-md"
+                  className="flex items-center gap-4 py-2 border-b last:border-b-0 focus:outline-none focus:ring-2 focus:ring-[#005B7F] focus:rounded-md"
                   data-testid={`day-row-${idx}`}
                 >
                   <span role="gridcell" className="w-24 text-sm font-medium">{day}</span>
@@ -329,7 +329,7 @@ export default function WorkerAvailabilityPage() {
 
       <Card className="p-6" data-testid="card-blockouts">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <CalendarOff className="w-5 h-5 text-[#E6A817]" /> Blocked-Out Dates
+          <CalendarOff className="w-5 h-5 text-[#F8C51C]" /> Blocked-Out Dates
         </h2>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-4">

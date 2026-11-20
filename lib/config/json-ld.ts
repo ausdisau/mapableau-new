@@ -1,4 +1,7 @@
-import { MAPABLE_LOGO_SRC, MAPABLE_SUPPORT_EMAIL } from "@/lib/brand/constants";
+import {
+  MAPABLE_ORG_JSON_LD_LOGO_SRC,
+  MAPABLE_SUPPORT_EMAIL,
+} from "@/lib/brand/constants";
 import { getCanonicalPublicOrigin } from "@/lib/config/canonical-url";
 
 export type JsonLdGraph = Record<string, unknown>;
@@ -45,9 +48,9 @@ export function buildPublicJsonLd(env: NodeJS.ProcessEnv = process.env): {
     url: origin,
     logo: {
       "@type": "ImageObject",
-      url: `${origin}${MAPABLE_LOGO_SRC}`,
+      url: `${origin}${MAPABLE_ORG_JSON_LD_LOGO_SRC}`,
     },
-    image: `${origin}${MAPABLE_LOGO_SRC}`,
+    image: `${origin}${MAPABLE_ORG_JSON_LD_LOGO_SRC}`,
     taxID: AUSTRALIAN_DISABILITY_LTD_ABN_COMPACT,
     identifier: {
       "@type": "PropertyValue",

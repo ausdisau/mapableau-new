@@ -227,7 +227,7 @@ export default function WorkerShifts() {
     const hours = Math.max((endMins - startMins) / 60, 0.25);
 
     return (
-      <Card key={shift.id} className={`p-5 ${shift.status === "in_progress" ? "border-[#2EAA6E] bg-[#2EAA6E]/5" : ""}`} data-testid={`shift-card-${shift.id}`}>
+      <Card key={shift.id} className={`p-5 ${shift.status === "in_progress" ? "border-[#00A979] bg-[#00A979]/5" : ""}`} data-testid={`shift-card-${shift.id}`}>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
@@ -250,7 +250,7 @@ export default function WorkerShifts() {
             </div>
             {shift.ndisGoal && (
               <p className="text-sm flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5 text-[#2EAA6E]" /> {shift.ndisGoal}
+                <Target className="w-3.5 h-3.5 text-[#00A979]" /> {shift.ndisGoal}
               </p>
             )}
             {shift.notes && (
@@ -264,7 +264,7 @@ export default function WorkerShifts() {
                   key={action.status}
                   size="sm"
                   variant={action.variant || "default"}
-                  className={action.variant !== "destructive" ? "bg-[#1B6EB5] hover:bg-[#14578F] gap-1" : "gap-1"}
+                  className={action.variant !== "destructive" ? "bg-[#005B7F] hover:bg-[#004766] gap-1" : "gap-1"}
                   onClick={() => action.handler ? action.handler() : statusMutation.mutate({ id: shift.id, status: action.status })}
                   disabled={statusMutation.isPending}
                   data-testid={`button-${action.status}-${shift.id}`}
@@ -309,7 +309,7 @@ export default function WorkerShifts() {
             <div className="flex gap-2">
               <Button
                 size="sm"
-                className="bg-[#2EAA6E] hover:bg-[#259D61] gap-1"
+                className="bg-[#007A57] hover:bg-[#006B4F] gap-1"
                 onClick={confirmEndShift}
                 disabled={statusMutation.isPending || !endShiftHours}
                 data-testid="button-confirm-end-shift"
@@ -335,10 +335,10 @@ export default function WorkerShifts() {
     <div className="p-6 space-y-6" data-testid="worker-shifts">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-shifts-heading">
-          <CalendarDays className="w-6 h-6 text-[#1B6EB5]" /> My Shifts & Earnings
+          <CalendarDays className="w-6 h-6 text-[#005B7F]" /> My Shifts & Earnings
         </h1>
         <div className="flex gap-2">
-          <Button className="gap-2 bg-[#2EAA6E] hover:bg-[#258f5c]" onClick={() => setShowNewShift(true)} data-testid="button-start-new-shift">
+          <Button className="gap-2 bg-[#007A57] hover:bg-[#006B4F]" onClick={() => setShowNewShift(true)} data-testid="button-start-new-shift">
             <Play className="w-4 h-4" /> Start New Shift
           </Button>
           <Button variant="outline" className="gap-2" onClick={handleExportCSV} data-testid="button-export-csv">
@@ -351,8 +351,8 @@ export default function WorkerShifts() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="p-5" data-testid="stat-total-earnings">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-[#2EAA6E]/10">
-                <DollarSign className="w-5 h-5 text-[#2EAA6E]" />
+              <div className="p-2.5 rounded-lg bg-[#00A979]/10">
+                <DollarSign className="w-5 h-5 text-[#00A979]" />
               </div>
               <div>
                 <p className="text-2xl font-bold">${Number(earnings.totalEarnings).toFixed(2)}</p>
@@ -362,8 +362,8 @@ export default function WorkerShifts() {
           </Card>
           <Card className="p-5" data-testid="stat-completed-shifts">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-[#1B6EB5]/10">
-                <CheckCircle2 className="w-5 h-5 text-[#1B6EB5]" />
+              <div className="p-2.5 rounded-lg bg-[#005B7F]/10">
+                <CheckCircle2 className="w-5 h-5 text-[#005B7F]" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{earnings.completedShifts} / {earnings.totalShifts}</p>
@@ -373,8 +373,8 @@ export default function WorkerShifts() {
           </Card>
           <Card className="p-5" data-testid="stat-rate">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-[#E6A817]/10">
-                <TrendingUp className="w-5 h-5 text-[#E6A817]" />
+              <div className="p-2.5 rounded-lg bg-[#F8C51C]/10">
+                <TrendingUp className="w-5 h-5 text-[#F8C51C]" />
               </div>
               <div>
                 <p className="text-2xl font-bold">${Number(earnings.hourlyRate || 0).toFixed(2)}/hr</p>
@@ -503,7 +503,7 @@ export default function WorkerShifts() {
       {earnings && Object.keys(earnings.earningsByMonth).length > 0 && (
         <Card className="p-5" data-testid="card-monthly-earnings">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#2EAA6E]" /> Monthly Earnings
+            <TrendingUp className="w-4 h-4 text-[#00A979]" /> Monthly Earnings
           </h3>
           <div className="space-y-2">
             {Object.entries(earnings.earningsByMonth)
@@ -511,7 +511,7 @@ export default function WorkerShifts() {
               .map(([month, amount]) => (
                 <div key={month} className="flex items-center justify-between py-2 border-b last:border-b-0">
                   <span className="text-sm font-medium">{month}</span>
-                  <span className="text-sm font-bold text-[#2EAA6E]">${amount.toFixed(2)}</span>
+                  <span className="text-sm font-bold text-[#00A979]">${amount.toFixed(2)}</span>
                 </div>
               ))}
           </div>
@@ -522,7 +522,7 @@ export default function WorkerShifts() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowNewShift(false)}>
           <Card className="p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()} data-testid="dialog-start-shift">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Play className="w-5 h-5 text-[#2EAA6E]" /> Start New Shift
+              <Play className="w-5 h-5 text-[#00A979]" /> Start New Shift
             </h3>
             <p className="text-sm text-muted-foreground mb-4">Select a confirmed booking to start a shift:</p>
             {(() => {
@@ -546,7 +546,7 @@ export default function WorkerShifts() {
                       </div>
                       <Button
                         size="sm"
-                        className="ml-2 bg-[#2EAA6E] hover:bg-[#258f5c] gap-1"
+                        className="ml-2 bg-[#007A57] hover:bg-[#006B4F] gap-1"
                         disabled={startShiftMutation.isPending}
                         onClick={() => startShiftMutation.mutate(booking.id)}
                         data-testid={`button-start-shift-from-booking-${booking.id}`}

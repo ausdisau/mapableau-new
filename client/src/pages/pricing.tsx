@@ -33,7 +33,7 @@ function TierTable({ tiers, unit }: { tiers: PricingTier[]; unit: string }) {
                   : `${tier.minUsage}+ ${unit}`}
               </td>
               <td className="py-3 px-4">
-                <span className="font-black text-base" style={{ color: "#E6A817" }}>
+                <span className="font-black text-base" style={{ color: "#F8C51C" }}>
                   ${Number(tier.rate).toFixed(2)}
                 </span>
                 <span className="text-xs text-muted-foreground ml-1">
@@ -92,15 +92,15 @@ export default function PricingPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-5">
-          <div className="w-10 h-10 rounded-md bg-[#2EAA6E]/15 flex items-center justify-center mb-3">
-            <ShieldCheck className="w-5 h-5 text-[#2EAA6E]" />
+          <div className="w-10 h-10 rounded-md bg-[#00A979]/15 flex items-center justify-center mb-3">
+            <ShieldCheck className="w-5 h-5 text-[#00A979]" />
           </div>
           <h3 className="font-bold text-sm mb-1" data-testid="text-feature-ndis-compliant">100% NDIS Compliant</h3>
           <p className="text-xs text-muted-foreground">All rates at or below NDIS price caps</p>
         </Card>
         <Card className="p-5">
-          <div className="w-10 h-10 rounded-md bg-[#E6A817]/15 flex items-center justify-center mb-3">
-            <DollarSign className="w-5 h-5 text-[#C48F14] dark:text-[#E6A817]" />
+          <div className="w-10 h-10 rounded-md bg-[#F8C51C]/15 flex items-center justify-center mb-3">
+            <DollarSign className="w-5 h-5 text-[#C48F14] dark:text-[#F8C51C]" />
           </div>
           <h3 className="font-bold text-sm mb-1" data-testid="text-feature-volume-discounts">Volume Discounts</h3>
           <p className="text-xs text-muted-foreground">Use more, pay less per unit automatically</p>
@@ -115,7 +115,7 @@ export default function PricingPage() {
       </div>
 
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-r from-[#14578F] via-[#1B6EB5] to-[#2384C9] px-6 py-4">
+        <div className="bg-gradient-to-r from-[#004766] via-[#005B7F] to-[#00749E] px-6 py-4">
           <h2 className="text-lg font-black text-white flex items-center gap-2">
             <Clock className="w-5 h-5" /> Care Services Pricing
           </h2>
@@ -128,7 +128,7 @@ export default function PricingPage() {
       </Card>
 
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-r from-[#14578F] via-[#1B6EB5] to-[#2384C9] px-6 py-4">
+        <div className="bg-gradient-to-r from-[#004766] via-[#005B7F] to-[#00749E] px-6 py-4">
           <h2 className="text-lg font-black text-white flex items-center gap-2">
             <Car className="w-5 h-5" /> Transport Services Pricing
           </h2>

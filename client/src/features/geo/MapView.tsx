@@ -43,7 +43,7 @@ function isDarkMode(): boolean {
 }
 
 function colorForLayer(layer?: MapLayer): string {
-  return layer?.color || "#1B6EB5";
+  return layer?.color || "#005B7F";
 }
 
 function makeDivIcon(color: string): L.DivIcon {
@@ -68,7 +68,7 @@ function popupHtml(f: MapFeature, layer?: MapLayer): string {
     .map(([k, v]) => `<div style="display:flex;gap:6px;font-size:12px;margin-top:2px"><strong style="color:#555">${escapeHtml(k)}:</strong><span>${escapeHtml(String(v))}</span></div>`)
     .join("");
   return `<div style="min-width:180px;max-width:260px" role="group" aria-label="${escapeHtml(f.name)}">
-    <div style="font-weight:700;font-size:14px;color:#14578F">${escapeHtml(f.name)}</div>
+    <div style="font-weight:700;font-size:14px;color:#004766">${escapeHtml(f.name)}</div>
     ${layer ? `<div style="font-size:11px;color:#888;margin-top:1px">${escapeHtml(layer.name)}</div>` : ""}
     ${f.description ? `<div style="font-size:12px;margin-top:4px">${escapeHtml(f.description)}</div>` : ""}
     ${rows}
@@ -196,8 +196,8 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     for (const p of props.personalPlaces || []) {
       const lat = Number(p.lat), lng = Number(p.lng);
       if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
-      const marker = L.marker([lat, lng], { icon: makeDivIcon("#E6A817"), title: p.name, alt: p.name });
-      marker.bindPopup(`<div style="font-weight:700;color:#E6A817">${escapeHtml(p.name)}</div>${p.address ? `<div style="font-size:12px">${escapeHtml(p.address)}</div>` : ""}`);
+      const marker = L.marker([lat, lng], { icon: makeDivIcon("#F8C51C"), title: p.name, alt: p.name });
+      marker.bindPopup(`<div style="font-weight:700;color:#F8C51C">${escapeHtml(p.name)}</div>${p.address ? `<div style="font-size:12px">${escapeHtml(p.address)}</div>` : ""}`);
       marker.addTo(personalLayerRef.current!);
     }
   }, [ready, props.personalPlaces]);

@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AlertCircle, LogIn, Loader2, HeartHandshake, Bus, Briefcase, Bot, ShieldCheck, UserPlus } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { Link } from "wouter";
-import logoImage from "@assets/mapable-logo.svg";
+import { MapAbleClientLockup } from "@/components/mapable-brand-lockup";
+import { mapableAuthHeroGradient, mapableBrand } from "@/lib/brand";
 
 export default function LoginPage() {
   const { login, isLoggingIn, loginError, auth0Enabled } = useAuth();
@@ -22,48 +23,45 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #0F1A2E 0%, #14578F 50%, #1B6EB5 100%)" }}>
-      <div className="flex h-[3px] shrink-0">
-        <div className="flex-1" style={{ backgroundColor: "#2EAA6E" }} />
-        <div className="flex-1" style={{ backgroundColor: "#1A4B7A" }} />
-        <div className="flex-1" style={{ backgroundColor: "#E6A817" }} />
+    <div className="min-h-screen flex flex-col" style={{ background: mapableAuthHeroGradient }}>
+      <div className="flex h-[3px] shrink-0" aria-hidden="true">
+        <div className="flex-1" style={{ backgroundColor: mapableBrand.brandGreen }} />
+        <div className="flex-1" style={{ backgroundColor: mapableBrand.brandBlueDark }} />
+        <div className="flex-1" style={{ backgroundColor: mapableBrand.brandYellow }} />
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <img
-                src={logoImage}
-                alt="MapAble — Empowering Independence"
-                className="h-20 w-auto max-w-[180px] object-contain"
+              <MapAbleClientLockup
+                imageClassName="h-16 w-auto max-w-[12rem] sm:h-[4.25rem]"
                 data-testid="img-login-logo"
               />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-white">
-                <span style={{ color: "#E6A817" }}>MapAble</span>{" "}
-                <span className="text-white/60 text-lg font-bold">4.0</span>
-              </h1>
-              <p className="text-white/60 text-sm mt-1 tracking-wide">Empowering Independence</p>
+              <h1 className="sr-only">MapAble — Empowering Independence</h1>
+              <p className="text-white/70 text-sm mt-1 tracking-wide">
+                Sign in to the MapAble platform
+              </p>
             </div>
 
             <div className="flex justify-center gap-6 pt-2">
               <div className="flex flex-col items-center gap-1">
-                <HeartHandshake className="w-5 h-5 text-[#2EAA6E]" />
-                <span className="text-[10px] text-white/50 font-medium">Care</span>
+                <HeartHandshake className="w-5 h-5 text-[#00A979]" />
+                <span className="text-[11px] text-white/85 font-medium">Care</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <Bus className="w-5 h-5 text-[#2EAA6E]" />
-                <span className="text-[10px] text-white/50 font-medium">Transport</span>
+                <Bus className="w-5 h-5 text-[#00A979]" />
+                <span className="text-[11px] text-white/85 font-medium">Transport</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <Briefcase className="w-5 h-5 text-[#2EAA6E]" />
-                <span className="text-[10px] text-white/50 font-medium">Employment</span>
+                <Briefcase className="w-5 h-5 text-[#00A979]" />
+                <span className="text-[11px] text-white/85 font-medium">Employment</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <Bot className="w-5 h-5 text-[#2EAA6E]" />
-                <span className="text-[10px] text-white/50 font-medium">AI Chat</span>
+                <Bot className="w-5 h-5 text-[#00A979]" />
+                <span className="text-[11px] text-white/85 font-medium">AI Chat</span>
               </div>
             </div>
           </div>
@@ -91,7 +89,7 @@ export default function LoginPage() {
                     placeholder="Enter your username"
                     required
                     autoComplete="username"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                     data-testid="input-username"
                   />
                 </div>
@@ -106,7 +104,7 @@ export default function LoginPage() {
                     placeholder="Enter your password"
                     required
                     autoComplete="current-password"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                     data-testid="input-password"
                   />
                 </div>
@@ -115,7 +113,7 @@ export default function LoginPage() {
                   type="submit"
                   disabled={isLoggingIn || !username || !password}
                   className="w-full h-11 text-sm font-semibold"
-                  style={{ backgroundColor: "#2EAA6E" }}
+                  style={{ backgroundColor: mapableBrand.brandBlue }}
                   data-testid="button-login"
                 >
                   {isLoggingIn ? (
@@ -133,7 +131,7 @@ export default function LoginPage() {
                 <div className="mt-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-xs text-white/40 font-medium">or</span>
+                    <span className="text-xs text-white/75 font-medium">or</span>
                     <div className="flex-1 h-px bg-white/10" />
                   </div>
 
@@ -164,12 +162,12 @@ export default function LoginPage() {
               )}
 
               <div className="mt-6 pt-4 border-t border-white/10">
-                <p className="text-[11px] text-white/40 text-center mb-3">Demo Accounts</p>
+                <p className="text-[11px] text-white/75 text-center mb-3">Demo Accounts</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => { setUsername("demo_participant"); setPassword("hashed_password"); }}
-                    className="text-xs text-white/60 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
+                    className="text-xs text-white/85 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
                     data-testid="button-demo-participant"
                   >
                     <span className="font-medium text-white/80 block">Participant</span>
@@ -178,7 +176,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => { setUsername("alex_m"); setPassword("hashed_password"); }}
-                    className="text-xs text-white/60 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
+                    className="text-xs text-white/85 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-left transition-colors"
                     data-testid="button-demo-carer"
                   >
                     <span className="font-medium text-white/80 block">Carer</span>
@@ -192,17 +190,17 @@ export default function LoginPage() {
           <div className="text-center">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 text-white/50 text-sm hover:text-white/70 transition-colors"
+              className="inline-flex min-h-11 items-center gap-2 text-white/85 text-sm underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F8C51C]"
               data-testid="link-create-account"
             >
               <UserPlus className="w-4 h-4" />
-              Don't have an account? <span className="text-[#2EAA6E] font-medium">Create Account</span>
+              Don't have an account? <span className="text-[#F8C51C] font-medium">Create Account</span>
             </Link>
           </div>
 
           <div className="flex justify-center">
-            <div className="flex items-center gap-2 text-white/30 text-xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#2EAA6E]/60" />
+            <div className="flex items-center gap-2 text-white/75 text-xs">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00A979]/60" />
               <span>NDIS Registered Provider</span>
             </div>
           </div>

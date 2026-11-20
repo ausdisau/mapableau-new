@@ -73,14 +73,21 @@ function FooterBrandMark() {
 
 function AustralianDisabilityMark() {
   return (
-    <div className="mt-5 rounded-2xl border border-slate-200 bg-white/60 p-4">
+    <div
+      className="mt-5 rounded-2xl border border-slate-200 bg-white/60 p-4"
+      role="group"
+      aria-label="Australian Disability Ltd"
+    >
       <div className="flex items-center gap-3">
-        <div className="text-3xl font-black leading-none tracking-tight">
-          <span className="text-[#2F80C4]">A</span>
-          <span className="text-[#2AA6B8]">D</span>
+        <div
+          className="text-3xl font-black leading-none tracking-tight"
+          aria-hidden
+        >
+          <span className="text-[#005B7F]">A</span>
+          <span className="text-[#00A979]">D</span>
         </div>
         <div>
-          <p className="text-sm font-black text-[#7A5A12]">
+          <p className="text-sm font-black text-[#0C1833]">
             Australian Disability
           </p>
           <p className="mt-1 max-w-xs text-xs leading-5 text-slate-600">

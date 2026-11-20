@@ -41,7 +41,7 @@ export default function GeoAdminPage() {
   if (!user || user.role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 p-8 text-center" data-testid="status-forbidden">
-        <AlertTriangle className="w-10 h-10 text-[#E6A817]" />
+        <AlertTriangle className="w-10 h-10 text-[#F8C51C]" />
         <h1 className="text-xl font-bold">Admins only</h1>
         <p className="text-muted-foreground">Geo Management is restricted to administrators.</p>
         <Link href="/accessibility-map"><Button variant="outline" data-testid="link-back-map">Go to Accessibility Map</Button></Link>
@@ -54,7 +54,7 @@ export default function GeoAdminPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-            <LayersIcon className="w-6 h-6 text-[#1B6EB5]" /> Geo Management
+            <LayersIcon className="w-6 h-6 text-[#005B7F]" /> Geo Management
           </h1>
           <p className="text-sm text-muted-foreground">Manage map layers, features, imports and categories.</p>
         </div>
@@ -92,10 +92,10 @@ function LayersTab() {
   const { toast } = useToast();
   const { data: layers = [], isLoading } = useLayers();
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ slug: "", name: "", description: "", color: "#1B6EB5", domain: "accessibility" as GeoDomain, geometryType: "Point" as MapLayer["geometryType"], visibility: "public" as MapLayer["visibility"] });
+  const [form, setForm] = useState({ slug: "", name: "", description: "", color: "#005B7F", domain: "accessibility" as GeoDomain, geometryType: "Point" as MapLayer["geometryType"], visibility: "public" as MapLayer["visibility"] });
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<MapLayer | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", color: "#1B6EB5", domains: [] as GeoDomain[], visibility: "public" as MapLayer["visibility"] });
+  const [editForm, setEditForm] = useState({ name: "", description: "", color: "#005B7F", domains: [] as GeoDomain[], visibility: "public" as MapLayer["visibility"] });
   const [savingEdit, setSavingEdit] = useState(false);
 
   const beginEdit = (l: MapLayer) => {
@@ -103,7 +103,7 @@ function LayersTab() {
     setEditForm({
       name: l.name,
       description: l.description || "",
-      color: l.color || "#1B6EB5",
+      color: l.color || "#005B7F",
       domains: ((l.domains || []) as GeoDomain[]).filter((d) => DOMAINS.includes(d)),
       visibility: l.visibility,
     });
@@ -158,7 +158,7 @@ function LayersTab() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/geo/layers"] });
       toast({ title: "Layer created", description: form.name });
-      setForm({ slug: "", name: "", description: "", color: "#1B6EB5", domain: "accessibility", geometryType: "Point", visibility: "public" });
+      setForm({ slug: "", name: "", description: "", color: "#005B7F", domain: "accessibility", geometryType: "Point", visibility: "public" });
       setCreating(false);
     } catch (e) {
       toast({ title: "Create failed", description: (e as Error).message, variant: "destructive" });
@@ -209,16 +209,16 @@ function LayersTab() {
               <Input id="layer-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="input-layer-description" />
             </div>
             <div className="space-y-1">
-              <Label>Domain</Label>
+              <Label htmlFor="layer-domain">Domain</Label>
               <Select value={form.domain} onValueChange={(v) => setForm({ ...form, domain: v as GeoDomain })}>
-                <SelectTrigger data-testid="select-layer-domain"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="layer-domain" data-testid="select-layer-domain"><SelectValue /></SelectTrigger>
                 <SelectContent>{DOMAINS.map((d) => <SelectItem key={d} value={d}>{DOMAIN_LABELS[d]}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Geometry</Label>
+              <Label htmlFor="layer-geometry">Geometry</Label>
               <Select value={form.geometryType} onValueChange={(v) => setForm({ ...form, geometryType: v as MapLayer["geometryType"] })}>
-                <SelectTrigger data-testid="select-layer-geometry"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="layer-geometry" data-testid="select-layer-geometry"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Point">Point</SelectItem>
                   <SelectItem value="LineString">LineString</SelectItem>
@@ -227,9 +227,9 @@ function LayersTab() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Visibility</Label>
+              <Label htmlFor="layer-visibility">Visibility</Label>
               <Select value={form.visibility} onValueChange={(v) => setForm({ ...form, visibility: v as MapLayer["visibility"] })}>
-                <SelectTrigger data-testid="select-layer-visibility"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="layer-visibility" data-testid="select-layer-visibility"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="public">Public</SelectItem>
                   <SelectItem value="staff">Staff</SelectItem>
@@ -256,7 +256,7 @@ function LayersTab() {
           {layers.map((l) => (
             <Card key={l.id} data-testid={`card-layer-${l.slug}`}>
               <CardContent className="flex items-center gap-3 py-4 flex-wrap">
-                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: l.color || "#1B6EB5" }} />
+                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: l.color || "#005B7F" }} />
                 <div className="flex-1 min-w-[160px]">
                   <div className="font-semibold flex items-center gap-2">{l.name} <code className="text-xs text-muted-foreground">{l.slug}</code></div>
                   {l.description && <div className="text-sm text-muted-foreground line-clamp-1">{l.description}</div>}
@@ -274,7 +274,7 @@ function LayersTab() {
                 <Button variant="outline" size="sm" onClick={() => beginEdit(l)} data-testid={`button-edit-layer-${l.slug}`}>Edit</Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-destructive" data-testid={`button-delete-layer-${l.slug}`}><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive" aria-label={`Delete layer ${l.name}`} data-testid={`button-delete-layer-${l.slug}`}><Trash2 className="w-4 h-4" aria-hidden="true" /></Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -309,8 +309,8 @@ function LayersTab() {
               <Textarea id="edit-layer-desc" rows={2} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} data-testid="textarea-edit-layer-desc" />
             </div>
             <div className="space-y-1">
-              <Label>Domains</Label>
-              <div className="flex flex-wrap gap-3 pt-1">
+              <span id="edit-layer-domains-label" className="text-sm font-medium leading-none">Domains</span>
+              <div className="flex flex-wrap gap-3 pt-1" role="group" aria-labelledby="edit-layer-domains-label">
                 {DOMAINS.map((d) => (
                   <label key={d} className="flex items-center gap-2 text-sm cursor-pointer" data-testid={`edit-domain-${d}`}>
                     <Checkbox checked={editForm.domains.includes(d)} onCheckedChange={() => toggleEditDomain(d)} data-testid={`checkbox-edit-domain-${d}`} />
@@ -321,9 +321,9 @@ function LayersTab() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label>Visibility</Label>
+                <Label htmlFor="edit-layer-visibility">Visibility</Label>
                 <Select value={editForm.visibility} onValueChange={(v) => setEditForm({ ...editForm, visibility: v as MapLayer["visibility"] })}>
-                  <SelectTrigger data-testid="select-edit-layer-visibility"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="edit-layer-visibility" data-testid="select-edit-layer-visibility"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="public">Public</SelectItem>
                     <SelectItem value="staff">Staff</SelectItem>
@@ -375,9 +375,9 @@ function GeometryEditor({
   return (
     <div className="space-y-2">
       <div className="space-y-1">
-        <Label>Geometry type</Label>
+        <Label htmlFor="geometry-type">Geometry type</Label>
         <Select value={type} onValueChange={(v) => setType(v as GeoType)}>
-          <SelectTrigger data-testid="select-geometry-type"><SelectValue /></SelectTrigger>
+          <SelectTrigger id="geometry-type" data-testid="select-geometry-type"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="Point">Point</SelectItem>
             <SelectItem value="LineString">Line</SelectItem>
@@ -388,7 +388,8 @@ function GeometryEditor({
       {type === "Point" ? (
         <div className="space-y-2">
           <div className="flex gap-2">
-            <Input value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Search an address to set the point" data-testid="input-geometry-geocode" />
+            <Label htmlFor="geometry-geocode" className="sr-only">Search an address to set the point</Label>
+            <Input id="geometry-geocode" value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Search an address to set the point" data-testid="input-geometry-geocode" />
             <Button type="button" variant="outline" onClick={doGeocode} disabled={searching} data-testid="button-geometry-geocode">{searching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Find"}</Button>
           </div>
           {results.length > 0 && (
@@ -402,19 +403,20 @@ function GeometryEditor({
           )}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <Label>Latitude</Label>
-              <Input value={point.lat} onChange={(e) => setPoint({ ...point, lat: e.target.value })} placeholder="-33.87" data-testid="input-geometry-lat" />
+              <Label htmlFor="geometry-lat">Latitude</Label>
+              <Input id="geometry-lat" inputMode="decimal" value={point.lat} onChange={(e) => setPoint({ ...point, lat: e.target.value })} placeholder="-33.87" data-testid="input-geometry-lat" />
             </div>
             <div className="space-y-1">
-              <Label>Longitude</Label>
-              <Input value={point.lng} onChange={(e) => setPoint({ ...point, lng: e.target.value })} placeholder="151.21" data-testid="input-geometry-lng" />
+              <Label htmlFor="geometry-lng">Longitude</Label>
+              <Input id="geometry-lng" inputMode="decimal" value={point.lng} onChange={(e) => setPoint({ ...point, lng: e.target.value })} placeholder="151.21" data-testid="input-geometry-lng" />
             </div>
           </div>
         </div>
       ) : (
         <div className="space-y-1">
-          <Label>Coordinates (JSON)</Label>
+          <Label htmlFor="geometry-coordinates">Coordinates (JSON)</Label>
           <Textarea
+            id="geometry-coordinates"
             rows={4}
             value={coordsText}
             onChange={(e) => setCoordsText(e.target.value)}
@@ -562,9 +564,9 @@ function FeaturesTab() {
       <Card data-testid="card-features-controls">
         <CardContent className="grid gap-3 md:grid-cols-2 py-4">
           <div className="space-y-1">
-            <Label>Layer</Label>
+            <Label htmlFor="features-layer">Layer</Label>
             <Select value={layerId} onValueChange={setLayerId}>
-              <SelectTrigger data-testid="select-features-layer"><SelectValue placeholder="Choose a layer to manage" /></SelectTrigger>
+              <SelectTrigger id="features-layer" data-testid="select-features-layer"><SelectValue placeholder="Choose a layer to manage" /></SelectTrigger>
               <SelectContent>{layers.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -591,9 +593,9 @@ function FeaturesTab() {
                   <Input id="new-feature-name" value={newName} onChange={(e) => setNewName(e.target.value)} data-testid="input-new-feature-name" />
                 </div>
                 <div className="space-y-1">
-                  <Label>Category</Label>
+                  <Label htmlFor="new-feature-category">Category</Label>
                   <Select value={newCategory} onValueChange={setNewCategory}>
-                    <SelectTrigger data-testid="select-new-feature-category"><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectTrigger id="new-feature-category" data-testid="select-new-feature-category"><SelectValue placeholder="None" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__none__">None</SelectItem>
                       {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -626,7 +628,7 @@ function FeaturesTab() {
               {filtered.map((f) => (
                 <Card key={f.id} data-testid={`card-feature-${f.id}`}>
                   <CardContent className="flex items-center gap-3 py-3 flex-wrap">
-                    <MapPin className="w-4 h-4 text-[#1B6EB5] shrink-0" />
+                    <MapPin className="w-4 h-4 text-[#005B7F] shrink-0" />
                     <div className="flex-1 min-w-[160px]">
                       <div className="font-medium leading-tight">{f.name || "(unnamed)"}</div>
                       {f.description && <div className="text-sm text-muted-foreground line-clamp-1">{f.description}</div>}
@@ -671,9 +673,9 @@ function FeaturesTab() {
               <Textarea id="edit-feature-desc" rows={3} value={editDesc} onChange={(e) => setEditDesc(e.target.value)} data-testid="textarea-edit-feature-desc" />
             </div>
             <div className="space-y-1">
-              <Label>Category</Label>
+              <Label htmlFor="edit-feature-category">Category</Label>
               <Select value={editCategory} onValueChange={setEditCategory}>
-                <SelectTrigger data-testid="select-edit-feature-category"><SelectValue placeholder="None" /></SelectTrigger>
+                <SelectTrigger id="edit-feature-category" data-testid="select-edit-feature-category"><SelectValue placeholder="None" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">None</SelectItem>
                   {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -744,9 +746,9 @@ function ImportsTab() {
       <CardContent className="space-y-4">
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-1">
-            <Label>Target</Label>
+            <Label htmlFor="import-mode">Target</Label>
             <Select value={mode} onValueChange={(v) => setMode(v as "existing" | "new")}>
-              <SelectTrigger data-testid="select-import-mode"><SelectValue /></SelectTrigger>
+              <SelectTrigger id="import-mode" data-testid="select-import-mode"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="existing">Existing layer</SelectItem>
                 <SelectItem value="new">New layer</SelectItem>
@@ -755,9 +757,9 @@ function ImportsTab() {
           </div>
           {mode === "existing" ? (
             <div className="space-y-1">
-              <Label>Layer</Label>
+              <Label htmlFor="import-layer">Layer</Label>
               <Select value={layerId} onValueChange={setLayerId}>
-                <SelectTrigger data-testid="select-import-layer"><SelectValue placeholder="Choose layer" /></SelectTrigger>
+                <SelectTrigger id="import-layer" data-testid="select-import-layer"><SelectValue placeholder="Choose layer" /></SelectTrigger>
                 <SelectContent>{layers.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -772,9 +774,9 @@ function ImportsTab() {
                 <Input id="import-name" value={newName} onChange={(e) => setNewName(e.target.value)} data-testid="input-import-name" />
               </div>
               <div className="space-y-1 col-span-2">
-                <Label>Domain</Label>
+                <Label htmlFor="import-domain">Domain</Label>
                 <Select value={newDomain} onValueChange={(v) => setNewDomain(v as GeoDomain)}>
-                  <SelectTrigger data-testid="select-import-domain"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="import-domain" data-testid="select-import-domain"><SelectValue /></SelectTrigger>
                   <SelectContent>{DOMAINS.map((d) => <SelectItem key={d} value={d}>{DOMAIN_LABELS[d]}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
@@ -783,9 +785,9 @@ function ImportsTab() {
         </div>
 
         <div className="space-y-1">
-          <Label>Source</Label>
+          <Label htmlFor="import-source">Source</Label>
           <Select value={source} onValueChange={(v) => setSource(v as "paste" | "url")}>
-            <SelectTrigger className="w-48" data-testid="select-import-source"><SelectValue /></SelectTrigger>
+            <SelectTrigger id="import-source" className="w-48" data-testid="select-import-source"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="paste">Paste content</SelectItem>
               <SelectItem value="url">Fetch from URL</SelectItem>
@@ -810,7 +812,7 @@ function ImportsTab() {
           <Label htmlFor="import-replace" className="text-sm">Replace existing features in target layer</Label>
         </div>
 
-        {result && <div className="text-sm text-[#2EAA6E] font-medium" data-testid="text-import-result">{result}</div>}
+        {result && <div className="text-sm text-[#00A979] font-medium" data-testid="text-import-result">{result}</div>}
 
         <div className="flex justify-end">
           <Button onClick={run} disabled={importing} data-testid="button-run-import">{importing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />} Import</Button>
@@ -825,7 +827,7 @@ function CategoriesTab() {
   const { data: categories = [], isLoading } = useCategories();
   const [slug, setSlug] = useState("");
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#1B6EB5");
+  const [color, setColor] = useState("#005B7F");
   const [saving, setSaving] = useState(false);
 
   const create = async () => {
@@ -837,7 +839,7 @@ function CategoriesTab() {
     try {
       await geoApi.createCategory({ slug: slug.trim(), name: name.trim(), color });
       queryClient.invalidateQueries({ queryKey: ["/api/geo/categories"] });
-      setSlug(""); setName(""); setColor("#1B6EB5");
+      setSlug(""); setName(""); setColor("#005B7F");
       toast({ title: "Category created", description: name });
     } catch (e) {
       toast({ title: "Create failed", description: (e as Error).message, variant: "destructive" });
@@ -886,7 +888,7 @@ function CategoriesTab() {
           {categories.map((c) => (
             <Card key={c.id} data-testid={`card-category-${c.slug}`}>
               <CardContent className="flex items-center gap-3 py-3">
-                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: c.color || "#1B6EB5" }} />
+                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: c.color || "#005B7F" }} />
                 <div className="flex-1"><span className="font-medium">{c.name}</span> <code className="text-xs text-muted-foreground">{c.slug}</code></div>
                 <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(c)} data-testid={`button-delete-category-${c.slug}`}><Trash2 className="w-4 h-4" /></Button>
               </CardContent>

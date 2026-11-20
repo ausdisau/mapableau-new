@@ -328,7 +328,7 @@ export function ChatTab({
             }}
             placeholder="Type your message..."
             rows={1}
-            className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-[#1B6EB5]/50"
+            className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-[#005B7F]/50"
             disabled={sendMutation.isPending || createSessionMutation.isPending}
             aria-label="Type your message"
             data-testid="textarea-widget-chat-input"
@@ -336,7 +336,7 @@ export function ChatTab({
           <Button
             onClick={handleSend}
             disabled={!input.trim() || sendMutation.isPending}
-            className="h-11 w-11 bg-[#1B6EB5] text-white"
+            className="h-11 w-11 bg-[#005B7F] text-white"
             size="icon"
             aria-label="Send message"
             data-testid="button-widget-send"

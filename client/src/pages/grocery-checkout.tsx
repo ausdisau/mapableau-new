@@ -71,7 +71,7 @@ function StripePaymentModal({
         if (cancelled) return;
         const el = stripe.elements({
           clientSecret: data.clientSecret,
-          appearance: { theme: "stripe", variables: { colorPrimary: "#1B6EB5" } },
+          appearance: { theme: "stripe", variables: { colorPrimary: "#005B7F" } },
         });
         const paymentElement = el.create("payment", { layout: "tabs" });
         paymentElement.mount("#grocery-stripe-element");
@@ -264,7 +264,7 @@ export default function GroceryCheckoutPage() {
         </Button>
       </Link>
       <h1 className="text-2xl md:text-3xl font-black flex items-center gap-2" data-testid="text-page-title">
-        <ShoppingCart className="w-6 h-6 text-[#2EAA6E]" /> Checkout
+        <ShoppingCart className="w-6 h-6 text-[#00A979]" /> Checkout
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -451,7 +451,7 @@ export default function GroceryCheckoutPage() {
           )}
           <div className="border-t pt-3 flex items-center justify-between">
             <span className="font-bold">Total</span>
-            <span className="text-lg font-black text-[#2EAA6E]" data-testid="text-cart-total">
+            <span className="text-lg font-black text-[#00A979]" data-testid="text-cart-total">
               ${cart.totalPrice.toFixed(2)}
             </span>
           </div>

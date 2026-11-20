@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from "lucide-react";
-import logoImage from "@assets/mapable-logo.svg";
+import { MapAbleClientLockup } from "@/components/mapable-brand-lockup";
+import { mapableAuthHeroGradient, mapableBrand } from "@/lib/brand";
 import { Link, useLocation } from "wouter";
 
 type Role = "participant" | "provider" | "carer";
@@ -182,21 +183,21 @@ export default function RegisterPage() {
       title: "Participant",
       description: "I receive NDIS-funded support services",
       icon: HeartHandshake,
-      color: "#2EAA6E",
+      color: "#00A979",
     },
     {
       role: "provider" as Role,
       title: "Provider",
       description: "I provide disability support services",
       icon: Briefcase,
-      color: "#E6A817",
+      color: "#F8C51C",
     },
     {
       role: "carer" as Role,
       title: "Support Worker",
       description: "I work as an NDIS support worker",
       icon: UserCheck,
-      color: "#14578F",
+      color: "#004766",
     },
   ];
 
@@ -216,32 +217,27 @@ export default function RegisterPage() {
     <div
       className="min-h-screen flex flex-col"
       style={{
-        background: "linear-gradient(135deg, #0F1A2E 0%, #14578F 50%, #1B6EB5 100%)",
+        background: mapableAuthHeroGradient,
       }}
     >
-      <div className="flex h-[3px] shrink-0">
-        <div className="flex-1" style={{ backgroundColor: "#2EAA6E" }} />
-        <div className="flex-1" style={{ backgroundColor: "#1A4B7A" }} />
-        <div className="flex-1" style={{ backgroundColor: "#E6A817" }} />
+      <div className="flex h-[3px] shrink-0" aria-hidden="true">
+        <div className="flex-1" style={{ backgroundColor: mapableBrand.brandGreen }} />
+        <div className="flex-1" style={{ backgroundColor: mapableBrand.brandBlueDark }} />
+        <div className="flex-1" style={{ backgroundColor: mapableBrand.brandYellow }} />
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <img
-                src={logoImage}
-                alt="MapAble — Empowering Independence"
-                className="h-16 w-auto max-w-[160px] object-contain"
+              <MapAbleClientLockup
+                imageClassName="h-14 w-auto max-w-[11rem]"
                 data-testid="img-register-logo"
               />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-white">
-                <span style={{ color: "#E6A817" }}>MapAble</span>{" "}
-                <span className="text-white/60 text-base font-bold">4.0</span>
-              </h1>
-              <p className="text-white/60 text-sm mt-1">Create your account</p>
+              <h1 className="sr-only">MapAble — Create your account</h1>
+              <p className="text-white/70 text-sm mt-1">Create your account</p>
             </div>
           </div>
 
@@ -251,9 +247,9 @@ export default function RegisterPage() {
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
                     step > s
-                      ? "bg-[#2EAA6E] text-white"
+                      ? "bg-[#007A57] text-white"
                       : step === s
-                        ? "bg-white/20 text-white border-2 border-[#2EAA6E]"
+                        ? "bg-white/20 text-white border-2 border-[#00A979]"
                         : "bg-white/10 text-white/40"
                   }`}
                   data-testid={`step-indicator-${s}`}
@@ -262,7 +258,7 @@ export default function RegisterPage() {
                 </div>
                 {s < 3 && (
                   <div
-                    className={`w-12 h-0.5 ${step > s ? "bg-[#2EAA6E]" : "bg-white/20"}`}
+                    className={`w-12 h-0.5 ${step > s ? "bg-[#00A979]" : "bg-white/20"}`}
                   />
                 )}
               </div>
@@ -276,7 +272,7 @@ export default function RegisterPage() {
                 {step === 2 && "Verify your NDIS details"}
                 {step === 3 && "Complete your profile"}
               </h2>
-              <p className="text-white/50 text-xs text-center mt-1">
+              <p className="text-white/85 text-xs text-center mt-1">
                 {step === 1 && "Choose how you'll use MapAble"}
                 {step === 2 && "We'll look up your information automatically"}
                 {step === 3 && "Review and set your login credentials"}
@@ -300,7 +296,7 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-white">{card.title}</div>
-                        <div className="text-xs text-white/50">{card.description}</div>
+                        <div className="text-xs text-white/85">{card.description}</div>
                       </div>
                       <ArrowRight className="w-4 h-4 text-white/30 ml-auto" />
                     </button>
@@ -317,7 +313,7 @@ export default function RegisterPage() {
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                         placeholder={getIdentifierPlaceholder()}
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11 flex-1"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11 flex-1"
                         data-testid="input-ndis-identifier"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -330,7 +326,7 @@ export default function RegisterPage() {
                         onClick={handleLookup}
                         disabled={!identifier.trim() || isLookingUp}
                         className="h-11 px-4"
-                        style={{ backgroundColor: "#2EAA6E" }}
+                        style={{ backgroundColor: mapableBrand.brandBlue }}
                         data-testid="button-lookup"
                       >
                         {isLookingUp ? (
@@ -376,8 +372,8 @@ export default function RegisterPage() {
               {step === 3 && (
                 <form onSubmit={handleRegister} className="space-y-4">
                   {lookupData && (
-                    <div className="bg-[#2EAA6E]/10 border border-[#2EAA6E]/30 rounded-lg p-3 space-y-2" data-testid="section-lookup-results">
-                      <div className="flex items-center gap-2 text-[#2EAA6E] text-xs font-semibold mb-1">
+                    <div className="bg-[#00A979]/10 border border-[#00A979]/30 rounded-lg p-3 space-y-2" data-testid="section-lookup-results">
+                      <div className="flex items-center gap-2 text-[#00A979] text-xs font-semibold mb-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         NDIS Verified Data
                       </div>
@@ -426,7 +422,7 @@ export default function RegisterPage() {
                       {lookupData.clearanceStatus && (
                         <div className="text-xs text-white/70">
                           <span className="text-white/40">Clearance: </span>
-                          <span className={lookupData.clearanceStatus === "cleared" ? "text-[#2EAA6E]" : "text-amber-400"}>
+                          <span className={lookupData.clearanceStatus === "cleared" ? "text-[#00A979]" : "text-amber-400"}>
                             {lookupData.clearanceStatus}
                           </span>
                         </div>
@@ -532,7 +528,7 @@ export default function RegisterPage() {
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Enter your full name"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                       data-testid="input-fullname"
                     />
                   </div>
@@ -545,7 +541,7 @@ export default function RegisterPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                       data-testid="input-email"
                     />
                   </div>
@@ -558,7 +554,7 @@ export default function RegisterPage() {
                       placeholder="Choose a username"
                       required
                       minLength={3}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                       data-testid="input-register-username"
                     />
                   </div>
@@ -572,7 +568,7 @@ export default function RegisterPage() {
                       placeholder="At least 6 characters"
                       required
                       minLength={6}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                       data-testid="input-register-password"
                     />
                   </div>
@@ -586,7 +582,7 @@ export default function RegisterPage() {
                       placeholder="Re-enter your password"
                       required
                       minLength={6}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2EAA6E] focus:ring-[#2EAA6E]/20 h-11"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#F8C51C] focus:ring-[#F8C51C]/40 h-11"
                       data-testid="input-register-confirm-password"
                     />
                   </div>
@@ -605,7 +601,7 @@ export default function RegisterPage() {
                       type="submit"
                       disabled={registerMutation.isPending || !username || !password || !email || !fullName}
                       className="flex-1 h-11 text-sm font-semibold"
-                      style={{ backgroundColor: "#2EAA6E" }}
+                      style={{ backgroundColor: mapableBrand.brandBlue }}
                       data-testid="button-register-submit"
                     >
                       {registerMutation.isPending ? (
@@ -629,13 +625,13 @@ export default function RegisterPage() {
               className="text-white/50 text-sm hover:text-white/70 transition-colors"
               data-testid="link-back-to-login"
             >
-              Already have an account? <span className="text-[#2EAA6E] font-medium">Sign in</span>
+              Already have an account? <span className="text-[#00A979] font-medium">Sign in</span>
             </Link>
           </div>
 
           <div className="flex justify-center">
             <div className="flex items-center gap-2 text-white/30 text-xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#2EAA6E]/60" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00A979]/60" />
               <span>NDIS Registered Provider</span>
             </div>
           </div>

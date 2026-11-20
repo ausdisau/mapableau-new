@@ -119,7 +119,7 @@ function ProfilePhotoUpload() {
   return (
     <div className="flex items-center gap-5" data-testid="profile-photo-upload">
       <div className="relative">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#D4EAF7] to-[#E8F0F8] dark:from-[#1A4B7A] dark:to-[#14578F] flex items-center justify-center overflow-hidden border-2 border-border">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#D4EAF7] to-[#E8F0F8] dark:from-[#004766] dark:to-[#004766] flex items-center justify-center overflow-hidden border-2 border-border">
           {avatarUrl ? (
             <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" data-testid="img-profile-avatar" />
           ) : (

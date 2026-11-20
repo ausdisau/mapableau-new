@@ -129,8 +129,8 @@ function GeocodeInput({
 
 function BookingPreviewMap({ from, to, pickup, dropoff }: { from: LatLng | null; to: LatLng | null; pickup: string; dropoff: string }) {
   const layers: MapLayer[] = useMemo(() => [
-    { id: "bk-pts", slug: "bk-pts", name: "Stops", domains: ["transport"], visibility: "public", geometryType: "Point", defaultVisible: true, ordering: 1, color: "#1B6EB5" },
-    { id: "bk-line", slug: "bk-line", name: "Route", domains: ["transport"], visibility: "public", geometryType: "LineString", defaultVisible: true, ordering: 2, color: "#E6A817" },
+    { id: "bk-pts", slug: "bk-pts", name: "Stops", domains: ["transport"], visibility: "public", geometryType: "Point", defaultVisible: true, ordering: 1, color: "#005B7F" },
+    { id: "bk-line", slug: "bk-line", name: "Route", domains: ["transport"], visibility: "public", geometryType: "LineString", defaultVisible: true, ordering: 2, color: "#F8C51C" },
   ], []);
   const features: MapFeature[] = useMemo(() => {
     const f: MapFeature[] = [];

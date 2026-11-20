@@ -45,7 +45,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import logoImage from "@assets/mapable-logo.svg";
+import { MapAbleClientLockup } from "@/components/mapable-brand-lockup";
 
 type NavItem = { title: string; url: string; icon: typeof LayoutDashboard; audioDesc: string };
 
@@ -117,21 +117,15 @@ export function AppSidebar() {
               tabIndex={0}
               aria-label="Open navigation menu"
             >
-              <img
-                src={logoImage}
-                alt="MapAble — Empowering Independence"
-                className={`object-contain object-left shrink-0 transition-all ${isCollapsed ? "h-8 w-8" : "h-12 w-auto max-w-[140px]"}`}
+              <MapAbleClientLockup
+                variant={isCollapsed ? "mark" : "header"}
+                showTagline={!isCollapsed}
+                decorative
+                imageClassName={
+                  isCollapsed ? undefined : "h-10 w-auto max-w-[8.5rem]"
+                }
                 data-testid="img-sidebar-logo"
               />
-              {!isCollapsed && (
-                <div className="flex flex-col overflow-hidden">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-xl font-black tracking-tight text-brand-gold">MapAble</span>
-                    <span className="text-[10px] font-bold text-brand-gold/70">4.0</span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground leading-none tracking-wide mt-0.5">Empowering Independence</span>
-                </div>
-              )}
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-64">
