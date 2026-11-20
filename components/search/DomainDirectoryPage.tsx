@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { MapAbleOneJourneyPanel } from "@/components/search/MapAbleOneJourneyPanel";
+
 import { searchDomainDirectory } from "@/lib/search/domain-directory-service";
 import {
   categoriesForDomain,
@@ -253,6 +255,8 @@ export async function DomainDirectoryPage({
           </div>
         )}
       </section>
+
+      <MapAbleOneJourneyPanel domain={domain} />
 
       <aside aria-labelledby="directory-limits" className="space-y-2 rounded-xl border border-border p-5">
         <h2 id="directory-limits" className="font-semibold">Source and safety limitations</h2>
