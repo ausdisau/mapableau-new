@@ -4,6 +4,7 @@ import Link from "next/link";
 import { WorkerShiftOffers } from "@/components/care/WorkerShiftOffers";
 import { requirePermission } from "@/lib/auth/guards";
 import { workerProfileForUser } from "@/lib/care/access-control";
+import { isCareSchedulerUiEnabled } from "@/lib/config/care-scheduler";
 import { prisma } from "@/lib/prisma";
 
 export default async function WorkerTodayPage() {
@@ -48,6 +49,11 @@ export default async function WorkerTodayPage() {
   return (
     <div className="space-y-4">
       <h1 className="font-heading text-2xl font-bold">Today&apos;s shifts</h1>
+      {isCareSchedulerUiEnabled() ? (
+        <Link href="/worker/schedule" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 font-semibold text-primary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+          Open weekly shift schedule
+        </Link>
+      ) : null}
       <ul className="space-y-3">
         {shifts.map((s) => (
           <li key={s.id}>
