@@ -7,6 +7,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MapAbleAppShell } from "@/components/marketing/MapAbleAppShell";
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({ status: "unauthenticated", data: null }),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
   usePathname: () => "/",
@@ -42,7 +48,9 @@ describe("MapAbleAppShell", () => {
     expect(screen.getByRole("link", { name: /skip to main content/i })).toBeTruthy();
     expect(screen.getByRole("main").getAttribute("id")).toBe("main-content");
     expect(screen.getByText("Marketing body")).toBeTruthy();
-    expect(screen.getAllByRole("link", { name: /log in/i }).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("button", { name: "Account menu, not signed in" }),
+    ).toBeTruthy();
   });
 
   it("renders app variant with compact header and slim footer", () => {

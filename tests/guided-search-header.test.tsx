@@ -7,6 +7,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({ status: "unauthenticated", data: null }),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}));
+
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
@@ -41,12 +47,13 @@ describe("MapAbleCareMarketingHeader", () => {
     expect(screen.queryByLabelText("Search MapAble")).toBeNull();
   });
 
-  it("renders auth links in header", () => {
+  it("renders the account avatar and Get started in the header", () => {
     render(<MapAbleCareMarketingHeader />);
 
     expect(
-      screen.getByRole("link", { name: "Log in" }).getAttribute("href"),
-    ).toBe("/login");
+      screen.getByRole("button", { name: "Account menu, not signed in" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
     expect(
       screen.getByRole("link", { name: "Get started" }).getAttribute("href"),
     ).toBe("/register");

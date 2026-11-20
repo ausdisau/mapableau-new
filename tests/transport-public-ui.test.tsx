@@ -17,6 +17,12 @@ import {
   TRANSPORT_PUBLIC_BRAND,
 } from "@/lib/transport/public-copy";
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({ status: "unauthenticated", data: null }),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}));
+
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));

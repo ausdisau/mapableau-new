@@ -9,6 +9,10 @@ import {
   publicOAuthProviderFlags,
 } from "@/components/auth/OAuthSignInButtons";
 
+const signInFormSource = readFileSync(
+  join(process.cwd(), "components/auth/SignInForm.tsx"),
+  "utf8",
+);
 const loginClientSource = readFileSync(
   join(process.cwd(), "app/login/LoginClient.tsx"),
   "utf8",
@@ -29,7 +33,8 @@ describe("LoginClient OAuth buttons", () => {
       "Login with Facebook",
     );
     expect(getOAuthButtonLabel("Apple", "login")).toBe("Login with Apple");
-    expect(loginClientSource).toContain('labelMode="login"');
+    expect(signInFormSource).toContain('labelMode="login"');
+    expect(loginClientSource).toContain("<SignInForm");
   });
 
   it("maps NextAuth runtime providers to social sign-in flags", () => {
@@ -70,8 +75,9 @@ describe("LoginClient OAuth buttons", () => {
   });
 
   it("renders the social login block on public auth pages", () => {
-    expect(loginClientSource).toContain("<OAuthSignInButtons");
-    expect(loginClientSource).not.toContain("{hasOAuth ?");
+    expect(signInFormSource).toContain("<OAuthSignInButtons");
+    expect(signInFormSource).not.toContain("{hasOAuth ?");
+    expect(loginClientSource).toContain("<SignInForm");
     expect(registerClientSource).toContain("<OAuthSignInButtons");
     expect(registerClientSource).not.toContain("{hasOAuth ?");
   });
