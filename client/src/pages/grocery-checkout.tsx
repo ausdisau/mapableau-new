@@ -14,7 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ShoppingCart, CreditCard, HeartHandshake, Trash2, ArrowLeft, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Loader2, ShoppingCart, CreditCard, HeartHandshake, Trash2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useGroceryCart } from "@/lib/grocery-cart";
@@ -107,19 +114,16 @@ function StripePaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <Card className="w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()} data-testid="modal-grocery-payment">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-lg flex items-center gap-2">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-md" closeTestId="button-close-grocery-payment" data-testid="modal-grocery-payment">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" /> Pay for Groceries
-          </h3>
-          <Button size="icon" variant="ghost" onClick={onClose} data-testid="button-close-grocery-payment">
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="mb-4 text-sm text-muted-foreground">
-          Amount: <span className="font-bold text-foreground">${amount.toFixed(2)} AUD</span>
-        </div>
+          </DialogTitle>
+          <DialogDescription>
+            Amount: <span className="font-bold text-foreground">${amount.toFixed(2)} AUD</span>
+          </DialogDescription>
+        </DialogHeader>
         {loading && !error && (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -135,15 +139,15 @@ function StripePaymentModal({
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full gap-2"
+            className="w-full min-h-11 gap-2"
             data-testid="button-confirm-grocery-payment"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
             {submitting ? "Processing..." : `Pay $${amount.toFixed(2)}`}
           </Button>
         )}
-      </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -2,6 +2,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -518,52 +525,54 @@ export default function WorkerShifts() {
         </Card>
       )}
 
-      {showNewShift && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowNewShift(false)}>
-          <Card className="p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()} data-testid="dialog-start-shift">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Play className="w-5 h-5 text-[#00A979]" /> Start New Shift
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">Select a confirmed booking to start a shift:</p>
-            {(() => {
-              const confirmed = (confirmedBookings || []).filter((b) => b.status === "confirmed");
-              if (confirmed.length === 0) {
-                return (
-                  <div className="text-center py-6">
-                    <AlertTriangle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
-                    <p className="text-sm text-muted-foreground">No confirmed bookings available. Accept a pending booking first.</p>
-                  </div>
-                );
-              }
+      <Dialog open={showNewShift} onOpenChange={setShowNewShift}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" data-testid="dialog-start-shift">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="w-5 h-5 text-[#005A42]" /> Start New Shift
+            </DialogTitle>
+            <DialogDescription>
+              Select a confirmed booking to start a shift.
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            const confirmed = (confirmedBookings || []).filter((b) => b.status === "confirmed");
+            if (confirmed.length === 0) {
               return (
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {confirmed.map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-3 rounded-lg border" data-testid={`new-shift-booking-${booking.id}`}>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{booking.participantName || "Participant"}</p>
-                        <p className="text-xs text-muted-foreground">{booking.serviceType} &middot; {booking.date}</p>
-                        <p className="text-xs text-muted-foreground">{booking.startTime} – {booking.endTime}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        className="ml-2 bg-[#007A57] hover:bg-[#006B4F] gap-1"
-                        disabled={startShiftMutation.isPending}
-                        onClick={() => startShiftMutation.mutate(booking.id)}
-                        data-testid={`button-start-shift-from-booking-${booking.id}`}
-                      >
-                        <Play className="w-3.5 h-3.5" /> Start
-                      </Button>
-                    </div>
-                  ))}
+                <div className="text-center py-6">
+                  <AlertTriangle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
+                  <p className="text-sm text-muted-foreground">No confirmed bookings available. Accept a pending booking first.</p>
                 </div>
               );
-            })()}
-            <div className="flex justify-end mt-4">
-              <Button variant="outline" onClick={() => setShowNewShift(false)} data-testid="button-cancel-new-shift">Cancel</Button>
-            </div>
-          </Card>
-        </div>
-      )}
+            }
+            return (
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {confirmed.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between p-3 rounded-lg border" data-testid={`new-shift-booking-${booking.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{booking.participantName || "Participant"}</p>
+                      <p className="text-xs text-muted-foreground">{booking.serviceType} &middot; {booking.date}</p>
+                      <p className="text-xs text-muted-foreground">{booking.startTime} – {booking.endTime}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="ml-2 min-h-11 bg-[#007A57] hover:bg-[#006B4F] gap-1"
+                      disabled={startShiftMutation.isPending}
+                      onClick={() => startShiftMutation.mutate(booking.id)}
+                      data-testid={`button-start-shift-from-booking-${booking.id}`}
+                    >
+                      <Play className="w-3.5 h-3.5" /> Start
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+          <div className="flex justify-end mt-4">
+            <Button variant="outline" className="min-h-11" onClick={() => setShowNewShift(false)} data-testid="button-cancel-new-shift">Cancel</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

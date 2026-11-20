@@ -42,17 +42,29 @@ function isDarkMode(): boolean {
   return typeof document !== "undefined" && document.documentElement.classList.contains("dark");
 }
 
-function colorForLayer(layer?: MapLayer): string {
-  return layer?.color || "#005B7F";
+/** Allow-list #RGB / #RRGGBB only — never interpolate untrusted colour into icon HTML. */
+function sanitizeHexColor(raw: unknown, fallback = "#005B7F"): string {
+  if (typeof raw !== "string") return fallback;
+  const value = raw.trim();
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value)) return value;
+  return fallback;
 }
 
-function makeDivIcon(color: string): L.DivIcon {
+function colorForLayer(layer?: MapLayer): string {
+  return sanitizeHexColor(layer?.color, "#005B7F");
+}
+
+function makeDivIcon(color: string, label = "Map marker"): L.DivIcon {
+  const safe = sanitizeHexColor(color);
+  const aria = escapeHtml(label);
+  // 44×44 hit target; visual pin stays 16px. Colour is allow-listed hex only.
+  // Span (not <button>) so Leaflet keyboard:true remains the sole focusable control.
   return L.divIcon({
     className: "mapable-pin",
-    html: `<span style="display:block;width:16px;height:16px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></span>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 16],
-    popupAnchor: [0, -16],
+    html: `<span role="img" aria-label="${aria}" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px"><span aria-hidden="true" style="display:block;width:16px;height:16px;border-radius:50% 50% 50% 0;background:${safe};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></span></span>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 44],
+    popupAnchor: [0, -44],
   });
 }
 
@@ -167,13 +179,29 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
       if (geomType === "Point") {
         const [lng, lat] = f.geometry.coordinates as [number, number];
         if (typeof lat !== "number" || typeof lng !== "number") continue;
-        const marker = L.marker([lat, lng], { icon: makeDivIcon(colorForLayer(layer)), title: f.name, alt: f.name });
+        const marker = L.marker([lat, lng], {
+          icon: makeDivIcon(colorForLayer(layer), f.name),
+          title: f.name,
+          alt: f.name,
+          keyboard: true,
+          riseOnHover: true,
+        });
         marker.bindPopup(popupHtml(f, layer));
-        if (props.onFeatureClick) marker.on("click", () => props.onFeatureClick!(f));
+        const activate = () => {
+          props.onFeatureClick?.(f);
+          marker.openPopup();
+        };
+        marker.on("click", activate);
+        marker.on("keypress", (e: L.LeafletKeyboardEvent) => {
+          if (e.originalEvent.key === "Enter" || e.originalEvent.key === " ") {
+            e.originalEvent.preventDefault();
+            activate();
+          }
+        });
         markers.push(marker);
       } else if (geomType === "LineString") {
         const coords = (f.geometry.coordinates as number[][]).map(([lng, lat]) => [lat, lng] as [number, number]);
-        const color = (f.attributes?._color as string) || colorForLayer(layer);
+        const color = sanitizeHexColor(f.attributes?._color, colorForLayer(layer));
         const line = L.polyline(coords, { color, weight: 4, opacity: 0.8 });
         line.bindPopup(popupHtml(f, layer));
         if (props.onFeatureClick) line.on("click", () => props.onFeatureClick!(f));
@@ -196,8 +224,20 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     for (const p of props.personalPlaces || []) {
       const lat = Number(p.lat), lng = Number(p.lng);
       if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
-      const marker = L.marker([lat, lng], { icon: makeDivIcon("#F8C51C"), title: p.name, alt: p.name });
-      marker.bindPopup(`<div style="font-weight:700;color:#F8C51C">${escapeHtml(p.name)}</div>${p.address ? `<div style="font-size:12px">${escapeHtml(p.address)}</div>` : ""}`);
+      const marker = L.marker([lat, lng], {
+        icon: makeDivIcon("#F8C51C", p.name),
+        title: p.name,
+        alt: p.name,
+        keyboard: true,
+        riseOnHover: true,
+      });
+      marker.bindPopup(`<div style="font-weight:700;color:#004766">${escapeHtml(p.name)}</div>${p.address ? `<div style="font-size:12px">${escapeHtml(p.address)}</div>` : ""}`);
+      marker.on("keypress", (e: L.LeafletKeyboardEvent) => {
+        if (e.originalEvent.key === "Enter" || e.originalEvent.key === " ") {
+          e.originalEvent.preventDefault();
+          marker.openPopup();
+        }
+      });
       marker.addTo(personalLayerRef.current!);
     }
   }, [ready, props.personalPlaces]);
@@ -211,5 +251,65 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     }
   }, [ready, props.highlightFeatureId, props.features]);
 
-  return <div ref={containerRef} className={props.className} style={{ height: "100%", width: "100%" }} data-testid="map-view" role="application" aria-label="Interactive accessibility map" />;
+  const visibleFeatures = props.features.filter((f) =>
+    props.visibleLayerIds.has(f.layerId),
+  );
+  const layerById = new Map(props.layers.map((l) => [l.id, l]));
+
+  return (
+    <div className={props.className} style={{ height: "100%", width: "100%", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <div
+        ref={containerRef}
+        style={{ flex: 1, minHeight: "12rem", width: "100%" }}
+        data-testid="map-view"
+        role="region"
+        aria-label="Interactive accessibility map"
+      />
+      <div
+        className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        data-testid="map-feature-list"
+      >
+        <h2 className="text-sm font-bold text-[#0C1833] dark:text-white">
+          Map features ({visibleFeatures.length})
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Text alternative synchronised with the map. Activate a row to focus that feature.
+        </p>
+        {visibleFeatures.length === 0 ? (
+          <p className="mt-2 text-xs text-muted-foreground">No features in the current view.</p>
+        ) : (
+          <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+            {visibleFeatures.slice(0, 50).map((f) => {
+              const layer = layerById.get(f.layerId);
+              return (
+                <li key={f.id}>
+                  <button
+                    type="button"
+                    className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-2 text-left hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005B7F] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F8C51C] dark:hover:bg-slate-800"
+                    onClick={() => {
+                      props.onFeatureClick?.(f);
+                      if (f.lat != null && f.lng != null) {
+                        mapRef.current?.flyTo(
+                          [Number(f.lat), Number(f.lng)],
+                          16,
+                          { duration: 0.6 },
+                        );
+                      }
+                    }}
+                  >
+                    <span className="truncate font-medium">{f.name}</span>
+                    {layer ? (
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {layer.name}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
 });

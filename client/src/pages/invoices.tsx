@@ -7,11 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { FileText, ChevronDown, ChevronUp, Calendar, DollarSign, ShieldCheck, AlertCircle, CreditCard, Clock, Car, Zap, Loader2, X, RefreshCw, CheckCircle2, XCircle, CloudOff, Cloud, AlertTriangle } from "lucide-react";
+import { FileText, ChevronDown, ChevronUp, Calendar, DollarSign, ShieldCheck, AlertCircle, CreditCard, Clock, Car, Zap, Loader2, RefreshCw, CheckCircle2, XCircle, CloudOff, Cloud, AlertTriangle } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { usePageTitle } from "@/hooks/use-page-title";
 import type { Invoice, User } from "@shared/schema";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { loadStripe, type Stripe as StripeType, type StripeElements } from "@stripe/stripe-js";
 
 let stripePromise: Promise<StripeType | null> | null = null;
@@ -158,19 +165,16 @@ function StripePaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <Card className="w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()} data-testid="modal-stripe-payment">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-lg flex items-center gap-2">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-md" closeTestId="button-close-payment" data-testid="modal-stripe-payment">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" /> Pay Invoice
-          </h3>
-          <Button size="icon" variant="ghost" onClick={onClose} data-testid="button-close-payment">
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="mb-4 text-sm text-muted-foreground">
-          Amount: <span className="font-bold text-foreground">${Number(invoice.totalAmount).toFixed(2)} AUD</span>
-        </div>
+          </DialogTitle>
+          <DialogDescription>
+            Amount: <span className="font-bold text-foreground">${Number(invoice.totalAmount).toFixed(2)} AUD</span>
+          </DialogDescription>
+        </DialogHeader>
 
         {loading && !error && (
           <div className="flex items-center justify-center py-8">
@@ -190,15 +194,15 @@ function StripePaymentModal({
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full gap-2"
+            className="w-full min-h-11 gap-2"
             data-testid="button-confirm-payment"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
             {submitting ? "Processing..." : `Pay $${Number(invoice.totalAmount).toFixed(2)}`}
           </Button>
         )}
-      </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

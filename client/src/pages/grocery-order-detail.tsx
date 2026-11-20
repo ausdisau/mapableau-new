@@ -5,7 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, ArrowLeft, MapPin, Clock, Truck, Package, CreditCard, Loader2, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ShoppingCart, ArrowLeft, MapPin, Clock, Truck, Package, CreditCard, Loader2 } from "lucide-react";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -98,15 +105,16 @@ function PayModal({ orderId, amount, onClose, onSuccess }: { orderId: string; am
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <Card className="w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()} data-testid="modal-pay-order">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-lg flex items-center gap-2"><CreditCard className="w-5 h-5" /> Pay Order</h3>
-          <Button size="icon" variant="ghost" onClick={onClose} data-testid="button-close-pay-order"><X className="w-4 h-4" /></Button>
-        </div>
-        <div className="mb-4 text-sm text-muted-foreground">
-          Amount: <span className="font-bold text-foreground">${amount.toFixed(2)} AUD</span>
-        </div>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-md" closeTestId="button-close-pay-order" data-testid="modal-pay-order">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5" /> Pay Order
+          </DialogTitle>
+          <DialogDescription>
+            Amount: <span className="font-bold text-foreground">${amount.toFixed(2)} AUD</span>
+          </DialogDescription>
+        </DialogHeader>
         {loading && !error && (
           <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
         )}
@@ -115,13 +123,13 @@ function PayModal({ orderId, amount, onClose, onSuccess }: { orderId: string; am
         )}
         <div id="grocery-pay-element" className="mb-4" />
         {!loading && !error && (
-          <Button className="w-full gap-2" disabled={submitting} onClick={handleSubmit} data-testid="button-confirm-pay-order">
+          <Button className="w-full min-h-11 gap-2" disabled={submitting} onClick={handleSubmit} data-testid="button-confirm-pay-order">
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
             {submitting ? "Processing..." : `Pay $${amount.toFixed(2)}`}
           </Button>
         )}
-      </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
