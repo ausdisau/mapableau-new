@@ -10,6 +10,7 @@ import {
   MapAbleCareMarketingFooter,
   MapAbleCareSlimFooter,
 } from "@/components/marketing/MapAbleCareMarketingFooter";
+import { isMapAbleOneUnifiedShellEnabled } from "@/lib/config/mapable-one-shell";
 
 export type MapAbleAppShellVariant = "marketing" | "app" | "minimal";
 
@@ -28,9 +29,17 @@ export function MapAbleAppShell({
   headerActions?: ReactNode;
   logoHref?: string;
 }) {
+  const oneSkin = isMapAbleOneUnifiedShellEnabled();
+  const rootClass = oneSkin
+    ? "mapable-one flex min-h-screen flex-col text-[var(--mo-ink)]"
+    : "mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]";
+  const appRootClass = oneSkin
+    ? "mapable-one flex min-h-screen flex-col bg-[var(--mo-surface)] text-[var(--mo-ink)]"
+    : "mapable-soft flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]";
+
   if (variant === "marketing") {
     return (
-      <div className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
+      <div className={rootClass} data-mapable-one={oneSkin ? "on" : "off"}>
         <SkipToContent />
         <MapAbleCareMarketingHeader />
         <main id="main-content" className="flex-1">
@@ -43,7 +52,7 @@ export function MapAbleAppShell({
 
   if (variant === "minimal") {
     return (
-      <div className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
+      <div className={rootClass} data-mapable-one={oneSkin ? "on" : "off"}>
         <SkipToContent />
         <header className="border-b border-slate-200 bg-white px-5 py-3">
           <MapAbleBrandLockup
@@ -60,7 +69,7 @@ export function MapAbleAppShell({
   }
 
   return (
-    <div className="mapable-soft flex min-h-screen flex-col bg-[#F6FBFC] text-[#0C1833]">
+    <div className={appRootClass} data-mapable-one={oneSkin ? "on" : "off"}>
       <SkipToContent />
       <MapAbleAppCompactHeader
         title={headerTitle}

@@ -19,6 +19,7 @@ import { getPreHydrationAccessibilityScript } from "@/lib/accessibility/ui-prefe
 import { MAPABLE_LOGO_MARK_SRC } from "@/lib/brand/constants";
 import { getCanonicalPublicOrigin } from "@/lib/config/canonical-url";
 import { buildPublicJsonLd } from "@/lib/config/json-ld";
+import { isMapAbleOneUnifiedShellEnabled } from "@/lib/config/mapable-one-shell";
 import {
   CSP_NONCE_HEADER,
   isCspPreviewEnforceEnabled,
@@ -118,11 +119,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const scriptNonce = await resolveScriptNonce();
+  const mapableOneSkin = isMapAbleOneUnifiedShellEnabled();
 
   return (
     <html
       lang="en-AU"
-      className={`${plusJakarta.variable} ${outfit.variable} ${atkinsonHyperlegible.variable}`}
+      className={`${plusJakarta.variable} ${outfit.variable} ${atkinsonHyperlegible.variable}${mapableOneSkin ? " mapable-one" : ""}`}
+      data-mapable-one={mapableOneSkin ? "on" : "off"}
     >
       <head>
         <meta

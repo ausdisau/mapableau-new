@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
+import { OnePublicWorkspaceExplainer } from "@/components/mapable-one/OnePublicWorkspaceExplainer";
 import { MapAbleCareCombinedHomepageSections } from "@/components/marketing/MapAbleCareCombinedHomepage";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
+import { isMapAbleOneUnifiedShellEnabled } from "@/lib/config/mapable-one-shell";
 
 export const metadata: Metadata = {
   title: "MapAble | Accessibility you can plan around",
@@ -17,5 +19,11 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <MapAbleCareCombinedHomepageSections />;
+  const oneShell = isMapAbleOneUnifiedShellEnabled();
+  return (
+    <>
+      <MapAbleCareCombinedHomepageSections />
+      {oneShell ? <OnePublicWorkspaceExplainer /> : null}
+    </>
+  );
 }

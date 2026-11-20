@@ -1,9 +1,16 @@
 import Link from "next/link";
 
 import { CoreHubCard } from "@/components/core/CoreHubCard";
+import {
+  OneActionCentre,
+  OneMetric,
+  OnePrivacyNote,
+} from "@/components/mapable-one";
 import { requireAuth, requirePermission } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { roleLabel } from "@/lib/auth/roles";
+import { isMapAbleOneUnifiedShellEnabled } from "@/lib/config/mapable-one-shell";
+import { buildProviderActionCentre } from "@/lib/mapable-one/action-centre";
 import { getEnterpriseWorkspaceSummaryV2 } from "@/lib/provider/enterprise/workspace-v2-service";
 import { getProviderControlPanelSummaryForUser } from "@/lib/provider/provider-control-panel-service";
 
@@ -46,12 +53,27 @@ export default async function ProviderControlPanelPage() {
     primary && !primary.onboardingReady && primary.onboardingBlockerCount > 0;
 
   const showServiceReadyBadge = primary != null;
+  const oneShell = isMapAbleOneUnifiedShellEnabled();
+  const actionCentre = oneShell
+    ? buildProviderActionCentre(
+        primary
+          ? {
+              organisationName: primary.organisationName,
+              openCareRequests: primary.openCareRequests,
+              unassignedShifts72h: primary.unassignedShifts72h,
+              pendingInvites: primary.pendingInvites,
+              serviceReady: primary.serviceReady,
+              onboardingBlockerCount: primary.onboardingBlockerCount,
+            }
+          : null
+      )
+    : null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-mapable-one={oneShell ? "on" : "off"}>
       <header>
         <h1 className="font-heading text-3xl font-bold">
-          Your provider control panel
+          {oneShell ? "Provider command centre" : "Your provider control panel"}
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Signed in as <strong>{roleLabel(user.primaryRole)}</strong>
@@ -63,8 +85,20 @@ export default async function ProviderControlPanelPage() {
           ) : (
             ". Link your account to an organisation to see metrics."
           )}
+          {oneShell
+            ? " Metrics are organisation-scoped from existing services — nothing invented."
+            : null}
         </p>
       </header>
+
+      {actionCentre ? <OneActionCentre projection={actionCentre} /> : null}
+
+      {oneShell ? (
+        <OnePrivacyNote>
+          Action Centre is read-only. Assignments, claims, and billing stay on
+          their existing gated routes. No auto-dispatch.
+        </OnePrivacyNote>
+      ) : null}
 
       {showServiceReadyBadge && primary ? (
         <div
@@ -122,40 +156,87 @@ export default async function ProviderControlPanelPage() {
         <section aria-label="Organisation metrics">
           <h2 className="mb-4 text-lg font-semibold">At a glance</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <MetricTile
-              label="Active workers"
-              value={primary.activeWorkers}
-              detail={
-                primary.pendingVerificationWorkers
-                  ? `${primary.pendingVerificationWorkers} pending verification`
-                  : undefined
-              }
-            />
-            <MetricTile
-              label="Pending invites"
-              value={primary.pendingInvites}
-            />
-            <MetricTile
-              label="Assigned bookings"
-              value={primary.assignedBookings}
-            />
-            <MetricTile
-              label="Open care requests"
-              value={primary.openCareRequests}
-            />
-            <MetricTile
-              label="Upcoming shifts (7d)"
-              value={primary.upcomingShifts7d}
-            />
-            <MetricTile
-              label="Roster gaps (72h)"
-              value={primary.unassignedShifts72h}
-              detail={
-                primary.unassignedShifts72h
-                  ? "Unassigned shifts starting soon"
-                  : undefined
-              }
-            />
+            {oneShell ? (
+              <>
+                <OneMetric
+                  label="Active workers"
+                  value={primary.activeWorkers}
+                  detail={
+                    primary.pendingVerificationWorkers
+                      ? `${primary.pendingVerificationWorkers} pending verification`
+                      : undefined
+                  }
+                  sourceLabel="Worker profiles (org)"
+                />
+                <OneMetric
+                  label="Pending invites"
+                  value={primary.pendingInvites}
+                  sourceLabel="Worker invitations"
+                />
+                <OneMetric
+                  label="Assigned bookings"
+                  value={primary.assignedBookings}
+                  sourceLabel="Care bookings (org)"
+                />
+                <OneMetric
+                  label="Open care requests"
+                  value={primary.openCareRequests}
+                  sourceLabel="Care requests (org)"
+                />
+                <OneMetric
+                  label="Upcoming shifts (7d)"
+                  value={primary.upcomingShifts7d}
+                  sourceLabel="Care shifts (org)"
+                />
+                <OneMetric
+                  label="Roster gaps (72h)"
+                  value={primary.unassignedShifts72h}
+                  detail={
+                    primary.unassignedShifts72h
+                      ? "Unassigned shifts starting soon"
+                      : undefined
+                  }
+                  sourceLabel="Care shifts (org)"
+                />
+              </>
+            ) : (
+              <>
+                <MetricTile
+                  label="Active workers"
+                  value={primary.activeWorkers}
+                  detail={
+                    primary.pendingVerificationWorkers
+                      ? `${primary.pendingVerificationWorkers} pending verification`
+                      : undefined
+                  }
+                />
+                <MetricTile
+                  label="Pending invites"
+                  value={primary.pendingInvites}
+                />
+                <MetricTile
+                  label="Assigned bookings"
+                  value={primary.assignedBookings}
+                />
+                <MetricTile
+                  label="Open care requests"
+                  value={primary.openCareRequests}
+                />
+                <MetricTile
+                  label="Upcoming shifts (7d)"
+                  value={primary.upcomingShifts7d}
+                />
+                <MetricTile
+                  label="Roster gaps (72h)"
+                  value={primary.unassignedShifts72h}
+                  detail={
+                    primary.unassignedShifts72h
+                      ? "Unassigned shifts starting soon"
+                      : undefined
+                  }
+                />
+              </>
+            )}
           </div>
         </section>
       ) : null}
