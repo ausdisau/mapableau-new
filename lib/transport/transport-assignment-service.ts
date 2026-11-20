@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
 import {
@@ -9,7 +11,10 @@ import {
   assertDriverEligible,
   assertVehicleEligible,
 } from "@/lib/transport/transport-eligibility-service";
-import { recordTripEvent } from "@/lib/transport/transport-event-service";
+import {
+  countTripAssignmentRevisions,
+  recordTripEvent,
+} from "@/lib/transport/transport-event-service";
 import { buildTripResponse } from "@/lib/transport/transport-response";
 import { assertNoScheduleConflict } from "@/lib/transport/transport-schedule-conflict-service";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
@@ -18,106 +23,214 @@ function tripEnd(trip: { scheduledStart: Date; scheduledEnd: Date | null }) {
   return trip.scheduledEnd ?? new Date(trip.scheduledStart.getTime() + 3600000);
 }
 
+async function lockTripDriverVehicle(
+  tx: Prisma.TransactionClient,
+  tripId: string,
+  driverId: string,
+  vehicleId: string
+) {
+  // Row locks prevent concurrent assign of the same resources (Postgres).
+  await tx.$queryRaw`
+    SELECT id FROM transport_trips WHERE id = ${tripId} FOR UPDATE
+  `;
+  await tx.$queryRaw`
+    SELECT id FROM transport_drivers WHERE id = ${driverId} FOR UPDATE
+  `;
+  await tx.$queryRaw`
+    SELECT id FROM transport_vehicles WHERE id = ${vehicleId} FOR UPDATE
+  `;
+}
+
 export async function assignDriverAndVehicle(
   user: CurrentUser,
   tripId: string,
   orgId: string,
   driverId: string,
-  vehicleId: string
+  vehicleId: string,
+  options?: { idempotencyKey?: string }
 ) {
   await assertProviderOrgTrip(user, orgId);
-  const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
-  if (!trip || trip.providerOrganisationId !== orgId) {
-    throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
-  }
 
-  const driver = await prisma.transportDriver.findFirst({
-    where: { id: driverId, organisationId: orgId, active: true },
-  });
-  const vehicle = await prisma.transportVehicle.findFirst({
-    where: { id: vehicleId, organisationId: orgId, active: true },
-  });
-  if (!driver || !vehicle) {
-    throw new TransportApiError("TRANSPORT_VALIDATION_FAILED");
-  }
+  return prisma.$transaction(async (tx) => {
+    await lockTripDriverVehicle(tx, tripId, driverId, vehicleId);
 
-  const mobility = (trip.mobilityRequirements as Record<string, unknown>) ?? {};
-  await assertDriverEligible(driverId, mobility);
-  await assertVehicleEligible(vehicleId, mobility);
+    const trip = await tx.transportTrip.findUnique({ where: { id: tripId } });
+    if (!trip || trip.providerOrganisationId !== orgId) {
+      throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
+    }
 
-  const end = tripEnd(trip);
-  await assertNoScheduleConflict({
-    tripId,
-    driverId,
-    vehicleId,
-    scheduledStart: trip.scheduledStart,
-    scheduledEnd: end,
-  });
+    if (options?.idempotencyKey) {
+      const prior = await tx.transportTripEvent.findFirst({
+        where: {
+          tripId,
+          eventType: "assigned",
+          metadata: {
+            path: ["idempotencyKey"],
+            equals: options.idempotencyKey,
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      if (prior) {
+        const meta = (prior.metadata ?? {}) as Record<string, unknown>;
+        if (meta.driverId === driverId && meta.vehicleId === vehicleId) {
+          const current = await tx.transportTrip.findUniqueOrThrow({
+            where: { id: tripId },
+          });
+          return buildTripResponse({ trip: current, user });
+        }
+        throw new TransportApiError(
+          "TRANSPORT_VALIDATION_FAILED",
+          "Idempotency key reused with different driver/vehicle."
+        );
+      }
+    }
 
-  await prisma.transportDispatchAssignment.updateMany({
-    where: { tripId, active: true },
-    data: { active: false, unassignedAt: new Date() },
-  });
+    const assignable = new Set([
+      "requested",
+      "quote_pending",
+      "quoted",
+      "accepted",
+      "dispatch_pending",
+      "driver_vehicle_assigned",
+    ]);
+    if (!assignable.has(trip.status)) {
+      throw new TransportApiError(
+        "TRANSPORT_INVALID_STATUS_TRANSITION",
+        `Cannot assign in status ${trip.status}`
+      );
+    }
 
-  await prisma.transportDispatchAssignment.create({
-    data: {
+    const driver = await tx.transportDriver.findFirst({
+      where: { id: driverId, organisationId: orgId, active: true },
+    });
+    const vehicle = await tx.transportVehicle.findFirst({
+      where: { id: vehicleId, organisationId: orgId, active: true },
+    });
+    if (!driver || !vehicle) {
+      throw new TransportApiError("TRANSPORT_VALIDATION_FAILED");
+    }
+
+    const mobility = (trip.mobilityRequirements as Record<string, unknown>) ?? {};
+    // Eligibility re-checked inside the locked transaction (expiry-aware fail-closed).
+    await assertDriverEligible(driverId, mobility);
+    await assertVehicleEligible(vehicleId, mobility);
+
+    const end = tripEnd(trip);
+    await assertNoScheduleConflict(
+      {
+        tripId,
+        driverId,
+        vehicleId,
+        scheduledStart: trip.scheduledStart,
+        scheduledEnd: end,
+      },
+      tx
+    );
+
+    await tx.transportDispatchAssignment.updateMany({
+      where: { tripId, active: true },
+      data: { active: false, unassignedAt: new Date() },
+    });
+
+    await tx.transportDispatchAssignment.create({
+      data: {
+        tripId,
+        organisationId: orgId,
+        driverId,
+        vehicleId,
+        assignedByUserId: user.id,
+        active: true,
+      },
+    });
+
+    const nextStatus = "driver_vehicle_assigned" as const;
+    if (trip.status !== nextStatus) {
+      assertStatusTransition(trip.status, nextStatus);
+    }
+
+    const updated = await tx.transportTrip.update({
+      where: { id: tripId },
+      data: { status: nextStatus },
+    });
+
+    const priorRevisions = await countTripAssignmentRevisions(tripId, tx);
+    const roomGrantGeneration = priorRevisions + 1;
+
+    await recordTripEvent({
       tripId,
+      actorUserId: user.id,
+      eventType: "assigned",
+      fromStatus: trip.status,
+      toStatus: nextStatus,
+      metadata: {
+        driverId,
+        vehicleId,
+        idempotencyKey: options?.idempotencyKey,
+        aggregateVersion: roomGrantGeneration,
+        roomGrantGeneration,
+        // Revoke prior socket room grants — clients must re-mint after reassignment.
+        revokePriorRoomGrants: true,
+      },
       organisationId: orgId,
-      driverId,
-      vehicleId,
-      assignedByUserId: user.id,
-      active: true,
-    },
-  });
+      participantId: trip.participantId,
+      tx,
+    });
 
-  assertStatusTransition(trip.status, "driver_vehicle_assigned");
-  const updated = await prisma.transportTrip.update({
-    where: { id: tripId },
-    data: { status: "driver_vehicle_assigned" },
+    return buildTripResponse({ trip: updated, user });
   });
-
-  await recordTripEvent({
-    tripId,
-    actorUserId: user.id,
-    eventType: "assigned",
-    fromStatus: trip.status,
-    toStatus: "driver_vehicle_assigned",
-    metadata: { driverId, vehicleId },
-    organisationId: orgId,
-    participantId: trip.participantId,
-  });
-
-  return buildTripResponse({ trip: updated, user });
 }
 
 export async function unassignTrip(user: CurrentUser, tripId: string, orgId: string) {
   await assertProviderOrgTrip(user, orgId);
-  const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
-  if (!trip || trip.providerOrganisationId !== orgId) {
-    throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
-  }
 
-  await prisma.transportDispatchAssignment.updateMany({
-    where: { tripId, active: true },
-    data: { active: false, unassignedAt: new Date() },
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`
+      SELECT id FROM transport_trips WHERE id = ${tripId} FOR UPDATE
+    `;
+
+    const trip = await tx.transportTrip.findUnique({ where: { id: tripId } });
+    if (!trip || trip.providerOrganisationId !== orgId) {
+      throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
+    }
+
+    const active = await tx.transportDispatchAssignment.findFirst({
+      where: { tripId, active: true },
+    });
+
+    await tx.transportDispatchAssignment.updateMany({
+      where: { tripId, active: true },
+      data: { active: false, unassignedAt: new Date() },
+    });
+
+    const updated = await tx.transportTrip.update({
+      where: { id: tripId },
+      data: { status: "dispatch_pending" },
+    });
+
+    const priorRevisions = await countTripAssignmentRevisions(tripId, tx);
+    const roomGrantGeneration = priorRevisions + 1;
+
+    await recordTripEvent({
+      tripId,
+      actorUserId: user.id,
+      eventType: "unassigned",
+      fromStatus: trip.status,
+      toStatus: "dispatch_pending",
+      metadata: {
+        previousDriverId: active?.driverId,
+        previousVehicleId: active?.vehicleId,
+        aggregateVersion: roomGrantGeneration,
+        roomGrantGeneration,
+        revokePriorRoomGrants: true,
+      },
+      organisationId: orgId,
+      participantId: trip.participantId,
+      tx,
+    });
+
+    return buildTripResponse({ trip: updated, user });
   });
-
-  const updated = await prisma.transportTrip.update({
-    where: { id: tripId },
-    data: { status: "dispatch_pending" },
-  });
-
-  await recordTripEvent({
-    tripId,
-    actorUserId: user.id,
-    eventType: "unassigned",
-    fromStatus: trip.status,
-    toStatus: "dispatch_pending",
-    organisationId: orgId,
-    participantId: trip.participantId,
-  });
-
-  return buildTripResponse({ trip: updated, user });
 }
 
 export async function driverAcceptTrip(user: CurrentUser, tripId: string) {
@@ -154,26 +267,37 @@ export async function driverRejectTrip(
   const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
   if (!trip) throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
 
-  await prisma.transportDispatchAssignment.updateMany({
-    where: { tripId, active: true },
-    data: { active: false, unassignedAt: new Date() },
+  await prisma.$transaction(async (tx) => {
+    await tx.transportDispatchAssignment.updateMany({
+      where: { tripId, active: true },
+      data: { active: false, unassignedAt: new Date() },
+    });
+
+    await tx.transportTrip.update({
+      where: { id: tripId },
+      data: { status: "dispatch_pending" },
+    });
+
+    const priorRevisions = await countTripAssignmentRevisions(tripId, tx);
+    await recordTripEvent({
+      tripId,
+      actorUserId: user.id,
+      eventType: "driver_rejected",
+      fromStatus: trip.status,
+      toStatus: "dispatch_pending",
+      message: reason,
+      metadata: {
+        revokePriorRoomGrants: true,
+        roomGrantGeneration: priorRevisions + 1,
+      },
+      participantId: trip.participantId,
+      tx,
+    });
   });
 
-  const updated = await prisma.transportTrip.update({
+  const updated = await prisma.transportTrip.findUniqueOrThrow({
     where: { id: tripId },
-    data: { status: "dispatch_pending" },
   });
-
-  await recordTripEvent({
-    tripId,
-    actorUserId: user.id,
-    eventType: "driver_rejected",
-    fromStatus: trip.status,
-    toStatus: "dispatch_pending",
-    message: reason,
-    participantId: trip.participantId,
-  });
-
   return buildTripResponse({ trip: updated, user });
 }
 

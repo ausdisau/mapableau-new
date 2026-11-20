@@ -141,7 +141,11 @@ Missing keys never fabricate bookings, live ETAs, lift alerts, or funding approv
 
 ## ADR-11: Realtime delivery
 
-**Decision:** Prefer existing authenticated session infrastructure (and any established WebSocket/Pusher patterns in-repo) for role-filtered trip events; fall back to TanStack Query polling. Never trust client-supplied userId for auth. Persist events before broadcast.
+**Decision:** Use authenticated **Socket.IO** via `apps/realtime-server` for MapAble Transport Control status/assignment projections. Persist `TransportTripEvent` (and recommended outbox envelopes) **before** any broadcast. Fall back to TanStack Query HTTP refetch and polling on sequence gap or disconnect. Never trust client-supplied `userId`/`role` for auth — only HMAC-signed, non-expired tokens with tenant-bound room grants or membership checks. Pusher is not used for this control surface. Precise GPS must not be published without explicit consent and operational release (Phase 1 keeps GPS off). See [MapAble_Transport_Control_Architecture.md](./MapAble_Transport_Control_Architecture.md).
+
+## ADR-13: Schedule map stack
+
+**Decision:** Provider schedule visualisation uses **Leaflet 1.9.4** + OSM tiles (`lib/config/openstreetmap.ts`, `lib/map/leaflet-markers.ts`). Care-Transport MapLibre remains a separate pilot. Map is optional and flag-gated; list/table must work without it.
 
 ## ADR-12: Testing and verification
 
@@ -151,4 +155,3 @@ Every implementation prompt: `pnpm type-check` and `pnpm build` must pass. Trans
 
 - Exact encryption KMS vs app-level sealed payloads (inspect existing security helpers in P4).
 - Whether operator console stays under `/provider/*` with aliases only, or also mounts under `/transport/operator` as primary.
-- WebSocket vs Pusher Beams for trip realtime (inspect existing stack in P12).

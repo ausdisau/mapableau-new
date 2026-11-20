@@ -18,15 +18,28 @@ type SignedSocketPayload = {
   userId: string;
   role: string;
   roomGrants?: string[];
-  exp?: number;
+  exp: number;
 };
 
-function authSecret(): string | null {
-  const secret =
-    process.env.SOCKETIO_AUTH_SECRET?.trim() ||
-    process.env.NEXTAUTH_SECRET?.trim() ||
-    "";
-  return secret.length >= 16 ? secret : null;
+function isProductionRuntime(): boolean {
+  return process.env.NODE_ENV === "production";
+}
+
+/**
+ * Resolve signing secret.
+ * Production requires dedicated SOCKETIO_AUTH_SECRET (does not fall back to NEXTAUTH_SECRET).
+ * Non-production may fall back to NEXTAUTH_SECRET for local/dev convenience.
+ */
+export function authSecret(): string | null {
+  const dedicated = process.env.SOCKETIO_AUTH_SECRET?.trim() || "";
+  if (dedicated.length >= 16) return dedicated;
+
+  if (isProductionRuntime()) {
+    return null;
+  }
+
+  const fallback = process.env.NEXTAUTH_SECRET?.trim() || "";
+  return fallback.length >= 16 ? fallback : null;
 }
 
 function signPayload(encodedPayload: string, secret: string): string {
@@ -43,8 +56,9 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 /**
- * Mint a verified socket JWT (HMAC). Used by Next.js when issuing socket auth.
+ * Mint a verified socket token (HMAC). Used by Next.js when issuing socket auth.
  * Format: `base64url(JSON).base64url(hmac)`
+ * Always includes a non-optional `exp`.
  */
 export function mintSocketAuthToken(
   identity: SocketIdentity,
@@ -70,7 +84,7 @@ export function mintSocketAuthToken(
 
 /**
  * Resolve authenticated socket identity from the handshake.
- * Only accepts HMAC-signed tokens — client-spoofed userId/role are ignored.
+ * Only accepts HMAC-signed, non-expired tokens — client-spoofed userId/role are ignored.
  */
 export function resolveSocketIdentity(
   handshakeAuth: unknown,
@@ -84,7 +98,6 @@ export function resolveSocketIdentity(
   const verified = verifySignedSocketToken(token);
   if (!verified) return null;
 
-  // Never trust companion handshake userId/role over the signed payload.
   return verified;
 }
 
@@ -108,7 +121,11 @@ export function verifySignedSocketToken(token: string): SocketIdentity | null {
     if (typeof parsed.userId !== "string" || !parsed.userId.trim()) {
       return null;
     }
-    if (typeof parsed.exp === "number" && parsed.exp * 1000 < Date.now()) {
+    // Fail closed: exp is required and must be in the future.
+    if (typeof parsed.exp !== "number" || !Number.isFinite(parsed.exp)) {
+      return null;
+    }
+    if (parsed.exp * 1000 < Date.now()) {
       return null;
     }
 

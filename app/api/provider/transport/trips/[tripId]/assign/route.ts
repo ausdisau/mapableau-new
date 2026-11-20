@@ -16,9 +16,13 @@ export async function POST(
   const { tripId } = await params;
   try {
     await requireProviderOrgId(user, orgId);
-    const { driverId, vehicleId } = assignTripSchema.parse(await req.json());
+    const { driverId, vehicleId, idempotencyKey } = assignTripSchema.parse(
+      await req.json()
+    );
     return jsonOk(
-      await assignDriverAndVehicle(user, tripId, orgId, driverId, vehicleId)
+      await assignDriverAndVehicle(user, tripId, orgId, driverId, vehicleId, {
+        idempotencyKey,
+      })
     );
   } catch (e) {
     return handleTransportRouteError(e);

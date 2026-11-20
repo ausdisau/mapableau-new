@@ -106,6 +106,9 @@ export async function authorizeRoomJoin(
  * Membership check for a specific session/resource.
  * Uses optional HTTP internal lookup (`SOCKETIO_MEMBERSHIP_URL`) when set;
  * otherwise self-id rooms only (booking/care/trip require signed grants).
+ *
+ * Provider rooms are tenant-bound: dispatcher roles alone are insufficient —
+ * require grant, self-id match, or membership API allow.
  */
 async function resolveRoomMembership(
   identity: SocketIdentity,
@@ -115,11 +118,12 @@ async function resolveRoomMembership(
     case "user":
       return identity.userId === room.resourceId;
 
-    case "provider":
-      return (
-        DISPATCHER_ROLES.has(identity.role) ||
-        identity.userId === room.resourceId
-      );
+    case "provider": {
+      if (identity.userId === room.resourceId) return true;
+      // Role alone is not enough for cross-tenant provider rooms.
+      if (!DISPATCHER_ROLES.has(identity.role)) return false;
+      return lookupMembershipViaHttp(identity, room);
+    }
 
     case "thread":
     case "support-ticket":
@@ -130,7 +134,6 @@ async function resolveRoomMembership(
     case "care":
     case "trip": {
       if (identity.userId === room.resourceId) return true;
-      // Role alone is insufficient — require grant or membership API allow.
       const membershipOk = await lookupMembershipViaHttp(identity, room);
       if (membershipOk) return true;
       if (
@@ -149,12 +152,23 @@ async function resolveRoomMembership(
   }
 }
 
+/**
+ * Internal membership lookup.
+ * Fail closed when SOCKETIO_MEMBERSHIP_URL is set without a real SOCKETIO_INTERNAL_TOKEN.
+ * Never defaults the internal token to a weak value like "1".
+ */
 async function lookupMembershipViaHttp(
   identity: SocketIdentity,
   room: ParsedRoom,
 ): Promise<boolean> {
   const base = process.env.SOCKETIO_MEMBERSHIP_URL?.trim();
   if (!base) return false;
+
+  const internalToken = process.env.SOCKETIO_INTERNAL_TOKEN?.trim() || "";
+  if (internalToken.length < 16) {
+    // Fail closed — do not call membership with a weak/default secret.
+    return false;
+  }
 
   try {
     const url = new URL(base);
@@ -167,8 +181,7 @@ async function lookupMembershipViaHttp(
     const res = await fetch(url, {
       method: "GET",
       headers: {
-        "x-socketio-internal":
-          process.env.SOCKETIO_INTERNAL_TOKEN?.trim() || "1",
+        "x-socketio-internal": internalToken,
       },
       signal: AbortSignal.timeout(2500),
     });

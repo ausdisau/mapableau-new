@@ -3,6 +3,7 @@ import { z } from "zod";
 export const assignTripSchema = z.object({
   driverId: z.string().min(1),
   vehicleId: z.string().min(1),
+  idempotencyKey: z.string().min(8).max(128).optional(),
 });
 
 export const declineTripSchema = z.object({

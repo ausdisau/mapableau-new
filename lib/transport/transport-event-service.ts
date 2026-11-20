@@ -3,6 +3,8 @@ import type { Prisma, TransportTripStatus } from "@prisma/client";
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { prisma } from "@/lib/prisma";
 
+type DbClient = Prisma.TransactionClient | typeof prisma;
+
 export async function recordTripEvent(params: {
   tripId: string;
   actorUserId?: string;
@@ -13,8 +15,11 @@ export async function recordTripEvent(params: {
   metadata?: Record<string, unknown>;
   participantId?: string;
   organisationId?: string;
+  /** When set, writes event + audit inside the caller transaction. */
+  tx?: Prisma.TransactionClient;
 }) {
-  const event = await prisma.transportTripEvent.create({
+  const db: DbClient = params.tx ?? prisma;
+  const event = await db.transportTripEvent.create({
     data: {
       tripId: params.tripId,
       actorUserId: params.actorUserId,
@@ -39,8 +44,25 @@ export async function recordTripEvent(params: {
         toStatus: params.toStatus,
         ...params.metadata,
       },
+      tx: params.tx,
     });
   }
 
   return event;
+}
+
+/**
+ * Count prior assignment-related events for a trip — used as aggregateVersion / room grant generation.
+ */
+export async function countTripAssignmentRevisions(
+  tripId: string,
+  tx?: Prisma.TransactionClient
+): Promise<number> {
+  const db: DbClient = tx ?? prisma;
+  return db.transportTripEvent.count({
+    where: {
+      tripId,
+      eventType: { in: ["assigned", "unassigned", "driver_rejected"] },
+    },
+  });
 }
