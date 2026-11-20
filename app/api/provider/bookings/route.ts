@@ -1,22 +1,30 @@
-import { requireApiSession } from "@/lib/api/auth-handler";
-import { jsonOk } from "@/lib/api/response";
-import { prisma } from "@/lib/prisma";
+import type { BookingStatus, BookingType } from "@prisma/client";
 
-export async function GET() {
-  const user = await requireApiSession();
-  if (user instanceof Response) return user;
+import {
+  handleBookingRouteError,
+  requireBookingSession,
+  bookingOk,
+} from "@/lib/api/booking-route-handler";
+import { listBookingsForUser } from "@/lib/bookings/booking-service";
+import { listBookingsQuerySchema } from "@/lib/validation/booking-schemas";
 
-  const memberships = await prisma.organisationMember.findMany({
-    where: { userId: user.id },
-    select: { organisationId: true },
-  });
-  const orgIds = memberships.map((m) => m.organisationId);
+export async function GET(req: Request) {
+  const { user, error } = await requireBookingSession();
+  if (error) return error;
 
-  const bookings = await prisma.booking.findMany({
-    where: { assignedOrganisationId: { in: orgIds } },
-    orderBy: { createdAt: "desc" },
-    include: { participant: { select: { name: true } } },
-  });
+  try {
+    const { searchParams } = new URL(req.url);
+    const filters = listBookingsQuerySchema.parse({
+      status: searchParams.get("status") ?? undefined,
+      module: searchParams.get("module") ?? undefined,
+    });
 
-  return jsonOk({ bookings });
+    const bookings = await listBookingsForUser(user!, {
+      status: filters.status as BookingStatus | undefined,
+      module: filters.module as BookingType | undefined,
+    });
+    return bookingOk({ bookings });
+  } catch (e) {
+    return handleBookingRouteError(e);
+  }
 }
