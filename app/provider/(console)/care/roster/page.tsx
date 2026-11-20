@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getUserOrganisationIds } from "@/lib/api/organisation-scope";
 import { requirePermission } from "@/lib/auth/guards";
+import { isCareSchedulerUiEnabled } from "@/lib/config/care-scheduler";
 import { prisma } from "@/lib/prisma";
 
 export default async function ProviderCareRosterPage() {
@@ -30,6 +31,11 @@ export default async function ProviderCareRosterPage() {
   return (
     <div className="space-y-8">
       <h1 className="font-heading text-2xl font-bold">Care roster</h1>
+      {isCareSchedulerUiEnabled() ? (
+        <Link href="/provider/care/scheduler" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 font-semibold text-primary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+          Open weekly scheduling matrix
+        </Link>
+      ) : null}
       <section>
         <h2 className="text-lg font-semibold">Active bookings</h2>
         <ul className="mt-2 space-y-2">
