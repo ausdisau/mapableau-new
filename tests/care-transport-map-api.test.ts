@@ -4,6 +4,15 @@ vi.mock("@/lib/api/optional-session", () => ({
   getOptionalApiUser: vi.fn(),
 }));
 
+vi.mock("@/lib/api/auth-handler", () => ({
+  requireApiSession: vi.fn(),
+}));
+
+vi.mock("@/lib/api/ip-rate-limit", () => ({
+  getClientIp: vi.fn(() => "127.0.0.1"),
+  checkIpRateLimit: vi.fn(() => true),
+}));
+
 vi.mock("@/lib/transport/care-map/map-payload", () => ({
   buildCareTransportMapPayload: vi.fn(),
 }));
@@ -29,6 +38,8 @@ vi.mock("@/lib/map/nominatim-server", () => ({
 
 import { GET as getMap } from "@/app/api/care-transport/map/route";
 import { POST as postDraft } from "@/app/api/infrastructure/draft/route";
+import { requireApiSession } from "@/lib/api/auth-handler";
+import { checkIpRateLimit } from "@/lib/api/ip-rate-limit";
 import { getOptionalApiUser } from "@/lib/api/optional-session";
 import { buildCareTransportMapPayload } from "@/lib/transport/care-map/map-payload";
 import {
@@ -36,6 +47,12 @@ import {
   isCareTransportMapEnabled,
 } from "@/lib/config/care-transport-map";
 import { forwardGeocodeAustralia } from "@/lib/map/nominatim-server";
+
+const signedInUser = {
+  id: "user-1",
+  email: "user@mapable.test",
+  primaryRole: "participant",
+};
 
 describe("GET /api/care-transport/map", () => {
   beforeEach(() => {
@@ -116,6 +133,8 @@ describe("GET /api/care-transport/map", () => {
 describe("POST /api/infrastructure/draft", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(checkIpRateLimit).mockReturnValue(true);
+    vi.mocked(requireApiSession).mockResolvedValue(signedInUser as never);
   });
 
   it("returns 404 when flag is off", async () => {
@@ -127,6 +146,39 @@ describe("POST /api/infrastructure/draft", () => {
       }),
     );
     expect(res.status).toBe(404);
+    expect(requireApiSession).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    vi.mocked(isAddInfrastructureEnabled).mockReturnValue(true);
+    vi.mocked(requireApiSession).mockResolvedValue(
+      Response.json({ error: "Unauthorized" }, { status: 401 }) as never,
+    );
+    const res = await postDraft(
+      new Request("http://localhost/api/infrastructure/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: "Care support hub in Sydney NSW near Central",
+        }),
+      }),
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 429 when rate limited", async () => {
+    vi.mocked(isAddInfrastructureEnabled).mockReturnValue(true);
+    vi.mocked(checkIpRateLimit).mockReturnValue(false);
+    const res = await postDraft(
+      new Request("http://localhost/api/infrastructure/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: "Care support hub in Sydney NSW near Central",
+        }),
+      }),
+    );
+    expect(res.status).toBe(429);
   });
 
   it("returns heuristic draft and optional geocode", async () => {

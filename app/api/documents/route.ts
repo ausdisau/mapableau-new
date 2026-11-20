@@ -5,7 +5,7 @@ import { canAccessDocument } from "@/lib/documents/document-service";
 import { prisma } from "@/lib/prisma";
 import {
   storeDocumentFile,
-  validateUpload,
+  validateUploadBuffer,
 } from "@/lib/storage/documents";
 
 export async function GET() {
@@ -47,9 +47,10 @@ export async function POST(req: Request) {
   if (!file) return jsonError("file required");
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const stored = await storeDocumentFile(buffer, file.name);
-  const validation = validateUpload(stored.mimeType, stored.fileSize);
+  const { error: validation, mimeType } = validateUploadBuffer(buffer);
   if (validation) return jsonError(validation);
+
+  const stored = await storeDocumentFile(buffer, file.name, mimeType);
 
   const doc = await prisma.document.create({
     data: {

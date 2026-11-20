@@ -4,6 +4,7 @@ import {
   readDocumentFile,
   storeDocumentFile,
   validateUpload,
+  validateUploadBuffer,
 } from "@/lib/storage/documents";
 
 export type StorageBackend = "local" | "s3" | "supabase";
@@ -28,7 +29,12 @@ export async function storePrivateDocument(
     // Phase 2 local mode
   }
 
-  const stored = await storeDocumentFile(buffer, originalName);
+  const { error: validation, mimeType } = validateUploadBuffer(buffer);
+  if (validation) {
+    throw new Error(validation);
+  }
+
+  const stored = await storeDocumentFile(buffer, originalName, mimeType);
 
   await createAuditEvent({
     actorUserId: context.uploadedById,
