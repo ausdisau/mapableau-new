@@ -250,10 +250,20 @@ export default function CommunityLiveApp() {
               ["review", "Share with moderators only", "Reviewers can read it, but it cannot be published."],
               ["public", "Consider for public publication", "Human moderators may approve it for public viewing without identifying account details."] ,
             ] as const).map(([scope, label, description]) => (
-              <label key={scope} className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
-                <input type="radio" name="scope" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === scope} onChange={() => setConsentScope(scope)} />
-                <span><strong>{label}</strong><span className="mt-1 block text-sm text-slate-600">{description}</span></span>
-              </label>
+              <div key={scope} className="flex min-h-11 gap-3 rounded-lg p-2 hover:bg-white">
+                <input
+                  id={`community-scope-${scope}`}
+                  type="radio"
+                  name="scope"
+                  className="mt-1 size-5 accent-[#0c2043]"
+                  checked={consentScope === scope}
+                  onChange={() => setConsentScope(scope)}
+                />
+                <label htmlFor={`community-scope-${scope}`} className="cursor-pointer">
+                  <strong>{label}</strong>
+                  <span className="mt-1 block text-sm text-slate-600">{description}</span>
+                </label>
+              </div>
             ))}
           </fieldset>
           <label className="flex items-start gap-3">

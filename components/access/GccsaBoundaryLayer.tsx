@@ -1,7 +1,7 @@
 "use client";
 
-import { Layer, Source } from "react-map-gl/maplibre";
 import type { FillLayerSpecification, LineLayerSpecification } from "maplibre-gl";
+import { Layer, Source } from "react-map-gl/maplibre";
 
 import type {
   AccessCapitalRegionSlug,

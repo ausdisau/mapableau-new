@@ -1,10 +1,10 @@
 import Link from "next/link";
 
-import type { AccessiMartReviewListing } from "@/lib/marketplace/accessimart-review-adapter";
 import {
   mapablePublicCardClass,
   mapablePublicSecondaryButtonClass,
 } from "@/lib/marketing/public-page-styles";
+import type { AccessiMartReviewListing } from "@/lib/marketplace/accessimart-review-adapter";
 
 export function AccessiMartReviewDetail({
   listing,

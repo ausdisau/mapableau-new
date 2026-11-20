@@ -1,3 +1,4 @@
+import type { DataClass } from "@/lib/ai/platform/types/classification";
 import {
   isGuardianExternalProcessingAllowed,
   isGuardianPrivateInferenceAllowed,
@@ -8,10 +9,9 @@ import type {
   ProcessingSensitivity,
   ProcessingZone,
 } from "./contracts";
-import type { GuardianReasonCode } from "./reason-codes";
-import { selectEligibleProviders } from "./providers/policy";
 import type { ProcessingProviderRecord } from "./providers/contracts";
-import type { DataClass } from "@/lib/ai/platform/types/classification";
+import { selectEligibleProviders } from "./providers/policy";
+import type { GuardianReasonCode } from "./reason-codes";
 
 export type ProcessingRouterInput = {
   sensitivity: ProcessingSensitivity;
