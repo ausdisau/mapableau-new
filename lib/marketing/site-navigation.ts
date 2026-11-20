@@ -50,6 +50,11 @@ export function getMarketingNavGroups(): MarketingNavGroup[] {
       href: "/provider-finder",
       description: "Search care, transport, jobs and places in one flow.",
     },
+    {
+      label: "MapAble Search",
+      href: "/search",
+      description: "Search source-labelled services, jobs and rehabilitation directories.",
+    },
   ];
 
   const programmeItems: MarketingNavItem[] = [
@@ -67,6 +72,11 @@ export function getMarketingNavGroups(): MarketingNavGroup[] {
       label: "Employment",
       href: "/employment",
       description: "Inclusive work pathways and workplace adjustment support.",
+    },
+    {
+      label: "Rehabilitation",
+      href: "/moves/directory",
+      description: "Browse therapy and rehabilitation service directory categories.",
     },
     {
       label: "Marketplace",
@@ -131,6 +141,9 @@ const PATH_SEGMENT_LABELS: Record<string, string> = {
   care: "Care",
   transport: "Transport",
   employment: "Employment",
+  moves: "Moves and Rehabilitation",
+  search: "MapAble Search",
+  directory: "Directory",
   marketplace: "Marketplace",
   providers: "Providers",
   "provider-finder": "Provider finder",
