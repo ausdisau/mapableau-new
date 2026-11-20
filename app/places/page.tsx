@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";

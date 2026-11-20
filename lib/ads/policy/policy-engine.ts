@@ -1,12 +1,12 @@
 import { adsFlagsConfig, type AdsFlagEnv } from "@/lib/ads/config/flags";
+import { validateAdDestination } from "@/lib/ads/destination/validate-url";
+import { getPlacement } from "@/lib/ads/placement-registry";
 import type {
   AdPolicyDecision,
   AdPolicyReasonCode,
   AdRequestContext,
   PlacementCode,
 } from "@/lib/ads/types";
-import { getPlacement } from "@/lib/ads/placement-registry";
-import { validateAdDestination } from "@/lib/ads/destination/validate-url";
 
 export type PolicyInput = {
   context: AdRequestContext;

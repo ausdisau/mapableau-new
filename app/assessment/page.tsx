@@ -19,7 +19,7 @@ export default function AssessmentInformationPage() {
         <ul className="list-disc space-y-2 pl-6">
           <li>Describe goals, communication access, support requirements and changing needs.</li>
           <li>Save your own account and document evidence you choose to provide.</li>
-          <li>Review differences between your statement and an assessor's report.</li>
+          <li>Review differences between your statement and an assessor&apos;s report.</li>
           <li>Prepare a request for correction, clarification or review.</li>
         </ul>
       </section>

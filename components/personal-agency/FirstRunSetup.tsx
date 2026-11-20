@@ -168,21 +168,22 @@ export function FirstRunSetup() {
           <ul className="mt-4 space-y-3">
             {INFORMATION_DENSITY.map((option) => (
               <li key={option.value}>
-                <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
+                <div className="flex min-h-12 items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
                   <input
+                    id={`information-density-${option.value}`}
                     className="mt-1"
                     type="radio"
                     name="informationDensity"
                     checked={informationDensity === option.value}
                     onChange={() => setInformationDensity(option.value)}
                   />
-                  <span>
+                  <label htmlFor={`information-density-${option.value}`} className="cursor-pointer">
                     <span className="block font-semibold">{option.label}</span>
                     <span className="mt-1 block text-sm text-slate-600">
                       {option.description}
                     </span>
-                  </span>
-                </label>
+                  </label>
+                </div>
               </li>
             ))}
           </ul>

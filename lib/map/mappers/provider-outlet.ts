@@ -3,8 +3,8 @@ import { regGroupIndicesToCategories } from "@/app/provider-finder/regGroupOptio
 import type { ProviderOutlet } from "@/data/provider-outlets.types";
 import { entitiesToGeoJSON } from "@/lib/map/geojson";
 import { MAP_LAYER_IDS } from "@/lib/map/map-layer-ids";
-import { parseDirectoryActivity } from "@/lib/provider/finder/evidence";
 import type { MapPointEntity } from "@/lib/map/types";
+import { parseDirectoryActivity } from "@/lib/provider/finder/evidence";
 
 function slugify(s: string): string {
   return s
