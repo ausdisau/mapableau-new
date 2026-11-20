@@ -1,0 +1,130 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "globalPassThroughEnv": [
+    "BASE_SHA",
+    "GITHUB_BASE_SHA",
+    "GITHUB_EVENT_BEFORE",
+    "CI",
+    "VERCEL",
+    "GITHUB_ACTIONS"
+  ],
+  "tasks": {
+    "prisma:validate": {
+      "inputs": ["prisma/**"],
+      "outputs": [],
+      "env": ["DATABASE_URL", "DIRECT_URL"],
+      "tags": ["ci"]
+    },
+    "db:generate": {
+      "dependsOn": ["prisma:validate"],
+      "inputs": ["prisma/**"],
+      "env": ["DATABASE_URL", "DIRECT_URL"],
+      "cache": false
+    },
+    "type-check": {
+      "dependsOn": ["db:generate"],
+      "outputs": [],
+      "env": ["NODE_OPTIONS"],
+      "tags": ["ci", "ci:cpus:8"]
+    },
+    "typecheck": {
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "format:check": {
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "lint": {
+      "outputs": [],
+      "env": ["NODE_OPTIONS", "ESLINT_CI_LIGHT"],
+      "tags": ["ci", "ci:cpus:8"]
+    },
+    "check:package-boundaries": {
+      "inputs": ["packages/**/*.ts"],
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "ci:migration-order": {
+      "inputs": ["prisma/migrations/**", "scripts/ci/check-migration-order.ts"],
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "ci:migration-integrity": {
+      "inputs": ["prisma/migrations/**", "scripts/ci/check-migration-integrity.ts"],
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "ci:domain-ownership": {
+      "inputs": [
+        "lib/**",
+        "app/api/**",
+        "docs/remediation/DOMAIN_OWNERSHIP.md",
+        "scripts/ci/check-domain-ownership.ts"
+      ],
+      "outputs": [],
+      "passThroughEnv": ["BASE_SHA", "GITHUB_BASE_SHA", "GITHUB_EVENT_BEFORE"],
+      "tags": ["ci"]
+    },
+    "ci:feature-dependencies": {
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "ci:merge-train-integrity": {
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "ci:readiness-evidence": {
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "ci:controlled-pilot-baseline": {
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "ci:production-claims": {
+      "outputs": [],
+      "tags": ["ci"]
+    },
+    "build": {
+      "dependsOn": ["^build", "db:generate"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NODE_OPTIONS",
+        "MAPABLE_BUILD_HEAP_MB",
+        "NEXTAUTH_SECRET",
+        "NEXTAUTH_URL",
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "VERCEL",
+        "VERCEL_ENV",
+        "GITHUB_ACTIONS"
+      ]
+    },
+    "test": {
+      "dependsOn": ["db:generate"],
+      "outputs": [],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "NEXTAUTH_SECRET",
+        "NEXTAUTH_URL",
+        "MAPABLE_ALLOW_DEV_ENCRYPTION_FALLBACK",
+        "MAPABLE_REQUIRE_ADMIN_BREAK_GLASS"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
