@@ -74,9 +74,9 @@ export const ECOSYSTEM_SERVICES: readonly EcosystemService[] = [
     name: "MapAble Challenges",
     summary: "Create and review accessibility observations through MapAble Signal.",
     state: "prototype",
-    href: "/community",
+    href: "/signal",
     evidence:
-      "Existing /community route; browser-local fictional Signal workspace by default, live mode separately gated.",
+      "Canonical /signal route (also signal.mapable.com.au); browser-local fictional Signal workspace by default, live mode separately gated. /community remains an alias.",
   },
   {
     id: "access",
@@ -237,6 +237,7 @@ export function getPrimaryNavServices(): EcosystemService[] {
 export const ECOSYSTEM_KNOWN_PUBLIC_ROUTES = [
   "/accessibility-map",
   "/community",
+  "/signal",
   "/care",
   "/transport",
   "/employment",
