@@ -1,0 +1,23 @@
+{
+  "name": "ai-gateway-realtime",
+  "version": "1.0.0",
+  "description": "AI Gateway realtime speech-to-speech example",
+  "type": "module",
+  "main": "realtime.ts",
+  "scripts": {
+    "start": "tsx realtime.ts",
+    "realtime": "tsx realtime.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ai-sdk/gateway": "^4.0.0-canary.107",
+    "@types/node": "^26.6.6",
+    "@types/ws": "^8.18.2",
+    "dotenv": "^18.0.9",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "ws": "^8.22.1"
+  }
+}
