@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
+import { AccessLensPanel } from "./AccessLensPanel";
 import { createLocalId, validatePost, type CommunityPost } from "./domain";
 import { DEMO_CIRCLES, DEMO_GATHERINGS, DEMO_PLACES } from "./seed";
 import { usePlacesStore } from "./store";
@@ -15,9 +16,11 @@ export function CommunityScreen() {
   const [errors, setErrors] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [planGatheringId, setPlanGatheringId] = useState<string | null>(null);
   const circle = DEMO_CIRCLES.find(c => c.id === circleId) ?? DEMO_CIRCLES[0];
   const related = DEMO_GATHERINGS.filter(g => g.circleId === circle?.id);
   const posts = state.posts.filter(p => p.circleId === circleId);
+  const linkedPlace = DEMO_PLACES.find(p => p.id === circle?.placeId);
 
   function candidate(): CommunityPost {
     return {
@@ -54,7 +57,7 @@ export function CommunityScreen() {
 
     <Heading level={2}>Explore a circle</Heading>
     <Choice label="Choose a community" options={DEMO_CIRCLES.map(c=>({value:c.id,label:c.title}))}
-      value={circleId} onChange={v=>{setCircleId(v);setPreview(false);setErrors([]);setNotice("");setTitle("");setBody("");setEditingId(null);}}/>
+      value={circleId} onChange={v=>{setCircleId(v);setPreview(false);setErrors([]);setNotice("");setTitle("");setBody("");setEditingId(null);setPlanGatheringId(null);}}/>
     {circle && <Card>
       <Heading level={2}>{circle.title}</Heading>
       <Text style={S.body}>{circle.description}</Text>
@@ -74,6 +77,16 @@ export function CommunityScreen() {
         selected={state.interestEventIds.includes(gathering.id)}
         onPress={()=>dispatch({type:"toggle-interest",eventId:gathering.id})}
         hint="This is not an RSVP, ticket, attendance confirmation or notification to an organiser."/>
+      {linkedPlace && <>
+        <Action label={planGatheringId === gathering.id
+          ? "Close gathering access questions"
+          : "Plan access questions for this gathering"}
+          onPress={() => setPlanGatheringId(v => v === gathering.id ? null : gathering.id)}
+          selected={planGatheringId === gathering.id}
+          hint="Checks venue evidence and prepares questions locally. It does not invite or notify anybody."/>
+        {planGatheringId === gathering.id &&
+          <AccessLensPanel place={linkedPlace} gatheringName={gathering.title}/>}
+      </>}
     </Card>)}
 
     <Heading level={2}>Write a community discussion draft</Heading>
