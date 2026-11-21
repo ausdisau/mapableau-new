@@ -30,6 +30,8 @@ export async function createStripePaymentCheckoutSession(
   const stripe = getStripeClient();
   const currency = (params.currency ?? stripeConfig.defaultCurrency).toLowerCase();
 
+  // Omit payment_method_types so Checkout uses Stripe dynamic payment methods
+  // (card, Link, Google Pay, Apple Pay when enabled in the Dashboard).
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
     line_items: [
