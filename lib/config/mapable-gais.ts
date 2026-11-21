@@ -13,6 +13,9 @@ export const mapableGaisFlags = {
   get publicApiEnabled() {
     return envTrue("MAPABLE_GAIS_PUBLIC_API_ENABLED");
   },
+  get regionalDemandEnabled() {
+    return envTrue("MAPABLE_GAIS_REGIONAL_DEMAND_ENABLED");
+  },
   /** Public read endpoints may serve when true. */
   get readEnabled() {
     return this.enabled && this.publicApiEnabled;
