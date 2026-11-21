@@ -1,0 +1,43 @@
+name: PayCore cross-vertical preparation policy
+
+on:
+  pull_request:
+    paths:
+      - "lib/billing/orchestration/paycore-policy.ts"
+      - "tests/paycore-cross-vertical-policy.test.ts"
+      - "docs/architecture/mapable-paycore-v1.md"
+      - ".github/workflows/paycore-cross-vertical-policy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paycore:
+    name: PayCore synthetic funding, role and payout boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+      - name: TypeScript
+        run: pnpm type-check
+      - name: Pure policy tests
+        run: pnpm exec vitest run tests/paycore-cross-vertical-policy.test.ts
+      - name: Focused ESLint
+        env:
+          ESLINT_CI_LIGHT: "1"
+        run: |
+          pnpm exec eslint \
+            lib/billing/orchestration/paycore-policy.ts \
+            tests/paycore-cross-vertical-policy.test.ts --max-warnings 0
