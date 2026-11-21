@@ -32,7 +32,7 @@ export default function StartingWorkAccessCastPage() {
           </p>
           <p className="mt-4">
             <Link className="text-sky-800 underline" href="/accesscast/demo">
-              AccessCast demo
+              AccessCast illustrative outlook
             </Link>
           </p>
         </main>

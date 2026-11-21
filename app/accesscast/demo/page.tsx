@@ -10,7 +10,7 @@ import {
 } from "@/lib/accesscast";
 
 export const metadata: Metadata = {
-  title: "AccessCast demo (synthetic) | MapAble Access Weather",
+  title: "AccessCast — illustrative outlook | MapAble Access Weather",
   description:
     "Synthetic Access Weather outlook for Harbour Civic Centre — not a production claim.",
 };
@@ -28,7 +28,7 @@ export default function AccessCastDemoPage() {
             <code className="rounded bg-slate-100 px-1">MAPABLE_ACCESSCAST_ENABLED=true</code> with
             mode{" "}
             <code className="rounded bg-slate-100 px-1">synthetic</code> (default) to view the
-            synthetic Harbour AccessCast demo.
+            fictional Harbour AccessCast example.
           </p>
           <p className="mt-4 text-slate-600">Know before you go.</p>
         </main>

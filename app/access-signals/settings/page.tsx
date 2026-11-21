@@ -3,7 +3,7 @@ import { PlaceholderPanel } from "@/components/access-signals/PlaceholderPanel";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Settings (placeholder) | Access Signals",
+  title: "Settings — not configurable | Access Signals",
 };
 
 export default function AccessSignalsSettingsPage() {
@@ -11,7 +11,7 @@ export default function AccessSignalsSettingsPage() {
     <AccessSignalsShell activePath="/access-signals/settings">
       <PlaceholderPanel
         title="Settings"
-        description="Access Signals settings are not configurable in the synthetic demo."
+        description="This preview has no saved account settings. Changes to personal access preferences and sharing controls are not available on this screen."
       />
     </AccessSignalsShell>
   );

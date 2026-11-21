@@ -34,8 +34,8 @@ export default function ProviderGrowthPage() {
               Grow by being useful, trusted, and accessible.
             </h1>
             <p className="mt-4 max-w-3xl text-lg text-slate-600">
-              MapAble helps providers show availability, access-readiness, response quality, and
-              service fit — not just advertising.
+              Explore how reliable service details, communication access and reviewable evidence could
+              support informed provider choices. Feature availability varies by release.
             </p>
           </div>
         </section>
@@ -43,7 +43,7 @@ export default function ProviderGrowthPage() {
         <div className="mx-auto max-w-7xl space-y-12 px-5 py-12 lg:px-8">
           <section aria-labelledby="tools-heading">
             <h2 id="tools-heading" className="text-2xl font-black">
-              Provider tools
+              Proposed provider tools
             </h2>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {tools.map((tool) => (
@@ -59,22 +59,22 @@ export default function ProviderGrowthPage() {
             className="rounded-2xl border border-slate-200 bg-[#F6FBFC] p-6"
           >
             <h2 id="dashboard-heading" className="text-2xl font-black">
-              Provider dashboard mockup (demo)
+              Provider dashboard information — not connected
             </h2>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-              <Stat term="Enquiries (30 days)" detail="24" />
-              <Stat term="Median response time" detail="6 hours" />
-              <Stat term="Availability status" detail="Accepting this week" />
-              <Stat term="Profile completeness" detail="78%" />
-              <Stat term="Access info completeness" detail="64%" />
-              <Stat term="Conversion to first appointment" detail="31%" />
-              <Stat term="Upcoming reassessment" detail="12 Sep 2026" />
+              <Stat term="Enquiries (30 days)" detail="Not reported" />
+              <Stat term="Median response time" detail="Not measured" />
+              <Stat term="Availability status" detail="Not verified" />
+              <Stat term="Profile completeness" detail="Not assessed" />
+              <Stat term="Access info completeness" detail="Not assessed" />
+              <Stat term="Conversion to first appointment" detail="Not measured" />
+              <Stat term="Upcoming reassessment" detail="Not scheduled" />
             </dl>
           </section>
 
           <section aria-labelledby="pricing-heading">
             <h2 id="pricing-heading" className="text-2xl font-black">
-              Pricing placeholder
+              Potential provider services
             </h2>
             <ul className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[
@@ -90,7 +90,8 @@ export default function ProviderGrowthPage() {
               ))}
             </ul>
             <p className="mt-4 text-sm text-slate-600" role="note">
-              Paid plans improve tools and visibility, not evidence-based trust scores.
+              These are possible service options, not confirmed prices or activated subscriptions.
+              Any future fees must remain separate from independent access assessment results.
             </p>
           </section>
 

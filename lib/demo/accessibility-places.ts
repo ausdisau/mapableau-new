@@ -332,7 +332,10 @@ export function filterDemoPlaces(
       if (filter === "staff-trained" && place.profile.staffTraining !== true) return false;
       if (filter === "pt-nearby" && place.profile.publicTransportNearby !== true) return false;
       if (filter === "transport-bookable" && place.profile.transportBookable !== true) return false;
-      if (filter === "verified" && place.tier === "Unverified") return false;
+      if (
+        filter === "verified" &&
+        (place.isDemo || place.tier === "Unverified" || place.source !== "MapAble assessor")
+      ) return false;
       if (filter === "support-nearby") {
         // Demo filter: mark as available when transport bookable (proxy)
         if (place.profile.transportBookable !== true) return false;

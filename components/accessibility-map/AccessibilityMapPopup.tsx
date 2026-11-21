@@ -20,7 +20,8 @@ export function AccessibilityMapPopup({
   activeNeeds,
   onViewDetails,
 }: AccessibilityMapPopupProps) {
-  const fit = calculateAccessFit(activeNeeds, place.profile);
+  const unassessed = place.isDemo || place.tier === "Unverified";
+  const fit = unassessed ? null : calculateAccessFit(activeNeeds, place.profile);
 
   return (
     <div className="access-map-popup min-w-[220px] max-w-[280px] text-sm text-[#0C1833]">
@@ -29,6 +30,14 @@ export function AccessibilityMapPopup({
         {place.category.replace(/_/g, " ")} · {place.suburb}, {place.state}
       </p>
 
+      {unassessed ? (
+        <p className="mt-2 text-sm text-amber-900" role="note">
+          {place.isDemo
+            ? "Fictional place example. Accessibility has not been assessed."
+            : "Imported source record. Current accessibility conditions and access fit are unknown."}
+        </p>
+      ) : fit ? (
+        <>
       <dl className="mt-2 space-y-1">
         <div className="flex flex-wrap gap-x-2">
           <dt className="font-semibold">Access score:</dt>
@@ -73,6 +82,9 @@ export function AccessibilityMapPopup({
         <AccessFitBadge score={fit.score} label={fit.label} />
       </div>
 
+        </>
+      ) : null}
+
       <div className="mt-3 space-y-2">
         <Link
           href={`/accessibility-map/${place.slug}`}
@@ -81,12 +93,12 @@ export function AccessibilityMapPopup({
         >
           View accessibility details
         </Link>
-        <ViewFloorPlanButton
+        {!unassessed ? <ViewFloorPlanButton
           venueId={place.id}
           venueName={place.name}
           venueSlug={place.slug}
           className="w-full justify-center text-xs"
-        />
+        /> : null}
       </div>
     </div>
   );

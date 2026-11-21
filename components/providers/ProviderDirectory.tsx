@@ -66,11 +66,11 @@ export function ProviderDirectory() {
             Providers
           </p>
           <h1 className="mt-3 max-w-4xl text-4xl font-black tracking-[-0.04em] md:text-5xl">
-            Find providers who are available, accessible, and clear about evidence.
+            Explore the factors that matter when choosing a support provider.
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-slate-600">
-            MapAble is more than a listing. Compare availability, access-readiness, transport
-            feasibility, response time, and evidence status. Demo listings are labelled.
+            These fictional profiles illustrate how to compare access needs, services and evidence.
+            They are not current offers, verified NDIS registrations or evidence of availability.
           </p>
         </div>
       </section>
@@ -126,7 +126,7 @@ export function ProviderDirectory() {
               ["Agency-managed accepted", agencyManaged, setAgencyManaged],
               ["Plan-managed accepted", planManaged, setPlanManaged],
               ["Self-managed accepted", selfManaged, setSelfManaged],
-              ["Verified by MapAble", verified, setVerified],
+              ["Example verification filter", verified, setVerified],
             ] as const
           ).map(([label, value, setter]) => (
             <label key={label} className="flex min-h-11 items-center gap-2 text-sm">
@@ -142,7 +142,7 @@ export function ProviderDirectory() {
 
         <div className="space-y-6">
           <p className="text-sm text-slate-600" role="status">
-            Showing {providers.length} provider{providers.length === 1 ? "" : "s"} (demo data)
+            Showing {providers.length} fictional provider {providers.length === 1 ? "example" : "examples"} — not verified
           </p>
           <ul className="space-y-4" aria-label="Provider results">
             {providers.map((provider) => (
@@ -159,22 +159,22 @@ export function ProviderDirectory() {
                       </p>
                     </div>
                     <p className="rounded-full bg-[#F6FBFC] px-3 py-1 text-xs font-bold text-[#005B7F]">
-                      Access-readiness {provider.accessReadinessScore}
+                      Illustrative profile — not rated
                     </p>
                   </div>
                   <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
                     <Meta term="Accepting new" detail={provider.acceptingNewParticipants ? "Yes" : "No"} />
                     <Meta term="Waitlist" detail={provider.waitlistStatus} />
-                    <Meta term="Earliest availability" detail={provider.earliestAvailability} />
+                    <Meta term="Earliest availability" detail="Not checked (example)" />
                     <Meta term="Funding" detail={provider.fundingTypes.join(", ")} />
                     <Meta
                       term="NDIS registration"
-                      detail={provider.ndisRegistered ? "Registered" : "Not registered / other"}
+                      detail="Not independently verified (example)"
                     />
                     <Meta term="Transport feasibility" detail={provider.transportFeasibility} />
-                    <Meta term="Response time" detail={provider.responseTime} />
+                    <Meta term="Response time" detail="Not measured (example)" />
                     <Meta term="Evidence status" detail={provider.evidenceStatus} />
-                    <Meta term="Last updated" detail={provider.lastUpdated} />
+                    <Meta term="Last updated" detail="Fictional record" />
                   </dl>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <button
@@ -194,7 +194,7 @@ export function ProviderDirectory() {
                       href="/provider-finder"
                       className={`inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black ${mapableCareFocusRing}`}
                     >
-                      Open live finder
+                      Open provider finder
                     </Link>
                   </div>
                 </article>
@@ -218,16 +218,16 @@ export function ProviderDirectory() {
                 />
                 <ProfileBlock
                   title="Access-readiness"
-                  body={`Score ${selected.accessReadinessScore}. Accessible clinic: ${selected.accessibleClinic ? "yes" : "no"}. Transport supported: ${selected.accessibleTransportSupported ? "yes" : "no"}.`}
+                  body="No verified access-readiness assessment is attached to this fictional profile."
                 />
                 <ProfileBlock
                   title="Credentials / evidence"
-                  body={`Evidence status: ${selected.evidenceStatus}. NDIS registered: ${selected.ndisRegistered ? "yes" : "no"}. Last updated ${selected.lastUpdated}.`}
+                  body="Registration, credentials and evidence require verification against official sources and provider records."
                 />
                 <ProfileBlock title="Response performance" body={selected.responseTime} />
                 <ProfileBlock
                   title="Pricing transparency"
-                  body="Demo profiles do not publish prices. Ask the provider before booking."
+                  body="Pricing is not available in this example. Request a written quotation from any real provider before booking."
                 />
                 <ProfileBlock
                   title="Complaint pathway"
@@ -248,8 +248,8 @@ export function ProviderDirectory() {
           ) : null}
 
           <p className="text-sm text-slate-600" role="note">
-            Provider information should be confirmed before booking. MapAble displays evidence
-            status so users can see what is verified, declared, expired, or unknown.
+            These profiles are fictional. For real services, check registration, availability,
+            communication fit and suitability directly with the provider.
           </p>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { FieldNotesObserve } from "@/components/access-signals/FieldNotesObserve
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Field Notes (synthetic demo) | MapAble Access Signals",
+  title: "Field Notes — illustrative workspace | MapAble Access Signals",
 };
 
 export default async function AccessSignalsFieldNotesPage({

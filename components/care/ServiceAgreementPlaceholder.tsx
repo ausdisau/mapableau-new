@@ -8,11 +8,11 @@ export function ServiceAgreementPlaceholder({
   return (
     <section className="rounded-xl border border-dashed p-4" aria-labelledby="sa-heading">
       <h2 id="sa-heading" className="font-semibold">
-        {title ?? "Service agreement (placeholder)"}
+        {title ?? "Service agreement — awaiting issue"}
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
         {summary ??
-          "Your provider will share a service agreement for review and signing. This placeholder does not replace a signed agreement."}
+          "No agreement has been issued or signed here. Request the full terms from your provider and review them before agreeing."}
       </p>
     </section>
   );

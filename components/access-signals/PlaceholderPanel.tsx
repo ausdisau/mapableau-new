@@ -14,8 +14,8 @@ export function PlaceholderPanel({
       <h1 className="font-heading text-3xl font-bold text-[#0C1833]">{title}</h1>
       <p className="text-slate-700">{description}</p>
       <p role="status" className="rounded-xl border border-slate-200 bg-white p-4">
-        This tab is a placeholder in the Access Signals synthetic demo. No
-        ledger, evidence store or settings backend is connected.
+        This feature is not available in this workspace. No evidence record,
+        change history or settings update will be saved or published from this screen.
       </p>
       <div className="flex flex-wrap gap-3">
         <Link

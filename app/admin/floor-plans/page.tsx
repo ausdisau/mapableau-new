@@ -55,13 +55,13 @@ export default function FloorPlansAdminPage() {
       <section className="rounded-2xl border border-slate-200 p-6">
         <h2 className="font-bold">Preview</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Demo floor plan with full indoor platform panels:
+          Illustrative floor-plan layout — no verified real-world route:
         </p>
         <Link
           href="/accessibility-map/demo-parramatta-library/floor-plan"
           className="mt-4 inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm font-black"
         >
-          Open Parramatta Library demo
+          Explore illustrative floor plan
         </Link>
       </section>
     </main>

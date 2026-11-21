@@ -1,0 +1,52 @@
+name: Public copy and evidence-claim validation
+
+on:
+  pull_request:
+    paths:
+      - "app/access-intelligence/**"
+      - "app/accessibility-map/**"
+      - "app/partner/**"
+      - "components/access/**"
+      - "components/marketing/home/HomepageMapPreview.tsx"
+      - "components/journey/JourneyPlannerForm.tsx"
+      - "components/venue/VerifyVenueForm.tsx"
+      - "components/providers/ProviderDirectory.tsx"
+      - "components/access-pass/**"
+      - "components/partner/**"
+      - "tests/marketing/demo-copy-guard.test.ts"
+      - ".github/workflows/public-copy-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  claim-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable pinned pnpm
+        run: corepack enable
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run critical public-claim regression tests
+        run: pnpm exec vitest run tests/marketing/demo-copy-guard.test.ts
+      - name: Lint changed high-risk public surfaces
+        run: |
+          pnpm exec eslint \
+            app/access-intelligence/page.tsx \
+            "app/accessibility-map/[slug]/page.tsx" \
+            app/partner/page.tsx \
+            app/partner/analytics/page.tsx \
+            app/partner/referrals/page.tsx \
+            components/marketing/home/HomepageMapPreview.tsx \
+            components/journey/JourneyPlannerForm.tsx \
+            components/venue/VerifyVenueForm.tsx \
+            components/providers/ProviderDirectory.tsx \
+            components/access-pass/AccessPassDemo.tsx \
+            tests/marketing/demo-copy-guard.test.ts \
+            --max-warnings 0

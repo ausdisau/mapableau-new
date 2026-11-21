@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "MapAble Places — controlled community prototype",
   description:
-    "Controlled demonstration linking MapAble published place discovery with the privacy-first MapAble Places and CripSquare concept.",
+    "An exploratory connection between MapAble place discovery and privacy-first community participation. No public place evidence is added from this screen.",
   robots: { index: false, follow: false },
 };
 
@@ -107,7 +107,7 @@ export default async function PlacesGatewayPage() {
           {publishedPlaces === null ? (
             <p role="status" className="rounded-xl bg-amber-50 p-5 text-amber-950">
               The published-place service is currently unavailable. The
-              separate offline Expo demonstration can still be used.
+              separate offline Expo prototype can be explored without publishing real observations.
             </p>
           ) : publishedPlaces.length === 0 ? (
             <p role="status" className="rounded-xl bg-slate-100 p-5">

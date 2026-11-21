@@ -375,11 +375,19 @@ export function AccessExplorationLandingV2({
             <section className="rounded-2xl border border-slate-200 bg-[#F6FBFC] p-4">
               <h2 className="text-lg font-black">Selected place</h2>
               <p className="mt-1 font-semibold">{selectedPlace.name}</p>
-              <div className="mt-3">
-                <AccessFitBreakdownV2
-                  result={calculateAccessFitV2(activeRequirements, selectedPlace.profile)}
-                />
-              </div>
+              {selectedPlace.isDemo || selectedPlace.tier === "Unverified" ? (
+                <p className="mt-3 text-sm text-amber-900" role="note">
+                  {selectedPlace.isDemo
+                    ? "Fictional example: no accessibility assessment or personal fit is verified."
+                    : "Historical imported record: current accessibility and access fit are unknown."}
+                </p>
+              ) : (
+                <div className="mt-3">
+                  <AccessFitBreakdownV2
+                    result={calculateAccessFitV2(activeRequirements, selectedPlace.profile)}
+                  />
+                </div>
+              )}
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link
                   href={`/accessibility-map/${selectedPlace.slug}`}

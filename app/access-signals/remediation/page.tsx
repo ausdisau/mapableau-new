@@ -3,7 +3,7 @@ import { RemediationWorkspace } from "@/components/access-signals/RemediationWor
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Remediation workspace (synthetic demo) | MapAble Access Signals",
+  title: "Remediation — illustrative workspace | MapAble Access Signals",
 };
 
 export default function AccessSignalsRemediationPage() {

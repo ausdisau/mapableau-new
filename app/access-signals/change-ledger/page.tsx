@@ -3,7 +3,7 @@ import { PlaceholderPanel } from "@/components/access-signals/PlaceholderPanel";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Change ledger (placeholder) | Access Signals",
+  title: "Change history — not connected | Access Signals",
 };
 
 export default function AccessSignalsChangeLedgerPage() {
@@ -11,7 +11,7 @@ export default function AccessSignalsChangeLedgerPage() {
     <AccessSignalsShell activePath="/access-signals/change-ledger">
       <PlaceholderPanel
         title="Change ledger"
-        description="A durable change ledger is not connected in this synthetic demo."
+        description="No verified change history is connected here. A future ledger would record dated updates, sources and human review; this screen cannot create an entry."
       />
     </AccessSignalsShell>
   );
