@@ -2,19 +2,6 @@ import type { TransportTrip } from "@prisma/client";
 
 import { transportAccessibleConfig } from "@/lib/config/transport-accessible";
 import { prisma } from "@/lib/prisma";
-import { MOBILITY_FIELD_LABELS, parseMobilityRequirements } from "@/lib/transport/mobility-schema";
-
-function mobilitySummary(trip: TransportTrip): string {
-  const reqs = parseMobilityRequirements(trip.mobilityRequirements);
-  const parts: string[] = [];
-  for (const [key, value] of Object.entries(reqs)) {
-    if (value === true) {
-      const label = MOBILITY_FIELD_LABELS[key as keyof typeof MOBILITY_FIELD_LABELS];
-      if (label) parts.push(label);
-    }
-  }
-  return parts.length ? parts.join("; ") : "Standard transport";
-}
 
 /**
  * Creates a unified Booking record when a transport trip completes, for NDIS claim workflows.
@@ -47,10 +34,9 @@ export async function bridgeTransportTripToBooking(
       requestedEnd: trip.scheduledEnd ?? trip.scheduledStart,
       pickupAddress: trip.pickupAddress,
       dropoffAddress: trip.dropoffAddress,
-      accessibilitySummary: mobilitySummary(trip),
-      participantNotes: trip.accessNotes,
+      // Trip-specific grants do not extend to readers of the general booking record.
       assignedOrganisationId: trip.providerOrganisationId,
-      shareAccessibility: true,
+      shareAccessibility: false,
       createdById: trip.participantId,
       transportTripId: trip.id,
     },

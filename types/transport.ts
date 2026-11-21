@@ -74,6 +74,7 @@ export type TransportTripListItem = {
 
 export type TransportTripDetail = TransportTripListItem & {
   participantId: string;
+  consentScopes?: string[];
   mobilityRequirements: Record<string, unknown>;
   disputeReason: string | null;
   createdAt: string;
