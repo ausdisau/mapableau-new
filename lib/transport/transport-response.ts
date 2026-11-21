@@ -4,6 +4,7 @@ import type { CurrentUser } from "@/lib/auth/current-user";
 import { hasPermission } from "@/lib/auth/permissions";
 import { isAdminRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
+import { bookingScope, providerMobilitySummary } from "@/lib/transport/booking-consent";
 import {
   getActiveAssignment,
   resolveTripAccess,
@@ -21,7 +22,8 @@ import { ROUTE_ADVISORY_DISCLAIMER } from "@/types/transport-routing";
 function shapeAddress(
   trip: TransportTrip,
   kind: "pickup" | "dropoff",
-  access: TripAccessLevel
+  access: TripAccessLevel,
+  showPickupNote = false
 ) {
   const suburb =
     kind === "pickup" ? trip.pickupSuburb : trip.dropoffSuburb;
@@ -36,7 +38,7 @@ function shapeAddress(
       address,
       lat,
       lng,
-      accessNotes: kind === "pickup" ? trip.accessNotes : undefined,
+      accessNotes: kind === "pickup" && showPickupNote ? trip.accessNotes : undefined,
     };
   }
   return { suburb: suburb ?? "Location shared when trip is active" };
@@ -144,17 +146,36 @@ export async function buildTripResponse(params: {
     Boolean(assignment)
   );
 
+  const owner = params.user.id === params.trip.participantId;
+  const scopes = params.trip.consentScopes ?? [];
+  const assignedDriver =
+    access === "exact" &&
+    params.user.primaryRole === "driver" &&
+    assignment?.driver?.userId === params.user.id;
+  const provider =
+    access === "exact" &&
+    !isAdminRole(params.user.primaryRole) &&
+    hasPermission(params.user.primaryRole, "transport:read:org");
+  const shareMobility =
+    provider && scopes.includes(bookingScope.mobilitySummary);
+  const sharePickup =
+    owner || (assignedDriver && scopes.includes(bookingScope.kerbsideNote));
+
   const trip: TransportTripDetail = {
     id: params.trip.id,
     status: params.trip.status,
     participantId: params.trip.participantId,
     scheduledStart: params.trip.scheduledStart.toISOString(),
     scheduledEnd: params.trip.scheduledEnd?.toISOString() ?? null,
-    pickup: shapeAddress(params.trip, "pickup", access),
+    pickup: shapeAddress(params.trip, "pickup", access, sharePickup),
     dropoff: shapeAddress(params.trip, "dropoff", access),
     providerOrganisationId: params.trip.providerOrganisationId,
-    mobilityRequirements:
-      (params.trip.mobilityRequirements as Record<string, unknown>) ?? {},
+    ...(owner ? { consentScopes: scopes } : {}),
+    mobilityRequirements: owner
+      ? ((params.trip.mobilityRequirements as Record<string, unknown>) ?? {})
+      : provider
+        ? providerMobilitySummary(scopes, params.trip.mobilityRequirements)
+        : {},
     disputeReason: params.trip.disputeReason,
     createdAt: params.trip.createdAt.toISOString(),
     updatedAt: params.trip.updatedAt.toISOString(),
@@ -179,7 +200,12 @@ export async function buildTripResponse(params: {
           provider: params.routeEstimate.provider,
         }
       : undefined,
-    suitabilityWarnings: extras.suitabilityWarnings,
+    suitabilityWarnings:
+      owner || shareMobility
+        ? extras.suitabilityWarnings
+        : extras.suitabilityWarnings.length
+          ? ["Vehicle suitability needs review."]
+          : [],
     handoverStatus: {
       preStartComplete: extras.handoverStatus.preStartComplete,
       pickupHandoverComplete: extras.handoverStatus.pickupHandoverComplete,

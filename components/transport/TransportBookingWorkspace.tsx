@@ -43,9 +43,7 @@ export function TransportBookingWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [mobility, setMobility] = useState<MobilityRequirements>({});
   const [prefillFromProfile, setPrefillFromProfile] = useState(true);
-  const [consentIds, setConsentIds] = useState<string[]>([
-    "transport.mobility_summary",
-  ]);
+  const [consentIds, setConsentIds] = useState<string[]>([]);
   const [humanGateConfirmed, setHumanGateConfirmed] = useState(false);
 
   const [pickupAddress, setPickupAddress] = useState("");

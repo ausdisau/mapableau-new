@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,7 @@ import { HumanGateConfirmationCard } from "@/components/transport/HumanGateConfi
 import { LiveTripTelemetryBar } from "@/components/transport/LiveTripTelemetryBar";
 import { SafePickupZoneOverlay } from "@/components/transport/SafePickupZoneOverlay";
 import {
+  TransportBookingWorkspace,
   canSubmitTransportRequest,
   shouldShowBookingMap,
 } from "@/components/transport/TransportBookingWorkspace";
@@ -17,6 +18,8 @@ import {
   boardingAlertNotEnabledMessage,
   initialTransportSocketState,
 } from "@/lib/realtime/use-transport-socket";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 vi.mock("next/dynamic", () => ({
   default: () => {
@@ -29,6 +32,7 @@ vi.mock("next/dynamic", () => ({
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
 });
 
 describe("transport booking human gate", () => {
@@ -65,6 +69,51 @@ describe("consent clinical warning", () => {
     expect(screen.getByText(/clinical diagnoses/i)).toBeTruthy();
     expect(screen.getByText(/never auto-shared/i)).toBeTruthy();
   });
+});
+
+it("submits only the choices still checked when the participant confirms", async () => {
+  const post = vi
+    .fn()
+    .mockResolvedValue(
+      Response.json({ trip: { id: "trip-1" } }, { status: 201 })
+    );
+  vi.stubGlobal("fetch", post);
+  render(React.createElement(TransportBookingWorkspace));
+  fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+    target: { value: "1 Pickup Street" },
+  });
+  fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+    target: { value: "2 Destination Road" },
+  });
+  fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+    target: { value: "2026-11-22T09:00" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /Continue to access needs/i })
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
+  const mobility = screen.getByRole("checkbox", {
+    name: /Share functional mobility/i,
+  });
+  expect(
+    screen
+      .getAllByRole("checkbox")
+      .every((box) => !(box as HTMLInputElement).checked)
+  ).toBe(true);
+  fireEvent.click(mobility);
+  fireEvent.click(screen.getByRole("checkbox", { name: /Share kerbside/i }));
+  fireEvent.click(mobility);
+  fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
+  fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/i }));
+  fireEvent.click(
+    screen.getByRole("button", { name: /Confirm transport request/i })
+  );
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  const [url, init] = post.mock.calls[0];
+  expect(url).toBe("/api/transport/trips");
+  expect(JSON.parse(init.body).consentScopes).toEqual([
+    "transport.kerbside_note",
+  ]);
 });
 
 describe("list-first map toggle", () => {

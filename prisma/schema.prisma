@@ -8553,6 +8553,7 @@ model TransportTrip {
   scheduledStart          DateTime
   scheduledEnd            DateTime?
   mobilityRequirements    Json                @default("{}")
+  consentScopes           String[]            @default([])
   disputeReason           String?
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @updatedAt
