@@ -145,3 +145,52 @@ describe("Access provenance admission", () => {
     ).toBe("CONFLICT");
   });
 });
+
+const MUNICIPAL_AND_CROSS_BORDER_SOURCE_IDS = [
+  "city-of-sydney-accessibility-map",
+  "city-of-melbourne-clue-building-information",
+  "brisbane-spatial-accessibility-catalogue",
+  "arcgis-item-ffa2876916fd4e9fa25eca58aaf497ef",
+  "data-sa-disability-search",
+  "city-of-darwin-accessibility-map",
+  "nt-government-open-data-catalogue",
+  "nt-dlpe-spatial-data-requests",
+  "city-of-perth-toilet-accessibility",
+  "stats-nz-datafinder-viewer-layer-123498",
+] as const;
+
+describe("Navigate municipal source admission", () => {
+  it.each(MUNICIPAL_AND_CROSS_BORDER_SOURCE_IDS)(
+    "blocks operational import for candidate source %s",
+    (sourceId) => {
+      const source = getDataSource(sourceId);
+      expect(source.sourceUri).toMatch(/^https:\/\//);
+      expect(source.operationalImport).toBe(false);
+      expect(evaluateOperationalIngestion(source).allowed).toBe(false);
+    },
+  );
+
+  it("records Perth CC BY 4.0 but still blocks operational import pending data checks", () => {
+    const perth = getDataSource("city-of-perth-toilet-accessibility");
+    expect(perth.licence?.id).toBe("CC-BY-4.0");
+    expect(perth.licence?.attributionRequired).toBe(true);
+    expect(perth.requiresDatasetLevelLicence).toBe(false);
+    expect(perth.prohibitedUses).toContain("unreviewed_2022_access_observations_as_current");
+    expect(evaluateOperationalIngestion(perth).allowed).toBe(false);
+  });
+
+  it("does not equate Stats NZ urban accessibility with wheelchair accessibility", () => {
+    const nz = getDataSource("stats-nz-datafinder-viewer-layer-123498");
+    expect(nz.prohibitedUses).toContain("wheelchair_routing");
+    expect(nz.prohibitedUses).toContain("pedestrian_accessibility_inference");
+    expect(nz.requiresDatasetLevelLicence).toBe(true);
+    expect(evaluateOperationalIngestion(nz).allowed).toBe(false);
+  });
+
+  it("does not treat an unidentified ArcGIS item as an approved dataset", () => {
+    const unknown = getDataSource("arcgis-item-ffa2876916fd4e9fa25eca58aaf497ef");
+    expect(unknown.steward).toMatch(/unverified/i);
+    expect(unknown.requiresDatasetLevelLicence).toBe(true);
+    expect(unknown.licence).toBeNull();
+  });
+});
