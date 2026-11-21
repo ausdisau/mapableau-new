@@ -51,7 +51,7 @@ export default async function MarketplaceBrowsePage({
         </Link>
       </aside>
 
-      <div className="flex flex-wrap gap-2" aria-label="Product categories">
+      <nav className="flex flex-wrap gap-2" aria-label="Product categories">
         <Link
           href="/marketplace/browse"
           aria-current={!category ? "page" : undefined}
@@ -71,7 +71,7 @@ export default async function MarketplaceBrowsePage({
             {cat.label}
           </Link>
         ))}
-      </div>
+      </nav>
 
       {products.length === 0 ? (
         <p className="text-muted-foreground">No products in this category yet.</p>

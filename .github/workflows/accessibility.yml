@@ -45,6 +45,8 @@ jobs:
       A11Y_SKIP_AUTH_ROUTES: "0"
       # Synthetic CI validation only: production remains OFF by default
       MAPABLE_ASSESSMENT_REGISTRATION_ENABLED: "true"
+      # Synthetic Marketplace preview only in ephemeral CI: production default remains OFF.
+      MAPABLE_MARKETPLACE_ENABLED: "true"
       # Exercise first-party panel in a11y CI; production default remains off
       NEXT_PUBLIC_MAPABLE_FIRST_PARTY_A11Y_PANEL: "true"
     steps:

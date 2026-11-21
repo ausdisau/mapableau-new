@@ -1,0 +1,45 @@
+name: Marketplace evidence preview
+
+on:
+  pull_request:
+    paths:
+      - "packages/marketplace-evidence/**"
+      - "components/marketplace/MarketplaceEvidencePreview.tsx"
+      - "app/marketplace/(shop)/browse/**"
+      - "tests/marketplace-evidence-preview*"
+      - "tests/a11y/marketplace-evidence-preview.spec.ts"
+      - ".github/workflows/marketplace-evidence-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  marketplace-evidence:
+    name: Scoped lint and synthetic unit/UI checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install pinned dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint only Marketplace preview source
+        env:
+          ESLINT_CI_LIGHT: "1"
+        run: |
+          pnpm exec eslint \
+            "components/marketplace/MarketplaceEvidencePreview.tsx" \
+            "app/marketplace/(shop)/browse/evidence-preview/page.tsx" \
+            "app/marketplace/(shop)/browse/page.tsx" \
+            "packages/marketplace-evidence/src/index.ts" \
+            "tests/marketplace-evidence-preview.test.ts" \
+            "tests/marketplace-evidence-preview.ui.test.tsx" --max-warnings 0
+      - name: Synthetic Marketplace logic and interaction tests
+        run: pnpm exec vitest run tests/marketplace-evidence-preview.test.ts tests/marketplace-evidence-preview.ui.test.tsx

@@ -23,6 +23,10 @@ const fieldNames = ["Access features", "Condition", "Dimensions", "Delivery"];
 const focusClass = "focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[#073F97]";
 const buttonClass = "min-h-11 rounded-xl border border-[#073F97] px-4 py-2 text-sm font-semibold text-[#073F97] hover:bg-blue-50 " + focusClass;
 const selectedClass = "bg-[#073F97] text-white hover:bg-[#073F97]/90";
+const enlargedContentClass =
+  "[&_p]:!text-lg [&_li]:!text-lg [&_label]:!text-lg [&_button]:!text-lg " +
+  "[&_input]:!text-lg [&_select]:!text-lg [&_td]:!text-lg [&_th]:!text-lg " +
+  "[&_summary]:!text-lg [&_span]:!text-base";
 
 function EvidenceCard({
   listing,
@@ -68,11 +72,19 @@ function EvidenceCard({
       </details>
       <div className="mt-auto flex flex-wrap gap-2">
         <button type="button" className={buttonClass + (compared ? " " + selectedClass : "")}
-          aria-pressed={compared} onClick={onCompare}>
+          aria-pressed={compared}
+          aria-label={compared ? "Remove " + listing.name + " from comparison" : "Compare " + listing.name}
+          onClick={onCompare}>
           {compared ? "Remove comparison" : "Compare"}
         </button>
         <button type="button" disabled={!canDraft} className={buttonClass + " disabled:cursor-not-allowed disabled:opacity-50"}
-          aria-pressed={drafted} onClick={onDraft}>
+          aria-pressed={drafted}
+          aria-label={!canDraft
+            ? listing.name + " needs specialist review"
+            : drafted
+              ? "Remove " + listing.name + " from local draft"
+              : "Add " + listing.name + " to local draft"}
+          onClick={onDraft}>
           {!canDraft ? "Specialist review first" : drafted ? "Remove from draft" : "Add to local draft"}
         </button>
       </div>
@@ -155,7 +167,7 @@ export function MarketplaceEvidencePreview() {
   }
 
   return (
-    <div className={largeText ? "text-lg" : "text-base"}>
+    <div className={largeText ? enlargedContentClass : ""} data-text-size={largeText ? "large" : "standard"}>
       <div className="rounded-2xl border border-[#073F97]/20 bg-[#F3F6FC] p-5">
         <p className="font-semibold text-[#073F97]">MapAble · Find access. Drive change.</p>
         <p className="mt-2 text-xs font-bold uppercase tracking-wider text-[#5740B8]">Marketplace evidence prototype</p>
@@ -295,7 +307,9 @@ export function MarketplaceEvidencePreview() {
                   <input id={"demo-qty-" + line.listingId} type="number" min={1} max={5}
                     value={line.quantity} onChange={(event) => setDraftQuantity(line.listingId, Number(event.target.value))}
                     className={"min-h-11 w-16 rounded-lg border border-slate-400 px-2 " + focusClass}/>
-                  <button type="button" className={buttonClass} onClick={() => toggleDraft(line.listingId)}>Remove</button>
+                  <button type="button" className={buttonClass}
+                    aria-label={"Remove " + listing.name + " from local draft"}
+                    onClick={() => toggleDraft(line.listingId)}>Remove</button>
                 </div>
               </li>;
             })}
