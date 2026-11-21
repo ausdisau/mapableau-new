@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "releaseSha": "",
+  "preview": {
+    "commitSha": "",
+    "url": "",
+    "protected": false,
+    "syntheticOnly": false
+  },
+  "signoffs": {
+    "security": {
+      "status": "NOT_RUN",
+      "reviewer": "",
+      "evidenceUrl": "",
+      "reviewedAt": ""
+    },
+    "privacy": {
+      "status": "NOT_RUN",
+      "reviewer": "",
+      "evidenceUrl": "",
+      "reviewedAt": ""
+    },
+    "participantAccessibility": {
+      "status": "NOT_RUN",
+      "reviewer": "",
+      "evidenceUrl": "",
+      "reviewedAt": ""
+    },
+    "operations": {
+      "status": "NOT_RUN",
+      "reviewer": "",
+      "evidenceUrl": "",
+      "reviewedAt": ""
+    }
+  },
+  "rollback": {
+    "status": "NOT_RUN",
+    "evidenceUrl": ""
+  },
+  "privacyLifecycle": {
+    "status": "NOT_RUN",
+    "evidenceUrl": ""
+  }
+}
