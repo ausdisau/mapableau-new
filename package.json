@@ -91,10 +91,6 @@
       "eslint --fix"
     ]
   },
-  "prisma": {
-    "schema": "prisma",
-    "seed": "npx tsx prisma/seed.ts"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
