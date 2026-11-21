@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "MapAble Places Prototype",
-    "slug": "mapable-places-prototype",
-    "version": "0.1.0",
+    "name": "MapAble Offline Companion (Prototype)",
+    "slug": "mapable-offline-companion",
+    "version": "0.2.0",
     "orientation": "default",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -15,11 +15,12 @@
     },
     "web": {
       "bundler": "metro",
-      "name": "MapAble Places Prototype"
+      "name": "MapAble Offline Companion (Prototype)",
+      "output": "single"
     },
     "plugins": [],
     "extra": {
-      "privacy": "No passive geolocation. Local-only contributions."
+      "privacy": "Local-only directory search. No private addresses, worker screening, GPS, payments or background tracking. Local drafts are unencrypted; do not store sensitive data."
     }
   }
 }
