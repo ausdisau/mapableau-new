@@ -2,6 +2,7 @@ import type { ReturnTripAssuranceStatus } from "@prisma/client";
 
 import { transportCommandConfig } from "@/lib/config/transport-command";
 import { prisma } from "@/lib/prisma";
+import { omitTripSharingFields } from "@/lib/transport/booking-consent";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
 
@@ -123,13 +124,14 @@ export async function assureReturnTrip(params: {
 
 export async function getReturnTripAssurance(outboundTripId: string) {
   const [outbound, assurance, returnTrip] = await Promise.all([
-    prisma.transportTrip.findUnique({ where: { id: outboundTripId } }),
+    prisma.transportTrip.findUnique({ where: { id: outboundTripId }, omit: omitTripSharingFields }),
     prisma.transportReturnTripAssurance.findFirst({
       where: { outboundTripId },
       orderBy: { createdAt: "desc" },
     }),
     prisma.transportTrip.findFirst({
       where: { outboundTripId } as any,
+      omit: omitTripSharingFields,
     }),
   ]);
 

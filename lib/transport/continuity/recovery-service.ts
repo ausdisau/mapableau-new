@@ -7,6 +7,7 @@ import { createAuditEvent } from "@/lib/audit/audit-event-service";
 import { transportCommandConfig } from "@/lib/config/transport-command";
 import { prisma } from "@/lib/prisma";
 import { assessVehicleCompatibility } from "@/lib/transport/accessibility/evidence-service";
+import { omitTripSharingFields } from "@/lib/transport/booking-consent";
 import { parseMobilityRequirements } from "@/lib/transport/mobility-schema";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
@@ -230,7 +231,7 @@ export async function listOpenRecoveries(participantId?: string) {
       status: { in: ["options_presented", "awaiting_confirmation"] },
       ...(participantId ? { participantId } : {}),
     },
-    include: { options: { orderBy: { sortOrder: "asc" } }, trip: true },
+    include: { options: { orderBy: { sortOrder: "asc" } }, trip: { omit: omitTripSharingFields } },
     orderBy: { createdAt: "desc" },
     take: 50,
   });
