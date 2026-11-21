@@ -55,13 +55,14 @@ Grant via `/dashboard/consent` (includes `transport.trip_access`).
 Enable `TRANSPORT_RIDE_POOLING_ENABLED=true`.
 
 1. Create `RideRun` with vehicle and window.
-2. Attach `TransportTrip` records (strictest mobility intersection).
-3. **Lock** run after human review (`requiresHumanReview` cleared).
+2. Attach `TransportTrip` records using **strictest mobility merge** (OR of boolean needs / max of capacity fields — never object-spread). Each trip must set `poolingAccepted: true`. Seat and wheelchair securement capacity are enforced from passenger counts and vehicle feature metadata.
+3. **Lock** run after human review (`requiresHumanReview` cleared). Lock re-validates eligibility and capacity.
 
 Rules:
 
 - Each participant keeps their own trip (consent, disputes, incidents).
 - No auto-merge without dispatcher lock.
+- Boarding buffers (`needsExtraBoardingTime`) extend the effective window by 15 minutes.
 
 | Method | Path |
 |--------|------|
