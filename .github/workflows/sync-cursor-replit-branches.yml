@@ -76,7 +76,7 @@ jobs:
 
       - name: Upload sync report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cursor-replit-branch-sync-report
           path: /tmp/cursor-replit-branch-sync-report/
