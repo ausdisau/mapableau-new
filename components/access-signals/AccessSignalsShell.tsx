@@ -6,6 +6,7 @@ import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens
 
 const NAV = [
   { href: "/access-signals", label: "Explore", match: "exact" as const },
+  { href: "/access-signals/challenges", label: "Challenges", match: "prefix" as const },
   { href: "/access-signals/field-notes", label: "Field audit", match: "prefix" as const },
   { href: "/access-signals/remediation", label: "Remediation", match: "prefix" as const },
   { href: "/access-signals/evidence", label: "Evidence", match: "prefix" as const },
