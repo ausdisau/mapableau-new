@@ -3,10 +3,6 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  isAskMapAbleEmbeddedEnabled,
-  isAskMapAbleGuestEnabled,
-} from "@/lib/ask-mapable/flags";
 import { isPublicAccessAssistantRoute } from "@/lib/ask-mapable/public-guest-policy";
 
 vi.mock("next-auth/react", () => ({
