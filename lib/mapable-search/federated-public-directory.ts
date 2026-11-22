@@ -71,6 +71,37 @@ export interface PublicDirectorySource {
 
 export type SourceStatus = { enabled: boolean; adapter: PublicDirectorySource };
 
+function sanitizeProvider(row: PublicDirectoryProvider, source: SourceName): PublicDirectoryProvider | null {
+  if (
+    row.source !== source ||
+    typeof row.id !== "string" ||
+    !/^[A-Za-z0-9_.:-]{1,128}$/.test(row.id) ||
+    typeof row.name !== "string" ||
+    !row.name.trim() ||
+    row.evidenceStatus !== "imported_or_self_described" ||
+    row.registrationStatus !== "not_currently_verified" ||
+    row.availability !== "unknown"
+  ) return null;
+
+  const state = typeof row.state === "string" &&
+    /^(NSW|VIC|QLD|SA|WA|TAS|ACT|NT)$/.test(row.state)
+    ? row.state : null;
+  const locality = typeof row.locality === "string" ?
+    row.locality.trim().replace(/[\\u0000-\\u001f\\u007f]/g, "").slice(0, 80) : null;
+  // Explicit allowlist: never reflect contact data, worker IDs, bids,
+  // diagnostics, participant data, extra fields or unknown status claims.
+  return {
+    id: row.id,
+    name: row.name.trim().replace(/[\\u0000-\\u001f\\u007f]/g, "").slice(0, 160),
+    state,
+    locality,
+    source,
+    evidenceStatus: "imported_or_self_described",
+    registrationStatus: "not_currently_verified",
+    availability: "unknown",
+  };
+}
+
 function safeSort(a: PublicDirectoryProvider, b: PublicDirectoryProvider): number {
   return a.name.localeCompare(b.name) ||
     a.source.localeCompare(b.source) ||
@@ -123,13 +154,9 @@ export async function queryPublicDirectory(
     const name = selected[index]!.adapter.name;
     if (result.status === "fulfilled") {
       states[name] = "ok";
-      for (const row of result.value) {
-        if (row.source === name &&
-          row.evidenceStatus === "imported_or_self_described" &&
-          row.registrationStatus === "not_currently_verified" &&
-          row.availability === "unknown") {
-          providers.push(row);
-        }
+      for (const row of result.value.slice(0, variables.limit)) {
+        const allowed = sanitizeProvider(row, name);
+        if (allowed) providers.push(allowed);
       }
     } else {
       states[name] = "unavailable";
