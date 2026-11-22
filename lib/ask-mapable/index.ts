@@ -1,5 +1,6 @@
 export {
   isAskMapAbleEmbeddedEnabled,
+  isAskMapAbleGuestEnabled,
   isAskMapAbleServerEnabled,
 } from "./flags";
 export {
