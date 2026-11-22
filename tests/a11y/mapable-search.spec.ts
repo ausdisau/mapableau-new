@@ -20,7 +20,9 @@ test.describe("MapAble Search a11y", () => {
     await expect(search).toBeFocused();
     await search.fill("accessible transport");
 
-    await page.getByLabel("Conversation").check();
+    const conversation = page.getByLabel("Conversation");
+    await conversation.scrollIntoViewIfNeeded();
+    await conversation.check({ force: true });
     await expect(page.getByLabel("Quick · Free")).toBeChecked();
 
     const axe = await new AxeBuilder({ page })
@@ -60,7 +62,10 @@ test.describe("MapAble Search a11y", () => {
   test("deep selection explains credits are inactive", async ({ page }) => {
     await page.goto("/search?tier=deep", { waitUntil: "domcontentloaded" });
     await expect(
-      page.getByText(/Deep Search is not yet active/i),
+      page.getByRole("complementary", { name: "Deep Search availability" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("complementary", { name: "Deep Search availability" }),
+    ).toContainText(/Deep Search is not yet active/i);
   });
 });

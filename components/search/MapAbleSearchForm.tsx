@@ -171,14 +171,17 @@ export function MapAbleSearchForm({
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-slate-600">
+        <p className="mt-2 text-sm text-slate-700">
           Or browse directly:{" "}
           {SEARCH_CATEGORIES.map((category, index) => (
             <React.Fragment key={category.id}>
               {index > 0 ? " · " : null}
               <Link
                 href={category.href}
-                className={cn("font-semibold text-[#005B7F] underline", mapableCareFocusRing)}
+                className={cn(
+                  "inline-flex min-h-11 items-center px-1 font-semibold text-[#005B7F] underline",
+                  mapableCareFocusRing,
+                )}
               >
                 {category.label}
               </Link>
@@ -244,7 +247,7 @@ export function MapAbleSearchForm({
           ))}
         </div>
         {!deepSearchAvailable ? (
-          <p className="text-xs text-slate-600">
+          <p className="text-sm text-slate-700">
             Deep · Credits is shown for transparency but spending is disabled.
             Choosing it will not charge credits or open an account.
           </p>
@@ -265,7 +268,7 @@ export function MapAbleSearchForm({
         <Link
           href="/ask"
           className={cn(
-            "inline-flex min-h-12 items-center rounded-xl border-2 border-[#00A979] px-4 text-sm font-black text-[#00A979] hover:bg-[#00A979]/5",
+            "inline-flex min-h-12 items-center rounded-xl border-2 border-[#0C1833] bg-white px-4 text-sm font-black text-[#0C1833] hover:bg-slate-50",
             mapableCareFocusRing,
           )}
         >
@@ -273,7 +276,7 @@ export function MapAbleSearchForm({
         </Link>
       </div>
 
-      <p id={`${baseId}-help`} className="text-xs text-slate-600">
+      <p id={`${baseId}-help`} className="text-sm text-slate-700">
         No diagnosis or account is required for Quick Search. Switching Web and
         Conversation does not change your Quick or Deep selection. Deep Search
         never auto-starts AI calls or purchases.

@@ -24,7 +24,7 @@ export function MapAbleSearchDisclosure({
 }: Props) {
   return (
     <div className={cn("space-y-4", className)}>
-      {showDeepNotice || (!deepSearchAvailable && status !== "idle") ? (
+      {showDeepNotice ? (
         <aside
           aria-label="Deep Search availability"
           className="rounded-2xl border border-[#F8C51C]/50 bg-[#FFF9E6] p-4 text-sm text-[#0C1833]"

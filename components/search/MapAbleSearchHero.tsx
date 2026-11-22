@@ -40,7 +40,7 @@ export function MapAbleSearchHero({
             <h1 className="font-heading text-4xl font-bold leading-tight text-[#0C1833] sm:text-5xl">
               Find what works for you.
             </h1>
-            <p className="max-w-xl text-lg font-medium italic text-[#0C1833]/80">
+            <p className="max-w-xl text-lg font-medium italic text-[#0C1833]">
               One search. An accessible Australia.
             </p>
           </header>
