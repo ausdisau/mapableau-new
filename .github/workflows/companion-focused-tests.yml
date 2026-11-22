@@ -8,6 +8,10 @@ on:
       - "components/ask-mapable/**"
       - "lib/ask-mapable/**"
       - "tests/ask-mapable-*"
+      - "app/api/mapable/search/graphql/**"
+      - "lib/mapable-search/**"
+      - "examples/mapable-search/**"
+      - "tests/mapable-search-*"
       - "docs/ask-mapable/**"
       - ".github/workflows/companion-focused-tests.yml"
 
@@ -43,4 +47,5 @@ jobs:
             tests/ask-mapable-public-guest.test.tsx \
             tests/ask-mapable-chatbotkit-sandbox.test.ts \
             tests/ask-mapable-public-discovery-contract.test.ts \
-            tests/ask-mapable-widget.test.tsx
+            tests/ask-mapable-widget.test.tsx \
+            tests/mapable-search-federated-graphql.test.ts
