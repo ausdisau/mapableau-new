@@ -2,7 +2,7 @@
  * Deliberately excludes account, participant, billing and admin flows.
  */
 const PUBLIC_ROUTES = new Set([
-  "/", "/about", "/access", "/accessibility-map", "/provider-finder",
+  "/", "/about", "/access", "/accessibility-map", "/provider-finder", "/providers",
   "/care", "/transport", "/employment", "/places", "/contact", "/search",
 ]);
 
