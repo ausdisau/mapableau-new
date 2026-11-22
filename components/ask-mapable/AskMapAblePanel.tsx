@@ -20,6 +20,8 @@ type Props = {
   history: React.ReactNode;
   /** Keep private local session history out of public guest discovery. */
   showHistory?: boolean;
+  /** Distinguish no-AI and opt-in modes from authenticated AI assistance. */
+  assistanceNote?: string;
 };
 
 const TABS: { id: AskWidgetTab; label: string }[] = [
@@ -37,6 +39,7 @@ export function AskMapAblePanel({
   actions,
   history,
   showHistory = true,
+  assistanceNote = "AI-assisted. MapAble remains usable without Ask MapAble.",
 }: Props) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -92,7 +95,7 @@ export function AskMapAblePanel({
             </h2>
             <p className="text-sm text-muted-foreground">{ASK_MAPABLE_SUBTITLE}</p>
             <p className="mt-1 text-xs text-muted-foreground" role="note">
-              AI-assisted. MapAble remains usable without Ask MapAble.
+              {assistanceNote}
             </p>
           </div>
           <Button
