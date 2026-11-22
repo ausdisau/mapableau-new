@@ -18,6 +18,8 @@ type Props = {
   chat: React.ReactNode;
   actions: React.ReactNode;
   history: React.ReactNode;
+  /** Keep private local session history out of public guest discovery. */
+  showHistory?: boolean;
 };
 
 const TABS: { id: AskWidgetTab; label: string }[] = [
@@ -34,9 +36,11 @@ export function AskMapAblePanel({
   chat,
   actions,
   history,
+  showHistory = true,
 }: Props) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const visibleTabs = showHistory ? TABS : TABS.filter((tab) => tab.id !== "history");
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -103,7 +107,7 @@ export function AskMapAblePanel({
           aria-label="Ask MapAble sections"
           className="flex gap-1 border-b border-border px-2 py-2"
         >
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -121,12 +125,13 @@ export function AskMapAblePanel({
               onKeyDown={(e) => {
                 if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                   e.preventDefault();
-                  const idx = TABS.findIndex((t) => t.id === activeTab);
-                  const next =
-                    e.key === "ArrowRight"
-                      ? TABS[(idx + 1) % TABS.length]!
-                      : TABS[(idx - 1 + TABS.length) % TABS.length]!;
+                  const idx = visibleTabs.findIndex((t) => t.id === activeTab);
+                  const next = e.key === "ArrowRight"
+                    ? visibleTabs[(idx + 1) % visibleTabs.length]!
+                    : visibleTabs[(idx - 1 + visibleTabs.length) % visibleTabs.length]!;
                   onTabChange(next.id);
+                  // Roving tab selection must also move keyboard focus.
+                  document.getElementById(`ask-tab-${next.id}`)?.focus();
                 }
               }}
             >
@@ -152,14 +157,16 @@ export function AskMapAblePanel({
           >
             {actions}
           </div>
-          <div
-            role="tabpanel"
-            id="ask-panel-history"
-            aria-labelledby="ask-tab-history"
-            hidden={activeTab !== "history"}
-          >
-            {history}
-          </div>
+          {showHistory ? (
+            <div
+              role="tabpanel"
+              id="ask-panel-history"
+              aria-labelledby="ask-tab-history"
+              hidden={activeTab !== "history"}
+            >
+              {history}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
