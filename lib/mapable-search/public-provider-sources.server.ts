@@ -30,6 +30,7 @@ export const mapAbleNeonPublicProviders: PublicDirectorySource = {
         id: true,
         name: true,
         locations: {
+          ...(input.state ? { where: { state: input.state } } : {}),
           select: { city: true, state: true },
           orderBy: { id: "asc" },
           take: 1,
