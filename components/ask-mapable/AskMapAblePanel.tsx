@@ -69,7 +69,7 @@ export function AskMapAblePanel({
           dialogRef.current.querySelectorAll<HTMLElement>(
             'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
           ),
-        ).filter((element) => !element.closest("[hidden], [aria-hidden='true']"));
+        ).filter((element) => element.tabIndex >= 0 && !element.closest("[hidden], [aria-hidden='true']"));
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
         if (!first || !last) {
