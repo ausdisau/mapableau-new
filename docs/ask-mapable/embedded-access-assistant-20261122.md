@@ -11,7 +11,8 @@ discovery and signed-in account support without embedding ChatGPT Dots or duplic
 the site's current assistant. This is **Dots-inspired**, not an OpenAI Dots integration.
 OpenAI's ChatGPT GPTs/Dots are not the website embed API; the developer route is the
 Agents SDK or a hosted ChatKit integration. The present site uses the existing
-`@ai-sdk/react` guided search for maximum TypeScript/Next.js reuse.
+a deterministic no-AI guide by default, with existing
+`@ai-sdk/react` search offered as a separately opted-in conversation.
 
 ## Baseline evidence
 
@@ -37,20 +38,27 @@ Directly inspected before this change:
    controls the guest discovery widget independently from
    `NEXT_PUBLIC_ASK_MAPABLE_EMBEDDED_ENABLED` for signed-in Ask MapAble.
    Both are default-OFF. There is no change to authentication requirements.
-2. **Guest view**: reuses the existing launcher and panel; shows a guided finder
-   chat and links to public Access, Provider Finder, Transport, Employment, Contact.
-   It excludes the private History tab, participant context and account actions.
+2. **Guest view**: reuses one launcher and panel; defaults to deterministic
+   Botkit-inspired guided steps covering the goal, optional area, functional
+   access needs and review. Back, Skip, Edit and Restart let visitors correct
+   their own choices; no data from the flow is sent to an API or appended to URLs.
+   The existing public Provider Finder chat is a separate opt-in mode, and only
+   mounts after its processing notice is acknowledged. Private History,
+   participant records, bookings and account actions remain excluded.
 3. **Route allowlist**: anonymous widget appears only on approved public
    landing/discovery paths; not on account, participant, admin, billing or login.
-4. **Contextual starters**: read-only suggestions depend on the public page path,
-   not on inferred diagnoses or private records. No proactive background jobs.
+4. **Contextual starters**: page-context suggestions apply only within the
+   opted-in conversation; no diagnosis inference or background tasks.
 5. **Independent signed-in path**: original Chat / Actions / History behavior
    remains behind the existing authenticated flag.
 6. **Accessibility**: existing dialog + launcher, typed input, keyboard focus
    return, Arrow-key tab focus correction, 44px targets and escape handling.
    Preserve manual non-AI browsing.
-7. **Unit tests**: anonymous guest separation, single launcher, no private
-   history tab, public route restrictions, feature flags.
+7. **Unit tests**: guest separation, one launcher, no private History,
+   public routes, default-off flags, dialogue transitions, Back/Skip/Edit,
+   local-only links, chat opt-in and synthetic-only vendor evaluation.
+8. **Provider comparison**: `lib/ask-mapable/adapters/chatbotkit-sandbox.ts`
+   provides an offline benchmark contract; it does not call ChatBotKit.
 
 No ChatKit session or OpenAI API key is introduced. No model is needed in the
 browser. The existing provider-finder endpoint may use its configured model;
@@ -60,19 +68,18 @@ Do not claim zero model processing or zero retention before auditing that endpoi
 ## Runtime outline
 
 ```text
-MapAble public pages          Signed-in MapAble
-        |                            |
-        v                            v
-    AskMapAbleWidget (one launcher, existing Providers boundary)
-        |                            |
-  GuestAccessAssistant     AuthenticatedAskMapAbleWidget (unchanged)
-  (public route allowlist)  |
-        |                 /api/mapable/ask (existing auth and permission gates)
-  GuidedSearchDialogue
+Public pages                         Signed-in MapAble
+        |                                  |
+        +------------ AskMapAbleWidget ----+
+        |                                  |
+ GuestAccessAssistant              Existing authenticated widget
+        |                             /api/mapable/ask (unchanged)
+        |-- PublicGuidedPath (default, no AI)
+        |     \-- approved public route (no user data transferred)
         |
-  /api/provider-finder/chat (existing public Node route)
-        |
-  bounded search/interpretation + directory provenance
+        \-- Explicitly opted-in GuidedSearchDialogue
+                    |
+             /api/provider-finder/chat (existing Node route)
 ```
 
 **No route from guest widgets to participant records, bookings, payments, sensitive
@@ -126,7 +133,7 @@ or weaken any API authentication gates.
 ## Validation commands
 
 ```sh
-pnpm exec vitest run tests/ask-mapable-widget.test.tsx tests/ask-mapable-public-guest.test.tsx tests/guided-search-dialogue.test.tsx
+pnpm exec vitest run tests/ask-mapable-widget.test.tsx tests/ask-mapable-public-guest.test.tsx tests/ask-mapable-public-guided-flow.test.tsx tests/ask-mapable-chatbotkit-sandbox.test.ts tests/guided-search-dialogue.test.tsx
 pnpm exec tsc --noEmit
 pnpm exec next build
 ```
@@ -142,9 +149,44 @@ production release is implied by opening this PR.
 | Capability | State | Evidence | Consequence |
 | --- | --- | --- | --- |
 | Authenticated Ask MapAble | Implemented, flag-gated | existing widget + `/api/mapable/ask` | Reuse, do not duplicate |
-| Public guided finder | Implemented | existing GuidedSearchDialogue + provider finder chat | Reuse for guest discovery |
+| Public no-AI guided steps | In development | `PublicGuidedPath` and pure reducer | Preview accessibility review before enablement |
+| Public conversational finder | Existing service, opt-in in guest preview | existing GuidedSearchDialogue + public chat | Requires independent API privacy review |
 | Anonymous embedded access companion | In development | this draft PR | Preview test before enablement |
 | Full ChatGPT Dots embed | Not supported / not a planned integration | OpenAI product documentation | Build MapAble-owned assistant |
 | Saved proactive tasks | Proposed | design only | Needs task permissions, audit, revocation |
 | External search/RAG | Proposed | MapAble Search PR #728 | Separate privacy/evidence gates |
 | Current production deployment | Not verified | no direct live-site read | No production claims |
+
+## Botkit / ChatBotKit decision record (22 November 2026)
+
+- **Botkit**: MIT-licensed dialogue patterns inspired this deterministic
+  TypeScript state machine. Botkit itself is archived; no Express or
+  BotBuilder dependency has been introduced.
+- **ChatBotKit**: optional future hosted adapter. No vendor SDK, widget,
+  network requests, data processing, billing, identity, or advertising
+  integration is enabled in this PR.
+- **Synthetic evaluation**: at least 20 paired scenarios, zero safety,
+  evidence, advertising, or accessibility failures, and >=20% improvement
+  in cost or median latency without >10% regression in the other measure.
+  A pass yields `further_review`, **never** production authorisation.
+- **Consent limitation**: the guest checkbox controls component mounting.
+  Existing public Provider Finder server controls and retention require
+  independent review. This is not a verified backend consent receipt.
+- **Privacy**: the deterministic flow saves nothing, makes no network
+  requests and never copies optional area/access text into the destination
+  URL. External agent and future ChatBotKit adapters remain unwired.
+- **Commercial independence**: no advertiser bids, placements or
+  sponsorship fields enter dialogue, provider evidence or ranking.
+  Any future ads must remain clearly labelled outside organic results.
+
+### CI evidence and unresolved gates
+
+Previous head `d8847e4` failed CI/Quality from TypeScript errors in
+existing ads discovery, marketplace and dashboard-flag tests. Accessibility
+and CSP builds stopped at an existing duplicate `/ecosystem` route;
+security audit rejected expired dependency-advisory allowlist entries.
+The implicated files were present on base `f89cc8f` and outside PR #737's
+changed-file list. Do not infer that this PR's new code has passed isolated
+tests. Re-run focused tests, typecheck, build, WCAG 2.2 AA and security review
+after addressing baseline failures. No production flag may be enabled
+from this draft alone.
