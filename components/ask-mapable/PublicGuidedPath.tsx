@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import {
   initialPublicGuide,
@@ -28,7 +28,25 @@ const inputClass =
  */
 export function PublicGuidedPath({ onLeave }: Props) {
   const [state, dispatch] = useReducer(reducePublicGuide, undefined, initialPublicGuide);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const locationRef = useRef<HTMLInputElement>(null);
+  const accessRef = useRef<HTMLTextAreaElement>(null);
+  const reviewRef = useRef<HTMLHeadingElement>(null);
+  const firstRender = useRef(true);
   const review = reviewPublicGuide(state);
+  // When a question is answered, move keyboard/switch focus to the next step.
+  // Do not steal focus when the containing Ask MapAble dialog first opens.
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const target = state.step === "location" ? locationRef.current
+      : state.step === "access" ? accessRef.current
+      : state.step === "review" ? reviewRef.current
+      : headingRef.current;
+    target?.focus();
+  }, [state.step]);
   const stepNumber = state.step === "goal" ? 1
     : state.step === "location" ? 2
     : state.step === "access" ? 3
@@ -37,7 +55,7 @@ export function PublicGuidedPath({ onLeave }: Props) {
   return (
     <section className="space-y-4" aria-labelledby="public-guided-heading">
       <div className="space-y-1">
-        <h3 id="public-guided-heading" className="font-heading text-base font-semibold">
+        <h3 id="public-guided-heading" ref={headingRef} tabIndex={-1} className="font-heading text-base font-semibold">
           Guided discovery, without AI
         </h3>
         <p className="text-xs text-muted-foreground">
@@ -81,6 +99,7 @@ export function PublicGuidedPath({ onLeave }: Props) {
           </p>
           <input
             id="public-guide-location"
+            ref={locationRef}
             type="text"
             autoComplete="off"
             maxLength={80}
@@ -116,6 +135,7 @@ export function PublicGuidedPath({ onLeave }: Props) {
           </p>
           <textarea
             id="public-guide-access"
+            ref={accessRef}
             rows={3}
             maxLength={160}
             value={state.access}
@@ -138,7 +158,7 @@ export function PublicGuidedPath({ onLeave }: Props) {
 
       {state.step === "review" && review ? (
         <div className="space-y-4">
-          <h4 className="font-semibold">Review your choices</h4>
+          <h4 ref={reviewRef} tabIndex={-1} className="font-semibold">Review your choices</h4>
           <dl className="space-y-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
             <div>
               <dt className="font-semibold">Your goal</dt>
