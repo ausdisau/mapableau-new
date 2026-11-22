@@ -193,3 +193,71 @@ Observe GitHub PR CI and the specific Vercel preview generated from the
 exact PR head SHA. Do not merge, flip production flags or deploy to
 `mapable.com.au` without approved privacy, source, model spend,
 accessibility and security tests.
+
+## Botkit-inspired dialogue and ChatBotKit optional adapter (22 November 2026)
+
+### Implemented now
+- `lib/ask-mapable/dialogue/public-guided-flow.ts`: deterministic typed
+  `goal -> location -> access -> review` state transitions. The direct human
+  pathway skips optional information questions. Back, Skip, Edit and Restart
+  are explicit transitions; no LLM controls the flow.
+- `components/ask-mapable/PublicGuidedPath.tsx`: local-only browser wizard
+  with reviewed destination URLs, no AI inference, account storage, geolocation,
+  tracking or data handoff. Functional needs are optional; diagnosis is not
+  required. Focus advances to each new step.
+- `GuestAccessAssistant.tsx`: one existing launcher with no-AI mode
+  selected by default. The user must choose the conversational mode and check
+  the online-processing notice before mounting the existing AI-assisted
+  `GuidedSearchDialogue`. Switching back resets the opt-in state.
+- Existing signed-in `/api/mapable/ask` permission enforcement and the
+  public Provider Finder backend are not modified.
+
+### Why Botkit is not a production dependency
+`https://github.com/howdyai/botkit` is MIT-licensed but archived.
+The useful design patterns are explicit threads, validation and correction
+hooks, deterministic state changes and human handoff. Those are implemented
+with TypeScript and React rather than importing deprecated BotBuilder,
+Express or a second persistent conversation store.
+
+### ChatBotKit trade-offs and measurable trial
+`https://github.com/chatbotkit/node-sdk` remains an active candidate with
+React/Next.js and Node integration, but its hosted execution, storage,
+billing and provider terms are independent of MapAble's permissions and
+participant data residency requirements. It may be useful for other channels,
+not for replacing MapAble's evidence, ranking, consent or credit ledger.
+
+`lib/ask-mapable/adapters/chatbotkit-sandbox.ts` defines:
+- a strict `synthetic: true` test fixture requiring public synthetic
+  source IDs, and rejecting extra participant or advertising fields;
+- a `PublicConversationTrialTransport` TypeScript interface;
+- a test-only `MAPABLE_CHATBOTKIT_EVAL_ENABLED=true` gate, refused in
+  production by a `NODE_ENV=test` requirement;
+- a comparison function requiring at least 20 paired, independently
+  evaluated synthetic scenarios with zero evidence, disability-rights,
+  advertising-independence or accessibility failures;
+- a proposed improvement threshold of >=20% in cost or median latency,
+  with no >10% regression in the other measured dimension.
+
+The best possible decision from this comparator is **further_review**.
+It never approves production usage, and no actual ChatBotKit network call,
+SDK installation, credentials or private live test data are created.
+
+### Required tests and release gates
+```sh
+pnpm exec vitest run tests/ask-mapable-public-guided-flow.test.tsx tests/ask-mapable-public-guest.test.tsx tests/ask-mapable-chatbotkit-sandbox.test.ts
+pnpm exec tsc --noEmit
+pnpm exec next build
+```
+
+Tests must also cover browser keyboard and switch focus changes, screen
+readers, AAC, 320px reflow, 200% zoom, reduced motion, consent withdrawal,
+no leakage of access/location preferences to network requests or URLs,
+and one shared launcher (no overlay collision).
+
+The existing public provider-finder endpoint needs a separate, enforced
+server-side consent/retention check: the new checkbox is UI gating,
+not a substitute for network permission checks. The optional
+`@openai/agents` adapter remains disconnected pending cost reservations
+and source-grounding evidence. No booking, worker-clearance, eligibility,
+payment, employment disclosure or automatically funded Deep Search can
+occur through these new components.
