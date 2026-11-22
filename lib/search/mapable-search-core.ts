@@ -2,7 +2,13 @@
  * MapAble Search: pure public-discovery contract. No registration or worker
  * screening inference, no user profiles and no external calls.
  */
-export type MapAbleVertical = "all" | "providers" | "care" | "transport" | "jobs";
+export type MapAbleVertical =
+  | "all"
+  | "places"
+  | "providers"
+  | "care"
+  | "transport"
+  | "jobs";
 export type MapAbleResultKind = "module" | "provider_outlet";
 
 export type MapAbleSearchInput = {
@@ -58,6 +64,26 @@ type ModuleDefinition = {
 };
 
 const MODULES: readonly ModuleDefinition[] = [
+  {
+    id: "places",
+    vertical: "places",
+    title: "Accessible places",
+    description:
+      "Explore venues with access notes, measurements, confidence and sources. Access is never assumed from a single score.",
+    href: "/accessibility-map",
+    terms: [
+      "place",
+      "places",
+      "venue",
+      "access",
+      "accessible",
+      "map",
+      "restaurant",
+      "toilet",
+      "wheelchair",
+      "ramp",
+    ],
+  },
   {
     id: "provider-finder",
     vertical: "providers",

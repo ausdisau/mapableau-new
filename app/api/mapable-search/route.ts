@@ -7,7 +7,9 @@ export const runtime = "nodejs";
 
 const schema = z.object({
   q: z.string().trim().max(180).default(""),
-  vertical: z.enum(["all", "providers", "care", "transport", "jobs"]).default("all"),
+  vertical: z
+    .enum(["all", "places", "providers", "care", "transport", "jobs"])
+    .default("all"),
   state: z.enum(["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"]).optional(),
   postcode: z.string().regex(/^\d{4}$/).optional(),
 });

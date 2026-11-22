@@ -123,6 +123,7 @@ export const homepageHeroCopy = {
 
 /** Informational-release CTAs — splash page anchors + public informational destinations. */
 export const homepageHeroCtas = [
+  { label: "Search MapAble", href: "/search" },
   { label: "Pre-register interest", href: "#pre-register" },
   { label: "Explore accessible places", href: "/accessibility-map" },
   { label: "About MapAble", href: "/about" },

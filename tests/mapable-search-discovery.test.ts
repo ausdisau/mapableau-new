@@ -20,6 +20,13 @@ describe("MapAble Search public discovery", () => {
     expect(hits[0]?.href).toBe("/employment");
   });
 
+  it("includes places navigation for the places vertical", () => {
+    const hits = navigationSearch({ q: "", vertical: "places" });
+    expect(hits).toHaveLength(1);
+    expect(hits[0]?.href).toBe("/accessibility-map");
+    expect(hits[0]?.vertical).toBe("places");
+  });
+
   it("does not create clearance or registration assertions from imported rows", () => {
     const hits = importedProviderHits([{
       source_id: "synthetic-outlet-01",

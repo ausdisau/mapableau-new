@@ -128,6 +128,16 @@ export const PUBLIC_INFORMATIONAL_ROUTES: readonly InformationalRoute[] = [
     authenticationProhibited: true,
     kind: "informational",
   },
+  {
+    path: "/search",
+    label: "MapAble Search",
+    inSitemap: true,
+    titleIncludes: "Search",
+    h1Includes: "Find what works",
+    formsPermitted: true,
+    authenticationProhibited: true,
+    kind: "informational",
+  },
 ] as const;
 
 /**
@@ -239,6 +249,7 @@ export const GOVERNED_AUTH_PATHS = ["/login", "/register"] as const;
 
 /** Homepage / marketing CTAs permitted for the informational release. */
 export const INFORMATIONAL_SAFE_CTAS = [
+  { label: "Search MapAble", href: "/search" },
   { label: "Pre-register interest", href: "#pre-register" },
   { label: "Explore accessible places", href: "/accessibility-map" },
   { label: "About MapAble", href: "/about" },
