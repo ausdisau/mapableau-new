@@ -12,15 +12,18 @@ describe("participant workspace flags", () => {
   it("defaults sidebar on and AI off", () => {
     delete process.env.MAPABLE_PARTICIPANT_WORKSPACE_SIDEBAR;
     delete process.env.MAPABLE_PARTICIPANT_MY_DAY_AI_ENABLED;
-    expect(participantWorkspaceFlags.sidebarEnabled({})).toBe(true);
-    expect(participantWorkspaceFlags.aiAssistedViewEnabled({})).toBe(false);
+    const emptyEnv = {} as unknown as NodeJS.ProcessEnv;
+    expect(participantWorkspaceFlags.sidebarEnabled(emptyEnv)).toBe(true);
+    expect(participantWorkspaceFlags.aiAssistedViewEnabled(emptyEnv)).toBe(
+      false,
+    );
   });
 
   it("allows sidebar opt-out", () => {
     expect(
       participantWorkspaceFlags.sidebarEnabled({
         MAPABLE_PARTICIPANT_WORKSPACE_SIDEBAR: "false",
-      }),
+      } as unknown as NodeJS.ProcessEnv),
     ).toBe(false);
   });
 });

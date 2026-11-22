@@ -202,21 +202,28 @@ export function MapAbleSearchForm({
               ["web", "Web"],
               ["conversation", "Conversation"],
             ] as const
-          ).map(([value, label]) => (
-            <label key={value} className={radioItemClass}>
-              <input
-                type="radio"
-                name={`${baseId}-presentation`}
-                value={value}
-                checked={selection.presentation === value}
-                onChange={() =>
-                  update(withPresentation(selection, value as SearchPresentation))
-                }
-                className="sr-only"
-              />
-              {label}
-            </label>
-          ))}
+          ).map(([value, label]) => {
+            const inputId = `${baseId}-presentation-${value}`;
+            return (
+              <label key={value} htmlFor={inputId} className={radioItemClass}>
+                <input
+                  id={inputId}
+                  type="radio"
+                  name={`${baseId}-presentation`}
+                  value={value}
+                  checked={selection.presentation === value}
+                  onChange={() =>
+                    update(
+                      withPresentation(selection, value as SearchPresentation),
+                    )
+                  }
+                  className="sr-only"
+                  aria-label={label}
+                />
+                {label}
+              </label>
+            );
+          })}
         </div>
       </fieldset>
 
@@ -232,19 +239,26 @@ export function MapAbleSearchForm({
               ["quick", "Quick · Free"],
               ["deep", "Deep · Credits"],
             ] as const
-          ).map(([value, label]) => (
-            <label key={value} className={radioItemClass}>
-              <input
-                type="radio"
-                name={`${baseId}-tier`}
-                value={value}
-                checked={selection.tier === value}
-                onChange={() => update(withTier(selection, value as SearchTier))}
-                className="sr-only"
-              />
-              {label}
-            </label>
-          ))}
+          ).map(([value, label]) => {
+            const inputId = `${baseId}-tier-${value}`;
+            return (
+              <label key={value} htmlFor={inputId} className={radioItemClass}>
+                <input
+                  id={inputId}
+                  type="radio"
+                  name={`${baseId}-tier`}
+                  value={value}
+                  checked={selection.tier === value}
+                  onChange={() =>
+                    update(withTier(selection, value as SearchTier))
+                  }
+                  className="sr-only"
+                  aria-label={label}
+                />
+                {label}
+              </label>
+            );
+          })}
         </div>
         {!deepSearchAvailable ? (
           <p className="text-sm text-slate-700">
