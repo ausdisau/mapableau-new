@@ -3,23 +3,34 @@
 import { useSession } from "next-auth/react";
 import { useCallback, useState } from "react";
 
-import { isAskMapAbleEmbeddedEnabled } from "@/lib/ask-mapable";
+import { isAskMapAbleEmbeddedEnabled, isAskMapAbleGuestEnabled } from "@/lib/ask-mapable";
 
 import { AskMapAbleActionsTab } from "./AskMapAbleActionsTab";
 import { AskMapAbleChatTab } from "./AskMapAbleChatTab";
 import { AskMapAbleHistoryTab } from "./AskMapAbleHistoryTab";
 import { AskMapAbleLauncher } from "./AskMapAbleLauncher";
 import { AskMapAblePanel } from "./AskMapAblePanel";
+import { GuestAccessAssistant } from "./GuestAccessAssistant";
 import { useAskInteractionPreferences } from "./useAskInteractionPreferences";
 import { useAskLocalSessions } from "./useAskLocalSessions";
 import { useAskWidgetState } from "./useAskWidgetState";
 
 /**
- * Site-wide Ask MapAble embedded widget.
- * Fail-closed behind NEXT_PUBLIC_ASK_MAPABLE_EMBEDDED_ENABLED.
- * Authenticated-only for Phase 1 (does not weaken /api/mapable/ask auth).
+ * Reuses the original authenticated widget for signed-in users.
+ * Optional guest Access Assistant is an entirely separate, read-only public
+ * route and NEVER inherits authenticated session state or private actions.
  */
 export function AskMapAbleWidget() {
+  const authenticatedEnabled = isAskMapAbleEmbeddedEnabled();
+  const guestEnabled = isAskMapAbleGuestEnabled();
+  const { data: session, status } = useSession();
+  if (status === "loading") return null;
+  if (authenticatedEnabled && session?.user) return <AuthenticatedAskMapAbleWidget />;
+  if (guestEnabled) return <GuestAccessAssistant />;
+  return null;
+}
+
+function AuthenticatedAskMapAbleWidget() {
   const enabled = isAskMapAbleEmbeddedEnabled();
   const { data: session, status } = useSession();
   const {
