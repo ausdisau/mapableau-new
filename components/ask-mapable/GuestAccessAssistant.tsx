@@ -68,6 +68,8 @@ export function GuestAccessAssistant() {
   const [finderSession, setFinderSession] = useState<GuidedSearchSessionFields>(
     () => ({ ...EMPTY_FINDER }),
   );
+  const closePanel = useCallback(() => setOpen(false), []);
+  const togglePanel = useCallback(() => setOpen((value) => !value), []);
 
   const starterPrompts = useMemo(() => getPublicStarters(pathname), [pathname]);
 
@@ -85,10 +87,10 @@ export function GuestAccessAssistant() {
 
   return (
     <>
-      <AskMapAbleLauncher open={open} onToggle={() => setOpen((wasOpen) => !wasOpen)} />
+      <AskMapAbleLauncher open={open} onToggle={togglePanel} />
       <AskMapAblePanel
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={closePanel}
         activeTab={activeTab}
         onTabChange={(next) => setActiveTab(next === "actions" ? "actions" : "chat")}
         showHistory={false}
@@ -104,7 +106,7 @@ export function GuestAccessAssistant() {
               session={finderSession}
               onSessionChange={setFinderSession}
               onInterpretation={onInterpretation}
-              onShowResults={() => setOpen(false)}
+              onShowResults={closePanel}
               starterPrompts={starterPrompts}
               className="min-h-0"
             />
