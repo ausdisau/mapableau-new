@@ -87,12 +87,12 @@ function sanitizeProvider(row: PublicDirectoryProvider, source: SourceName): Pub
     /^(NSW|VIC|QLD|SA|WA|TAS|ACT|NT)$/.test(row.state)
     ? row.state : null;
   const locality = typeof row.locality === "string" ?
-    row.locality.trim().replace(/[\\u0000-\\u001f\\u007f]/g, "").slice(0, 80) : null;
+    row.locality.trim().replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 80) : null;
   // Explicit allowlist: never reflect contact data, worker IDs, bids,
   // diagnostics, participant data, extra fields or unknown status claims.
   return {
     id: row.id,
-    name: row.name.trim().replace(/[\\u0000-\\u001f\\u007f]/g, "").slice(0, 160),
+    name: row.name.trim().replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 160),
     state,
     locality,
     source,
