@@ -97,6 +97,9 @@ export function GuestAccessAssistant() {
         activeTab={activeTab}
         onTabChange={(next) => setActiveTab(next === "actions" ? "actions" : "chat")}
         showHistory={false}
+        assistanceNote={discoveryMode === "guided"
+          ? "These guided steps do not use AI. Online conversational search is optional."
+          : "AI-assisted public search is optional; guided steps without AI remain available."}
         history={null}
         chat={
           <div className="space-y-4">
