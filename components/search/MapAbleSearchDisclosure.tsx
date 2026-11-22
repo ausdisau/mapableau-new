@@ -31,9 +31,9 @@ export function MapAbleSearchDisclosure({
         >
           <p className="font-black">Deep Search is not yet active</p>
           <p className="mt-1">
-            Credit-based Deep Search stays disabled until a reviewed reservation,
-            payment and reconciliation system is in place. Continue with free Quick
-            Search — no credits are charged from this page.
+            Credit-based Deep Search stays disabled until a reviewed
+            reservation, payment and reconciliation system is in place. Continue
+            with free Quick Search — no credits are charged from this page.
           </p>
         </aside>
       ) : null}
@@ -45,16 +45,19 @@ export function MapAbleSearchDisclosure({
         >
           <p className="font-black">Before using an online assistant</p>
           <p className="mt-1">
-            Online conversation may send your search text to MapAble&apos;s guided
-            assistant for processing. Prefer the step-by-step guide if you do not
-            want AI processing. Do not include medical diagnoses or private
-            health details unless you choose to share them.
+            Online conversation may send your search text to MapAble&apos;s
+            guided assistant for processing. Prefer the step-by-step guide if
+            you do not want AI processing. Do not include medical diagnoses or
+            private health details unless you choose to share them.
           </p>
         </aside>
       ) : null}
 
       {status === "rate_limited" ? (
-        <p role="alert" className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm">
+        <p
+          role="alert"
+          className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm"
+        >
           Search rate limit reached. Wait a moment, then try again.
           {onRetry ? (
             <>
@@ -75,7 +78,10 @@ export function MapAbleSearchDisclosure({
       ) : null}
 
       {status === "service_unavailable" ? (
-        <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm">
+        <p
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm"
+        >
           Search is temporarily unavailable. You can still open{" "}
           <Link href="/provider-finder" className="font-semibold underline">
             Provider Finder
@@ -108,7 +114,10 @@ export function MapAbleSearchDisclosure({
       ) : null}
 
       {status === "partial_data" ? (
-        <p role="status" className="rounded-2xl border border-slate-200 bg-white p-4 text-sm">
+        <p
+          role="status"
+          className="rounded-2xl border border-slate-200 bg-white p-4 text-sm"
+        >
           Some directory sources are unavailable. Showing MapAble navigation and
           any available results. Unknown information stays unknown.
         </p>
@@ -124,12 +133,13 @@ export function MapAbleSearchDisclosure({
         <ul className="list-disc space-y-1 pl-5">
           <li>
             Organic Search ordering is independent of advertising. Advertisers
-            cannot influence inclusion, ranking, evidence labels or conversational
-            recommendations.
+            cannot influence inclusion, ranking, evidence labels or
+            conversational recommendations.
           </li>
           <li>
-            Directory listings do not prove current NDIS Commission registration,
-            individual worker clearance, accessibility or availability.
+            Directory listings do not prove current NDIS Commission
+            registration, individual worker clearance, accessibility or
+            availability.
           </li>
           <li>
             MapAble does not claim to have indexed the entire public web in this

@@ -49,8 +49,8 @@ export function MapAbleSearchMedia({
           priority
         />
         <p className="relative z-[1] max-w-sm text-center text-sm font-medium text-[#0C1833]/80">
-          An accessible Australia — illustrative routes only until campaign media
-          is approved.
+          An accessible Australia — illustrative routes only until campaign
+          media is approved.
         </p>
         <button
           type="button"

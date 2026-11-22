@@ -62,7 +62,9 @@ function toAssuranceState(value: string): AdProviderAssuranceState {
   return "catalogued";
 }
 
-export async function syncSeedRegistryIntoCatalog(): Promise<{ upserted: number }> {
+export async function syncSeedRegistryIntoCatalog(): Promise<{
+  upserted: number;
+}> {
   const seed = loadSeedProviderRegistry();
   let upserted = 0;
   for (const provider of seed.providers) {
@@ -126,7 +128,10 @@ export type ApisIoSearchHit = {
 /**
  * Read-only APIs.io catalogue fetch. Never mutates partner ads or grants entitlements.
  */
-export async function fetchApisIoSearch(query: string, limit = 10): Promise<{
+export async function fetchApisIoSearch(
+  query: string,
+  limit = 10,
+): Promise<{
   ok: boolean;
   hits: ApisIoSearchHit[];
   sourceUrl: string;

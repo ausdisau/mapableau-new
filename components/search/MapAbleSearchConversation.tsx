@@ -31,10 +31,15 @@ const emptySession: GuidedSearchSessionFields = {
 
 export function MapAbleSearchConversation({ className }: Props) {
   const baseId = useId();
-  const [guide, dispatch] = useReducer(reducePublicGuide, undefined, initialPublicGuide);
+  const [guide, dispatch] = useReducer(
+    reducePublicGuide,
+    undefined,
+    initialPublicGuide,
+  );
   const [aiConsented, setAiConsented] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
-  const [session, setSession] = useState<GuidedSearchSessionFields>(emptySession);
+  const [session, setSession] =
+    useState<GuidedSearchSessionFields>(emptySession);
   const review = reviewPublicGuide(guide);
 
   return (
@@ -53,8 +58,8 @@ export function MapAbleSearchConversation({ className }: Props) {
           Conversation guide
         </h2>
         <p className="text-sm text-slate-600">
-          A step-by-step path that never sends your answers to an AI model. Optional
-          online assistant stays behind an explicit choice.
+          A step-by-step path that never sends your answers to an AI model.
+          Optional online assistant stays behind an explicit choice.
         </p>
       </div>
 
@@ -79,8 +84,12 @@ export function MapAbleSearchConversation({ className }: Props) {
                     mapableCareFocusRing,
                   )}
                 >
-                  <span className="font-black text-[#0C1833]">{goal.label}</span>
-                  <span className="mt-1 text-xs text-slate-600">{goal.description}</span>
+                  <span className="font-black text-[#0C1833]">
+                    {goal.label}
+                  </span>
+                  <span className="mt-1 text-xs text-slate-600">
+                    {goal.description}
+                  </span>
                 </button>
               </li>
             ))}
@@ -203,14 +212,14 @@ export function MapAbleSearchConversation({ className }: Props) {
           <p className="text-sm text-slate-700">{review.description}</p>
           {review.location ? (
             <p className="text-sm">
-              <span className="font-semibold">Area noted:</span> {review.location}{" "}
-              (not added to the link)
+              <span className="font-semibold">Area noted:</span>{" "}
+              {review.location} (not added to the link)
             </p>
           ) : null}
           {review.access ? (
             <p className="text-sm">
-              <span className="font-semibold">Access noted:</span> {review.access}{" "}
-              (not added to the link)
+              <span className="font-semibold">Access noted:</span>{" "}
+              {review.access} (not added to the link)
             </p>
           ) : null}
           <div className="flex flex-wrap gap-2">

@@ -1,6 +1,9 @@
 import Link from "next/link";
 
-import type { MapAbleSearchHit, MapAbleSearchResponse } from "@/lib/search/mapable-search-core";
+import type {
+  MapAbleSearchHit,
+  MapAbleSearchResponse,
+} from "@/lib/search/mapable-search-core";
 import {
   evidenceStatusForHit,
   organicResultsIgnoringAds,
@@ -67,7 +70,9 @@ function ResultCard({ hit }: { hit: MapAbleSearchHit }) {
         </div>
         {hit.directoryUpdatedAt ? (
           <div>
-            <dt className="font-semibold text-[#0C1833]">Local record updated</dt>
+            <dt className="font-semibold text-[#0C1833]">
+              Local record updated
+            </dt>
             <dd>{hit.directoryUpdatedAt.slice(0, 10)}</dd>
           </div>
         ) : null}
@@ -205,9 +210,12 @@ export function MapAbleSearchResults({
       ) : null}
 
       {status === "no_match" ? (
-        <div role="status" className="rounded-2xl border border-slate-200 bg-white p-5">
-          No matching results in the enabled public index. Try a different term or
-          open{" "}
+        <div
+          role="status"
+          className="rounded-2xl border border-slate-200 bg-white p-5"
+        >
+          No matching results in the enabled public index. Try a different term
+          or open{" "}
           <Link href="/provider-finder" className="font-semibold underline">
             Provider Finder
           </Link>

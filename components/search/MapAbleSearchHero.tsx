@@ -27,7 +27,8 @@ export function MapAbleSearchHero({
   className,
 }: Props) {
   const showConversation = initialSelection.presentation === "conversation";
-  const showDeepNotice = initialSelection.tier === "deep" && !deepSearchAvailable;
+  const showDeepNotice =
+    initialSelection.tier === "deep" && !deepSearchAvailable;
 
   return (
     <div className={cn("space-y-10", className)}>

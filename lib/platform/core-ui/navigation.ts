@@ -22,7 +22,11 @@ export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
 ];
 
 export const CORE_CIVIC_LINKS: CoreNavLink[] = [
-  { href: "/peers", label: "MapAble PEERS", description: "Disability community without feed algorithms" },
+  {
+    href: "/peers",
+    label: "MapAble PEERS",
+    description: "Disability community without feed algorithms",
+  },
   { href: "/transparency", label: "Transparency" },
   { href: "/accountability", label: "Accountability" },
   { href: "/decisions", label: "Decisions" },
@@ -54,7 +58,8 @@ export const CORE_HUB_SECTIONS: {
       {
         href: "/care",
         label: "MapAble Care",
-        description: "Find support workers, request care, and confirm service delivery",
+        description:
+          "Find support workers, request care, and confirm service delivery",
       },
       {
         href: "/transport",
@@ -119,23 +124,35 @@ export const CORE_HUB_SECTIONS: {
         label: "MapAble Transport",
         description: "Accessible trips and operator search",
       },
-      { href: "/data-vault", label: "Data vault", description: "Export or portability requests" },
+      {
+        href: "/data-vault",
+        label: "Data vault",
+        description: "Export or portability requests",
+      },
     ],
   },
   {
     title: "Public accountability",
     links: CORE_CIVIC_LINKS.filter((l) =>
-      ["/transparency", "/accountability", "/decisions", "/governance", "/safeguards"].includes(
-        l.href
-      )
+      [
+        "/transparency",
+        "/accountability",
+        "/decisions",
+        "/governance",
+        "/safeguards",
+      ].includes(l.href),
     ),
   },
   {
     title: "Platform transparency",
     links: CORE_CIVIC_LINKS.filter((l) =>
-      ["/algorithms", "/oversight", "/outcomes", "/status", "/insights/national"].includes(
-        l.href
-      )
+      [
+        "/algorithms",
+        "/oversight",
+        "/outcomes",
+        "/status",
+        "/insights/national",
+      ].includes(l.href),
     ),
   },
   {

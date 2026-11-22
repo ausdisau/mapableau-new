@@ -67,7 +67,10 @@ export function MapAbleSearchForm({
       ...selection,
       query: validated.query,
       // Deep never triggers spend; keep selection but route as free search.
-      tier: selection.tier === "deep" && !deepSearchAvailable ? "deep" : selection.tier,
+      tier:
+        selection.tier === "deep" && !deepSearchAvailable
+          ? "deep"
+          : selection.tier,
     };
 
     if (next.presentation === "conversation") {
@@ -120,14 +123,21 @@ export function MapAbleSearchForm({
           }
         />
         {queryError ? (
-          <p id={`${baseId}-q-error`} role="alert" className="text-sm text-red-700">
+          <p
+            id={`${baseId}-q-error`}
+            role="alert"
+            className="text-sm text-red-700"
+          >
             {queryError}
           </p>
         ) : null}
       </div>
 
       <div>
-        <p id={`${baseId}-categories-label`} className="mb-2 text-sm font-black text-[#0C1833]">
+        <p
+          id={`${baseId}-categories-label`}
+          className="mb-2 text-sm font-black text-[#0C1833]"
+        >
           Categories
         </p>
         <ul
@@ -191,7 +201,9 @@ export function MapAbleSearchForm({
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-black text-[#0C1833]">Search experience</legend>
+        <legend className="text-sm font-black text-[#0C1833]">
+          Search experience
+        </legend>
         <div
           role="radiogroup"
           aria-label="Search experience"
@@ -228,7 +240,9 @@ export function MapAbleSearchForm({
       </fieldset>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-black text-[#0C1833]">Search depth</legend>
+        <legend className="text-sm font-black text-[#0C1833]">
+          Search depth
+        </legend>
         <div
           role="radiogroup"
           aria-label="Search depth"

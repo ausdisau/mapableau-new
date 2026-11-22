@@ -129,7 +129,8 @@ function normaliseSupplier(value: unknown): AccessiMartSupplierClaim | null {
   const sourceSupplierId =
     typeof row.id === "number"
       ? String(Math.trunc(row.id))
-      : limitedText(row.id, 64) ?? `supplier:${legalName.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`;
+      : (limitedText(row.id, 64) ??
+        `supplier:${legalName.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`);
 
   return {
     sourceSupplierId,
