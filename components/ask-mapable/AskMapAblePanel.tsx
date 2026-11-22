@@ -43,6 +43,7 @@ export function AskMapAblePanel({
 }: Props) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const visibleTabs = showHistory ? TABS : TABS.filter((tab) => tab.id !== "history");
   const previouslyFocused = useRef<HTMLElement | null>(null);
   // Callback identity can change as the conversation updates. Keep focus
@@ -61,6 +62,29 @@ export function AskMapAblePanel({
       if (e.key === "Escape") {
         e.preventDefault();
         closeHandler.current();
+        return;
+      }
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusable = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>(
+            'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((element) => !element.closest("[hidden], [aria-hidden='true']"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) {
+          e.preventDefault();
+          closeRef.current?.focus();
+          return;
+        }
+        const focusOutside = !dialogRef.current.contains(document.activeElement);
+        if (e.shiftKey && (document.activeElement === first || focusOutside)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (document.activeElement === last || focusOutside)) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     document.addEventListener("keydown", onKey);
@@ -81,6 +105,7 @@ export function AskMapAblePanel({
       }}
     >
       <div
+        ref={dialogRef}
         id="ask-mapable-panel"
         role="dialog"
         aria-modal="true"
