@@ -42,6 +42,12 @@ export function AskMapAblePanel({
   const closeRef = useRef<HTMLButtonElement>(null);
   const visibleTabs = showHistory ? TABS : TABS.filter((tab) => tab.id !== "history");
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  // Callback identity can change as the conversation updates. Keep focus
+  // management scoped to the open state, not every chat re-render.
+  const closeHandler = useRef(onClose);
+  useEffect(() => {
+    closeHandler.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -51,7 +57,7 @@ export function AskMapAblePanel({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        closeHandler.current();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -59,7 +65,7 @@ export function AskMapAblePanel({
       document.removeEventListener("keydown", onKey);
       previouslyFocused.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
