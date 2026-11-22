@@ -11,6 +11,7 @@ import type { FinderInterpretationData } from "@/types/provider-finder-chat";
 
 import { AskMapAbleLauncher } from "./AskMapAbleLauncher";
 import { AskMapAblePanel } from "./AskMapAblePanel";
+import { PublicGuidedPath } from "./PublicGuidedPath";
 import type { AskWidgetTab } from "./types";
 
 const EMPTY_FINDER: GuidedSearchSessionFields = {
@@ -65,6 +66,8 @@ export function GuestAccessAssistant() {
   const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<AskWidgetTab>("chat");
+  const [discoveryMode, setDiscoveryMode] = useState<"guided" | "conversation">("guided");
+  const [chatApproved, setChatApproved] = useState(false);
   const [finderSession, setFinderSession] = useState<GuidedSearchSessionFields>(
     () => ({ ...EMPTY_FINDER }),
   );
@@ -96,28 +99,82 @@ export function GuestAccessAssistant() {
         showHistory={false}
         history={null}
         chat={
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="text-sm text-foreground">
-              Welcome. I can help you explore services and accessibility information.
-              This public mode does not access participant accounts or make bookings.
+              Welcome. Explore services and access information at your own pace.
+              This public mode cannot access accounts, make bookings, or confirm worker screening.
             </p>
-            <GuidedSearchDialogue
-              variant="compact"
-              session={finderSession}
-              onSessionChange={setFinderSession}
-              onInterpretation={onInterpretation}
-              onShowResults={closePanel}
-              starterPrompts={starterPrompts}
-              className="min-h-0"
-            />
-            <p className="text-xs text-muted-foreground">
-              Directory listings do not confirm current NDIS registration, worker screening,
-              accessibility or availability. Please verify details before relying on a result.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Please avoid sharing health records or private identification information.
-              Search messages use MapAble's existing guided search service.
-            </p>
+            <div role="group" aria-label="Choose how to explore" className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`min-h-11 flex-1 rounded-lg border px-3 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  discoveryMode === "guided"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground"
+                }`}
+                aria-pressed={discoveryMode === "guided"}
+                onClick={() => {
+                  setDiscoveryMode("guided");
+                  setChatApproved(false);
+                }}
+              >
+                Guided steps (no AI)
+              </button>
+              <button
+                type="button"
+                className={`min-h-11 flex-1 rounded-lg border px-3 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  discoveryMode === "conversation"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground"
+                }`}
+                aria-pressed={discoveryMode === "conversation"}
+                onClick={() => setDiscoveryMode("conversation")}
+              >
+                Ask a question
+              </button>
+            </div>
+            {discoveryMode === "guided" ? (
+              <PublicGuidedPath onLeave={closePanel} />
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm">
+                  Public conversational search uses MapAble's existing guided search service.
+                  Questions are sent to that server and may be processed by an external AI provider.
+                  Please avoid sharing diagnoses, health records or identifying details.
+                </p>
+                <label className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={chatApproved}
+                    className="mt-1 size-4 accent-primary"
+                    onChange={(event) => setChatApproved(event.target.checked)}
+                  />
+                  <span>
+                    I choose to use the online conversational search service in this session.
+                    I can return to the no-AI guide at any time.
+                  </span>
+                </label>
+                {chatApproved ? (
+                  <GuidedSearchDialogue
+                    variant="compact"
+                    session={finderSession}
+                    onSessionChange={setFinderSession}
+                    onInterpretation={onInterpretation}
+                    onShowResults={closePanel}
+                    starterPrompts={starterPrompts}
+                    className="min-h-0"
+                  />
+                ) : (
+                  <p role="status" className="text-xs text-muted-foreground">
+                    Select the checkbox to open conversational search, or choose the no-AI guide.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Directory records cannot confirm current NDIS registration, worker screening,
+                  access fit or availability. Verify all essential requirements independently.
+                </p>
+              </div>
+            )}
           </div>
         }
         actions={
