@@ -115,7 +115,7 @@ export function MapAbleSearchForm({
             update({ ...selection, query: event.target.value });
             if (queryError) setQueryError(undefined);
           }}
-          placeholder="e.g. accessible café, support provider, transport"
+          placeholder="Search places, services, transport, jobs…"
           className={mapableSearchInputClass}
           aria-invalid={queryError ? true : undefined}
           aria-describedby={

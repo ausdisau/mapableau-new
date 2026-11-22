@@ -55,7 +55,9 @@ test.describe("MapAble Search a11y", () => {
       page.getByText(/Concept visualisation — routes illustrative/i),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /Playback unavailable/i }),
+      page.getByRole("button", {
+        name: /Explore Sydney concept animation|Animation paused/i,
+      }),
     ).toBeDisabled();
   });
 

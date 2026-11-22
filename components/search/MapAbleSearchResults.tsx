@@ -233,20 +233,32 @@ export function MapAbleSearchResults({
         </ul>
       ) : null}
 
-      {ads.length > 0 ? (
-        <div className="space-y-3 border-t border-slate-200 pt-4">
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-500">
-            Advertisements
-          </h3>
-          <p className="text-xs text-slate-500">
-            Paid placements are separate from organic results and cannot change
-            ranking or evidence labels.
-          </p>
-          {ads.map((ad) => (
-            <AdSlot key={ad.id} ad={ad} />
-          ))}
-        </div>
-      ) : null}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h3 className="text-sm font-black uppercase tracking-wide text-slate-500">
+          Advertisements
+        </h3>
+        <p className="text-xs text-slate-500">
+          Paid placements are separate from organic results and cannot change
+          ranking or evidence labels. Search queries and access needs are never
+          sent to advertising partners from this page.
+        </p>
+        {ads.length > 0 ? (
+          ads.map((ad) => <AdSlot key={ad.id} ad={ad} />)
+        ) : (
+          <aside
+            aria-label="Advertisement"
+            className="rounded-2xl border border-dashed border-slate-300 bg-[#F6FBFC] p-4"
+          >
+            <p className="text-sm font-semibold text-[#0C1833]">
+              Advertisement — placement unavailable
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              No approved MapAble Search ad surface is live. Organic results and
+              evidence labels are never sold.
+            </p>
+          </aside>
+        )}
+      </div>
     </section>
   );
 }
