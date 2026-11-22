@@ -74,11 +74,14 @@ describe("accessible, non-AI guided path", () => {
     expect(screen.getByRole("heading", { name: "Guided discovery, without AI" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: /Find a support provider/i }));
     const location = screen.getByRole("textbox", { name: /Is there a suburb or area/i });
+    expect(document.activeElement).toBe(location);
     await user.type(location, "Parramatta");
     await user.click(screen.getByRole("button", { name: "Continue" }));
     const access = screen.getByRole("textbox", { name: /Which access features matter/i });
+    expect(document.activeElement).toBe(access);
     await user.type(access, "AAC-friendly communication");
     await user.click(screen.getByRole("button", { name: "Review choices" }));
+    expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Review your choices" }));
     expect(screen.getByText("Parramatta")).toBeTruthy();
     expect(screen.getByText("AAC-friendly communication")).toBeTruthy();
     const link = screen.getByRole("link", { name: "Open Provider Finder" });
