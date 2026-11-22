@@ -63,7 +63,9 @@ export function PublicGuidedPath({ onLeave }: Props) {
           they are not sent to a model, saved to an account, or added to a search URL.
         </p>
         <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
-          Step {stepNumber} of 4
+          {state.goal === "human" && state.step === "review"
+            ? "Direct human support"
+            : `Step ${stepNumber} of 4`}
         </p>
       </div>
 
@@ -195,14 +197,22 @@ export function PublicGuidedPath({ onLeave }: Props) {
               </>
             ) : null}
           </dl>
-          <p className="text-xs text-muted-foreground">
-            Nothing has been checked, booked, or submitted. Current registration, individual
-            worker screening, accessibility and availability remain unverified.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Opening the page below does not transfer your optional answers. You can choose
-            what to enter into its search fields yourself.
-          </p>
+          {state.goal === "human" ? (
+            <p className="text-xs text-muted-foreground">
+              Opening the public contact page does not send any information from this guide.
+            </p>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground">
+                Nothing has been checked, booked or submitted. Current registration,
+                worker screening, access fit and availability remain unverified.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Opening the page below does not transfer these optional answers. You can
+                choose which details to enter there yourself.
+              </p>
+            </>
+          )}
           <Link
             className={primaryClass + " inline-flex items-center justify-center"}
             href={review.href}
