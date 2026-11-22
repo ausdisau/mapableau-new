@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -72,7 +72,7 @@ describe("MapAble public Access Assistant", () => {
     render(<AskMapAbleWidget />);
     await user.click(screen.getByRole("button", { name: "Open Ask MapAble" }));
     const dialog = screen.getByRole("dialog");
-    const close = screen.getByRole("button", { name: "Close Ask MapAble" });
+    const close = within(dialog).getByRole("button", { name: "Close Ask MapAble" });
     expect(document.activeElement).toBe(close);
     await user.tab({ shift: true });
     expect(dialog.contains(document.activeElement)).toBe(true);
