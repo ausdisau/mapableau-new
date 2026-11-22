@@ -35,19 +35,36 @@ describe("MapAble public Access Assistant", () => {
   beforeEach(() => sessionStorage.clear());
   afterEach(() => cleanup());
 
-  it("presents one launcher, read-only chat, and public actions for guests", async () => {
+  it("presents one launcher with a no-AI guide as the default", async () => {
     const user = userEvent.setup();
     render(<AskMapAbleWidget />);
     expect(screen.getAllByTestId("ask-mapable-launcher")).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Open Ask MapAble" }));
-    expect(screen.getByTestId("guest-guided-search")).toBeTruthy();
+
+    expect(screen.getByRole("heading", { name: "Guided discovery, without AI" })).toBeTruthy();
+    expect(screen.queryByTestId("guest-guided-search")).toBeNull();
     expect(screen.queryByRole("tab", { name: "History" })).toBeNull();
-    expect(screen.getByText(/This public mode does not access participant accounts/i)).toBeTruthy();
 
     await user.click(screen.getByRole("tab", { name: "Actions" }));
     expect(screen.getByRole("link", { name: /Talk to a person/i }).getAttribute("href"))
       .toBe("/contact");
     expect(screen.queryByText(/create transport request/i)).toBeNull();
+  });
+
+  it("does not mount the public AI chat until the visitor explicitly opts in", async () => {
+    const user = userEvent.setup();
+    render(<AskMapAbleWidget />);
+    await user.click(screen.getByRole("button", { name: "Open Ask MapAble" }));
+    await user.click(screen.getByRole("button", { name: "Ask a question" }));
+    expect(screen.queryByTestId("guest-guided-search")).toBeNull();
+    const consent = screen.getByRole("checkbox", { name: /I choose to use the online conversational search/i });
+    await user.click(consent);
+    expect(screen.getByTestId("guest-guided-search")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Guided steps (no AI)" }));
+    expect(screen.queryByTestId("guest-guided-search")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Ask a question" }));
+    expect((screen.getByRole("checkbox", { name: /I choose to use the online conversational search/i }) as HTMLInputElement).checked).toBe(false);
+    expect(screen.queryByTestId("guest-guided-search")).toBeNull();
   });
 
   it("closes on Escape without a second launcher", async () => {
