@@ -67,6 +67,19 @@ describe("MapAble public Access Assistant", () => {
     expect(screen.queryByTestId("guest-guided-search")).toBeNull();
   });
 
+  it("keeps keyboard Tab navigation inside the modal", async () => {
+    const user = userEvent.setup();
+    render(<AskMapAbleWidget />);
+    await user.click(screen.getByRole("button", { name: "Open Ask MapAble" }));
+    const dialog = screen.getByRole("dialog");
+    const close = screen.getByRole("button", { name: "Close Ask MapAble" });
+    expect(document.activeElement).toBe(close);
+    await user.tab({ shift: true });
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    await user.tab();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
   it("closes on Escape without a second launcher", async () => {
     const user = userEvent.setup();
     render(<AskMapAbleWidget />);
