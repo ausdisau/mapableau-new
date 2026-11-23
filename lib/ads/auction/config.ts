@@ -42,6 +42,8 @@ export const DEFAULT_PLACEMENT_FLOOR_CPM_MICROS: Record<
   "provider-finder.map.sponsored-card": 24n * MICROS_PER_AUD,
   "provider-finder.results.inline": 28n * MICROS_PER_AUD,
   "provider-finder.sidebar": 24n * MICROS_PER_AUD,
+  // Flat-fee Explore phrase pilot — not auctioned; floor kept at zero.
+  "explore.topic.sponsored-phrase": 0n,
 };
 
 export const ADS_TOPUP_MIN_CENTS = 10_000; // A$100
