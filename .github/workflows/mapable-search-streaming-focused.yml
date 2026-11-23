@@ -49,6 +49,7 @@ jobs:
             'app/api/mapable-search/stream/route.ts' \
             'components/search/MapAbleSearchForm.tsx' \
             'components/search/MapAbleSearchHero.tsx' \
+            'components/search/MapAbleSearchResults.tsx' \
             'components/search/MapAbleStreamingWorkspace.tsx' \
             'lib/search/mapable-stream-contract.ts' \
             'tests/mapable-search-stream.test.ts' \
