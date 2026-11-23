@@ -1,0 +1,224 @@
+/**
+ * MapAble One unified visual system.
+ * When `html.mapable-one` is set (feature flag), remaps platform-wide semantic
+ * tokens so every route inherits navy / orange / purple branding.
+ * Provisional palette (ad collateral ZIP absent). Logo unchanged.
+ * Contrast targets are design notes — not WCAG certification.
+ */
+
+.mapable-one {
+  --mo-ink: #091c40;
+  --mo-bg-deep: #061b3d;
+  --mo-orange: #ff7a00;
+  --mo-orange-ink: #091c40;
+  --mo-purple: #7047c6;
+  --mo-surface: #f7f4ef;
+  --mo-surface-raised: #ffffff;
+  --mo-border: #d4dce8;
+  --mo-muted: #5a6b82;
+  --mo-success: #0f7a4c;
+  --mo-warning: #9a6700;
+  --mo-error: #b42318;
+  --mo-focus: #f8c51c;
+  --mo-radius: 0.75rem;
+  --mo-touch: 2.75rem; /* 44px */
+
+  color: var(--mo-ink);
+  background-color: var(--mo-surface);
+  font-family: var(--font-body, "Plus Jakarta Sans", sans-serif);
+}
+
+/* Platform-wide semantic remapping when the skin is enabled on <html> */
+html.mapable-one {
+  --primary: 24 100% 50%; /* vivid orange #FF7A00 */
+  --primary-foreground: 222 62% 12%; /* dark ink on orange CTAs */
+  --secondary: 258 50% 53%; /* purple #7047C6 */
+  --secondary-foreground: 0 0% 100%;
+  --background: 36 33% 95%; /* warm surface #F7F4EF */
+  --foreground: 218 75% 14%; /* #091C40 */
+  --card: 0 0% 100%;
+  --card-foreground: 218 75% 14%;
+  --muted: 36 20% 92%;
+  --muted-foreground: 215 18% 40%;
+  --accent: 258 50% 53%;
+  --accent-foreground: 0 0% 100%;
+  --border: 215 25% 86%;
+  --input: 215 25% 86%;
+  --ring: 46 94% 54%; /* gold focus */
+  --mapable-brand: 24 100% 50%;
+  --mapable-brand-dark: 24 100% 40%;
+  --mapable-navy: 218 75% 14%;
+  --mapable-gold: 46 94% 54%;
+  --mapable-surface: 36 33% 95%;
+}
+
+html.mapable-one body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Remap common legacy hex brand utilities used across pages */
+html.mapable-one .text-\[\#005B7F\],
+html.mapable-one .text-\[\#004766\] {
+  color: var(--mo-purple) !important;
+}
+
+html.mapable-one .bg-\[\#005B7F\] {
+  background-color: var(--mo-orange) !important;
+  color: var(--mo-orange-ink) !important;
+}
+
+html.mapable-one .hover\:bg-\[\#004766\]:hover {
+  background-color: color-mix(in srgb, var(--mo-orange) 85%, #000) !important;
+}
+
+html.mapable-one .bg-\[\#F6FBFC\],
+html.mapable-one .bg-\[\#F6FBFC\]\/95 {
+  background-color: var(--mo-surface) !important;
+}
+
+html.mapable-one .text-\[\#0C1833\] {
+  color: var(--mo-ink) !important;
+}
+
+html.mapable-one .border-\[\#005B7F\]\/20,
+html.mapable-one .border-\[\#005B7F\]\/40 {
+  border-color: color-mix(in srgb, var(--mo-purple) 30%, transparent) !important;
+}
+
+html.mapable-one .bg-\[\#005B7F\]\/10 {
+  background-color: color-mix(in srgb, var(--mo-purple) 12%, transparent) !important;
+}
+
+html.mapable-one .ring-\[\#F8C51C\]\/40,
+html.mapable-one .ring-\[\#F8C51C\]\/30,
+html.mapable-one .focus-visible\:ring-\[\#F8C51C\]\/40:focus-visible {
+  --tw-ring-color: color-mix(in srgb, var(--mo-focus) 50%, transparent);
+}
+
+.mapable-one :focus-visible {
+  outline: 3px solid var(--mo-focus);
+  outline-offset: 2px;
+}
+
+.mapable-one .mo-heading {
+  font-family: var(--font-display, Outfit, sans-serif);
+  color: var(--mo-ink);
+}
+
+.mapable-one .mo-btn-primary {
+  display: inline-flex;
+  min-height: var(--mo-touch);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mo-radius);
+  background: var(--mo-orange);
+  color: var(--mo-orange-ink);
+  font-weight: 700;
+  padding: 0.625rem 1.25rem;
+  text-decoration: none;
+}
+
+.mapable-one .mo-btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+.mapable-one .mo-btn-secondary {
+  display: inline-flex;
+  min-height: var(--mo-touch);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mo-radius);
+  border: 2px solid var(--mo-ink);
+  background: transparent;
+  color: var(--mo-ink);
+  font-weight: 700;
+  padding: 0.5rem 1.1rem;
+  text-decoration: none;
+}
+
+.mapable-one .mo-card {
+  border: 1px solid var(--mo-border);
+  border-radius: var(--mo-radius);
+  background: var(--mo-surface-raised);
+  box-shadow: 0 1px 2px rgb(9 28 64 / 6%);
+}
+
+.mapable-one .mo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--mo-border);
+  background: var(--mo-surface);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.mapable-one .mo-chip--wayfinding {
+  border-color: color-mix(in srgb, var(--mo-purple) 35%, var(--mo-border));
+  color: var(--mo-purple);
+}
+
+.mapable-one .mo-status-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.mapable-one .mo-skip {
+  position: absolute;
+  left: -9999px;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--mo-ink);
+  color: #fff;
+}
+
+.mapable-one .mo-skip:focus {
+  left: 0.75rem;
+  top: 0.75rem;
+}
+
+.mapable-one .mo-topbar {
+  border-bottom: 1px solid var(--mo-border);
+  background: var(--mo-surface-raised);
+}
+
+.mapable-one .mo-sidebar {
+  border-right: 1px solid var(--mo-border);
+  background: var(--mo-surface-raised);
+}
+
+.mapable-one .mo-nav-link {
+  display: flex;
+  min-height: var(--mo-touch);
+  align-items: center;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mo-muted);
+  text-decoration: none;
+}
+
+.mapable-one .mo-nav-link:hover,
+.mapable-one .mo-nav-link[aria-current="page"] {
+  background: color-mix(in srgb, var(--mo-purple) 10%, transparent);
+  color: var(--mo-ink);
+}
+
+.mapable-one .mo-bottom-nav {
+  border-top: 1px solid var(--mo-border);
+  background: var(--mo-surface-raised);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapable-one * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

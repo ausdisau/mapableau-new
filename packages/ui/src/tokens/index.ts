@@ -9,6 +9,21 @@ export const mapableColors = {
   white: "#FFFFFF",
 } as const;
 
+/**
+ * MapAble One provisional palette (ad collateral ZIP absent).
+ * Additive only — does not replace mapableColors until brand approval.
+ */
+export const mapableOneColors = {
+  ink: "#091C40",
+  bgDeep: "#061B3D",
+  orange: "#FF7A00",
+  purple: "#7047C6",
+  surface: "#F7F4EF",
+  surfaceRaised: "#FFFFFF",
+  muted: "#5A6B82",
+  focus: "#F8C51C",
+} as const;
+
 export const mapableInteractiveFocusRing =
   "focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary";
 
