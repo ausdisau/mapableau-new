@@ -26,10 +26,11 @@ Separate campaign file:
 - `MapAble_Logo_Brand_Reveal.mp4` — campaign artwork pending final brand approval.
   Default product chrome continues to use `/brand/mapable-logo*.{png,svg}`.
 
-## Runtime exports to place in this folder
+## Runtime exports in this folder
 
-- `sydney-network-poster.webp` — static first-paint poster (network or harbour)
-- `sydney-storyboard.mp4` — silent, user-triggered storyboard (`preload="none"`)
+- `mapable-search-logo.png` — open-lens Search identity used by the combined workspace header
+- `sydney-network-poster.webp` — static first-paint poster (network or harbour) — **pending**
+- `sydney-storyboard.mp4` — silent, user-triggered storyboard (`preload="none"`) — **pending**
 
 ## Delivery rules
 
