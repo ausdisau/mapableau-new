@@ -219,7 +219,7 @@ export function MapAbleStreamingWorkspace({ initialSelection }: Props) {
                 }}
               />
               <span>
-                I choose to send my question to MapAble's public search server.
+                I choose to send my question to MapAble&apos;s public search server.
                 Do not include diagnoses, plan numbers or identifying details.
                 No AI provider is used for this streaming preview.
               </span>
