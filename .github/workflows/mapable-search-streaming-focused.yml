@@ -1,0 +1,57 @@
+name: MapAble streaming Search focused tests
+
+on:
+  pull_request:
+    paths:
+      - "app/(marketing)/search/**"
+      - "app/api/mapable-search/stream/**"
+      - "components/search/**"
+      - "lib/search/mapable-stream-contract.ts"
+      - "tests/mapable-search-stream*"
+      - ".github/workflows/mapable-search-streaming-focused.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  streaming-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      NODE_OPTIONS: --max-old-space-size=4096
+      NEXTAUTH_SECRET: ci-only-mapable-stream-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+      - name: Run stream contract, API and UI tests
+        run: |
+          pnpm exec vitest run \
+            tests/mapable-search-stream.test.ts \
+            tests/mapable-search-stream-route.test.ts \
+            tests/mapable-search-stream-ui.test.tsx \
+            tests/mapable-search-ui.test.tsx \
+            tests/mapable-search-discovery.test.ts
+      - name: Lint changed feature files
+        run: |
+          pnpm exec eslint \
+            'app/(marketing)/search/page.tsx' \
+            'app/api/mapable-search/stream/route.ts' \
+            'components/search/MapAbleSearchForm.tsx' \
+            'components/search/MapAbleSearchHero.tsx' \
+            'components/search/MapAbleStreamingWorkspace.tsx' \
+            'lib/search/mapable-stream-contract.ts' \
+            'tests/mapable-search-stream.test.ts' \
+            'tests/mapable-search-stream-route.test.ts' \
+            'tests/mapable-search-stream-ui.test.tsx' \
+            --max-warnings 0
