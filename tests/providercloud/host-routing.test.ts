@@ -32,12 +32,13 @@ describe("ProviderCloud host routing", () => {
     expect(providerCloudRewritePath("/providercloud")).toBeNull();
   });
 
-  it("does not rewrite APIs, auth, or the existing provider console", () => {
+  it("does not rewrite APIs, auth, the provider console, or other paths", () => {
     expect(providerCloudRewritePath("/api/providercloud/status")).toBeNull();
     expect(providerCloudRewritePath("/login")).toBeNull();
     expect(providerCloudRewritePath("/provider/care")).toBeNull();
     expect(providerCloudRewritePath("/provider-ops")).toBeNull();
     expect(providerCloudRewritePath("/robots.txt")).toBeNull();
+    expect(providerCloudRewritePath("/about")).toBeNull();
   });
 
   it("identifies grocery supplier paths as disabled supplier operations", () => {

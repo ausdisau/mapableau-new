@@ -1,7 +1,5 @@
 export const DEFAULT_PROVIDERCLOUD_HOST = "cloud.mapable.com.au";
 
-const PUBLIC_FILE = /\.[^/]+$/;
-
 function normalizeHost(value: string | null | undefined): string {
   if (!value) return "";
   return value.split(",")[0]?.trim().toLowerCase().split(":")[0] ?? "";
@@ -24,26 +22,7 @@ export function isProviderCloudHost(
 export function providerCloudRewritePath(pathname: string): string | null {
   if (pathname === "/") return "/providercloud";
 
-  if (
-    pathname.startsWith("/providercloud") ||
-    pathname.startsWith("/api/") ||
-    pathname === "/api" ||
-    pathname.startsWith("/_next/") ||
-    pathname === "/favicon.ico" ||
-    pathname === "/robots.txt" ||
-    pathname === "/sitemap.xml" ||
-    pathname === "/login" ||
-    pathname.startsWith("/login/") ||
-    pathname === "/register" ||
-    pathname.startsWith("/register/") ||
-    pathname.startsWith("/provider") ||
-    pathname.startsWith("/provider-ops") ||
-    PUBLIC_FILE.test(pathname)
-  ) {
-    return null;
-  }
-
-  return `/providercloud${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
+  return null;
 }
 
 export function isProviderCloudSupplierPath(pathname: string): boolean {
