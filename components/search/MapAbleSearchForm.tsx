@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import React, { useId, useState, useTransition } from "react";
 
 import { cn } from "@/app/lib/utils";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import { mapableSearchInputClass } from "@/lib/brand/styles";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import {
   SEARCH_CATEGORIES,
   SEARCH_QUERY_MAX,
