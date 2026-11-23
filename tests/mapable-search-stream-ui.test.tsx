@@ -88,7 +88,7 @@ describe("public streaming search workspace", () => {
     expect(screen.getByText("Review the public source before making a decision.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "MapAble Care" })).toBeTruthy();
     expect(screen.getByText(/No sourced coordinates/)).toBeTruthy();
-    expect(screen.getByText(/Not independently verified/i)).toBeTruthy();
+    expect(screen.getAllByText(/Not independently verified/i).length).toBeGreaterThan(0);
   });
 
   it("does not charge or send a request when Deep Search is selected", () => {
