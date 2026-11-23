@@ -80,6 +80,26 @@ describe("sponsored phrase flags", () => {
     ).toBe(false);
   });
 
+  it("client mirrors honour public kill switch", () => {
+    expect(
+      isClientSponsoredPhraseEnabled({
+        NEXT_PUBLIC_MAPABLE_ADS_ENABLED: "true",
+        NEXT_PUBLIC_MAPABLE_ADS_SPONSORED_PHRASE_ENABLED: "true",
+        NEXT_PUBLIC_MAPABLE_ADS_GLOBAL_KILL_SWITCH: "true",
+      }),
+    ).toBe(false);
+  });
+
+  it("marketing homepage opts into force-dynamic for kill switches", async () => {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const pageSource = await fs.readFile(
+      path.join(process.cwd(), "app/(marketing)/page.tsx"),
+      "utf8",
+    );
+    expect(pageSource).toContain('dynamic = "force-dynamic"');
+  });
+
   it("server enablement is the source of truth for kill (not client hard-coding)", () => {
     const killed = adsFlagsConfig.isSponsoredPhraseEnabled({
       ...phraseEnabledEnv,

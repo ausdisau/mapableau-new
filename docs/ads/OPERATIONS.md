@@ -19,6 +19,7 @@ NEXT_PUBLIC_MAPABLE_ADS_ENABLED=false
 NEXT_PUBLIC_MAPABLE_ADS_ACCESS_ENABLED=false
 NEXT_PUBLIC_MAPABLE_ADS_PROVIDER_FINDER_ENABLED=false
 NEXT_PUBLIC_MAPABLE_ADS_SPONSORED_PHRASE_ENABLED=false
+NEXT_PUBLIC_MAPABLE_ADS_GLOBAL_KILL_SWITCH=false
 GOOGLE_AD_MANAGER_NETWORK_CODE=
 GOOGLE_AD_MANAGER_ACCESS_MAP_UNIT=
 GOOGLE_AD_MANAGER_PROVIDER_FINDER_UNIT=
@@ -33,7 +34,7 @@ ETHICALADS_PUBLISHER_ID=
 | Provider | env flag + `AdProviderConfig.enabled` |
 | Campaign / advertiser | status `PAUSED` / `DISABLED` |
 | Placement / surface | surface flags + `AdPlacement.status` |
-| Sponsored phrase (Explore pilot) | `MAPABLE_ADS_SPONSORED_PHRASE_ENABLED` + reader preference (default off); enablement is evaluated in `app/(marketing)/page.tsx` (Server Component) and passed through the client homepage tree so private env + `MAPABLE_ADS_GLOBAL_KILL_SWITCH` are honoured; local fixtures only |
+| Sponsored phrase (Explore pilot) | `MAPABLE_ADS_SPONSORED_PHRASE_ENABLED` + reader preference (default off); `/` is `force-dynamic` so server enablement is per-request; optional `NEXT_PUBLIC_MAPABLE_ADS_GLOBAL_KILL_SWITCH` mirrors kill on the client; local fixtures only |
 | Auction delivery | `MAPABLE_ADS_AUCTION_ENABLED` (also blocked by global kill) |
 | Billing charges | `MAPABLE_ADS_BILLING_ENABLED` |
 | Stripe top-ups | `MAPABLE_ADS_STRIPE_TOPUPS_ENABLED` |

@@ -4,6 +4,12 @@ import { MapAbleCareCombinedHomepageSections } from "@/components/marketing/MapA
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
 
+/**
+ * Request-time rendering so MAPABLE_ADS_GLOBAL_KILL_SWITCH / phrase flags are
+ * not frozen into a static RSC payload for the Explore sponsored-phrase pilot.
+ */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "MapAble | Accessibility you can plan around",
   description:
@@ -21,6 +27,7 @@ export default function Page() {
   // True Server Component — private MAPABLE_ADS_* env is available here.
   // HomepageExploreStrip lives under a client parent, so enablement must be
   // passed down rather than re-read from process.env in the client bundle.
+  // force-dynamic above keeps this evaluation per-request for kill switches.
   const sponsoredPhraseServerEnabled =
     adsFlagsConfig.isSponsoredPhraseEnabled();
 
