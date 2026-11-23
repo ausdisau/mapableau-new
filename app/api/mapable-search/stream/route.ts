@@ -1,10 +1,10 @@
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { searchMapAble } from "@/lib/search/mapable-search-service";
 import {
   formatPublicSearchStreamEvent,
   publicStreamRequestSchema,
   type PublicSearchStreamEvent,
 } from "@/lib/search/mapable-stream-contract";
-import { searchMapAble } from "@/lib/search/mapable-search-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
