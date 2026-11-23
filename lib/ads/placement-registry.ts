@@ -2,8 +2,14 @@ import type { PlacementCapability, PlacementCode } from "@/lib/ads/types";
 
 export type PlacementDefinition = {
   code: PlacementCode;
-  surface: "access" | "provider_finder";
-  format: "map_marker" | "map_card" | "bottom_sheet" | "inline" | "sidebar";
+  surface: "access" | "provider_finder" | "public_explore";
+  format:
+    | "map_marker"
+    | "map_card"
+    | "bottom_sheet"
+    | "inline"
+    | "sidebar"
+    | "sponsored_phrase";
   capabilities: PlacementCapability;
 };
 
@@ -95,6 +101,19 @@ export const PLACEMENT_REGISTRY: Record<PlacementCode, PlacementDefinition> = {
       supportsExternalDOMSlot: true,
       supportsMapMarker: false,
       supportsImage: true,
+      supportsText: true,
+      maxAds: 1,
+    },
+  },
+  "explore.topic.sponsored-phrase": {
+    code: "explore.topic.sponsored-phrase",
+    surface: "public_explore",
+    format: "sponsored_phrase",
+    capabilities: {
+      supportsInternalCreative: true,
+      supportsExternalDOMSlot: false,
+      supportsMapMarker: false,
+      supportsImage: false,
       supportsText: true,
       maxAds: 1,
     },

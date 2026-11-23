@@ -8,7 +8,7 @@ export type AdProviderId =
   | "google_ad_manager"
   | "ethicalads";
 
-export type AdSurface = "access" | "provider_finder";
+export type AdSurface = "access" | "provider_finder" | "public_explore";
 
 export type PlacementCode =
   | "access.map.sponsored-marker"
@@ -17,7 +17,36 @@ export type PlacementCode =
   | "access.results.inline"
   | "provider-finder.map.sponsored-card"
   | "provider-finder.results.inline"
-  | "provider-finder.sidebar";
+  | "provider-finder.sidebar"
+  | "explore.topic.sponsored-phrase";
+
+/** Authored inline sponsored phrase — never derived by keyword scanning. */
+export type SponsoredPhraseStatus = "active" | "paused" | "expired";
+
+export type SponsoredPhraseCreative = {
+  id: string;
+  campaignId: string;
+  topicKey: string;
+  payerName: string;
+  prefixText: string;
+  linkedPhrase: string;
+  suffixText: string;
+  destinationUrl: string;
+  startsAt: string;
+  endsAt: string;
+  whyThisAd: string;
+  status: SponsoredPhraseStatus;
+};
+
+/**
+ * Resolver input for public sponsored phrases.
+ * Intentionally closed: must not accept query, draft, AAC, profile, location,
+ * plan, account, map bounds, or selected provider.
+ */
+export type SponsoredPhraseResolveInput = {
+  routePath: string;
+  topicKey: string;
+};
 
 export type PlacementCapability = {
   supportsInternalCreative: boolean;

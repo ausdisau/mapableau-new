@@ -86,7 +86,7 @@ describe("ads flags", () => {
 
 describe("placement registry", () => {
   it("registers all foundation placements", () => {
-    expect(Object.keys(PLACEMENT_REGISTRY)).toHaveLength(7);
+    expect(Object.keys(PLACEMENT_REGISTRY)).toHaveLength(8);
     expect(getPlacement("access.map.sponsored-marker")?.capabilities.supportsMapMarker).toBe(
       true,
     );
@@ -94,6 +94,12 @@ describe("placement registry", () => {
       getPlacement("provider-finder.results.inline")?.capabilities
         .supportsExternalDOMSlot,
     ).toBe(true);
+    expect(
+      getPlacement("explore.topic.sponsored-phrase")?.format,
+    ).toBe("sponsored_phrase");
+    expect(
+      getPlacement("explore.topic.sponsored-phrase")?.capabilities.maxAds,
+    ).toBe(1);
   });
 });
 
