@@ -11,8 +11,10 @@ import { LiveTripTelemetryBar } from "@/components/transport/LiveTripTelemetryBa
 import { SafePickupZoneOverlay } from "@/components/transport/SafePickupZoneOverlay";
 import {
   TransportBookingWorkspace,
+  buildMobilitySummaryLines,
   canSubmitTransportRequest,
   shouldShowBookingMap,
+  validateTransportJourneyFields,
 } from "@/components/transport/TransportBookingWorkspace";
 import {
   boardingAlertNotEnabledMessage,
@@ -55,6 +57,114 @@ describe("transport booking human gate", () => {
     expect(screen.getByText("Pickup: Parramatta")).toBeTruthy();
     fireEvent.click(screen.getByRole("checkbox"));
     expect(onChange).toHaveBeenCalledWith(true);
+  });
+
+  it("validates required journey fields before leaving step 1", () => {
+    expect(
+      validateTransportJourneyFields({
+        pickupAddress: "",
+        dropoffAddress: "2 Dest",
+        scheduledStart: "2026-11-22T09:00",
+      })
+    ).toMatch(/pickup/i);
+    expect(
+      validateTransportJourneyFields({
+        pickupAddress: "1 Pickup",
+        dropoffAddress: "",
+        scheduledStart: "2026-11-22T09:00",
+      })
+    ).toMatch(/drop-off/i);
+    expect(
+      validateTransportJourneyFields({
+        pickupAddress: "1 Pickup",
+        dropoffAddress: "2 Dest",
+        scheduledStart: "",
+      })
+    ).toMatch(/scheduled start/i);
+    expect(
+      validateTransportJourneyFields({
+        pickupAddress: "1 Pickup",
+        dropoffAddress: "2 Dest",
+        scheduledStart: "2026-11-22T09:00",
+      })
+    ).toBeNull();
+  });
+
+  it("blocks step jump and submit without journey fields", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          mobilityRequirements: {},
+          fromProfile: false,
+        })
+      )
+    );
+    render(React.createElement(TransportBookingWorkspace));
+    fireEvent.click(screen.getByRole("button", { name: /04/i }));
+    expect(await screen.findByRole("alert")).toHaveProperty(
+      "textContent",
+      expect.stringMatching(/pickup address/i)
+    );
+    expect(screen.getByLabelText(/Pickup address/i)).toBeTruthy();
+  });
+
+  it("clears human-gate confirmation when journey details change", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).includes("/api/transport/mobility-prefill")) {
+          return Response.json({
+            mobilityRequirements: {},
+            fromProfile: false,
+          });
+        }
+        return Response.json({}, { status: 404 });
+      })
+    );
+    render(React.createElement(TransportBookingWorkspace));
+    fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+      target: { value: "1 Pickup Street" },
+    });
+    fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+      target: { value: "2 Destination Road" },
+    });
+    fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+      target: { value: "2026-11-22T09:00" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Continue to access needs/i })
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
+    const confirm = screen.getByRole("checkbox", { name: /I confirm/i });
+    fireEvent.click(confirm);
+    expect((confirm as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: /Back/i }));
+    fireEvent.change(screen.getByLabelText(/Access notes at pickup/i), {
+      target: { value: "Buzz unit 4" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
+    expect(
+      (screen.getByRole("checkbox", { name: /I confirm/i }) as HTMLInputElement)
+        .checked
+    ).toBe(false);
+  });
+});
+
+describe("mobility confirmation summary", () => {
+  it("lists ramp and assistance needs beyond wheelchair and hoist", () => {
+    expect(
+      buildMobilitySummaryLines({
+        requiresRamp: true,
+        assistanceAnimalPresent: true,
+        needsExtraBoardingTime: true,
+      })
+    ).toEqual([
+      "Ramp required",
+      "Assistance animal present",
+      "Extra boarding time needed",
+    ]);
   });
 });
 

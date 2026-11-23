@@ -79,6 +79,22 @@ export function TransportBookingWorkspace() {
     };
   }, [prefillFromProfile]);
 
+  // Human gate must re-confirm after any field that shapes the submitted payload changes.
+  useEffect(() => {
+    setHumanGateConfirmed(false);
+  }, [
+    pickupAddress,
+    pickupSuburb,
+    dropoffAddress,
+    dropoffSuburb,
+    scheduledStart,
+    scheduledEnd,
+    accessNotes,
+    mobility,
+    consentIds,
+    prefillFromProfile,
+  ]);
+
   const summaryLines = useMemo(() => {
     const lines: string[] = [];
     if (pickupSuburb || pickupAddress) {
@@ -87,10 +103,7 @@ export function TransportBookingWorkspace() {
     if (dropoffSuburb || dropoffAddress) {
       lines.push(`Drop-off: ${dropoffSuburb || dropoffAddress}`);
     }
-    if (mobility.requiresWheelchairAccessible) {
-      lines.push("Wheelchair-accessible vehicle required");
-    }
-    if (mobility.requiresHoist) lines.push("Rear hoist required");
+    lines.push(...buildMobilitySummaryLines(mobility));
     if (consentIds.length) {
       lines.push(`Consent scopes: ${consentIds.length} selected`);
     }
@@ -104,7 +117,34 @@ export function TransportBookingWorkspace() {
     consentIds.length,
   ]);
 
+  function goToStep(next: number) {
+    if (next > 1) {
+      const journeyError = validateTransportJourneyFields({
+        pickupAddress,
+        dropoffAddress,
+        scheduledStart,
+      });
+      if (journeyError) {
+        setError(journeyError);
+        setStep(1);
+        return;
+      }
+    }
+    setError(null);
+    setStep(next);
+  }
+
   async function submitTrip() {
+    const journeyError = validateTransportJourneyFields({
+      pickupAddress,
+      dropoffAddress,
+      scheduledStart,
+    });
+    if (journeyError) {
+      setError(journeyError);
+      setStep(1);
+      return;
+    }
     if (!humanGateConfirmed) {
       setError("Confirm the human gate before submitting your request.");
       setStep(4);
@@ -210,7 +250,7 @@ export function TransportBookingWorkspace() {
                 className={`tb-btn-secondary text-sm ${
                   step === n ? "ring-2 ring-[var(--tb-brand-teal)]" : ""
                 }`}
-                onClick={() => setStep(n)}
+                onClick={() => goToStep(n)}
                 aria-current={step === n ? "step" : undefined}
               >
                 <span className="tb-step-number">
@@ -289,7 +329,7 @@ export function TransportBookingWorkspace() {
               <button
                 type="button"
                 className="tb-btn-primary"
-                onClick={() => setStep(2)}
+                onClick={() => goToStep(2)}
                 disabled={!pickupAddress || !dropoffAddress || !scheduledStart}
               >
                 Continue to access needs
@@ -316,10 +356,10 @@ export function TransportBookingWorkspace() {
               </label>
               <FunctionalAccessSelector values={mobility} onChange={setMobility} />
               <div className="flex flex-wrap gap-2">
-                <button type="button" className="tb-btn-secondary" onClick={() => setStep(1)}>
+                <button type="button" className="tb-btn-secondary" onClick={() => goToStep(1)}>
                   Back
                 </button>
-                <button type="button" className="tb-btn-primary" onClick={() => setStep(3)}>
+                <button type="button" className="tb-btn-primary" onClick={() => goToStep(3)}>
                   Continue to consent
                 </button>
               </div>
@@ -350,10 +390,10 @@ export function TransportBookingWorkspace() {
                 onChange={setConsentIds}
               />
               <div className="flex flex-wrap gap-2">
-                <button type="button" className="tb-btn-secondary" onClick={() => setStep(2)}>
+                <button type="button" className="tb-btn-secondary" onClick={() => goToStep(2)}>
                   Back
                 </button>
-                <button type="button" className="tb-btn-primary" onClick={() => setStep(4)}>
+                <button type="button" className="tb-btn-primary" onClick={() => goToStep(4)}>
                   Continue to confirm
                 </button>
               </div>
@@ -368,7 +408,7 @@ export function TransportBookingWorkspace() {
                 summaryLines={summaryLines}
               />
               <div className="flex flex-wrap gap-2">
-                <button type="button" className="tb-btn-secondary" onClick={() => setStep(3)}>
+                <button type="button" className="tb-btn-secondary" onClick={() => goToStep(3)}>
                   Back
                 </button>
                 <button
@@ -423,4 +463,38 @@ export function shouldShowBookingMap(viewMode: ViewMode): boolean {
 /** Human gate must be confirmed before submit (no silent auto-assign). */
 export function canSubmitTransportRequest(humanGateConfirmed: boolean): boolean {
   return humanGateConfirmed === true;
+}
+
+/** Required journey fields before leaving step 1 or submitting. */
+export function validateTransportJourneyFields(fields: {
+  pickupAddress: string;
+  dropoffAddress: string;
+  scheduledStart: string;
+}): string | null {
+  if (!fields.pickupAddress.trim()) return "Enter a pickup address.";
+  if (!fields.dropoffAddress.trim()) return "Enter a drop-off address.";
+  if (!fields.scheduledStart.trim()) return "Choose a scheduled start time.";
+  if (Number.isNaN(new Date(fields.scheduledStart).getTime())) {
+    return "Scheduled start time is invalid.";
+  }
+  return null;
+}
+
+/** Human-readable mobility lines for the confirmation gate. */
+export function buildMobilitySummaryLines(
+  mobility: MobilityRequirements
+): string[] {
+  const lines: string[] = [];
+  if (mobility.requiresWheelchairAccessible) {
+    lines.push("Wheelchair-accessible vehicle required");
+  }
+  if (mobility.requiresHoist) lines.push("Rear hoist required");
+  if (mobility.requiresRamp) lines.push("Ramp required");
+  if (mobility.requiresLift) lines.push("Lift required");
+  if (mobility.driverAssistanceRequired || mobility.needsDriverAssistanceToDoor) {
+    lines.push("Driver assistance required");
+  }
+  if (mobility.assistanceAnimalPresent) lines.push("Assistance animal present");
+  if (mobility.needsExtraBoardingTime) lines.push("Extra boarding time needed");
+  return lines;
 }

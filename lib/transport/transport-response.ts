@@ -147,6 +147,7 @@ export async function buildTripResponse(params: {
   );
 
   const owner = params.user.id === params.trip.participantId;
+  const admin = isAdminRole(params.user.primaryRole);
   const scopes = params.trip.consentScopes ?? [];
   const assignedDriver =
     access === "exact" &&
@@ -154,12 +155,15 @@ export async function buildTripResponse(params: {
     assignment?.driver?.userId === params.user.id;
   const provider =
     access === "exact" &&
-    !isAdminRole(params.user.primaryRole) &&
+    !admin &&
     hasPermission(params.user.primaryRole, "transport:read:org");
   const shareMobility =
     provider && scopes.includes(bookingScope.mobilitySummary);
+  // Platform admins need full mobility + kerbside notes for dispatch/support review.
   const sharePickup =
-    owner || (assignedDriver && scopes.includes(bookingScope.kerbsideNote));
+    owner ||
+    admin ||
+    (assignedDriver && scopes.includes(bookingScope.kerbsideNote));
 
   const trip: TransportTripDetail = {
     id: params.trip.id,
@@ -170,8 +174,8 @@ export async function buildTripResponse(params: {
     pickup: shapeAddress(params.trip, "pickup", access, sharePickup),
     dropoff: shapeAddress(params.trip, "dropoff", access),
     providerOrganisationId: params.trip.providerOrganisationId,
-    ...(owner ? { consentScopes: scopes } : {}),
-    mobilityRequirements: owner
+    ...(owner || admin ? { consentScopes: scopes } : {}),
+    mobilityRequirements: owner || admin
       ? ((params.trip.mobilityRequirements as Record<string, unknown>) ?? {})
       : provider
         ? providerMobilitySummary(scopes, params.trip.mobilityRequirements)
@@ -201,7 +205,7 @@ export async function buildTripResponse(params: {
         }
       : undefined,
     suitabilityWarnings:
-      owner || shareMobility
+      owner || admin || shareMobility
         ? extras.suitabilityWarnings
         : extras.suitabilityWarnings.length
           ? ["Vehicle suitability needs review."]
