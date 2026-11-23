@@ -14,6 +14,12 @@ import { resolveSponsoredPhrase } from "@/lib/ads/sponsored-phrase/resolve-spons
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 export type SponsoredPhrasePlacementProps = {
+  /**
+   * Server-derived enablement from `adsFlagsConfig.isSponsoredPhraseEnabled()`.
+   * Honours MAPABLE_ADS_* flags and the global kill switch for this request.
+   * Required — do not fabricate a true value on the client.
+   */
+  serverEnabled: boolean;
   /** Current route path — closed allowlist; default homepage. */
   routePath?: string;
   /** Static editorial topic key. */
@@ -27,11 +33,13 @@ export type SponsoredPhrasePlacementProps = {
  * route, or creative gates fail.
  */
 export function SponsoredPhrasePlacement({
+  serverEnabled,
   routePath = "/",
   topicKey = SYNTHETIC_PHRASE_TOPIC_WHATS_ON,
   restoreFocusId = "explore-features-heading",
 }: SponsoredPhrasePlacementProps) {
-  const featureEnabled = isClientSponsoredPhraseEnabled();
+  const clientEnabled = isClientSponsoredPhraseEnabled();
+  const featureEnabled = serverEnabled && clientEnabled;
   const [showSponsoredLinks, setShow] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -55,6 +63,8 @@ export function SponsoredPhrasePlacement({
     if (!featureEnabled || !hydrated) {
       return { ok: false as const, reasonCode: "FEATURE_FLAG_OFF" as const };
     }
+    // Mirror the server-evaluated outcome for this request — never hard-code
+    // enablement on the client (that would bypass an emergency kill switch).
     return resolveSponsoredPhrase(
       { routePath, topicKey },
       {
@@ -78,7 +88,7 @@ export function SponsoredPhrasePlacement({
     setShow(true);
   }, []);
 
-  // Feature off: render nothing — no preference chrome, no ad request.
+  // Feature off (server kill/flags or client mirrors): no chrome, no ad request.
   if (!featureEnabled) {
     return null;
   }

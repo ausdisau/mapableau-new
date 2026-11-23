@@ -65,6 +65,20 @@ describe("sponsored phrase flags", () => {
       }),
     ).toBe(false);
   });
+
+  it("server enablement is the source of truth for kill (not client hard-coding)", () => {
+    const killed = adsFlagsConfig.isSponsoredPhraseEnabled({
+      ...phraseEnabledEnv,
+      MAPABLE_ADS_GLOBAL_KILL_SWITCH: "true",
+    });
+    // Placement must receive this boolean as serverEnabled; fabricating
+    // MAPABLE_ADS_*=true on the client would bypass emergency shutdown.
+    expect(killed).toBe(false);
+    expect(isClientSponsoredPhraseEnabled({
+      NEXT_PUBLIC_MAPABLE_ADS_ENABLED: "true",
+      NEXT_PUBLIC_MAPABLE_ADS_SPONSORED_PHRASE_ENABLED: "true",
+    })).toBe(true);
+  });
 });
 
 describe("sponsored links preference", () => {

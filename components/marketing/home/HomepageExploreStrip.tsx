@@ -2,6 +2,7 @@ import Link from "next/link";
 import React from "react";
 
 import { SponsoredPhrasePlacement } from "@/components/ads/mapable/SponsoredPhrasePlacement";
+import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { homepageExploreFeatures } from "@/lib/marketing/mapable-care-combined-data";
 import { AppGrid, ModuleCard } from "@mapable/ui";
 
@@ -11,6 +12,10 @@ import { AppGrid, ModuleCard } from "@mapable/ui";
  * Optional sponsored phrase mounts only when feature + reader preference allow.
  */
 export function HomepageExploreStrip() {
+  // Server-evaluated each request — honours global kill switch and phrase flags.
+  const sponsoredPhraseServerEnabled =
+    adsFlagsConfig.isSponsoredPhraseEnabled();
+
   return (
     <section
       aria-labelledby="explore-features-heading"
@@ -46,6 +51,7 @@ export function HomepageExploreStrip() {
           ))}
         </AppGrid>
         <SponsoredPhrasePlacement
+          serverEnabled={sponsoredPhraseServerEnabled}
           routePath="/"
           restoreFocusId="explore-features-heading"
         />
