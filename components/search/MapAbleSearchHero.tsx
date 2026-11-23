@@ -5,6 +5,7 @@ import { MapAbleSearchDisclosure } from "@/components/search/MapAbleSearchDisclo
 import { MapAbleSearchForm } from "@/components/search/MapAbleSearchForm";
 import { MapAbleSearchMedia } from "@/components/search/MapAbleSearchMedia";
 import { MapAbleSearchResults } from "@/components/search/MapAbleSearchResults";
+import { MapAbleStreamingWorkspace } from "@/components/search/MapAbleStreamingWorkspace";
 import type { MapAbleSearchResponse } from "@/lib/search/mapable-search-core";
 import {
   deepSearchAvailable,
@@ -29,6 +30,14 @@ export function MapAbleSearchHero({
   const showConversation = initialSelection.presentation === "conversation";
   const showDeepNotice =
     initialSelection.tier === "deep" && !deepSearchAvailable;
+
+  // Default-off streaming preview; existing Web and guided conversation stay intact.
+  if (
+    showConversation &&
+    process.env.NEXT_PUBLIC_MAPABLE_SEARCH_STREAM_UI_ENABLED === "true"
+  ) {
+    return <MapAbleStreamingWorkspace initialSelection={initialSelection} />;
+  }
 
   return (
     <div className={cn("space-y-10", className)}>
