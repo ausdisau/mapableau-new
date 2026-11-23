@@ -3,8 +3,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MapAbleStreamingWorkspace } from "@/components/search/MapAbleStreamingWorkspace";
-import { formatPublicSearchStreamEvent } from "@/lib/search/mapable-stream-contract";
 import { createDefaultSearchSelection } from "@/lib/search/mapable-search-ui";
+import { formatPublicSearchStreamEvent } from "@/lib/search/mapable-stream-contract";
 
 const mocks = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({
