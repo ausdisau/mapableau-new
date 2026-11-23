@@ -30,7 +30,17 @@ function useDismissOnOutsideAndEscape(
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      // Omnibox Escape-to-clear runs first; do not dismiss while draft remains.
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement &&
+        target.id === "mapable-header-search-input" &&
+        target.value.trim().length > 0
+      ) {
+        return;
+      }
+      onClose();
     }
 
     document.addEventListener("mousedown", handlePointerDown);

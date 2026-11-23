@@ -76,6 +76,8 @@ export function MapAbleHeaderSearchBox({
     if (event.key === "Escape") {
       event.preventDefault();
       if (draft) {
+        // Keep the mobile search panel open; only clear the draft this press.
+        event.stopPropagation();
         setDraft("");
         setError(undefined);
         return;

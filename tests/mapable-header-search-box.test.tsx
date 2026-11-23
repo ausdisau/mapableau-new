@@ -57,4 +57,12 @@ describe("MapAbleHeaderSearchBox", () => {
       ),
     ).toBe("/search?q=physio");
   });
+
+  it("Escape clears a nonempty draft", () => {
+    render(<MapAbleHeaderSearchBox />);
+    const input = screen.getByRole("searchbox", { name: /Search MapAble/i });
+    fireEvent.change(input, { target: { value: "physio" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect((input as HTMLInputElement).value).toBe("");
+  });
 });

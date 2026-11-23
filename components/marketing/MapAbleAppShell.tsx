@@ -31,7 +31,7 @@ export function MapAbleAppShell({
   if (variant === "marketing") {
     return (
       <div className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]">
-        <SkipToContent />
+        <SkipToContent includeSearchSkip />
         <MapAbleCareMarketingHeader />
         <main id="main-content" className="flex-1">
           {children}
