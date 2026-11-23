@@ -82,17 +82,18 @@ const baseTrip = {
   updatedAt: new Date(),
 };
 
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
+const { prismaMock } = vi.hoisted(() => {
+  const prismaMock = {
     transportTrip: {
       findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
       findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
     },
     transportTripRequest: { create: vi.fn() },
     transportTripStop: { createMany: vi.fn() },
-    transportTripEvent: { create: vi.fn() },
+    transportTripEvent: { create: vi.fn(), findFirst: vi.fn(), count: vi.fn() },
     transportDispatchAssignment: {
       findFirst: vi.fn(),
       findMany: vi.fn(),
@@ -127,7 +128,17 @@ vi.mock("@/lib/prisma", () => ({
     consentRecord: { findFirst: vi.fn() },
     organisationMember: { findMany: vi.fn() },
     booking: { findFirst: vi.fn().mockResolvedValue(null) },
-  },
+    $queryRaw: vi.fn().mockResolvedValue([]),
+    $transaction: vi.fn(),
+  };
+  prismaMock.$transaction.mockImplementation(
+    async (fn: (tx: typeof prismaMock) => unknown) => fn(prismaMock)
+  );
+  return { prismaMock };
+});
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: prismaMock,
 }));
 
 vi.mock("@/lib/audit/audit-event-service", () => ({
@@ -421,6 +432,9 @@ describe("assignment guards", () => {
       status: "driver_vehicle_assigned",
     } as never);
     vi.mocked(prisma.transportTripEvent.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.transportTripEvent.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.transportTripEvent.count).mockResolvedValue(0);
+    vi.mocked(prisma.$queryRaw).mockResolvedValue([]);
   });
 
   it("blocks ineligible driver assignment", async () => {

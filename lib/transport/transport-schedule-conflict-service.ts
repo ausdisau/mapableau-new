@@ -1,32 +1,52 @@
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import type { ScheduleConflictResult } from "@/types/transport-scheduling";
 
-export async function detectScheduleConflicts(params: {
+type DbClient = Prisma.TransactionClient | typeof prisma;
+
+/** Overlap: other start < end AND (other end > start OR other end is null/open-ended). */
+function tripOverlapWhere(params: {
   tripId?: string;
-  driverId?: string;
-  vehicleId?: string;
   scheduledStart: Date;
   scheduledEnd: Date;
-}): Promise<ScheduleConflictResult> {
+}) {
+  return {
+    id: params.tripId ? { not: params.tripId } : undefined,
+    status: {
+      notIn: ["cancelled", "declined", "closed"] as Array<
+        "cancelled" | "declined" | "closed"
+      >,
+    },
+    scheduledStart: { lt: params.scheduledEnd },
+    OR: [
+      { scheduledEnd: { gt: params.scheduledStart } },
+      { scheduledEnd: null },
+    ],
+  };
+}
+
+export async function detectScheduleConflicts(
+  params: {
+    tripId?: string;
+    driverId?: string;
+    vehicleId?: string;
+    scheduledStart: Date;
+    scheduledEnd: Date;
+  },
+  tx?: Prisma.TransactionClient
+): Promise<ScheduleConflictResult> {
+  const db: DbClient = tx ?? prisma;
   const conflicts: ScheduleConflictResult["conflicts"] = [];
+  const tripWhere = tripOverlapWhere(params);
 
   if (params.driverId) {
-    const overlappingTrips = await prisma.transportDispatchAssignment.findMany({
+    const overlappingTrips = await db.transportDispatchAssignment.findMany({
       where: {
         active: true,
         driverId: params.driverId,
-        trip: {
-          id: params.tripId ? { not: params.tripId } : undefined,
-          status: {
-            notIn: ["cancelled", "declined", "closed"],
-          },
-          scheduledStart: { lt: params.scheduledEnd },
-          OR: [
-            { scheduledEnd: { gt: params.scheduledStart } },
-            { scheduledEnd: null },
-          ],
-        },
+        trip: tripWhere,
       },
       include: { trip: true },
     });
@@ -38,7 +58,7 @@ export async function detectScheduleConflicts(params: {
       });
     }
 
-    const unavailable = await prisma.transportDriverAvailability.findFirst({
+    const unavailable = await db.transportDriverAvailability.findFirst({
       where: {
         driverId: params.driverId,
         available: false,
@@ -55,16 +75,12 @@ export async function detectScheduleConflicts(params: {
   }
 
   if (params.vehicleId) {
-    const overlappingVehicle = await prisma.transportDispatchAssignment.findMany({
+    // Same open-ended end semantics as driver overlap (null scheduledEnd = open).
+    const overlappingVehicle = await db.transportDispatchAssignment.findMany({
       where: {
         active: true,
         vehicleId: params.vehicleId,
-        trip: {
-          id: params.tripId ? { not: params.tripId } : undefined,
-          status: { notIn: ["cancelled", "declined", "closed"] },
-          scheduledStart: { lt: params.scheduledEnd },
-          scheduledEnd: { gt: params.scheduledStart },
-        },
+        trip: tripWhere,
       },
     });
     for (const a of overlappingVehicle) {
@@ -78,16 +94,20 @@ export async function detectScheduleConflicts(params: {
   return { hasConflict: conflicts.length > 0, conflicts };
 }
 
-export async function assertNoScheduleConflict(params: {
-  tripId?: string;
-  driverId?: string;
-  vehicleId?: string;
-  scheduledStart: Date;
-  scheduledEnd: Date;
-}) {
-  const result = await detectScheduleConflicts(params);
+export async function assertNoScheduleConflict(
+  params: {
+    tripId?: string;
+    driverId?: string;
+    vehicleId?: string;
+    scheduledStart: Date;
+    scheduledEnd: Date;
+  },
+  tx?: Prisma.TransactionClient
+) {
+  const db: DbClient = tx ?? prisma;
+  const result = await detectScheduleConflicts(params, tx);
   if (result.hasConflict) {
-    await prisma.transportScheduleConflict.createMany({
+    await db.transportScheduleConflict.createMany({
       data: result.conflicts.map((c) => ({
         tripId: params.tripId,
         driverId: params.driverId,
