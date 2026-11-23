@@ -65,11 +65,15 @@ export function TransportBookingWorkspace() {
     let cancelled = false;
     setClientPrefillResolved(false);
     fetch("/api/transport/mobility-prefill")
-      .then((r) => r.json())
-      .then((data: {
-        mobilityRequirements?: MobilityRequirements;
-        fromProfile?: boolean;
-      }) => {
+      .then(async (r) => {
+        if (cancelled) return;
+        // Failed/non-OK prefill must leave clientPrefillResolved false so submit
+        // still sends prefillFromProfile: true and the server merges profile flags.
+        if (!r.ok) return;
+        const data = (await r.json()) as {
+          mobilityRequirements?: MobilityRequirements;
+          fromProfile?: boolean;
+        };
         if (cancelled) return;
         if (data.mobilityRequirements) {
           setMobility((prev) => ({
@@ -81,7 +85,7 @@ export function TransportBookingWorkspace() {
         setClientPrefillResolved(true);
       })
       .catch(() => {
-        if (!cancelled) setClientPrefillResolved(true);
+        // Network/parse failure: keep unresolved so server-side merge still runs.
       });
     return () => {
       cancelled = true;

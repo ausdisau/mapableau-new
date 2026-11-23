@@ -329,6 +329,64 @@ it("keeps unchecked prefill flags off in the create payload", async () => {
   expect(body.mobilityRequirements.requiresWheelchairAccessible).toBe(true);
 });
 
+it("keeps server prefill merge when mobility-prefill fails", async () => {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("/api/transport/mobility-prefill")) {
+      return new Response("unavailable", { status: 503 });
+    }
+    if (url === "/api/transport/trips" && init?.method === "POST") {
+      return Response.json({ trip: { id: "trip-prefill-fail-1" } }, { status: 201 });
+    }
+    return Response.json({}, { status: 404 });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
+  render(React.createElement(TransportBookingWorkspace));
+  fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+    target: { value: "1 Pickup Street" },
+  });
+  fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+    target: { value: "2 Destination Road" },
+  });
+  fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+    target: { value: "2026-11-22T09:00" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /Continue to access needs/i })
+  );
+  await waitFor(() =>
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).includes("/api/transport/mobility-prefill")
+      )
+    ).toBe(true)
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
+  fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
+  fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/i }));
+  fireEvent.click(
+    screen.getByRole("button", { name: /Confirm transport request/i })
+  );
+  await waitFor(() =>
+    expect(
+      fetchMock.mock.calls.some(
+        ([url, init]) =>
+          String(url) === "/api/transport/trips" &&
+          (init as RequestInit | undefined)?.method === "POST"
+      )
+    ).toBe(true)
+  );
+  const tripCall = fetchMock.mock.calls.find(
+    ([url, init]) =>
+      String(url) === "/api/transport/trips" &&
+      (init as RequestInit | undefined)?.method === "POST"
+  );
+  const body = JSON.parse(String((tripCall![1] as RequestInit).body));
+  // Prefill never hydrated — server must still merge profile mobility flags.
+  expect(body.prefillFromProfile).toBe(true);
+});
+
 it("submits only the choices still checked when the participant confirms", async () => {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
