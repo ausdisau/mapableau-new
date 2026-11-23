@@ -198,7 +198,15 @@ Schema and synthetic fixtures live under [`perceptual-frame/`](./perceptual-fram
 |---|---|---|---|
 | virtual_persona.text_first_ui | deterministic fixtures | synthetic_only | `MAPABLE_VIRTUAL_PERSONA_UI` off — **not a live model** |
 
-Route `/virtual-persona` mounts an accessible workspace only when the flag is exact `true`. No ParticipantRAG/ProviderRAG, no AgentRun execution, `actionAuthority: "none"`. Docs: [`virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md`](./virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md). P01 policy PEP is **not** implemented on this branch—do not integrate protected retrieval here.
+Route `/virtual-persona` mounts an accessible workspace only when the flag is exact `true`. No ParticipantRAG/ProviderRAG, no AgentRun execution, `actionAuthority: "none"`. Docs: [`virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md`](./virtual-persona/P02_ACCESSIBLE_TEXT_FIRST.md). Protected retrieval still requires callers to use the P01 PEP (below) — the UI does not wire live private data.
+
+### Virtual Persona Policy Enforcement Point (P01)
+
+| Capability key | Backend | Maturity | Flag default |
+|---|---|---|---|
+| virtual_persona.pep | deterministic adapters | experimental | `MAPABLE_PEP_ENABLED` off — **not claimable / not wired to live routes** |
+
+Module: `lib/aura-harness/pep/`. Default-deny; reuses Core consent + identity authority. No OPA, no permission mutations, no RAG wiring in this unit. ADR: [`virtual-persona/ADR_P01_PEP.md`](./virtual-persona/ADR_P01_PEP.md). Ledger: [`virtual-persona/DELIVERY_STATE.md`](./virtual-persona/DELIVERY_STATE.md).
 
 ## Claim honesty
 

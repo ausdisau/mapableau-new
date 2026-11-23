@@ -1,7 +1,7 @@
 # P02 — Accessible text-first Virtual Persona (synthetic)
 
 **Status:** synthetic UI pilot, default-off, not claimable as production AI.  
-**Depends on:** P00 reconciliation (docs). **P01 PEP:** not implemented — this phase deliberately avoids protected retrieval and live adapters.
+**Depends on:** P00 reconciliation (docs). **P01 PEP:** module exists at `lib/aura-harness/pep/**` (`MAPABLE_PEP_ENABLED` default off) — this UI still deliberately avoids protected retrieval and does not call the PEP for private data.
 
 ## Scope
 
@@ -14,7 +14,7 @@
 ## Non-goals
 
 - Live ParticipantRAG / ProviderRAG / AgentRun
-- P01 server PEP enforcement for private data (blocked until P01 lands)
+- Calling P01 PEP for private retrieval from this UI (P03+)
 - Voice, video avatar, biometrics
 - Booking, payment, consent writes, permission grants
 - Production deployment
