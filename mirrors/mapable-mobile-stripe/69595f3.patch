@@ -1,0 +1,580 @@
+commit 69595f320db257926400a33b7ffdb55cd10f96d3
+Author: Cursor Agent <cursoragent@cursor.com>
+Date:   Tue Nov 10 22:19:38 2026 +0000
+
+    feat(mobile): Stripe PaymentSheet for care invoices (Google/Apple Pay)
+    
+    Add @stripe/stripe-react-native, Expo plugin with Google Pay + Apple merchant
+    ID, StripeProvider, Care Pay tab, and payment-sheet client against MapAble
+    billing API. Requires EAS/dev build — not Expo Go.
+
+diff --git a/apps/mobile/.env.example b/apps/mobile/.env.example
+index 3545bf8..0c53ce4 100644
+--- a/apps/mobile/.env.example
++++ b/apps/mobile/.env.example
+@@ -2,6 +2,11 @@
+ 
+ EXPO_PUBLIC_MAPABLE_API_URL=
+ 
++# Stripe publishable key only (never the secret). Required for PaymentSheet.
++EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=
++# Keep true for Google Pay testEnv until a signed production build + Stripe approval.
++EXPO_PUBLIC_STRIPE_TEST_MODE=true
++
+ EXPO_PUBLIC_FIREBASE_API_KEY=
+ EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=
+ EXPO_PUBLIC_FIREBASE_PROJECT_ID=
+diff --git a/apps/mobile/App.tsx b/apps/mobile/App.tsx
+index 1e061ea..6ab2188 100644
+--- a/apps/mobile/App.tsx
++++ b/apps/mobile/App.tsx
+@@ -12,9 +12,11 @@ import {
+ import { StatusBar } from 'expo-status-bar';
+ import { createStaticNavigation } from '@react-navigation/native';
+ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
++import { StripeProvider } from '@stripe/stripe-react-native';
+ 
+ import { MobileIdentityCard } from './src/components/MobileIdentityCard';
+ import { ArcHubScreen } from './src/features/arc/ArcHubScreen';
++import { CarePayScreen } from './src/features/payments/CarePayScreen';
+ import {
+   isMapAbleApiConfigured,
+   searchMapAblePlaces,
+@@ -518,18 +520,29 @@ const Tabs = createBottomTabNavigator({
+     Home: HomeScreen,
+     Indy: IndyScreen,
+     ARC: ArcHubScreen,
++    Pay: CarePayScreen,
+     More: MoreScreen,
+   },
+ });
+ 
+ const Navigation = createStaticNavigation(Tabs);
+ 
++const stripePublishableKey = (
++  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
++).trim();
++
+ export default function App() {
+   return (
+-    <SuiteProvider>
+-      <StatusBar style="dark" />
+-      <Navigation />
+-    </SuiteProvider>
++    <StripeProvider
++      publishableKey={stripePublishableKey || 'pk_test_placeholder_not_for_live'}
++      merchantIdentifier="merchant.com.ausdisau.mapable"
++      urlScheme="mapable"
++    >
++      <SuiteProvider>
++        <StatusBar style="dark" />
++        <Navigation />
++      </SuiteProvider>
++    </StripeProvider>
+   );
+ }
+ 
+diff --git a/apps/mobile/app.json b/apps/mobile/app.json
+index dc7bf48..f8f55a7 100644
+--- a/apps/mobile/app.json
++++ b/apps/mobile/app.json
+@@ -16,6 +16,15 @@
+     },
+     "web": {
+       "bundler": "metro"
+-    }
++    },
++    "plugins": [
++      [
++        "@stripe/stripe-react-native",
++        {
++          "merchantIdentifier": "merchant.com.ausdisau.mapable",
++          "enableGooglePay": true
++        }
++      ]
++    ]
+   }
+ }
+diff --git a/apps/mobile/docs/stripe-wallets.md b/apps/mobile/docs/stripe-wallets.md
+new file mode 100644
+index 0000000..b04a8f3
+--- /dev/null
++++ b/apps/mobile/docs/stripe-wallets.md
+@@ -0,0 +1,18 @@
++# Stripe wallets on AdaptAble / MapAble mobile
++
++Google Pay and Apple Pay are provided by **Stripe PaymentSheet**, not by embedding Google Play Services.
++
++## Setup
++
++1. Copy `.env.example` → `.env` and set:
++   - `EXPO_PUBLIC_MAPABLE_API_URL`
++   - `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` (publishable only)
++   - `EXPO_PUBLIC_STRIPE_TEST_MODE=true` until production
++2. Create an EAS or local native build (`npx expo run:android` / `run:ios`). **Expo Go does not support wallets.**
++3. Apple Merchant ID: `merchant.com.ausdisau.mapable` (must match Stripe Dashboard + `app.json` plugin).
++4. Pay tab → enter billing invoice ID + session access token → PaymentSheet.
++
++## Backend
++
++`POST {MAPABLE_API}/api/billing/payment-sheet` with `{ invoiceId }` and `Authorization: Bearer …`.
++See mapableau-new `docs/billing-wallets.md`.
+diff --git a/apps/mobile/env.d.ts b/apps/mobile/env.d.ts
+index 9b270db..50a765f 100644
+--- a/apps/mobile/env.d.ts
++++ b/apps/mobile/env.d.ts
+@@ -1,6 +1,8 @@
+-declare const process: {
+-  env: {
++declare namespace NodeJS {
++  interface ProcessEnv {
+     EXPO_PUBLIC_MAPABLE_API_URL?: string;
++    EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY?: string;
++    EXPO_PUBLIC_STRIPE_TEST_MODE?: string;
+     EXPO_PUBLIC_FIREBASE_API_KEY?: string;
+     EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN?: string;
+     EXPO_PUBLIC_FIREBASE_PROJECT_ID?: string;
+@@ -8,5 +10,5 @@ declare const process: {
+     EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID?: string;
+     EXPO_PUBLIC_FIREBASE_APP_ID?: string;
+     EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID?: string;
+-  };
+-};
++  }
++}
+diff --git a/apps/mobile/package-lock.json b/apps/mobile/package-lock.json
+index 3507492..3668227 100644
+--- a/apps/mobile/package-lock.json
++++ b/apps/mobile/package-lock.json
+@@ -12,6 +12,7 @@
+         "@mapable/firebase": "file:../../packages/firebase",
+         "@react-navigation/bottom-tabs": "^7.0.0",
+         "@react-navigation/native": "^7.0.0",
++        "@stripe/stripe-react-native": "0.64.0",
+         "expo": "~57.0.13",
+         "expo-crypto": "~57.0.1",
+         "expo-status-bar": "~57.0.1",
+@@ -3396,6 +3397,26 @@
+       "integrity": "sha512-hhyNJ+nbR6ZR7pToHvllEFun9TL0sbL+tk/ON75lo+Xas054uez98qRbsuNt7MBCyZKK4+8Yli/OAGZhmfBZ/g==",
+       "license": "MIT"
+     },
++    "node_modules/@stripe/stripe-react-native": {
++      "version": "0.64.0",
++      "resolved": "https://registry.npmjs.org/@stripe/stripe-react-native/-/stripe-react-native-0.64.0.tgz",
++      "integrity": "sha512-NQxFUMWJ7W/T1jEho3qd0XRnQGhXG6GdcoieG8JZo3IG/1QggugOVqEzvg1HRAq8S+cAGVXaj5CXfJuJsnF3eg==",
++      "license": "MIT",
++      "peerDependencies": {
++        "expo": ">=46.0.9",
++        "react": "*",
++        "react-native": "*",
++        "react-native-webview": "*"
++      },
++      "peerDependenciesMeta": {
++        "expo": {
++          "optional": true
++        },
++        "react-native-webview": {
++          "optional": true
++        }
++      }
++    },
+     "node_modules/@types/istanbul-lib-coverage": {
+       "version": "2.0.6",
+       "resolved": "https://registry.npmjs.org/@types/istanbul-lib-coverage/-/istanbul-lib-coverage-2.0.6.tgz",
+diff --git a/apps/mobile/package.json b/apps/mobile/package.json
+index d9afcf0..b483771 100644
+--- a/apps/mobile/package.json
++++ b/apps/mobile/package.json
+@@ -17,6 +17,7 @@
+     "@mapable/firebase": "file:../../packages/firebase",
+     "@react-navigation/bottom-tabs": "^7.0.0",
+     "@react-navigation/native": "^7.0.0",
++    "@stripe/stripe-react-native": "0.64.0",
+     "expo": "~57.0.13",
+     "expo-crypto": "~57.0.1",
+     "expo-status-bar": "~57.0.1",
+diff --git a/apps/mobile/src/features/payments/CarePayScreen.tsx b/apps/mobile/src/features/payments/CarePayScreen.tsx
+new file mode 100644
+index 0000000..839961d
+--- /dev/null
++++ b/apps/mobile/src/features/payments/CarePayScreen.tsx
+@@ -0,0 +1,199 @@
++import React, { useState } from 'react';
++import {
++  ActivityIndicator,
++  Pressable,
++  ScrollView,
++  StyleSheet,
++  Text,
++  TextInput,
++  View,
++} from 'react-native';
++
++import {
++  fetchPaymentSheetSession,
++  presentCareInvoicePaymentSheet,
++} from '../../payments/payInvoice';
++import { MapAbleApiError, isMapAbleApiConfigured } from '../../runtime/mapableApi';
++
++const colours = {
++  background: '#F7F7F5',
++  surface: '#FFFFFF',
++  border: '#D8DAD6',
++  text: '#171A1B',
++  muted: '#5D6264',
++  primary: '#243B53',
++  accent: '#0B6B67',
++  danger: '#8B1E1E',
++};
++
++/**
++ * Prototype care invoice pay screen — Google Pay / Apple Pay / card via Stripe PaymentSheet.
++ * Requires EAS/dev build (not Expo Go), API URL, publishable key, and session token.
++ */
++export function CarePayScreen() {
++  const [invoiceId, setInvoiceId] = useState('');
++  const [accessToken, setAccessToken] = useState('');
++  const [busy, setBusy] = useState(false);
++  const [status, setStatus] = useState<string | null>(null);
++  const [error, setError] = useState<string | null>(null);
++
++  const configured = isMapAbleApiConfigured();
++  const publishableKey = (process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '').trim();
++
++  async function onPay() {
++    setBusy(true);
++    setError(null);
++    setStatus(null);
++    try {
++      const session = await fetchPaymentSheetSession({
++        invoiceId: invoiceId.trim(),
++        accessToken: accessToken.trim(),
++      });
++      const result = await presentCareInvoicePaymentSheet(session);
++      if (result.ok) {
++        setStatus('Payment submitted. Entitlements update when Stripe webhooks confirm.');
++      } else if (result.cancelled) {
++        setStatus('Payment cancelled.');
++      } else {
++        setError(result.message);
++      }
++    } catch (err) {
++      const message =
++        err instanceof MapAbleApiError
++          ? err.message
++          : err instanceof Error
++            ? err.message
++            : 'Payment failed.';
++      setError(message);
++    } finally {
++      setBusy(false);
++    }
++  }
++
++  return (
++    <ScrollView
++      style={styles.screen}
++      contentContainerStyle={styles.content}
++      contentInsetAdjustmentBehavior="automatic"
++      keyboardShouldPersistTaps="handled"
++    >
++      <Text style={styles.eyebrow}>CARE PAY</Text>
++      <Text style={styles.title}>Pay care invoice</Text>
++      <Text style={styles.subtitle}>
++        Uses Stripe PaymentSheet (Google Pay, Apple Pay, and card). Plan-managed NDIS invoices
++        stay export-only.
++      </Text>
++
++      <View style={styles.card}>
++        <Text style={styles.cardTitle}>Connection</Text>
++        <Text style={styles.muted}>
++          API: {configured ? 'configured' : 'set EXPO_PUBLIC_MAPABLE_API_URL'}
++        </Text>
++        <Text style={styles.muted}>
++          Stripe publishable key: {publishableKey ? 'configured' : 'missing EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY'}
++        </Text>
++        <Text style={styles.muted}>
++          Native wallets require an EAS or local development build — not Expo Go.
++        </Text>
++      </View>
++
++      <View style={styles.card}>
++        <Text style={styles.cardTitle}>Invoice</Text>
++        <TextInput
++          style={styles.input}
++          accessibilityLabel="Billing invoice ID"
++          placeholder="Billing invoice ID"
++          placeholderTextColor={colours.muted}
++          autoCapitalize="none"
++          autoCorrect={false}
++          value={invoiceId}
++          onChangeText={setInvoiceId}
++        />
++        <TextInput
++          style={styles.input}
++          accessibilityLabel="Session access token"
++          placeholder="Session access token (Bearer)"
++          placeholderTextColor={colours.muted}
++          autoCapitalize="none"
++          autoCorrect={false}
++          secureTextEntry
++          value={accessToken}
++          onChangeText={setAccessToken}
++        />
++        <Pressable
++          accessibilityRole="button"
++          accessibilityLabel="Pay with card or wallet"
++          disabled={
++            busy ||
++            !configured ||
++            !publishableKey ||
++            !invoiceId.trim() ||
++            !accessToken.trim()
++          }
++          onPress={() => {
++            void onPay();
++          }}
++          style={({ pressed }) => [
++            styles.button,
++            styles.buttonPrimary,
++            (busy || !configured || !publishableKey) && styles.buttonDisabled,
++            pressed && styles.buttonPressed,
++          ]}
++        >
++          {busy ? (
++            <ActivityIndicator color="#FFFFFF" />
++          ) : (
++            <Text style={styles.buttonTextPrimary}>Pay with card or wallet</Text>
++          )}
++        </Pressable>
++        {status ? <Text style={styles.success}>{status}</Text> : null}
++        {error ? <Text style={styles.error}>{error}</Text> : null}
++      </View>
++    </ScrollView>
++  );
++}
++
++const styles = StyleSheet.create({
++  screen: { flex: 1, backgroundColor: colours.background },
++  content: { padding: 18, paddingBottom: 36, gap: 16 },
++  eyebrow: { fontSize: 12, letterSpacing: 1.2, fontWeight: '800', color: colours.accent },
++  title: { fontSize: 28, lineHeight: 36, fontWeight: '800', color: colours.text },
++  subtitle: { fontSize: 17, lineHeight: 24, color: colours.muted },
++  card: {
++    gap: 12,
++    padding: 16,
++    backgroundColor: colours.surface,
++    borderWidth: 1,
++    borderColor: colours.border,
++    borderRadius: 14,
++  },
++  cardTitle: { fontSize: 17, lineHeight: 24, fontWeight: '800', color: colours.text },
++  muted: { fontSize: 14, lineHeight: 20, color: colours.muted },
++  input: {
++    minHeight: 52,
++    borderWidth: 1,
++    borderColor: colours.border,
++    borderRadius: 9,
++    paddingHorizontal: 14,
++    paddingVertical: 10,
++    backgroundColor: colours.surface,
++    color: colours.text,
++    fontSize: 16,
++  },
++  button: {
++    minHeight: 48,
++    paddingHorizontal: 16,
++    justifyContent: 'center',
++    alignItems: 'center',
++    borderRadius: 9,
++    borderWidth: 1,
++    borderColor: colours.border,
++    backgroundColor: colours.surface,
++  },
++  buttonPrimary: { backgroundColor: colours.primary, borderColor: colours.primary },
++  buttonDisabled: { opacity: 0.5 },
++  buttonPressed: { opacity: 0.75 },
++  buttonTextPrimary: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
++  success: { fontSize: 15, lineHeight: 22, fontWeight: '700', color: colours.accent },
++  error: { fontSize: 15, lineHeight: 22, fontWeight: '700', color: colours.danger },
++});
+diff --git a/apps/mobile/src/payments/payInvoice.ts b/apps/mobile/src/payments/payInvoice.ts
+new file mode 100644
+index 0000000..d40a02d
+--- /dev/null
++++ b/apps/mobile/src/payments/payInvoice.ts
+@@ -0,0 +1,134 @@
++import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
++
++import { MapAbleApiError, isMapAbleApiConfigured } from '../runtime/mapableApi';
++
++export type PaymentSheetSession = {
++  customerId: string;
++  ephemeralKey: string;
++  paymentIntentClientSecret: string;
++  paymentId: string;
++};
++
++function getConfiguredBaseUrl(): string {
++  return (process.env.EXPO_PUBLIC_MAPABLE_API_URL ?? '').trim().replace(/\/+$/, '');
++}
++
++/**
++ * Fetch PaymentSheet credentials from MapAble billing-core.
++ * Requires EXPO_PUBLIC_MAPABLE_API_URL and a bearer/session token (no anonymous pay).
++ */
++export async function fetchPaymentSheetSession(params: {
++  invoiceId: string;
++  accessToken: string;
++}): Promise<PaymentSheetSession> {
++  const baseUrl = getConfiguredBaseUrl();
++  if (!baseUrl) {
++    throw new MapAbleApiError('MapAble platform connection is not configured.');
++  }
++  if (!params.accessToken.trim()) {
++    throw new MapAbleApiError('Sign in required before paying an invoice.');
++  }
++
++  const response = await fetch(`${baseUrl}/api/billing/payment-sheet`, {
++    method: 'POST',
++    headers: {
++      Accept: 'application/json',
++      'Content-Type': 'application/json',
++      Authorization: `Bearer ${params.accessToken}`,
++    },
++    body: JSON.stringify({ invoiceId: params.invoiceId }),
++  });
++
++  let payload: unknown;
++  try {
++    payload = await response.json();
++  } catch {
++    throw new MapAbleApiError('MapAble returned an unreadable payment response.');
++  }
++
++  if (!response.ok) {
++    const message =
++      payload &&
++      typeof payload === 'object' &&
++      'error' in payload &&
++      typeof (payload as { error: unknown }).error === 'string'
++        ? (payload as { error: string }).error
++        : `PaymentSheet start failed (${response.status}).`;
++    throw new MapAbleApiError(message);
++  }
++
++  // Funding gate soft response
++  if (
++    payload &&
++    typeof payload === 'object' &&
++    'checkout' in payload &&
++    (payload as { checkout?: { allowed?: boolean } }).checkout?.allowed === false
++  ) {
++    throw new MapAbleApiError(
++      'This invoice cannot be paid by card or wallet. Use plan-manager export instead.',
++    );
++  }
++
++  const data = payload as Record<string, unknown>;
++
++  if (
++    typeof data.customerId !== 'string' ||
++    typeof data.ephemeralKey !== 'string' ||
++    typeof data.paymentIntentClientSecret !== 'string' ||
++    typeof data.paymentId !== 'string'
++  ) {
++    throw new MapAbleApiError('MapAble returned an unexpected payment-sheet payload.');
++  }
++
++  return {
++    customerId: data.customerId,
++    ephemeralKey: data.ephemeralKey,
++    paymentIntentClientSecret: data.paymentIntentClientSecret,
++    paymentId: data.paymentId,
++  };
++}
++
++export async function presentCareInvoicePaymentSheet(session: PaymentSheetSession): Promise<
++  | { ok: true }
++  | { ok: false; cancelled: boolean; message: string }
++> {
++  if (!isMapAbleApiConfigured()) {
++    return {
++      ok: false,
++      cancelled: false,
++      message: 'MapAble API is not configured.',
++    };
++  }
++
++  const { error: initError } = await initPaymentSheet({
++    merchantDisplayName: 'MapAble / Australian Disability Ltd',
++    customerId: session.customerId,
++    customerEphemeralKeySecret: session.ephemeralKey,
++    paymentIntentClientSecret: session.paymentIntentClientSecret,
++    allowsDelayedPaymentMethods: false,
++    googlePay: {
++      merchantCountryCode: 'AU',
++      testEnv: process.env.EXPO_PUBLIC_STRIPE_TEST_MODE !== 'false',
++    },
++    applePay: {
++      merchantCountryCode: 'AU',
++    },
++    returnURL: 'mapable://stripe-redirect',
++  });
++
++  if (initError) {
++    return { ok: false, cancelled: false, message: initError.message };
++  }
++
++  const { error: presentError } = await presentPaymentSheet();
++  if (presentError) {
++    const cancelled = presentError.code === 'Canceled';
++    return {
++      ok: false,
++      cancelled,
++      message: presentError.message,
++    };
++  }
++
++  return { ok: true };
++}
+diff --git a/packages/firebase/src/analytics.ts b/packages/firebase/src/analytics.ts
+index 187c0d8..0c2213c 100644
+--- a/packages/firebase/src/analytics.ts
++++ b/packages/firebase/src/analytics.ts
+@@ -1,7 +1,7 @@
+ import type { Analytics } from "firebase/analytics";
+ import type { FirebaseApp } from "firebase/app";
+ 
+-import { getFirebaseApp } from "./app.ts";
++import { getFirebaseApp } from "./app.js";
+ 
+ /**
+  * Analytics is browser-only. Safe on SSR, Expo native, and Node: returns null
+diff --git a/packages/firebase/src/app.ts b/packages/firebase/src/app.ts
+index edf66b1..d2117fe 100644
+--- a/packages/firebase/src/app.ts
++++ b/packages/firebase/src/app.ts
+@@ -3,7 +3,7 @@ import { type FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
+ import {
+   type FirebaseClientConfig,
+   requireFirebaseClientConfig,
+-} from "./config.ts";
++} from "./config.js";
+ 
+ let cached: FirebaseApp | undefined;
+ 
+diff --git a/packages/firebase/src/index.ts b/packages/firebase/src/index.ts
+index beb00b8..b15220d 100644
+--- a/packages/firebase/src/index.ts
++++ b/packages/firebase/src/index.ts
+@@ -2,6 +2,6 @@ export {
+   readFirebaseClientConfig,
+   requireFirebaseClientConfig,
+   type FirebaseClientConfig,
+-} from "./config.ts";
+-export { getFirebaseApp, resetFirebaseAppCacheForTests } from "./app.ts";
+-export { getFirebaseAnalytics } from "./analytics.ts";
++} from "./config.js";
++export { getFirebaseApp, resetFirebaseAppCacheForTests } from "./app.js";
++export { getFirebaseAnalytics } from "./analytics.js";
