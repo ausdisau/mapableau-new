@@ -124,7 +124,7 @@ export function MarketingPrimaryNav() {
 
       <div
         className={cn(
-          "min-w-0 min-[1100px]:min-w-[12rem] min-[1100px]:max-w-md min-[1100px]:flex-1 lg:max-w-xl",
+          "min-w-0 min-[1100px]:min-w-[12rem] min-[1100px]:max-w-md min-[1100px]:flex-1 xl:max-w-xl",
           mobileSearchOpen
             ? "order-last w-full basis-full"
             : "hidden min-[1100px]:block",
