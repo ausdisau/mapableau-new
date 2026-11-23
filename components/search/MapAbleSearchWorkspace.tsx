@@ -140,6 +140,9 @@ export function MapAbleSearchWorkspace({
       const query = initialSelection.query || DEMO_USER_MESSAGE;
       setSubmittedQuery(query);
       setDraft((current) => current || query);
+    } else {
+      // Drop demo thread copy when leaving ?demo=st-ives (e.g. Back).
+      setSubmittedQuery(initialSelection.query);
     }
   }, [
     populateDemo,
