@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/app/lib/utils";
 import { MapAbleSearchConversation } from "@/components/search/MapAbleSearchConversation";
 import { MapAbleSearchDisclosure } from "@/components/search/MapAbleSearchDisclosure";
 import { MapAbleSearchForm } from "@/components/search/MapAbleSearchForm";
@@ -12,7 +13,7 @@ import {
   type SearchSelection,
   type SearchUiStatus,
 } from "@/lib/search/mapable-search-ui";
-import { cn } from "@/app/lib/utils";
+
 
 type Props = {
   initialSelection: SearchSelection;
