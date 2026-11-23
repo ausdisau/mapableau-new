@@ -46,8 +46,15 @@ export function TransportBookingWorkspace() {
   const [consentIds, setConsentIds] = useState<string[]>([]);
   const [humanGateConfirmed, setHumanGateConfirmed] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
-  /** Once the client has applied (or attempted) prefill, local mobility is authoritative. */
-  const [clientPrefillResolved, setClientPrefillResolved] = useState(false);
+  /**
+   * Client-side prefill lifecycle. While loading, submit is blocked so the human
+   * gate cannot confirm an empty summary while the server would still merge
+   * unseen profile flags. Ready/failed both make local mobility authoritative
+   * (never silent-merge on the server from this UI).
+   */
+  const [prefillStatus, setPrefillStatus] = useState<
+    "idle" | "loading" | "ready" | "failed"
+  >("loading");
 
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupSuburb, setPickupSuburb] = useState("");
@@ -59,17 +66,20 @@ export function TransportBookingWorkspace() {
 
   useEffect(() => {
     if (!prefillFromProfile) {
-      setClientPrefillResolved(false);
+      setPrefillStatus("idle");
+      setProfileLoaded(false);
       return;
     }
     let cancelled = false;
-    setClientPrefillResolved(false);
+    setPrefillStatus("loading");
     fetch("/api/transport/mobility-prefill")
       .then(async (r) => {
         if (cancelled) return;
-        // Failed/non-OK prefill must leave clientPrefillResolved false so submit
-        // still sends prefillFromProfile: true and the server merges profile flags.
-        if (!r.ok) return;
+        if (!r.ok) {
+          setProfileLoaded(false);
+          setPrefillStatus("failed");
+          return;
+        }
         const data = (await r.json()) as {
           mobilityRequirements?: MobilityRequirements;
           fromProfile?: boolean;
@@ -82,10 +92,13 @@ export function TransportBookingWorkspace() {
           }));
         }
         setProfileLoaded(data.fromProfile === true);
-        setClientPrefillResolved(true);
+        setPrefillStatus("ready");
       })
       .catch(() => {
-        // Network/parse failure: keep unresolved so server-side merge still runs.
+        if (!cancelled) {
+          setProfileLoaded(false);
+          setPrefillStatus("failed");
+        }
       });
     return () => {
       cancelled = true;
@@ -163,6 +176,13 @@ export function TransportBookingWorkspace() {
       setStep(4);
       return;
     }
+    if (prefillFromProfile && prefillStatus === "loading") {
+      setError(
+        "Still loading your access needs from your profile. Please wait, then confirm what you see."
+      );
+      setStep(2);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -184,9 +204,9 @@ export function TransportBookingWorkspace() {
           accessNotes: accessNotes || undefined,
           mobilityRequirements:
             Object.keys(mobility).length > 0 ? mobility : undefined,
-          // After client-side hydrate, do not ask the server to re-merge profile
-          // flags (unchecked boxes must stay off).
-          prefillFromProfile: prefillFromProfile && !clientPrefillResolved,
+          // This UI hydrates (or fails) client-side. Never ask the server to
+          // merge profile flags the human gate did not show.
+          prefillFromProfile: false,
           consentScopes: consentIds,
         }),
       });
@@ -369,12 +389,28 @@ export function TransportBookingWorkspace() {
                   {profileLoaded ? " (profile found)" : ""}
                 </span>
               </label>
+              {prefillFromProfile && prefillStatus === "loading" ? (
+                <p className="text-sm text-[var(--tb-ink-muted,#5c6570)]" role="status">
+                  Loading access needs from your profile…
+                </p>
+              ) : null}
+              {prefillFromProfile && prefillStatus === "failed" ? (
+                <p className="text-sm text-[var(--tb-danger,#9b1c1c)]" role="alert">
+                  Could not load your accessibility profile. Enter mobility needs
+                  manually so only what you confirm is shared.
+                </p>
+              ) : null}
               <FunctionalAccessSelector values={mobility} onChange={setMobility} />
               <div className="flex flex-wrap gap-2">
                 <button type="button" className="tb-btn-secondary" onClick={() => goToStep(1)}>
                   Back
                 </button>
-                <button type="button" className="tb-btn-primary" onClick={() => goToStep(3)}>
+                <button
+                  type="button"
+                  className="tb-btn-primary"
+                  onClick={() => goToStep(3)}
+                  disabled={prefillFromProfile && prefillStatus === "loading"}
+                >
                   Continue to consent
                 </button>
               </div>
@@ -429,7 +465,11 @@ export function TransportBookingWorkspace() {
                 <button
                   type="button"
                   className="tb-btn-primary"
-                  disabled={!humanGateConfirmed || loading}
+                  disabled={
+                    !humanGateConfirmed ||
+                    loading ||
+                    (prefillFromProfile && prefillStatus === "loading")
+                  }
                   onClick={() => void submitTrip()}
                 >
                   {loading ? "Submitting…" : "Confirm transport request"}

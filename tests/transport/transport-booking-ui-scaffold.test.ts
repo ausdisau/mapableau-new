@@ -135,6 +135,11 @@ describe("transport booking human gate", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /Continue to access needs/i })
     );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /Continue to consent/i })
+      ).toHaveProperty("disabled", false)
+    );
     fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
     fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
     const confirm = screen.getByRole("checkbox", { name: /I confirm/i });
@@ -329,7 +334,7 @@ it("keeps unchecked prefill flags off in the create payload", async () => {
   expect(body.mobilityRequirements.requiresWheelchairAccessible).toBe(true);
 });
 
-it("keeps server prefill merge when mobility-prefill fails", async () => {
+it("does not silent-merge profile flags when mobility-prefill fails", async () => {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.includes("/api/transport/mobility-prefill")) {
@@ -357,10 +362,8 @@ it("keeps server prefill merge when mobility-prefill fails", async () => {
   );
   await waitFor(() =>
     expect(
-      fetchMock.mock.calls.some(([url]) =>
-        String(url).includes("/api/transport/mobility-prefill")
-      )
-    ).toBe(true)
+      screen.getByText(/Could not load your accessibility profile/i)
+    ).toBeTruthy()
   );
   fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
   fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
@@ -383,8 +386,59 @@ it("keeps server prefill merge when mobility-prefill fails", async () => {
       (init as RequestInit | undefined)?.method === "POST"
   );
   const body = JSON.parse(String((tripCall![1] as RequestInit).body));
-  // Prefill never hydrated — server must still merge profile mobility flags.
-  expect(body.prefillFromProfile).toBe(true);
+  // Failed hydrate must not ask the server to merge unseen profile flags.
+  expect(body.prefillFromProfile).toBe(false);
+});
+
+it("blocks continue while mobility-prefill is still in flight", async () => {
+  let resolvePrefill!: (value: Response) => void;
+  const prefillPromise = new Promise<Response>((resolve) => {
+    resolvePrefill = resolve;
+  });
+  const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.includes("/api/transport/mobility-prefill")) {
+      return prefillPromise;
+    }
+    return Response.json({}, { status: 404 });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
+  render(React.createElement(TransportBookingWorkspace));
+  fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+    target: { value: "1 Pickup Street" },
+  });
+  fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+    target: { value: "2 Destination Road" },
+  });
+  fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+    target: { value: "2026-11-22T09:00" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /Continue to access needs/i })
+  );
+  await waitFor(() =>
+    expect(screen.getByText(/Loading access needs from your profile/i)).toBeTruthy()
+  );
+  expect(
+    screen.getByRole("button", { name: /Continue to consent/i })
+  ).toHaveProperty("disabled", true);
+
+  resolvePrefill(
+    Response.json({
+      mobilityRequirements: { requiresWheelchairAccessible: true },
+      fromProfile: true,
+      profileShared: true,
+    })
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: /Continue to consent/i })
+    ).toHaveProperty("disabled", false)
+  );
+  expect(
+    screen.getByRole("checkbox", { name: /Wheelchair-accessible/i })
+  ).toHaveProperty("checked", true);
 });
 
 it("submits only the choices still checked when the participant confirms", async () => {
