@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { StreetAddressAutocomplete } from "@/components/addresses/StreetAddressAutocomplete";
 import {
   AccessibleFormField,
   formInputClass,
@@ -154,33 +155,30 @@ export function BookingWizard() {
       {step === 2 ? (
         <div className="space-y-4">
           {(bookingType === "care" || bookingType === "care_transport") && (
-            <AccessibleFormField id="careLocation" label="Care location">
-              <input
-                id="careLocation"
-                className={formInputClass}
-                value={careLocation}
-                onChange={(e) => setCareLocation(e.target.value)}
-              />
-            </AccessibleFormField>
+            <StreetAddressAutocomplete
+              id="careLocation"
+              label="Care location"
+              context="booking"
+              value={careLocation}
+              onChange={setCareLocation}
+            />
           )}
           {(bookingType === "transport" || bookingType === "care_transport") && (
             <>
-              <AccessibleFormField id="pickup" label="Pickup address">
-                <input
-                  id="pickup"
-                  className={formInputClass}
-                  value={pickupAddress}
-                  onChange={(e) => setPickupAddress(e.target.value)}
-                />
-              </AccessibleFormField>
-              <AccessibleFormField id="dropoff" label="Drop-off address">
-                <input
-                  id="dropoff"
-                  className={formInputClass}
-                  value={dropoffAddress}
-                  onChange={(e) => setDropoffAddress(e.target.value)}
-                />
-              </AccessibleFormField>
+              <StreetAddressAutocomplete
+                id="pickup"
+                label="Pickup address"
+                context="booking"
+                value={pickupAddress}
+                onChange={setPickupAddress}
+              />
+              <StreetAddressAutocomplete
+                id="dropoff"
+                label="Drop-off address"
+                context="booking"
+                value={dropoffAddress}
+                onChange={setDropoffAddress}
+              />
             </>
           )}
           <AccessibleFormField id="notes" label="Notes for providers">

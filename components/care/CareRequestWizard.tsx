@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { StreetAddressAutocomplete } from "@/components/addresses/StreetAddressAutocomplete";
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { CarePlanDraftReview } from "@/components/care/CarePlanDraftReview";
 import {
@@ -408,15 +409,14 @@ export function CareRequestWizard({
         ))}
       </div>
 
-      <AccessibleFormField id="care-address" label="Suburb or address (optional)">
-        <input
-          id="care-address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className={formInputClass}
-          disabled={loading}
-        />
-      </AccessibleFormField>
+      <StreetAddressAutocomplete
+        id="care-address"
+        label="Suburb or address (optional)"
+        context="care_request"
+        value={address}
+        onChange={setAddress}
+        disabled={loading}
+      />
 
       <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-muted/20 p-4">
         <label className="flex items-start gap-2 text-sm">
