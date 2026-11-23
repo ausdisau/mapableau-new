@@ -27,6 +27,7 @@ type Props = {
   initialSelection?: SearchSelection;
   onSelectionChange?: (selection: SearchSelection) => void;
   onSearch?: (selection: SearchSelection) => void;
+  navigateOnSubmit?: boolean;
   className?: string;
 };
 
@@ -39,6 +40,7 @@ export function MapAbleSearchForm({
   initialSelection,
   onSelectionChange,
   onSearch,
+  navigateOnSubmit = true,
   className,
 }: Props) {
   const router = useRouter();
@@ -75,6 +77,7 @@ export function MapAbleSearchForm({
 
     if (next.presentation === "conversation") {
       onSearch?.(next);
+      if (!navigateOnSubmit) return;
       const url = buildMapAbleSearchUrl(next);
       startTransition(() => {
         router.push(url);
@@ -83,6 +86,7 @@ export function MapAbleSearchForm({
     }
 
     onSearch?.(next);
+    if (!navigateOnSubmit) return;
     startTransition(() => {
       router.push(buildMapAbleSearchUrl(next));
     });
