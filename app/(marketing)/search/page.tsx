@@ -41,8 +41,12 @@ export default async function MapAbleSearchPage({
     ? params.postcode
     : undefined;
 
+  // In the streaming experience the query is explicitly submitted by the user
+  // after a public-server processing notice, never pre-fetched on page load.
   const shouldRunWebSearch =
-    selection.presentation === "web" || Boolean(selection.query);
+    selection.presentation === "web" ||
+    (process.env.NEXT_PUBLIC_MAPABLE_SEARCH_STREAM_UI_ENABLED !== "true" &&
+      Boolean(selection.query));
 
   let response = null;
   let httpStatus: number | null = null;
