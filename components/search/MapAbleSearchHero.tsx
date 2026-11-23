@@ -14,7 +14,6 @@ import {
   type SearchUiStatus,
 } from "@/lib/search/mapable-search-ui";
 
-
 type Props = {
   initialSelection: SearchSelection;
   response?: MapAbleSearchResponse | null;
