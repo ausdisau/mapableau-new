@@ -132,6 +132,24 @@ export function MapAbleSearchWorkspace({
     setHydrated(true);
   }, []);
 
+  // Soft navigation can update server props without remounting this client shell.
+  useEffect(() => {
+    setSelection(initialSelection);
+    setDemoActive(populateDemo);
+    if (populateDemo) {
+      const query = initialSelection.query || DEMO_USER_MESSAGE;
+      setSubmittedQuery(query);
+      setDraft((current) => current || query);
+    }
+  }, [
+    populateDemo,
+    initialSelection,
+    initialSelection.query,
+    initialSelection.presentation,
+    initialSelection.tier,
+    initialSelection.category,
+  ]);
+
   useEffect(() => {
     if (!consentOpen) return;
     const onKey = (event: KeyboardEvent) => {
@@ -173,7 +191,13 @@ export function MapAbleSearchWorkspace({
   }
 
   function commitDoorInput(raw: string) {
-    const parsed = Number(raw);
+    const trimmed = raw.trim();
+    // Number("") === 0; restore the last committed minimum instead of clamping to 700.
+    if (trimmed === "") {
+      setDoorInput(String(doorMinimum));
+      return;
+    }
+    const parsed = Number(trimmed);
     if (!Number.isFinite(parsed)) {
       setDoorInput(String(doorMinimum));
       return;
