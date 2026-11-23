@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { readPublicSearchStreamChunk } from "@/lib/search/mapable-stream-contract";
+import { POST } from "@/app/api/mapable-search/stream/route";
 import type { MapAbleSearchResponse } from "@/lib/search/mapable-search-core";
+import { readPublicSearchStreamChunk } from "@/lib/search/mapable-stream-contract";
 
 const mocks = vi.hoisted(() => ({
   searchMapAble: vi.fn(),
@@ -14,8 +15,6 @@ vi.mock("@/lib/api/ip-rate-limit", () => ({
   getClientIp: () => "127.0.0.1",
   checkIpRateLimit: () => true,
 }));
-
-import { POST } from "@/app/api/mapable-search/stream/route";
 
 const publicResult: MapAbleSearchResponse = {
   results: [{
