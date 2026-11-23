@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   AccessibleFormField,
@@ -45,6 +45,7 @@ export function TransportBookingWorkspace() {
   const [prefillFromProfile, setPrefillFromProfile] = useState(true);
   const [consentIds, setConsentIds] = useState<string[]>([]);
   const [humanGateConfirmed, setHumanGateConfirmed] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupSuburb, setPickupSuburb] = useState("");
@@ -53,6 +54,30 @@ export function TransportBookingWorkspace() {
   const [scheduledStart, setScheduledStart] = useState("");
   const [scheduledEnd, setScheduledEnd] = useState("");
   const [accessNotes, setAccessNotes] = useState("");
+
+  useEffect(() => {
+    if (!prefillFromProfile) return;
+    let cancelled = false;
+    fetch("/api/transport/mobility-prefill")
+      .then((r) => r.json())
+      .then((data: {
+        mobilityRequirements?: MobilityRequirements;
+        fromProfile?: boolean;
+      }) => {
+        if (cancelled) return;
+        if (data.mobilityRequirements) {
+          setMobility((prev) => ({
+            ...data.mobilityRequirements,
+            ...prev,
+          }));
+        }
+        setProfileLoaded(data.fromProfile === true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [prefillFromProfile]);
 
   const summaryLines = useMemo(() => {
     const lines: string[] = [];
@@ -284,7 +309,10 @@ export function TransportBookingWorkspace() {
                   checked={prefillFromProfile}
                   onChange={(e) => setPrefillFromProfile(e.target.checked)}
                 />
-                <span>Use my accessibility profile to prefill mobility needs</span>
+                <span>
+                  Use my accessibility profile to prefill mobility needs
+                  {profileLoaded ? " (profile found)" : ""}
+                </span>
               </label>
               <FunctionalAccessSelector values={mobility} onChange={setMobility} />
               <div className="flex flex-wrap gap-2">

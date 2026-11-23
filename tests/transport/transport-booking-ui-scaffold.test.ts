@@ -71,13 +71,26 @@ describe("consent clinical warning", () => {
   });
 });
 
-it("submits only the choices still checked when the participant confirms", async () => {
-  const post = vi
-    .fn()
-    .mockResolvedValue(
-      Response.json({ trip: { id: "trip-1" } }, { status: 201 })
-    );
-  vi.stubGlobal("fetch", post);
+it("prefills mobility checkboxes and confirmation from the accessibility profile", async () => {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("/api/transport/mobility-prefill")) {
+      return Response.json({
+        mobilityRequirements: {
+          requiresWheelchairAccessible: true,
+          requiresHoist: true,
+        },
+        fromProfile: true,
+        profileShared: true,
+      });
+    }
+    if (url === "/api/transport/trips" && init?.method === "POST") {
+      return Response.json({ trip: { id: "trip-prefill-1" } }, { status: 201 });
+    }
+    return Response.json({}, { status: 404 });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
   render(React.createElement(TransportBookingWorkspace));
   fireEvent.change(screen.getByLabelText(/Pickup address/i), {
     target: { value: "1 Pickup Street" },
@@ -90,6 +103,86 @@ it("submits only the choices still checked when the participant confirms", async
   });
   fireEvent.click(
     screen.getByRole("button", { name: /Continue to access needs/i })
+  );
+
+  await waitFor(() => {
+    expect(
+      screen.getByRole("checkbox", { name: /Wheelchair-accessible vehicle/i })
+    ).toHaveProperty("checked", true);
+  });
+  expect(
+    screen.getByRole("checkbox", { name: /Hoist required/i })
+  ).toHaveProperty("checked", true);
+
+  fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
+  fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
+  expect(
+    screen.getByText(/Wheelchair-accessible vehicle required/i)
+  ).toBeTruthy();
+  expect(screen.getByText(/Rear hoist required/i)).toBeTruthy();
+
+  fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/i }));
+  fireEvent.click(
+    screen.getByRole("button", { name: /Confirm transport request/i })
+  );
+  await waitFor(() =>
+    expect(
+      fetchMock.mock.calls.some(
+        ([url, init]) =>
+          String(url) === "/api/transport/trips" &&
+          (init as RequestInit | undefined)?.method === "POST"
+      )
+    ).toBe(true)
+  );
+  const tripCall = fetchMock.mock.calls.find(
+    ([url, init]) =>
+      String(url) === "/api/transport/trips" &&
+      (init as RequestInit | undefined)?.method === "POST"
+  );
+  expect(tripCall).toBeTruthy();
+  const body = JSON.parse(String((tripCall![1] as RequestInit).body));
+  expect(body.prefillFromProfile).toBe(true);
+  expect(body.mobilityRequirements).toMatchObject({
+    requiresWheelchairAccessible: true,
+    requiresHoist: true,
+  });
+});
+
+it("submits only the choices still checked when the participant confirms", async () => {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("/api/transport/mobility-prefill")) {
+      return Response.json({
+        mobilityRequirements: {},
+        fromProfile: false,
+        profileShared: false,
+      });
+    }
+    if (url === "/api/transport/trips" && init?.method === "POST") {
+      return Response.json({ trip: { id: "trip-1" } }, { status: 201 });
+    }
+    return Response.json({}, { status: 404 });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  render(React.createElement(TransportBookingWorkspace));
+  fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+    target: { value: "1 Pickup Street" },
+  });
+  fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+    target: { value: "2 Destination Road" },
+  });
+  fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+    target: { value: "2026-11-22T09:00" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /Continue to access needs/i })
+  );
+  await waitFor(() =>
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).includes("/api/transport/mobility-prefill")
+      )
+    ).toBe(true)
   );
   fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
   const mobility = screen.getByRole("checkbox", {
@@ -108,10 +201,22 @@ it("submits only the choices still checked when the participant confirms", async
   fireEvent.click(
     screen.getByRole("button", { name: /Confirm transport request/i })
   );
-  await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-  const [url, init] = post.mock.calls[0];
-  expect(url).toBe("/api/transport/trips");
-  expect(JSON.parse(init.body).consentScopes).toEqual([
+  await waitFor(() =>
+    expect(
+      fetchMock.mock.calls.some(
+        ([url, init]) =>
+          String(url) === "/api/transport/trips" &&
+          (init as RequestInit | undefined)?.method === "POST"
+      )
+    ).toBe(true)
+  );
+  const tripCall = fetchMock.mock.calls.find(
+    ([url, init]) =>
+      String(url) === "/api/transport/trips" &&
+      (init as RequestInit | undefined)?.method === "POST"
+  );
+  expect(tripCall).toBeTruthy();
+  expect(JSON.parse(String((tripCall![1] as RequestInit).body)).consentScopes).toEqual([
     "transport.kerbside_note",
   ]);
 });
