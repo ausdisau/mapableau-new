@@ -487,6 +487,11 @@ it("blocks step-nav jumps past access needs while prefill is loading", async () 
       screen.getByRole("button", { name: /Continue to consent/i })
     ).toHaveProperty("disabled", false)
   );
+  await waitFor(() =>
+    expect(
+      screen.queryByText(/Still loading your access needs from your profile/i)
+    ).toBeNull()
+  );
   fireEvent.click(screen.getByRole("button", { name: /^04$/i }));
   expect(await screen.findByRole("checkbox", { name: /I confirm/i })).toBeTruthy();
 });

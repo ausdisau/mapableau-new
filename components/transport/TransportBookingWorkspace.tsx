@@ -29,6 +29,18 @@ const DEMO_EVIDENCE = [
   },
 ];
 
+const PREFILL_LOADING_STEP_ERROR =
+  "Still loading your access needs from your profile. Please wait on this step.";
+const PREFILL_LOADING_SUBMIT_ERROR =
+  "Still loading your access needs from your profile. Please wait, then confirm what you see.";
+
+function isPrefillLoadingError(message: string | null): boolean {
+  return (
+    message === PREFILL_LOADING_STEP_ERROR ||
+    message === PREFILL_LOADING_SUBMIT_ERROR
+  );
+}
+
 /**
  * Participant booking workspace — list-first split layout with human gate.
  * Writes only through existing POST /api/transport/trips.
@@ -105,6 +117,12 @@ export function TransportBookingWorkspace() {
     };
   }, [prefillFromProfile]);
 
+  // Clear stale "still loading" alerts once hydrate settles (ready/failed/idle).
+  useEffect(() => {
+    if (prefillStatus === "loading") return;
+    setError((prev) => (isPrefillLoadingError(prev) ? null : prev));
+  }, [prefillStatus]);
+
   // Human gate must re-confirm after any field that shapes the submitted payload changes.
   useEffect(() => {
     setHumanGateConfirmed(false);
@@ -160,9 +178,7 @@ export function TransportBookingWorkspace() {
     // in flight, or skip the failed-prefill warning without visiting step 2.
     if (next > 2 && prefillFromProfile) {
       if (prefillStatus === "loading") {
-        setError(
-          "Still loading your access needs from your profile. Please wait on this step."
-        );
+        setError(PREFILL_LOADING_STEP_ERROR);
         setStep(2);
         return;
       }
@@ -193,9 +209,7 @@ export function TransportBookingWorkspace() {
       return;
     }
     if (prefillFromProfile && prefillStatus === "loading") {
-      setError(
-        "Still loading your access needs from your profile. Please wait, then confirm what you see."
-      );
+      setError(PREFILL_LOADING_SUBMIT_ERROR);
       setStep(2);
       return;
     }
