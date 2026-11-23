@@ -18,6 +18,10 @@ type Props = {
   chat: React.ReactNode;
   actions: React.ReactNode;
   history: React.ReactNode;
+  /** Keep private local session history out of public guest discovery. */
+  showHistory?: boolean;
+  /** Distinguish no-AI and opt-in modes from authenticated AI assistance. */
+  assistanceNote?: string;
 };
 
 const TABS: { id: AskWidgetTab; label: string }[] = [
@@ -34,10 +38,20 @@ export function AskMapAblePanel({
   chat,
   actions,
   history,
+  showHistory = true,
+  assistanceNote = "AI-assisted. MapAble remains usable without Ask MapAble.",
 }: Props) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const visibleTabs = showHistory ? TABS : TABS.filter((tab) => tab.id !== "history");
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  // Callback identity can change as the conversation updates. Keep focus
+  // management scoped to the open state, not every chat re-render.
+  const closeHandler = useRef(onClose);
+  useEffect(() => {
+    closeHandler.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +61,30 @@ export function AskMapAblePanel({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        closeHandler.current();
+        return;
+      }
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusable = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>(
+            'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((element) => element.tabIndex >= 0 && !element.closest("[hidden], [aria-hidden='true']"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) {
+          e.preventDefault();
+          closeRef.current?.focus();
+          return;
+        }
+        const focusOutside = !dialogRef.current.contains(document.activeElement);
+        if (e.shiftKey && (document.activeElement === first || focusOutside)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (document.activeElement === last || focusOutside)) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     document.addEventListener("keydown", onKey);
@@ -55,7 +92,7 @@ export function AskMapAblePanel({
       document.removeEventListener("keydown", onKey);
       previouslyFocused.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -68,6 +105,7 @@ export function AskMapAblePanel({
       }}
     >
       <div
+        ref={dialogRef}
         id="ask-mapable-panel"
         role="dialog"
         aria-modal="true"
@@ -82,7 +120,7 @@ export function AskMapAblePanel({
             </h2>
             <p className="text-sm text-muted-foreground">{ASK_MAPABLE_SUBTITLE}</p>
             <p className="mt-1 text-xs text-muted-foreground" role="note">
-              AI-assisted. MapAble remains usable without Ask MapAble.
+              {assistanceNote}
             </p>
           </div>
           <Button
@@ -103,7 +141,7 @@ export function AskMapAblePanel({
           aria-label="Ask MapAble sections"
           className="flex gap-1 border-b border-border px-2 py-2"
         >
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -121,12 +159,13 @@ export function AskMapAblePanel({
               onKeyDown={(e) => {
                 if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                   e.preventDefault();
-                  const idx = TABS.findIndex((t) => t.id === activeTab);
-                  const next =
-                    e.key === "ArrowRight"
-                      ? TABS[(idx + 1) % TABS.length]!
-                      : TABS[(idx - 1 + TABS.length) % TABS.length]!;
+                  const idx = visibleTabs.findIndex((t) => t.id === activeTab);
+                  const next = e.key === "ArrowRight"
+                    ? visibleTabs[(idx + 1) % visibleTabs.length]!
+                    : visibleTabs[(idx - 1 + visibleTabs.length) % visibleTabs.length]!;
                   onTabChange(next.id);
+                  // Roving tab selection must also move keyboard focus.
+                  document.getElementById(`ask-tab-${next.id}`)?.focus();
                 }
               }}
             >
@@ -152,14 +191,16 @@ export function AskMapAblePanel({
           >
             {actions}
           </div>
-          <div
-            role="tabpanel"
-            id="ask-panel-history"
-            aria-labelledby="ask-tab-history"
-            hidden={activeTab !== "history"}
-          >
-            {history}
-          </div>
+          {showHistory ? (
+            <div
+              role="tabpanel"
+              id="ask-panel-history"
+              aria-labelledby="ask-tab-history"
+              hidden={activeTab !== "history"}
+            >
+              {history}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

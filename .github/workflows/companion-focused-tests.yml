@@ -1,0 +1,51 @@
+name: Companion focused tests
+
+# This focused check runs before unrelated repository typecheck/build blockers.
+# It never substitutes for the required CI, security or accessibility gates.
+on:
+  pull_request:
+    paths:
+      - "components/ask-mapable/**"
+      - "lib/ask-mapable/**"
+      - "tests/ask-mapable-*"
+      - "app/api/mapable/search/graphql/**"
+      - "lib/mapable-search/**"
+      - "examples/mapable-search/**"
+      - "tests/mapable-search-*"
+      - "docs/ask-mapable/**"
+      - ".github/workflows/companion-focused-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  public-companion:
+    name: Public Companion synthetic tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      NODE_OPTIONS: --max-old-space-size=4096
+      NEXTAUTH_SECRET: ci-only-companion-secret-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate local Prisma client
+        run: pnpm exec prisma generate
+      - name: Focused guest, dialogue, adapter and existing-widget tests
+        run: |
+          pnpm exec vitest run \
+            tests/ask-mapable-public-guided-flow.test.tsx \
+            tests/ask-mapable-public-guest.test.tsx \
+            tests/ask-mapable-chatbotkit-sandbox.test.ts \
+            tests/ask-mapable-public-discovery-contract.test.ts \
+            tests/ask-mapable-widget.test.tsx \
+            tests/mapable-search-federated-graphql.test.ts
