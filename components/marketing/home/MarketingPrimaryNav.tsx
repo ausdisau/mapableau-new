@@ -112,7 +112,7 @@ export function MarketingPrimaryNav() {
   return (
     <div
       ref={navRef}
-      className="relative flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 min-[920px]:flex-nowrap"
+      className="relative flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 min-[1100px]:flex-nowrap"
     >
       <MapAbleBrandLockup
         href={marketingFeatureRoutes.home}
@@ -124,10 +124,10 @@ export function MarketingPrimaryNav() {
 
       <div
         className={cn(
-          "min-w-0 min-[920px]:max-w-md min-[920px]:flex-1 lg:max-w-xl",
+          "min-w-0 min-[1100px]:min-w-[12rem] min-[1100px]:max-w-md min-[1100px]:flex-1 lg:max-w-xl",
           mobileSearchOpen
             ? "order-last w-full basis-full"
-            : "hidden min-[920px]:block",
+            : "hidden min-[1100px]:block",
         )}
       >
         <MapAbleHeaderSearchBox
@@ -139,7 +139,7 @@ export function MarketingPrimaryNav() {
 
       <nav
         aria-label="Primary"
-        className="relative hidden items-center justify-center gap-0.5 min-[920px]:flex"
+        className="relative hidden items-center justify-center gap-0.5 min-[1100px]:flex"
       >
         <Link
           href={preRegisterHref}
@@ -226,7 +226,7 @@ export function MarketingPrimaryNav() {
             setMobileOpen(false);
             setMobileSearchOpen((open) => !open);
           }}
-          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#005B7F] px-4 text-sm font-black text-[#005B7F] min-[920px]:hidden ${mapableCareFocusRing}`}
+          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#005B7F] px-4 text-sm font-black text-[#005B7F] min-[1100px]:hidden ${mapableCareFocusRing}`}
         >
           Search
         </button>
@@ -239,7 +239,7 @@ export function MarketingPrimaryNav() {
             setMobileSearchOpen(false);
             setMobileOpen(!mobileOpen);
           }}
-          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black min-[920px]:hidden ${mapableCareFocusRing}`}
+          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black min-[1100px]:hidden ${mapableCareFocusRing}`}
         >
           Menu
         </button>
@@ -248,7 +248,7 @@ export function MarketingPrimaryNav() {
       {mobileOpen && (
         <div
           id="marketing-primary-nav-mobile"
-          className="absolute left-5 right-5 top-[calc(100%+0.5rem)] z-50 max-h-[min(85vh,32rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl min-[920px]:hidden"
+          className="absolute left-5 right-5 top-[calc(100%+0.5rem)] z-50 max-h-[min(85vh,32rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl min-[1100px]:hidden"
         >
           <nav aria-label="Primary mobile" className="grid gap-1">
             <button
