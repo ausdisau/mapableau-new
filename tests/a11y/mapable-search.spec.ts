@@ -53,8 +53,10 @@ test.describe("MapAble Search a11y", () => {
     await expect(page.getByRole("button", { name: "Search" })).toBeVisible();
     await expect(
       page
-        .locator("figcaption")
-        .filter({ hasText: /Concept visualisation — routes illustrative/i }),
+        .getByRole("figure", {
+          name: /Concept visualisation — routes illustrative/i,
+        })
+        .locator("figcaption"),
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
