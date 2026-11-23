@@ -80,7 +80,8 @@ export function AccessibleAutocomplete({
 
   const debouncedQuery = useDebouncedValue(value, debounceMs);
   const suggestions = groups ? flattenSuggestions(groups) : [];
-  const queryForList = debouncedQuery.trim().length >= 2 ? debouncedQuery : value;
+  const queryForList =
+    debouncedQuery.trim().length >= 2 ? debouncedQuery : value;
   const liveMessage = buildLiveRegionMessage(
     loading,
     suggestions.length,
@@ -122,9 +123,12 @@ export function AccessibleAutocomplete({
         if (signals) {
           params.set("signals", JSON.stringify(signals));
         }
-        const res = await fetch(`/api/search/autocomplete?${params.toString()}`, {
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `/api/search/autocomplete?${params.toString()}`,
+          {
+            signal: controller.signal,
+          },
+        );
         if (!res.ok) {
           if (!controller.signal.aborted) {
             setGroups(null);
@@ -198,7 +202,11 @@ export function AccessibleAutocomplete({
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter" && activeIndex >= 0 && suggestions[activeIndex]) {
+    } else if (
+      e.key === "Enter" &&
+      activeIndex >= 0 &&
+      suggestions[activeIndex]
+    ) {
       e.preventDefault();
       selectSuggestion(suggestions[activeIndex]);
     } else if (e.key === "Escape") {
@@ -284,7 +292,8 @@ export function AccessibleAutocomplete({
       ) : null}
       {meta?.degraded ? (
         <p className="mt-1 text-xs text-muted-foreground" role="status">
-          Some suggestion sources are temporarily limited. Results may be incomplete.
+          Some suggestion sources are temporarily limited. Results may be
+          incomplete.
         </p>
       ) : null}
 

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import type { AdProviderAssuranceState } from "@prisma/client";
+import type { AdProviderAssuranceState, Prisma } from "@prisma/client";
 
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { prisma } from "@/lib/prisma";
@@ -62,7 +62,9 @@ function toAssuranceState(value: string): AdProviderAssuranceState {
   return "catalogued";
 }
 
-export async function syncSeedRegistryIntoCatalog(): Promise<{ upserted: number }> {
+export async function syncSeedRegistryIntoCatalog(): Promise<{
+  upserted: number;
+}> {
   const seed = loadSeedProviderRegistry();
   let upserted = 0;
   for (const provider of seed.providers) {
@@ -126,7 +128,10 @@ export type ApisIoSearchHit = {
 /**
  * Read-only APIs.io catalogue fetch. Never mutates partner ads or grants entitlements.
  */
-export async function fetchApisIoSearch(query: string, limit = 10): Promise<{
+export async function fetchApisIoSearch(
+  query: string,
+  limit = 10,
+): Promise<{
   ok: boolean;
   hits: ApisIoSearchHit[];
   sourceUrl: string;
@@ -239,7 +244,7 @@ export async function cacheApisIoHits(input: {
           query: input.query,
           hit,
           notice: "Catalogue metadata only — not a buying entitlement",
-        },
+        } as Prisma.InputJsonValue,
         retrievedAt: new Date(),
       },
       update: {
@@ -250,7 +255,7 @@ export async function cacheApisIoHits(input: {
           query: input.query,
           hit,
           notice: "Catalogue metadata only — not a buying entitlement",
-        },
+        } as Prisma.InputJsonValue,
         retrievedAt: new Date(),
       },
     });

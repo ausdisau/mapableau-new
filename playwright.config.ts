@@ -20,6 +20,10 @@ const projects: Project[] = [
     },
   },
   {
+    name: "mapable-search",
+    testMatch: /mapable-search\.spec\.ts/,
+  },
+  {
     name: "informational",
     testMatch: /informational-routes\.spec\.ts/,
   },

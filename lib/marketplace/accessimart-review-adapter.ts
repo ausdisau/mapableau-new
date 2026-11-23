@@ -97,7 +97,7 @@ const CONDITIONS = new Set([
   "spare_part",
 ]);
 
-const CATEGORY_SLUGS = new Set(
+const CATEGORY_SLUGS: ReadonlySet<string> = new Set(
   ACCESSIMART_DRAFT_CATEGORIES.map((category) => category.slug),
 );
 
@@ -129,7 +129,8 @@ function normaliseSupplier(value: unknown): AccessiMartSupplierClaim | null {
   const sourceSupplierId =
     typeof row.id === "number"
       ? String(Math.trunc(row.id))
-      : limitedText(row.id, 64) ?? `supplier:${legalName.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`;
+      : (limitedText(row.id, 64) ??
+        `supplier:${legalName.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`);
 
   return {
     sourceSupplierId,

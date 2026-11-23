@@ -147,7 +147,10 @@ export function MapAbleProviderSearchForm({
 
         {showOptionalFields ? (
           <div
-            className={cn("grid gap-3 sm:grid-cols-2", mapableSearchFieldSecondaryClass)}
+            className={cn(
+              "grid gap-3 sm:grid-cols-2",
+              mapableSearchFieldSecondaryClass,
+            )}
           >
             <AccessibleAutocomplete
               id={`${idPrefix}-service`}
