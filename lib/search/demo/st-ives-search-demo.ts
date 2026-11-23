@@ -278,14 +278,21 @@ export function buildComparisonRows(minimumMm: number): ComparisonRow[] {
 }
 
 export function assistantSummaryForMinimum(minimumMm: number): string {
-  const { matches, alternatives, matchCount } = summariseDemoMatches(minimumMm);
+  const { matches, alternatives, matchCount, alternativeCount } =
+    summariseDemoMatches(minimumMm);
   if (matchCount === 0) {
     return `Both demo clinics are below your ${minimumMm} mm doorway minimum. Review the comparison and decide what still works for you.`;
   }
+  if (matchCount >= 2 && alternativeCount === 0) {
+    return `Both demo clinics meet your ${minimumMm} mm doorway minimum. Review the comparison for hoist, quiet room and bus approach differences. Clinic 2’s kerb ramp gradient is unknown.`;
+  }
   const match = matches[0];
   const alt = alternatives[0];
+  if (!match || !alt) {
+    return `Demo clinics updated for your ${minimumMm} mm doorway minimum. Review the comparison table for details.`;
+  }
   const matchDelta = (match.entranceWidthMm ?? 0) - minimumMm;
-  const altDelta = minimumMm - (alt?.entranceWidthMm ?? 0);
+  const altDelta = minimumMm - (alt.entranceWidthMm ?? 0);
   return `One demo clinic meets your ${minimumMm} mm doorway minimum (${matchDelta} mm above). The other is ${altDelta} mm below it. Its kerb ramp gradient is unknown.`;
 }
 

@@ -27,6 +27,7 @@ import {
   assistantSummaryForMinimum,
   buildComparisonRows,
   getClinicById,
+  shouldPopulateStIvesDemo,
   summariseDemoMatches,
   whyTheseResults,
   type DemoClinicId,
@@ -84,6 +85,12 @@ export function MapAbleSearchWorkspace({
   const resultsRegionRef = useRef<HTMLElement>(null);
   const consentTriggerRef = useRef<HTMLButtonElement>(null);
   const draftBeforeVoiceRef = useRef("");
+  const recognitionRef = useRef<{
+    stop?: () => void;
+    abort?: () => void;
+    onresult: unknown;
+    onerror: unknown;
+  } | null>(null);
 
   const [selection, setSelection] = useState<SearchSelection>(
     () => initialSelection,
@@ -91,11 +98,17 @@ export function MapAbleSearchWorkspace({
   const [draft, setDraft] = useState(
     () => initialSelection.query || (populateDemo ? DEMO_USER_MESSAGE : ""),
   );
-  const [submitted, setSubmitted] = useState(populateDemo);
+  const [demoActive, setDemoActive] = useState(populateDemo);
+  const [submittedQuery, setSubmittedQuery] = useState(() =>
+    populateDemo ? initialSelection.query || DEMO_USER_MESSAGE : "",
+  );
   const [selectedClinicId, setSelectedClinicId] = useState<DemoClinicId>(
     "demo-clinic-st-ives-allied-health",
   );
   const [doorMinimum, setDoorMinimum] = useState(DEFAULT_DOORWAY_MINIMUM_MM);
+  const [doorInput, setDoorInput] = useState(
+    String(DEFAULT_DOORWAY_MINIMUM_MM),
+  );
   const [viewMode, setViewMode] = useState<ViewMode>(
     populateDemo ? "map" : "list",
   );
@@ -113,7 +126,7 @@ export function MapAbleSearchWorkspace({
   const matchSummary = summariseDemoMatches(doorMinimum);
   const comparisonRows = buildComparisonRows(doorMinimum);
   const selectedClinic = getClinicById(selectedClinicId);
-  const showResults = populateDemo || submitted;
+  const showResults = demoActive;
 
   useEffect(() => {
     setHydrated(true);
@@ -148,6 +161,7 @@ export function MapAbleSearchWorkspace({
 
   function updateDoorMinimum(next: number) {
     setDoorMinimum(next);
+    setDoorInput(String(next));
     const nextSummary = summariseDemoMatches(next);
     announce(nextSummary.summary);
     if (
@@ -158,6 +172,16 @@ export function MapAbleSearchWorkspace({
     }
   }
 
+  function commitDoorInput(raw: string) {
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+      setDoorInput(String(doorMinimum));
+      return;
+    }
+    const clamped = Math.min(1200, Math.max(700, Math.round(parsed)));
+    updateDoorMinimum(clamped);
+  }
+
   function applyPresentation(presentation: SearchPresentation) {
     const next = withPresentation(selection, presentation);
     setSelection(next);
@@ -165,7 +189,7 @@ export function MapAbleSearchWorkspace({
       const url = buildMapAbleSearchUrl(next);
       // Keep the labelled St Ives demo only while Conversation stays active.
       const nextUrl =
-        presentation === "conversation" && populateDemo
+        presentation === "conversation" && demoActive
           ? `${url}${url.includes("?") ? "&" : "?"}demo=st-ives`
           : url;
       router.push(nextUrl);
@@ -186,41 +210,28 @@ export function MapAbleSearchWorkspace({
 
   function startVoice() {
     draftBeforeVoiceRef.current = draft;
+    type SpeechRec = {
+      start: () => void;
+      stop?: () => void;
+      abort?: () => void;
+      onresult:
+        | ((event: {
+            results: ArrayLike<ArrayLike<{ transcript: string }>>;
+          }) => void)
+        | null;
+      onerror: (() => void) | null;
+    };
     const SpeechRecognitionCtor =
       typeof window !== "undefined"
         ? (
             window as unknown as {
-              SpeechRecognition?: new () => {
-                start: () => void;
-                onresult:
-                  | ((event: {
-                      results: ArrayLike<ArrayLike<{ transcript: string }>>;
-                    }) => void)
-                  | null;
-                onerror: (() => void) | null;
-              };
-              webkitSpeechRecognition?: new () => {
-                start: () => void;
-                onresult:
-                  | ((event: {
-                      results: ArrayLike<ArrayLike<{ transcript: string }>>;
-                    }) => void)
-                  | null;
-                onerror: (() => void) | null;
-              };
+              SpeechRecognition?: new () => SpeechRec;
+              webkitSpeechRecognition?: new () => SpeechRec;
             }
           ).SpeechRecognition ||
           (
             window as unknown as {
-              webkitSpeechRecognition?: new () => {
-                start: () => void;
-                onresult:
-                  | ((event: {
-                      results: ArrayLike<ArrayLike<{ transcript: string }>>;
-                    }) => void)
-                  | null;
-                onerror: (() => void) | null;
-              };
+              webkitSpeechRecognition?: new () => SpeechRec;
             }
           ).webkitSpeechRecognition
         : undefined;
@@ -233,30 +244,46 @@ export function MapAbleSearchWorkspace({
       return;
     }
 
+    recognitionRef.current?.abort?.();
+    recognitionRef.current?.stop?.();
     setVoiceState("listening");
     const recognition = new SpeechRecognitionCtor();
+    recognitionRef.current = recognition;
     recognition.onresult = (event) => {
+      if (recognitionRef.current !== recognition) return;
       const transcript = event.results[0]?.[0]?.transcript ?? "";
       setDraft((current) =>
         current ? `${current.trim()} ${transcript}`.trim() : transcript,
       );
       setVoiceState("idle");
+      recognitionRef.current = null;
       announce("Voice draft ready. Edit, cancel or press Search.");
     };
     recognition.onerror = () => {
+      if (recognitionRef.current !== recognition) return;
       setVoiceState("unavailable");
       setDraft(draftBeforeVoiceRef.current);
+      recognitionRef.current = null;
       announce("Voice cancelled. Typing and AAC remain available.");
     };
     try {
       recognition.start();
     } catch {
+      recognitionRef.current = null;
       setVoiceState("unavailable");
       announce("Voice could not start. Keep typing or use AAC.");
     }
   }
 
   function cancelVoiceDraft() {
+    const active = recognitionRef.current;
+    recognitionRef.current = null;
+    try {
+      active?.abort?.();
+      active?.stop?.();
+    } catch {
+      // Ignore stop errors when recognition already ended.
+    }
     setDraft(draftBeforeVoiceRef.current);
     setVoiceState("idle");
     announce("Voice draft discarded.");
@@ -279,16 +306,27 @@ export function MapAbleSearchWorkspace({
           ? "deep"
           : selection.tier,
     };
+    const useDemo =
+      next.presentation === "conversation" &&
+      shouldPopulateStIvesDemo({
+        demoParam: null,
+        presentation: next.presentation,
+        query: next.query,
+      });
     setSelection(next);
-    setSubmitted(true);
-    announce("Search updated. Results refreshed.");
+    setSubmittedQuery(next.query);
+    setDemoActive(useDemo);
+    announce(
+      useDemo
+        ? "Search updated. Synthetic St Ives results refreshed."
+        : "Search updated. This Conversation demo only populates for the St Ives physio scenario — try Web for public destinations.",
+    );
     startTransition(() => {
       const url = buildMapAbleSearchUrl(next);
-      const withDemo =
-        next.presentation === "conversation"
-          ? `${url}${url.includes("?") ? "&" : "?"}demo=st-ives`
-          : url;
-      router.push(withDemo);
+      const nextUrl = useDemo
+        ? `${url}${url.includes("?") ? "&" : "?"}demo=st-ives`
+        : url;
+      router.push(nextUrl);
     });
   }
 
@@ -568,13 +606,32 @@ export function MapAbleSearchWorkspace({
                 <p className="text-sm">
                   <span className="font-black">Alex</span>
                   <span className="mt-1 block rounded-xl bg-white/10 p-3 text-white">
-                    {draft || DEMO_USER_MESSAGE}
+                    {submittedQuery || DEMO_USER_MESSAGE}
                   </span>
                 </p>
                 <p className="text-sm">
                   <span className="font-black">MapAble</span>
                   <span className="mt-1 block rounded-xl bg-[#005B7F] p-3">
                     {assistantSummaryForMinimum(doorMinimum)}
+                  </span>
+                </p>
+              </div>
+            ) : submittedQuery ? (
+              <div className="space-y-3 rounded-2xl bg-white/5 p-3">
+                <p className="text-sm">
+                  <span className="font-black">Alex</span>
+                  <span className="mt-1 block rounded-xl bg-white/10 p-3 text-white">
+                    {submittedQuery}
+                  </span>
+                </p>
+                <p className="text-sm">
+                  <span className="font-black">MapAble</span>
+                  <span className="mt-1 block rounded-xl bg-[#005B7F] p-3">
+                    This Conversation demo only loads synthetic St Ives physio
+                    clinics for matching queries (or{" "}
+                    <code className="text-xs">?demo=st-ives</code>). Switch to
+                    Web for public MapAble destinations, or try “Find a physio
+                    near St Ives with a ceiling hoist”.
                   </span>
                 </p>
               </div>
@@ -818,13 +875,21 @@ export function MapAbleSearchWorkspace({
                     min={700}
                     max={1200}
                     step={10}
-                    value={doorMinimum}
-                    onChange={(event) =>
-                      updateDoorMinimum(
-                        Number(event.target.value) ||
-                          DEFAULT_DOORWAY_MINIMUM_MM,
-                      )
-                    }
+                    value={doorInput}
+                    onChange={(event) => {
+                      const raw = event.target.value;
+                      setDoorInput(raw);
+                      if (raw === "") return;
+                      const parsed = Number(raw);
+                      if (
+                        Number.isFinite(parsed) &&
+                        parsed >= 700 &&
+                        parsed <= 1200
+                      ) {
+                        updateDoorMinimum(Math.round(parsed));
+                      }
+                    }}
+                    onBlur={() => commitDoorInput(doorInput)}
                     className="mt-1 block min-h-11 w-28 rounded-lg border border-slate-300 px-2"
                   />
                 </label>

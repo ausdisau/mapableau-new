@@ -66,6 +66,13 @@ describe("St Ives synthetic Search demo", () => {
     expect(copy.toLowerCase()).not.toMatch(/gold|silver|registered|94\/100/);
   });
 
+  it("summarises honestly when both clinics meet a lower doorway minimum", () => {
+    const copy = assistantSummaryForMinimum(870);
+    expect(copy).toMatch(/Both demo clinics meet/i);
+    expect(copy).not.toMatch(/below it/i);
+    expect(copy).not.toMatch(/One demo clinic meets/i);
+  });
+
   it("populates demo only for explicit demo or matching conversation query", () => {
     expect(
       shouldPopulateStIvesDemo({
@@ -88,6 +95,13 @@ describe("St Ives synthetic Search demo", () => {
         query: "Find a physio near St Ives with a ceiling hoist",
       }),
     ).toBe(true);
+    expect(
+      shouldPopulateStIvesDemo({
+        demoParam: null,
+        presentation: "conversation",
+        query: "jobs in Perth",
+      }),
+    ).toBe(false);
   });
 
   it("uses stable clinic ids across the fixture set", () => {
