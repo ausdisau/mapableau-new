@@ -33,7 +33,7 @@ ETHICALADS_PUBLISHER_ID=
 | Provider | env flag + `AdProviderConfig.enabled` |
 | Campaign / advertiser | status `PAUSED` / `DISABLED` |
 | Placement / surface | surface flags + `AdPlacement.status` |
-| Sponsored phrase (Explore pilot) | `MAPABLE_ADS_SPONSORED_PHRASE_ENABLED` + reader preference (default off); server passes enablement into the client placement so `MAPABLE_ADS_GLOBAL_KILL_SWITCH` is honoured; local fixtures only |
+| Sponsored phrase (Explore pilot) | `MAPABLE_ADS_SPONSORED_PHRASE_ENABLED` + reader preference (default off); enablement is evaluated in `app/(marketing)/page.tsx` (Server Component) and passed through the client homepage tree so private env + `MAPABLE_ADS_GLOBAL_KILL_SWITCH` are honoured; local fixtures only |
 | Auction delivery | `MAPABLE_ADS_AUCTION_ENABLED` (also blocked by global kill) |
 | Billing charges | `MAPABLE_ADS_BILLING_ENABLED` |
 | Stripe top-ups | `MAPABLE_ADS_STRIPE_TOPUPS_ENABLED` |

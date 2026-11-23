@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { MapAbleCareCombinedHomepageSections } from "@/components/marketing/MapAbleCareCombinedHomepage";
+import { adsFlagsConfig } from "@/lib/ads/config/flags";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
 
 export const metadata: Metadata = {
@@ -17,5 +18,15 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <MapAbleCareCombinedHomepageSections />;
+  // True Server Component — private MAPABLE_ADS_* env is available here.
+  // HomepageExploreStrip lives under a client parent, so enablement must be
+  // passed down rather than re-read from process.env in the client bundle.
+  const sponsoredPhraseServerEnabled =
+    adsFlagsConfig.isSponsoredPhraseEnabled();
+
+  return (
+    <MapAbleCareCombinedHomepageSections
+      sponsoredPhraseServerEnabled={sponsoredPhraseServerEnabled}
+    />
+  );
 }

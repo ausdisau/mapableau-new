@@ -79,6 +79,26 @@ describe("sponsored phrase flags", () => {
       NEXT_PUBLIC_MAPABLE_ADS_SPONSORED_PHRASE_ENABLED: "true",
     })).toBe(true);
   });
+
+  it("marketing page evaluates flags in a Server Component and passes them down", async () => {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const pageSource = await fs.readFile(
+      path.join(process.cwd(), "app/(marketing)/page.tsx"),
+      "utf8",
+    );
+    const exploreSource = await fs.readFile(
+      path.join(
+        process.cwd(),
+        "components/marketing/home/HomepageExploreStrip.tsx",
+      ),
+      "utf8",
+    );
+    expect(pageSource).toContain("adsFlagsConfig.isSponsoredPhraseEnabled");
+    expect(pageSource).toContain("sponsoredPhraseServerEnabled=");
+    // Explore strip is under a client parent — must not re-read private env.
+    expect(exploreSource).not.toContain("adsFlagsConfig");
+  });
 });
 
 describe("sponsored links preference", () => {
