@@ -60,6 +60,7 @@ module.exports = {
       fontFamily: {
         sans: ["var(--font-sans)", "Plus Jakarta Sans", "sans-serif"],
         heading: ["var(--font-heading)", "Outfit", "sans-serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
       },
     },
   },

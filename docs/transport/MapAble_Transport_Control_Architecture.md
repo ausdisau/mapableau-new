@@ -72,3 +72,9 @@ Stop and report HOLD if: schema conflicts with in-flight transport PRs; authenti
 ## Rollout
 
 All new Phase 1 surfaces default flag-off. Phase 0 is pure hardening (revert to rollback). Do not merge, deploy, or flip live flags from agent automation.
+
+## Participant booking UI scaffold
+
+Scoped design tokens live under `.transport-booking` in `styles/transport-booking.css` (civic teal `#0D6E6E`, slate canvas, amber/emerald evidence accents, 3px `#0284C7` focus ring). Global MapAble fonts remain Plus Jakarta Sans + Outfit; JetBrains Mono is loaded only for trip IDs / coordinates / NDIS line items.
+
+UX rules: list-first (map optional via split/list toggle); evidence pills are structured text (not colour-only); human gate before submit; live telemetry UI stays behind `TRANSPORT_LIVE_TRACKING_ENABLED` and defaults to unavailable / polling fallback. Contrast ratios in the scaffold are design targets — do not claim WCAG certification without a current audit.

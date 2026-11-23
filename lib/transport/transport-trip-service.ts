@@ -3,6 +3,7 @@ import type { Prisma, TransportTripStatus } from "@prisma/client";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
 import { bridgeTransportTripToBooking } from "@/lib/transport/booking-bridge-service";
+import { providerMobilitySummary } from "@/lib/transport/booking-consent";
 import { logDataAccess } from "@/lib/transport/data-access-log-service";
 import {
   normalizeMobilityRequirements,
@@ -17,7 +18,7 @@ import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
 import { buildTripResponse } from "@/lib/transport/transport-response";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
-import type { CreateTransportTripInput } from "@/lib/validation/transport-trip-schemas";
+import type { CreateTransportTripInput, PatchTransportTripInput } from "@/lib/validation/transport-trip-schemas";
 
 function defaultScheduledEnd(start: Date) {
   return new Date(start.getTime() + 60 * 60 * 1000);
@@ -43,90 +44,85 @@ export async function createTransportTrip(
       ...prefill.mobilityRequirements,
       ...mobilityRequirements,
     });
-    if (!accessNotes && prefill.accessNotes) {
+    // The booking workspace requests profile prefill for mobility only.
+    if (input.consentScopes === undefined && !accessNotes && prefill.accessNotes) {
       accessNotes = prefill.accessNotes;
     }
   } else {
     mobilityRequirements = normalizeMobilityRequirements(mobilityRequirements);
   }
 
-  const mobilityJson = mobilityRequirements as Prisma.InputJsonValue;
+  const consentScopes = input.consentScopes ?? [];
 
-  const request = await prisma.transportTripRequest.create({
-    data: {
-      participantId: user.id,
-      providerOrganisationId: input.providerOrganisationId,
-      pickupAddress: input.pickupAddress,
-      pickupSuburb: input.pickupSuburb,
-      pickupLat: input.pickupLat,
-      pickupLng: input.pickupLng,
-      dropoffAddress: input.dropoffAddress,
-      dropoffSuburb: input.dropoffSuburb,
-      dropoffLat: input.dropoffLat,
-      dropoffLng: input.dropoffLng,
-      scheduledStart,
-      scheduledEnd,
-      accessNotes,
-      mobilityRequirements: mobilityJson,
-      status: "open",
-    },
-  });
+  const details = {
+    participantId: user.id,
+    providerOrganisationId: input.providerOrganisationId,
+    pickupAddress: input.pickupAddress,
+    pickupSuburb: input.pickupSuburb,
+    pickupLat: input.pickupLat,
+    pickupLng: input.pickupLng,
+    dropoffAddress: input.dropoffAddress,
+    dropoffSuburb: input.dropoffSuburb,
+    dropoffLat: input.dropoffLat,
+    dropoffLng: input.dropoffLng,
+    scheduledStart,
+    scheduledEnd,
+    accessNotes,
+    mobilityRequirements: mobilityRequirements as Prisma.InputJsonValue,
+  };
 
-  const trip = await prisma.transportTrip.create({
-    data: {
-      tripRequestId: request.id,
-      participantId: user.id,
-      providerOrganisationId: input.providerOrganisationId,
-      status: input.providerOrganisationId ? "provider_review" : "requested",
-      pickupAddress: input.pickupAddress,
-      pickupSuburb: input.pickupSuburb,
-      pickupLat: input.pickupLat,
-      pickupLng: input.pickupLng,
-      dropoffAddress: input.dropoffAddress,
-      dropoffSuburb: input.dropoffSuburb,
-      dropoffLat: input.dropoffLat,
-      dropoffLng: input.dropoffLng,
-      accessNotes,
-      scheduledStart,
-      scheduledEnd,
-      mobilityRequirements: mobilityJson,
-    },
-  });
+  const trip = await prisma.$transaction(async (tx) => {
+    const request = await tx.transportTripRequest.create({
+      data: { ...details, status: "open" },
+    });
 
-  await prisma.transportTripStop.createMany({
-    data: [
-      {
-        tripId: trip.id,
-        sequence: 1,
-        stopType: "pickup",
-        label: "Pickup",
-        address: input.pickupAddress,
-        suburb: input.pickupSuburb,
-        lat: input.pickupLat,
-        lng: input.pickupLng,
-        windowStart: scheduledStart,
-        windowEnd: scheduledEnd,
+    const trip = await tx.transportTrip.create({
+      data: {
+        ...details,
+        tripRequestId: request.id,
+        consentScopes,
+        status: input.providerOrganisationId ? "provider_review" : "requested",
       },
-      {
-        tripId: trip.id,
-        sequence: 2,
-        stopType: "dropoff",
-        label: "Drop-off",
-        address: input.dropoffAddress,
-        suburb: input.dropoffSuburb,
-        lat: input.dropoffLat,
-        lng: input.dropoffLng,
-      },
-    ],
-  });
+    });
 
-  await recordTripEvent({
-    tripId: trip.id,
-    actorUserId: user.id,
-    eventType: "created",
-    toStatus: trip.status,
-    participantId: trip.participantId,
-    organisationId: trip.providerOrganisationId ?? undefined,
+    await tx.transportTripStop.createMany({
+      data: [
+        {
+          tripId: trip.id,
+          sequence: 1,
+          stopType: "pickup",
+          label: "Pickup",
+          address: input.pickupAddress,
+          suburb: input.pickupSuburb,
+          lat: input.pickupLat,
+          lng: input.pickupLng,
+          windowStart: scheduledStart,
+          windowEnd: scheduledEnd,
+        },
+        {
+          tripId: trip.id,
+          sequence: 2,
+          stopType: "dropoff",
+          label: "Drop-off",
+          address: input.dropoffAddress,
+          suburb: input.dropoffSuburb,
+          lat: input.dropoffLat,
+          lng: input.dropoffLng,
+        },
+      ],
+    });
+
+    await recordTripEvent({
+      tx,
+      metadata: { consentScopes },
+      tripId: trip.id,
+      actorUserId: user.id,
+      eventType: "created",
+      toStatus: trip.status,
+      participantId: trip.participantId,
+      organisationId: trip.providerOrganisationId ?? undefined,
+    });
+    return trip;
   });
 
   return buildTripResponse({ trip, user });
@@ -194,12 +190,7 @@ export async function getTransportTripForUser(user: CurrentUser, tripId: string)
 export async function patchTransportTrip(
   user: CurrentUser,
   tripId: string,
-  data: {
-    scheduledStart?: string;
-    scheduledEnd?: string;
-    accessNotes?: string;
-    mobilityRequirements?: Record<string, unknown>;
-  }
+  data: PatchTransportTripInput
 ) {
   const trip = await prisma.transportTrip.findUnique({ where: { id: tripId } });
   if (!trip) throw new TransportApiError("TRANSPORT_TRIP_NOT_FOUND");
@@ -207,25 +198,31 @@ export async function patchTransportTrip(
     throw new TransportApiError("TRANSPORT_ACCESS_DENIED");
   }
 
-  const updated = await prisma.transportTrip.update({
-    where: { id: tripId },
-    data: {
-      scheduledStart: data.scheduledStart
-        ? new Date(data.scheduledStart)
-        : undefined,
-      scheduledEnd: data.scheduledEnd ? new Date(data.scheduledEnd) : undefined,
-      accessNotes: data.accessNotes,
-      mobilityRequirements: data.mobilityRequirements as
-        | Prisma.InputJsonValue
-        | undefined,
-    },
-  });
+  const updated = await prisma.$transaction(async (tx) => {
+    const updated = await tx.transportTrip.update({
+      where: { id: tripId },
+      data: {
+        scheduledStart: data.scheduledStart
+          ? new Date(data.scheduledStart)
+          : undefined,
+        scheduledEnd: data.scheduledEnd ? new Date(data.scheduledEnd) : undefined,
+        consentScopes: data.consentScopes,
+        accessNotes: data.accessNotes,
+        mobilityRequirements: data.mobilityRequirements as
+          | Prisma.InputJsonValue
+          | undefined,
+      },
+    });
 
-  await recordTripEvent({
-    tripId,
-    actorUserId: user.id,
-    eventType: "updated",
-    participantId: trip.participantId,
+    await recordTripEvent({
+      tx,
+      metadata: data.consentScopes ? { consentScopes: data.consentScopes } : undefined,
+      tripId,
+      actorUserId: user.id,
+      eventType: "updated",
+      participantId: trip.participantId,
+    });
+    return updated;
   });
 
   return buildTripResponse({ trip: updated, user });
@@ -329,8 +326,24 @@ export async function listProviderTripRequests(user: CurrentUser, orgId: string)
     },
     orderBy: { scheduledStart: "asc" },
     take: 50,
+    omit: { accessNotes: true, mobilityRequirements: true },
+    include: {
+      trip: {
+        select: {
+          providerOrganisationId: true,
+          consentScopes: true,
+          mobilityRequirements: true,
+        },
+      },
+    },
   });
-  return requests;
+  return requests.map(({ trip, ...request }) => ({
+    ...request,
+    mobilityRequirements:
+      trip?.providerOrganisationId === orgId
+        ? providerMobilitySummary(trip.consentScopes, trip.mobilityRequirements)
+        : {},
+  }));
 }
 
 export async function listProviderTrips(user: CurrentUser, orgId: string) {

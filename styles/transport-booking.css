@@ -1,0 +1,129 @@
+/**
+ * Scoped Transport Booking design tokens (MapAble civic-grade scaffold).
+ * Apply via className="transport-booking" — does not replace global brand tokens.
+ */
+
+.transport-booking {
+  --tb-bg-canvas: #f8fafc;
+  --tb-bg-surface: #ffffff;
+  --tb-bg-surface-muted: #f1f5f9;
+  --tb-ink-primary: #0f172a;
+  --tb-ink-secondary: #334155;
+  --tb-brand-teal: #0d6e6e;
+  --tb-brand-teal-hover: #095252;
+  --tb-brand-teal-soft: #e6f4f4;
+  --tb-accent-amber: #b45309;
+  --tb-accent-emerald: #047857;
+  --tb-border-subtle: #cbd5e1;
+  --tb-focus-ring: #0284c7;
+  --tb-radius: 12px;
+  --tb-touch-min: 48px;
+
+  background-color: var(--tb-bg-canvas);
+  color: var(--tb-ink-primary);
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+.transport-booking .tb-surface {
+  background-color: var(--tb-bg-surface);
+  border: 1px solid var(--tb-border-subtle);
+  border-radius: var(--tb-radius);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+}
+
+.transport-booking .tb-surface-muted {
+  background-color: var(--tb-bg-surface-muted);
+  border-radius: calc(var(--tb-radius) - 4px);
+}
+
+.transport-booking .tb-ink-secondary {
+  color: var(--tb-ink-secondary);
+}
+
+.transport-booking .tb-mono {
+  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.875rem;
+}
+
+.transport-booking .tb-btn-primary {
+  display: inline-flex;
+  min-height: var(--tb-touch-min);
+  min-width: var(--tb-touch-min);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--tb-radius);
+  background-color: var(--tb-brand-teal);
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.transport-booking .tb-btn-primary:hover {
+  background-color: var(--tb-brand-teal-hover);
+}
+
+.transport-booking .tb-btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.transport-booking .tb-btn-secondary {
+  display: inline-flex;
+  min-height: var(--tb-touch-min);
+  min-width: var(--tb-touch-min);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--tb-border-subtle);
+  border-radius: var(--tb-radius);
+  background-color: var(--tb-bg-surface);
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  color: var(--tb-ink-primary);
+}
+
+.transport-booking :focus-visible {
+  outline: 3px solid var(--tb-focus-ring);
+  outline-offset: 2px;
+}
+
+.transport-booking .tb-evidence-pill {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background-color: var(--tb-bg-surface-muted);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--tb-ink-secondary);
+}
+
+.transport-booking .tb-evidence-pill strong {
+  color: var(--tb-ink-primary);
+  font-weight: 600;
+}
+
+.transport-booking .tb-step-number {
+  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 700;
+  color: var(--tb-brand-teal);
+}
+
+.transport-booking .tb-pilot-banner {
+  border: 1px solid var(--tb-border-subtle);
+  border-radius: var(--tb-radius);
+  background-color: var(--tb-brand-teal-soft);
+  color: var(--tb-brand-teal-hover);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.transport-booking .tb-warning {
+  border: 1px solid #fcd34d;
+  border-radius: var(--tb-radius);
+  background-color: #fffbeb;
+  color: var(--tb-accent-amber);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}

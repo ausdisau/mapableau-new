@@ -1,6 +1,7 @@
 import type { TransportTripStatus } from "@prisma/client";
 import { z } from "zod";
 
+import { bookingConsentScopesSchema } from "@/lib/transport/booking-consent";
 import { mobilityRequirementsSchema } from "@/lib/transport/mobility-schema";
 import { TRANSPORT_TRIP_STATUSES } from "@/types/transport";
 
@@ -22,6 +23,7 @@ export const createTransportTripSchema = z.object({
   dropoffLng: z.number().optional(),
   scheduledStart: z.string().datetime(),
   scheduledEnd: z.string().datetime().optional(),
+  consentScopes: bookingConsentScopesSchema.optional(),
   accessNotes: z.string().max(2000).optional(),
   mobilityRequirements: mobilityRequirementsSchema.optional(),
   providerOrganisationId: z.string().optional(),
@@ -31,6 +33,7 @@ export const createTransportTripSchema = z.object({
 export const patchTransportTripSchema = z.object({
   scheduledStart: z.string().datetime().optional(),
   scheduledEnd: z.string().datetime().optional(),
+  consentScopes: bookingConsentScopesSchema.optional(),
   accessNotes: z.string().max(2000).optional(),
   mobilityRequirements: mobilityRequirementsSchema.optional(),
 });
@@ -71,3 +74,4 @@ export const reportSafetyIssueSchema = z.object({
 });
 
 export type CreateTransportTripInput = z.infer<typeof createTransportTripSchema>;
+export type PatchTransportTripInput = z.infer<typeof patchTransportTripSchema>;

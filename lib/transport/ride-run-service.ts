@@ -3,6 +3,7 @@ import type { RideRunStatus } from "@prisma/client";
 import type { CurrentUser } from "@/lib/auth/current-user";
 import { transportAccessibleConfig } from "@/lib/config/transport-accessible";
 import { prisma } from "@/lib/prisma";
+import { omitTripSharingFields } from "@/lib/transport/booking-consent";
 import {
   EXTRA_BOARDING_BUFFER_MINUTES,
   mergeMobilityRequirementsStrictest,
@@ -133,7 +134,7 @@ export async function createRideRun(
       notes: input.notes,
       requiresHumanReview: true,
     },
-    include: { trips: true, vehicle: true, driver: true },
+    include: { trips: { omit: omitTripSharingFields }, vehicle: true, driver: true },
   });
 }
 
@@ -291,7 +292,7 @@ export async function attachTripToRideRun(
 
   return prisma.rideRun.findUnique({
     where: { id: rideRunId },
-    include: { trips: true, vehicle: true, driver: true },
+    include: { trips: { omit: omitTripSharingFields }, vehicle: true, driver: true },
   });
 }
 
@@ -353,7 +354,7 @@ export async function lockRideRun(
   return prisma.rideRun.update({
     where: { id: rideRunId },
     data: { status: "locked" as RideRunStatus, requiresHumanReview: false },
-    include: { trips: true },
+    include: { trips: { omit: omitTripSharingFields } },
   });
 }
 
@@ -362,7 +363,7 @@ export async function listRideRuns(user: CurrentUser, orgId: string) {
   return prisma.rideRun.findMany({
     where: { providerOrganisationId: orgId },
     orderBy: { scheduledStart: "desc" },
-    include: { trips: true, vehicle: true, driver: true },
+    include: { trips: { omit: omitTripSharingFields }, vehicle: true, driver: true },
     take: 50,
   });
 }

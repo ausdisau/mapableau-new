@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { PATCH as updateBooking } from "@/app/api/transport/trips/[tripId]/route";
+import { POST as submitBooking } from "@/app/api/transport/trips/route";
+import { requireApiSession } from "@/lib/api/auth-handler";
 import type { CurrentUser } from "@/lib/auth/current-user";
+import { createIncident } from "@/lib/incidents/incident-service";
+import { prisma } from "@/lib/prisma";
+import { bookingScope } from "@/lib/transport/booking-consent";
+import { logDataAccess } from "@/lib/transport/data-access-log-service";
+import { mockRoutingAdapter } from "@/lib/transport/routing/mock-routing-adapter";
+import { OsrmRoutingAdapter } from "@/lib/transport/routing/osrm-routing-adapter";
+import { createOptimisationJob } from "@/lib/transport/routing/route-optimisation-service";
 import { resolveTripAccess } from "@/lib/transport/transport-access-policy";
 import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { assignDriverAndVehicle } from "@/lib/transport/transport-assignment-service";
@@ -9,13 +19,11 @@ import {
   checkVehicleEligibility,
 } from "@/lib/transport/transport-eligibility-service";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
-import { buildPermissions } from "@/lib/transport/transport-response";
+import { buildPermissions, buildTripResponse } from "@/lib/transport/transport-response";
 import { reportTripSafetyIssue } from "@/lib/transport/transport-safety-service";
 import { detectScheduleConflicts } from "@/lib/transport/transport-schedule-conflict-service";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
-import { mockRoutingAdapter } from "@/lib/transport/routing/mock-routing-adapter";
-import { OsrmRoutingAdapter } from "@/lib/transport/routing/osrm-routing-adapter";
-import { createOptimisationJob } from "@/lib/transport/routing/route-optimisation-service";
+import { createTransportTrip, getTransportTripForUser } from "@/lib/transport/transport-trip-service";
 
 const participantUser: CurrentUser = {
   id: "participant-1",
@@ -75,6 +83,7 @@ const baseTrip = {
   accessNotes: "Ring bell",
   scheduledStart: new Date("2026-06-01T09:00:00Z"),
   scheduledEnd: new Date("2026-06-01T10:00:00Z"),
+  consentScopes: [],
   mobilityRequirements: {},
   disputeReason: null,
   returnAssuranceStatus: null,
@@ -137,6 +146,11 @@ const { prismaMock } = vi.hoisted(() => {
   return { prismaMock };
 });
 
+vi.mock("@/lib/api/auth-handler", () => ({
+  requireApiPermission: vi.fn(async () => participantUser),
+  requireApiSession: vi.fn(async () => participantUser),
+}));
+
 vi.mock("@/lib/prisma", () => ({
   prisma: prismaMock,
 }));
@@ -157,10 +171,7 @@ vi.mock("next/headers", () => ({
   headers: vi.fn().mockResolvedValue(new Headers()),
 }));
 
-import { prisma } from "@/lib/prisma";
-import { createTransportTrip, getTransportTripForUser } from "@/lib/transport/transport-trip-service";
-import { logDataAccess } from "@/lib/transport/data-access-log-service";
-import { createIncident } from "@/lib/incidents/incident-service";
+
 
 vi.mock("@/lib/incidents/incident-service", () => ({
   createIncident: vi.fn().mockResolvedValue({ id: "incident-1" }),
@@ -563,5 +574,142 @@ describe("participant create trip", () => {
       scheduledStart: "2026-06-01T09:00:00.000Z",
     });
     expect(res.trip.id).toBe("trip-new");
+  });
+});
+
+describe("booking consent server handoff", () => {
+  const tripBody = {
+    pickupAddress: "1 Pickup Street",
+    dropoffAddress: "2 Destination Road",
+    scheduledStart: "2026-11-22T09:00:00.000Z",
+  };
+  const { kerbsideNote, mobilitySummary, ndisLineItemTag } = bookingScope;
+
+  function submit(consentScopes: unknown) {
+    return submitBooking(
+      new Request("https://example.test/api/transport/trips", {
+        method: "POST",
+        body: JSON.stringify({ ...tripBody, consentScopes }),
+      })
+    );
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    prismaMock.transportTripRequest.create.mockResolvedValue({ id: "req-1" });
+    prismaMock.transportTrip.create.mockImplementation(async ({ data }) => ({
+      ...baseTrip,
+      ...data,
+    }));
+    prismaMock.transportDispatchAssignment.findFirst.mockResolvedValue(null);
+  });
+
+  it.each([
+    { scopes: undefined },
+    { scopes: [] },
+    { scopes: [ndisLineItemTag] },
+    { scopes: [mobilitySummary, kerbsideNote] },
+    { scopes: [kerbsideNote, mobilitySummary, ndisLineItemTag] },
+  ])(
+    "persists the selected set from POST and returns the participant's receipt ($scopes)",
+    async ({ scopes }) => {
+      const response = await submit(scopes);
+      expect(response.status).toBe(201);
+      const selected = scopes ?? [];
+      expect(
+        prismaMock.transportTrip.create.mock.calls[0][0].data.consentScopes
+      ).toEqual(selected);
+      expect(
+        prismaMock.transportTripEvent.create.mock.calls[0][0].data.metadata
+      ).toEqual({ consentScopes: selected });
+      expect((await response.json()).trip.consentScopes).toEqual(selected);
+    }
+  );
+
+  it.each(
+    [
+      null,
+      "all",
+      ["unknown"],
+      [kerbsideNote, "unknown"],
+      [mobilitySummary, mobilitySummary],
+    ].map((scopes) => ({ scopes }))
+  )(
+    "rejects malformed choices before starting a write ($scopes)",
+    async ({ scopes }) => {
+      expect((await submit(scopes)).status).toBe(400);
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    }
+  );
+
+  it("lets only the owner replace the saved set, including withdrawal to zero", async () => {
+    let stored = { ...baseTrip, consentScopes: [kerbsideNote] as string[] };
+    prismaMock.transportTrip.findUnique.mockImplementation(async () => stored);
+    prismaMock.transportTrip.update.mockImplementation(async ({ data }) => {
+      stored = {
+        ...stored,
+        consentScopes: data.consentScopes ?? stored.consentScopes,
+      };
+      return stored;
+    });
+    const patch = (body: object) =>
+      updateBooking(
+        new Request("https://example.test/api/transport/trips/trip-1", {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        }),
+        { params: Promise.resolve({ tripId: stored.id }) }
+      );
+    vi.mocked(requireApiSession).mockResolvedValueOnce(otherParticipant);
+    expect((await patch({ consentScopes: [] })).status).toBe(403);
+    expect(prismaMock.transportTrip.update).not.toHaveBeenCalled();
+    expect((await patch({ accessNotes: "Updated pickup note" })).status).toBe(
+      200
+    );
+    expect(stored.consentScopes).toEqual([kerbsideNote]);
+    expect((await patch({ consentScopes: [] })).status).toBe(200);
+    expect(stored.consentScopes).toEqual([]);
+    expect(
+      prismaMock.transportTripEvent.create.mock.lastCall?.[0].data.metadata
+    ).toEqual({ consentScopes: [] });
+  });
+
+  it("applies each recipient's grant independently", async () => {
+    prismaMock.transportDriver.findFirst.mockResolvedValue({ id: "assigned" });
+    prismaMock.transportDispatchAssignment.findFirst.mockResolvedValue({
+      driverId: "assigned",
+      driver: { userId: driverUser.id },
+    });
+    const requirements = {
+      requiresHoist: true,
+      mobilityAidNotes: "private note",
+      poolingAccepted: true,
+    };
+    const choices: string[][] = [
+      [],
+      [kerbsideNote],
+      [mobilitySummary],
+      [ndisLineItemTag],
+      [kerbsideNote, mobilitySummary],
+    ];
+    for (const consentScopes of choices) {
+      const trip = {
+        ...baseTrip,
+        mobilityRequirements: requirements,
+        consentScopes,
+      };
+      const provider = await buildTripResponse({ trip, user: providerUser });
+      const driver = await buildTripResponse({ trip, user: driverUser });
+      expect(provider.trip.pickup.accessNotes).toBeUndefined();
+      expect(provider.trip.mobilityRequirements).toEqual(
+        consentScopes.includes(mobilitySummary) ? { requiresHoist: true } : {}
+      );
+      expect(driver.trip.pickup.accessNotes).toBe(
+        consentScopes.includes(kerbsideNote) ? trip.accessNotes : undefined
+      );
+      expect(driver.trip.mobilityRequirements).toEqual({});
+      expect(provider.trip.consentScopes).toBeUndefined();
+      expect(driver.trip.consentScopes).toBeUndefined();
+    }
   });
 });
