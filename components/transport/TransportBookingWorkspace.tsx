@@ -46,6 +46,8 @@ export function TransportBookingWorkspace() {
   const [consentIds, setConsentIds] = useState<string[]>([]);
   const [humanGateConfirmed, setHumanGateConfirmed] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  /** Once the client has applied (or attempted) prefill, local mobility is authoritative. */
+  const [clientPrefillResolved, setClientPrefillResolved] = useState(false);
 
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupSuburb, setPickupSuburb] = useState("");
@@ -56,8 +58,12 @@ export function TransportBookingWorkspace() {
   const [accessNotes, setAccessNotes] = useState("");
 
   useEffect(() => {
-    if (!prefillFromProfile) return;
+    if (!prefillFromProfile) {
+      setClientPrefillResolved(false);
+      return;
+    }
     let cancelled = false;
+    setClientPrefillResolved(false);
     fetch("/api/transport/mobility-prefill")
       .then((r) => r.json())
       .then((data: {
@@ -72,8 +78,11 @@ export function TransportBookingWorkspace() {
           }));
         }
         setProfileLoaded(data.fromProfile === true);
+        setClientPrefillResolved(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setClientPrefillResolved(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -171,7 +180,9 @@ export function TransportBookingWorkspace() {
           accessNotes: accessNotes || undefined,
           mobilityRequirements:
             Object.keys(mobility).length > 0 ? mobility : undefined,
-          prefillFromProfile,
+          // After client-side hydrate, do not ask the server to re-merge profile
+          // flags (unchecked boxes must stay off).
+          prefillFromProfile: prefillFromProfile && !clientPrefillResolved,
           consentScopes: consentIds,
         }),
       });

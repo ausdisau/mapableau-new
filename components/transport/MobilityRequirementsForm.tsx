@@ -29,7 +29,9 @@ export function MobilityRequirementsForm({
   idPrefix?: string;
 }) {
   function toggle(key: keyof MobilityRequirements, checked: boolean) {
-    onChange({ ...values, [key]: checked || undefined });
+    // Persist explicit false so JSON.stringify keeps the key and server-side
+    // profile merge cannot resurrect a flag the participant unchecked.
+    onChange({ ...values, [key]: checked });
   }
 
   return (

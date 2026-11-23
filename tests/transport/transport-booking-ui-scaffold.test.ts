@@ -251,11 +251,82 @@ it("prefills mobility checkboxes and confirmation from the accessibility profile
   );
   expect(tripCall).toBeTruthy();
   const body = JSON.parse(String((tripCall![1] as RequestInit).body));
-  expect(body.prefillFromProfile).toBe(true);
+  // Client already hydrated prefill — server must not re-merge profile flags.
+  expect(body.prefillFromProfile).toBe(false);
   expect(body.mobilityRequirements).toMatchObject({
     requiresWheelchairAccessible: true,
     requiresHoist: true,
   });
+});
+
+it("keeps unchecked prefill flags off in the create payload", async () => {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("/api/transport/mobility-prefill")) {
+      return Response.json({
+        mobilityRequirements: {
+          requiresWheelchairAccessible: true,
+          requiresHoist: true,
+        },
+        fromProfile: true,
+        profileShared: true,
+      });
+    }
+    if (url === "/api/transport/trips" && init?.method === "POST") {
+      return Response.json({ trip: { id: "trip-uncheck-1" } }, { status: 201 });
+    }
+    return Response.json({}, { status: 404 });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
+  render(React.createElement(TransportBookingWorkspace));
+  fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+    target: { value: "1 Pickup Street" },
+  });
+  fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+    target: { value: "2 Destination Road" },
+  });
+  fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+    target: { value: "2026-11-22T09:00" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /Continue to access needs/i })
+  );
+  await waitFor(() => {
+    expect(
+      screen.getByRole("checkbox", { name: /Hoist required/i })
+    ).toHaveProperty("checked", true);
+  });
+  fireEvent.click(screen.getByRole("checkbox", { name: /Hoist required/i }));
+  expect(
+    screen.getByRole("checkbox", { name: /Hoist required/i })
+  ).toHaveProperty("checked", false);
+
+  fireEvent.click(screen.getByRole("button", { name: /Continue to consent/i }));
+  fireEvent.click(screen.getByRole("button", { name: /Continue to confirm/i }));
+  expect(screen.queryByText(/Rear hoist required/i)).toBeNull();
+  fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/i }));
+  fireEvent.click(
+    screen.getByRole("button", { name: /Confirm transport request/i })
+  );
+  await waitFor(() =>
+    expect(
+      fetchMock.mock.calls.some(
+        ([url, init]) =>
+          String(url) === "/api/transport/trips" &&
+          (init as RequestInit | undefined)?.method === "POST"
+      )
+    ).toBe(true)
+  );
+  const tripCall = fetchMock.mock.calls.find(
+    ([url, init]) =>
+      String(url) === "/api/transport/trips" &&
+      (init as RequestInit | undefined)?.method === "POST"
+  );
+  const body = JSON.parse(String((tripCall![1] as RequestInit).body));
+  expect(body.prefillFromProfile).toBe(false);
+  expect(body.mobilityRequirements.requiresHoist).toBe(false);
+  expect(body.mobilityRequirements.requiresWheelchairAccessible).toBe(true);
 });
 
 it("submits only the choices still checked when the participant confirms", async () => {
