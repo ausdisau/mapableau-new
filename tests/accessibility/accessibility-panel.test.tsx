@@ -77,7 +77,7 @@ describe("AccessibilityPanel", () => {
   it("exposes an accessible trigger name", () => {
     renderPanelShell();
     expect(
-      screen.getByRole("button", { name: /open accessibility settings/i }),
+      screen.getByRole("button", { name: /open display settings/i }),
     ).toBeTruthy();
   });
 
@@ -85,7 +85,7 @@ describe("AccessibilityPanel", () => {
     const user = userEvent.setup();
     renderPanelShell();
     await user.click(
-      screen.getByRole("button", { name: /open accessibility settings/i }),
+      screen.getByRole("button", { name: /open display settings/i }),
     );
 
     const dialog = screen.getByTestId("accessibility-panel");
@@ -104,7 +104,7 @@ describe("AccessibilityPanel", () => {
     const user = userEvent.setup();
     renderPanelShell();
     const trigger = screen.getByRole("button", {
-      name: /open accessibility settings/i,
+      name: /open display settings/i,
     });
     await user.click(trigger);
 
@@ -123,7 +123,7 @@ describe("AccessibilityPanel", () => {
     const user = userEvent.setup();
     renderPanelShell();
     await user.click(
-      screen.getByRole("button", { name: /open accessibility settings/i }),
+      screen.getByRole("button", { name: /open display settings/i }),
     );
     await user.click(screen.getByTestId("accessibility-panel-close"));
     await waitFor(() => {
@@ -137,7 +137,7 @@ describe("AccessibilityPanel", () => {
     const user = userEvent.setup();
     renderPanelShell();
     await user.click(
-      screen.getByRole("button", { name: /open accessibility settings/i }),
+      screen.getByRole("button", { name: /open display settings/i }),
     );
     await user.click(screen.getByRole("button", { name: /clearer vision/i }));
     expect(screen.getByText(/settings that changed/i)).toBeTruthy();
@@ -149,7 +149,7 @@ describe("AccessibilityPanel", () => {
     const user = userEvent.setup();
     renderPanelShell();
     await user.click(
-      screen.getByRole("button", { name: /open accessibility settings/i }),
+      screen.getByRole("button", { name: /open display settings/i }),
     );
     await user.click(screen.getByLabelText(/maximum \(200%\)/i));
     expect(document.documentElement.dataset.a11yTextScale).toBe("200");
@@ -159,7 +159,7 @@ describe("AccessibilityPanel", () => {
     const user = userEvent.setup();
     renderPanelShell();
     await user.click(
-      screen.getByRole("button", { name: /open accessibility settings/i }),
+      screen.getByRole("button", { name: /open display settings/i }),
     );
     await user.click(screen.getByRole("button", { name: /comfort mode/i }));
     await user.click(screen.getByTestId("accessibility-reset"));
@@ -172,7 +172,7 @@ describe("AccessibilityPanel", () => {
     const user = userEvent.setup();
     renderPanelShell();
     await user.click(
-      screen.getByRole("button", { name: /open accessibility settings/i }),
+      screen.getByRole("button", { name: /open display settings/i }),
     );
     const dialog = screen.getByTestId("accessibility-panel");
     expect(within(dialog).getByText(/saved on this device/i)).toBeTruthy();

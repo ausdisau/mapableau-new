@@ -45,7 +45,7 @@ function GuideCard({ guide }: { guide: AccessGuide }) {
 
   return (
     <article className={`${mapablePublicCardClass} flex h-full flex-col`}>
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#005B7F]">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0C1833]">
         {guide.state} · {guide.guideType}
       </p>
       <h3 className="mt-2 text-lg font-black text-[#0C1833]">{guide.city}</h3>
@@ -58,14 +58,14 @@ function GuideCard({ guide }: { guide: AccessGuide }) {
       <div className="mt-4 flex flex-wrap gap-3">
         <Link
           href={guide.href}
-          className={`inline-flex min-h-11 items-center text-sm font-bold text-[#005B7F] underline ${mapableCareFocusRing}`}
+          className={`inline-flex min-h-11 items-center text-sm font-bold text-[#0C1833] underline ${mapableCareFocusRing}`}
         >
           Open {guide.city} guide
         </Link>
         {localHref ? (
           <Link
             href={localHref}
-            className={`inline-flex min-h-11 items-center text-sm font-bold text-[#005B7F] underline ${mapableCareFocusRing}`}
+            className={`inline-flex min-h-11 items-center text-sm font-bold text-[#0C1833] underline ${mapableCareFocusRing}`}
           >
             Local access page
           </Link>
@@ -99,10 +99,10 @@ export function LocalAccessGuidesDirectory({
 
   return (
     <div className="bg-white text-[#0C1833]">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F6FBFC]">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[#F7F8FC]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F8C51C]/25 blur-3xl"
+          className="pointer-events-none absolute right-[-6rem] top-[-6rem] h-64 w-64 rounded-full bg-[#F26A21]/25 blur-3xl"
         />
         <div
           className={`${mapablePublicPageContainerClass} relative py-14 sm:py-20`}
@@ -229,7 +229,7 @@ export function LocalAccessGuidesDirectory({
         <>
           <section
             id="guides-capital"
-            className="border-b border-slate-200 bg-[#F6FBFC]"
+            className="border-b border-slate-200 bg-[#F7F8FC]"
             aria-labelledby="guides-capital-heading"
           >
             <div className={`${mapablePublicPageContainerClass} py-12 lg:py-16`}>

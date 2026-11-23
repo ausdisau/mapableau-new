@@ -48,7 +48,7 @@ export function AccessibilityAdjustmentControl<
               htmlFor={optionId}
               className={`relative inline-flex min-h-11 cursor-pointer items-center rounded-lg border px-3 text-sm font-semibold ${
                 selected
-                  ? "border-[#005B7F] bg-[#005B7F] text-white"
+                  ? "border-[#0C1833] bg-[#0C1833] text-white"
                   : "border-slate-300 bg-white text-[#0C1833]"
               } ${mapableCareFocusRing}`}
             >

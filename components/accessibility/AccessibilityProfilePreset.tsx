@@ -21,7 +21,7 @@ export function AccessibilityProfilePreset({
       type="button"
       className={`flex min-h-11 w-full flex-col items-start rounded-xl border px-3 py-3 text-left transition ${
         isActive
-          ? "border-[#005B7F] bg-[#005B7F]/10"
+          ? "border-[#0C1833] bg-[#0C1833]/10"
           : "border-slate-200 bg-white hover:bg-slate-50"
       } ${mapableCareFocusRing}`}
       onClick={() => applyPreset(presetId)}
@@ -31,7 +31,7 @@ export function AccessibilityProfilePreset({
       <span className="mt-1 text-xs leading-5 text-slate-600">
         {preset.description}
       </span>
-      <span className="mt-2 text-xs font-bold text-[#005B7F]">
+      <span className="mt-2 text-xs font-bold text-[#0C1833]">
         {isActive ? "Currently matching" : "Apply"}
       </span>
     </button>

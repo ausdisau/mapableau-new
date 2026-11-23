@@ -6,6 +6,11 @@ export function MapAbleCareTypography() {
   return null;
 }
 
+/**
+ * Decorative word-level tilt for marketing headlines.
+ * Parent supplies the accessible name (e.g. h1 text / aria-label).
+ * Words are aria-hidden so assistive tech does not double-announce.
+ */
 export function WavyText({
   text,
   className = "",
@@ -14,11 +19,7 @@ export function WavyText({
   className?: string;
 }) {
   return (
-    <span
-      role="img"
-      aria-label={text}
-      className={`mapable-display ${className}`}
-    >
+    <span aria-hidden="true" className={`mapable-display ${className}`}>
       {text.split(" ").map((word, wordIndex, words) => {
         const y = ["0em", "-0.045em", "0.025em", "-0.03em", "0.04em"][
           wordIndex % 5
@@ -29,7 +30,6 @@ export function WavyText({
         return (
           <React.Fragment key={`${word}-${wordIndex}`}>
             <span
-              aria-hidden="true"
               className="mapable-wavy-word"
               style={
                 {

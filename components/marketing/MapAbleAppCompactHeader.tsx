@@ -21,11 +21,11 @@ export function MapAbleAppCompactHeader({
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
         <Link
           href={logoHref}
-          className="flex items-center gap-3 rounded-xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F8C51C]/40"
+          className="flex items-center gap-3 rounded-xl p-1 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-[#F26A21]/40"
         >
           <LogoMark compact />
           <div className="hidden sm:block">
-            <span className="mapable-display text-lg font-black tracking-[-0.05em] text-[#005B7F]">
+            <span className="mapable-display text-lg font-black tracking-[-0.05em] text-[#3B5BDB]">
               MapAble
             </span>
             <span className="mapable-soft block text-[11px] font-bold uppercase tracking-[0.08em] text-[#0C1833]">

@@ -111,3 +111,4 @@ amalgamation/**/node_modules/
 amalgamation/**/dist/
 amalgamation/**/.next/
 
+tmp/
