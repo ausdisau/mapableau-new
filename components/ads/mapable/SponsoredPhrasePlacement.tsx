@@ -63,17 +63,13 @@ export function SponsoredPhrasePlacement({
     if (!featureEnabled || !hydrated) {
       return { ok: false as const, reasonCode: "FEATURE_FLAG_OFF" as const };
     }
-    // Mirror the server-evaluated outcome for this request — never hard-code
-    // enablement on the client (that would bypass an emergency kill switch).
+    // serverEnabled already came from the Server Component for this request.
+    // Do not re-read private MAPABLE_ADS_* env in the client bundle.
     return resolveSponsoredPhrase(
       { routePath, topicKey },
       {
         showSponsoredLinks,
-        env: {
-          MAPABLE_ADS_ENABLED: "true",
-          MAPABLE_ADS_SPONSORED_PHRASE_ENABLED: "true",
-          MAPABLE_ADS_GLOBAL_KILL_SWITCH: "false",
-        },
+        serverAuthorized: true,
       },
     );
   }, [featureEnabled, hydrated, routePath, topicKey, showSponsoredLinks]);

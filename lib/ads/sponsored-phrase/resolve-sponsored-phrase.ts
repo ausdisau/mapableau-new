@@ -40,6 +40,11 @@ export type ResolveSponsoredPhraseOptions = {
   inventory?: SponsoredPhraseCreative[];
   /** Prefer a specific creative id when multiple active creatives share a topic. */
   preferredCreativeId?: string;
+  /**
+   * When true, a Server Component already evaluated flags + kill for this
+   * request. Skips re-reading private env (unavailable in the client bundle).
+   */
+  serverAuthorized?: boolean;
 };
 
 const SYNTHETIC_ALLOWED_DESTINATIONS = new Set([
@@ -81,13 +86,20 @@ export function resolveSponsoredPhrase(
   const now = options.now ?? new Date();
   const showSponsoredLinks = options.showSponsoredLinks === true;
 
-  if (!adsFlagsConfig.isSponsoredPhraseEnabled(env)) {
+  if (
+    !options.serverAuthorized &&
+    !adsFlagsConfig.isSponsoredPhraseEnabled(env)
+  ) {
     return { ok: false, reasonCode: "FEATURE_FLAG_OFF" };
   }
 
   const kill =
     options.killSwitches ??
-    createEmptyKillSwitchState(adsFlagsConfig.isGlobalKillSwitch(env));
+    createEmptyKillSwitchState(
+      options.serverAuthorized
+        ? false
+        : adsFlagsConfig.isGlobalKillSwitch(env),
+    );
   const killed = isKilled(kill, {
     surface: "public_explore",
     placementCode: "explore.topic.sponsored-phrase",
@@ -135,6 +147,14 @@ export function resolveSponsoredPhrase(
       continue;
     }
     if (creative.status === "paused") {
+      continue;
+    }
+    const campaignKilled = isKilled(kill, {
+      surface: "public_explore",
+      placementCode: "explore.topic.sponsored-phrase",
+      campaignId: creative.campaignId,
+    });
+    if (campaignKilled.killed) {
       continue;
     }
     if (creative.status === "expired" || !isScheduleActive(creative, now)) {

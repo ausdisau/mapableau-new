@@ -19,7 +19,12 @@ export const DEFAULT_SPONSORED_LINKS_PREFERENCE: SponsoredLinksPreference = {
 };
 
 function canUseStorage(): boolean {
-  return typeof window !== "undefined" && typeof localStorage !== "undefined";
+  try {
+    // Accessing localStorage can throw SecurityError when storage is blocked.
+    return typeof window !== "undefined" && typeof localStorage !== "undefined";
+  } catch {
+    return false;
+  }
 }
 
 export function readShowSponsoredLinks(): boolean {

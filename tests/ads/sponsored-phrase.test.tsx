@@ -1,6 +1,6 @@
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SponsoredPhrase } from "@/components/ads/mapable/SponsoredPhrase";
 import { isClientSponsoredPhraseEnabled } from "@/lib/ads/config/client-flags";
@@ -10,6 +10,7 @@ import {
   getPrimarySyntheticSponsoredPhrase,
   getSyntheticSponsoredPhraseCreatives,
   SYNTHETIC_PHRASE_ALT_CREATIVE_ID,
+  SYNTHETIC_PHRASE_CAMPAIGN_ID,
   SYNTHETIC_PHRASE_CREATIVE_ID,
   SYNTHETIC_PHRASE_TOPIC_WHATS_ON,
 } from "@/lib/ads/fixtures/synthetic-sponsored-phrase";
@@ -24,7 +25,20 @@ import {
   isSponsoredPhraseRouteEligible,
 } from "@/lib/ads/sponsored-phrase/eligible-routes";
 import { resolveSponsoredPhrase } from "@/lib/ads/sponsored-phrase/resolve-sponsored-phrase";
-import type { SponsoredPhraseCreative } from "@/lib/ads/types";
+import type {
+  SponsoredPhraseCreative,
+  SponsoredPhraseResolveInput,
+} from "@/lib/ads/types";
+
+type ExpectedResolveKeys = "routePath" | "topicKey";
+type ActualResolveKeys = keyof SponsoredPhraseResolveInput;
+type AssertExactResolveKeys = ActualResolveKeys extends ExpectedResolveKeys
+  ? ExpectedResolveKeys extends ActualResolveKeys
+    ? true
+    : never
+  : never;
+const _sponsoredPhraseResolveInputKeys: AssertExactResolveKeys = true;
+void _sponsoredPhraseResolveInputKeys;
 
 const phraseEnabledEnv = {
   MAPABLE_ADS_ENABLED: "true",
@@ -302,11 +316,33 @@ describe("resolveSponsoredPhrase", () => {
   });
 
   it("does not accept participant context fields on the input type", () => {
-    const input = {
+    // Compile-time AssertExactResolveKeys above fails type-check if the
+    // resolve input gains query/profile/location or similar fields.
+    const input: SponsoredPhraseResolveInput = {
       routePath: "/",
       topicKey: SYNTHETIC_PHRASE_TOPIC_WHATS_ON,
     };
     expect(Object.keys(input).sort()).toEqual(["routePath", "topicKey"]);
+  });
+
+  it("skips candidates with a campaign-scoped kill switch", () => {
+    const kill = createEmptyKillSwitchState(false);
+    kill.campaigns[SYNTHETIC_PHRASE_CAMPAIGN_ID] = false;
+    const result = resolveSponsoredPhrase(
+      { routePath: "/", topicKey: SYNTHETIC_PHRASE_TOPIC_WHATS_ON },
+      {
+        env: phraseEnabledEnv,
+        showSponsoredLinks: true,
+        killSwitches: kill,
+        now: new Date("2026-11-15T12:00:00.000Z"),
+        preferredCreativeId: SYNTHETIC_PHRASE_CREATIVE_ID,
+      },
+    );
+    // Primary campaign killed → falls through to alternate if available.
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.creative.id).toBe(SYNTHETIC_PHRASE_ALT_CREATIVE_ID);
+    }
   });
 });
 
