@@ -46,15 +46,35 @@ describe("accessible search workspace", () => {
         name: "Select clinic 2, Ku-ring-gai Rehab Clinic",
       }),
     );
-    fireEvent.click(
-      screen.getByRole("button", { name: "3D floor plan" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "3D floor plan" }));
     expect(screen.getByText(/No plan supplied for clinic 2/)).toBeTruthy();
     expect(screen.queryByAltText(/Illustrative cutaway/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "List" }));
     fireEvent.click(screen.getByRole("button", { name: "Web" }));
     expect(composer.value).toBe("Step-free trip");
     expect(request).not.toHaveBeenCalled();
+  });
+  it("keeps Easy Read replies on the feature the person asked about", () => {
+    render(<SearchWorkspace />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open synthetic example" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Easy read" }));
+    fireEvent.change(screen.getByLabelText("Ask MapAble"), {
+      target: { value: "Is there a quiet room?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    expect(
+      screen.getByText("Clinic 1. The example lists a quiet room."),
+    ).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Select clinic 2, Ku-ring-gai Rehab Clinic",
+      }),
+    );
+    expect(
+      screen.getByText("Clinic 2. There is no quiet room in this example."),
+    ).toBeTruthy();
   });
   it("recomputes results and selection after changing or withdrawing a minimum", () => {
     let s = reduceSearch(initialState, { type: "example" });
@@ -100,9 +120,7 @@ describe("accessible search workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
     expect(
-      (
-        await screen.findByRole("link", { name: "Jobs" })
-      ).getAttribute("href"),
+      (await screen.findByRole("link", { name: "Jobs" })).getAttribute("href"),
     ).toBe("/employment");
     expect(request.mock.calls.map((c) => c[0])).toEqual(
       Array(2).fill("/api/mapable-search?vertical=jobs"),

@@ -204,7 +204,12 @@ export function SearchScreen({ close }: { close: () => void }) {
               <Text>
                 {state.demo
                   ? selected
-                    ? exampleAnswer(state.question, selected, state.minimum)
+                    ? exampleAnswer(
+                        state.question,
+                        selected,
+                        state.minimum,
+                        easy,
+                      )
                     : "No clinics visible. Show alternatives to compare."
                   : "Explore the public pathways for " +
                     state.scope.toLowerCase() +

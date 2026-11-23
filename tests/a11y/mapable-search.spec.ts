@@ -52,7 +52,9 @@ test.describe("MapAble Search a11y", () => {
     await page.goto("/search", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("button", { name: "Search" })).toBeVisible();
     await expect(
-      page.getByText(/Concept visualisation — routes illustrative/i),
+      page
+        .locator("figcaption")
+        .filter({ hasText: /Concept visualisation — routes illustrative/i }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", {

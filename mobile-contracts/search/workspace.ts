@@ -71,8 +71,34 @@ export function exampleAnswer(
   question: string,
   clinic: Clinic,
   minimum: number | null,
+  easyRead = false,
 ) {
-  const prefix = "Clinic " + clinic.id + " · ";
+  const prefix = "Clinic " + clinic.id + (easyRead ? ". " : " · ");
+  if (easyRead) {
+    if (/quiet|sensory/i.test(question))
+      return (
+        prefix +
+        (clinic.quiet
+          ? "The example lists a quiet room."
+          : "There is no quiet room in this example.")
+      );
+    if (/route|step.free|approach|bus/i.test(question))
+      return prefix + clinic.approach;
+    if (/hoist/i.test(question))
+      return (
+        prefix + "The example lists a ceiling hoist. Its details are unknown."
+      );
+    if (/door|entrance|width|minimum|clinic|physio|compare/i.test(question))
+      return (
+        prefix +
+        "The door is " +
+        clinic.door +
+        " mm wide. " +
+        comparison(clinic.door, minimum) +
+        "."
+      );
+    return "Ask about the door, bus stop, quiet room or hoist.";
+  }
   if (/quiet|sensory/i.test(question))
     return (
       prefix +

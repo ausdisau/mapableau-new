@@ -56,18 +56,20 @@ export function SearchWorkspace() {
       : "";
   const answer = state.demo
     ? selected
-      ? exampleAnswer(state.question, selected, state.minimum)
+      ? exampleAnswer(state.question, selected, state.minimum, easy)
       : "No example door meets this width. Show alternatives to compare them."
     : "Review the public pathways for " +
       state.scope.toLowerCase() +
       ". You can also explore the fictional St Ives example.";
   function loadExample() {
     dispatch({ type: "example" });
+    document.getElementById("results")?.focus();
     setWidth("900");
     setError("");
   }
   function reset() {
     dispatch({ type: "reset" });
+    input.current?.focus();
     setWidth("");
     setError("");
     setHandoff("");
@@ -175,18 +177,7 @@ export function SearchWorkspace() {
               </div>
               <div>
                 <b>MapAble</b>
-                <p>
-                  {easy && state.demo && selected
-                    ? "Clinic " +
-                      selected.id +
-                      ". Door width: " +
-                      selected.door +
-                      " mm. " +
-                      comparison(selected.door, state.minimum) +
-                      ". " +
-                      selected.approach
-                    : answer}
-                </p>
+                <p>{answer}</p>
               </div>
             </div>
           )}
