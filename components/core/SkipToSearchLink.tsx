@@ -8,6 +8,9 @@ const skipLinkClass =
 /**
  * Skip link for marketing shells that mount `#mapable-header-search`.
  * On narrow viewports the omnibox may be collapsed; activation opens it first.
+ *
+ * Collapse detection uses computed `display` only — not the `hidden` class —
+ * because desktop visibility is `hidden min-[1100px]:block` (class stays present).
  */
 export function SkipToSearchLink() {
   function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -19,9 +22,7 @@ export function SkipToSearchLink() {
 
     const wrapper = target.parentElement;
     const isCollapsed =
-      wrapper != null &&
-      (wrapper.classList.contains("hidden") ||
-        getComputedStyle(wrapper).display === "none");
+      wrapper != null && getComputedStyle(wrapper).display === "none";
 
     if (isCollapsed) {
       event.preventDefault();
