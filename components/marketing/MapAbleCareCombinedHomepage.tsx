@@ -17,12 +17,24 @@ export { MapAbleCareMarketingTypography } from "@/components/marketing/MapAbleCa
 export { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-shared";
 export { MapAbleCareMarketingFooter } from "@/components/marketing/MapAbleCareMarketingFooter";
 
+export type MapAbleCareCombinedHomepageSectionsProps = {
+  /**
+   * Server-evaluated ads enablement (flags + kill switch).
+   * Must be computed in a Server Component — this module is a client boundary.
+   */
+  sponsoredPhraseServerEnabled?: boolean;
+};
+
 /** Marketing proof splash: hero → explore → why MapAble → pre-register → CTA. */
-export function MapAbleCareCombinedHomepageSections() {
+export function MapAbleCareCombinedHomepageSections({
+  sponsoredPhraseServerEnabled = false,
+}: MapAbleCareCombinedHomepageSectionsProps = {}) {
   return (
     <>
       <HeroSection />
-      <HomepageExploreStrip />
+      <HomepageExploreStrip
+        sponsoredPhraseServerEnabled={sponsoredPhraseServerEnabled}
+      />
       <MyMapAbleHomepageSection />
       <CompetitorContrastStrip />
       <PreRegistrationSection />
@@ -39,14 +51,18 @@ export function MapAbleCareCombinedHomepageSections() {
   );
 }
 
-export default function MapAbleCareCombinedHomepage() {
+export default function MapAbleCareCombinedHomepage({
+  sponsoredPhraseServerEnabled = false,
+}: MapAbleCareCombinedHomepageSectionsProps = {}) {
   return (
     <main
       id="main-content"
       className="mapable-soft flex min-h-screen flex-col bg-white text-[#0C1833]"
     >
       <MapAbleCareMarketingHeader />
-      <MapAbleCareCombinedHomepageSections />
+      <MapAbleCareCombinedHomepageSections
+        sponsoredPhraseServerEnabled={sponsoredPhraseServerEnabled}
+      />
       <MapAbleCareMarketingFooter />
     </main>
   );

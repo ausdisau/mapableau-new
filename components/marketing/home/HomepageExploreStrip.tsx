@@ -1,14 +1,27 @@
 import Link from "next/link";
 import React from "react";
 
+import { SponsoredPhrasePlacement } from "@/components/ads/mapable/SponsoredPhrasePlacement";
 import { homepageExploreFeatures } from "@/lib/marketing/mapable-care-combined-data";
 import { AppGrid, ModuleCard } from "@mapable/ui";
+
+export type HomepageExploreStripProps = {
+  /**
+   * From a Server Component parent (`app/(marketing)/page.tsx`).
+   * This strip is under a client boundary, so private MAPABLE_ADS_* env is
+   * not readable here — enablement must be passed in.
+   */
+  sponsoredPhraseServerEnabled?: boolean;
+};
 
 /**
  * Public discovery links grounded in live informational routes / explainers.
  * Does not promote flag-gated bookings, claims, or payments.
+ * Optional sponsored phrase mounts only when feature + reader preference allow.
  */
-export function HomepageExploreStrip() {
+export function HomepageExploreStrip({
+  sponsoredPhraseServerEnabled = false,
+}: HomepageExploreStripProps = {}) {
   return (
     <section
       aria-labelledby="explore-features-heading"
@@ -21,6 +34,7 @@ export function HomepageExploreStrip() {
         <h2
           id="explore-features-heading"
           className="mt-3 max-w-3xl text-3xl font-black tracking-[-0.04em] text-[#0C1833] md:text-4xl"
+          tabIndex={-1}
         >
           What you can use on the public site today
         </h2>
@@ -42,6 +56,11 @@ export function HomepageExploreStrip() {
             />
           ))}
         </AppGrid>
+        <SponsoredPhrasePlacement
+          serverEnabled={sponsoredPhraseServerEnabled === true}
+          routePath="/"
+          restoreFocusId="explore-features-heading"
+        />
       </div>
     </section>
   );

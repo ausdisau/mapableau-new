@@ -90,6 +90,16 @@ export const adsFlagsConfig = {
       envFlag("MAPABLE_ADS_DOOH_SANDBOX_ENABLED", env)
     );
   },
+  /**
+   * First-party authored sponsored-phrase pilot on public Explore (default off).
+   * Local fixtures only until a separate release decision.
+   */
+  isSponsoredPhraseEnabled(env: AdsFlagEnv = process.env): boolean {
+    return (
+      this.isEnabled(env) &&
+      envFlag("MAPABLE_ADS_SPONSORED_PHRASE_ENABLED", env)
+    );
+  },
   getExternalTimeoutMs(env: AdsFlagEnv = process.env): number {
     const raw = env.MAPABLE_ADS_EXTERNAL_TIMEOUT_MS?.trim();
     const n = raw ? Number.parseInt(raw, 10) : 1500;
@@ -116,9 +126,12 @@ export const adsFlagsConfig = {
 };
 
 export function isAdsSurfaceEnabled(
-  surface: "access" | "provider_finder",
+  surface: "access" | "provider_finder" | "public_explore",
   env: AdsFlagEnv = process.env,
 ): boolean {
   if (surface === "access") return adsFlagsConfig.isAccessEnabled(env);
-  return adsFlagsConfig.isProviderFinderEnabled(env);
+  if (surface === "provider_finder") {
+    return adsFlagsConfig.isProviderFinderEnabled(env);
+  }
+  return adsFlagsConfig.isSponsoredPhraseEnabled(env);
 }
