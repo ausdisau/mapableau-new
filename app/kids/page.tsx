@@ -11,6 +11,7 @@ export const metadata = {
 export default function KidsModulePage() {
   return (
     <PublicModulePage
+        roadmapModule="kids"
       eyebrow="MapAble Kids"
       title="Family-centred pathways for early supports and school-related help."
       description="MapAble Kids is planned to help families find early intervention, therapy and school support options with clear consent and privacy for children’s information."

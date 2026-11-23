@@ -9,6 +9,7 @@ export const metadata = {
 export default function TelehealthPage() {
   return (
     <PublicModulePage
+        roadmapModule="telehealth"
       eyebrow="MapAble Telehealth"
       title="Remote support appointments with consent, privacy and evidence built in."
       description="MapAble Telehealth is planned for accessible remote appointments, consent prompts and appointment evidence that can connect to the wider MapAble service loop."

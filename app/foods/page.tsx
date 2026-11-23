@@ -11,6 +11,7 @@ export const metadata = {
 export default function FoodsModulePage() {
   return (
     <PublicModulePage
+        roadmapModule="foods"
       eyebrow="MapAble Foods"
       title="Meal and grocery support with sensitive dietary information protected."
       description="MapAble Foods is planned for meal, grocery and delivery workflows that separate food, preparation, delivery and support line items — without exposing allergy details more widely than needed."

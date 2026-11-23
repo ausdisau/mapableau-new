@@ -13,6 +13,7 @@ export default function CareHubPage() {
   return (
     <>
       <PublicModulePage
+        roadmapModule="care"
         eyebrow="MapAble Care"
         title="Find and manage disability support with consent at the centre."
         description="MapAble Care is the care-support module for participants, nominees, providers and support coordinators. It is being shaped around verified providers, clear consent, service evidence and human-controlled decisions."

@@ -13,6 +13,7 @@ export default function EmploymentPage() {
   return (
     <>
       <PublicModulePage
+        roadmapModule="employment"
         eyebrow="MapAble Employment"
         title="Inclusive employment pathways where disclosure stays in your control."
         description="MapAble Employment is planned for job seekers, employers and support teams who need accessible job posts, reasonable adjustment requests and careful handling of access information."
