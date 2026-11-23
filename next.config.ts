@@ -45,6 +45,10 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/search/workspace",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
     ];
   },
   eslint: {

@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 
+import { SearchScreen } from "./src/search/SearchScreen";
 import { stopAura } from "./src/aura/stop-aura";
 import { loadVisitPackLocal } from "./src/visit-pack/local-store";
 
@@ -18,10 +19,19 @@ import { loadVisitPackLocal } from "./src/visit-pack/local-store";
  * No compulsory smartphone pathway: essential access remains available on web.
  */
 export default function App() {
+  const [searchOpen, setSearchOpen] = useState(false);
   const [auraStopped, setAuraStopped] = useState(false);
   const [packSummary, setPackSummary] = useState<string>(
     "No offline Visit Pack loaded",
   );
+
+  if (searchOpen)
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
+        <StatusBar style="dark" />
+        <SearchScreen close={() => setSearchOpen(false)} />
+      </SafeAreaView>
+    );
 
   return (
     <SafeAreaView style={styles.safe} accessibilityLabel="MapAble Companion">
@@ -34,6 +44,14 @@ export default function App() {
           Care and support, connected. Communication Passport, upcoming care and
           transport, and offline Visit Packs — with encrypted local storage.
         </Text>
+
+        <Pressable
+          accessibilityRole="button"
+          style={styles.button}
+          onPress={() => setSearchOpen(true)}
+        >
+          <Text style={styles.buttonText}>Open MapAble Search</Text>
+        </Pressable>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Communication Passport</Text>

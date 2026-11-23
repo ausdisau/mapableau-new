@@ -92,6 +92,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Never store discovery URLs (including query strings) or personal workspaces.
+  if (url.origin === self.location.origin && (url.pathname === "/search" || url.pathname.startsWith("/search/"))) return;
+
   if (isVenueSearch(url) || url.pathname === "/data/demo-access-venues.json") {
     event.respondWith(networkFirst(request, API_CACHE));
     return;

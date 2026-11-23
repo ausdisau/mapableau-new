@@ -71,3 +71,44 @@ test.describe("MapAble Search a11y", () => {
     ).toContainText(/Deep Search is not yet active/i);
   });
 });
+
+test("clinic comparison keeps an AAC draft private and reflows with the route map open", async ({
+  page,
+}) => {
+  await page.goto("/search");
+  await page
+    .getByRole("link", { name: "Open the AAC and spatial search workspace" })
+    .click();
+  await page.getByRole("button", { name: "Open synthetic example" }).click();
+  const requests: string[] = [];
+  page.on("request", (request) => requests.push(request.url()));
+  await page
+    .getByRole("button", { name: "Step-free trip", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Select clinic 2, Ku-ring-gai Rehab Clinic" })
+    .click();
+  await page
+    .getByRole("button", { name: "3D floor plan", exact: true })
+    .click();
+  await expect(page.getByText(/No plan supplied for clinic 2/)).toBeVisible();
+  await expect(page.getByLabel("Ask MapAble", { exact: true })).toHaveValue(
+    "Step-free trip",
+  );
+  await page.getByRole("button", { name: "2D map", exact: true }).click();
+  await page.setViewportSize({ width: 320, height: 760 });
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+    .toBe(320);
+  await page.getByRole("link", { name: "Skip to results" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#results")).toBeFocused();
+  const report = await new AxeBuilder({ page })
+    .include("main")
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(report.violations).toEqual([]);
+  expect(requests.some((url) => url.includes("/api/mapable-search"))).toBe(
+    false,
+  );
+});

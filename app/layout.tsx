@@ -12,7 +12,7 @@ import {
   GoogleAdSense,
 } from "@/components/ads/GoogleAdSense";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
-import { Providers } from "@/components/providers";
+import { SearchDocumentBoundary } from "@/components/search/workspace/SearchDocumentBoundary";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { isFirstPartyAccessibilityPanelEnabled } from "@/lib/accessibility/feature-flags";
 import { getPreHydrationAccessibilityScript } from "@/lib/accessibility/ui-preferences";
@@ -144,12 +144,18 @@ export default async function RootLayout({
           nonce={scriptNonce}
           data={[publicJsonLd.organization, publicJsonLd.website]}
         />
-        <Providers>{children}</Providers>
-        {firstPartyA11yPanel ? null : <AccessiBeWidget />}
-        <GoogleAnalytics />
-        <GoogleAdSense />
-        {/* Speed Insights only on Vercel; local/CI production servers have no SI endpoint. */}
-        {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
+        <SearchDocumentBoundary
+          siteServices={
+            <>
+              {firstPartyA11yPanel ? null : <AccessiBeWidget />}
+              <GoogleAnalytics />
+              <GoogleAdSense />
+              {process.env.VERCEL === "1" ? <SpeedInsights /> : null}
+            </>
+          }
+        >
+          {children}
+        </SearchDocumentBoundary>
       </body>
     </html>
   );
