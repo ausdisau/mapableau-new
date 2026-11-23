@@ -1,8 +1,8 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { getProviderScheduleMatrix } from "@/lib/transport/schedule/schedule-matrix-service";
 import { requireProviderOrgId } from "@/lib/transport/transport-api-helpers";
 import { handleTransportRouteError } from "@/lib/transport/transport-route-handler";
-import { getProviderScheduleMatrix } from "@/lib/transport/schedule/schedule-matrix-service";
 
 /**
  * Read-only schedule matrix projection for provider transport control.
