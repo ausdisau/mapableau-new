@@ -4,6 +4,9 @@ export const MAPABLE_MARKETING_URL = "https://mapable.com.au";
 /** MapAble PEERS community — https://peer.mapable.com.au */
 export const MAPABLE_PEER_PEERS_URL = "https://peer.mapable.com.au";
 
+/** ProviderCloud hosted surface — https://cloud.mapable.com.au */
+export const MAPABLE_PROVIDERCLOUD_URL = "https://cloud.mapable.com.au";
+
 /** Short brand suite tagline (Canva MapAble brand kit). */
 export const MAPABLE_BRAND_TAGLINE = "Empowering Independence";
 

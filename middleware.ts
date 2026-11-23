@@ -10,6 +10,11 @@ import {
 } from "@/lib/community/mapable-peers/peer-middleware";
 import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
 import {
+  isProviderCloudHost,
+  isProviderCloudSupplierPath,
+  providerCloudRewritePath,
+} from "@/lib/providercloud/host-routing";
+import {
   CSP_ENFORCE_HEADER,
   createScriptNonce,
   isCspPreviewEnforceEnabled,
@@ -184,6 +189,49 @@ export default async function middleware(request: NextRequest) {
       enforcePolicy,
       embedRoute,
     );
+  }
+
+  // cloud.mapable.com.au is the ProviderCloud surface on the same Next.js
+  // deployment. Supplier grocery routes stay hard-disabled on this host.
+  const providerCloudHost =
+    process.env.MAPABLE_PROVIDERCLOUD_HOST ?? "cloud.mapable.com.au";
+  if (
+    isProviderCloudHost(
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+      providerCloudHost,
+    )
+  ) {
+    if (isProviderCloudSupplierPath(request.nextUrl.pathname)) {
+      const blocked = NextResponse.json(
+        {
+          error: "Supplier operations are disabled on ProviderCloud",
+          code: "PROVIDERCLOUD_SUPPLIER_OPS_DISABLED",
+        },
+        { status: 403 },
+      );
+      return withCorrelationAndCsp(
+        blocked,
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
+
+    const rewritePath = providerCloudRewritePath(request.nextUrl.pathname);
+    if (rewritePath) {
+      const url = request.nextUrl.clone();
+      url.pathname = rewritePath;
+      const response = NextResponse.rewrite(url, {
+        request: { headers: requestHeaders },
+      });
+      return withCorrelationAndCsp(
+        response,
+        correlationId,
+        enforcePolicy,
+        embedRoute,
+      );
+    }
   }
 
   // labs.mapable.com.au is a public experimental surface backed by the same

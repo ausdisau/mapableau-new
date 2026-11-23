@@ -1,5 +1,10 @@
 # CareOS provider and workforce operations
 
+Hosted surface: `cloud.mapable.com.au` (ProviderCloud, MapAbleID service
+`providercloud`). Same Next.js app as mapable.com.au. Supplier operations stay
+disabled. Premium listing / pay-to-rank is not a ProviderCloud product. The
+attention flag `MAPABLE_PROVIDER_OPS_ENABLED` remains default false.
+
 ## Service and shift lifecycle
 
 ```mermaid
