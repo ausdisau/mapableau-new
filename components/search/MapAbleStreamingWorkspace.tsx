@@ -1,23 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { MapAbleSearchForm } from "@/components/search/MapAbleSearchForm";
 import { MapAbleSearchResults } from "@/components/search/MapAbleSearchResults";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import type { MapAbleSearchResponse } from "@/lib/search/mapable-search-core";
+import {
+  buildMapAbleSearchUrl,
+  type SearchSelection,
+} from "@/lib/search/mapable-search-ui";
 import {
   initialPublicStreamView,
   readPublicSearchStreamChunk,
   reducePublicStreamView,
   type PublicStreamView,
 } from "@/lib/search/mapable-stream-contract";
-import type { MapAbleSearchResponse } from "@/lib/search/mapable-search-core";
-import {
-  buildMapAbleSearchUrl,
-  type SearchSelection,
-} from "@/lib/search/mapable-search-ui";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 type Props = { initialSelection: SearchSelection };
 type PreviousTurn = { query: string; answer: string };
@@ -172,6 +172,7 @@ export function MapAbleStreamingWorkspace({ initialSelection }: Props) {
     view.status === "streaming" && view.results.length === 0 ? "loading"
       : view.status === "idle" ? "idle"
       : view.status === "error" ? "service_unavailable"
+      : view.sourceState === "partial" ? "partial_data"
       : view.results.length === 0 ? "no_match" : "results";
 
   return (
@@ -299,6 +300,12 @@ export function MapAbleStreamingWorkspace({ initialSelection }: Props) {
                 </button>
                 <button type="button" disabled={view.status !== "streaming"} onClick={stop} className={buttonClass}>
                   Stop streaming
+                </button>
+                <button type="button" disabled={!activeQuery || view.status === "streaming"}
+                  onClick={() => void runPublicSearch({
+                    ...selection, presentation: "conversation", query: activeQuery,
+                  })} className={buttonClass}>
+                  Retry last question
                 </button>
                 <button type="button" onClick={reset} className={buttonClass}>Clear conversation</button>
               </div>
