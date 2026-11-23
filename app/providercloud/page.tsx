@@ -2,10 +2,6 @@ import Link from "next/link";
 
 import { buildProviderCloudStatus } from "@/lib/providercloud/status";
 
-export const metadata = {
-  title: "ProviderCloud | MapAble",
-};
-
 export default function ProviderCloudHomePage() {
   const status = buildProviderCloudStatus();
 

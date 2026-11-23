@@ -72,6 +72,19 @@ describe("ProviderCloud premium correction", () => {
     ).toBe(false);
   });
 
+  it("reads the provider-ops flag from the injected env snapshot", () => {
+    const enabled = getProviderCloudOperationsSnapshot({
+      MAPABLE_PROVIDER_OPS_ENABLED: "true",
+    } as NodeJS.ProcessEnv);
+    const disabled = getProviderCloudOperationsSnapshot({
+      MAPABLE_PROVIDER_OPS_ENABLED: "false",
+    } as NodeJS.ProcessEnv);
+
+    expect(enabled.providerOpsEnabled).toBe(true);
+    expect(disabled.providerOpsEnabled).toBe(false);
+    expect(enabled.supplierOperationsEnabled).toBe(false);
+  });
+
   it("does not treat the provider-ops flag as premium or supplier enablement", () => {
     process.env.MAPABLE_PROVIDER_OPS_ENABLED = "true";
     const status = buildProviderCloudStatus();

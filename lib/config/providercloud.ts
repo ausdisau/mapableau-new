@@ -1,5 +1,3 @@
-import { isProviderOpsEnabled } from "@/lib/config/provider-ops";
-
 /**
  * ProviderCloud hosted surface for cloud.mapable.com.au.
  *
@@ -48,7 +46,7 @@ export function getProviderCloudOperationsSnapshot(
   env: NodeJS.ProcessEnv = process.env,
 ) {
   return {
-    providerOpsEnabled: isProviderOpsEnabled(),
+    providerOpsEnabled: env.MAPABLE_PROVIDER_OPS_ENABLED === "true",
     supplierOperationsEnabled: isProviderCloudSupplierOperationsEnabled(env),
     premiumPlacement: isProviderCloudPremiumEnabled(env),
     paidRanking: providerCloudConfig.paidRanking,

@@ -14,6 +14,7 @@ describe("ProviderCloud status", () => {
     expect(status.host).toBe("cloud.mapable.com.au");
     expect(status.identityStatus).toBe("connected");
     expect(status.surface).toBe("hosted_read_only");
+    expect(status.operations.providerOpsEnabled).toBe(false);
     expect(status.operations.supplierOperationsEnabled).toBe(false);
     expect(status.operations.premiumPlacement).toBe(false);
     expect(status.writers.map((writer) => writer.id)).toEqual([
