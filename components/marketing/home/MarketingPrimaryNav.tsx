@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
+import { cn } from "@/app/lib/utils";
 import { AccessibilityPanelTrigger } from "@/components/accessibility/AccessibilityPanelTrigger";
 import { MapAbleBrandLockup } from "@/components/brand/MapAbleBrandLockup";
 import { PayPalDonateButton } from "@/components/paypal/PayPalDonateButton";
+import { MapAbleHeaderSearchBox } from "@/components/search/MapAbleHeaderSearchBox";
 import { marketingFeatureRoutes } from "@/lib/marketing/mapable-care-routes";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import { getMarketingNavGroups } from "@/lib/marketing/site-navigation";
@@ -73,24 +75,34 @@ export function MarketingPrimaryNav() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [megaOpenId, setMegaOpenId] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const navGroups = getMarketingNavGroups();
 
-  const anyPanelOpen = mobileOpen || megaOpenId !== null;
+  const anyPanelOpen = mobileOpen || megaOpenId !== null || mobileSearchOpen;
   const dismissAll = () => {
     setMobileOpen(false);
+    setMobileSearchOpen(false);
     setMegaOpenId(null);
   };
 
   useDismissOnOutsideAndEscape(anyPanelOpen, dismissAll, navRef);
+
+  useEffect(() => {
+    if (!mobileSearchOpen) return;
+    const input = document.getElementById(
+      "mapable-header-search-input",
+    ) as HTMLInputElement | null;
+    input?.focus();
+  }, [mobileSearchOpen]);
 
   const preRegisterHref = isHome ? "#pre-register" : "/#pre-register";
 
   return (
     <div
       ref={navRef}
-      className="relative flex w-full items-center justify-between gap-4"
+      className="relative flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 min-[920px]:flex-nowrap"
     >
       <MapAbleBrandLockup
         href={marketingFeatureRoutes.home}
@@ -100,9 +112,24 @@ export function MarketingPrimaryNav() {
         onClick={dismissAll}
       />
 
+      <div
+        className={cn(
+          "min-w-0 min-[920px]:max-w-md min-[920px]:flex-1 lg:max-w-xl",
+          mobileSearchOpen
+            ? "order-last w-full basis-full"
+            : "hidden min-[920px]:block",
+        )}
+      >
+        <MapAbleHeaderSearchBox
+          id="mapable-header-search"
+          compact={mobileSearchOpen}
+          onNavigated={dismissAll}
+        />
+      </div>
+
       <nav
         aria-label="Primary"
-        className="relative hidden flex-1 items-center justify-center gap-0.5 min-[920px]:flex"
+        className="relative hidden items-center justify-center gap-0.5 min-[920px]:flex"
       >
         <Link
           href={preRegisterHref}
@@ -181,10 +208,25 @@ export function MarketingPrimaryNav() {
         </div>
         <button
           type="button"
+          aria-expanded={mobileSearchOpen}
+          aria-controls="mapable-header-search"
+          aria-label={mobileSearchOpen ? "Hide search" : "Open search"}
+          onClick={() => {
+            setMegaOpenId(null);
+            setMobileOpen(false);
+            setMobileSearchOpen((open) => !open);
+          }}
+          className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#005B7F] px-4 text-sm font-black text-[#005B7F] min-[920px]:hidden ${mapableCareFocusRing}`}
+        >
+          Search
+        </button>
+        <button
+          type="button"
           aria-expanded={mobileOpen}
           aria-controls="marketing-primary-nav-mobile"
           onClick={() => {
             setMegaOpenId(null);
+            setMobileSearchOpen(false);
             setMobileOpen(!mobileOpen);
           }}
           className={`inline-flex min-h-11 items-center rounded-xl border-2 border-[#0C1833] px-4 text-sm font-black min-[920px]:hidden ${mapableCareFocusRing}`}
@@ -199,6 +241,21 @@ export function MarketingPrimaryNav() {
           className="absolute left-5 right-5 top-[calc(100%+0.5rem)] z-50 max-h-[min(85vh,32rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl min-[920px]:hidden"
         >
           <nav aria-label="Primary mobile" className="grid gap-1">
+            <button
+              type="button"
+              className={`min-h-11 rounded-xl px-4 py-3 text-left text-sm font-black text-[#005B7F] transition hover:bg-slate-50 ${mapableCareFocusRing}`}
+              onClick={() => {
+                setMobileOpen(false);
+                setMobileSearchOpen(true);
+                window.requestAnimationFrame(() => {
+                  document
+                    .getElementById("mapable-header-search-input")
+                    ?.focus();
+                });
+              }}
+            >
+              Search MapAble
+            </button>
             <Link
               href={preRegisterHref}
               className={`min-h-11 rounded-xl px-4 py-3 text-sm font-black text-[#0C1833] transition hover:bg-slate-50 ${mapableCareFocusRing}`}
