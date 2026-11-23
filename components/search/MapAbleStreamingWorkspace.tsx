@@ -339,7 +339,7 @@ export function MapAbleStreamingWorkspace({ initialSelection }: Props) {
             </p>
           </div>
           <div aria-busy={view.status === "streaming"}>
-            <MapAbleSearchResults status={resultStatus} response={currentResponse} />
+            <MapAbleSearchResults status={resultStatus} response={currentResponse} announceStatus={false} />
           </div>
         </section>
       </div>
