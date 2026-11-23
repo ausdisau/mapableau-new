@@ -156,6 +156,22 @@ export function TransportBookingWorkspace() {
         return;
       }
     }
+    // Step nav must not skip the access-needs gate while profile hydrate is
+    // in flight, or skip the failed-prefill warning without visiting step 2.
+    if (next > 2 && prefillFromProfile) {
+      if (prefillStatus === "loading") {
+        setError(
+          "Still loading your access needs from your profile. Please wait on this step."
+        );
+        setStep(2);
+        return;
+      }
+      if (prefillStatus === "failed" && step < 2) {
+        setError(null);
+        setStep(2);
+        return;
+      }
+    }
     setError(null);
     setStep(next);
   }
@@ -453,6 +469,12 @@ export function TransportBookingWorkspace() {
 
           {step === 4 ? (
             <div className="space-y-3">
+              {prefillFromProfile && prefillStatus === "failed" ? (
+                <p className="text-sm text-[var(--tb-danger,#9b1c1c)]" role="alert">
+                  Could not load your accessibility profile. Only the access needs
+                  listed below will be shared — add any missing needs before confirming.
+                </p>
+              ) : null}
               <HumanGateConfirmationCard
                 confirmed={humanGateConfirmed}
                 onConfirmedChange={setHumanGateConfirmed}

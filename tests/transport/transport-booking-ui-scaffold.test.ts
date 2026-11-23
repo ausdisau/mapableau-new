@@ -441,6 +441,92 @@ it("blocks continue while mobility-prefill is still in flight", async () => {
   ).toHaveProperty("checked", true);
 });
 
+it("blocks step-nav jumps past access needs while prefill is loading", async () => {
+  let resolvePrefill!: (value: Response) => void;
+  const prefillPromise = new Promise<Response>((resolve) => {
+    resolvePrefill = resolve;
+  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).includes("/api/transport/mobility-prefill")) {
+        return prefillPromise;
+      }
+      return Response.json({}, { status: 404 });
+    })
+  );
+
+  render(React.createElement(TransportBookingWorkspace));
+  fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+    target: { value: "1 Pickup Street" },
+  });
+  fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+    target: { value: "2 Destination Road" },
+  });
+  fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+    target: { value: "2026-11-22T09:00" },
+  });
+
+  fireEvent.click(screen.getByRole("button", { name: /^04$/i }));
+  await waitFor(() =>
+    expect(
+      screen.getByText(/Still loading your access needs from your profile/i)
+    ).toBeTruthy()
+  );
+  expect(screen.getByText(/Loading access needs from your profile/i)).toBeTruthy();
+  expect(screen.queryByRole("checkbox", { name: /I confirm/i })).toBeNull();
+
+  resolvePrefill(
+    Response.json({
+      mobilityRequirements: {},
+      fromProfile: false,
+    })
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: /Continue to consent/i })
+    ).toHaveProperty("disabled", false)
+  );
+  fireEvent.click(screen.getByRole("button", { name: /^04$/i }));
+  expect(await screen.findByRole("checkbox", { name: /I confirm/i })).toBeTruthy();
+});
+
+it("routes step-nav past access needs to the failed-prefill warning", async () => {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    if (String(input).includes("/api/transport/mobility-prefill")) {
+      return new Response("unavailable", { status: 503 });
+    }
+    return Response.json({}, { status: 404 });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
+  render(React.createElement(TransportBookingWorkspace));
+  fireEvent.change(screen.getByLabelText(/Pickup address/i), {
+    target: { value: "1 Pickup Street" },
+  });
+  fireEvent.change(screen.getByLabelText(/Drop-off address/i), {
+    target: { value: "2 Destination Road" },
+  });
+  fireEvent.change(screen.getByLabelText(/Scheduled start/i), {
+    target: { value: "2026-11-22T09:00" },
+  });
+  await waitFor(() =>
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).includes("/api/transport/mobility-prefill")
+      )
+    ).toBe(true)
+  );
+  // Prefill failed while still on journey — step nav must land on access needs.
+  fireEvent.click(screen.getByRole("button", { name: /^04$/i }));
+  await waitFor(() =>
+    expect(
+      screen.getByText(/Could not load your accessibility profile/i)
+    ).toBeTruthy()
+  );
+  expect(screen.queryByRole("checkbox", { name: /I confirm/i })).toBeNull();
+});
+
 it("submits only the choices still checked when the participant confirms", async () => {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
