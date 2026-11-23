@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { cn } from "@/app/lib/utils";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import type {
   MapAbleSearchHit,
   MapAbleSearchResponse,
@@ -11,8 +13,6 @@ import {
   type SearchEvidenceStatus,
   type SearchUiStatus,
 } from "@/lib/search/mapable-search-ui";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
-import { cn } from "@/app/lib/utils";
 
 const STATUS_LABEL: Record<SearchEvidenceStatus, string> = {
   verified: "Verified",
