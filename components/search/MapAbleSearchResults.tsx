@@ -26,6 +26,7 @@ type Props = {
   response?: MapAbleSearchResponse | null;
   status: SearchUiStatus;
   ads?: SearchAdSlot[];
+  announceStatus?: boolean;
   className?: string;
 };
 
@@ -164,6 +165,7 @@ export function MapAbleSearchResults({
   response,
   status,
   ads = [],
+  announceStatus = true,
   className,
 }: Props) {
   const organic = organicResultsIgnoringAds(response?.results ?? [], ads);
@@ -180,7 +182,7 @@ export function MapAbleSearchResults({
         >
           Search results
         </h2>
-        <p role="status" className="text-sm text-slate-600">
+        <p role={announceStatus ? "status" : undefined} className="text-sm text-slate-600">
           {status === "loading"
             ? "Searching MapAble…"
             : status === "no_match"
