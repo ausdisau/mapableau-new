@@ -47,7 +47,7 @@ describe("ProviderCloud premium correction", () => {
       MAPABLE_PROVIDERCLOUD_PREMIUM: "true",
       MAPABLE_PROVIDERCLOUD_PAID_RANKING: "true",
       MAPABLE_PROVIDERCLOUD_COMMERCIAL: "true",
-    } as NodeJS.ProcessEnv;
+    };
 
     expect(isProviderCloudPremiumEnabled(hostile)).toBe(false);
     expect(getProviderCloudOperationsSnapshot(hostile).premiumPlacement).toBe(
@@ -64,7 +64,7 @@ describe("ProviderCloud premium correction", () => {
       MAPABLE_PROVIDERCLOUD_SUPPLIER_OPS: "true",
       GROCERY_SUPPLIER_AUTOSYNC: "1",
       GROCERY_SUPPLIER_DISABLED: "0",
-    } as NodeJS.ProcessEnv;
+    };
 
     expect(isProviderCloudSupplierOperationsEnabled(hostile)).toBe(false);
     expect(
@@ -75,10 +75,10 @@ describe("ProviderCloud premium correction", () => {
   it("reads the provider-ops flag from the injected env snapshot", () => {
     const enabled = getProviderCloudOperationsSnapshot({
       MAPABLE_PROVIDER_OPS_ENABLED: "true",
-    } as NodeJS.ProcessEnv);
+    });
     const disabled = getProviderCloudOperationsSnapshot({
       MAPABLE_PROVIDER_OPS_ENABLED: "false",
-    } as NodeJS.ProcessEnv);
+    });
 
     expect(enabled.providerOpsEnabled).toBe(true);
     expect(disabled.providerOpsEnabled).toBe(false);

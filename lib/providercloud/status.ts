@@ -2,6 +2,7 @@ import {
   getProviderCloudHost,
   getProviderCloudOperationsSnapshot,
   providerCloudConfig,
+  type ProviderCloudEnv,
 } from "@/lib/config/providercloud";
 
 export const PROVIDERCLOUD_WRITERS = [
@@ -37,9 +38,7 @@ export const PROVIDERCLOUD_WRITERS = [
   },
 ] as const;
 
-export function buildProviderCloudStatus(
-  env: NodeJS.ProcessEnv = process.env,
-) {
+export function buildProviderCloudStatus(env: ProviderCloudEnv = process.env) {
   const operations = getProviderCloudOperationsSnapshot(env);
 
   return {

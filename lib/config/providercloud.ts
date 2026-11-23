@@ -22,28 +22,30 @@ export const providerCloudConfig = {
 
 export type ProviderCloudConfig = typeof providerCloudConfig;
 
+export type ProviderCloudEnv = Record<string, string | undefined>;
+
 /** Always false. Env cannot enable premium placement or paid ranking. */
 export function isProviderCloudPremiumEnabled(
-  _env: NodeJS.ProcessEnv = process.env,
+  _env: ProviderCloudEnv = process.env,
 ): false {
   return false;
 }
 
 /** Always false. Env cannot enable supplier operations. */
 export function isProviderCloudSupplierOperationsEnabled(
-  _env: NodeJS.ProcessEnv = process.env,
+  _env: ProviderCloudEnv = process.env,
 ): false {
   return false;
 }
 
 export function getProviderCloudHost(
-  env: NodeJS.ProcessEnv = process.env,
+  env: ProviderCloudEnv = process.env,
 ): string {
   return env.MAPABLE_PROVIDERCLOUD_HOST ?? providerCloudConfig.defaultHost;
 }
 
 export function getProviderCloudOperationsSnapshot(
-  env: NodeJS.ProcessEnv = process.env,
+  env: ProviderCloudEnv = process.env,
 ) {
   return {
     providerOpsEnabled: env.MAPABLE_PROVIDER_OPS_ENABLED === "true",
