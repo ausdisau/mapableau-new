@@ -46,6 +46,12 @@ export function MapAbleSearchHero({
             </p>
           </header>
 
+          <a
+            href="/search/workspace"
+            className="inline-flex min-h-12 items-center rounded-xl bg-[#005B7F] px-5 py-3 font-bold text-white underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Open the AAC and spatial search workspace
+          </a>
           <MapAbleSearchForm initialSelection={initialSelection} />
 
           {showDeepNotice ? (
