@@ -15,7 +15,7 @@ describe("public Jobs guide", () => {
   beforeEach(async () => {
     document.body.innerHTML = page.body.innerHTML;
     vi.resetModules();
-    await import("../../public/employment/guide/assets/jobs.js");
+    await vi.importActual("../../public/employment/guide/assets/jobs.js");
   });
   afterEach(() => {
     document.body.replaceChildren();
