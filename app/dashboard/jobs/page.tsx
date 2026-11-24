@@ -22,6 +22,12 @@ export default async function JobsBrowsePage() {
           My applications
         </Link>
       </header>
+      {jobs.length === 0 && (
+        <p className="rounded-lg border p-4">
+          There are no published roles to browse right now.{" "}
+          <Link href="/employment" className="text-primary underline">Explore employment support</Link>
+        </p>
+      )}
       <ul className="space-y-3">
         {jobs.map((j) => (
           <li key={j.id}>

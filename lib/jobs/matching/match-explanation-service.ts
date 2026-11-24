@@ -31,17 +31,7 @@ export type LocationAccessSummary = {
 };
 
 function normalize(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function profileHasSkill(
-  profile: { skills: string[]; interests: string[] },
-  label: string,
-): boolean {
-  const needle = normalize(label);
-  return [...profile.skills, ...profile.interests].some(
-    (item) => normalize(item).includes(needle) || needle.includes(normalize(item)),
-  );
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function evaluateRequirement(
@@ -75,18 +65,22 @@ function evaluateRequirement(
   };
 
   switch (requirement.category) {
-    case "skill":
+    case "skill": {
+      const label = normalize(requirement.label);
+      const listed = Boolean(label) && profile.skills.some((skill) => normalize(skill) === label);
+      return {
+        ...base,
+        status: listed ? "matched" : "participant_decision_required",
+        note: listed ? "You listed this skill in your profile." : "You can decide how to demonstrate this skill, including through community or unpaid work.",
+      };
+    }
     case "experience":
     case "qualification":
     case "certification":
       return {
         ...base,
-        status: profileHasSkill(profile, requirement.label)
-          ? "matched"
-          : "participant_decision_required",
-        note: profileHasSkill(profile, requirement.label)
-          ? "Listed in your profile skills or interests."
-          : "Not listed in your profile — you decide whether to apply.",
+        status: "participant_decision_required",
+        note: "Compare this requirement with your experience or credentials. You decide whether to apply.",
       };
     case "schedule":
       return {

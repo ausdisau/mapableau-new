@@ -10,6 +10,22 @@ export const employmentTypeSchema = z.enum([
   "supported_employment",
 ]);
 
+export const maxJobSkills = 12;
+export const maxJobSkillLength = 160;
+
+export const jobSkillsSchema = z
+  .array(z.object({
+    label: z.string().trim().min(1, "Enter a skill.").max(maxJobSkillLength, "Use up to 160 characters per skill."),
+    isEssential: z.boolean(),
+  }))
+  .max(maxJobSkills, "List up to 12 skills in total.")
+  .refine((skills) => {
+    const labels = skills.map(({ label }) => label.toLowerCase().replace(/\s+/g, " "));
+    return new Set(labels).size === labels.length;
+  }, "List each skill once, in the group that best describes it.");
+
+export type JobSkillInput = z.infer<typeof jobSkillsSchema>[number];
+
 export const createJobSchema = z.object({
   employerOrganisationId: z.string(),
   title: z.string().min(3).max(200),
@@ -22,6 +38,7 @@ export const createJobSchema = z.object({
   accessibilityFeatures: z.record(z.string(), z.unknown()).optional(),
   adjustmentOpennessStatement: z.string().optional(),
   applicationInstructions: z.string().optional(),
+  skills: jobSkillsSchema.optional(),
 });
 
 export const createJobApplicationSchema = z.object({

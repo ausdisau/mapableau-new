@@ -1,5 +1,5 @@
 import { requireApiPermission } from "@/lib/api/auth-handler";
-import { jsonOk } from "@/lib/api/response";
+import { jsonError, jsonOk } from "@/lib/api/response";
 import { closeJob } from "@/lib/jobs/job-service";
 
 export async function POST(
@@ -9,6 +9,7 @@ export async function POST(
   const user = await requireApiPermission("jobs:manage:employer");
   if (user instanceof Response) return user;
   const { jobId } = await params;
-  const job = await closeJob(jobId, user.id);
+  const job = await closeJob(jobId, user);
+  if (!job) return jsonError("Not found", 404);
   return jsonOk({ job });
 }

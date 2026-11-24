@@ -1,8 +1,11 @@
 import type { EmploymentType, JobApplicationStatus } from "@prisma/client";
 
 import { createAuditEvent } from "@/lib/audit/audit-event-service";
+import type { CurrentUser } from "@/lib/auth/current-user";
+import { managedJobOrganisations } from "@/lib/jobs/role-brief";
 import { notifyUser } from "@/lib/notifications/notification-service";
 import { prisma } from "@/lib/prisma";
+import type { JobSkillInput } from "@/lib/validation/jobs";
 
 export async function createJobDraft(params: {
   employerOrganisationId: string;
@@ -17,22 +20,32 @@ export async function createJobDraft(params: {
   accessibilityFeatures?: object;
   adjustmentOpennessStatement?: string;
   applicationInstructions?: string;
+  skills?: JobSkillInput[];
 }) {
-  const job = await prisma.job.create({
-    data: {
-      ...params,
-      accessibilityFeatures: params.accessibilityFeatures ?? {},
-      status: "draft",
-    },
+  const { skills, ...listing } = params;
+  return prisma.$transaction(async (tx) => {
+    const job = await tx.job.create({
+      data: {
+        ...listing,
+        accessibilityFeatures: listing.accessibilityFeatures ?? {},
+        status: "draft",
+        requirements: skills?.length ? {
+          create: skills.map(({ label, isEssential }, sortOrder) => ({
+            category: "skill", label, isEssential, sortOrder,
+          })),
+        } : undefined,
+      },
+    });
+    await createAuditEvent({
+      tx,
+      actorUserId: listing.createdById,
+      action: "job.created",
+      entityType: "Job",
+      entityId: job.id,
+      organisationId: listing.employerOrganisationId,
+    });
+    return job;
   });
-  await createAuditEvent({
-    actorUserId: params.createdById,
-    action: "job.created",
-    entityType: "Job",
-    entityId: job.id,
-    organisationId: params.employerOrganisationId,
-  });
-  return job;
 }
 
 export async function publishJob(jobId: string, adminUserId: string) {
@@ -50,11 +63,12 @@ export async function publishJob(jobId: string, adminUserId: string) {
   return job;
 }
 
-export async function closeJob(jobId: string, _actorUserId: string) {
-  return prisma.job.update({
-    where: { id: jobId },
+export async function closeJob(jobId: string, user: CurrentUser) {
+  const [job] = await prisma.job.updateManyAndReturn({
+    where: { id: jobId, employerOrganisation: await managedJobOrganisations(user) },
     data: { status: "closed" },
   });
+  return job;
 }
 
 export async function createJobApplication(params: {

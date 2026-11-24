@@ -8,6 +8,7 @@ import {
   redirectLegacySquarePath,
   shouldRunAuthMiddleware,
 } from "@/lib/community/mapable-peers/peer-middleware";
+import { employmentGuideCsp } from "@/lib/jobs/guide-policy";
 import { isLabsHost, labsRewritePath } from "@/lib/labs/host-routing";
 import {
   CSP_ENFORCE_HEADER,
@@ -149,9 +150,9 @@ function withCorrelationAndCsp(
 export default async function middleware(request: NextRequest) {
   const nonce = createScriptNonce();
   const enforceEnabled = isCspPreviewEnforceEnabled();
-  const enforcePolicy = enforceEnabled
-    ? buildEnforcePolicyForRequest(request, nonce)
-    : null;
+  const enforcePolicy = request.nextUrl.pathname === "/employment/guide/index.html"
+    ? employmentGuideCsp
+    : enforceEnabled ? buildEnforcePolicyForRequest(request, nonce) : null;
   const embedRoute = isEmbedPath(request.nextUrl.pathname);
 
   const correlationId = resolveCorrelationId(

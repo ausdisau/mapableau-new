@@ -390,6 +390,71 @@ function MapAbleSearchCard() {
   );
 }
 
+const employmentUrl = 'https://mapable.com.au/jobs';
+const applicationSteps = [
+  'Choose an example of work I want to share',
+  'Check which interview formats the employer offers',
+  'Check workplace access and travel if I need them',
+];
+
+function EmploymentCard() {
+  const [showSteps, setShowSteps] = useState(false);
+  const [checked, setChecked] = useState<string[]>([]);
+  const [openFailed, setOpenFailed] = useState(false);
+  return (
+    <Card>
+      <Text accessibilityRole="header" style={styles.cardTitle}>MapAble Employment</Text>
+      <Text style={styles.body}>Explore a role brief or find employment support on the MapAble website.</Text>
+      <Pressable
+        accessibilityRole="link"
+        accessibilityHint="Opens the MapAble website in your browser"
+        style={styles.button}
+        onPress={() => {
+          setOpenFailed(false);
+          void Linking.openURL(employmentUrl).catch(() => setOpenFailed(true));
+        }}
+      >
+        <Text style={styles.buttonText}>Open MapAble Employment</Text>
+      </Pressable>
+      {openFailed && (
+        <Text selectable accessibilityRole="alert" style={styles.error}>
+          Your browser couldn’t open. You can copy this address: {employmentUrl}
+        </Text>
+      )}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showSteps }}
+        onPress={() => setShowSteps((open) => !open)}
+        style={styles.button}
+      >
+        <Text style={styles.buttonText}>My application checklist</Text>
+      </Pressable>
+      {showSteps && (
+        <View style={{ gap: 8 }}>
+          <Text style={styles.muted}>Optional reminders for this session. Only you see your choices.</Text>
+          {applicationSteps.map((step) => {
+            const selected = checked.includes(step);
+            return (
+              <Pressable
+                key={step}
+                accessibilityRole="checkbox"
+                accessibilityLabel={step}
+                accessibilityState={{ checked: selected }}
+                style={styles.checklistItem}
+                onPress={() => setChecked((current) => current.includes(step)
+                  ? current.filter((item) => item !== step) : [...current, step])}
+              >
+                <Text style={styles.body}>{step}</Text>
+                <Text style={styles.muted}>{selected ? 'Done' : 'To do'}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+    </Card>
+  );
+}
+
 function MoreScreen() {
   const suite = useSuite();
   return (
@@ -398,6 +463,7 @@ function MoreScreen() {
       <Text style={styles.subtitle}>Capability packs, access and trust controls.</Text>
 
       <SectionTitle>MapAble</SectionTitle>
+      <EmploymentCard />
       <MapAbleSearchCard />
 
       <SectionTitle>AccessiBooks</SectionTitle>
@@ -513,6 +579,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  checklistItem: { minHeight: 48, padding: 10, borderWidth: 1, borderColor: colours.border, borderRadius: 9, justifyContent: 'center' },
   screen: { flex: 1, backgroundColor: colours.background },
   content: { padding: 18, paddingBottom: 36, gap: 16 },
   hero: { gap: 5, paddingTop: 6 },
