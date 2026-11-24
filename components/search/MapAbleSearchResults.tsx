@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { cn } from "@/app/lib/utils";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import type {
   MapAbleSearchHit,
   MapAbleSearchResponse,
@@ -11,8 +13,6 @@ import {
   type SearchEvidenceStatus,
   type SearchUiStatus,
 } from "@/lib/search/mapable-search-ui";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
-import { cn } from "@/app/lib/utils";
 
 const STATUS_LABEL: Record<SearchEvidenceStatus, string> = {
   verified: "Verified",
@@ -26,6 +26,7 @@ type Props = {
   response?: MapAbleSearchResponse | null;
   status: SearchUiStatus;
   ads?: SearchAdSlot[];
+  announceStatus?: boolean;
   className?: string;
 };
 
@@ -164,6 +165,7 @@ export function MapAbleSearchResults({
   response,
   status,
   ads = [],
+  announceStatus = true,
   className,
 }: Props) {
   const organic = organicResultsIgnoringAds(response?.results ?? [], ads);
@@ -180,7 +182,7 @@ export function MapAbleSearchResults({
         >
           Search results
         </h2>
-        <p role="status" className="text-sm text-slate-600">
+        <p role={announceStatus ? "status" : undefined} className="text-sm text-slate-600">
           {status === "loading"
             ? "Searching MapAble…"
             : status === "no_match"
