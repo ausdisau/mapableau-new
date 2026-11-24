@@ -49,13 +49,16 @@ describe("match explanation service", () => {
           category: "skill",
           isEssential: true,
         },
+        { id: "req-2", label: "Audio editing", category: "skill", isEssential: false },
+        { id: "req-3", label: "Art", category: "skill", isEssential: true },
+        { id: "req-4", label: "First aid", category: "certification", isEssential: true },
       ],
       workplaceLocation: null,
       employerOrganisation: { employerAccessibilityEvidence: [] },
     } as never);
     vi.mocked(prisma.employmentProfile.findUnique).mockResolvedValue({
-      skills: ["Customer service"],
-      interests: [],
+      skills: [" CUSTOMER   service ", "Cartography", "First aid"],
+      interests: ["Audio editing"],
       preferredWorkTypes: [],
       preferredHours: [],
       preferredLocations: [],
@@ -81,6 +84,12 @@ describe("match explanation service", () => {
       expect.arrayContaining([
         expect.objectContaining({ label: "Customer service", status: "matched" }),
       ]),
+    );
+    expect(match.requirementsMatched).toHaveLength(1);
+    expect(match.requirementsNotMatched).toEqual(
+      ["Audio editing", "Art", "First aid"].map((label) =>
+        expect.objectContaining({ label, status: "participant_decision_required" }),
+      ),
     );
   });
 

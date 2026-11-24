@@ -34,6 +34,7 @@ export type PublicModulePageProps = {
   safetyNote: ReactNode;
   primaryCta: CallToAction;
   secondaryCta?: CallToAction;
+  children?: ReactNode;
 };
 
 export function PublicModulePage({
@@ -46,6 +47,7 @@ export function PublicModulePage({
   safetyNote,
   primaryCta,
   secondaryCta,
+  children,
 }: PublicModulePageProps) {
   return (
     <div className="bg-white text-[#0C1833]">
@@ -85,6 +87,7 @@ export function PublicModulePage({
         </div>
       </section>
 
+      {children}
       <section className={`${mapablePublicPageContainerClass} py-12 sm:py-16`}>
         <div className="mb-8 max-w-2xl">
           <p className={mapablePublicSectionTitleClass}>Module overview</p>
