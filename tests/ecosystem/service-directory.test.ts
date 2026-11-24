@@ -40,7 +40,7 @@ describe("MapAble ecosystem service directory", () => {
   });
 
   it("uses the inspected MapAble routes for core discovery", () => {
-    expect(getEcosystemService("challenges").href).toBe("/community");
+    expect(getEcosystemService("challenges").href).toBe("/signal");
     expect(getEcosystemService("care").href).toBe("/care");
     expect(getEcosystemService("transport").href).toBe("/transport");
     expect(getEcosystemService("employment").href).toBe("/employment");
