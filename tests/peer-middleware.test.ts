@@ -6,6 +6,8 @@ describe("shouldRunAuthMiddleware", () => {
   it("guards authenticated app prefixes", () => {
     expect(shouldRunAuthMiddleware("/dashboard")).toBe(true);
     expect(shouldRunAuthMiddleware("/dashboard/settings")).toBe(true);
+    expect(shouldRunAuthMiddleware("/admin")).toBe(true);
+    expect(shouldRunAuthMiddleware("/admin/payouts")).toBe(true);
     expect(shouldRunAuthMiddleware("/provider")).toBe(true);
     expect(shouldRunAuthMiddleware("/provider/care/requests")).toBe(true);
     expect(shouldRunAuthMiddleware("/worker/today")).toBe(true);

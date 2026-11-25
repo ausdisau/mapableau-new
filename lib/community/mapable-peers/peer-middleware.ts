@@ -9,6 +9,7 @@ import {
 
 const AUTH_PREFIXES = [
   "/dashboard",
+  "/admin",
   "/provider",
   "/worker",
   "/driver",
