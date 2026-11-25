@@ -4,16 +4,16 @@ import { useEffect, useMemo, useRef } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 
-import { SponsoredMapMarker } from "@/components/ads/mapable/SponsoredMapMarker";
 import { GccsaBoundaryLayer } from "@/components/access/GccsaBoundaryLayer";
+import { SponsoredMapMarker } from "@/components/ads/mapable/SponsoredMapMarker";
 import { GaisMapLibreLayer } from "@/components/gais/GaisMapLibreLayer";
 import { useMapConfig } from "@/components/map/MapProvider";
-import type { AdCreativePayload } from "@/lib/ads/types";
-import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 import type {
   AccessCapitalRegionSlug,
   GccsaBoundaryFeatureCollection,
 } from "@/lib/access/regions/gccsa";
+import type { AdCreativePayload } from "@/lib/ads/types";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 export function AccessMapLayer({
   places,

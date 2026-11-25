@@ -46,7 +46,7 @@ export default async function NdiaReadinessPage() {
       </ul>
       <p className="text-sm">
         The NDIA Digital Partnership Office must approve access and provide
-        current API specifications. Keep the NDIS Commission's registration
+        current API specifications. Keep the NDIS Commission&apos;s registration
         and worker-screening systems separate from NDIA claiming.
       </p>
     </div>

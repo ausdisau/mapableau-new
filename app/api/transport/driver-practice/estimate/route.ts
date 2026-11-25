@@ -6,6 +6,8 @@ import {
 } from "@/lib/transport/driver-practice/estimate-service";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
+
+/** @public Accepts a named synthetic corridor only. Assigned trips use the signed-in roster. */
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const id = corridorSchema.safeParse(params.get("corridor"));

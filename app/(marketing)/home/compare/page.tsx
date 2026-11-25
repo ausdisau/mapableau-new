@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { canonicalAlternate } from "@/lib/config/canonical-url";
 import { homeLivingConfig } from "@/lib/config/abilitypay-home-living";
+import { canonicalAlternate } from "@/lib/config/canonical-url";
 import {
   comparePublishedProperties,
   HomeCompareDisabledError,

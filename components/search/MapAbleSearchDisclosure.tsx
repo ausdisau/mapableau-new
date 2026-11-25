@@ -1,9 +1,8 @@
 import Link from "next/link";
 
-import type { SearchUiStatus } from "@/lib/search/mapable-search-ui";
-import { deepSearchAvailable } from "@/lib/search/mapable-search-ui";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import { cn } from "@/app/lib/utils";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
+import type { SearchUiStatus } from "@/lib/search/mapable-search-ui";
 
 type Props = {
   status?: SearchUiStatus;

@@ -34,7 +34,7 @@ export default async function ProviderCareSchedulerPage({
 
   return (
     <CareSchedulerBoard
-      role="provider"
+      viewerRole="provider"
       weekStart={weekStart}
       data={data}
       organisationId={organisationId}

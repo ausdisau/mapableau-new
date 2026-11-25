@@ -1,3 +1,5 @@
+import type Stripe from "stripe";
+
 import {
   MAPABLE_PURPOSE_ADS_WALLET_TOPUP,
 } from "@/lib/ads/auction/config";
@@ -7,7 +9,6 @@ import {
   freezeWalletForDispute,
 } from "@/lib/ads/billing/wallet";
 import { prisma } from "@/lib/prisma";
-import type Stripe from "stripe";
 
 function metaPurpose(meta: Stripe.Metadata | null | undefined): string | undefined {
   return meta?.mapablePurpose ?? undefined;

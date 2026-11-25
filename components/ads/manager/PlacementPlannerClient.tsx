@@ -443,12 +443,12 @@ export function PlacementPlannerClient(props: {
           {deliveryCsv ? (
             <div>
               <h3 className="text-sm font-medium">Delivery evidence CSV</h3>
-              <pre
-                className="mt-2 overflow-x-auto rounded border border-border bg-muted/30 p-3 text-xs"
-                tabIndex={0}
-              >
-                {deliveryCsv}
-              </pre>
+              <textarea
+                className="mt-2 max-h-48 w-full overflow-x-auto rounded border border-border bg-muted/30 p-3 font-mono text-xs"
+                readOnly
+                aria-label="Delivery evidence CSV"
+                value={deliveryCsv}
+              />
               <a
                 className="mt-2 inline-block text-sm underline"
                 href={`data:text/csv;charset=utf-8,${encodeURIComponent(deliveryCsv)}`}

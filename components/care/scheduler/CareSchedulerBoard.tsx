@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 
 import {
   addCalendarDays,
@@ -18,7 +18,7 @@ import {
 type View = "week" | "list";
 type Filter = "all" | "attention" | "upcoming" | "completed";
 type Props = {
-  role: CareSchedulerRole;
+  viewerRole: CareSchedulerRole;
   weekStart: string;
   data: CareSchedulerData;
   organisationId?: string;
@@ -58,7 +58,7 @@ function getStatusStyle(entry: CareSchedulerEntry): string {
   return "border-violet-300 bg-violet-50 text-violet-950 dark:border-violet-700 dark:bg-violet-950/30 dark:text-violet-100";
 }
 
-function ShiftCard({ entry, role }: { entry: CareSchedulerEntry; role: CareSchedulerRole }) {
+function ShiftCard({ entry, viewerRole: role }: { entry: CareSchedulerEntry; viewerRole: CareSchedulerRole }) {
   const crossesMidnight = sydneyDateKey(entry.endAt) !== entry.date;
   const time =
     formatSydneyTime(entry.startAt) +
@@ -90,13 +90,19 @@ function ShiftCard({ entry, role }: { entry: CareSchedulerEntry; role: CareSched
 }
 
 export function CareSchedulerBoard({
-  role,
+  viewerRole: role,
   weekStart,
   data,
   organisationId,
 }: Props) {
   const [view, setView] = useState<View>("week");
   const [filter, setFilter] = useState<Filter>("all");
+  const rosterId = useId();
+  const roster = useRef<HTMLDivElement>(null);
+  function scrollRoster(direction: number) {
+    const node = roster.current;
+    if (node) node.scrollBy({ left: direction * node.clientWidth * 0.7 });
+  }
   const days = useMemo(() => getWeekDates(weekStart), [weekStart]);
   const copy = ROLE_COPY[role];
   const filtered = useMemo(() => {
@@ -307,7 +313,12 @@ export function CareSchedulerBoard({
             ) : null}
           </div>
         ) : role === "provider" ? (
-          <div className="max-w-full overflow-x-auto rounded-xl border border-border" tabIndex={0} aria-label="Roster matrix; scroll horizontally for other days">
+          <>
+            <div className="mb-2 flex flex-wrap gap-2" role="group" aria-label="Scroll the roster by day">
+              <button type="button" aria-controls={rosterId} className="min-h-11 rounded border px-3" onClick={() => scrollRoster(-1)}>Earlier days</button>
+              <button type="button" aria-controls={rosterId} className="min-h-11 rounded border px-3" onClick={() => scrollRoster(1)}>Later days</button>
+            </div>
+          <div id={rosterId} ref={roster} role="region" className="max-w-full overflow-x-auto rounded-xl border border-border" aria-label="Weekly roster matrix">
             <table className="w-full min-w-[1030px] border-collapse text-left text-sm">
               <caption className="sr-only">Workers by day of week; unallocated shifts have a separate row</caption>
               <thead className="bg-muted/50">
@@ -328,7 +339,7 @@ export function CareSchedulerBoard({
                           {filtered
                             .filter((entry) => entry.date === day && showInCell(entry, worker.id))
                             .map((entry) => (
-                              <li key={entry.id}><ShiftCard entry={entry} role={role}/></li>
+                              <li key={entry.id}><ShiftCard entry={entry} viewerRole={role}/></li>
                             ))}
                         </ul>
                       </td>
@@ -339,6 +350,7 @@ export function CareSchedulerBoard({
             </table>
             {!workerRows.length ? <p className="p-4 text-muted-foreground">No active workers or scheduled shifts for this organisation.</p> : null}
           </div>
+          </>
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
             {days.map((day) => {
@@ -347,7 +359,7 @@ export function CareSchedulerBoard({
                 <section key={day} aria-label={formatDateHeading(day)} className="min-w-0 rounded-xl border border-border bg-background p-3">
                   <h3 className="mb-3 text-sm font-bold text-foreground">{formatDateHeading(day)}</h3>
                   <ul className="space-y-2">
-                    {shifts.map((entry) => <li key={entry.id}><ShiftCard entry={entry} role={role}/></li>)}
+                    {shifts.map((entry) => <li key={entry.id}><ShiftCard entry={entry} viewerRole={role}/></li>)}
                   </ul>
                   {!shifts.length ? <p className="text-xs text-muted-foreground">No shifts</p> : null}
                 </section>
@@ -385,11 +397,11 @@ export function CareSchedulerBoard({
           </p>
           <details className="mt-4 text-sm">
             <summary className="min-h-11 cursor-pointer rounded-lg py-2 font-semibold text-violet-800 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 dark:text-violet-300">
-              What does "Needs review" mean?
+              What does &quot;Needs review&quot; mean?
             </summary>
             <p className="mt-2 text-muted-foreground">
               An unallocated shift, cancellation, no-show, dispute or other exceptional status
-              needs a person's review. This flag is not a clinical or safeguarding determination.
+              needs a person&apos;s review. This flag is not a clinical or safeguarding determination.
             </p>
           </details>
         </section>
