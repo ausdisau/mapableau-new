@@ -3,6 +3,10 @@ import { z } from "zod";
 import type { adidIdentity } from "@/lib/auth/adid-config";
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { oauthOnlyPasswordHash } from "@/lib/auth/ensure-oauth-user";
+import {
+  JURISDICTION_DEFAULTS,
+  type MapAbleJurisdiction,
+} from "@/lib/config/nz-schemes";
 import { prisma } from "@/lib/prisma";
 
 type VerifiedIdentity = NonNullable<ReturnType<typeof adidIdentity>>;
@@ -31,7 +35,10 @@ async function linkedAccount(identity: VerifiedIdentity) {
   });
 }
 
-export async function resolveAdidUser(identity: VerifiedIdentity) {
+export async function resolveAdidUser(
+  identity: VerifiedIdentity,
+  region: MapAbleJurisdiction = "AU",
+) {
   const linked = await linkedAccount(identity);
   if (linked !== undefined) return linked;
   const email =
@@ -55,7 +62,12 @@ export async function resolveAdidUser(identity: VerifiedIdentity) {
           primaryRole: "participant",
           roleAssignments: { create: { role: "participant", isPrimary: true } },
           participantProfile: {
-            create: { displayName: name, preferredName: name.split(" ")[0] },
+            create: {
+              displayName: name,
+              preferredName: name.split(" ")[0],
+              jurisdiction: region,
+              timezone: JURISDICTION_DEFAULTS[region].timezone,
+            },
           },
           accessibilityProfile: { create: {} },
         },

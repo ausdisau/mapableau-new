@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { clerkLoginSelected } from "@/lib/auth/adid-config";
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import {
   buildPasswordResetUrl,
@@ -13,6 +14,9 @@ const GENERIC_MESSAGE =
   "If an account exists for that email, we sent password reset instructions.";
 
 export async function POST(req: Request) {
+  if (clerkLoginSelected()) return NextResponse.json(
+    { code: "USE_ADID", error: "Use AD.iD sign-in to recover your account.", signInUrl: "/login" }, { status: 409 },
+  );
   try {
     const body = (await req.json()) as { email?: string };
     const email = body.email ? normalizeAuthEmail(body.email) : "";

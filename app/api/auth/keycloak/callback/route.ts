@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { clerkLoginSelected } from "@/lib/auth/adid-config";
 import {
   exchangeKeycloakCode,
   fetchKeycloakUserInfo,
@@ -18,6 +19,7 @@ import { auditIntegrationAction } from "@/lib/integrations/integration-audit-ser
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
+  if (clerkLoginSelected()) return NextResponse.redirect(new URL("/login", request.url));
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");

@@ -1,6 +1,7 @@
 import { Show } from "@clerk/nextjs";
 import Link from "next/link";
 import { Suspense } from "react";
+import AccessibleButton from "../components/AccessibleButton";
 
 import { hasClerkTenant } from "../lib/clerk-config";
 import { PUBLIC_SERVICES, supportHref } from "../lib/service-directory";
@@ -10,12 +11,12 @@ export const dynamic = "force-dynamic";
 export default function Home() {
   const entry = (
     <div className="entry-actions">
-      <Link className="primary-button" href="/sign-in">
+      <AccessibleButton href="/sign-in">
         Sign in to AD.iD
-      </Link>
-      <Link className="secondary-button" href="/sign-up">
+      </AccessibleButton>
+      <AccessibleButton variant="outline" href="/sign-up">
         Create an account
-      </Link>
+      </AccessibleButton>
     </div>
   );
   return (
@@ -27,7 +28,7 @@ export default function Home() {
         <span>Australian Disability Ltd</span>
         <a href={supportHref}>Get help</a>
       </header>
-      <main className="identity-home container" id="main-content">
+      <main className="identity-home container" id="main-content" tabIndex={-1}>
         <section className="identity-intro" aria-labelledby="entry-title">
           <h1 id="entry-title">Your AD.iD account</h1>
           <p>

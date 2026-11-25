@@ -29,6 +29,7 @@ vi.mock("@/lib/auth/ensure-oauth-user", () => ({
 }));
 const cfg = {
   ADID_AUTH0_ENABLED: "true",
+  ADID_PORTAL_ORIGIN: "https://id.example",
   ADID_AUTH0_ISSUER: "https://broker.example",
   ADID_AUTH0_CONNECTION: "clerk-review",
   ADID_AUTH0_CLIENT_ID: "mapable",
@@ -103,8 +104,11 @@ describe("AD.iD federation", () => {
     expect(adidIdentity(claims, "different", config)).toBeNull();
   });
   it("creates a first-time participant and an audit event in the same transaction", async () => {
-    expect(await resolveAdidUser(identity)).toEqual(local);
+    expect(await resolveAdidUser(identity, "NZ")).toEqual(local);
     expect(mock.create.mock.calls[0][0].data.primaryRole).toBe("participant");
+    expect(
+      mock.create.mock.calls[0][0].data.participantProfile.create,
+    ).toMatchObject({ jurisdiction: "NZ", timezone: "Pacific/Auckland" });
     expect(mock.bind.mock.calls[0][0].data).toEqual({
       userId: local.id,
       provider: "adid:https://broker.example/",

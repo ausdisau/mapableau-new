@@ -33,7 +33,7 @@ Clerk Core 3 uses `<Show when="signed-in|signed-out">` (not `SignedIn`/`SignedOu
 On 10 November 2026, the AD.iD Neon project was observed in AWS us-east-2 with `neon_auth` schema and `public.services`, `public.user_service_access`, `public.audit_events`. The uploaded `adid-neon-auth-db` Prisma migration creates overlapping `User`, `Session` and `Identity` tables and MUST NOT be deployed unreviewed. The AD.iD project is in US East; resolve Australian data residency before personal account linking.
 
 ## MapAble identity binding
-The optional MapAble client uses the Auth0 issuer and subject to recognise returning people. A first sign-in with a new verified email can create a local participant account. If the email already belongs to a local account, MapAble directs the person to their established sign-in. Linking two existing accounts requires a separate proof-of-control flow. MapAble keeps permissions and its NextAuth session locally.
+The optional MapAble client uses the Auth0 issuer and subject to recognise returning people. A first sign-in with a new verified email can create a local participant account. If the email already belongs to a local account, MapAble stops and offers support with the existing account. Linking two existing accounts requires a separate proof-of-control flow. MapAble keeps permissions and its NextAuth session locally.
 
 ## Styling
 The AD.iD Brand Identity reference gives deep Australian blue #1F5897, warm muted red #9D5D61, vivid orange #F0671D. The dashboard follows the screenshot's layout concept (sidebar, service cards, assistance); placeholder example emails/addresses in the brand source must never be published as real data.

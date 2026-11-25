@@ -10,6 +10,8 @@ const isProtected = createRouteMatcher([
   "/dashboard(.*)",
   "/account(.*)",
   "/api/identity(.*)",
+  "/access/request(.*)",
+  "/admin/access-requests(.*)",
 ]);
 const withClerk = clerkMiddleware(async (auth, request) => {
   if (isProtected(request)) await auth.protect();

@@ -2,6 +2,8 @@ import { UserButton } from "@clerk/nextjs";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import ServiceTile from "../../components/ServiceTile";
+import { reviewerServices } from "../../lib/access-requests";
 
 import { getReadOnlyServiceDirectory } from "../../lib/neon-directory";
 import { PUBLIC_SERVICES, communityService, supportHref } from "../../lib/service-directory";
@@ -30,9 +32,12 @@ export default async function Dashboard() {
           </a>
           <a href="#services">My services</a>
           <Link href="/account">Account and security</Link>
+          <Link href="/access/request">Request service access</Link>
+          {reviewerServices(userId, process.env.ADID_ACCESS_REVIEWERS).length > 0 &&
+            <Link href="/admin/access-requests">Review access requests</Link>}
           <a href="#support">Support and accessibility</a>
         </nav>
-        <main className="dashboard-main" id="main-content">
+        <main className="dashboard-main" id="main-content" tabIndex={-1}>
           <h1>Welcome back, {user?.firstName?.trim() || "there"}</h1>
           <p>Manage your sign-in details or choose a service to visit.</p>
           <section id="services" aria-labelledby="services-heading">
@@ -40,18 +45,7 @@ export default async function Dashboard() {
             <p>Each service checks its own membership when you open it.</p>
             <div className="service-grid">
               {PUBLIC_SERVICES.map((s) => (
-                <article className="service-card" key={s.id}>
-                  <h3>{s.name}</h3>
-                  <p>{s.description}</p>
-
-                  <a
-                    className="primary-button"
-                    href={s.href}
-                    rel="noopener noreferrer"
-                  >
-                    Visit {s.name}
-                  </a>
-                </article>
+                <ServiceTile key={s.id} service={s} />
               ))}
             </div>
             {directory.status === "ready" && (

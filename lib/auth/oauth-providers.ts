@@ -5,7 +5,7 @@ import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
 import type { Provider } from "next-auth/providers/index";
 
-import { getAdidConfig } from "@/lib/auth/adid-config";
+import { clerkLoginSelected, getAdidConfig } from "@/lib/auth/adid-config";
 import { getAppleClientSecret } from "@/lib/auth/apple-client-secret";
 
 export type OAuthProviderFlags = {
@@ -91,8 +91,10 @@ function appleCredentialsPresent(): boolean {
 }
 
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
+  if (clerkLoginSelected()) {
+    return { adid: Boolean(getAdidConfig()), auth0: false, google: false, microsoft: false, facebook: false, apple: false };
+  }
   return {
-    ...(getAdidConfig() ? { adid: true } : {}),
     auth0: Boolean(auth0ClientId() && auth0ClientSecret() && auth0Issuer()),
     google: Boolean(googleClientId() && googleClientSecret()),
     microsoft: envPresent("AZURE_AD_CLIENT_ID", "AZURE_AD_CLIENT_SECRET"),

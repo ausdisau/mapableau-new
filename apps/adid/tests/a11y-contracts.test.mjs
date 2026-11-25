@@ -8,8 +8,10 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 test("skip link and main landmark exist on key pages", () => {
   const layout = fs.readFileSync(path.join(root, "app/layout.tsx"), "utf8");
-  assert.match(layout, /skip-link/);
-  assert.match(layout, /#main-content/);
+  assert.match(layout, /<SkipLink/);
+  const skip = fs.readFileSync(path.join(root, "components/SkipLink.tsx"), "utf8");
+  assert.match(skip, /skip-link/);
+  assert.match(skip, /#main-content/);
 
   for (const file of [
     "app/page.tsx",

@@ -1,35 +1,47 @@
 // Auth0 supplies this signed claim from its Post Login Action. It is never user metadata.
 export const adidConnectionClaim = "https://www.ausdis.com.au/adid/connection";
 
-export function getAdidConfig(env: Readonly<Record<string, string | undefined>> = process.env) {
+type Environment = Readonly<Record<string, string | undefined>>;
+
+export function clerkLoginSelected(env: Environment = process.env) {
+  return env.ADID_AUTH0_ENABLED === "true";
+}
+
+function httpsOrigin(value: string | undefined) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" &&
+      !url.port &&
+      !url.username &&
+      !url.password &&
+      url.pathname === "/" &&
+      !url.search &&
+      !url.hash
+      ? url.origin
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getAdidConfig(env: Environment = process.env) {
   const issuerValue = env.ADID_AUTH0_ISSUER?.trim();
   const connection = env.ADID_AUTH0_CONNECTION?.trim();
   const clientId = env.ADID_AUTH0_CLIENT_ID?.trim();
   const clientSecret = env.ADID_AUTH0_CLIENT_SECRET?.trim();
+  const issuer = httpsOrigin(issuerValue);
+  const portal = httpsOrigin(env.ADID_PORTAL_ORIGIN);
   if (
-    env.ADID_AUTH0_ENABLED !== "true" ||
-    !issuerValue ||
+    !clerkLoginSelected(env) ||
+    !issuer ||
+    !portal ||
     !connection ||
     !clientId ||
     !clientSecret
   )
     return null;
-  try {
-    const url = new URL(issuerValue);
-    if (
-      url.protocol !== "https:" ||
-      url.port ||
-      url.pathname !== "/" ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash
-    )
-      return null;
-    return { issuer: url.origin + "/", connection, clientId, clientSecret };
-  } catch {
-    return null;
-  }
+  return { issuer: issuer + "/", portal, connection, clientId, clientSecret };
 }
 
 export function adidIdentity(

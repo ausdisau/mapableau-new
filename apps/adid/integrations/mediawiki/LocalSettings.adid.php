@@ -12,7 +12,11 @@ if ( !$adidIssuer || !preg_match( '~^https://[a-z0-9.-]+/?$~iD', $adidIssuer ) |
 }
 wfLoadExtension( 'PluggableAuth' );
 wfLoadExtension( 'OpenIDConnect' );
-$wgPluggableAuth_EnableLocalLogin = true;
+// Public reading is independent of sign-in. New wiki accounts come from authenticated SSO.
+$wgPluggableAuth_EnableLocalLogin = false;
+$wgPluggableAuth_EnableAutoLogin = false;
+$wgGroupPermissions['*']['createaccount'] = false;
+$wgGroupPermissions['*']['autocreateaccount'] = true;
 $wgOpenIDConnect_MigrateUsersByEmail = false;
 $wgOpenIDConnect_MigrateUsersByUserName = false;
 $wgPluggableAuth_Config['Sign in with AD.iD'] = [

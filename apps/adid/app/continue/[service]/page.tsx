@@ -16,7 +16,7 @@ export default async function ContinueToService({
   if (!hasClerkTenant() || !(await auth()).userId)
     redirect("/sign-in?service=" + service.id);
   return (
-    <main id="main-content" className="container signin">
+    <main id="main-content" tabIndex={-1} className="container signin">
       <h1>Continue to {service.name}</h1>
       <p>
         You are signed in to AD.iD. {service.name} manages your access on its

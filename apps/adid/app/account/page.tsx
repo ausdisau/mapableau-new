@@ -22,7 +22,7 @@ export default async function AccountPage() {
           <Link href="/dashboard">Service control centre</Link>
         </nav>
       </header>
-      <main className="container" id="main-content">
+      <main className="container" id="main-content" tabIndex={-1}>
         <h1>Account and security</h1>
         <p>
           Manage your contact details, sign-in methods and account security.

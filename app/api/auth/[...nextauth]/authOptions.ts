@@ -1,9 +1,11 @@
 import { compare } from "bcryptjs";
+import { cookies } from "next/headers";
 import type { AuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 
-import { adidIdentity, getAdidConfig } from "@/lib/auth/adid-config";
+import { adidIdentity, clerkLoginSelected, getAdidConfig } from "@/lib/auth/adid-config";
+import { readRegistrationCookie, registrationCookie } from "@/lib/auth/adid-registration";
 import { resolveAdidUser } from "@/lib/auth/adid-user";
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { ensureOAuthUser } from "@/lib/auth/ensure-oauth-user";
@@ -171,12 +173,14 @@ export const authOptions = {
         }
       },
     }),
-  ],
+  ].filter(provider => !clerkLoginSelected() || provider.type !== "credentials"),
   pages: {
     signIn: "/login",
+    ...(clerkLoginSelected() ? { error: "/login" } : {}),
   },
   callbacks: {
     async signIn({ user, account, profile }) {
+      if (clerkLoginSelected() && account?.provider !== "adid") return false;
       if (!account || account.provider === "credentials") {
         return true;
       }
@@ -186,7 +190,8 @@ export const authOptions = {
         const identity = config && adidIdentity(profile, account.providerAccountId, config);
         if (!identity) return false;
         try {
-          const local = await resolveAdidUser(identity);
+          const registration = readRegistrationCookie((await cookies()).get(registrationCookie)?.value);
+          const local = await resolveAdidUser(identity, registration?.region);
           if (!local) return false;
           Object.assign(user, { id: local.id, email: local.email, name: local.name, role: local.primaryRole });
           return true;

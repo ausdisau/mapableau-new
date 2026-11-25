@@ -13,8 +13,14 @@ export function safeAuthCallbackPath(
 ): string {
   if (!callbackUrl) return fallback;
   const path = callbackUrl.trim();
-  if (!path.startsWith("/") || path.startsWith("//")) return fallback;
-  return path;
+  if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) return fallback;
+  try {
+    const url = new URL(path, "https://mapable.invalid");
+    if (url.origin !== "https://mapable.invalid" || url.pathname.startsWith("//")) return fallback;
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return fallback;
+  }
 }
 
 /** Full navigation after auth so middleware sees the new session cookie. */

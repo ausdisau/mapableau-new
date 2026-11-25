@@ -14,7 +14,7 @@ export default async function SignInPage({
   const suffix = service ? "?service=" + service.id : "";
   const after = service ? "/continue/" + service.id : undefined;
   return (
-    <main className="container signin" id="main-content">
+    <main className="container signin" id="main-content" tabIndex={-1}>
       <Link className="brand" href="/" aria-label="AD.iD home">
         AD<span className="accent">.iD</span>
       </Link>
