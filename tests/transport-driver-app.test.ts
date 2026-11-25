@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { GET } from "@/app/api/transport/driver-practice/estimate/route";
+import {
+  GET,
+  OPTIONS,
+} from "@/app/api/transport/driver-practice/estimate/route";
 import { shouldRunAuthMiddleware } from "@/lib/community/mapable-peers/peer-middleware";
 import { avTripTransitionAllowed } from "@/lib/platform/av-framework/trip-transitions";
 import { publicCorridorEstimate } from "@/lib/transport/driver-practice/estimate-service";
@@ -37,6 +40,38 @@ describe("driver app entry points", () => {
       expect(
         (await GET(new Request("https://example.invalid/?" + query))).status,
       ).toBe(400);
+  });
+  it("allows credential-free reads of practice estimates from standalone web origins", async () => {
+    const endpoint =
+      "https://mapable.com.au/api/transport/driver-practice/estimate";
+    const origin = { Origin: "http://localhost:8081" };
+    const preflight = OPTIONS();
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("Access-Control-Allow-Methods")).toBe(
+      "GET, HEAD, OPTIONS",
+    );
+    expect(preflight.headers.get("Access-Control-Allow-Headers")).toBe(
+      "Accept",
+    );
+    vi.stubEnv("MAPABLE_DRIVER_PRACTICE_ROUTING_ENABLED", "false");
+    try {
+      const estimate = await GET(
+        new Request(endpoint + "?corridor=park-library", { headers: origin }),
+      );
+      const unknown = await GET(
+        new Request(endpoint + "?corridor=private", { headers: origin }),
+      );
+      expect(estimate.status).toBe(503);
+      expect(unknown.status).toBe(400);
+      for (const response of [preflight, estimate, unknown]) {
+        expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
+        expect(response.headers.has("Access-Control-Allow-Credentials")).toBe(
+          false,
+        );
+      }
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
   it("reuses a dated estimate across instances and skips Mapbox when Redis is unavailable", async () => {
     let stored: string | null = null;

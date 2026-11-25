@@ -50,6 +50,8 @@ Use Expo's Android or iOS target for a device build. Run `npx expo export --plat
 
 Both deployment flags are independent. The practice UI runs with either flag disabled. Authenticated changes are submitted online. After an uncertain response, refresh the authoritative roster before repeating an action. No database migration is required.
 
+The Expo app uses MapAble.com.au for practice estimates by default. Set `EXPO_PUBLIC_MAPABLE_PRACTICE_API_ORIGIN` when starting or exporting Expo to point practice requests at a local Next.js server or a MapAble preview. The public corridor endpoint accepts credential-free browser reads from standalone web origins. Driver sign-in continues to use MapAble.com.au.
+
 ## Test plan and accessibility
 
 Run `pnpm exec vitest run tests/transport-driver-app.test.ts` at the root. It covers public and protected route boundaries, canonical trip transitions, the public-corridor allowlist, cache expiry, Redis failure and the refresh lease. The mobile tests cover required checks, duplicate taps, declined jobs, hold and resume, withdrawal and restored state.

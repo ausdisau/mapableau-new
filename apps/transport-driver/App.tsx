@@ -49,6 +49,12 @@ import {
 } from "../../components/transport/drivers/kit";
 import type { DriverUI } from "../../components/transport/drivers/kit";
 import { fetchPracticeEstimate } from "../../lib/transport/driver-practice/estimate-client";
+
+// Expo replaces this public setting when bundling for native or web.
+declare const process: {
+  env: { EXPO_PUBLIC_MAPABLE_PRACTICE_API_ORIGIN?: string };
+};
+
 const icons = {
   wheel: Navigation,
   route: Route,
@@ -79,6 +85,9 @@ const images = {
 };
 const key = "mapable.drivers.practice.v1";
 const origin = "https://mapable.com.au";
+const practiceApiOrigin = (
+  process.env.EXPO_PUBLIC_MAPABLE_PRACTICE_API_ORIGIN?.trim() || origin
+).replace(/\/+$/, "");
 const heading: { current: React.ComponentRef<typeof Text> | null } = {
   current: null,
 };
@@ -223,7 +232,8 @@ const ui: DriverUI = {
     }
     await WebBrowser.openBrowserAsync(origin + path);
   },
-  refreshEstimate: (corridor) => fetchPracticeEstimate(origin, corridor),
+  refreshEstimate: (corridor) =>
+    fetchPracticeEstimate(practiceApiOrigin, corridor),
   focusPage: () =>
     requestAnimationFrame(() => {
       scroll.current?.scrollTo({ y: 0, animated: false });

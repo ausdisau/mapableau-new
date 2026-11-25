@@ -5,7 +5,17 @@ import {
   RETRY_SECONDS,
 } from "@/lib/transport/driver-practice/estimate-service";
 export const dynamic = "force-dynamic";
-const headers = { "Cache-Control": "no-store" };
+// Only the three public, synthetic corridors are readable by standalone web builds.
+const headers = {
+  "Cache-Control": "no-store",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+  "Access-Control-Allow-Headers": "Accept",
+};
+
+export function OPTIONS() {
+  return new Response(null, { status: 204, headers });
+}
 
 /** @public Accepts a named synthetic corridor only. Assigned trips use the signed-in roster. */
 export async function GET(request: Request) {
