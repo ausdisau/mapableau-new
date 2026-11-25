@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "MapAble Drivers",
+    "slug": "mapable-transport-drivers",
+    "scheme": "mapable-driver",
+    "version": "0.1.0",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "au.com.mapable.transport.driver"
+    },
+    "android": { "package": "au.com.mapable.transport.driver" },
+    "web": { "bundler": "metro" }
+  }
+}

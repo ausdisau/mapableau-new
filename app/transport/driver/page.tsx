@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { TransportAccessDenied } from "@/components/transport/TransportAccessDenied";
 import { requireAuth } from "@/lib/auth/guards";
+import { driverPilotEnabled, isFieldDriver } from "@/lib/transport/driver-roster";
 import { canAccessDriverTransport } from "@/lib/transport/transport-ui-access";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,7 @@ export default async function TransportDriverShellPage({
   }
 
   if (params.stay !== "1") {
+    if (driverPilotEnabled() && isFieldDriver(user)) redirect("/transport/drivers/assigned");
     redirect("/driver/trips");
   }
 

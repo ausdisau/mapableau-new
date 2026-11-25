@@ -1,7 +1,7 @@
 "use client";
 
-import { useGoogleAdManager } from "@/hooks/ads/useGoogleAdManager";
 import { SponsoredDisclosure } from "@/components/ads/mapable/SponsoredDisclosure";
+import { useGoogleAdManager } from "@/hooks/ads/useGoogleAdManager";
 
 type GoogleAdSlotProps = {
   enabled: boolean;

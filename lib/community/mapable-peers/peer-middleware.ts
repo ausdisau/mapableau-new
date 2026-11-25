@@ -27,6 +27,7 @@ const AUTH_MARKETPLACE_PREFIXES = [
 const AUTH_PATHS = ["/care/", "/transport/"] as const;
 
 export function shouldRunAuthMiddleware(pathname: string): boolean {
+  if (pathname === "/transport/drivers" || pathname === "/transport/drivers/") return false;
   return (
     AUTH_PREFIXES.some(
       (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),

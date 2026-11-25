@@ -3,19 +3,19 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { AdPlacement } from "@/components/ads/mapable/AdPlacement";
 import { AccessFilterPanel } from "@/components/access/AccessFilterPanel";
 import { AccessMap } from "@/components/access/AccessMap";
 import { AccessPlaceList } from "@/components/access/AccessPlaceList";
 import { AccessSearchBar } from "@/components/access/AccessSearchBar";
 import { MobileAccessMapShell } from "@/components/access/MobileAccessMapShell";
+import { AdPlacement } from "@/components/ads/mapable/AdPlacement";
 import { GaisFeatureListPanel } from "@/components/gais/GaisFeatureListPanel";
 import { GaisLayerToggle } from "@/components/gais/GaisLayerToggle";
 import { useSponsoredMapMarkers } from "@/hooks/ads/useSponsoredMapMarkers";
 import { ACCESS_DISCLAIMER } from "@/lib/access/map/copy";
 import { isClientAdsAccessEnabled } from "@/lib/ads/config/client-flags";
-import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 import { isClientGaisLayerEnabled } from "@/lib/gais/client/flags";
+import type { GaisGeoJsonFeature } from "@/lib/gais/geojson/converters";
 
 export type AccessPlaceView = {
   id: string;

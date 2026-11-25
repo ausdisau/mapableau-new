@@ -1,8 +1,6 @@
-export { Skeleton } from "@mapable/ui";
-
-import type { HTMLAttributes } from "react";
-
 import { Skeleton } from "@mapable/ui";
+
+export { Skeleton };
 
 /** Non-interactive placeholder for loading grids — avoids layout shift. */
 export function SearchResultCardSkeleton() {

@@ -21,5 +21,5 @@ export default async function WorkerCareSchedulerPage({
   const weekStart = mondayOfWeek(params.week);
   const data = await loadWorkerCareWeek(user.id, weekStart);
 
-  return <CareSchedulerBoard role="worker" weekStart={weekStart} data={data} />;
+  return <CareSchedulerBoard viewerRole="worker" weekStart={weekStart} data={data} />;
 }

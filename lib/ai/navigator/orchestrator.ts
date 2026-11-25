@@ -3,6 +3,7 @@ import {
   verifyPurposeConsent,
 } from "@/lib/ai/navigator/consent-gate";
 import { createGovernedActionEnvelope } from "@/lib/ai/navigator/envelopes/service";
+import { createNavigatorEscalation } from "@/lib/ai/navigator/escalation/service";
 import {
   assertNavigatorActionAllowed,
   assertNavigatorCapability,
@@ -20,7 +21,6 @@ import {
   type RankingWeights,
 } from "@/lib/ai/navigator/matching/types";
 import { createDecisionPassport } from "@/lib/ai/navigator/passport/service";
-import { createNavigatorEscalation } from "@/lib/ai/navigator/escalation/service";
 import { handleRelationalTurn } from "@/lib/ai/relational/handlers";
 import type { AssistanceMode } from "@/lib/ai/relational/types";
 import {

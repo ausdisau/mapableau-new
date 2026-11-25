@@ -121,6 +121,9 @@ function WhoForSection() {
               <p className="mt-2 text-sm leading-6 text-slate-700">
                 {item.summary}
               </p>
+              {item.id === "drivers" && (
+                <Link href="/transport/drivers" className={tertiaryLink}>Open MapAble Drivers</Link>
+              )}
             </li>
           ))}
         </ul>

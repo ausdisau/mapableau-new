@@ -5,9 +5,10 @@ import React, { useId, useReducer, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { GuidedSearchDialogue } from "@/components/guided-search/GuidedSearchDialogue";
+import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
 import { MapAbleSearchDisclosure } from "@/components/search/MapAbleSearchDisclosure";
-import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import { mapableSearchInputClass } from "@/lib/brand/styles";
+import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
 import {
   PUBLIC_GUIDE_GOALS,
   initialPublicGuide,
@@ -15,7 +16,6 @@ import {
   reviewPublicGuide,
   type PublicGuideGoal,
 } from "@/lib/search/public-guided-flow";
-import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
 
 type Props = {
   className?: string;

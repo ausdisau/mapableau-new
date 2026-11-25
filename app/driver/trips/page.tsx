@@ -18,6 +18,7 @@ export default async function DriverTripsPage() {
   return (
     <div className="space-y-4">
       <h2 className="font-heading text-xl font-bold">Your trips</h2>
+      <Link href="/transport/drivers" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Open MapAble Drivers</Link>
       {trips.length === 0 ? (
         <p role="status">No assigned trips.</p>
       ) : (

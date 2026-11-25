@@ -1,0 +1,37 @@
+.desk {
+  color: #0c1833;
+  background: #f4f8f8;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+.tap {
+  appearance: none;
+  font: inherit;
+  min-height: 48px;
+  min-width: 48px;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  white-space: normal;
+  box-sizing: border-box;
+}
+.tap svg {
+  flex-shrink: 0;
+}
+.tap:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.tap:hover:enabled {
+  box-shadow: inset 0 0 0 1px #627e8b;
+}
+.desk :focus-visible {
+  outline: 3px solid #bc6100;
+  outline-offset: 3px;
+}
