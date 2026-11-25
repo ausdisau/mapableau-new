@@ -12,6 +12,10 @@ AD.iD gives a person a central place to register, recover their account and choo
 
 ## Connect an isolated tenant
 
+The supplied Clerk Frontend API origin is `https://clerk.accessibooks.com.au`. The supplied publishable key belongs to this production instance. A Vite app names that public value `VITE_CLERK_PUBLISHABLE_KEY`. Set the same value as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` in the portal and set `CLERK_FRONTEND_API_URL` to the origin. Keep the matching `CLERK_SECRET_KEY` in the server-side secret store. A development instance needs its own origin and keys. `https://accessibooks.org/` is the reader service. The downstream `ADID_AUTH0_ISSUER` is the Auth0 broker’s own issuer.
+
+Run `npm run check:issuer` in `apps/adid` with the two public variables set. It checks the key's destination, retrieves public OIDC discovery, and checks the advertised signing keys. It prints the exact issuer for the upstream Auth0 connection. If the domain does not resolve, use the DNS records displayed in the **Domains** section of this Clerk production instance and verify the domain there. A successful public check still requires a separate end-to-end test with the confidential clients.
+
 | Owner | Configuration |
 | --- | --- |
 | Clerk | Select the development instance used by the portal. Configure its sign-in, sign-up and account URLs. Register Auth0 as a confidential OAuth application. Grant the required `openid`, `profile`, and `email` scopes for the broker. Register exactly the upstream callback URL shown by Auth0. Keep separate development and production clients. Confirm the instance’s signup mode and accessible recovery options. |
