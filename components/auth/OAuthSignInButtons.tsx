@@ -28,6 +28,7 @@ export function oauthProviderFlagsFromNextAuthProviders(
   const ids = new Set(providerIds);
 
   return {
+    ...(ids.has("adid") ? { adid: true } : {}),
     auth0: ids.has("auth0"),
     google: ids.has("google"),
     microsoft: ids.has("azure-ad"),
@@ -52,7 +53,7 @@ export function OAuthSignInButtons({
   const [runtimeProviders, setRuntimeProviders] =
     useState<OAuthProviderFlags>(providers);
   const [pending, setPending] = useState<
-    "auth0" | "google" | "microsoft" | "facebook" | "apple" | null
+    "adid" | "auth0" | "google" | "microsoft" | "facebook" | "apple" | null
   >(null);
   const visibleProviders = publicOAuthProviderFlags(runtimeProviders);
 
@@ -85,6 +86,7 @@ export function OAuthSignInButtons({
   }, []);
 
   if (
+    !visibleProviders.adid &&
     !visibleProviders.auth0 &&
     !visibleProviders.google &&
     !visibleProviders.microsoft &&
@@ -95,19 +97,9 @@ export function OAuthSignInButtons({
   }
 
   const startOAuth = (
-    provider: "auth0" | "google" | "azure-ad" | "facebook" | "apple",
+    provider: "adid" | "auth0" | "google" | "azure-ad" | "facebook" | "apple",
   ) => {
-    setPending(
-      provider === "auth0"
-        ? "auth0"
-        : provider === "google"
-          ? "google"
-          : provider === "facebook"
-            ? "facebook"
-            : provider === "apple"
-              ? "apple"
-              : "microsoft",
-    );
+    setPending(provider === "azure-ad" ? "microsoft" : provider);
     void signIn(provider, { callbackUrl });
   };
 
@@ -115,6 +107,12 @@ export function OAuthSignInButtons({
 
   return (
     <div className="flex flex-col gap-2">
+      {visibleProviders.adid && (
+        <Button type="button" variant="default" size="default" disabled={disabled || pending !== null}
+          loading={pending === "adid"} onClick={() => startOAuth("adid")}>
+          {pending === "adid" ? "Opening AD.iD…" : labelMode === "login" ? "Sign in with AD.iD" : "Continue with AD.iD"}
+        </Button>
+      )}
       {visibleProviders.auth0 ? (
         <Button
           type="button"

@@ -3,7 +3,7 @@ import test from "node:test";
 import { PUBLIC_SERVICES, claimsOk, verifiedPublicHref } from "../lib/service-directory.ts";
 
 test("public directory has four stable, distinct service entries", () => {
-  assert.deepEqual(PUBLIC_SERVICES.map(x => x.id), ["mapable", "accessibooks", "disapedia", "cripsquare"]);
+  assert.deepEqual(PUBLIC_SERVICES.map(x => x.id), ["ausdis", "mapable", "disapedia", "accessibooks"]);
   assert.equal(new Set(PUBLIC_SERVICES.map(x => x.href)).size, 4);
 });
 test("untrusted URLs cannot become portal links", () => {

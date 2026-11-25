@@ -1,6 +1,10 @@
-# AD.iD identity portal (review-only)
+# AD.iD identity portal
 
 An isolated Next.js application intended to be deployed on a separate protected Vercel project. It is **not** integrated with production Wix Members, MapAble sessions or the existing `neon_auth` identities.
+
+## Central federation
+
+The portal provides Clerk sign-in, registration, account recovery and service selection. The opt-in Auth0 broker lets each relying service establish its own session. The [federation deployment guide](docs/central-federation.md) covers MapAble, AccessiBooks, Wix and MediaWiki, including their separate credentials, callbacks and activation steps. The existing Wix link-only sandbox remains available. These integrations require a configured tenant and service-side rollout.
 
 ## Technology and boundaries
 - Clerk Next.js: sign-in, session issuing, passkeys/MFA as configured in Clerk dashboard. Never trust an unverified JWT or self-declared role.
@@ -8,7 +12,7 @@ An isolated Next.js application intended to be deployed on a separate protected 
 - Neon PostgreSQL: optional read-only `public.services` directory, enabled by `ADID_NEON_DIRECTORY_ENABLED=true`; no user reads or identity linking.
 - Wix Editor/Velo: three gated stages in `packages/wix-integration` — (1) verified public AD.iD link, (2) dual-proof identity linking PoC, (3) disabled-by-default one-time session handoff. See `docs/wix-handoff.md` and `docs/wix/docs-index.md`. Clerk remains the sole AD.iD IdP; Wix keeps its own Members sessions.
 - If Clerk or Neon is not configured, no live protected dashboard may be claimed.
-- Four service cards are **not** proof of entitlement, cross-app sign-in or availability.
+- The directory covers Australian Disability Ltd, MapAble, Disapedia and AccessiBooks. Service cards are **not** proof of entitlement, cross-app sign-in or availability.
 
 ## Local preparation
 1. In `apps/adid`, install dependencies (`npm install`). Also `npm install` under `packages/wix-integration` if typechecking that package in isolation.

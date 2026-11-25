@@ -5,9 +5,11 @@ import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
 import type { Provider } from "next-auth/providers/index";
 
+import { getAdidConfig } from "@/lib/auth/adid-config";
 import { getAppleClientSecret } from "@/lib/auth/apple-client-secret";
 
 export type OAuthProviderFlags = {
+  adid?: boolean;
   auth0: boolean;
   google: boolean;
   microsoft: boolean;
@@ -90,6 +92,7 @@ function appleCredentialsPresent(): boolean {
 
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
   return {
+    ...(getAdidConfig() ? { adid: true } : {}),
     auth0: Boolean(auth0ClientId() && auth0ClientSecret() && auth0Issuer()),
     google: Boolean(googleClientId() && googleClientSecret()),
     microsoft: envPresent("AZURE_AD_CLIENT_ID", "AZURE_AD_CLIENT_SECRET"),
@@ -102,6 +105,20 @@ export function getConfiguredOAuthProviders(): OAuthProviderFlags {
 export function buildOAuthProviders(): Provider[] {
   const providers: Provider[] = [];
   const flags = getConfiguredOAuthProviders();
+
+  const federation = getAdidConfig();
+  if (federation) {
+    providers.push(Auth0Provider({
+      id: "adid",
+      name: "AD.iD",
+      issuer: federation.issuer,
+      wellKnown: federation.issuer + ".well-known/openid-configuration",
+      clientId: federation.clientId,
+      clientSecret: federation.clientSecret,
+      checks: ["pkce", "state", "nonce"],
+      authorization: { params: { scope: "openid profile email", connection: federation.connection } },
+    }));
+  }
 
   if (flags.auth0) {
     providers.push(

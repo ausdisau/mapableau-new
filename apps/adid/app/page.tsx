@@ -1,42 +1,71 @@
-import Link from "next/link";
 import { Show } from "@clerk/nextjs";
+import Link from "next/link";
 import { Suspense } from "react";
 
+import { hasClerkTenant } from "../lib/clerk-config";
+import { PUBLIC_SERVICES, supportHref } from "../lib/service-directory";
+
+export const dynamic = "force-dynamic";
+
 export default function Home() {
+  const entry = (
+    <div className="entry-actions">
+      <Link className="primary-button" href="/sign-in">
+        Sign in to AD.iD
+      </Link>
+      <Link className="secondary-button" href="/sign-up">
+        Create an account
+      </Link>
+    </div>
+  );
   return (
-    <main className="landing container" id="main-content">
-      <p>Australian Disability Ltd</p>
-      <h1>
-        AD<span className="accent">.iD</span>
-      </h1>
-      <h2>Your services, your choice.</h2>
-      <p>Secure and accessible access to Australian Disability services.</p>
-      <Suspense fallback={<p role="status">Loading sign-in options…</p>}>
-        <Show when="signed-out">
+    <>
+      <header className="identity-bar">
+        <Link href="/" className="brand" aria-label="AD.iD home">
+          AD<span className="accent">.iD</span>
+        </Link>
+        <span>Australian Disability Ltd</span>
+        <a href={supportHref}>Get help</a>
+      </header>
+      <main className="identity-home container" id="main-content">
+        <section className="identity-intro" aria-labelledby="entry-title">
+          <h1 id="entry-title">Your AD.iD account</h1>
           <p>
-            <Link className="primary-button" href="/sign-in">
-              Sign in securely
-            </Link>
+            Sign in or register to manage your account with Australian
+            Disability Ltd. Each service manages its own membership and
+            permissions.
           </p>
-          <p>
-            <Link href="/sign-up">Create an AD.iD account</Link>
-          </p>
-        </Show>
-        <Show when="signed-in">
-          <p>
-            <Link className="primary-button" href="/dashboard">
-              Go to your service control centre
-            </Link>
-          </p>
-          <p>
-            <Link href="/account">Manage account and security</Link>
-          </p>
-        </Show>
-      </Suspense>
-      <p>
-        AD.iD sign-in does not automatically grant access to MapAble,
-        AccessiBooks, CripSquare, Disapedia or Wix Members.
-      </p>
-    </main>
+          {hasClerkTenant() ? (
+            <Suspense fallback={<p role="status">Loading account options…</p>}>
+              <Show when="signed-out">{entry}</Show>
+              <Show when="signed-in">
+                <Link className="primary-button" href="/dashboard">
+                  Open my dashboard
+                </Link>
+              </Show>
+            </Suspense>
+          ) : (
+            entry
+          )}
+        </section>
+        <section aria-labelledby="services-title">
+          <h2 id="services-title">Explore the services</h2>
+          <ul className="home-services">
+            {PUBLIC_SERVICES.map((s) => (
+              <li key={s.id}>
+                <h3>
+                  <a href={s.href}>{s.name}</a>
+                </h3>
+                <p>{s.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <p className="help-line">
+          Need help signing in?{" "}
+          <a href={supportHref}>Contact Australian Disability Ltd</a>.
+        </p>
+      </main>
+    </>
   );
 }

@@ -7,7 +7,7 @@ import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import { prisma } from "@/lib/prisma";
 
 /** Unusable password for OAuth-only accounts (set password via reset to enable credentials). */
-async function oauthOnlyPasswordHash(): Promise<string> {
+export async function oauthOnlyPasswordHash(): Promise<string> {
   return hash(randomBytes(32).toString("hex"), 10);
 }
 
@@ -33,6 +33,16 @@ export async function ensureOAuthUser(
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
+    // A rollback disables new AD.iD logins, but preserves ownership of any enrolled accounts.
+    try {
+      const federated = await prisma.identityProviderLink.findFirst({
+        where: { userId: existing.id, provider: { startsWith: "adid:" } }, select: { id: true },
+      });
+      if (federated) throw new Error("Use the linked AD.iD sign-in method.");
+    } catch (error) {
+      // Older installations can run their existing login before the optional bridge migration.
+      if (process.env.ADID_AUTH0_ENABLED === "true" || !(error && typeof error === "object" && "code" in error && error.code === "P2021")) throw error;
+    }
     if (existing.name !== name && name.length > 0) {
       return prisma.user.update({
         where: { id: existing.id },
