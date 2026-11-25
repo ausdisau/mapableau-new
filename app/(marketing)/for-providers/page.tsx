@@ -9,6 +9,7 @@ import {
   getProviderBlocks,
   getProviderJourneySteps,
 } from "@/lib/canvas/canvas-filters";
+import { isDomainServicesSelfServeEnabled } from "@/lib/config/domain-services";
 
 export const metadata = {
   title: "For providers | MapAble",
@@ -20,6 +21,7 @@ export default function ForProvidersPage() {
   const providerBlocks = getProviderBlocks();
   const providerJourney = getProviderJourneySteps();
   const providerTrustPrinciples = trustPrinciples.slice(0, 6);
+  const domainServicesOpen = isDomainServicesSelfServeEnabled();
 
   return (
     <>
@@ -27,18 +29,53 @@ export default function ForProvidersPage() {
         eyebrow="For providers"
         title="Prepare your organisation for safer participant-facing operations."
         description="MapAble is designed for providers that need consent-aware intake, bookings, workforce eligibility, service evidence and participant review."
-        ctaLabel="Register provider interest"
-        ctaHref="/contact"
+        ctaLabel={
+          domainServicesOpen
+            ? "Start Domain Services setup"
+            : "Register provider interest"
+        }
+        ctaHref={
+          domainServicesOpen
+            ? "/provider/domain-services/setup"
+            : "/contact"
+        }
         sections={[
           {
             title: "What providers can do now",
             content: (
               <ul className="list-disc space-y-2 pl-5">
-                <li>Register interest in the controlled pilot.</li>
+                <li>
+                  {domainServicesOpen ? (
+                    <>
+                      Draft a white-label hosting preview via{" "}
+                      <Link
+                        href="/provider/domain-services/setup"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        MapAble Domain Services
+                      </Link>{" "}
+                      (hostname branding only — DNS stays NOT CONFIGURED).
+                    </>
+                  ) : (
+                    <>Register interest in the controlled pilot.</>
+                  )}
+                </li>
                 <li>
                   Explore the public provider finder and public module pages.
                 </li>
                 <li>Review the planned verification and safety approach.</li>
+                {domainServicesOpen ? (
+                  <li>
+                    Prefer a conversation first?{" "}
+                    <Link
+                      href="/contact"
+                      className="font-medium text-primary hover:underline"
+                    >
+                      Contact MapAble
+                    </Link>
+                    .
+                  </li>
+                ) : null}
               </ul>
             ),
           },
