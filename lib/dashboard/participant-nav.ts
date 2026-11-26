@@ -30,6 +30,7 @@ export const PARTICIPANT_NAV_GROUPS: ParticipantNavGroup[] = [
         exact: true,
         description: "Today’s arrangements and actions",
       },
+      { href: "/unified", label: "MapAble Unified" },
       {
         href: "/care",
         label: "Care",

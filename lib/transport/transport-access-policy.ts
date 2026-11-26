@@ -76,7 +76,10 @@ export async function resolveTripAccess(
   if (user.primaryRole === "driver" && hasPermission(user.primaryRole, "transport:drive")) {
     const driver = await getTransportDriverForUser(user.id);
     if (!driver) return "none";
-    const assignment = await getActiveAssignment(trip.id);
+    const assignment = await prisma.transportDispatchAssignment.findFirst({
+      where: { tripId: trip.id, active: true },
+      select: { driverId: true },
+    });
     if (assignment?.driverId === driver.id) return "exact";
     return "none";
   }

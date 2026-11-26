@@ -474,6 +474,7 @@ export const marketplaceCards: MarketplaceCard[] = [
 ];
 
 export const footerPlatformLinks: FooterLink[] = [
+  { label: "MapAble Unified", href: "/unified" },
   { label: "Care", href: "/care" },
   { label: "Transport", href: "/transport" },
   { label: "Employment", href: "/employment" },
