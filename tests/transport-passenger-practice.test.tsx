@@ -1,6 +1,15 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+
+import "./fixtures/passenger-browser-crypto";
 
 import { PassengerPractice } from "@/components/transport/passenger/PassengerPractice";
 import { storeAppointmentDraft } from "@/lib/transport/passenger-appointment";
@@ -15,109 +24,130 @@ import {
   validateDraft,
   type PracticeTrip,
 } from "@/lib/transport/passenger-practice";
+import {
+  readPracticeTrips,
+  sealPracticeValue,
+  unsealPracticeValue,
+  updatePracticeTrips,
+} from "@/lib/transport/passenger-storage";
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
   sessionStorage.clear();
 });
-const click = (name: string) =>
-  fireEvent.click(screen.getByRole("button", { name }));
-function request() {
+async function click(name: string) {
+  const button = await screen.findByRole("button", { name });
+  await waitFor(() =>
+    expect((button as HTMLButtonElement).disabled).toBe(false),
+  );
+  await act(async () => {
+    fireEvent.click(button);
+    await readPracticeTrips();
+  });
+}
+async function request() {
   render(<PassengerPractice fromAppointment={false} />);
-  click("Plan a trip");
+  await click("Plan a trip");
   fireEvent.change(screen.getByLabelText("Communication preference"), {
     target: { value: communications[2] },
   });
-  click("Send practice request");
+  await click("Send practice request");
   expect(screen.getByRole("heading", { name: "Request sent" })).toBeTruthy();
-  click("Review sample quote");
+  await click("Review sample quote");
 }
 
 describe("Replit passenger journey", () => {
-  it("reviews the sample quote and shares and withdraws preferences only with an assigned practice driver", () => {
-    request();
+  it("reviews the sample quote and shares and withdraws preferences only with an assigned practice driver", async () => {
+    await request();
     expect(screen.getByText("$29–$42 AUD")).toBeTruthy();
     expect(screen.queryByText("What your driver can see")).toBeNull();
-    click("Accept quote");
-    click("Assign practice driver");
+    await click("Accept quote");
+    await click("Assign practice driver");
     expect(
       screen.queryByText(communications[2], { selector: "blockquote" }),
     ).toBeNull();
-    click("Preview sharing");
+    await click("Preview sharing");
     expect(
       screen.getByText(communications[2], { selector: "blockquote" }),
     ).toBeTruthy();
-    expect(
-      restoreTrips(localStorage.getItem(PRACTICE_TRIPS_KEY))[0].shared,
-    ).toBe(false);
-    click("Share for this trip");
-    expect(
-      restoreTrips(localStorage.getItem(PRACTICE_TRIPS_KEY))[0].shared,
-    ).toBe(true);
-    click("Withdraw sharing");
+    expect((await readPracticeTrips())[0].shared).toBe(false);
+    await click("Share for this trip");
+    expect((await readPracticeTrips())[0].shared).toBe(true);
+    await click("Withdraw sharing");
     expect(
       screen.queryByText(communications[2], { selector: "blockquote" }),
     ).toBeNull();
-    click("Preview sharing");
-    click("Share for this trip");
+    await click("Preview sharing");
+    await click("Share for this trip");
     for (const action of [
       "Show driver on the way",
       "Confirm pickup",
       "Mark arrival",
       "Complete journey",
     ])
-      click(action);
+      await click(action);
     expect(
       screen.getByRole("heading", { name: "Journey complete" }),
     ).toBeTruthy();
-    const finished = restoreTrips(localStorage.getItem(PRACTICE_TRIPS_KEY))[0];
+    const finished = (await readPracticeTrips())[0];
     expect(finished.shared).toBe(false);
     expect(changeStage(finished, "assigned")).toBe(finished);
   });
-  it("previews only the selected access arrangements when communication is left blank", () => {
+  it("previews only the selected access arrangements when communication is left blank", async () => {
     render(<PassengerPractice fromAppointment={false} />);
-    click("Plan a trip");
+    await click("Plan a trip");
     fireEvent.click(screen.getByLabelText("Space for a mobility aid"));
     fireEvent.change(screen.getByLabelText("Supporter travel"), {
       target: { value: "yes" },
     });
-    click("Send practice request");
-    click("Review sample quote");
-    click("Accept quote");
-    click("Assign practice driver");
-    click("Preview sharing");
+    await click("Send practice request");
+    await click("Review sample quote");
+    await click("Accept quote");
+    await click("Assign practice driver");
+    await click("Preview sharing");
     expect(document.querySelector("blockquote")?.textContent).toBe(
       "Space for a mobility aid",
     );
-    click("Share for this trip");
-    const [record] = restoreTrips(localStorage.getItem(PRACTICE_TRIPS_KEY));
+    await click("Share for this trip");
+    const [record] = await readPracticeTrips();
     expect(record.shared).toBe(true);
     expect(record.communication).toBe("No preference");
-    click("Withdraw sharing");
+    await click("Withdraw sharing");
     expect(document.querySelector("blockquote")).toBeNull();
   });
-  it("preserves declined offers after refresh and confirms cancellations", () => {
-    request();
-    click("Decline offer");
+  it("preserves declined offers after refresh and confirms cancellations", async () => {
+    await request();
+    await click("Decline offer");
     expect(
       screen.getByRole("heading", { name: "Offer declined" }),
     ).toBeTruthy();
     cleanup();
     render(<PassengerPractice fromAppointment={false} />);
-    expect(screen.getByRole("button", { name: /Offer declined/ })).toBeTruthy();
-    click("Plan a trip");
-    click("Send practice request");
-    click("Cancel trip");
-    click("Keep trip");
+    expect(
+      await screen.findByRole("button", { name: /Offer declined/ }),
+    ).toBeTruthy();
+    await click("Plan a trip");
+    await click("Send practice request");
+    await click("Cancel trip");
+    await click("Keep trip");
     expect(screen.getByRole("heading", { name: "Request sent" })).toBeTruthy();
-    click("Cancel trip");
-    click("Confirm cancellation");
+    await click("Cancel trip");
+    await click("Confirm cancellation");
     expect(screen.getByRole("heading", { name: "Cancelled" })).toBeTruthy();
+    await click("Back to my trips");
+    await click("Clear practice trips");
+    await click("Keep trips");
+    expect(localStorage.getItem(PRACTICE_TRIPS_KEY)).not.toBeNull();
+    await click("Clear practice trips");
+    await click("Clear saved trips");
+    expect(localStorage.getItem(PRACTICE_TRIPS_KEY)).toBeNull();
+    expect(screen.getByText("Your trips will appear here")).toBeTruthy();
   });
-  it("loads the editable Care date and time without putting them in an account link", () => {
-    storeAppointmentDraft({ date: "2090-06-03", time: "16:25" });
+  it("loads the editable Care date and time without putting them in an account link", async () => {
+    await storeAppointmentDraft({ date: "2090-06-03", time: "16:25" });
     render(<PassengerPractice fromAppointment />);
+    await screen.findByText("The appointment date and time are ready to edit.");
     expect(
       (screen.getByLabelText("Travel date") as HTMLInputElement).value,
     ).toBe("2090-06-03");
@@ -132,7 +162,7 @@ describe("Replit passenger journey", () => {
       ].map((name) => screen.getByRole("link", { name }).getAttribute("href")),
     ).toEqual(["/transport/request", "/transport/dashboard", "/contact"]);
   });
-  it("applies Sydney peak boundaries and correctly labels the next-day pickup window", () => {
+  it("applies Sydney peak boundaries and correctly labels the next-day pickup window", async () => {
     for (const time of ["07:00", "08:59", "15:00", "17:59"])
       expect(sampleQuote(time).fare).toBe("$34–$48 AUD");
     for (const time of ["06:59", "09:00", "14:59", "18:00"])
@@ -149,7 +179,32 @@ describe("Replit passenger journey", () => {
       validateDraft({ ...newDraft(), destination: places[0] }, now),
     ).toMatch(/different/);
   });
-  it("restores whitelisted practice choices and clears sharing for ended trips", () => {
+  it("encrypts practice records, binds them to their purpose and preserves concurrent writes", async () => {
+    const template: PracticeTrip = {
+      ...newDraft(),
+      date: "2027-01-01",
+      id: "one",
+      stage: "requested",
+      shared: false,
+    };
+    const add = (id: string) =>
+      updatePracticeTrips((records) => [...records, { ...template, id }]);
+    await Promise.all([add("one"), add("two")]);
+    const raw = localStorage.getItem(PRACTICE_TRIPS_KEY)!;
+    expect(raw).toMatch(/^v1\./);
+    expect(raw).not.toContain("Parramatta");
+    expect(await readPracticeTrips()).toHaveLength(2);
+    await expect(unsealPracticeValue("another purpose", raw)).rejects.toThrow();
+    const another = await sealPracticeValue(
+      PRACTICE_TRIPS_KEY,
+      JSON.stringify(await readPracticeTrips()),
+    );
+    expect(another).not.toBe(raw);
+    localStorage.setItem(PRACTICE_TRIPS_KEY, JSON.stringify([template]));
+    expect(await readPracticeTrips()).toEqual([template]);
+    expect(localStorage.getItem(PRACTICE_TRIPS_KEY)).toMatch(/^v1\./);
+  });
+  it("restores whitelisted practice choices and clears sharing for ended trips", async () => {
     const trip: PracticeTrip = {
       ...newDraft(),
       date: "2027-01-01",

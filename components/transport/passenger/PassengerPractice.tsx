@@ -19,6 +19,7 @@ import {
 import {
   sampleCareAppointment,
   takeAppointmentDraft,
+  type AppointmentDraft,
 } from "@/lib/transport/passenger-appointment";
 import {
   accessOptions,
@@ -29,7 +30,6 @@ import {
   newDraft,
   places,
   PRACTICE_TRIPS_KEY,
-  restoreTrips,
   sampleQuote,
   stages,
   validateDraft,
@@ -37,6 +37,11 @@ import {
   type Stage,
   type TripDraft,
 } from "@/lib/transport/passenger-practice";
+import {
+  clearPracticeTrips,
+  readPracticeTrips,
+  updatePracticeTrips,
+} from "@/lib/transport/passenger-storage";
 
 import styles from "./passenger.module.css";
 
@@ -98,47 +103,74 @@ export function PassengerPractice({
   const [storageMessage, setStorageMessage] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-  const [decision, setDecision] = useState<"cancel" | "share" | null>(null);
+  const [decision, setDecision] = useState<"cancel" | "share" | "clear" | null>(
+    null,
+  );
   const [preference, setPreference] = useState<string>(communications[0]);
   const [focusVersion, setFocusVersion] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const decisionHeading = useRef<HTMLHeadingElement>(null);
-  const initialized = useRef<boolean | null>(null);
+  const handoff = useRef<Promise<AppointmentDraft | null> | null>(null);
+  const writing = useRef(false);
+  const inMemoryOnly = useRef(false);
+  const localTrips = useRef<PracticeTrip[]>([]);
+  const [saving, setSaving] = useState(false);
   const trip = trips.find((t) => t.id === selected);
   const previewTrip = screen === "trip" && trip ? trip : draft;
 
+  function showTrips(records: PracticeTrip[]) {
+    localTrips.current = records;
+    setTrips(records);
+  }
+  function switchToMemory() {
+    inMemoryOnly.current = true;
+    setStorageMessage(
+      "Private browser storage is unavailable. Trips will last until you leave this page.",
+    );
+  }
   useEffect(() => {
-    if (initialized.current !== fromAppointment) {
-      initialized.current = fromAppointment;
-      setScreen(fromAppointment ? "plan" : "trips");
-      const appointment = fromAppointment ? takeAppointmentDraft() : null;
+    let active = true;
+    if (!fromAppointment) handoff.current = null;
+    const appointment = fromAppointment
+      ? (handoff.current ??= takeAppointmentDraft())
+      : Promise.resolve(null);
+    setScreen(fromAppointment ? "plan" : "trips");
+    async function refresh() {
+      try {
+        const records = await readPracticeTrips();
+        if (active && !inMemoryOnly.current) showTrips(records);
+      } catch {
+        if (active) switchToMemory();
+      }
+    }
+    void Promise.all([appointment, refresh()]).then(([timing]) => {
+      if (!active) return;
       setDraft({
         ...newDraft(),
-        ...(appointment || sampleCareAppointment(new Date())),
+        ...(timing || sampleCareAppointment(new Date())),
       });
       if (fromAppointment)
         setNotice(
-          appointment
+          timing
             ? "The appointment date and time are ready to edit."
             : "Choose a date and time for your practice trip.",
         );
-    }
-    try {
-      setTrips(restoreTrips(localStorage.getItem(PRACTICE_TRIPS_KEY)));
-    } catch {
-      setStorageMessage(
-        "Browser storage is unavailable. Trips will last until you leave this page.",
-      );
-    }
-    setReady(true);
+      setReady(true);
+    });
     function sync(event: StorageEvent) {
-      if (event.key === PRACTICE_TRIPS_KEY || event.key === null) {
-        setTrips(restoreTrips(event.key ? event.newValue : null));
+      if (
+        (event.key === PRACTICE_TRIPS_KEY || event.key === null) &&
+        !inMemoryOnly.current
+      ) {
         setDecision(null);
+        void refresh();
       }
     }
     window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", sync);
+    };
   }, [fromAppointment]);
   useEffect(() => {
     if (focusVersion) heading.current?.focus();
@@ -163,26 +195,28 @@ export function PassengerPractice({
     setScreen(next);
     setFocusVersion((n) => n + 1);
   }
-  function save(change: (current: PracticeTrip[]) => PracticeTrip[]) {
-    let current = trips;
+  async function save(change: (current: PracticeTrip[]) => PracticeTrip[]) {
+    if (writing.current) return false;
+    writing.current = true;
+    setSaving(true);
     try {
-      if (!storageMessage)
-        current = restoreTrips(localStorage.getItem(PRACTICE_TRIPS_KEY));
+      const updated = inMemoryOnly.current
+        ? change(localTrips.current)
+        : await updatePracticeTrips(change);
+      showTrips(updated);
     } catch {
-      /* keep the in-memory trips */
+      switchToMemory();
+      showTrips(change(localTrips.current));
+    } finally {
+      writing.current = false;
+      setSaving(false);
     }
-    const updated = change(current);
-    setTrips(updated);
-    try {
-      localStorage.setItem(PRACTICE_TRIPS_KEY, JSON.stringify(updated));
-    } catch {
-      setStorageMessage(
-        "Browser storage is unavailable. Trips will last until you leave this page.",
-      );
-    }
+    return true;
   }
   function updateTrip(change: (current: PracticeTrip) => PracticeTrip) {
-    save((current) => current.map((t) => (t.id === selected ? change(t) : t)));
+    return save((current) =>
+      current.map((t) => (t.id === selected ? change(t) : t)),
+    );
   }
   function openTrip(t: PracticeTrip) {
     setSelected(t.id);
@@ -193,7 +227,7 @@ export function PassengerPractice({
     setDraft({ ...newDraft(), ...sampleCareAppointment(new Date()) });
     go("plan");
   }
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     const issue = validateDraft(draft);
     if (issue) {
@@ -206,13 +240,12 @@ export function PassengerPractice({
       stage: "requested",
       shared: false,
     };
-    save((current) => [t, ...current]);
-    openTrip(t);
+    if (await save((current) => [t, ...current])) openTrip(t);
   }
-  function move(stage: Stage) {
+  async function move(stage: Stage) {
     if (!trip || !canTransition(trip.stage, stage)) return;
-    updateTrip((t) => changeStage(t, stage));
-    go("trip", stages[stage]);
+    if (await updateTrip((t) => changeStage(t, stage)))
+      go("trip", stages[stage]);
   }
   function driverNote(access: string[], communication: string) {
     return [
@@ -220,13 +253,14 @@ export function PassengerPractice({
       ...(communication === communications[0] ? [] : [communication]),
     ].join(". ");
   }
-  function share() {
-    updateTrip((t) =>
+  async function share() {
+    const changed = await updateTrip((t) =>
       hasAssignedDriver(t.stage) && driverNote(t.access, preference)
         ? { ...t, communication: preference, shared: true }
         : t,
     );
-    go("trip", "Your note is now visible in this practice driver’s view.");
+    if (changed)
+      go("trip", "Your note is now visible in this practice driver’s view.");
   }
   const summary = trip && sampleQuote(trip.time);
   const action = trip && mainAction[trip.stage];
@@ -276,7 +310,7 @@ export function PassengerPractice({
           {notice}
         </p>
         <div className={styles.grid}>
-          <div className={styles.card}>
+          <div className={styles.card} aria-busy={saving}>
             {screen === "trips" || (screen === "trip" && !trip) ? (
               <>
                 <div className={styles.sectionTitle}>
@@ -316,11 +350,58 @@ export function PassengerPractice({
                 <button
                   type="button"
                   className={styles.primary}
-                  disabled={!ready}
+                  disabled={!ready || saving}
                   onClick={plan}
                 >
                   Plan a trip <ArrowRight aria-hidden="true" size={17} />
                 </button>
+                {trips.length > 0 &&
+                  (decision === "clear" ? (
+                    <div className={styles.confirm}>
+                      <h3 ref={decisionHeading} tabIndex={-1}>
+                        Clear all practice trips on this device?
+                      </h3>
+                      <p>
+                        This removes your saved sample journeys and driver
+                        notes.
+                      </p>
+                      <div className={styles.actions}>
+                        <button type="button" onClick={() => go("trips")}>
+                          Keep trips
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await clearPracticeTrips();
+                              showTrips([]);
+                              go(
+                                "trips",
+                                "Practice trips cleared from this device.",
+                              );
+                            } catch {
+                              showTrips([]);
+                              switchToMemory();
+                              go(
+                                "trips",
+                                "This page has been cleared. Your browser could not confirm deletion from device storage.",
+                              );
+                            }
+                          }}
+                        >
+                          Clear saved trips
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.textButton}
+                      onClick={() => setDecision("clear")}
+                    >
+                      Clear practice trips
+                    </button>
+                  ))}
               </>
             ) : screen === "plan" ? (
               <form onSubmit={submit} noValidate>
@@ -433,7 +514,7 @@ export function PassengerPractice({
                 <div className={styles.actions}>
                   <button
                     type="submit"
-                    disabled={!ready}
+                    disabled={!ready || saving}
                     className={styles.primary}
                   >
                     Send practice request{" "}
@@ -485,8 +566,14 @@ export function PassengerPractice({
                         </blockquote>
                         <button
                           type="button"
-                          onClick={() => {
-                            updateTrip((t) => ({ ...t, shared: false }));
+                          onClick={async () => {
+                            if (
+                              !(await updateTrip((t) => ({
+                                ...t,
+                                shared: false,
+                              })))
+                            )
+                              return;
                             go(
                               "trip",
                               "Your note was removed from the driver view.",

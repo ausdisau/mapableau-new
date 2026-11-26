@@ -17,7 +17,7 @@ named `mapable-site` pointing to this repository. Future passenger changes are r
 | Care / Plan transport     | `/transport/passenger?plan=appointment`         | Sydney calendar date and time, consumed once from session storage |
 | Signed-in transport links | `/transport/request` and `/transport/dashboard` | Standard sign-in with no practice payload                         |
 
-The sample quote, driver and trip stages run on the device. Driver-note preview and withdrawal
+The sample quote, driver and trip stages run on the device. The site encrypts saved practice trips and the one-time appointment handoff with AES-GCM and a non-extractable browser key. Passengers can clear their practice history from My trips. Driver-note preview and withdrawal
 are scoped to the selected practice trip. The target hostname `mapableau-new.vercel.app` belongs
 to the `mapableau` Vercel project for this repository.
 

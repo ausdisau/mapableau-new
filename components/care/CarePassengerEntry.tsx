@@ -2,6 +2,8 @@
 
 import { ArrowRight, CalendarDays } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
 
 import {
   mapablePublicPageContainerClass,
@@ -16,6 +18,8 @@ import {
 } from "@/lib/transport/passenger-appointment";
 
 export function CarePassengerEntry() {
+  const router = useRouter();
+  const navigating = useRef(false);
   return (
     <section
       aria-labelledby="care-passenger-heading"
@@ -58,9 +62,25 @@ export function CarePassengerEntry() {
             href={APPOINTMENT_PLAN_PATH}
             prefetch={false}
             className={mapablePublicPrimaryButtonClass}
-            onClick={() =>
-              storeAppointmentDraft(sampleCareAppointment(new Date()))
-            }
+            onClick={async (event) => {
+              if (
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              )
+                return;
+              event.preventDefault();
+              if (navigating.current) return;
+              navigating.current = true;
+              try {
+                await storeAppointmentDraft(sampleCareAppointment(new Date()));
+                router.push(APPOINTMENT_PLAN_PATH);
+              } finally {
+                navigating.current = false;
+              }
+            }}
           >
             Plan transport <ArrowRight aria-hidden="true" size={16} />
           </Link>
