@@ -6,7 +6,7 @@ Source Repl: [MapAble-Unified](https://replit.com/@ausdisau1/MapAble-Unified) (`
 
 ## Open the app from the website
 
-The website entry is [MapAble Unified](https://mapableau-new.vercel.app/unified). Select **Open app here** to load the published Replit application, or **Open directly on Replit** for a top-level window. The direct option also works when a browser restricts embedded sign-in. Replit handles its own session and records. Website trips continue to use the signed-in `/dashboard/transport` route.
+The website entry is [MapAble Unified](https://mapableau-new.vercel.app/unified). Care bookings, transport, worker shifts and the other website services use the existing MapAble website routes and permissions. Select **Open full Replit app** to sign in to the original application in its own tab. It has independent sessions and records. **Preview app here** displays its welcome screen on demand. The Replit editor configures a `SameSite=Lax` session cookie, so the website directs authenticated Replit tasks to the full app.
 
 The connected Repl reported local revision `b2e55ef1c04e08ca4f75aba6a83589fb5b1e09de`. Its Dashboard, Care and Transport page blobs matched website commit `fe259953015db3c3200849e0dbd630cc5a11e044`. The embedded app follows the Replit deployment. Its served release can differ from the editor checkout.
 

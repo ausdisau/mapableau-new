@@ -12,17 +12,17 @@ import {
 afterEach(cleanup);
 
 describe("MapAble Unified web integration", () => {
-  it("offers an on-demand launch, a direct link and the native trip list", async () => {
+  it("offers first-party workflows, direct sign-in and an on-demand Replit preview", async () => {
     render(await UnifiedPage({ searchParams: Promise.resolve({}) }));
     expect(
       screen
-        .getByRole("button", { name: "Open app here" })
+        .getByRole("button", { name: "Preview app here" })
         .closest("form")
         ?.getAttribute("method"),
     ).toBe("get");
     expect(screen.queryByTitle("MapAble Unified on Replit")).toBeNull();
     const direct = screen.getByRole("link", {
-      name: /Open directly on Replit/,
+      name: /Open full Replit app/,
     });
     expect(direct.getAttribute("href")).toBe(MAPABLE_UNIFIED_APP_ORIGIN);
     expect(direct.getAttribute("rel")).toContain("noreferrer");
@@ -31,6 +31,16 @@ describe("MapAble Unified web integration", () => {
         .getByRole("link", { name: "My website transport trips" })
         .getAttribute("href"),
     ).toBe("/dashboard/transport");
+    for (const [label, href] of [
+      ["Request accessible transport", "/transport/request"],
+      ["My website care bookings", "/care/bookings"],
+      ["My worker shifts and offers", "/worker/today"],
+      ["Explore employment", "/employment"],
+    ]) {
+      expect(
+        screen.getByRole("link", { name: label }).getAttribute("href"),
+      ).toBe(href);
+    }
   });
 
   it("mounts the published app in a named frame and keeps a way out", async () => {
@@ -44,13 +54,13 @@ describe("MapAble Unified web integration", () => {
     ]);
     expect(frame.getAttribute("referrerpolicy")).toBe("no-referrer");
     expect(
-      screen.getByRole("button", { name: "Close embedded app" }),
+      screen.getByRole("button", { name: "Close app preview" }),
     ).toBeTruthy();
     expect(
       screen
-        .getByRole("link", { name: "Skip the embedded app" })
+        .getByRole("link", { name: "Skip the app preview" })
         .getAttribute("href"),
-    ).toBe("#website-services");
+    ).toBe("#website-dashboard");
   });
 
   it("accepts only the explicit launch value", async () => {
