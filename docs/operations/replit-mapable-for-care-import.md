@@ -4,6 +4,27 @@ Source Repl: [MapAble-for-Care](https://replit.com/@ausdisau1/MapAble-for-Care) 
 
 This repository (`ausdisau/mapableau-new`) already implements MapAble Care as part of the monolith. Use this guide when you need to pull changes from the Replit-hosted Repl or reconcile a standalone care app with production code.
 
+## Passenger journey
+
+The public passenger practice flow is a native Next.js port of the MapAble-for-Care Repl at
+`ae09dac1d2af92de1ecf03acde9e9afa30355e45`. Its source screen is
+`client/src/pages/transport/PassengerTransportPage.tsx`. The Repl has a fetch remote
+named `mapable-site` pointing to this repository. Future passenger changes are reviewed here before deployment.
+
+| Replit entry              | Website entry                                   | Data passed                                                       |
+| ------------------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| Transport / My trips      | `/transport/passenger`                          | Browser-local practice trips                                      |
+| Care / Plan transport     | `/transport/passenger?plan=appointment`         | Sydney calendar date and time, consumed once from session storage |
+| Signed-in transport links | `/transport/request` and `/transport/dashboard` | Standard sign-in with no practice payload                         |
+
+The sample quote, driver and trip stages run on the device. The site encrypts saved practice trips and the one-time appointment handoff with AES-GCM and a non-extractable browser key. Passengers can clear their practice history from My trips. Driver-note preview and withdrawal
+are scoped to the selected practice trip. The target hostname `mapableau-new.vercel.app` belongs
+to the `mapableau` Vercel project for this repository.
+
+```sh
+pnpm test tests/transport-passenger-practice.test.tsx tests/transport-passenger-appointment.test.tsx tests/transport-public-ui.test.tsx tests/peer-middleware.test.ts
+```
+
 ## Quick import (git)
 
 ```bash
@@ -27,16 +48,16 @@ Or import both Care and Unified together:
 
 ## What is already in this repo
 
-| Area | Location |
-| --- | --- |
-| Participant UI | `/care`, `/care/request`, `/care/bookings`, `/care/service-logs` |
-| Provider UI | `/provider/care`, `/provider/care/requests`, `/provider/care/roster` |
-| Worker UI | `/worker/today`, `/worker/shifts/[id]`, `/worker/service-log` |
-| APIs | `app/api/care/*` |
-| Domain | `lib/care/` (bookings, assignments, service logs, eligibility) |
-| Schema | `prisma/schema.prisma` (`CareRequest`, `CareBooking`, `CareServiceLog`, …) |
-| Module registry | `app/lib/modules.ts` → `href: "/care"` |
-| Docs | [docs/modules/care.md](../modules/care.md) |
+| Area            | Location                                                                   |
+| --------------- | -------------------------------------------------------------------------- |
+| Participant UI  | `/care`, `/care/request`, `/care/bookings`, `/care/service-logs`           |
+| Provider UI     | `/provider/care`, `/provider/care/requests`, `/provider/care/roster`       |
+| Worker UI       | `/worker/today`, `/worker/shifts/[id]`, `/worker/service-log`              |
+| APIs            | `app/api/care/*`                                                           |
+| Domain          | `lib/care/` (bookings, assignments, service logs, eligibility)             |
+| Schema          | `prisma/schema.prisma` (`CareRequest`, `CareBooking`, `CareServiceLog`, …) |
+| Module registry | `app/lib/modules.ts` → `href: "/care"`                                     |
+| Docs            | [docs/modules/care.md](../modules/care.md)                                 |
 
 ## Merge checklist
 

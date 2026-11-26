@@ -24,11 +24,26 @@ describe("shouldRunAuthMiddleware", () => {
     expect(shouldRunAuthMiddleware("/marketplace")).toBe(false);
   });
 
+  it("allows the passenger practice page and guards account and adjacent paths", () => {
+    expect(shouldRunAuthMiddleware("/transport/passenger")).toBe(false);
+    for (const path of [
+      "/transport/passengers",
+      "/transport/passenger/private",
+      "/transport/request",
+      "/transport/dashboard",
+      "/care/bookings",
+    ]) {
+      expect(shouldRunAuthMiddleware(path)).toBe(true);
+    }
+  });
+
   it("guards transactional marketplace shop routes only", () => {
     expect(shouldRunAuthMiddleware("/marketplace/browse")).toBe(true);
     expect(shouldRunAuthMiddleware("/marketplace/cart")).toBe(true);
     expect(shouldRunAuthMiddleware("/marketplace/products/abc")).toBe(true);
-    expect(shouldRunAuthMiddleware("/marketplace/accessimart-review")).toBe(true);
+    expect(shouldRunAuthMiddleware("/marketplace/accessimart-review")).toBe(
+      true,
+    );
     expect(
       shouldRunAuthMiddleware("/marketplace/accessimart-review/example-slug"),
     ).toBe(true);

@@ -27,6 +27,8 @@ const AUTH_MARKETPLACE_PREFIXES = [
 const AUTH_PATHS = ["/care/", "/transport/"] as const;
 
 export function shouldRunAuthMiddleware(pathname: string): boolean {
+  // The passenger practice page uses fictional trips and has no account API.
+  if (pathname === "/transport/passenger") return false;
   return (
     AUTH_PREFIXES.some(
       (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
