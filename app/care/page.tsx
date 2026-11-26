@@ -1,5 +1,5 @@
-import { CarePassengerEntry } from "@/components/care/CarePassengerEntry";
 import { ModuleCanvasSection } from "@/components/canvas/ModuleCanvasSection";
+import { CarePassengerEntry } from "@/components/care/CarePassengerEntry";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
 

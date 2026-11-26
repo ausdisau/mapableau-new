@@ -11,11 +11,11 @@ The public passenger practice flow is a native Next.js port of the MapAble-for-C
 `client/src/pages/transport/PassengerTransportPage.tsx`. The Repl has a fetch remote
 named `mapable-site` pointing to this repository. Future passenger changes are reviewed here before deployment.
 
-| Replit entry | Website entry | Data passed |
-| --- | --- | --- |
-| Transport / My trips | `/transport/passenger` | Browser-local practice trips |
-| Care / Plan transport | `/transport/passenger?plan=appointment` | Sydney calendar date and time, consumed once from session storage |
-| Signed-in transport links | `/transport/request` and `/transport/dashboard` | Standard sign-in with no practice payload |
+| Replit entry              | Website entry                                   | Data passed                                                       |
+| ------------------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| Transport / My trips      | `/transport/passenger`                          | Browser-local practice trips                                      |
+| Care / Plan transport     | `/transport/passenger?plan=appointment`         | Sydney calendar date and time, consumed once from session storage |
+| Signed-in transport links | `/transport/request` and `/transport/dashboard` | Standard sign-in with no practice payload                         |
 
 The sample quote, driver and trip stages run on the device. Driver-note preview and withdrawal
 are scoped to the selected practice trip. The target hostname `mapableau-new.vercel.app` belongs
@@ -48,16 +48,16 @@ Or import both Care and Unified together:
 
 ## What is already in this repo
 
-| Area | Location |
-| --- | --- |
-| Participant UI | `/care`, `/care/request`, `/care/bookings`, `/care/service-logs` |
-| Provider UI | `/provider/care`, `/provider/care/requests`, `/provider/care/roster` |
-| Worker UI | `/worker/today`, `/worker/shifts/[id]`, `/worker/service-log` |
-| APIs | `app/api/care/*` |
-| Domain | `lib/care/` (bookings, assignments, service logs, eligibility) |
-| Schema | `prisma/schema.prisma` (`CareRequest`, `CareBooking`, `CareServiceLog`, …) |
-| Module registry | `app/lib/modules.ts` → `href: "/care"` |
-| Docs | [docs/modules/care.md](../modules/care.md) |
+| Area            | Location                                                                   |
+| --------------- | -------------------------------------------------------------------------- |
+| Participant UI  | `/care`, `/care/request`, `/care/bookings`, `/care/service-logs`           |
+| Provider UI     | `/provider/care`, `/provider/care/requests`, `/provider/care/roster`       |
+| Worker UI       | `/worker/today`, `/worker/shifts/[id]`, `/worker/service-log`              |
+| APIs            | `app/api/care/*`                                                           |
+| Domain          | `lib/care/` (bookings, assignments, service logs, eligibility)             |
+| Schema          | `prisma/schema.prisma` (`CareRequest`, `CareBooking`, `CareServiceLog`, …) |
+| Module registry | `app/lib/modules.ts` → `href: "/care"`                                     |
+| Docs            | [docs/modules/care.md](../modules/care.md)                                 |
 
 ## Merge checklist
 

@@ -22,7 +22,7 @@ afterEach(() => {
   sessionStorage.clear();
 });
 const click = (name: string) =>
-  fireEvent.click(screen.getByRole("button", { name, exact: true }));
+  fireEvent.click(screen.getByRole("button", { name }));
 function request() {
   render(<PassengerPractice fromAppointment={false} />);
   click("Plan a trip");

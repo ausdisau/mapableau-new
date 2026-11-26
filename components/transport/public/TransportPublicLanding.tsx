@@ -123,7 +123,9 @@ function WhoForSection() {
         <ul className="mt-10 grid gap-10 md:grid-cols-3">
           {TRANSPORT_PUBLIC_WHO_FOR.map((item) => (
             <li key={item.id}>
-              <h3 className="text-lg font-black text-[#005B7F]">{item.title}</h3>
+              <h3 className="text-lg font-black text-[#005B7F]">
+                {item.title}
+              </h3>
               <p className="mt-2 text-sm leading-6 text-slate-700">
                 {item.summary}
               </p>
@@ -149,8 +151,8 @@ function HowTripWorksSection() {
           How a trip works
         </h2>
         <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-          Status language stays precise: requested is not booked, assigned is not
-          en route, and advisory estimates are not confirmed pickup windows.
+          Status language stays precise: requested is not booked, assigned is
+          not en route, and advisory estimates are not confirmed pickup windows.
         </p>
         <ol className="mt-10 space-y-0 border-l-2 border-[#005B7F]/25 pl-6 md:border-l-0 md:pl-0">
           {TRANSPORT_PUBLIC_TRIP_STEPS.map((step, index) => (
@@ -165,7 +167,9 @@ function HowTripWorksSection() {
                 {index + 1}
               </span>
               <div>
-                <h3 className="text-lg font-black text-[#0C1833]">{step.title}</h3>
+                <h3 className="text-lg font-black text-[#0C1833]">
+                  {step.title}
+                </h3>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
                   {step.summary}
                 </p>
