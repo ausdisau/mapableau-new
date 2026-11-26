@@ -125,7 +125,18 @@ self.addEventListener("fetch", (event) => {
             ? await cache.match(url.pathname)
             : undefined;
         return (
-          publicShell || (await cache.match("/offline")) || Response.error()
+          publicShell ||
+          (await cache.match("/offline")) ||
+          new Response(
+            '<!doctype html><html lang="en-AU"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Offline | MapAble</title><main><h1>You’re offline</h1><p>Reconnect and reload this page to use MapAble.</p></main></html>',
+            {
+              status: 503,
+              headers: {
+                "Content-Type": "text/html; charset=utf-8",
+                "Cache-Control": "no-store",
+              },
+            },
+          )
         );
       }),
     );

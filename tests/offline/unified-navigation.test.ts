@@ -65,6 +65,18 @@ describe("offline navigation for Unified and signed-in trips", () => {
     },
   );
 
+  it("still explains the offline state when the public page could not be cached", async () => {
+    const worker = serviceWorker();
+    worker.fetch.mockRejectedValue(new TypeError("offline"));
+    worker.cache.match.mockResolvedValue(undefined);
+
+    const response = await worker.navigate("/dashboard/transport");
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.text()).toContain("<h1>You’re offline</h1>");
+    expect(worker.cache.match.mock.calls).toEqual([["/offline"]]);
+  });
+
   it("removes the former document cache without removing cached map tiles", async () => {
     const worker = serviceWorker();
     await new Promise((resolve) =>
