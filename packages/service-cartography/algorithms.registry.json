@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "project": "MapAble Service Cartography",
+  "version": "0.1.0",
+  "maturity": "experimental_reference",
+  "releaseAuthority": "human_governance_required",
+  "personLevelAutomationAllowed": false,
+  "license": "Apache-2.0",
+  "dataPolicy": "synthetic_only_in_this_release",
+  "algorithms": [
+    {"id":"CONSENT-001","function":"checkConsent","domain":"rights","execution":"pure","automaticAction":false},
+    {"id":"EVIDENCE-001","function":"assessEvidence","domain":"trust","execution":"pure","automaticAction":false},
+    {"id":"MATCH-001","function":"matchServices","domain":"care","execution":"advisory","automaticAction":false},
+    {"id":"GRAPH-001","function":"planServiceDependencies","domain":"service_cartography","execution":"advisory","automaticAction":false},
+    {"id":"ROUTE-001","function":"findAccessibleRoute","domain":"access_transport","execution":"advisory","automaticAction":false},
+    {"id":"GAP-001","function":"analyseServiceGaps","domain":"regional_intelligence","execution":"descriptive","automaticAction":false},
+    {"id":"SCHEDULE-001","function":"proposeServiceSchedule","domain":"care_transport","execution":"advisory","automaticAction":false},
+    {"id":"ECON-001","function":"modelEconomicScenario","domain":"economic_analysis","execution":"descriptive","automaticAction":false},
+    {"id":"EQUITY-001","function":"auditServiceEquity","domain":"rights_audit","execution":"descriptive","automaticAction":false},
+    {"id":"NEUTRALITY-001","function":"checkPolicyLabelInvariance","domain":"policy_assurance","execution":"test","automaticAction":false},
+    {"id":"CONTINUITY-001","function":"detectContinuityGaps","domain":"support_coordination","execution":"advisory","automaticAction":false},
+    {"id":"AUDIT-001","function":"createDecisionAuditEvent","domain":"governance","execution":"payload_only","automaticAction":false}
+  ]
+}

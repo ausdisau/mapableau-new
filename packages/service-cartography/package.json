@@ -1,0 +1,18 @@
+{
+  "name": "@mapable/service-cartography",
+  "version": "0.1.0",
+  "description": "Rights-first, deterministic, open-source service cartography algorithms for disability-led coordination",
+  "type": "module",
+  "license": "Apache-2.0",
+  "private": true,
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "pnpm --dir ../.. exec vitest run tests/service-cartography",
+    "demo": "node --eval \"console.error('No dist build in this workspace. Use /pilot/service-cartography or pnpm exec vitest run tests/service-cartography.'); process.exit(1)\""
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": ["src", "LICENSE", "NOTICE", "README.md", "algorithms.registry.json"]
+}

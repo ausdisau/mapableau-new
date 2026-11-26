@@ -38,6 +38,10 @@ export default defineConfig({
         __dirname,
         "packages/domain-workforce/src/index.ts"
       ),
+      "@mapable/service-cartography": path.resolve(
+        __dirname,
+        "packages/service-cartography/src/index.ts"
+      ),
       "@mapable/research": path.resolve(
         __dirname,
         "packages/research/src/index.ts"

@@ -43,6 +43,11 @@ See [STARTING_WORK_PILOT.md](./STARTING_WORK_PILOT.md).
 **Honesty:** synthetic/fixtures by default (`MAPABLE_STARTING_WORK_SYNTHETIC_ONLY`);
 not a live production journey until the database-backed PR exits criteria.
 
+Service Cartography — synthetic community-visit advisory kernel.
+See [SERVICE_CARTOGRAPHY.md](./SERVICE_CARTOGRAPHY.md).  
+**Honesty:** default-off (`MAPABLE_SERVICE_CARTOGRAPHY_PILOT`); synthetic-only;
+not live matching, booking, or an NDIS decision.
+
 ## Hard rules
 
 - Feature flags and documentation are not production evidence.

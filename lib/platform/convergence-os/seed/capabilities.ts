@@ -633,6 +633,38 @@ export const CAPABILITY_SEEDS: CapabilitySeed[] = [
     },
   },
   {
+    capabilityKey: "pilot.service_cartography",
+    name: "Service Cartography synthetic advisory",
+    programme: "Productisation Pilot",
+    canonicalOwner: "matching.orchestration",
+    implementationPaths: [
+      "docs/productisation/SERVICE_CARTOGRAPHY.md",
+      "packages/service-cartography/",
+      "lib/pilot/service-cartography/",
+      "app/api/pilot/service-cartography/",
+    ],
+    featureFlags: [
+      "MAPABLE_SERVICE_CARTOGRAPHY_PILOT",
+      "MAPABLE_SERVICE_CARTOGRAPHY_SYNTHETIC_ONLY",
+    ],
+    maturity: "fixture_only",
+    persistenceType: "fixture_only",
+    runtimeMode: "synthetic",
+    productionClaimStatus: "unsupported",
+    rollbackNotes:
+      "Default-off synthetic advisory kernel; never market as live matching, booking, or NDIS eligibility",
+    honesty: {
+      implemented: true,
+      featureEnabled: false,
+      connected: false,
+      durable: false,
+      tested: true,
+      piloted: false,
+      externallyIntegrated: false,
+      productionSupported: false,
+    },
+  },
+  {
     capabilityKey: "managed.support_delivery",
     name: "MapAble Managed Support (direct regulated delivery)",
     programme: "Managed Support",
