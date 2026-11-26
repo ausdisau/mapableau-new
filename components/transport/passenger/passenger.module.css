@@ -24,6 +24,9 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+.app :is(button, a, input, select, [tabindex="-1"]) {
+  scroll-margin-block-start: 9rem;
+}
 .app :is(button, a, input, select, [tabindex="-1"]):focus-visible {
   outline: 3px solid #0c6278;
   outline-offset: 3px;

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+
 import {
   formatDateHeading,
   isValidDateOnly,
@@ -36,6 +37,7 @@ import {
   type Stage,
   type TripDraft,
 } from "@/lib/transport/passenger-practice";
+
 import styles from "./passenger.module.css";
 
 type Screen = "trips" | "plan" | "trip";

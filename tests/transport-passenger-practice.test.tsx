@@ -75,6 +75,28 @@ describe("Replit passenger journey", () => {
     expect(finished.shared).toBe(false);
     expect(changeStage(finished, "assigned")).toBe(finished);
   });
+  it("previews only the selected access arrangements when communication is left blank", () => {
+    render(<PassengerPractice fromAppointment={false} />);
+    click("Plan a trip");
+    fireEvent.click(screen.getByLabelText("Space for a mobility aid"));
+    fireEvent.change(screen.getByLabelText("Supporter travel"), {
+      target: { value: "yes" },
+    });
+    click("Send practice request");
+    click("Review sample quote");
+    click("Accept quote");
+    click("Assign practice driver");
+    click("Preview sharing");
+    expect(document.querySelector("blockquote")?.textContent).toBe(
+      "Space for a mobility aid",
+    );
+    click("Share for this trip");
+    const [record] = restoreTrips(localStorage.getItem(PRACTICE_TRIPS_KEY));
+    expect(record.shared).toBe(true);
+    expect(record.communication).toBe("No preference");
+    click("Withdraw sharing");
+    expect(document.querySelector("blockquote")).toBeNull();
+  });
   it("preserves declined offers after refresh and confirms cancellations", () => {
     request();
     click("Decline offer");
