@@ -14,10 +14,11 @@ function toBase64(bytes: Uint8Array) {
 function fromBase64(value: string) {
   return Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
 }
-export async function sealPracticeValue(
+export async function writeEncryptedPracticeValue(
+  storage: Storage,
   scope: string,
   value: string,
-): Promise<string> {
+): Promise<void> {
   const key = await passengerLocalKey();
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await crypto.subtle.encrypt(
@@ -25,7 +26,10 @@ export async function sealPracticeValue(
     key,
     encoder.encode(value),
   );
-  return ["v1", toBase64(iv), toBase64(new Uint8Array(encrypted))].join(".");
+  storage.setItem(
+    scope,
+    ["v1", toBase64(iv), toBase64(new Uint8Array(encrypted))].join("."),
+  );
 }
 export async function unsealPracticeValue(
   scope: string,
@@ -54,11 +58,11 @@ async function readTrips(): Promise<PracticeTrip[]> {
     // Upgrade records created by the first preview, using only recognised fields.
     const trips = restoreTrips(raw);
     try {
-      const sealed = await sealPracticeValue(
+      await writeEncryptedPracticeValue(
+        localStorage,
         PRACTICE_TRIPS_KEY,
         JSON.stringify(trips),
       );
-      localStorage.setItem(PRACTICE_TRIPS_KEY, sealed);
       memoryCopy = null;
     } catch {
       memoryCopy = trips;
@@ -88,11 +92,11 @@ export function updatePracticeTrips(
   return withTripLock(async () => {
     const trips = change(await readTrips());
     try {
-      const sealed = await sealPracticeValue(
+      await writeEncryptedPracticeValue(
+        localStorage,
         PRACTICE_TRIPS_KEY,
         JSON.stringify(trips),
       );
-      localStorage.setItem(PRACTICE_TRIPS_KEY, sealed);
       memoryCopy = null;
     } catch (error) {
       // A failed write must not leave an earlier, still-shared note on disk.

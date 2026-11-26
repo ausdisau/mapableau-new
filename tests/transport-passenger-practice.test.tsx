@@ -27,7 +27,7 @@ import {
 import {
   clearPracticeTrips,
   readPracticeTrips,
-  sealPracticeValue,
+  writeEncryptedPracticeValue,
   unsealPracticeValue,
   updatePracticeTrips,
 } from "@/lib/transport/passenger-storage";
@@ -196,11 +196,12 @@ describe("Replit passenger journey", () => {
     expect(raw).not.toContain("Parramatta");
     expect(await readPracticeTrips()).toHaveLength(2);
     await expect(unsealPracticeValue("another purpose", raw)).rejects.toThrow();
-    const another = await sealPracticeValue(
+    await writeEncryptedPracticeValue(
+      localStorage,
       PRACTICE_TRIPS_KEY,
       JSON.stringify(await readPracticeTrips()),
     );
-    expect(another).not.toBe(raw);
+    expect(localStorage.getItem(PRACTICE_TRIPS_KEY)).not.toBe(raw);
     localStorage.setItem(PRACTICE_TRIPS_KEY, JSON.stringify([template]));
     expect(await readPracticeTrips()).toEqual([template]);
     expect(localStorage.getItem(PRACTICE_TRIPS_KEY)).toMatch(/^v1\./);

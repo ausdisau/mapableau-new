@@ -4,7 +4,10 @@ import {
   sydneyDateKey,
 } from "@/lib/care/scheduler/ui-model";
 
-import { sealPracticeValue, unsealPracticeValue } from "./passenger-storage";
+import {
+  unsealPracticeValue,
+  writeEncryptedPracticeValue,
+} from "./passenger-storage";
 
 export const PASSENGER_PATH = "/transport/passenger";
 export const APPOINTMENT_PLAN_PATH = PASSENGER_PATH + "?plan=appointment";
@@ -19,11 +22,11 @@ export async function storeAppointmentDraft({ date, time }: AppointmentDraft) {
   memoryDraft = { date, time };
   try {
     window.sessionStorage.removeItem(APPOINTMENT_DRAFT_KEY);
-    const sealed = await sealPracticeValue(
+    await writeEncryptedPracticeValue(
+      window.sessionStorage,
       APPOINTMENT_DRAFT_KEY,
       JSON.stringify({ date, time }),
     );
-    window.sessionStorage.setItem(APPOINTMENT_DRAFT_KEY, sealed);
     memoryDraft = null;
   } catch {
     /* Keep the one-time handoff in memory if private storage is unavailable. */
