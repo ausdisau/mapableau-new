@@ -6,6 +6,7 @@ export type CoreNavLink = {
 
 export const CORE_PLATFORM_LINKS: CoreNavLink[] = [
   { href: "/core", label: "Home" },
+  { href: "/unified", label: "MapAble Unified" },
   { href: "/ask", label: "Ask MapAble", description: "Co-Pilot + PRMS" },
   {
     href: "/dashboard",

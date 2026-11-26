@@ -4,6 +4,12 @@ Source Repl: [MapAble-Unified](https://replit.com/@ausdisau1/MapAble-Unified) (`
 
 `mapableau-new` is the production home of the unified MapAble platform. The Replit **MapAble-Unified** Repl was the earlier integrated shell (auth, module hub, shared schema). Use this guide to pull Repl changes or reconcile drift.
 
+## Open the app from the website
+
+The website entry is [MapAble Unified](https://mapableau-new.vercel.app/unified). Select **Open app here** to load the published Replit application, or **Open directly on Replit** for a top-level window. The direct option also works when a browser restricts embedded sign-in. Replit handles its own session and records. Website trips continue to use the signed-in `/dashboard/transport` route.
+
+The connected Repl reported local revision `b2e55ef1c04e08ca4f75aba6a83589fb5b1e09de`. Its Dashboard, Care and Transport page blobs matched website commit `fe259953015db3c3200849e0dbd630cc5a11e044`. The embedded app follows the Replit deployment. Its served release can differ from the editor checkout.
+
 ## Quick sync (recommended)
 
 ```bash
@@ -40,7 +46,7 @@ The script clones into `/tmp/mapable-unified-replit` by default (`IMPORT_DIR` to
 ./scripts/check-replit-unified-deployment.sh
 ```
 
-Checks `https://mapable-unified.replit.app` (override with `REPLIT_DEPLOY_URL`).
+Checks `https://map-able-unified.replit.app` (override with `REPLIT_DEPLOY_URL`).
 
 Or import both Care and Unified together:
 

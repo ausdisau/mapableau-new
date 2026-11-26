@@ -6,6 +6,8 @@
  * See docs/remediation/CSP_ENFORCEMENT.md.
  */
 
+import { MAPABLE_UNIFIED_APP_ORIGIN } from "../config/mapable-unified";
+
 /** Inventoried third-party origins used by the public app shell. */
 export const CSP_EXTERNAL_ORIGINS = {
   scripts: [
@@ -66,6 +68,8 @@ export const CSP_EXTERNAL_ORIGINS = {
 } as const;
 
 export type CspBuildOptions = {
+  /** The document path determines which external app it can frame. */
+  pathname?: string;
   /**
    * When set, script-src uses nonce and omits 'unsafe-eval'.
    * Callers must inject the matching nonce on every required inline script.
@@ -109,6 +113,11 @@ export function buildContentSecurityPolicy(
 
   const frameAncestors = options.frameAncestors?.trim() || "'none'";
 
+  const frameSources =
+    options.pathname === "/unified"
+      ? [...CSP_EXTERNAL_ORIGINS.frames, MAPABLE_UNIFIED_APP_ORIGIN]
+      : CSP_EXTERNAL_ORIGINS.frames;
+
   const directives = [
     "default-src 'self'",
     `script-src ${scriptSources.join(" ")}`,
@@ -116,7 +125,7 @@ export function buildContentSecurityPolicy(
     `font-src 'self' ${joinSources(CSP_EXTERNAL_ORIGINS.fonts)} data:`,
     `img-src 'self' ${joinSources(CSP_EXTERNAL_ORIGINS.images)}`,
     `connect-src 'self' ${joinSources(CSP_EXTERNAL_ORIGINS.connect)}`,
-    `frame-src 'self' ${joinSources(CSP_EXTERNAL_ORIGINS.frames)}`,
+    `frame-src 'self' ${joinSources(frameSources)}`,
     `worker-src 'self' ${joinSources(CSP_EXTERNAL_ORIGINS.workers)}`,
     "object-src 'none'",
     "base-uri 'self'",
@@ -129,8 +138,10 @@ export function buildContentSecurityPolicy(
 }
 
 /** Current production header value — report-only, includes unsafe-eval. */
-export function buildContentSecurityPolicyReportOnly(): string {
-  return buildContentSecurityPolicy({ allowUnsafeEval: true });
+export function buildContentSecurityPolicyReportOnly(
+  pathname?: string,
+): string {
+  return buildContentSecurityPolicy({ allowUnsafeEval: true, pathname });
 }
 
 /**
@@ -138,7 +149,7 @@ export function buildContentSecurityPolicyReportOnly(): string {
  */
 export function buildContentSecurityPolicyEnforce(
   scriptNonce: string,
-  options: Pick<CspBuildOptions, "frameAncestors"> = {},
+  options: Pick<CspBuildOptions, "frameAncestors" | "pathname"> = {},
 ): string {
   if (!scriptNonce.trim()) {
     throw new Error("CSP enforce requires a non-empty script nonce");
@@ -147,7 +158,7 @@ export function buildContentSecurityPolicyEnforce(
     scriptNonce: scriptNonce.trim(),
     allowUnsafeEval: false,
     strictDynamic: true,
-    frameAncestors: options.frameAncestors,
+    ...options,
   });
 }
 

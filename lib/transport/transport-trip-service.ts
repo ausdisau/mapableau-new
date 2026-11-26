@@ -17,6 +17,7 @@ import { TransportApiError } from "@/lib/transport/transport-api-error";
 import { recordTripEvent } from "@/lib/transport/transport-event-service";
 import { buildTripResponse } from "@/lib/transport/transport-response";
 import { assertStatusTransition } from "@/lib/transport/transport-status-service";
+import { tripListScope } from "@/lib/transport/transport-trip-list";
 import type { CreateTransportTripInput } from "@/lib/validation/transport-trip-schemas";
 
 function defaultScheduledEnd(start: Date) {
@@ -133,32 +134,7 @@ export async function createTransportTrip(
 }
 
 export async function listTransportTripsForUser(user: CurrentUser) {
-  const { isAdminRole } = await import("@/lib/auth/roles");
-  const { getUserOrganisationIds } = await import("@/lib/api/organisation-scope");
-
-  let where = {};
-  if (!isAdminRole(user.primaryRole)) {
-    if (user.primaryRole === "driver") {
-      const driver = await prisma.transportDriver.findFirst({
-        where: { userId: user.id, active: true },
-      });
-      if (!driver) return [];
-      const assignments = await prisma.transportDispatchAssignment.findMany({
-        where: { driverId: driver.id, active: true },
-        select: { tripId: true },
-      });
-      where = { id: { in: assignments.map((a) => a.tripId) } };
-    } else if (
-      user.primaryRole === "transport_operator" ||
-      user.primaryRole === "provider_admin"
-    ) {
-      const orgIds = await getUserOrganisationIds(user.id);
-      where = { providerOrganisationId: { in: orgIds } };
-    } else {
-      where = { participantId: user.id };
-    }
-  }
-
+  const where = await tripListScope(user);
   const trips = await prisma.transportTrip.findMany({
     where,
     orderBy: { scheduledStart: "desc" },

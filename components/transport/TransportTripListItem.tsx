@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { TransportTripStatusBadge } from "@/components/transport/TransportTripStatusBadge";
-import type { TransportTripApiResponse } from "@/types/transport";
+import type { TransportTripListItem as TripListItem } from "@/types/transport";
 
 function formatAddress(label: string, suburb: string | null, address?: string) {
   if (address) return `${label}: ${address}`;
@@ -9,11 +9,13 @@ function formatAddress(label: string, suburb: string | null, address?: string) {
 }
 
 export function TransportTripListItem({
-  response,
+  trip,
 }: {
-  response: TransportTripApiResponse;
+  trip: Pick<
+    TripListItem,
+    "id" | "status" | "scheduledStart" | "pickup" | "dropoff"
+  >;
 }) {
-  const { trip } = response;
   const when = new Date(trip.scheduledStart).toLocaleString("en-AU", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -26,12 +28,19 @@ export function TransportTripListItem({
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <TransportTripStatusBadge status={trip.status} />
-        <time className="text-sm text-muted-foreground" dateTime={trip.scheduledStart}>
+        <time
+          className="text-sm text-muted-foreground"
+          dateTime={trip.scheduledStart}
+        >
           {when}
         </time>
       </div>
-      <p className="mt-2 text-sm">{formatAddress("From", trip.pickup.suburb, trip.pickup.address)}</p>
-      <p className="text-sm">{formatAddress("To", trip.dropoff.suburb, trip.dropoff.address)}</p>
+      <p className="mt-2 text-sm">
+        {formatAddress("From", trip.pickup.suburb, trip.pickup.address)}
+      </p>
+      <p className="text-sm">
+        {formatAddress("To", trip.dropoff.suburb, trip.dropoff.address)}
+      </p>
     </Link>
   );
 }

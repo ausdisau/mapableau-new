@@ -112,6 +112,7 @@ function buildEnforcePolicyForRequest(
     });
   }
   return buildContentSecurityPolicyEnforce(nonce, {
+    pathname: request.nextUrl.pathname,
     frameAncestors: "'none'",
   });
 }

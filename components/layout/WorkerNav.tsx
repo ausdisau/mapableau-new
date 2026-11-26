@@ -6,6 +6,7 @@ import { MapAbleRoleNav } from "@/components/layout/MapAbleRoleNav";
 
 const LINKS = [
   { href: "/worker/today", label: "Today", matchPrefix: "/worker/today" },
+  { href: "/unified", label: "MapAble Unified" },
   { href: "/worker/verify-id", label: "Verify ID" },
   { href: "/worker/onboarding", label: "Onboarding" },
   { href: "/worker/service-log", label: "Service log" },

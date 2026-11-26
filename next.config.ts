@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 import { assertDeployedProductionEnv } from "./lib/env/assert-deployed-production-env";
-import { getBaselineSecurityHeaders } from "./lib/security/headers";
+import {
+  buildContentSecurityPolicyReportOnly,
+  getBaselineSecurityHeaders,
+} from "./lib/security/headers";
 
 // Fail closed on real Vercel production builds when env is invalid.
 // Local/CI builds (no VERCEL_ENV=production) remain usable.
@@ -35,6 +38,15 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: getBaselineSecurityHeaders(),
+      },
+      {
+        source: "/unified",
+        headers: [
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value: buildContentSecurityPolicyReportOnly("/unified"),
+          },
+        ],
       },
       {
         source: "/data/:path*",

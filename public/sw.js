@@ -6,7 +6,8 @@
 /* eslint-disable no-restricted-globals */
 
 const VERSION = "mapable-offline-v1";
-const SHELL_CACHE = `${VERSION}-shell`;
+// Retire v1 documents, which included signed-in navigations. Keep tiles and venue data.
+const SHELL_CACHE = "mapable-offline-v2-shell";
 const API_CACHE = `${VERSION}-api`;
 const TILE_CACHE = `${VERSION}-tiles`;
 
@@ -23,7 +24,15 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then((cache) =>
+        Promise.allSettled(
+          PRECACHE_URLS.map((path) =>
+            cache.add(
+              new Request(path, { credentials: "omit", redirect: "error" }),
+            ),
+          ),
+        ),
+      )
       .then(() => self.skipWaiting())
       .catch(() => self.skipWaiting()),
   );
@@ -36,7 +45,11 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith("mapable-offline-") && !key.startsWith(VERSION))
+            .filter(
+              (key) =>
+                key.startsWith("mapable-offline-") &&
+                ![SHELL_CACHE, API_CACHE, TILE_CACHE].includes(key),
+            )
             .map((key) => caches.delete(key)),
         ),
       )
@@ -104,21 +117,17 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin === self.location.origin && request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(SHELL_CACHE).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(async () => {
-          const cache = await caches.open(SHELL_CACHE);
-          return (
-            (await cache.match(request)) ||
-            (await cache.match("/offline")) ||
-            (await cache.match("/accessibility-map")) ||
-            Response.error()
-          );
-        }),
+      fetch(request).catch(async () => {
+        const cache = await caches.open(SHELL_CACHE);
+        // Only the anonymous shell installed above can be displayed offline.
+        const publicShell =
+          !url.search && PRECACHE_URLS.includes(url.pathname)
+            ? await cache.match(url.pathname)
+            : undefined;
+        return (
+          publicShell || (await cache.match("/offline")) || Response.error()
+        );
+      }),
     );
   }
 });
