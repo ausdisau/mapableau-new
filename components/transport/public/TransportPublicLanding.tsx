@@ -84,14 +84,20 @@ function HeroSection() {
               {TRANSPORT_PUBLIC_CTAS.secondary.label}
             </Link>
           </div>
-          <p className="mt-5">
+          <div className="mt-5 flex flex-wrap items-center gap-x-6">
+            <Link
+              href="/transport/passenger"
+              className={`${tertiaryLink} text-white/95 decoration-white/60 hover:decoration-white`}
+            >
+              Try the passenger app
+            </Link>
             <Link
               href={TRANSPORT_PUBLIC_CTAS.tertiary.href}
               className={`${tertiaryLink} text-white/95 decoration-white/60 hover:decoration-white`}
             >
               {TRANSPORT_PUBLIC_CTAS.tertiary.label}
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </section>

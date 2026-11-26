@@ -1,0 +1,435 @@
+.app {
+  --ink: #10213b;
+  --sea: #005b76;
+  --line: #c5d6dc;
+  color: var(--ink);
+  background: #f1f6f5;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.inner {
+  max-width: 73rem;
+  margin: auto;
+  padding: 1.5rem clamp(1rem, 4vw, 3.2rem) 2rem;
+}
+.back,
+.backButton,
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  color: var(--sea);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.app :is(button, a, input, select, [tabindex="-1"]):focus-visible {
+  outline: 3px solid #0c6278;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px white;
+}
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem 2rem;
+  margin: 1.25rem 0 1.8rem;
+}
+.intro > div:first-child {
+  max-width: 42rem;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0e625a;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.eyebrow span {
+  width: 1.5rem;
+  height: 0.22rem;
+  border-radius: 1rem;
+  background: #168074;
+}
+.app h1 {
+  margin: 0.2rem 0 0.5rem;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1.07;
+  letter-spacing: -0.045em;
+}
+.app h2 {
+  font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+.app h3,
+.app h4 {
+  font-weight: 750;
+  line-height: 1.35;
+}
+.intro div > p:last-child {
+  color: #3e5661;
+  max-width: 62ch;
+}
+.demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.85rem;
+  background: #dcebe6;
+  border: 1px solid #bcd5cd;
+  border-radius: 0.75rem;
+  font-weight: 750;
+  line-height: 1.25;
+  color: #164c45;
+}
+.demo small {
+  font-size: 0.77rem;
+  font-weight: 500;
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1rem, 3vw, 2rem);
+}
+.card,
+.ticket {
+  border-radius: 1.15rem;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  padding: clamp(1.1rem, 3.5vw, 2.1rem);
+}
+.card {
+  border: 1px solid var(--line);
+  background: white;
+  box-shadow: 0 3px 18px #123f5310;
+}
+.sectionTitle,
+.ticketHead {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.sectionTitle svg {
+  color: var(--sea);
+}
+.ticket {
+  background: #0a344a;
+  color: #fff;
+  border-top: 0.35rem solid #dfb558;
+}
+.ticketHead svg {
+  color: #b0ecdb;
+  flex-shrink: 0;
+}
+.stops {
+  margin: 1.5rem 0;
+  list-style: none;
+  padding: 0;
+}
+.stops li {
+  position: relative;
+  padding-left: 1.7rem;
+  line-height: 1.45;
+}
+.stops li:first-child {
+  padding-bottom: 1.35rem;
+}
+.stops li:first-child::after {
+  content: "";
+  position: absolute;
+  left: 0.38rem;
+  top: 1rem;
+  bottom: -0.5rem;
+  border-left: 2px solid #84b6bd;
+}
+.stops li::before {
+  content: "";
+  position: absolute;
+  top: 0.28rem;
+  left: 0;
+  width: 0.88rem;
+  height: 0.88rem;
+  border: 2px solid #a3ead4;
+  border-radius: 50%;
+}
+.stops li:last-child::before {
+  background: #ffd36d;
+  border-color: #ffd36d;
+  border-radius: 0.15rem;
+}
+.stops span,
+.stops strong,
+.stops small {
+  display: block;
+}
+.stops span {
+  color: #b6dcd9;
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.stops strong {
+  margin-top: 0.15rem;
+  font-size: 1.2rem;
+}
+.stops small {
+  color: #e0eded;
+  font-size: 0.9rem;
+}
+.when {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px dashed #73939e;
+  font-weight: 650;
+}
+.when svg,
+.demo svg {
+  flex-shrink: 0;
+}
+.empty,
+.quote,
+.sharing,
+.confirm {
+  padding: 1.05rem 1.15rem;
+  border-radius: 0.8rem;
+  margin: 1rem 0;
+}
+.empty {
+  border: 1px dashed #a9c1c6;
+  background: #f5f9f8;
+}
+.empty > svg {
+  color: var(--sea);
+  margin: 0.15rem 0 0.65rem;
+}
+.empty h3 {
+  font-size: 1.16rem;
+}
+.empty p,
+.hint,
+.details dt {
+  color: #425866;
+}
+.empty p,
+.hint {
+  margin-top: 0.35rem;
+}
+.card button {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.58rem 0.9rem;
+  border: 1px solid #9db0b7;
+  border-radius: 0.55rem;
+  background: white;
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: left;
+}
+.card button:hover {
+  background: #e7f2ef;
+}
+.card .primary {
+  background: #005b76;
+  color: white;
+  border-color: #005b76;
+}
+.card .primary:hover {
+  background: #00475d;
+}
+.card button:disabled {
+  opacity: 0.65;
+}
+.actions,
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+.actions:not(:empty) {
+  margin-top: 1rem;
+}
+.links {
+  gap: 0.25rem 1.4rem;
+  margin-top: 1rem;
+}
+.links a,
+.backButton {
+  font-size: 0.9rem;
+}
+.card .backButton,
+.card .textButton {
+  display: flex;
+  width: fit-content;
+  color: var(--sea);
+  background: none;
+  border-color: transparent;
+  padding-inline: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.card label,
+.card legend {
+  font-weight: 700;
+}
+.fields {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.card input:not([type="checkbox"]),
+.card select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 2.9rem;
+  border: 1px solid #78919a;
+  border-radius: 0.45rem;
+  background: white;
+  padding: 0.52rem 0.45rem;
+  margin-top: 0.2rem;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 450;
+}
+.check {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.card .check {
+  font-weight: 500;
+}
+.check input {
+  height: 1.15rem;
+  width: 1.15rem;
+  flex-shrink: 0;
+  accent-color: var(--sea);
+}
+.card fieldset {
+  min-width: 0;
+}
+.tripList {
+  list-style: none;
+  margin: 0.8rem 0 1rem;
+  padding: 0;
+}
+.tripList li {
+  border-bottom: 1px solid var(--line);
+}
+.tripList li button {
+  width: 100%;
+  justify-content: space-between;
+  border: 0;
+}
+.tripList small {
+  display: block;
+  color: #435c63;
+  font-weight: 500;
+}
+.details {
+  margin: 0.8rem 0;
+}
+.details div {
+  margin: 0.55rem 0;
+}
+.details dt,
+.quote span {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.details dd {
+  margin: 0.1rem 0;
+}
+.quote {
+  background: #e8f3ef;
+  border-left: 4px solid #16776c;
+}
+.quote strong {
+  display: block;
+  font-size: 1.7rem;
+}
+.sharing {
+  border: 1px solid var(--line);
+}
+.sharing p,
+.confirm p {
+  margin: 0.35rem 0 0.65rem;
+}
+.sharing button {
+  margin-top: 0.6rem;
+}
+.confirm {
+  background: #edf4f6;
+}
+.card blockquote {
+  margin: 0.6rem 0;
+  padding-left: 0.8rem;
+  border-left: 3px solid var(--sea);
+  font-weight: 650;
+}
+.error,
+.notice {
+  margin: 0.65rem 0 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  background: #deefeb;
+  color: #16483f;
+}
+.error {
+  background: #fbedeb;
+  color: #752a21;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 44rem) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .intro {
+    align-items: start;
+    margin-top: 0.7rem;
+  }
+  .inner {
+    padding-top: 0.65rem;
+  }
+}
+@media (max-width: 24rem) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

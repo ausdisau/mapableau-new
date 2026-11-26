@@ -1,3 +1,4 @@
+import { CarePassengerEntry } from "@/components/care/CarePassengerEntry";
 import { ModuleCanvasSection } from "@/components/canvas/ModuleCanvasSection";
 import { PublicModulePage } from "@/components/marketing/PublicModulePage";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
@@ -34,7 +35,9 @@ export default function CareHubPage() {
         safetyNote="NDIS plan documents will be optional and shared only with consent. MapAble does not auto-approve supports, funding or invoices; high-risk decisions stay subject to human review."
         primaryCta={{ label: "Explore provider finder", href: "/providers" }}
         secondaryCta={{ label: "Join pilot", href: "/contact" }}
-      />
+      >
+        <CarePassengerEntry />
+      </PublicModulePage>
       <ModuleCanvasSection module="care" />
     </>
   );
