@@ -266,6 +266,11 @@ describe("Replit passenger journey", () => {
         ]),
       ),
     ).toEqual([]);
+    expect(
+      restoreTrips(
+        JSON.stringify([{ ...trip, stage: { toString: null } }, trip]),
+      ),
+    ).toEqual([trip]);
     expect(changeStage(trip, "cancelled").shared).toBe(false);
   });
 });

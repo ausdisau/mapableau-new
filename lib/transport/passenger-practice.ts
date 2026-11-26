@@ -37,6 +37,9 @@ export const stages = {
 } as const;
 
 export type Stage = keyof typeof stages;
+function isStage(value: unknown): value is Stage {
+  return typeof value === "string" && Object.hasOwn(stages, value);
+}
 export type TripDraft = AppointmentDraft & {
   pickup: string;
   destination: string;
@@ -128,7 +131,7 @@ export function restoreTrips(raw: string | null): PracticeTrip[] {
         !r ||
         typeof r.id !== "string" ||
         !/^[a-zA-Z0-9-]{1,80}$/.test(r.id) ||
-        !Object.hasOwn(stages, r.stage) ||
+        !isStage(r.stage) ||
         !places.includes(r.pickup) ||
         !places.includes(r.destination) ||
         r.pickup === r.destination ||
