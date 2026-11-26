@@ -46,10 +46,10 @@ export async function unsealPracticeValue(
   return new TextDecoder().decode(plain);
 }
 
-let previewFallback: PracticeTrip[] | null = null;
+let memoryCopy: PracticeTrip[] | null = null;
 async function readTrips(): Promise<PracticeTrip[]> {
   const raw = localStorage.getItem(PRACTICE_TRIPS_KEY);
-  if (!raw) return previewFallback ?? [];
+  if (!raw) return memoryCopy ?? [];
   if (raw.startsWith("[")) {
     // Upgrade records created by the first preview, using only recognised fields.
     const trips = restoreTrips(raw);
@@ -59,9 +59,9 @@ async function readTrips(): Promise<PracticeTrip[]> {
         JSON.stringify(trips),
       );
       localStorage.setItem(PRACTICE_TRIPS_KEY, sealed);
-      previewFallback = null;
+      memoryCopy = null;
     } catch {
-      previewFallback = trips;
+      memoryCopy = trips;
       localStorage.removeItem(PRACTICE_TRIPS_KEY);
     }
     return trips;
@@ -87,19 +87,26 @@ export function updatePracticeTrips(
 ) {
   return withTripLock(async () => {
     const trips = change(await readTrips());
-    const sealed = await sealPracticeValue(
-      PRACTICE_TRIPS_KEY,
-      JSON.stringify(trips),
-    );
-    localStorage.setItem(PRACTICE_TRIPS_KEY, sealed);
-    previewFallback = null;
+    try {
+      const sealed = await sealPracticeValue(
+        PRACTICE_TRIPS_KEY,
+        JSON.stringify(trips),
+      );
+      localStorage.setItem(PRACTICE_TRIPS_KEY, sealed);
+      memoryCopy = null;
+    } catch (error) {
+      // A failed write must not leave an earlier, still-shared note on disk.
+      memoryCopy = trips;
+      localStorage.removeItem(PRACTICE_TRIPS_KEY);
+      throw error;
+    }
     return trips;
   });
 }
 
 export function clearPracticeTrips() {
   return withTripLock(async () => {
-    previewFallback = null;
+    memoryCopy = null;
     localStorage.removeItem(PRACTICE_TRIPS_KEY);
   });
 }

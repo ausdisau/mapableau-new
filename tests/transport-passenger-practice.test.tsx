@@ -7,7 +7,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import "./fixtures/passenger-browser-crypto";
 
@@ -25,6 +25,7 @@ import {
   type PracticeTrip,
 } from "@/lib/transport/passenger-practice";
 import {
+  clearPracticeTrips,
   readPracticeTrips,
   sealPracticeValue,
   unsealPracticeValue,
@@ -203,6 +204,34 @@ describe("Replit passenger journey", () => {
     localStorage.setItem(PRACTICE_TRIPS_KEY, JSON.stringify([template]));
     expect(await readPracticeTrips()).toEqual([template]);
     expect(localStorage.getItem(PRACTICE_TRIPS_KEY)).toMatch(/^v1\./);
+  });
+  it("removes a stale sharing decision if the browser rejects a withdrawal write", async () => {
+    const trip: PracticeTrip = {
+      ...newDraft(),
+      id: "sample",
+      date: "2027-05-20",
+      stage: "assigned",
+      communication: communications[1],
+      shared: true,
+    };
+    await updatePracticeTrips(() => [trip]);
+    const blocked = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("quota");
+      });
+    try {
+      await expect(
+        updatePracticeTrips((records) =>
+          records.map((t) => ({ ...t, shared: false })),
+        ),
+      ).rejects.toThrow("quota");
+      expect(localStorage.getItem(PRACTICE_TRIPS_KEY)).toBeNull();
+      expect((await readPracticeTrips())[0].shared).toBe(false);
+    } finally {
+      blocked.mockRestore();
+      await clearPracticeTrips();
+    }
   });
   it("restores whitelisted practice choices and clears sharing for ended trips", async () => {
     const trip: PracticeTrip = {
