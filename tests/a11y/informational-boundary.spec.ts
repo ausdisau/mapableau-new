@@ -98,7 +98,10 @@ test.describe("Informational runtime boundary", () => {
         expectedPath === "/" ? "/" : expectedPath,
       );
 
-      const forms = page.locator("form");
+      // Count page-content forms only — marketing chrome may include the
+      // header MapAble Search omnibox (`role="search"`), which is navigation,
+      // not an informational-page intake form.
+      const forms = page.locator("#main-content form");
       const formCount = await forms.count();
       if (!route.formsPermitted) {
         expect(formCount, `${route.path} must not expose forms`).toBe(0);

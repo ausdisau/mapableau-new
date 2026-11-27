@@ -9,6 +9,7 @@ import { MapAbleCareMarketingHeader } from "@/components/marketing/mapable-care-
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
 }));
 
 vi.mock("next/link", () => ({
@@ -31,14 +32,23 @@ afterEach(() => {
 });
 
 describe("MapAbleCareMarketingHeader", () => {
-  it("renders primary nav instead of embedded GuidedSearch", () => {
+  it("renders primary nav with compact MapAble Search omnibox", () => {
     render(<MapAbleCareMarketingHeader />);
 
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeTruthy();
     expect(
       screen.getByRole("link", { name: "Pre-register" }).getAttribute("href"),
     ).toBe("#pre-register");
-    expect(screen.queryByLabelText("Search MapAble")).toBeNull();
+    expect(
+      screen.getByRole("search", { name: /MapAble Search/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("searchbox", { name: /Search MapAble/i }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Search" })).toBeTruthy();
+    expect(
+      screen.queryByLabelText("What support do you need today?"),
+    ).toBeNull();
   });
 
   it("renders auth links in header", () => {

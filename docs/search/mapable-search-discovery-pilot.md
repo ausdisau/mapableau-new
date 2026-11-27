@@ -7,6 +7,7 @@ Status: **IN DEVELOPMENT / PREVIEW ONLY** (21 November 2026). No production depl
 Add one accessible `/search` entry point across Provider Finder, Care, Transport and Employment, without implying public worker verification or exposing participant, employer or provider private data. This first slice is **discovery only**, not booking, matching, funding approval, account creation or an NDIS digital-platform transaction.
 
 Existing foundations inspected:
+
 - `lib/search` interpretation, suggestions and provider search.
 - `app/provider-finder` and `lib/provider/finder`.
 - `lib/ingestion/ndis-providers-search.ts` imported directory index.
@@ -39,6 +40,7 @@ Source-labelled cards / verified external link / optional user-approved actions
 ```
 
 Search providers and crawlers are **separate**:
+
 - Exa: candidate page / website discovery, semantic retrieval, citation material, with contract and budget limits.
 - Parallel: source verification and bounded multi-source investigation, with provenance and rate limits.
 - Official Commission register: provider registration; separate from NDIA outlet directory.
@@ -52,14 +54,34 @@ Search providers and crawlers are **separate**:
 ```ts
 type SearchDocument = {
   id: string;
-  entityKind: "provider_outlet" | "care_service" | "transport_option" | "job" | "place";
-  sourceKind: "ndia" | "ndis_commission" | "mapable" | "tfnsw" | "employer" | "web";
+  entityKind:
+    | "provider_outlet"
+    | "care_service"
+    | "transport_option"
+    | "job"
+    | "place";
+  sourceKind:
+    | "ndia"
+    | "ndis_commission"
+    | "mapable"
+    | "tfnsw"
+    | "employer"
+    | "web";
   sourceUrl: string;
   sourceRetrievedAt: string;
   sourceEffectiveAt?: string;
   licenseAndReuse?: string;
-  verifiedClaims: Array<{ field: string; value: unknown; evidenceUrl: string; checkedAt: string }>;
-  declaredClaims: Array<{ field: string; value: unknown; attributedTo: string }>;
+  verifiedClaims: Array<{
+    field: string;
+    value: unknown;
+    evidenceUrl: string;
+    checkedAt: string;
+  }>;
+  declaredClaims: Array<{
+    field: string;
+    value: unknown;
+    attributedTo: string;
+  }>;
   unavailableClaims: string[];
   visibility: "public" | "participant_only" | "authorised_operator_only";
   validUntil?: string;
@@ -83,9 +105,10 @@ Keep entity identification, ABN, site/outlet, location, status and access eviden
 
 ## Deployment / integration
 
-The main UI is at `/search` on the existing Next.js 15 application. Add an optional link from the shared nav only after screenshot/keyboard testing. Existing `/provider-finder`, `/transport`, `/care`, `/employment`, `/ask` and private user routes are unchanged.
+The main UI is at `/search` on the existing Next.js 15 application. The marketing sticky header now includes a compact accessibility-first omnibox (`MapAbleHeaderSearchBox`) that navigates to `/search` (Web · Quick) after keyboard testing; it does not call the search API from the header. Existing `/provider-finder`, `/transport`, `/care`, `/employment`, `/ask` and private user routes are unchanged.
 
 Preview environment:
+
 ```
 MAPABLE_SEARCH_PROVIDER_INDEX_ENABLED=false
 ```
