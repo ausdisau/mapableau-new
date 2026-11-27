@@ -1,6 +1,8 @@
+import { isAffirmativeServiceLabel } from "@/lib/provider/finder/evidence";
+
 /**
  * Maps free-text / registration-group labels onto MapAble service category slugs.
- * Unknown labels remain unknown — never invent competency claims.
+ * Unknown and negative labels remain non-matches — never invent competency claims.
  */
 
 const KEYWORD_TO_SLUG: Array<{ slug: string; patterns: RegExp[] }> = [
@@ -33,13 +35,17 @@ const KEYWORD_TO_SLUG: Array<{ slug: string; patterns: RegExp[] }> = [
 export type TaxonomyMapping = {
   input: string;
   slug: string | null;
-  state: "mapped" | "unknown";
+  state: "mapped" | "unknown" | "negative";
 };
 
 export function mapServiceLabelToTaxonomy(label: string): TaxonomyMapping {
   const trimmed = label.trim();
   if (!trimmed) {
     return { input: label, slug: null, state: "unknown" };
+  }
+  // "No transport" must never map to the transport slug.
+  if (!isAffirmativeServiceLabel(trimmed)) {
+    return { input: trimmed, slug: null, state: "negative" };
   }
   for (const entry of KEYWORD_TO_SLUG) {
     if (entry.patterns.some((re) => re.test(trimmed))) {
@@ -52,10 +58,12 @@ export function mapServiceLabelToTaxonomy(label: string): TaxonomyMapping {
 export function mapServicesToTaxonomy(services: string[]): {
   mapped: TaxonomyMapping[];
   unknown: string[];
+  negative: string[];
 } {
   const mapped = services.map(mapServiceLabelToTaxonomy);
   return {
     mapped,
     unknown: mapped.filter((m) => m.state === "unknown").map((m) => m.input),
+    negative: mapped.filter((m) => m.state === "negative").map((m) => m.input),
   };
 }

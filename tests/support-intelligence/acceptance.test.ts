@@ -141,6 +141,24 @@ describe("Support Intelligence v0.1 acceptance", () => {
     expect(mapped.unknown).toContain("Obscure custom service XYZ");
   });
 
+  it("never maps negative service declarations to positive taxonomy slugs", () => {
+    const mapped = mapServicesToTaxonomy([
+      "No transport",
+      "Does not provide support coordination",
+      "Transport assistance",
+    ]);
+    expect(mapped.negative).toEqual(
+      expect.arrayContaining([
+        "No transport",
+        "Does not provide support coordination",
+      ]),
+    );
+    expect(mapped.mapped.find((m) => m.input === "No transport")?.slug).toBeNull();
+    expect(
+      mapped.mapped.find((m) => m.input === "Transport assistance")?.slug,
+    ).toBe("transport");
+  });
+
   it("flags stale directory provenance", async () => {
     enableAll();
     const result = await runSpiderDiscovery({
