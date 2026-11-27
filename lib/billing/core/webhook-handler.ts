@@ -111,11 +111,22 @@ export async function handleStripeBillingEvent(event: Stripe.Event) {
   }
 }
 
-function assertLivemodeMatches(event: Stripe.Event) {
+export class StripeLivemodeMismatchError extends Error {
+  constructor(eventLivemode: boolean, envMode: string, eventId: string) {
+    super(
+      `Stripe livemode mismatch: event.livemode=${eventLivemode} env=${envMode} id=${eventId}`,
+    );
+    this.name = "StripeLivemodeMismatchError";
+  }
+}
+
+export function assertLivemodeMatches(event: Stripe.Event) {
   const expectedLive = paymentsMode() === "live";
   if (event.livemode !== expectedLive) {
-    console.warn(
-      `[stripe-webhook] livemode mismatch: event=${event.livemode} env=${paymentsMode()} id=${event.id}`
+    throw new StripeLivemodeMismatchError(
+      event.livemode,
+      paymentsMode(),
+      event.id,
     );
   }
 }
