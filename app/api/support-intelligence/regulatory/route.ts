@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
   const result = await lookupRegulatoryEvidence(parsed.data);
   if (result.ok && result.humanReviewRequired) {
-    enqueueHumanReview({
+    await enqueueHumanReview({
       reasons: result.humanReviewReasons,
       entityType: "Provider",
       entityId: parsed.data.abn ?? parsed.data.providerName ?? "unknown",

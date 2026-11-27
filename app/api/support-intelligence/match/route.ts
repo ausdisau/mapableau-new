@@ -29,9 +29,17 @@ const bodySchema = z.object({
   goals: z.array(z.string().max(200)).max(10).optional(),
   consentDraftProcessing: z.literal(true),
   consentWithdrawn: z.boolean().optional(),
-  /** Sandbox: match against synthetic fixtures (labelled; never live supply). */
+  /**
+   * Sandbox-only: match against synthetic fixtures.
+   * Requires MAPABLE_SUPPORT_INTEL_SYNTHETIC_MATCH_ENABLED=true and non-production.
+   */
   useSyntheticProviders: z.boolean().optional(),
 });
+
+function syntheticMatchAllowed(): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  return process.env.MAPABLE_SUPPORT_INTEL_SYNTHETIC_MATCH_ENABLED === "true";
+}
 
 /**
  * POST /api/support-intelligence/match
@@ -72,6 +80,31 @@ export async function POST(request: Request) {
     );
   }
 
+  if (parsed.data.consentWithdrawn) {
+    return Response.json(
+      {
+        ok: false,
+        reasonCode: "consent_withdrawn",
+        message: "Consent withdrawn — matching denied.",
+        operationalActions: hardDenyOperationalActions(),
+      },
+      { status: 403 },
+    );
+  }
+
+  if (parsed.data.useSyntheticProviders && !syntheticMatchAllowed()) {
+    return Response.json(
+      {
+        ok: false,
+        reasonCode: "capability_disabled",
+        message:
+          "Synthetic provider matching is disabled outside authorised non-production sandbox flags.",
+        operationalActions: hardDenyOperationalActions(),
+      },
+      { status: 403 },
+    );
+  }
+
   const sna = prepareSnaForMatching({
     participantId: parsed.data.participantId,
     answers: parsed.data.answers,
@@ -85,7 +118,7 @@ export async function POST(request: Request) {
   }
 
   if (sna.complexSupport) {
-    enqueueHumanReview({
+    await enqueueHumanReview({
       reasons: ["complex_support_requirement"],
       entityType: "Participant",
       entityId: parsed.data.participantId,
@@ -94,16 +127,15 @@ export async function POST(request: Request) {
     });
   }
 
-  const fixturePage = await createFixtureSpiderAdapter().fetchPage({
-    pagination: { limit: 50 },
-  });
-
-  // Synthetic sandbox path: clear isDemo so SMA can score fixtures in tests.
-  // Live discovery never marks directory rows as demo.
   const sources =
-    parsed.data.useSyntheticProviders === true
-      ? fixturePage.items.map((record) => ({
-          record: { ...record, isDemo: false },
+    parsed.data.useSyntheticProviders === true && syntheticMatchAllowed()
+      ? (
+          await createFixtureSpiderAdapter().fetchPage({
+            pagination: { limit: 50 },
+          })
+        ).items.map((record) => ({
+          // Preserve demo labelling — SMA excludes isDemo unless tests inject cleared rows.
+          record,
           directoryActive: record.raw.Active,
           sourceDate:
             typeof record.raw.sourceDate === "string"
@@ -116,12 +148,13 @@ export async function POST(request: Request) {
   const match = await runServiceMatching({
     sna,
     sources,
-    consentWithdrawn: parsed.data.consentWithdrawn,
+    consentWithdrawn: false,
   });
 
   return Response.json(
     {
       ...match,
+      syntheticSandbox: parsed.data.useSyntheticProviders === true,
       operationalActions: hardDenyOperationalActions(),
     },
     {

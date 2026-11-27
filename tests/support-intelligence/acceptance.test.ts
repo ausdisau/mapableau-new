@@ -339,14 +339,15 @@ describe("Support Intelligence v0.1 acceptance", () => {
     ).toBe(true);
   });
 
-  it("queues human review tickets for complex support", () => {
-    const ticket = enqueueHumanReview({
+  it("queues human review tickets for complex support", async () => {
+    const ticket = await enqueueHumanReview({
       reasons: ["complex_support_requirement"],
       entityType: "Participant",
       entityId: "p1",
     });
     expect(ticket.status).toBe("queued");
-    expect(listHumanReviewTickets()).toHaveLength(1);
+    const listed = await listHumanReviewTickets();
+    expect(listed.some((t) => t.id === ticket.id)).toBe(true);
   });
 
   it("reads flag object defaults as false", () => {

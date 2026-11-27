@@ -66,6 +66,7 @@ export async function lookupRegulatoryEvidence(
     input.abn ?? "",
     input.providerName ?? "",
     String(input.directoryActive ?? ""),
+    input.sourceDate ?? "",
   ]);
   const cached = getCached<Exclude<RegulatoryLookupResult, SupportIntelligenceDenied>>(ck);
   if (cached) return cached;
