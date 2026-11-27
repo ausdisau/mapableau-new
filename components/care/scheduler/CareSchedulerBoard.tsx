@@ -18,7 +18,7 @@ import {
 type View = "week" | "list";
 type Filter = "all" | "attention" | "upcoming" | "completed";
 type Props = {
-  role: CareSchedulerRole;
+  viewerRole: CareSchedulerRole;
   weekStart: string;
   data: CareSchedulerData;
   organisationId?: string;
@@ -58,7 +58,7 @@ function getStatusStyle(entry: CareSchedulerEntry): string {
   return "border-violet-300 bg-violet-50 text-violet-950 dark:border-violet-700 dark:bg-violet-950/30 dark:text-violet-100";
 }
 
-function ShiftCard({ entry, role }: { entry: CareSchedulerEntry; role: CareSchedulerRole }) {
+function ShiftCard({ entry, viewerRole }: { entry: CareSchedulerEntry; viewerRole: CareSchedulerRole }) {
   const crossesMidnight = sydneyDateKey(entry.endAt) !== entry.date;
   const time =
     formatSydneyTime(entry.startAt) +
@@ -66,9 +66,9 @@ function ShiftCard({ entry, role }: { entry: CareSchedulerEntry; role: CareSched
     formatSydneyTime(entry.endAt) +
     (crossesMidnight ? " (next day)" : "");
   const subject =
-    role === "provider"
+    viewerRole === "provider"
       ? entry.participantLabel
-      : role === "participant"
+      : viewerRole === "participant"
         ? entry.workerLabel
         : entry.service;
 
@@ -90,7 +90,7 @@ function ShiftCard({ entry, role }: { entry: CareSchedulerEntry; role: CareSched
 }
 
 export function CareSchedulerBoard({
-  role,
+  viewerRole,
   weekStart,
   data,
   organisationId,
@@ -98,7 +98,7 @@ export function CareSchedulerBoard({
   const [view, setView] = useState<View>("week");
   const [filter, setFilter] = useState<Filter>("all");
   const days = useMemo(() => getWeekDates(weekStart), [weekStart]);
-  const copy = ROLE_COPY[role];
+  const copy = ROLE_COPY[viewerRole];
   const filtered = useMemo(() => {
     const now = Date.now();
     return data.entries.filter((entry) => {
@@ -118,7 +118,7 @@ export function CareSchedulerBoard({
 
   function weekHref(date: string): string {
     return (
-      (role === "provider" ? "/provider/care/scheduler" : role === "worker" ? "/worker/schedule" : "/care/scheduler") +
+      (viewerRole === "provider" ? "/provider/care/scheduler" : viewerRole === "worker" ? "/worker/schedule" : "/care/scheduler") +
       "?week=" +
       encodeURIComponent(date) +
       (organisationId ? "&organisationId=" + encodeURIComponent(organisationId) : "")
@@ -137,7 +137,7 @@ export function CareSchedulerBoard({
     }
   }
   const workerRows =
-    role === "provider"
+    viewerRole === "provider"
       ? [
           ...Array.from(workerMap.values()),
           ...(unallocatedCount
@@ -195,10 +195,10 @@ export function CareSchedulerBoard({
         </div>
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">
-            {role === "provider" ? "Unallocated shifts" : "Currently displayed"}
+            {viewerRole === "provider" ? "Unallocated shifts" : "Currently displayed"}
           </p>
           <p className="mt-1 text-3xl font-bold tabular-nums text-foreground">
-            {role === "provider" ? unallocatedCount : filtered.length}
+            {viewerRole === "provider" ? unallocatedCount : filtered.length}
           </p>
         </div>
       </section>
@@ -279,7 +279,7 @@ export function CareSchedulerBoard({
                 <tr>
                   <th scope="col" className="px-3 py-3">Day</th>
                   <th scope="col" className="px-3 py-3">Time</th>
-                  <th scope="col" className="px-3 py-3">{role === "provider" ? "Participant" : "Support"}</th>
+                  <th scope="col" className="px-3 py-3">{viewerRole === "provider" ? "Participant" : "Support"}</th>
                   <th scope="col" className="px-3 py-3">Worker</th>
                   <th scope="col" className="px-3 py-3">Status</th>
                   <th scope="col" className="px-3 py-3">Details</th>
@@ -290,7 +290,7 @@ export function CareSchedulerBoard({
                   <tr key={entry.id} className="border-t border-border">
                     <td className="px-3 py-3">{formatDateHeading(entry.date)}</td>
                     <td className="px-3 py-3 tabular-nums">{formatSydneyTime(entry.startAt)}–{formatSydneyTime(entry.endAt)}</td>
-                    <td className="px-3 py-3">{role === "provider" ? entry.participantLabel : entry.service}</td>
+                    <td className="px-3 py-3">{viewerRole === "provider" ? entry.participantLabel : entry.service}</td>
                     <td className="px-3 py-3">{entry.workerLabel}</td>
                     <td className="px-3 py-3">{entry.attention ? "Review needed: " : ""}{entry.statusLabel}</td>
                     <td className="px-3 py-3">
@@ -306,7 +306,7 @@ export function CareSchedulerBoard({
               <p className="p-4 text-sm text-muted-foreground">No shifts match this filter. Choose All shifts to review the whole week.</p>
             ) : null}
           </div>
-        ) : role === "provider" ? (
+        ) : viewerRole === "provider" ? (
           <div className="max-w-full overflow-x-auto rounded-xl border border-border" tabIndex={0} aria-label="Roster matrix; scroll horizontally for other days">
             <table className="w-full min-w-[1030px] border-collapse text-left text-sm">
               <caption className="sr-only">Workers by day of week; unallocated shifts have a separate row</caption>
@@ -328,7 +328,7 @@ export function CareSchedulerBoard({
                           {filtered
                             .filter((entry) => entry.date === day && showInCell(entry, worker.id))
                             .map((entry) => (
-                              <li key={entry.id}><ShiftCard entry={entry} role={role}/></li>
+                              <li key={entry.id}><ShiftCard entry={entry} viewerRole={viewerRole}/></li>
                             ))}
                         </ul>
                       </td>
@@ -347,7 +347,7 @@ export function CareSchedulerBoard({
                 <section key={day} aria-label={formatDateHeading(day)} className="min-w-0 rounded-xl border border-border bg-background p-3">
                   <h3 className="mb-3 text-sm font-bold text-foreground">{formatDateHeading(day)}</h3>
                   <ul className="space-y-2">
-                    {shifts.map((entry) => <li key={entry.id}><ShiftCard entry={entry} role={role}/></li>)}
+                    {shifts.map((entry) => <li key={entry.id}><ShiftCard entry={entry} viewerRole={viewerRole}/></li>)}
                   </ul>
                   {!shifts.length ? <p className="text-xs text-muted-foreground">No shifts</p> : null}
                 </section>
@@ -366,13 +366,13 @@ export function CareSchedulerBoard({
             Linked transport remains a separate decision.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href={role === "worker" ? "/worker/report-issue" : role === "provider" ? "/provider/care/requests" : "/care/bookings"}
+            <Link href={viewerRole === "worker" ? "/worker/report-issue" : viewerRole === "provider" ? "/provider/care/requests" : "/care/bookings"}
               className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground underline underline-offset-4">
-              {role === "worker" ? "Report a problem" : "Review Care bookings"}
+              {viewerRole === "worker" ? "Report a problem" : "Review Care bookings"}
             </Link>
-            <Link href={role === "provider" ? "/provider/transport" : role === "worker" ? "/worker/today" : "/dashboard/transport"}
+            <Link href={viewerRole === "provider" ? "/provider/transport" : viewerRole === "worker" ? "/worker/today" : "/dashboard/transport"}
               className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground underline underline-offset-4">
-              {role === "worker" ? "Today\u2019s shifts" : "Transport trips"}
+              {viewerRole === "worker" ? "Today\u2019s shifts" : "Transport trips"}
             </Link>
           </div>
         </section>
@@ -385,11 +385,11 @@ export function CareSchedulerBoard({
           </p>
           <details className="mt-4 text-sm">
             <summary className="min-h-11 cursor-pointer rounded-lg py-2 font-semibold text-violet-800 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 dark:text-violet-300">
-              What does "Needs review" mean?
+              What does &quot;Needs review&quot; mean?
             </summary>
             <p className="mt-2 text-muted-foreground">
               An unallocated shift, cancellation, no-show, dispute or other exceptional status
-              needs a person's review. This flag is not a clinical or safeguarding determination.
+              needs a person&apos;s review. This flag is not a clinical or safeguarding determination.
             </p>
           </details>
         </section>
