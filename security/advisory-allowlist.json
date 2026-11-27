@@ -167,7 +167,7 @@
       "advisoryId": "GHSA-MGHH-PGCX-3JJJ",
       "package": "axios",
       "path": ".>@chat-adapter/slack>@slack/web-api>axios",
-      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: ReDoS (O(N²)) in shouldBypassProxy host normalization, reachable via untrusted redirect Location. Track upgrade; transitive or pending release bump.",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: ReDoS (O(N\u00b2)) in shouldBypassProxy host normalization, reachable via untrusted redirect Location. Track upgrade; transitive or pending release bump.",
       "owner": "platform-security",
       "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
       "expiry": "2027-02-28"
@@ -350,6 +350,87 @@
       "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Effect: ReDoS in Schema.TemplateLiteral compiled regex. Track upgrade; transitive or pending release bump.",
       "owner": "platform-security",
       "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-3PPC-4F35-3M26",
+      "package": "minimatch",
+      "path": ".>crawlee>@crawlee/core>minimatch",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive minimatch via optional Crawlee crawl path; SI spider fail-closed and allowlisted URLs only.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-7R86-CG39-JMMJ",
+      "package": "minimatch",
+      "path": ".>crawlee>@crawlee/core>minimatch",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive minimatch via optional Crawlee crawl path; SI spider fail-closed and allowlisted URLs only.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-23C5-XMQV-RM74",
+      "package": "minimatch",
+      "path": ".>crawlee>@crawlee/core>minimatch",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive minimatch via optional Crawlee crawl path; SI spider fail-closed and allowlisted URLs only.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-R5FR-RJXR-66JC",
+      "package": "lodash",
+      "path": ".>crawlee>@crawlee/cli>inquirer>lodash",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive lodash via Crawlee CLI/inquirer; not used as a public HTTP surface.",
+      "owner": "platform-security",
+      "compensatingControl": "Crawlee CLI path not exposed as an HTTP edge; SI flags default off.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-3JXR-9VMJ-R5CP",
+      "package": "brace-expansion",
+      "path": ".>crawlee>@crawlee/core>minimatch>brace-expansion",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive brace-expansion via Crawlee/minimatch; SI spider fail-closed.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-MH99-V99M-4GVG",
+      "package": "brace-expansion",
+      "path": ".>crawlee>@crawlee/core>minimatch>brace-expansion",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive brace-expansion via Crawlee/minimatch; SI spider fail-closed.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-RGW5-RVV9-X895",
+      "package": "brace-expansion",
+      "path": ".>crawlee>@crawlee/core>minimatch>brace-expansion",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive brace-expansion via Crawlee/minimatch; SI spider fail-closed.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-QHR7-859C-M2P7",
+      "package": "brace-expansion",
+      "path": ".>crawlee>@crawlee/core>minimatch>brace-expansion",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive brace-expansion via Crawlee/minimatch; SI spider fail-closed.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-6J4F-FJ2G-MC7P",
+      "package": "brace-expansion",
+      "path": ".>crawlee>@crawlee/core>minimatch>brace-expansion",
+      "rationale": "Reviewed 2026-11-28 for Support Intelligence #752. Transitive brace-expansion via Crawlee/minimatch; SI spider fail-closed.",
+      "owner": "platform-security",
+      "compensatingControl": "MAPABLE_SUPPORT_INTEL_* flags default off; crawl allowlist enforced; production enablement gated.",
       "expiry": "2027-02-28"
     }
   ]

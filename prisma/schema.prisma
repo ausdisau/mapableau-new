@@ -16569,3 +16569,78 @@ model CommunitySignalAudit {
 
   @@index([entityType, entityId, createdAt])
 }
+
+/// Support Intelligence v0.1 — spider discovery run ledger (public provenance only).
+model SupportIntelSpiderRun {
+  id             String   @id @default(cuid())
+  adapterIds     String[] @default([]) @map("adapter_ids")
+  keptCount      Int      @default(0) @map("kept_count")
+  duplicateCount Int      @default(0) @map("duplicate_count")
+  excludedCount  Int      @default(0) @map("excluded_count")
+  stale          Boolean  @default(false)
+  provenance     Json     @default("[]")
+  actorUserId    String?  @map("actor_user_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt])
+  @@map("support_intel_spider_runs")
+}
+
+/// Evidence-backed claims; never invent registration/vacancy/competency.
+model SupportIntelEvidenceClaim {
+  id           String    @id @default(cuid())
+  entityType   String    @map("entity_type")
+  entityId     String    @map("entity_id")
+  field        String
+  value        Json?
+  state        String
+  evidenceUrl  String?   @map("evidence_url")
+  attributedTo String?   @map("attributed_to")
+  note         String?
+  rawHash      String?   @map("raw_hash")
+  sourceKind   String    @map("source_kind")
+  sourceUrl    String    @map("source_url")
+  retrievedAt  DateTime  @default(now()) @map("retrieved_at") @db.Timestamptz(6)
+  validUntil   DateTime? @map("valid_until") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityType, entityId])
+  @@index([state])
+  @@map("support_intel_evidence_claims")
+}
+
+/// Human review for regulatory conflicts, ambiguous identity, complex support.
+model SupportIntelHumanReview {
+  id               String    @id @default(cuid())
+  reasons          String[]  @default([])
+  entityType       String    @map("entity_type")
+  entityId         String    @map("entity_id")
+  status           String    @default("queued")
+  notes            String?
+  actorUserId      String?   @map("actor_user_id")
+  resolvedByUserId String?   @map("resolved_by_user_id")
+  resolvedAt       DateTime? @map("resolved_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([entityType, entityId])
+  @@map("support_intel_human_reviews")
+}
+
+/// Privacy-preserving regional unmet-need aggregates (small-cell suppressed).
+model SupportIntelDemandCell {
+  id                 String   @id @default(cuid())
+  regionKey          String   @map("region_key")
+  state              String
+  serviceSlug        String   @map("service_slug")
+  unmetNeedCount     Int?     @map("unmet_need_count")
+  suppressed         Boolean  @default(false)
+  suppressionReason  String?  @map("suppression_reason")
+  kThreshold         Int      @default(5) @map("k_threshold")
+  computedAt         DateTime @default(now()) @map("computed_at") @db.Timestamptz(6)
+
+  @@unique([regionKey, state, serviceSlug, computedAt])
+  @@index([state])
+  @@map("support_intel_demand_cells")
+}

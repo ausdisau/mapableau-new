@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { MapAbleSearchHero } from "@/components/search/MapAbleSearchHero";
+import { SupportIntelligenceDisclaimer } from "@/components/search/SupportIntelligenceDisclaimer";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
 import { searchMapAble } from "@/lib/search/mapable-search-service";
 import {
@@ -8,6 +9,7 @@ import {
   resolveSearchUiStatus,
   categoryToVertical,
 } from "@/lib/search/mapable-search-ui";
+import { isCapabilityEnabled } from "@/lib/support-intelligence/config/feature-flags";
 
 export const metadata: Metadata = {
   title: "MapAble Search | Find what works for you",
@@ -78,6 +80,7 @@ export default async function MapAbleSearchPage({
         response={response}
         status={status}
       />
+      <SupportIntelligenceDisclaimer enabled={isCapabilityEnabled("search")} />
     </main>
   );
 }

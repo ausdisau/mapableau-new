@@ -43,6 +43,7 @@ until their wave lands behind default-false flags. See
 | Early Childhood                   | `lib/early-childhood/**`        | planned — **no writers yet**                                                                                |
 | Allied Health / Home Mod Exchange | `lib/allied-health-exchange/**` | planned — **no writers yet**                                                                                |
 | Regional Capacity Exchange        | `lib/regional-capacity/**`      | planned — **no writers yet**                                                                                |
+| Support Intelligence v0.1         | `lib/support-intelligence/**`   | Flag-gated composition over Search/ingestion/matching; must not become a second provider SoT                |
 
 ## Mutation rule
 

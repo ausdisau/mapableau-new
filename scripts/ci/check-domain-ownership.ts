@@ -80,6 +80,7 @@ const CROSS_DOMAIN_ALLOWLIST = [
   "lib/understanding/",
   "lib/act/",
   "lib/aura-harness/",
+  "lib/support-intelligence/",
 ];
 
 function isOwner(file: string, ownerPrefixes: string[]): boolean {

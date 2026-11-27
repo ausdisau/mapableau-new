@@ -184,6 +184,9 @@
     "typescript": "^5.0.0",
     "vitest": "^3.2.7"
   },
+  "optionalDependencies": {
+    "crawlee": "^3.13.0"
+  },
   "pnpm": {
     "overrides": {
       "vitest": "^3.2.7",
