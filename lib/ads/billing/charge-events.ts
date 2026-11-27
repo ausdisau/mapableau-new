@@ -1,6 +1,6 @@
-import { cpmChargePerImpression } from "@/lib/ads/money/micros";
 import { chargeAdvertiserWallet } from "@/lib/ads/billing/wallet";
 import { adsFlagsConfig } from "@/lib/ads/config/flags";
+import { cpmChargePerImpression } from "@/lib/ads/money/micros";
 import { prisma } from "@/lib/prisma";
 
 /**

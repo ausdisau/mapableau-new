@@ -102,22 +102,27 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
   ads: StripeWebhookLaneResult;
   anyFailed: boolean;
 }> {
-  const result = {
+  const result: {
+    billing: StripeWebhookLaneResult;
+    legacy: StripeWebhookLaneResult;
+    ads: StripeWebhookLaneResult;
+    anyFailed: boolean;
+  } = {
     billing: {
       duplicate: false,
       processed: false,
       failed: false,
-    } satisfies StripeWebhookLaneResult,
+    },
     legacy: {
       duplicate: false,
       processed: false,
       failed: false,
-    } satisfies StripeWebhookLaneResult,
+    },
     ads: {
       duplicate: false,
       processed: false,
       failed: false,
-    } satisfies StripeWebhookLaneResult,
+    },
     anyFailed: false,
   };
 

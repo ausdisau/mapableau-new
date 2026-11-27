@@ -39,7 +39,7 @@ export function isStartingWorkDbPersistenceEnabled(
  * deployment context is indeterminate / flags off.
  */
 export function isInterviewJourneyPreviewAvailable(
-  env: NodeJS.ProcessEnv = process.env,
+  env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
 ): boolean {
   if (env.MAPABLE_STARTING_WORK_PILOT_ENABLED !== "true") return false;
   if (env.MAPABLE_STARTING_WORK_SYNTHETIC_ONLY === "false") return false;

@@ -1,6 +1,5 @@
 import "server-only";
 
-import { prisma } from "@/lib/prisma";
 import {
   getReadWindow,
   isWithinWeek,
@@ -11,6 +10,7 @@ import {
   type CareSchedulerEntry,
   type CareSchedulerRole,
 } from "@/lib/care/scheduler/ui-model";
+import { prisma } from "@/lib/prisma";
 
 const MAX_SHIFTS = 200;
 type ShiftProjection = {
