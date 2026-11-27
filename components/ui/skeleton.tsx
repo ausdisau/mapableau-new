@@ -20,3 +20,18 @@ export function SearchResultCardSkeleton() {
     </div>
   );
 }
+
+export function SearchResultGridSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div
+      className="grid gap-4 sm:grid-cols-2"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading search results"
+    >
+      {Array.from({ length: count }, (_, i) => (
+        <SearchResultCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
