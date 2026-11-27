@@ -23,7 +23,9 @@ export function InterviewJourneyClient() {
   const formModeId = useId();
 
   const [addedMessage, setAddedMessage] = useState("");
-  const [suggestedMeaning, setSuggestedMeaning] = useState(fixture.suggestedMeaning);
+  const [suggestedMeaning, setSuggestedMeaning] = useState<string>(
+    fixture.suggestedMeaning,
+  );
   const [confirmedMeaning, setConfirmedMeaning] = useState<string | null>(null);
   const [meaningError, setMeaningError] = useState<string | null>(null);
   const [useForm, setUseForm] = useState(false);
