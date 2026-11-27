@@ -20,6 +20,20 @@ export type CrawlPageResult = {
   engine: "crawlee" | "fetch_compat";
 };
 
+/**
+ * Strip script/style blocks before tag removal.
+ * Closing tags may include whitespace before '>' (CodeQL: js/bad-tag-filter).
+ */
+export function stripHtmlToExcerpt(html: string, maxLen = 2000): string {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLen);
+}
+
 async function fetchRobots(origin: string, signal?: AbortSignal): Promise<string> {
   try {
     const res = await fetch(`${origin}/robots.txt`, {
@@ -124,14 +138,8 @@ async function fetchCompatPage(
   }
 
   const html = (await res.text()).slice(0, 200_000);
-  const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-  const textExcerpt = html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 2000);
+  const titleMatch = html.match(/<title\b[^>]*>([^<]*)<\/title\s*>/i);
+  const textExcerpt = stripHtmlToExcerpt(html);
 
   return {
     url,

@@ -35,6 +35,7 @@ import {
   createFixtureSpiderAdapter,
   SYNTHETIC_SPIDER_FIXTURES,
 } from "@/lib/support-intelligence/spider/fixture-adapter";
+import { stripHtmlToExcerpt } from "@/lib/support-intelligence/spider/crawlee-runner";
 import { runSpiderDiscovery } from "@/lib/support-intelligence/spider/orchestrator";
 import { mapServicesToTaxonomy } from "@/lib/support-intelligence/spider/taxonomy";
 import { lookupWorkerVerification } from "@/lib/support-intelligence/worker-verification/gateway";
@@ -351,5 +352,14 @@ describe("Support Intelligence v0.1 acceptance", () => {
   it("reads flag object defaults as false", () => {
     expect(supportIntelligenceFlags.enabled).toBe(false);
     expect(supportIntelligenceFlags.spiderEnabled).toBe(false);
+  });
+
+  it("strips script and style blocks even when closing tags have whitespace", () => {
+    const excerpt = stripHtmlToExcerpt(
+      "<p>Hello</p><script>alert(1)</script ><style>body{}</style >World",
+    );
+    expect(excerpt).toBe("Hello World");
+    expect(excerpt).not.toContain("alert");
+    expect(excerpt).not.toContain("body{}");
   });
 });
