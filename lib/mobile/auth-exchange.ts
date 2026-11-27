@@ -1,12 +1,12 @@
 import { compare } from "bcryptjs";
 
 import type { CurrentUser } from "@/lib/auth/current-user";
-import { prisma } from "@/lib/prisma";
 import {
   isMobileAuthExchangeEnabled,
   mobileApiConfig,
 } from "@/lib/mobile/config";
 import { mintMobileToken, verifyMobileToken } from "@/lib/mobile/tokens";
+import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/mapable";
 
 export type MobileSessionResponse = {
