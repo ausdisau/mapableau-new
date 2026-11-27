@@ -310,7 +310,6 @@ export function CareSchedulerBoard({
           <div
             className="max-w-full overflow-x-auto rounded-xl border border-border"
             role="region"
-            tabIndex={0}
             aria-label="Roster matrix; scroll horizontally for other days"
           >
             <table className="w-full min-w-[1030px] border-collapse text-left text-sm">
