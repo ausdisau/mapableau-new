@@ -5,11 +5,11 @@ import {
   type DirectoryActivity,
 } from "@/lib/provider/finder/evidence";
 import { auditSupportIntelligence } from "@/lib/support-intelligence/audit";
+import { getCached, setCached, cacheKey } from "@/lib/support-intelligence/cache";
 import {
   isCapabilityEnabled,
   supportIntelligenceFlags,
 } from "@/lib/support-intelligence/config/feature-flags";
-import { getCached, setCached, cacheKey } from "@/lib/support-intelligence/cache";
 import { buildProvenance } from "@/lib/support-intelligence/provenance";
 import type {
   Claim,

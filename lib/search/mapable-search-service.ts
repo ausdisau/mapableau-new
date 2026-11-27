@@ -1,8 +1,8 @@
 import "server-only";
 
 import { searchNdisProviders } from "@/lib/ingestion/ndis-providers-search";
-import { enhanceSearchResponse } from "@/lib/support-intelligence/search-integration";
 import { isCapabilityEnabled } from "@/lib/support-intelligence/config/feature-flags";
+import { enhanceSearchResponse } from "@/lib/support-intelligence/search-integration";
 
 import {
   combineSearchHits,
