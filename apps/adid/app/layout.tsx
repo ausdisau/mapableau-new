@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import SkipLink from "../components/SkipLink";
 
+import { hasClerkTenant } from "../lib/clerk-config";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,12 +20,20 @@ export default function RootLayout({
   return (
     <html lang="en-AU">
       <body>
-        <ClerkProvider afterSignOutUrl="/">
-          <a className="skip-link" href="#main-content">
-            Skip to main content
-          </a>
-          {children}
-        </ClerkProvider>
+        <SkipLink />
+        {hasClerkTenant() ? (
+          <ClerkProvider
+            afterSignOutUrl="/"
+            signInUrl="/sign-in"
+            signUpUrl="/sign-up"
+            signInFallbackRedirectUrl="/dashboard"
+            signUpFallbackRedirectUrl="/dashboard"
+          >
+            {children}
+          </ClerkProvider>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

@@ -5,9 +5,11 @@ import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
 import type { Provider } from "next-auth/providers/index";
 
+import { clerkLoginSelected, getAdidConfig } from "@/lib/auth/adid-config";
 import { getAppleClientSecret } from "@/lib/auth/apple-client-secret";
 
 export type OAuthProviderFlags = {
+  adid?: boolean;
   auth0: boolean;
   google: boolean;
   microsoft: boolean;
@@ -89,6 +91,9 @@ function appleCredentialsPresent(): boolean {
 }
 
 export function getConfiguredOAuthProviders(): OAuthProviderFlags {
+  if (clerkLoginSelected()) {
+    return { adid: Boolean(getAdidConfig()), auth0: false, google: false, microsoft: false, facebook: false, apple: false };
+  }
   return {
     auth0: Boolean(auth0ClientId() && auth0ClientSecret() && auth0Issuer()),
     google: Boolean(googleClientId() && googleClientSecret()),
@@ -102,6 +107,20 @@ export function getConfiguredOAuthProviders(): OAuthProviderFlags {
 export function buildOAuthProviders(): Provider[] {
   const providers: Provider[] = [];
   const flags = getConfiguredOAuthProviders();
+
+  const federation = getAdidConfig();
+  if (federation) {
+    providers.push(Auth0Provider({
+      id: "adid",
+      name: "AD.iD",
+      issuer: federation.issuer,
+      wellKnown: federation.issuer + ".well-known/openid-configuration",
+      clientId: federation.clientId,
+      clientSecret: federation.clientSecret,
+      checks: ["pkce", "state", "nonce"],
+      authorization: { params: { scope: "openid profile email", connection: federation.connection } },
+    }));
+  }
 
   if (flags.auth0) {
     providers.push(

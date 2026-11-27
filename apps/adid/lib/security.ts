@@ -42,7 +42,7 @@ export function safeRedirectTarget(raw: unknown): string | null {
       return `${path}${u.search}${u.hash}`;
     }
     // Allow nested Clerk catch-all under sign-in/sign-up
-    if (path.startsWith("/sign-in") || path.startsWith("/sign-up")) {
+    if (path.startsWith("/sign-in/") || path.startsWith("/sign-up/")) {
       return `${path}${u.search}${u.hash}`;
     }
     return null;

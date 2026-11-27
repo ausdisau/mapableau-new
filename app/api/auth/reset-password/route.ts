@@ -1,10 +1,14 @@
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
+import { clerkLoginSelected } from "@/lib/auth/adid-config";
 import { verifyPasswordResetToken } from "@/lib/auth/password-reset-token";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
+  if (clerkLoginSelected()) return NextResponse.json(
+    { code: "USE_ADID", error: "Use AD.iD sign-in to recover your account.", signInUrl: "/login" }, { status: 409 },
+  );
   try {
     const body = (await req.json()) as { token?: string; password?: string };
     const token = body.token?.trim() ?? "";

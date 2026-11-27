@@ -1,5 +1,7 @@
+import { clerkLoginSelected } from "@/lib/auth/adid-config";
+
 export function isKeycloakEnabled(): boolean {
-  return process.env.KEYCLOAK_ENABLED === "true";
+  return !clerkLoginSelected() && process.env.KEYCLOAK_ENABLED === "true";
 }
 
 export function getKeycloakConfig() {

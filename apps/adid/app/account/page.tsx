@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { adidFlags } from "../../lib/feature-flags";
+import { supportHref } from "../../lib/service-directory";
 
 export const dynamic = "force-dynamic";
 
@@ -22,33 +22,12 @@ export default async function AccountPage() {
           <Link href="/dashboard">Service control centre</Link>
         </nav>
       </header>
-      <main className="container" id="main-content">
+      <main className="container" id="main-content" tabIndex={-1}>
         <h1>Account and security</h1>
         <p>
-          Manage MFA, passkeys and recovery options through Clerk. Sign-out is
-          available from the profile menu. Tokens are never placed in the page
-          URL or localStorage by AD.iD.
+          Manage your contact details, sign-in methods and account security.
         </p>
-        <section className="note" aria-labelledby="gates-heading">
-          <h2 id="gates-heading">Integration gates (all off in this sandbox)</h2>
-          <ul>
-            <li>
-              Account linking:{" "}
-              {adidFlags.accountLinkingEnabled() ? "ON" : "OFF (required)"}
-            </li>
-            <li>
-              Wix session bridge:{" "}
-              {adidFlags.wixSessionBridgeEnabled() ? "ON" : "OFF (required)"}
-            </li>
-            <li>
-              Cross-app federation:{" "}
-              {adidFlags.crossAppFederationEnabled() ? "ON" : "OFF (required)"}
-            </li>
-            <li>
-              Directory: {adidFlags.directoryEnabled() ? "ON" : "OFF"}
-            </li>
-          </ul>
-        </section>
+        <p><a href={supportHref}>Get help with account access</a></p>
         <UserProfile />
       </main>
     </div>

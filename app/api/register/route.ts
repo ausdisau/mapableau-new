@@ -2,6 +2,7 @@ import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { clerkLoginSelected } from "@/lib/auth/adid-config";
 import { normalizeAuthEmail } from "@/lib/auth/auth-flow";
 import {
   JURISDICTION_DEFAULTS,
@@ -16,6 +17,10 @@ import {
 } from "@/lib/workers/worker-invite-service";
 
 export async function POST(req: Request) {
+  if (clerkLoginSelected()) return NextResponse.json(
+    { code: "USE_ADID", error: "Create your AD.iD account with Clerk.", registrationUrl: "/register" },
+    { status: 409, headers: { "Cache-Control": "no-store" } },
+  );
   const ip = getClientIp(req);
   if (!checkIpRateLimit(`register:${ip}`, { windowMs: 60_000, max: 10 })) {
     return NextResponse.json(

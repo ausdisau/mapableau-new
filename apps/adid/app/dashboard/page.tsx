@@ -2,10 +2,11 @@ import { UserButton } from "@clerk/nextjs";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import ServiceTile from "../../components/ServiceTile";
+import { reviewerServices } from "../../lib/access-requests";
 
-import { adidFlags } from "../../lib/feature-flags";
 import { getReadOnlyServiceDirectory } from "../../lib/neon-directory";
-import { PUBLIC_SERVICES } from "../../lib/service-directory";
+import { PUBLIC_SERVICES, communityService, supportHref } from "../../lib/service-directory";
 
 export const dynamic = "force-dynamic";
 
@@ -31,38 +32,20 @@ export default async function Dashboard() {
           </a>
           <a href="#services">My services</a>
           <Link href="/account">Account and security</Link>
+          <Link href="/access/request">Request service access</Link>
+          {reviewerServices(userId, process.env.ADID_ACCESS_REVIEWERS).length > 0 &&
+            <Link href="/admin/access-requests">Review access requests</Link>}
           <a href="#support">Support and accessibility</a>
         </nav>
-        <main className="dashboard-main" id="main-content">
+        <main className="dashboard-main" id="main-content" tabIndex={-1}>
           <h1>Welcome back, {user?.firstName?.trim() || "there"}</h1>
-          <p>
-            Service control centre — discover public service links and manage
-            your AD.iD security. Each external service checks access separately.
-          </p>
-
+          <p>Manage your sign-in details or choose a service to visit.</p>
           <section id="services" aria-labelledby="services-heading">
             <h2 id="services-heading">Your services</h2>
-            <p>
-              These are public service links, not verified entitlements. Cross-app
-              SSO is not asserted
-              {adidFlags.crossAppFederationEnabled()
-                ? " (federation flag unexpectedly ON — disable before pilot)."
-                : " (federation flag OFF)."}
-            </p>
+            <p>Each service checks its own membership when you open it.</p>
             <div className="service-grid">
               {PUBLIC_SERVICES.map((s) => (
-                <article className="service-card" key={s.id}>
-                  <h3>{s.name}</h3>
-                  <p>{s.description}</p>
-                  <p className="service-status">Access not verified</p>
-                  <a
-                    className="primary-button"
-                    href={s.href}
-                    rel="noopener noreferrer"
-                  >
-                    Open {s.name} (external site)
-                  </a>
-                </article>
+                <ServiceTile key={s.id} service={s} />
               ))}
             </div>
             {directory.status === "ready" && (
@@ -89,48 +72,21 @@ export default async function Dashboard() {
                 links above.
               </p>
             )}
-            {directory.status === "disabled" && (
-              <p role="status">
-                Optional Neon directory is disabled (
-                <code>ADID_DIRECTORY_ENABLED</code> /
-                <code>ADID_NEON_DIRECTORY_ENABLED</code> false).
-              </p>
-            )}
+            <p>Community conversations are also available on <a href={communityService.href}>{communityService.name}</a>.</p>
           </section>
 
           <section className="note" id="security">
             <h2>Account and security</h2>
-            <p>
-              AD.iD sign-in is active only in this application. Wix Members,
-              MapAble, community and reader accounts are not linked automatically.
-              Use{" "}
-              <Link href="/account">Account and security</Link> for MFA, passkeys
-              and accessible recovery.
-            </p>
-            <p role="status">
-              Wix integration stages: public link{" "}
-              {adidFlags.wixPublicLinkEnabled() ? "flag ON" : "flag OFF"}; identity
-              linking{" "}
-              {adidFlags.accountLinkingEnabled() ? "flag ON" : "flag OFF"}; session
-              handoff{" "}
-              {adidFlags.wixSessionBridgeEnabled() ? "flag ON" : "flag OFF"}. Stages
-              2–3 must stay off until dual-proof and one-time handoff reviews
-              complete.
-            </p>
+            <p><Link href="/account">Manage sign-in methods and account recovery</Link>.</p>
           </section>
 
           <section className="note" id="support">
             <h2>Need accessible help?</h2>
-            <p>
-              Use a preferred communication method to contact Australian
-              Disability Ltd using its published support channels. This portal
-              supports keyboard, screen readers, zoom/reflow and reduced motion.
-            </p>
+            <p><a href={supportHref}>Contact Australian Disability Ltd</a> and let the team know how you would like them to reply.</p>
           </section>
 
           <footer>
-            © Australian Disability Ltd · Preview · No cross-service access
-            guarantees
+            Australian Disability Ltd
           </footer>
         </main>
       </div>
