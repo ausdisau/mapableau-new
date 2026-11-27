@@ -1,6 +1,9 @@
 import { z } from "zod";
 
+import { requireApiSession } from "@/lib/api/auth-handler";
 import { checkIpRateLimit, getClientIp } from "@/lib/api/ip-rate-limit";
+import { apiForbidden } from "@/lib/auth/guards";
+import { isAdminRole } from "@/lib/auth/roles";
 import { SUPPORT_NEEDS_LIFE_AREA_IDS } from "@/lib/intake/support-needs-assessor";
 import {
   hardDenyOperationalActions,
@@ -15,7 +18,6 @@ import { createFixtureSpiderAdapter } from "@/lib/support-intelligence/spider/fi
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
-  participantId: z.string().min(1).max(128),
   answers: z
     .array(
       z.object({
@@ -41,14 +43,30 @@ function syntheticMatchAllowed(): boolean {
   return process.env.MAPABLE_SUPPORT_INTEL_SYNTHETIC_MATCH_ENABLED === "true";
 }
 
+function isParticipantUser(user: {
+  primaryRole: string;
+  roles: string[];
+}): boolean {
+  return (
+    user.primaryRole === "participant" || user.roles.includes("participant")
+  );
+}
+
 /**
  * POST /api/support-intelligence/match
- * SNA → SMA eligibility-first matching. Booking/payment/dispatch denied.
+ * Session-bound SNA → SMA. participantId is always the authenticated user.
  */
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   if (!checkIpRateLimit(`si-match:${ip}`, { windowMs: 60_000, max: 15 })) {
     return Response.json({ error: "Rate limit reached." }, { status: 429 });
+  }
+
+  const user = await requireApiSession();
+  if (user instanceof Response) return user;
+
+  if (!isParticipantUser(user) && !isAdminRole(user.primaryRole)) {
+    return apiForbidden();
   }
 
   if (!isCapabilityEnabled("sma") || !isCapabilityEnabled("sna")) {
@@ -105,8 +123,11 @@ export async function POST(request: Request) {
     );
   }
 
+  // Never trust a client-supplied participantId — bind to the session subject.
+  const participantId = user.id;
+
   const sna = prepareSnaForMatching({
-    participantId: parsed.data.participantId,
+    participantId,
     answers: parsed.data.answers,
     priorityAreas: parsed.data.priorityAreas,
     goals: parsed.data.goals,
@@ -121,7 +142,8 @@ export async function POST(request: Request) {
     await enqueueHumanReview({
       reasons: ["complex_support_requirement"],
       entityType: "Participant",
-      entityId: parsed.data.participantId,
+      entityId: participantId,
+      actorUserId: user.id,
       notes:
         "Complex support requirements require human review before any action.",
     });
@@ -134,7 +156,6 @@ export async function POST(request: Request) {
             pagination: { limit: 50 },
           })
         ).items.map((record) => ({
-          // Preserve demo labelling — SMA excludes isDemo unless tests inject cleared rows.
           record,
           directoryActive: record.raw.Active,
           sourceDate:
@@ -148,12 +169,14 @@ export async function POST(request: Request) {
   const match = await runServiceMatching({
     sna,
     sources,
+    actorUserId: user.id,
     consentWithdrawn: false,
   });
 
   return Response.json(
     {
       ...match,
+      participantId,
       syntheticSandbox: parsed.data.useSyntheticProviders === true,
       operationalActions: hardDenyOperationalActions(),
     },

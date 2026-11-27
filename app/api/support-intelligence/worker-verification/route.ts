@@ -62,13 +62,16 @@ export async function POST(request: Request) {
     return apiForbidden();
   }
 
+  // Session + ownership/admin is the authorization boundary.
+  // consentGranted is an explicit UI acknowledgement, not a substitute for auth.
+  // Screening status is always loaded from WorkerProfile — never from the body.
   const result = await lookupWorkerVerification({
     workerProfileId: profile.id,
     internalScreeningStatus: profile.workerScreeningStatus,
     identityTokens: parsed.data.identityTokens,
     actorUserId: user.id,
-    consentGranted: parsed.data.consentGranted,
-    consentWithdrawn: parsed.data.consentWithdrawn,
+    consentGranted: parsed.data.consentGranted === true,
+    consentWithdrawn: parsed.data.consentWithdrawn === true,
   });
 
   if (result.ok && result.humanReviewRequired) {

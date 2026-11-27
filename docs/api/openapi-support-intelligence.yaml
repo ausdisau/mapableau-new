@@ -37,16 +37,18 @@ paths:
           description: Rate limited
   /api/support-intelligence/match:
     post:
-      summary: SNA → SMA eligibility-first matching
+      summary: SNA → SMA eligibility-first matching (session required)
+      description: |
+        Requires an authenticated participant (or admin) session.
+        `participantId` is always the session user — never accepted from the body.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [participantId, answers, consentDraftProcessing]
+              required: [answers, consentDraftProcessing]
               properties:
-                participantId: { type: string }
                 answers:
                   type: array
                   items:
@@ -65,8 +67,10 @@ paths:
           description: Explainable candidates; operational actions denied
         "400":
           description: Validation or consent failure
+        "401":
+          description: Unauthenticated
         "403":
-          description: Capability disabled
+          description: Capability disabled, withdrawn consent, or forbidden role
   /api/support-intelligence/regulatory:
     get:
       summary: Regulatory Evidence Gateway lookup
@@ -90,28 +94,33 @@ paths:
           description: Gateway disabled
   /api/support-intelligence/worker-verification:
     post:
-      summary: Authorised Worker Verification Gateway
+      summary: Authorised Worker Verification Gateway (session required)
+      description: |
+        Actor and screening status are derived server-side from the session and
+        WorkerProfile. Clients cannot supply actorUserId or internalScreeningStatus.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [workerProfileId, actorUserId, consentGranted]
+              required: [workerProfileId, consentGranted]
               properties:
                 workerProfileId: { type: string }
-                actorUserId: { type: string }
                 consentGranted: { type: boolean }
                 consentWithdrawn: { type: boolean }
-                internalScreeningStatus: { type: string, nullable: true }
                 identityTokens:
                   type: array
                   items: { type: string }
       responses:
         "200":
           description: Internal status + unknown live screening
+        "401":
+          description: Unauthenticated
         "403":
-          description: Consent missing/withdrawn or gateway disabled
+          description: Consent missing/withdrawn, forbidden, or gateway disabled
+        "404":
+          description: Worker profile not found
   /api/support-intelligence/demand:
     get:
       summary: Privacy-preserving demand aggregates
