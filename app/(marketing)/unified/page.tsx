@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { canonicalAlternate } from "@/lib/config/canonical-url";
 import { MAPABLE_UNIFIED_APP_ORIGIN } from "@/lib/config/mapable-unified";
+import { isInterviewJourneyPreviewAvailable } from "@/lib/config/starting-work-pilot";
 
 export const metadata = {
   title: "MapAble Unified",
@@ -43,6 +44,23 @@ export default async function UnifiedPage({
   searchParams: Promise<{ open?: string | string[] }>;
 }) {
   const embedded = (await searchParams).open === "1";
+  const interviewPreviewAvailable = isInterviewJourneyPreviewAvailable();
+
+  const sections = websiteSections.map((section) => {
+    if (section.heading !== "Work and community" || !interviewPreviewAvailable) {
+      return section;
+    }
+    return {
+      ...section,
+      links: [
+        ...section.links,
+        [
+          "Try a sample interview journey",
+          "/pilot/starting-work/interview",
+        ] as [string, string],
+      ],
+    };
+  });
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 text-[#0C1833] sm:px-8">
@@ -59,7 +77,7 @@ export default async function UnifiedPage({
         aria-label="MapAble website services"
         className="grid gap-4 sm:grid-cols-2"
       >
-        {websiteSections.map(({ heading, links }) => (
+        {sections.map(({ heading, links }) => (
           <div key={heading} className="rounded-xl border border-slate-200 p-5">
             <h2 className="font-heading text-xl font-bold">{heading}</h2>
             <ul className="mt-2">

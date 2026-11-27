@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import UnifiedPage from "@/app/(marketing)/unified/page";
 import { MAPABLE_UNIFIED_APP_ORIGIN } from "@/lib/config/mapable-unified";
@@ -9,7 +9,10 @@ import {
   buildContentSecurityPolicyReportOnly,
 } from "@/lib/security/headers";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
 
 describe("MapAble Unified web integration", () => {
   it("offers first-party workflows, direct sign-in and an on-demand Replit preview", async () => {
@@ -41,6 +44,20 @@ describe("MapAble Unified web integration", () => {
         screen.getByRole("link", { name: label }).getAttribute("href"),
       ).toBe(href);
     }
+    expect(
+      screen.queryByRole("link", { name: "Try a sample interview journey" }),
+    ).toBeNull();
+  });
+
+  it("surfaces the gated interview journey entry when the preview is available", async () => {
+    vi.stubEnv("MAPABLE_STARTING_WORK_PILOT_ENABLED", "true");
+    vi.stubEnv("MAPABLE_STARTING_WORK_SYNTHETIC_ONLY", "true");
+    render(await UnifiedPage({ searchParams: Promise.resolve({}) }));
+    expect(
+      screen
+        .getByRole("link", { name: "Try a sample interview journey" })
+        .getAttribute("href"),
+    ).toBe("/pilot/starting-work/interview");
   });
 
   it("mounts the published app in a named frame and keeps a way out", async () => {

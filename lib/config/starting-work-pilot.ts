@@ -31,3 +31,22 @@ export function isStartingWorkDbPersistenceEnabled(
     env.MAPABLE_STARTING_WORK_DB_PERSISTENCE_ENABLED === "true"
   );
 }
+
+/**
+ * Shared availability for `/pilot/starting-work/interview` and the gated
+ * `/unified` entry. Requires Starting Work pilot + synthetic-only posture.
+ * Allowed in local/CI/Vercel Preview; denied on Vercel production or when
+ * deployment context is indeterminate / flags off.
+ */
+export function isInterviewJourneyPreviewAvailable(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  if (env.MAPABLE_STARTING_WORK_PILOT_ENABLED !== "true") return false;
+  if (env.MAPABLE_STARTING_WORK_SYNTHETIC_ONLY === "false") return false;
+  if (env.VERCEL_ENV === "production") return false;
+  // Vercel preview / development, or non-Vercel local/CI (VERCEL unset).
+  if (env.VERCEL === "1" && env.VERCEL_ENV && env.VERCEL_ENV !== "preview" && env.VERCEL_ENV !== "development") {
+    return false;
+  }
+  return true;
+}
