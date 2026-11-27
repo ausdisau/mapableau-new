@@ -69,6 +69,9 @@ model User {
 
   careRequests              CareRequest[]      @relation("CareRequestParticipant")
   careRequestsCreated       CareRequest[]      @relation("CareRequestCreatedBy")
+  careIntroductionsParticipant CareIntroduction[] @relation("CareIntroductionParticipant")
+  careIntroductionsRequested   CareIntroduction[] @relation("CareIntroductionRequestedBy")
+  careIntroductionsResponded   CareIntroduction[] @relation("CareIntroductionRespondedBy")
   iCanV6IntakeSubmissions   ICanV6IntakeSubmission[] @relation("ICanV6IntakeParticipant")
   careBookings              CareBooking[]      @relation("CareBookingParticipant")
   careShifts                CareShift[]        @relation("CareShiftParticipant")
@@ -1793,10 +1796,51 @@ model CareRequest {
   calendarEvents          CalendarEvent[]
   orchestrationEvents     OrchestrationEvent[]
   careBooking             CareBooking?
+  introductions           CareIntroduction[]
 
   @@index([participantId, status])
   @@index([assignedOrganisationId])
   @@map("care_requests")
+}
+
+/// Governed Care introduction (request → accept/decline → audit). Never auto-assigns.
+enum CareIntroductionStatus {
+  requested
+  accepted
+  declined
+  withdrawn
+  expired
+}
+
+model CareIntroduction {
+  id                    String                 @id @default(cuid())
+  careRequestId         String?
+  careRequest           CareRequest?           @relation(fields: [careRequestId], references: [id], onDelete: SetNull)
+  participantId         String
+  participant           User                   @relation("CareIntroductionParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  candidateType         String                 // worker | provider
+  candidateWorkerProfileId String?
+  candidateOrganisationId  String?
+  lane                  String?                // assured | choice | partner
+  status                CareIntroductionStatus @default(requested)
+  messageToCandidate    String?
+  responseNote          String?
+  requestedById         String
+  requestedBy           User                   @relation("CareIntroductionRequestedBy", fields: [requestedById], references: [id])
+  respondedById         String?
+  respondedBy           User?                  @relation("CareIntroductionRespondedBy", fields: [respondedById], references: [id], onDelete: SetNull)
+  respondedAt           DateTime?
+  expiresAt             DateTime?
+  /// Participant-selected ranking criteria snapshot (never pay-to-rank).
+  rankingCriteria       Json                   @default("[]")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  @@index([participantId, status])
+  @@index([careRequestId])
+  @@index([candidateOrganisationId, status])
+  @@index([candidateWorkerProfileId, status])
+  @@map("care_introductions")
 }
 
 model CareShift {

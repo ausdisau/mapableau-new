@@ -38,6 +38,14 @@ export const navigatorPilotConfig = {
   get matchingEnabled(): boolean {
     return this.enabled && envFlag("MAPABLE_NAVIGATOR_PILOT_MATCHING", false);
   },
+  /**
+   * Agents SDK manager bridge (Access specialist only).
+   * Independent of matching so the adapter can be exercised without claiming
+   * production Navigator matching.
+   */
+  get agentsSdkEnabled(): boolean {
+    return this.enabled && envFlag("MAPABLE_NAVIGATOR_AGENTS_SDK_ENABLED", false);
+  },
 };
 
 export function isNavigatorPilotEnabled(): boolean {
@@ -58,4 +66,8 @@ export function isNavigatorMemoryEnabled(): boolean {
 
 export function isNavigatorMatchingEnabled(): boolean {
   return navigatorPilotConfig.matchingEnabled;
+}
+
+export function isNavigatorAgentsSdkEnabled(): boolean {
+  return navigatorPilotConfig.agentsSdkEnabled;
 }
