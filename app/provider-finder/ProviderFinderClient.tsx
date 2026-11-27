@@ -3,7 +3,7 @@
 import { Bookmark, Loader2, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AdPlacement } from "@/components/ads/mapable/AdPlacement";
 import { MapErrorBoundary } from "@/components/error/MapErrorBoundary";
@@ -13,6 +13,9 @@ import {
 } from "@/components/map/LazyMapPanel";
 import type { MapLibreProvider } from "@/components/map/MapLibreMap";
 import { MapAbleCareCombinedSections } from "@/components/marketing/MapAbleCareCombinedSections";
+import { ChatFirstFilterChips } from "@/components/provider-finder/ChatFirstFilterChips";
+import { ChatFirstFinderExperience } from "@/components/provider-finder/ChatFirstFinderExperience";
+import { ChatFirstNoResults } from "@/components/provider-finder/ChatFirstNoResults";
 import { ProviderFinderAccessLayer } from "@/components/provider-finder/ProviderFinderAccessLayer";
 import { ProviderFinderAskPanel } from "@/components/provider-finder/ProviderFinderAskPanel";
 import { ProviderFinderHero } from "@/components/provider-finder/ProviderFinderHero";
@@ -26,7 +29,9 @@ import {
 } from "@/components/ui/skeleton";
 import { isClientAdsProviderFinderEnabled } from "@/lib/ads/config/client-flags";
 import { trackProductEvent } from "@/lib/analytics/product-analytics";
+import { shouldRevealChatFirstResults } from "@/lib/config/provider-finder-chat-first";
 import { getProviderFinderMapSourceClient } from "@/lib/config/provider-finder-map";
+import type { ClarificationSlot } from "@/lib/copilot/types";
 import {
   distanceKm,
   getLocationAndPostcode,
@@ -43,12 +48,21 @@ import {
   SUPPORT_TYPES,
   type SupportTypeId,
 } from "@/lib/provider/finder/filters";
+import {
+  clearAppliedField,
+  type AppliedFieldKey,
+} from "@/lib/provider/finder/merge-applied";
 import { useProviderOutlets } from "@/lib/provider/finder/use-provider-outlets";
 import {
   applyInterpretationToFields,
   buildFinderSearchParams,
+  type AppliedSearchFields,
 } from "@/lib/search/apply-interpretation";
 import { interpretSearchQueryClient } from "@/lib/search/interpreter-client";
+import type {
+  FinderAgentData,
+  FinderInterpretationData,
+} from "@/types/provider-finder-chat";
 
 import { mapOutletsToProviders } from "./outletToProvider";
 import { type Provider } from "./providers";
@@ -119,17 +133,22 @@ function providerHaystack(provider: Provider) {
 
 type ProviderFinderClientProps = {
   modelLabel?: string;
+  chatFirstV2Enabled?: boolean;
 };
 
 export default function ProviderFinderClient({
   modelLabel,
+  chatFirstV2Enabled = false,
 }: ProviderFinderClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: outlets, isLoading, isError, error } = useProviderOutlets();
+  const { data: outletsFile, isLoading, isError, error } = useProviderOutlets();
   const providers = useMemo(
-    () => (outlets ? mapOutletsToProviders(outlets) : []),
-    [outlets],
+    () =>
+      outletsFile
+        ? mapOutletsToProviders(outletsFile.data, outletsFile.date)
+        : [],
+    [outletsFile],
   );
 
   const [query, setQuery] = useState("");
@@ -143,6 +162,9 @@ export default function ProviderFinderClient({
   const [sort, setSort] = useState<SortMode>("relevance");
   const [page, setPage] = useState(1);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const chatFirstRevealStatusRef = useRef<string | undefined>(undefined);
+  const chatFirstAgentTurnRef = useRef(0);
+  const chatFirstAppliedTurnRef = useRef(0);
   const [userLocation, setUserLocation] = useState<UserPosition | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -152,6 +174,7 @@ export default function ProviderFinderClient({
   const [searchInterpreting, setSearchInterpreting] = useState(false);
   /** List-first: MapLibre chunk only mounts when the user chooses map view. */
   const [resultsView, setResultsView] = useState<DirectoryViewMode>("list");
+  const [skippedSlots, setSkippedSlots] = useState<ClarificationSlot[]>([]);
   const [ndisMapPins, setNdisMapPins] = useState<MapLibreProvider[] | null>(
     null,
   );
@@ -330,6 +353,27 @@ export default function ProviderFinderClient({
 
   const adsEnabled = isClientAdsProviderFinderEnabled();
 
+  const applied: AppliedSearchFields = useMemo(
+    () => ({
+      query,
+      location,
+      providerName,
+      serviceQuery,
+      accessQuery,
+      supportType,
+      accessNeedIds: accessNeeds,
+    }),
+    [
+      accessNeeds,
+      accessQuery,
+      location,
+      providerName,
+      query,
+      serviceQuery,
+      supportType,
+    ],
+  );
+
   const outletMapPins = useMemo((): MapLibreProvider[] => {
     let list = filteredSorted;
     if (userLocation) {
@@ -359,8 +403,9 @@ export default function ProviderFinderClient({
   }, [filteredSorted, userLocation]);
 
   useEffect(() => {
+    const mapRequested = resultsView === "map" || chatFirstV2Enabled;
     if (
-      resultsView !== "map" ||
+      !mapRequested ||
       !searchSubmitted ||
       mapSource === "outlets" ||
       (!query.trim() &&
@@ -368,7 +413,7 @@ export default function ProviderFinderClient({
         !serviceQuery.trim() &&
         !providerName.trim())
     ) {
-      if (resultsView !== "map") setNdisMapPins(null);
+      if (!mapRequested) setNdisMapPins(null);
       return;
     }
 
@@ -401,6 +446,7 @@ export default function ProviderFinderClient({
     location,
     serviceQuery,
     providerName,
+    chatFirstV2Enabled,
   ]);
 
   const mapPinProviders = useMemo((): MapLibreProvider[] => {
@@ -543,6 +589,210 @@ export default function ProviderFinderClient({
 
   const locationLabel = location.trim() || "Australia (location not selected)";
 
+  const focusFinderChat = () => {
+    const root = document.getElementById("ask-panel");
+    const field = root?.querySelector<HTMLElement>("textarea, input");
+    field?.focus();
+  };
+
+  const applyClearedFields = (next: AppliedSearchFields) => {
+    setQuery(next.query);
+    setLocation(next.location);
+    setProviderName(next.providerName);
+    setServiceQuery(next.serviceQuery);
+    setAccessQuery(next.accessQuery);
+    setSupportType(next.supportType ?? "all");
+    setAccessNeeds(next.accessNeedIds);
+    setPage(1);
+    const params = buildFinderSearchParams(next);
+    if (typeof window !== "undefined") {
+      const qs = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        qs ? `/provider-finder?${qs}` : "/provider-finder",
+      );
+    }
+  };
+
+  const handleRemoveChip = (key: AppliedFieldKey) => {
+    applyClearedFields(clearAppliedField(applied, key));
+  };
+
+  const handleBroadenSearch = () => {
+    applyClearedFields({ ...applied, location: "", query: "" });
+  };
+
+  const handleViewDirectory = () => {
+    applyClearedFields({
+      query: "",
+      location: "",
+      providerName: "",
+      serviceQuery: "",
+      accessQuery: "",
+      supportType: null,
+      accessNeedIds: [],
+    });
+    setSkippedSlots([]);
+    setSearchSubmitted(true);
+    setPage(1);
+  };
+
+  const revealChatFirstResultsIfReady = () => {
+    const paired =
+      chatFirstAgentTurnRef.current > 0 &&
+      chatFirstAgentTurnRef.current === chatFirstAppliedTurnRef.current;
+    if (
+      !chatFirstV2Enabled ||
+      !shouldRevealChatFirstResults(chatFirstRevealStatusRef.current, paired)
+    ) {
+      return;
+    }
+    setSearchSubmitted(true);
+    setPage(1);
+  };
+
+  const handleAskInterpretation = ({
+    interpretation,
+    applied: nextApplied,
+  }: FinderInterpretationData) => {
+    applyInterpretationFields(nextApplied, interpretation);
+    trackProductEvent("search_query_interpreted", {
+      context: "provider_finder_ask",
+      parsed: interpretation.parsed,
+      confidence: interpretation.confidence,
+      service_category_slug: interpretation.serviceCategorySlug ?? "",
+      engine_id: interpretation.engineId,
+    });
+    chatFirstAppliedTurnRef.current += 1;
+    revealChatFirstResultsIfReady();
+  };
+
+  const handleAskAgentMeta = (data: FinderAgentData) => {
+    chatFirstRevealStatusRef.current = data.status;
+    chatFirstAgentTurnRef.current += 1;
+    revealChatFirstResultsIfReady();
+  };
+
+  const askPanel = (
+    <ProviderFinderAskPanel
+      className="min-h-[22rem]"
+      initialProviderName={providerName || undefined}
+      modelLabel={modelLabel}
+      session={{
+        query,
+        location,
+        providerName,
+        serviceQuery,
+        accessQuery,
+        skippedSlots,
+      }}
+      onSessionChange={(next) => setSkippedSlots(next.skippedSlots ?? [])}
+      onInterpretation={handleAskInterpretation}
+      onAgentMeta={handleAskAgentMeta}
+      stayOnPage={chatFirstV2Enabled}
+      onShowResults={() => {
+        setSearchSubmitted(true);
+        setPage(1);
+      }}
+    />
+  );
+
+  const matchedList =
+    total === 0 ? (
+      chatFirstV2Enabled ? (
+        <ChatFirstNoResults
+          applied={applied}
+          onEditSearch={focusFinderChat}
+          onBroadenSearch={handleBroadenSearch}
+          onViewDirectory={handleViewDirectory}
+        />
+      ) : (
+        <Card variant="outlined" className="p-8 text-center">
+          <h3 className="text-lg font-semibold">No providers found</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try broadening your search or removing a filter.
+          </p>
+        </Card>
+      )
+    ) : (
+      <ul className="space-y-4">
+        {adsEnabled ? (
+          <li>
+            <AdPlacement
+              placement="provider-finder.results.inline"
+              surface="provider_finder"
+              enabled={adsEnabled}
+            />
+          </li>
+        ) : null}
+        {visible.map((p) => (
+          <li key={p.id}>
+            <ProviderFinderResultCard
+              provider={p}
+              isSelected={selectedProvider?.id === p.id}
+              isCompared={compareIds.includes(p.id)}
+              onSelect={setSelectedProvider}
+              onToggleCompare={toggleCompare}
+            />
+          </li>
+        ))}
+      </ul>
+    );
+
+  const mapSection = (
+    <section id="map" className="scroll-mt-24">
+      {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
+        <Card variant="outlined" className="mb-4 p-4">
+          <p className="text-sm text-muted-foreground">
+            Set a location or use &quot;Use my location&quot; to see
+            providers on the map.
+          </p>
+        </Card>
+      ) : null}
+      {mapPinsLoading ? (
+        <p
+          className="p-4 text-sm text-muted-foreground"
+          role="status"
+          aria-live="polite"
+        >
+          Loading map pins…
+        </p>
+      ) : null}
+      <MapErrorBoundary
+        fallback={
+          <ul
+            className="space-y-3 p-4"
+            aria-label="Provider list fallback"
+          >
+            {visible.slice(0, 6).map((p) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  className="w-full rounded-lg border border-border/60 px-3 py-2 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={() => setSelectedProvider(p)}
+                  aria-label={`Select ${p.name} in ${p.suburb}, ${p.state}`}
+                >
+                  {p.name} — {p.suburb}, {p.state}
+                </button>
+              </li>
+            ))}
+          </ul>
+        }
+      >
+        <MapLibreMap
+          providers={mapPinProviders}
+          userPosition={userLocation}
+          selectedProviderId={selectedProvider?.id ?? null}
+          onProviderSelect={(id) => {
+            const fromList = filteredSorted.find((x) => x.id === id);
+            if (fromList) setSelectedProvider(fromList);
+          }}
+        />
+      </MapErrorBoundary>
+    </section>
+  );
+
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-7xl space-y-6 px-4 py-12">
@@ -564,6 +814,137 @@ export default function ProviderFinderClient({
           </p>
         </Card>
       </div>
+    );
+  }
+
+  const interpretNoteEl = interpretNote ? (
+    <div className="container mx-auto max-w-5xl px-4 -mt-4 pb-2">
+      <p className="text-xs text-muted-foreground" role="status">
+        {interpretNote}
+      </p>
+    </div>
+  ) : null;
+
+  const accessNotice =
+    accessNeeds.length > 0 || accessQuery.trim().length > 0 ? (
+      <p
+        role="status"
+        className="rounded-lg border p-3 text-sm text-muted-foreground"
+      >
+        Access preferences are recorded for your review, but this directory
+        cannot confirm which providers support them. No listings are excluded
+        or marked compatible based solely on unverified access keywords. Verify
+        AAC, accessibility and worker competence directly before engaging a
+        service.
+      </p>
+    ) : null;
+
+  const pagination =
+    totalPages > 1 ? (
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </p>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="default"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+          >
+            Previous
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="default"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    ) : null;
+
+  if (chatFirstV2Enabled) {
+    return (
+      <>
+        <ProviderFinderHero
+          query={query}
+          location={location}
+          providerName={providerName}
+          serviceQuery={serviceQuery}
+          accessQuery={accessQuery}
+          onQueryChange={setQuery}
+          onLocationChange={setLocation}
+          onProviderNameChange={setProviderName}
+          onServiceQueryChange={setServiceQuery}
+          onAccessQueryChange={setAccessQuery}
+          onSearch={() => void handleSearch()}
+          onSuggestionClick={handleSuggestion}
+          onAccessSuggestionSelect={handleAccessSuggestionSelect}
+          isSubmitting={searchInterpreting}
+          compact
+        />
+        {interpretNoteEl}
+        <ChatFirstFinderExperience
+          searchSubmitted={searchSubmitted}
+          hasMatches={total > 0}
+          chat={askPanel}
+          chips={
+            <ChatFirstFilterChips
+              applied={applied}
+              onEdit={() => focusFinderChat()}
+              onRemove={handleRemoveChip}
+            />
+          }
+          list={
+            <div className="space-y-4">
+              {searchSubmitted ? (
+                <>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h2 className="font-heading text-2xl font-bold">
+                        {total} matched provider{total === 1 ? "" : "s"}
+                      </h2>
+                      <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                        Showing results for {locationLabel}.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={useMyLocation}
+                      disabled={locationLoading}
+                      aria-label="Use my current location to sort and filter providers nearby"
+                    >
+                      {locationLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <MapPin className="h-4 w-4" aria-hidden />
+                      )}
+                      Use my location
+                    </Button>
+                  </div>
+                  {locationError ? (
+                    <p className="text-sm text-destructive" role="alert">
+                      {locationError}
+                    </p>
+                  ) : null}
+                  {accessNotice}
+                  {matchedList}
+                  {pagination}
+                </>
+              ) : null}
+            </div>
+          }
+          map={mapSection}
+        />
+      </>
     );
   }
 
@@ -597,33 +978,7 @@ export default function ProviderFinderClient({
       {!searchSubmitted ? (
         <div className="container mx-auto max-w-7xl px-4 pb-8">
           <div className="grid gap-6 lg:grid-cols-2">
-            <ProviderFinderAskPanel
-              className="min-h-[22rem]"
-              initialProviderName={providerName || undefined}
-              modelLabel={modelLabel}
-              session={{
-                query,
-                location,
-                providerName,
-                serviceQuery,
-                accessQuery,
-              }}
-              onInterpretation={({ interpretation, applied }) => {
-                applyInterpretationFields(applied, interpretation);
-                trackProductEvent("search_query_interpreted", {
-                  context: "provider_finder_ask",
-                  parsed: interpretation.parsed,
-                  confidence: interpretation.confidence,
-                  service_category_slug:
-                    interpretation.serviceCategorySlug ?? "",
-                  engine_id: interpretation.engineId,
-                });
-              }}
-              onShowResults={() => {
-                setSearchSubmitted(true);
-                setPage(1);
-              }}
-            />
+            {askPanel}
             <div className="hidden lg:block">
               <p className="text-sm text-muted-foreground">
                 Prefer the form above? Use the hero search fields, or Ask
@@ -727,11 +1082,7 @@ export default function ProviderFinderClient({
                 </p>
               ) : null}
 
-              {(accessNeeds.length > 0 || accessQuery.trim().length > 0) ? (
-                <p role="status" className="rounded-lg border p-3 text-sm text-muted-foreground">
-                  Access preferences are recorded for your review, but this directory cannot confirm which providers support them. No listings are excluded or marked compatible based solely on unverified access keywords. Verify AAC, accessibility and worker competence directly before engaging a service.
-                </p>
-              ) : null}
+              {accessNotice}
 
               <LazyMapPanel
                 view={resultsView}
@@ -744,124 +1095,11 @@ export default function ProviderFinderClient({
                     ? `Map view ready with ${mapPinProviders.length} pin${mapPinProviders.length === 1 ? "" : "s"}.`
                     : `List view showing ${total} provider${total === 1 ? "" : "s"}.`
                 }
-                list={
-                  total === 0 ? (
-                    <Card variant="outlined" className="p-8 text-center">
-                      <h3 className="text-lg font-semibold">No providers found</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Try broadening your search or removing a filter.
-                      </p>
-                    </Card>
-                  ) : (
-                    <ul className="space-y-4">
-                      {adsEnabled ? (
-                        <li>
-                          <AdPlacement
-                            placement="provider-finder.results.inline"
-                            surface="provider_finder"
-                            enabled={adsEnabled}
-                          />
-                        </li>
-                      ) : null}
-                      {visible.map((p) => (
-                        <li key={p.id}>
-                          <ProviderFinderResultCard
-                            provider={p}
-                            isSelected={selectedProvider?.id === p.id}
-                            isCompared={compareIds.includes(p.id)}
-                            onSelect={setSelectedProvider}
-                            onToggleCompare={toggleCompare}
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  )
-                }
-                map={
-                  <section id="map" className="scroll-mt-24">
-                    {!userLocation && filteredSorted.length > MAP_PIN_LIMIT ? (
-                      <Card variant="outlined" className="mb-4 p-4">
-                        <p className="text-sm text-muted-foreground">
-                          Set a location or use &quot;Use my location&quot; to see
-                          providers on the map.
-                        </p>
-                      </Card>
-                    ) : null}
-                    {mapPinsLoading ? (
-                      <p
-                        className="p-4 text-sm text-muted-foreground"
-                        role="status"
-                        aria-live="polite"
-                      >
-                        Loading map pins…
-                      </p>
-                    ) : null}
-                    <MapErrorBoundary
-                      fallback={
-                        <ul
-                          className="space-y-3 p-4"
-                          aria-label="Provider list fallback"
-                        >
-                          {visible.slice(0, 6).map((p) => (
-                            <li key={p.id}>
-                              <button
-                                type="button"
-                                className="w-full rounded-lg border border-border/60 px-3 py-2 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                onClick={() => setSelectedProvider(p)}
-                                aria-label={`Select ${p.name} in ${p.suburb}, ${p.state}`}
-                              >
-                                {p.name} — {p.suburb}, {p.state}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      }
-                    >
-                      <MapLibreMap
-                        providers={mapPinProviders}
-                        userPosition={userLocation}
-                        selectedProviderId={selectedProvider?.id ?? null}
-                        onProviderSelect={(id) => {
-                          const fromList = filteredSorted.find(
-                            (x) => x.id === id,
-                          );
-                          if (fromList) setSelectedProvider(fromList);
-                        }}
-                      />
-                    </MapErrorBoundary>
-                  </section>
-                }
+                list={matchedList}
+                map={mapSection}
               />
 
-              {totalPages > 1 ? (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage <= 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() =>
-                        setPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      disabled={currentPage >= totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
+              {pagination}
             </div>
 
             <ProviderFinderAccessLayer

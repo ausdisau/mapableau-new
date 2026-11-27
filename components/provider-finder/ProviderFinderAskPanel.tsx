@@ -2,18 +2,24 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { cn } from "@/app/lib/utils";
 import { GuidedSearchDialogue } from "@/components/guided-search/GuidedSearchDialogue";
 import type { GuidedSearchSessionFields } from "@/components/guided-search/types";
-import type { FinderInterpretationData } from "@/types/provider-finder-chat";
+import type {
+  FinderAgentData,
+  FinderInterpretationData,
+} from "@/types/provider-finder-chat";
 
 type Props = {
   id?: string;
   session: GuidedSearchSessionFields;
   onInterpretation: (data: FinderInterpretationData) => void;
+  onAgentMeta?: (data: FinderAgentData) => void;
+  onSessionChange?: (session: GuidedSearchSessionFields) => void;
   onShowResults?: () => void;
+  stayOnPage?: boolean;
   initialProviderName?: string;
   className?: string;
   modelLabel?: string;
@@ -23,7 +29,10 @@ export function ProviderFinderAskPanel({
   id = "ask-panel",
   session,
   onInterpretation,
+  onAgentMeta,
+  onSessionChange,
   onShowResults,
+  stayOnPage = false,
   initialProviderName,
   className,
   modelLabel,
@@ -31,6 +40,17 @@ export function ProviderFinderAskPanel({
   const { status } = useSession();
   const isSignedIn = status === "authenticated";
   const [dialogueSession, setDialogueSession] = useState(session);
+
+  useEffect(() => {
+    setDialogueSession(session);
+  }, [
+    session.query,
+    session.location,
+    session.providerName,
+    session.serviceQuery,
+    session.accessQuery,
+    session.skippedSlots,
+  ]);
 
   const handleInterpretation = useCallback(
     (data: FinderInterpretationData) => {
@@ -69,9 +89,14 @@ export function ProviderFinderAskPanel({
           providerName:
             initialProviderName || dialogueSession.providerName,
         }}
-        onSessionChange={setDialogueSession}
+        onSessionChange={(next) => {
+          setDialogueSession(next);
+          onSessionChange?.(next);
+        }}
         onInterpretation={handleInterpretation}
+        onAgentMeta={onAgentMeta}
         onShowResults={onShowResults}
+        stayOnPage={stayOnPage}
         className="min-h-0 flex-1"
         modelLabel={modelLabel}
       />

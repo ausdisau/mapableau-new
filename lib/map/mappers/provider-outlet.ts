@@ -64,6 +64,7 @@ function parseHeadOffice(headOffice: string): LocationParsed {
 export function mapOutletToProvider(
   o: ProviderOutlet,
   index: number,
+  sourceDate?: string,
 ): Provider {
   const parsed = parseAddress(o.Address) ?? parseHeadOffice(o.Head_Office);
   const { suburb, postcode } = parsed;
@@ -98,9 +99,11 @@ export function mapOutletToProvider(
     distanceKm: 0,
     rating: 0,
     reviewCount: 0,
-    registered: o.Active === 1,
+    registered: false,
     source: "ndis_import",
     directoryActivity: parseDirectoryActivity(o.Active),
+    sourceId: o.ABN?.trim() || undefined,
+    sourceDate,
     categories: categoriesMerged,
     supports: ["In-person"],
     latitude: o.Latitude !== 0 ? o.Latitude : undefined,
@@ -113,8 +116,11 @@ export function mapOutletToProvider(
   };
 }
 
-export function mapOutletsToProviders(outlets: ProviderOutlet[]): Provider[] {
-  return outlets.map((o, i) => mapOutletToProvider(o, i));
+export function mapOutletsToProviders(
+  outlets: ProviderOutlet[],
+  sourceDate?: string,
+): Provider[] {
+  return outlets.map((o, i) => mapOutletToProvider(o, i, sourceDate));
 }
 
 export function providerToMapPointEntity(provider: Provider): MapPointEntity | null {

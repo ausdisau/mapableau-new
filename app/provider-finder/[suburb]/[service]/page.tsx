@@ -110,16 +110,10 @@ export default async function ProviderFinderLocalLandingPage({
           state={provider.state}
           postcode={provider.postcode}
           url={`${origin}/jonathan/profile/${encodeURIComponent(provider.slug)}`}
-          rating={provider.rating}
-          reviewCount={provider.reviewCount}
           latitude={provider.latitude}
           longitude={provider.longitude}
           telephone={provider.phone}
-          ndisRegistered={provider.registered}
-          description={`${provider.name} — ${service.label} near ${suburbLabel}. Facility-first listing on MapAble Australia.`}
-          accessibilityFeatures={{
-            wheelchairAccess: provider.supports.includes("In-person"),
-          }}
+          description={`${provider.name} — ${service.label} near ${suburbLabel}. Facility-first listing on MapAble Australia. Imported directory snapshot — not live NDIS registration.`}
         />
       ))}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { List, Map as MapIcon, Star } from "lucide-react";
+import { List, Map as MapIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useId, useState } from "react";
@@ -166,8 +166,8 @@ export function DirectoryView({
             </li>
           ) : (
             providers.map((provider) => {
-              const rating = Math.max(0, Math.min(5, provider.rating));
               const selected = selectedId === provider.id;
+              const demo = provider.source === "demo";
               return (
                 <li key={provider.id}>
                   <article
@@ -189,19 +189,11 @@ export function DirectoryView({
                         <p className="mt-1 text-sm text-muted-foreground">
                           {provider.categories[0] ?? serviceLabel} ·{" "}
                           {provider.suburb}, {provider.state}
-                          {provider.registered ? " · NDIS registered" : ""}
+                          {demo
+                            ? " · Demonstration record"
+                            : " · Current registration not independently verified"}
                         </p>
                       </div>
-                      <p className="inline-flex items-center gap-1 text-sm">
-                        <Star
-                          className="h-4 w-4 fill-amber-400 text-amber-400"
-                          aria-hidden
-                        />
-                        <span className="font-semibold">{rating.toFixed(1)}</span>
-                        <span className="text-muted-foreground">
-                          ({provider.reviewCount} reviews)
-                        </span>
-                      </p>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button

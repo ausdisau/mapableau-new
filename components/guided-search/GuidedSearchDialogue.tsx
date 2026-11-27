@@ -11,6 +11,7 @@ import { AccessibleAutocomplete } from "@/components/search/AccessibleAutocomple
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CopilotProviderResult } from "@/lib/copilot/types";
+import { isSkipClarificationValue } from "@/lib/provider/finder/clarification";
 import { buildFinderSearchParams } from "@/lib/search/apply-interpretation";
 import type {
   FinderAgentData,
@@ -36,6 +37,8 @@ type Props = {
   onInterpretation: (data: FinderInterpretationData) => void;
   onAgentMeta?: (data: FinderAgentData) => void;
   onShowResults?: () => void;
+  /** When true, Show results applies filters in place instead of navigating. */
+  stayOnPage?: boolean;
   initialMessage?: string;
   variant?: GuidedSearchDialogueVariant;
   className?: string;
@@ -57,6 +60,7 @@ export function GuidedSearchDialogue({
   onInterpretation,
   onAgentMeta,
   onShowResults,
+  stayOnPage = false,
   initialMessage,
   variant = "full",
   className,
@@ -78,12 +82,17 @@ export function GuidedSearchDialogue({
     null,
   );
   const [locationDraft, setLocationDraft] = useState("");
+  const agentMetaRef = useRef<FinderAgentData | null>(null);
 
   const compact = variant === "compact";
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  useEffect(() => {
+    agentMetaRef.current = agentMeta;
+  }, [agentMeta]);
 
   useEffect(() => {
     sessionIdRef.current = getOrCreateGuidedSearchSessionId();
@@ -145,18 +154,32 @@ export function GuidedSearchDialogue({
     (agentMeta?.suggestedChoices?.length ?? 0) > 0;
 
   function scrollToBottom() {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    bottomRef.current?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }
 
   const submitText = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || isBusy) return;
+      const slot = agentMetaRef.current?.clarificationSlot;
+      if (isSkipClarificationValue(trimmed) && slot) {
+        const nextSession = applyChoiceToSession(
+          sessionRef.current,
+          slot,
+          trimmed,
+        );
+        updateSession(nextSession);
+      }
       setInput("");
       await sendMessage({ text: trimmed });
       requestAnimationFrame(scrollToBottom);
     },
-    [isBusy, sendMessage],
+    [isBusy, sendMessage, updateSession],
   );
 
   useEffect(() => {
@@ -189,7 +212,7 @@ export function GuidedSearchDialogue({
   }
 
   function navigateToResults() {
-    if (applied) {
+    if (applied && !stayOnPage) {
       const params = buildFinderSearchParams(applied);
       const qs = params.toString();
       router.push(qs ? `/provider-finder?${qs}` : "/provider-finder");
@@ -313,6 +336,13 @@ export function GuidedSearchDialogue({
           >
             Use this location
           </Button>
+          <GuidedSearchChoiceChips
+            choices={[]}
+            onSelect={handleChoiceSelect}
+            disabled={isBusy}
+            compact={compact}
+            showSkip
+          />
         </div>
       ) : null}
 

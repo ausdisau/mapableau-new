@@ -24,7 +24,9 @@ export function AskProviderResultSnippets({ results }: Props) {
             <p className="font-medium text-foreground">{p.name}</p>
             <p className="text-xs text-muted-foreground">
               {p.locationLabel || "Location not listed"}
-              {p.registered ? " · NDIS registration groups on file" : ""}
+              {p.registrationStatus === "groups_listed_in_import"
+                ? " · Registration groups listed in import (not live verified)"
+                : " · Current registration not independently verified"}
             </p>
             {p.services.length > 0 ? (
               <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
@@ -35,7 +37,8 @@ export function AskProviderResultSnippets({ results }: Props) {
         ))}
       </ul>
       <p className="mt-2 text-xs text-muted-foreground">
-        From the public NDIS provider export — not MapAble-verified registration.
+        From the public NDIS provider export — not MapAble-verified registration,
+        worker screening, availability, or text/AAC support.
       </p>
     </section>
   );

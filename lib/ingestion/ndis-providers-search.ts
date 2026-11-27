@@ -1,12 +1,21 @@
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import {
+  PROVIDER_SERVICE_CATALOG,
+  resolveProviderServiceCatalog,
+} from "@/lib/provider/finder/search-service-catalog";
 
 export type NdisProviderSearchParams = {
+  /** Full-text match against provider_name only. Never concatenate suburb or service. */
   q?: string;
   state?: string;
   postcode?: string;
+  suburb?: string;
+  /** Free-text service; resolved to catalog overlap when possible. */
   service?: string;
+  registrationGroups?: string[];
+  serviceLabels?: string[];
   limit?: number;
   /** When true, only rows with non-null, non-zero latitude/longitude (map pins). */
   withCoordinatesOnly?: boolean;
@@ -28,6 +37,40 @@ export type NdisProviderSearchRow = {
   updated_at: Date;
 };
 
+function likeLiteral(text: string): string {
+  return `%${text.replace(/[\\%_]/g, "\\$&")}%`;
+}
+
+function resolveServiceOverlap(params: NdisProviderSearchParams): {
+  registrationGroups: string[];
+  serviceLabels: string[];
+  fallbackLike?: string;
+} {
+  const registrationGroups = (params.registrationGroups ?? []).filter(Boolean);
+  const serviceLabels = (params.serviceLabels ?? []).filter(Boolean);
+  if (registrationGroups.length > 0 || serviceLabels.length > 0) {
+    return { registrationGroups, serviceLabels };
+  }
+
+  const service = params.service?.trim();
+  if (!service) return { registrationGroups: [], serviceLabels: [] };
+
+  const catalogId = resolveProviderServiceCatalog(service);
+  if (catalogId) {
+    const entry = PROVIDER_SERVICE_CATALOG[catalogId];
+    return {
+      registrationGroups: entry.registrationGroups,
+      serviceLabels: entry.serviceLabels,
+    };
+  }
+
+  return {
+    registrationGroups: [],
+    serviceLabels: [],
+    fallbackLike: service,
+  };
+}
+
 export async function searchNdisProviders(
   params: NdisProviderSearchParams,
 ): Promise<{ providers: NdisProviderSearchRow[]; count: number }> {
@@ -35,7 +78,8 @@ export async function searchNdisProviders(
   const q = params.q?.trim() || null;
   const state = params.state?.trim().toUpperCase() || null;
   const postcode = params.postcode?.trim() || null;
-  const service = params.service?.trim() || null;
+  const suburb = params.suburb?.trim() || null;
+  const overlap = resolveServiceOverlap(params);
 
   const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
 
@@ -59,8 +103,32 @@ export async function searchNdisProviders(
   if (postcode) {
     conditions.push(Prisma.sql`postcode = ${postcode}`);
   }
-  if (service) {
-    conditions.push(Prisma.sql`${service} = ANY(services)`);
+  if (suburb) {
+    conditions.push(Prisma.sql`suburb ILIKE ${likeLiteral(suburb)}`);
+  }
+
+  const serviceSources: Prisma.Sql[] = [];
+  if (overlap.registrationGroups.length > 0) {
+    serviceSources.push(
+      Prisma.sql`registration_groups && ARRAY[${Prisma.join(overlap.registrationGroups)}]::text[]`,
+    );
+  }
+  if (overlap.serviceLabels.length > 0) {
+    serviceSources.push(
+      Prisma.sql`services && ARRAY[${Prisma.join(overlap.serviceLabels)}]::text[]`,
+    );
+  }
+  if (overlap.fallbackLike) {
+    const like = likeLiteral(overlap.fallbackLike);
+    serviceSources.push(
+      Prisma.sql`EXISTS (SELECT 1 FROM unnest(services) AS s WHERE s ILIKE ${like})`,
+    );
+    serviceSources.push(
+      Prisma.sql`EXISTS (SELECT 1 FROM unnest(registration_groups) AS g WHERE g ILIKE ${like})`,
+    );
+  }
+  if (serviceSources.length > 0) {
+    conditions.push(Prisma.sql`(${Prisma.join(serviceSources, " OR ")})`);
   }
 
   const whereClause = Prisma.join(conditions, " AND ");

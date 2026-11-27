@@ -15,9 +15,8 @@ export async function fetchProviderMapPins(params: {
   const search = new URLSearchParams();
   if (params.location?.trim()) search.set("location", params.location.trim());
   if (params.service?.trim()) search.set("service", params.service.trim());
-  const qParts = [params.provider?.trim(), params.q?.trim()].filter(Boolean);
-  const combinedQ = qParts.join(" ").trim();
-  if (combinedQ) search.set("q", combinedQ);
+  const providerName = params.provider?.trim();
+  if (providerName) search.set("q", providerName);
 
   const res = await fetch(`/api/providers/map?${search.toString()}`);
   if (!res.ok) {

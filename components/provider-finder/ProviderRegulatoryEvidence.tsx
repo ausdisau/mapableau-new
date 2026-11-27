@@ -30,6 +30,16 @@ export function ProviderRegulatoryEvidence({
           <dd className="text-muted-foreground">{evidence.provenance}</dd>
         </div>
         <div>
+          <dt className="font-medium text-foreground">Source identifier</dt>
+          <dd className="text-muted-foreground">
+            {evidence.sourceId ?? "Source ID not established"}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium text-foreground">Directory snapshot</dt>
+          <dd className="text-muted-foreground">{evidence.sourceCheckedLabel}</dd>
+        </div>
+        <div>
           <dt className="font-medium text-foreground">Directory activity</dt>
           <dd className="text-muted-foreground">{evidence.directoryActivity}</dd>
         </div>
