@@ -1,10 +1,10 @@
-import type { LivingAccessGraphSnapshot } from "./types";
 import {
   projectEdgeProvenance,
   projectNodeProvenance,
   type AccessGraphEdgeListItemWithProvenance,
   type AccessGraphListItemWithProvenance,
 } from "./provenance-projection";
+import type { LivingAccessGraphSnapshot } from "./types";
 
 export type AccessGraphListItem = AccessGraphListItemWithProvenance;
 export type AccessGraphEdgeListItem = AccessGraphEdgeListItemWithProvenance;

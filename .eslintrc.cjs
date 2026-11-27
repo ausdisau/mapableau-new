@@ -62,6 +62,9 @@ module.exports = {
     "react/prop-types": "off",
   },
   settings: {
+    // Next provides these via compiled packages; node resolver in ESLINT_CI_LIGHT
+    // cannot see them without this allowlist.
+    "import/core-modules": ["server-only", "client-only"],
     "import/resolver": isCiLight
       ? {
           node: {
