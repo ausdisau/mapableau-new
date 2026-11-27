@@ -249,15 +249,26 @@ export default function CommunityLiveApp() {
               ["private", "Private to me", "Only your signed-in account can read it. No moderation or publication."],
               ["review", "Share with moderators only", "Reviewers can read it, but it cannot be published."],
               ["public", "Consider for public publication", "Human moderators may approve it for public viewing without identifying account details."] ,
-            ] as const).map(([scope, label, description]) => (
-              <label key={scope} className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
-                <input type="radio" name="scope" className="mt-1 size-5 accent-[#0c2043]" checked={consentScope === scope} onChange={() => setConsentScope(scope)} />
-                <span><strong>{label}</strong><span className="mt-1 block text-sm text-slate-600">{description}</span></span>
-              </label>
+            ] as const).map(([scope, scopeLabel, description]) => (
+              <div key={scope} className="flex min-h-11 cursor-pointer gap-3 rounded-lg p-2 hover:bg-white">
+                <input
+                  id={`consent-scope-${scope}`}
+                  type="radio"
+                  name="scope"
+                  className="mt-1 size-5 accent-[#0c2043]"
+                  checked={consentScope === scope}
+                  onChange={() => setConsentScope(scope)}
+                  aria-label={`${scopeLabel}. ${description}`}
+                />
+                <label htmlFor={`consent-scope-${scope}`} className="cursor-pointer">
+                  <strong>{scopeLabel}</strong>
+                  <span className="mt-1 block text-sm text-slate-600">{description}</span>
+                </label>
+              </div>
             ))}
           </fieldset>
           <label className="flex items-start gap-3">
-            <input type="checkbox" className="mt-1 size-5 accent-[#0c2043]" checked={acknowledged} required onChange={e => setAcknowledged(e.target.checked)} />
+            <input type="checkbox" className="mt-1 size-5 accent-[#0c2043]" checked={acknowledged} required onChange={e => setAcknowledged(e.target.checked)} aria-label="I understand and acknowledge these publication choices" />
             <span>I understand this sharing choice. I can later remove my submission content; minimal system audit metadata may be retained.</span>
           </label>
           <button type="submit" className={buttonClass} disabled={working || !signedIn || !challengeId || challenges.length === 0}>

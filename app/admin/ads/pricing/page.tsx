@@ -1,7 +1,7 @@
-import { requireAdmin } from "@/lib/auth/guards";
 import { DEFAULT_PLACEMENT_FLOOR_CPM_MICROS } from "@/lib/ads/auction/config";
 import { getPlacementReservePrice } from "@/lib/ads/auction/reserves";
 import { formatAudMicros } from "@/lib/ads/money/micros";
+import { requireAdmin } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminAdsPricingPage() {

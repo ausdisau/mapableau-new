@@ -142,13 +142,14 @@ function fmtNumber(v: string | number | undefined): string {
     : "Not recorded";
 }
 
-function filenamePart(v: string): string {
+function _filenamePart(v: string): string {
   return String(v || "mapable-signal")
     .replace(/[^a-z0-9_-]+/gi, "-")
     .slice(0, 45)
     .replace(/^-|-$/g, "")
     .toLowerCase();
 }
+void _filenamePart;
 
 function reportName(): string {
   return `mapable-signal-${todayIsoDate()}`;
@@ -367,13 +368,24 @@ function SyntheticMap({
     <div
       className="sketch-map"
       data-map-target={editable ? "1" : undefined}
+      role={editable ? "button" : undefined}
+      tabIndex={editable ? 0 : undefined}
       aria-label={
         editable
-          ? "Illustrative map. Click to set coordinates in the form. Manual fields are also available."
+          ? "Illustrative map. Click or press Enter to set coordinates in the form. Manual fields are also available."
           : undefined
       }
       onClick={handleClick}
-      role={editable ? "application" : undefined}
+      onKeyDown={
+        editable
+          ? (ev) => {
+              if (ev.key === "Enter" || ev.key === " ") {
+                ev.preventDefault();
+                handleClick(ev as unknown as MouseEvent<HTMLDivElement>);
+              }
+            }
+          : undefined
+      }
     >
       <svg viewBox="0 0 800 475" preserveAspectRatio="none" role="presentation" aria-hidden="true">
         <rect width="800" height="475" fill="#eaf1ed" />

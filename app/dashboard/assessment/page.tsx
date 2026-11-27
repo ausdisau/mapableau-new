@@ -34,7 +34,7 @@ export default async function ParticipantAssessmentDashboard() {
       </div>
       <div className="rounded-xl border p-5">
         <h2 className="text-xl font-semibold">Compare a later report</h2>
-        <p className="mt-2">Keep your original words distinct from the assessor's account. Note omissions, disagreements and unmet needs.</p>
+        <p className="mt-2">Keep your original words distinct from the assessor&apos;s account. Note omissions, disagreements and unmet needs.</p>
         <Link href="/dashboard/assessment/review" className="mt-3 inline-block text-primary underline">Open report comparison workspace</Link>
       </div>
       <p className="text-sm text-muted-foreground">No report is sent to the NDIA automatically. Do not add clinical files to general registration fields.</p>
