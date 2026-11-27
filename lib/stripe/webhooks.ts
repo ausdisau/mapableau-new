@@ -85,18 +85,40 @@ function shouldHandleAds(event: Stripe.Event): boolean {
   return isAdsWalletTopUpEvent(event);
 }
 
+export type StripeWebhookLaneResult = {
+  duplicate: boolean;
+  processed: boolean;
+  failed: boolean;
+  errorMessage?: string;
+};
+
 /**
  * Dispatch verified webhook to billing-core, Ads wallet, and/or legacy Invoice handlers.
+ * Fail-closed: never mark processed after a handler error so Stripe can retry.
  */
 export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
-  billing: { duplicate: boolean; processed: boolean };
-  legacy: { duplicate: boolean; processed: boolean };
-  ads: { duplicate: boolean; processed: boolean };
+  billing: StripeWebhookLaneResult;
+  legacy: StripeWebhookLaneResult;
+  ads: StripeWebhookLaneResult;
+  anyFailed: boolean;
 }> {
   const result = {
-    billing: { duplicate: false, processed: false },
-    legacy: { duplicate: false, processed: false },
-    ads: { duplicate: false, processed: false },
+    billing: {
+      duplicate: false,
+      processed: false,
+      failed: false,
+    } satisfies StripeWebhookLaneResult,
+    legacy: {
+      duplicate: false,
+      processed: false,
+      failed: false,
+    } satisfies StripeWebhookLaneResult,
+    ads: {
+      duplicate: false,
+      processed: false,
+      failed: false,
+    } satisfies StripeWebhookLaneResult,
+    anyFailed: false,
   };
 
   if (shouldHandleAds(event)) {
@@ -109,11 +131,15 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
     if (!stored.duplicate) {
       try {
         await handleAdsStripeEvent(event);
+        await markWebhookProcessed(stored.eventRowId);
+        result.ads.processed = true;
       } catch (err) {
         console.error("Stripe Ads webhook handler error", err);
+        result.ads.failed = true;
+        result.ads.errorMessage =
+          err instanceof Error ? err.message : "ads_handler_failed";
+        result.anyFailed = true;
       }
-      await markWebhookProcessed(stored.eventRowId);
-      result.ads.processed = true;
     }
   }
 
@@ -127,11 +153,15 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
     if (!stored.duplicate) {
       try {
         await handleStripeBillingEvent(event);
+        await markWebhookProcessed(stored.eventRowId);
+        result.billing.processed = true;
       } catch (err) {
         console.error("Stripe billing webhook handler error", err);
+        result.billing.failed = true;
+        result.billing.errorMessage =
+          err instanceof Error ? err.message : "billing_handler_failed";
+        result.anyFailed = true;
       }
-      await markWebhookProcessed(stored.eventRowId);
-      result.billing.processed = true;
     }
   }
 
@@ -145,11 +175,15 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
     if (!stored.duplicate) {
       try {
         await handleLegacyStripeEvent(event);
+        await markLegacyWebhookProcessed(event.id);
+        result.legacy.processed = true;
       } catch (err) {
         console.error("Stripe legacy webhook handler error", err);
+        result.legacy.failed = true;
+        result.legacy.errorMessage =
+          err instanceof Error ? err.message : "legacy_handler_failed";
+        result.anyFailed = true;
       }
-      await markLegacyWebhookProcessed(event.id);
-      result.legacy.processed = true;
     }
   }
 
@@ -188,6 +222,17 @@ export async function parseAndProcessWebhookRequest(
   }
 
   const dispatched = await dispatchStripeWebhook(event);
+  if (dispatched.anyFailed) {
+    return {
+      ok: false,
+      status: 500,
+      message:
+        dispatched.billing.errorMessage ||
+        dispatched.ads.errorMessage ||
+        dispatched.legacy.errorMessage ||
+        "Webhook handler failed; event left unprocessed for retry",
+    };
+  }
   return {
     ok: true,
     billing: { duplicate: dispatched.billing.duplicate },
