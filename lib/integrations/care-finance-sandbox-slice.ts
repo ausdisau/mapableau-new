@@ -1,7 +1,7 @@
 import { createDeputyDraftShift } from "@/lib/integrations/deputy/draft-shift";
 import { isDeputyEnabled } from "@/lib/integrations/deputy/flags";
-import { enqueueIntegrationOutbox } from "@/lib/integrations/outbox/memory-outbox";
 import { integrationOutboxFlags } from "@/lib/integrations/outbox/flags";
+import { enqueueIntegrationOutbox } from "@/lib/integrations/outbox/memory-outbox";
 import { createXeroDraftAccrec } from "@/lib/integrations/xero/draft-accrec";
 import { isXeroDirectEnabled } from "@/lib/integrations/xero/flags";
 
