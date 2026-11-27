@@ -16,6 +16,7 @@ import {
   createTwoFactorToken,
   verifyTwoFactorToken,
 } from "@/lib/auth/two-factor-token";
+import { MAPABLE_PROVIDERCLOUD_URL } from "@/lib/brand/constants";
 import { prisma } from "@/lib/prisma";
 
 const PASSKEY_CHALLENGE_TTL_SECONDS = 10 * 60;
@@ -40,6 +41,15 @@ function appOrigin(): string {
 
 function rpID(): string {
   return process.env.PASSKEY_RP_ID?.trim() || new URL(appOrigin()).hostname;
+}
+
+export function expectedPasskeyOrigins(): string[] {
+  return [
+    ...new Set([
+      appOrigin(),
+      MAPABLE_PROVIDERCLOUD_URL.replace(/\/$/, ""),
+    ]),
+  ];
 }
 
 function userDisplayName(user: Pick<User, "email" | "name">): string {
@@ -99,7 +109,7 @@ export async function finishPasskeyRegistration({
 
   const verification = await verifyRegistrationResponse({
     expectedChallenge: challenge.challenge,
-    expectedOrigin: appOrigin(),
+    expectedOrigin: expectedPasskeyOrigins(),
     expectedRPID: rpID(),
     response: credential,
   });
@@ -185,7 +195,7 @@ export async function finishPasskeyAuthentication({
       transports: storedCredential.transports as AuthenticatorTransportFuture[],
     } satisfies WebAuthnCredential,
     expectedChallenge: challenge.challenge,
-    expectedOrigin: appOrigin(),
+    expectedOrigin: expectedPasskeyOrigins(),
     expectedRPID: rpID(),
     response: credential,
   });

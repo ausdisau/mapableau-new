@@ -20,6 +20,10 @@ const loginClientSource = readFileSync(
   join(process.cwd(), "app/login/LoginClient.tsx"),
   "utf8",
 );
+const passkeysSource = readFileSync(
+  join(process.cwd(), "lib/auth/passkeys.ts"),
+  "utf8",
+);
 
 describe("passkey support", () => {
   it("adds a persistent passkey credential model", () => {
@@ -37,6 +41,12 @@ describe("passkey support", () => {
     expect(loginClientSource).toContain("Login with passkey");
     expect(loginClientSource).toContain("/api/passkeys/login/options");
     expect(loginClientSource).toContain("/api/passkeys/login/verify");
+  });
+
+  it("accepts the ProviderCloud host as a passkey origin", () => {
+    expect(passkeysSource).toContain("expectedPasskeyOrigins");
+    expect(passkeysSource).toContain("MAPABLE_PROVIDERCLOUD_URL");
+    expect(passkeysSource).toContain("expectedOrigin: expectedPasskeyOrigins()");
   });
 
   it("round-trips passkey auth challenge tokens", () => {

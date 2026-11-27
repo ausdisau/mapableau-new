@@ -155,6 +155,12 @@ describe("MapAbleID GET /api/identity/me", () => {
     expect(parsed.services.find((s) => s.id === "mapable")?.status).toBe(
       "connected",
     );
+    expect(parsed.services.find((s) => s.id === "providercloud")?.status).toBe(
+      "connected",
+    );
+    expect(parsed.services.find((s) => s.id === "accessibooks")?.status).toBe(
+      "planned",
+    );
     expect(containsForbiddenIdentityFields(parsed)).toEqual([]);
     expect(JSON.stringify(parsed)).not.toMatch(/passwordHash|sessionTokenHash|ndisNumber/i);
   });

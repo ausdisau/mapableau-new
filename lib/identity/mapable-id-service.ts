@@ -3,15 +3,9 @@ import {
   decideIdentityAccess,
   type VerifiedSession,
 } from "@/lib/identity/mapable-id-policy";
+import { MAPABLE_ID_SERVICES } from "@/lib/identity/mapable-id-services";
 import type { IdentityMeResponse } from "@/lib/identity/mapable-id-types";
 import { prisma } from "@/lib/prisma";
-
-const PLANNED_SERVICES = [
-  { id: "mapable", title: "MapAble" },
-  { id: "providercloud", title: "ProviderCloud" },
-  { id: "accessibooks", title: "AccessiBooks" },
-  { id: "cripsquare", title: "CripSquare" },
-] as const;
 
 function toIso(value: Date | null | undefined): string | null {
   return value ? value.toISOString() : null;
@@ -204,13 +198,10 @@ export async function buildIdentityMeSnapshot(input: {
         correlationId: grant.correlationId,
       };
     }),
-    services: PLANNED_SERVICES.map((service) => ({
+    services: MAPABLE_ID_SERVICES.map((service) => ({
       id: service.id,
       title: service.title,
-      status:
-        service.id === "mapable"
-          ? ("connected" as const)
-          : ("planned" as const),
+      status: service.status,
     })),
     consents: consents.map((consent) => ({
       id: consent.id,
